@@ -1,7 +1,9 @@
 # concept-library
 Concept Library web application (conceptlibrary.saildatabank.com)
 	
-<p>The concept library is a system for storing, managing, sharing, and documenting clinical code lists in health research.  The specific goals of this work are:</p>
+The concept library is a system for storing, managing, sharing, and documenting clinical code lists in health research.  
+	
+The specific goals of this work are:
 * Store code lists along with metadata that captures important information about quality, author, etc.
 * Store version history and provide a way to unambiguously reference a particular version of a code list.
 * Allow programmatic interaction with code lists via an API, so that they can be directly used in queries, statistical scripts, etc.
