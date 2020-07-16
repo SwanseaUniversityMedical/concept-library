@@ -211,4 +211,8 @@ If we are to use ldap over ssl then we’ll need to follow this example:
 
 https://support.microsoft.com/en-us/help/938703/how-to-troubleshoot-ldap-over-ssl-connection-problems
 
+# Deployment
+
+Deployment is done through GIT CI and docker.
+
 
