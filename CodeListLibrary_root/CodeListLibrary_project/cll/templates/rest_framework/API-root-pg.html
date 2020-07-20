@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block title %}{% endblock title %}
+
+{% block container %}
+
+	<h1>Concept Library API</h1>
+	
+	<p>The concept library API allows programmatic interaction with code lists, so that they can be directly used in queries, statistical scripts, etc. </p>
+	<p><i>(Replace the number 0 in the url with the relevant concept/working set id.<br>
+        Replace the number 1 in the url with the relevant version_id of the concept/working set.)
+        </i>
+    </p>
+	<h2>Concepts:</h2>	
+	<ul>
+		<li>To export the code list of the latest version of a concept</li>
+		<ol>
+		<li>JSON
+			<p><a href="{{ export_concept_codes }}?format=json" target="_blank" class="alert-link">{{ export_concept_codes }}?format=json</a></p>
+		</li>
+		<li>XML
+			<p><a href="{{ export_concept_codes }}?format=xml" target="_blank" class="alert-link">{{ export_concept_codes }}?format=xml</a></p>
+		</li>
+		</ol>
+	</ul>
+	
+	<ul>
+		<li>To export the code list of a specific version of a concept</li>
+		<ol>
+		<li>JSON
+			<p><a href="{{ export_concept_codes_byVersionID }}?format=json" target="_blank" class="alert-link">{{ export_concept_codes_byVersionID }}?format=json</a></p>
+		</li>
+		<li>XML
+			<p><a href="{{ export_concept_codes_byVersionID }}?format=xml" target="_blank" class="alert-link">{{ export_concept_codes_byVersionID }}?format=xml</a></p>
+		</li>
+		</ol>
+	</ul>
+			
+	<h2>Working Sets:</h2>
+	<ul>
+		<li>To export the code list of the latest version of a working set</li>
+		<ol>
+		<li>JSON
+			<p><a href="{{ export_workingset_codes }}?format=json" target="_blank" class="alert-link">{{ export_workingset_codes }}?format=json</a></p>
+		</li>
+		<li>XML
+			<p><a href="{{ export_workingset_codes }}?format=xml" target="_blank" class="alert-link">{{ export_workingset_codes }}?format=xml</a></p>
+		</li>
+		</ol>
+	</ul>
+	
+	<ul>
+		<li>To export the code list of a specific version of a working set</li>
+		<ol>
+		<li>JSON
+			<p><a href="{{ export_workingset_codes_byVersionID }}?format=json" target="_blank" class="alert-link">{{ export_workingset_codes_byVersionID }}?format=json</a></p>
+		</li>
+		<li>XML
+			<p><a href="{{ export_workingset_codes_byVersionID }}?format=xml" target="_blank" class="alert-link">{{ export_workingset_codes_byVersionID }}?format=xml</a></p>
+		</li>
+		</ol>
+	</ul>
+
+
+{% endblock container %}
+{% block scripts  %}
+{% endblock scripts %}
+
+

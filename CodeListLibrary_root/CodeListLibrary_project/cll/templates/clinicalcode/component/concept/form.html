@@ -1,0 +1,326 @@
+{# include hidden fields #}
+{% for hidden in form.hidden_fields %}
+	{{ hidden }}
+{% endfor %}
+
+<div class="form-group">
+	<div class="col-sm-3">
+		<label for="concept-search-text" class="required">Add a child concept:</label>
+		<i class="help-block" style="font-size: 10px;">Start typing a concept name to see your concept appear</i>
+	</div>
+	
+	<div class="col-sm-7" id="concept-search-container">
+		<input class="form-control" type="text" placeholder="Search" name="search" id="concept-search-text" 
+		{% if form.instance.pk is not None %} disabled {% endif %} value="{{ form.instance.concept_ref.name}}">
+	</div>
+	<div class="col-sm-2" >
+		<a href="#" role="button" class="btn popovers" id="concept-search-help" data-toggle="popover" data-trigger="hover"
+		   data-container="#concept-search-container" title="" data-original-title="Concept search" data-placement="left">
+			<i class="fa fa-question-circle" aria-hidden="true"></i> 
+		</a>
+	</div>
+</div>
+
+<div id="div_id_name" class="form-group {% if form.name.errors %}has-error{% endif %}">
+	<label for="{{ form.name.id_for_label }}" class="col-sm-3 required">{{ form.name.label }}</label>
+	<div class="col-sm-7"   id="div_id_name2" >
+		{{ form.name }}
+		<span class="help-block"  id="help_id_name">
+		  {% if form.name.errors %}              
+               {% for error in form.name.errors %}{{ error }}{% endfor %}
+             {% endif %}
+           </span>
+	</div>
+</div>
+
+<div>
+	<input type="hidden" id="latest_history_id_shown" name="latest_history_id_shown"  value="{% if request.GET.latest_history_id|length %}{{ request.GET.latest_history_id }}{% else %}{{ latest_history_ID }}{% endif %}"> 
+ 	<input type="hidden" id="component_id" name="component_id"  value="{{ object.id }}">
+ 	
+ 	<input type="hidden" id="latest_history_id_concept" name="latest_history_id_concept"  value="{{ latest_history_ID }}">
+ 	 
+</div>
+
+<div class="form-group {% if form.comment.errors %}has-error{% endif %}">
+	<label for="{{ form.comment.id_for_label }}" class="col-sm-3">{{ form.comment.label }}</label>
+	<div class="col-sm-7">
+		{{ form.comment }}
+		{% if form.comment.errors %}
+        	<span class="help-block">
+          		{% for error in form.comment.errors %}{{ error }}{% endfor %}
+           </span>
+     	{% endif %}
+	</div>
+</div>
+			
+
+<div class="form-group">
+	<label class="col-sm-3">{{ form.logical_type.label }}</label>
+	<div class="col-sm-7">								
+		{% for choice in form.logical_type %}
+		<div class="radio">
+			<label>										
+				{{ choice.tag }}
+				{{ choice.choice_label }}
+			</label>
+		</div>
+		{% endfor %}
+	</div>
+</div>
+
+
+{% if form.instance.pk is not None %}
+	<div class="form-group">
+		<label class="col-sm-3">Open linked concept in a new tab:</label>
+		<div class="col-sm-7">
+			{% if component.pk in user_can_view_component or component.pk in user_can_edit_component %}
+				<!-- Link to the concept history detail page -->
+				<a href="{% url 'concept_history_detail' pk=form.instance.concept_ref_id concept_history_id=form.instance.concept_ref_history_id %}" target="_blank" class="alert-link">
+				(CONCEPT ID: {{ form.instance.concept_ref_id }}/{{ form.instance.concept_ref_history_id }})</a>
+				
+				{% if component.pk in component_error_msg_view %}
+		 				    <div class="alert-danger col-sm-12" role="alert"  >
+		 						<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+		 						<span class="sr-only">Error:</span>
+		 						{% for key,value in component_error_msg_view.items %}
+		 						   {% if key == component.pk %}
+									 {% for v in value %}
+									 	- {{ v }}<br> 
+									 {% endfor %}
+								   {% endif %}
+								{% endfor %}
+		 					</div>
+			    {% endif %}
+			    
+			{% endif %}
+		</div>
+	</div>
+	
+	{% if concept_ref_deleted %}
+		<div class="alert alert-danger" role="alert">
+			<p>This concept has been deleted.
+			</p> 	
+		</div>		
+	{% else %}	
+		{% if concept_ref_lates_version_id != form.instance.concept_ref_history_id %}
+			{% if concept_ref_is_accessible %}
+				<div class="alert alert-warning" role="alert">
+					<p>This concept has a newer version: <a href="{% url 'concept_history_detail' pk=form.instance.concept_ref_id concept_history_id=concept_ref_lates_version_id %}" target="_blank" class="alert-link">
+							({{ form.instance.concept_ref_id }}/{{ concept_ref_lates_version_id }})
+					   </a>
+					</p>
+			
+					<a href="{% url 'component_concept_update' concept_id=form.concept.value pk=object.id update_to_latest_version=1 %}" class="btn btn-primary" id="saveBtn2" >
+						<i class="fa fa-save" aria-hidden="true"></i> Update to newer version
+					</a>
+					<span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+					<a href="{% url 'compare_concepts_codes' concept_id=form.instance.concept_ref_id version_id=form.instance.concept_ref_history_id concept_ref_id=form.instance.concept_ref_id version_ref_id=concept_ref_lates_version_id %}" class="btn btn-info" target="_blank" >
+						<i class="fa fa-columns" aria-hidden="true"></i> Compare codes of the two versions
+					</a>   	
+				</div>	
+			{% else %}	
+				<div class="alert alert-danger" role="alert">
+					<p>You don't have view permission for this concept.
+					</p> 	
+				</div>							
+			{% endif %}
+		{% endif %}
+	{% endif %}
+
+
+{% endif %}
+
+{% if form.non_field_errors or form.errors %}
+  <div class="alert alert-danger">
+	  <p>The operation could not be performed because one or more error(s) occurred. Please resubmit the form after making the following changes:</p>
+	  <ul>
+
+	  	{% for field,error in form.errors.items %}
+			<li>{{ error|striptags }}</li>
+		{% endfor %}
+	  </ul>
+  </div>
+{% endif %}
+
+<!-- <div id="concept-uniquecodes" class="form-group"> -->
+<!-- 	<label class="col-sm-12"><i class="fa fa-barcode" aria-hidden="true"></i> Codes</label> -->
+<!-- 	<span style='width:100px;' >&nbsp;&nbsp;&nbsp;</span> -->
+<!-- 	<span class="childConceptAmount label label-primary">{% if form.instance.pk is not None %}Rows: {{ codes_count }}{% endif %}</span> -->
+<!-- </div> -->
+
+<hr/>
+<div  id="concept-uniquecodes"  class="row">
+	<div class="col-md-8">
+		<h4><i class="fa fa-barcode" aria-hidden="true"></i> Codes</h4>
+	</div>
+	<div class="col-md-4 text-right">
+		<span class="childConceptAmount label label-primary">{% if form.instance.pk is not None %}Rows: {{ codes_count }}{% endif %}</span>
+	</div>
+</div>
+
+<div class="pre-scrollable">	
+	<table class="table table-striped small-table" id="concept-component-table">
+		<thead>
+			<tr>
+				<th>Code</th>
+				<th>Description</th>
+			</tr>
+		</thead>
+		<tbody>
+	{% if component.pk in user_can_view_component or component.pk in user_can_edit_component %}	
+			{% include '../get_child_concept_codes.html' %}
+	{% endif %}
+		</tbody>
+	</table>
+</div>
+<div id="popover-content-concept-component-help" class="hide popover-lg">
+	<p>By creating a concept component you can attach more specific concepts to be a child of the current concept. This allows you to define a broader concept that is made up of several more specific concepts (for example, a concept for heart disease could consist of concepts for coronary artery disease, heart attack, cardiomyopathy...).</p>
+</div>
+
+<div id="popover-content-concept-search-help" class="hide popover-lg">
+	<p>Start typing the name of the concept and matching records will appear below the textbox. Select the concept that you wish to attach.<br/>
+	   Once the component has been saved, the concept ID cannot be changed: to do this, the component must be deleted and a new one created.</p>
+</div>
+
+<script src="/static/js/clinicalcode/dataService.js"></script>
+
+<script  type="text/javascript"> 
+$(function(){
+	$("#saveBtn,#saveBtn2").click(function (event) {
+			event.preventDefault();
+		    var form = $(this).closest("form");
+		    //alert($(this).closest("form").attr('action'));
+		    //alert(form.attr('action'));
+			form.attr('action' , $(this).attr('href'));
+			//alert(form.attr('action'));
+			
+			//=============================================
+
+			// check component name is not empty
+			// this is crucial to be done in script first 
+			var comp_name = form.find('input[name=name]').val();
+			if($.trim(comp_name) == ''){			
+				$('#div_id_name').addClass('has-error');
+		        $('#help_id_name').html('Please enter a name');
+		        alert('Please enter component name');
+		        return false;
+		    }else{
+		    	$('#div_id_name').removeClass('has-error');
+		        $('#help_id_name').html('');
+		    }
+			//-----------------------
+			if($.trim(form.find('input[id=id_concept_ref]').val()) == ''){
+				 alert('Please search for a concept and select one from the list.');
+			     return false;
+			}
+			
+			//=============================================
+			//alert( "first ajax....." );
+			$.ajax({
+				url: '{% url "check_concurrent_concept_update" form.concept.value %}',
+		        type: 'GET',
+				data: {"latest_history_id_shown": form.find('input[name=latest_history_id_shown]').val()  
+					  ,"component_id": form.find('input[name=component_id]').val()  
+					},
+				//dataType: 'json',
+				beforeSend: function(xhr, opts){
+					$(".loader").show();
+				},
+				success: function(data){
+					//alert('check done.......');
+							 
+					if(data.errorMsg){
+						 if(data.overrideVersion == -1){
+							 alert(data.errorMsg);
+							 $(".loader").hide();
+						 } else {
+							 confrm = false;
+							 confrm = confirm(data.errorMsg);
+							 if(confrm){
+								 $(".loader").hide();
+								 form.submit();						
+								 $(this).closest("modal").modal('toggle'); //or  $('#IDModal').modal('hide');	
+							 }else{
+								 $(".loader").hide();
+							 }
+						 }
+					}
+						   
+
+					if(data.successMsg){
+						//alert(data.successMsg);
+						$(".loader").hide();
+						form.submit();						
+						$(this).closest("modal").modal('toggle'); //or  $('#IDModal').modal('hide');		
+					}
+				},
+				complete: function(){
+					//$(".loader").hide();
+				}
+			});
+            //=============================================
+            	
+			return false;
+		});
+		
+		//------------------------------------------------
+
+
+		// autocomplete for finding a concept, enter concept name and it will display a list of possible matches
+		$('#concept-search-text').autocomplete({
+			serviceUrl: '/api/concepts/?id=' + $('#id_concept').val(),
+			paramName: 'search',
+			transformResult: function(response){
+				// clear the selected field
+				$('#id_concept_ref').val('');
+				$('#concept-component-table tbody').html('');
+				$('.childConceptAmount').text('');
+				
+				return {
+					suggestions: $.map($.parseJSON(response), function(item){
+						return {data: String(item.id), value: "Concept: " + item.id + " - " + item.name + ", author: " + item.author};
+					})
+				};
+			},
+			onSelect : function(suggestion){
+				// set the id of the selected concept
+				$('#id_concept_ref').val(suggestion.data);
+				
+				$('#conceptcompfrm #id_name').val(suggestion.value.split(', author: ')[0].split(' - ').slice(1).join(' - '));
+				$('#div_id_name').removeClass('has-error');
+		        $('#help_id_name').html('');
+		        
+// 		     // get the components for the concept
+// 				dataService.getComponents(suggestion.data, function(data){
+// 					if(data.form_is_valid){
+// 						$('#concept-component-table tbody').html(data.html_component_list);
+//						$('.childConceptAmount').text('Rows: ' + data.codes_count);
+// 					}
+// 				});
+		     
+				// get the unique codes for the concept
+				dataService.getConceptUniqueCodes(suggestion.data, function(data){
+					if(data.form_is_valid){
+						$('#concept-component-table tbody').html(data.html_uniquecodes_list);
+						$('.childConceptAmount').text('Rows: ' + data.codes_count);
+					}
+				});
+			}
+		}).on('blur', function(event){
+			if($(this).val() == ""){
+				$('#id_concept_ref').val('');
+				$('#concept-component-table tbody').html('');
+				$('.childConceptAmount').text('');
+			}
+		});
+		//------------------------------------------------
+
+	});
+
+	//------------------------------------------------
+
+	$(document).on("keypress", ":input:not(textarea):not([type=submit])", function(event) {
+		return event.keyCode != 13;
+	});
+	
+</script>

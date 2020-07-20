@@ -1,0 +1,174 @@
+body{
+	padding-top: 60px;
+	padding-bottom: 20px;
+	height: 100%;
+}
+
+.page-header{
+	
+	margin: 5px 0 5px;
+}
+
+label.required:after {content: " *"; color: red;}
+
+span.required{
+	color: red;
+}
+
+.loader {
+	position: fixed;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height: 100%;
+	z-index: 9999;
+	background: url('../img/page-loader.gif') 50% 50% no-repeat rgb(249,249,249);
+	opacity: .8;
+}   
+
+.page-control-container{
+	padding-bottom: 5px;	
+}
+.concept-container{
+  width: 100%-5px;
+  padding: 5px;
+}
+
+.btn-paginate {
+    color: #337AB7;
+}
+.btn-paginate:hover {
+    color: #23527C;
+}
+
+.small-table>tbody>tr>td, .small-table>tbody>tr>th, .small-table>tfoot>tr>td, .small-table>tfoot>tr>th, .small-table>thead>tr>td, .small-table>thead>tr>th {
+    padding: 2px;
+}
+
+.form-group{
+	margin-bottom: 5px;
+}
+
+.form-control{
+	height: 26px;
+	padding: 2px 12px;
+}
+
+.btn{
+	padding: 2px 12px;
+}
+.panel{
+	margin-bottom: 10px;
+}
+
+.modal-body{
+	padding: 5px 15px;
+}
+
+.panel-body{
+	padding: 10px 15px;
+}
+
+.navbar{
+	margin-bottom: 10px;
+}
+
+.popover-lg{
+	max-width: 100%;
+}
+
+.popover{
+	max-width: 100%;
+}
+.input-group-addon {
+    padding: 4px 12px;
+}
+
+.datepicker{
+	z-index: 100 !important;
+}
+
+.bootstrap-tagsinput{
+	display: block;
+}
+
+.bootstrap-projectsinput{
+	display: block;
+}
+
+
+.tt-menu {
+	z-index: 9999 !important;
+}
+
+.form-horizontal .control-label{
+	padding-top: 4px !important;
+}
+
+.form-help-popover {
+    padding-left: 0;
+    margin-left: -10px;
+    text-align: left;
+}
+
+/* footer */
+footer {
+            color: #666;
+            background: #222;
+            padding: 17px 0 18px 0;
+            border-top: 1px solid #000;    
+        }
+        footer a {
+            color: #999;
+        }
+        footer a:hover {
+            color: #efefef;
+        }
+        .wrapper {
+            min-height: 100%;
+            height: auto !important;
+            height: 100%;
+            margin: 0 auto -63px;
+        }
+        .push {
+            height: 63px;
+        }
+        /* not required for sticky footer; just pushes hero down a bit */
+        .wrapper > .container {
+            padding-top: 60px;
+        }
+
+        /* responsive footer fix by Aalaap Ghag */
+        @media (max-width: 767px) {
+            body {
+                padding-right: 0px;
+                padding-left: 0px;
+            }
+    
+            footer, .wrapper {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+        }
+
+
+        /* end responsive footer fix */
+/* end of footer */
+
+.highlight-row {
+    background-color: #f7f7f9;
+    /*border-bottom: 1px solid #e1e1e8;*/
+}
+.table-hover>tbody>tr:hover {
+	background-color: lightgoldenrodyellow
+}
+.alert {
+	margin-top: 5px;
+}
+
+nav>.container{
+	background-image: none; /*url("/static/img/SAIL2-d.png");*/
+	background-position: 99% 6px;
+	background-repeat: no-repeat;
+	background-size: 40px;
+}

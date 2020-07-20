@@ -1,0 +1,40 @@
+<form method="post" action="{% url 'concept_publish' pk=pk concept_history_id=concept_history_id %}"
+    class="form-horizontal js-fork-submit-form">
+    {% csrf_token %}
+
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title"><i class="fa fa-paper-plane" aria-hidden="true"></i> Publish concept "{{ name }}"</h4>
+    </div>
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-md-12">
+                <p>
+                    {% if is_published or not allowed_to_publish%}
+                    	{% if is_published %}
+	                    This version "{{ name }}" is already published.
+	                    {% else %}
+	                    Cannot publish! 
+	                    <br>
+	                    (you must be the owner and the concept is not deleted and contains exportable codes).
+	                    {% endif %}
+                    
+                    {% else %}
+                    Are you sure you want to publish this version of "{{ name }}"?
+                    <br>
+                    Published concept cannot be undone.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button {% if is_published or not allowed_to_publish %} disabled="true" {% endif %} id="publishButton"
+            type="submit" class="btn btn-primary">
+            <i class="fa fa-paper-plane" aria-hidden="true"></i> Publish
+        </button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+    </div>
+</form>

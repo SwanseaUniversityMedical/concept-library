@@ -1,0 +1,26 @@
+<!-- --------------------------------------------------------------------------
+	 The table of published history entries (excluding the current version).
+	 The headers should be provided in the static pages.
+	 ---------------------------------------------------------------------- -->
+	{% for history in history %}
+		<tr>
+			<td>{{ history.history_id }}</td>
+			<td>{{ history.name }}</td>
+			<td title="{{ history.description }}">{{ history.description|truncatechars:50 }}</td>
+			<td>{{ history.owner.username }}</td>
+			<td>{{ history.publish_date|date:"Y-m-d"}}</td>
+			<td class="text-right">
+			<a class="" href="{% url 'published_concept_details' pk=history.id concept_history_id=history.history_id %}">			
+			<button type="button" class="btn btn-info btn-xs" data-container="body" data-toggle="" data-html="true" data-placement="left" id="code-preview-{{ component.pk }}" data-trigger="hover">
+				<i class="glyphicon glyphicon-search"> </i>
+			</button>			
+			</a>
+			</td>
+		</tr>
+	{% empty %}
+		<tr>
+			<td colspan="7" class="text-center bg-warning">
+				No other published versions
+			</td>
+		</tr>
+	{% endfor %}

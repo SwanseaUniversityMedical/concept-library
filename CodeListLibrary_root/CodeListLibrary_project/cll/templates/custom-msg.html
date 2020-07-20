@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block title %}Page unavailable{% endblock title %}
+
+{% block container %}
+
+<h2>{{ msg_title }}</h2>
+
+<!-- <p>...</p> -->
+
+{% if successMsg %}
+	<div class="bs-example">
+	    <div class="alert alert-success fade in">
+	        <strong>Success!</strong>
+	        <br>
+	        <ul>
+	            {% for msg in successMsg %}
+	            <li>{{ msg|safe }}</li>
+	            {% endfor %}
+	        </ul>
+	    </div>
+	</div>
+{% endif %}
+
+{% if warningsMsg %}
+	<div class="bs-example">
+	    <div class="alert alert-warning fade in">
+	        <strong>Warning!</strong>
+	        <br>
+	        <ul>
+	            {% for msg in warningsMsg %}
+	            <li>{{ msg|safe }}</li>
+	            {% endfor %}
+	        </ul>
+	    </div>
+	</div>
+{% endif %}
+
+{% endblock container %}
+

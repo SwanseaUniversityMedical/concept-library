@@ -1,0 +1,394 @@
+{% extends "clinicalcode/publishedconcept/base.html" %}
+
+{% load staticfiles %}
+
+{% block container %}
+<span id="tree" style="display:none">{{ tree }}</span>
+<div class="container">
+
+	<h2><i class="fa fa-file-o" aria-hidden="true"></i> {{ concept.name }} ({{ concept.id }}/{{ concept.history_id }})
+		{% for item in request.BRAND_GROUPS %}
+			{% for brand, groups in item.iteritems %}
+				{% if concept.group_name in groups %}
+					<a target="_blank"
+					{% for bu in brands_url %}
+						{% if brand == bu.name %}
+						 href={{ bu.website }}
+						{% endif %}
+					{% endfor %}					
+				    >
+				    <img style="margin-top:-5px;" src="{% static 'img/brands/' %}{{brand}}/logo.png" 
+						    height="30px" title="{{brand}}"
+							alt="{{brand}}" />
+				</a>
+				{% endif %}
+			{% endfor %}
+		{% endfor %}
+	</h2>
+
+	<div class="panel panel-default">
+		<div class="panel-body">
+			<div class="col-sm-11" id="concept-button-list-container">
+				<i class="help-block"></i>
+			</div>
+			<div class="row">
+				<div class="col-sm-1 text-right">
+					<a href="#" role="button" class="popovers" id="concept-button-list"
+						data-container="#concept-button-list-container" data-toggle="popover" data-trigger="hover" title=""
+						data-original-title="" data-placement="left">
+						<i class="fa fa-question-circle" aria-hidden="true"></i>
+					</a>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-12">
+					<div class="form-horizontal">
+						<span id="topButtons">
+							<div class="row" >
+								<div class="col-sm-12">
+									<a id="returnBtn" href="{% url 'published_concept_list' %}" class="btn btn-success">
+										<i class="fa fa-reply" aria-hidden="true"></i> Return to list
+									</a>
+									<a id="printBtn" class="btn btn-primary">
+										<i class="fa fa-print" aria-hidden="true"></i> Print
+									</a>
+									<div class="dropdown btn-group">
+										<a type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown"
+											aria-haspopup="true" aria-expanded="false" id="export-btn">
+											Export
+											<span class="caret"></span>
+										</a>
+										<ul class="dropdown-menu">
+											<li>
+												<a href="{% url 'published_concept_codes_to_csv' concept_history_id=concept.history_id %}"
+													class="dropdown-item">
+													<i class="fa fa-file-excel-o" aria-hidden="true"></i> CSV
+												</a>
+											</li>
+											<li>
+												<a href="/api/publishedconceptcodes/{{ concept.history_id }}/?format=json"
+													target=_blank class="dropdown-item">
+													<i class="fa fa-file-text" aria-hidden="true"></i> JSON
+												</a>
+											</li>
+											<li>
+												<a href="/api/publishedconceptcodes/{{ concept.history_id }}/?format=xml"
+													target=_blank class="dropdown-item">
+													<i class="fa fa-file-code-o" aria-hidden="true"></i> XML
+												</a>
+											</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+							<div class="alert alert-success alert-dismissable" id="success-message"
+								style="display: none;" role="alert">
+							</div>
+							<div class="alert alert-danger alert-dismissable" id="error-message" style="display: none;"
+								role="alert"></div>
+
+							<hr />
+						</span>
+						<div class="form-group highlight-row">
+							<label class="col-sm-4">ID:</label>
+							<div class="col-sm-7">
+								{{ concept.id }}
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-4">Version ID:</label>
+							<div class="col-sm-7">
+								{{ concept.history_id }}
+							</div>
+						</div>
+
+						<div class="form-group highlight-row">
+							<label class="col-sm-4">Author:</label>
+							<div class="col-sm-7">
+								{{ concept.author }}
+							</div>
+						</div>
+
+<!-- 						<div class="form-group"> -->
+<!-- 							<label class="col-sm-4">Entry date:</label> -->
+<!-- 							<div class="col-sm-7"> -->
+<!-- 								{{ concept.entry_date }} -->
+<!-- 							</div> -->
+<!-- 						</div> -->
+						<div class="form-group">
+							<label class="col-sm-4">Publish date:</label>
+							<div class="col-sm-7">
+								{{ concept.publish_date|date:"Y-m-d" }}
+							</div>
+						</div>
+
+
+						<div class="form-group highlight-row">
+							<label class="col-sm-4">Description:</label>
+							<div class="col-sm-7">
+								{{ concept.description }}
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-sm-4">Coding system:</label>
+							<div class="col-sm-7">
+								{{ concept.coding_system_name }}
+							</div>
+						</div>
+						<div class="form-group highlight-row">
+							<label class="col-sm-4">Created by:</label>
+							<div class="col-sm-7">
+								<p class="form-control-static">{{ concept.created_by.username }}</p>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-4">Modified by:</label>
+							<div class="col-sm-7">
+								<p class="form-control-static">{{ concept.modified_by.username}}</p>
+							</div>
+						</div>
+						<div class="form-group highlight-row">
+							<label class="col-sm-4">Validation performed:</label>
+							<div class="col-sm-7">
+								<input type="checkbox" {% if concept.validation_performed %}checked="checked"
+									{% endif %} disabled />
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-sm-4">Validation description:</label>
+							<div class="col-sm-7">
+								{{ concept.validation_description }}
+							</div>
+						</div>
+
+						<div class="form-group highlight-row">
+							<label class="col-sm-4">Primary publication DOI:</label>
+							<div class="col-sm-7">
+								{{ concept.publication_doi }}
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-sm-4">Primary publication link:</label>
+							<div class="col-sm-7">
+								{{ concept.publication_link }}
+							</div>
+						</div>
+
+						<div class="form-group highlight-row">
+							<label class="col-sm-4">Secondary publication link:</label>
+							<div class="col-sm-7">
+								{{ concept.secondary_publication_links }}
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-sm-4">Paper published:</label>
+							<div class="col-sm-7">
+								<input type="checkbox" {% if concept.paper_published %}checked="checked" {% endif %}
+									disabled />
+							</div>
+						</div>
+
+						<div class="form-group highlight-row">
+							<label class="col-sm-4">Source reference:</label>
+							<div class="col-sm-7">
+								{{ concept.source_reference }}
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-sm-4">Citation requirements:</label>
+							<div class="col-sm-7">
+								{{ concept.citation_requirements }}
+							</div>
+						</div>
+						<div class="form-group highlight-row">
+							<label class="col-sm-4">Owner:</label>
+							<div class="col-sm-7">
+								{{ concept.owner.username }}
+							</div>
+						</div>
+						<hr />
+
+						<div id="exTab1">
+<!-- 							<ul class="nav nav-pills"> -->
+<!-- 								<li class="active"> -->
+<!-- 									<a href="#1a" data-toggle="tab">Codes</a> -->
+<!-- 								</li> -->
+<!-- 								<li> -->
+<!-- 									<a href="#2a" data-toggle="tab">Tree</a> -->
+<!-- 								</li> -->
+<!-- 							</ul> -->
+	
+							<div class="tab-content clearfix">
+								<div class="tab-pane active" id="1a">
+	
+									<h3><i class="fa fa-barcode" aria-hidden="true"></i> Code list</h3>
+	
+									<table class="table table-striped small-table table-hover" id="component-table">
+										<thead>
+											<tr>
+												<th>Code</th>
+												<th>Description</th>
+											</tr>
+										</thead>
+										<tbody>
+											{% for c in codes %}
+											<tr>
+												<td>{{ c.code }}</td>
+												<td>{{ c.description }}</td>
+											</tr>
+											{% endfor %}
+										</tbody>
+									</table>
+								</div>
+<!-- 								<div class="tab-pane" id="2a"> -->
+	
+<!-- 									<h3><i class="fa fa-cogs" aria-hidden="true"></i> Components</h3> -->
+	
+<!-- 									<div id="root" class="list-group list-group-root well"> -->
+	
+<!-- 									</div> -->
+<!-- 									<div id="modals"> -->
+	
+<!-- 									</div> -->
+<!-- 								</div> -->
+							</div>
+						</div>
+	
+						<hr />
+	
+						<div class="form-group">
+							<div class="col-xs-offset-3 col-xs-9">
+								<a href="{% url 'published_concept_list' %}" class="btn btn-success">
+									<i class="fa fa-undo" aria-hidden="true"></i> Return to list
+								</a>
+							</div>
+						</div>
+					</div>
+
+
+
+	<!--------------------------------------------------------------------
+			Other published versions
+	--------------------------------------------------------------------------------
+	-->
+					<span id="history">
+						<hr />
+						<div class="row">
+							<div class="col-sm-11" id="help-concept-history-container">
+								<h3><i class="fa fa-history" aria-hidden="true"></i> Other versions</h3>
+							</div>
+						</div>
+						<div class="pre-scrollable">
+							<table class="table table-striped small-table" id="history-table">
+								<thead>
+									<tr>
+										<th>Version ID</th>
+										<th>Name</th>
+										<th>Description</th>
+										<th>Owner</th>
+										<th>Publish date</th>
+										<th></th>
+									</tr>
+								</thead>
+								<tbody>
+									{% include '../publishedconcept/partial_history_list.html' %}
+								</tbody>
+							</table>
+						</div>
+					</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</div>
+<!--	-------------------------------------------------------------------
+			HELP POP-UP TEXTS
+		-------------------------------------------------------------------
+-->
+
+<div id="popover-content-concept-button-list" class="hide popover-lg">
+	<p>
+		<strong>Return to list</strong> - returns to the published concepts search page.
+	</p>
+	<p>
+		<strong>Print</strong> - print the current concept data and codes.
+	</p>
+	<p>
+		<strong>Export</strong> - export all codes into a csv file/JSON/XML for the current concept.
+	</p>
+</div>
+
+</div>
+</div>
+
+{% endblock container %}
+
+
+{% block scripts %}
+<script src="{% static 'js/clinicalcode/component.js' %}"></script>
+<script src="{% static 'js/clinicalcode/concept.js' %}"></script>
+<script src="{% static 'js/clinicalcode/hierarchyTree.js' %}"></script>
+<script>
+
+	$(".coll").click(function () {
+		var id = $(this).attr("id")
+
+		if ($("#collapse-" + id).hasClass("out")) {
+			$("#collapse-" + id).addClass("in");
+			$("#collapse-" + id).removeClass("out");
+			$(this).text("-");
+		} else {
+			$("#collapse-" + id).addClass("out");
+			$("#collapse-" + id).removeClass("in");
+			$(this).text("+");
+		}
+	});
+
+	$("#printBtn").click(function () {
+		printPage(printCallback);
+	})
+
+	function printPage(callback) {
+		// before printing hide all unnecessary elements from webpage
+		$('.btn').hide();
+		$('#history').hide();
+		$('#topButtons').hide();
+		$('footer').hide();
+		$('.popovers').hide();
+
+		// expand codes if not expanded
+		$('.out').removeClass('out').addClass('in');
+
+		window.print();
+
+		// call printCallback function which shows back hidden elements
+		callback();
+	}
+
+	function printCallback() {
+		// when printing is finished or cancel show all hidden elements
+		$('#history').show();
+		$('#topButtons').show();
+		$('footer').show();
+		$('.btn').show();
+		$('.popovers').show();
+
+		// collapse codes back
+		$('.in').removeClass('in').addClass('out');
+		$('.coll').text('+');
+	}
+
+
+
+</script>
+
+
+
+{% endblock scripts %}
+

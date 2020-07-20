@@ -1,0 +1,40 @@
+	{{ form.non_form_errors }}
+	{# include hidden fields #}
+	{% for hidden in form.hidden_fields %}
+		{{ hidden }}
+	{% endfor %}
+	
+	<div class="form-group {% if form.code.errors %}has-error{% endif %}">
+		<label for="{{ form.code.id_for_label }}" class="col-sm-3 required">{{ form.code.label }}</label>
+		<div class="col-sm-3">
+			{{ form.code }}
+			{% if form.code.errors %}
+              <span class="help-block">
+                {% for error in form.code.errors %}{{ error }}{% endfor %}
+              </span>
+            {% endif %}
+		</div>
+	</div>
+
+	<div class="form-group {% if form.description.errors %}has-error{% endif %}">
+		<label for="{{ form.description.id_for_label }}" class="col-sm-3">{{ form.description.label }}</label>
+		<div class="col-sm-8">
+			{{ form.description }}
+			{% if form.description.errors %}
+              <span class="help-block">
+                {% for error in form.description.errors %}{{ error }}{% endfor %}
+              </span>
+            {% endif %}
+		</div>
+	</div>
+	
+	{% if form.non_field_errors or form.errors %}
+	  <div class="alert alert-danger">
+		  <p>The operation could not be performed because one or more error(s) occurred. Please resubmit the form after making the following changes:</p>
+		  <ul>
+		  	{% for field,error in form.errors.items %}
+				<li>{{ error|striptags }}</li>
+			{% endfor %}
+		  </ul>
+	  </div>
+	{% endif %}

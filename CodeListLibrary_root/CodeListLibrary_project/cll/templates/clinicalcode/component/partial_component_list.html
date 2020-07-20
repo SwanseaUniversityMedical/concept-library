@@ -1,0 +1,189 @@
+<!--	-----------------------------------------------------------------------
+			CONCEPT EDIT PAGE COMPONENT TABLE WITH TOOL BUTTONS
+		-----------------------------------------------------------------------
+-->				
+{% load staticfiles %}
+{% for component in components %}
+	<tr>
+		<td>{% if component.component_type == 1 %}({{ component.concept_ref_id }}) {% endif %}{{ component.name }}
+			{% if component.component_type == 1 %}
+				{% for item in request.BRAND_GROUPS %}
+					{% for brand, groups in item.iteritems %}
+						{% if component.group in groups %}
+						<img src="{% static 'img/brands/' %}{{brand}}/logo.png" height="10px" title="{{brand}}" alt="{{brand}}" />
+						{% endif %}
+					{% endfor %}
+				{% endfor %}
+			{% endif %}
+		</td>
+		<td>{% if component.component_type == 1 %}{{ component.concept_ref_history_id }}{% else %} - {% endif %}</td>
+		<td>{{ component.get_component_type_display }}</td>
+		<td>{{ component.get_logical_type_display }}</td>
+		<td class="text-right">
+			{% if component.component_type == 1 %}
+				{% if component.pk in component_error_msg_view %}
+	 				    <div class="alert-danger" role="alert" style=" display:inline-block;" >
+	 						<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+	 						<span class="sr-only">Error:</span>
+	 						{% for key,value in component_error_msg_view.items %}
+	 						   {% if key == component.pk %}
+							 {% for v in value %}
+							 	- {{ v }}<br> 
+							 {% endfor %}
+						   {% endif %}
+						{% endfor %}
+	 					</div>
+				{% endif %}
+				<a class="js-load-modal" href="{% url 'component_concept_update' component.concept_id component.pk 0 %}?latest_history_id={{ latest_history_id }}"
+					title="Edit component">
+					<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+				</a>
+				<a class="js-load-modal" href="{% url 'component_concept_delete' component.concept_id component.pk %}?latest_history_id={{ latest_history_id }}"
+					title="Delete component">
+					<span class="glyphicon glyphicon-remove-circle text-danger" aria-hidden="true"></span>
+				</a>
+				<a class="js-load-modal" href="{% url 'component_concept_detail' component.concept_id component.pk %}">
+					<button type="button" class="btn btn-info btn-xs" data-container="body" data-toggle="popover" 
+							data-html="true" data-placement="left" id="code-preview-{{ component.pk }}" data-trigger="hover">
+					  <i class="glyphicon glyphicon-search"> </i>
+					</button>
+				</a>
+
+			{% elif component.component_type == 2 %}
+			<a class="js-load-large-modal" href="{% url 'component_querybuilder_update' component.concept_id component.pk %}?latest_history_id={{ latest_history_id }}"
+				title="Edit query builder component">
+				<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+			</a>
+			<a class="js-load-modal" href="{% url 'component_querybuilder_delete' component.concept_id component.pk %}?latest_history_id={{ latest_history_id }}"
+				title="Delete query builder component">
+				<span class="glyphicon glyphicon-remove-circle text-danger" aria-hidden="true"></span>
+			</a>
+			<a class="js-load-large-modal" href="{% url 'component_querybuilder_detail' component.concept_id component.pk %}">
+			<button type="button" class="btn btn-info btn-xs" data-container="body" data-toggle="popover"
+					data-html="true" data-placement="left" id="code-preview-{{ component.pk }}" data-trigger="hover">
+				<i class="glyphicon glyphicon-search"> </i>
+			</button>
+			</a>
+			{% elif component.component_type == 3 %}
+			<a class="js-load-large-modal" href="{% url 'component_expression_update' component.concept_id component.pk %}?latest_history_id={{ latest_history_id }}"
+				title="Edit match code with expression component">
+				<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+			</a>
+			<a class="js-load-modal" href="{% url 'component_expression_delete' component.concept_id component.pk %}?latest_history_id={{ latest_history_id }}"
+				title="Delete match code with expression component">
+				<span class="glyphicon glyphicon-remove-circle text-danger" aria-hidden="true"></span>
+			</a>
+			<a class="js-load-large-modal" href="{% url 'component_expression_detail' component.concept_id component.pk %}">
+			<button type="button" class="btn btn-info btn-xs" data-container="body" data-toggle="popover"
+					data-html="true" data-placement="left" id="code-preview-{{ component.pk }}" data-trigger="hover">
+			  <i class="glyphicon glyphicon-search"> </i>
+			</button>
+			</a>
+			{% elif component.component_type == 4 %}
+			<a class="js-load-large-modal" href="{% url 'component_expressionselect_update' component.concept_id component.pk %}?latest_history_id={{ latest_history_id }}"
+				title="Edit select codes individually and/or import codes component">
+				<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+			</a>
+			<a class="js-load-modal" href="{% url 'component_expressionselect_delete' component.concept_id component.pk %}?latest_history_id={{ latest_history_id }}"
+				title="Delete select codes individually and/or import codes component">
+				<span class="glyphicon glyphicon-remove-circle text-danger" aria-hidden="true"></span>
+			</a>
+			<a class="js-load-large-modal" href="{% url 'component_expressionselect_detail' component.concept_id component.pk %}">			
+			<button type="button" class="btn btn-info btn-xs" data-container="body" data-toggle="popover"
+					data-html="true" data-placement="left" id="code-preview-{{ component.pk }}" data-trigger="hover">
+				<i class="glyphicon glyphicon-search"> </i>
+			</button>			
+			</a>
+			{% else  %}
+				<p>No component type available</p>
+			{% endif %}
+			
+			<div id="popover-content-code-preview-{{ component.pk }}" class="hide popover-lg">
+				{% if component.component_type == 1 %}
+<!-- 					<div>Concept name: {{ component.concept_ref.name }}</div> -->
+<!-- 					<div>Comment: {{ component.comment }}</div> -->
+					<table class="table table-striped small-table" style="margin-bottom: 0px;">
+						<thead>
+							<tr>
+								<th>Code</th>
+								<th>Description</th>
+							</tr>
+						</thead>
+						<tbody>
+						{% for code in component.codelist.codes.all|slice:":10" %}
+							<tr>
+								<td>{{ code.code }}</td>
+								<td>{{ code.description }}</td>
+							</tr>
+						{% empty %}
+							<tr>
+								<td colspan="2" class="text-center bg-warning">
+									No codes
+								</td>
+							</tr>
+						{% endfor %}
+						</tbody>
+					</table>
+					<div>...</div>
+				{% endif %}
+				{% if component.component_type == 2 %}
+					<table class="table table-striped small-table" style="margin-bottom: 0px;">
+						<thead>
+							<tr>
+								<th>Code</th>
+								<th>Description</th>
+							</tr>
+						</thead>
+						<tbody>
+						{% for code in component.codelist.codes.all|slice:":10" %}
+							<tr>
+								<td>{{ code.code }}</td>
+								<td>{{ code.description }}</td>
+							</tr>
+						{% empty %}
+							<tr>
+								<td colspan="2" class="text-center bg-warning">
+									No codes
+								</td>
+							</tr>
+						{% endfor %}
+						</tbody>
+					</table>
+					<div>...</div>
+				{% endif %}
+				{% if component.component_type == 3 or component.component_type == 4 %}		
+					<div><label>Regex Code:</label> {{ component.coderegex.regex_code }}</div>	
+					<table class="table table-striped small-table" style="margin-bottom: 0px;">
+						<thead>
+							<tr>
+								<th>Code</th>
+								<th>Description</th>
+							</tr>
+						</thead>
+						<tbody>
+						{% for code in component.codelist.codes.all|slice:":10" %}
+							<tr>
+								<td>{{ code.code }}</td>
+								<td>{{ code.description }}</td>
+							</tr>
+						{% empty %}
+							<tr>
+								<td colspan="2" class="text-center bg-warning">
+									No codes
+								</td>
+							</tr>
+						{% endfor %}
+						</tbody>
+					</table>
+					<div>...</div>
+				{% endif %}
+			</div>
+		</td>
+	</tr>
+{% empty %}
+	<tr>
+		<td colspan="5" class="text-center bg-warning">
+			No components
+		</td>
+	</tr>
+{% endfor %}

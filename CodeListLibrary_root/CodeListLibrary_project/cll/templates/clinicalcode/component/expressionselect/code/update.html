@@ -1,0 +1,36 @@
+<form method="post" action="{% url 'component_expressionselect_update' concept_id=form.concept.value pk=object.id %}" id="expression-select-form" class="form-horizontal" novalidate enctype="multipart/form-data">
+	{% csrf_token %}
+	
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		</button>
+		<h4 class="modal-title"><i class="fa fa-cog" aria-hidden="true"></i> Edit Select Codes Individually And Import Codes Component</h4>
+		<div class="text-right">
+			<button type="submit" class="btn btn-primary" name="SaveContinue">
+				<i class="fa fa-save" aria-hidden="true"></i> Save and continue
+			</button>
+			<button type="submit" class="btn btn-primary" name="Save">
+				<i class="fa fa-save" aria-hidden="true"></i> Save and Close
+			</button>
+			<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+		</div>
+	</div>
+	<div class="modal-body">
+		<div class="row">
+			<div class="col-md-12">
+				<i class="help-block"><span class="required">*</span> denotes a required field</i>
+			</div>
+		</div>
+		{% include 'clinicalcode/component/expressionselect/form.html' %}
+	</div>
+	<div class="modal-footer">
+		<button type="submit" class="btn btn-primary" name="SaveContinue">
+			<i class="fa fa-save" aria-hidden="true"></i> Save and continue
+		</button>
+		<button type="submit" class="btn btn-primary" name="Save">
+			<i class="fa fa-save" aria-hidden="true"></i> Save and Close
+		</button>
+		<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+	</div>
+</form>

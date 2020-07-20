@@ -1,0 +1,30 @@
+<form method="post" id="conceptcompfrm" name="conceptcompfrm"  action="{% url 'component_concept_create' form.concept.value %}" class="form-horizontal js-submit-form" novalidate>
+	{% csrf_token %}
+	
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		</button>
+		<h4 class="modal-title"><i class="fa fa-cog" aria-hidden="true"></i> Create a new concept component</h4>
+	</div>
+	<div class="modal-body">
+		<div class="row">
+			<div class="col-sm-3">
+				<i class="help-block"><span class="required">*</span> denotes a required field</i>
+			</div>
+			<div class="col-sm-9 text-right" id="concept-component-help-container">
+				<a href="#" role="button" class="popovers" id="concept-component-help" data-container="#concept-component-help-container" data-toggle="popover" data-trigger="hover" title="" data-original-title="Concept component overview" data-placement="left">
+					<i class="fa fa-question-circle" aria-hidden="true"></i>
+				</a>
+			</div>
+		</div>
+		{% include 'clinicalcode/component/concept/form.html' %}
+	</div>
+	<div class="modal-footer">	
+		<a href="{% url 'component_concept_create' form.concept.value %}" class="btn btn-primary" id="saveBtn" >
+			<i class="fa fa-save" aria-hidden="true"></i> Save
+		</a>
+		
+		<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+	</div>
+</form>

@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block title %}| View Working Set
+{% endblock title %}
+
+{% block container %}
+
+<h2><i class="fa fa-file-o" aria-hidden="true"></i> {{ object.name }}
+	{% for item in request.BRAND_GROUPS %}
+		{% for brand, groups in item.iteritems %}
+			{% if object.group.name in groups %}
+			<img style="margin-top:-5px;" src="{% static 'img/brands/' %}{{brand}}/logo.png" height="30px" title="{{brand}}" alt="{{brand}}" />
+			{% endif %}
+		{% endfor %}
+	{% endfor %}
+</h2>
+
+<div class="panel panel-default">
+	<div class="panel-body">
+		<div class="row">
+			<div class="col-md-12">
+				<div class="form-horizontal">
+					<!--
+					<div class="form-group ">
+						<label class="col-sm-4">Working Set Name:</label>
+						<div class="col-sm-7">
+							{{ object.name }}							
+						</div>
+					</div>
+					 -->
+					<div class="row">
+						<div class="col-sm-12">
+							<a href="{% url 'workingset_list' %}" class="btn btn-success">
+								<i class="fa fa-reply" aria-hidden="true"></i> Return to list
+							</a>
+						{% if object.id %}						
+							<div class="dropdown btn-group">
+							  <button {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="export-btn">
+							    Export
+							    <span class="caret"></span>
+							  </button>
+							  <ul class="dropdown-menu">
+							  <li>
+							    <a {% if user_can_export %} href="{% url 'workingset_to_csv' pk=object.id %}" {% endif %} 
+							       class="dropdown-item" >
+									<i class="fa fa-file-excel-o" aria-hidden="true"></i> CSV
+								</a>
+							   </li>
+							   <li>
+								<a {% if user_can_export %} href="/api/export_workingset_codes/{{ object.id }}/?format=json" target=_blank {% endif %} 
+							       class="dropdown-item" >
+									<i class="fa fa-file-text" aria-hidden="true"></i> JSON
+								</a>
+							   </li>
+							   <li>
+								<a {% if user_can_export %} href="/api/export_workingset_codes/{{ object.id }}/?format=xml" target=_blank {% endif %} 
+							       class="dropdown-item" >
+									<i class="fa fa-file-code-o" aria-hidden="true"></i> XML
+								</a>
+							   </li>
+							  </ul>
+							</div>						
+						{% endif %}
+							
+						</div>
+					</div>
+					
+					<div class="alert alert-success alert-dismissable" id="success-message" style="display: none;" role="alert"></div>
+					<div class="alert alert-danger alert-dismissable" id="error-message" style="display: none;" role="alert"></div>
+					
+					<hr/>
+					
+ 					<div class="form-group highlight-row">
+						<label class="col-sm-4">ID:</label>
+						<div class="col-sm-7">
+							{{ object.id }}						
+						</div>
+					</div>
+					
+					<div class="form-group highlight-row">
+						<label class="col-sm-4">Latest history ID:</label>
+						<div class="col-sm-7">
+							{{ history.0.history_id }}						
+						</div>
+					</div>
+					
+					<div class="form-group">
+						<label class="col-sm-4">Tags:</label>
+						<div class="col-sm-7">
+							{% for tag in tags %}
+								<div>{{ tag.tag.description }}</div>
+							{% endfor %}						
+						</div>
+					</div>
+																				
+					<div class="form-group highlight-row">
+						<label class="col-sm-4">Author:</label>
+						<div class="col-sm-7">
+							{{ object.author }}							
+						</div>
+					</div>
+					
+					<div class="form-group">
+						<label class="col-sm-4">Description:</label>
+						<div class="col-sm-7">
+							{{ object.description }}							
+						</div>
+					</div>
+					
+					<div class="form-group highlight-row">
+						<label class="col-sm-4">Publication:</label>
+						<div class="col-sm-7">
+							{{ object.publication }}
+						</div>
+					</div>
+					
+					<div class="form-group">
+						<label class="col-sm-4">Primary Publication DOI:</label>
+						<div class="col-sm-7">
+							{{ object.publication_doi }}
+						</div>
+					</div>
+					
+					<div class="form-group highlight-row">
+						<label class="col-sm-4">Primary publication link:</label>
+						<div class="col-sm-7">
+							{{ object.publication_link }}
+						</div>
+					</div>
+					
+					<div class="form-group">
+						<label class="col-sm-4">Secondary publication links:</label>
+						<div class="col-sm-7">
+							{{ object.secondary_publication_links }}
+						</div>
+					</div>					
+					
+					<div class="form-group highlight-row">
+						<label class="col-sm-4">Source reference:</label>
+						<div class="col-sm-7">
+							{{ object.source_reference }}
+						</div>
+					</div>
+					
+					<div class="form-group">
+						<label class="col-sm-4">Citation requirements:</label>
+						<div class="col-sm-7">
+							{{ object.citation_requirements }}
+						</div>
+					</div>
+					
+					<div class="form-group highlight-row">
+						<label class="col-sm-4">Created by:</label>
+						<div class="col-sm-7">
+							<p class="form-control-static">{{ object.created_by.username }}</p>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-4">Modified by:</label>
+						<div class="col-sm-7">
+							<p class="form-control-static">{{ object.updated_by.username}}</p>
+						</div>
+					</div>
+
+					<hr />
+					<div class="form-group highlight-row">
+						<label class="col-sm-4">Owner:</label>
+						<div class="col-sm-7">
+							<p class="form-control-static">{{ object.owner.username }}</p>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-4">Owner access:</label>
+						<div class="col-sm-7">
+							{% if object.owner_access == 1 %}
+								<span>None</span>
+							{% elif object.owner_access == 2 %}
+								<span>View only</span>
+							{% elif object.owner_access == 3 %}
+								<span>View and edit</span>
+							{% else %}
+
+							{% endif %}
+						</div>
+					</div>
+					<div class="form-group highlight-row">
+						<label class="col-sm-4">Group:</label>
+						<div class="col-sm-7">
+							<p class="form-control-static">{{ object.group }}</p>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-4">Group access:</label>
+						<div class="col-sm-7">
+							{% if object.group_access == 1 %}
+								<span>None</span>
+							{% elif object.group_access == 2 %}
+								<span>View only</span>
+							{% elif object.group_access == 3 %}
+								<span>View and edit</span>
+							{% else %}
+
+							{% endif %}
+						</div>
+					</div>
+					<div class="form-group highlight-row">
+						<label class="col-sm-4">Everyone else access:</label>
+						<div class="col-sm-7">
+							{% if object.world_access == 1 %}
+								<span>None</span>
+							{% elif object.world_access == 2 %}
+								<span>View only</span>
+							{% elif object.world_access == 3 %}
+								<span>View and edit</span>
+							{% else %}
+
+							{% endif %}
+						</div>
+					</div>
+
+	<!--	-------------------------------------------------------------------
+				WORKINGSET VIEW PAGE CONCEPT TABLE
+			-------------------------------------------------------------------
+	-->				
+					<hr />
+					<h3><i aria-hidden="true"></i> Concepts</h3>
+					<input type="hidden" id="concepts_json" value="{{ object.concept_informations }}">
+					<input type="hidden" id="concepts_id_name" value="{{ concepts_id_name }}">
+ 					<input type="hidden" id="concepts_id_versionID"  value="{{ concepts_id_versionID }}"> 
+					<table id="concept_table" class="table table-striped small-table table-hover">
+						<thead>
+							<tr>
+								<th>&nbsp;</th>
+								<th>Concept id</th>
+ 								<th>Concept version id</th> 
+								<th>Concept name</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								
+							</tr>
+						</tbody>
+					</table>
+  
+  				{% if not CLL_READ_ONLY %}
+					<div class="form-group">
+						<div class="col-xs-offset-3 col-xs-9">
+							<a {% if user_can_edit %}href="{% url 'workingset_update' object.id %}"{% endif %} class="btn btn-primary"
+								{% if not user_can_edit %} disabled {% endif %} >
+								<i class="fa fa-edit" aria-hidden="true"></i> Edit workingset
+							</a>
+						</div>
+					</div>
+				{% endif %}
+					
+				</div>
+				
+				
+	<!--	-------------------------------------------------------------------
+			CHANGE HISTORY
+			-------------------------------------------------------------------
+	-->
+				<hr/>
+				<h3><i class="fa fa-history" aria-hidden="true"></i> Change history</h3>
+				<div id="history-table" class="pre-scrollable">
+					<table class="table table-striped small-table table-hover">
+					  <thead>
+						<tr>
+							<th>Id</th>
+							<th>Name</th>
+							<th>Description</th>
+							<th>Date</th>
+<!-- 							<th>Type</th> -->
+							<th>Change reason</th>
+							<th>User</th>
+							<th></th>
+						</tr>
+					 </thead>
+					 <tbody>
+						{% include './partial_history_list.html' %}
+					 </tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock container %}
+
+{% block scripts %}
+	<script type="text/javascript">
+	
+		//reconstruction of json data(concepts)
+		$(document).ready(function(){
+			var is_permitted_to_all = {{ is_permitted_to_all|lower }};
+			var error_dic = {{ error_dic|safe }};
+			//alert(is_permitted_to_all);
+			//alert(error_dic);
+
+			var are_concepts_latest_version = {{ are_concepts_latest_version|lower }};
+			var version_alerts = {{ version_alerts|safe }};
+
+			var concept_json = $('#concepts_json').val();
+			concept_json = JSON.parse(concept_json);
+			
+			var concepts_id_name = $('#concepts_id_name').val();
+			concepts_id_name = JSON.parse(concepts_id_name);
+			
+			var concepts_id_version = $('#concepts_id_versionID').val();
+			concepts_id_version = JSON.parse(concepts_id_version);
+				
+ 			$.each( concept_json, function( key, value ) {
+ 				$.each( value, function( key, value ) {  // go thorugh concept ids
+ 					sts = '&nbsp;'
+ 					pp = false;
+ 					if(!is_permitted_to_all || !are_concepts_latest_version){
+ 						if(key in error_dic || key in version_alerts){
+ 	 						//alert(key+'');
+ 	 						sts ='<div class="alert-danger" role="alert" style=" display:inline-block;" >'
+ 	 							+'<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>'
+ 	 							+'<span class="sr-only">Error:</span>';
+ 	 						if(key in error_dic){
+ 	 							sts += '-' + error_dic[key].join('<BR>').replace(/Child /ig, "");
+ 	 							pp = true;
+ 	 						}
+ 	 						if(key in version_alerts){
+ 	 							if(pp) {
+ 	 								sts += '<BR>';
+ 	 								}
+ 	 							sts += '-' + version_alerts[key]; 	// .join('<BR>').replace(/Child /ig, "");	
+ 	 						}
+ 	 							sts += '</div>';
+ 						}
+ 					}
+ 					
+					var c_url = '/concepts/'+key+'/history/'+concepts_id_version[key]+'/detail/';
+ 	  				$('#concept_table tbody>tr:last').after('<tr><td>' + sts + '</td>'
+ 	  													   +'<td>' + key + '</td>'
+ 	  						                               +'<td>' + concepts_id_version[key] + '</td>'
+ 	  						                               +'<td>' 
+ 	  						                               + '<a href='+c_url+'   title='+c_url+' target="_blank" class="alert-link">'
+ 	  						                               + get_Concept_name(concepts_id_name, key)
+			    										   + '</a>'
+ 	  						                               + '</td></tr>'
+ 	  						                               );
+ 	  				$.each( value, function( key, value ) {  // go through concept data
+ 	  					inHeaders = false;
+ 	  					header_type = key.split("|");
+ 	 					header = header_type[0];
+ 	 					//type = header_type[1];
+ 	  	
+ 	  	  				headers = $('#concept_table thead>tr>th').each(function(index, input){
+ 	  	  					if ($(input).text() == header) {
+ 	  	  						inHeaders = true;
+ 	  	  					}
+ 	  	  				});
+ 	  	  				
+ 	  	  				if(!inHeaders){
+ 	  	  					$('#concept_table thead>tr>th:last').after('<th>' + header + '</th>');  //insert concept headers
+ 	  	  				} 
+ 	  	  			
+ 	  	  				$('#concept_table tbody>tr:last>td:last').after('<td>' + value + '</td>');  //isnert concept data
+ 	  				});
+ 	  				
+	  
+ 				});
+ 				
+ 			});
+
+		
+		//-------------------------------------------------------------------------------
+			function  get_Concept_name(list1, id){
+			    var imgPath = ' <img src="{% static 'img/brands/' %}BRANDT1/logo.png" height="10px" title="BRANDT1" alt="BRANDT1" /> ';
+				var conceptBrands = {{ conceptBrands|safe }};
+				for (i in list1) {
+					  if (list1[i]['id']==id) {
+						  imgs = '';
+						  for (b in conceptBrands[id]){
+							  imgs += imgPath.replace(/BRANDT1/ig, conceptBrands[id][b] ) 
+						  }
+					    return(list1[i]['name'] + '' + imgs );
+					    
+					    
+					  }
+					}
+				return('');
+			}
+		
+			
+			
+		});		
+	</script>
+{% endblock scripts %}

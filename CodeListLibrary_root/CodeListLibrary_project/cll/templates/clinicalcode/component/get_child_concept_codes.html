@@ -1,0 +1,12 @@
+{% for code in codes %}
+	<tr>
+		<td>{{ code.code }}</td>
+		<td>{{ code.description }}</td>				
+	</tr>
+{% empty %}
+	<tr>
+		<td colspan="2" class="text-center bg-warning">
+			No codes
+		</td>
+	</tr>
+{% endfor %}

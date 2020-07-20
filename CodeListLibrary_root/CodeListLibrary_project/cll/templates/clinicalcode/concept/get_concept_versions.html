@@ -1,0 +1,16 @@
+<div>
+	 <select class="form-control" id="ver-sel-{{ indx }}">
+		{% for version in versions %}
+		    <option value="{{ version.history_id }}">
+		    {{ version.history_id }} - {{ version.history_date|date:"Y-m-d H:i" }}
+		    {% if version.history_id == latest_version %}	
+				- (Latest)
+			{% endif %}
+		    </option>
+		{% empty %}
+		    <option value="0">
+		    no versions
+		    </option>
+		{% endfor %}
+	</select>
+</div>

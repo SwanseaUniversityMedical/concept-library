@@ -1,0 +1,41 @@
+<form method="post" action="{% url 'component_querybuilder_update' concept_id=form.concept.value pk=object.id %}" id="query-builder-form" class="form-horizontal" novalidate enctype="multipart/form-data">
+	{% csrf_token %}
+	
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		</button>
+		<h4 class="modal-title"><i class="fa fa-cog" aria-hidden="true"></i> Edit Query Builder Component</h4>
+		<div class="text-right">
+			<button type="submit" class="btn btn-primary" name="SaveContinue">
+				<i class="fa fa-save" aria-hidden="true"></i> Save and continue
+			</button>
+			<button type="submit" class="btn btn-primary" name="Save">
+				<i class="fa fa-save" aria-hidden="true"></i> Save and Close
+			</button>
+			<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+		</div>
+	</div>
+	<div class="modal-body">
+		<div class="row">
+			<div class="col-sm-8">
+				<i class="help-block"><span class="required">*</span> denotes a required field</i>
+			</div>
+			<div class="col-sm-4 text-right">
+				<a href="#" role="button" class="popovers" id="querybuilder-component-help" data-container="body" data-toggle="popover" data-trigger="hover" title="" data-original-title="Query builder" data-placement="left" style="padding-top: 5px; padding-left: 10px;">
+					<i class="fa fa-question-circle" aria-hidden="true"></i>
+				</a>
+			</div>
+		</div>
+		{% include 'clinicalcode/component/querybuilder/form.html' %}
+	</div>
+	<div class="modal-footer">
+		<button type="submit" class="btn btn-primary" name="SaveContinue">
+			<i class="fa fa-save" aria-hidden="true"></i> Save and continue
+		</button>
+		<button type="submit" class="btn btn-primary" name="Save">
+			<i class="fa fa-save" aria-hidden="true"></i> Save and Close
+		</button>
+		<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+	</div>
+</form>

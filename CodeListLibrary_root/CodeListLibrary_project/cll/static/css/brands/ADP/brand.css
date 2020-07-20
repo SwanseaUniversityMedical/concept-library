@@ -1,0 +1,163 @@
+/* ************************************************************************* */
+/* Branding CSS for ADP.													 */
+/* ************************************************************************* */
+/* The following CSS file is used after all other files have been            */
+/* processed. The changes listed here can be modified or commented out.      */
+/* This is an attempt to create a list of the minimum settings that would    */
+/* allow the user to create a coherent branding of the application.          */
+/* ------------------------------------------------------------------------- */
+/* Can we use a CSS preprocessor such as less or stylus? E.g.				 */
+/* @nav-colour: black;														 */
+/* @nav-bgcolour: linen;													 */
+/* We would then have to compile all the CSS files which contain these       */
+/* definitions if we make a change.                                          */
+/* ************************************************************************* */
+
+/* 1. Background image (logo). */
+/* ========================================================================= */
+/* 1.1. Behind/adjacent to the navbar. */
+/* ------------------------------------------------------------------------- */
+/* Have to have an image to make the background colour appear. */
+.navbar {
+	background-color: #103040;
+	/*background-image: url("../../../img/brands/ADP/placeholder.png");*/
+	/*background-repeat: no-repeat;*/
+	/*background-position: top right;*/
+}
+/* 1.2. Behind/adjacent to the main UI. */
+/* ------------------------------------------------------------------------- */
+body {
+	/*background-color: #408090;*/
+	/*background-image: url("../../../img/brands/ADP/page.png");*/
+	/* background-repeat: repeat; */
+	background-size: cover;
+}
+/* 1.3. Behind the footer. */
+/* ------------------------------------------------------------------------- */
+footer {
+	background-color: #103040;
+}
+
+/* 2. Main UI panel colours. */
+/* ========================================================================= */
+/* 2.1. Background colours.
+/* ------------------------------------------------------------------------- */
+/* 2.1.1. The background colour of the containers. */
+/*        The 'nav' section is the part with the title, logos and links. */
+/*        The 'footer' section is at the bottom of the page with (c). */
+.container {
+	background-color: transparent;
+}
+nav>.container{
+	background-color: #FFFFFF; /*#E5E6E6;*/
+	background-image: none; /*url("../../../img/brands/ADP/header_logo.png");*/
+	background-position: top right;
+	background-repeat: no-repeat;
+	background-size: contain;
+	box-shadow: 1px 2px 4px rgba(0, 0, 0, .5);
+}
+footer>.container {
+	background-color: #103040;
+	color: white;
+}
+/* 2.1.2. The currently selected nav-bar option. */
+.navbar-inverse .navbar-nav a {
+	/* background-image: linear-gradient(to bottom, orange, red 100%); */
+	color: purple;
+}
+.navbar-inverse .navbar-nav>.active>a {
+	background-image: linear-gradient(to bottom, #70c0d8, #408090 100%);
+	color: white;
+}
+/* 2.1.3. The table background colour (above the container or the panel). */
+table {
+	background-color: white;
+}
+/* 2.1.4. The header row colour for the tables. */
+tr>th {
+	background-color: #408090;
+	color: white;
+}
+/* 2.1.5. The high-lighted row colour for tables (unhighlighted=background). */
+.highlight-row {
+	background-color: #d8d8d8;
+}
+/* 2.1.6. The hover colour for table rows. */
+.table-hover>tbody>tr:hover {
+	background-color: #70c0d8
+}
+/* 2.1.7. The borders for the rows. */
+tr {
+	border-bottom: 1px solid black;
+}
+
+/* 2.2. Text colours */
+/* ------------------------------------------------------------------------- */
+/* 2.2.1. General text. */
+/* Using a darker colour to show-up better on the transparent background. */
+body {
+	color: #205060;
+}
+/* 2.2.2. Nav-bar text (not the links). */
+.navbar-inverse .navbar-nav>li>a, .navbar-inverse .navbar-link, 
+.navbar .navbar-text {
+	color: black
+}
+/* ------------------------------------------------------------------------- */
+.custom-select{
+	color: black;
+}
+/* ------------------------------------------------------------------------- */
+
+
+/* 2.3. Button colours. */
+/* ------------------------------------------------------------------------- */
+/* The buttons are used as follows:											 */
+/* info - generally used for showing information.							 */
+/* primary - generally used for actions that generate something.			 */
+/* success - generally used for actions that don't affect the database.		 */
+/* danger - generally used for actions that may delete something.			 */
+/* ------------------------------------------------------------------------- */
+.btn-info {
+	background-image: linear-gradient(to bottom, #70c0d8, #408090 100%);
+	border-color: #103040;
+}
+.btn-info:hover {
+	color: lemonchiffon;
+	background-color: #408090;
+	border-color: #103040
+}
+.btn-success {
+	background-image: linear-gradient(to bottom, #70c0d8, #103040 100%);
+	border-color: #103040;
+}
+.btn-success:hover {
+	color: lemonchiffon;
+	background-color: #103040;
+	border-color: #103040
+}
+.btn-primary {
+	background-image: linear-gradient(to bottom, lightgreen, darkgreen 100%);
+	border-color: #103040;
+}
+.btn-primary:hover {
+	color: lemonchiffon;
+	background-color: darkgreen;
+	border-color: #103040
+}
+.btn-danger {
+	background-image: linear-gradient(to bottom, salmon, maroon 100%);
+	border-color: maroon;
+}
+.btn-danger:hover {
+	color: lemonchiffon;
+	background-color: maroon;
+	border-color: maroon
+}
+
+/* 2.4. Panel colours. */
+/* ------------------------------------------------------------------------- */
+.panel {
+	background-color: #E5E6E6; /*#d8d8d8;*/
+}
+

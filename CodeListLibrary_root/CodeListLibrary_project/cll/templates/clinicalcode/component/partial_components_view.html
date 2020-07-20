@@ -1,0 +1,91 @@
+{% for component in components %}
+	<tr>
+		<td>{% if component.component_type == 1 %}({{ component.concept_ref_id }}) {% endif %}{{ component.name }}</td>
+		<td>{{ component.get_component_type_display }}</td>
+		<td>{{ component.get_logical_type_display }}</td>
+		<td class="text-right">
+			{% if component.component_type == 1 %}
+			<button type="button" class="btn btn-info btn-xs" data-container="body" data-toggle="popover" 
+				data-html="true" data-placement="left" id="code-preview-{{ component.pk }}" data-trigger="hover">
+			  <i class="glyphicon glyphicon-search"> </i>
+			</button>
+			{% elif component.component_type == 2 %}
+			<button type="button" class="btn btn-info btn-xs" data-container="body" data-toggle="popover"
+				data-html="true" data-placement="left" id="code-preview-{{ component.pk }}" data-trigger="hover">
+				<i class="glyphicon glyphicon-search"> </i>
+			</button>
+			{% elif component.component_type == 3 or component.component_type == 4 %}
+			<button type="button" class="btn btn-info btn-xs" data-container="body" data-toggle="popover"
+				data-html="true" data-placement="left" id="code-preview-{{ component.pk }}" data-trigger="hover">
+			  <i class="glyphicon glyphicon-search"> </i>
+			</button>
+			{% else  %}
+				<p>No component type available</p>
+			{% endif %}
+			
+			<div id="popover-content-code-preview-{{ component.pk }}" class="hide popover-lg">
+				{% if component.component_type == 1 %}
+					<div>Concept name: {{ component.concept_ref.name }}</div>
+					<div>Comment: {{ component.comment }}</div>
+				{% endif %}
+				{% if component.component_type == 2 %}
+					<table class="table table-striped small-table" style="margin-bottom: 0px;">
+						<thead>
+							<tr>
+								<th>Code</th>
+								<th>Description</th>
+							</tr>
+						</thead>
+						<tbody>
+						{% for code in component.codelist.codes.all|slice:":10" %}
+							<tr>
+								<td>{{ code.code }}</td>
+								<td>{{ code.description }}</td>
+							</tr>
+						{% empty %}
+							<tr>
+								<td colspan="2" class="text-center bg-warning">
+									No codes
+								</td>
+							</tr>
+						{% endfor %}
+						</tbody>
+					</table>
+					<div>...</div>
+				{% endif %}
+				{% if component.component_type == 3 or component.component_type == 4 %}		
+					<div><label>Regex Code:</label> {{ component.coderegex.regex_code }}</div>	
+					<table class="table table-striped small-table" style="margin-bottom: 0px;">
+						<thead>
+							<tr>
+								<th>Code</th>
+								<th>Description</th>
+							</tr>
+						</thead>
+						<tbody>
+						{% for code in component.codelist.codes.all|slice:":10" %}
+							<tr>
+								<td>{{ code.code }}</td>
+								<td>{{ code.description }}</td>
+							</tr>
+						{% empty %}
+							<tr>
+								<td colspan="2" class="text-center bg-warning">
+									No codes
+								</td>
+							</tr>
+						{% endfor %}
+						</tbody>
+					</table>
+					<div>...</div>
+				{% endif %}
+			</div>
+		</td>
+	</tr>
+{% empty %}
+	<tr>
+		<td colspan="4" class="text-center bg-warning">
+			No components
+		</td>
+	</tr>
+{% endfor %}

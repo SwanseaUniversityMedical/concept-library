@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block title %}| Compare concept{% endblock title %}
+
+{% block container %}
+
+<h2 >
+	<i class="fa fa-columns" aria-hidden="true"></i><i> Compare concepts' codes </i>
+</h2>
+
+<div class="panel panel-default">
+	<div class="panel-body">
+		<div class="row">
+			<div class="col-md-12">
+				<div class="form-horizontal">
+					
+					<p  
+							{% if is_identical %}
+								class="p-3 mb-2 bg-warning text-success text-center"
+							{% else %}
+								class="p-3 mb-2 bg-warning text-danger text-center"
+							{% endif %}
+					 role="alert">
+					 {{ msg }}
+					 </p>
+					
+					<table class="table table-striped small-table table-hover" style="margin-bottom: 0px;">
+						<thead>
+							<tr>
+								<th colspan=2>Concept #1</th>
+								<th >&nbsp;</th>
+								<th colspan=2>Concept #2</th>
+							</tr> 
+							<tr>
+								<th colspan=2 title="{{ main_name }}"><h4>
+									<a href="{% url 'concept_history_detail' pk=concept_id concept_history_id=version_id %}" target="_blank" class="alert-link">
+									{{ main_name|safe }}
+		   							</a></h4>
+								</th>
+								<th >&nbsp;</th>
+								<th colspan=2 title="{{ ref_name }}"><h4>
+									<a href="{% url 'concept_history_detail' pk=concept_ref_id concept_history_id=version_ref_id %}" target="_blank" class="alert-link">
+									{{ ref_name|safe }}
+		   							</a></h4>
+								</th>
+							</tr>							
+							<tr>
+								<th >Code</th>
+								<th >Description</th>
+								<th >status</th>
+								<th >Code</th>
+								<th >Description</th>								
+							</tr>
+						</thead>
+						<tbody>
+						{% for code in net_comparison %}
+							<tr
+							{% if code.merge == 'both' %}
+								class="alert alert-success" 
+							{% elif code.merge == 'left_only' %}
+								class="alert alert-danger"
+							{% elif code.merge == 'right_only' %}
+								class="alert alert-warning"
+							{% endif %}
+						    role="alert"
+						    >
+						        
+								{% if code.merge == 'both' or code.merge == 'left_only' %}
+									<th>{{ code.code }}</th>
+									<td>{{ code.description_x }}</td>									
+								{% else %}
+									<td>&nbsp;</td>
+									<td>&nbsp;</td>
+								{% endif %}	
+																
+								<td>{{ code.merge }}</td>		
+								
+								{% if code.merge == 'both' or code.merge == 'right_only' %}
+									<th>{{ code.code }}</th>
+									<td>{{ code.description_y }}</td>									
+								{% else %}
+									<td>&nbsp;</td>
+									<td>&nbsp;</td>
+								{% endif %}	
+							</tr>
+						{% empty %}
+							<tr>
+								<td colspan="5" class="text-center bg-warning">
+									No codes
+								</td>
+							</tr>
+						{% endfor %}
+						</tbody>
+			       </table>
+																	
+				</div>
+			</div>
+		</div>
+		
+	</div>
+</div>
+
+{% endblock container %}
+
+

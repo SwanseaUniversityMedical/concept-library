@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block title %}| Search Workingset{% endblock title %}
+
+{% block container %}
+
+	<h2 class="page-header"><i class="fa fa-list" aria-hidden="true"></i> Working Sets</h2>
+	<form id="workingset-list-filter" action="{% url 'workingset_list' %}" method="POST" >
+		{% csrf_token %}
+		<div class="panel panel-default">
+			<div class="panel-body">
+			
+				<div class="row form-group">
+					<div class="col-md-2">
+						<label for="search">Search:</label>
+					</div>
+					<div class="col-sm-6">
+						<input class="form-control" type="text" placeholder="Search by name" name="search" id="search" value="{{ search|default_if_none:'' }}">
+					</div>
+					<div class="col-md-2">
+						<label for="page_size">Results per page:</label>
+					</div>
+					<div class="col-md-2"> 
+						<select class="form-control" id="page_size" name="page_size">
+							<option value="20" {% if page_size == "20" %}selected="selected" {% endif %}>20</option>
+							<option value="50" {% if page_size == "50" %}selected="selected" {% endif %}>50</option>
+							<option value="100" {% if page_size == "100" %}selected="selected" {% endif %}>100</option>
+						</select>
+					</div>
+				</div>
+				<div class="row form-group">
+					<div class="col-sm-2">
+						<label for="tag">Tag:</label>
+					</div>
+					<div class="col-sm-10">
+						<input class="form-control" type="text" name="tagids" id="txtTags" data-role="tagsinput" value="{{ tag|default_if_none:'' }}">
+					</div>					
+				</div>
+				
+				<div class="row form-group">
+					<div class="col-sm-2">
+						<label for="author">Author:</label>
+					</div>
+					<div class="col-sm-10">
+						<input class="form-control" type="text" name="author" id="txtAuthor" data-role="authorinput" value="{{ author|default_if_none:'' }}">
+					</div>					
+				</div>
+				
+				<div class="row form-group">
+				   <div class="col-sm-2">
+						<label for="brand">Brand:</label>
+					</div>
+					<div class="col-sm-10">
+					   {% if request.session.all_brands %}
+						   <ul class="nav navbar-nav">
+							     <select class="form-control" name="concept_brand" id="concept_brand"  >  
+								    <option value=""  style='background-color: lightgreen;' >Any</option>
+									{% for brand in request.session.all_brands %}
+										<option value="{{ brand|upper }}" 
+										       {% if brand|upper == concept_brand|upper %} selected="selected" {% endif %}
+										       >
+											{{ brand|upper }}
+											{% if brand|upper in request.session.user_brands %} (*) {% endif %}
+									</option>
+									{% empty %}
+										<option value="-1" >No Brands !!!</option>
+									{% endfor %}
+								  </select>
+							</ul>
+						{% endif %}
+					</div>	
+				</div>
+				
+				<div class="row form-group">
+					<div class="col-md-offset-2 col-md-3">
+						<div class="checkbox">
+							<label>
+								<input id="show_deleted_workingsets" type="checkbox" name="show_deleted_workingsets" {% if show_deleted_workingsets %}checked="checked"{% endif %} value="1" >
+								Show Deleted Items
+							</label>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="checkbox">
+							<label>
+								<input id="show_my_workingsets" type="checkbox" name="show_my_workingsets" {% if show_my_workingsets %}checked="checked"{% endif %} value="1" >
+								Only show Working Sets owned by me
+							</label>
+						</div>
+					</div>
+					<div class="col-md-3 text-right">
+						<button class="btn btn-info" name="page" value="1">
+							<i class="fa fa-search"></i> Search Working Sets
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		{% if not CLL_READ_ONLY %}
+			<div>
+			<a class="btn btn-primary" {% if allowed_to_create %} href="{% url 'workingset_create' %}" {% else %} disabled {% endif %}>
+				<i class="fa fa-plus"></i> Add New Working Set
+			</a>
+			</div>
+		{% endif %}
+		
+		<!-- div class="page-control-container">
+			{% include 'pagination.html' with form_target='workingset-list-filter' %}	
+		</div-->
+		
+		<br/>
+		{% if concept_brand|length %} 
+			 <!--div class="w-50 p-3 bs-example" style="width:50%;">
+			    <div class="alert-info fade in" style="height:20px;">
+			       	Showing concepts affiliated with <b>{{ concept_brand|upper }}</b>. 
+			       	<span><img height="20px" src="{% static 'img/brands/' %}{{ concept_brand }}/logo1.png"  alt="{{ concept_brand }} Logo" /></span>
+			    </div>
+			</div-->
+		{% endif %}
+		
+		
+		<table class="table table-striped small-table table-hover">
+			<tr>
+				<th>Id</th>
+				<th style="width: 200px;">Working Set Name</th>
+				<th>Author</th>
+				<th>Owner</th>
+				<th>Created by</th>
+				<th>Created date</th>
+				<th>Modified by</th>
+				<th>Modified date</th>
+				<th>Is del.</th>
+				<th>Deleted date</th>
+				<th style="width: 60px;"></th>
+				<th style="width: 60px;"></th>
+			</tr>
+			{% block content %}
+				{% for workingset in page_obj.object_list %}  
+				<tr {% cycle '' ' class="form-group highlight-row" ' %} >
+					<td>{{ workingset.id }}</td>
+					<td><!-- a href="{% url 'workingset_detail' workingset.id %}" title="View working set details">{{ workingset.name }}</a-->{{ workingset.name }}
+					{% for item in request.BRAND_GROUPS %}
+						{% for brand, groups in item.iteritems %}
+							{% if workingset.group.name in groups %}
+							<img src="{% static 'img/brands/' %}{{brand}}/logo.png" height="10px" title="{{brand}}" alt="{{brand}}" />
+							{% endif %}
+						{% endfor %}
+					{% endfor %}
+					</td>				
+					<td>{{ workingset.author }}</td>
+					<td>{{ workingset.owner }}</td>
+					<td>{{ workingset.created_by }}</td>
+					<td>{{ workingset.created|date:"Y-m-d H:i" }}</td>
+					<td>{{ workingset.updated_by }}</td>
+					<td>{{ workingset.modified|date:"Y-m-d H:i" }}</td>
+					<td>{% if workingset.is_deleted is True %}
+						<span>&#10004;</span>
+						{% endif %}
+					</td>
+					<td>{{ workingset.deleted|date:"Y-m-d H:i" }}</td>
+					<td class="text-right" style="width: 80px;">
+						{% if workingset.is_deleted is not True and workingset.can_edit %}
+						<a href="{% url "workingset_update" workingset.id %}" title="Edit workingset">
+							<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+						</a> 
+						<span style="width: 10px;">&nbsp;</span>
+						{% endif %}
+						{% if workingset.is_deleted is not True and workingset.can_edit %}
+						<a class="js-load-modal" href="{% url "workingset_delete" workingset.id %}" title="Delete workingset">
+							<span class="glyphicon glyphicon-remove-circle text-danger" aria-hidden="true"></span>
+						</a>
+						<span style="width: 10px;">&nbsp;</span>
+						{% endif %}
+						{%if workingset.is_deleted is True and workingset.can_edit %}
+						<a class="js-load-modal" href="{% url 'workingset_restore' workingset.id %}" title="Restore workingset">
+							<span class="glyphicon glyphicon-repeat text-success" aria-hidden="true"></span>
+						</a>
+						<span style="width: 10px;">&nbsp;</span>
+						{% endif %}
+					</td>
+					<td class="text-right">
+						<a class="" href="{% url 'workingset_detail' workingset.id %}">
+						<button type="button" class="btn btn-info btn-xs text-right">
+							<i class="glyphicon glyphicon-search"> </i>
+						</button>
+						</a>
+						<!-- a class="" href="{% url 'workingset_detail' workingset.id %}" title="View working set details">
+							<span class="glyphicon glyphicon-search text-info" aria-hidden="true"></span>
+						</a -->
+						<span style="width: 10px;">&nbsp;</span>
+					</td>
+				<tr>
+				{% empty %}
+					<tr>
+						<td colspan="12" class="text-center bg-warning">
+							No workingsets
+						</td>
+					</tr>
+				{% endfor %}
+			{% endblock %}
+		</table>
+		<div class="page-control-container">
+			{% include 'pagination.html' with form_target='workingset-list-filter' %}	
+		</div>
+	</form>	
+{% endblock container %}
+
+{% block scripts %}
+	<script src="{% static 'js/clinicalcode/component.js' %}"></script>
+	<script src="{% static 'js/clinicalcode/tags.js' %}"></script>
+	
+	<script type="text/javascript">
+		tagService.initialize();
+		$(function(){
+			{% for tag in tags %}
+				$('#txtTags').tagsinput('add', {'id': {{ tag.id }}, 'description': '{{ tag.description }}', 'display': '{{ tag.get_display_display }}'});
+			{% endfor %}
+		});	
+	</script>
+	
+
+{% endblock scripts %}
+

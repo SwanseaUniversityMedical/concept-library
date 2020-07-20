@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block title %}Login{% endblock title %}
+
+{% block container %}
+
+<div id="loginbox" style="margin-top: 50px;" class="mainbox col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+	<div>
+		{% if IS_INSIDE_GATEWAY or request.get_host == "conceptlibrary.sail.ukserp.ac.uk" %}
+		Documentation not yet available inside the SAIL gateway. <br>Please access via the external application	
+		{% else %}
+		Concept Library documentation is available at this URL
+		<br>
+		<a href="https://docs.hiru.swan.ac.uk/display/SATP/Concept+Library+Documentation" target=_blank rel="noopener noreferrer">https://docs.hiru.swan.ac.uk/display/SATP/Concept+Library+Documentation</a>
+		{% endif %}	
+	</div>
+		
+	<div class="panel panel-primary">
+		<div class="panel-heading">
+			<div class="row">
+				<div class="panel-title col-md-6">Sign In</div>
+				<div class="col-md-6 text-right" style="font-size: 80%; position: relative; top: 10px;">
+					<a href="{% url 'password_reset' %}" style="color: white;">Lost password?</a>
+				</div>
+			</div>
+		</div>
+	
+		<div style="padding-top: 30px;" class="panel-body">
+			{% if form.errors %}
+				<div class="alert alert-danger col-sm-12">Your username and password do not match. Please try again</div>
+			{% endif %}
+			
+			{% if next %}
+				{% if user.is_authenticated %}
+					<div class="alert alert-info col-sm-12">Your account doesn't have access to this page. To proceed, please login with an account that has access</div>
+				{% else %}
+					<div class="alert alert-info col-sm-12">Please login to see this page</div>
+				{% endif %}
+			{% endif %}
+			
+			<form method="post" action="{% url 'login' %}" class="form-horizontal">
+				{% csrf_token %}
+				
+				<input type="hidden" name="next" value="{{ next }}" />
+				
+				<div style="margin-bottom: 25px;" class="input-group">
+					<span class="input-group-addon">
+						<i class="glyphicon glyphicon-user"></i>
+					</span>
+					<input id="id_username" name="username" type="text" class="form-control" maxlength="254" placeholder="username" autofocus required />
+				</div>
+				
+				<div style="margin-bottom: 25px;" class="input-group">
+					<span class="input-group-addon">
+						<i class="glyphicon glyphicon-lock"></i>
+					</span>
+					<input id="id_password" name="password" type="password" class="form-control" placeholder="password" />
+				</div>
+				
+				<div class="input-group">
+					<div class="checkbox">
+						<label>
+							<input id="login-remember" type="checkbox" name="remember" value="1">Remember me
+						</label>
+					</div>
+				</div>
+				
+				<div style="margin-top: 10px;" class="form-group">
+					<div class="col-sm-12 controls">
+						<button class="btn btn-success" id="save-changes">Log-in</button>
+					</div>
+				</div>
+			</form>
+		</div>		
+	</div>
+</div>
+
+
+		
+{% endblock container %}

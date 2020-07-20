@@ -1,0 +1,46 @@
+<!-- --------------------------------------------------------------------------
+	 The table of history entries.
+	 This is the content of the history table. It is included statically when
+	 the page is created and also dynamically when a new component is added.
+	 The headers should be provided in the static pages.
+	 ---------------------------------------------------------------------- -->
+	{% for history in history %}
+		<tr>
+			<td>{{ history.history_id }}</td>
+			<td>{{ history.name }}</td>
+			<td title="{{ history.description }}">{{ history.description|truncatechars:50 }}</td>
+			<td>{{ history.history_date}}</td>
+<!-- 			<td>{{ history.get_history_type_display }}</td> -->
+			<td>{{ history.history_change_reason }}</td>
+			<td>
+			{% if history.modified_by is not None %}
+				{{ history.modified_by }}
+			{% else %}
+				{{ history.created_by }}
+			{% endif %}
+			</td>
+			{% if enable_publish %}
+			<td>
+				{% if history.history_id in published_historical_ids %}
+					<span>&#10004;</span>
+				{% endif %}
+			</td>
+			{% endif %}
+			
+			<td class="text-right">
+			<a class="" href="{% url 'concept_history_detail' pk=history.id concept_history_id=history.history_id %}">			
+			<button type="button" class="btn btn-info btn-xs" data-container="body" data-toggle="" data-html="true" data-placement="left" id="code-preview-{{ component.pk }}" data-trigger="hover">
+				<i class="glyphicon glyphicon-search"> </i>
+			</button>			
+			</a>
+			<!-- a href="{% url 'concept_history_detail' pk=history.id concept_history_id=history.history_id %}">View</a -->
+			</td>
+		</tr>
+	{% empty %}
+		<tr>
+			<td colspan="7" class="text-center bg-warning">
+				No history
+			</td>
+		</tr>
+	{% endfor %}
+	

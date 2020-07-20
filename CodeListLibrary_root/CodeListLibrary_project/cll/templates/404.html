@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block title %}Page not found{% endblock title %}
+
+{% block container %}
+<h2>404: Page not found</h2>
+
+<p>Apologies, but it looks like you followed a bad link. If you think it's our fault, please contact us and let us know.</p>
+
+<p>Here's a link to the <a href="{% 'concept_index' %}">homepage</a></p>
+
+{% endblock container %}
+
