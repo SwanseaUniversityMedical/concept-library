@@ -1,0 +1,8 @@
+To run all the tests you need to run two commands:
+    - python manage.py test  --noinput 
+    - python manage.py test  --noinput clinicalcode.tests.functional_tests.read_only
+
+The first one will run all the tests except read only tests. It is necessary  because normal tests will take settings from settings.py
+The second one runs READ_ONLY tests. It takes settings from read_only_test_settings.py. Read_only tests must take settings from read_only_test_settings.py otherwise they will fail.
+
+manage.py manage which settings file is read. If a command contains read_only phrase then it reads read_only_test_settings.py otherwise settings.py
