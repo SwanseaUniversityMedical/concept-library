@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block title %}{% endblock title %}
+
+{% block container %}
+
+	<h1>Concept Library API</h1>
+	
+	<p>The concept library API allows programmatic interaction with code lists, so that they can be directly used in queries, statistical scripts, etc. </p>
+	<p class="text-info"><i>- (Replace the number 0 in the url with the relevant concept/working set id.<br>
+        Replace the number 1 in the url with the relevant version_id of the concept/working set.)
+        </i>
+    </p>
+    <p class="text-info"><i>- (you can add the querystring ?format=json or ?format=xml to specify the required API output format.) </i>
+    </p>
+    
+	<h2>Concepts:</h2>	
+	<ol>
+		<li><strong>To export the code list of the latest version of a concept</strong></li>
+			<p><a href="{{ export_concept_codes }}" target="_blank" class="alert-link">{{ export_concept_codes }}</a></p>
+
+		<li><strong>To export the code list of a specific version of a concept</strong></li>
+			<p><a href="{{ export_concept_codes_byVersionID }}" target="_blank" class="alert-link">{{ export_concept_codes_byVersionID }}</a></p>
+			
+		<li><strong>To list and search for concepts</strong></li>
+			<p><a href="{{ myConcepts }}" target="_blank" class="alert-link">{{ myConcepts }}</a></p>
+			<p>- Lists all available concepts for the user <br>
+			   - User can search with criteria using querystring parameters: <br>
+				(you can use one param or a combinations of them)<br>
+				<ul>
+					<li><code>?search=diab</code><br>
+					search by part of concept name (do not put wild characters here)</li>
+					<li><code>?id=10</code><br>
+					you can specify concept id</li>
+					<li><code>?tag_ids=11,4</code><br>
+					You can specify tags ids (get tags from <code>/api/tags/</code>)</li>
+					<li><code>?show_only_my_concepts=1</code><br>
+					Only show concepts owned by me</li>
+					<li><code>?show_deleted_concepts=1</code><br>
+					will show also deleted concepts (by default, deleted objects are not shown)</li>
+					<li><code>?show_only_validated_concepts=1</code><br>
+					will show only validated concepts</li>
+					<li><code>?brand=ADP</code><br>
+					will show only concepts with brand=ADP</li>
+					<li><code>?author=moh</code><br>
+					search by part of the author name</li>
+					<li><code>?owner_username=a.john</code><br>
+					search by full username of the owner</li>					
+					<li><code>?do_not_show_versions=1</code><br>
+					do not show concepts versions (by default, all concept version ids are shown)</li>
+				</ul>
+			(<code>Example: /api/myconcepts/?author=m&brand=adp&tag_ids=11</code>)
+			</p>
+			
+		<li><strong>To list concept details for the latest version</strong></li>
+			<p><a href="{{ myConceptdetail }}" target="_blank" class="alert-link">{{ myConceptdetail }}</a></p>
+		
+		<li><strong>To list concept details for the specified version</strong></li>
+			<p><a href="{{ myConceptdetail_version }}" target="_blank" class="alert-link">{{ myConceptdetail_version }}</a></p>
+		
+	</ol>
+			
+	<h2>Working Sets:</h2>
+	<ol>
+		<li><strong>To export the code list of the latest version of a working set</strong></li>
+			<p><a href="{{ export_workingset_codes }}" target="_blank" class="alert-link">{{ export_workingset_codes }}</a></p>
+
+		<li><strong>To export the code list of a specific version of a working set</strong></li>
+			<p><a href="{{ export_workingset_codes_byVersionID }}" target="_blank" class="alert-link">{{ export_workingset_codes_byVersionID }}</a></p>
+			
+		<li><strong>To list and search for working sets</strong></li>
+			<p><a href="{{ myWorkingSets }}" target="_blank" class="alert-link">{{ myWorkingSets }}</a></p>
+			<p>- Lists all available working sets for the user <br>
+			   - User can search with criteria using querystring parameters: <br>
+				(you can use one param or a combinations of them)<br>
+				<ul>
+					<li><code>?search=diab</code><br>
+					search by part of working set name (do not put wild characters here)</li>
+					<li><code>?id=10</code><br>
+					you can specify working set id</li>
+					<li><code>?tag_ids=11,4</code><br>
+					You can specify tags ids (get tags from <code>/api/tags/</code>)</li>
+					<li><code>?show_only_my_workingsets=1</code><br>
+					Only show working sets owned by me</li>
+					<li><code>?show_deleted_workingsets=1</code><br>
+					will show also deleted working sets (by default, deleted objects are not shown)</li>
+					<li><code>?brand=ADP</code><br>
+					will show only concepts with brand=ADP</li>
+					<li><code>?author=moh</code><br>
+					search by part of the author name</li>
+					<li><code>?owner_username=a.john</code><br>
+					search by full username of the owner</li>
+					<li><code>?do_not_show_versions=1</code><br>
+					do not show working sets versions (by default, all concept version ids are shown)</li>
+				</ul>
+			(<code>Example: /api/myworkingsets/?author=m&brand=adp&tag_ids=11</code>)
+			</p>
+			
+		<li><strong>To list working set details for the latest version</strong></li>
+			<p><a href="{{ myWorkingsetdetail }}" target="_blank" class="alert-link">{{ myWorkingsetdetail }}</a></p>
+			<p>- User can choose not to export working set codes: <br>
+				<ul>
+					<li><code>?do_not_show_codes=1</code><br>
+					do not export working set codes (exporting code list can be achieved by normal export codes)</li>
+				</ul>
+			</p>
+			
+		<li><strong>To list working set details for the specified version</strong></li>
+			<p><a href="{{ myWorkingsetdetail_version }}" target="_blank" class="alert-link">{{ myWorkingsetdetail_version }}</a></p>
+			<p>- User can choose not to export working set codes: <br>
+				<ul>
+					<li><code>?do_not_show_codes=1</code><br>
+					do not export working set codes (exporting code list can be achieved by normal export codes)</li>
+				</ul>
+			</p>
+								
+			
+	</ol>
+
+
+{% endblock container %}
+{% block scripts  %}
+{% endblock scripts %}
+
+

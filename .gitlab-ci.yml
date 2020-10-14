@@ -1,0 +1,103 @@
+#----- global settings -------
+
+stages:
+    - build-master
+    - deploy-development-70-66
+    - deploy-Demo
+    - deploy-Demo-RO
+    
+variables:
+        GIT_SSL_NO_VERIFY: "true"
+
+
+before_script:
+  - docker login -u teamcityserver -p $CI_AC_TOKEN $CI_REGISTRY
+
+
+build_image:
+        stage: build-master
+        only:
+            - master
+        script:
+            - docker build -f "OS/Dockerfile" -t cll/os .
+            - docker build -t $CI_REGISTRY/codelistlibrary/codelistlibrary_root .
+            - docker push $CI_REGISTRY/codelistlibrary/codelistlibrary_root
+            - docker rmi $CI_REGISTRY/codelistlibrary/codelistlibrary_root 
+            - docker rmi cll/os
+ 
+
+#----------Development-branch-----------------------------
+deploy-Development-branch:
+        stage: deploy-development-70-66
+        only:
+            - Development
+            
+        before_script:
+            - echo 'before_script::DOCKER(Development-branch)!'
+
+        script:
+            - whoami
+            
+            - eval $(ssh-agent -s) 
+            - ssh-add <(echo "$MOH_KEY") 
+
+            # List out your new key's fingerprint
+            - ssh-add -l
+            - ssh root@192.168.70.66 "/root/cll_dev_deploy/deploy_script_server_development.70.66.sh"
+
+            # Don't forget to cleanup your agent after you're done using it if you're not on an ephemeral build server.
+            - ssh-agent -k
+        tags:
+            - shell_7066
+
+
+
+#----------Demo master-branch-----------------------------
+deploy-master-branch-demo:
+        stage: deploy-Demo
+        only:
+            - master
+            
+        before_script:
+            - echo 'before_script::DOCKER(master-branch  Demo)!'
+
+        script:
+            - whoami
+            
+            - eval $(ssh-agent -s) 
+            - ssh-add <(echo "$MOH_KEY") 
+
+            # List out your new key's fingerprint
+            - ssh-add -l 
+            - ssh root@192.168.11.36 "/root/cll_apache_deploy/deploy_script_master.sh"
+
+            # Don't forget to cleanup your agent after you're done using it if you're not on an ephemeral build server.
+            - ssh-agent -k
+        tags:
+            - shell_7066
+
+#----------Demo READ_ONLY master-branch-----------------------------
+deploy-master-branch-demo-RO:
+        stage: deploy-Demo-RO
+        only:
+            - master
+            
+        before_script:
+            - echo 'before_script::DOCKER(master-branch  Demo RO)!'
+
+        script:
+            - whoami
+            
+            - eval $(ssh-agent -s) 
+            - ssh-add <(echo "$MOH_KEY") 
+
+            # List out your new key's fingerprint
+            - ssh-add -l
+            - ssh root@192.168.11.33 "/root/cll_apache_deploy/deploy_script_master.sh"
+
+            # Don't forget to cleanup your agent after you're done using it if you're not on an ephemeral build server.
+            - ssh-agent -k
+        tags:
+            - shell_7066
+
+

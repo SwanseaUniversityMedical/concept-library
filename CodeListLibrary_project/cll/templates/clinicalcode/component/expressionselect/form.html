@@ -1,0 +1,994 @@
+{{ coderegex_formset.management_form }}
+{{ coderegex_formset.non_form_errors }}
+{# include hidden fields #}
+{% for hidden in form.hidden_fields %}
+	{{ hidden }}
+{% endfor %}
+{% for hidden in coderegex_formset.form.hidden_fields %}
+	{{ hidden }}
+{% endfor %}
+
+<input type="hidden" name="action" id="action" />
+<input type="hidden" id="search-text" />
+
+<script  type="text/javascript">
+    $(document).ready(function () {
+        //when a submit button is clicked, put its name into the action hidden field
+        $(":submit").click(function () { $("#action").val(this.name); });
+    });
+</script>
+	
+<div id="div_id_name" class="form-group {% if form.name.errors %}has-error{% endif %}">
+	<label for="{{ form.name.id_for_label }}" class="col-sm-3 required">{{ form.name.label }}</label>
+	<div class="col-sm-7"   id="div_id_name2" >
+		{{ form.name }}
+		<span class="help-block"  id="help_id_name">
+		  {% if form.name.errors %}              
+               {% for error in form.name.errors %}{{ error }}{% endfor %}
+             {% endif %}
+           </span>
+	</div>
+</div>
+
+<div>
+	<input type="hidden" id="latest_history_id_shown" name="latest_history_id_shown"  value="{{ request.GET.latest_history_id }}"> 
+ 	<input type="hidden" id="component_id" name="component_id"  value="{{ object.id }}">
+ 	
+ 	<input type="hidden" id="latest_history_id_concept" name="latest_history_id_concept"  value="{{ latest_history_ID }}">
+ 	 
+</div>
+
+<div class="form-group {% if form.comment.errors %}has-error{% endif %}">
+	<label for="{{ form.comment.id_for_label }}" class="col-sm-3">{{ form.comment.label }}</label>
+	<div class="col-sm-7">
+		{{ form.comment }}
+		{% if form.comment.errors %}
+             <span class="help-block">
+               {% for error in form.comment.errors %}{{ error }}{% endfor %}
+             </span>
+           {% endif %}
+	</div>
+</div>
+
+<div class="form-group">
+	<label class="col-sm-3">{{ form.logical_type.label }}</label>
+	<div class="col-sm-9" id="logical-type-container">								
+		{% for choice in form.logical_type %}
+		<div class="radio">
+			<label>										
+				{{ choice.tag }}
+				{{ choice.choice_label }}
+			</label>
+			<a href="#" role="button" class="popovers" id="expression-select-{{ choice.choice_label }}" data-container="#logical-type-container" data-toggle="popover" data-trigger="hover" title="" data-original-title="Logical type: inclusion/exclusion" data-placement="right" style="padding-top: 5px; padding-left: 10px;">
+				<i class="fa fa-question-circle" aria-hidden="true"></i>
+			</a>
+		</div>
+		{% endfor %}
+		
+	</div>
+</div>
+{% for coderegex_form in coderegex_formset %}
+
+{% for hidden in coderegex_form.hidden_fields %}
+	{{ hidden }}
+{% endfor %}
+
+<div class="form-group">
+	<label class="col-sm-3">{{ coderegex_form.regex_type.label }}</label>
+	<div class="col-sm-7">								
+		{% for choice in coderegex_form.regex_type %}
+		<div class="radio">
+			<label>										
+				{{ choice.tag }}
+				{{ choice.choice_label }}
+			</label>
+			<a href="#" role="button" class="popovers" id="expression-select-regex-type" data-container="body" data-toggle="popover" data-trigger="hover" title="" data-original-title="Regex type: simple/regex" data-placement="right" style="padding-top: 5px; padding-left: 10px;">
+				<i class="fa fa-question-circle" aria-hidden="true"></i>
+			</a>
+		</div>
+		{% endfor %}
+	</div>
+</div>
+<div class="form-group">
+	<label class="col-sm-3">{{ coderegex_form.column_search.label }}</label>
+	<div class="col-sm-7">								
+		{% for choice in coderegex_form.column_search %}
+		<div class="radio">
+			<label>										
+				{{ choice.tag }}
+				{{ choice.choice_label }}
+			</label>
+		</div>
+		{% endfor %}
+<!-- 				<span class="help-block"  id="help_column_search"> -->
+<!-- 				  {% if form.column_search.errors %}               -->
+<!-- 		               {% for error in form.column_search.errors %}{{ error }}{% endfor %} -->
+<!-- 		           {% endif %} -->
+<!-- 		        </span> -->
+	</div>
+</div>
+
+<div class="form-group {% if coderegex_form.regex_code.errors %}has-error{% endif %}">
+	<label for="{{ coderegex_form.regex_code.id_for_label }}" class="col-sm-3">{{ coderegex_form.regex_code.label }}</label>
+	<div class="col-sm-7" id="regex-code-container">
+		{{ coderegex_form.regex_code }}
+		{% if coderegex_form.regex_code.errors %}
+        	<span class="help-block">
+           		{% for error in coderegex_form.regex_code.errors %}{{ error }}{% endfor %}
+        	</span>
+     	{% endif %}
+	</div>
+	<div class="col-sm-2 form-help-popover">
+		<a href="#" role="button" class="popovers" id="expression-select-regex-code" data-container="#regex-code-container" data-toggle="popover" data-trigger="hover" title="" data-original-title="Pattern" data-placement="left" style="padding-top: 5px; padding-left: 10px;">
+			<i class="fa fa-question-circle" aria-hidden="true"></i>
+		</a>
+	</div>
+</div>
+<div class="alert alert-danger collapse col-sm-offset-3 col-sm-9" id="regex_error"></div>
+
+<div class="form-group {% if coderegex_form.case_sensitive_search.errors %}has-error{% endif %}">
+	<label class="col-sm-3"
+		for="{{ coderegex_form.case_sensitive_search.id_for_label }}">{{ coderegex_form.case_sensitive_search.label }}</label>
+	<div class="col-sm-7">
+		{{ coderegex_form.case_sensitive_search }}
+		{% if coderegex_form.case_sensitive_search.errors %}
+		<span class="help-block">
+			{% for error in coderegex_form.case_sensitive_search.errors %}{{ error }}{% endfor %}
+		</span>
+		{% endif %}
+	</div>
+</div>	
+	
+<ul class="nav nav-tabs">
+	<li role="presentation" class="active">
+		<a data-toggle="tab" href="#search-existing-codes">Search existing codes</a>
+	</li>
+	<li role="presentation">
+		<a data-toggle="tab" href="#upload-codes">Upload codes from csv</a>
+	</li>
+</ul>
+<br/>
+<div class="tab-content">
+	<div id="search-existing-codes" class="tab-pane fade in active">
+		<div class="row">
+			<div class="col-sm-7 col-sm-offset-3">
+				<button id="btnRunExpressionSelectQuery" class="btn btn-info">
+					<i class="fa fa-play" aria-hidden="true"></i> Run Pattern Query
+				</button>
+			</div>
+		</div>
+	
+		<hr/>
+	
+		<div class="row">
+			<div class="col-md-5">
+				<h4 class="page-header">New codes to add</h4>
+				
+				<div class="row">
+					<div class="col-md-6">
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" id="selectall-codestoadd-checkbox" /> Select all to add
+							</label>
+							<a href="#" role="button" class="btn popovers" id="add-codes-help" data-toggle="popover" data-trigger="hover" data-container="body" title="" data-original-title="Add codes" data-placement="right">
+								<i class="fa fa-question-circle" aria-hidden="true"></i>
+							</a>
+						</div>
+					</div>
+					<div class="col-md-6 text-right">
+						<span class="codesToAddAmount label label-primary"></span>
+					</div>
+				</div>
+				
+				<div class="clusterize" style="height: 500px;">
+					<table class="table table-striped small-table search-code-table" id="codesToAddTable" style="margin-bottom: 0px;">
+						<thead>
+							<tr>
+								<th style="width: 50px; border: none;"></th>
+								<th style="border: none; width: 120px;">Code</th>
+								<th style="border: none;">Description</th>
+							</tr>
+						</thead>
+					</table>
+					<div id="codesToAddScrollArea" class="clusterize-scroll" style="max-height: 450px;">
+						<table class="table table-striped small-table">
+							<thead>
+								<tr>
+									<th style="border: none; width: 50px;"></th>
+									<th style="border: none; width: 120px;"></th>
+									<th style="border: none;"></th>
+								</tr>
+							</thead>
+							<tbody id="codesToAddContentArea" class="clusterize-content">
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-12 text-right">
+						<span class="codesToAddAmount label label-primary"></span>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-5">
+				<h4 class="page-header">Existing codes to remove</h4>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" id="selectall-codestodelete-checkbox" /> Select all to remove
+							</label>
+							<a href="#" role="button" class="btn popovers" id="delete-codes-help" data-toggle="popover" data-trigger="hover" data-container="body" title="" data-original-title="Remove codes" data-placement="left">
+								<i class="fa fa-question-circle" aria-hidden="true"></i>
+							</a>
+						</div>
+					</div>
+					<div class="col-md-6 text-right">
+						<span class="codesToDeleteAmount label label-primary"></span>
+					</div>
+				</div>
+				<div class="clusterize" style="height: 500px;">
+					<table class="table table-striped small-table added-code-table" id="codesToDeleteTable" style="margin-bottom: 0px;">
+						<thead>
+							<tr>
+								<th style="width: 30px; border: none;"></th>
+								<th style="width: 120px; border: none;">Code</th>
+								<th style="border: none;">Description</th>
+							</tr>
+						</thead>
+					</table>
+					<div id="codesToDeleteScrollArea" class="clusterize-scroll" style="max-height: 450px;">
+						<table class="table table-striped small-table">
+							<thead>
+								<tr>
+									<th style="width: 30px; border: none;"></th>
+									<th style="width: 120px; border: none;"></th>
+									<th style="border: none;"></th>
+								</tr>
+							</thead>
+							<tbody id="codesToDeleteContentArea" class="clusterize-content">
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-12 text-right">
+						<span class="codesToDeleteAmount label label-primary"></span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div id="upload-codes" class="tab-pane fade in">
+		<div class="alert alert-info" role="alert">
+			To save codes ensure the csv file contains only 2 columns. The first column will be the codes and the second column will be the descriptions. 
+			<ul>
+				<li>Please click "Choose File"</li>
+				<li>Navigate to where your csv file is stored and then select the file.</li>
+				<li>Click save to save the results</li>
+			</ul>
+		</div>
+		<div class="form-group">
+			<div class="col-md-12">								
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" id="first_row_contains_column_headings_checkbox" name="first_row_contains_column_headings_checkbox" value="1" /> Does the first row contain the column headings?
+					</label>
+				</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<div class="col-md-12">
+				<input type="file" id="upload_file" name="upload_file" placeholder="Upload csv file" />
+			</div>
+		</div>
+	</div>
+</div>
+{% endfor %}
+<div id="popover-content-expression-select-help" class="hide popover-lg">
+	<p>
+		You can select codes individually using a simple query or regular expression. This will query either the code or description field. For this component you can also manually add code and descriptions to a code list by clicking the + button within the component list on the concept edit page. The process is as follows:
+	</p>
+	<p>
+		<ol>
+			<li>Enter a Name</li>
+			<li>Select the type</li>
+			<li>Select if its going to be a simple query or regular expression</li>
+			<li>Finally enter the actual simple query or a regular expression into the Pattern field and click the Run Pattern Query button</li>
+		</ol> 
+	</p>
+	<p>
+		Or you can simply upload a csv file containing the code and descriptions.
+	</p>
+</div>
+
+<div id="popover-content-expression-select-Inclusion" class="hide">
+	<div>
+		Codes created within this component will be included within the concept.
+	</div>
+</div>
+<div id="popover-content-expression-select-Exclusion" class="hide">
+	<div>
+		Codes created within this component will be excluded within the concept.
+	</div>
+</div>
+<div id="popover-content-expression-select-regex-type" class="hide popover-lg">
+	<p>You can match records using a basic like statement (Simple) using just % or using a regular expression (POSIX). Examples are highlighted below:</p>
+ 
+	<p><strong>Simple (% only)</strong> - examples:</p>
+	<dl>
+		<dt>A02%</dt>
+		<dd>This will match any item that starts with A02</dd>
+		<dt>%01.2%</dt>
+		<dd>This will match any item containing 01.2</dd>
+		<dt>%neoplasm%</dt>
+		<dd>This will match any item containing neoplasm</dd>
+		<dt>neoplasm%</dt>
+		<dd>This will match any item starting with neoplasm</dd>
+		<dt>%neoplasm</dt>
+		<dd>This will match any item ending with neoplasm</dd>
+	</dl> 
+	<p>
+		<strong>POSIX regex</strong> - this will match codes using a regular expression. Examples:
+	</p>
+	<dl>
+		<dt>^(C03|C04)$</dt>
+		<dd>This will match items that equal C03 or C04</dd>
+		<dt>^(C0[0-9]|C1[0-4])$</dt>
+		<dd>This will match items that equal any of these: (C00, C01, C02, C03, C04, C05, C06, C07, C08, C09) or (C10, C11, C12, C13, C14)</dd>
+	</dl>
+	
+</div>
+
+<div id="popover-content-expression-select-regex-code" class="hide">
+	<p>Based on the regex type selected then this textbox will contain a simple query<br/>i.e. %neoplasm%<br/>or it will contain a regular expression <br/>i.e. ^(C0[0-9]|C1[0-4])$</p>
+</div>
+<div id="popover-content-expression-select-POSIX regex" class="hide">
+	<div>
+		Codes created within this component will be excluded within the concept.
+	</div>
+</div>
+
+<div id="popover-content-add-codes-help" class="hide popover-lg">
+	<p>
+		To attach codes to a component then you must:
+		<ol>
+			<li>Create a query</li>
+			<li>Click "Run Pattern Query" to return a list of codes</li>
+			<li>Check the required codes you wish to add</li>
+			<li>Click save to attach the codes to the component</li>
+		</ol>
+	</p>
+</div>
+
+<div id="popover-content-delete-codes-help" class="hide popover-lg">
+	<p>
+		To remove codes from the component then you must:
+		<ol>
+			<li>Check the required codes you wish to remove</li>
+			<li>Click save to remove the codes from the component</li>
+		</ol>
+	</p>
+</div>
+
+
+<script src="/static/js/clinicalcode/dataService.js"></script>
+
+<script>
+//$(function() {
+
+	// arrays of added and deleted codes
+	var codesToDeleteContentArea = document.getElementById('codesToDeleteContentArea');
+	var codesToAddContentArea = document.getElementById('codesToAddContentArea');
+	
+	var codesToDeleteRows = [];
+	var codesToAddRows = [];
+	
+	codesToDeleteContentArea.onchange = handleCodesToDeleteEvent;
+	codesToAddScrollArea.onchange = handleCodesToAddEvent;
+//});	
+
+	function handleCodesToDeleteEvent(e){
+		e = e || event;
+		var target = e.target || e.srcElement;
+		
+		if(target.nodeName != "INPUT") { return; }
+		
+		var dataSet = target.dataset;
+		
+		if (dataSet == null)
+		{
+			var cell = e.srcElement.getAttribute('data-cell'),
+				description = e.srcElement.getAttribute('data-description'),
+				clid = e.srcElement.getAttribute('data-clid');
+			
+			codesToDeleteRows[cell] = generateCodesToDeleteRow(cell, target.value, clid, description, target.checked);
+		}
+		else
+		{
+			codesToDeleteRows[dataSet.cell] = generateCodesToDeleteRow(dataSet.cell, target.value, dataSet.clid, dataSet.description, target.checked);
+		}
+	}
+	
+	function handleCodesToAddEvent(e){		
+		e = e || event;
+		var target = e.target || e.srcElement;
+		
+		if(target.nodeName != "INPUT") { return;}
+		
+		var dataSet = target.dataset;
+		
+		if (dataSet == null)
+		{
+			var cell = e.srcElement.getAttribute('data-cell'),
+				description = e.srcElement.getAttribute('data-description');
+			
+			codesToAddRows[cell] = generateCodesToAddRow(cell, target.value, description, target.checked);
+		}
+		else
+		{
+			codesToAddRows[dataSet.cell] = generateCodesToAddRow(dataSet.cell, target.value, dataSet.description, target.checked);
+		}
+	}
+	
+	var generateCodesToDeleteRow = function(cell, code, id, description, isChecked){			
+		var checkedStr = "";
+		if(isChecked){
+			checkedStr = 'checked="checked"';
+		}
+		return ("<tr><td><input type='checkbox' value='" + code + "' name='code-to-delete' class='code-to-delete-checkbox' id='cl" + code + "' data-description='" + description + "' data-clid='" + id + "' data-cell='" + cell + "' " + checkedStr + " /></td><td>" + code + "</td><td>" + description + "</td></tr>");
+	}
+
+	var generateCodesToAddRow = function(cell, code, description, isChecked){		
+		var checkedStr = "";
+		if(isChecked){
+			checkedStr = 'checked="checked"';
+		}
+		return("<tr><td><input type='checkbox' value='" + code + "' name='code-to-add' class='code-to-add-checkbox' data-description='" + description + "' data-cell='" + cell + "' " + checkedStr + " /></td><td>" + code + "</td><td>" + description + "</td></tr>");
+	}
+	
+	var formatCodesToAdd = function(data){
+	    // Must start at rowNumber = 0 (--> data-cell="0").
+		var rowNumber = -1;	
+		if (data) {
+			return data.map(function(row) {
+				rowNumber += 1;
+				return generateCodesToAddRow(rowNumber, row.code, row.description);
+			});
+		}
+	};
+	
+	var formatCodesToDelete = function(data){
+	    // Must start at rowNumber = 0 (--> data-cell="0").
+		var rowNumber = -1;	
+		if(data){
+			return data.map(function(row){
+				rowNumber += 1;
+				return generateCodesToDeleteRow(rowNumber, row.code, row.id, row.description);
+			});
+		}
+	};
+	
+	function format4display(object) {
+		return JSON.stringify(object, null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+	}
+	
+	function RefreshCodes(codeListId)
+	{
+		$(".loader").show();
+		
+		dataService.getCodesByCodeList(codeListId, function(data){
+			codesToDeleteRows = formatCodesToDelete(data);
+			
+			if(codesToDeleteRows){
+				codesToDeleteClusterize = new Clusterize({
+					rows: codesToDeleteRows,
+					scrollId: 'codesToDeleteScrollArea',
+					contentId: 'codesToDeleteContentArea'
+				});
+	
+				$('.codesToDeleteAmount').text('Rows: ' + codesToDeleteClusterize.getRowsAmount());
+			}
+			$(".loader").hide();
+		});
+	}
+
+//----------------------------------------------------------------------
+	$(function(){
+		var codesToDeleteClusterize;
+		var codesToAddClusterize;
+	
+		var searchText = $('#search-text').val();
+		var regexCode = $('#id_coderegex-0-regex_code').val();
+		var concept = $('#id_concept').val();
+		var logicalType = $("input[name='logical_type']:checked").val();
+		var regexType = $("input[name='coderegex-0-regex_type']:checked").val();
+		var searchColumn = $("input[name='coderegex-0-column_search']:checked").val();
+		var codeListId = $('#id_coderegex-0-code_list').val();
+		var csrfmiddlewaretoken = $('input[name=csrfmiddlewaretoken]').val();
+		var case_sensitive_search = $('#case_sensitive_search').is(':checked');
+		//alert($('#case_sensitive_search').is(':checked'));
+		
+	    function getRegexCodes(regexCode){
+	    	var deferred = $.Deferred();
+	    	
+	    	// get the regex codes for a code regex component
+	    	if(regexCode) { 
+	    		if (checkRegex(regexType, regexCode)) {
+		    		$(".loader").show();
+		
+		    		case_sensitive_search = $('#case_sensitive_search').is(':checked');
+					//alert(case_sensitive_search);
+					
+		    		dataService.getCodesByRegex(concept, searchText, regexCode, logicalType, regexType, csrfmiddlewaretoken, searchColumn, case_sensitive_search, function(data) {
+		    			codesToAddRows = formatCodesToAdd(data);
+		    			
+		    			if(codesToAddRows){
+			    			var codesToAddClusterize = new Clusterize({
+			    				rows: codesToAddRows,
+			    				scrollId: 'codesToAddScrollArea',
+			    				contentId: 'codesToAddContentArea'
+			    			});
+			    			$('.codesToAddAmount').text('Rows: ' + codesToAddClusterize.getRowsAmount());
+		    			}
+		    			deferred.resolve();
+		    		});
+		    	} else {
+		    		deferred.resolve();
+		    	}
+	    	} else {
+	    		deferred.resolve();
+	    	}
+	    	return deferred.promise();
+	    }
+	    
+	    function getCodeList(codeListId){
+	    	var deferred = $.Deferred();
+	    	
+	    	{% if form.instance.pk is not None %}
+		    	if(codeListId){
+		    		$(".loader").show();
+		    		// get current codes for the code list
+		    		dataService.getCodesByCodeList(codeListId, function(data){
+		    			codesToDeleteRows = formatCodesToDelete(data);	
+		    			
+		    			if(codesToDeleteRows){
+			    			codesToDeleteClusterize = new Clusterize({
+			    				rows: codesToDeleteRows,
+			    				scrollId: 'codesToDeleteScrollArea',
+			    				contentId: 'codesToDeleteContentArea'
+			    			});
+			    			$('.codesToDeleteAmount').text('Rows: ' + codesToDeleteClusterize.getRowsAmount());
+		    			}
+		    			deferred.resolve();
+		    		});
+		    	}
+		    	else{
+		    		deferred.resolve();
+		    	}
+		    {% else %}
+		    	deferred.resolve();
+	    	{% endif %}
+	    	
+	    	return deferred.promise();
+	    }
+	    
+	    var combinedPromise = $.when(getRegexCodes(regexCode), getCodeList(codeListId));
+	    
+	    combinedPromise.done(function(){
+	    	$(".loader").hide();
+	    });	
+	    combinedPromise.fail(function(){
+	    	$(".loader").hide();	
+	    });
+	    
+	 	// unattach the click event (it was posting multiple times because of validation)
+		$('body').off('click', '#btnRunExpressionSelectQuery');
+	 
+		// get the regex codes based on supplied posix pattern query
+		$('body').on('click', '#btnRunExpressionSelectQuery', function(e){
+			e.preventDefault();
+			
+			var csrfmiddlewaretoken = $('input[name=csrfmiddlewaretoken]').val();
+			var regexCode = $('#id_coderegex-0-regex_code').val();
+			var concept = $('#id_concept').val();
+			var logicalType = $("input[name='logical_type']:checked").val();
+			var regexType = $("input[name='coderegex-0-regex_type']:checked").val();
+			var searchColumn = $("input[name='coderegex-0-column_search']:checked").val();
+			var case_sensitive_search = $('#case_sensitive_search').is(':checked');
+			//alert(case_sensitive_search);
+			
+			// If the regex entered in the form is OK, populate the codes with
+			// the results of a new search with the current regexin the data
+			// source.
+			if (checkRegex(regexType, regexCode)){
+				populateCodes(concept, "", regexCode, logicalType,
+							  csrfmiddlewaretoken, regexType, searchColumn, case_sensitive_search);
+			}
+			
+			// uncheck "selectall-codestoadd-checkbox"
+			$("#selectall-codestoadd-checkbox").prop("checked", false);
+					
+			return false;			
+		});
+		
+		// Check that the POSIX regular expression is valid.
+		// Parameter: 	regex	input	A string containing a POSIX regular expression.
+		// Return:		true 			if regex is acceptable.
+		function checkPOSIXRE(regex){
+			try {
+			    new RegExp(regex);
+			} catch (e) {
+			    return false;
+			}
+			return true;
+		}
+		
+		// Check that the simple regular expression is valid.
+		// Parameter: 	regex	input	A string containing a simple regular expression.
+		// Return:		true 			if regex is acceptable.
+		function checkSimpleRE(regex){
+			try {
+			    new RegExp(regex);
+			} catch (e) {
+			    return false;
+			}
+			return true;
+		}
+		
+		// Check that the regular expression in the modal dialogue is valid.
+		// Need to handle all the regex types (simple and POSIX).
+		// If the regex is acceptable, then hide any existing error messages
+		// and return true. If not, display a message and return false.
+		// Parameter: 	type	input	The type of the regex.
+		//				regex	input	A string containing the regular expression.
+		// Return:		true 			if regex is acceptable.
+		function checkRegex(type, regex){
+			if (type == true){
+				if (checkSimpleRE(regex)){
+					$('#regex_error').hide();
+					return true;
+				} else {
+					$('#regex_error').html('There is a problem with the specified simple regular expression.');
+					$('#regex_error').show();
+					return false;
+				}
+			}else {
+				if (checkPOSIXRE(regex)){
+					$('#regex_error').hide();
+					return true;
+				} else {
+					$('#regex_error').html('There is a problem with the specified POSIX regular expression.');
+					$('#regex_error').show();
+					return false;
+				}
+			}
+		}
+		
+		var populateCodes = function(concept, searchText, regexCode, logicalType, csrfmiddlewaretoken, regexType, searchColumn, case_sensitive_search){
+			$(".loader").show();
+			//alert('srch='+case_sensitive_search);
+			dataService.getCodesByRegex(concept, searchText, regexCode, logicalType, regexType, csrfmiddlewaretoken, searchColumn, case_sensitive_search, function(data){
+				codesToAddRows = formatCodesToAdd(data);
+				
+				if(codesToAddRows){
+					codesToAddClusterize = new Clusterize({
+						rows: codesToAddRows,
+						scrollId: 'codesToAddScrollArea',
+						contentId: 'codesToAddContentArea'
+					});
+					$('.codesToAddAmount').text('Rows: ' + codesToAddClusterize.getRowsAmount());
+				}
+				$(".loader").hide();
+			});
+		};
+		
+		// on the click of the select all checkbox for adding items then either select or deselect all items in the left hand list
+		$("#selectall-codestodelete-checkbox").change(function(){  //"select all" change 
+			
+			$(".loader").show();
+		
+			var status = this.checked; // "select all" checked status
+		    var n = codesToDeleteRows.length;
+		    
+		    for(var i=0;i<n;i++){
+		    	if(status == true){
+		    		codesToDeleteRows[i] = codesToDeleteRows[i].replace('checked="checked" ', '');
+		    		codesToDeleteRows[i] = [codesToDeleteRows[i].slice(0, 15), 'checked="checked" ', codesToDeleteRows[i].slice(15)].join('');
+		    	}
+		    	else{
+		    		codesToDeleteRows[i] = codesToDeleteRows[i].replace('checked="checked" ', '');
+		    	}
+		    }
+		    
+		    if (codesToDeleteClusterize == null)
+		    {
+		    	codesToDeleteClusterize = new Clusterize({
+					rows: codesToDeleteRows,
+					scrollId: 'codesToDeleteScrollArea',
+					contentId: 'codesToDeleteContentArea',
+				});
+		    }
+		    
+		    codesToDeleteClusterize.update(codesToDeleteRows);
+		    
+		    $(".loader").hide();
+		    
+		    return false;
+		});
+		
+		function RemoveTicks()
+		{	
+			$("#selectall-codestodelete-checkbox").prop('checked', false);
+			$("#selectall-codestoadd-checkbox").prop('checked', false);		
+								
+			var searchButton = $("#btnRunExpressionSelectQuery");
+			searchButton.click();		
+		  
+		    return false;
+		}
+		
+		// on the click of the select all checkbox for removing items then either select or deselect all items in the right hand list
+		$("#selectall-codestoadd-checkbox").change(function(){  //"select all" change 
+			$(".loader").show();
+		
+		    var status = this.checked; // "select all" checked status
+			var n = codesToAddRows.length;
+		    
+		    for(var i=0;i<n;i++){
+		    	
+		    	if(status == true){
+		    		codesToAddRows[i] = codesToAddRows[i].replace('checked="checked" ', '');
+		    		codesToAddRows[i] = [codesToAddRows[i].slice(0, 15), 'checked="checked" ', codesToAddRows[i].slice(15)].join('');
+		    	}else{
+		    		codesToAddRows[i] = codesToAddRows[i].replace('checked="checked" ', '');
+		    	}
+		    }
+		    //-------
+		    if(codesToAddRows){
+    			var codesToAddClusterize = new Clusterize({
+    				rows: codesToAddRows,
+    				scrollId: 'codesToAddScrollArea',
+    				contentId: 'codesToAddContentArea'
+    			});
+    			$('.codesToAddAmount').text('Rows: ' + codesToAddClusterize.getRowsAmount());
+			}
+		    //-------
+		    codesToAddClusterize.update(codesToAddRows);
+		    
+		    $(".loader").hide();
+		    
+		    return false;
+		});
+		 
+		// unattach the submit event (it was posting multiple times because of validation)
+		$('#modal-section').off('submit', '#expression-select-form');
+		
+		function extractValue(str,searchStr, indexStr){
+		    var startOfSection = str.indexOf(searchStr);
+		    var startOfValue = str.indexOf("" + indexStr + "",startOfSection)+1;
+		    var endOffValue  = str.indexOf("" + indexStr + "",startOfValue); //Position of first char AFTER the value, as needed for substring
+	
+		    var value = str.substring(startOfValue,endOffValue);
+	
+		    return value;
+		}
+		
+		// submit form to save code regex
+		$('#modal-section').on('submit', '#expression-select-form', function(e){
+			e.preventDefault();
+			
+			var form = $(this);
+			
+			// check component name is not empty
+			// this is crucial to be done in script first 
+			var comp_name = form.find('input[name=name]').val();
+			if($.trim(comp_name) == ''){			
+				$('#div_id_name').addClass('has-error');
+		        $('#help_id_name').html('Please enter a name');
+		        alert('Please enter component name');
+		        return false;
+		    }else{
+		    	$('#div_id_name').removeClass('has-error');
+		        $('#help_id_name').html('');
+		    }
+			
+			//alert($("input[name='coderegex-0-column_search']").is(":checked"));
+			if(!$("input[name='coderegex-0-column_search']").is(":checked")){
+				alert('Please select Column to search (code ordescription)');//column_search
+		        return false;
+			}
+			//=============================================
+	
+			// get serialized form information
+			var params = form.serializeArray();
+			
+			// get added codes
+			var n = codesToDeleteRows.length;	
+			var codesToAdd = [];
+			var codesToDelete = [];
+			var codeListId = $("#id_coderegex-0-code_list").val();
+			
+			// get a lst of deleted codes
+		    for(var i=0;i<n;i++){
+		    	var checkedValue = extractValue(codesToDeleteRows[i], 'checked', '"');
+		    	
+		    	if(checkedValue){
+		    		var id = extractValue(codesToDeleteRows[i], 'clid', '\''),
+		    			description = extractValue(codesToDeleteRows[i], 'description', '\''),
+		    			code = extractValue(codesToDeleteRows[i], 'value', '\'');
+	
+		    		codesToDelete.push({
+						'id': id,
+						'code': code,
+						'description': '',
+						'code_list_id': codeListId,
+					});
+		    	}
+		    }
+			
+			n = codesToAddRows.length;
+			
+			// get a list of added codes
+		    for(var i=0;i<n;i++){
+		    	var checkedValue = extractValue(codesToAddRows[i], 'checked', '"');
+		    	
+		    	if(checkedValue){
+		    		var description = extractValue(codesToAddRows[i], 'description', '\''),
+		    			code = extractValue(codesToAddRows[i], 'value', '\'');
+		    		
+		    		codesToAdd.push({
+						'id': 0,
+						'code': code,
+						'description': description,
+						'code_list_id': codeListId,
+					});
+		    	}
+		    }
+			// include the added and deleted codes to the form params 
+			params.push({name: 'added_codes', value: JSON.stringify(codesToAdd)});
+			params.push({name: 'deleted_codes', value: JSON.stringify(codesToDelete)});
+	
+			// get the files collection
+			var files = $("#upload_file")[0].files; 
+			
+	 		var formData = new FormData();
+	
+	 		// Looping through uploaded files collection in case there is a Multi File Upload. This also works for single i.e simply remove MULTIPLE attribute from file control in HTML.  
+            for (var i = 0; i < files.length; i++) {
+                formData.append('upload_file', files[i]);
+            }
+	 	
+	 		//Now Looping the parameters for all form input fields and assigning them as Name Value pairs. 
+	        $(params).each(function (index, element) {
+	        	
+	        	// do not post search code input form elements
+	        	if(element.name != 'code-to-add' && element.name != 'search-desc' && element.name != 'code-to-delete'){
+	            	formData.append(element.name, element.value);
+	        	}
+	        });
+	          
+			//=============================================	 	
+			var doFormSubmit = function(form){	
+			// post the code regex details
+			$.ajax({
+				url: form.attr('action'),
+				data: formData,
+				type: form.attr('method'),
+				contentType: false,
+				processData: false,
+				beforeSend: function(xhr, opts){
+					$(".loader").show();
+				},
+				success: function(data){
+					if(data.form_is_valid){
+						$('#component-table tbody').html(data.html_component_list);
+						$('#history-table').html(data.html_history_list);
+						$('#latest-history-ID-Div').html(data.latest_history_ID);
+						$('#latest_history_id').val(data.latest_history_ID);
+						$('#concept-component-form-container').html(data.add_menu_items);
+						form.find('input[name=latest_history_id_shown]').val(data.latest_history_ID);
+							
+						// href needs to be updated for publish concept to get latest history id
+						if($('#publish2').length){ 
+							var pub_href = $('#publish2').attr("href").split("/");
+							pub_href[3] = data.latest_history_ID;
+							pub_href = pub_href.join("/")
+							$('#publish2').attr("href", pub_href);
+
+							$('#publish2').prop("disabled", false );
+							$('#publish2').attr("title", "" );
+							$('#publish2').removeClass("btn-success");
+							$('#publish2').addClass("btn-primary");
+							$('#publish2').html("<i class='fa fa-paper-plane' aria-hidden='true'></i> Publish");
+							
+						}
+						
+						if ($("#action").val() == "Save")
+						{
+							$('#modal-section').modal('hide');
+							$('#modal-section .modal-content').html('');
+						}
+						else if($("#action").val() == "SaveContinue")
+						{
+							RefreshCodes(codeListId);
+							RemoveTicks();
+							$('a[href="#search-existing-codes"]').tab('show');
+						}
+						else
+						{
+							$('#modal-section').modal('hide');
+							$('#modal-section .modal-content').html('');
+						}
+					}else{
+						$('#modal-section .modal-content').html(data.html_form);
+					}
+				},
+				complete: function(){
+					$(".loader").hide();
+				}
+			});
+			}
+			//=============================================
+			   
+			//=============================================
+			//alert( "first ajax....." );
+			$.ajax({
+				url: '{% url "check_concurrent_concept_update" form.concept.value %}',
+		        type: 'GET',
+				data: {"latest_history_id_shown": form.find('input[name=latest_history_id_shown]').val()  
+					  ,"component_id": form.find('input[name=component_id]').val()  
+					},
+				//dataType: 'json',
+				beforeSend: function(xhr, opts){
+					$(".loader").show();
+				},
+				success: function(data){
+					//alert('check done.......');
+							 
+					if(data.errorMsg){
+						 if(data.overrideVersion == -1){
+							 alert(data.errorMsg);
+							 $(".loader").hide();
+						 } else {
+							 confrm = false;
+							 confrm = confirm(data.errorMsg);
+							 if(confrm){
+								 doFormSubmit(form);
+							 }else{
+								 $(".loader").hide();
+							 }
+						 }
+					}
+						   
+
+					if(data.successMsg){
+						//alert(data.successMsg);
+						doFormSubmit(form);		
+					}
+				},
+				complete: function(){
+					//$(".loader").hide();
+				}
+			});
+            //=============================================
+            	
+			return false;
+		});
+	});
+	
+
+   $(document).on("keypress", ":input:not(textarea):not([type=submit])", function(event) {
+		return event.keyCode != 13;		
+   });
+	
+   $('#id_coderegex-0-regex_code').bind('keypress', function(e){
+       if(e.keyCode == 13) 
+       {
+    	   e.preventDefault();
+    	   document.getElementById("btnRunExpressionSelectQuery").click();
+    	}
+    });
+	   
+</script>
