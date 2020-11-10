@@ -17,3 +17,6 @@ from WorkingSet import WorkingSet
 from WorkingSetTagMap import WorkingSetTagMap
 from Brand import Brand
 from PublishedConcept import PublishedConcept
+from DataSource import DataSource
+from Phenotype import Phenotype
+from PhenotypeTagMap import PhenotypeTagMap

@@ -49,8 +49,8 @@ var dataService = new function(){
 	};
 	
 	
-	getConceptVersions = function(concept, indx, callback){		
-		$.getJSON('/concepts/' + concept + '/conceptversions/'+ indx +'/', function(data){
+	getConceptVersions = function(concept, version, indx, callback){		
+		$.getJSON('/concepts/' + concept + '/conceptversions/'+ version +'/'+ indx +'/', function(data){
 			callback(data);
 		});
 	};	

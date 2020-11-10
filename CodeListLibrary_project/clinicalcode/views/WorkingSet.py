@@ -287,7 +287,11 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, 
             warnings.append("This working set has an updated version, Do you want to continue and override it? ")
         #----------------------------------------------------------
         children_permitted_and_not_deleted = True
-        children_permitted_and_not_deleted , error_dic2 = db_utils.chk_children_permission_and_deletion(self.request.user, WorkingSet, pk, WS_concepts_json = workingset.concept_informations)
+        children_permitted_and_not_deleted , error_dic2 = db_utils.chk_children_permission_and_deletion(self.request.user
+                                                                                                        , WorkingSet, pk
+                                                                                                        , WS_concepts_json = workingset.concept_informations
+                                                                                                        , submitted_concept_version = workingset.concept_version
+                                                                                                        )
         if not children_permitted_and_not_deleted:
             errors['children']= error_dic2
         

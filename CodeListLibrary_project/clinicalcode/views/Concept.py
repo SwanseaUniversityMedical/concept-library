@@ -49,6 +49,7 @@ from django.http import HttpResponseNotFound, response
 from django.http.response import Http404
 from _ast import Or
 from django.template.context_processors import request
+from clinicalcode.permissions import allowed_to_view
 
 
 logger = logging.getLogger(__name__)
@@ -179,23 +180,24 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
         Display the detail of a concept at a point in time.
     '''
     # validate access for login and public site
-    if request.user.is_authenticated():
-        validate_access_to_view(request.user, Concept, pk)
-    else:
-        if not Concept.objects.filter(id=pk).exists(): 
-            raise PermissionDenied
-
-
+    
+    if not Concept.objects.filter(id=pk).exists(): 
+        raise PermissionDenied
+    
     if concept_history_id is not None:
         if not Concept.history.filter(id=pk, history_id=concept_history_id).exists():
             raise PermissionDenied
+
+
+    if request.user.is_authenticated():
+        validate_access_to_view(request.user, Concept, pk, set_history_id=concept_history_id)
 
         
     if concept_history_id is None:
         # get the latest version
         concept_history_id = int(Concept.objects.get(pk=pk).history.latest().history_id) 
         
-    is_published = PublishedConcept.objects.filter(concept_id=pk, concept_history_id=concept_history_id).exists()
+    is_published = checkIfPublished(Concept, pk, concept_history_id)
     if not request.user.is_authenticated():
         # check if the concept version is published
         if not is_published: 
@@ -213,8 +215,8 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
         concept['group'] = Group.objects.get(id = int(concept['group_id']))
 
     concept_history_date = concept['history_date']
-    components = db_utils.getHistoryComponents(pk, concept_history_date)
-    
+    components = db_utils.getHistoryComponents(pk, concept_history_date, check_published_child_concept=True)
+        
     tags =  Tag.objects.filter(pk=-1)
     tags_comp = db_utils.getHistoryTags(pk, concept_history_date)
     if tags_comp:
@@ -223,7 +225,7 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
     #----------------------------------------------------------------------
     
     if request.user.is_authenticated():
-        components_permissions = build_permitted_components_list(request.user, pk)
+        components_permissions = build_permitted_components_list(request.user, pk, concept_history_id=concept_history_id)
 
         can_edit = (not Concept.objects.get(pk=pk).is_deleted) and allowed_to_edit(request.user, Concept, pk)
         
@@ -253,7 +255,7 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
     published_historical_ids = list(PublishedConcept.objects.filter(concept_id=pk).values_list('concept_history_id', flat=True))
          
     # history
-    other_versions = Concept.objects.get(pk=pk).history.all()#.exclude(history_id=concept_history_id)
+    other_versions = Concept.objects.get(pk=pk).history.all()
     other_historical_versions = []
 
     for ov in other_versions:
@@ -275,7 +277,11 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
             ver['publish_date'] = None
             
         if request.user.is_authenticated(): 
-            other_historical_versions.append(ver)
+            if allowed_to_edit(request.user, Concept, pk) or allowed_to_view(request.user, Concept, pk):
+                other_historical_versions.append(ver)
+            else:
+                if is_this_version_published:
+                    other_historical_versions.append(ver)
         else:
             if is_this_version_published:
                 other_historical_versions.append(ver)
@@ -465,7 +471,7 @@ class ConceptUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Update
     def get_context_data(self, **kwargs):
         context = UpdateView.get_context_data(self, **kwargs)
         tags = ConceptTagMap.objects.filter(concept=self.get_object())
-        context.update(build_permitted_components_list(self.request.user, self.get_object().pk))
+        context.update(build_permitted_components_list(self.request.user, self.get_object().pk, check_published_child_concept=True))
         
         if self.get_object().is_deleted == True:
             messages.info(self.request, "This concept has been deleted.")
@@ -554,15 +560,8 @@ def concept_uniquecodesByVersion(request, pk, concept_history_id):
                         concept_history_id  The version id
         Returns:        data       Dict with the unique codes. 
     '''
-    
-    if not Concept.objects.filter(id=pk).exists(): 
-            raise PermissionDenied
-
-
-    if not Concept.history.filter(id=pk, history_id=concept_history_id).exists():
-        raise PermissionDenied
-        
-    validate_access_to_view(request.user, Concept, pk)
+            
+    validate_access_to_view(request.user, Concept, pk, set_history_id=concept_history_id)
 
          
     codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(pk, concept_history_id)
@@ -581,45 +580,13 @@ def concept_uniquecodesByVersion(request, pk, concept_history_id):
 
     return JsonResponse(data)    
     
-    
-    
-
-@login_required
-def conceptversions(request, pk, indx):
-    '''
-        Get the historical versions of the Concept
-        Parameters:     request    The request.
-                        pk         The concept id.
-        Returns:        data       Dict with the versions ids. 
-    '''
-    validate_access_to_view(request.user, Concept, pk)
-    
-    concept = Concept.objects.get(pk=pk)
-    versions = concept.history.order_by('-history_id')
-    data = dict()
-    data['form_is_valid'] = True
-    versions_count = "0"
-    try:
-        versions_count = str(len(versions))
-    except:
-        versions_count = "0"
-    data['versions_count'] = versions_count
-    data['indx'] = indx
-    data['html_versions_list'] = render_to_string(
-        'clinicalcode/concept/get_concept_versions.html',
-        {'versions': versions,
-        'latest_version': concept.history.latest().history_id,
-        'indx': indx
-        })
-
-    return JsonResponse(data)
 
 @login_required
 def concept_history_fork(request, pk, concept_history_id):
     '''
         Fork from a concept from the concept's history list.
     '''
-    validate_access_to_view(request.user, Concept, pk)
+    validate_access_to_view(request.user, Concept, pk, set_history_id=concept_history_id)
     data = dict()
     if request.method == 'POST':
         try:
@@ -687,9 +654,181 @@ def concept_history_revert(request, pk, concept_history_id):
                    'is_latest_version': is_latest_version
                    })
 
-
-
 def concept_list(request):
+    '''
+        Display a list of concepts. This view can be searched and contains paging.
+    '''
+        
+    search_tag_list = []
+    tags = []
+    
+    # get page index variables from query or from session
+    page_size = utils.get_int_value(request.GET.get('page_size', request.session.get('concept_page_size', 20)), 20)
+    page = utils.get_int_value(request.GET.get('page', request.session.get('concept_page', 1)), 1)
+    search = request.GET.get('search', request.session.get('concept_search', ''))
+    show_my_concepts = request.GET.get('show_my_concepts', request.session.get('concept_show_my_concept', 0))
+    show_deleted_concepts = request.GET.get('show_deleted_concepts', request.session.get('concept_show_deleted_concepts', 0))
+    tag_ids = request.GET.get('tagids', request.session.get('tagids', ''))
+    owner = request.GET.get('owner', request.session.get('owner', ''))
+    author = request.GET.get('author', request.session.get('author', ''))
+    show_only_validated_concepts = request.GET.get('show_only_validated_concepts', request.session.get('show_only_validated_concepts', 0))
+    concept_brand = request.GET.get('concept_brand', request.session.get('concept_brand', request.CURRENT_BRAND))
+    expand_published_versions = request.GET.get('expand_published_versions', request.session.get('expand_published_versions', 0))
+
+    if request.method == 'POST':
+        # get posted parameters
+        search = request.POST.get('search', '')
+        page_size = request.POST.get('page_size')
+        page = request.POST.get('page', page)
+        show_my_concepts = request.POST.get('show_my_concepts', 0)
+        show_deleted_concepts = request.POST.get('show_deleted_concepts', 0)
+        author = request.POST.get('author', '')
+        tag_ids = request.POST.get('tagids', '')
+        owner = request.POST.get('owner', '')
+        show_only_validated_concepts = request.POST.get('show_only_validated_concepts', 0)
+        concept_brand = request.POST.get('concept_brand', request.CURRENT_BRAND)
+        expand_published_versions = request.POST.get('expand_published_versions', 0)
+
+
+    # store page index variables to session
+    request.session['concept_page_size'] = page_size
+    request.session['concept_page'] = page
+    request.session['concept_search'] = search
+    request.session['concept_show_my_concept'] = show_my_concepts
+    request.session['concept_show_deleted_concepts'] = show_deleted_concepts
+    request.session['author'] = author
+    request.session['tagids'] = tag_ids
+    request.session['owner'] = owner
+    request.session['show_only_validated_concepts'] = show_only_validated_concepts
+    request.session['concept_brand'] = concept_brand
+    request.session['expand_published_versions'] = expand_published_versions
+
+    filter_cond = " 1=1 "
+    exclude_deleted = True
+    get_live_and_or_published_ver = 3   # 1= live only, 2= published only, 3= live+published
+    
+    if tag_ids:
+        # split tag ids into list
+        search_tag_list = [int(i) for i in tag_ids.split(",")]
+        tags = Tag.objects.filter(id__in=search_tag_list)
+        
+    # check if it is the public site or not
+    if request.user.is_authenticated():
+        # ensure that user is only allowed to view/edit the relevant concepts
+           
+        get_live_and_or_published_ver = 3
+        #show_top_version_only = True
+        # show only concepts created by the current user
+        if show_my_concepts == "1":
+            filter_cond += " AND owner_id=" + str(request.user.id)
+    
+        # if show deleted concepts is 1 then show deleted concepts
+        if show_deleted_concepts != "1":
+            exclude_deleted = True
+        else:
+            exclude_deleted = False    
+        
+      
+    else:
+        # show published concepts
+        get_live_and_or_published_ver = 2
+        #show_top_version_only = True
+        if PublishedConcept.objects.all().count() == 0:
+            # redirect to login page if no published concepts
+            return HttpResponseRedirect(settings.LOGIN_URL)
+
+    show_top_version_only = True
+    if expand_published_versions == "1":
+        show_top_version_only = False
+
+    if owner is not None:
+        if owner !='':
+            if User.objects.filter(username__iexact = owner.strip()).exists():
+                owner_id = User.objects.get(username__iexact = owner.strip()).id
+                filter_cond += " AND owner_id=" + str(owner_id)
+            else:
+                # username not found
+                filter_cond += " AND owner_id= -1 "
+
+
+    # if show_only_validated_concepts is 1 then show only concepts with validation_performed=True
+    if show_only_validated_concepts == "1":
+        filter_cond += " AND COALESCE(validation_performed, FALSE) IS TRUE "
+
+    # show concepts for a specific brand
+    if concept_brand != "":
+        current_brand = Brand.objects.all().filter(name = concept_brand)
+        group_list = list(current_brand.values_list('groups', flat=True))
+        filter_cond += " AND group_id IN("+ ', '.join(map(str, group_list)) +") "
+
+       
+    concepts_srch = db_utils.get_visible_live_or_published_concept_versions(request
+                                                , get_live_and_or_published_ver = get_live_and_or_published_ver 
+                                                , searchByName = search
+                                                , author = author
+                                                , exclude_deleted = exclude_deleted
+                                                , filter_cond = filter_cond
+                                                , show_top_version_only = show_top_version_only
+                                                )
+    
+    # apply tags
+    # I don't like this way :)
+    concept_indx_to_exclude = []
+    if tag_ids:
+        for indx in range(len(concepts_srch)):  
+            concept = concepts_srch[indx]
+            concept['indx'] = indx
+            concept_tags_history = db_utils.getHistoryTags(concept['id'], concept['history_date'])
+            if concept_tags_history:
+                concept_tag_list = [i['tag_id'] for i in concept_tags_history if 'tag_id' in i]
+                if not any(t in set(search_tag_list) for t in set(concept_tag_list)):
+                    concept_indx_to_exclude.append(indx)
+                else:
+                    pass        
+            else:
+                concept_indx_to_exclude.append(indx)  
+        
+    if concept_indx_to_exclude:      
+        concepts = [i for i in concepts_srch if (i['indx'] not in concept_indx_to_exclude)]
+    else:
+        concepts = concepts_srch 
+    
+
+    if request.user.is_authenticated():            
+        # Run through the concepts and add a 'can edit this concept' field, etc.
+        for concept in concepts:
+            concept['can_edit'] = (concept['rn'] == 1
+                                   and allowed_to_edit(request.user, Concept, concept['id'])  
+                                   )   
+
+        
+    # create pagination
+    paginator = Paginator(concepts, page_size, allow_empty_first_page=True)
+    try:
+        p = paginator.page(page)
+    except EmptyPage:
+        p = paginator.page(paginator.num_pages)
+
+    return render(request, 'clinicalcode/concept/index.html', {
+        'page': page,
+        'page_size': str(page_size),
+        'page_obj': p,
+        'search': search,
+        'author': author,
+        'show_my_concepts': show_my_concepts,
+        'show_deleted_concepts': show_deleted_concepts,
+        'tags': tags,
+        'owner': owner,
+        'show_only_validated_concepts': show_only_validated_concepts,
+        'allowed_to_create': not settings.CLL_READ_ONLY,
+        'concept_brand': concept_brand,
+        'expand_published_versions': expand_published_versions,
+        'published_count': PublishedConcept.objects.all().count()
+    })
+
+
+
+def concept_list_org(request):
     '''
         Display a list of concepts. This view can be searched and contains paging.
     '''
@@ -744,7 +883,7 @@ def concept_list(request):
     # check if it is the public site or not
     if request.user.is_authenticated():
         # ensure that user is only allowed to view/edit the relevant concepts
-        concepts = get_visible_concepts(request.user)
+        concepts = get_visible_concepts(request)
            
         # show only concepts created by the current user
         if show_my_concepts == "1":
@@ -1242,7 +1381,7 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
 
     # validate access for login and public site
     if request.user.is_authenticated():
-        db_utils.validate_access_to_view(request.user, Concept, pk)
+        db_utils.validate_access_to_view(request.user, Concept, pk, set_history_id=concept_history_id)
     else:
         if not Concept.objects.filter(id=pk).exists(): 
             raise PermissionDenied
@@ -1362,6 +1501,7 @@ def check_concurrent_concept_update(request, pk):
 
     return JsonResponse(context)
 
+
 @login_required
 def choose_concepts_to_compare(request):
    
@@ -1369,12 +1509,54 @@ def choose_concepts_to_compare(request):
                   {
                   }
                 )
+   
+
+@login_required
+def conceptversions(request, pk, concept_history_id, indx):
+    '''
+        Get the historical versions of the Concept
+        Parameters:     request    The request.
+                        pk         The concept id.
+        Returns:        data       Dict with the versions ids. 
+    '''
     
+    validate_access_to_view(request.user, Concept, pk, set_history_id=concept_history_id)
+    
+    concept = Concept.objects.get(pk=pk)
+    #versions = concept.history.order_by('-history_id')
+    versions = db_utils.get_visible_live_or_published_concept_versions(request
+                                                                    , exclude_deleted = True
+                                                                    , filter_cond = " id= " + str(pk) 
+                                                                    )
+    
+    data = dict()
+    data['form_is_valid'] = True
+    
+    versions_count = "0"
+    try:
+        versions_count = str(len(versions))
+    except:
+        versions_count = "0"
+        
+    data['versions_count'] = versions_count
+    
+    data['indx'] = indx
+    
+    data['html_versions_list'] = render_to_string(
+        'clinicalcode/concept/get_concept_versions.html',
+        {'versions': versions,
+        'latest_version': concept.history.latest().history_id,
+        'chosen_concept_history_id': int(concept_history_id),
+        'indx': indx
+        })
+
+    return JsonResponse(data)
+ 
 @login_required
 def compare_concepts_codes(request, concept_id, version_id, concept_ref_id, version_ref_id):
     
-    validate_access_to_view(request.user, Concept, concept_id)
-    validate_access_to_view(request.user, Concept, concept_ref_id)
+    validate_access_to_view(request.user, Concept, concept_id, set_history_id=version_id)
+    validate_access_to_view(request.user, Concept, concept_ref_id, set_history_id=version_ref_id)
     
     # checking access to child concepts is not needed here
     # allowed_to_view_children(request.user, Concept, pk)
@@ -1543,7 +1725,7 @@ class ConceptPublish(LoginRequiredMixin, HasAccessToViewConceptCheckMixin, Templ
         isAllowedtoViewChildren = True
         
         concept_ver = Concept.history.get(id=pk, history_id=concept_history_id)
-        is_published = db_utils.checkIfPublished(pk, concept_history_id)
+        is_published = checkIfPublished(Concept, pk, concept_history_id)
         
         if not is_published:
             self.checkConceptTobePublished(request, pk, concept_history_id)
@@ -1580,7 +1762,7 @@ class ConceptPublish(LoginRequiredMixin, HasAccessToViewConceptCheckMixin, Templ
         AllarePublished = True
         isAllowedtoViewChildren = True
         
-        is_published = db_utils.checkIfPublished(pk, concept_history_id)
+        is_published = checkIfPublished(Concept, pk, concept_history_id)
         if not is_published:
             self.checkConceptTobePublished(request, pk, concept_history_id)
 
@@ -1665,7 +1847,7 @@ def checkAllChildConcepts4Publish_Historical(request, concept_id, concept_histor
     AllarePublished = True
     for concept in child_concepts_versions:
         is_published = False         
-        is_published = db_utils.checkIfPublished(concept[0], concept[1])
+        is_published = checkIfPublished(Concept, concept[0], concept[1])
         if(not is_published):
             errors[str(concept[0])+'/'+str(concept[1])] = 'Child concept ('+str(concept[0])+'/'+str(concept[1])+') is not published'
             AllarePublished = False
@@ -1683,19 +1865,11 @@ def checkAllChildConcepts4Publish_Historical(request, concept_id, concept_histor
     
     for concept in chk_view_concepts:
         permitted = False
-        if request.user.is_superuser:
-            permitted = True
-        else:
-            permitted |= Concept.objects.filter(Q(id=concept[0]), Q(world_access=Permissions.VIEW)).count() > 0
-            permitted |= Concept.objects.filter(Q(id=concept[0]), Q(world_access=Permissions.EDIT)).count() > 0
-            permitted |= Concept.objects.filter(Q(id=concept[0]), Q(owner_access=Permissions.VIEW, owner=request.user)).count() > 0
-            permitted |= Concept.objects.filter(Q(id=concept[0]), Q(owner_access=Permissions.EDIT, owner=request.user)).count() > 0
-            for group in request.user.groups.all() :
-                permitted |= Concept.objects.filter(Q(id=concept[0]), Q(group_access=Permissions.VIEW, group_id=group)).count() > 0
-                permitted |= Concept.objects.filter(Q(id=concept[0]), Q(group_access=Permissions.EDIT, group_id=group)).count() > 0
-            if (not permitted):
-                errors[str(concept[0])+'_view'] = 'Child concept ('+str(concept[0])+') is not permitted.'             
-                isAllowedtoViewChildren = False
+        permitted = allowed_to_view(request.user, Concept, set_id=concept[0], set_history_id=concept[1])
+
+        if (not permitted):
+            errors[str(concept[0])+'_view'] = 'Child concept ('+str(concept[0])+') is not permitted.'             
+            isAllowedtoViewChildren = False
                     
 
 

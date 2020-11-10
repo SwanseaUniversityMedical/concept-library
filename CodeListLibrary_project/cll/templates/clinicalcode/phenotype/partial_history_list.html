@@ -1,0 +1,38 @@
+<!-- --------------------------------------------------------------------------
+	 The table of history entries.
+	 This is the content of the history table. It is included statically when
+	 the page is created and also dynamically when updated.
+	 The headers should be provided in the static pages.
+	 ---------------------------------------------------------------------- -->
+
+	{% for historyRow in history.all %}
+		<tr>
+			<td>{{ historyRow.history_id }}</td>
+			<td>{{ historyRow.name }}</td>
+			<td title="{{ historyRow.description }}">{{ historyRow.description|truncatechars:50 }}</td>
+			<td>{{ historyRow.history_date }}</td>
+<!-- 			<td>{{ historyRow.get_history_type_display }}</td> -->
+			<td>{{ historyRow.history_change_reason }}</td>
+			<td>
+			{% if historyRow.updated_by is not None %}
+				{{ historyRow.updated_by }}
+			{% else %}
+				{{ historyRow.created_by }}
+			{% endif %}
+			</td>
+			<td class="text-right">
+<!-- 				<a class="" href="{% url 'phenotype_history_detail' pk=historyRow.id phenotype_history_id=historyRow.history_id %}">			 -->
+<!-- 				<button type="button" class="btn btn-info btn-xs" data-container="body" data-toggle="" data-html="true" data-placement="left" id="code-preview-{{ component.pk }}" data-trigger="hover"> -->
+<!-- 					<i class="glyphicon glyphicon-search"> </i> -->
+<!-- 				</button>			 -->
+<!-- 				</a> -->
+				<!-- a href="{% url 'phenotype_history_detail' pk=historyRow.id phenotype_history_id=historyRow.history_id %}">View</a-->
+			</td>
+		</tr>
+	{% empty %}
+		<tr>
+			<td colspan="8" class="text-center bg-warning">
+				No history
+			</td>
+		</tr>
+	{% endfor %}

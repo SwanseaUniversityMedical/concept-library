@@ -385,7 +385,15 @@
 												{% endfor %}
 											{% endif %}
 										</td>
-										<td>{% if component.component_type == 1 %}{{ component.concept_ref_history_id }}{% else %} - {% endif %}</td>
+										<td>{% if component.component_type == 1 %}
+												{{ component.concept_ref_history_id }}
+												{% if user.is_authenticated and component.is_published %}
+													<span title="Published" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
+												{% endif %}
+											{% else %}
+												 - 
+											{% endif %}
+										</td>
 										<td>
 											{% if component.component_type == 1 %}
 												<span>Concept</span>

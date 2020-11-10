@@ -86,10 +86,10 @@
 				</div>				
 				
 
-				<div class="row form-group">
+			<div class="row form-group">
 				{% if user.is_authenticated %}
 					<div class="col-md-3">
-						<div class="checkbox">
+						<div class="checkbox"  >
 							<label>
 								<input id="show_deleted_concepts" type="checkbox" name="show_deleted_concepts" {% if show_deleted_concepts %}checked="checked"{% endif %} value="1" >
 								Show deleted concepts
@@ -98,7 +98,7 @@
 					</div>
 					
 					<div class="col-md-3">
-						<div class="checkbox">
+						<div class="checkbox"  >
 							<label>
 								<input id="show_my_concepts" type="checkbox" name="show_my_concepts" {% if show_my_concepts %}checked="checked"{% endif %} value="1" >
 								Only show concepts owned by me
@@ -108,14 +108,8 @@
 										
 				{% endif %}						
 					
-					<div   
-						{% if user.is_authenticated %}
-							class = "col-md-3"
-						{% else %}
-							class = "col-md-9"
-						{% endif %}		
-					>
-						<div class="checkbox">
+					<div 	class = "col-md-3">   
+						<div class="checkbox"  >
 							<label>
 								<input id="show_only_validated_concepts" type="checkbox" name="show_only_validated_concepts" {% if show_only_validated_concepts %}checked="checked"{% endif %} value="1" >
 								Only Show validated concepts
@@ -123,7 +117,20 @@
 						</div>
 					</div>					
 
-					<div class="col-md-3 text-right">				
+				{% if published_count %}
+					<div  class = "col-md-3">
+						<div class="checkbox"  >
+							<label>
+								<input id="expand_published_versions" type="checkbox" name="expand_published_versions" {% if expand_published_versions %}checked="checked"{% endif %} value="1" >
+								expand published versions
+							</label>
+						</div>
+					</div>		
+				{% endif %}	
+			</div>
+							
+			<div class="row form-group">
+					<div class="col-md-12 text-right">				
 						<a class="btn btn-info" name="reset-form" id="reset-form" >
 							<i class="glyphicon glyphicon-repeat"></i> Reset							
 						</a>
@@ -133,7 +140,7 @@
 						</button>
 					</div>
 					
-				</div>		
+			</div>		
 				
 					
 			</div>
@@ -178,23 +185,27 @@
 				{% for concept in page_obj.object_list %}  
 				<tr {% cycle '' ' class="form-group highlight-row" ' %} >
 					<td>{{ concept.id }}</td>
-					<td>{{ concept.history_id }}</td>
+					<td>{{ concept.history_id }}
+						{% if user.is_authenticated and concept.is_published == 1 %}
+							<span title="{{ concept.published }}" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
+						{% endif %}
+					</td>
 					<td>{{ concept.name }}
 						{% for item in request.BRAND_GROUPS %}
 							{% for brand, groups in item.iteritems %}
-								{% if concept.group.name in groups %}
+								{% if concept.group_name in groups %}
 								<img src="{% static 'img/brands/' %}{{brand}}/logo.png" height="10px" title="{{brand}}" alt="{{brand}}" />
 								{% endif %}
 							{% endfor %}
 						{% endfor %}
 					</td>				
-					<td>{{ concept.coding_system }}</td>
+					<td>{{ concept.coding_system_name }}</td>
 					<td title="{{ concept.author }}" >{{ concept.author|truncatechars:20 }}</td>
-					<td>{{ concept.owner }}</td>
+					<td>{{ concept.owner_name }}</td>
 					{% if user.is_authenticated %}
 <!-- 						<td>{{ concept.created_by }}<br><i>{{ concept.created|date:"Y-m-d H:i" }}</i></td> -->
-						<td>{% if concept.modified_by is not None %}
-							{{ concept.modified_by }}<br><i>{{ concept.modified|date:"Y-m-d H:i" }}</i>
+						<td>{% if concept.modified_by_username is not None %}
+							{{ concept.modified_by_username }}<br><i>{{ concept.modified|date:"Y-m-d H:i" }}</i>
 							{% endif %}
 						</td>
 						<td>{% if concept.is_deleted is True %}
@@ -225,7 +236,7 @@
 						{% endif %}
 					</td>
 					<td class="text-right">
-						{% if user.is_authenticated %}
+						{% if user.is_authenticated and concept.is_published != 1 %}
 							<a class="" href="{% url 'concept_detail' concept.id %}">
 						{% else %}
 							<a class="" href="{% url 'concept_history_detail' concept.id concept.history_id %}">
@@ -297,6 +308,7 @@
 			{% endif %}						
 			
 			$('#show_only_validated_concepts').prop("checked", false);
+			$('#expand_published_versions').prop("checked", false);
 
 		});
 	</script>

@@ -234,9 +234,11 @@ def api_workingset_create(request):
                     if len(set(concept_ids_list)) != len(concept_ids_list):
                         errors_dict['concept_informations'] = 'concept_informations must have a unique concept ids list'
                     else:
-                        # check all concepts are permitted
-                        permittedConcepts = get_visible_concepts(request.user).exclude(is_deleted=True)                
-                        if not (set(concept_ids_list).issubset(set(permittedConcepts.values_list('id' , flat=True)))):
+                        # check all concepts are permitted/or published
+                        permittedConcepts = get_list_of_visible_concept_ids(
+                                                                            get_visible_live_or_published_concept_versions(request , exclude_deleted = True)
+                                                                            , return_id_or_history_id="id")
+                        if not (set(concept_ids_list).issubset(set(permittedConcepts))):
                             errors_dict['concept_informations'] = 'invalid concept_informations ids list, all concept ids must be valid and accessible by user'
                         else:
                             concept_informations = convert_concept_ids_to_WSjson(concept_ids_list , no_attributes=True)
@@ -417,8 +419,10 @@ def api_workingset_update(request):
                         errors_dict['concept_informations'] = 'concept_informations must have a unique concept ids list'
                     else:
                         # check all concepts are permitted
-                        permittedConcepts = get_visible_concepts(request.user).exclude(is_deleted=True)                
-                        if not (set(concept_ids_list).issubset(set(permittedConcepts.values_list('id' , flat=True)))):
+                        permittedConcepts = get_list_of_visible_concept_ids(
+                                                                            get_visible_live_or_published_concept_versions(request , exclude_deleted = True)
+                                                                            , return_id_or_history_id="id")               
+                        if not (set(concept_ids_list).issubset(set(permittedConcepts))):
                             errors_dict['concept_informations'] = 'invalid concept_informations ids list, all concept ids must be valid and accessible by user'
                         else:
                             concept_informations = convert_concept_ids_to_WSjson(concept_ids_list , no_attributes=True)

@@ -9,6 +9,7 @@ from django.db.models import Q
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
 from django.contrib.auth.models import User, Group
+import json
 
 class Permissions:
     NONE = 1
@@ -25,6 +26,18 @@ class Permissions:
         (VIEW, 'View')
     )
 
+def checkIfPublished(set_class, set_id, set_history_id):
+    ''' Check if an entity version is published '''
+    
+    from .models.Concept import Concept
+    from .models.PublishedConcept import PublishedConcept
+    
+    if (set_class == Concept):
+        return PublishedConcept.objects.filter(concept_id=set_id, concept_history_id=set_history_id).exists()
+    else:
+        return False
+    
+    
 '''
     ---------------------------------------------------------------------------
     Determine access to a specified dataset (Concepts or WorkingSets).
@@ -33,7 +46,11 @@ class Permissions:
     allowed_to test.
     ---------------------------------------------------------------------------
 '''
-def allowed_to_view_children(user, set_class, set_id, returnErrors = False, WS_concepts_json = "", set_history_id = None):
+def allowed_to_view_children(user, set_class, set_id
+                            , returnErrors = False
+                            , WS_concepts_json = ""
+                            , WS_concept_version = None
+                            , set_history_id = None):
     '''
         Permit viewing access if:
         user is a super-user
@@ -44,10 +61,14 @@ def allowed_to_view_children(user, set_class, set_id, returnErrors = False, WS_c
     from .models.Concept import Concept
     from .models.WorkingSet import WorkingSet
     from .models.Component import Component
+    from .models.Phenotype import Phenotype
     
     from db_utils import (getConceptTreeByConceptId, getGroupOfConceptsByWorkingsetId
                           , getConceptsFromJSON, getGroupOfConceptsByWorkingsetId_historical
                           , get_history_child_concept_components
+                          , get_concet_versions_in_workingset
+                          , getGroupOfConceptsByPhenotypeId
+                          , getGroupOfConceptsByPhenotypeId_historical
                           )
     errors = dict()
     if user.is_superuser: 
@@ -60,26 +81,48 @@ def allowed_to_view_children(user, set_class, set_id, returnErrors = False, WS_c
     # The Working Set and Concept systems are fundamentally different, so we
     # need to check that here. Why?
     if (set_class == WorkingSet):
-        permitted = allowed_to_view(user, WorkingSet, set_id)
+        permitted = allowed_to_view(user, WorkingSet, set_id, set_history_id=set_history_id)
         if (not permitted):
             errors[set_id] = 'Working set not permitted.'
         # Need to parse the concept_informations section of the database and use
         # the concepts here to form a list of concept_ref_ids.
         
-        if WS_concepts_json.strip() != "":
-            concepts =  getConceptsFromJSON(concepts_json = WS_concepts_json)
-        else:
-            if set_history_id is None:
-                concepts = getGroupOfConceptsByWorkingsetId(set_id)
-            else:
-                concepts = getGroupOfConceptsByWorkingsetId_historical(set_id , set_history_id)
-        
+#         if WS_concepts_json.strip() != "":
+#             concepts =  getConceptsFromJSON(concepts_json = WS_concepts_json)
+#         else:
+#             if set_history_id is None:
+#                 concepts = getGroupOfConceptsByWorkingsetId(set_id)
+#             else:
+#                 concepts = getGroupOfConceptsByWorkingsetId_historical(set_id , set_history_id)
+        if WS_concept_version is not None:
+            concepts = WS_concept_version
+        else:     
+            concepts = get_concet_versions_in_workingset(set_id , set_history_id)
+                
         unique_concepts = set()
         for concept in concepts:
-            unique_concepts.add(int(concept))
+            unique_concepts.add((int(concept), concepts[concept]))
+        pass
+    elif set_class == Phenotype:
+        permitted = allowed_to_view(user, Phenotype, set_id)
+        if (not permitted):
+            errors[set_id] = 'Phenotype not permitted.'
+            # Need to parse the concept_informations section of the database and use
+            # the concepts here to form a list of concept_ref_ids.
+        if WS_concepts_json.strip() != "":
+            concepts = [(x['concept_id'], x['concept_version_id']) for x in json.loads(WS_concepts_json)] #getConceptsFromJSON(concepts_json=WS_concepts_json)
+        else:
+            if set_history_id is None:
+                concepts = getGroupOfConceptsByPhenotypeId(set_id)
+            else:
+                concepts = getGroupOfConceptsByPhenotypeId_historical(set_id, set_history_id)
+
+        unique_concepts = set()
+        for concept in concepts:
+            unique_concepts.add(concept)
         pass
     elif (set_class == Concept):
-        permitted = allowed_to_view(user, Concept, set_id)
+        permitted = allowed_to_view(user, Concept, set_id, set_history_id=set_history_id)
         if (not permitted):
             errors[set_id] = 'Concept not permitted.'
         
@@ -87,7 +130,7 @@ def allowed_to_view_children(user, set_class, set_id, returnErrors = False, WS_c
         concepts = get_history_child_concept_components(set_id, concept_history_id=set_history_id)
         unique_concepts = set()
         for concept in concepts:
-            unique_concepts.add(concept['concept_ref_id'])
+            unique_concepts.add((concept['concept_ref_id'], concept['concept_ref_history_id']))
             
 #         # Need to refer to all the components that have this id as its concept_id.
 #         # For each of these we need to create a list of concept ids from the
@@ -109,15 +152,10 @@ def allowed_to_view_children(user, set_class, set_id, returnErrors = False, WS_c
     permittedToAll = True
     for concept in unique_concepts:
         permitted = False
-        permitted |= Concept.objects.filter(Q(id=concept), Q(world_access=Permissions.VIEW)).count() > 0
-        permitted |= Concept.objects.filter(Q(id=concept), Q(world_access=Permissions.EDIT)).count() > 0
-        permitted |= Concept.objects.filter(Q(id=concept), Q(owner_access=Permissions.VIEW, owner=user)).count() > 0
-        permitted |= Concept.objects.filter(Q(id=concept), Q(owner_access=Permissions.EDIT, owner=user)).count() > 0
-        for group in user.groups.all() :
-            permitted |= Concept.objects.filter(Q(id=concept), Q(group_access=Permissions.VIEW, group_id=group)).count() > 0
-            permitted |= Concept.objects.filter(Q(id=concept), Q(group_access=Permissions.EDIT, group_id=group)).count() > 0
+        permitted = allowed_to_view(user, Concept, set_id=concept[0], set_history_id=concept[1])
+
         if (not permitted):
-            errors[concept] = 'Child concept not permitted.'             
+            errors[concept[0]] = 'Child concept not permitted.'             
             permittedToAll = False
                     
             
@@ -127,7 +165,7 @@ def allowed_to_view_children(user, set_class, set_id, returnErrors = False, WS_c
         return permittedToAll
 
 
-def allowed_to_view(user, set_class, set_id):
+def allowed_to_view(user, set_class, set_id, set_history_id = None):
     '''
         Permit viewing access if:
         user is a super-user or the OWNER
@@ -136,10 +174,25 @@ def allowed_to_view(user, set_class, set_id):
         OR
         concept viewing is permitted to a GROUP that contains the user
     '''
-    # Check if the user is permitted to view the concept - once permission is
-    # granted for any reason return immediately.
+    from .models.Concept import Concept
+    
+    # check if the entity/version exists
+    if not set_class.objects.filter(id=set_id).exists(): 
+            return False
+
+    if set_history_id is not None:
+        if not set_class.history.filter(id=set_id, history_id=set_history_id).exists():
+            return False
+    
+    # Check if the user is permitted to view the entity
+    # once permission is granted for any reason return immediately.
     if user.is_superuser: return True
-    # Owner is always allowed to view.
+    
+    # if a specific version is published
+    if set_history_id is not None and set_class==Concept:
+        if checkIfPublished(set_class, set_id, set_history_id): return True
+    
+    # Owner is always allowed to view
     if set_class.objects.filter(Q(id=set_id), Q(owner=user)).count() > 0: return True
     if set_class.objects.filter(Q(id=set_id), Q(world_access=Permissions.VIEW)).count() > 0: return True
     if set_class.objects.filter(Q(id=set_id), Q(world_access=Permissions.EDIT)).count() > 0: return True
@@ -226,13 +279,13 @@ def getGroups(user):
     return user.groups.all().exclude(name='ReadOnlyUsers')
     
     
-def validate_access_to_view(user, set_class, set_id):
+def validate_access_to_view(user, set_class, set_id, set_history_id = None):
     '''
-        Validate if user has access to view a dataset.
+        Validate if user has access to view the entity.
         Raises an exception if access is not allowed which causes the 403.html
         page to be displayed.
     '''
-    if allowed_to_view(user, set_class, set_id) == False:
+    if allowed_to_view(user, set_class, set_id, set_history_id = set_history_id) == False:
         raise PermissionDenied
 
 
@@ -417,6 +470,44 @@ class HasAccessToViewWorkingsetCheckMixin(object):
         return super(HasAccessToViewWorkingsetCheckMixin, self).dispatch(request, *args, **kwargs)
 
 
+class HasAccessToEditPhenotypeCheckMixin(object):
+    """
+        mixin to check if user has edit access to a phenotype
+        this mixin is used within class based views and can be overridden
+    """
+    def has_access_to_edit_phenotype(self, user, phenotype_id):
+        from .models.Phenotype import Phenotype
+        return allowed_to_edit(user, Phenotype, phenotype_id)
+
+    def access_to_edit_phenotype_failed(self, request, *args, **kwargs):
+        raise PermissionDenied
+
+    def dispatch(self, request, *args, **kwargs):
+        if not self.has_access_to_edit_phenotype(request.user):
+            return self.access_to_edit_phenotype_failed(request, *args, **kwargs)
+
+        return super(HasAccessToEditPhenotypeCheckMixin, self).dispatch(request, *args, **kwargs)
+
+
+class HasAccessToViewPhenotypeCheckMixin(object):
+    """
+        mixin to check if user has view access to a working set
+        this mixin is used within class based views and can be overridden
+    """
+    def has_access_to_view_phenotype(self, user, phenotype_id):
+        from .models.Phenotype import Phenotype
+        return allowed_to_view(user, Phenotype, phenotype_id)
+
+    def access_to_view_phenotype_failed(self, request, *args, **kwargs):
+        raise PermissionDenied
+
+    def dispatch(self, request, *args, **kwargs):
+        if not self.has_access_to_view_phenotype(request.user, self.kwargs['pk']):
+            return self.access_to_view_phenotype_failed(request, *args, **kwargs)
+
+        return super(HasAccessToViewPhenotypeCheckMixin, self).dispatch(request, *args, **kwargs)
+
+
 '''
     ---------------------------------------------------------------------------
     Produce permitted data-sets.
@@ -501,11 +592,11 @@ def get_visible_components(user, codeListID):
         # Get the component ID for the codelist.
         codelist = CodeList.objects.get(id=codeListID)
         components = Component.objects.filter(id=codelist.component_id)
-        concepts = get_visible_concepts(user, get_Published_concepts=False).filter(id=components[0].concept_id)
+        concepts = get_visible_concepts_live(user).filter(id=components[0].concept_id)
     else:
         # Start with them all! (not enabled now - no use)
         components = Component.objects.distinct()
-        concepts = get_visible_concepts(user, get_Published_concepts=False)
+        concepts = get_visible_concepts_live(user)
         
     '''
         Not sure that the following is the right way to do it as it is not very
@@ -549,7 +640,8 @@ def get_visible_components(user, codeListID):
     return query
 
 
-def get_visible_concepts(user, get_Published_concepts=True, show_concept_versions=False):
+def get_visible_concepts_live(user):
+    ''' return visible live concepts'''
     # This does NOT excludes deleted ones
     from .models.Concept import Concept
     concepts = Concept.objects.distinct()
@@ -563,101 +655,52 @@ def get_visible_concepts(user, get_Published_concepts=True, show_concept_version
     
     return query
 
+
+def get_visible_concepts_org(user, get_Published_concepts=True, show_concept_versions=False):
+    # This does NOT excludes deleted ones
+    from .models.Concept import Concept
+    concepts = Concept.objects.distinct()
+    if user.is_superuser: return concepts
+    query = concepts.filter(Q(world_access=Permissions.VIEW))
+    query |= concepts.filter(Q(world_access=Permissions.EDIT))
+    query |= concepts.filter(Q(owner=user))
+    for group in user.groups.all() :
+        query |= concepts.filter(Q(group_access=Permissions.VIEW, group_id=group))
+        query |= concepts.filter(Q(group_access=Permissions.EDIT, group_id=group))
     
-        
-def get_visible_conceptsXX(user, get_Published_concepts=True, show_concept_versions=False):
+    return query
+
+def get_visible_concepts(request, get_Published_concepts=True, show_concept_versions=False):
     # This does NOT excludes deleted ones
     from .models.Concept import Concept
     from .models.PublishedConcept import PublishedConcept
-    from db_utils import *
+    from db_utils import (get_list_of_visible_concept_ids, get_visible_live_or_published_concept_versions)
     
-    concepts = Concept.objects.distinct()
+    user = request.user
     
-    if user.is_superuser: 
-        return concepts #maybe add published ones as well
-    
-    visibleConcepts = concepts.filter(Q(world_access=Permissions.VIEW))
-    visibleConcepts |= concepts.filter(Q(world_access=Permissions.EDIT))
-    visibleConcepts |= concepts.filter(Q(owner=user))
-    for group in user.groups.all() :
-        visibleConcepts |= concepts.filter(Q(group_access=Permissions.VIEW, group_id=group))
-        visibleConcepts |= concepts.filter(Q(group_access=Permissions.EDIT, group_id=group))
-    
-    visibleConcepts_ids = []
-
-    #  Run through the concepts and add a 'can edit this concept' field, etc.
-    for concept in visibleConcepts:
-        concept.is_latest_ver = True
-        latest_ver = None
-        latest_ver = Concept.objects.get(pk=concept.id).history.latest()
-        concept.history_id = latest_ver.history_id
-        visibleConcepts_ids.append(concept.history_id)
-        concept.is_published = checkIfPublished(concept.id, concept.history_id)
-        if concept.is_published:
-            concept.publish_date = PublishedConcept.objects.get(concept_id=concept.id, concept_history_id=concept.history_id).created
-        else:
-            concept.publish_date = None
-        concept.can_edit = allowed_to_edit(user, Concept, concept.id)
-        concept.history_date = latest_ver.history_date
-        concept.history_change_reason = latest_ver.history_change_reason
-        concept.history_type = latest_ver.history_type
-        concept.history_user_id = latest_ver.history_user_id
-            
-    if not get_Published_concepts:
-        return visibleConcepts
-    #-------------------------------
-    # add published concepts
-    # work on concept.history and make sure it is in published concept
-    all_published_history_id = list(PublishedConcept.objects.all().values_list('concept_history_id', flat=True))
-    # removes the ones already added before
-    
-    published_concepts = Concept.history.filter(history_id__in = list(set(all_published_history_id) - set(visibleConcepts_ids))
-                                                )
-    if published_concepts.count() == 0:
-        return visibleConcepts
-    
-    # removes the ones already added before
-    ###published_concepts = published_concepts.all().exclude(history_id__in = visibleConcepts.values_list('history_id', flat=True))
-    
-    #  Run through the concepts and add a 'can edit this concept' field, etc.
-    for concept in published_concepts:
-        concept.is_latest_ver = False
-        #concept.history_id  is here already
-        concept.is_published = True
-        concept.publish_date = PublishedConcept.objects.get(concept_id=concept.id, concept_history_id=concept.history_id).created
-        concept.can_edit = False
+    if not get_Published_concepts or PublishedConcept.objects.all().count()==0:
+        concepts = Concept.objects.distinct()
         
-    return (visibleConcepts | published_concepts.defer('history_id', 'history_date', 'history_change_reason', 'history_type', 'history_user_id')
-            ).distinct()
-
-#     # This does NOT excludes deleted ones
-#     from .models.Concept import Concept
-#     from .models.PublishedConceptVersions import PublishedConceptVersions
-#     from db_utils import getAllConceptHistoryEntryies
-#     
-#     h= PublishedConceptVersions.objects.all()
-#     
-#     from django.db import models
-#     z = model.objects.raw(...)
-#     
-#     if  get_Published_concepts:
-#         concepts = Concept.objects.distinct()
-#     else:
-#         concepts = getAllConceptHistoryEntryies()
-#         
-#     if user.is_superuser: 
-#         return concepts
-#     
-#     query = concepts.filter(Q(world_access=Permissions.VIEW))
-#     query |= concepts.filter(Q(world_access=Permissions.EDIT))
-#     query |= concepts.filter(Q(owner=user))
-#     for group in user.groups.all() :
-#         query |= concepts.filter(Q(group_access=Permissions.VIEW, group_id=group))
-#         query |= concepts.filter(Q(group_access=Permissions.EDIT, group_id=group))        
-#     
-#     return query
-#         
+        if user.is_superuser:
+            return concepts
         
+        query = concepts.filter(Q(world_access=Permissions.VIEW))
+        query |= concepts.filter(Q(world_access=Permissions.EDIT))
+        query |= concepts.filter(Q(owner=user))
+        for group in user.groups.all() :
+            query |= concepts.filter(Q(group_access=Permissions.VIEW, group_id=group))
+            query |= concepts.filter(Q(group_access=Permissions.EDIT, group_id=group))
+    
+        return query
+    
+    else:
+        history_ids_list = get_list_of_visible_concept_ids(
+                                                        get_visible_live_or_published_concept_versions(request , exclude_deleted = True)
+                                                        , return_id_or_history_id="history_id")  
+        return Concept.history.filter(history_id__in = history_ids_list)
+    
+
+       
         
 def get_visible_workingsets(user):
     # This does NOT excludes deleted ones
@@ -675,6 +718,45 @@ def get_visible_workingsets(user):
         
     return query
 
+
+def get_visible_phenotypes(user):
+    # This does NOT excludes deleted ones
+    from .models.Phenotype import Phenotype
+    phenotypes = Phenotype.objects.distinct()
+
+    if user.is_superuser:
+        return phenotypes
+
+    query = phenotypes.filter(Q(world_access=Permissions.VIEW))
+    query |= phenotypes.filter(Q(world_access=Permissions.EDIT))
+    query |= phenotypes.filter(Q(owner=user))
+
+    for group in user.groups.all():
+        query |= phenotypes.filter(Q(group_access=Permissions.VIEW, group_id=group))
+        query |= phenotypes.filter(Q(group_access=Permissions.EDIT, group_id=group))
+
+    return query
+
+def get_visible_data_sources(user):
+    # This does NOT excludes deleted ones
+    from .models.DataSource import DataSource
+    datasources = DataSource.objects.distinct()
+
+    if user.is_superuser:
+        return datasources
+
+    query = datasources.filter(Q(world_access=Permissions.VIEW))
+    query |= datasources.filter(Q(world_access=Permissions.EDIT))
+    query |= datasources.filter(Q(owner=user))
+
+    for group in user.groups.all():
+        query |= datasources.filter(Q(group_access=Permissions.VIEW, group_id=group))
+        query |= datasources.filter(Q(group_access=Permissions.EDIT, group_id=group))
+
+    return query
+
+
 def is_member(user, group_name):
     return user.groups.filter(name=group_name).exists()
+
 

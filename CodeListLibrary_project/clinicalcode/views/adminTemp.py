@@ -72,6 +72,13 @@ def api_remove_data(request):
                 ws.delete()
     
             rowsAffected["**********************************"] = "**********************************"
+            
+            phenotypes = Phenotype.objects.filter(owner=request.user)
+            for ph in phenotypes:
+                rowsAffected[ph.id] = "phenotype: " + ph.name + ":: deleted"
+                ph.delete()
+            
+            rowsAffected["**********************************"] = "**********************************"
     
     
     

@@ -9,14 +9,14 @@ from rest_framework import routers
 #from . import views
 #from cll import settings
 from django.conf import settings
-from views import (View, Concept, WorkingSet)
+from views import (View, Concept, WorkingSet, Phenotype, DataSource)
  
 '''
 Use the default REST API router to access the API details explicitly.
 These paths will appear as links on the API page.
 '''
 router = routers.DefaultRouter()
-router.register('concepts', Concept.ConceptViewSet)
+router.register('concepts-live', Concept.ConceptViewSet)
 router.register('codes', Concept.CodeViewSet)
 router.register('tags', View.TagViewSet)
 
@@ -53,6 +53,11 @@ urlpatterns = [
     url(r'^myconcepts/$'
         , Concept.myConcepts
         , name='myConcepts'),
+       
+    # concepts_live_and_published
+    url(r'^concepts/$'
+        , Concept.concepts_live_and_published
+        , name='concepts_live_and_published'),
     
     # my concept detail
     # if only concept_id is provided, get the latest version
@@ -115,7 +120,16 @@ if not settings.CLL_READ_ONLY:
             , WorkingSet.api_workingset_update
             , name='api_workingset_update'),
         
- 
+        url(r'^api_phenotype_create/$',
+            Phenotype.api_phenotype_create,
+            name='api_phenotype_create'),
+        url(r'^api_phenotype_update/$',
+            Phenotype.api_phenotype_update,
+            name='api_phenotype_update'),
+
+        url(r'^api_datasource_create/$',
+            DataSource.api_datasource_create,
+            name='api_datasource_create')
     ]
     
     

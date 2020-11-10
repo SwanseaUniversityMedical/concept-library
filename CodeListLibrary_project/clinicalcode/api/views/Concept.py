@@ -52,6 +52,7 @@ from django.core.validators import URLValidator
 from View import *
 from django.views.defaults import permission_denied
 from django.db.models.aggregates import Max
+from clinicalcode.permissions import get_visible_concepts_live
 #from ...permissions import Permissions
 
 '''
@@ -72,7 +73,7 @@ class ConceptViewSet(viewsets.ReadOnlyModelViewSet):
             Provide the dataset for the view.
             Restrict this to just those concepts that are visible to the user.
         '''
-        queryset = get_visible_concepts(self.request.user)
+        queryset = get_visible_concepts_live(self.request.user)
         search = self.request.query_params.get('search', None)
         concept_id_to_exclude = self.request.query_params.get('concept_id_to_exclude')
         if search is not None:
@@ -89,6 +90,23 @@ class ConceptViewSet(viewsets.ReadOnlyModelViewSet):
         '''
         queryset = super(ConceptViewSet, self).filter_queryset(queryset)
         return queryset.order_by('id')
+
+
+# /api/concepts_live_and_published
+@api_view(['GET']) 
+def concepts_live_and_published(request):
+    
+    search = request.query_params.get('search', "")
+    concept_id_to_exclude = utils.get_int_value(request.query_params.get('concept_id_to_exclude', 0), 0)
+    
+    rows_to_return = get_visible_live_or_published_concept_versions(request
+                                                                    , searchByName = search
+                                                                    , concept_id_to_exclude = concept_id_to_exclude
+                                                                    , exclude_deleted = True 
+                                                                    )
+    
+    return Response(rows_to_return, status=status.HTTP_200_OK)
+
 
 
 #--------------------------------------------------------------------------
@@ -272,11 +290,7 @@ def export_concept_codes_byVersionID(request, pk, concept_history_id):
     '''
     # Require that the user has access to the base concept.
     # validate access for login site
-    validate_access_to_view(request.user, Concept, pk)
-
-    if concept_history_id is not None:
-        if not Concept.history.filter(id=pk, history_id=concept_history_id).exists():
-            raise PermissionDenied
+    validate_access_to_view(request.user, Concept, pk, set_history_id=concept_history_id)
 
         
 #     if concept_history_id is None:
@@ -302,33 +316,7 @@ def export_concept_codes_byVersionID(request, pk, concept_history_id):
 
     if request.method == 'GET':
         return get_historical_concept_codes(request, pk, concept_history_id)
-#         concept = Concept.objects.filter(id=pk).exclude(is_deleted=True)
-#         if concept.count() == 0: raise Http404
-#         
-#         concept_ver = Concept.history.filter(id=pk, history_id=concept_history_id) #.exclude(is_deleted=True)
-#         if concept_ver.count() == 0: raise Http404
-#         
-#         rows_to_return = []
-#         titles = ['code', 'description', 'concept_id', 'concept_version_id', 'concept_name']
-#         
-#         current_concept = Concept.objects.get(pk=pk)
-# 
-#         # Use db_util function to extract this data.
-#         history_concept = getHistoryConcept(concept_history_id)
-#     
-#         rows = getGroupOfCodesByConceptId_HISTORICAL(pk, concept_history_id)
-#         for row in rows:
-#             rows_to_return.append(ordr(zip(titles,  
-#                                 [
-#                                     row['code'],  
-#                                     row['description'].encode('ascii', 'ignore').decode('ascii'),
-#                                     pk,
-#                                     concept_history_id,
-#                                     history_concept['name'],
-#                                 ]
-#                                 )))
-#     
-#         return Response(rows_to_return, status=status.HTTP_200_OK)
+
 
 def get_historical_concept_codes(request, pk, concept_history_id):
         
@@ -865,42 +853,6 @@ def published_concept(request, version_id):
         return Response(concept_to_return, status=status.HTTP_200_OK)
 
 
-# #disable authentication for this function
-# @api_view(['GET'])
-# @authentication_classes([])
-# @permission_classes([])
-# def published_concept_codes(request, version_id):
-#     '''
-#         Return all published codes for specific published concept.
-#     '''
-#     if request.method == 'GET':
-#         # check if the concept version is published
-#         concept = PublishedConcept.objects.filter(concept_history_id=version_id)
-#         if concept.count() == 0: raise Http404
-# 
-#         historical_concept = getHistoryConcept(version_id)
-#         pk = historical_concept['id']
-#         
-#         codes = getGroupOfCodesByConceptId_HISTORICAL(concept_id=pk, concept_history_id=version_id)
-#         
-# 
-#         rows_to_return = []
-#         titles = ['code', 'description', 'concept_id', 'concept_version_id', 'concept_name']
-# 
-#         for row in codes:
-#             rows_to_return.append(ordr(zip(titles,  
-#                                 [
-#                                     row['code'],  
-#                                     row['description'].encode('ascii', 'ignore').decode('ascii'),
-#                                     pk,
-#                                     version_id,
-#                                     historical_concept['name'],
-#                                 ]
-#                                 )))
-#     
-#         return Response(rows_to_return, status=status.HTTP_200_OK)
-
-
 ##############################################################################
 ##############################################################################
 # search my concepts 
@@ -921,7 +873,7 @@ def myConcepts(request):
     do_not_show_versions = request.query_params.get('do_not_show_versions', "0")
         
     # ensure that user is only allowed to view/edit the relevant concepts
-    concepts = get_visible_concepts(request.user)
+    concepts = get_visible_concepts(request)
     
     if concept_id is not None:
         if concept_id != '':
@@ -992,7 +944,7 @@ def myConcepts(request):
         ret = [
                 c.id,  
                 c.name.encode('ascii', 'ignore').decode('ascii'),
-                Concept.objects.get(pk=c.id).history.latest().history_id,
+                c.history_id,                #Concept.objects.get(pk=c.id).history.latest().history_id, 
                 c.author,
                 c.coding_system.name,
                 c.owner.username,
@@ -1041,7 +993,7 @@ def myConcept_detail(request, pk, concept_history_id=None):
 
         
     # validate access
-    if not allowed_to_view(request.user, Concept, pk):
+    if not allowed_to_view(request.user, Concept, pk, set_history_id=concept_history_id):
         raise PermissionDenied
     
     if concept_history_id is not None:
