@@ -857,7 +857,7 @@ def published_concept(request, version_id):
 ##############################################################################
 # search my concepts 
 @api_view(['GET']) 
-def myConcepts(request):
+def myConcepts_old(request):
     '''
         Get the API output for the list of my concepts.
     '''
@@ -973,6 +973,176 @@ def myConcepts(request):
         
         if do_not_show_versions != "1":
             ret += [get_versions_list(request.user, Concept, c.id)]
+        
+        rows_to_return.append(ordr(zip(titles,  ret )))
+                                   
+    return Response(rows_to_return, status=status.HTTP_200_OK)                                   
+
+# search my concepts 
+@api_view(['GET']) 
+def myConcepts(request):
+    '''
+        Get the API output for the list of my concepts.
+    '''
+    search = request.query_params.get('search', '')
+    concept_id = request.query_params.get('id', None)
+    tag_ids = request.query_params.get('tag_ids', '')
+    owner = request.query_params.get('owner_username', '')
+    show_only_my_concepts = request.query_params.get('show_only_my_concepts', "0")
+    show_deleted_concepts = request.query_params.get('show_deleted_concepts', "0")
+    show_only_validated_concepts = request.query_params.get('show_only_validated_concepts', "0")
+    concept_brand = request.query_params.get('brand', "")
+    author = request.query_params.get('author', '')
+    do_not_show_versions = request.query_params.get('do_not_show_versions', "0")
+    expand_published_versions = request.query_params.get('expand_published_versions', "0")
+        
+    search_tag_list = []
+    tags = []
+    
+    filter_cond = " 1=1 "
+    exclude_deleted = True
+    get_live_and_or_published_ver = 3   # 1= live only, 2= published only, 3= live+published
+    
+    if tag_ids:
+        # split tag ids into list
+        search_tag_list = [int(i) for i in tag_ids.split(",")]
+        tags = Tag.objects.filter(id__in=search_tag_list)
+        
+    # check if it is the public site or not
+    if request.user.is_authenticated():
+        # ensure that user is only allowed to view/edit the relevant concepts
+           
+        get_live_and_or_published_ver = 3
+        #show_top_version_only = True
+        # show only concepts created by the current user
+        if show_only_my_concepts == "1":
+            filter_cond += " AND owner_id=" + str(request.user.id)
+    
+        # if show deleted concepts is 1 then show deleted concepts
+        if show_deleted_concepts != "1":
+            exclude_deleted = True
+        else:
+            exclude_deleted = False    
+        
+      
+    else:
+        # show published concepts
+        get_live_and_or_published_ver = 2
+        #show_top_version_only = True
+        if PublishedConcept.objects.all().count() == 0:
+            return Response([], status=status.HTTP_200_OK)
+
+    show_top_version_only = True
+    if expand_published_versions == "1":
+        show_top_version_only = False
+
+    if concept_id is not None:
+        if concept_id != '':
+            filter_cond += " AND id=" + concept_id
+            
+    if owner is not None:
+        if owner !='':
+            if User.objects.filter(username__iexact = owner.strip()).exists():
+                owner_id = User.objects.get(username__iexact = owner.strip()).id
+                filter_cond += " AND owner_id=" + str(owner_id)
+            else:
+                # username not found
+                filter_cond += " AND owner_id= -1 "
+
+
+    # if show_only_validated_concepts is 1 then show only concepts with validation_performed=True
+    if show_only_validated_concepts == "1":
+        filter_cond += " AND COALESCE(validation_performed, FALSE) IS TRUE "
+
+    # show concepts for a specific brand
+    if concept_brand != "":
+        if Brand.objects.all().filter(name__iexact = concept_brand.strip()).exists():
+            current_brand = Brand.objects.all().filter(name__iexact = concept_brand.strip())
+            group_list = list(current_brand.values_list('groups', flat=True))
+            filter_cond += " AND group_id IN("+ ', '.join(map(str, group_list)) +") "
+        else:
+            # brand name not found
+            filter_cond += " AND group_id IN(-1) "
+       
+    concepts_srch = get_visible_live_or_published_concept_versions(request
+                                                , get_live_and_or_published_ver = get_live_and_or_published_ver 
+                                                , searchByName = search
+                                                , author = author
+                                                , exclude_deleted = exclude_deleted
+                                                , filter_cond = filter_cond
+                                                , show_top_version_only = show_top_version_only
+                                                )
+    
+    
+    # apply tags
+    # I don't like this way :)
+    concept_indx_to_exclude = []
+    if tag_ids:
+        for indx in range(len(concepts_srch)):  
+            concept = concepts_srch[indx]
+            concept['indx'] = indx
+            concept_tags_history = getHistoryTags(concept['id'], concept['history_date'])
+            if concept_tags_history:
+                concept_tag_list = [i['tag_id'] for i in concept_tags_history if 'tag_id' in i]
+                if not any(t in set(search_tag_list) for t in set(concept_tag_list)):
+                    concept_indx_to_exclude.append(indx)
+                else:
+                    pass        
+            else:
+                concept_indx_to_exclude.append(indx)  
+        
+    if concept_indx_to_exclude:      
+        concepts = [i for i in concepts_srch if (i['indx'] not in concept_indx_to_exclude)]
+    else:
+        concepts = concepts_srch 
+     
+
+    rows_to_return = []
+    titles = ['concept_id', 'concept_name'
+            , 'version_id'
+            , 'author', 'coding_system', 'owner'
+            , 'created_by', 'created_date'  
+            , 'modified_by', 'modified_date'  
+            , 'is_deleted', 'deleted_by', 'deleted_date'
+            , 'is_published'
+            ]
+    if do_not_show_versions != "1":
+        titles += ['versions']
+    
+
+    for c in concepts:
+        ret = [
+                c['id'],  
+                c['name'].encode('ascii', 'ignore').decode('ascii'),
+                c['history_id'],                #Concept.objects.get(pk=c['id']).history.latest().history_id, 
+                c['author'],
+                c['coding_system_name'],
+                c['owner_name'],
+                
+                c['created_by_username'],
+                c['created'],
+            ]
+
+        if (c['modified_by_id']):
+            ret += [c['modified_by_username']]
+        else:
+            ret += [None]
+            
+        ret += [
+                c['modified'],  
+                
+                c['is_deleted'],  
+            ]
+        
+        if (c['is_deleted'] == True):
+            ret += [c['deleted_by_username']]
+        else:
+            ret += [None]
+        
+        ret += [c['deleted'], c['published']]
+        
+        if do_not_show_versions != "1":
+            ret += [get_visible_concept_versions_list(request, c['id'])]
         
         rows_to_return.append(ordr(zip(titles,  ret )))
                                    

@@ -2862,7 +2862,9 @@ def get_visible_live_or_published_concept_versions(request
                                 , (CASE WHEN is_published=1 THEN 'published' ELSE 'not published' END) published
                                 , (SELECT name FROM clinicalcode_codingsystem WHERE coding_system_id=r.coding_system_id LIMIT 1) coding_system_name
                                 , (SELECT username FROM auth_user WHERE id=r.owner_id LIMIT 1) owner_name
+                                , (SELECT username FROM auth_user WHERE id=r.created_by_id LIMIT 1) created_by_username
                                 , (SELECT username FROM auth_user WHERE id=r.modified_by_id LIMIT 1) modified_by_username
+                                , (SELECT username FROM auth_user WHERE id=r.deleted_by_id LIMIT 1) deleted_by_username
                                 , (SELECT name FROM auth_group WHERE id=r.group_id LIMIT 1) group_name
                                 , (SELECT created FROM clinicalcode_publishedconcept WHERE concept_id=r.id and concept_history_id=r.history_id  LIMIT 1) publish_date
                             FROM

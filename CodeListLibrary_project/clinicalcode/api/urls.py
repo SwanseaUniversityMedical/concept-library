@@ -53,6 +53,7 @@ urlpatterns = [
     url(r'^myconcepts/$'
         , Concept.myConcepts
         , name='myConcepts'),
+
        
     # concepts_live_and_published
     url(r'^concepts/$'

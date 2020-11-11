@@ -62,7 +62,12 @@ def api_remove_data(request):
             for c in concepts:
                 rowsAffected[c.id] = "concept: " + c.name + " :: deleted"
                 c.delete()
-    
+
+            concepts = Concept.history.filter(owner=request.user)
+            for c in concepts:
+                rowsAffected[c.id] = "concept: " + c.name + " :: deleted"
+                c.delete()
+
             rowsAffected["**********************************"] = "**********************************"
     
     
@@ -70,10 +75,20 @@ def api_remove_data(request):
             for ws in workingsets:
                 rowsAffected[ws.id] = "working set: " + ws.name + ":: deleted"
                 ws.delete()
+             
+            workingsets = WorkingSet.history.filter(owner=request.user)
+            for ws in workingsets:
+                rowsAffected[ws.id] = "working set: " + ws.name + ":: deleted"
+                ws.delete()
     
             rowsAffected["**********************************"] = "**********************************"
             
             phenotypes = Phenotype.objects.filter(owner=request.user)
+            for ph in phenotypes:
+                rowsAffected[ph.id] = "phenotype: " + ph.name + ":: deleted"
+                ph.delete()
+             
+            phenotypes = Phenotype.history.filter(owner=request.user)
             for ph in phenotypes:
                 rowsAffected[ph.id] = "phenotype: " + ph.name + ":: deleted"
                 ph.delete()
