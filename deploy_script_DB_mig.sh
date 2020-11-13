@@ -1,10 +1,10 @@
 #!/bin/sh
       echo ">>>>> STARTING (production server deployment) <<<<<<<<<<<<<<<<<<<"
 
-      http_proxy=$1;
+      http_proxy=http://192.168.10.15:8080;
       export http_proxy
 
-      https_proxy=$2;
+      https_proxy=https://192.168.10.15:8080;
       export https_proxy
      
 
@@ -18,6 +18,13 @@
       . cllvirenv_v1/bin/activate   # for sh
       echo `pwd`
 
+      #echo ">>>>> install requirements <<<<<<<<<<<<<<<<<<<"
+      #cd /var/www/concept_lib_sites/v1/requirements
+
+      #pip --proxy http://192.168.10.15:8080 install --upgrade pip
+      #pip --proxy http://192.168.10.15:8080 install -r base.txt
+
+      #pip --proxy http://192.168.10.15:8080 install psycopg2-binary
 
       cd /var/www/concept_lib_sites/v1/CodeListLibrary_project
       
