@@ -13,6 +13,7 @@
 {% if successMsg %}
 	<div class="bs-example">
 	    <div class="alert alert-success fade in">
+	    	<a href="#" class="close" data-dismiss="alert">&times;</a>
 	        <strong>Success!</strong>
 	        <br>
 	        <ul>
@@ -27,6 +28,7 @@
 {% if warningsMsg %}
 	<div class="bs-example">
 	    <div class="alert alert-warning fade in">
+	    	<a href="#" class="close" data-dismiss="alert">&times;</a>
 	        <strong>Warning!</strong>
 	        <br>
 	        <ul>
@@ -42,7 +44,8 @@
 {% if errorMsg %}
 	<div class="bs-example">
 	    <div class="alert alert-danger fade in">
-	        <strong>Warning!</strong>
+	    	<a href="#" class="close" data-dismiss="alert">&times;</a>
+	        <strong>Error!</strong>
 	        <br>
 	        <ul>
 	            {% for msg in errorMsg %}

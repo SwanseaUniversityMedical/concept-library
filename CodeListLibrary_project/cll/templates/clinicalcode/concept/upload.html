@@ -25,6 +25,21 @@
 		</div>
 	</div>
 
+{% if errorMsg %}
+	<div class="bs-example">
+	    <div class="alert alert-danger fade in">
+	        <a href="#" class="close" data-dismiss="alert">&times;</a>
+	        <strong>Error!</strong>
+	        <br>
+	        <ul>
+	            {% for msg in errorMsg %}
+	            <li>{{ msg|safe }}</li>
+	            {% endfor %}
+	        </ul>
+	    </div>
+	</div>
+{% endif %}
+
 	<div class="modal-body">
 		<div class="row">
 			<div class="col-sm-3">
@@ -37,13 +52,19 @@
 			</div>
 		</div>
 		
-<div>
-	<input type="hidden" id="latest_history_id_shown" name="latest_history_id_shown"  value="{{ request.GET.latest_history_id }}"> 
- 	<input type="hidden" id="component_id" name="component_id"  value="{{ object.id }}">
- 	
- 	<input type="hidden" id="latest_history_id_concept" name="latest_history_id_concept"  value="{{ latest_history_ID }}">
- 	 
-</div>
+		<div>
+			<input type="hidden" id="latest_history_id_shown" name="latest_history_id_shown"  
+			{% if request.GET.latest_history_id|length %} 
+				value="{{request.GET.latest_history_id }}" 
+			{% else %} 
+				value="{{ latest_history_ID }}" 
+			{% endif %}
+			> 
+		 	<input type="hidden" id="component_id" name="component_id"  value="{{ object.id }}">
+		 	
+		 	<input type="hidden" id="latest_history_id_concept" name="latest_history_id_concept"  value="{{ latest_history_ID }}">
+		 	 
+		</div>
 		
 		<div class="form-group {% if form.upload_name.errors %}has-error{% endif %}">
 			<label for="{{ form.upload_name.id_for_label }}" class="col-sm-3 required">{{ form.upload_name.label }}</label>

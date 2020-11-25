@@ -1024,7 +1024,10 @@ def concept_upload_codes(request, pk):
     '''
     validate_access_to_edit(request.user, Concept, pk)
     form_class = ConceptUploadForm
+    errorMsg = []
+    
     if request.method == 'POST':
+        
         form = form_class(request.POST, request.FILES)
         # check if a file has been uploaded
         # if not request.FILES.get('upload_concept_file'):
@@ -1298,31 +1301,55 @@ def concept_upload_codes(request, pk):
                     data['add_menu_items'] = render_to_string(
                         'clinicalcode/concept/add_menu_items.html',
                         {'pk': pk, 'latest_history_id': concept.history.latest().pk})
+                
                     
                     return JsonResponse(data)
             except Exception as e:
+                errorMsg = [e.message]
                 data = dict()
-                data['exception'] = sys.exc_info()[0]
-                data['form_is_valid'] = False
-                data['html_form'] = render_to_string('clinicalcode/concept/upload.html',
-                                                     {'pk': pk, 'form': form_class},
-                                                     request)
-                
                 #------------------------------       
                 concept = Concept.objects.get(id=pk)
-                data['latest_history_ID'] = concept.history.latest().pk if request.POST.get('latest_history_id_shown') is None else request.POST.get('latest_history_id_shown')
+                latest_history_ID = concept.history.latest().pk if request.POST.get('latest_history_id_shown') is None else request.POST.get('latest_history_id_shown')
+                data['latest_history_ID'] = latest_history_ID
                 #------------------------------
+                #data['exception'] = sys.exc_info()[0]
+                data['form_is_valid'] = False
+                data['html_form'] = render_to_string('clinicalcode/concept/upload.html',
+                                                     {'pk': pk, 
+                                                      'form': form_class,
+                                                      'latest_history_ID': latest_history_ID,
+                                                      'errorMsg': [e.message]
+                                                      },
+                                                     request)
         
                 return JsonResponse(data)
             
-            
+        else:    
+            data = dict()
+            #------------------------------       
+            concept = Concept.objects.get(id=pk)
+            latest_history_ID = concept.history.latest().pk if request.POST.get('latest_history_id_shown') is None else request.POST.get('latest_history_id_shown')
+            data['latest_history_ID'] = latest_history_ID
+            #------------------------------
+            #data['exception'] = sys.exc_info()[0]
+            data['form_is_valid'] = False
+            data['html_form'] = render_to_string('clinicalcode/concept/upload.html',
+                                                 {'pk': pk, 
+                                                  'form': form_class,
+                                                  'latest_history_ID': latest_history_ID,
+                                                  'errorMsg': ["Form is invalid"]
+                                                  },
+                                                 request)
+            return JsonResponse(data)
+
 
     concept = Concept.objects.get(id=pk)
     return render(request,
                   'clinicalcode/concept/upload.html',
                   {'pk': pk,
                    'form': form_class,
-                   'latest_history_ID': concept.history.latest().pk
+                   'latest_history_ID': concept.history.latest().pk,
+                   'errorMsg': errorMsg
                    })
 
 @login_required
