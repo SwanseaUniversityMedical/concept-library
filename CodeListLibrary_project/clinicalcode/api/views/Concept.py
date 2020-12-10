@@ -264,8 +264,7 @@ def export_published_concept_codes(request, pk, concept_history_id):
         concept (pk),
         for a specific historical concept version (concept_history_id).
     '''
-    # Require that the user has access to the base concept.
-    # validate access for  public site:
+
     if not Concept.objects.filter(id=pk).exists():            
         raise PermissionDenied
 

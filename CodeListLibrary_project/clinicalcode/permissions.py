@@ -31,9 +31,13 @@ def checkIfPublished(set_class, set_id, set_history_id):
     
     from .models.Concept import Concept
     from .models.PublishedConcept import PublishedConcept
+    from .models.Phenotype import Phenotype
+    from .models.PublishedPhenotype import PublishedPhenotype
     
     if (set_class == Concept):
         return PublishedConcept.objects.filter(concept_id=set_id, concept_history_id=set_history_id).exists()
+    elif (set_class == Phenotype):
+        return PublishedPhenotype.objects.filter(phenotype_id=set_id, phenotype_history_id=set_history_id).exists()
     else:
         return False
     
@@ -55,7 +59,7 @@ def allowed_to_view_children(user, set_class, set_id
         Permit viewing access if:
         user is a super-user
         OR
-        concept is permitted to view 
+        object is permitted to view 
             AND ALL children concepts are permitted to be viewed
     '''
     from .models.Concept import Concept
@@ -63,11 +67,10 @@ def allowed_to_view_children(user, set_class, set_id
     from .models.Component import Component
     from .models.Phenotype import Phenotype
     
-    from db_utils import (getConceptTreeByConceptId, getGroupOfConceptsByWorkingsetId
+    from db_utils import (getConceptTreeByConceptId
                           , getConceptsFromJSON, getGroupOfConceptsByWorkingsetId_historical
                           , get_history_child_concept_components
-                          , get_concet_versions_in_workingset
-                          , getGroupOfConceptsByPhenotypeId
+                          , get_concept_versions_in_workingset
                           , getGroupOfConceptsByPhenotypeId_historical
                           )
     errors = dict()
@@ -90,14 +93,11 @@ def allowed_to_view_children(user, set_class, set_id
 #         if WS_concepts_json.strip() != "":
 #             concepts =  getConceptsFromJSON(concepts_json = WS_concepts_json)
 #         else:
-#             if set_history_id is None:
-#                 concepts = getGroupOfConceptsByWorkingsetId(set_id)
-#             else:
-#                 concepts = getGroupOfConceptsByWorkingsetId_historical(set_id , set_history_id)
+#             concepts = getGroupOfConceptsByWorkingsetId_historical(set_id , set_history_id)
         if WS_concept_version is not None:
             concepts = WS_concept_version
         else:     
-            concepts = get_concet_versions_in_workingset(set_id , set_history_id)
+            concepts = get_concept_versions_in_workingset(set_id , set_history_id)
                 
         unique_concepts = set()
         for concept in concepts:
@@ -112,10 +112,7 @@ def allowed_to_view_children(user, set_class, set_id
         if WS_concepts_json.strip() != "":
             concepts = [(x['concept_id'], x['concept_version_id']) for x in json.loads(WS_concepts_json)] #getConceptsFromJSON(concepts_json=WS_concepts_json)
         else:
-            if set_history_id is None:
-                concepts = getGroupOfConceptsByPhenotypeId(set_id)
-            else:
-                concepts = getGroupOfConceptsByPhenotypeId_historical(set_id, set_history_id)
+            concepts = getGroupOfConceptsByPhenotypeId_historical(set_id, set_history_id)
 
         unique_concepts = set()
         for concept in concepts:
@@ -170,9 +167,9 @@ def allowed_to_view(user, set_class, set_id, set_history_id = None):
         Permit viewing access if:
         user is a super-user or the OWNER
         OR
-        concept viewing is permitted to EVERYONE
+        viewing is permitted to EVERYONE
         OR
-        concept viewing is permitted to a GROUP that contains the user
+        viewing is permitted to a GROUP that contains the user
     '''
     from .models.Concept import Concept
     
@@ -206,11 +203,12 @@ def allowed_to_edit(user, set_class, set_id, to_restore=False):
         Permit editing access if:
         user is a super-user or the OWNER
         OR
-        concept editing is permitted to EVERYONE
+        editing is permitted to EVERYONE
         OR
-        concept editing is permitted to a GROUP that the user belongs to
+        editing is permitted to a GROUP that the user belongs to
         but NOT if
         the application is configured as READ-ONLY.
+        
         (skip this for now)(The object must not be marked as deleted - even for superuser)
     '''
     if settings.CLL_READ_ONLY: return False

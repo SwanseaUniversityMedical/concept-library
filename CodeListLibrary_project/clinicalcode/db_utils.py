@@ -499,91 +499,41 @@ def getGroupOfCodesByConceptId_xxx(concept_id):
     return getConceptUniqueCodesLive(concept_id)
 
 
-def getGroupOfConceptsByWorkingsetId(workingset_id):
+def getGroupOfConceptsByWorkingsetId_historical(workingset_id , workingset_history_id=None):
     '''
-        get concept_informations of the specified working set
-
-    '''
-    with connection.cursor() as cursor:
-        
-        cursor.execute("SELECT concept_informations FROM clinicalcode_workingset WHERE id=%s ;" , [workingset_id])
-        
-        rows = cursor.fetchall()
-
-        concepts = OrderedDict([])
-
-        for row in rows:
-            if len(row[0]) == 0: continue
-            # to preserve the order of the attributes
-            row0 = json.loads(row[0], object_pairs_hook=OrderedDict)
-            guesses = row0
-            #guesses = ast.literal_eval(row0)
-            guess = OrderedDict([])
-            for guess in guesses:
-                concepts.update(guess)
-
-        return concepts
-
-def getGroupOfConceptsByWorkingsetId_historical(workingset_id , workingset_history_id):
-    '''
-        get concept_informations of the specified working set - from a specific version
+        get concept_informations of the specified working set 
+        - from a specific version (or live version if workingset_history_id is None) 
 
     '''
     
-    with connection.cursor() as cursor:
-
-        cursor.execute("SELECT concept_informations FROM clinicalcode_historicalworkingset WHERE id=%s and history_id=%s ;" 
-                       , [workingset_id, workingset_history_id])
+    if workingset_history_id is None:
+        workingset_history_id = WorkingSet.objects.get(pk=workingset_id).history.latest('history_id').history_id
         
-        rows = cursor.fetchall()
-
-        concepts = OrderedDict([])
-
-        for row in rows:
-            if len(row[0]) == 0: continue
-            # to preserve the order of the attributes
-            row0 = json.loads(row[0], object_pairs_hook=OrderedDict)
-            guesses = row0
-            #guesses = ast.literal_eval(row0)
-            guess = OrderedDict([])
-            for guess in guesses:
-                concepts.update(guess)
-
-        return concepts
+    concepts = OrderedDict([])
+    concept_informations = json.loads(WorkingSet.history.get(id=workingset_id, history_id=workingset_history_id).concept_informations
+                                    , object_pairs_hook=OrderedDict)
     
-def get_concet_versions_in_workingset(workingset_id , workingset_history_id=None):
+    c = OrderedDict([])
+    for c in concept_informations:
+        concepts.update(c)
+
+    return concepts
+
+    
+def get_concept_versions_in_workingset(workingset_id , workingset_history_id=None):
     '''
-        get concept_version of the specified working set - from a specific version
+        get concept_version of the specified working set 
+        - from a specific version (or live if workingset_history_id is None)
     '''
     
     with connection.cursor() as cursor:
         if workingset_history_id is None:
             concept_version = WorkingSet.objects.get(id=workingset_id).concept_version
-#             cursor.execute("SELECT concept_version FROM clinicalcode_workingset WHERE id=%s ;" 
-#                            , [workingset_id])
         else:
-#             cursor.execute("SELECT concept_version FROM clinicalcode_historicalworkingset  WHERE id=%s and history_id=%s ;" 
-#                            , [workingset_id, workingset_history_id])
             concept_version = WorkingSet.history.get(id=workingset_id , history_id=workingset_history_id).concept_version
         
-        
-#         col_names = [col[0] for col in cursor.description]
-#         
-#         row = cursor.fetchone()
-# 
-#         if row is None:
-#             return None
-# 
-#         concept_version = []
-# 
-#         row0 = json.loads(json.dumps(row[0]))
-
-#         for k, v in row0.items():
-#             concept_version.append((int(k), v))
 
         return concept_version
-    
-  
     
     
 def getHistoryCodeListByComponentId(component_id, concept_history_date):
@@ -962,7 +912,7 @@ def getConceptsFromJSON(pk="", concepts_json=""):
     tempLst = []
     conceptIDs = []
     if pk.strip() != "":
-        rows = getGroupOfConceptsByWorkingsetId(pk)
+        rows = getGroupOfConceptsByWorkingsetId_historical(pk)
         conceptIDs = rows.keys()
     elif concepts_json.strip() != "":
         rows = ast.literal_eval(concepts_json)
@@ -2148,10 +2098,7 @@ def chk_deleted_children(user, set_class, set_id, returnErrors = True
         if WS_concepts_json.strip() != "":
             concepts =  getConceptsFromJSON(concepts_json = WS_concepts_json)
         else:
-            if set_history_id is None:
-                concepts = getGroupOfConceptsByWorkingsetId(set_id)
-            else:
-                concepts = getGroupOfConceptsByWorkingsetId_historical(set_id , set_history_id)
+            concepts = getGroupOfConceptsByWorkingsetId_historical(set_id , set_history_id)
 
         unique_concepts = set()
         for concept in concepts:
@@ -2166,10 +2113,7 @@ def chk_deleted_children(user, set_class, set_id, returnErrors = True
         if WS_concepts_json.strip() != "":
             concepts = [x['concept_id'] for x in json.loads(WS_concepts_json)] #getConceptsFromJSON(concepts_json=WS_concepts_json)
         else:
-            if set_history_id is None:
-                concepts = getGroupOfConceptsByPhenotypeId(set_id)
-            else:
-                concepts = getGroupOfConceptsByPhenotypeId_historical(set_id, set_history_id)
+            concepts = getGroupOfConceptsByPhenotypeId_historical(set_id, set_history_id)
 
         unique_concepts = set()
         for concept in concepts:
@@ -2904,8 +2848,9 @@ def get_visible_live_or_published_concept_versions(request
 
 
 def get_list_of_visible_concept_ids(data, return_id_or_history_id="both"):
-    ''' return list of visible concept ids 
-    - data is the output of get_visible_live_or_published_concept_versions(): list of dic
+    ''' return list of visible concept/(or phenotypes) ids/versions 
+    - data: list of dic is the output of get_visible_live_or_published_concept_versions()
+                                    or get_visible_live_or_published_phenotype_versions()
     '''
     
     if return_id_or_history_id.lower().strip() == "id":
@@ -2917,59 +2862,211 @@ def get_list_of_visible_concept_ids(data, return_id_or_history_id="both"):
 
 
 #=============================================================================
-def getGroupOfConceptsByPhenotypeId(phenotype_id):
+def get_visible_live_or_published_phenotype_versions(request
+                                                    , get_live_and_or_published_ver = 3 # 1= live only, 2= published only, 3= live+published
+                                                    , searchByName = ""
+                                                    , author = ""
+                                                    , phenotype_id_to_exclude = 0
+                                                    , exclude_deleted = True
+                                                    , filter_cond = ""
+                                                    , show_top_version_only = False
+                                                    ):
+    ''' Get all visible live or published phenotype versions 
+    - return all columns
     '''
-        get concept_informations of the specified phenotype
+    
+    #from psycopg2.extensions import AsIs, quote_ident
+    
+    my_params = []
+    
+    user_cond = ""
+    if not request.user.is_authenticated():
+        get_live_and_or_published_ver = 2
+    else:  
+        if request.user.is_superuser:
+            user_cond = ""
+        else:
+            user_groups = list(request.user.groups.all().values_list('id', flat=True))
+            group_access_cond = ""
+            if user_groups:
+                group_access_cond = " OR (group_id IN(" + ', '.join(map(str, user_groups)) + ") AND group_access IN(2,3)) "
+                
+            # since all params here are derived from user object, no need for parameterising here. 
+            user_cond = ''' AND (
+                                    owner_id=%s 
+                                    OR world_access IN(2,3)
+                                    %s
+                                )
+                    '''% (str(request.user.id), group_access_cond)
+    
+        #my_params.append(user_cond)
+    
+    where_clause = " WHERE 1=1 "
+    
+    if phenotype_id_to_exclude > 0 :
+        my_params.append(str(phenotype_id_to_exclude))
+        where_clause += " AND id NOT IN (%s) "
+    
+    if searchByName != '':
+        my_params.append("%"+str(searchByName)+"%")
+        where_clause += " AND upper(name) like upper(%s) "
+        
+    if author != '':
+        my_params.append("%"+str(author)+"%")
+        where_clause += " AND upper(author) like upper(%s) "
+        
+        
+    if exclude_deleted:
+        where_clause += " AND COALESCE(is_deleted, FALSE) IS NOT TRUE "
 
-    '''
+    if filter_cond.strip() !="":
+        where_clause += " AND " + filter_cond
+
+    # --- second where clause  --- 
+    if get_live_and_or_published_ver == 1:      # 1= live only
+        where_clause_2 = " AND  (rn=1 " + user_cond + " ) "
+    elif get_live_and_or_published_ver == 2:    # 2= published only
+        where_clause_2 = " AND (is_published=1) "
+    elif get_live_and_or_published_ver == 3:    # 3= live+published
+        where_clause_2 = " AND (is_published=1 OR  (rn=1 " + user_cond + " )) "
+    else:
+        raise INVALID_PARAMETER_VALUE
+        
+    # --- third where clause  --- 
+    where_clause_3 = ""
+    if show_top_version_only:
+        where_clause_3 = " WHERE rn_res = 1 "
+         
+           
     with connection.cursor() as cursor:
+        cursor.execute("""
+                        SELECT 
+                        *
+                        FROM
+                        (
+                            SELECT 
+                                *
+                                , ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn_res
+                                , (CASE WHEN is_published=1 THEN 'published' ELSE 'not published' END) published
+                                , (SELECT username FROM auth_user WHERE id=r.owner_id LIMIT 1) owner_name
+                                , (SELECT username FROM auth_user WHERE id=r.created_by_id LIMIT 1) created_by_username
+                                , (SELECT username FROM auth_user WHERE id=r.updated_by_id LIMIT 1) modified_by_username
+                                , (SELECT username FROM auth_user WHERE id=r.deleted_by_id LIMIT 1) deleted_by_username
+                                , (SELECT name FROM auth_group WHERE id=r.group_id LIMIT 1) group_name
+                                , (SELECT created FROM clinicalcode_publishedphenotype WHERE phenotype_id=r.id and phenotype_history_id=r.history_id  LIMIT 1) publish_date
+                            FROM
+                            (
+                            SELECT 
+                               ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn,
+                               (SELECT count(*) 
+                                   FROM clinicalcode_publishedphenotype 
+                                   WHERE phenotype_id=t.id and phenotype_history_id=t.history_id 
+                               ) is_published,
+                               id, created, modified, title, name, layout, phenotype_id, type, 
+                               validation, valid_event_data_range_start, valid_event_data_range_end, 
+                               sex, author, status, hdr_created_date, hdr_modified_date, description, 
+                               concept_informations, publication_doi, publication_link, secondary_publication_links, 
+                               source_reference, citation_requirements, is_deleted, deleted, 
+                               owner_access, group_access, world_access, history_id, history_date, 
+                               history_change_reason, history_type, created_by_id, deleted_by_id, 
+                               group_id, history_user_id, owner_id, updated_by_id, validation_performed
+                            FROM clinicalcode_historicalphenotype t
+                            ) r
+                            """ 
+                            + where_clause  
+                            + where_clause_2 +
+                            """
+                        ) rr
+                        """
+                        + where_clause_3 +
+                        """
+                        ORDER BY id, history_id desc
+                        """, my_params
+                        )
+        col_names = [col[0] for col in cursor.description]
 
-        cursor.execute("SELECT concept_informations FROM clinicalcode_phenotype WHERE id=%s ;", [phenotype_id])
+        return [
+            dict(zip(col_names, row))
+            for row in cursor.fetchall()
+        ]
 
-        rows = cursor.fetchall()
-
-        concepts = []#OrderedDict([])
-
-        for row in rows:
-            if len(row[0]) == 0: continue
-            # to preserve the order of the attributes
-            row0 = json.loads(row[0]) #, object_pairs_hook=OrderedDict)
-            guesses = row0
-            # guesses = ast.literal_eval(row0)
-            #guess = OrderedDict([])
-            for guess in guesses:
-                concepts.append((guess['concept_id'], guess['concept_version_id']))
-
-        return concepts
-
-
-def getGroupOfConceptsByPhenotypeId_historical(phenotype_id, phenotype_history_id):
-    '''
-        get concept_informations of the specified phenotype - from a specific version
-
-    '''
+def getHistoryPhenotype(phenotype_history_id):
+    ''' Get historic phenotype based on a phenotype history id '''
 
     with connection.cursor() as cursor:
+        cursor.execute('''SELECT hph.id,
+        hph.created,
+        hph.modified,
+        hph.title,
+        hph.name,
+        hph.layout,
+        hph.phenotype_id,
+        hph.type,
+        hph.validation,
+        hph.valid_event_data_range_start,
+        hph.valid_event_data_range_end,
+        hph.sex,
+        hph.author,
+        hph.status,
+        hph.hdr_created_date,
+        hph.hdr_modified_date,
+        hph.description,
+        hph.concept_informations,
+        hph.publication_doi,
+        hph.publication_link,
+        hph.secondary_publication_links,
+        hph.source_reference,
+        hph.citation_requirements,
+        hph.is_deleted,
+        hph.deleted,
+        hph.owner_access,
+        hph.group_access,
+        hph.world_access,
+        hph.history_id,
+        hph.history_date,
+        hph.history_change_reason,
+        hph.history_type,
+        hph.created_by_id,
+        hph.deleted_by_id,
+        hph.group_id,
+        hph.history_user_id,
+        hph.owner_id,
+        hph.updated_by_id,
+        hph.validation_performed,
+        ucb.username as created_by_username,
+        umb.username as modified_by_username,
+        uhu.username as history_user
+        
+        FROM clinicalcode_historicalphenotype AS hph
+        LEFT OUTER JOIN auth_user AS ucb on ucb.id = hph.created_by_id
+        LEFT OUTER JOIN auth_user AS umb on umb.id = hph.updated_by_id
+        LEFT OUTER JOIN auth_user AS uhu on uhu.id = hph.history_user_id
+        WHERE (hph.history_id = %s)''' , [phenotype_history_id])
 
-        cursor.execute(
-            "SELECT concept_informations FROM clinicalcode_historicalphenotype WHERE id=%s and history_id=%s ;"
-            , [phenotype_id, phenotype_history_id])
+        col_names = [col[0] for col in cursor.description]
+        row = cursor.fetchone()
+        row_dict = dict(izip(col_names, row))
 
-        rows = cursor.fetchall()
+        return row_dict
 
-        concepts = []#OrderedDict([])
 
-        for row in rows:
-            if len(row[0]) == 0: continue
-            # to preserve the order of the attributes
-            row0 = json.loads(row[0])# , object_pairs_hook=OrderedDict)
-            guesses = row0
-            # guesses = ast.literal_eval(row0)
-            #guess = OrderedDict([])
-            for guess in guesses:
-                concepts.append((guess['concept_id'], guess['concept_version_id']))
+def getGroupOfConceptsByPhenotypeId_historical(phenotype_id, phenotype_history_id=None):
+    '''
+        get concept_informations of the specified phenotype 
+        - from a specific version (or live version if phenotype_history_id is None) 
 
-        return concepts
+    '''
+    if phenotype_history_id is None:
+        phenotype_history_id = Phenotype.objects.get(pk=phenotype_id).history.latest('history_id').history_id
+        
+    concept_id_version = []
+    concept_informations = json.loads(Phenotype.history.get(id=phenotype_id, history_id=phenotype_history_id).concept_informations)
+    
+    for c in concept_informations:
+        concept_id_version.append((c['concept_id'], c['concept_version_id']))
+        
+    return concept_id_version
+
 
 
 
@@ -2997,7 +3094,7 @@ def getPhenotypeConceptHistoryIDs(concept_ids_list):
 
 
 def getHistoryTags_Phenotype(phenotype_id, phenotype_history_date):
-    ''' Get historic tags attached to a workingset that were effective from a point in time '''
+    ''' Get historic tags attached to a phenotype that were effective from a point in time '''
 
     my_params = {
         'phenotype_id': phenotype_id,
@@ -3039,7 +3136,7 @@ def getHistoryTags_Phenotype(phenotype_id, phenotype_history_date):
                 -- for this concept.
                 SELECT DISTINCT id
                 FROM   clinicalcode_historicalphenotypetagmap
-                WHERE  (workingset_id = %(phenotype_id)s AND 
+                WHERE  (phenotype_id = %(phenotype_id)s AND 
                         history_date <= %(phenotype_history_date)s::timestamptz AND
                         history_type = '-')
             ) AS b
@@ -3058,6 +3155,70 @@ def getHistoryTags_Phenotype(phenotype_id, phenotype_history_date):
             dict(zip(columns, row))
             for row in cursor.fetchall()
         ]
+
+def getHistoryDataSource_Phenotype(phenotype_id, phenotype_history_date):
+    ''' Get historic DataSources attached to a phenotype that were effective from a point in time '''
+
+    my_params = {
+        'phenotype_id': phenotype_id,
+        'phenotype_history_date': phenotype_history_date
+    }
+
+    with connection.cursor() as cursor:
+        cursor.execute('''
+        -- Select all the data from the DataSources historical record for all
+        -- the entries that are contained in the JOIN which produces a list of
+        -- the latest history IDs for all codes that don't have a
+        -- delete event by the specified date.
+        SELECT 
+            hc.id,
+            hc.created,
+            hc.modified,
+            hc.history_id,
+            hc.history_date,
+            hc.history_change_reason,
+            hc.history_type,
+            hc.phenotype_id,
+            hc.created_by_id,
+            hc.history_user_id,
+            hc.datasource_id
+        FROM clinicalcode_historicalphenotypedatasourcemap AS hc
+        INNER JOIN (
+            SELECT a.id, a.history_id
+            FROM (
+                -- Get the list of all the DataSources for this concept and
+                -- before the timestamp and return the latest history ID.
+                SELECT id, MAX(history_id) AS history_id
+                FROM   clinicalcode_historicalphenotypedatasourcemap
+                WHERE  (phenotype_id = %(phenotype_id)s AND 
+                        history_date <= %(phenotype_history_date)s::timestamptz)
+                GROUP BY id
+            ) AS a
+            LEFT JOIN (
+                -- Get the list of all the DataSources that have been deleted
+                -- for this concept.
+                SELECT DISTINCT id
+                FROM   clinicalcode_historicalphenotypedatasourcemap
+                WHERE  (phenotype_id = %(phenotype_id)s AND 
+                        history_date <= %(phenotype_history_date)s::timestamptz AND
+                        history_type = '-')
+            ) AS b
+            -- Join only those from the first group that are not in the deleted
+            -- group.
+            ON a.id = b.id
+            WHERE b.id IS NULL
+        ) AS d
+        ON hc.history_id = d.history_id
+        ORDER BY hc.id
+        ''' , my_params)
+
+        columns = [col[0] for col in cursor.description]
+
+        return [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+
 
 
 

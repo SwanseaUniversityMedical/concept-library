@@ -98,6 +98,12 @@ urlpatterns = [
         , WorkingSet.myWorkingset_detail
         , name='myWorkingsetdetail_version'),    
     
+    
+    # --- phenotypes   ----------------------------------------------
+    
+    url(r'^export_phenotype_codes_byVersionID/(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/$'
+        , Phenotype.export_phenotype_codes_byVersionID
+        , name='api_export_phenotype_codes_byVersionID'),
 ]
 
 
@@ -124,6 +130,7 @@ if not settings.CLL_READ_ONLY:
         url(r'^api_phenotype_create/$',
             Phenotype.api_phenotype_create,
             name='api_phenotype_create'),
+        
         url(r'^api_phenotype_update/$',
             Phenotype.api_phenotype_update,
             name='api_phenotype_update'),
@@ -154,6 +161,9 @@ if settings.ENABLE_PUBLISH:
             , Concept.published_concept
             , name='api_published_concept'),
     
+        url(r'^export_published_phenotype_codes/(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/$'
+            , Phenotype.export_published_phenotype_codes
+            , name='api_export_published_phenotype_codes'),
     ]
         
 

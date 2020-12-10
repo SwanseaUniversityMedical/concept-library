@@ -162,6 +162,7 @@
 		</div>
 	{% endif %}	
 		
+	<br/>
 
 		<table class="table table-striped small-table table-hover">
 			<tr>
@@ -308,7 +309,11 @@
 			{% endif %}						
 			
 			$('#show_only_validated_concepts').prop("checked", false);
-			$('#expand_published_versions').prop("checked", false);
+
+
+			{% if published_count %}
+				$('#expand_published_versions').prop("checked", false);
+			{% endif %}
 
 		});
 	</script>

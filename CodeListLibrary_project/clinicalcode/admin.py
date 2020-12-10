@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CodingSystem, CodingSystemFilter, Tag, Operator, Brand
+from .models import CodingSystem, CodingSystemFilter, Tag, Operator, Brand, DataSource
 from django.contrib.auth.models import User, Group
 
 # from forms import GroupAdminForm
@@ -51,7 +51,13 @@ class BrandAdmin(admin.ModelAdmin):
     search_fields = ['name', 'id', 'description']
     exclude = ['created_by', 'updated_by']
     
-
+@admin.register(DataSource)
+class DataSourceAdmin(admin.ModelAdmin):
+    list_display = ['name', 'uid', 'url',  'description']
+    list_filter = ['name', 'uid', 'description', 'created', 'modified']
+    search_fields = ['name', 'uid', 'description']
+    exclude = ['created_by', 'updated_by']
+    
 # ############################################    
 # # Unregister the original Group admin.
 # admin.site.unregister(Group)

@@ -39,19 +39,28 @@ if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_P
 # add URLConf to create, update, and delete Phenotypes
 urlpatterns += [
     url(r'^phenotype/(?P<pk>\d+)/detail/$',
-        Phenotype.PhenotypeDetail.as_view(),
+        Phenotype.PhenotypeDetail_combined,
         name='phenotype_detail'),
-    url(r'^phenotype/(?P<pk>\d+)/history/(?P<phenotype_history_id>\d+)/detail/$',
-        Phenotype.phenotype_history_detail,
-        name='phenotype_history_detail'),
 
-    url(r'^phenotype/(?P<pk>\d+)/export/concepts/$',
-        Phenotype.phenotype_to_csv,
-        name='phenotype_to_csv'),
+    url(r'^phenotype/(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/detail/$',
+        Phenotype.PhenotypeDetail_combined,
+        name='phenotype_history_detail'),
+    
+#     url(r'^phenotype/(?P<pk>\d+)/detail00/$',
+#         Phenotype.PhenotypeDetail.as_view(),
+#         name='phenotype_detail'),
+# #     url(r'^phenotype/(?P<pk>\d+)/history/(?P<phenotype_history_id>\d+)/detail/$',
+# #         Phenotype.phenotype_history_detail,
+# #         name='phenotype_history_detail'),
+
 
     url(r'^phenotype/(?P<pk>\d+)/history/(?P<phenotype_history_id>\d+)/export/concepts/$',
-        Phenotype.history_phenotype_to_csv,
-        name='history_phenotype_to_csv'),
+        Phenotype.history_phenotype_codes_to_csv,
+        name='history_phenotype_codes_to_csv'),
+    
+    url(r'^phenotype/(?P<pk>\d+)/uniquecodesbyversion/(?P<phenotype_history_id>\d+)/$',
+        Phenotype.phenotype_conceptcodesByVersion,
+        name='phenotype_conceptcodesByVersion'),
 ]
 
 if not settings.CLL_READ_ONLY:
@@ -386,8 +395,12 @@ if not settings.CLL_READ_ONLY:
 if settings.ENABLE_PUBLISH:
     urlpatterns += [
         url(r'^concepts/(?P<pk>\d+)/(?P<concept_history_id>\d+)/publish/$',
-        Concept.ConceptPublish.as_view(),
-        name='concept_publish'),
+            Concept.ConceptPublish.as_view(),
+            name='concept_publish'),
+        
+        url(r'^phenotype/(?P<pk>\d+)/(?P<phenotype_history_id>\d+)/publish/$',
+            Phenotype.PhenotypePublish.as_view(),
+            name='phenotype_publish'),
     ]
     
 

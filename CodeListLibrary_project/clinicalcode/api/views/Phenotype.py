@@ -12,6 +12,7 @@ from ...models.Phenotype import Phenotype
 from ...models.PhenotypeTagMap import PhenotypeTagMap
 from ...models.DataSource import DataSource
 from ...models.Brand import Brand
+from ...models.PublishedPhenotype import PublishedPhenotype
 
 from django.contrib.auth.models import User
 
@@ -23,7 +24,7 @@ from collections import OrderedDict
 from django.core.exceptions import PermissionDenied
 import json
 from clinicalcode.context_processors import clinicalcode
-from collections import OrderedDict as ordr
+from collections import OrderedDict as ordr 
 from ...utils import *
 from numpy.distutils.fcompiler import none
 
@@ -378,3 +379,125 @@ def api_phenotype_update(request):
               content_type="text/json-comment-filtered", 
               status=status.HTTP_201_CREATED
             )
+
+
+  
+#disable authentication for this function
+@api_view(['GET'])
+@authentication_classes([])
+@permission_classes([])
+def export_published_phenotype_codes(request, pk, phenotype_history_id):
+    '''
+        Return the unique set of codes and descriptions for the specified
+        phenotype (pk),
+        for a specific historical phenotype version (phenotype_history_id).
+    '''
+
+    if not Phenotype.objects.filter(id=pk).exists():            
+        raise PermissionDenied
+
+
+    if not Phenotype.history.filter(id=pk, history_id=phenotype_history_id).exists():
+        raise PermissionDenied
+
+ 
+    is_published = PublishedPhenotype.objects.filter(phenotype_id=pk, phenotype_history_id=phenotype_history_id).exists()
+    # check if the phenotype version is published
+    if not is_published: 
+        raise PermissionDenied 
+    
+    #----------------------------------------------------------------------
+    if request.method == 'GET':
+        return get_historical_phenotype_codes(request, pk, phenotype_history_id)
+    
+@api_view(['GET'])
+def export_phenotype_codes_byVersionID(request, pk, phenotype_history_id):
+    '''
+        Return the unique set of codes and descriptions for the specified
+        phenotype (pk),
+        for a specific historical phenotype version (phenotype_history_id).
+    '''
+    # Require that the user has access to the base phenotype.
+    # validate access for login site
+    validate_access_to_view(request.user, Phenotype, pk, set_history_id=phenotype_history_id)
+
+    #----------------------------------------------------------------------
+        
+    current_phenotype = Phenotype.objects.get(pk=pk)
+
+    user_can_export = (allowed_to_view_children(request.user, Phenotype, pk, set_history_id=phenotype_history_id)
+                        and
+                        chk_deleted_children(request.user, Phenotype, pk, returnErrors = False, set_history_id=phenotype_history_id)
+                        and 
+                        not current_phenotype.is_deleted 
+                      )
+
+        
+    if not user_can_export:
+        raise PermissionDenied    
+    #----------------------------------------------------------------------
+
+
+    if request.method == 'GET':
+        return get_historical_phenotype_codes(request, pk, phenotype_history_id)
+
+
+def get_historical_phenotype_codes(request, pk, phenotype_history_id):
+        
+#     phenotype = Phenotype.objects.filter(id=pk).exclude(is_deleted=True)
+#     if phenotype.count() == 0: raise Http404
+    
+    phenotype_ver = Phenotype.history.filter(id=pk, history_id=phenotype_history_id) #.exclude(is_deleted=True)
+    if phenotype_ver.count() == 0: raise Http404
+    
+    rows_to_return = []
+
+    titles = (['code', 'description', 'coding_system', 'concept_id', 'concept_version_id']
+            + ['concept_name']
+            + ['phenotype_id', 'phenotype_version_id', 'phenotype_name']
+            )
+
+    # Get the list of concepts in the phenotype data
+    concept_ids_historyIDs = getGroupOfConceptsByPhenotypeId_historical(pk, phenotype_history_id)
+    
+    current_ph_version = Phenotype.history.get(id=pk, history_id=phenotype_history_id)
+    
+    for concept in concept_ids_historyIDs:
+        concept_id = concept[0]
+        concept_version_id = concept[1]
+        concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version_id).coding_system.name
+        
+        rows_no = 0
+        codes = getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
+
+        for cc in codes:
+            rows_no += 1
+            rows_to_return.append(ordr(zip(titles,  
+                            [
+                                cc['code'],
+                                cc['description'].encode('ascii', 'ignore').decode('ascii'),
+                                concept_coding_system,
+                                concept_id,
+                                concept_version_id,
+                                Concept.history.get(id=concept_id, history_id=concept_version_id).name,
+                                current_ph_version.id, current_ph_version.history_id, current_ph_version.name
+                            ]
+                            )))
+
+        if rows_no == 0:
+            rows_to_return.append(ordr(zip(titles,  
+                            [
+                                '',
+                                '',
+                                concept_coding_system,
+                                concept_id,
+                                concept_version_id,
+                                Concept.history.get(id=concept_id, history_id=concept_version_id).name,
+                                current_ph_version.id, current_ph_version.history_id, current_ph_version.name
+                            ]
+                            )))
+
+
+    return Response(rows_to_return, status=status.HTTP_200_OK)
+
+    

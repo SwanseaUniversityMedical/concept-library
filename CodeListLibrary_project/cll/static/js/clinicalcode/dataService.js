@@ -48,6 +48,11 @@ var dataService = new function(){
 		});
 	};
 	
+	getPhenotypeUniqueCodesByVersion = function(phenotype, version, callback){		
+		$.getJSON('/phenotype/' + phenotype + '/uniquecodesbyversion/'+ version +'/', function(data){
+			callback(data);
+		});
+	};
 	
 	getConceptVersions = function(concept, version, indx, callback){		
 		$.getJSON('/concepts/' + concept + '/conceptversions/'+ version +'/'+ indx +'/', function(data){
@@ -86,6 +91,7 @@ var dataService = new function(){
 		searchConcepts: searchConcepts,
 		getConceptUniqueCodes: getConceptUniqueCodes,
 		getConceptVersions: getConceptVersions,
-		getConceptUniqueCodesByVersion: getConceptUniqueCodesByVersion
+		getConceptUniqueCodesByVersion: getConceptUniqueCodesByVersion,
+		getPhenotypeUniqueCodesByVersion: getPhenotypeUniqueCodesByVersion
 	}
 }
