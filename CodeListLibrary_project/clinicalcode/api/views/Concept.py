@@ -231,10 +231,12 @@ def export_concept_codes(request, pk):
         if concept.count() == 0: raise Http404
         
         rows_to_return = []
-        titles = ['code', 'description', 'concept_id', 'concept_version_id', 'concept_name']
+        titles = ['code', 'description', 'coding_system', 'concept_id', 'concept_version_id', 'concept_name']
         
         current_concept = Concept.objects.get(pk=pk)
 
+        concept_coding_system = Concept.objects.get(id=pk).coding_system.name
+        
         # Use a SQL function to extract this data.
         rows = getGroupOfCodesByConceptId(pk)
         for row in rows:
@@ -242,6 +244,7 @@ def export_concept_codes(request, pk):
                                 [
                                     row['code'],  
                                     row['description'].encode('ascii', 'ignore').decode('ascii'),
+                                    concept_coding_system,
                                     pk,
                                     current_concept.history.latest().history_id,
                                     current_concept.name,
@@ -327,12 +330,14 @@ def get_historical_concept_codes(request, pk, concept_history_id):
     if concept_ver.count() == 0: raise Http404
     
     rows_to_return = []
-    titles = ['code', 'description', 'concept_id', 'concept_version_id', 'concept_name']
+    titles = ['code', 'description', 'coding_system', 'concept_id', 'concept_version_id', 'concept_name']
     
 #     current_concept = Concept.objects.get(pk=pk)
 
     # Use db_util function to extract this data.
     history_concept = getHistoryConcept(concept_history_id)
+
+    concept_coding_system = Concept.history.get(id=pk, history_id=concept_history_id).coding_system.name
 
     rows = getGroupOfCodesByConceptId_HISTORICAL(pk, concept_history_id)
     for row in rows:
@@ -340,6 +345,7 @@ def get_historical_concept_codes(request, pk, concept_history_id):
                             [
                                 row['code'],  
                                 row['description'].encode('ascii', 'ignore').decode('ascii'),
+                                concept_coding_system,
                                 pk,
                                 concept_history_id,
                                 history_concept['name'],

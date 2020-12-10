@@ -34,7 +34,7 @@ from ..models.ConceptTagMap import ConceptTagMap
 from ..models.Tag import Tag
 from ..models.Brand import Brand
 from ..models.PublishedConcept import PublishedConcept
-
+from ..models.CodingSystem import CodingSystem
     
 from View import *
 from .. import db_utils
@@ -43,7 +43,7 @@ from ..permissions import *
 
 from django.utils.timezone import now
 from datetime import datetime
-from clinicalcode.models.CodingSystem import CodingSystem
+
 from django.views.defaults import permission_denied
 from django.http import HttpResponseNotFound, response
 from django.http.response import Http404
@@ -656,7 +656,7 @@ def concept_history_revert(request, pk, concept_history_id):
 
 def concept_list(request):
     '''
-        Display a list of concepts. This view can be searched and contains paging.
+        Display the list of concepts. This view can be searched and contains paging.
     '''
         
     search_tag_list = []
@@ -1387,13 +1387,16 @@ def concept_codes_to_csv(request, pk):
     response['Content-Disposition'] = ('attachment; filename="concept_%(id)s_group_codes_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
-    titles = ['code', 'description', 'concept_id', 'concept_version_id', 'concept_name']
+    titles = ['code', 'description', 'coding_system', 'concept_id', 'concept_version_id', 'concept_name']
     writer.writerow(titles)
+    
+    concept_coding_system = Concept.objects.get(id=pk).coding_system.name
     
     for row in rows:
         writer.writerow([
             row['code'], #.encode('ascii', 'ignore').decode('ascii'),
             row['description'].encode('ascii', 'ignore').decode('ascii'),
+            concept_coding_system,
             pk,
             current_concept.history.latest().history_id,
             current_concept.name,
@@ -1469,13 +1472,16 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
     response['Content-Disposition'] = ('attachment; filename="concept_%(id)s_ver_%(concept_history_id)s_group_codes_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
-    titles = ['code', 'description', 'concept_id', 'concept_version_id', 'concept_name']
+    titles = ['code', 'description', 'coding_system', 'concept_id', 'concept_version_id', 'concept_name']
     writer.writerow(titles)
-    
+
+    concept_coding_system = Concept.history.get(id=pk, history_id=concept_history_id).coding_system.name
+
     for row in rows:
         writer.writerow([
             row['code'], #.encode('ascii', 'ignore').decode('ascii'),
             row['description'].encode('ascii', 'ignore').decode('ascii'),
+            concept_coding_system, 
             pk,
             concept_history_id,
             history_concept['name'],
