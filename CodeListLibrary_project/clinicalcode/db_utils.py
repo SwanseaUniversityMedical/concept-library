@@ -33,6 +33,7 @@ import utils
 import json
 import ast
 from collections import OrderedDict
+from collections import OrderedDict as ordr 
 import numpy as np
 import pandas as pd
 # pandas needs to be installed by "pip2"
@@ -2964,7 +2965,7 @@ def get_visible_live_or_published_phenotype_versions(request
                                ) is_published,
                                id, created, modified, title, name, layout, phenotype_id, type, 
                                validation, valid_event_data_range_start, valid_event_data_range_end, 
-                               sex, author, status, hdr_created_date, hdr_modified_date, description, 
+                               sex, author, status, hdr_created_date, hdr_modified_date, description, implementation,
                                concept_informations, publication_doi, publication_link, secondary_publication_links, 
                                source_reference, citation_requirements, is_deleted, deleted, 
                                owner_access, group_access, world_access, history_id, history_date, 
@@ -3016,6 +3017,7 @@ def getHistoryPhenotype(phenotype_history_id):
         hph.publication_link,
         hph.secondary_publication_links,
         hph.source_reference,
+        hph.implementation,
         hph.citation_requirements,
         hph.is_deleted,
         hph.deleted,
@@ -3219,7 +3221,72 @@ def getHistoryDataSource_Phenotype(phenotype_id, phenotype_history_date):
             for row in cursor.fetchall()
         ]
 
+def get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
+    '''
+        Get the codes of the phenotype concepts
+        for a specific version
+        Parameters:     request    The request.
+                        pk         The phenotype id.
+                        phenotype_history_id  The version id
+        Returns:        list of Dict with the codes. 
+    '''
+            
+    # here, check live version
+    current_ph = Phenotype.objects.get(pk=pk)
 
+
+    if current_ph.is_deleted == True:
+        raise PermissionDenied
+    #--------------------------------------------------
+    
+    current_ph_version = Phenotype.history.get(id=pk, history_id=phenotype_history_id)
+
+    # Get the list of concepts in the phenotype data
+    concept_ids_historyIDs = getGroupOfConceptsByPhenotypeId_historical(pk, phenotype_history_id)
+
+    titles = (['code', 'description', 'coding_system', 'concept_id', 'concept_version_id']
+                    + ['concept_name']
+                    + ['phenotype_id', 'phenotype_version_id', 'phenotype_name']
+                    )
+
+    codes = []
+
+    for concept in concept_ids_historyIDs:
+        concept_id = concept[0]
+        concept_version_id = concept[1]
+        concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version_id).coding_system.name
+        
+        rows_no = 0
+        concept_codes = getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
+
+        for cc in concept_codes:
+            rows_no += 1
+            codes.append(ordr(zip(titles,  
+                            [
+                                cc['code'],
+                                cc['description'].encode('ascii', 'ignore').decode('ascii'),
+                                concept_coding_system,
+                                concept_id,
+                                concept_version_id,
+                                Concept.history.get(id=concept_id, history_id=concept_version_id).name,
+                                current_ph_version.id, current_ph_version.history_id, current_ph_version.name
+                            ]
+                        )))
+
+        if rows_no == 0:
+            codes.append(ordr(zip(titles,  
+                            [
+                                '',
+                                '',
+                                concept_coding_system,
+                                concept_id,
+                                concept_version_id,
+                                Concept.history.get(id=concept_id, history_id=concept_version_id).name,
+                                current_ph_version.id, current_ph_version.history_id, current_ph_version.name
+                            ]
+                        )))
+
+    return codes
 
 
 #---------------------------------------------------------------------------

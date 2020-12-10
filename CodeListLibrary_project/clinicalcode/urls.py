@@ -46,14 +46,6 @@ urlpatterns += [
         Phenotype.PhenotypeDetail_combined,
         name='phenotype_history_detail'),
     
-#     url(r'^phenotype/(?P<pk>\d+)/detail00/$',
-#         Phenotype.PhenotypeDetail.as_view(),
-#         name='phenotype_detail'),
-# #     url(r'^phenotype/(?P<pk>\d+)/history/(?P<phenotype_history_id>\d+)/detail/$',
-# #         Phenotype.phenotype_history_detail,
-# #         name='phenotype_history_detail'),
-
-
     url(r'^phenotype/(?P<pk>\d+)/history/(?P<phenotype_history_id>\d+)/export/concepts/$',
         Phenotype.history_phenotype_codes_to_csv,
         name='history_phenotype_codes_to_csv'),

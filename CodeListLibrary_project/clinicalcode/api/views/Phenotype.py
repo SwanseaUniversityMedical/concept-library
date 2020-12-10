@@ -408,7 +408,9 @@ def export_published_phenotype_codes(request, pk, phenotype_history_id):
     
     #----------------------------------------------------------------------
     if request.method == 'GET':
-        return get_historical_phenotype_codes(request, pk, phenotype_history_id)
+        rows_to_return = get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id)
+        return Response(rows_to_return, status=status.HTTP_200_OK)
+
     
 @api_view(['GET'])
 def export_phenotype_codes_byVersionID(request, pk, phenotype_history_id):
@@ -439,65 +441,8 @@ def export_phenotype_codes_byVersionID(request, pk, phenotype_history_id):
 
 
     if request.method == 'GET':
-        return get_historical_phenotype_codes(request, pk, phenotype_history_id)
+        rows_to_return = get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id)
+        return Response(rows_to_return, status=status.HTTP_200_OK)
 
-
-def get_historical_phenotype_codes(request, pk, phenotype_history_id):
-        
-#     phenotype = Phenotype.objects.filter(id=pk).exclude(is_deleted=True)
-#     if phenotype.count() == 0: raise Http404
-    
-    phenotype_ver = Phenotype.history.filter(id=pk, history_id=phenotype_history_id) #.exclude(is_deleted=True)
-    if phenotype_ver.count() == 0: raise Http404
-    
-    rows_to_return = []
-
-    titles = (['code', 'description', 'coding_system', 'concept_id', 'concept_version_id']
-            + ['concept_name']
-            + ['phenotype_id', 'phenotype_version_id', 'phenotype_name']
-            )
-
-    # Get the list of concepts in the phenotype data
-    concept_ids_historyIDs = getGroupOfConceptsByPhenotypeId_historical(pk, phenotype_history_id)
-    
-    current_ph_version = Phenotype.history.get(id=pk, history_id=phenotype_history_id)
-    
-    for concept in concept_ids_historyIDs:
-        concept_id = concept[0]
-        concept_version_id = concept[1]
-        concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version_id).coding_system.name
-        
-        rows_no = 0
-        codes = getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
-
-        for cc in codes:
-            rows_no += 1
-            rows_to_return.append(ordr(zip(titles,  
-                            [
-                                cc['code'],
-                                cc['description'].encode('ascii', 'ignore').decode('ascii'),
-                                concept_coding_system,
-                                concept_id,
-                                concept_version_id,
-                                Concept.history.get(id=concept_id, history_id=concept_version_id).name,
-                                current_ph_version.id, current_ph_version.history_id, current_ph_version.name
-                            ]
-                            )))
-
-        if rows_no == 0:
-            rows_to_return.append(ordr(zip(titles,  
-                            [
-                                '',
-                                '',
-                                concept_coding_system,
-                                concept_id,
-                                concept_version_id,
-                                Concept.history.get(id=concept_id, history_id=concept_version_id).name,
-                                current_ph_version.id, current_ph_version.history_id, current_ph_version.name
-                            ]
-                            )))
-
-
-    return Response(rows_to_return, status=status.HTTP_200_OK)
 
     

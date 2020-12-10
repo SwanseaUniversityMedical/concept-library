@@ -372,16 +372,19 @@
 					
 					<hr />
 
+         <div >
+             {{ phenotype.implementation|markdownify }}
+         </div>
                     <h3><i aria-hidden="true"></i> Implementation</h3>
                     <div class="markdown-holder">
-                        {{ phenotype.implementation|safe }}
+                        {{ phenotype.implementation|markdownify }}
                     </div>
 
 					<hr />
 
                     <h3><i aria-hidden="true"></i> Publications</h3>
                     <div class="markdown-holder">
-                        {{ phenotype.secondary_publication_links|safe }}
+                        {{ phenotype.secondary_publication_links|markdownify }}
                     </div>
                     					
 					<hr/>

@@ -494,10 +494,15 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         # published
         component_tab_active = "" 
         codelist_tab_active = "active"
-        codelist = get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id)
+        codelist = db_utils.get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id)
 
         codelist_loaded = 1
-         
+    #rrmd
+    if phenotype['implementation'] is None:
+        phenotype['implementation'] = ''
+    if phenotype['secondary_publication_links'] is None:
+        phenotype['secondary_publication_links'] = ''
+    
     context = {'phenotype': phenotype, 
                'concept_informations': json.dumps(phenotype['concept_informations']),
                'tags': tags,
@@ -587,7 +592,7 @@ def phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
         raise PermissionDenied
     #--------------------------------------------------
     
-    codes = get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id)
+    codes = db_utils.get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id)
        
     data = dict()
     data['form_is_valid'] = True
@@ -604,114 +609,6 @@ def phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
     return JsonResponse(data)    
     
 
-def get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
-    '''
-        Get the codes of the phenotype concepts
-        for a specific version
-        Parameters:     request    The request.
-                        pk         The phenotype id.
-                        phenotype_history_id  The version id
-        Returns:        list of Dict with the codes. 
-    '''
-            
-    # here, check live version
-    current_ph = Phenotype.objects.get(pk=pk)
-
-
-    if current_ph.is_deleted == True:
-        raise PermissionDenied
-    #--------------------------------------------------
-    
-    current_ph_version = Phenotype.history.get(id=pk, history_id=phenotype_history_id)
-
-    # Get the list of concepts in the phenotype data
-    concept_ids_historyIDs = db_utils.getGroupOfConceptsByPhenotypeId_historical(pk, phenotype_history_id)
-
-    titles = (['code', 'description', 'coding_system', 'concept_id', 'concept_version_id']
-                    + ['concept_name']
-                    + ['phenotype_id', 'phenotype_version_id', 'phenotype_name']
-                    )
-
-    codes = []
-
-    for concept in concept_ids_historyIDs:
-        concept_id = concept[0]
-        concept_version_id = concept[1]
-        concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version_id).coding_system.name
-        
-        rows_no = 0
-        concept_codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
-
-        for cc in concept_codes:
-            rows_no += 1
-            codes.append(ordr(zip(titles,  
-                            [
-                                cc['code'],
-                                cc['description'].encode('ascii', 'ignore').decode('ascii'),
-                                concept_coding_system,
-                                concept_id,
-                                concept_version_id,
-                                Concept.history.get(id=concept_id, history_id=concept_version_id).name,
-                                current_ph_version.id, current_ph_version.history_id, current_ph_version.name
-                            ]
-                        )))
-
-        if rows_no == 0:
-            codes.append(ordr(zip(titles,  
-                            [
-                                '',
-                                '',
-                                concept_coding_system,
-                                concept_id,
-                                concept_version_id,
-                                Concept.history.get(id=concept_id, history_id=concept_version_id).name,
-                                current_ph_version.id, current_ph_version.history_id, current_ph_version.name
-                            ]
-                        )))
-
-    return codes
-
- 
-class PhenotypeDetail(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin, DetailView):
-    """
-    Display a detailed view of a phenotype.
-    """
-    model = Phenotype
-    template_name = 'clinicalcode/phenotype/detail.html'
-
-    def has_access_to_view_Phenotype(self, user, Phenotype_id):
-        phenotype = Phenotype.objects.get(pk=Phenotype_id)
-        if phenotype.is_deleted is True:
-            messages.info(self.request, "Phenotype has been deleted.")
-        # permitted = allowed_to_view_children(user, Phenotype, self.kwargs['pk'])
-        return allowed_to_view(user, phenotype, self.kwargs['pk'])
-
-    def get_context_data(self, **kwargs):
-        context = DetailView.get_context_data(self, **kwargs)
-        phenotype = Phenotype.objects.get(pk=self.kwargs['pk'])
-        tags = PhenotypeTagMap.objects.filter(phenotype=self.get_object())
-        context['tags'] = tags
-        concept_list = [x['concept_id'] for x in json.loads(self.get_object().concept_informations)] #db_utils.getConceptsFromJSON(concepts_json=self.get_object().concept_informations)
-        concepts = Concept.objects.filter(id__in=concept_list).values('id', 'name', 'group')
-        #        concepts = Concept.history.all().filter(id__in=concept_list, history_id__in=Phenotype['concept_version'].values()).values('id','name', 'group')
-        context['concepts_id_name'] = json.dumps(list(concepts))
-        context['user_can_edit'] = (
-            not phenotype.is_deleted and allowed_to_edit(self.request.user, Phenotype, self.get_object().id))
-        context['history'] = self.get_object().history.all()
-
-        children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(self.request.user,
-                                                                                                      Phenotype,
-                                                                                                      self.kwargs['pk'])
-        are_concepts_latest_version, version_alerts = checkConceptVersionIsTheLatest(self.kwargs['pk'])
-
-        context['user_can_export'] = (children_permitted_and_not_deleted and not phenotype.is_deleted)
-        context['is_permitted_to_all'] = children_permitted_and_not_deleted
-        context['error_dic'] = error_dic
-        context['are_concepts_latest_version'] = are_concepts_latest_version
-        context['version_alerts'] = version_alerts
-        context['allowed_to_create'] = not settings.CLL_READ_ONLY
-        context['conceptBrands'] = json.dumps(db_utils.getConceptBrands(self.request, concept_list))
-        return context    
      
 @login_required
 def phenotype_create(request):
@@ -770,62 +667,6 @@ class PhenotypeDelete(LoginRequiredMixin, HasAccessToEditPhenotypeCheckMixin, Te
     """
     # ToDo
     pass
-
-
-
-
-@login_required
-def phenotype_history_detail(request, pk, phenotype_history_id):
-    '''
-        Display the detail of a phenotype at a point in time.
-    '''
-    validate_access_to_view(request.user, Phenotype, pk)
-    phenotype = db_utils.getHistoryWorkingset(phenotype_history_id)
-    # Get the owner and group data from the IDs stored in the DB and add to the
-    # page data.
-    owner_id = phenotype['owner_id']
-    query_set = User.objects.filter(id__exact=owner_id)
-    owner = query_set[0] if query_set.count() > 0 else None
-    phenotype['owner'] = owner
-    group_id = phenotype['group_id']
-    query_set = Group.objects.filter(id__exact=group_id)
-    group = query_set[0] if query_set.count() > 0 else None
-    phenotype['group'] = group
-
-    phenotype_history_date = phenotype['history_date']
-
-    tags = Tag.objects.filter(pk=-1)
-    tags_comp = db_utils.getHistoryTags_Phenotype(pk, phenotype_history_date)
-    if tags_comp:
-        tag_list = [i['tag_id'] for i in tags_comp if 'tag_id' in i]
-        tags = Tag.objects.filter(pk__in=tag_list)
-
-    concept_list = db_utils.getConceptsFromJSON(concepts_json=phenotype['concept_informations'])
-    # concepts = Concept.objects.filter(id__in=concept_list).values('id','name', 'group')
-    concepts = Concept.history.all().filter(id__in=concept_list,
-                                            history_id__in=phenotype['concept_version'].values()).values('id', 'name',
-                                                                                                          'group')
-    concepts_id_name = json.dumps(list(concepts))
-
-    phenotype_live = Phenotype.objects.get(pk=pk)
-
-    children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(request.user,
-                                                                                                  Phenotype, pk,
-                                                                                                  set_history_id=phenotype_history_id)
-    user_can_export = (children_permitted_and_not_deleted and not phenotype_live.is_deleted)
-
-    conceptBrands = json.dumps(db_utils.getConceptBrands(request, concept_list))
-
-    return render(request, 'clinicalcode/phenotype/history/detail.html',
-                  {'phenotype': phenotype,
-                   'tags': tags,
-                   'concepts_id_name': concepts_id_name,
-                   'concepts_id_versionID': json.dumps(phenotype['concept_version']),
-                   'user_can_edit': (not phenotype_live.is_deleted and allowed_to_edit(request.user, Phenotype, pk)),
-                   'allowed_to_create': allowed_to_create(),
-                   'user_can_export': user_can_export,
-                   'conceptBrands': conceptBrands
-                   })
 
 
 
