@@ -172,6 +172,7 @@ def allowed_to_view(user, set_class, set_id, set_history_id = None):
         viewing is permitted to a GROUP that contains the user
     '''
     from .models.Concept import Concept
+    from .models.Phenotype import Phenotype
     
     # check if the entity/version exists
     if not set_class.objects.filter(id=set_id).exists(): 
@@ -186,7 +187,7 @@ def allowed_to_view(user, set_class, set_id, set_history_id = None):
     if user.is_superuser: return True
     
     # if a specific version is published
-    if set_history_id is not None and set_class==Concept:
+    if set_history_id is not None and set_class in(Concept, Phenotype):
         if checkIfPublished(set_class, set_id, set_history_id): return True
     
     # Owner is always allowed to view
@@ -331,25 +332,6 @@ class HasAccessToCreateCheckMixin(object):
 
         return super(HasAccessToCreateCheckMixin, self).dispatch(request, *args, **kwargs)
     
-
-class HasAccessToPublishCheckMixin(object):
-    '''
-        mixin to check if user has publish access for concepts
-        this mixin is used within class based views and can be overridden
-    '''
-    
-    def has_access_to_publish(self, user, pk):
-        from .models import Concept
-        return allowed_to_permit(user, Concept, pk)
-
-    def access_to_publish_failed(self, request, *args, **kwargs):
-        raise PermissionDenied
-
-    def dispatch(self, request, *args, **kwargs):
-        if not self.has_access_to_publish(request.user, self.kwargs['pk']):
-            return self.access_to_publish_failed(request, *args, **kwargs)
-
-        return super(HasAccessToPublishCheckMixin, self).dispatch(request, *args, **kwargs)
 
 
 class HasAccessToViewConceptCheckMixin(object):

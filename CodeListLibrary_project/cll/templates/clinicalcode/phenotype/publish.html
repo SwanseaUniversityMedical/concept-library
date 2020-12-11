@@ -1,4 +1,4 @@
-<form method="post" action="{% url 'concept_publish' pk=pk concept_history_id=concept_history_id %}"
+<form method="post" action="{% url 'phenotype_publish' pk=pk phenotype_history_id=phenotype_history_id %}"
   id="publish-form"  class="form-horizontal" novalidate enctype="multipart/form-data">
     {% csrf_token %}
 
@@ -6,94 +6,92 @@
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
-        <h4 class="modal-title"><i class="fa fa-paper-plane" aria-hidden="true"></i> Publish concept "<b>{{ name }}</b>"?</h4>
+        <h4 class="modal-title"><i class="fa fa-paper-plane" aria-hidden="true"></i> Publish phenotype "<b>{{ name }}</b>"?</h4>
     </div>
     <div class="modal-body">  
     {% if is_published %}
-	    <div class="alert alert-success" role="alert">
-		  This version is already published.
-		</div>
-	{% else %}
+        <div class="alert alert-success" role="alert">
+          This version is already published.
+        </div>
+    {% else %}
 
-    	{% if concept_is_deleted %}
-    		<div class="col-md-12">    	 	
-	    		<span class="glyphicon glyphicon-remove" style="color:red"></span>
-	    		<span class="text-danger">&nbsp;This concept is deleted.</span>
-    		</div>    	
-    	{% endif %}
+        {% if phenotype_is_deleted %}
+            <div class="col-md-12">         
+                <span class="glyphicon glyphicon-remove" style="color:red"></span>
+                <span class="text-danger">&nbsp;This phenotype is deleted.</span>
+            </div>      
+        {% endif %}
 
-    	{% if not is_owner %}
-	        <div class="col-md-12">	    	 	
-	    		<span class="glyphicon glyphicon-remove" style="color:red"></span>
-	    		<span class="text-danger">&nbsp;You must be the owner to publish.</span>
-	    	</div>
-    	{% endif %}
+        {% if not is_owner %}
+            <div class="col-md-12">             
+                <span class="glyphicon glyphicon-remove" style="color:red"></span>
+                <span class="text-danger">&nbsp;You must be the owner to publish.</span>
+            </div>
+        {% endif %}
 
-    	{% if not concept_has_codes %}
-	    	<div class="col-md-12">    	 	
-	    		<span class="glyphicon glyphicon-remove" style="color:red"></span>
-	    		<span class="text-danger">&nbsp;The concept does not contain exportable codes.</span>
-	    	</div>    	
-    	{% endif %}
+        {% if not phenotype_has_codes %}
+            <div class="col-md-12">         
+                <span class="glyphicon glyphicon-remove" style="color:red"></span>
+                <span class="text-danger">&nbsp;The phenotype does not contain exportable codes.</span>
+            </div>      
+        {% else %}
+            {% if not isAllowedtoViewChildren %}
+                <div class="col-md-12">                 
+                    <span class="glyphicon glyphicon-remove" style="color:red"></span>
+                    <span class="text-danger">&nbsp;You must have view access to all concepts.</span>
+                </div>  
+            {% endif %} 
+            
+            {% if not AllnotDeleted %}
+                <div class="col-md-12">             
+                    <span class="glyphicon glyphicon-remove" style="color:red"></span>
+                    <span class="text-danger">&nbsp;All concepts must not be deleted.</span>
+                </div>      
+            {% endif %}
 
-    	{% if has_child_concepts %}
-    		{% if not isAllowedtoViewChildren %}
-			   	<div class="col-md-12">			   	 	
-		    		<span class="glyphicon glyphicon-remove" style="color:red"></span>
-		    		<span class="text-danger">&nbsp;You must have view access to all components of type=concept.</span>
-			   	</div>  
-		   	{% endif %} 
-			
-			{% if not AllnotDeleted %}
-			   	<div class="col-md-12">		   	 	
-		    		<span class="glyphicon glyphicon-remove" style="color:red"></span>
-		    		<span class="text-danger">&nbsp;All components of type=concept must refer to concepts which are not deleted (and their dependencies).</span>
-			   	</div>    	
-			{% endif %}
+            {% if not AllarePublished %}
+                <div class="col-md-12">             
+                    <span class="glyphicon glyphicon-remove" style="color:red"></span>
+                    <span class="text-danger">&nbsp;All concepts must be published.</span>
+                </div>                      
+            {% endif %}
+            
+        {% endif %}
 
-			{% if not AllarePublished %}
-			   	<div class="col-md-12">		   	 	
-		    		<span class="glyphicon glyphicon-remove" style="color:red"></span>
-		    		<span class="text-danger">&nbsp;All components of type=concept must refer to concepts which are published (and their dependencies).</span>
-			   	</div>    	    	    	
-		   	{% endif %}
-		   	
-	 	{% endif %}
+        {% if errors %}
+            <br><br>
+            <div class="bs-example">
+                <strong><span class="text-danger">&nbsp;Errors:</span></strong>
+                <br>
+                <ul>
+                    {% for key, error in errors.items %}
+                        <li><span class="text-danger">&nbsp;{{ error|safe }}</span></li> 
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
 
-		{% if errors %}
-			<br><br>
-			<div class="bs-example">
-		        <strong><span class="text-danger">&nbsp;Errors:</span></strong>
-				<br>
-		        <ul>
-		            {% for key, error in errors.items %}
-		            	<li><span class="text-danger">&nbsp;{{ error|safe }}</span></li> 
-		            {% endfor %}
-		        </ul>
-			</div>
-		{% endif %}
-
-	 	
-	 	
- 	{% endif %}
- 	
+        
+        
+    {% endif %}
+    
         <div class="row">
             <div class="col-md-12">
                 <p>
-                	<br>
+                    <br>
                     {% if is_published or not allowed_to_publish%}
-                    	{% if is_published %}
-	                    	<br>
-<!-- 		                    This version "{{ name }}" is already published. -->
-	                    {% else %}
-	                    	<span class="text-danger">&nbsp; Cannot publish !! </span>
-		                    <br>
-	                    {% endif %}
+                        {% if is_published %}
+                            <br>
+<!--                            This version "{{ name }}" is already published. -->
+                        {% else %}
+                            <span class="text-danger">&nbsp; Cannot publish !! </span>
+                            <br>
+                        {% endif %}
                     
                     {% else %}
-	                    Are you sure you want to publish this version of "{{ name }}"?
-	                    <br>
-	                    Published concept cannot be undone.
+                        Are you sure you want to publish this version of "{{ name }}"?
+                        <br>
+                        Published phenotype cannot be undone.
                     {% endif %}
                 </p>
             </div>
@@ -101,14 +99,14 @@
     </div>
     
     <div class="modal-footer">
-    	{% if is_published %}
-    		<span class="glyphicon glyphicon-ok" style="color:green"></span>
-		    <span class="text-success">&nbsp;Published&nbsp;</span>
-    	{% else %}
+        {% if is_published %}
+            <span class="glyphicon glyphicon-ok" style="color:green"></span>
+            <span class="text-success">&nbsp;Published&nbsp;</span>
+        {% else %}
             <button {% if not allowed_to_publish %} disabled="true" {% endif %} id="publishButton"
-	            type="submit" class="btn btn-primary">
-	            <i class="fa fa-paper-plane" aria-hidden="true"></i> Publish
-	        </button>
+                type="submit" class="btn btn-primary">
+                <i class="fa fa-paper-plane" aria-hidden="true"></i> Publish
+            </button>
         {% endif %}
 
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -118,78 +116,79 @@
 
 <script >
 $(function(){
-	// unattach the submit event 
-	$('#modal-section').off('submit', '#publish-form');
-	
-	$('#modal-section').on('submit', '#publish-form', function(e){
-		
-		e.preventDefault();
-		
-		var form = $(this);
-		//=============================================
-	    // post form 
-		$.ajax({
-			url:  form.attr("action"),
-			data: form.serialize(),
-			type: form.attr("method"),
-			dataType: 'json',
-			beforeSend: function(xhr, opts){
-				//alert('doFormSubmit= b');
-				$(".loader").show();
-			},
-			success: function(data){
-				if(data.form_is_valid){
-// 					$('#component-table tbody').html(data.html_component_list);
-					$('#history-table').html(data.html_history_list);
-					$('#latest-history-ID-Div').html(data.latest_history_ID);
-					$('#latest_history_id').val(data.latest_history_ID);
-// 					$('#concept-component-form-container').html(data.add_menu_items);
-					form.find('input[name=latest_history_id_shown]').val(data.latest_history_ID);
-					
-					// href needs to be updated for publish concept to show latest status
-					if($('#publish2').length){
-// 						var pub_href = $('#publish2').attr("href").split("/");
-// 						pub_href[3] = data.latest_history_ID;
-// 						pub_href = pub_href.join("/")
-// 						$('#publish2').attr("href", pub_href);
-	
-						$('#publish2').prop("disabled", true );
-						$('#publish2').attr("title", "This version is already published" );
-						$('#publish2').addClass("btn-success");
-						$('#publish2').removeClass("btn-primary");
-						$('#publish2').html("<i class='fa fa-paper-plane' aria-hidden='true'></i>&nbsp;Published&nbsp;<span class='glyphicon glyphicon-ok' style='color:green'></span>");
-						
-					}
-					
-					//alert(data.message);
-					$('#success-message').show();
-					$('#success-message').html(data.message);
-					
-					$('#modal-section').modal('hide');
-					$('#modal-section .modal-content').html('');
+    // unattach the submit event 
+    $('#modal-section').off('submit', '#publish-form');
+    
+    $('#modal-section').on('submit', '#publish-form', function(e){
+        
+        e.preventDefault();
+        
+        var form = $(this);
+        //=============================================
+        // post form 
+        $.ajax({
+            url:  form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            beforeSend: function(xhr, opts){
+                //alert('doFormSubmit= b');
+                $(".loader").show();
+            },
+            success: function(data){
+                if(data.form_is_valid){
+                    $('#history-table').html(data.html_history_list);
+                    $('#latest-history-ID-Div').html(data.latest_history_ID);
+                    $('#latest_history_id').val(data.latest_history_ID);
+                    form.find('input[name=latest_history_id_shown]').val(data.latest_history_ID);
+                    
+                    // href needs to be updated for publish phenotype to show latest status
+                    if($('#publish2').length){
+//                      var pub_href = $('#publish2').attr("href").split("/");
+//                      pub_href[3] = data.latest_history_ID;
+//                      pub_href = pub_href.join("/")
+//                      $('#publish2').attr("href", pub_href);
+    
+                       // $('#publish2').prop("disabled", true );
+                        var element = document.getElementById('publish2');
+                        element.setAttribute('disabled', 'disabled');
+                        
+                        $('#publish2').attr("title", "This version is already published" );
+                        $('#publish2').addClass("btn-success");
+                        $('#publish2').removeClass("btn-primary");
+                        $('#publish2').html("<i class='fa fa-paper-plane' aria-hidden='true'></i>&nbsp;Published&nbsp;<span class='glyphicon glyphicon-ok' style='color:green'></span>");
+                        
+                    }
+                    
+                    //alert(data.message);
+                    $('#success-message').show();
+                    $('#success-message').html(data.message);
+                    
+                    $('#modal-section').modal('hide');
+                    $('#modal-section .modal-content').html('');
 
-				}
-				else{
-					$('#error-message').show();
-					$('#error-message').html(data.message);
-					
-					$('#modal-section').modal('hide');
-					$('#modal-section .modal-content').html('');
-				}
-			},
-			complete: function(){
-				//alert('doFormSubmit= cc');
-				$(".loader").hide();
-			}
-		});
-			
-		//=============================================
-		   
-	
-		return false;
-	});
+                }
+                else{
+                    $('#error-message').show();
+                    $('#error-message').html(data.message);
+                    
+                    $('#modal-section').modal('hide');
+                    $('#modal-section .modal-content').html('');
+                }
+            },
+            complete: function(){
+                //alert('doFormSubmit= cc');
+                $(".loader").hide();
+            }
+        });
+            
+        //=============================================
+           
+    
+        return false;
+    });
 
-});	
-	
+}); 
+    
 
 </script>

@@ -153,7 +153,10 @@ $(function(){
 // 						pub_href = pub_href.join("/")
 // 						$('#publish2').attr("href", pub_href);
 	
-						$('#publish2').prop("disabled", true );
+						//$('#publish2').prop("disabled", true );
+						var element = document.getElementById('publish2');
+                        element.setAttribute('disabled', 'disabled');
+                        
 						$('#publish2').attr("title", "This version is already published" );
 						$('#publish2').addClass("btn-success");
 						$('#publish2').removeClass("btn-primary");

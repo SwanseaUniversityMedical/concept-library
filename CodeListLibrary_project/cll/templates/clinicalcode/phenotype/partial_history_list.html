@@ -8,7 +8,7 @@
 		<tr>
 			<th>Version<br> ID</th>
 			<th>Name</th>
-			<th>Description</th>
+<!-- 			<th>Description</th> -->
 			{% if user.is_authenticated %}
 				<th>Date</th>
 				<th>Change reason</th>
@@ -28,7 +28,7 @@
 		<tr>
 			<td>{{ history.history_id }}</td>
 			<td>{{ history.name }}</td>
-			<td title="{{ history.description }}">{{ history.description|truncatechars:50 }}</td>
+<!-- 			<td title="{{ history.description }}">{{ history.description|truncatechars:50 }}</td> -->
 			{% if user.is_authenticated %}
 				<td>{{ history.history_date}}</td>
 				<td>{{ history.history_change_reason }}</td>

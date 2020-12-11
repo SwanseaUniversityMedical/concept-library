@@ -389,7 +389,7 @@
                     					
 					<hr/>
 					
-					<h3><i aria-hidden="true"></i> Concepts</h3>
+<!-- 					<h3><i aria-hidden="true"></i> Concepts</h3> -->
 					<input type="hidden" id="concepts_json" value="{{ phenotype.concept_informations }}">
 					<input type="hidden" id="concepts_id_name" value="{{ concepts_id_name }}">
 <!--  					<input type="hidden" id="concepts_id_versionID"  value="{{ concepts_id_versionID }}">  -->
@@ -410,7 +410,7 @@
 				</ul>
 				<div class="tab-content">
 					<div id="component-tab-div" class="tab-pane {{ component_tab_active }}" >
-					<br>
+						<br>
 						<table class="table table-striped small-table table-hover" id="concept_table"  idx="component-table">
 							<thead>
 								<tr>
@@ -530,15 +530,13 @@
 			<p>
 				<strong>Export</strong> - export all codes into a csv file/JSON/XML for the current phenotype version.
 				{% if user.is_authenticated and not CLL_READ_ONLY %}
-					This will also take into account any code lists within related phenotypes. 
-					The exported codes will only contain inclusion code lists and exclude any code lists that have the logical type marked as exclusion(remove-codes).
-					The button will be disabled unless you have permission to view <b>all</b> of the component phenotypes.
+					The button will be disabled unless you have permission to view <b>all</b> of the concepts used.
 				{% endif %}
 			</p>
 			
 			{% if user.is_authenticated and not CLL_READ_ONLY %}
 				<p>
-					<strong>Fork</strong> - This will take a copy of the historic phenotype version and create a new phenotype along with the historic phenotype components.
+					<strong>Fork</strong> - This will take a copy of the historic phenotype version and create a new phenotype.
 				</p>
 				<p>
 					<strong>Revert</strong> - This will restore the phenotype back to this version.
@@ -550,9 +548,7 @@
 							<li>The phenotype is not deleted.</li>
 							<li>You must be the owner.</li>
 							<li>The phenotype contains exportable codes.</li>
-							<li>You hav view access to all components of type=phenotype.</li>
-							<li>All components of type=phenotype refer to phenotypes which are not deleted (and their dependencies).</li>
-							<li>All components of type=phenotype refer to phenotypes which are published (and their dependencies).</li>
+							<li>All concepts are published.</li>
 						</ul>
 				</p>
 			{% endif %}

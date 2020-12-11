@@ -983,8 +983,11 @@ def myConcepts_old(request):
                                    
     return Response(rows_to_return, status=status.HTTP_200_OK)                                   
 
-# search my concepts 
-@api_view(['GET']) 
+# search my concepts / published ones
+#disable authentication for this function
+@api_view(['GET'])
+@authentication_classes([])
+@permission_classes([]) 
 def myConcepts(request):
     '''
         Get the API output for the list of my concepts.
@@ -999,7 +1002,8 @@ def myConcepts(request):
     concept_brand = request.query_params.get('brand', "")
     author = request.query_params.get('author', '')
     do_not_show_versions = request.query_params.get('do_not_show_versions', "0")
-    expand_published_versions = request.query_params.get('expand_published_versions', "0")
+    expand_published_versions = request.query_params.get('expand_published_versions', "1")
+    show_live_and_or_published_ver = request.query_params.get('show_live_and_or_published_ver', "3")      # 1= live only, 2= published only, 3= live+published
         
     search_tag_list = []
     tags = []
@@ -1007,6 +1011,7 @@ def myConcepts(request):
     filter_cond = " 1=1 "
     exclude_deleted = True
     get_live_and_or_published_ver = 3   # 1= live only, 2= published only, 3= live+published
+    show_top_version_only = False
     
     if tag_ids:
         # split tag ids into list
@@ -1018,7 +1023,6 @@ def myConcepts(request):
         # ensure that user is only allowed to view/edit the relevant concepts
            
         get_live_and_or_published_ver = 3
-        #show_top_version_only = True
         # show only concepts created by the current user
         if show_only_my_concepts == "1":
             filter_cond += " AND owner_id=" + str(request.user.id)
@@ -1029,17 +1033,24 @@ def myConcepts(request):
         else:
             exclude_deleted = False    
         
+        if show_live_and_or_published_ver in ["1", "2", "3"]:
+            get_live_and_or_published_ver = int(show_live_and_or_published_ver)   #    2= published only
+        else:
+            return Response([], status=status.HTTP_200_OK)
       
     else:
         # show published concepts
-        get_live_and_or_published_ver = 2
-        #show_top_version_only = True
+        get_live_and_or_published_ver = 2   #    2= published only
+        #show_top_version_only = False
+        
         if PublishedConcept.objects.all().count() == 0:
             return Response([], status=status.HTTP_200_OK)
 
-    show_top_version_only = True
-    if expand_published_versions == "1":
-        show_top_version_only = False
+    
+    if expand_published_versions == "0":
+        show_top_version_only = True
+        
+    
 
     if concept_id is not None:
         if concept_id != '':
@@ -1119,7 +1130,7 @@ def myConcepts(request):
         ret = [
                 c['id'],  
                 c['name'].encode('ascii', 'ignore').decode('ascii'),
-                c['history_id'],                #Concept.objects.get(pk=c['id']).history.latest().history_id, 
+                c['history_id'],                
                 c['author'],
                 c['coding_system_name'],
                 c['owner_name'],
@@ -1157,7 +1168,10 @@ def myConcepts(request):
                                                 
                                                 
 # my concept detail 
-@api_view(['GET']) 
+#disable authentication for this function
+@api_view(['GET'])
+@authentication_classes([])
+@permission_classes([]) 
 def myConcept_detail(request, pk, concept_history_id=None):
     ''' 
         Display the detail of a concept at a point in time.
@@ -1165,27 +1179,34 @@ def myConcept_detail(request, pk, concept_history_id=None):
     
     if Concept.objects.filter(id=pk).count() == 0: 
         raise Http404
-
-        
-    # validate access
-    if not allowed_to_view(request.user, Concept, pk, set_history_id=concept_history_id):
-        raise PermissionDenied
     
     if concept_history_id is not None:
         concept_ver = Concept.history.filter(id=pk, history_id=concept_history_id) 
         if concept_ver.count() == 0: raise Http404
-
         
+        
+    if request.user.is_authenticated():
+        # validate access
+        if not allowed_to_view(request.user, Concept, pk, set_history_id=concept_history_id):
+            raise PermissionDenied
+        
+        if not (allowed_to_view_children(request.user, Concept, pk, set_history_id=concept_history_id)
+                and
+                chk_deleted_children(request.user, Concept, pk, returnErrors = False, set_history_id=concept_history_id)
+               ):
+            raise PermissionDenied
+    
+            
     if concept_history_id is None:
         # get the latest version
         concept_history_id = Concept.objects.get(pk=pk).history.latest().history_id 
         
-    if not (allowed_to_view_children(request.user, Concept, pk, set_history_id=concept_history_id)
-            and
-            chk_deleted_children(request.user, Concept, pk, returnErrors = False, set_history_id=concept_history_id)
-           ):
-        raise PermissionDenied
-            
+    is_published = checkIfPublished(Concept, pk, concept_history_id)
+    if not request.user.is_authenticated():
+        # check if the concept version is published
+        if not is_published: 
+            raise PermissionDenied 
+                    
     #----------------------------------------------------------------------
 
     concept = getHistoryConcept(concept_history_id)

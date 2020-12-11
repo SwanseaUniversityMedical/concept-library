@@ -229,119 +229,6 @@ def phenotype_list(request):
 
 
 
-@login_required
-def phenotype_list000(request):
-    '''
-        display a list of phenotypes. This view can be searched and contains paging
-    '''
-
-    new_tag_list = []
-    tags = []
-
-    # get page index variables from query or from session
-    page_size = utils.get_int_value(request.GET.get('page_size', request.session.get('phenotype_page_size', 20)), 20)
-    page = utils.get_int_value(request.GET.get('page', request.session.get('phenotype_page', 1)), 1)
-    search = request.GET.get('search', request.session.get('phenotype_search', ''))
-    show_my_phenotypes = request.GET.get('show_my_phenotypes',
-                                          request.session.get('phenotype_show_my_phenotype', 0))
-    show_deleted_phenotypes = request.GET.get('show_deleted_phenotypes',
-                                               request.session.get('phenotype_show_deleted_phenotypes', 0))
-    tag_ids = request.GET.get('tagids', request.session.get('phenotype_tagids', ''))
-    owner = request.GET.get('owner', request.session.get('phenotype_owner', ''))
-    author = request.GET.get('author', request.session.get('phenotype_author', ''))
-    phenotype_brand = request.GET.get('phenotype_brand', request.session.get('phenotype_brand', request.CURRENT_BRAND))
-
-    if request.method == 'POST':
-        # get posted parameters
-        search = request.POST.get('search', '')
-        page_size = request.POST.get('page_size')
-        page = request.POST.get('page', page)
-        show_my_phenotypes = request.POST.get('show_my_phenotypes', 0)
-        show_deleted_phenotypes = request.POST.get('show_deleted_phenotypes', 0)
-        author = request.POST.get('author', '')
-        tag_ids = request.POST.get('tagids', '')
-        owner = request.POST.get('owner', '')
-        phenotype_brand = request.POST.get('phenotype_brand', request.CURRENT_BRAND)
-
-    # store page index variables to session
-    request.session['phenotype_page_size'] = page_size
-    request.session['phenotype_page'] = page
-    request.session['phenotype_search'] = search
-    request.session['phenotype_show_my_phenotype'] = show_my_phenotypes
-    request.session['phenotype_show_deleted_phenotypes'] = show_deleted_phenotypes
-    request.session['phenotype_author'] = author
-    request.session['phenotype_tagids'] = tag_ids
-    request.session['phenotype_owner'] = owner
-    request.session['phenotype_brand'] = phenotype_brand
-
-    # Ensure that user is only allowed to view the relevant phenotypes.
-    phenotypes = get_visible_phenotypes(request.user)
-
-    # check if there is any search criteria supplied
-    if search is not None:
-        if search != '':
-            phenotypes = phenotypes.filter(name__icontains=search)
-
-    if tag_ids:
-        # split tag ids into list
-        new_tag_list = [int(i) for i in tag_ids.split(",")]
-        phenotypes = phenotypes.filter(phenotypetagmap__tag__id__in=new_tag_list)
-        tags = Tag.objects.filter(id__in=new_tag_list)
-
-    if owner is not None:
-        if owner != '':
-            if User.objects.filter(username__iexact=owner.strip()).exists():
-                owner_id = User.objects.get(username__iexact=owner.strip()).id
-                phenotypes = phenotypes.filter(owner_id=owner_id)
-            else:
-                phenotypes = phenotypes.filter(owner_id=-1)
-
-    if author is not None:
-        if author != '':
-            phenotypes = phenotypes.filter(author__icontains=author)
-
-    # show only phenotypes created by the current user
-    if show_my_phenotypes == "1":
-        phenotypes = phenotypes.filter(owner_id=request.user.id)
-
-    # if show deleted phenotypes is 1 then show deleted phenotypes
-    if show_deleted_phenotypes != "1":
-        phenotypes = phenotypes.exclude(is_deleted=True)
-
-    # show phenotypes for a specific brand
-    if phenotype_brand != "":
-        current_brand = Brand.objects.all().filter(name=phenotype_brand)
-        phenotypes = phenotypes.filter(group__id__in=list(current_brand.values_list('groups', flat=True)))
-
-    # order by id
-    phenotypes = phenotypes.order_by('id')
-
-    # Run through the phenotypes and add a 'can edit this phenotype' field.
-    for phenotype in phenotypes:
-        phenotype.can_edit = False # allowed_to_edit(request.user, phenotype, phenotype.id)
-
-    # create pagination
-    paginator = Paginator(phenotypes, page_size, allow_empty_first_page=True)
-
-    try:
-        p = paginator.page(page)
-    except EmptyPage:
-        p = paginator.page(paginator.num_pages)
-
-    return render(request, 'clinicalcode/phenotype/index.html', {
-        'page': page,
-        'page_size': str(page_size),
-        'page_obj': p,
-        'search': search,
-        'author': author,
-        'show_my_phenotypes': show_my_phenotypes,
-        'tags': tags,
-        'owner': owner,
-        'show_deleted_phenotypes': show_deleted_phenotypes,
-        'allowed_to_create': allowed_to_create(),
-        'phenotype_brand': phenotype_brand
-    })
-
 def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     ''' 
         Display the detail of a phenotype at a point in time.
@@ -497,7 +384,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         codelist = db_utils.get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id)
 
         codelist_loaded = 1
-    #rrmd
+    #rmd
     if phenotype['implementation'] is None:
         phenotype['implementation'] = ''
     if phenotype['secondary_publication_links'] is None:
@@ -532,13 +419,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
                'conceptBrands': json.dumps(db_utils.getConceptBrands(request, concept_id_list))
     
             }
-#     if request.user.is_authenticated():
-#         if is_latest_version and (can_edit):
-#             needed_keys = ['user_can_view_component', 'user_can_edit_component','component_error_msg_view',
-#                            'component_error_msg_edit', 'component_concpet_version_msg', 'latest_history_id']
-#             context.update({k: components_permissions[k] for k in needed_keys})
-
-        
+    
     return render(request, 'clinicalcode/phenotype/detail_combined.html',
                 context
                 )
@@ -614,6 +495,11 @@ def phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
 def phenotype_create(request):
     # TODO: implement this
 
+#     ph = Phenotype.objects.all()
+#     for p in ph:
+#         p.save()
+#         p.save()
+        
     import random
     new_phenotype = Phenotype()
     new_phenotype.phenotype_id = "1000" + str(random.randrange(100))
@@ -636,15 +522,15 @@ def phenotype_create(request):
     new_phenotype.source_reference = ""
     new_phenotype.citation_requirements = ""
     new_phenotype.concept_informations = "\"[{\"concept_version_id\": 12870, \"concept_id\": 3790, \"attributes\": []}, {\"concept_version_id\": 12872, \"concept_id\": 3791, \"attributes\": []}]\""
-    
+     
     new_phenotype.created_by = request.user
     new_phenotype.owner_access = Permissions.EDIT
     new_phenotype.owner_id = request.user.id
-    
+     
     new_phenotype.group_id = None
     new_phenotype.group_access = 1
     new_phenotype.world_access = 1
-    
+     
     new_phenotype.save()
     new_phenotype.save()
 
@@ -783,171 +669,195 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id):
 
 
 class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin, TemplateResponseMixin, View):
-    model = Concept
+    model = Phenotype
     template_name = 'clinicalcode/phenotype/publish.html'
-    pass
+    
 
-#     errors = {}
-#     allow_to_publish = True
-#     concept_is_deleted = False
-#     is_owner = True
-#     concept_has_codes = True
-#     has_child_concepts = False
-#     child_concepts_OK = True
-#     AllnotDeleted = True
-#     AllarePublished = True
-#     isAllowedtoViewChildren = True
-#     
-#     def checkConceptTobePublished(self, request, pk, concept_history_id):
-#         global errors, allow_to_publish, concept_is_deleted, is_owner
-#         global has_child_concepts, concept_has_codes, child_concepts_OK, AllnotDeleted, AllarePublished, isAllowedtoViewChildren
-#         '''
-#             Allow to publish if:
-#             - Concept is not deleted
-#             - user is an owner
-#             - Concept contains codes
-#             - user has view access to all child concepts (level 1)
-#             - all child concepts TREE is publish/not deleted
-#         '''
-#         errors = {}
-#         allow_to_publish = True
-#         concept_is_deleted = False
-#         is_owner = True
-#         concept_has_codes = True
-#         has_child_concepts = False
-#         child_concepts_OK = True
-#         AllnotDeleted = True
-#         AllarePublished = True
-#         isAllowedtoViewChildren = True
-#     
-#         if(Concept.objects.get(id=pk).is_deleted == True): 
-#             allow_to_publish = False
-#             concept_is_deleted = True
-#         
-#         if(Concept.objects.filter(Q(id=pk), Q(owner=self.request.user)).count() == 0):
-#             allow_to_publish = False
-#             is_owner = False
-#             
-#         if(len(db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id=pk, concept_history_id=concept_history_id)) == 0):
-#             allow_to_publish = False
-#             concept_has_codes = False
-#         
-#         has_child_concepts, child_concepts_OK, AllnotDeleted, AllarePublished, isAllowedtoViewChildren, errors = checkAllChildConcepts4Publish_Historical(request, pk, concept_history_id)
-#         if not child_concepts_OK:
-#             allow_to_publish = False
-#         
-#     def get(self, request, pk, concept_history_id):
-#         
-#         global errors, allow_to_publish, concept_is_deleted, is_owner, concept_has_codes
-#         global has_child_concepts, child_concepts_OK, AllnotDeleted, AllarePublished, isAllowedtoViewChildren
-#         errors = {}
-#         allow_to_publish = True
-#         concept_is_deleted = False
-#         is_owner = True
-#         concept_has_codes = True
-#         has_child_concepts = False
-#         child_concepts_OK = True
-#         AllnotDeleted = True
-#         AllarePublished = True
-#         isAllowedtoViewChildren = True
-#         
-#         concept_ver = Concept.history.get(id=pk, history_id=concept_history_id)
-#         is_published = checkIfPublished(Concept, pk, concept_history_id)
-#         
-#         if not is_published:
-#             self.checkConceptTobePublished(request, pk, concept_history_id)
-#         #--------------------------------------------
-# 
-#         
-#         return self.render_to_response({'pk': pk, 
-#                                         'name': concept_ver.name, 
-#                                         'concept_history_id': concept_history_id, 
-#                                         'is_published': is_published, 
-#                                         'allowed_to_publish': allow_to_publish,
-#                                         'is_owner': is_owner,
-#                                         'concept_is_deleted': concept_is_deleted,
-#                                         'concept_has_codes': concept_has_codes,
-#                                         'has_child_concepts': has_child_concepts,
-#                                         'child_concepts_OK': child_concepts_OK,
-#                                         'AllnotDeleted': AllnotDeleted,
-#                                         'AllarePublished': AllarePublished,
-#                                         'isAllowedtoViewChildren': isAllowedtoViewChildren,
-#                                         'errors': errors
-#                                         })
-#     
-#     def post(self, request, pk, concept_history_id):
-#         global errors, allow_to_publish, concept_is_deleted, is_owner, concept_has_codes
-#         global has_child_concepts, child_concepts_OK, AllnotDeleted, AllarePublished, isAllowedtoViewChildren
-#         errors = {}
-#         allow_to_publish = True
-#         concept_is_deleted = False
-#         is_owner = True
-#         concept_has_codes = True
-#         has_child_concepts = False
-#         child_concepts_OK = True
-#         AllnotDeleted = True
-#         AllarePublished = True
-#         isAllowedtoViewChildren = True
-#         
-#         is_published = checkIfPublished(Concept, pk, concept_history_id)
-#         if not is_published:
-#             self.checkConceptTobePublished(request, pk, concept_history_id)
-# 
-#         data = dict()
-#         
-#         if not allow_to_publish or is_published:
-#             data['form_is_valid'] = False
-#             data['message'] = render_to_string('clinicalcode/error.html',
-#                                                {}, self.request)            
-#             return JsonResponse(data)
-#         
-#         try:
-#             if allow_to_publish and not is_published:
-#                 # start a transaction
-#                 with transaction.atomic():
-#                     concept = Concept.objects.get(pk=pk)
-#                     published_concept = PublishedConcept(concept=concept, 
-#                                                         concept_history_id=concept_history_id, 
-#                                                         created_by=request.user)
-#                     published_concept.save()
-#                     data['form_is_valid'] = True
-#                     data['latest_history_ID'] = concept_history_id  #concept.history.latest().pk
-# 
-# #                     # refresh component list
-# #                     data['html_component_list'] = render_to_string(
-# #                         'clinicalcode/component/partial_component_list.html',
-# #                         build_permitted_components_list(self.request.user, pk)
-# #                         )
-#         
-#         
-#                     # update history list
-# 
-#                     data['html_history_list'] = render_to_string(
-#                             'clinicalcode/concept/partial_history_list.html',
-#                             {'history': concept.history.all(),
-#                              'current_concept_history_id': int(concept_history_id),  #concept.history.latest().pk,
-#                              'published_historical_ids': list(PublishedConcept.objects.filter(concept_id=pk).values_list('concept_history_id', flat=True))
-#                             },
-#                             request=self.request
-#                         )
-#                                         
-# #                     # update add_menu_items to reflect latest history id
-# #                     data['add_menu_items'] = render_to_string(
-# #                             'clinicalcode/concept/add_menu_items.html',
-# #                             {'pk': pk, 
-# #                              'latest_history_id': concept_history_id    #concept.history.latest().pk
-# #                             }
-# #                         )
-#             
-#                     data['message'] = render_to_string('clinicalcode/concept/published.html',
-#                                                        {'id': pk, 'concept_history_id': concept_history_id}
-#                                                        , self.request)
-#                     
-#         except Exception as e:
-#             data['form_is_valid'] = False
-#             data['message'] = render_to_string('clinicalcode/error.html',
-#                                                {}, self.request)
-#         
-#         return JsonResponse(data)
-# 
-# #---------------------------------------------------------------------------
+    errors = {}
+    allow_to_publish = True
+    phenotype_is_deleted = False
+    is_owner = True
+    phenotype_has_codes = True
+    AllnotDeleted = True
+    AllarePublished = True
+    isAllowedtoViewChildren = True
+    
+    def checkPhenotypeTobePublished(self, request, pk, phenotype_history_id):
+        global errors, allow_to_publish, phenotype_is_deleted, is_owner
+        global phenotype_has_codes, AllnotDeleted, AllarePublished, isAllowedtoViewChildren
+        '''
+            Allow to publish if:
+            - Phenotype is not deleted
+            - user is an owner
+            - Phenotype contains codes
+            - all conceots are published
+        '''
+        errors = {}
+        allow_to_publish = True
+        phenotype_is_deleted = False
+        is_owner = True
+        phenotype_has_codes = True
+        AllnotDeleted = True
+        AllarePublished = True
+        isAllowedtoViewChildren = True
+        
+        if(Phenotype.objects.get(id=pk).is_deleted == True): 
+            allow_to_publish = False
+            phenotype_is_deleted = True
+         
+        if(Phenotype.objects.filter(Q(id=pk), Q(owner=self.request.user)).count() == 0):
+            allow_to_publish = False
+            is_owner = False
+             
+        if(len(db_utils.get_phenotype_conceptcodesByVersion(self.request, pk, phenotype_history_id)) == 0):
+            allow_to_publish = False
+            phenotype_has_codes = False
+         
+        has_child_concepts, isOK, AllnotDeleted, AllarePublished, isAllowedtoViewChildren, errors = checkAllChildConcepts4Publish_Historical(request, pk, phenotype_history_id)
+        if not isOK:
+            allow_to_publish = False
+         
+    def get(self, request, pk, phenotype_history_id):
+         
+        global errors, allow_to_publish, phenotype_is_deleted, is_owner
+        global phenotype_has_codes, AllnotDeleted, AllarePublished, isAllowedtoViewChildren
+        errors = {}
+        allow_to_publish = True
+        phenotype_is_deleted = False
+        is_owner = True
+        phenotype_has_codes = True
+        AllnotDeleted = True
+        AllarePublished = True
+         
+        phenotype_ver = Phenotype.history.get(id=pk, history_id=phenotype_history_id)
+        is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
+         
+        if not is_published:
+            self.checkPhenotypeTobePublished(request, pk, phenotype_history_id)
+        #--------------------------------------------
+ 
+         
+        return self.render_to_response({'pk': pk, 
+                                        'name': phenotype_ver.name, 
+                                        'phenotype_history_id': phenotype_history_id, 
+                                        'is_published': is_published, 
+                                        'allowed_to_publish': allow_to_publish,
+                                        'is_owner': is_owner,
+                                        'phenotype_is_deleted': phenotype_is_deleted,
+                                        'phenotype_has_codes': phenotype_has_codes,
+                                        'AllnotDeleted': AllnotDeleted,
+                                        'AllarePublished': AllarePublished,
+                                        'isAllowedtoViewChildren': isAllowedtoViewChildren,
+                                        'errors': errors
+                                        })
+     
+    def post(self, request, pk, phenotype_history_id):
+        global errors, allow_to_publish, phenotype_is_deleted, is_owner, phenotype_has_codes
+        global AllnotDeleted, AllarePublished, isAllowedtoViewChildren
+        errors = {}
+        allow_to_publish = True
+        phenotype_is_deleted = False
+        is_owner = True
+        phenotype_has_codes = True
+        AllnotDeleted = True
+        AllarePublished = True
+        isAllowedtoViewChildren = True
+        
+        is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
+        if not is_published:
+            self.checkPhenotypeTobePublished(request, pk, phenotype_history_id)
+ 
+        data = dict()
+         
+        if not allow_to_publish or is_published:
+            data['form_is_valid'] = False
+            data['message'] = render_to_string('clinicalcode/error.html',
+                                               {}, self.request)            
+            return JsonResponse(data)
+         
+        try:
+            if allow_to_publish and not is_published:
+                # start a transaction
+                with transaction.atomic():
+                    phenotype = Phenotype.objects.get(pk=pk)
+                    published_phenotype = PublishedPhenotype(phenotype=phenotype, 
+                                                        phenotype_history_id=phenotype_history_id, 
+                                                        created_by=request.user)
+                    published_phenotype.save()
+                    data['form_is_valid'] = True
+                    data['latest_history_ID'] = phenotype_history_id  #phenotype.history.latest().pk
+ 
+         
+         
+                    # update history list 
+                    data['html_history_list'] = render_to_string(
+                            'clinicalcode/phenotype/partial_history_list.html',
+                            {'history': phenotype.history.all(),
+                             'current_phenotype_history_id': int(phenotype_history_id),  #phenotype.history.latest().pk,
+                             'published_historical_ids': list(PublishedPhenotype.objects.filter(phenotype_id=pk).values_list('phenotype_history_id', flat=True))
+                            },
+                            request=self.request
+                        )
+
+             
+                    data['message'] = render_to_string('clinicalcode/phenotype/published.html',
+                                                       {'id': pk, 'phenotype_history_id': phenotype_history_id}
+                                                       , self.request)
+                     
+        except Exception as e:
+            data['form_is_valid'] = False
+            data['message'] = render_to_string('clinicalcode/error.html',
+                                               {}, self.request)
+         
+        return JsonResponse(data)
+ 
+#---------------------------------------------------------------------------
+def checkAllChildConcepts4Publish_Historical(request, phenotype_id, phenotype_history_id):
+
+    # get historical phenotype concepts
+    phenotype = db_utils.getHistoryPhenotype(phenotype_history_id)
+    child_concepts_versions = [(x['concept_id'] , x['concept_version_id']) for x in json.loads(phenotype['concept_informations'])] 
+    
+    # Now check all the child concepts for deletion(from live version) and Publish(from historical version)
+    # we check access(from live version) here.
+
+    errors = {}
+    has_child_concepts = False
+    if child_concepts_versions:
+        has_child_concepts = True
+        
+    AllnotDeleted = True
+    for cc in child_concepts_versions:
+        isDeleted = False         
+        isDeleted = (Concept.objects.filter(Q(id=cc[0])).exclude(is_deleted=True).count() == 0)
+        if(isDeleted):
+            errors[cc[0]] = 'Child concept ('+str(cc[0])+') is deleted'
+            AllnotDeleted = False
+            
+    AllarePublished = True
+    for cc in child_concepts_versions:
+        is_published = False         
+        is_published = checkIfPublished(Concept, cc[0], cc[1])
+        if(not is_published):
+            errors[str(cc[0])+'/'+str(cc[1])] = 'Child concept ('+str(cc[0])+'/'+str(cc[1])+') is not published'
+            AllarePublished = False
+            
+            
+    # Now check all for access.
+    isAllowedtoViewChildren = True
+
+    for cc in child_concepts_versions:
+        permitted = False
+        permitted = allowed_to_view(request.user, Concept, set_id=cc[0], set_history_id=cc[1])
+
+        if (not permitted):
+            errors[str(cc[0])+'_view'] = 'Child concept ('+str(cc[0])+') is not permitted.'             
+            isAllowedtoViewChildren = False
+                    
+
+
+    isOK = (AllnotDeleted and AllarePublished and isAllowedtoViewChildren)
+    
+    return has_child_concepts, isOK, AllnotDeleted, AllarePublished, isAllowedtoViewChildren, errors
+
+

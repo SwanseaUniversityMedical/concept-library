@@ -83,11 +83,13 @@
 							<li id="workingset_li"  >
 								<a id="workingset_a" class="main_menu" href="{% url 'workingset_list' %}">Working Sets</a>
 							</li>	
+						{% endif %}		
 							
-							<li id="phenotype_li">
-								<a id="phenotype_a" class="main_menu" href="{% url 'phenotype_list' %}">Phenotypes</a>
-							</li>
+						<li id="phenotype_li">
+							<a id="phenotype_a" class="main_menu" href="{% url 'phenotype_list' %}">Phenotypes</a>
+						</li>
 						
+						{% if user.is_authenticated %}	
 							<li id="api_li"  >
 								<a id="api_a" class="main_menu"   
 								 {% if request.CURRENT_BRAND|length %}

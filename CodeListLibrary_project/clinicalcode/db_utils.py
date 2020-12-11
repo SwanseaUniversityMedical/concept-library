@@ -2738,7 +2738,7 @@ def get_visible_live_or_published_concept_versions(request
     
     user_cond = ""
     if not request.user.is_authenticated():
-        get_live_and_or_published_ver = 2
+        get_live_and_or_published_ver = 2   #    2= published only
     else:  
         if request.user.is_superuser:
             user_cond = ""
@@ -2882,7 +2882,7 @@ def get_visible_live_or_published_phenotype_versions(request
     
     user_cond = ""
     if not request.user.is_authenticated():
-        get_live_and_or_published_ver = 2
+        get_live_and_or_published_ver = 2   #    2= published only
     else:  
         if request.user.is_superuser:
             user_cond = ""
