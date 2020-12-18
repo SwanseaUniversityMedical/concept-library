@@ -410,29 +410,116 @@
 				</ul>
 				<div class="tab-content">
 					<div id="component-tab-div" class="tab-pane {{ component_tab_active }}" >
-						<br>
-						<table class="table table-striped small-table table-hover" id="concept_table"  idx="component-table">
-							<thead>
-								<tr>
-									<th>&nbsp;</th>
-									<th>Concept id</th>
-	 								<th>Concept version id 00published00</th> 
-									<th>Concept name</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr>
-									
-								</tr>
-							</tbody>
-						</table>
-					</div>
+                 	 <!-- component-tab-div -->
+                 
+
+  <div class="accordion-option">
+    <a href="javascript:void(0)" class="toggle-accordion active" id="Expand_all" >Expand All</a>
+    &nbsp;/&nbsp;
+    <a href="javascript:void(0)" class="toggle-accordion active" id="Collapse_all" >Collapse All</a>
+  </div>
+                   
+ <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+   {% for c in concept_data %}
+	   <div class="panel panel-default">
+	      <div class="panel-heading" role="tab" id="c{{ c.concept_version_id }}" >	
+		      <div>
+		         <h4 class="panel-title">
+		            <a role="button" data-toggle="collapse"  id="sign_c{{ c.concept_version_id }}"
+		               data-parent="#accordion" href="#collapse_c{{ c.concept_version_id }}" aria-expanded="true" aria-controls="collapse_c{{ c.concept_version_id }}">
+		            <i class="plus-minus glyphicon glyphicon-plus"></i>    
+		            {{ c.concept_id }}/{{ c.concept_version_id }}
+		            </a>
+						
+					&nbsp;
+				    {% if user.is_authenticated %}
+				         {% if c.is_published %}
+				         	<span title="Published" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
+				         {% else %}
+				         	&nbsp;&nbsp;
+				         {% endif %}	
+				    {% endif %}		         
+		        
+			      <span>
+			         <a href="/concepts/{{ c.concept_id }}/version/{{ c.concept_version_id }}/detail/"  
+			            title="/concepts/{{ c.concept_id }}/version/{{ c.concept_version_id }}/detail/"  
+			            target="_blank" class="alert-link">					
+			         {{ c.name }}&nbsp;{{ c.brands|safe }}
+			         </a>
+			      </span>
+			      
+			      <span >
+			         {% if c.alerts|length %}
+			         <div class="alert-danger" role="alert" style=" display:inline-block;" >
+			            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+			            <span class="sr-only">Error:</span>
+			            {{ c.alerts|safe }}
+			         </div>
+			         {% endif %}
+			      </span>
+				</h4>
+		      </div>
+			      
+		   </div>
+		   <div  id="collapse_c{{ c.concept_version_id }}"  codelist_loaded="{{ codelist_loaded }}" 
+		      class="panel-collapse collapse{% if user.is_authenticated %} pre-scrollable{% endif %}"
+		      role="tabpanel" aria-labelledby="c{{ c.concept_version_id }}" >
+		      <div class="panel-body">
+		         <div class="row">
+		            <div class="col-md-6">
+		               <span id="codesCount_c{{ c.concept_version_id }}" class="codesCount label label-primary">Rows: {{ c.codesCount }}</span>
+		            </div>
+		         </div>
+		         <div>
+		            <table class="table table-striped small-table" id="codelist-tab-table-c{{ c.concept_version_id }}" >
+		               <thead>
+		                  <tr>
+		                     <th>Code</th>
+		                     <th>Description</th>
+		                     <th>Coding System</th>
+		                  </tr>
+		               </thead>
+		               <tbody>
+		                  {% for code in codelist %}
+		                  {% if code.concept_id == c.concept_id and code.concept_version_id == c.concept_version_id %}
+		                  <tr>
+		                     <td>{{ code.code }}</td>
+		                     <td>{{ code.description }}</td>
+		                     <td>{{ code.coding_system }}</td>
+		                  </tr>
+		                  {% endif %}
+		                  {% empty %}
+		                  <tr>
+		                     <td colspan="3" class="text-center bg-warning spinner" id="no-codes-td">
+		                        {% if codelist_loaded == 0 %}
+		                        Loading ...
+		                        {% else %}
+		                        No codes
+		                        {% endif %} 											
+		                     </td>
+		                  </tr>
+		                  {% endfor %}
+		               </tbody>
+		            </table>
+		         </div>
+		      </div>
+		   </div>
+		</div>
+	{% empty %}
+	   <div> no concepts </div>
+	{% endfor %}
+</div>
+
+                 	 <!-- component-tab-div -->
+			         </div>
 					
+					
+					<!-- TAB FOR ALL CODES TOGETHER -->
 					<div id="codelist-tab-div" codelist_loaded="{{ codelist_loaded }}" class="tab-pane {{ codelist_tab_active }} " >
 						<div class="row">
 						<br>
 							<div class="col-md-6">
-								<span class="codesAmount label label-primary">Rows: {{ codelist|length }}</span>
+								<span id="codesCount_all" class="codesCount label label-primary">Rows: {{ codelist|length }}</span>
 							</div>
 						</div>
 						
@@ -443,6 +530,7 @@
 										<th>Code</th>
 										<th>Description</th>
 										<th>Coding System</th>
+										<th>Concept</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -450,11 +538,12 @@
 									<tr>
 										<td>{{ code.code }}</td>
 										<td>{{ code.description }}</td>
-										<td>{{ code.coding_system }}</td>		
+										<td>{{ code.coding_system }}</td>
+										<td>{{ code.concept_id }}/{{ code.concept_version_id }}</td>													
 									</tr>
 								{% empty %}
 									<tr>
-										<td colspan="3" class="text-center bg-warning spinner" id="no-codes-td">
+										<td colspan="4" class="text-center bg-warning spinner" id="no-codes-td">
 											{% if codelist_loaded == 0 %}
 											    Loading ...
 											{% else %}
@@ -494,6 +583,8 @@
 			</div>
 		</div>
 		
+<!-- ################################################################## -->
+		
 	<!--	-------------------------------------------------------------------
 			CHANGE HISTORY
 			-------------------------------------------------------------------
@@ -517,6 +608,7 @@
 				
 			</div>
 		</div>
+		
 	<!--	-------------------------------------------------------------------
 			HELP POP-UP TEXTS
 			-------------------------------------------------------------------
@@ -564,29 +656,34 @@
 	
 	<script type="text/javascript">
 		$('#codelisttab').click(function(e) {
+			getConceptsCodes();
+		});
+
+		function getConceptsCodes() {
 			if($('#codelist-tab-div').attr("codelist_loaded") == "0"){
 				// get the unique codes for the phenotype version
 				phenotype_id = $('#phenotype_id_div').attr("phenotype_id");
 				phenotype_history_id =$('#phenotype_history_id_div').attr("phenotype_history_id");
-				
-				//$(".loader").show();
-				//$('#no-codes-td').addClass('spinner');				
-				//$('#no-codes-td').html('<div class="loader" ></div>');
-				
+								
 				dataService.getPhenotypeUniqueCodesByVersion(phenotype_id, phenotype_history_id, function(data){
 						$('#codelist-tab-table tbody').html(data.html_uniquecodes_list);
-						$('.codesAmount').text('Rows: ' + data.codes_count);
+						$('#codesCount_all').text('Rows: ' + data.codes_count);
+						showConceptsCodes(data.concept_codes_html);
 				});
 				
-				//$(".loader").hide();
-				//$('#no-codes-td').removeClass('spinner');
 				
 				$('#codelist-tab-div').attr("codelist_loaded" , "1");
 				
 			}
-
-		});
+		}
 		
+		
+		function showConceptsCodes(concept_codes_html_list) {
+			$.each(concept_codes_html_list, function( i , v ) {
+					$('#codelist-tab-table-c' + v.concept_version_id + ' tbody').html(v.c_html);
+					$('#codesCount_c' + v.concept_version_id).text('Rows: ' + v.c_codes_count);		
+				});		
+		}
 		
 
 		$("#printBtn").click(function () {
@@ -623,113 +720,42 @@
 			{% if user.is_authenticated %}
 				$('#codelist-div-container').addClass('pre-scrollable');
 			{% endif%}
-
 		}
 
-
 	</script>
 
-
+<!-- collapse all/ expand all interfere with individual +/- -->
 	<script type="text/javascript">
-	
-		//reconstruction of json data(concepts)
-		$(document).ready(function(){
-			var is_permitted_to_all = {{ is_permitted_to_all|lower }};
-			var error_dic = {{ error_dic|safe }};
-			//alert(is_permitted_to_all);
-			//alert(error_dic);
-
-			var are_concepts_latest_version = {{ are_concepts_latest_version|lower }};
-			var version_alerts = {{ version_alerts|safe }};
-
-			var concept_json = $('#concepts_json').val();
-			concept_json = JSON.parse(concept_json);
+    	$(function() {
+    		
+    		$("#Expand_all").on("click", function() {
+			    $('#accordion .panel-collapse:not(".in")').collapse('show');
+			});
 			
-			var concepts_id_name = $('#concepts_id_name').val();
-			concepts_id_name = JSON.parse(concepts_id_name);
-
-			$.each( concept_json, function( key, value ) {
-	//			$.each( value, function( key, value ) {  // go thorugh concepts
-				
-				sts = '&nbsp;'
-				pp = false;
-				//alert(key+'...'+value);
-				
-				if (!is_permitted_to_all || !are_concepts_latest_version) {
-					if (value['concept_id'] in error_dic || value['concept_id'] in version_alerts) {
-						//alert(key+'');
-						sts ='<div class="alert-danger" role="alert" style=" display:inline-block;" >'
-						+'<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>'
-						+'<span class="sr-only">Error:</span>';
-						if (value['concept_id'] in error_dic) {
-							sts += '-' + error_dic[value['concept_id']].join('<BR>').replace(/Child /ig, "");
-							pp = true;
-						}
-						if (value['concept_id'] in version_alerts) {
-							if(pp) {
-								sts += '<BR>';
-							}
-
-							sts += '-' + version_alerts[value['concept_id']]; 	// .join('<BR>').replace(/Child /ig, "");
-						}
-
-						sts += '</div>';
-					}
-				}
-
-				var c_url = '/concepts/'+value['concept_id']+'/version/'+value['concept_version_id']+'/detail/';
-
-				$('#concept_table tbody>tr:last').after('<tr><td>' + sts + '</td>'
-					+'<td>' + value['concept_id'] + '</td>'
-					+'<td>' + value['concept_version_id'] + '</td>'
-					+'<td>'
-					+ '<a href='+c_url+'   title='+c_url+' target="_blank" class="alert-link">'
-					+ get_Concept_name(concepts_id_name, value['concept_id'])
-					+ '</a>'
-					+ '</td></tr>'
-				);
-
-// 				$.each( value, function( key, value ) {  // go through concept data
-// 					inHeaders = false;
-// 					header_type = key.split("|");
-// 					header = header_type[0];
-// 					//type = header_type[1];
-
-// 					headers = $('#concept_table thead>tr>th').each(function(index, input){
-// 						if ($(input).text() == header) {
-// 							inHeaders = true;
-// 						}
-// 					});
-
-// 					if (!inHeaders) {
-// 						$('#concept_table thead>tr>th:last').after('<th>' + header + '</th>');  //insert concept headers
-// 					}
-
-// 					$('#concept_table tbody>tr:last>td:last').after('<td>' + value + '</td>');  //isnert concept data
-// 				});
+			$("#Collapse_all").on("click", function() {
+			    $('#accordion .panel-collapse.in').collapse('hide');
+			});
 			
-	//		});
-		
-		});
-
-			//-------------------------------------------------------------------------------
-			function  get_Concept_name(list1, id){
-			    var imgPath = ' <img src="{% static 'img/brands/' %}BRANDT1/logo.png" height="10px" title="BRANDT1" alt="BRANDT1" /> ';
-				var conceptBrands = {{ conceptBrands|safe }};
-				for (i in list1) {
-					  if (list1[i]['id']==id) {
-						  imgs = '';
-						  for (b in conceptBrands[id]){
-							  imgs += imgPath.replace(/BRANDT1/ig, conceptBrands[id][b] ) 
-						  }
-					    return(list1[i]['name'] + '' + imgs );
-					    
-					    
-					  }
-					}
-				return('');
+			function toggleIcon(e) { getConceptsCodes(); 
+			      $(e.target)
+			          .prev('.panel-heading')
+			          .find(".plus-minus")
+			          .toggleClass('glyphicon-plus glyphicon-minus');
 			}
-		});		
+			$('.panel-group').on('hidden.bs.collapse', toggleIcon);
+			$('.panel-group').on('shown.bs.collapse', toggleIcon);
+			 
+		});
 	</script>
 	
+	{% if not user.is_authenticated %}
+		<script type="text/javascript"> 
+	        $(function() {
+	        	$('#accordion .panel-collapse:not(".in")').collapse('show');
+	 		});
+	    </script> 
+	{% endif%}
+
+
+		
 {% endblock scripts %}

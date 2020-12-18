@@ -2177,13 +2177,13 @@ def chk_children_permission_and_deletion(user, set_class, set_id, WS_concepts_js
     error_dict = {}
     
     is_permitted_to_all , error_perms = allowed_to_view_children(user, set_class, set_id
-                                                                , returnErrors=True
-                                                                , WS_concepts_json=WS_concepts_json
+                                                                , returnErrors = True
+                                                                , WS_concepts_json = WS_concepts_json
                                                                 , WS_concept_version = submitted_concept_version
                                                                 , set_history_id=set_history_id)
     children_not_deleted , error_del = chk_deleted_children(user, set_class, set_id
-                                                            , returnErrors=True
-                                                            , WS_concepts_json=WS_concepts_json
+                                                            , returnErrors = True
+                                                            , WS_concepts_json = WS_concepts_json
                                                             , WS_concept_version = submitted_concept_version
                                                             , set_history_id=set_history_id)
         

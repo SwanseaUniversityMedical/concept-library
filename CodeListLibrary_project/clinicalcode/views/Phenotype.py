@@ -36,6 +36,7 @@ from ..models.CodingSystem import CodingSystem
 from django.contrib.auth.models import User, Group
 
 from django.http import HttpResponseNotFound
+from django.contrib.staticfiles.templatetags.staticfiles import static
 
 from View import *
 from .. import db_utils, utils
@@ -379,24 +380,53 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         codelist_loaded = 0
     else:
         # published
-        component_tab_active = "" 
-        codelist_tab_active = "active"
+        component_tab_active = "active"     #"" 
+        codelist_tab_active = ""            #"active"
         codelist = db_utils.get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id)
-
         codelist_loaded = 1
+        
     #rmd
     if phenotype['implementation'] is None:
         phenotype['implementation'] = ''
     if phenotype['secondary_publication_links'] is None:
         phenotype['secondary_publication_links'] = ''
     
+    
+    conceptBrands = db_utils.getConceptBrands(request, concept_id_list)
+    concept_data = []
+    for c in json.loads(phenotype['concept_informations']):
+        c['alerts'] = ''
+        if not are_concepts_latest_version:
+            if c['concept_version_id'] in version_alerts: 
+                c['alerts'] = version_alerts[c['concept_version_id']]
+        
+        if not children_permitted_and_not_deleted:
+            if c['concept_id'] in error_dic:
+                c['alerts'] += "<BR>- " + "<BR>- ".join(error_dic[c['concept_id']]) 
+         
+        c['alerts'] = re.sub("Child " , "" ,  c['alerts'] , flags=re.IGNORECASE)
+        
+        c['brands'] = ''
+        if c['concept_id'] in conceptBrands:
+            for brand in conceptBrands[c['concept_id']]:
+                c['brands'] += "<img src='" + static('img/brands/' + brand + '/logo.png') + "' height='10px' title='" + brand + "' alt='" + brand + "' /> "
+           
+        c['is_published'] = checkIfPublished(Concept, c['concept_id'], c['concept_version_id'])
+        c['name'] = concepts.get(id=c['concept_id'], history_id=c['concept_version_id'])['name']
+        
+        c['codesCount'] = 0
+        if codelist:
+            c['codesCount'] = len([x['code'] for x in codelist if x['concept_id'] == c['concept_id'] and x['concept_version_id'] == c['concept_version_id'] ])
+            
+        concept_data.append(c)
+         
     context = {'phenotype': phenotype, 
                'concept_informations': json.dumps(phenotype['concept_informations']),
                'tags': tags,
                'data_sources': data_sources,
                'clinicalTerminologies': clinicalTerminologies,
                'user_can_edit': False,  # for now  #can_edit,
-               'allowed_to_create': False,  # for now  #user_allowed_to_create,
+               'allowed_to_create': False,  # for now  #user_allowed_to_create,    # not settings.CLL_READ_ONLY,
                'user_can_export': user_can_export,
                'history': other_historical_versions,
                'live_ver_is_deleted': Phenotype.objects.get(pk=pk).is_deleted,
@@ -411,12 +441,13 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
                'codelist_loaded': codelist_loaded ,
                
                'concepts_id_name': concepts_id_name,
-               'is_permitted_to_all': children_permitted_and_not_deleted,
-               'error_dic': error_dic,
-               'are_concepts_latest_version': are_concepts_latest_version,
-               'version_alerts': version_alerts,
-               'allowed_to_create': not settings.CLL_READ_ONLY,
-               'conceptBrands': json.dumps(db_utils.getConceptBrands(request, concept_id_list))
+#                'is_permitted_to_all': children_permitted_and_not_deleted,   ###
+#                'error_dic': error_dic,  ###
+#                'are_concepts_latest_version': are_concepts_latest_version,  ###
+#                'version_alerts': version_alerts,    ###
+#                'conceptBrands': json.dumps(db_utils.getConceptBrands(request, concept_id_list)),    ##
+               
+               'concept_data': concept_data
     
             }
     
@@ -439,9 +470,10 @@ def checkConceptVersionIsTheLatest(phenotypeID):
     # loop for concept versions
     for c in concepts_id_versionID:
         c_id = c['concept_id']
+        c_ver_id = c['concept_version_id']
         latest_history_id = Concept.objects.get(pk=c_id).history.latest('history_id').history_id
-        if latest_history_id != c['concept_version_id']:
-            version_alerts[c_id] = "newer version available"
+        if latest_history_id != c_ver_id:
+            version_alerts[c_ver_id] = "newer version available"
             is_ok = False
     #         else:
     #             version_alerts[c_id] = ""
@@ -484,8 +516,47 @@ def phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
         codes_count = "0"
     data['codes_count'] = codes_count
     data['html_uniquecodes_list'] = render_to_string(
-        'clinicalcode/phenotype/get_concept_codes.html',
-        {'codes': codes})
+                                                    'clinicalcode/phenotype/get_concept_codes.html',
+                                                    {'codes': codes,
+                                                    'showConcept': True 
+                                                    }
+                                                    )
+    
+    
+    # Get the list of concepts in the phenotype data
+    concept_ids_historyIDs = db_utils.getGroupOfConceptsByPhenotypeId_historical(pk, phenotype_history_id)
+    
+    concept_codes_html =[]
+    for concept in concept_ids_historyIDs:
+        concept_id = concept[0]
+        concept_version_id = concept[1]
+        c_codes = []
+        for c in codes:
+            if c['concept_id'] == concept_id and c['concept_version_id'] == concept_version_id:
+                c_codes.append(c)
+        
+        c_codes_count = "0"
+        try:
+            c_codes_count = str(len(c_codes))
+        except:
+            c_codes_count = "0"
+           
+        #c_codes_count_2 = len([c['code'] for c in codes if c['concept_id'] == concept_id and c['concept_version_id'] == concept_version_id ]) 
+        
+        concept_codes_html.append({'concept_id': concept_id,
+                                   'concept_version_id': concept_version_id,
+                                   'c_codes_count': c_codes_count,
+                                   'c_html': render_to_string(
+                                                    'clinicalcode/phenotype/get_concept_codes.html',
+                                                    {'codes': c_codes,
+                                                    'showConcept': False 
+                                                    }
+                                                    )
+                                   })
+     
+    data['concept_codes_html'] = concept_codes_html   
+                                     
+    #data['codes'] = codes
 
     return JsonResponse(data)    
     
