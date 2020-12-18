@@ -47,6 +47,11 @@ urlpatterns = [
     url(r'^parentconcepts/(?P<pk>[0-9]+)/$'
         , Concept.parent_concepts
         , name='api_parent_concepts'),
+       
+    # concepts_live_and_published  used for internal search for concepts
+    url(r'^concepts/$'
+        , Concept.concepts_live_and_published
+        , name='concepts_live_and_published'),
     
     
     # search my concepts
@@ -54,21 +59,31 @@ urlpatterns = [
         , Concept.myConcepts
         , name='myConcepts'),
 
-       
-    # concepts_live_and_published
-    url(r'^concepts/$'
-        , Concept.concepts_live_and_published
-        , name='concepts_live_and_published'),
-    
+    # search published concepts
+    url(r'^public/published-concepts/$'
+        , Concept.published_concepts
+        , name='api_published_concepts'),
+
+
+
     # my concept detail
     # if only concept_id is provided, get the latest version
     url(r'^myconcept-detail/(?P<pk>[0-9]+)/$'
-        , Concept.myConcept_detail
-        , name='myConceptdetail'),
+            , Concept.myConcept_detail
+            , name='myConceptdetail'),
+    url(r'^public/myconcept-detail/(?P<pk>[0-9]+)/$'
+            , Concept.myConcept_detail_PUBLIC
+            , name='myConceptdetail_public'),
+                  
     # get specific version
     url(r'^myconcept-detail/(?P<pk>[0-9]+)/version/(?P<concept_history_id>\d+)/$'
         , Concept.myConcept_detail
         , name='myConceptdetail_version'),
+    url(r'^public/myconcept-detail/(?P<pk>[0-9]+)/version/(?P<concept_history_id>\d+)/$'
+        , Concept.myConcept_detail_PUBLIC
+        , name='myConceptdetail_version_public'),
+    
+    
     
     
     # ---  working sets  ------------------------------------------      
@@ -104,6 +119,33 @@ urlpatterns = [
     url(r'^export_phenotype_codes_byVersionID/(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/$'
         , Phenotype.export_phenotype_codes_byVersionID
         , name='api_export_phenotype_codes_byVersionID'),
+    
+    # search my phenotypes
+    url(r'^myphenotypes/$'
+        , Phenotype.myPhenotypes
+        , name='myPhenotypes'),
+
+    # search published phenotypes
+    url(r'^public/published-phenotypes/$'
+        , Phenotype.published_phenotypes
+        , name='api_published_phenotypes'),    
+    
+    # my phenotype detail
+    # if only phenotype_id is provided, get the latest version
+    url(r'^myphenotype-detail/(?P<pk>[0-9]+)/$'
+            , Phenotype.myPhenotype_detail
+            , name='myPhenotypedetail'),
+    url(r'^public/myphenotype-detail/(?P<pk>[0-9]+)/$'
+            , Phenotype.myPhenotype_detail_PUBLIC
+            , name='myPhenotypedetail_public'),
+                  
+    # get specific version
+    url(r'^myphenotype-detail/(?P<pk>[0-9]+)/version/(?P<phenotype_history_id>\d+)/$'
+        , Phenotype.myPhenotype_detail
+        , name='myPhenotypedetail_version'),
+    url(r'^public/myphenotype-detail/(?P<pk>[0-9]+)/version/(?P<phenotype_history_id>\d+)/$'
+        , Phenotype.myPhenotype_detail_PUBLIC
+        , name='myPhenotypedetail_version_public'),
 ]
 
 
@@ -148,19 +190,6 @@ if settings.ENABLE_PUBLISH:
         , Concept.export_published_concept_codes
         , name='api_export_published_concept_codes'),
       
-      
-        url(r'^publishedconcepts/$'
-            , Concept.get_all_published_concepts 
-            , name='api_get_all_published_concepts'),
-    
-#         url(r'^publishedconceptcodes/(?P<version_id>[0-9]+)/$'
-#             , Concept.published_concept_codes
-#             , name='api_published_concept_codes'),
-        
-        url(r'^publishedconcept/(?P<version_id>[0-9]+)/$'
-            , Concept.published_concept
-            , name='api_published_concept'),
-    
         url(r'^export_published_phenotype_codes/(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/$'
             , Phenotype.export_published_phenotype_codes
             , name='api_export_published_phenotype_codes'),

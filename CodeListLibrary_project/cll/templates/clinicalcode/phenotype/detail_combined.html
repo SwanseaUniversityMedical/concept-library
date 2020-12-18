@@ -424,10 +424,11 @@
 	   <div class="panel panel-default">
 	      <div class="panel-heading" role="tab" id="c{{ c.concept_version_id }}" >	
 		      <div>
-		         <h4 class="panel-title">
+		         <h4 class="panel-title" id="panel-title-c{{ c.concept_version_id }}" concept_version_id="{{ c.concept_version_id }}" >
 		            <a role="button" data-toggle="collapse"  id="sign_c{{ c.concept_version_id }}"
-		               data-parent="#accordion" href="#collapse_c{{ c.concept_version_id }}" aria-expanded="true" aria-controls="collapse_c{{ c.concept_version_id }}">
-		            <i class="plus-minus glyphicon glyphicon-plus"></i>    
+		               data-parent-xxx="#accordion" 
+		               href="#collapse_c{{ c.concept_version_id }}" aria-expanded="true" aria-controls="collapse_c{{ c.concept_version_id }}">
+		            <i class="plus-minus glyphicon glyphicon-plus" id="i-c{{ c.concept_version_id }}" ></i>    
 		            {{ c.concept_id }}/{{ c.concept_version_id }}
 		            </a>
 						
@@ -730,10 +731,12 @@
     		
     		$("#Expand_all").on("click", function() {
 			    $('#accordion .panel-collapse:not(".in")').collapse('show');
+			    //$('#accordion .panel-collapse').collapse('show');
 			});
 			
 			$("#Collapse_all").on("click", function() {
 			    $('#accordion .panel-collapse.in').collapse('hide');
+			    //$('#accordion .panel-collapse').collapse('hide');
 			});
 			
 			function toggleIcon(e) { getConceptsCodes(); 
@@ -744,17 +747,19 @@
 			}
 			$('.panel-group').on('hidden.bs.collapse', toggleIcon);
 			$('.panel-group').on('shown.bs.collapse', toggleIcon);
-			 
+
+
+		//$('#accordion .panel-collapse.in').collapse('hide');
+		
+		{% if not user.is_authenticated %}
+		    $('#accordion .panel-collapse:not(".in")').collapse('show');
+		{% endif%}
+	
+	
 		});
 	</script>
 	
-	{% if not user.is_authenticated %}
-		<script type="text/javascript"> 
-	        $(function() {
-	        	$('#accordion .panel-collapse:not(".in")').collapse('show');
-	 		});
-	    </script> 
-	{% endif%}
+
 
 
 		

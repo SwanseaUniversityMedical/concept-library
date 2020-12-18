@@ -28,6 +28,7 @@ from collections import OrderedDict as ordr
 from ...utils import *
 from numpy.distutils.fcompiler import none
 
+from View import *
 from django.core import serializers
 from datetime import datetime
 from django.core.validators import URLValidator
@@ -380,8 +381,7 @@ def api_phenotype_update(request):
               status=status.HTTP_201_CREATED
             )
 
-
-  
+#--------------------------------------------------------------------------  
 #disable authentication for this function
 @api_view(['GET'])
 @authentication_classes([])
@@ -411,7 +411,7 @@ def export_published_phenotype_codes(request, pk, phenotype_history_id):
         rows_to_return = get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id)
         return Response(rows_to_return, status=status.HTTP_200_OK)
 
-    
+#--------------------------------------------------------------------------    
 @api_view(['GET'])
 def export_phenotype_codes_byVersionID(request, pk, phenotype_history_id):
     '''
@@ -445,4 +445,433 @@ def export_phenotype_codes_byVersionID(request, pk, phenotype_history_id):
         return Response(rows_to_return, status=status.HTTP_200_OK)
 
 
+##################################################################################
+# search my phenotypes / published ones
+
+#--------------------------------------------------------------------------
+#disable authentication for this function
+@api_view(['GET'])
+@authentication_classes([])
+@permission_classes([]) 
+def published_phenotypes(request):
+    return  getPhenotypes(request, is_authenticated_user=False)
     
+#--------------------------------------------------------------------------
+@api_view(['GET'])
+def myPhenotypes(request):
+    '''
+        Get the API output for the list of my phenotypes.
+    '''
+    return  getPhenotypes(request, is_authenticated_user=True)
+    
+#--------------------------------------------------------------------------
+#disable authentication for this function
+@api_view(['GET'])
+@authentication_classes([])
+@permission_classes([]) 
+#--------------------------------------------------------------------------
+#disable authentication for this function
+@api_view(['GET'])
+@authentication_classes([])
+@permission_classes([]) 
+def getPhenotypes(request, is_authenticated_user=True):   
+    search = request.query_params.get('search', '')
+    phenotype_id = request.query_params.get('id', None)
+    tag_ids = request.query_params.get('tag_ids', '')
+    owner = request.query_params.get('owner_username', '')
+    show_only_my_phenotypes = request.query_params.get('show_only_my_phenotypes', "0")
+    show_deleted_phenotypes = request.query_params.get('show_deleted_phenotypes', "0")
+    show_only_validated_phenotypes = request.query_params.get('show_only_validated_phenotypes', "0")
+    phenotype_brand = request.query_params.get('brand', "")
+    author = request.query_params.get('author', '')
+    do_not_show_versions = request.query_params.get('do_not_show_versions', "0")
+    expand_published_versions = request.query_params.get('expand_published_versions', "1")
+    show_live_and_or_published_ver = request.query_params.get('show_live_and_or_published_ver', "3")      # 1= live only, 2= published only, 3= live+published
+        
+    search_tag_list = []
+    tags = []
+    
+    filter_cond = " 1=1 "
+    exclude_deleted = True
+    get_live_and_or_published_ver = 3   # 1= live only, 2= published only, 3= live+published
+    show_top_version_only = False
+    
+    if tag_ids:
+        # split tag ids into list
+        search_tag_list = [int(i) for i in tag_ids.split(",")]
+        tags = Tag.objects.filter(id__in=search_tag_list)
+        
+    # check if it is the public site or not
+    if is_authenticated_user:
+        # ensure that user is only allowed to view/edit the relevant phenotypes
+           
+        get_live_and_or_published_ver = 3
+        # show only phenotypes created by the current user
+        if show_only_my_phenotypes == "1":
+            filter_cond += " AND owner_id=" + str(request.user.id)
+    
+        # if show deleted phenotypes is 1 then show deleted phenotypes
+        if show_deleted_phenotypes != "1":
+            exclude_deleted = True
+        else:
+            exclude_deleted = False    
+        
+        if show_live_and_or_published_ver in ["1", "2", "3"]:
+            get_live_and_or_published_ver = int(show_live_and_or_published_ver)   #    2= published only
+        else:
+            return Response([], status=status.HTTP_200_OK)
+      
+    else:
+        # show published phenotypes
+        get_live_and_or_published_ver = 2   #    2= published only
+        #show_top_version_only = False
+        
+        if PublishedPhenotype.objects.all().count() == 0:
+            return Response([], status=status.HTTP_200_OK)
+
+    
+    if expand_published_versions == "0":
+        show_top_version_only = True
+        
+    
+
+    if phenotype_id is not None:
+        if phenotype_id != '':
+            filter_cond += " AND id=" + phenotype_id
+            
+    if owner is not None:
+        if owner !='':
+            if User.objects.filter(username__iexact = owner.strip()).exists():
+                owner_id = User.objects.get(username__iexact = owner.strip()).id
+                filter_cond += " AND owner_id=" + str(owner_id)
+            else:
+                # username not found
+                filter_cond += " AND owner_id= -1 "
+
+
+    # if show_only_validated_phenotypes is 1 then show only phenotypes with validation_performed=True
+    if show_only_validated_phenotypes == "1":
+        filter_cond += " AND COALESCE(validation_performed, FALSE) IS TRUE "
+
+    # show phenotypes for a specific brand
+    if phenotype_brand != "":
+        if Brand.objects.all().filter(name__iexact = phenotype_brand.strip()).exists():
+            current_brand = Brand.objects.all().filter(name__iexact = phenotype_brand.strip())
+            group_list = list(current_brand.values_list('groups', flat=True))
+            filter_cond += " AND group_id IN("+ ', '.join(map(str, group_list)) +") "
+        else:
+            # brand name not found
+            filter_cond += " AND group_id IN(-1) "
+       
+    phenotypes_srch = get_visible_live_or_published_phenotype_versions(request
+                                                , get_live_and_or_published_ver = get_live_and_or_published_ver 
+                                                , searchByName = search
+                                                , author = author
+                                                , exclude_deleted = exclude_deleted
+                                                , filter_cond = filter_cond
+                                                , show_top_version_only = show_top_version_only
+                                                )
+    
+    
+    # apply tags
+    # I don't like this way :)
+    phenotype_indx_to_exclude = []
+    if tag_ids:
+        for indx in range(len(phenotypes_srch)):  
+            phenotype = phenotypes_srch[indx]
+            phenotype['indx'] = indx
+            phenotype_tags_history = getHistoryTags(phenotype['id'], phenotype['history_date'])
+            if phenotype_tags_history:
+                phenotype_tag_list = [i['tag_id'] for i in phenotype_tags_history if 'tag_id' in i]
+                if not any(t in set(search_tag_list) for t in set(phenotype_tag_list)):
+                    phenotype_indx_to_exclude.append(indx)
+                else:
+                    pass        
+            else:
+                phenotype_indx_to_exclude.append(indx)  
+        
+    if phenotype_indx_to_exclude:      
+        phenotypes = [i for i in phenotypes_srch if (i['indx'] not in phenotype_indx_to_exclude)]
+    else:
+        phenotypes = phenotypes_srch 
+     
+
+    rows_to_return = []
+    titles = ['phenotype_id', 'version_id'
+            , 'UUID', 'phenotype_name'
+            , 'type'
+            , 'author', 'owner'
+            , 'created_by', 'created_date'  
+            , 'modified_by', 'modified_date'  
+            , 'is_deleted', 'deleted_by', 'deleted_date'
+            , 'is_published'
+            ]
+    if do_not_show_versions != "1":
+        titles += ['versions']
+    
+
+    for c in phenotypes:
+        ret = [
+                c['id'],  
+                c['history_id'],  
+                c['phenotype_id'], #UUID
+                c['name'].encode('ascii', 'ignore').decode('ascii'),
+                c['type'],           
+                c['author'],
+                c['owner_name'],
+                
+                c['created_by_username'],
+                c['created'],
+            ]
+
+        if (c['updated_by_id']):
+            ret += [c['modified_by_username']]
+        else:
+            ret += [None]
+            
+        ret += [
+                c['modified'],  
+                
+                c['is_deleted'],  
+            ]
+        
+        if (c['is_deleted'] == True):
+            ret += [c['deleted_by_username']]
+        else:
+            ret += [None]
+        
+        ret += [c['deleted'], c['published']]
+        
+        if do_not_show_versions != "1":
+            ret += [get_visible_versions_list(request, Phenotype, c['id'], is_authenticated_user)]
+        
+        rows_to_return.append(ordr(zip(titles,  ret )))
+                                   
+    return Response(rows_to_return, status=status.HTTP_200_OK)                                   
+
+
+                                               
+# show phenotype detail
+#============================================================= 
+@api_view(['GET'])
+def myPhenotype_detail(request, pk, phenotype_history_id=None):
+    ''' 
+        Display the detail of a phenotype at a point in time.
+    '''
+    
+    if Phenotype.objects.filter(id=pk).count() == 0: 
+        raise Http404
+    
+    if phenotype_history_id is not None:
+        phenotype_ver = Phenotype.history.filter(id=pk, history_id=phenotype_history_id) 
+        if phenotype_ver.count() == 0: raise Http404
+        
+        
+    # validate access phenotype
+    if not allowed_to_view(request.user, Phenotype, pk, set_history_id=phenotype_history_id):
+        raise PermissionDenied
+    
+    # we can remove this check as in phenotype-detail
+    #---------------------------------------------------------
+    # validate access to child phenotypes 
+    if not (allowed_to_view_children(request.user, Phenotype, pk, set_history_id=phenotype_history_id)
+            and
+            chk_deleted_children(request.user, Phenotype, pk, returnErrors = False, set_history_id=phenotype_history_id)
+           ):
+        raise PermissionDenied
+    #---------------------------------------------------------
+            
+    if phenotype_history_id is None:
+        # get the latest version
+        phenotype_history_id = Phenotype.objects.get(pk=pk).history.latest().history_id 
+        
+                    
+    return getPhenotypeDetail(request, pk, phenotype_history_id)
+    
+#--------------------------------------------------------------------------
+#disable authentication for this function
+@api_view(['GET'])
+@authentication_classes([])
+@permission_classes([]) 
+def myPhenotype_detail_PUBLIC(request, pk, phenotype_history_id=None):
+    ''' 
+        Display the detail of a published phenotype at a point in time.
+    '''
+    
+    if Phenotype.objects.filter(id=pk).count() == 0: 
+        raise Http404
+    
+    if phenotype_history_id is not None:
+        phenotype_ver = Phenotype.history.filter(id=pk, history_id=phenotype_history_id) 
+        if phenotype_ver.count() == 0: raise Http404
+        
+            
+    if phenotype_history_id is None:
+        # get the latest version
+        phenotype_history_id = Phenotype.objects.get(pk=pk).history.latest().history_id 
+        
+    is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
+    # check if the phenotype version is published
+    if not is_published: 
+        raise PermissionDenied 
+                    
+    return getPhenotypeDetail(request, pk, phenotype_history_id)
+    
+        
+#--------------------------------------------------------------------------
+def getPhenotypeDetail(request, pk, phenotype_history_id=None):
+    
+    phenotype = getHistoryPhenotype(phenotype_history_id)
+    # The history phenotype contains the owner_id, to provide the owner name, we
+    # need to access the user object with that ID and add that to the phenotype.
+    phenotype['owner'] = None
+    if phenotype['owner_id'] is not None:
+        phenotype['owner'] = User.objects.get(pk=phenotype['owner_id']).username
+
+    phenotype['group'] = None
+    if phenotype['group_id'] is not None: 
+        phenotype['group'] = Group.objects.get(pk=phenotype['group_id']).name
+
+
+    phenotype_history_date = phenotype['history_date']
+    #--------------
+        
+    concept_id_list = [x['concept_id'] for x in json.loads(phenotype['concept_informations'])] 
+    concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(phenotype['concept_informations'])] 
+    concepts = list(Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).values('id', 'history_id', 'name', 'group'))
+    
+    CodingSystem_ids = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).order_by().values('coding_system_id').distinct()
+    clinicalTerminologies = list(CodingSystem.objects.filter(pk__in=list(CodingSystem_ids.values_list('coding_system_id', flat=True))))
+    #--------------
+    
+    tags =  []
+    tags_comp = getHistoryTags(pk, phenotype_history_date)
+    if tags_comp:
+        tag_list = [i['tag_id'] for i in tags_comp if 'tag_id' in i]
+        tags = list(Tag.objects.filter(pk__in=tag_list).values('description', 'id'))
+    
+
+    rows_to_return = []
+    titles = [
+            'phenotype_id'
+            , 'version_id'
+            , 'UUID'
+            , 'phenotype_name'
+            , 'type'
+            , 'tags'
+            , 'author'
+            #, 'entry_date'
+            , 'clinical_terminologies'
+            #, 'description'            
+            
+            , 'created_by', 'created_date'  
+            , 'modified_by', 'modified_date'  
+            
+            , 'validation_performed' 
+            #, 'validation_description'
+            , 'publication_doi'
+            , 'publication_link'
+            #, 'secondary_publication_links'
+            , 'source_reference'
+            , 'citation_requirements'
+           
+            , 'implementation'
+            , 'publications'
+            
+            , 'owner', 'owner_access'
+            , 'group', 'group_access'
+            , 'world_access'
+            
+            , 'is_deleted'  # may come from phenotype live version / or history
+            # , 'deleted_by', 'deleted_date' # no need here
+            
+            , 'concepts'
+            ]
+    
+    ret = [
+            phenotype['id'],
+            phenotype['history_id'],
+            phenotype['phenotype_id'],  #UUID
+            phenotype['name'].encode('ascii', 'ignore').decode('ascii'),
+            phenotype['type'],
+            
+            tags,
+            phenotype['author'],
+            #phenotype['entry_date'],
+            clinicalTerminologies,
+            #phenotype['description'],
+            
+            
+            phenotype['created_by_username'],
+            phenotype['created'],   
+            phenotype['modified_by_username'],
+            phenotype['modified'],
+
+            phenotype['validation_performed'],
+            #phenotype['validation_description'],
+            phenotype['publication_doi'],
+            phenotype['publication_link'],
+            #phenotype['secondary_publication_links'],
+            phenotype['source_reference'],
+            phenotype['citation_requirements'],
+            
+            phenotype['implementation'],
+            phenotype['secondary_publication_links'],
+            
+            phenotype['owner'] ,
+            dict(Permissions.PERMISSION_CHOICES)[phenotype['owner_access']],
+            phenotype['group'],
+            dict(Permissions.PERMISSION_CHOICES)[phenotype['group_access']],
+            dict(Permissions.PERMISSION_CHOICES)[phenotype['world_access']],
+        ]
+    
+    # may come from phenotype live version / or history    
+    if (phenotype['is_deleted'] == True or Phenotype.objects.get(pk=pk).is_deleted==True):
+        ret += [True]
+    else:
+        ret += [None]
+            
+
+    # concepts
+    com_titles = ['name', 'concept_id', 'concept_version_id'
+                , 'codes'
+                ]
+    
+    ret_concepts = []
+    for c in concepts:
+        ret_codes = []
+        ret_codes = getGroupOfCodesByConceptId_HISTORICAL(c['id'], c['history_id'])
+        
+        
+#         for code in codes:
+#             ret_codes.append(ordr(zip(
+#                                         ['code', 'description']
+#                                         ,  [code['code'], code['description']] 
+#                                     )
+#                                 )
+#                             )
+            
+        ret_comp_data = [
+                            c['name'], 
+                            c['id'],
+                            c['history_id'],
+                            ret_codes
+                        ]
+        ret_concepts.append(ordr(zip(com_titles,  ret_comp_data )))
+
+
+    #ret += [concepts]
+    ret += [ret_concepts]
+    
+    
+    rows_to_return.append(ordr(zip(titles,  ret )))
+                                   
+    return Response(rows_to_return, status=status.HTTP_200_OK)                
+    
+    
+    
+    
+    
+
+    
+

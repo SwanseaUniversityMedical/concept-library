@@ -27,7 +27,6 @@ from ...models.WorkingSet import WorkingSet
 from ...models.WorkingSetTagMap import WorkingSetTagMap
 from ...models.CodingSystem import CodingSystem
 from ...models.Brand import Brand
-
 from ...models.PublishedConcept import PublishedConcept
 from django.contrib.auth.models import User
 
@@ -55,6 +54,7 @@ from django.db.models.aggregates import Max
 from clinicalcode.permissions import get_visible_concepts_live
 #from ...permissions import Permissions
 
+#--------------------------------------------------------------------------
 '''
     ---------------------------------------------------------------------------
     View sets (see http://www.django-rest-framework.org/api-guide/viewsets).
@@ -91,7 +91,7 @@ class ConceptViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = super(ConceptViewSet, self).filter_queryset(queryset)
         return queryset.order_by('id')
 
-
+#--------------------------------------------------------------------------
 # /api/concepts_live_and_published
 @api_view(['GET']) 
 def concepts_live_and_published(request):
@@ -181,7 +181,7 @@ def child_concepts(request, pk):
 
         return Response(tree, status=status.HTTP_200_OK)
 
-
+#--------------------------------------------------------------------------
 @api_view(['GET'])
 def parent_concepts(request, pk):
     '''
@@ -212,6 +212,7 @@ def parent_concepts(request, pk):
         return Response(tree, status=status.HTTP_200_OK)
 
 
+#--------------------------------------------------------------------------
 @api_view(['GET']) 
 def export_concept_codes(request, pk):
     '''
@@ -253,7 +254,7 @@ def export_concept_codes(request, pk):
     
         return Response(rows_to_return, status=status.HTTP_200_OK)
 
-    
+#--------------------------------------------------------------------------
 #disable authentication for this function
 @api_view(['GET'])
 @authentication_classes([])
@@ -283,6 +284,8 @@ def export_published_concept_codes(request, pk, concept_history_id):
     if request.method == 'GET':
         return get_historical_concept_codes(request, pk, concept_history_id)
 
+
+#--------------------------------------------------------------------------
 @api_view(['GET'])
 def export_concept_codes_byVersionID(request, pk, concept_history_id):
     '''
@@ -320,6 +323,7 @@ def export_concept_codes_byVersionID(request, pk, concept_history_id):
         return get_historical_concept_codes(request, pk, concept_history_id)
 
 
+#--------------------------------------------------------------------------
 def get_historical_concept_codes(request, pk, concept_history_id):
         
 #     concept = Concept.objects.filter(id=pk).exclude(is_deleted=True)
@@ -776,93 +780,11 @@ def api_concept_update(request):
         
         
 
-############################################################################
-# published concepts
-############################################################################
-
-@api_view(['GET'])
-def get_all_published_concepts(request):
-    '''
-        Return all published concepts.
-    '''
-    if request.method == 'GET':
-        rows_to_return = []
-        titles = ['id', 'version', 'name', 'description', 'author', 'validation_performed', 'validation_description',
-                    'publication_doi', 'publication_link', 'paper_published', 'source_reference', 'citation_requirements',
-                    'coding_system_id', 'publication_date', 'publisher_id']
-        
-        #current_concept = Concept.objects.get(pk=pk)
-
-        # Use a SQL function to extract this data.
-        rows = getPublishedConcepts()
-        for row in rows:
-            rows_to_return.append(ordr(zip(titles,  
-                                [
-                                    row['id'],  
-                                    row['history_id'],
-                                    row['name'].encode('ascii', 'ignore').decode('ascii'),
-                                    row['description'].encode('ascii', 'ignore').decode('ascii'),
-                                    row['author'].encode('ascii', 'ignore').decode('ascii'),
-                                    row['validation_performed'],
-                                    row['validation_description'].encode('ascii', 'ignore').decode('ascii'),
-                                    row['publication_doi'].encode('ascii', 'ignore').decode('ascii'),
-                                    row['publication_link'].encode('ascii', 'ignore').decode('ascii'),
-                                    row['paper_published'],
-                                    row['source_reference'].encode('ascii', 'ignore').decode('ascii'),
-                                    row['citation_requirements'].encode('ascii', 'ignore').decode('ascii'),
-                                    row['coding_system_id'],
-                                    row['publication_date'],
-                                    row['publisher_id'],
-                                ]
-                                )))
-    
-        return Response(rows_to_return, status=status.HTTP_200_OK)
-
-
-@api_view(['GET'])
-def published_concept(request, version_id):
-    '''
-        Return published concept using version id.
-    '''
-    if request.method == 'GET':
-        # check if the concept version is published
-        concept = PublishedConcept.objects.filter(concept_history_id=version_id)
-        if concept.count() == 0: raise Http404
-
-        titles = ['id', 'version', 'name', 'description', 'author', 'validation_performed', 'validation_description',
-                    'publication_doi', 'publication_link', 'paper_published', 'source_reference', 'citation_requirements',
-                    'coding_system_id', 'publication_date', 'publisher_id']
-
-        # Use a SQL function to extract this data.
-        concept = getPublishedConceptByVersionId(version_id)
-        concept_to_return = (ordr(zip(titles,  
-                                [
-                                    concept['id'],  
-                                    concept['history_id'],
-                                    concept['name'].encode('ascii', 'ignore').decode('ascii'),
-                                    concept['description'].encode('ascii', 'ignore').decode('ascii'),
-                                    concept['author'].encode('ascii', 'ignore').decode('ascii'),
-                                    concept['validation_performed'],
-                                    concept['validation_description'].encode('ascii', 'ignore').decode('ascii'),
-                                    concept['publication_doi'].encode('ascii', 'ignore').decode('ascii'),
-                                    concept['publication_link'].encode('ascii', 'ignore').decode('ascii'),
-                                    concept['paper_published'],
-                                    concept['source_reference'].encode('ascii', 'ignore').decode('ascii'),
-                                    concept['citation_requirements'].encode('ascii', 'ignore').decode('ascii'),
-                                    concept['coding_system_id'],
-                                    concept['publication_date'],
-                                    concept['publisher_id'],
-                                ]
-                                )))
-    
-        return Response(concept_to_return, status=status.HTTP_200_OK)
-
-
 ##############################################################################
 ##############################################################################
 # search my concepts 
 @api_view(['GET']) 
-def myConcepts_old(request):
+def myConcepts_oldxx(request):
     '''
         Get the API output for the list of my concepts.
     '''
@@ -983,15 +905,31 @@ def myConcepts_old(request):
                                    
     return Response(rows_to_return, status=status.HTTP_200_OK)                                   
 
+##################################################################################
 # search my concepts / published ones
+
+#--------------------------------------------------------------------------
 #disable authentication for this function
 @api_view(['GET'])
 @authentication_classes([])
 @permission_classes([]) 
+def published_concepts(request):
+    return  getConcepts(request, is_authenticated_user=False)
+    
+#--------------------------------------------------------------------------
+@api_view(['GET'])
 def myConcepts(request):
     '''
         Get the API output for the list of my concepts.
     '''
+    return  getConcepts(request, is_authenticated_user=True)
+    
+#--------------------------------------------------------------------------
+#disable authentication for this function
+@api_view(['GET'])
+@authentication_classes([])
+@permission_classes([]) 
+def getConcepts(request, is_authenticated_user=True):    
     search = request.query_params.get('search', '')
     concept_id = request.query_params.get('id', None)
     tag_ids = request.query_params.get('tag_ids', '')
@@ -1019,7 +957,7 @@ def myConcepts(request):
         tags = Tag.objects.filter(id__in=search_tag_list)
         
     # check if it is the public site or not
-    if request.user.is_authenticated():
+    if is_authenticated_user:
         # ensure that user is only allowed to view/edit the relevant concepts
            
         get_live_and_or_published_ver = 3
@@ -1158,7 +1096,7 @@ def myConcepts(request):
         ret += [c['deleted'], c['published']]
         
         if do_not_show_versions != "1":
-            ret += [get_visible_concept_versions_list(request, c['id'])]
+            ret += [get_visible_versions_list(request, Concept, c['id'], is_authenticated_user)]
         
         rows_to_return.append(ordr(zip(titles,  ret )))
                                    
@@ -1167,11 +1105,9 @@ def myConcepts(request):
 
                                                 
                                                 
-# my concept detail 
-#disable authentication for this function
+# show concept detail
+#============================================================= 
 @api_view(['GET'])
-@authentication_classes([])
-@permission_classes([]) 
 def myConcept_detail(request, pk, concept_history_id=None):
     ''' 
         Display the detail of a concept at a point in time.
@@ -1185,30 +1121,60 @@ def myConcept_detail(request, pk, concept_history_id=None):
         if concept_ver.count() == 0: raise Http404
         
         
-    if request.user.is_authenticated():
-        # validate access
-        if not allowed_to_view(request.user, Concept, pk, set_history_id=concept_history_id):
-            raise PermissionDenied
-        
-        if not (allowed_to_view_children(request.user, Concept, pk, set_history_id=concept_history_id)
-                and
-                chk_deleted_children(request.user, Concept, pk, returnErrors = False, set_history_id=concept_history_id)
-               ):
-            raise PermissionDenied
+    # validate access concept
+    if not allowed_to_view(request.user, Concept, pk, set_history_id=concept_history_id):
+        raise PermissionDenied
     
+    # we can remove this check as in concept-detail
+    #---------------------------------------------------------
+    # validate access to child concepts 
+    if not (allowed_to_view_children(request.user, Concept, pk, set_history_id=concept_history_id)
+            and
+            chk_deleted_children(request.user, Concept, pk, returnErrors = False, set_history_id=concept_history_id)
+           ):
+        raise PermissionDenied
+    #---------------------------------------------------------
+            
+    if concept_history_id is None:
+        # get the latest version
+        concept_history_id = Concept.objects.get(pk=pk).history.latest().history_id 
+        
+                    
+    return getConceptDetail(request, pk, concept_history_id)
+    
+#--------------------------------------------------------------------------
+#disable authentication for this function
+@api_view(['GET'])
+@authentication_classes([])
+@permission_classes([]) 
+def myConcept_detail_PUBLIC(request, pk, concept_history_id=None):
+    ''' 
+        Display the detail of a published concept at a point in time.
+    '''
+    
+    if Concept.objects.filter(id=pk).count() == 0: 
+        raise Http404
+    
+    if concept_history_id is not None:
+        concept_ver = Concept.history.filter(id=pk, history_id=concept_history_id) 
+        if concept_ver.count() == 0: raise Http404
+        
             
     if concept_history_id is None:
         # get the latest version
         concept_history_id = Concept.objects.get(pk=pk).history.latest().history_id 
         
     is_published = checkIfPublished(Concept, pk, concept_history_id)
-    if not request.user.is_authenticated():
-        # check if the concept version is published
-        if not is_published: 
-            raise PermissionDenied 
+    # check if the concept version is published
+    if not is_published: 
+        raise PermissionDenied 
                     
-    #----------------------------------------------------------------------
-
+    return getConceptDetail(request, pk, concept_history_id)
+    
+        
+#--------------------------------------------------------------------------
+def getConceptDetail(request, pk, concept_history_id=None):
+    
     concept = getHistoryConcept(concept_history_id)
     # The history concept contains the owner_id, to provide the owner name, we
     # need to access the user object with that ID and add that to the concept.

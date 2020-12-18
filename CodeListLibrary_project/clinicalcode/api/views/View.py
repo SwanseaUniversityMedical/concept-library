@@ -378,36 +378,39 @@ def get_versions_list(user, set_class, pk):
     return rows_to_return
 
 
-def get_visible_concept_versions_list(request, pk):
-    set_class = Concept
+def get_visible_versions_list(request, set_class, pk, is_authenticated_user=True):
     
     versions = set_class.objects.get(pk=pk).history.all().order_by('-history_id')
    
-    visible_concept_versions = []
+    visible_versions = []
 
     for v in versions:
-        ver = getHistoryConcept(v.history_id)
+        if set_class == Concept:
+            ver = getHistoryConcept(v.history_id)
+        elif set_class == Phenotype:
+            ver = getHistoryPhenotype(v.history_id)
+        
         is_this_version_published = False
-        is_this_version_published = PublishedConcept.objects.filter(concept_id=ver['id'], concept_history_id=ver['history_id']).exists()
+        is_this_version_published = checkIfPublished(set_class, ver['id'], ver['history_id'])
         
         ver['is_published'] = is_this_version_published
         
-        if request.user.is_authenticated(): 
+        if is_authenticated_user: 
             if allowed_to_edit(request.user, set_class, pk) or allowed_to_view(request.user, set_class, pk):
-                visible_concept_versions.append(ver)
+                visible_versions.append(ver)
             else:
                 if is_this_version_published:
-                    visible_concept_versions.append(ver)
+                    visible_versions.append(ver)
         else:
             if is_this_version_published:
-                visible_concept_versions.append(ver)
+                visible_versions.append(ver)
                 
     max_version_id = versions.aggregate(Max('history_id'))['history_id__max']
     
     rows_to_return = []
     titles = ['version_id', 'version_name', 'version_date', 'is_published', 'is_latest']
     
-    for v in visible_concept_versions:
+    for v in visible_versions:
         ret = [
                 v['history_id'],  
                 v['name'].encode('ascii', 'ignore').decode('ascii'),
