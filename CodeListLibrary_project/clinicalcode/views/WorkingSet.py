@@ -287,7 +287,11 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, 
             warnings.append("This working set has an updated version, Do you want to continue and override it? ")
         #----------------------------------------------------------
         children_permitted_and_not_deleted = True
-        children_permitted_and_not_deleted , error_dic2 = db_utils.chk_children_permission_and_deletion(self.request.user, WorkingSet, pk, WS_concepts_json = workingset.concept_informations)
+        children_permitted_and_not_deleted , error_dic2 = db_utils.chk_children_permission_and_deletion(self.request.user
+                                                                                                        , WorkingSet, pk
+                                                                                                        , WS_concepts_json = workingset.concept_informations
+                                                                                                        , submitted_concept_version = workingset.concept_version
+                                                                                                        )
         if not children_permitted_and_not_deleted:
             errors['children']= error_dic2
         
@@ -633,9 +637,7 @@ def history_workingset_to_csv(request, pk, workingset_history_id):
         
         
     current_ws_version = WorkingSet.history.get(id=pk , history_id=workingset_history_id)   
-    
-    show_version_number = True
-    
+        
     # Get the list of concepts in the working set data (this is listed in the
     # concept_informations field with additional, user specified columns. Each
     # row is a concept ID and the column data for these extra columns.
@@ -672,8 +674,7 @@ def history_workingset_to_csv(request, pk, workingset_history_id):
                 if not column_name.split('|')[0] in title_row:
                     title_row.append(column_name.split('|')[0])
 
-    final_titles = (['code', 'description', 'concept_id']
-                + [[] , ['concept_version_id']][show_version_number]
+    final_titles = (['code', 'description', 'coding_system', 'concept_id', 'concept_version_id']
                 + ['concept_name']
                 + ['working_set_id' , 'working_set_version_id' , 'working_set_name']
                 + title_row
@@ -684,6 +685,8 @@ def history_workingset_to_csv(request, pk, workingset_history_id):
     concept_version = WorkingSet.history.get(id=pk , history_id=workingset_history_id).concept_version 
 
     for concept_id, data in concept_data.iteritems():
+        concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version[concept_id]).coding_system.name
+        
         rows_no=0
         codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id , concept_version[concept_id])
         #Allow Working sets with zero attributes
@@ -694,22 +697,24 @@ def history_workingset_to_csv(request, pk, workingset_history_id):
             writer.writerow([
                                 cc['code'], 
                                 cc['description'].encode('ascii', 'ignore').decode('ascii'),
-                                concept_id
+                                concept_coding_system,
+                                concept_id,
+                                concept_version[concept_id]
                             ]
-                            + [[] , [concept_version[concept_id]]][show_version_number]
                             + [Concept.history.get(id=concept_id , history_id=concept_version[concept_id] ).name] 
-                            + [current_ws_version.id ,current_ws_version.history_id , current_ws_version.name]
+                            + [current_ws_version.id , current_ws_version.history_id , current_ws_version.name]
                             + data)
             
         if rows_no==0:
             writer.writerow([
                                 '', 
                                 '',
-                                concept_id
+                                concept_coding_system,
+                                concept_id,
+                                concept_version[concept_id]
                             ]
-                            + [[] , [concept_version[concept_id]]][show_version_number]
                             + [Concept.history.get(id=concept_id , history_id=concept_version[concept_id] ).name] 
-                            + [current_ws_version.id ,current_ws_version.history_id , current_ws_version.name]
+                            + [current_ws_version.id , current_ws_version.history_id , current_ws_version.name]
                             + data)
 
     return response      
@@ -718,7 +723,7 @@ def history_workingset_to_csv(request, pk, workingset_history_id):
 @login_required
 def workingset_list(request):
     '''
-        display a list of working sets. This view can be searched and contains paging
+        display the list of working sets. This view can be searched and contains paging
     '''
 
     new_tag_list = []

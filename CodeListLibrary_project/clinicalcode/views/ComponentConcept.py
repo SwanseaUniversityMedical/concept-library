@@ -121,7 +121,8 @@ class ComponentConceptCreate(LoginRequiredMixin,
         
         
         referenced_concept = form.cleaned_data['concept_ref']
-        form.instance.concept_ref_history = referenced_concept.history.latest()
+        #form.instance.concept_ref_history = referenced_concept.history.latest() #?? need to be feeded
+        form.instance.concept_ref_history = Concept.history.get(id=referenced_concept.pk, history_id=self.request.POST.get('child_history_id'))
         with transaction.atomic():
             form.instance.created_by = self.request.user
             # Save the component.
@@ -260,8 +261,9 @@ class ComponentConceptUpdate(LoginRequiredMixin,
         # show latest version of the child concept for comparison
         context['concept_ref_lates_version_id'] = Concept.objects.get(pk=component.concept_ref_id).history.latest().pk
         context['concept_ref_deleted'] = Concept.objects.get(pk=component.concept_ref_id).is_deleted
-        context['concept_ref_is_accessible'] = allowed_to_view(self.request.user, Concept, component.concept_ref_id)
+        context['concept_ref_is_accessible'] = allowed_to_view(self.request.user, Concept, component.concept_ref_id, set_history_id=component.concept_ref_history.pk)
 
+        context['child_history_id'] = component.concept_ref_history.pk
         #------------------------------
         concept = Concept.objects.get(id=component.concept_id) # id=self.kwargs['concept_id']
         latest_history_ID = concept.history.latest().pk
@@ -380,7 +382,7 @@ def component_history_concept_detail_combined(request,
     '''
     # validate access for login and public site
     if request.user.is_authenticated():
-        validate_access_to_view(request.user, Concept, concept_id)
+        validate_access_to_view(request.user, Concept, concept_id, set_history_id=concept_history_id)
     else:
         if not Concept.objects.filter(id=concept_id).exists(): 
             raise PermissionDenied

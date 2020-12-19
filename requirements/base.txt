@@ -28,3 +28,4 @@ six==1.11.0
 SQLAlchemy==1.1.11
 typing==3.6.6
 urllib3==1.24.1
+django-markdownify==0.8.1

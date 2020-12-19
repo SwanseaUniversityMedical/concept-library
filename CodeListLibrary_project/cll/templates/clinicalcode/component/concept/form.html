@@ -38,6 +38,8 @@
  	<input type="hidden" id="component_id" name="component_id"  value="{{ object.id }}">
  	
  	<input type="hidden" id="latest_history_id_concept" name="latest_history_id_concept"  value="{{ latest_history_ID }}">
+
+ 	<input type="hidden" id="child_history_id" name="child_history_id"  value="{{ child_history_id }}">
  	 
 </div>
 
@@ -142,11 +144,6 @@
   </div>
 {% endif %}
 
-<!-- <div id="concept-uniquecodes" class="form-group"> -->
-<!-- 	<label class="col-sm-12"><i class="fa fa-barcode" aria-hidden="true"></i> Codes</label> -->
-<!-- 	<span style='width:100px;' >&nbsp;&nbsp;&nbsp;</span> -->
-<!-- 	<span class="childConceptAmount label label-primary">{% if form.instance.pk is not None %}Rows: {{ codes_count }}{% endif %}</span> -->
-<!-- </div> -->
 
 <hr/>
 <div  id="concept-uniquecodes"  class="row">
@@ -273,33 +270,32 @@ $(function(){
 			transformResult: function(response){
 				// clear the selected field
 				$('#id_concept_ref').val('');
+				$('#child_history_id').val('');
 				$('#concept-component-table tbody').html('');
 				$('.childConceptAmount').text('');
 				
 				return {
 					suggestions: $.map($.parseJSON(response), function(item){
-						return {data: String(item.id), value: "Concept: " + item.id + " - " + item.name + ", author: " + item.author};
+						return {data: String(item.id)
+							, value: "Concept: " + item.id + "/" +item.history_id + " - " + "(" + (item.rn==1?'latest: ':'') + item.published+")" + " - " + item.name + ", author: " + item.author
+							, concept_name: item.name
+							, concept_history_id: String(item.history_id) 
+						};
+
 					})
 				};
 			},
 			onSelect : function(suggestion){
 				// set the id of the selected concept
 				$('#id_concept_ref').val(suggestion.data);
+				$('#child_history_id').val(suggestion.concept_history_id);
 				
-				$('#conceptcompfrm #id_name').val(suggestion.value.split(', author: ')[0].split(' - ').slice(1).join(' - '));
+				$('#conceptcompfrm #id_name').val(suggestion.concept_name);
 				$('#div_id_name').removeClass('has-error');
 		        $('#help_id_name').html('');
-		        
-// 		     // get the components for the concept
-// 				dataService.getComponents(suggestion.data, function(data){
-// 					if(data.form_is_valid){
-// 						$('#concept-component-table tbody').html(data.html_component_list);
-//						$('.childConceptAmount').text('Rows: ' + data.codes_count);
-// 					}
-// 				});
-		     
+		        		     
 				// get the unique codes for the concept
-				dataService.getConceptUniqueCodes(suggestion.data, function(data){
+				dataService.getConceptUniqueCodesByVersion(suggestion.data, suggestion.concept_history_id, function(data){
 					if(data.form_is_valid){
 						$('#concept-component-table tbody').html(data.html_uniquecodes_list);
 						$('.childConceptAmount').text('Rows: ' + data.codes_count);
@@ -309,6 +305,7 @@ $(function(){
 		}).on('blur', function(event){
 			if($(this).val() == ""){
 				$('#id_concept_ref').val('');
+				$('#child_history_id').val('');
 				$('#concept-component-table tbody').html('');
 				$('.childConceptAmount').text('');
 			}

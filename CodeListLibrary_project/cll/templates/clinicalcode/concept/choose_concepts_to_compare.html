@@ -122,7 +122,11 @@ $(function(){
 				
 				return {
 					suggestions: $.map($.parseJSON(response), function(item){
-						return {data: String(item.id), value: "Concept: " + item.id + " - " + item.name + ", author: " + item.author};
+						//return {data: String(item.id), value: "Concept: " + item.id + " - " + item.name + ", author: " + item.author};
+						return {data: String(item.id) 
+							, value: "Concept: " + item.id + "/" +item.history_id + " - " + "(" + (item.rn==1?'latest: ':'') + item.published+")" + " - " + item.name + ", author: " + item.author
+							, version: String(item.history_id)
+							};
 					})
 				};
 			},
@@ -136,7 +140,7 @@ $(function(){
 		        //$('#help_id_name').html('');
 		        		     
 				// get the historical versions of the concept
-				dataService.getConceptVersions(suggestion.data, $(this).attr("indx"), function(data){
+				dataService.getConceptVersions(suggestion.data, suggestion.version, $(this).attr("indx"), function(data){
 					if(data.form_is_valid){
 						//alert(data.html_versions_list);
 						//alert('data.indx='+data.indx);

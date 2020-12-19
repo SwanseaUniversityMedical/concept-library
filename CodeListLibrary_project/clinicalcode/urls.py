@@ -12,7 +12,7 @@ from django.conf import settings
 
 from views import (
     View, Concept, ComponentConcept, ComponentExpression,
-    ComponentQueryBuilder, WorkingSet, adminTemp
+    ComponentQueryBuilder, WorkingSet, adminTemp, Phenotype
 )
 
 urlpatterns = [
@@ -20,6 +20,7 @@ urlpatterns = [
     #url(r'^$', View.index, name='concept_index' ),
     url(r'^concepts/$', Concept.concept_list, name='concept_list'),
     url(r'^workingset/$', WorkingSet.workingset_list, name='workingset_list'),
+    url(r'^phenotype/$', Phenotype.phenotype_list, name='phenotype_list'),
 ]
 
 # #======== Admin Temp ==============================================================================
@@ -31,6 +32,50 @@ if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_P
             adminTemp.api_remove_data, 
             name='api_remove_data'),
       
+    ]
+
+
+# ======== Phenotypes ==============================================================================
+# add URLConf to create, update, and delete Phenotypes
+urlpatterns += [
+    url(r'^phenotype/(?P<pk>\d+)/detail/$',
+        Phenotype.PhenotypeDetail_combined,
+        name='phenotype_detail'),
+
+    url(r'^phenotype/(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/detail/$',
+        Phenotype.PhenotypeDetail_combined,
+        name='phenotype_history_detail'),
+    
+    url(r'^phenotype/(?P<pk>\d+)/history/(?P<phenotype_history_id>\d+)/export/concepts/$',
+        Phenotype.history_phenotype_codes_to_csv,
+        name='history_phenotype_codes_to_csv'),
+    
+    url(r'^phenotype/(?P<pk>\d+)/uniquecodesbyversion/(?P<phenotype_history_id>\d+)/$',
+        Phenotype.phenotype_conceptcodesByVersion,
+        name='phenotype_conceptcodesByVersion'),
+]
+
+if not settings.CLL_READ_ONLY:
+    urlpatterns += [
+        url(r'^phenotype/create/$',
+            Phenotype.phenotype_create,
+            name='phenotype_create'),
+
+        url(r'^phenotype/(?P<pk>\d+)/update/$',
+            Phenotype.PhenotypeUpdate.as_view(),
+            name='phenotype_update'),
+
+        url(r'^phenotype/(?P<pk>\d+)/delete/$',
+            Phenotype.PhenotypeDelete.as_view(),
+            name='phenotype_delete'),
+
+        # url(r'^phenotype/(?P<pk>\d+)/history/(?P<phenotype_history_id>\d+)/revert/$',
+        #     Phenotype.phenotype_history_revert,
+        #     name='phenotype_history_revert'),
+        #
+        # url(r'^phenotype/(?P<pk>\d+)/restore/$',
+        #     Phenotype.PhenotypeRestore.as_view(),
+        #     name='phenotype_restore'),
     ]
 
 
@@ -129,7 +174,7 @@ urlpatterns += [
         Concept.compare_concepts_codes,
         name='compare_concepts_codes'),    
        
-    url(r'^concepts/(?P<pk>\d+)/conceptversions/(?P<indx>\d+)/$',
+    url(r'^concepts/(?P<pk>\d+)/conceptversions/(?P<concept_history_id>\d+)/(?P<indx>\d+)/$',
         Concept.conceptversions,
         name='conceptversions'),             
 ]
@@ -342,8 +387,12 @@ if not settings.CLL_READ_ONLY:
 if settings.ENABLE_PUBLISH:
     urlpatterns += [
         url(r'^concepts/(?P<pk>\d+)/(?P<concept_history_id>\d+)/publish/$',
-        Concept.ConceptPublish.as_view(),
-        name='concept_publish'),
+            Concept.ConceptPublish.as_view(),
+            name='concept_publish'),
+        
+        url(r'^phenotype/(?P<pk>\d+)/(?P<phenotype_history_id>\d+)/publish/$',
+            Phenotype.PhenotypePublish.as_view(),
+            name='phenotype_publish'),
     ]
     
 

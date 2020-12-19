@@ -74,8 +74,3 @@ if settings.DEBUG:
 
 #--------------------------------------------------------------------
 
-# publicsites
-urlpatterns += [
-    url(r'^'+current_brand+'/publicsites/', include('clinicalcode.publicsites.urls')),
-]
-    

@@ -2,18 +2,19 @@
 
 {% load staticfiles %}
 
-{% block title %}| Search Concepts{% endblock title %}
+{% block title %}| Search Phenotypes{% endblock title %}
 
 {% block container %}
-	<h2 class="page-header"><i class="fa fa-list" aria-hidden="true"></i> Concepts</h2>
-	<form id="concept-list-filter" action="{% url 'concept_list' %}" method="POST" >
+
+	<h2 class="page-header"><i class="fa fa-list" aria-hidden="true"></i> Phenotypes</h2>
+	<form id="phenotype-list-filter" action="{% url 'phenotype_list' %}" method="POST" >
 		{% csrf_token %}
 		<div class="panel panel-default">
 			<div class="panel-body">
 			
 				<div class="row form-group">
 					<div class="col-md-2">
-						<label for="search">Search: <i class="help-block-no-break" style="font-size: 10px;">(concept name)</i></label>
+						<label for="search">Search: <i class="help-block-no-break" style="font-size: 10px;">(Phenotype name)</i></label>
 					</div>
 					<div class="col-sm-6">
 						<input class="form-control" type="text" placeholder="Search by name" name="search" id="search" value="{{ search|default_if_none:'' }}">
@@ -37,35 +38,35 @@
 						<input class="form-control" type="text" name="tagids" id="txtTags" data-role="tagsinput" value="{{ tag|default_if_none:'' }}">
 					</div>					
 				</div>
-
+				
 				<div class="row form-group">
 					<div class="col-sm-2">
 						<label for="author">Author: <i class="help-block-no-break" style="font-size: 10px;">(free text)</i></label>
 					</div>
 					<div class="col-sm-6">
 						<input class="form-control" type="text" name="author" id="txtAuthor" data-role="authorinput" value="{{ author|default_if_none:'' }}">
-					</div>	
+					</div>			
 					
 					<div class="col-md-2">
 						<label for="owner">Owner: <i class="help-block-no-break" style="font-size: 10px;">(full user name)</i></label>
 					</div>
 					<div class="col-md-2"> 
 						<input class="form-control" type="text" name="owner" id="txtOwner" data-role="ownerinput" value="{{ owner|default_if_none:'' }}">
-					</div>				
-				</div>	
-								
-				<div class="row form-group">
-					<div class="col-md-2">
+					</div>	
+				</div>
+											
+				<div class="row form-group">							
+				   <div class="col-sm-2">
 						<label for="brand">Brand:</label>
 					</div>
-					<div class="col-md-10"> 
+					<div class="col-sm-10">
 					   {% if request.session.all_brands %}
 						   <ul class="nav navbar-nav">
-							     <select class="form-control" name="concept_brand" id="concept_brand"  >  
+							     <select class="form-control" name="phenotype_brand" id="phenotype_brand"  >  
 								    <option value=""  style='background-color: lightgreen;' >Any</option>
 									{% for brand in request.session.all_brands %}
 										<option value="{{ brand|upper }}" 
-										       {% if brand|upper == concept_brand|upper %} selected="selected" {% endif %}
+										       {% if brand|upper == phenotype_brand|upper %} selected="selected" {% endif %}
 										       >
 											{{ brand|upper }}
 											{% if brand|upper in request.session.user_brands %} (*) {% endif %}
@@ -76,47 +77,44 @@
 								  </select>
 							</ul>
 						{% endif %}
-						<span id="concept_brand_img">
-						{% if concept_brand|length %} 
-							&nbsp; <img height="29px" src="{% static 'img/brands/' %}{{concept_brand|upper}}/logo.png" title="{{concept_brand|upper}}" alt="{{concept_brand|upper}}" /> 
+						<span id="phenotype_brand_img">
+						{% if phenotype_brand|length %} 
+							&nbsp; <img height="29px" src="{% static 'img/brands/' %}{{phenotype_brand|upper}}/logo.png" title="{{phenotype_brand|upper}}" alt="{{phenotype_brand|upper}}" /> 
 						{% endif %}
 						</span>
-					</div>			
-
-				</div>				
+					</div>	
+				</div>
 				
-
-			<div class="row form-group">
-				{% if user.is_authenticated %}
-					<div class="col-md-3">
-						<div class="checkbox"  >
-							<label>
-								<input id="show_deleted_concepts" type="checkbox" name="show_deleted_concepts" {% if show_deleted_concepts %}checked="checked"{% endif %} value="1" >
-								Show deleted concepts
-							</label>
+				<div class="row form-group">
+					{% if user.is_authenticated %}
+						<div class="col-md-3">
+							<div class="checkbox">
+								<label>
+									<input id="show_deleted_phenotypes" type="checkbox" name="show_deleted_phenotypes" {% if show_deleted_phenotypes %}checked="checked"{% endif %} value="1" >
+									Show deleted phenotypes
+								</label>
+							</div>
 						</div>
-					</div>
+						
+						<div class="col-md-3">
+							<div class="checkbox">
+								<label>
+									<input id="show_my_phenotypes" type="checkbox" name="show_my_phenotypes" {% if show_my_phenotypes %}checked="checked"{% endif %} value="1" >
+									Only show phenotypes owned by me
+								</label>
+							</div>
+						</div>
+					{% endif %}	
 					
-					<div class="col-md-3">
+					<div class = "col-md-3">   
 						<div class="checkbox"  >
 							<label>
-								<input id="show_my_concepts" type="checkbox" name="show_my_concepts" {% if show_my_concepts %}checked="checked"{% endif %} value="1" >
-								Only show concepts owned by me
+								<input id="show_only_validated_phenotypes" type="checkbox" name="show_only_validated_phenotypes" {% if show_only_validated_phenotypes %}checked="checked"{% endif %} value="1" >
+								Only Show validated phenotypes
 							</label>
 						</div>
-					</div>
+					</div>			
 										
-				{% endif %}						
-					
-					<div 	class = "col-md-3">   
-						<div class="checkbox"  >
-							<label>
-								<input id="show_only_validated_concepts" type="checkbox" name="show_only_validated_concepts" {% if show_only_validated_concepts %}checked="checked"{% endif %} value="1" >
-								Only Show validated concepts
-							</label>
-						</div>
-					</div>					
-
 				{% if published_count %}
 					<div  class = "col-md-3">
 						<div class="checkbox"  >
@@ -127,49 +125,42 @@
 						</div>
 					</div>		
 				{% endif %}	
-			</div>
-							
-			<div class="row form-group">
+				
+				</div>
+				
+				<div class="row form-group">
 					<div class="col-md-12 text-right">				
 						<a class="btn btn-info" name="reset-form" id="reset-form" >
 							<i class="glyphicon glyphicon-repeat"></i> Reset							
 						</a>
 						
 						<button class="btn btn-info" name="page" value="1">
-							<i class="fa fa-search"></i> Search Concepts
+							<i class="fa fa-search"></i> Search Phenotypes
 						</button>
 					</div>
 					
 			</div>		
-				
-					
+			
 			</div>
 		</div>
 		
-	{% if user.is_authenticated %}		
-		<div>
-			{% if not CLL_READ_ONLY %}
-				<a class="btn btn-primary" {% if allowed_to_create %} href="{% url 'concept_create' %}" {% else %} disabled {% endif %}>
-					<i class="fa fa-plus"></i> Add new concept
-				</a>
-				<span style="width: 10px;">&nbsp;</span>
-			{% endif %}
-			
-				<a class="btn btn-info"  href="{% url 'choose_concepts_to_compare' %}" target=_blank >
-					<i class="fa fa-columns"></i> Compare concepts
-				</a>
-			     			
-		</div>
-	{% endif %}	
+<!-- 		{% if not CLL_READ_ONLY %} -->
+<!-- 			<div> -->
+<!-- 			<a class="btn btn-primary"  {% if allowed_to_create %} href="{% url 'phenotype_create' %}" {% else %} disabled {% endif %}> -->
+<!-- 				<i class="fa fa-plus"></i> Add New Phenotype -->
+<!-- 			</a> -->
+<!-- 			</div> -->
+<!-- 		{% endif %} -->
 		
-	<br/>
+		
+		<br/>
 
+		
 		<table class="table table-striped small-table table-hover">
 			<tr>
 				<th>ID</th>
 				<th>Version ID</th>
-				<th style="width: 200px;">Concept name</th>	
-				<th>Coding system</th>
+				<th style="width: 200px;">Phenotype Name</th>
 				<th>Author</th>
 				<th>Owner</th>
 				{% if user.is_authenticated %}
@@ -183,64 +174,63 @@
 				<th></th>
 			</tr>
 			{% block content %}
-				{% for concept in page_obj.object_list %}  
+				{% for phenotype in page_obj.object_list %}  
 				<tr {% cycle '' ' class="form-group highlight-row" ' %} >
-					<td>{{ concept.id }}</td>
-					<td>{{ concept.history_id }}
-						{% if user.is_authenticated and concept.is_published == 1 %}
-							<span title="{{ concept.published }}" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
+					<td>{{ phenotype.id }}</td>
+					<td>{{ phenotype.history_id }}
+						{% if user.is_authenticated and phenotype.is_published == 1 %}
+							<span title="{{ phenotype.published }}" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
 						{% endif %}
 					</td>
-					<td>{{ concept.name }}
+					<td>{{ phenotype.name }}
 						{% for item in request.BRAND_GROUPS %}
 							{% for brand, groups in item.iteritems %}
-								{% if concept.group_name in groups %}
+								{% if phenotype.group_name in groups %}
 								<img src="{% static 'img/brands/' %}{{brand}}/logo.png" height="10px" title="{{brand}}" alt="{{brand}}" />
 								{% endif %}
 							{% endfor %}
 						{% endfor %}
 					</td>				
-					<td>{{ concept.coding_system_name }}</td>
-					<td title="{{ concept.author }}" >{{ concept.author|truncatechars:20 }}</td>
-					<td>{{ concept.owner_name }}</td>
+					<td title="{{ phenotype.author }}" >{{ phenotype.author|truncatechars:20 }}</td>
+					<td>{{ phenotype.owner_name }}</td>
 					{% if user.is_authenticated %}
-<!-- 						<td>{{ concept.created_by }}<br><i>{{ concept.created|date:"Y-m-d H:i" }}</i></td> -->
-						<td>{% if concept.modified_by_username is not None %}
-							{{ concept.modified_by_username }}<br><i>{{ concept.modified|date:"Y-m-d H:i" }}</i>
+<!-- 						<td>{{ phenotype.created_by }}<br><i>{{ phenotype.created|date:"Y-m-d H:i" }}</i></td> -->
+						<td>{% if phenotype.modified_by_username is not None %}
+							{{ phenotype.modified_by_username }}<br><i>{{ phenotype.modified|date:"Y-m-d H:i" }}</i>
 							{% endif %}
 						</td>
-						<td>{% if concept.is_deleted is True %}
-							<span>&#10004;</span><br><i>{{ concept.deleted|date:"Y-m-d H:i" }}</i>
+						<td>{% if phenotype.is_deleted is True %}
+							<span>&#10004;</span><br><i>{{ phenotype.deleted|date:"Y-m-d H:i" }}</i>
 							{% endif %}
 						</td>
 					{% else %}
-						<td>{{ concept.publish_date|date:"Y-m-d" }}</td>
+						<td>{{ phenotype.publish_date|date:"Y-m-d" }}</td>
 					{% endif %}		
 					<td class="text-right" style="width: 60px;">
-						{% if concept.is_deleted is not True and concept.can_edit %}
-						<a href="{% url 'concept_update' concept.id %}" title="Edit concept">
+						{% if phenotype.is_deleted is not True and phenotype.can_edit %}
+						<a href="{% url 'phenotype_update' phenotype.id %}" title="Edit phenotype">
 							<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
 						</a> 
 						<span style="width: 10px;">&nbsp;</span>
 						{% endif %}
-						{% if concept.is_deleted is not True and concept.can_edit %}
-						<a class="js-load-modal" href="{% url 'concept_delete' concept.id %}" title="Delete concept">
+						{% if phenotype.is_deleted is not True and phenotype.can_edit %}
+						<a class="js-load-modal" href="{% url 'phenotype_delete' phenotype.id %}" title="Delete phenotype">
 							<span class="glyphicon glyphicon-remove-circle text-danger" aria-hidden="true"></span>
 						</a>
 						<span style="width: 10px;">&nbsp;</span>
 						{% endif %}
-						{% if concept.is_deleted is True and concept.can_edit %}
-						<a class="js-load-modal" href="{% url 'concept_restore' concept.id %}" title="Restore concept">
+						{% if phenotype.is_deleted is True and phenotype.can_edit %}
+						<a class="js-load-modal" href="{% url 'phenotype_restore' phenotype.id %}" title="Restore phenotype">
 							<span class="glyphicon glyphicon-repeat text-success" aria-hidden="true"></span>
 						</a>
 						<span style="width: 10px;">&nbsp;</span>
 						{% endif %}
 					</td>
 					<td class="text-right">
-						{% if user.is_authenticated and concept.is_published != 1 %}
-							<a class="" href="{% url 'concept_detail' concept.id %}">
+						{% if user.is_authenticated and phenotype.is_published != 1 %}
+							<a class="" href="{% url 'phenotype_detail' phenotype.id %}">
 						{% else %}
-							<a class="" href="{% url 'concept_history_detail' concept.id concept.history_id %}">
+							<a class="" href="{% url 'phenotype_history_detail' phenotype.id phenotype.history_id %}">
 						{% endif %}
 							<button type="button" class="btn btn-info btn-xs text-right">
 								<i class="glyphicon glyphicon-search"> </i>
@@ -252,14 +242,15 @@
 				{% empty %}
 					<tr>
 						<td colspan="10" class="text-center bg-warning">
-							No concepts
+							No phenotypes
 						</td>
-					</tr>
+					</tr>				
+
 				{% endfor %}
 			{% endblock %}
 		</table>
 		<div class="page-control-container">
-			{% include 'pagination.html' with form_target='concept-list-filter' %}	
+			{% include 'pagination.html' with form_target='phenotype-list-filter' %}	
 		</div>
 	</form>	
 {% endblock container %}
@@ -275,15 +266,15 @@
 			{% for tag in tags %}
 				$('#txtTags').tagsinput('add', {'id': {{ tag.id }}, 'description': '{{ tag.description }}', 'display': '{{ tag.get_display_display }}'});
 			{% endfor %}
-		});
-		//--------------------------------
+		});	
+		//--------------------------------	
 
 		var imgPath = '&nbsp; <img height="29px" src="{% static 'img/brands/' %}BRANDT1/logo.png"  title="BRANDT1" alt="BRANDT1" /> ';
-		$('#concept_brand').on('change', function(e){
+		$('#phenotype_brand').on('change', function(e){
 			if(this.value==''){
-				 $('#concept_brand_img').html('');
+				 $('#phenotype_brand_img').html('');
 			 } else {
-				 $('#concept_brand_img').html(imgPath.replace(/BRANDT1/ig, this.value ) );
+				 $('#phenotype_brand_img').html(imgPath.replace(/BRANDT1/ig, this.value ) );
 			 }
 			});
 
@@ -300,23 +291,23 @@
 			$('#txtAuthor').val('');
 			$('#txtOwner').val('');
 			
-			$('#concept_brand').val('');
-			$('#concept_brand_img').html('');
+			$('#phenotype_brand').val('');
+			$('#phenotype_brand_img').html('');
 						
 			{% if user.is_authenticated %}
-				$('#show_deleted_concepts').prop("checked", false);
-				$('#show_my_concepts').prop("checked", false);					
+				$('#show_deleted_phenotypes').prop("checked", false);
+				$('#show_my_phenotypes').prop("checked", false);					
 			{% endif %}						
 			
-			$('#show_only_validated_concepts').prop("checked", false);
-
-
+			$('#show_only_validated_phenotypes').prop("checked", false);
+			
 			{% if published_count %}
 				$('#expand_published_versions').prop("checked", false);
-			{% endif %}
-
+			{% endif %}	
 		});
 	</script>
+			
 	
-	{% endblock scripts %}
+
+{% endblock scripts %}
 

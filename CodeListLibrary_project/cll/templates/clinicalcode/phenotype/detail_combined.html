@@ -1,0 +1,760 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+{% load markdownify %}
+
+{% block title %}| Historical phenotype{% endblock title %}
+
+{% block container %}
+
+{% if user.is_authenticated and not is_latest_version  %}
+	<h2 style="background-color:silver; padding-left:5px;"><i class="fa fa-history" aria-hidden="true"></i><i> {{ phenotype.name }} <br>(Historical version)</i>
+{% else %}
+	<h2><i class="fa fa-file-o" aria-hidden="true"></i><i> {{ phenotype.name }} </i>		
+{% endif %}	
+	{% for item in request.BRAND_GROUPS %}
+		{% for brand, groups in item.iteritems %}
+			{% if phenotype.group.name in groups %}
+			<img style="margin-top:-5px;" src="{% static 'img/brands/' %}{{brand}}/logo.png" height="29px" title="{{brand}}" alt="{{brand}}" />
+			{% endif %}
+		{% endfor %}
+	{% endfor %}
+</h2>
+
+<div class="panel panel-default">
+	<div class="panel-body">
+		<div class="row">
+			<div class="col-md-12">
+				<div class="form-horizontal">
+					<!--
+					<div class="form-group">
+						<label class="col-sm-3" for="">Name:</label>
+						<div class="col-sm-9">
+							{{ phenotype.name }}						
+						</div>
+					</div>
+					 -->		
+				  <span id="topButtons">			
+					<div class="row">
+						<div class="col-sm-10">
+							<a href="{% url "phenotype_list" %}" class="btn btn-success">
+								<i class="fa fa-reply" aria-hidden="true"></i> Return to list
+							</a>
+							
+						   <div class="dropdown btn-group" > 
+							  <button {% if not user_can_export %} disabled title="Component phenotype(s) deleted or revoked access!!" {% endif %} type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="export-btn">
+							    Export
+							    <span class="caret"></span>
+							  </button>
+							  <ul class="dropdown-menu">
+							  <li>
+							    <a {% if user_can_export %} href="{% url 'history_phenotype_codes_to_csv' pk=phenotype.id phenotype_history_id=phenotype.history_id %}" {% endif %} 
+							       class="dropdown-item" >
+									<i class="fa fa-file-excel-o" aria-hidden="true"></i> CSV
+								</a>
+							   </li>
+							   <li>
+							   {% if user.is_authenticated %}
+									<a {% if user_can_export %} href="/api/export_phenotype_codes_byVersionID/{{ phenotype.id }}/version/{{ phenotype.history_id }}/?format=json" target=_blank {% endif %}
+							   {% elif enable_publish %}
+									<a {% if user_can_export %} href="/api/export_published_phenotype_codes/{{ phenotype.id }}/version/{{ phenotype.history_id }}/?format=json" target=_blank {% endif %}							    
+							   {% endif %}
+								       class="dropdown-item" >
+										<i class="fa fa-file-text" aria-hidden="true"></i> JSON
+									</a>
+							   </li>
+							   <li>
+							   {% if user.is_authenticated %}
+									<a {% if user_can_export %} href="/api/export_phenotype_codes_byVersionID/{{ phenotype.id }}/version/{{ phenotype.history_id }}/?format=xml" target=_blank {% endif %} 
+							   {% elif enable_publish %}
+									<a {% if user_can_export %} href="/api/export_published_phenotype_codes/{{ phenotype.id }}/version/{{ phenotype.history_id }}/?format=xml" target=_blank {% endif %}							    
+							   {% endif %}							   
+							       class="dropdown-item" >
+									<i class="fa fa-file-code-o" aria-hidden="true"></i> XML
+								</a>
+							   </li>
+							  </ul>
+							</div>
+							
+					{% if user.is_authenticated and not CLL_READ_ONLY %}
+							
+							{% if enable_publish %}
+								{% if is_published %}
+							    	<a class="btn btn-success" disabled title="This version is already published" >
+								    	<i class="fa fa-paper-plane" aria-hidden="true"></i>							    		
+								    	&nbsp;Published&nbsp;
+								    	<span class="glyphicon glyphicon-ok" style="color:green"></span>
+								    </a>
+								{% else %}
+									<a 
+								    {% if not live_ver_is_deleted and not is_published %}
+								    	class="js-load-modal btn btn-primary" href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"  
+									{% else %}
+										class="btn btn-primary" disabled 
+										{% if is_published %}
+									    	title="This version is already published" 
+										{% elif live_ver_is_deleted %}
+											title="Deleted phenotypes cannot be published !!"
+										{% endif %} 
+									{% endif %} 
+									 id="publish2" >
+									<i class="fa fa-paper-plane" aria-hidden="true"></i> Publish 
+								   </a>
+								{% endif %}
+								
+							{% endif %}
+							
+					 {% endif %}
+					 	
+						 	
+					
+						</div>
+						<div class="col-md-2 text-right">
+							<a id="printBtn" class="btn btn-primary">
+								<i class="fa fa-print" aria-hidden="true"></i> Print
+							</a>
+							<a href="#" role="button" class="btn popovers" id="help-hist-phenotype" data-toggle="popover" data-trigger="hover" data-container="body" title="" data-original-title="" data-placement="right">
+								<i class="fa fa-question-circle" aria-hidden="true"></i>
+							</a>
+						</div>
+					</div>
+			
+					<div class="alert alert-success alert-dismissable" id="success-message" style="display: none;" role="alert"></div>
+					<div class="alert alert-danger alert-dismissable" id="error-message" style="display: none;" role="alert"></div>
+					<hr/>	
+				</span>
+				
+ 					<div class="form-group highlight-row">
+						<label class="col-sm-3">ID:</label>
+						<div class="col-sm-9" id="phenotype_id_div" phenotype_id="{{ phenotype.id }}">
+							{{ phenotype.id }}						
+						</div>
+					</div>
+										
+ 					<div class="form-group">
+						<label class="col-sm-3">Version ID:</label>
+						<div class="col-sm-9" id="phenotype_history_id_div" phenotype_history_id="{{ phenotype.history_id }}">
+							{{ phenotype.history_id }} 
+							{% if user.is_authenticated %}
+								{% if is_latest_version  %}
+									&nbsp;&nbsp;
+									&nbsp;&nbsp;
+									<span class="tag label label-success" style='color:yellow;' >
+									(latest version &nbsp;&nbsp; <span class="glyphicon glyphicon-asterisk" aria-hidden="true"></span>)
+									</span> 
+								{% else %}		
+									&nbsp;&nbsp;
+									&nbsp;&nbsp;
+									<span class="tag label label-default" style='color:yellow;' >
+									(Historical version &nbsp;&nbsp; <span class="fa fa-history" aria-hidden="true"></span>)
+									</span> 
+								{% endif %}				
+							{% endif %}				
+						</div>
+					</div>
+
+                    <div class="form-group  highlight-row">
+						<label class="col-sm-3">UUID:</label>
+						<div class="col-sm-9">
+							{{ phenotype.phenotype_id }}
+						</div>
+					</div>
+					
+					<div class="form-group">
+						<label class="col-sm-3">Tags:</label>
+						<div class="col-sm-9">
+							{% for tag in tags %}
+							   <span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
+							{% endfor %}						
+						</div>
+					</div>
+					
+                    <div class="form-group highlight-row">
+						<label class="col-sm-3">Type:</label>
+						<div class="col-sm-9">
+							{{ phenotype.type }}						
+						</div>
+					</div>					
+
+                   <div class="form-group">
+						<label class="col-sm-3">Data Sources:</label>
+						<div class="col-sm-9">
+							{% for ds in data_sources %}
+							   <span class="tag label">
+							   		{% if ds.url %}
+							   			<a  href="{{ ds.url }}" target=_blank >{{ ds.name }}</a>
+							   		{% else %}
+							   			{{ ds.name }}
+							   		{% endif %} 
+							   </span><br>
+							{% endfor %}							
+						</div>
+					</div>
+
+
+                   <div class="form-group  highlight-row">
+						<label class="col-sm-3">Clinical Terminologies:</label>
+						<div class="col-sm-9">
+							{% for ct in clinicalTerminologies %}
+							   <span class="tag label label-info">{{ ct.name }}</span>
+							{% endfor %}	
+						</div>
+					</div>
+
+
+					<div class="form-group">
+						<label class="col-sm-3" for="">Author:</label>
+						<div class="col-sm-9">
+							{{ phenotype.author }}						
+						</div>
+					</div>
+					
+					
+                    <div class="form-group highlight-row">
+						<label class="col-sm-3">Agreement Date:</label>
+						<div class="col-sm-9">
+							{{ phenotype.hdr_modified_date }}
+						</div>
+					</div>
+
+					
+					<div class="form-group ">
+						<label class="col-sm-3">Validation performed:</label>
+						<div class="col-sm-9">
+							<input type="checkbox" {% if phenotype.validation_performed %}checked="checked"{% endif %} disabled />
+						</div>
+					</div>
+
+                    <div class="form-group  highlight-row">
+						<label class="col-sm-3">Validation:</label>
+						<div class="col-sm-9">
+							{{ phenotype.validation }}
+						</div>
+					</div>
+
+
+                    <div class="form-group ">
+						<label class="col-sm-3">Valid Event Data Range:</label>
+						<div class="col-sm-9">
+							{{ phenotype.valid_event_data_range_start }} - {{ phenotype.valid_event_data_range_end }}
+						</div>
+					</div>
+										
+					<div class="form-group highlight-row">
+						<label class="col-sm-3">Primary publication DOI:</label>
+						<div class="col-sm-9">
+							{{ phenotype.publication_doi }}							
+						</div>
+					</div>
+					
+					<div class="form-group  ">
+						<label class="col-sm-3">Primary publication link:</label>
+						<div class="col-sm-9">
+							{{ phenotype.publication_link }}
+						</div>
+					</div>
+					
+<!-- 					<div class="form-group "> -->
+<!-- 						<label class="col-sm-3">Secondary  publication links:</label> -->
+<!-- 						<div class="col-sm-9"> -->
+<!-- 							{{ phenotype.secondary_publication_links }} -->
+<!-- 						</div> -->
+<!-- 					</div> -->
+					
+
+					<div class="form-group  highlight-row">
+						<label class="col-sm-3">Source reference:</label>
+						<div class="col-sm-9">
+							{{ phenotype.source_reference }}
+						</div>
+					</div>
+					
+					<div class="form-group ">
+						<label class="col-sm-3">Citation requirements:</label>
+						<div class="col-sm-9">
+							{{ phenotype.citation_requirements }}
+						</div>
+					</div>
+					
+					{% if not user.is_authenticated  %}
+						<div class="form-group  highlight-row">
+							<label class="col-sm-3">Owner:</label>
+							<div class="col-sm-9">
+								{{ phenotype.owner.username }}
+							</div>
+						</div>
+					{% endif %}	
+					
+					
+					{% if user.is_authenticated  %}
+						<div class="form-group   highlight-row">
+							<label class="col-sm-3">Created by:</label>
+							<div class="col-sm-3">
+							 	{{ phenotype.created_by_username }}
+							</div>
+							<label class="col-sm-2 ">On:</label>
+							<div class="col-sm-4">
+							 	{{ phenotype.created }}
+							</div>
+						</div>
+						<div class="form-group  ">
+							<label class="col-sm-3">Modified by:</label>
+							<div class="col-sm-3">
+								{{ phenotype.modified_by_username }}
+							</div>
+							<label class="col-sm-2">On:</label>
+							<div class="col-sm-4">
+							 	{{ phenotype.modified }}
+							</div>
+						</div>
+					
+						<hr />
+						<div id="permissions" class="form-group  highlight-row">
+							<label class="col-sm-3 ">Owner:</label>
+							<div class="col-sm-3">
+								{{ phenotype.owner.username }}
+							</div>
+							<label class="col-sm-2">Owner access:</label>
+							<div class="col-sm-4">								
+								{% if phenotype.owner_access == 1 %}	
+									<span>None</span>
+								{% elif phenotype.owner_access == 2 %}
+									<span>View only</span>
+								{% elif phenotype.owner_access == 3 %}
+									<span>View and edit</span>
+								{% else %}
+									
+								{% endif %}
+							</div>
+						</div>
+						
+						<div id="permissions" class="form-group  ">
+							<label class="col-sm-3">Group:</label>
+							<div class="col-sm-3">
+								{{ phenotype.group }}
+							</div>
+							<label class="col-sm-2">Group access:</label>
+							<div class="col-sm-4">
+								{% if phenotype.group_access == 1 %}	
+									<span>No access</span>
+								{% elif phenotype.group_access == 2 %}
+									<span>View only</span>
+								{% elif phenotype.group_access == 3 %}
+									<span>View and edit</span>
+								{% else %}
+									
+								{% endif %}
+							</div>
+						</div>
+						
+						<div id="permissions" class="form-group  highlight-row">
+							<label class="col-sm-3">Everyone else access:</label>
+							<div class="col-sm-9">
+								{% if phenotype.world_access == 1 %}	
+									<span>No access</span>
+								{% elif phenotype.world_access == 2 %}
+									<span>View only</span>
+								{% elif phenotype.world_access == 3 %}
+									<span>View and edit</span>
+								{% else %}
+									
+								{% endif %}
+							</div>
+						</div>
+						 	
+					{% endif %}	
+					
+					<hr />
+
+         <div >
+             {{ phenotype.implementation|markdownify }}
+         </div>
+                    <h3><i aria-hidden="true"></i> Implementation</h3>
+                    <div class="markdown-holder">
+                        {{ phenotype.implementation|markdownify }}
+                    </div>
+
+					<hr />
+
+                    <h3><i aria-hidden="true"></i> Publications</h3>
+                    <div class="markdown-holder">
+                        {{ phenotype.secondary_publication_links|markdownify }}
+                    </div>
+                    					
+					<hr/>
+					
+<!-- 					<h3><i aria-hidden="true"></i> Concepts</h3> -->
+					<input type="hidden" id="concepts_json" value="{{ phenotype.concept_informations }}">
+					<input type="hidden" id="concepts_id_name" value="{{ concepts_id_name }}">
+<!--  					<input type="hidden" id="concepts_id_versionID"  value="{{ concepts_id_versionID }}">  -->
+
+					
+										
+				<ul class="nav nav-tabs tabs-up" role="tablist">
+				  <li class="nav-item {{ component_tab_active }}">
+				    <a href="#component-tab-div" data-toggle="tab" id="componentstab" data-target="#component-tab-div" class="media_node {{ component_tab_active }} span">
+				    	<h4><i class="fa fa-cogs" aria-hidden="true"></i> Concepts</h4>
+					</a>
+				  </li>
+				  <li class="nav-item {{ codelist_tab_active }}"  >
+				    <a href="#codelist-tab-div" data-toggle="tab" id="codelisttab" data-target="#codelist-tab-div" class="media_node {{ codelist_tab_active }} span">
+				    	<h4><i class="fa fa-barcode" aria-hidden="true"></i> Code List</h4>
+				    </a>
+				  </li>
+				</ul>
+				<div class="tab-content">
+					<div id="component-tab-div" class="tab-pane {{ component_tab_active }}" >
+                 	 <!-- component-tab-div -->
+                 
+
+  <div class="accordion-option">
+    <a href="javascript:void(0)" class="toggle-accordion active" id="Expand_all" >Expand All</a>
+    &nbsp;/&nbsp;
+    <a href="javascript:void(0)" class="toggle-accordion active" id="Collapse_all" >Collapse All</a>
+  </div>
+                   
+ <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+   {% for c in concept_data %}
+	   <div class="panel panel-default">
+	      <div class="panel-heading" role="tab" id="c{{ c.concept_version_id }}" >	
+		      <div>
+		         <h4 class="panel-title" id="panel-title-c{{ c.concept_version_id }}" concept_version_id="{{ c.concept_version_id }}" >
+		            <a role="button" data-toggle="collapse"  id="sign_c{{ c.concept_version_id }}"
+		               data-parent-xxx="#accordion" 
+		               href="#collapse_c{{ c.concept_version_id }}" aria-expanded="true" aria-controls="collapse_c{{ c.concept_version_id }}">
+		            <i class="plus-minus glyphicon glyphicon-plus" id="i-c{{ c.concept_version_id }}" ></i>    
+		            {{ c.concept_id }}/{{ c.concept_version_id }}
+		            </a>
+						
+					&nbsp;
+				    {% if user.is_authenticated %}
+				         {% if c.is_published %}
+				         	<span title="Published" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
+				         {% else %}
+				         	&nbsp;&nbsp;
+				         {% endif %}	
+				    {% endif %}		         
+		        
+			      <span>
+			         <a href="/concepts/{{ c.concept_id }}/version/{{ c.concept_version_id }}/detail/"  
+			            title="/concepts/{{ c.concept_id }}/version/{{ c.concept_version_id }}/detail/"  
+			            target="_blank" class="alert-link">					
+			         {{ c.name }}&nbsp;{{ c.brands|safe }}
+			         </a>
+			      </span>
+			      
+			      <span >
+			         {% if c.alerts|length %}
+			         <div class="alert-danger" role="alert" style=" display:inline-block;" >
+			            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+			            <span class="sr-only">Error:</span>
+			            {{ c.alerts|safe }}
+			         </div>
+			         {% endif %}
+			      </span>
+				</h4>
+		      </div>
+			      
+		   </div>
+		   <div  id="collapse_c{{ c.concept_version_id }}"  codelist_loaded="{{ codelist_loaded }}" 
+		      class="panel-collapse collapse{% if user.is_authenticated %} pre-scrollable{% endif %}"
+		      role="tabpanel" aria-labelledby="c{{ c.concept_version_id }}" >
+		      <div class="panel-body">
+		         <div class="row">
+		            <div class="col-md-6">
+		               <span id="codesCount_c{{ c.concept_version_id }}" class="codesCount label label-primary">Rows: {{ c.codesCount }}</span>
+		            </div>
+		         </div>
+		         <div>
+		            <table class="table table-striped small-table" id="codelist-tab-table-c{{ c.concept_version_id }}" >
+		               <thead>
+		                  <tr>
+		                     <th>Code</th>
+		                     <th>Description</th>
+		                     <th>Coding System</th>
+		                  </tr>
+		               </thead>
+		               <tbody>
+		                  {% for code in codelist %}
+		                  {% if code.concept_id == c.concept_id and code.concept_version_id == c.concept_version_id %}
+		                  <tr>
+		                     <td>{{ code.code }}</td>
+		                     <td>{{ code.description }}</td>
+		                     <td>{{ code.coding_system }}</td>
+		                  </tr>
+		                  {% endif %}
+		                  {% empty %}
+		                  <tr>
+		                     <td colspan="3" class="text-center bg-warning spinner" id="no-codes-td">
+		                        {% if codelist_loaded == 0 %}
+		                        Loading ...
+		                        {% else %}
+		                        No codes
+		                        {% endif %} 											
+		                     </td>
+		                  </tr>
+		                  {% endfor %}
+		               </tbody>
+		            </table>
+		         </div>
+		      </div>
+		   </div>
+		</div>
+	{% empty %}
+	   <div> no concepts </div>
+	{% endfor %}
+</div>
+
+                 	 <!-- component-tab-div -->
+			         </div>
+					
+					
+					<!-- TAB FOR ALL CODES TOGETHER -->
+					<div id="codelist-tab-div" codelist_loaded="{{ codelist_loaded }}" class="tab-pane {{ codelist_tab_active }} " >
+						<div class="row">
+						<br>
+							<div class="col-md-6">
+								<span id="codesCount_all" class="codesCount label label-primary">Rows: {{ codelist|length }}</span>
+							</div>
+						</div>
+						
+						<div id="codelist-div-container" {% if user.is_authenticated %} class="pre-scrollable" {% endif %} >						
+							<table class="table table-striped small-table" id="codelist-tab-table" >
+								<thead>
+									<tr>
+										<th>Code</th>
+										<th>Description</th>
+										<th>Coding System</th>
+										<th>Concept</th>
+									</tr>
+								</thead>
+								<tbody>
+								{% for code in codelist %}
+									<tr>
+										<td>{{ code.code }}</td>
+										<td>{{ code.description }}</td>
+										<td>{{ code.coding_system }}</td>
+										<td>{{ code.concept_id }}/{{ code.concept_version_id }}</td>													
+									</tr>
+								{% empty %}
+									<tr>
+										<td colspan="4" class="text-center bg-warning spinner" id="no-codes-td">
+											{% if codelist_loaded == 0 %}
+											    Loading ...
+											{% else %}
+												No codes
+											{% endif %} 											
+										</td>
+									</tr>
+								{% endfor %}
+								</tbody>
+							</table>
+							
+						</div>
+					</div>
+					
+				</div>
+					  
+					<div class="form-group">
+						<div class="col-xs-offset-3 col-sm-6">
+							<a href="{% url 'phenotype_list' %}" class="btn btn-success">
+								<i class="fa fa-reply" aria-hidden="true"></i> Return to list
+							</a>
+						
+<!-- 						{% if user.is_authenticated and not CLL_READ_ONLY %} -->
+<!-- 							&nbsp;&nbsp; -->
+<!-- 							<span> -->
+<!-- 								<a {% if user_can_edit %}href="{% url 'phenotype_update' phenotype.id %}"{% endif %} class="btn btn-primary" -->
+<!-- 									{% if not user_can_edit %} disabled {% endif %} > -->
+<!-- 									<i class="fa fa-edit" aria-hidden="true"></i> Edit phenotype -->
+<!-- 								</a> -->
+<!-- 							</span>						  -->
+<!-- 						{% endif %} -->
+						</div>
+					</div>		
+					
+					
+				</div>
+			</div>
+		</div>
+		
+<!-- ################################################################## -->
+		
+	<!--	-------------------------------------------------------------------
+			CHANGE HISTORY
+			-------------------------------------------------------------------
+	  -->
+	  	  	<span id="history-section">
+				<hr/>
+				<div class="row">
+					<div class="col-sm-11" id="help-phenotype-history-container">
+						<h3><i class="fa fa-history" aria-hidden="true"></i> versions</h3>
+					</div>
+					<div class="col-sm-1 text-right">
+						<a href="#" role="button" class="popovers" id="help-phenotype-history" data-container="#help-phenotype-history-container" data-toggle="popover" data-trigger="hover" title="" data-original-title="Change history" data-placement="left">
+							<i class="fa fa-question-circle" aria-hidden="true"></i>
+						</a>
+					</div>
+				</div>		
+				<div class="pre-scrollable">		
+					{% include '../phenotype/partial_history_list.html' %}
+			    </div>	
+			</span>
+				
+			</div>
+		</div>
+		
+	<!--	-------------------------------------------------------------------
+			HELP POP-UP TEXTS
+			-------------------------------------------------------------------
+	  -->
+	  		
+		<div id="popover-content-help-hist-phenotype" class="hide popover-lg">
+			<p>
+				<strong>Return to list</strong> - returns to the phenotype search page.
+			</p>
+			
+			<p>
+				<strong>Export</strong> - export all codes into a csv file/JSON/XML for the current phenotype version.
+				{% if user.is_authenticated and not CLL_READ_ONLY %}
+					The button will be disabled unless you have permission to view <b>all</b> of the concepts used.
+				{% endif %}
+			</p>
+			
+			{% if user.is_authenticated and not CLL_READ_ONLY %}
+				<p>
+					<strong>Fork</strong> - This will take a copy of the historic phenotype version and create a new phenotype.
+				</p>
+				<p>
+					<strong>Revert</strong> - This will restore the phenotype back to this version.
+				</p>
+				<p>
+					<strong>Publish</strong> - This will publish the chosen version of the phenotype to the public.
+						<br>Conditions to publish: 
+						<ul>
+							<li>The phenotype is not deleted.</li>
+							<li>You must be the owner.</li>
+							<li>The phenotype contains exportable codes.</li>
+							<li>All concepts are published.</li>
+						</ul>
+				</p>
+			{% endif %}
+		</div>
+	</div>
+</div>
+{% endblock container %}
+
+{% block scripts %}
+	<script src="{% static 'js/clinicalcode/component.js' %}"></script>
+	<script src="{% static 'js/clinicalcode/concept.js' %}"></script>
+	<script src="{% static 'js/clinicalcode/dataService.js' %}"></script>
+	
+	<script type="text/javascript">
+		$('#codelisttab').click(function(e) {
+			getConceptsCodes();
+		});
+
+		function getConceptsCodes() {
+			if($('#codelist-tab-div').attr("codelist_loaded") == "0"){
+				// get the unique codes for the phenotype version
+				phenotype_id = $('#phenotype_id_div').attr("phenotype_id");
+				phenotype_history_id =$('#phenotype_history_id_div').attr("phenotype_history_id");
+								
+				dataService.getPhenotypeUniqueCodesByVersion(phenotype_id, phenotype_history_id, function(data){
+						$('#codelist-tab-table tbody').html(data.html_uniquecodes_list);
+						$('#codesCount_all').text('Rows: ' + data.codes_count);
+						showConceptsCodes(data.concept_codes_html);
+				});
+				
+				
+				$('#codelist-tab-div').attr("codelist_loaded" , "1");
+				
+			}
+		}
+		
+		
+		function showConceptsCodes(concept_codes_html_list) {
+			$.each(concept_codes_html_list, function( i , v ) {
+					$('#codelist-tab-table-c' + v.concept_version_id + ' tbody').html(v.c_html);
+					$('#codesCount_c' + v.concept_version_id).text('Rows: ' + v.c_codes_count);		
+				});		
+		}
+		
+
+		$("#printBtn").click(function () {
+			//window.print();
+			printPage(printCallback);
+		})
+
+		function printPage(callback) {
+			// before printing hide all unnecessary elements from webpage
+			$('.btn').hide();
+			$('#history-section').hide();
+			$('#topButtons').hide();
+			$('footer').hide();
+			$('.popovers').hide();
+			
+			{% if user.is_authenticated %}
+				$('#codelist-div-container').removeClass('pre-scrollable');
+			{% endif%}
+			
+			window.print();
+
+			// call printCallback function which shows back hidden elements
+			callback();
+		}
+
+		function printCallback() {
+			// when printing is finished or cancel show all hidden elements
+			$('#history-section').show();
+			$('#topButtons').show();
+			$('footer').show();
+			$('.btn').show();
+			$('.popovers').show();
+			
+			{% if user.is_authenticated %}
+				$('#codelist-div-container').addClass('pre-scrollable');
+			{% endif%}
+		}
+
+	</script>
+
+<!-- collapse all/ expand all interfere with individual +/- -->
+	<script type="text/javascript">
+    	$(function() {
+    		
+    		$("#Expand_all").on("click", function() {
+			    $('#accordion .panel-collapse:not(".in")').collapse('show');
+			    //$('#accordion .panel-collapse').collapse('show');
+			});
+			
+			$("#Collapse_all").on("click", function() {
+			    $('#accordion .panel-collapse.in').collapse('hide');
+			    //$('#accordion .panel-collapse').collapse('hide');
+			});
+			
+			function toggleIcon(e) { getConceptsCodes(); 
+			      $(e.target)
+			          .prev('.panel-heading')
+			          .find(".plus-minus")
+			          .toggleClass('glyphicon-plus glyphicon-minus');
+			}
+			$('.panel-group').on('hidden.bs.collapse', toggleIcon);
+			$('.panel-group').on('shown.bs.collapse', toggleIcon);
+
+
+		//$('#accordion .panel-collapse.in').collapse('hide');
+		
+		{% if not user.is_authenticated %}
+		    $('#accordion .panel-collapse:not(".in")').collapse('show');
+		{% endif%}
+	
+	
+		});
+	</script>
+	
+
+
+
+		
+{% endblock scripts %}

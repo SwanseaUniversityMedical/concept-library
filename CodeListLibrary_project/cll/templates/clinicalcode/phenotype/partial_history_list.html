@@ -1,7 +1,6 @@
 <!-- ----------------------------------------------------------------------
 	 The table of history entries.
-	 This is the content of the history table. It is included statically when
-	 the page is created and also dynamically when a new component is added.
+	 This is the content of the history table. 
 	 ---------------------------------------------------------------------- 
 -->
 <table class="table table-striped small-table table-hover" id="history-table" >
@@ -9,7 +8,7 @@
 		<tr>
 			<th>Version<br> ID</th>
 			<th>Name</th>
-			<th>Description</th>
+<!-- 			<th>Description</th> -->
 			{% if user.is_authenticated %}
 				<th>Date</th>
 				<th>Change reason</th>
@@ -29,13 +28,13 @@
 		<tr>
 			<td>{{ history.history_id }}</td>
 			<td>{{ history.name }}</td>
-			<td title="{{ history.description }}">{{ history.description|truncatechars:50 }}</td>
+<!-- 			<td title="{{ history.description }}">{{ history.description|truncatechars:50 }}</td> -->
 			{% if user.is_authenticated %}
 				<td>{{ history.history_date}}</td>
 				<td>{{ history.history_change_reason }}</td>
 				<td>
-					{% if history.modified_by is not None %}
-						{{ history.modified_by }}
+					{% if history.updated_by is not None %}
+						{{ history.updated_by }}
 					{% else %}
 						{{ history.created_by }}
 					{% endif %}
@@ -52,10 +51,10 @@
 				<td>{{ history.publish_date|date:"Y-m-d" }}</td>
 			{% endif %}			
 			<td class="text-right">
-				{% if current_concept_history_id == history.history_id %}
+				{% if current_phenotype_history_id == history.history_id %}
 					<span class="help-block-no-break" style="font-size: 10px;">currently shown</span>
 				{% endif %}
-				<a class="" href="{% url 'concept_history_detail' pk=history.id concept_history_id=history.history_id %}">			
+				<a class="" href="{% url 'phenotype_history_detail' pk=history.id phenotype_history_id=history.history_id %}">			
 					<button type="button" class="btn btn-info btn-xs" data-container="body" data-toggle="" data-html="true" data-placement="left" id="code-preview-{{ component.pk }}" data-trigger="hover">
 						<i class="glyphicon glyphicon-search"> </i>
 					</button>			

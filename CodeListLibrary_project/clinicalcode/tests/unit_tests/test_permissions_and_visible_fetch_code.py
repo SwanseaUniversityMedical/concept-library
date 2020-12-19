@@ -1277,7 +1277,7 @@ class PermissionTest(TestCase):
     ''' 
     def test_normal_user_visible_concepts(self):
         normal_user = User.objects.get(username=nm_user)
-        query = get_visible_concepts(normal_user)
+        query = get_visible_concepts_live(normal_user)
         
         # Query should contain two concepts only (concept everybody can view and concept everybody can edit)
         self.assertTrue(query.count() == 2)
@@ -1285,7 +1285,7 @@ class PermissionTest(TestCase):
     
     def test_group_user_visible_concepts(self):
         group_user = User.objects.get(username=gp_user)
-        query = get_visible_concepts(group_user)
+        query = get_visible_concepts_live(group_user)
         
         # Query should contain four concepts only (concept everybody can view and concept everybody can edit...
         # concept group can view and concept group can edit
@@ -1295,14 +1295,14 @@ class PermissionTest(TestCase):
     
     def test_owner_visible_concepts(self):
         owner = User.objects.get(username=ow_user)
-        query = get_visible_concepts(owner)
+        query = get_visible_concepts_live(owner)
         
         # Owner can see all of the concepts
         self.assertTrue(query.count() == 7)
         
     def test_superuser_visible_concepts(self):
         super_user = User.objects.get(username=su_user)
-        query = get_visible_concepts(super_user)
+        query = get_visible_concepts_live(super_user)
         
         # super user can see all of the concepts
         self.assertTrue(query.count() == 7)
