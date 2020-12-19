@@ -17,7 +17,7 @@ build_image:
             - master
         script:
             - docker build -f "OS/Dockerfile" -t cll/os .
-            - docker build -t $CI_REGISTRY/conceptlibrary/concept-library-mirror-github .
-            - docker push $CI_REGISTRY/conceptlibrary/concept-library-mirror-github
-            - docker rmi $CI_REGISTRY/conceptlibrary/concept-library-mirror-github 
+            - docker build -t $CI_REGISTRY/conceptlibrary/github-mirror .
+            - docker push $CI_REGISTRY/conceptlibrary/github-mirror
+            - docker rmi $CI_REGISTRY/conceptlibrary/github-mirror 
             - docker rmi cll/os
