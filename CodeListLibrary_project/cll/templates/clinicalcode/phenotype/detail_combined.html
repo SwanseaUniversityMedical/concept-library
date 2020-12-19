@@ -153,7 +153,14 @@
 						</div>
 					</div>
 
-					<div class="form-group highlight-row">
+                    <div class="form-group  highlight-row">
+						<label class="col-sm-3">UUID:</label>
+						<div class="col-sm-9">
+							{{ phenotype.phenotype_id }}
+						</div>
+					</div>
+					
+					<div class="form-group">
 						<label class="col-sm-3">Tags:</label>
 						<div class="col-sm-9">
 							{% for tag in tags %}
@@ -162,14 +169,14 @@
 						</div>
 					</div>
 					
-                    <div class="form-group">
+                    <div class="form-group highlight-row">
 						<label class="col-sm-3">Type:</label>
 						<div class="col-sm-9">
 							{{ phenotype.type }}						
 						</div>
 					</div>					
 
-                   <div class="form-group highlight-row">
+                   <div class="form-group">
 						<label class="col-sm-3">Data Sources:</label>
 						<div class="col-sm-9">
 							{% for ds in data_sources %}
@@ -185,7 +192,7 @@
 					</div>
 
 
-                   <div class="form-group ">
+                   <div class="form-group  highlight-row">
 						<label class="col-sm-3">Clinical Terminologies:</label>
 						<div class="col-sm-9">
 							{% for ct in clinicalTerminologies %}
@@ -195,30 +202,13 @@
 					</div>
 
 
-					<div class="form-group highlight-row">
+					<div class="form-group">
 						<label class="col-sm-3" for="">Author:</label>
 						<div class="col-sm-9">
 							{{ phenotype.author }}						
 						</div>
 					</div>
 					
-					{% if not user.is_authenticated  %}
-						<div class="form-group ">
-							<label class="col-sm-3">Owner:</label>
-							<div class="col-sm-9">
-								{{ phenotype.owner.username }}
-							</div>
-						</div>
-					{% endif %}	
-					
-					{% if user.is_authenticated  %}
-						<div class="form-group ">
-							<label class="col-sm-3">Entry date:</label>
-							<div class="col-sm-9">
-								{{ phenotype.entry_date }}							
-							</div>
-						</div>
-					{% endif %}	
 					
                     <div class="form-group highlight-row">
 						<label class="col-sm-3">Agreement Date:</label>
@@ -227,21 +217,15 @@
 						</div>
 					</div>
 
-                    <div class="form-group ">
-						<label class="col-sm-3">UUID:</label>
-						<div class="col-sm-9">
-							{{ phenotype.phenotype_id }}
-						</div>
-					</div>
 					
-					<div class="form-group highlight-row">
+					<div class="form-group ">
 						<label class="col-sm-3">Validation performed:</label>
 						<div class="col-sm-9">
 							<input type="checkbox" {% if phenotype.validation_performed %}checked="checked"{% endif %} disabled />
 						</div>
 					</div>
 
-                    <div class="form-group ">
+                    <div class="form-group  highlight-row">
 						<label class="col-sm-3">Validation:</label>
 						<div class="col-sm-9">
 							{{ phenotype.validation }}
@@ -249,21 +233,21 @@
 					</div>
 
 
-                    <div class="form-group highlight-row">
+                    <div class="form-group ">
 						<label class="col-sm-3">Valid Event Data Range:</label>
 						<div class="col-sm-9">
 							{{ phenotype.valid_event_data_range_start }} - {{ phenotype.valid_event_data_range_end }}
 						</div>
 					</div>
 										
-					<div class="form-group">
+					<div class="form-group highlight-row">
 						<label class="col-sm-3">Primary publication DOI:</label>
 						<div class="col-sm-9">
 							{{ phenotype.publication_doi }}							
 						</div>
 					</div>
 					
-					<div class="form-group  highlight-row">
+					<div class="form-group  ">
 						<label class="col-sm-3">Primary publication link:</label>
 						<div class="col-sm-9">
 							{{ phenotype.publication_link }}
@@ -278,22 +262,32 @@
 <!-- 					</div> -->
 					
 
-					<div class="form-group">
+					<div class="form-group  highlight-row">
 						<label class="col-sm-3">Source reference:</label>
 						<div class="col-sm-9">
 							{{ phenotype.source_reference }}
 						</div>
 					</div>
 					
-					<div class="form-group highlight-row">
+					<div class="form-group ">
 						<label class="col-sm-3">Citation requirements:</label>
 						<div class="col-sm-9">
 							{{ phenotype.citation_requirements }}
 						</div>
 					</div>
 					
+					{% if not user.is_authenticated  %}
+						<div class="form-group  highlight-row">
+							<label class="col-sm-3">Owner:</label>
+							<div class="col-sm-9">
+								{{ phenotype.owner.username }}
+							</div>
+						</div>
+					{% endif %}	
+					
+					
 					{% if user.is_authenticated  %}
-						<div class="form-group  ">
+						<div class="form-group   highlight-row">
 							<label class="col-sm-3">Created by:</label>
 							<div class="col-sm-3">
 							 	{{ phenotype.created_by_username }}
@@ -303,7 +297,7 @@
 							 	{{ phenotype.created }}
 							</div>
 						</div>
-						<div class="form-group  highlight-row">
+						<div class="form-group  ">
 							<label class="col-sm-3">Modified by:</label>
 							<div class="col-sm-3">
 								{{ phenotype.modified_by_username }}
@@ -315,7 +309,7 @@
 						</div>
 					
 						<hr />
-						<div id="permissions" class="form-group ">
+						<div id="permissions" class="form-group  highlight-row">
 							<label class="col-sm-3 ">Owner:</label>
 							<div class="col-sm-3">
 								{{ phenotype.owner.username }}
@@ -334,7 +328,7 @@
 							</div>
 						</div>
 						
-						<div id="permissions" class="form-group  highlight-row">
+						<div id="permissions" class="form-group  ">
 							<label class="col-sm-3">Group:</label>
 							<div class="col-sm-3">
 								{{ phenotype.group }}
@@ -353,7 +347,7 @@
 							</div>
 						</div>
 						
-						<div id="permissions" class="form-group ">
+						<div id="permissions" class="form-group  highlight-row">
 							<label class="col-sm-3">Everyone else access:</label>
 							<div class="col-sm-9">
 								{% if phenotype.world_access == 1 %}	
