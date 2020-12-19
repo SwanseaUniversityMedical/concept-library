@@ -893,7 +893,7 @@ def component_history_expression_detail_combined(request,
     
     # validate access for login and public site
     if request.user.is_authenticated():
-        validate_access_to_view(request.user, Concept, concept_id)
+        validate_access_to_view(request.user, Concept, concept_id, set_history_id=concept_history_id)
     else:
         if not Concept.objects.filter(id=concept_id).exists(): 
             raise PermissionDenied
@@ -1013,7 +1013,7 @@ def component_history_expressionselect_detail_combined(request,
     
     # validate access for login and public site
     if request.user.is_authenticated():
-        validate_access_to_view(request.user, Concept, concept_id)
+        validate_access_to_view(request.user, Concept, concept_id, set_history_id=concept_history_id)
     else:
         if not Concept.objects.filter(id=concept_id).exists(): 
             raise PermissionDenied

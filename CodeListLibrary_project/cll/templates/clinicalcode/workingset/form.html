@@ -384,7 +384,7 @@
  
 			<div class="w-50 p-3 bs-example" style="width:50%;">
 			    <div class="alert-info fade in" style="height:20px;">
-			       	New added concepts will refer to the latest version.
+			       	New added concepts will refer to the latest version unless published version is selected.
 			    </div>
 			</div>
 		
@@ -560,7 +560,8 @@
 						//$('#concepthidden_' + id).val('');
 						return {
 							suggestions: $.map($.parseJSON(response), function(item){
-								return {data: String(item.id), value: "Concept: " + item.id + "/latest" + " - " + item.name + ", author: " + item.author};
+								//return {data: String(item.id), value: "Concept: " + item.id + "/latest" + " - " + item.name + ", author: " + item.author};
+								return {data: String(item.id), value: "Concept: " + item.id + "/" +item.history_id + " - " + "(" + (item.rn==1?'latest: ':'') + item.published+")" + " - " + item.name + ", author: " + item.author};
 							})
 						};
 					},

@@ -9,14 +9,14 @@ from rest_framework import routers
 #from . import views
 #from cll import settings
 from django.conf import settings
-from views import (View, Concept, WorkingSet)
+from views import (View, Concept, WorkingSet, Phenotype, DataSource)
  
 '''
 Use the default REST API router to access the API details explicitly.
 These paths will appear as links on the API page.
 '''
 router = routers.DefaultRouter()
-router.register('concepts', Concept.ConceptViewSet)
+router.register('concepts-live', Concept.ConceptViewSet)
 router.register('codes', Concept.CodeViewSet)
 router.register('tags', View.TagViewSet)
 
@@ -47,22 +47,43 @@ urlpatterns = [
     url(r'^parentconcepts/(?P<pk>[0-9]+)/$'
         , Concept.parent_concepts
         , name='api_parent_concepts'),
+       
+    # concepts_live_and_published  used for internal search for concepts
+    url(r'^concepts/$'
+        , Concept.concepts_live_and_published
+        , name='concepts_live_and_published'),
     
     
     # search my concepts
     url(r'^myconcepts/$'
         , Concept.myConcepts
         , name='myConcepts'),
-    
+
+    # search published concepts
+    url(r'^public/published-concepts/$'
+        , Concept.published_concepts
+        , name='api_published_concepts'),
+
+
+
     # my concept detail
     # if only concept_id is provided, get the latest version
     url(r'^myconcept-detail/(?P<pk>[0-9]+)/$'
-        , Concept.myConcept_detail
-        , name='myConceptdetail'),
+            , Concept.myConcept_detail
+            , name='myConceptdetail'),
+    url(r'^public/myconcept-detail/(?P<pk>[0-9]+)/$'
+            , Concept.myConcept_detail_PUBLIC
+            , name='myConceptdetail_public'),
+                  
     # get specific version
     url(r'^myconcept-detail/(?P<pk>[0-9]+)/version/(?P<concept_history_id>\d+)/$'
         , Concept.myConcept_detail
         , name='myConceptdetail_version'),
+    url(r'^public/myconcept-detail/(?P<pk>[0-9]+)/version/(?P<concept_history_id>\d+)/$'
+        , Concept.myConcept_detail_PUBLIC
+        , name='myConceptdetail_version_public'),
+    
+    
     
     
     # ---  working sets  ------------------------------------------      
@@ -92,6 +113,39 @@ urlpatterns = [
         , WorkingSet.myWorkingset_detail
         , name='myWorkingsetdetail_version'),    
     
+    
+    # --- phenotypes   ----------------------------------------------
+    
+    url(r'^export_phenotype_codes_byVersionID/(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/$'
+        , Phenotype.export_phenotype_codes_byVersionID
+        , name='api_export_phenotype_codes_byVersionID'),
+    
+    # search my phenotypes
+    url(r'^myphenotypes/$'
+        , Phenotype.myPhenotypes
+        , name='myPhenotypes'),
+
+    # search published phenotypes
+    url(r'^public/published-phenotypes/$'
+        , Phenotype.published_phenotypes
+        , name='api_published_phenotypes'),    
+    
+    # my phenotype detail
+    # if only phenotype_id is provided, get the latest version
+    url(r'^myphenotype-detail/(?P<pk>[0-9]+)/$'
+            , Phenotype.myPhenotype_detail
+            , name='myPhenotypedetail'),
+    url(r'^public/myphenotype-detail/(?P<pk>[0-9]+)/$'
+            , Phenotype.myPhenotype_detail_PUBLIC
+            , name='myPhenotypedetail_public'),
+                  
+    # get specific version
+    url(r'^myphenotype-detail/(?P<pk>[0-9]+)/version/(?P<phenotype_history_id>\d+)/$'
+        , Phenotype.myPhenotype_detail
+        , name='myPhenotypedetail_version'),
+    url(r'^public/myphenotype-detail/(?P<pk>[0-9]+)/version/(?P<phenotype_history_id>\d+)/$'
+        , Phenotype.myPhenotype_detail_PUBLIC
+        , name='myPhenotypedetail_version_public'),
 ]
 
 
@@ -115,7 +169,17 @@ if not settings.CLL_READ_ONLY:
             , WorkingSet.api_workingset_update
             , name='api_workingset_update'),
         
- 
+        url(r'^api_phenotype_create/$',
+            Phenotype.api_phenotype_create,
+            name='api_phenotype_create'),
+        
+        url(r'^api_phenotype_update/$',
+            Phenotype.api_phenotype_update,
+            name='api_phenotype_update'),
+
+        url(r'^api_datasource_create/$',
+            DataSource.api_datasource_create,
+            name='api_datasource_create')
     ]
     
     
@@ -126,19 +190,9 @@ if settings.ENABLE_PUBLISH:
         , Concept.export_published_concept_codes
         , name='api_export_published_concept_codes'),
       
-      
-        url(r'^publishedconcepts/$'
-            , Concept.get_all_published_concepts 
-            , name='api_get_all_published_concepts'),
-    
-#         url(r'^publishedconceptcodes/(?P<version_id>[0-9]+)/$'
-#             , Concept.published_concept_codes
-#             , name='api_published_concept_codes'),
-        
-        url(r'^publishedconcept/(?P<version_id>[0-9]+)/$'
-            , Concept.published_concept
-            , name='api_published_concept'),
-    
+        url(r'^export_published_phenotype_codes/(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/$'
+            , Phenotype.export_published_phenotype_codes
+            , name='api_export_published_phenotype_codes'),
     ]
         
 

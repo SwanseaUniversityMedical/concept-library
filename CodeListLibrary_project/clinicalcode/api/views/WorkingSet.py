@@ -109,7 +109,6 @@ def export_workingset_codes_byVersionID(request, pk, workingset_history_id):
 
         current_ws_version = WorkingSet.history.get(id=pk , history_id=workingset_history_id) 
         
-        show_version_number = True
         # Get the list of concepts in the working set data (this is listed in the
         # concept_informations field with additional, user specified columns. Each
         # row is a concept ID and the column data for these extra columns.
@@ -133,8 +132,7 @@ def export_workingset_codes_byVersionID(request, pk, workingset_history_id):
                     if not column_name.split('|')[0] in title_row:
                         title_row.append(column_name.split('|')[0])
     
-        final_titles = (['code', 'description', 'concept_id']
-                + [[] , ['concept_version_id']][show_version_number]
+        final_titles = (['code', 'description', 'coding_system', 'concept_id', 'concept_version_id']
                 + ['concept_name']
                 + ['working_set_id' , 'working_set_version_id' , 'working_set_name']
                 + title_row
@@ -143,7 +141,8 @@ def export_workingset_codes_byVersionID(request, pk, workingset_history_id):
         concept_version = WorkingSet.history.get(id=pk , history_id=workingset_history_id).concept_version 
         
         for concept_id, data in concept_data.iteritems():
-            ##data.reverse()
+            concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version[concept_id]).coding_system.name
+            
             rows_no=0
             codes = getGroupOfCodesByConceptId_HISTORICAL(concept_id , concept_version[concept_id])
             #Allow Working sets with zero attributes
@@ -155,9 +154,10 @@ def export_workingset_codes_byVersionID(request, pk, workingset_history_id):
                                     [
                                         cc['code'], 
                                         cc['description'].encode('ascii', 'ignore').decode('ascii'),
-                                        concept_id
+                                        concept_coding_system,
+                                        concept_id,
+                                        concept_version[concept_id]
                                     ]
-                                    + [[] , [concept_version[concept_id]]][show_version_number]
                                     + [Concept.history.get(id=concept_id , history_id=concept_version[concept_id] ).name]
                                     + [current_ws_version.id ,current_ws_version.history_id , current_ws_version.name] 
                                     + data
@@ -168,9 +168,10 @@ def export_workingset_codes_byVersionID(request, pk, workingset_history_id):
                                 [
                                     '', 
                                     '',
-                                    concept_id
+                                    concept_coding_system,
+                                    concept_id,
+                                    concept_version[concept_id]
                                 ]
-                                + [[] , [concept_version[concept_id]]][show_version_number]
                                 + [Concept.history.get(id=concept_id , history_id=concept_version[concept_id] ).name] 
                                 + [current_ws_version.id ,current_ws_version.history_id , current_ws_version.name]
                                 + data
@@ -234,9 +235,11 @@ def api_workingset_create(request):
                     if len(set(concept_ids_list)) != len(concept_ids_list):
                         errors_dict['concept_informations'] = 'concept_informations must have a unique concept ids list'
                     else:
-                        # check all concepts are permitted
-                        permittedConcepts = get_visible_concepts(request.user).exclude(is_deleted=True)                
-                        if not (set(concept_ids_list).issubset(set(permittedConcepts.values_list('id' , flat=True)))):
+                        # check all concepts are permitted/or published
+                        permittedConcepts = get_list_of_visible_concept_ids(
+                                                                            get_visible_live_or_published_concept_versions(request , exclude_deleted = True)
+                                                                            , return_id_or_history_id="id")
+                        if not (set(concept_ids_list).issubset(set(permittedConcepts))):
                             errors_dict['concept_informations'] = 'invalid concept_informations ids list, all concept ids must be valid and accessible by user'
                         else:
                             concept_informations = convert_concept_ids_to_WSjson(concept_ids_list , no_attributes=True)
@@ -417,8 +420,10 @@ def api_workingset_update(request):
                         errors_dict['concept_informations'] = 'concept_informations must have a unique concept ids list'
                     else:
                         # check all concepts are permitted
-                        permittedConcepts = get_visible_concepts(request.user).exclude(is_deleted=True)                
-                        if not (set(concept_ids_list).issubset(set(permittedConcepts.values_list('id' , flat=True)))):
+                        permittedConcepts = get_list_of_visible_concept_ids(
+                                                                            get_visible_live_or_published_concept_versions(request , exclude_deleted = True)
+                                                                            , return_id_or_history_id="id")               
+                        if not (set(concept_ids_list).issubset(set(permittedConcepts))):
                             errors_dict['concept_informations'] = 'invalid concept_informations ids list, all concept ids must be valid and accessible by user'
                         else:
                             concept_informations = convert_concept_ids_to_WSjson(concept_ids_list , no_attributes=True)

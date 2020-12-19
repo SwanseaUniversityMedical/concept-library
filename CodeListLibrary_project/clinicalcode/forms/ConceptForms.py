@@ -76,10 +76,10 @@ class ConceptForm(forms.ModelForm):
     
     name = forms.CharField(
         label='Name:',
-        help_text='100 max characters',
+        help_text='250 max characters',
         required=True,
         error_messages={'required': 'Please enter a name'},
-        max_length=100,
+        max_length=250,
         widget=forms.TextInput(attrs={'class': 'form-control', 'data-required': 'Please enter a name', 'autofocus': 'autofocus'})
     )
     author = forms.CharField(
@@ -102,7 +102,7 @@ class ConceptForm(forms.ModelForm):
         required=True,
         error_messages={'required': 'Please enter a description'},
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
-        max_length=1000
+        max_length=3000
     )
     coding_system = forms.ModelChoiceField(
         label='Coding system:',
@@ -118,7 +118,7 @@ class ConceptForm(forms.ModelForm):
         label='Validation description:',
         error_messages={'required': 'Please enter a validation description'},
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
-        max_length=1000,
+        max_length=3000,
         required=False
     )
     publication_doi = forms.CharField(
@@ -141,7 +141,7 @@ class ConceptForm(forms.ModelForm):
         label='Secondary publication links:',
         required=False,
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
-        max_length=1000
+        max_length=3000
     )
     paper_published = forms.BooleanField(
         label='Paper published:',

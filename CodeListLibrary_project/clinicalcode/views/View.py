@@ -23,7 +23,7 @@ def index(request):
     return render(request, 'clinicalcode/index.html')
 
 
-def build_permitted_components_list(user, concept_id):
+def build_permitted_components_list(user, concept_id, concept_history_id=None, check_published_child_concept=False):
     '''
         Look through the components that are associated with the specified
         concept ID and decide whether each has view and edit permission for
@@ -48,6 +48,10 @@ def build_permitted_components_list(user, concept_id):
         if component.component_type == 1:
             user_can_view_components += [component.id]
             user_can_edit_components += [component.id]
+            # if child concept, check if this version is published
+            if check_published_child_concept:
+                from ..permissions import checkIfPublished
+                component.is_published = checkIfPublished(Concept, component.concept_ref_id, component.concept_ref_history_id)
             
             # Adding extra data here to indicate which group the component
             # belongs to (only for concepts).
@@ -60,7 +64,7 @@ def build_permitted_components_list(user, concept_id):
                 component_error_msg_view[component.id] += ["concept deleted"]
                 component_error_msg_edit[component.id] += ["concept deleted"]
 
-            if not allowed_to_view(user, Concept, component.concept_ref.id):
+            if not allowed_to_view(user, Concept, component.concept_ref.id, set_history_id=component.concept_ref_history_id):
                 component_error_msg_view[component.id] += ["no view permission"]
                 
             if not allowed_to_edit(user, Concept, component.concept_ref.id):

@@ -1,0 +1,23 @@
+#----- global settings -------
+
+stages:
+    - build-master
+    
+variables:
+        GIT_SSL_NO_VERIFY: "true"
+
+
+before_script:
+  - docker login -u teamcityserver -p $CI_AC_TOKEN $CI_REGISTRY
+
+
+build_image:
+        stage: build-master
+        only:
+            - master
+        script:
+            - docker build -f "OS/Dockerfile" -t cll/os .
+            - docker build -t $CI_REGISTRY/conceptlibrary/github-mirror .
+            - docker push $CI_REGISTRY/conceptlibrary/github-mirror
+            - docker rmi $CI_REGISTRY/conceptlibrary/github-mirror 
+            - docker rmi cll/os

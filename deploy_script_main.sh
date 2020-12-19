@@ -1,10 +1,10 @@
 #!/bin/sh
       echo ">>>>> STARTING (production server deployment) <<<<<<<<<<<<<<<<<<<"
 
-      http_proxy=$1;
+      http_proxy=http://192.168.10.15:8080;
       export http_proxy
 
-      https_proxy=$2;
+      https_proxy=https://192.168.10.15:8080;
       export https_proxy
      
 
@@ -21,11 +21,11 @@
       echo ">>>>> install requirements <<<<<<<<<<<<<<<<<<<"
       cd /var/www/concept_lib_sites/v1/requirements
 
-      pip --proxy $1 install --upgrade pip
-      pip --proxy $1 install -r base.txt
+      pip --proxy http://192.168.10.15:8080 install --upgrade pip
+      pip --proxy http://192.168.10.15:8080 install -r base.txt
 
-      pip --proxy $1 install psycopg2-binary
-      pip2 --proxy $1 install pandas
+      pip --proxy http://192.168.10.15:8080 install psycopg2-binary
+      pip2 --proxy http://192.168.10.15:8080 install pandas
 
       cd /var/www/concept_lib_sites/v1/CodeListLibrary_project
 
