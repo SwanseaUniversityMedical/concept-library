@@ -21,7 +21,7 @@
       #echo ">>>>> install requirements <<<<<<<<<<<<<<<<<<<"
       #cd /var/www/concept_lib_sites/v1/requirements
 
-      #pip --proxy http://192.168.10.15:8080 install --upgrade pip
+      #pip --proxy http://192.168.10.15:8080 install --upgrade "pip < 19.1"
       #pip --proxy http://192.168.10.15:8080 install -r base.txt
 
       #pip --proxy http://192.168.10.15:8080 install psycopg2-binary
