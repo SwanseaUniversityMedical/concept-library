@@ -29,7 +29,10 @@ urlpatterns = [
     url(r'^$', View.customRoot),    
     url(r'^', include(router.urls)),
 
-    # ---  concepts  ------------------------------------------      
+    #----------------------------------------------------------  
+    # ---  concepts  ------------------------------------------
+    #----------------------------------------------------------    
+      
     url(r'^export_concept_codes/(?P<pk>[0-9]+)/$'
         , Concept.export_concept_codes
         , name='api_export_concept_codes'),
@@ -48,7 +51,7 @@ urlpatterns = [
         , Concept.parent_concepts
         , name='api_parent_concepts'),
        
-    # concepts_live_and_published  used for internal search for concepts
+    # concepts_live_and_published  used for internal search for concepts (not useful for external api user)
     url(r'^concepts/$'
         , Concept.concepts_live_and_published
         , name='concepts_live_and_published'),
@@ -85,8 +88,9 @@ urlpatterns = [
     
     
     
-    
-    # ---  working sets  ------------------------------------------      
+    #----------------------------------------------------------  
+    # ---  working sets  --------------------------------------      
+    #----------------------------------------------------------  
     
     url(r'^export_workingset_codes/(?P<pk>[0-9]+)/$'
         , WorkingSet.export_workingset_codes
@@ -114,14 +118,16 @@ urlpatterns = [
         , name='myWorkingsetdetail_version'),    
     
     
-    # --- phenotypes   ----------------------------------------------
+    #----------------------------------------------------------
+    # --- phenotypes   ----------------------------------------
+    #----------------------------------------------------------  
     
     url(r'^export_phenotype_codes_byVersionID/(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/$'
         , Phenotype.export_phenotype_codes_byVersionID
         , name='api_export_phenotype_codes_byVersionID'),
     
     # search my phenotypes
-    url(r'^myphenotypes/$'
+    url(r'^myPhenotypes/$'
         , Phenotype.myPhenotypes
         , name='myPhenotypes'),
 
@@ -149,7 +155,7 @@ urlpatterns = [
 ]
 
 
-#======== Concept/Working set create/update ===================
+#======== Concept/Working set/Phenotye create/update ===================
 if not settings.CLL_READ_ONLY:
     urlpatterns += [
         url(r'^api_concept_create/$'

@@ -124,13 +124,38 @@ def customRoot(request):
         'myConcepts': reverse('api:myConcepts', kwargs={}),
         'myConceptdetail':  reverse('api:myConceptdetail', kwargs={'pk': 0}),
         'myConceptdetail_version': reverse('api:myConceptdetail_version', kwargs={'pk': 0, 'concept_history_id': 1}),
-     
+        'api_published_concepts': reverse('api:api_published_concepts', kwargs={}),
+        'myConceptdetail_public': reverse('api:myConceptdetail_public', kwargs={'pk': 0}),
+        'myConceptdetail_version_public': reverse('api:myConceptdetail_version_public', kwargs={'pk': 0, 'concept_history_id': 1}),
+        'api_concept_create': reverse('api:api_concept_create', kwargs={}),
+        'api_concept_update': reverse('api:api_concept_update', kwargs={}),
+        'api_export_published_concept_codes': reverse('api:api_export_published_concept_codes', kwargs={'pk': 0, 'concept_history_id': 1}),
+        
+        
         'export_workingset_codes': reverse('api:api_export_workingset_codes', kwargs={'pk': 0}),
         'export_workingset_codes_byVersionID': reverse('api:api_export_workingset_codes_byVersionID', kwargs={'pk': 0, 'workingset_history_id': 1}),
         'myWorkingSets': reverse('api:myWorkingSets', kwargs={}),
         'myWorkingsetdetail': reverse('api:myWorkingsetdetail', kwargs={'pk': 0}),
-        'myWorkingsetdetail_version': reverse('api:myWorkingsetdetail_version', kwargs={'pk': 0, 'workingset_history_id': 1})
-         
+        'myWorkingsetdetail_version': reverse('api:myWorkingsetdetail_version', kwargs={'pk': 0, 'workingset_history_id': 1}),
+        'api_workingset_create': reverse('api:api_concept_update', kwargs={}),
+        'api_workingset_update': reverse('api:api_workingset_update', kwargs={}),
+        
+        
+        # not implemented yet, will be done when creating/updating phenotype
+        #'export_phenotype_codes': reverse('api:api_export_phenotype_codes', kwargs={'pk': 0}),
+        'api_export_phenotype_codes_byVersionID': reverse('api:api_export_phenotype_codes_byVersionID', kwargs={'pk': 0, 'phenotype_history_id': 1}),
+        'myPhenotypes': reverse('api:myPhenotypes', kwargs={}),
+        'myPhenotypedetail':  reverse('api:myPhenotypedetail', kwargs={'pk': 0}),
+        'myPhenotypedetail_version': reverse('api:myPhenotypedetail_version', kwargs={'pk': 0, 'phenotype_history_id': 1}),
+        'api_published_phenotypes': reverse('api:api_published_phenotypes', kwargs={}),
+        # not needed to be public
+        #'myPhenotypedetail_public': reverse('api:myPhenotypedetail_public', kwargs={'pk': 0}),
+        'myPhenotypedetail_version_public': reverse('api:myPhenotypedetail_version_public', kwargs={'pk': 0, 'phenotype_history_id': 1}),
+        'api_phenotype_create': reverse('api:api_phenotype_create', kwargs={}),
+        'api_phenotype_update': reverse('api:api_phenotype_update', kwargs={}),
+        'api_export_published_phenotype_codes': reverse('api:api_export_published_phenotype_codes', kwargs={'pk': 0, 'phenotype_history_id': 1}),
+        'api_datasource_create': reverse('api:api_datasource_create', kwargs={})        
+        
     }
     
 

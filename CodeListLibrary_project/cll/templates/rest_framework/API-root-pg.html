@@ -16,108 +16,242 @@
     <p class="text-info"><i>- (you can add the querystring ?format=json or ?format=xml to specify the required API output format.) </i>
     </p>
     
-	<h2>Concepts:</h2>	
-	<ol>
-		<li><strong>To export the code list of the latest version of a concept</strong></li>
-			<p><a href="{{ export_concept_codes }}" target="_blank" class="alert-link">{{ export_concept_codes }}</a></p>
-
-		<li><strong>To export the code list of a specific version of a concept</strong></li>
-			<p><a href="{{ export_concept_codes_byVersionID }}" target="_blank" class="alert-link">{{ export_concept_codes_byVersionID }}</a></p>
-			
-		<li><strong>To list and search for concepts</strong></li>
-			<p><a href="{{ myConcepts }}" target="_blank" class="alert-link">{{ myConcepts }}</a></p>
-			<p>- Lists all available concepts for the user <br>
-			   - User can search with criteria using querystring parameters: <br>
-				(you can use one param or a combinations of them)<br>
-				<ul>
-					<li><code>?search=diab</code><br>
-					search by part of concept name (do not put wild characters here)</li>
-					<li><code>?id=10</code><br>
-					you can specify concept id</li>
-					<li><code>?tag_ids=11,4</code><br>
-					You can specify tags ids (get tags from <code>/api/tags/</code>)</li>
-					<li><code>?show_only_my_concepts=1</code><br>
-					Only show concepts owned by me</li>
-					<li><code>?show_deleted_concepts=1</code><br>
-					will show also deleted concepts (by default, deleted objects are not shown)</li>
-					<li><code>?show_only_validated_concepts=1</code><br>
-					will show only validated concepts</li>
-					<li><code>?brand=ADP</code><br>
-					will show only concepts with brand=ADP</li>
-					<li><code>?author=moh</code><br>
-					search by part of the author name</li>
-					<li><code>?owner_username=a.john</code><br>
-					search by full username of the owner</li>					
-					<li><code>?do_not_show_versions=1</code><br>
-					do not show concepts versions (by default, all concept version ids are shown)</li>
-				</ul>
-			(<code>Example: /api/myconcepts/?author=m&brand=adp&tag_ids=11</code>)
-			</p>
-			
-		<li><strong>To list concept details for the latest version</strong></li>
-			<p><a href="{{ myConceptdetail }}" target="_blank" class="alert-link">{{ myConceptdetail }}</a></p>
+    <ul class="nav nav-tabs">
+	  <li class="active"><a data-toggle="tab" href="#Concepts">Concepts</a></li>
+	  <li><a data-toggle="tab" href="#Working-Sets">Working Sets</a></li>
+	  <li><a data-toggle="tab" href="#Phenotypes">Phenotypes</a></li>
+	</ul>
+	    
+	<div class="tab-content">
+	  <div id="Concepts" class="tab-pane fade in active">
+	    	<h2>Concepts:</h2>	
+			<ol>
+				<li><strong>To export the code list of the latest version of a concept</strong></li>
+					<p><a href="{{ export_concept_codes }}" target="_blank" class="alert-link">{{ export_concept_codes }}</a></p>
 		
-		<li><strong>To list concept details for the specified version</strong></li>
-			<p><a href="{{ myConceptdetail_version }}" target="_blank" class="alert-link">{{ myConceptdetail_version }}</a></p>
+				<li><strong>To export the code list of a specific version of a concept</strong></li>
+					<p><a href="{{ export_concept_codes_byVersionID }}" target="_blank" class="alert-link">{{ export_concept_codes_byVersionID }}</a></p>
 		
-	</ol>
-			
-	<h2>Working Sets:</h2>
-	<ol>
-		<li><strong>To export the code list of the latest version of a working set</strong></li>
-			<p><a href="{{ export_workingset_codes }}" target="_blank" class="alert-link">{{ export_workingset_codes }}</a></p>
+				<li><strong>Public-open: To export the code list of a specific version of a published concept</strong></li>
+					<p><a href="{{ api_export_published_concept_codes }}" target="_blank" class="alert-link">{{ api_export_published_concept_codes }}</a></p>
 
-		<li><strong>To export the code list of a specific version of a working set</strong></li>
-			<p><a href="{{ export_workingset_codes_byVersionID }}" target="_blank" class="alert-link">{{ export_workingset_codes_byVersionID }}</a></p>
+				<li><strong>To list concept details for the latest version</strong></li>
+					<p><a href="{{ myConceptdetail }}" target="_blank" class="alert-link">{{ myConceptdetail }}</a></p>
+				
+				<li><strong>To list concept details for the specified version</strong></li>
+					<p><a href="{{ myConceptdetail_version }}" target="_blank" class="alert-link">{{ myConceptdetail_version }}</a></p>
+
+<!-- 				<li><strong>Public-open: To list published concept details for the latest version</strong></li> -->
+<!-- 					<p>- Open to Public: (no authentication) <br> -->
+<!-- 					<a href="{{ myConceptdetail_public }}" target="_blank" class="alert-link">{{ myConceptdetail_public }}</a></p> -->
+				
+				<li><strong>Public-open: To list published concept details for the specified version</strong></li>
+				<p>- Open to Public: (no authentication) <br>
+				<a href="{{ myConceptdetail_version_public }}" target="_blank" class="alert-link">{{ myConceptdetail_version_public }}</a></p>
+					
+					
+															
+				<li><strong>To list and search for concepts</strong></li>
+					<p><a href="{{ myConcepts }}" target="_blank" class="alert-link">{{ myConcepts }}</a><br>
+					- Lists all available concepts for the user <br>
+					   - User can search with criteria using querystring parameters: <br>
+						(you can use one param or a combinations of them)<br>
+						<ul>
+							<li><code>?search=diab</code><br>
+							search by part of concept name (do not put wild characters here)</li>
+							<li><code>?id=10</code><br>
+							you can specify concept id</li>
+							<li><code>?tag_ids=11,4</code><br>
+							You can specify tags ids (get tags from <code>/api/tags/</code>)</li>
+							<li><code>?show_only_my_concepts=1</code><br>
+							Only show concepts owned by me</li>
+							<li><code>?show_deleted_concepts=1</code><br>
+							will show also deleted concepts (by default, deleted objects are not shown)</li>
+							<li><code>?show_only_validated_concepts=1</code><br>
+							will show only validated concepts</li>
+							<li><code>?brand=ADP</code><br>
+							will show only concepts with brand=ADP</li>
+							<li><code>?author=moh</code><br>
+							search by part of the author name</li>
+							<li><code>?owner_username=a.john</code><br>
+							search by full username of the owner</li>					
+							<li><code>?do_not_show_versions=1</code><br>
+							do not show concepts versions (by default, all concept version ids are shown)</li>
+							<li><code>?expand_published_versions=1</code><br>
+							show all published versions of the same concept or only the latest version (by default, all concept published versions are shown)</li>
+						</ul>
+					(<code>Example: {{ myConcepts }}?author=m&brand=adp&tag_ids=11</code>)
+					</p>
+					
+ 				<li><strong>Public-open: To list and search for published concepts</strong></li>
+					<p><a href="{{ api_published_concepts }}" target="_blank" class="alert-link">{{ api_published_concepts }}</a><br>
+					- Lists all published concepts for the public (no authentication) <br>
+					   - User can search with criteria using querystring parameters: (the same parameters used in <b>{{ myConcepts }}</b>)<br>
+					(<code>Example: {{ api_published_concepts }}?author=m&brand=adp&tag_ids=11</code>)
+					</p>
+													
+				<li><strong>To create a concept</strong></li>
+					<p>- By passing a JSON object <br>	
+					<a href="{{ api_concept_create }}" target="_blank" class="alert-link">{{ api_concept_create }}</a></p>
+						
+				<li><strong>To update a concept</strong></li>
+					<p>- By passing a JSON object <br>	
+					- The concept must be included in the JSON object <br>
+					<a href="{{ api_concept_update }}" target="_blank" class="alert-link">{{ api_concept_update }}</a></p>
+		
+				
+			</ol>
+	  </div>
+	  <div id="Working-Sets" class="tab-pane fade">
+	    	<h2>Working Sets:</h2>
+			<ol>
+				<li><strong>To export the code list of the latest version of a working set</strong></li>
+					<p><a href="{{ export_workingset_codes }}" target="_blank" class="alert-link">{{ export_workingset_codes }}</a></p>
+		
+				<li><strong>To export the code list of a specific version of a working set</strong></li>
+					<p><a href="{{ export_workingset_codes_byVersionID }}" target="_blank" class="alert-link">{{ export_workingset_codes_byVersionID }}</a></p>
+					
+				<li><strong>To list working set details for the latest version</strong></li>
+					<p><a href="{{ myWorkingsetdetail }}" target="_blank" class="alert-link">{{ myWorkingsetdetail }}</a></p>
+					<p>- User can choose not to export working set codes: <br>
+						<ul>
+							<li><code>?do_not_show_codes=1</code><br>
+							do not export working set codes (exporting code list can be achieved by normal export codes)</li>
+						</ul>
+					</p>
+					
+				<li><strong>To list working set details for the specified version</strong></li>
+					<p><a href="{{ myWorkingsetdetail_version }}" target="_blank" class="alert-link">{{ myWorkingsetdetail_version }}</a></p>
+					<p>- User can choose not to export working set codes: <br>
+						<ul>
+							<li><code>?do_not_show_codes=1</code><br>
+							do not export working set codes (exporting code list can be achieved by normal export codes)</li>
+						</ul>
+					</p>		
+										
+				<li><strong>To list and search for working sets</strong></li>
+					<p><a href="{{ myWorkingSets }}" target="_blank" class="alert-link">{{ myWorkingSets }}</a></p>
+					<p>- Lists all available working sets for the user <br>
+					   - User can search with criteria using querystring parameters: <br>
+						(you can use one param or a combinations of them)<br>
+						<ul>
+							<li><code>?search=diab</code><br>
+							search by part of working set name (do not put wild characters here)</li>
+							<li><code>?id=10</code><br>
+							you can specify working set id</li>
+							<li><code>?tag_ids=11,4</code><br>
+							You can specify tags ids (get tags from <code>/api/tags/</code>)</li>
+							<li><code>?show_only_my_workingsets=1</code><br>
+							Only show working sets owned by me</li>
+							<li><code>?show_deleted_workingsets=1</code><br>
+							will show also deleted working sets (by default, deleted objects are not shown)</li>
+							<li><code>?brand=ADP</code><br>
+							will show only concepts with brand=ADP</li>
+							<li><code>?author=moh</code><br>
+							search by part of the author name</li>
+							<li><code>?owner_username=a.john</code><br>
+							search by full username of the owner</li>
+							<li><code>?do_not_show_versions=1</code><br>
+							do not show working sets versions (by default, all concept version ids are shown)</li>
+						</ul>
+					(<code>Example: {{ myWorkingSets }}?author=m&brand=adp&tag_ids=11</code>)
+					</p>
+					
+				<li><strong>To create a working set</strong></li>
+					<p>- By passing a JSON object <br>	
+					<a href="{{ api_workingset_create }}" target="_blank" class="alert-link">{{ api_workingset_create }}</a></p>
+						
+				<li><strong>To update a working set</strong></li>
+					<p>- By passing a JSON object <br>	
+					- The working set must be included in the JSON object <br>
+					<a href="{{ api_workingset_update }}" target="_blank" class="alert-link">{{ api_workingset_update }}</a></p>
+							
+			</ol>
+
+	  </div>
+	  <div id="Phenotypes" class="tab-pane fade">
+	          <h2>Phenotypes:</h2>  
+		      <ol>
+<!-- 		        <li><strong>To export the code list of the latest version of a phenotype</strong></li> -->
+<!-- 		          <p><a href="{{ export_phenotype_codes }}" target="_blank" class="alert-link">{{ export_phenotype_codes }}</a></p> -->
+		    
+		        <li><strong>To export the code list of a specific version of a phenotype</strong></li>
+		          <p><a href="{{ api_export_phenotype_codes_byVersionID }}" target="_blank" class="alert-link">{{ api_export_phenotype_codes_byVersionID }}</a></p>
+		    
+		        <li><strong>Public-open: To export the code list of a specific version of a published phenotype</strong></li>
+		          <p><a href="{{ api_export_published_phenotype_codes }}" target="_blank" class="alert-link">{{ api_export_published_phenotype_codes }}</a></p>
+		
+		        <li><strong>To list phenotype details for the latest version</strong></li>
+		          <p><a href="{{ myPhenotypedetail }}" target="_blank" class="alert-link">{{ myPhenotypedetail }}</a></p>
+		        
+		        <li><strong>To list phenotype details for the specified version</strong></li>
+		          <p><a href="{{ myPhenotypedetail_version }}" target="_blank" class="alert-link">{{ myPhenotypedetail_version }}</a></p>
+		
+<!-- 		        <li><strong>Public-open: To list published phenotype details for the latest version</strong></li> -->
+<!-- 		          <p>- Open to Public: (no authentication) <br> -->
+<!-- 		          <a href="{{ myPhenotypedetail_public }}" target="_blank" class="alert-link">{{ myPhenotypedetail_public }}</a></p> -->
+		        
+		        <li><strong>Public-open: To list published phenotype details for the specified version</strong></li>
+		        <p>- Open to Public: (no authentication) <br>
+		        <a href="{{ myPhenotypedetail_version_public }}" target="_blank" class="alert-link">{{ myPhenotypedetail_version_public }}</a></p>
+		          
+		          
+		                              
+		        <li><strong>To list and search for phenotypes</strong></li>
+		          <p><a href="{{ myPhenotypes }}" target="_blank" class="alert-link">{{ myPhenotypes }}</a><br>
+		          - Lists all available phenotypes for the user <br>
+		             - User can search with criteria using querystring parameters: <br>
+		            (you can use one param or a combinations of them)<br>
+		            <ul>
+		              <li><code>?search=diab</code><br>
+		              search by part of phenotype name (do not put wild characters here)</li>
+		              <li><code>?id=10</code><br>
+		              you can specify phenotype id</li>
+		              <li><code>?tag_ids=11,4</code><br>
+		              You can specify tags ids (get tags from <code>/api/tags/</code>)</li>
+		              <li><code>?show_only_my_phenotypes=1</code><br>
+		              Only show phenotypes owned by me</li>
+		              <li><code>?show_deleted_phenotypes=1</code><br>
+		              will show also deleted phenotypes (by default, deleted objects are not shown)</li>
+		              <li><code>?show_only_validated_phenotypes=1</code><br>
+		              will show only validated phenotypes</li>
+		              <li><code>?brand=ADP</code><br>
+		              will show only phenotypes with brand=ADP</li>
+		              <li><code>?author=moh</code><br>
+		              search by part of the author name</li>
+		              <li><code>?owner_username=a.john</code><br>
+		              search by full username of the owner</li>         
+		              <li><code>?do_not_show_versions=1</code><br>
+		              do not show phenotypes versions (by default, all phenotype version ids are shown)</li>
+		              <li><code>?expand_published_versions=1</code><br>
+		              show all published versions of the same phenotype or only the latest version (by default, all phenotype published versions are shown)</li>
+		            </ul>
+		          (<code>Example: {{ myPhenotypes }}?author=m&brand=adp&tag_ids=11</code>)
+		          </p>
+		          
+		        <li><strong>Public-open: To list and search for published phenotypes</strong></li>
+		          <p><a href="{{ api_published_phenotypes }}" target="_blank" class="alert-link">{{ api_published_phenotypes }}</a><br>
+		          - Lists all published phenotypes for the public (no authentication) <br>
+		             - User can search with criteria using querystring parameters: (the same parameters used in <b>{{ myPhenotypes }}</b>)<br>
+		          (<code>Example: {{ api_published_phenotypes }}?author=m&brand=adp&tag_ids=11</code>)
+		          </p>
+		                          
+		        <li><strong>To create a phenotype</strong></li>
+		          <p>- By passing a JSON object <br>  
+		          <a href="{{ api_phenotype_create }}" target="_blank" class="alert-link">{{ api_phenotype_create }}</a></p>
+		            
+		        <li><strong>To update a phenotype</strong></li>
+		          <p>- By passing a JSON object <br>  
+		          - The phenotype must be included in the JSON object <br>
+		          <a href="{{ api_phenotype_update }}" target="_blank" class="alert-link">{{ api_phenotype_update }}</a></p>
+		    
+		        
+		      </ol>
+	  </div>
+	</div>
+    
+
 			
-		<li><strong>To list and search for working sets</strong></li>
-			<p><a href="{{ myWorkingSets }}" target="_blank" class="alert-link">{{ myWorkingSets }}</a></p>
-			<p>- Lists all available working sets for the user <br>
-			   - User can search with criteria using querystring parameters: <br>
-				(you can use one param or a combinations of them)<br>
-				<ul>
-					<li><code>?search=diab</code><br>
-					search by part of working set name (do not put wild characters here)</li>
-					<li><code>?id=10</code><br>
-					you can specify working set id</li>
-					<li><code>?tag_ids=11,4</code><br>
-					You can specify tags ids (get tags from <code>/api/tags/</code>)</li>
-					<li><code>?show_only_my_workingsets=1</code><br>
-					Only show working sets owned by me</li>
-					<li><code>?show_deleted_workingsets=1</code><br>
-					will show also deleted working sets (by default, deleted objects are not shown)</li>
-					<li><code>?brand=ADP</code><br>
-					will show only concepts with brand=ADP</li>
-					<li><code>?author=moh</code><br>
-					search by part of the author name</li>
-					<li><code>?owner_username=a.john</code><br>
-					search by full username of the owner</li>
-					<li><code>?do_not_show_versions=1</code><br>
-					do not show working sets versions (by default, all concept version ids are shown)</li>
-				</ul>
-			(<code>Example: /api/myworkingsets/?author=m&brand=adp&tag_ids=11</code>)
-			</p>
-			
-		<li><strong>To list working set details for the latest version</strong></li>
-			<p><a href="{{ myWorkingsetdetail }}" target="_blank" class="alert-link">{{ myWorkingsetdetail }}</a></p>
-			<p>- User can choose not to export working set codes: <br>
-				<ul>
-					<li><code>?do_not_show_codes=1</code><br>
-					do not export working set codes (exporting code list can be achieved by normal export codes)</li>
-				</ul>
-			</p>
-			
-		<li><strong>To list working set details for the specified version</strong></li>
-			<p><a href="{{ myWorkingsetdetail_version }}" target="_blank" class="alert-link">{{ myWorkingsetdetail_version }}</a></p>
-			<p>- User can choose not to export working set codes: <br>
-				<ul>
-					<li><code>?do_not_show_codes=1</code><br>
-					do not export working set codes (exporting code list can be achieved by normal export codes)</li>
-				</ul>
-			</p>
-								
-			
-	</ol>
 
 
 {% endblock container %}
