@@ -673,8 +673,10 @@ def concept_list(request):
     author = request.GET.get('author', request.session.get('author', ''))
     show_only_validated_concepts = request.GET.get('show_only_validated_concepts', request.session.get('show_only_validated_concepts', 0))
     concept_brand = request.GET.get('concept_brand', request.session.get('concept_brand', request.CURRENT_BRAND))
-    expand_published_versions = request.GET.get('expand_published_versions', request.session.get('expand_published_versions', 0))
-
+    expand_published_versions = 0   # disable this option
+    #expand_published_versions = request.GET.get('expand_published_versions', request.session.get('expand_published_versions', 0))
+    must_have_published_versions = request.GET.get('must_have_published_versions', request.session.get('must_have_published_versions', 0))
+    
     if request.method == 'POST':
         # get posted parameters
         search = request.POST.get('search', '')
@@ -687,7 +689,8 @@ def concept_list(request):
         owner = request.POST.get('owner', '')
         show_only_validated_concepts = request.POST.get('show_only_validated_concepts', 0)
         concept_brand = request.POST.get('concept_brand', request.CURRENT_BRAND)
-        expand_published_versions = request.POST.get('expand_published_versions', 0)
+        #expand_published_versions = request.POST.get('expand_published_versions', 0)
+        must_have_published_versions = request.POST.get('must_have_published_versions', 0)
 
 
     # store page index variables to session
@@ -701,7 +704,8 @@ def concept_list(request):
     request.session['owner'] = owner
     request.session['show_only_validated_concepts'] = show_only_validated_concepts
     request.session['concept_brand'] = concept_brand
-    request.session['expand_published_versions'] = expand_published_versions
+    #request.session['expand_published_versions'] = expand_published_versions    
+    request.session['must_have_published_versions'] = must_have_published_versions
 
     filter_cond = " 1=1 "
     exclude_deleted = True
@@ -717,7 +721,9 @@ def concept_list(request):
         # ensure that user is only allowed to view/edit the relevant concepts
            
         get_live_and_or_published_ver = 3
-        #show_top_version_only = True
+        if must_have_published_versions == "1":
+            get_live_and_or_published_ver = 2
+            
         # show only concepts created by the current user
         if show_my_concepts == "1":
             filter_cond += " AND owner_id=" + str(request.user.id)
@@ -732,7 +738,6 @@ def concept_list(request):
     else:
         # show published concepts
         get_live_and_or_published_ver = 2
-        #show_top_version_only = True
         if PublishedConcept.objects.all().count() == 0:
             # redirect to login page if no published concepts
             return HttpResponseRedirect(settings.LOGIN_URL)
@@ -822,8 +827,9 @@ def concept_list(request):
         'show_only_validated_concepts': show_only_validated_concepts,
         'allowed_to_create': not settings.CLL_READ_ONLY,
         'concept_brand': concept_brand,
-        'expand_published_versions': expand_published_versions,
-        'published_count': PublishedConcept.objects.all().count()
+        'must_have_published_versions': must_have_published_versions
+        #'expand_published_versions': expand_published_versions,
+        #'published_count': PublishedConcept.objects.all().count()
     })
 
 
