@@ -114,17 +114,28 @@
 							</label>
 						</div>
 					</div>			
-										
-				{% if published_count %}
+
+				{% if user.is_authenticated %}
 					<div  class = "col-md-3">
 						<div class="checkbox"  >
 							<label>
-								<input id="expand_published_versions" type="checkbox" name="expand_published_versions" {% if expand_published_versions %}checked="checked"{% endif %} value="1" >
-								expand published versions
+								<input id="phenotype_must_have_published_versions" type="checkbox" name="phenotype_must_have_published_versions" {% if phenotype_must_have_published_versions %}checked="checked"{% endif %} value="1" >
+								Only show phenotypes with published version
 							</label>
 						</div>
 					</div>		
-				{% endif %}	
+				{% endif %}		
+														
+<!-- 				{% if published_count %} -->
+<!-- 					<div  class = "col-md-3"> -->
+<!-- 						<div class="checkbox"  > -->
+<!-- 							<label> -->
+<!-- 								<input id="expand_published_versions" type="checkbox" name="expand_published_versions" {% if expand_published_versions %}checked="checked"{% endif %} value="1" > -->
+<!-- 								expand published versions -->
+<!-- 							</label> -->
+<!-- 						</div> -->
+<!-- 					</div>		 -->
+<!-- 				{% endif %}	 -->
 				
 				</div>
 				
@@ -296,14 +307,15 @@
 						
 			{% if user.is_authenticated %}
 				$('#show_deleted_phenotypes').prop("checked", false);
-				$('#show_my_phenotypes').prop("checked", false);					
+				$('#show_my_phenotypes').prop("checked", false);	
+				$('#phenotype_must_have_published_versions').prop("checked", false);
 			{% endif %}						
 			
 			$('#show_only_validated_phenotypes').prop("checked", false);
 			
-			{% if published_count %}
-				$('#expand_published_versions').prop("checked", false);
-			{% endif %}	
+// 			{% if published_count %}
+// 				$('#expand_published_versions').prop("checked", false);
+// 			{% endif %}	
 		});
 	</script>
 			

@@ -74,7 +74,9 @@ def phenotype_list(request):
     author = request.GET.get('author', request.session.get('author', ''))
     show_only_validated_phenotypes = request.GET.get('show_only_validated_phenotypes', request.session.get('show_only_validated_phenotypes', 0))
     phenotype_brand = request.GET.get('phenotype_brand', request.session.get('phenotype_brand', request.CURRENT_BRAND))
-    expand_published_versions = request.GET.get('expand_published_versions', request.session.get('expand_published_versions', 0))
+    expand_published_versions = 0   # disable this option
+    #expand_published_versions = request.GET.get('expand_published_versions', request.session.get('expand_published_versions', 0))
+    phenotype_must_have_published_versions = request.GET.get('phenotype_must_have_published_versions', request.session.get('phenotype_must_have_published_versions', 0))
 
     if request.method == 'POST':
         # get posted parameters
@@ -88,7 +90,8 @@ def phenotype_list(request):
         owner = request.POST.get('owner', '')
         show_only_validated_phenotypes = request.POST.get('show_only_validated_phenotypes', 0)
         phenotype_brand = request.POST.get('phenotype_brand', request.CURRENT_BRAND)
-        expand_published_versions = request.POST.get('expand_published_versions', 0)
+        #expand_published_versions = request.POST.get('expand_published_versions', 0)
+        phenotype_must_have_published_versions = request.POST.get('phenotype_must_have_published_versions', 0)
 
 
     # store page index variables to session
@@ -102,7 +105,8 @@ def phenotype_list(request):
     request.session['owner'] = owner
     request.session['show_only_validated_phenotypes'] = show_only_validated_phenotypes
     request.session['phenotype_brand'] = phenotype_brand
-    request.session['expand_published_versions'] = expand_published_versions
+    #request.session['expand_published_versions'] = expand_published_versions
+    request.session['phenotype_must_have_published_versions'] = phenotype_must_have_published_versions
 
     filter_cond = " 1=1 "
     exclude_deleted = True
@@ -118,7 +122,9 @@ def phenotype_list(request):
         # ensure that user is only allowed to view/edit the relevant phenotype
            
         get_live_and_or_published_ver = 3
-        #show_top_version_only = True
+        if phenotype_must_have_published_versions == "1":
+            get_live_and_or_published_ver = 2
+            
         # show only phenotype created by the current user
         if show_my_phenotypes == "1":
             filter_cond += " AND owner_id=" + str(request.user.id)
@@ -133,7 +139,7 @@ def phenotype_list(request):
     else:
         # show published phenotype
         get_live_and_or_published_ver = 2
-        #show_top_version_only = True
+
 #         if PublishedPhenotype.objects.all().count() == 0:
 #             # redirect to login page if no published phenotype
 #             return HttpResponseRedirect(settings.LOGIN_URL)
@@ -224,8 +230,9 @@ def phenotype_list(request):
         'show_only_validated_phenotypes': show_only_validated_phenotypes,
         'allowed_to_create': not settings.CLL_READ_ONLY,
         'phenotype_brand': phenotype_brand,
-        'expand_published_versions': expand_published_versions,
-        'published_count': PublishedPhenotype.objects.all().count()
+        'phenotype_must_have_published_versions': phenotype_must_have_published_versions
+        #'expand_published_versions': expand_published_versions,
+        #'published_count': PublishedPhenotype.objects.all().count()
     })
 
 

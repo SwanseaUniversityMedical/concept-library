@@ -940,16 +940,19 @@ def getConcepts(request, is_authenticated_user=True):
     concept_brand = request.query_params.get('brand', "")
     author = request.query_params.get('author', '')
     do_not_show_versions = request.query_params.get('do_not_show_versions', "0")
-    expand_published_versions = request.query_params.get('expand_published_versions', "1")
-    show_live_and_or_published_ver = request.query_params.get('show_live_and_or_published_ver', "3")      # 1= live only, 2= published only, 3= live+published
-        
+    expand_published_versions = 0   # disable this option
+    #expand_published_versions = request.query_params.get('expand_published_versions', "1")
+    show_live_and_or_published_ver = "3" #request.query_params.get('show_live_and_or_published_ver', "3")      # 1= live only, 2= published only, 3= live+published
+    must_have_published_versions = request.query_params.get('must_have_published_versions', "0")
+    
+     
     search_tag_list = []
     tags = []
     
     filter_cond = " 1=1 "
     exclude_deleted = True
     get_live_and_or_published_ver = 3   # 1= live only, 2= published only, 3= live+published
-    show_top_version_only = False
+    show_top_version_only = True
     
     if tag_ids:
         # split tag ids into list
@@ -961,6 +964,14 @@ def getConcepts(request, is_authenticated_user=True):
         # ensure that user is only allowed to view/edit the relevant concepts
            
         get_live_and_or_published_ver = 3
+        if must_have_published_versions == "1":
+            get_live_and_or_published_ver = 2
+            
+#         if show_live_and_or_published_ver in ["1", "2", "3"]:
+#             get_live_and_or_published_ver = int(show_live_and_or_published_ver)   #    2= published only
+#         else:
+#             return Response([], status=status.HTTP_200_OK)   
+         
         # show only concepts created by the current user
         if show_only_my_concepts == "1":
             filter_cond += " AND owner_id=" + str(request.user.id)
@@ -971,22 +982,18 @@ def getConcepts(request, is_authenticated_user=True):
         else:
             exclude_deleted = False    
         
-        if show_live_and_or_published_ver in ["1", "2", "3"]:
-            get_live_and_or_published_ver = int(show_live_and_or_published_ver)   #    2= published only
-        else:
-            return Response([], status=status.HTTP_200_OK)
+
       
     else:
         # show published concepts
         get_live_and_or_published_ver = 2   #    2= published only
-        #show_top_version_only = False
         
         if PublishedConcept.objects.all().count() == 0:
             return Response([], status=status.HTTP_200_OK)
 
     
-    if expand_published_versions == "0":
-        show_top_version_only = True
+    if expand_published_versions == "1":
+        show_top_version_only = False
         
     
 
