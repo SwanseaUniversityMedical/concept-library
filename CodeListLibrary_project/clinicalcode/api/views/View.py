@@ -154,7 +154,7 @@ def customRoot(request):
         'api_phenotype_create': reverse('api:api_phenotype_create', kwargs={}),
         'api_phenotype_update': reverse('api:api_phenotype_update', kwargs={}),
         'api_export_published_phenotype_codes': reverse('api:api_export_published_phenotype_codes', kwargs={'pk': 0, 'phenotype_history_id': 1}),
-        'api_datasource_create': reverse('api:api_datasource_create', kwargs={})        
+        'api_datasource_create': reverse('api:api_datasource_create', kwargs={})
         
     }
     

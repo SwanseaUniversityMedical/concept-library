@@ -77,8 +77,8 @@
 							search by full username of the owner</li>					
 							<li><code>?do_not_show_versions=1</code><br>
 							do not show concepts versions (by default, all concept version ids are shown)</li>
-							<li><code>?expand_published_versions=1</code><br>
-							show all published versions of the same concept or only the latest version (by default, all concept published versions are shown)</li>
+							<li><code>?must_have_published_versions=1</code><br>
+							show only concepts which have a published version(by default, all concept are shown)</li>
 						</ul>
 					(<code>Example: {{ myConcepts }}?author=m&brand=adp&tag_ids=11</code>)
 					</p>
@@ -223,8 +223,8 @@
 		              search by full username of the owner</li>         
 		              <li><code>?do_not_show_versions=1</code><br>
 		              do not show phenotypes versions (by default, all phenotype version ids are shown)</li>
-		              <li><code>?expand_published_versions=1</code><br>
-		              show all published versions of the same phenotype or only the latest version (by default, all phenotype published versions are shown)</li>
+		              <li><code>?must_have_published_versions=1</code><br>
+					  show only phenotypes which have a published version(by default, all phenotypes are shown)</li>
 		            </ul>
 		          (<code>Example: {{ myPhenotypes }}?author=m&brand=adp&tag_ids=11</code>)
 		          </p>
@@ -245,6 +245,9 @@
 		          - The phenotype must be included in the JSON object <br>
 		          <a href="{{ api_phenotype_update }}" target="_blank" class="alert-link">{{ api_phenotype_update }}</a></p>
 		    
+		    	<li><strong>To create a data source</strong></li>
+		          <p>- By passing a JSON object <br>  
+		          <a href="{{ api_datasource_create }}" target="_blank" class="alert-link">{{ api_datasource_create }}</a></p>
 		        
 		      </ol>
 	  </div>

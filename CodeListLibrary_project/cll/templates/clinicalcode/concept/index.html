@@ -104,8 +104,7 @@
 								Only show concepts owned by me
 							</label>
 						</div>
-					</div>
-										
+					</div>										
 				{% endif %}						
 					
 					<div 	class = "col-md-3">   
@@ -117,16 +116,27 @@
 						</div>
 					</div>					
 
-				{% if published_count %}
+				{% if user.is_authenticated %}
 					<div  class = "col-md-3">
 						<div class="checkbox"  >
 							<label>
-								<input id="expand_published_versions" type="checkbox" name="expand_published_versions" {% if expand_published_versions %}checked="checked"{% endif %} value="1" >
-								expand published versions
+								<input id="must_have_published_versions" type="checkbox" name="must_have_published_versions" {% if must_have_published_versions %}checked="checked"{% endif %} value="1" >
+								Only show concepts with published version
 							</label>
 						</div>
 					</div>		
-				{% endif %}	
+				{% endif %}						
+					
+<!-- 				{% if published_count %} -->
+<!-- 					<div  class = "col-md-3"> -->
+<!-- 						<div class="checkbox"  > -->
+<!-- 							<label> -->
+<!-- 								<input id="expand_published_versions" type="checkbox" name="expand_published_versions" {% if expand_published_versions %}checked="checked"{% endif %} value="1" > -->
+<!-- 								Expand published versions -->
+<!-- 							</label> -->
+<!-- 						</div> -->
+<!-- 					</div>		 -->
+<!-- 				{% endif %}	 -->
 			</div>
 							
 			<div class="row form-group">
@@ -306,14 +316,15 @@
 			{% if user.is_authenticated %}
 				$('#show_deleted_concepts').prop("checked", false);
 				$('#show_my_concepts').prop("checked", false);					
+				$('#must_have_published_versions').prop("checked", false);
 			{% endif %}						
 			
 			$('#show_only_validated_concepts').prop("checked", false);
+			
 
-
-			{% if published_count %}
-				$('#expand_published_versions').prop("checked", false);
-			{% endif %}
+// 			{% if published_count %}
+// 				$('#expand_published_versions').prop("checked", false);
+// 			{% endif %}
 
 		});
 	</script>
