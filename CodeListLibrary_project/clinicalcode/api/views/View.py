@@ -127,8 +127,6 @@ def customRoot(request):
         'api_published_concepts': reverse('api:api_published_concepts', kwargs={}),
         'myConceptdetail_public': reverse('api:myConceptdetail_public', kwargs={'pk': 0}),
         'myConceptdetail_version_public': reverse('api:myConceptdetail_version_public', kwargs={'pk': 0, 'concept_history_id': 1}),
-        'api_concept_create': reverse('api:api_concept_create', kwargs={}),
-        'api_concept_update': reverse('api:api_concept_update', kwargs={}),
         'api_export_published_concept_codes': reverse('api:api_export_published_concept_codes', kwargs={'pk': 0, 'concept_history_id': 1}),
         
         
@@ -137,8 +135,6 @@ def customRoot(request):
         'myWorkingSets': reverse('api:myWorkingSets', kwargs={}),
         'myWorkingsetdetail': reverse('api:myWorkingsetdetail', kwargs={'pk': 0}),
         'myWorkingsetdetail_version': reverse('api:myWorkingsetdetail_version', kwargs={'pk': 0, 'workingset_history_id': 1}),
-        'api_workingset_create': reverse('api:api_concept_update', kwargs={}),
-        'api_workingset_update': reverse('api:api_workingset_update', kwargs={}),
         
         
         # not implemented yet, will be done when creating/updating phenotype
@@ -151,13 +147,23 @@ def customRoot(request):
         # not needed to be public
         #'myPhenotypedetail_public': reverse('api:myPhenotypedetail_public', kwargs={'pk': 0}),
         'myPhenotypedetail_version_public': reverse('api:myPhenotypedetail_version_public', kwargs={'pk': 0, 'phenotype_history_id': 1}),
-        'api_phenotype_create': reverse('api:api_phenotype_create', kwargs={}),
-        'api_phenotype_update': reverse('api:api_phenotype_update', kwargs={}),
         'api_export_published_phenotype_codes': reverse('api:api_export_published_phenotype_codes', kwargs={'pk': 0, 'phenotype_history_id': 1}),
-        'api_datasource_create': reverse('api:api_datasource_create', kwargs={})
         
     }
     
+    if not settings.CLL_READ_ONLY:
+        urls_available.update({
+        'api_concept_create': reverse('api:api_concept_create', kwargs={}),
+        'api_concept_update': reverse('api:api_concept_update', kwargs={}),     
+        
+        'api_workingset_create': reverse('api:api_concept_update', kwargs={}),
+        'api_workingset_update': reverse('api:api_workingset_update', kwargs={}),
+        
+        'api_phenotype_create': reverse('api:api_phenotype_create', kwargs={}),
+        'api_phenotype_update': reverse('api:api_phenotype_update', kwargs={}),
+        'api_datasource_create': reverse('api:api_datasource_create', kwargs={})
+        
+        })
 
     return render(request,
                    'rest_framework/API-root-pg.html',
