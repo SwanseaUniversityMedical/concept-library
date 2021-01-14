@@ -13,8 +13,6 @@ WORKDIR /var/www/
 ######### copy code ######################
 RUN mkdir -p /var/www/concept_lib_sites/v1
 
-# .ini file is directly copied for now .....(to be  arranged later) ....
-#RUN cp /home/config_cll/cll.ini /var/www/concept_lib_sites/v1/CodeListLibrary_project/cll/.ini
 
 COPY requirements /var/www/concept_lib_sites/v1/requirements 
 #COPY CodeListLibrary_project /var/www/concept_lib_sites/v1/CodeListLibrary_project
@@ -39,6 +37,9 @@ RUN \
 #RUN /etc/init.d/apache2 restart
 
 #########################################
+# pip old ver for py2
+COPY pip-20.2-py2.py3-none-any.whl /var/www/concept_lib_sites/v1/requirements/pip-20.2-py2.py3-none-any.whl
+
 
 # Deploy script
 COPY deploy_script_main.sh /home/config_cll/deploy_script_main.sh
