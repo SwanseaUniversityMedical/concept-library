@@ -12,8 +12,8 @@
 
       echo ">>>>> open project's virtual env <<<<<<<<<<<<<<<<<<<"
       cd /var/www/concept_lib_sites/v1
-      virtualenv --python=/usr/bin/python2.7 cllvirenv_v1
-      #source cllvirenv_v1/bin/activate  # for bash
+      #virtualenv --python=/usr/bin/python2.7 cllvirenv_v1
+      ##source cllvirenv_v1/bin/activate  # for bash
       echo ">>>>> virtualenv   <<<<<<<<<"
       . cllvirenv_v1/bin/activate   # for sh
       echo `pwd`

@@ -9,6 +9,8 @@
      
 
 #      echo ">>>>> update .ini file (to be  arranged later)<<<<<<<<<<<<<<<<<<<"
+      echo "@@@@@@@@@@ OS pip version="
+      pip -V
 
       echo ">>>>> open project's virtual env <<<<<<<<<<<<<<<<<<<"
       cd /var/www/concept_lib_sites/v1
@@ -20,6 +22,11 @@
 
       echo ">>>>> install requirements <<<<<<<<<<<<<<<<<<<"
       cd /var/www/concept_lib_sites/v1/requirements
+
+      pip --proxy http://192.168.10.15:8080 install  pip-20.2-py2.py3-none-any.whl
+
+      echo "@@@@@@@@@@ venv pip version="
+      pip -V
 
       #pip --proxy http://192.168.10.15:8080 install --upgrade "pip < 19.1"
       pip --proxy http://192.168.10.15:8080 install -r base.txt
