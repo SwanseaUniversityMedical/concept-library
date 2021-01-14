@@ -89,7 +89,7 @@
 					   - User can search with criteria using querystring parameters: (the same parameters used in <b>{{ myConcepts }}</b>)<br>
 					(<code>Example: {{ api_published_concepts }}?author=m&brand=adp&tag_ids=11</code>)
 					</p>
-													
+			{% if not CLL_READ_ONLY %}												
 				<li><strong>To create a concept</strong></li>
 					<p>- By passing a JSON object <br>	
 					<a href="{{ api_concept_create }}" target="_blank" class="alert-link">{{ api_concept_create }}</a></p>
@@ -98,7 +98,7 @@
 					<p>- By passing a JSON object <br>	
 					- The concept must be included in the JSON object <br>
 					<a href="{{ api_concept_update }}" target="_blank" class="alert-link">{{ api_concept_update }}</a></p>
-		
+			{% endif %}	
 				
 			</ol>
 	  </div>
@@ -157,6 +157,7 @@
 					(<code>Example: {{ myWorkingSets }}?author=m&brand=adp&tag_ids=11</code>)
 					</p>
 					
+			{% if not CLL_READ_ONLY %}						
 				<li><strong>To create a working set</strong></li>
 					<p>- By passing a JSON object <br>	
 					<a href="{{ api_workingset_create }}" target="_blank" class="alert-link">{{ api_workingset_create }}</a></p>
@@ -165,6 +166,7 @@
 					<p>- By passing a JSON object <br>	
 					- The working set must be included in the JSON object <br>
 					<a href="{{ api_workingset_update }}" target="_blank" class="alert-link">{{ api_workingset_update }}</a></p>
+			{% endif %}	
 							
 			</ol>
 
@@ -236,6 +238,7 @@
 		          (<code>Example: {{ api_published_phenotypes }}?author=m&brand=adp&tag_ids=11</code>)
 		          </p>
 		                          
+			{% if not CLL_READ_ONLY %}			                          
 		        <li><strong>To create a phenotype</strong></li>
 		          <p>- By passing a JSON object <br>  
 		          <a href="{{ api_phenotype_create }}" target="_blank" class="alert-link">{{ api_phenotype_create }}</a></p>
@@ -248,6 +251,7 @@
 		    	<li><strong>To create a data source</strong></li>
 		          <p>- By passing a JSON object <br>  
 		          <a href="{{ api_datasource_create }}" target="_blank" class="alert-link">{{ api_datasource_create }}</a></p>
+		     {% endif %}	
 		        
 		      </ol>
 	  </div>
