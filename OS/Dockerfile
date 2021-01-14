@@ -25,7 +25,9 @@ RUN apt-get install -y -q libsasl2-dev python-dev libldap2-dev libssl-dev
 
 # install & upgrade pip
 RUN \
-  apt-get install -y -q python-pip=18.1 
+  apt-get install -y -q python-pip && \
+  pip --proxy http://192.168.10.15:8080 install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip==20.2
+
 
 #RUN \
 #  pip --proxy http://192.168.10.15:8080 install  --upgrade pip 
