@@ -86,6 +86,13 @@ urlpatterns = [
         , Concept.myConcept_detail_PUBLIC
         , name='myConceptdetail_version_public'),
     
+    # show versions
+    url(r'^get-versions/concept/(?P<pk>[0-9]+)/$'
+            , Concept.myConcept_detail, {'get_versions_only':'1'}
+            , name='getConceptVersions'),
+    url(r'^public/get-versions/concept/(?P<pk>[0-9]+)/$'
+            , Concept.myConcept_detail_PUBLIC, {'get_versions_only':'1'}
+            , name='getConceptVersions_public'),
     
     
     #----------------------------------------------------------  
@@ -117,6 +124,10 @@ urlpatterns = [
         , WorkingSet.myWorkingset_detail
         , name='myWorkingsetdetail_version'),    
     
+    # show versions
+    url(r'^get-versions/workingset/(?P<pk>[0-9]+)/$'
+            , WorkingSet.myWorkingset_detail, {'get_versions_only':'1'}
+            , name='getWorkingsetVersions'),    
     
     #----------------------------------------------------------
     # --- phenotypes   ----------------------------------------
@@ -152,6 +163,15 @@ urlpatterns = [
     url(r'^public/myphenotype-detail/(?P<pk>[0-9]+)/version/(?P<phenotype_history_id>\d+)/$'
         , Phenotype.myPhenotype_detail_PUBLIC
         , name='myPhenotypedetail_version_public'),
+    
+    # show versions
+    url(r'^get-versions/phenotype/(?P<pk>[0-9]+)/$'
+            , Phenotype.myPhenotype_detail, {'get_versions_only':'1'}
+            , name='getPhenotypeVersions'),
+    url(r'^public/get-versions/phenotype/(?P<pk>[0-9]+)/$'
+            , Phenotype.myPhenotype_detail_PUBLIC, {'get_versions_only':'1'}
+            , name='getPhenotypeVersions_public'),
+    
 ]
 
 

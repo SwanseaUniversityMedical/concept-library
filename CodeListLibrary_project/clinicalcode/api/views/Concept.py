@@ -779,132 +779,6 @@ def api_concept_update(request):
                             )
         
         
-
-##############################################################################
-##############################################################################
-# search my concepts 
-@api_view(['GET']) 
-def myConcepts_oldxx(request):
-    '''
-        Get the API output for the list of my concepts.
-    '''
-    search = request.query_params.get('search', None)
-    concept_id = request.query_params.get('id', None)
-    tag_ids = request.query_params.get('tag_ids', '')
-    owner = request.query_params.get('owner_username', '')
-    show_only_my_concepts = request.query_params.get('show_only_my_concepts', "0")
-    show_deleted_concepts = request.query_params.get('show_deleted_concepts', "0")
-    show_only_validated_concepts = request.query_params.get('show_only_validated_concepts', "0")
-    concept_brand = request.query_params.get('brand', "")
-    author = request.query_params.get('author', None)
-    do_not_show_versions = request.query_params.get('do_not_show_versions', "0")
-        
-    # ensure that user is only allowed to view/edit the relevant concepts
-    concepts = get_visible_concepts(request)
-    
-    if concept_id is not None:
-        if concept_id != '':
-            concepts = concepts.filter(pk=concept_id)
-
-    # check if there is any search criteria supplied
-    if search is not None:
-        if search != '':
-            concepts = concepts.filter(name__icontains=search)
-            
-    if author is not None:
-        if author != '':
-            concepts = concepts.filter(author__icontains=author)        
-
-    if tag_ids.strip() != '':
-        # split tag ids into list
-        new_tag_list = [int(i) for i in tag_ids.split(",")]
-        concepts = concepts.filter(concepttagmap__tag__id__in=new_tag_list)
-
-    if owner is not None:
-        if owner !='':
-            if User.objects.filter(username__iexact = owner.strip()).exists():
-                owner_id = User.objects.get(username__iexact = owner.strip()).id
-                concepts = concepts.filter(owner_id = owner_id)
-            else:
-                concepts = concepts.filter(owner_id = -1)
-                
-        
-    # show only concepts created by the current user
-    if show_only_my_concepts == "1":
-        concepts = concepts.filter(owner_id=request.user.id)
-
-    # if show deleted concepts is 1 then show deleted concepts
-    if show_deleted_concepts != "1":
-        concepts = concepts.exclude(is_deleted=True)
-
-    # if show_only_validated_concepts is 1 then show only concepts with validation_performed=True
-    if show_only_validated_concepts == "1":
-        concepts = concepts.filter(validation_performed=True)
-
-    # show concepts for a specific brand
-    if concept_brand != "":
-        current_brand = Brand.objects.all().filter(name__iexact = concept_brand)
-        concepts = concepts.filter(group__id__in = list(current_brand.values_list('groups', flat=True)))
-
-
-    # order by id
-    concepts = concepts.order_by('id')
-    
-#     # Serializer could be used here...
-#     # but needs to return names not ids
-#     return Response(list(concepts.values('id' , 'name' , 'coding_system' , 'owner'))
-#                     , status=status.HTTP_200_OK)       
-
-    rows_to_return = []
-    titles = ['concept_id', 'concept_name'
-            , 'latest_version_id'
-            , 'author', 'coding_system', 'owner'
-            , 'created_by', 'created_date'  
-            , 'modified_by', 'modified_date'  
-            , 'is_deleted', 'deleted_by', 'deleted_date'
-            ]
-    if do_not_show_versions != "1":
-        titles += ['versions']
-    
-
-    for c in concepts:
-        ret = [
-                c.id,  
-                c.name.encode('ascii', 'ignore').decode('ascii'),
-                c.history_id,                #Concept.objects.get(pk=c.id).history.latest().history_id, 
-                c.author,
-                c.coding_system.name,
-                c.owner.username,
-                
-                c.created_by.username,
-                c.created,
-            ]
-
-        if (c.modified_by):
-            ret += [c.modified_by.username]
-        else:
-            ret += [None]
-            
-        ret += [
-                c.modified,  
-                
-                c.is_deleted,  
-            ]
-        
-        if (c.is_deleted == True):
-            ret += [c.deleted_by.username]
-        else:
-            ret += [None]
-        
-        ret += [c.deleted]
-        
-        if do_not_show_versions != "1":
-            ret += [get_versions_list(request.user, Concept, c.id)]
-        
-        rows_to_return.append(ordr(zip(titles,  ret )))
-                                   
-    return Response(rows_to_return, status=status.HTTP_200_OK)                                   
-
 ##################################################################################
 # search my concepts / published ones
 
@@ -914,6 +788,9 @@ def myConcepts_oldxx(request):
 @authentication_classes([])
 @permission_classes([]) 
 def published_concepts(request):
+    '''
+        Get the API output for the list of published concepts.
+    '''
     return  getConcepts(request, is_authenticated_user=False)
     
 #--------------------------------------------------------------------------
@@ -1115,7 +992,7 @@ def getConcepts(request, is_authenticated_user=True):
 # show concept detail
 #============================================================= 
 @api_view(['GET'])
-def myConcept_detail(request, pk, concept_history_id=None):
+def myConcept_detail(request, pk, concept_history_id=None, get_versions_only=None):
     ''' 
         Display the detail of a concept at a point in time.
     '''
@@ -1147,14 +1024,14 @@ def myConcept_detail(request, pk, concept_history_id=None):
         concept_history_id = Concept.objects.get(pk=pk).history.latest().history_id 
         
                     
-    return getConceptDetail(request, pk, concept_history_id)
+    return getConceptDetail(request, pk, concept_history_id, is_authenticated_user=True, get_versions_only=get_versions_only)
     
 #--------------------------------------------------------------------------
 #disable authentication for this function
 @api_view(['GET'])
 @authentication_classes([])
 @permission_classes([]) 
-def myConcept_detail_PUBLIC(request, pk, concept_history_id=None):
+def myConcept_detail_PUBLIC(request, pk, concept_history_id=None, get_versions_only=None):
     ''' 
         Display the detail of a published concept at a point in time.
     '''
@@ -1173,15 +1050,24 @@ def myConcept_detail_PUBLIC(request, pk, concept_history_id=None):
         
     is_published = checkIfPublished(Concept, pk, concept_history_id)
     # check if the concept version is published
-    if not is_published: 
+    if not is_published and get_versions_only != '1': 
         raise PermissionDenied 
                     
-    return getConceptDetail(request, pk, concept_history_id)
+    return getConceptDetail(request, pk, concept_history_id, is_authenticated_user=False, get_versions_only=get_versions_only)
     
         
 #--------------------------------------------------------------------------
-def getConceptDetail(request, pk, concept_history_id=None):
+def getConceptDetail(request, pk, concept_history_id=None, is_authenticated_user=True, get_versions_only=None):
     
+    if get_versions_only is not None:
+        if get_versions_only == '1':
+            titles = ['versions']
+            ret = [get_visible_versions_list(request, Concept, pk, is_authenticated_user)]
+            rows_to_return = []
+            rows_to_return.append(ordr(zip(titles,  ret )))
+            return Response(rows_to_return, status=status.HTTP_200_OK)   
+    #--------------------------
+            
     concept = getHistoryConcept(concept_history_id)
     # The history concept contains the owner_id, to provide the owner name, we
     # need to access the user object with that ID and add that to the concept.
@@ -1233,6 +1119,7 @@ def getConceptDetail(request, pk, concept_history_id=None):
             # , 'deleted_by', 'deleted_date' # no need here
             
             , 'components'
+            , 'versions'
             ]
     
     ret = [
@@ -1306,6 +1193,7 @@ def getConceptDetail(request, pk, concept_history_id=None):
     #ret += [components]
     ret += [ret_components]
     
+    ret += [get_visible_versions_list(request, Concept, pk, is_authenticated_user)]
     
     rows_to_return.append(ordr(zip(titles,  ret )))
                                    
