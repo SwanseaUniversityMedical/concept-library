@@ -128,6 +128,8 @@ def customRoot(request):
         'myConceptdetail_public': reverse('api:myConceptdetail_public', kwargs={'pk': 0}),
         'myConceptdetail_version_public': reverse('api:myConceptdetail_version_public', kwargs={'pk': 0, 'concept_history_id': 1}),
         'api_export_published_concept_codes': reverse('api:api_export_published_concept_codes', kwargs={'pk': 0, 'concept_history_id': 1}),
+        'getConceptVersions': reverse('api:getConceptVersions', kwargs={'pk': 0}),
+        'getConceptVersions_public': reverse('api:getConceptVersions_public', kwargs={'pk': 0}),
         
         
         'export_workingset_codes': reverse('api:api_export_workingset_codes', kwargs={'pk': 0}),
@@ -135,7 +137,7 @@ def customRoot(request):
         'myWorkingSets': reverse('api:myWorkingSets', kwargs={}),
         'myWorkingsetdetail': reverse('api:myWorkingsetdetail', kwargs={'pk': 0}),
         'myWorkingsetdetail_version': reverse('api:myWorkingsetdetail_version', kwargs={'pk': 0, 'workingset_history_id': 1}),
-        
+        'getWorkingsetVersions': reverse('api:getWorkingsetVersions', kwargs={'pk': 0}),
         
         # not implemented yet, will be done when creating/updating phenotype
         #'export_phenotype_codes': reverse('api:api_export_phenotype_codes', kwargs={'pk': 0}),
@@ -148,7 +150,9 @@ def customRoot(request):
         #'myPhenotypedetail_public': reverse('api:myPhenotypedetail_public', kwargs={'pk': 0}),
         'myPhenotypedetail_version_public': reverse('api:myPhenotypedetail_version_public', kwargs={'pk': 0, 'phenotype_history_id': 1}),
         'api_export_published_phenotype_codes': reverse('api:api_export_published_phenotype_codes', kwargs={'pk': 0, 'phenotype_history_id': 1}),
-        
+        'getPhenotypeVersions': reverse('api:getPhenotypeVersions', kwargs={'pk': 0}),
+        'getPhenotypeVersions_public': reverse('api:getPhenotypeVersions_public', kwargs={'pk': 0}),
+                    
     }
     
     if not settings.CLL_READ_ONLY:
@@ -388,7 +392,7 @@ def chk_components_and_codes(components_inputs):
 #---------------------------------------------------------------------------
 ############################################################################
 
-def get_versions_list(user, set_class, pk):
+def get_versions_list(request, set_class, pk):
     
     versions = set_class.objects.get(pk=pk).history.all().order_by('-history_id')
    
@@ -410,6 +414,9 @@ def get_versions_list(user, set_class, pk):
 
 
 def get_visible_versions_list(request, set_class, pk, is_authenticated_user=True):
+    
+    if set_class == WorkingSet:
+        return get_versions_list(request, set_class, pk)
     
     versions = set_class.objects.get(pk=pk).history.all().order_by('-history_id')
    
