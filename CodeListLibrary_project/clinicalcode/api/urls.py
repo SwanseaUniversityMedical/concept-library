@@ -210,8 +210,8 @@ if not settings.CLL_READ_ONLY:
     
     
 #======== Publish Concept =====================================
-if settings.ENABLE_PUBLISH:
-    urlpatterns += [
+#if settings.ENABLE_PUBLISH:
+urlpatterns += [
         url(r'^export_published_concept_codes/(?P<pk>\d+)/version/(?P<concept_history_id>\d+)/$'
         , Concept.export_published_concept_codes
         , name='api_export_published_concept_codes'),
