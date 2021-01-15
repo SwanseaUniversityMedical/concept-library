@@ -439,7 +439,6 @@ def export_phenotype_codes_byVersionID(request, pk, phenotype_history_id):
         raise PermissionDenied    
     #----------------------------------------------------------------------
 
-
     if request.method == 'GET':
         rows_to_return = get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id)
         return Response(rows_to_return, status=status.HTTP_200_OK)
@@ -454,6 +453,9 @@ def export_phenotype_codes_byVersionID(request, pk, phenotype_history_id):
 @authentication_classes([])
 @permission_classes([]) 
 def published_phenotypes(request):
+    '''
+        Get the API output for the list of published phenotypes.
+    '''
     return  getPhenotypes(request, is_authenticated_user=False)
     
 #--------------------------------------------------------------------------
@@ -657,7 +659,7 @@ def getPhenotypes(request, is_authenticated_user=True):
 # show phenotype detail
 #============================================================= 
 @api_view(['GET'])
-def myPhenotype_detail(request, pk, phenotype_history_id=None):
+def myPhenotype_detail(request, pk, phenotype_history_id=None, get_versions_only=None):
     ''' 
         Display the detail of a phenotype at a point in time.
     '''
@@ -689,14 +691,14 @@ def myPhenotype_detail(request, pk, phenotype_history_id=None):
         phenotype_history_id = Phenotype.objects.get(pk=pk).history.latest().history_id 
         
                     
-    return getPhenotypeDetail(request, pk, phenotype_history_id)
+    return getPhenotypeDetail(request, pk, phenotype_history_id, is_authenticated_user=True, get_versions_only=get_versions_only)
     
 #--------------------------------------------------------------------------
 #disable authentication for this function
 @api_view(['GET'])
 @authentication_classes([])
 @permission_classes([]) 
-def myPhenotype_detail_PUBLIC(request, pk, phenotype_history_id=None):
+def myPhenotype_detail_PUBLIC(request, pk, phenotype_history_id=None, get_versions_only=None):
     ''' 
         Display the detail of a published phenotype at a point in time.
     '''
@@ -715,15 +717,24 @@ def myPhenotype_detail_PUBLIC(request, pk, phenotype_history_id=None):
         
     is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
     # check if the phenotype version is published
-    if not is_published: 
+    if not is_published and get_versions_only != '1': 
         raise PermissionDenied 
                     
-    return getPhenotypeDetail(request, pk, phenotype_history_id)
+    return getPhenotypeDetail(request, pk, phenotype_history_id, is_authenticated_user=False, get_versions_only=get_versions_only)
     
         
 #--------------------------------------------------------------------------
-def getPhenotypeDetail(request, pk, phenotype_history_id=None):
+def getPhenotypeDetail(request, pk, phenotype_history_id=None, is_authenticated_user=True, get_versions_only=None):
     
+    if get_versions_only is not None:
+        if get_versions_only == '1':
+            titles = ['versions']
+            ret = [get_visible_versions_list(request, Phenotype, pk, is_authenticated_user)]
+            rows_to_return = []
+            rows_to_return.append(ordr(zip(titles,  ret )))
+            return Response(rows_to_return, status=status.HTTP_200_OK)   
+    #--------------------------
+        
     phenotype = getHistoryPhenotype(phenotype_history_id)
     # The history phenotype contains the owner_id, to provide the owner name, we
     # need to access the user object with that ID and add that to the phenotype.
@@ -789,6 +800,7 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None):
             # , 'deleted_by', 'deleted_date' # no need here
             
             , 'concepts'
+            , 'versions'
             ]
     
     ret = [
@@ -866,6 +878,7 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None):
     #ret += [concepts]
     ret += [ret_concepts]
     
+    ret += [get_visible_versions_list(request, Phenotype, pk, is_authenticated_user)]
     
     rows_to_return.append(ordr(zip(titles,  ret )))
                                    

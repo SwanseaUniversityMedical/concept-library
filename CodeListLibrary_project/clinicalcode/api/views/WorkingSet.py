@@ -50,6 +50,7 @@ from datetime import datetime
 from django.core.validators import URLValidator
 from View import *
 from django.db.models.aggregates import Max
+from clinicalcode.models.WorkingSet import WorkingSet
 
 
 '''
@@ -655,7 +656,7 @@ def myWorkingSets(request):
         ret += [c.deleted]
         
         if do_not_show_versions != "1":
-            ret += [get_versions_list(request.user, WorkingSet, c.id)]
+            ret += [get_visible_versions_list(request, WorkingSet, c.id, is_authenticated_user=True)]
         
         rows_to_return.append(ordr(zip(titles,  ret )))
                                    
@@ -665,7 +666,7 @@ def myWorkingSets(request):
                                                 
 # my working set detail 
 @api_view(['GET']) 
-def myWorkingset_detail(request, pk, workingset_history_id=None):
+def myWorkingset_detail(request, pk, workingset_history_id=None, get_versions_only=None):
     ''' 
         Display the detail of a working set at a point in time.
     '''
@@ -697,6 +698,17 @@ def myWorkingset_detail(request, pk, workingset_history_id=None):
     
     #----------------------------------------------------------------------
     do_not_show_codes = request.query_params.get('do_not_show_codes', "0")
+    
+    #------------------------
+    if get_versions_only is not None:
+        if get_versions_only == '1':
+            titles = ['versions']
+            ret = [get_visible_versions_list(request, WorkingSet, pk, is_authenticated_user=True)]
+            rows_to_return = []
+            rows_to_return.append(ordr(zip(titles,  ret )))
+            return Response(rows_to_return, status=status.HTTP_200_OK)   
+    #--------------------------
+    
     
     ws = getHistoryWorkingset(workingset_history_id)
     # The history ws contains the owner_id, to provide the owner name, we
@@ -748,6 +760,8 @@ def myWorkingset_detail(request, pk, workingset_history_id=None):
             ]
     if do_not_show_codes != "1":
         titles += ['codes']
+        
+    titles += ['versions']
     
     ret = [
             ws['id'],
@@ -790,7 +804,8 @@ def myWorkingset_detail(request, pk, workingset_history_id=None):
     if do_not_show_codes != "1":
         ret += [get_workingset_codes(request, pk, workingset_history_id)]
   
-    
+    ret += [get_visible_versions_list(request, WorkingSet, pk, is_authenticated_user=True)]
+     
     rows_to_return.append(ordr(zip(titles,  ret )))
                                    
     return Response(rows_to_return, status=status.HTTP_200_OK)                

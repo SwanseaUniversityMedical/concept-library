@@ -99,6 +99,15 @@
 					- The concept must be included in the JSON object <br>
 					<a href="{{ api_concept_update }}" target="_blank" class="alert-link">{{ api_concept_update }}</a></p>
 			{% endif %}	
+			
+				<li><strong>To list concept versions</strong></li>
+					<p><a href="{{ getConceptVersions }}" target="_blank" class="alert-link">{{ getConceptVersions }}</a></p>
+				
+				<li><strong>Public-open: To list concept published versions</strong></li>
+					<p>- Open to Public: (no authentication) <br>
+					<a href="{{ getConceptVersions_public }}" target="_blank" class="alert-link">{{ getConceptVersions_public }}</a></p>
+					
+				
 				
 			</ol>
 	  </div>
@@ -167,7 +176,11 @@
 					- The working set must be included in the JSON object <br>
 					<a href="{{ api_workingset_update }}" target="_blank" class="alert-link">{{ api_workingset_update }}</a></p>
 			{% endif %}	
-							
+					
+				<li><strong>To list working set versions</strong></li>
+					<p><a href="{{ getWorkingsetVersions }}" target="_blank" class="alert-link">{{ getWorkingsetVersions }}</a></p>
+					
+												
 			</ol>
 
 	  </div>
@@ -252,6 +265,15 @@
 		          <p>- By passing a JSON object <br>  
 		          <a href="{{ api_datasource_create }}" target="_blank" class="alert-link">{{ api_datasource_create }}</a></p>
 		     {% endif %}	
+		      
+		     			
+			<li><strong>To list phenotype versions</strong></li>
+				<p><a href="{{ getPhenotypeVersions }}" target="_blank" class="alert-link">{{ getPhenotypeVersions }}</a></p>
+				
+			<li><strong>Public-open: To list phenotype published versions</strong></li>
+				<p>- Open to Public: (no authentication) <br>
+				<a href="{{ getPhenotypeVersions_public }}" target="_blank" class="alert-link">{{ getPhenotypeVersions_public }}</a></p>
+		        
 		        
 		      </ol>
 	  </div>
