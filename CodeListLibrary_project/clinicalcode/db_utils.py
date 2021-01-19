@@ -2970,7 +2970,7 @@ def get_visible_live_or_published_phenotype_versions(request
                                source_reference, citation_requirements, is_deleted, deleted, 
                                owner_access, group_access, world_access, history_id, history_date, 
                                history_change_reason, history_type, created_by_id, deleted_by_id, 
-                               group_id, history_user_id, owner_id, updated_by_id, validation_performed
+                               group_id, history_user_id, owner_id, updated_by_id, validation_performed, phenoflowid
                             FROM clinicalcode_historicalphenotype t
                             ) r
                             """ 
@@ -3019,6 +3019,7 @@ def getHistoryPhenotype(phenotype_history_id):
         hph.source_reference,
         hph.implementation,
         hph.citation_requirements,
+        hph.phenoflowid,
         hph.is_deleted,
         hph.deleted,
         hph.owner_access,
