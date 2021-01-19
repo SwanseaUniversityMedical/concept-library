@@ -181,7 +181,7 @@
 						<div class="col-sm-9">
 							{% for ds in data_sources %}
 							   <span class="tag label">
-							   		{% if ds.url %}
+							   		{% if ds.url|length %}
 							   			<a  href="{{ ds.url }}" target=_blank >{{ ds.name }}</a>
 							   		{% else %}
 							   			{{ ds.name }}
@@ -275,6 +275,17 @@
 							{{ phenotype.citation_requirements }}
 						</div>
 					</div>
+					
+					<div class="form-group ">
+						<label class="col-sm-3">PhenoFlow Implementation:</label>
+						<div class="col-sm-9">
+							{% if phenotype.phenoflowid|length  %}
+								<a  href="https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}" target=_blank >https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}</a> 
+							{% else %}
+								&nbsp;
+							{% endif %}	
+						</div>
+					</div>					
 					
 					{% if not user.is_authenticated  %}
 						<div class="form-group  highlight-row">
