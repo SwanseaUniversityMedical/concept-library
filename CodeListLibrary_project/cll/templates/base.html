@@ -60,7 +60,8 @@
 						{% endif %}
 						
 						<a id="logo-link-cl"  href="/{% if request.CURRENT_BRAND|length %}
-								{{ request.CURRENT_BRAND }}/
+								{{ request.CURRENT_BRAND }}/home/
+								{% else %}home/
 								{% endif %}"  class="navbar-brand" >
 							<img style="margin-top: -10px;" 
 							src="{% static 'img/' %}{% if request.CURRENT_BRAND|length %}
