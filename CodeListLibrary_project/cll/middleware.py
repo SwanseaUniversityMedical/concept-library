@@ -82,7 +82,7 @@ class brandMiddleware(MiddlewareMixin):
             request.BRAND_GROUPS = all_brands_groups
 
             if root in brands_list:
-                print "root=", root
+                if settings.DEBUG: print "root=", root
                 settings.CURRENT_BRAND = root
                 request.CURRENT_BRAND = root
                 
