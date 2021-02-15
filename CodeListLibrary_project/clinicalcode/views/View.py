@@ -15,7 +15,7 @@ from ..permissions import (
 
 logger = logging.getLogger(__name__)
 
-@login_required
+
 def index(request):
     '''
         Display the index homepage.
