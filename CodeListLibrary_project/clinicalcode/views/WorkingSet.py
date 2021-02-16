@@ -738,7 +738,7 @@ def workingset_list(request):
     tag_ids = request.GET.get('tagids', request.session.get('workingset_tagids', ''))
     owner = request.GET.get('owner', request.session.get('workingset_owner', ''))
     author = request.GET.get('author', request.session.get('workingset_author', ''))
-    ws_brand = request.GET.get('ws_brand', request.session.get('ws_brand', request.CURRENT_BRAND))
+    ws_brand = request.GET.get('ws_brand', request.session.get('workingset_brand', request.CURRENT_BRAND))
  
     if request.method == 'POST':
         # get posted parameters
@@ -761,7 +761,7 @@ def workingset_list(request):
     request.session['workingset_author'] = author
     request.session['workingset_tagids'] = tag_ids
     request.session['workingset_owner'] = owner
-    request.session['ws_brand'] = ws_brand
+    request.session['workingset_brand'] = ws_brand
 
     # Ensure that user is only allowed to view the relevant workingsets.
     workingsets = get_visible_workingsets(request.user)
