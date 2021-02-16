@@ -69,9 +69,9 @@ def phenotype_list(request):
     search = request.GET.get('search', request.session.get('phenotype_search', ''))
     show_my_phenotypes = request.GET.get('show_my_phenotypes', request.session.get('phenotype_show_my_phenotype', 0))
     show_deleted_phenotypes = request.GET.get('show_deleted_phenotypes', request.session.get('phenotype_show_deleted_phenotypes', 0))
-    tag_ids = request.GET.get('tagids', request.session.get('tagids', ''))
-    owner = request.GET.get('owner', request.session.get('owner', ''))
-    author = request.GET.get('author', request.session.get('author', ''))
+    tag_ids = request.GET.get('tagids', request.session.get('phenotype_tagids', ''))
+    owner = request.GET.get('owner', request.session.get('phenotype_owner', ''))
+    author = request.GET.get('author', request.session.get('phenotype_author', ''))
     show_only_validated_phenotypes = request.GET.get('show_only_validated_phenotypes', request.session.get('show_only_validated_phenotypes', 0))
     phenotype_brand = request.GET.get('phenotype_brand', request.session.get('phenotype_brand', request.CURRENT_BRAND))
     expand_published_versions = 0   # disable this option
@@ -100,9 +100,9 @@ def phenotype_list(request):
     request.session['phenotype_search'] = search
     request.session['phenotype_show_my_phenotype'] = show_my_phenotypes
     request.session['phenotype_show_deleted_phenotypes'] = show_deleted_phenotypes
-    request.session['author'] = author
-    request.session['tagids'] = tag_ids
-    request.session['owner'] = owner
+    request.session['phenotype_author'] = author
+    request.session['phenotype_tagids'] = tag_ids
+    request.session['phenotype_owner'] = owner
     request.session['show_only_validated_phenotypes'] = show_only_validated_phenotypes
     request.session['phenotype_brand'] = phenotype_brand
     #request.session['expand_published_versions'] = expand_published_versions

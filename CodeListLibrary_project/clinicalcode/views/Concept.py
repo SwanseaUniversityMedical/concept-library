@@ -668,14 +668,14 @@ def concept_list(request):
     search = request.GET.get('search', request.session.get('concept_search', ''))
     show_my_concepts = request.GET.get('show_my_concepts', request.session.get('concept_show_my_concept', 0))
     show_deleted_concepts = request.GET.get('show_deleted_concepts', request.session.get('concept_show_deleted_concepts', 0))
-    tag_ids = request.GET.get('tagids', request.session.get('tagids', ''))
-    owner = request.GET.get('owner', request.session.get('owner', ''))
-    author = request.GET.get('author', request.session.get('author', ''))
+    tag_ids = request.GET.get('tagids', request.session.get('concept_tagids', ''))
+    owner = request.GET.get('owner', request.session.get('concept_owner', ''))
+    author = request.GET.get('author', request.session.get('concept_author', ''))
     show_only_validated_concepts = request.GET.get('show_only_validated_concepts', request.session.get('show_only_validated_concepts', 0))
     concept_brand = request.GET.get('concept_brand', request.session.get('concept_brand', request.CURRENT_BRAND))
     expand_published_versions = 0   # disable this option
     #expand_published_versions = request.GET.get('expand_published_versions', request.session.get('expand_published_versions', 0))
-    must_have_published_versions = request.GET.get('must_have_published_versions', request.session.get('must_have_published_versions', 0))
+    must_have_published_versions = request.GET.get('must_have_published_versions', request.session.get('concept_must_have_published_versions', 0))
     
     if request.method == 'POST':
         # get posted parameters
@@ -699,13 +699,13 @@ def concept_list(request):
     request.session['concept_search'] = search
     request.session['concept_show_my_concept'] = show_my_concepts
     request.session['concept_show_deleted_concepts'] = show_deleted_concepts
-    request.session['author'] = author
-    request.session['tagids'] = tag_ids
-    request.session['owner'] = owner
+    request.session['concept_author'] = author
+    request.session['concept_tagids'] = tag_ids
+    request.session['concept_owner'] = owner
     request.session['show_only_validated_concepts'] = show_only_validated_concepts
     request.session['concept_brand'] = concept_brand
     #request.session['expand_published_versions'] = expand_published_versions    
-    request.session['must_have_published_versions'] = must_have_published_versions
+    request.session['concept_must_have_published_versions'] = must_have_published_versions
 
     filter_cond = " 1=1 "
     exclude_deleted = True
@@ -830,186 +830,6 @@ def concept_list(request):
         'must_have_published_versions': must_have_published_versions
         #'expand_published_versions': expand_published_versions,
         #'published_count': PublishedConcept.objects.all().count()
-    })
-
-
-
-def concept_list_org(request):
-    '''
-        Display a list of concepts. This view can be searched and contains paging.
-    '''
-        
-    search_tag_list = []
-    tags = []
-    
-    # get page index variables from query or from session
-    page_size = utils.get_int_value(request.GET.get('page_size', request.session.get('concept_page_size', 20)), 20)
-    page = utils.get_int_value(request.GET.get('page', request.session.get('concept_page', 1)), 1)
-    search = request.GET.get('search', request.session.get('concept_search', ''))
-    show_my_concepts = request.GET.get('show_my_concepts', request.session.get('concept_show_my_concept', 0))
-    show_deleted_concepts = request.GET.get('show_deleted_concepts', request.session.get('concept_show_deleted_concepts', 0))
-    tag_ids = request.GET.get('tagids', request.session.get('tagids', ''))
-    owner = request.GET.get('owner', request.session.get('owner', ''))
-    author = request.GET.get('author', request.session.get('author', ''))
-    show_only_validated_concepts = request.GET.get('show_only_validated_concepts', request.session.get('show_only_validated_concepts', 0))
-    concept_brand = request.GET.get('concept_brand', request.session.get('concept_brand', request.CURRENT_BRAND))
-
-    if request.method == 'POST':
-        # get posted parameters
-        search = request.POST.get('search', '')
-        page_size = request.POST.get('page_size')
-        page = request.POST.get('page', page)
-        show_my_concepts = request.POST.get('show_my_concepts', 0)
-        show_deleted_concepts = request.POST.get('show_deleted_concepts', 0)
-        author = request.POST.get('author', '')
-        tag_ids = request.POST.get('tagids', '')
-        owner = request.POST.get('owner', '')
-        show_only_validated_concepts = request.POST.get('show_only_validated_concepts', 0)
-        concept_brand = request.POST.get('concept_brand', request.CURRENT_BRAND)
-
-
-    # store page index variables to session
-    request.session['concept_page_size'] = page_size
-    request.session['concept_page'] = page
-    request.session['concept_search'] = search
-    request.session['concept_show_my_concept'] = show_my_concepts
-    request.session['concept_show_deleted_concepts'] = show_deleted_concepts
-    request.session['author'] = author
-    request.session['tagids'] = tag_ids
-    request.session['owner'] = owner
-    request.session['show_only_validated_concepts'] = show_only_validated_concepts
-    request.session['concept_brand'] = concept_brand
-
-    
-    if tag_ids:
-        # split tag ids into list
-        search_tag_list = [int(i) for i in tag_ids.split(",")]
-        tags = Tag.objects.filter(id__in=search_tag_list)
-        
-    # check if it is the public site or not
-    if request.user.is_authenticated():
-        # ensure that user is only allowed to view/edit the relevant concepts
-        concepts = get_visible_concepts(request)
-           
-        # show only concepts created by the current user
-        if show_my_concepts == "1":
-            concepts = concepts.filter(owner_id=request.user.id)
-    
-        # if show deleted concepts is 1 then show deleted concepts
-        if show_deleted_concepts != "1":
-            concepts = concepts.exclude(is_deleted=True)          
-        
-        # apply tags
-        if tag_ids: 
-            concepts = concepts.filter(concepttagmap__tag__id__in=search_tag_list)
-        
-    else:
-        # published concepts
-        # show published concepts
-        # work on concept.history and make sure it is in published concept
-        all_published_history_id = list(PublishedConcept.objects.all().values_list('concept_history_id', flat=True))
-        published_concepts = Concept.history.filter(history_id__in = all_published_history_id)
-        if published_concepts.count() == 0:
-            # redirect to login page if no published concepts
-            return HttpResponseRedirect(settings.LOGIN_URL)
-
-        concepts = published_concepts
-        
-
-    # check if there is any search criteria supplied
-    if search is not None:
-        if search != '':
-            concepts = concepts.filter(name__icontains=search)
-
-
-    if owner is not None:
-        if owner !='':
-            if User.objects.filter(username__iexact = owner.strip()).exists():
-                owner_id = User.objects.get(username__iexact = owner.strip()).id
-                concepts = concepts.filter(owner_id = owner_id)
-            else:
-                concepts = concepts.filter(owner_id = -1)
-        
-    if author is not None:
-        if author != '':
-            concepts = concepts.filter(author__icontains=author)
-                    
-
-
-    # if show_only_validated_concepts is 1 then show only concepts with validation_performed=True
-    if show_only_validated_concepts == "1":
-        concepts = concepts.filter(validation_performed=True)
-
-    # show concepts for a specific brand
-    if concept_brand != "":
-        current_brand = Brand.objects.all().filter(name = concept_brand)
-        concepts = concepts.filter(group__id__in = list(current_brand.values_list('groups', flat=True)))
-
-
-    if request.user.is_authenticated():    
-        # order by id
-        concepts = concepts.order_by('id')
-        
-        # Run through the concepts and add a 'can edit this concept' field, etc.
-        for concept in concepts:
-            concept.can_edit = allowed_to_edit(request.user, Concept, concept.id)
-            concept.publish_date = None
-            concept.history_id = Concept.objects.get(pk=concept.id).history.latest().history_id
-    else:
-        # published concepts
-        
-        # apply tags
-        # I don't like this way, maybe remove search by tags from public site
-        if tag_ids:
-            for concept in concepts:
-                concept_tags_history = db_utils.getHistoryTags(concept.id, concept.history_date)
-                if concept_tags_history:
-                    concept_tag_list = [i['tag_id'] for i in concept_tags_history if 'tag_id' in i]
-                    if not any(t in set(search_tag_list) for t in set(concept_tag_list)):
-                        concepts = concepts.exclude(id=concept.id, history_id=concept.history_id)             
-                else:
-                    concepts = concepts.exclude(id=concept.id, history_id=concept.history_id)    
-                    
-        
-        # for each concept_id get max historical_id
-        published_concepts_ids = list(concepts.all().values_list('id', flat=True).distinct().order_by())
-        published_concepts_history_ids = list(concepts.all().values_list('history_id', flat=True).distinct().order_by())
-        max_historical_ids = list(PublishedConcept.objects.all().filter(concept_id__in = published_concepts_ids 
-                                                                        , concept_history_id__in = published_concepts_history_ids
-                                                                        ).values('concept_id').annotate(max_id=Max('concept_history_id')
-                                                                                                        ).values_list('max_id', flat=True)
-                                )
-
-        # get the latest version for each published concept (with search criteria)
-        concepts = concepts.filter(history_id__in=max_historical_ids).order_by('id')
-    
-        # publish_date
-        for concept in concepts:
-            concept.publish_date = PublishedConcept.objects.get(concept_id=concept.id, concept_history_id=concept.history_id).created
-            concept.can_edit = False
-       
-       
-        
-    # create pagination
-    paginator = Paginator(concepts, page_size, allow_empty_first_page=True)
-    try:
-        p = paginator.page(page)
-    except EmptyPage:
-        p = paginator.page(paginator.num_pages)
-
-    return render(request, 'clinicalcode/concept/index.html', {
-        'page': page,
-        'page_size': str(page_size),
-        'page_obj': p,
-        'search': search,
-        'author': author,
-        'show_my_concepts': show_my_concepts,
-        'show_deleted_concepts': show_deleted_concepts,
-        'tags': tags,
-        'owner': owner,
-        'show_only_validated_concepts': show_only_validated_concepts,
-        'allowed_to_create': not settings.CLL_READ_ONLY,
-        'concept_brand': concept_brand
     })
 
 
