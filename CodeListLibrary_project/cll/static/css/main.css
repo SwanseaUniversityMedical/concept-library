@@ -2,6 +2,7 @@ body{
 	padding-top: 60px;
 	padding-bottom: 20px;
 	height: 100%;
+    font-family: IBM Plex Sans;
 }
 
 .page-header{
@@ -54,9 +55,6 @@ span.required{
 	padding: 2px 12px;
 }
 
-.btn{
-	padding: 2px 12px;
-}
 .panel{
 	margin-bottom: 10px;
 }
