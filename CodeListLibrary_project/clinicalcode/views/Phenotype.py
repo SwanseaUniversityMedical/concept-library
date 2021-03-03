@@ -51,6 +51,7 @@ from datetime import datetime
 import time
 
 import logging
+from clinicalcode.models.Phenotype import Phenotype
 
 
 logger = logging.getLogger(__name__)
@@ -114,8 +115,9 @@ def phenotype_list(request):
     
     if tag_ids:
         # split tag ids into list
-        search_tag_list = [int(i) for i in tag_ids.split(",")]
+        search_tag_list = [str(i) for i in tag_ids.split(",")]
         tags = Tag.objects.filter(id__in=search_tag_list)
+        filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
         
     # check if it is the public site or not
     if request.user.is_authenticated():
@@ -178,32 +180,31 @@ def phenotype_list(request):
                                                 , show_top_version_only = show_top_version_only
                                                 )
     
-    # apply tags
-    # I don't like this way :)
-    penotype_indx_to_exclude = []
-    if tag_ids:
-        for indx in range(len(phenotype_srch)):  
-            penotype = phenotype_srch[indx]
-            penotype['indx'] = indx
-            penotype_tags_history = db_utils.getHistoryTags_Phenotype(penotype['id'], penotype['history_date'])
-            if penotype_tags_history:
-                penotype_tag_list = [i['tag_id'] for i in penotype_tags_history if 'tag_id' in i]
-                if not any(t in set(search_tag_list) for t in set(penotype_tag_list)):
-                    penotype_indx_to_exclude.append(indx)
-                else:
-                    pass        
-            else:
-                penotype_indx_to_exclude.append(indx)  
-        
-    if penotype_indx_to_exclude:      
-        phenotype = [i for i in phenotype_srch if (i['indx'] not in penotype_indx_to_exclude)]
-    else:
-        phenotype = phenotype_srch 
+#     # apply tags
+#     # I don't like this way :)
+#     penotype_indx_to_exclude = []
+#     if tag_ids:
+#         for indx in range(len(phenotype_srch)):  
+#             penotype = phenotype_srch[indx]
+#             penotype['indx'] = indx
+#             penotype_tags_history = db_utils.getHistoryTags_Phenotype(penotype['id'], penotype['history_date'])
+#             if penotype_tags_history:
+#                 penotype_tag_list = [i['tag_id'] for i in penotype_tags_history if 'tag_id' in i]
+#                 if not any(t in set(search_tag_list) for t in set(penotype_tag_list)):
+#                     penotype_indx_to_exclude.append(indx)
+#                 else:
+#                     pass        
+#             else:
+#                 penotype_indx_to_exclude.append(indx)  
+#         
+#     if penotype_indx_to_exclude:      
+#         phenotype = [i for i in phenotype_srch if (i['indx'] not in penotype_indx_to_exclude)]
+#     else:
+#         phenotype = phenotype_srch 
     
-
     if request.user.is_authenticated():            
         # Run through the phenotype and add a 'can edit this penotype' field, etc.
-        for penotype in phenotype:
+        for penotype in phenotype_srch:
             penotype['can_edit'] = False # till edit is allowed
 #             penotype['can_edit'] = (penotype['rn'] == 1
 #                                    and allowed_to_edit(request.user, Phenotype, penotype['id'])  
@@ -211,7 +212,7 @@ def phenotype_list(request):
 
         
     # create pagination
-    paginator = Paginator(phenotype, page_size, allow_empty_first_page=True)
+    paginator = Paginator(phenotype_srch, page_size, allow_empty_first_page=True)
     try:
         p = paginator.page(page)
     except EmptyPage:
@@ -230,7 +231,8 @@ def phenotype_list(request):
         'show_only_validated_phenotypes': show_only_validated_phenotypes,
         'allowed_to_create': not settings.CLL_READ_ONLY,
         'phenotype_brand': phenotype_brand,
-        'phenotype_must_have_published_versions': phenotype_must_have_published_versions
+        'phenotype_must_have_published_versions': phenotype_must_have_published_versions,
+        'allTags': Tag.objects.all().order_by('description')
         #'expand_published_versions': expand_published_versions,
         #'published_count': PublishedPhenotype.objects.all().count()
     })
@@ -279,10 +281,14 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     phenotype_history_date = phenotype['history_date']
         
     tags =  Tag.objects.filter(pk=-1)
-    tags_comp = db_utils.getHistoryTags_Phenotype(pk, phenotype_history_date)
-    if tags_comp:
-        tag_list = [i['tag_id'] for i in tags_comp if 'tag_id' in i]
-        tags = Tag.objects.filter(pk__in=tag_list)
+    phenotype_tags = phenotype['tags']
+    if phenotype_tags:
+        tags = Tag.objects.filter(pk__in=phenotype_tags)
+#     tags =  Tag.objects.filter(pk=-1)
+#     tags_comp = db_utils.getHistoryTags_Phenotype(pk, phenotype_history_date)
+#     if tags_comp:
+#         tag_list = [i['tag_id'] for i in tags_comp if 'tag_id' in i]
+#         tags = Tag.objects.filter(pk__in=tag_list)
         
     data_sources = DataSource.objects.filter(pk=-1)
     data_sources_comp = db_utils.getHistoryDataSource_Phenotype(pk, phenotype_history_date)
@@ -571,9 +577,43 @@ def phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
      
 @login_required
 def phenotype_create(request):
+#     from django.db import connection, connections #, transaction
+# 
+#     distinct_phenotypes_with_tags = PhenotypeTagMap.objects.all().distinct('phenotype_id')
+#     for dp in distinct_phenotypes_with_tags:
+#         print "*************"
+#         print dp.phenotype_id
+#         hisp = Phenotype.history.filter(id=dp.phenotype_id)
+#         for hp in hisp:
+#             print hp.id, "...", hp.history_id
+#             penotype_tags_history = db_utils.getHistoryTags_Phenotype(hp.id, hp.history_date)
+#             if penotype_tags_history:
+#                 penotype_tag_list = [i['tag_id'] for i in penotype_tags_history if 'tag_id' in i]
+#             else:
+#                 penotype_tag_list = []
+#             print penotype_tag_list
+#             with connection.cursor() as cursor:
+#                 sql = """ UPDATE clinicalcode_historicalphenotype 
+#                             SET tags = '{""" + ','.join([str(i) for i in penotype_tag_list]) + """}'
+#                             WHERE id="""+str(hp.id)+""" and history_id="""+str(hp.history_id)+""";
+#                      """ 
+#                 cursor.execute(sql)
+#                 if hp.history_id == int(Phenotype.objects.get(pk=hp.id).history.latest().history_id):
+#                     sql2 = """ UPDATE clinicalcode_phenotype 
+#                             SET tags = '{""" + ','.join([str(i) for i in penotype_tag_list]) + """}'
+#                             WHERE id="""+str(hp.id)+"""  ;
+#                      """ 
+#                     cursor.execute(sql2)
+#                 
+#         print "-------------"
+        
+        
+    return redirect('phenotype_list')
+###################################################        
     # TODO: implement this
-    pass
+    #pass
 
+###################################################
 # #     ph = Phenotype.objects.all()
 # #     for p in ph:
 # #         p.save()

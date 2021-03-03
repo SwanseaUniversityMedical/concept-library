@@ -47,12 +47,14 @@
 						<input class="form-control" type="text" name="author" id="txtAuthor" data-role="authorinput" value="{{ author|default_if_none:'' }}">
 					</div>			
 					
+				{% if user.is_authenticated %}
 					<div class="col-md-2">
 						<label for="owner">Owner: <i class="help-block-no-break" style="font-size: 10px;">(full user name)</i></label>
 					</div>
 					<div class="col-md-2"> 
 						<input class="form-control" type="text" name="owner" id="txtOwner" data-role="ownerinput" value="{{ owner|default_if_none:'' }}">
 					</div>	
+				{% endif %}
 				</div>
 											
 				<div class="row form-group">							
@@ -106,14 +108,14 @@
 						</div>
 					{% endif %}	
 					
-					<div class = "col-md-3">   
-						<div class="checkbox"  >
-							<label>
-								<input id="show_only_validated_phenotypes" type="checkbox" name="show_only_validated_phenotypes" {% if show_only_validated_phenotypes %}checked="checked"{% endif %} value="1" >
-								Only Show validated phenotypes
-							</label>
-						</div>
-					</div>			
+<!-- 					<div class = "col-md-3">    -->
+<!-- 						<div class="checkbox"  > -->
+<!-- 							<label> -->
+<!-- 								<input id="show_only_validated_phenotypes" type="checkbox" name="show_only_validated_phenotypes" {% if show_only_validated_phenotypes %}checked="checked"{% endif %} value="1" > -->
+<!-- 								Only Show validated phenotypes -->
+<!-- 							</label> -->
+<!-- 						</div> -->
+<!-- 					</div>			 -->
 
 				{% if user.is_authenticated %}
 					<div  class = "col-md-3">
@@ -155,69 +157,89 @@
 			</div>
 		</div>
 		
-<!-- 		{% if not CLL_READ_ONLY %} -->
-<!-- 			<div> -->
-<!-- 			<a class="btn btn-primary"  {% if allowed_to_create %} href="{% url 'phenotype_create' %}" {% else %} disabled {% endif %}> -->
-<!-- 				<i class="fa fa-plus"></i> Add New Phenotype -->
-<!-- 			</a> -->
-<!-- 			</div> -->
+<!-- 		{% if user.is_authenticated %} -->
+<!-- 			{% if not CLL_READ_ONLY %} -->
+<!-- 				<div> -->
+<!-- 				<a class="btn btn-primary"  {% if allowed_to_create %} href="{% url 'phenotype_create' %}" {% else %} disabled {% endif %}> -->
+<!-- 	 				<i class="fa fa-plus"></i> migrate TAGS Add New Phenotype -->
+<!-- 				</a> -->
+<!-- 				</div> -->
+<!-- 			{% endif %} -->
 <!-- 		{% endif %} -->
 		
 		
 		<br/>
 
 		
-		<table class="table table-striped small-table table-hover">
-			<tr>
-				<th>ID</th>
-				<th>Version ID</th>
-				<th style="width: 200px;">Phenotype Name</th>
-				<th>Author</th>
-				<th>Owner</th>
-				{% if user.is_authenticated %}
-<!-- 					<th>Created</th> -->
-					<th>Modified</th>
-					<th>Is del.</th>
-				{% else %}
-					<th>Published</th>
-				{% endif %}		
-				<th style="width: 60px;"></th>
-				<th></th>
-			</tr>
+		<table class="table table-striped small-table table-hover" border=0>
+<!-- 			<thead> -->
+				<tr>
+					<th>ID</th>
+	<!-- 				<th>Version ID</th> -->
+					<th style="width:40%" >Phenotype Name</th>
+					<th>Author</th>
+	<!-- 				<th>Owner</th> -->
+					<th>Type</th>
+					{% if user.is_authenticated %}
+	<!-- 					<th>Created</th> -->
+						<th>Modified</th>
+	<!-- 					<th>Is del.</th> -->
+					{% else %}
+						<th>Published</th>
+					{% endif %}		
+					<th style="width: 60px;"></th>
+					<th></th>
+				</tr>
+<!-- 			</thead> -->
+<!-- 			<tbody> -->
 			{% block content %}
 				{% for phenotype in page_obj.object_list %}  
-				<tr {% cycle '' ' class="form-group highlight-row" ' %} >
-					<td>{{ phenotype.id }}</td>
-					<td>{{ phenotype.history_id }}
-						{% if user.is_authenticated and phenotype.is_published == 1 %}
-							<span title="{{ phenotype.published }}" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
-						{% endif %}
-					</td>
-					<td>{{ phenotype.name }}
+				<tr {% cycle '' ' class="form-group highlight-row" ' %}    >
+					<td>PH{{ phenotype.id }}						
 						{% for item in request.BRAND_GROUPS %}
 							{% for brand, groups in item.iteritems %}
 								{% if phenotype.group_name in groups %}
-								<img src="{% static 'img/brands/' %}{{brand}}/logo.png" height="10px" title="{{brand}}" alt="{{brand}}" />
+								<span >&nbsp;&nbsp;&nbsp;</span>
+								<span class="text-right">	
+									<img src="{% static 'img/brands/' %}{{brand}}/logo.png" style="text-align: right;height:20px;" title="{{brand}}" alt="{{brand}}" />
+								</span>
 								{% endif %}
 							{% endfor %}
 						{% endfor %}
+					</td>
+<!-- 					<td>{{ phenotype.history_id }}</td> -->
+					<td >{{ phenotype.name }}
+						{% if user.is_authenticated and phenotype.is_published == 1 %}
+							<span title="{{ phenotype.published }}" style="text-align: right;" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
+						{% endif %}
 					</td>				
 					<td title="{{ phenotype.author }}" >{{ phenotype.author|truncatechars:20 }}</td>
-					<td>{{ phenotype.owner_name }}</td>
+<!-- 					<td>{{ phenotype.owner_name }}</td> -->
+					<td>{{ phenotype.type }}</td>
 					{% if user.is_authenticated %}
 <!-- 						<td>{{ phenotype.created_by }}<br><i>{{ phenotype.created|date:"Y-m-d H:i" }}</i></td> -->
 						<td>{% if phenotype.modified_by_username is not None %}
 							{{ phenotype.modified_by_username }}<br><i>{{ phenotype.modified|date:"Y-m-d H:i" }}</i>
 							{% endif %}
 						</td>
-						<td>{% if phenotype.is_deleted is True %}
-							<span>&#10004;</span><br><i>{{ phenotype.deleted|date:"Y-m-d H:i" }}</i>
-							{% endif %}
-						</td>
+<!-- 						<td>{% if phenotype.is_deleted is True %} -->
+<!-- 							<span>&#10004;</span><br><i>{{ phenotype.deleted|date:"Y-m-d H:i" }}</i> -->
+<!-- 							{% endif %} -->
+<!-- 						</td> -->
 					{% else %}
 						<td>{{ phenotype.publish_date|date:"Y-m-d" }}</td>
 					{% endif %}		
-					<td class="text-right" style="width: 60px;">
+					<td classXX="text-right" styleXX="width: 60px;">
+						
+					 
+							{% for tag in allTags %}
+								{% for tag_id in phenotype.tags %}
+									{% if tag.id == tag_id %}
+								   		<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
+								   	{% endif %}
+								{% endfor %}						
+							{% endfor %}						
+ 					
 						{% if phenotype.is_deleted is not True and phenotype.can_edit %}
 						<a href="{% url 'phenotype_update' phenotype.id %}" title="Edit phenotype">
 							<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
@@ -259,6 +281,7 @@
 
 				{% endfor %}
 			{% endblock %}
+<!-- 			</tbody> -->
 		</table>
 		<div class="page-control-container">
 			{% include 'pagination.html' with form_target='phenotype-list-filter' %}	

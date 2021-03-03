@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.contrib.auth.models import User, Group
 from simple_history.models import HistoricalRecords
@@ -55,6 +56,8 @@ class Phenotype(TimeStampedModel):
     owner_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.EDIT)
     group_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.NONE)
     world_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.NONE)
+
+    tags = ArrayField(models.IntegerField(), blank=True, null=True)  #default=list
 
     history = HistoricalRecords()
 

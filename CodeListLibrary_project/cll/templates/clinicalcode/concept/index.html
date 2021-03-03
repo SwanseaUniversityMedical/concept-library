@@ -177,11 +177,11 @@
 		<table class="table table-striped small-table table-hover">
 			<tr>
 				<th>ID</th>
-				<th>Version ID</th>
-				<th style="width: 200px;">Concept name</th>	
-				<th>Coding system</th>
+<!-- 				<th>Version ID</th> -->
+				<th  style="width:40%" >Concept name</th>	
 				<th>Author</th>
-				<th>Owner</th>
+				<th>Coding system</th>
+<!-- 				<th>Owner</th> -->
 				{% if user.is_authenticated %}
 <!-- 					<th>Created</th> -->
 					<th>Modified</th>
@@ -195,24 +195,28 @@
 			{% block content %}
 				{% for concept in page_obj.object_list %}  
 				<tr {% cycle '' ' class="form-group highlight-row" ' %} >
-					<td>{{ concept.id }}</td>
-					<td>{{ concept.history_id }}
-						{% if user.is_authenticated and concept.is_published == 1 %}
-							<span title="{{ concept.published }}" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
-						{% endif %}
-					</td>
-					<td>{{ concept.name }}
+					<td>C{{ concept.id }}
 						{% for item in request.BRAND_GROUPS %}
 							{% for brand, groups in item.iteritems %}
 								{% if concept.group_name in groups %}
-								<img src="{% static 'img/brands/' %}{{brand}}/logo.png" height="10px" title="{{brand}}" alt="{{brand}}" />
+								<span >&nbsp;&nbsp;&nbsp;</span>
+								<span class="text-right">	
+									<img src="{% static 'img/brands/' %}{{brand}}/logo.png" height="10px" title="{{brand}}" alt="{{brand}}" />
+								</span>
 								{% endif %}
 							{% endfor %}
 						{% endfor %}
+					</td>
+<!-- 					<td>{{ concept.history_id }}</td> -->
+					<td>{{ concept.name }}
+						{% if user.is_authenticated and concept.is_published == 1 %}
+							<span title="{{ concept.published }}" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
+						{% endif %}
 					</td>				
-					<td>{{ concept.coding_system_name }}</td>
+					
 					<td title="{{ concept.author }}" >{{ concept.author|truncatechars:20 }}</td>
-					<td>{{ concept.owner_name }}</td>
+					<td>{{ concept.coding_system_name }}</td>
+<!-- 					<td>{{ concept.owner_name }}</td> -->
 					{% if user.is_authenticated %}
 <!-- 						<td>{{ concept.created_by }}<br><i>{{ concept.created|date:"Y-m-d H:i" }}</i></td> -->
 						<td>{% if concept.modified_by_username is not None %}

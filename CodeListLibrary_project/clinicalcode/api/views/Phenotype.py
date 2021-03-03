@@ -490,7 +490,7 @@ def getPhenotypes(request, is_authenticated_user=True):
     must_have_published_versions = request.query_params.get('must_have_published_versions', "0")
         
     search_tag_list = []
-    tags = []
+    #tags = []
     
     filter_cond = " 1=1 "
     exclude_deleted = True
@@ -499,8 +499,9 @@ def getPhenotypes(request, is_authenticated_user=True):
     
     if tag_ids:
         # split tag ids into list
-        search_tag_list = [int(i) for i in tag_ids.split(",")]
-        tags = Tag.objects.filter(id__in=search_tag_list)
+        search_tag_list = [str(i) for i in tag_ids.split(",")]
+        #tags = Tag.objects.filter(id__in=search_tag_list)
+        filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
         
     # check if it is the public site or not
     if is_authenticated_user:
@@ -578,27 +579,27 @@ def getPhenotypes(request, is_authenticated_user=True):
                                                 )
     
     
-    # apply tags
-    # I don't like this way :)
-    phenotype_indx_to_exclude = []
-    if tag_ids:
-        for indx in range(len(phenotypes_srch)):  
-            phenotype = phenotypes_srch[indx]
-            phenotype['indx'] = indx
-            phenotype_tags_history = getHistoryTags(phenotype['id'], phenotype['history_date'])
-            if phenotype_tags_history:
-                phenotype_tag_list = [i['tag_id'] for i in phenotype_tags_history if 'tag_id' in i]
-                if not any(t in set(search_tag_list) for t in set(phenotype_tag_list)):
-                    phenotype_indx_to_exclude.append(indx)
-                else:
-                    pass        
-            else:
-                phenotype_indx_to_exclude.append(indx)  
-        
-    if phenotype_indx_to_exclude:      
-        phenotypes = [i for i in phenotypes_srch if (i['indx'] not in phenotype_indx_to_exclude)]
-    else:
-        phenotypes = phenotypes_srch 
+#     # apply tags
+#     # I don't like this way :)
+#     phenotype_indx_to_exclude = []
+#     if tag_ids:
+#         for indx in range(len(phenotypes_srch)):  
+#             phenotype = phenotypes_srch[indx]
+#             phenotype['indx'] = indx
+#             phenotype_tags_history = getHistoryTags_Phenotype(phenotype['id'], phenotype['history_date'])
+#             if phenotype_tags_history:
+#                 phenotype_tag_list = [i['tag_id'] for i in phenotype_tags_history if 'tag_id' in i]
+#                 if not any(t in set(search_tag_list) for t in set(phenotype_tag_list)):
+#                     phenotype_indx_to_exclude.append(indx)
+#                 else:
+#                     pass        
+#             else:
+#                 phenotype_indx_to_exclude.append(indx)  
+#         
+#     if phenotype_indx_to_exclude:      
+#         phenotypes = [i for i in phenotypes_srch if (i['indx'] not in phenotype_indx_to_exclude)]
+#     else:
+#         phenotypes = phenotypes_srch 
      
 
     rows_to_return = []
@@ -606,6 +607,7 @@ def getPhenotypes(request, is_authenticated_user=True):
             , 'UUID', 'phenotype_name'
             , 'type'
             , 'author', 'owner'
+            , 'tags'
             , 'created_by', 'created_date'  
             , 'modified_by', 'modified_date'  
             , 'is_deleted', 'deleted_by', 'deleted_date'
@@ -615,7 +617,12 @@ def getPhenotypes(request, is_authenticated_user=True):
         titles += ['versions']
     
 
-    for c in phenotypes:
+    for c in phenotypes_srch:
+        c_tags =  []
+        phenotype_tags = c['tags']
+        if phenotype_tags:
+            c_tags = list(Tag.objects.filter(pk__in=phenotype_tags).values('description', 'id'))
+        
         ret = [
                 c['id'],  
                 c['history_id'],  
@@ -624,6 +631,7 @@ def getPhenotypes(request, is_authenticated_user=True):
                 c['type'],           
                 c['author'],
                 c['owner_name'],
+                c_tags,
                 
                 c['created_by_username'],
                 c['created'],
@@ -757,17 +765,22 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None, is_authenticated_
     CodingSystem_ids = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).order_by().values('coding_system_id').distinct()
     clinicalTerminologies = list(CodingSystem.objects.filter(pk__in=list(CodingSystem_ids.values_list('coding_system_id', flat=True))))
     #--------------
-    
+       
     tags =  []
-    tags_comp = getHistoryTags(pk, phenotype_history_date)
-    if tags_comp:
-        tag_list = [i['tag_id'] for i in tags_comp if 'tag_id' in i]
-        tags = list(Tag.objects.filter(pk__in=tag_list).values('description', 'id'))
+    phenotype_tags = phenotype['tags']
+    if phenotype_tags:
+        tags = list(Tag.objects.filter(pk__in=phenotype_tags).values('description', 'id'))
+        
+#     tags =  []
+#     tags_comp = getHistoryTags_Phenotype(pk, phenotype_history_date)
+#     if tags_comp:
+#         tag_list = [i['tag_id'] for i in tags_comp if 'tag_id' in i]
+#         tags = list(Tag.objects.filter(pk__in=tag_list).values('description', 'id'))
     
 
     rows_to_return = []
     titles = [
-            'phenotype_id'
+              'phenotype_id'
             , 'version_id'
             , 'UUID'
             , 'phenotype_name'
