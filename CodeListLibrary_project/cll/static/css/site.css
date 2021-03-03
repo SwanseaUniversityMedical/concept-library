@@ -122,11 +122,3 @@
   }
 }
 
-h3.paneltitle::before { 
-  display: block; 
-  content: " "; 
-  margin-top: -80px; 
-  height: 80px; 
-  visibility: hidden; 
-  pointer-events: none;
-}
