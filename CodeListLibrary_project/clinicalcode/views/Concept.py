@@ -798,14 +798,6 @@ def concept_list(request):
     else:
         concepts = concepts_srch 
     
-
-    if request.user.is_authenticated():            
-        # Run through the concepts and add a 'can edit this concept' field, etc.
-        for concept in concepts:
-            concept['can_edit'] = (concept['rn'] == 1
-                                   and allowed_to_edit(request.user, Concept, concept['id'])  
-                                   )   
-
         
     # create pagination
     paginator = Paginator(concepts, page_size, allow_empty_first_page=True)

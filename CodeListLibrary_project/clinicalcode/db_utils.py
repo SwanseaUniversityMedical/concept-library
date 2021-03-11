@@ -43,7 +43,7 @@ from django.core.exceptions import ObjectDoesNotExist #, PermissionDenied
 from django.core.validators import URLValidator
 import re
 from psycopg2.errorcodes import INVALID_PARAMETER_VALUE
-
+from django.conf import settings
 
 def deleteConcept(pk, user):
     ''' Delete a concept based on a concept id '''
@@ -2718,7 +2718,40 @@ def get_history_child_concept_components(concept_id, concept_history_id=None):
            
             return childConcepts
         
+def get_can_edit_subquery(request):
+    # check can_edit in SQl - faster way
     
+    can_edit_subquery = ""
+    if not request.user.is_authenticated():
+        can_edit_subquery = " ( FALSE ) can_edit , "   #    2= published only
+    else:  
+        if settings.CLL_READ_ONLY:
+            can_edit_subquery = " ( FALSE ) can_edit , " 
+        else:
+            if request.user.is_superuser:
+                can_edit_subquery = " ( TRUE ) can_edit , " 
+            else:
+                user_groups = list(request.user.groups.all().values_list('id', flat=True))
+                group_access_cond = ""
+                if user_groups:
+                    group_access_cond = " OR (group_id IN(" + ', '.join(map(str, user_groups)) + ") AND group_access = 3) "
+                    
+                # since all params here are derived from user object, no need for parameterising here. 
+                can_edit_subquery = ''' (CASE WHEN rn=1 AND
+                                                (
+                                                    owner_id=%s
+                                                    OR world_access = 3
+                                                    %s
+                                                )
+                                        THEN TRUE 
+                                        ELSE FALSE 
+                                        END
+                                        ) can_edit ,
+
+                            '''% (str(request.user.id), group_access_cond)
+    return can_edit_subquery
+
+                    
 def get_visible_live_or_published_concept_versions(request
                                                     , get_live_and_or_published_ver = 3 # 1= live only, 2= published only, 3= live+published
                                                     , searchByName = ""
@@ -2758,6 +2791,8 @@ def get_visible_live_or_published_concept_versions(request
     
         #my_params.append(user_cond)
     
+    can_edit_subquery = get_can_edit_subquery(request)
+
     where_clause = " WHERE 1=1 "
     
     if concept_id_to_exclude > 0 :
@@ -2802,6 +2837,9 @@ def get_visible_live_or_published_concept_versions(request
                         FROM
                         (
                             SELECT 
+                                """
+                                + can_edit_subquery +
+                                """
                                 *
                                 , ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn_res
                                 , (CASE WHEN is_published=1 THEN 'published' ELSE 'not published' END) published
@@ -2901,6 +2939,7 @@ def get_visible_live_or_published_phenotype_versions(request
                     '''% (str(request.user.id), group_access_cond)
     
         #my_params.append(user_cond)
+    can_edit_subquery = get_can_edit_subquery(request)
     
     where_clause = " WHERE 1=1 "
     
@@ -2946,6 +2985,9 @@ def get_visible_live_or_published_phenotype_versions(request
                         FROM
                         (
                             SELECT 
+                                """
+                                + can_edit_subquery +
+                                """
                                 *
                                 , ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn_res
                                 , (CASE WHEN is_published=1 THEN 'published' ELSE 'not published' END) published
