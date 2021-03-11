@@ -680,7 +680,7 @@ def concept_list(request):
     if request.method == 'POST':
         # get posted parameters
         search = request.POST.get('search', '')
-        page_size = request.POST.get('page_size')
+        page_size = request.POST.get('page_size', 20)
         page = request.POST.get('page', page)
         show_my_concepts = request.POST.get('show_my_concepts', 0)
         show_deleted_concepts = request.POST.get('show_deleted_concepts', 0)

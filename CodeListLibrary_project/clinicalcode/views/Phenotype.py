@@ -78,11 +78,12 @@ def phenotype_list(request):
     expand_published_versions = 0   # disable this option
     #expand_published_versions = request.GET.get('expand_published_versions', request.session.get('expand_published_versions', 0))
     phenotype_must_have_published_versions = request.GET.get('phenotype_must_have_published_versions', request.session.get('phenotype_must_have_published_versions', 0))
+    search_form = request.GET.get('search_form', request.session.get('phenotype_search_form', 'basic-form'))
 
     if request.method == 'POST':
         # get posted parameters
         search = request.POST.get('search', '')
-        page_size = request.POST.get('page_size')
+        page_size = request.POST.get('page_size', 20)
         page = request.POST.get('page', page)
         show_my_phenotypes = request.POST.get('show_my_phenotypes', 0)
         show_deleted_phenotypes = request.POST.get('show_deleted_phenotypes', 0)
@@ -93,6 +94,7 @@ def phenotype_list(request):
         phenotype_brand = request.POST.get('phenotype_brand', request.CURRENT_BRAND)
         #expand_published_versions = request.POST.get('expand_published_versions', 0)
         phenotype_must_have_published_versions = request.POST.get('phenotype_must_have_published_versions', 0)
+        search_form = request.POST.get('search_form', 'basic-form')
 
 
     # store page index variables to session
@@ -108,6 +110,7 @@ def phenotype_list(request):
     request.session['phenotype_brand'] = phenotype_brand
     #request.session['expand_published_versions'] = expand_published_versions
     request.session['phenotype_must_have_published_versions'] = phenotype_must_have_published_versions
+    request.session['phenotype_search_form'] = search_form
 
     filter_cond = " 1=1 "
     exclude_deleted = True
@@ -218,6 +221,7 @@ def phenotype_list(request):
     except EmptyPage:
         p = paginator.page(paginator.num_pages)
 
+    p_btns = utils.get_paginator_pages(paginator, p)
     return render(request, 'clinicalcode/phenotype/index.html', {
         'page': page,
         'page_size': str(page_size),
@@ -232,10 +236,13 @@ def phenotype_list(request):
         'allowed_to_create': not settings.CLL_READ_ONLY,
         'phenotype_brand': phenotype_brand,
         'phenotype_must_have_published_versions': phenotype_must_have_published_versions,
-        'allTags': Tag.objects.all().order_by('description')
+        'allTags': Tag.objects.all().order_by('description'),
+        'search_form': search_form,
+        'p_btns': p_btns
         #'expand_published_versions': expand_published_versions,
         #'published_count': PublishedPhenotype.objects.all().count()
     })
+
 
 
 
@@ -576,37 +583,7 @@ def phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
 
      
 @login_required
-def phenotype_create(request):
-#     from django.db import connection, connections #, transaction
-# 
-#     distinct_phenotypes_with_tags = PhenotypeTagMap.objects.all().distinct('phenotype_id')
-#     for dp in distinct_phenotypes_with_tags:
-#         print "*************"
-#         print dp.phenotype_id
-#         hisp = Phenotype.history.filter(id=dp.phenotype_id)
-#         for hp in hisp:
-#             print hp.id, "...", hp.history_id
-#             penotype_tags_history = db_utils.getHistoryTags_Phenotype(hp.id, hp.history_date)
-#             if penotype_tags_history:
-#                 penotype_tag_list = [i['tag_id'] for i in penotype_tags_history if 'tag_id' in i]
-#             else:
-#                 penotype_tag_list = []
-#             print penotype_tag_list
-#             with connection.cursor() as cursor:
-#                 sql = """ UPDATE clinicalcode_historicalphenotype 
-#                             SET tags = '{""" + ','.join([str(i) for i in penotype_tag_list]) + """}'
-#                             WHERE id="""+str(hp.id)+""" and history_id="""+str(hp.history_id)+""";
-#                      """ 
-#                 cursor.execute(sql)
-#                 if hp.history_id == int(Phenotype.objects.get(pk=hp.id).history.latest().history_id):
-#                     sql2 = """ UPDATE clinicalcode_phenotype 
-#                             SET tags = '{""" + ','.join([str(i) for i in penotype_tag_list]) + """}'
-#                             WHERE id="""+str(hp.id)+"""  ;
-#                      """ 
-#                     cursor.execute(sql2)
-#                 
-#         print "-------------"
-        
+def phenotype_create(request):      
         
     return redirect('phenotype_list')
 ###################################################        

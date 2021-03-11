@@ -1,0 +1,81 @@
+{% load staticfiles %}
+
+<div class="page-control-container">
+	{% include 'pagination.html' with form_target=search_form %}	
+	
+</div>
+
+{% block content %}
+	{% for phenotype in page_obj.object_list %}  
+			<div class="card {% if phenotype.is_deleted is True %} card-deleted {% endif %} {% cycle ' dark-div ' '' %}   ">
+				<div class="row form-group">
+					<div class="col-sm-8">
+						{% if user.is_authenticated and phenotype.is_published != 1 %}
+							<a class="" href="{% url 'phenotype_detail' phenotype.id %}">
+						{% else %}
+							<a class="" href="{% url 'phenotype_history_detail' phenotype.id phenotype.history_id %}">
+						{% endif %}
+							<span style='font-size: 22px;margin-top:0;'>PH{{ phenotype.id }} - {{ phenotype.name }}</span>
+							</a>
+				
+					</div>
+					<div class="col-sm-4 text-right">
+						<!-- tags -->
+						{% for tag in allTags %}
+							{% for tag_id in phenotype.tags %}
+								{% if tag.id == tag_id %}
+							   		<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
+							   	{% endif %}
+							{% endfor %}						
+						{% endfor %}			
+					
+						<span>&nbsp;&nbsp;</span>
+						<!-- brands -->
+						{% for item in request.BRAND_GROUPS %}
+							{% for brand, groups in item.iteritems %}
+								{% if phenotype.group_name in groups %}
+								<span >&nbsp;&nbsp;&nbsp;</span>
+								<span class="text-right">	
+									<img src="{% static 'img/brands/' %}{{brand}}/logo.png" style="text-align: right;height:25px;" title="{{brand}}" alt="{{brand}}" />
+								</span>
+								{% endif %}
+							{% endfor %}
+						{% endfor %}
+					</div>					
+				</div>
+				
+				<div class="row form-group">
+					<div class="col-sm-12">
+						<span {%if phenotype.author|length > 120 %}title="{{ phenotype.author }}" {% endif %} >{{ phenotype.author|truncatechars:120 }}</span>
+					</div>
+				</div>				
+				
+				<div class="row form-group">
+					<div class="col-sm-8">
+						<i><strong>{{ phenotype.type }}</i></strong>
+					</div>	
+					<div class="col-sm-4 text-right">
+						{% if user.is_authenticated and phenotype.is_published == 1 %}
+							<span title="{{ phenotype.published }}" style="text-align: right;" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
+						{% endif %}	
+					</div>	
+				</div>				
+					
+				
+	</div>				  
+	<br> 
+	{% empty %}
+		<div class="row form-group">
+			<div class="col-sm-12 text-center bg-warning">
+				No phenotypes
+			</div>	
+		</div>				
+			
+	{% endfor %}
+{% endblock %}
+
+
+<div class="page-control-container">
+	{% include 'pagination.html' with form_target=search_form %}	
+</div>
+
