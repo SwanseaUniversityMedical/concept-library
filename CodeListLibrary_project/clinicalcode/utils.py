@@ -146,3 +146,39 @@ def get_bool_value(value , default_value):
         return False
     else:
         return default_value
+
+def get_paginator_pages(paginator, page):
+    # number of pages
+    np = paginator.num_pages
+    # current page
+    cp = page.number
+    # returned pages list
+    pl = []
+    # left  fill '...'
+    lf = False
+    # right  fill '...'
+    rf = False
+    # middle  fill '...'
+    mf = False
+    for p in xrange(1, np+1):              
+        if np <=10:                
+            pl.append(p)
+        else:
+            if (cp <= 4 and p <=5) or ((cp >= np-4) and p >= np-4) or ( p==1 or p==np):
+                pl.append(p)
+            elif (cp > 4 and cp < np-4  and (p != 1 and p != np and p > 5 and p < np-4)):
+                if not mf:
+                    mf = True
+                    pl.append(cp-1)
+                    pl.append(cp)
+                    pl.append(cp+1)
+            else:
+                if (not lf) and p<cp:
+                    lf = True
+                    pl.append('...')
+                elif (not rf) and p>cp:
+                    rf = True
+                    pl.append('...')
+        
+#     print ', '.join([str(i) for i in pl])
+    return pl

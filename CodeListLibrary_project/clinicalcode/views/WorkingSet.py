@@ -821,6 +821,7 @@ def workingset_list(request):
     except EmptyPage:
         p = paginator.page(paginator.num_pages)
  
+    p_btns = utils.get_paginator_pages(paginator, p)
     return render(request, 'clinicalcode/workingset/index.html', {
         'page': page,
         'page_size': str(page_size),
@@ -832,7 +833,8 @@ def workingset_list(request):
         'owner': owner,
         'show_deleted_workingsets': show_deleted_workingsets,
         'allowed_to_create': allowed_to_create(),
-        'ws_brand': ws_brand
+        'ws_brand': ws_brand,
+        'p_btns': p_btns
         })
 
    

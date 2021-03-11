@@ -814,6 +814,7 @@ def concept_list(request):
     except EmptyPage:
         p = paginator.page(paginator.num_pages)
 
+    p_btns = utils.get_paginator_pages(paginator, p)
     return render(request, 'clinicalcode/concept/index.html', {
         'page': page,
         'page_size': str(page_size),
@@ -827,7 +828,8 @@ def concept_list(request):
         'show_only_validated_concepts': show_only_validated_concepts,
         'allowed_to_create': not settings.CLL_READ_ONLY,
         'concept_brand': concept_brand,
-        'must_have_published_versions': must_have_published_versions
+        'must_have_published_versions': must_have_published_versions,
+        'p_btns': p_btns
         #'expand_published_versions': expand_published_versions,
         #'published_count': PublishedConcept.objects.all().count()
     })
