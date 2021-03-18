@@ -131,37 +131,69 @@ def moveTags(request):
             
     
                  
+#             ######################################################################
+#             # move phenotype tags as attribute
+#             distinct_phenotypes_with_tags = PhenotypeTagMap.objects.all().distinct('phenotype_id')
+#             for dp in distinct_phenotypes_with_tags:
+#                 #print "*************"
+#                 #print dp.phenotype_id
+#                 hisp = Phenotype.history.filter(id=dp.phenotype_id)
+#                 for hp in hisp:
+#                     #print hp.id, "...", hp.history_id
+#                     phenotype_tags_history = db_utils.getHistoryTags_Phenotype(hp.id, hp.history_date)
+#                     if phenotype_tags_history:
+#                         phenotype_tag_list = [i['tag_id'] for i in phenotype_tags_history if 'tag_id' in i]
+#                     else:
+#                         phenotype_tag_list = []
+#                     #print phenotype_tag_list
+#                     with connection.cursor() as cursor:
+#                         sql = """ UPDATE clinicalcode_historicalphenotype 
+#                                     SET tags = '{""" + ','.join([str(i) for i in phenotype_tag_list]) + """}'
+#                                     WHERE id="""+str(hp.id)+""" and history_id="""+str(hp.history_id)+""";
+#                              """ 
+#                         cursor.execute(sql)
+#                         if hp.history_id == int(Phenotype.objects.get(pk=hp.id).history.latest().history_id):
+#                             sql2 = """ UPDATE clinicalcode_phenotype 
+#                                     SET tags = '{""" + ','.join([str(i) for i in phenotype_tag_list]) + """}'
+#                                     WHERE id="""+str(hp.id)+"""  ;
+#                              """ 
+#                             cursor.execute(sql2)
+#                             
+#                             rowsAffected[hp.id] = "phenotype: " + hp.name + ":: tags moved"
+
+                 
             ######################################################################
-            # move phenotype tags as attribute
-            distinct_phenotypes_with_tags = PhenotypeTagMap.objects.all().distinct('phenotype_id')
-            for dp in distinct_phenotypes_with_tags:
+            # move concept tags as attribute
+            distinct_concepts_with_tags = ConceptTagMap.objects.all().distinct('concept_id')
+            for dp in distinct_concepts_with_tags:
                 #print "*************"
-                #print dp.phenotype_id
-                hisp = Phenotype.history.filter(id=dp.phenotype_id)
+                #print dp.concept_id
+                hisp = Concept.history.filter(id=dp.concept_id)
                 for hp in hisp:
                     #print hp.id, "...", hp.history_id
-                    penotype_tags_history = db_utils.getHistoryTags_Phenotype(hp.id, hp.history_date)
-                    if penotype_tags_history:
-                        penotype_tag_list = [i['tag_id'] for i in penotype_tags_history if 'tag_id' in i]
+                    concept_tags_history = db_utils.getHistoryTags(hp.id, hp.history_date)
+                    if concept_tags_history:
+                        concept_tag_list = [i['tag_id'] for i in concept_tags_history if 'tag_id' in i]
                     else:
-                        penotype_tag_list = []
-                    #print penotype_tag_list
+                        concept_tag_list = []
+                    #print concept_tag_list
                     with connection.cursor() as cursor:
-                        sql = """ UPDATE clinicalcode_historicalphenotype 
-                                    SET tags = '{""" + ','.join([str(i) for i in penotype_tag_list]) + """}'
+                        sql = """ UPDATE clinicalcode_historicalconcept 
+                                    SET tags = '{""" + ','.join([str(i) for i in concept_tag_list]) + """}'
                                     WHERE id="""+str(hp.id)+""" and history_id="""+str(hp.history_id)+""";
                              """ 
                         cursor.execute(sql)
-                        if hp.history_id == int(Phenotype.objects.get(pk=hp.id).history.latest().history_id):
-                            sql2 = """ UPDATE clinicalcode_phenotype 
-                                    SET tags = '{""" + ','.join([str(i) for i in penotype_tag_list]) + """}'
+                        if hp.history_id == int(Concept.objects.get(pk=hp.id).history.latest().history_id):
+                            sql2 = """ UPDATE clinicalcode_concept 
+                                    SET tags = '{""" + ','.join([str(i) for i in concept_tag_list]) + """}'
                                     WHERE id="""+str(hp.id)+"""  ;
                              """ 
                             cursor.execute(sql2)
                             
-                            rowsAffected[hp.id] = "phenotype: " + hp.name + ":: tags moved"
+                            rowsAffected[hp.id] = "concept: " + hp.name + ":: tags moved"
 
     
+        
     
             
             return render(request, 
