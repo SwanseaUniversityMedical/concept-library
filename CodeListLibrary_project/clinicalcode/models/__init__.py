@@ -22,3 +22,8 @@ from Phenotype import Phenotype
 from PhenotypeTagMap import PhenotypeTagMap
 from PhenotypeDataSourceMap import PhenotypeDataSourceMap
 from PublishedPhenotype import PublishedPhenotype
+from BNF_CODES import BNF_CODES
+from MED_CODES import MED_CODES
+from PROD_CODES import PROD_CODES
+from SNOMED_CODES import SNOMED_CODES
+from UKBIOBANK_CODES import UKBIOBANK_CODES
