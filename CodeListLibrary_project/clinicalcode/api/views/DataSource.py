@@ -59,18 +59,35 @@ def api_datasource_create(request):
               status=status.HTTP_406_NOT_ACCEPTABLE
             )
         else:
-            new_datasource.save()
-            created_ds = DataSource.objects.get(pk=new_datasource.pk)
-            created_ds.history.latest().delete() 
-
-            created_ds.changeReason = "Created from API"
-            created_ds.save()   
-            data = {
-              'message': 'DataSource created successfully',
-              'id': created_ds.pk
-            }
-            return Response(
-              data = data, 
-              content_type="text/json-comment-filtered", 
-              status=status.HTTP_201_CREATED
-            )
+            #    check if already exists 
+            if not DataSource.objects.filter(name=new_datasource.name, uid=new_datasource.uid, url=new_datasource.url, description=new_datasource.description).exists():            
+                new_datasource.save()
+                created_ds = DataSource.objects.get(pk=new_datasource.pk)
+                created_ds.history.latest().delete() 
+    
+                created_ds.changeReason = "Created from API"
+                created_ds.save()   
+                data = {
+                  'message': 'DataSource created successfully',
+                  'id': created_ds.pk
+                }
+                return Response(
+                  data = data, 
+                  content_type="text/json-comment-filtered", 
+                  status=status.HTTP_201_CREATED
+                )
+                
+            else:
+                existed_id = DataSource.objects.get(name=new_datasource.name, uid=new_datasource.uid, url=new_datasource.url, description=new_datasource.description).id
+                data = {
+                  'message': 'DataSource created successfully', # left the msg as it in create case not to confuse the scraper
+                  'id': existed_id
+                }
+                return Response(
+                  data = data, 
+                  content_type="text/json-comment-filtered", 
+                  status=status.HTTP_201_CREATED
+                )
+                
+                
+                

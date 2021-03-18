@@ -6,7 +6,7 @@
     ---------------------------------------------------------------------------
 '''
 from rest_framework import serializers
-from ..models import Concept, Component, CodeRegex, CodeList, Code, ConceptTagMap, Tag, WorkingSet, WorkingSetTagMap
+from ..models import Concept, Component, CodeRegex, CodeList, Code, ConceptTagMap, Tag, WorkingSet, WorkingSetTagMap, DataSource
 
 
 class ConceptSerializer(serializers.ModelSerializer):
@@ -29,6 +29,12 @@ class TagSerializer(serializers.ModelSerializer):
                   ,  'created_by' , 'updated_by' 
                   )
                 
+class DataSourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DataSource
+        fields = ('id', 'name', 'uid', 'url', 'description'
+                  ,  'created_by' , 'updated_by' 
+                  )
+                
 
         
-
