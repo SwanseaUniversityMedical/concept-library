@@ -145,9 +145,6 @@ def phenotype_list(request):
         # show published phenotype
         get_live_and_or_published_ver = 2
 
-#         if PublishedPhenotype.objects.all().count() == 0:
-#             # redirect to login page if no published phenotype
-#             return HttpResponseRedirect(settings.LOGIN_URL)
 
     show_top_version_only = True
     if expand_published_versions == "1":
@@ -183,36 +180,7 @@ def phenotype_list(request):
                                                 , show_top_version_only = show_top_version_only
                                                 )
     
-#     # apply tags
-#     # I don't like this way :)
-#     penotype_indx_to_exclude = []
-#     if tag_ids:
-#         for indx in range(len(phenotype_srch)):  
-#             penotype = phenotype_srch[indx]
-#             penotype['indx'] = indx
-#             penotype_tags_history = db_utils.getHistoryTags_Phenotype(penotype['id'], penotype['history_date'])
-#             if penotype_tags_history:
-#                 penotype_tag_list = [i['tag_id'] for i in penotype_tags_history if 'tag_id' in i]
-#                 if not any(t in set(search_tag_list) for t in set(penotype_tag_list)):
-#                     penotype_indx_to_exclude.append(indx)
-#                 else:
-#                     pass        
-#             else:
-#                 penotype_indx_to_exclude.append(indx)  
-#         
-#     if penotype_indx_to_exclude:      
-#         phenotype = [i for i in phenotype_srch if (i['indx'] not in penotype_indx_to_exclude)]
-#     else:
-#         phenotype = phenotype_srch 
     
-    if request.user.is_authenticated():            
-        # Run through the phenotype and add a 'can edit this penotype' field, etc.
-        for penotype in phenotype_srch:
-            penotype['can_edit'] = False # till edit is allowed
-#             penotype['can_edit'] = (penotype['rn'] == 1
-#                                    and allowed_to_edit(request.user, Phenotype, penotype['id'])  
-#                                    )   
-
         
     # create pagination
     paginator = Paginator(phenotype_srch, page_size, allow_empty_first_page=True)
