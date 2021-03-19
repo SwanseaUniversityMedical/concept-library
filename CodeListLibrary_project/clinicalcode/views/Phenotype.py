@@ -28,7 +28,6 @@ from django.conf import settings
 
 from ..models.Tag import Tag
 from ..models.Phenotype import Phenotype
-from ..models.PhenotypeTagMap import PhenotypeTagMap
 from ..models.Brand import Brand
 from ..models.PublishedPhenotype import PublishedPhenotype
 from ..models.DataSource import DataSource
@@ -51,6 +50,7 @@ from datetime import datetime
 import time
 
 import logging
+from clinicalcode.models.Phenotype import Phenotype
 
 
 logger = logging.getLogger(__name__)
@@ -77,11 +77,12 @@ def phenotype_list(request):
     expand_published_versions = 0   # disable this option
     #expand_published_versions = request.GET.get('expand_published_versions', request.session.get('expand_published_versions', 0))
     phenotype_must_have_published_versions = request.GET.get('phenotype_must_have_published_versions', request.session.get('phenotype_must_have_published_versions', 0))
+    search_form = request.GET.get('search_form', request.session.get('phenotype_search_form', 'basic-form'))
 
     if request.method == 'POST':
         # get posted parameters
         search = request.POST.get('search', '')
-        page_size = request.POST.get('page_size')
+        page_size = request.POST.get('page_size', 20)
         page = request.POST.get('page', page)
         show_my_phenotypes = request.POST.get('show_my_phenotypes', 0)
         show_deleted_phenotypes = request.POST.get('show_deleted_phenotypes', 0)
@@ -92,6 +93,7 @@ def phenotype_list(request):
         phenotype_brand = request.POST.get('phenotype_brand', request.CURRENT_BRAND)
         #expand_published_versions = request.POST.get('expand_published_versions', 0)
         phenotype_must_have_published_versions = request.POST.get('phenotype_must_have_published_versions', 0)
+        search_form = request.POST.get('search_form', 'basic-form')
 
 
     # store page index variables to session
@@ -107,6 +109,7 @@ def phenotype_list(request):
     request.session['phenotype_brand'] = phenotype_brand
     #request.session['expand_published_versions'] = expand_published_versions
     request.session['phenotype_must_have_published_versions'] = phenotype_must_have_published_versions
+    request.session['phenotype_search_form'] = search_form
 
     filter_cond = " 1=1 "
     exclude_deleted = True
@@ -114,8 +117,9 @@ def phenotype_list(request):
     
     if tag_ids:
         # split tag ids into list
-        search_tag_list = [int(i) for i in tag_ids.split(",")]
+        search_tag_list = [str(i) for i in tag_ids.split(",")]
         tags = Tag.objects.filter(id__in=search_tag_list)
+        filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
         
     # check if it is the public site or not
     if request.user.is_authenticated():
@@ -140,9 +144,6 @@ def phenotype_list(request):
         # show published phenotype
         get_live_and_or_published_ver = 2
 
-#         if PublishedPhenotype.objects.all().count() == 0:
-#             # redirect to login page if no published phenotype
-#             return HttpResponseRedirect(settings.LOGIN_URL)
 
     show_top_version_only = True
     if expand_published_versions == "1":
@@ -178,45 +179,16 @@ def phenotype_list(request):
                                                 , show_top_version_only = show_top_version_only
                                                 )
     
-    # apply tags
-    # I don't like this way :)
-    penotype_indx_to_exclude = []
-    if tag_ids:
-        for indx in range(len(phenotype_srch)):  
-            penotype = phenotype_srch[indx]
-            penotype['indx'] = indx
-            penotype_tags_history = db_utils.getHistoryTags_Phenotype(penotype['id'], penotype['history_date'])
-            if penotype_tags_history:
-                penotype_tag_list = [i['tag_id'] for i in penotype_tags_history if 'tag_id' in i]
-                if not any(t in set(search_tag_list) for t in set(penotype_tag_list)):
-                    penotype_indx_to_exclude.append(indx)
-                else:
-                    pass        
-            else:
-                penotype_indx_to_exclude.append(indx)  
-        
-    if penotype_indx_to_exclude:      
-        phenotype = [i for i in phenotype_srch if (i['indx'] not in penotype_indx_to_exclude)]
-    else:
-        phenotype = phenotype_srch 
     
-
-    if request.user.is_authenticated():            
-        # Run through the phenotype and add a 'can edit this penotype' field, etc.
-        for penotype in phenotype:
-            penotype['can_edit'] = False # till edit is allowed
-#             penotype['can_edit'] = (penotype['rn'] == 1
-#                                    and allowed_to_edit(request.user, Phenotype, penotype['id'])  
-#                                    )   
-
         
     # create pagination
-    paginator = Paginator(phenotype, page_size, allow_empty_first_page=True)
+    paginator = Paginator(phenotype_srch, page_size, allow_empty_first_page=True)
     try:
         p = paginator.page(page)
     except EmptyPage:
         p = paginator.page(paginator.num_pages)
 
+    p_btns = utils.get_paginator_pages(paginator, p)
     return render(request, 'clinicalcode/phenotype/index.html', {
         'page': page,
         'page_size': str(page_size),
@@ -230,10 +202,15 @@ def phenotype_list(request):
         'show_only_validated_phenotypes': show_only_validated_phenotypes,
         'allowed_to_create': not settings.CLL_READ_ONLY,
         'phenotype_brand': phenotype_brand,
-        'phenotype_must_have_published_versions': phenotype_must_have_published_versions
+        'phenotype_must_have_published_versions': phenotype_must_have_published_versions,
+        'allTags': Tag.objects.all().order_by('description'),
+        'all_CodingSystems': CodingSystem.objects.all().order_by('id'),
+        'search_form': search_form,
+        'p_btns': p_btns
         #'expand_published_versions': expand_published_versions,
         #'published_count': PublishedPhenotype.objects.all().count()
     })
+
 
 
 
@@ -279,10 +256,11 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     phenotype_history_date = phenotype['history_date']
         
     tags =  Tag.objects.filter(pk=-1)
-    tags_comp = db_utils.getHistoryTags_Phenotype(pk, phenotype_history_date)
-    if tags_comp:
-        tag_list = [i['tag_id'] for i in tags_comp if 'tag_id' in i]
-        tags = Tag.objects.filter(pk__in=tag_list)
+    phenotype_tags = phenotype['tags']
+    if phenotype_tags:
+        tags = Tag.objects.filter(pk__in=phenotype_tags)
+
+
         
     data_sources = DataSource.objects.filter(pk=-1)
     data_sources_comp = db_utils.getHistoryDataSource_Phenotype(pk, phenotype_history_date)
@@ -297,8 +275,10 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).values('id', 'history_id', 'name', 'group')
     concepts_id_name = json.dumps(list(concepts))
     
-    CodingSystem_ids = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).order_by().values('coding_system_id').distinct()
-    clinicalTerminologies = CodingSystem.objects.filter(pk__in=list(CodingSystem_ids.values_list('coding_system_id', flat=True)))
+    clinicalTerminologies = CodingSystem.objects.filter(pk=-1)
+    CodingSystem_ids = phenotype['clinical_terminologies']  #Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).order_by().values('coding_system_id').distinct()
+    if CodingSystem_ids:
+        clinicalTerminologies = CodingSystem.objects.filter(pk__in=list(CodingSystem_ids))
 
     
     is_latest_version = (int(phenotype_history_id) == Phenotype.objects.get(pk=pk).history.latest().history_id)
@@ -570,10 +550,14 @@ def phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
 
      
 @login_required
-def phenotype_create(request):
+def phenotype_create(request):      
+        
+    return redirect('phenotype_list')
+###################################################        
     # TODO: implement this
-    pass
+    #pass
 
+###################################################
 # #     ph = Phenotype.objects.all()
 # #     for p in ph:
 # #         p.save()

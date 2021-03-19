@@ -28,6 +28,7 @@ from ...models.WorkingSetTagMap import WorkingSetTagMap
 from ...models.CodingSystem import CodingSystem
 from ...models.Brand import Brand
 from django.contrib.auth.models import User
+from ...models.DataSource import DataSource 
 
 #from ...models.PublishedConcept import PublishedConcept
 
@@ -99,6 +100,50 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 #     def perform_update(self, serializer):
 #         raise PermissionDenied
+    
+#--------------------------------------------------------------------------
+class DataSourceViewSet(viewsets.ReadOnlyModelViewSet):
+    '''
+        Get the API output for the list of data sources (no permissions involved).
+    '''
+
+    #disable authentication for this class
+    authentication_classes = []
+    permission_classes = []
+
+
+    queryset = DataSource.objects.none()
+    serializer_class = DataSourceSerializer
+
+    def get_queryset(self):
+        '''
+            Provide the dataset for the view.
+            Get all the data sources but limit if we are searching.
+        '''
+        queryset = DataSource.objects.all()
+        keyword_search = self.request.query_params.get('keyword', None)
+        if keyword_search is not None:
+            queryset = queryset.filter(description__icontains=keyword_search)
+        return queryset
+
+
+    def filter_queryset(self, queryset):
+        '''
+            Override the default filtering.
+            By default we get data sources ordered by creation date even if
+            we provide sorted data from get_queryset(). We have to sort the
+            data here.
+        '''
+        queryset = super(DataSourceViewSet, self).filter_queryset(queryset)
+        return queryset.order_by('description')
+
+#     def perform_create(self, serializer):
+#         raise PermissionDenied
+
+
+#     def perform_update(self, serializer):
+#         raise PermissionDenied
+    
     
     
 
@@ -315,6 +360,8 @@ def chk_tags(tags_input):
     is_valid_data = True
     err = ""
     ret_value = tags_input
+    if not tags_input:   #    is empty list
+        ret_value = None
                
     tags = tags_input
     if tags is not None: 
@@ -327,6 +374,28 @@ def chk_tags(tags_input):
         else:
             is_valid_data = False
             err = 'tags must be valid list with valid tag ids'
+
+
+    return is_valid_data, err, ret_value
+
+#---------------------------------------------------------------------------
+def chk_data_sources(data_sources):
+    # handling data-sources
+    is_valid_data = True
+    err = ""
+    ret_value = data_sources
+               
+    ds = data_sources
+    if ds is not None: 
+        if isinstance(ds, list): # check data_sources is a list
+            if not (set(ds).issubset(set(DataSource.objects.all().values_list('id' , flat=True)))):
+                is_valid_data = False
+                err = 'invalid data_source ids list, all data_sources ids must be valid'
+            else:
+                ret_value = ds
+        else:
+            is_valid_data = False
+            err = 'data_sources must be valid list with valid data_sources ids'
 
 
     return is_valid_data, err, ret_value

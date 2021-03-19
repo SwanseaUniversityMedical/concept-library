@@ -23,7 +23,7 @@ class OperatorAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ['description', 'get_display_display', 'created_by', 'created', 'updated_by', 'modified']
+    list_display = ['id', 'description', 'get_display_display', 'created_by', 'created', 'updated_by', 'modified']
     list_filter = ['description', 'created', 'modified']
     search_fields = ['description']
     exclude = ['created_by', 'updated_by']
@@ -53,7 +53,7 @@ class BrandAdmin(admin.ModelAdmin):
     
 @admin.register(DataSource)
 class DataSourceAdmin(admin.ModelAdmin):
-    list_display = ['name', 'uid', 'url',  'description']
+    list_display = ['id', 'name', 'uid', 'url',  'description']
     list_filter = ['name', 'uid', 'description', 'created', 'modified']
     search_fields = ['name', 'uid', 'description']
     exclude = ['created_by', 'updated_by']

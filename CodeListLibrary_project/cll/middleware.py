@@ -91,6 +91,12 @@ class brandMiddleware(MiddlewareMixin):
                 request.CURRENT_BRAND_WEBSITE = brand_website[0]
                 
                 request.path_info = '/' + '/'.join([root.upper()] + current_page_url.split('/')[1:])
+#                 print "-------"
+#                 print current_page_url
+#                 print current_page_url.split('/')[1:]
+#                 print '/'.join([root.upper()] + current_page_url.split('/')[1:])
+#                 print request.path_info 
+#                 print "-------"
                 
                 urlconf = "cll.urls_brand"                   
                 set_urlconf(urlconf)

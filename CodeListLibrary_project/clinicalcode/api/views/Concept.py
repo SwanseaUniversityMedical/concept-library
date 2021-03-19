@@ -443,6 +443,8 @@ def api_concept_create(request):
         is_valid_data, err, ret_value = chk_tags(request.data.get('tags'))
         if is_valid_data:
             tags = ret_value
+            if tags:
+                new_concept.tags = [int(i) for i in tags]
         else:
             errors_dict['tags'] = err  
                     
@@ -485,16 +487,17 @@ def api_concept_create(request):
             created_concept = Concept.objects.get(pk=new_concept.pk)
             created_concept.history.latest().delete() 
  
-            #-- Tags -------------------------------             
-            tag_ids = tags  
-            # new_tag_list = tags
-            if tag_ids:
-                new_tag_list = [int(i) for i in tag_ids]
+#             #-- Tags -------------------------------             
+#             tag_ids = tags  
+#             # new_tag_list = tags
+#             if tag_ids:
+#                 new_tag_list = [int(i) for i in tag_ids]
+#                 new_concept.tags = new_tag_list
                   
-            # add tags that have not been stored in db
-            if tag_ids:
-                for tag_id_to_add in new_tag_list:
-                    ConceptTagMap.objects.get_or_create(concept=new_concept, tag=Tag.objects.get(id=tag_id_to_add), created_by=request.user)
+#             # add tags that have not been stored in db
+#             if tag_ids:
+#                 for tag_id_to_add in new_tag_list:
+#                     ConceptTagMap.objects.get_or_create(concept=new_concept, tag=Tag.objects.get(id=tag_id_to_add), created_by=request.user)
                       
                       
             #-- Components/codelists/codes --------
@@ -596,8 +599,7 @@ def api_concept_update(request):
         update_concept = Concept.objects.get(pk=concept_id)
         update_concept.name = request.data.get('name')  
         update_concept.author = request.data.get('author') 
-        update_concept.publication = request.data.get('publication')  
-        update_concept.description = request.data.get('description') 
+        update_concept.publication = request.data.get('publication')   
         update_concept.publication_doi = request.data.get('publication_doi')
         update_concept.publication_link = request.data.get('publication_link')  # valid URL 
         update_concept.secondary_publication_links = request.data.get('secondary_publication_links')
@@ -607,6 +609,11 @@ def api_concept_update(request):
         update_concept.paper_published = request.data.get('paper_published')
         update_concept.validation_performed = request.data.get('validation_performed')
         update_concept.validation_description = request.data.get('validation_description')
+        
+        if request.data.get('append_description'):
+            update_concept.description =  Concept.objects.get(pk=concept_id).description + "  " + request.data.get('description')
+        else:
+            update_concept.description = request.data.get('description')
         
         update_concept.modified = datetime.now()        
         update_concept.modified_by = request.user
@@ -657,6 +664,10 @@ def api_concept_update(request):
         is_valid_data, err, ret_value = chk_tags(request.data.get('tags'))
         if is_valid_data:
             tags = ret_value
+            if tags:
+                update_concept.tags = [int(i) for i in tags]
+            else:
+                update_concept.tags  = None
         else:
             errors_dict['tags'] = err  
                     
@@ -696,27 +707,27 @@ def api_concept_update(request):
         #-----------------------------------------------------------
         else:
             # update ...
-            #-- Tags -------------------------------------------    
-            # get tags
-            tag_ids = tags  
-            new_tag_list = []
-            if tag_ids:
-                # split tag ids into list
-                new_tag_list = [int(i) for i in tag_ids]
-            # save the tag ids
-            old_tag_list = list(ConceptTagMap.objects.filter(concept=update_concept).values_list('tag', flat=True))
-            # detect tags to add
-            tag_ids_to_add = list(set(new_tag_list) - set(old_tag_list))
-            # detect tags to remove
-            tag_ids_to_remove = list(set(old_tag_list) - set(new_tag_list))
-            # add tags that have not been stored in db
-            for tag_id_to_add in tag_ids_to_add:
-                ConceptTagMap.objects.get_or_create(concept=update_concept, tag=Tag.objects.get(id=tag_id_to_add), created_by=request.user)
-            # remove tags no longer required in db
-            for tag_id_to_remove in tag_ids_to_remove:
-                tag_to_remove = ConceptTagMap.objects.filter(concept=update_concept, tag=Tag.objects.get(id=tag_id_to_remove))
-                tag_to_remove.delete()
-            #-----------------------------------------------------
+#             #-- Tags -------------------------------------------    
+#             # get tags
+#             tag_ids = tags  
+#             new_tag_list = []
+#             if tag_ids:
+#                 # split tag ids into list
+#                 new_tag_list = [int(i) for i in tag_ids]
+#             # save the tag ids
+#             old_tag_list = list(ConceptTagMap.objects.filter(concept=update_concept).values_list('tag', flat=True))
+#             # detect tags to add
+#             tag_ids_to_add = list(set(new_tag_list) - set(old_tag_list))
+#             # detect tags to remove
+#             tag_ids_to_remove = list(set(old_tag_list) - set(new_tag_list))
+#             # add tags that have not been stored in db
+#             for tag_id_to_add in tag_ids_to_add:
+#                 ConceptTagMap.objects.get_or_create(concept=update_concept, tag=Tag.objects.get(id=tag_id_to_add), created_by=request.user)
+#             # remove tags no longer required in db
+#             for tag_id_to_remove in tag_ids_to_remove:
+#                 tag_to_remove = ConceptTagMap.objects.filter(concept=update_concept, tag=Tag.objects.get(id=tag_id_to_remove))
+#                 tag_to_remove.delete()
+#             #-----------------------------------------------------
          
                   
             # DELETE ALL EXISTING COMPONENTS FIRST SINCE THERE IS NA MAPPINGa
@@ -833,8 +844,9 @@ def getConcepts(request, is_authenticated_user=True):
     
     if tag_ids:
         # split tag ids into list
-        search_tag_list = [int(i) for i in tag_ids.split(",")]
+        search_tag_list = [str(i) for i in tag_ids.split(",")]
         tags = Tag.objects.filter(id__in=search_tag_list)
+        filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
         
     # check if it is the public site or not
     if is_authenticated_user:
@@ -910,29 +922,6 @@ def getConcepts(request, is_authenticated_user=True):
                                                 , filter_cond = filter_cond
                                                 , show_top_version_only = show_top_version_only
                                                 )
-    
-    
-    # apply tags
-    # I don't like this way :)
-    concept_indx_to_exclude = []
-    if tag_ids:
-        for indx in range(len(concepts_srch)):  
-            concept = concepts_srch[indx]
-            concept['indx'] = indx
-            concept_tags_history = getHistoryTags(concept['id'], concept['history_date'])
-            if concept_tags_history:
-                concept_tag_list = [i['tag_id'] for i in concept_tags_history if 'tag_id' in i]
-                if not any(t in set(search_tag_list) for t in set(concept_tag_list)):
-                    concept_indx_to_exclude.append(indx)
-                else:
-                    pass        
-            else:
-                concept_indx_to_exclude.append(indx)  
-        
-    if concept_indx_to_exclude:      
-        concepts = [i for i in concepts_srch if (i['indx'] not in concept_indx_to_exclude)]
-    else:
-        concepts = concepts_srch 
      
 
     rows_to_return = []
@@ -948,7 +937,7 @@ def getConcepts(request, is_authenticated_user=True):
         titles += ['versions']
     
 
-    for c in concepts:
+    for c in concepts_srch:
         ret = [
                 c['id'],  
                 c['name'].encode('ascii', 'ignore').decode('ascii'),
@@ -1084,10 +1073,15 @@ def getConceptDetail(request, pk, concept_history_id=None, is_authenticated_user
     components = getHistoryComponents(pk, concept_history_date)
     
     tags =  []
-    tags_comp = getHistoryTags(pk, concept_history_date)
-    if tags_comp:
-        tag_list = [i['tag_id'] for i in tags_comp if 'tag_id' in i]
-        tags = list(Tag.objects.filter(pk__in=tag_list).values('description', 'id'))
+    concept_tags = concept['tags']
+    if concept_tags:
+        tags = list(Tag.objects.filter(pk__in=concept_tags).values('description', 'id'))
+        
+#     tags =  []
+#     tags_comp = getHistoryTags(pk, concept_history_date)
+#     if tags_comp:
+#         tag_list = [i['tag_id'] for i in tags_comp if 'tag_id' in i]
+#         tags = list(Tag.objects.filter(pk__in=tag_list).values('description', 'id'))
     
     
     rows_to_return = []

@@ -1,4 +1,4 @@
-
+				
 <div class="row">
 	<div class="col col-xs-4" style="line-height: 34px; height: 34px;">
 		 	Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} |  {{ page_obj.paginator.count }} Record(s)
@@ -19,19 +19,37 @@
 				<span aria-hidden="true">&laquo;</span>
 			</button>
 		
-			{% for page_number in page_obj.paginator.page_range %}
-				<button
-					class="btn btn-default btn-paginate {% if page_number == page_obj.number %}active{% endif %}"
-					name="page"
-					value="{{ page_number }}"
-					type="submit"
-					form="{{ form_target }}"					
-					{% if page_number == page_obj.number %}
-						disabled="disabled"
-					{% endif %}>
-					{{ page_number }}
-				</button>
-			{% endfor %}
+			{% if p_btns|length %}
+				{% for page_number in p_btns %}
+						<button
+							class="btn btn-default btn-paginate {% if page_number == page_obj.number %}active{% endif %}"
+							name="page"
+							value="{{ page_number }}"
+							type="submit"
+							form="{{ form_target }}"					
+							{% if page_number == page_obj.number or page_number == '...'  %}
+								disabled="disabled"
+							{% endif %}>
+							{{ page_number }}
+						</button>
+				{% endfor %}
+			{% else %}			
+				{% for page_number in page_obj.paginator.page_range %}
+						<button
+							class="btn btn-default btn-paginate {% if page_number == page_obj.number %}active{% endif %}"
+								name="page"
+								value="{{ page_number }}"
+								type="submit"
+								form="{{ form_target }}"					
+							
+							{% if page_number == page_obj.number %}
+								disabled="disabled"
+							{% endif %}>
+							{{ page_number }}
+						</button>
+				{% endfor %}
+			{% endif %}
+				
 			
 			<button
 				class="btn btn-default btn-paginate"

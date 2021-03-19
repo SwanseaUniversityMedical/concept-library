@@ -28,8 +28,13 @@ BEGIN;
 	INSERT INTO clinicalcode_codingsystem (id, name, description, link, table_name, code_column_name, desc_column_name, database_connection_name, filter) VALUES (6, 'Read codes v3', 'Read codes v3', ' ', 'clinicalcode_read_cd_cv3_terms_scd', 'TERM_ID', 'TERM_30', 'default', NULL);
 	INSERT INTO clinicalcode_codingsystem (id, name, description, link, table_name, code_column_name, desc_column_name, database_connection_name, filter) VALUES (7, 'OPCS4 codes', 'OPCS4 codes', ' ', 'clinicalcode_opcs4_codes_and_titles', 'CODE_WITH_DECIMAL', 'TITLE', 'default', ' AND (effective_to is null)');
 	INSERT INTO clinicalcode_codingsystem (id, name, description, link, table_name, code_column_name, desc_column_name, database_connection_name, filter) VALUES (4, 'ICD10 codes', 'ICD10 Codes', ' ', 'clinicalcode_icd10_codes_and_titles_and_metadata', 'CODE', 'DESCRIPTION', 'default', ' AND (effective_to is null)');
+	INSERT INTO clinicalcode_codingsystem (id, name, description, link, table_name, code_column_name, desc_column_name, database_connection_name, filter) VALUES (8, 'Med codes', 'Med codes', ' ', 'MED_CODES', 'CODE', 'DESCRIPTION', 'default', NULL);
+	INSERT INTO clinicalcode_codingsystem (id, name, description, link, table_name, code_column_name, desc_column_name, database_connection_name, filter) VALUES (9, 'SNOMED codes', 'SNOMED codes', ' ', 'SNOMED_CODES', 'CODE', 'DESCRIPTION', 'default', NULL);
+	INSERT INTO clinicalcode_codingsystem (id, name, description, link, table_name, code_column_name, desc_column_name, database_connection_name, filter) VALUES (10, 'PROD codes', 'PROD codes', ' ', 'PROD_CODES', 'CODE', 'DESCRIPTION', 'default', NULL);
+	INSERT INTO clinicalcode_codingsystem (id, name, description, link, table_name, code_column_name, desc_column_name, database_connection_name, filter) VALUES (11, 'BNF codes', 'BNF codes', ' ', 'BNF_CODES', 'CODE', 'DESCRIPTION', 'default', NULL);
+	INSERT INTO clinicalcode_codingsystem (id, name, description, link, table_name, code_column_name, desc_column_name, database_connection_name, filter) VALUES (12, 'UKBioBank codes', 'UKBioBank codes', ' ', 'UKBIOBANK_CODES', 'CODE', 'DESCRIPTION', 'default', NULL);
 
-	SELECT pg_catalog.setval('clinicalcode_codingsystem_id_seq', 7, true);
+	SELECT pg_catalog.setval('clinicalcode_codingsystem_id_seq', 12, true);
 	
 	-- add the clinicalcode_codingsystemfilter
 

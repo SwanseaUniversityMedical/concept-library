@@ -9,6 +9,7 @@ from simple_history.models import HistoricalRecords
 from CodingSystem import CodingSystem
 from TimeStampedModel import TimeStampedModel
 from ..permissions import Permissions
+from django.contrib.postgres.fields import ArrayField
 
 class Concept(TimeStampedModel):
     id = models.AutoField(primary_key=True)
@@ -35,6 +36,8 @@ class Concept(TimeStampedModel):
     owner_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.EDIT)
     group_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.NONE)
     world_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.NONE)
+
+    tags = ArrayField(models.IntegerField(), blank=True, null=True)  #default=list
 
     history = HistoricalRecords()
     
