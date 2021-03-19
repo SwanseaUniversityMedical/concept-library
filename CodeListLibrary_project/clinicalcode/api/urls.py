@@ -19,6 +19,7 @@ router = routers.DefaultRouter()
 router.register('concepts-live', Concept.ConceptViewSet)
 router.register('codes', Concept.CodeViewSet)
 router.register('tags', View.TagViewSet)
+router.register('data-sources', View.DataSourceViewSet)
 
 
 '''

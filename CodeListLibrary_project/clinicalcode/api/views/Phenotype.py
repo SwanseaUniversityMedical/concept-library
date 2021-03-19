@@ -34,6 +34,7 @@ from datetime import datetime
 from django.core.validators import URLValidator
 from View import chk_group, chk_group_access, chk_tags, chk_world_access
 from django.db.models.aggregates import Max
+from clinicalcode.models.PhenotypeDataSourceMap import PhenotypeDataSourceMap
 
 @api_view(['POST'])
 def api_phenotype_create(request):
@@ -64,6 +65,7 @@ def api_phenotype_create(request):
         new_phenotype.author = request.data.get('author')
         new_phenotype.layout = request.data.get('layout')
         new_phenotype.type = request.data.get('type')
+        new_phenotype.validation_performed = request.data.get('validation_performed')
         new_phenotype.validation = request.data.get('validation')
         new_phenotype.valid_event_data_range_start = request.data.get('valid_event_data_range_start')
         new_phenotype.valid_event_data_range_end = request.data.get('valid_event_data_range_end')
@@ -77,7 +79,10 @@ def api_phenotype_create(request):
         new_phenotype.secondary_publication_links = request.data.get('secondary_publication_links')
         new_phenotype.source_reference = request.data.get('source_reference') 
         new_phenotype.citation_requirements = request.data.get('citation_requirements')
-        new_phenotype.concept_informations = request.data.get('concept_informations')
+        #new_phenotype.concept_informations = request.data.get('concept_informations')
+
+        new_phenotype.description = request.data.get('description')
+        new_phenotype.implementation = request.data.get('implementation')
         
         new_phenotype.created_by = request.user        
         new_phenotype.owner_access = Permissions.EDIT
@@ -104,6 +109,7 @@ def api_phenotype_create(request):
                             #print('')
                             concept_informations = getPhenotypeConceptJson(concept_ids_list) #concept.history.latest.pkid
                             new_phenotype.concept_informations = concept_informations
+                            new_phenotype.clinical_terminologies = get_CodingSystems_from_Phenotype_concept_informations(concept_informations)
 
         # group id 
         is_valid_data, err, ret_value = chk_group(request.data.get('group') , user_groups)
@@ -135,9 +141,19 @@ def api_phenotype_create(request):
         is_valid_data, err, ret_value = chk_tags(request.data.get('tags'))
         if is_valid_data:
             tags = ret_value
+            if tags:
+                new_phenotype.tags = [int(i) for i in tags]
         else:
             errors_dict['tags'] = err  
            
+        # handling data-sources
+        datasource_ids_list = request.data.get('data_sources')
+        is_valid_data, err, ret_value = chk_data_sources(request.data.get('data_sources'))
+        if is_valid_data:
+            datasource_ids_list = ret_value
+        else:
+            errors_dict['data_sources'] = err  
+        
         # Validation
         errors_pt = {}
         if bool(errors_dict):
@@ -158,18 +174,23 @@ def api_phenotype_create(request):
             created_pt = Phenotype.objects.get(pk=new_phenotype.pk)
             created_pt.history.latest().delete() 
              
-            tag_ids = tags
-            if tag_ids:
-                new_tag_list = [int(i) for i in tag_ids]
-            if tag_ids:
-                for tag_id_to_add in new_tag_list:
-                    PhenotypeTagMap.objects.get_or_create(phenotype=new_phenotype, tag=Tag.objects.get(id=tag_id_to_add), created_by=request.user)
+#             tag_ids = tags
+#             if tag_ids:
+#                 new_tag_list = [int(i) for i in tag_ids]
+#             if tag_ids:
+#                 for tag_id_to_add in new_tag_list:
+#                     PhenotypeTagMap.objects.get_or_create(phenotype=new_phenotype, tag=Tag.objects.get(id=tag_id_to_add), created_by=request.user)
             
-            datasource_ids_list = request.data.get('data_sources')
-            for cur_id in datasource_ids_list:
-              new_phenotype.data_sources.add(
-                int(cur_id)
-              )
+            
+            if datasource_ids_list:
+                new_datasource_list = [int(i) for i in datasource_ids_list]
+                for datasource_id in new_datasource_list:
+                    PhenotypeDataSourceMap.objects.get_or_create(phenotype=new_phenotype, datasource=DataSource.objects.get(id=datasource_id), created_by=request.user)
+                    
+#             for cur_id in datasource_ids_list:
+#               new_phenotype.data_sources.add(
+#                 int(cur_id)
+#               )
 
             created_pt.changeReason = "Created from API"
             created_pt.save()   
@@ -238,9 +259,13 @@ def api_phenotype_update(request):
         update_phenotype.publication_doi = request.data.get('publication_doi')
         update_phenotype.publication_link = request.data.get('publication_link')
         update_phenotype.secondary_publication_links = request.data.get('secondary_publication_links')
-        #update_phenotype.source_reference = request.data.get('source_reference') # With data_sources I don't think this is needed
+        update_phenotype.source_reference = request.data.get('source_reference') # With data_sources I don't think this is needed
         update_phenotype.citation_requirements = request.data.get('citation_requirements')
-        update_phenotype.concept_informations = request.data.get('concept_informations')
+        update_phenotype.concept_informations = None    # request.data.get('concept_informations')
+        update_phenotype.clinical_terminologies = None
+        
+        update_phenotype.description = request.data.get('description')
+        update_phenotype.implementation = request.data.get('implementation')
         
         update_phenotype.updated_by = request.user        
         update_phenotype.modified = datetime.now() 
@@ -265,45 +290,10 @@ def api_phenotype_update(request):
                         if not (set(concept_ids_list).issubset(set(permittedConcepts))):
                             errors_dict['concept_informations'] = 'invalid concept_informations ids list, all concept ids must be valid and accessible by user'
                         else:
-                            concept_informations = convert_concept_ids_to_WSjson(concept_ids_list , no_attributes=True)
+                            concept_informations = getPhenotypeConceptJson(concept_ids_list) #concept.history.latest.pkid
                             update_phenotype.concept_informations = concept_informations
-                            update_phenotype.concept_version = getWSConceptsHistoryIDs(concept_informations, concept_ids_list = concept_ids_list)
+                            update_phenotype.clinical_terminologies = get_CodingSystems_from_Phenotype_concept_informations(concept_informations)
 
-        """data_sources = request.data.get('data_sources')
-        if data_sources is None:
-          update_phenotype.data_sources = None
-        elif not isinstance(data_sources, list):
-          errors_dict['data_sources'] = 'data_sources must be a valid list of data_source ids'
-        else:
-          if len(data_sources) == 0:
-            errors_dict['data_sources'] = 'data_sources must be a valid non-empty list of data_source ids'
-          else:
-            if len(set(data_sources)) != len(data_sources):
-              errors_dict['data_sources'] = 'data_sources must be a unique list of data_source ids'
-            else:
-              known_sources = set(get_visible_data_sources(request.user).exclude(is_deleted=True).values_list('id', flat=True))
-              if not set(data_sources).issubset(known_sources):
-                errors_dict['data_sources'] = 'Invalid data_sources ids listed, all data_source ids must be valid and accessible by the user'
-              else:
-                update_phenotype.data_sources = data_sources"""
-
-        """clinical_terminologies = request.data.get('clinical_terminologies')
-        if clinical_terminologies is None:
-          update_phenotype.clinical_terminologies = None
-        elif not isinstance(clinical_terminologies, list):
-          errors_dict['clinical_terminologies'] = 'clinical_terminologies must be a valid list of clinical_terminology ids'
-        else:
-          if len(clinical_terminologies) == 0:
-            errors_dict['clinical_terminologies'] = 'clinical_terminologies must be a valid non-empty list of clinical_terminology ids'
-          else:
-            if len(set(clinical_terminologies)) != len(clinical_terminologies):
-              errors_dict['clinical_terminologies'] = 'clinical_terminologies must be a unique list of clinical_terminology ids'
-            else:
-              known_sources = set(get_visible_clinical_terminologies(request.user).exclude(is_deleted=True).values_list('id', flat=True))
-              if not set(clinical_terminologies).issubset(known_sources):
-                errors_dict['clinical_terminologies'] = 'Invalid clinical_terminologies ids listed, all clinical_terminology ids must be valid and accessible by the user'
-              else:
-                update_phenotype.clinical_terminologies = clinical_terminologies"""
 
         #  group id 
         is_valid_data, err, ret_value = chk_group(request.data.get('group') , user_groups)
@@ -334,8 +324,21 @@ def api_phenotype_update(request):
         is_valid_data, err, ret_value = chk_tags(request.data.get('tags'))
         if is_valid_data:
             tags = ret_value
+            if tags:
+                update_phenotype.tags = [int(i) for i in tags]
+            else:
+                update_phenotype.tags  = None
         else:
             errors_dict['tags'] = err  
+            
+            
+        # handling data-sources
+        datasource_ids_list = request.data.get('data_sources')
+        is_valid_data, err, ret_value = chk_data_sources(request.data.get('data_sources'))
+        if is_valid_data:
+            datasource_ids_list = ret_value
+        else:
+            errors_dict['data_sources'] = err  
 
         # Validation
         errors_pt = {}
@@ -352,22 +355,23 @@ def api_phenotype_update(request):
               status=status.HTTP_406_NOT_ACCEPTABLE
             )
         else:
-            tag_ids = tags
-            new_tag_list = []
-
-            if tag_ids:
-                new_tag_list = [int(i) for i in tag_ids]
-
-            old_tag_list = list(PhenotypeTagMap.objects.filter(phenotype=update_phenotype).values_list('tag', flat=True))
-            tag_ids_to_add = list(set(new_tag_list) - set(old_tag_list))
-            tag_ids_to_remove = list(set(old_tag_list) - set(new_tag_list))
-
-            for tag_id_to_add in tag_ids_to_add:
-                PhenotypeTagMap.objects.get_or_create(phenotype=update_phenotype, tag=Tag.objects.get(id=tag_id_to_add), created_by=request.user)
-
-            for tag_id_to_remove in tag_ids_to_remove:
-                tag_to_remove = PhenotypeTagMap.objects.filter(phenotype=update_phenotype, tag=Tag.objects.get(id=tag_id_to_remove))
-                tag_to_remove.delete()
+            # update data-sources
+            new_datasource_list = []
+ 
+            if datasource_ids_list:
+                new_datasource_list = [int(i) for i in datasource_ids_list]
+ 
+            old_datasource_list = list(PhenotypeDataSourceMap.objects.filter(phenotype=update_phenotype).values_list('datasource', flat=True))
+            datasource_ids_to_add = list(set(new_datasource_list) - set(old_datasource_list))
+            datasource_ids_to_remove = list(set(old_datasource_list) - set(new_datasource_list))
+ 
+            for datasource_id_to_add in datasource_ids_to_add:
+                PhenotypeDataSourceMap.objects.get_or_create(phenotype=update_phenotype, datasource=DataSource.objects.get(id=datasource_id_to_add), created_by=request.user)
+ 
+            for datasource_id_to_remove in datasource_ids_to_remove:
+                datasource_to_remove = PhenotypeDataSourceMap.objects.filter(phenotype=update_phenotype, datasource=DataSource.objects.get(id=datasource_id_to_remove))
+                datasource_to_remove.delete()
+                         
                          
             update_phenotype.changeReason = "Updated from API"
             update_phenotype.save()   
@@ -490,7 +494,7 @@ def getPhenotypes(request, is_authenticated_user=True):
     must_have_published_versions = request.query_params.get('must_have_published_versions', "0")
         
     search_tag_list = []
-    tags = []
+    #tags = []
     
     filter_cond = " 1=1 "
     exclude_deleted = True
@@ -499,8 +503,9 @@ def getPhenotypes(request, is_authenticated_user=True):
     
     if tag_ids:
         # split tag ids into list
-        search_tag_list = [int(i) for i in tag_ids.split(",")]
-        tags = Tag.objects.filter(id__in=search_tag_list)
+        search_tag_list = [str(i) for i in tag_ids.split(",")]
+        #tags = Tag.objects.filter(id__in=search_tag_list)
+        filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
         
     # check if it is the public site or not
     if is_authenticated_user:
@@ -576,36 +581,15 @@ def getPhenotypes(request, is_authenticated_user=True):
                                                 , filter_cond = filter_cond
                                                 , show_top_version_only = show_top_version_only
                                                 )
-    
-    
-    # apply tags
-    # I don't like this way :)
-    phenotype_indx_to_exclude = []
-    if tag_ids:
-        for indx in range(len(phenotypes_srch)):  
-            phenotype = phenotypes_srch[indx]
-            phenotype['indx'] = indx
-            phenotype_tags_history = getHistoryTags(phenotype['id'], phenotype['history_date'])
-            if phenotype_tags_history:
-                phenotype_tag_list = [i['tag_id'] for i in phenotype_tags_history if 'tag_id' in i]
-                if not any(t in set(search_tag_list) for t in set(phenotype_tag_list)):
-                    phenotype_indx_to_exclude.append(indx)
-                else:
-                    pass        
-            else:
-                phenotype_indx_to_exclude.append(indx)  
-        
-    if phenotype_indx_to_exclude:      
-        phenotypes = [i for i in phenotypes_srch if (i['indx'] not in phenotype_indx_to_exclude)]
-    else:
-        phenotypes = phenotypes_srch 
-     
+         
 
     rows_to_return = []
     titles = ['phenotype_id', 'version_id'
             , 'UUID', 'phenotype_name'
             , 'type'
             , 'author', 'owner'
+            , 'tags'
+            , 'clinical_terminologies'
             , 'created_by', 'created_date'  
             , 'modified_by', 'modified_date'  
             , 'is_deleted', 'deleted_by', 'deleted_date'
@@ -615,7 +599,17 @@ def getPhenotypes(request, is_authenticated_user=True):
         titles += ['versions']
     
 
-    for c in phenotypes:
+    for c in phenotypes_srch:
+        c_tags =  []
+        phenotype_tags = c['tags']
+        if phenotype_tags:
+            c_tags = list(Tag.objects.filter(pk__in=phenotype_tags).values('description', 'id'))
+        
+        c_clinical_terminologies = []
+        phenotype_clinical_terminologies = c['clinical_terminologies']
+        if phenotype_clinical_terminologies:
+            c_clinical_terminologies = list(CodingSystem.objects.filter(pk__in=phenotype_clinical_terminologies).values('name', 'id'))
+            
         ret = [
                 c['id'],  
                 c['history_id'],  
@@ -624,6 +618,8 @@ def getPhenotypes(request, is_authenticated_user=True):
                 c['type'],           
                 c['author'],
                 c['owner_name'],
+                c_tags,
+                c_clinical_terminologies,
                 
                 c['created_by_username'],
                 c['created'],
@@ -754,20 +750,21 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None, is_authenticated_
     concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(phenotype['concept_informations'])] 
     concepts = list(Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).values('id', 'history_id', 'name', 'group'))
     
-    CodingSystem_ids = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).order_by().values('coding_system_id').distinct()
-    clinicalTerminologies = list(CodingSystem.objects.filter(pk__in=list(CodingSystem_ids.values_list('coding_system_id', flat=True))))
+    CodingSystem_ids = phenotype['clinical_terminologies']  #  Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).order_by().values('coding_system_id').distinct()
+    clinicalTerminologies = list(CodingSystem.objects.filter(pk__in=list(CodingSystem_ids)).values('name', 'id'))
+
     #--------------
-    
+       
     tags =  []
-    tags_comp = getHistoryTags(pk, phenotype_history_date)
-    if tags_comp:
-        tag_list = [i['tag_id'] for i in tags_comp if 'tag_id' in i]
-        tags = list(Tag.objects.filter(pk__in=tag_list).values('description', 'id'))
+    phenotype_tags = phenotype['tags']
+    if phenotype_tags:
+        tags = list(Tag.objects.filter(pk__in=phenotype_tags).values('description', 'id'))
+        
     
 
     rows_to_return = []
     titles = [
-            'phenotype_id'
+              'phenotype_id'
             , 'version_id'
             , 'UUID'
             , 'phenotype_name'

@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.contrib.auth.models import User, Group
 from simple_history.models import HistoricalRecords
@@ -23,7 +24,7 @@ class Phenotype(TimeStampedModel):
     layout = models.CharField(max_length=250)
     phenotype_id = models.CharField(max_length=250)   # Unique ID for the phenotype on HDR UK platform
     type = models.CharField(max_length=250)
-    validation_performed = models.NullBooleanField()  # Was there any clinical validation of this concept?  1=yes 0=no
+    validation_performed = models.NullBooleanField()  # Was there any clinical validation of this phenotype?  1=yes 0=no
     validation = models.CharField(max_length=3000)
     valid_event_data_range_start = models.DateField()
     valid_event_data_range_end = models.DateField()
@@ -56,6 +57,10 @@ class Phenotype(TimeStampedModel):
     group_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.NONE)
     world_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.NONE)
 
+    tags = ArrayField(models.IntegerField(), blank=True, null=True)  #default=list
+    clinical_terminologies = ArrayField(models.IntegerField(), blank=True, null=True)  #default=list
+    publications = models.CharField(max_length=3000, null=True, blank=True)
+    
     history = HistoricalRecords()
 
     def save_without_historical_record(self, *args, **kwargs):

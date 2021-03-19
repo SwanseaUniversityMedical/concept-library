@@ -43,7 +43,7 @@ from django.core.exceptions import ObjectDoesNotExist #, PermissionDenied
 from django.core.validators import URLValidator
 import re
 from psycopg2.errorcodes import INVALID_PARAMETER_VALUE
-
+from django.conf import settings
 
 def deleteConcept(pk, user):
     ''' Delete a concept based on a concept id '''
@@ -80,18 +80,18 @@ def format_sql_parameter(param):
 
 
 def deleteConceptRelatedObjects(pk):
-    ''' Delete a concept components and tags based on a concept id '''
+    ''' Delete a concept components based on a concept id '''
     # get selected concept
     concept = Concept.objects.get(pk=pk)
 
-    # get all the tags attached to the concept
-    concept_tag_maps = concept.concepttagmap_set.all()
+#     # get all the tags attached to the concept
+#     concept_tag_maps = concept.concepttagmap_set.all()
+# 
+#     for ctm in concept_tag_maps:
+#         if ctm:
+#             ctm.delete()
 
-    for ctm in concept_tag_maps:
-        if ctm:
-            ctm.delete()
-
-    if concept and concept_tag_maps:
+    if concept: # and concept_tag_maps:
         #concept.changeReason = "Tags deleted"
         #concept.save()
         concept.save_without_historical_record()
@@ -161,7 +161,7 @@ def fork(pk, user):
     '''
     has_components = False
     concept = Concept.objects.get(pk=pk)
-    old_concept_tag_maps = concept.concepttagmap_set.all()
+#     old_concept_tag_maps = concept.concepttagmap_set.all()
     old_components = concept.component_set.all()
     # Reset the concept primary key to none so that it is treated as a new
     # concept.
@@ -174,11 +174,11 @@ def fork(pk, user):
 #     #concept.save_without_historical_record()
     concept.history.latest().delete() 
     
-    for ctm in old_concept_tag_maps:
-        ctm.pk = None
-        ctm.created_by = user
-        ctm.concept = concept
-        ctm.save()
+#     for ctm in old_concept_tag_maps:
+#         ctm.pk = None
+#         ctm.created_by = user
+#         ctm.concept = concept
+#         ctm.save()
 
     # For all components reset the coderegex, codelist and codes. This will
     # ensure that they are treated as new entities and are attached to the
@@ -290,7 +290,8 @@ def forkHistoryConcept(user, concept_history_id):
         group_id=concept['group_id'],
         owner_access=Permissions.EDIT,
         group_access=concept['group_access'],
-        world_access=concept['world_access']
+        world_access=concept['world_access'],
+        tags=concept['tags']
     )
     concept_obj.changeReason = "Forked root from concept %s/%s/%s" % (concept['id'], concept_history_id, concept['entry_date'])
     concept_obj.save()
@@ -300,17 +301,17 @@ def forkHistoryConcept(user, concept_history_id):
         # get the historic date this was effective from
         concept_history_date = concept['history_date']
 
-        # get concept tags that were active from the time of the concepts effective date
-        concept_tag_maps = getHistoryConceptTagMaps(concept['id'], concept_history_date)
-
-        for ctm in concept_tag_maps:
-            ctm_obj = ConceptTagMap.objects.create(
-                concept=concept_obj,
-                tag=Tag.objects.filter(pk=ctm['tag_id']).first(),
-                created_by=User.objects.filter(pk=ctm['created_by_id']).first(),
-                created=ctm['created'],
-                modified=ctm['modified']
-            )
+#         # get concept tags that were active from the time of the concepts effective date
+#         concept_tag_maps = getHistoryConceptTagMaps(concept['id'], concept_history_date)
+# 
+#         for ctm in concept_tag_maps:
+#             ctm_obj = ConceptTagMap.objects.create(
+#                 concept=concept_obj,
+#                 tag=Tag.objects.filter(pk=ctm['tag_id']).first(),
+#                 created_by=User.objects.filter(pk=ctm['created_by_id']).first(),
+#                 created=ctm['created'],
+#                 modified=ctm['modified']
+#             )
 
         # get components that were active from the time of the concepts effective date
         components = getHistoryComponents(concept['id'], concept_history_date, skip_codes=True)
@@ -780,7 +781,8 @@ def getHistoryConcept(concept_history_id):
         hc.history_type,
         hc.is_deleted,
         hc.deleted,
-        hc.deleted_by_id
+        hc.deleted_by_id,
+        hc.tags
         FROM clinicalcode_historicalconcept AS hc
         JOIN clinicalcode_codingsystem AS cs ON hc.coding_system_id = cs.id
         LEFT OUTER JOIN auth_user AS ucb on ucb.id = hc.created_by_id
@@ -1610,25 +1612,27 @@ def revertHistoryConcept(user, concept_history_id):
     concept_obj.owner_access = concept['owner_access']
     concept_obj.group_access = concept['group_access']
     concept_obj.world_access = concept['world_access']
+    concept_obj.tags = concept['tags']
     concept_obj.changeReason = "Reverted root historic concept"
-
+    concept_obj.save()
+    
     if concept_obj:
         # get the historic date this was effective from
         concept_history_date = concept['history_date']
 
-        # get tags that were active from the time of the concepts effective date
-        concept_tag_maps = getHistoryConceptTagMaps(concept['id'], concept_history_date)
-
-        for ctm in concept_tag_maps:
-            has_tags = True
-
-            ctm_obj = ConceptTagMap.objects.create(
-                concept=concept_obj,
-                tag=Tag.objects.filter(pk=ctm['tag_id']).first(),
-                created_by=User.objects.filter(pk=ctm['created_by_id']).first(),
-                created=ctm['created'],
-                modified=ctm['modified']
-            )
+#         # get tags that were active from the time of the concepts effective date
+#         concept_tag_maps = getHistoryConceptTagMaps(concept['id'], concept_history_date)
+# 
+#         for ctm in concept_tag_maps:
+#             has_tags = True
+# 
+#             ctm_obj = ConceptTagMap.objects.create(
+#                 concept=concept_obj,
+#                 tag=Tag.objects.filter(pk=ctm['tag_id']).first(),
+#                 created_by=User.objects.filter(pk=ctm['created_by_id']).first(),
+#                 created=ctm['created'],
+#                 modified=ctm['modified']
+#             )
             
 
         # get components that were active from the time of the concepts effective date
@@ -2565,89 +2569,7 @@ def isValidWorkingSet(request, working_set):
     
     return is_valid, errors
 
-#---------------------------------------------------------------------------
 
-
-
-#?? this function is replaced
-def getPublishedConcepts():
-    ''' Get all published concepts '''
-
-    with connection.cursor() as cursor:
-        cursor.execute('''SELECT id, 
-                                name, 
-                                description, 
-                                author, 
-                                validation_performed, 
-                                validation_description, 
-                                publication_doi, 
-                                publication_link, 
-                                paper_published,
-                                source_reference, 
-                                citation_requirements, 
-                                history_id, 
-                                coding_system_id, 
-                                secondary_publication_links, 
-                                publication_date, 
-                                publisher_id
-                            FROM public.clinicalcode_historicalconcept AS h 
-                            INNER JOIN
-                            (
-                                SELECT concept_id, concept_history_id, 
-                                created AS publication_date, 
-                                created_by_id AS publisher_id 
-                                FROM public.clinicalcode_publishedconcept
-                            ) AS pu 
-                            ON h.history_id = pu.concept_history_id
-                                AND h.id = pu.concept_id
-                        ''')
-
-        col_names = [col[0] for col in cursor.description]
-
-        return [
-            dict(zip(col_names, row))
-            for row in cursor.fetchall()
-        ]
-
-
-def getPublishedConceptByVersionId(version_id):
-    ''' Get a specific published concept '''
-
-    with connection.cursor() as cursor:
-        cursor.execute('''SELECT id, 
-                                name, 
-                                description, 
-                                author, 
-                                validation_performed, 
-                                validation_description, 
-                                publication_doi, 
-                                publication_link, 
-                                paper_published,
-                                source_reference, 
-                                citation_requirements, 
-                                history_id, 
-                                coding_system_id, 
-                                secondary_publication_links, 
-                                publication_date, 
-                                publisher_id
-                                FROM public.clinicalcode_historicalconcept AS h 
-                            INNER JOIN
-                            (
-                                SELECT concept_id, concept_history_id, 
-                                created AS publication_date, 
-                                created_by_id AS publisher_id 
-                                FROM public.clinicalcode_publishedconcept WHERE concept_history_id=%s
-                            ) AS pu 
-                            ON h.history_id = pu.concept_history_id
-                                AND h.id = pu.concept_id
-                        ''', [version_id])
-
-        col_names = [col[0] for col in cursor.description]
-        row = cursor.fetchone()
-        row_dict = dict(izip(col_names, row))
-
-        return row_dict
-    
 #---------------------------------------------------------------------------
 def get_history_child_concept_components(concept_id, concept_history_id=None):
     '''
@@ -2718,7 +2640,40 @@ def get_history_child_concept_components(concept_id, concept_history_id=None):
            
             return childConcepts
         
+def get_can_edit_subquery(request):
+    # check can_edit in SQl - faster way
     
+    can_edit_subquery = ""
+    if not request.user.is_authenticated():
+        can_edit_subquery = " ( FALSE ) can_edit , "   #    2= published only
+    else:  
+        if settings.CLL_READ_ONLY:
+            can_edit_subquery = " ( FALSE ) can_edit , " 
+        else:
+            if request.user.is_superuser:
+                can_edit_subquery = " ( TRUE ) can_edit , " 
+            else:
+                user_groups = list(request.user.groups.all().values_list('id', flat=True))
+                group_access_cond = ""
+                if user_groups:
+                    group_access_cond = " OR (group_id IN(" + ', '.join(map(str, user_groups)) + ") AND group_access = 3) "
+                    
+                # since all params here are derived from user object, no need for parameterising here. 
+                can_edit_subquery = ''' (CASE WHEN rn=1 AND
+                                                (
+                                                    owner_id=%s
+                                                    OR world_access = 3
+                                                    %s
+                                                )
+                                        THEN TRUE 
+                                        ELSE FALSE 
+                                        END
+                                        ) can_edit ,
+
+                            '''% (str(request.user.id), group_access_cond)
+    return can_edit_subquery
+
+                    
 def get_visible_live_or_published_concept_versions(request
                                                     , get_live_and_or_published_ver = 3 # 1= live only, 2= published only, 3= live+published
                                                     , searchByName = ""
@@ -2758,6 +2713,8 @@ def get_visible_live_or_published_concept_versions(request
     
         #my_params.append(user_cond)
     
+    can_edit_subquery = get_can_edit_subquery(request)
+
     where_clause = " WHERE 1=1 "
     
     if concept_id_to_exclude > 0 :
@@ -2802,6 +2759,9 @@ def get_visible_live_or_published_concept_versions(request
                         FROM
                         (
                             SELECT 
+                                """
+                                + can_edit_subquery +
+                                """
                                 *
                                 , ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn_res
                                 , (CASE WHEN is_published=1 THEN 'published' ELSE 'not published' END) published
@@ -2827,6 +2787,7 @@ def get_visible_live_or_published_concept_versions(request
                                owner_access, group_access, world_access, history_id, history_date, 
                                history_change_reason, history_type, coding_system_id, created_by_id, 
                                deleted_by_id, group_id, history_user_id, modified_by_id, owner_id
+                               , tags
                             FROM clinicalcode_historicalconcept t
                             ) r
                             """ 
@@ -2901,6 +2862,7 @@ def get_visible_live_or_published_phenotype_versions(request
                     '''% (str(request.user.id), group_access_cond)
     
         #my_params.append(user_cond)
+    can_edit_subquery = get_can_edit_subquery(request)
     
     where_clause = " WHERE 1=1 "
     
@@ -2946,6 +2908,9 @@ def get_visible_live_or_published_phenotype_versions(request
                         FROM
                         (
                             SELECT 
+                                """
+                                + can_edit_subquery +
+                                """
                                 *
                                 , ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn_res
                                 , (CASE WHEN is_published=1 THEN 'published' ELSE 'not published' END) published
@@ -2970,7 +2935,8 @@ def get_visible_live_or_published_phenotype_versions(request
                                source_reference, citation_requirements, is_deleted, deleted, 
                                owner_access, group_access, world_access, history_id, history_date, 
                                history_change_reason, history_type, created_by_id, deleted_by_id, 
-                               group_id, history_user_id, owner_id, updated_by_id, validation_performed, phenoflowid
+                               group_id, history_user_id, owner_id, updated_by_id, validation_performed, 
+                               phenoflowid, tags, clinical_terminologies
                             FROM clinicalcode_historicalphenotype t
                             ) r
                             """ 
@@ -3036,6 +3002,8 @@ def getHistoryPhenotype(phenotype_history_id):
         hph.owner_id,
         hph.updated_by_id,
         hph.validation_performed,
+        hph.tags,
+        hph.clinical_terminologies,
         ucb.username as created_by_username,
         umb.username as modified_by_username,
         uhu.username as history_user
@@ -3095,69 +3063,16 @@ def getPhenotypeConceptHistoryIDs(concept_ids_list):
         concept_history_ids[concept_id] = latest_history_id
     return concept_history_ids
 
+def get_CodingSystems_from_Phenotype_concept_informations(concept_informations):
+        
+    concept_id_list = [x['concept_id'] for x in json.loads(concept_informations)] 
+    concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(concept_informations)]    
+    CodingSystem_ids = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).order_by().values('coding_system_id').distinct()
+    
+    return list(CodingSystem_ids.values_list('coding_system_id', flat=True))
 
-def getHistoryTags_Phenotype(phenotype_id, phenotype_history_date):
-    ''' Get historic tags attached to a phenotype that were effective from a point in time '''
 
-    my_params = {
-        'phenotype_id': phenotype_id,
-        'phenotype_history_date': phenotype_history_date
-    }
 
-    with connection.cursor() as cursor:
-        cursor.execute('''
-        -- Select all the data from the tags historical record for all
-        -- the entries that are contained in the JOIN which produces a list of
-        -- the latest history IDs for all codes that don't have a
-        -- delete event by the specified date.
-        SELECT 
-            hc.id,
-            hc.created,
-            hc.modified,
-            hc.history_id,
-            hc.history_date,
-            hc.history_change_reason,
-            hc.history_type,
-            hc.phenotype_id,
-            hc.created_by_id,
-            hc.history_user_id,
-            hc.tag_id
-        FROM clinicalcode_historicalphenotypetagmap AS hc
-        INNER JOIN (
-            SELECT a.id, a.history_id
-            FROM (
-                -- Get the list of all the tags for this concept and
-                -- before the timestamp and return the latest history ID.
-                SELECT id, MAX(history_id) AS history_id
-                FROM   clinicalcode_historicalphenotypetagmap
-                WHERE  (phenotype_id = %(phenotype_id)s AND 
-                        history_date <= %(phenotype_history_date)s::timestamptz)
-                GROUP BY id
-            ) AS a
-            LEFT JOIN (
-                -- Get the list of all the tags that have been deleted
-                -- for this concept.
-                SELECT DISTINCT id
-                FROM   clinicalcode_historicalphenotypetagmap
-                WHERE  (phenotype_id = %(phenotype_id)s AND 
-                        history_date <= %(phenotype_history_date)s::timestamptz AND
-                        history_type = '-')
-            ) AS b
-            -- Join only those from the first group that are not in the deleted
-            -- group.
-            ON a.id = b.id
-            WHERE b.id IS NULL
-        ) AS d
-        ON hc.history_id = d.history_id
-        ORDER BY hc.id
-        ''' , my_params)
-
-        columns = [col[0] for col in cursor.description]
-
-        return [
-            dict(zip(columns, row))
-            for row in cursor.fetchall()
-        ]
 
 def getHistoryDataSource_Phenotype(phenotype_id, phenotype_history_date):
     ''' Get historic DataSources attached to a phenotype that were effective from a point in time '''
