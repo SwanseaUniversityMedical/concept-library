@@ -728,13 +728,9 @@ Edit Concept
 
 	$(function () {
 		{% for tag in tags %}
-		{% if form.instance.pk is None %}
-		$('#txtTags').tagsinput('add', { 'id': {{ tag.id }}, 'description': '{{ tag.description }}', 'display': '{{ tag.get_display_display }}'});
-	{% else %}
-	$('#txtTags').tagsinput('add', { 'id': {{ tag.tag.id }}, 'description': '{{ tag.tag.description }}', 'display': '{{ tag.tag.get_display_display }}'});
-	{% endif %}
-	{% endfor %}		
-		});
+			$('#txtTags').tagsinput('add', { 'id': {{ tag.id }}, 'description': '{{ tag.description }}', 'display': '{{ tag.get_display_display }}'});
+		{% endfor %}		
+	});
 
 </script>
 

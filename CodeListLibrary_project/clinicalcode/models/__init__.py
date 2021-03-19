@@ -19,7 +19,7 @@ from Brand import Brand
 from PublishedConcept import PublishedConcept
 from DataSource import DataSource
 from Phenotype import Phenotype
-from PhenotypeTagMap import PhenotypeTagMap
+from PhenotypeTagMap import PhenotypeTagMap 
 from PhenotypeDataSourceMap import PhenotypeDataSourceMap
 from PublishedPhenotype import PublishedPhenotype
 from BNF_CODES import BNF_CODES

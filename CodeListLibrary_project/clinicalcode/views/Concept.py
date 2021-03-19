@@ -127,22 +127,25 @@ class ConceptCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageMixi
             # split tag ids into list
             if tag_ids:
                 new_tag_list = [int(i) for i in tag_ids.split(",")]
+                form.instance.tags = new_tag_list
 
            
             #form.changeReason = "Created"   
             #self.object = form.save()
+            
+            
             self.object = form.save()
             db_utils.modifyConceptChangeReason(self.object.pk, "Created")
-            concept = Concept.objects.get(pk=self.object.pk)
-            concept.history.latest().delete() 
-
-            # add tags that have not been stored in db
-            if tag_ids:
-                for tag_id_to_add in new_tag_list:
-                    ConceptTagMap.objects.get_or_create(concept=self.object, tag=Tag.objects.get(id=tag_id_to_add), created_by=self.request.user)
-
-            concept.changeReason = "Created"
-            concept.save()   
+#             concept = Concept.objects.get(pk=self.object.pk)
+#             concept.history.latest().delete() 
+# 
+#             # add tags that have not been stored in db
+#             if tag_ids:
+#                 for tag_id_to_add in new_tag_list:
+#                     ConceptTagMap.objects.get_or_create(concept=self.object, tag=Tag.objects.get(id=tag_id_to_add), created_by=self.request.user)
+# 
+#             concept.changeReason = "Created"
+#             concept.save()   
 
             
             messages.success(self.request, "Concept has been successfully created.")
@@ -218,10 +221,15 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
     components = db_utils.getHistoryComponents(pk, concept_history_date, check_published_child_concept=True)
         
     tags =  Tag.objects.filter(pk=-1)
-    tags_comp = db_utils.getHistoryTags(pk, concept_history_date)
-    if tags_comp:
-        tag_list = [i['tag_id'] for i in tags_comp if 'tag_id' in i]
-        tags = Tag.objects.filter(pk__in=tag_list)
+    concept_tags = concept['tags']
+    if concept_tags:
+        tags = Tag.objects.filter(pk__in=concept_tags)
+         
+#     tags =  Tag.objects.filter(pk=-1)
+#     tags_comp = db_utils.getHistoryTags(pk, concept_history_date)
+#     if tags_comp:
+#         tag_list = [i['tag_id'] for i in tags_comp if 'tag_id' in i]
+#         tags = Tag.objects.filter(pk__in=tag_list)
     #----------------------------------------------------------------------
     
     if request.user.is_authenticated():
@@ -438,24 +446,25 @@ class ConceptUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Update
             #-----------------------------------------------------
             # get tags
             tag_ids = self.request.POST.get('tagids')
-            new_tag_list = []
+#             new_tag_list = []
             if tag_ids:
                 # split tag ids into list
                 new_tag_list = [int(i) for i in tag_ids.split(",")]
-            # save the tag ids
-            old_tag_list = list(ConceptTagMap.objects.filter(concept=self.get_object()).values_list('tag', flat=True))
-            # detect tags to add
-            tag_ids_to_add = list(set(new_tag_list) - set(old_tag_list))
-            # detect tags to remove
-            tag_ids_to_remove = list(set(old_tag_list) - set(new_tag_list))
-            # add tags that have not been stored in db
-            for tag_id_to_add in tag_ids_to_add:
-                ConceptTagMap.objects.get_or_create(concept=self.object, tag=Tag.objects.get(id=tag_id_to_add), created_by=self.request.user)
-            # remove tags no longer required in db
-            for tag_id_to_remove in tag_ids_to_remove:
-                tag_to_remove = ConceptTagMap.objects.filter(concept=self.object, tag=Tag.objects.get(id=tag_id_to_remove))
-                tag_to_remove.delete()
-            #-----------------------------------------------------
+                form.instance.tags = new_tag_list
+#             # save the tag ids
+#             old_tag_list = list(ConceptTagMap.objects.filter(concept=self.get_object()).values_list('tag', flat=True))
+#             # detect tags to add
+#             tag_ids_to_add = list(set(new_tag_list) - set(old_tag_list))
+#             # detect tags to remove
+#             tag_ids_to_remove = list(set(old_tag_list) - set(new_tag_list))
+#             # add tags that have not been stored in db
+#             for tag_id_to_add in tag_ids_to_add:
+#                 ConceptTagMap.objects.get_or_create(concept=self.object, tag=Tag.objects.get(id=tag_id_to_add), created_by=self.request.user)
+#             # remove tags no longer required in db
+#             for tag_id_to_remove in tag_ids_to_remove:
+#                 tag_to_remove = ConceptTagMap.objects.filter(concept=self.object, tag=Tag.objects.get(id=tag_id_to_remove))
+#                 tag_to_remove.delete()
+#             #-----------------------------------------------------
 
             # save the concept with a change reason to reflect the update within the concept audit history
             self.object = form.save()
@@ -470,7 +479,12 @@ class ConceptUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Update
 
     def get_context_data(self, **kwargs):
         context = UpdateView.get_context_data(self, **kwargs)
-        tags = ConceptTagMap.objects.filter(concept=self.get_object())
+        #tags = ConceptTagMap.objects.filter(concept=self.get_object())
+        tags =  Tag.objects.filter(pk=-1)
+        concept_tags = self.get_object().tags
+        if concept_tags:
+            tags = Tag.objects.filter(pk__in=concept_tags)
+        
         context.update(build_permitted_components_list(self.request.user, self.get_object().pk, check_published_child_concept=True))
         
         if self.get_object().is_deleted == True:
@@ -713,9 +727,10 @@ def concept_list(request):
     
     if tag_ids:
         # split tag ids into list
-        search_tag_list = [int(i) for i in tag_ids.split(",")]
+        search_tag_list = [str(i) for i in tag_ids.split(",")]
         tags = Tag.objects.filter(id__in=search_tag_list)
-        
+        filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
+
     # check if it is the public site or not
     if request.user.is_authenticated():
         # ensure that user is only allowed to view/edit the relevant concepts
@@ -776,31 +791,9 @@ def concept_list(request):
                                                 , show_top_version_only = show_top_version_only
                                                 )
     
-    # apply tags
-    # I don't like this way :)
-    concept_indx_to_exclude = []
-    if tag_ids:
-        for indx in range(len(concepts_srch)):  
-            concept = concepts_srch[indx]
-            concept['indx'] = indx
-            concept_tags_history = db_utils.getHistoryTags(concept['id'], concept['history_date'])
-            if concept_tags_history:
-                concept_tag_list = [i['tag_id'] for i in concept_tags_history if 'tag_id' in i]
-                if not any(t in set(search_tag_list) for t in set(concept_tag_list)):
-                    concept_indx_to_exclude.append(indx)
-                else:
-                    pass        
-            else:
-                concept_indx_to_exclude.append(indx)  
-        
-    if concept_indx_to_exclude:      
-        concepts = [i for i in concepts_srch if (i['indx'] not in concept_indx_to_exclude)]
-    else:
-        concepts = concepts_srch 
-    
         
     # create pagination
-    paginator = Paginator(concepts, page_size, allow_empty_first_page=True)
+    paginator = Paginator(concepts_srch, page_size, allow_empty_first_page=True)
     try:
         p = paginator.page(page)
     except EmptyPage:

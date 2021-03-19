@@ -36,6 +36,11 @@ if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_P
         url(r'^adminTemp/moveTags/', 
             adminTemp.moveTags, 
             name='moveTags'),
+        
+#         url(r'^adminTemp/api_remove_longIDfromName/', 
+#             adminTemp.api_remove_longIDfromName, 
+#             name='api_remove_longIDfromName'),
+      
       
     ]
 

@@ -28,7 +28,6 @@ from django.conf import settings
 
 from ..models.Tag import Tag
 from ..models.Phenotype import Phenotype
-from ..models.PhenotypeTagMap import PhenotypeTagMap
 from ..models.Brand import Brand
 from ..models.PublishedPhenotype import PublishedPhenotype
 from ..models.DataSource import DataSource
@@ -205,6 +204,7 @@ def phenotype_list(request):
         'phenotype_brand': phenotype_brand,
         'phenotype_must_have_published_versions': phenotype_must_have_published_versions,
         'allTags': Tag.objects.all().order_by('description'),
+        'all_CodingSystems': CodingSystem.objects.all().order_by('id'),
         'search_form': search_form,
         'p_btns': p_btns
         #'expand_published_versions': expand_published_versions,
@@ -259,11 +259,8 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     phenotype_tags = phenotype['tags']
     if phenotype_tags:
         tags = Tag.objects.filter(pk__in=phenotype_tags)
-#     tags =  Tag.objects.filter(pk=-1)
-#     tags_comp = db_utils.getHistoryTags_Phenotype(pk, phenotype_history_date)
-#     if tags_comp:
-#         tag_list = [i['tag_id'] for i in tags_comp if 'tag_id' in i]
-#         tags = Tag.objects.filter(pk__in=tag_list)
+
+
         
     data_sources = DataSource.objects.filter(pk=-1)
     data_sources_comp = db_utils.getHistoryDataSource_Phenotype(pk, phenotype_history_date)
@@ -278,8 +275,10 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).values('id', 'history_id', 'name', 'group')
     concepts_id_name = json.dumps(list(concepts))
     
-    CodingSystem_ids = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).order_by().values('coding_system_id').distinct()
-    clinicalTerminologies = CodingSystem.objects.filter(pk__in=list(CodingSystem_ids.values_list('coding_system_id', flat=True)))
+    clinicalTerminologies = CodingSystem.objects.filter(pk=-1)
+    CodingSystem_ids = phenotype['clinical_terminologies']  #Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).order_by().values('coding_system_id').distinct()
+    if CodingSystem_ids:
+        clinicalTerminologies = CodingSystem.objects.filter(pk__in=list(CodingSystem_ids))
 
     
     is_latest_version = (int(phenotype_history_id) == Phenotype.objects.get(pk=pk).history.latest().history_id)
