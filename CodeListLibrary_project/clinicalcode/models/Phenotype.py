@@ -60,7 +60,7 @@ class Phenotype(TimeStampedModel):
 
     tags = ArrayField(models.IntegerField(), blank=True, null=True)  #default=list
     clinical_terminologies = ArrayField(models.IntegerField(), blank=True, null=True)  #default=list
-    publications = models.CharField(max_length=3000, null=True, blank=True)
+    publications = ArrayField(models.IntegerField(), blank=True, null=True)  #default=list
     
     history = HistoricalRecords()
 

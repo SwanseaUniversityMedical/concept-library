@@ -389,7 +389,13 @@
 
                     <h3><i aria-hidden="true"></i> Publications</h3>
                     <div class="markdown-holder">
-                        {{ phenotype.secondary_publication_links|markdownify }}
+                    	{% if phenotype.publications|length %}
+                    	   <ul>
+	                    	{% for p in phenotype.publications %}
+							   <li>{{ p|markdownify }}</li>
+							{% endfor %}
+						   </ul>
+						{% endif %}
                     </div>
                     					
 					<hr/>
