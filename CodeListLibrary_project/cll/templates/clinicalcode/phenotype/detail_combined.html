@@ -179,14 +179,15 @@
                    <div class="form-group">
 						<label class="col-sm-3">Data Sources:</label>
 						<div class="col-sm-9">
-							{% for ds in data_sources %}
-							   <span class="tag label">
+							{% for ds in data_sources %}							   
 							   		{% if ds.url|length %}
-							   			<a  href="{{ ds.url }}" target=_blank >{{ ds.name }}</a>
+							   			<span class="tag label">
+							   				<a  href="{{ ds.url }}" target=_blank >{{ ds.name }}</a>
+							   			</span>
 							   		{% else %}
 							   			{{ ds.name }}
 							   		{% endif %} 
-							   </span><br>
+							   <br>
 							{% endfor %}							
 						</div>
 					</div>
