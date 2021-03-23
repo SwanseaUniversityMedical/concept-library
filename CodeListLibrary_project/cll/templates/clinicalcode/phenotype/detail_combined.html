@@ -377,9 +377,13 @@
 					
 					<hr />
 
-         <div >
-             {{ phenotype.implementation|markdownify }}
-         </div>
+                    <h3><i aria-hidden="true"></i> Description</h3>
+                    <div class="markdown-holder">
+                        {{ phenotype.description|markdownify }}
+                    </div>
+
+					<hr />
+
                     <h3><i aria-hidden="true"></i> Implementation</h3>
                     <div class="markdown-holder">
                         {{ phenotype.implementation|markdownify }}
