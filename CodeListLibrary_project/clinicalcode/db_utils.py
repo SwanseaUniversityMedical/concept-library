@@ -2936,7 +2936,7 @@ def get_visible_live_or_published_phenotype_versions(request
                                owner_access, group_access, world_access, history_id, history_date, 
                                history_change_reason, history_type, created_by_id, deleted_by_id, 
                                group_id, history_user_id, owner_id, updated_by_id, validation_performed, 
-                               phenoflowid, tags, clinical_terminologies
+                               phenoflowid, tags, clinical_terminologies, publications
                             FROM clinicalcode_historicalphenotype t
                             ) r
                             """ 
@@ -3003,6 +3003,7 @@ def getHistoryPhenotype(phenotype_history_id):
         hph.validation_performed,
         hph.tags,
         hph.clinical_terminologies,
+        hph.publications,
         ucb.username as created_by_username,
         umb.username as modified_by_username,
         uhu.username as history_user

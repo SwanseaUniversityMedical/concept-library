@@ -832,7 +832,7 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None, is_authenticated_
             phenotype['citation_requirements'],
             
             phenotype['implementation'],
-            phenotype['secondary_publication_links'],
+            phenotype['publications'],
             
             phenotype['owner'] ,
             dict(Permissions.PERMISSION_CHOICES)[phenotype['owner_access']],
