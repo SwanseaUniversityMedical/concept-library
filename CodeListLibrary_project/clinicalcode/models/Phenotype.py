@@ -26,13 +26,14 @@ class Phenotype(TimeStampedModel):
     type = models.CharField(max_length=250)
     validation_performed = models.NullBooleanField()  # Was there any clinical validation of this phenotype?  1=yes 0=no
     validation = models.CharField(max_length=3000)
-    valid_event_data_range_start = models.DateField()
-    valid_event_data_range_end = models.DateField()
+    valid_event_data_range =  models.CharField(max_length=250, null=True, blank=True)
+#     valid_event_data_range_start = models.DateField()
+#     valid_event_data_range_end = models.DateField()
     sex = models.CharField(max_length=50)
     author = models.CharField(max_length=250)
     status = models.CharField(max_length=50)
-    hdr_created_date = models.DateField()
-    hdr_modified_date = models.DateField()
+    hdr_created_date =  models.CharField(max_length=50, null=True, blank=True)
+    hdr_modified_date =  models.CharField(max_length=50, null=True, blank=True)
     description = models.TextField()
     concept_informations = JSONField()
     publication_doi = models.CharField(max_length=100)  # DOI of publication

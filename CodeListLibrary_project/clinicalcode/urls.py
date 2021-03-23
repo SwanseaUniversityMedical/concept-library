@@ -24,7 +24,7 @@ urlpatterns = [
     url(r'^phenotype/$', Phenotype.phenotype_list, name='phenotype_list'),
 ]
 
-# #======== Admin Temp ==============================================================================
+#======== Admin Temp ===============================================================================
 #======== API testing ==============================================================================
 if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
     # add URL to some json inputs 
@@ -33,15 +33,18 @@ if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_P
             adminTemp.api_remove_data, 
             name='api_remove_data'),
         
-        url(r'^adminTemp/moveTags/', 
-            adminTemp.moveTags, 
-            name='moveTags'),
-        
 #         url(r'^adminTemp/api_remove_longIDfromName/', 
 #             adminTemp.api_remove_longIDfromName, 
 #             name='api_remove_longIDfromName'),
       
       
+    ]
+if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
+    # add URL to some json inputs 
+    urlpatterns += [       
+        url(r'^adminTemp/moveTags/', 
+            adminTemp.moveTags, 
+            name='moveTags'),      
     ]
 
 

@@ -2929,7 +2929,7 @@ def get_visible_live_or_published_phenotype_versions(request
                                    WHERE phenotype_id=t.id and phenotype_history_id=t.history_id 
                                ) is_published,
                                id, created, modified, title, name, layout, phenotype_id, type, 
-                               validation, valid_event_data_range_start, valid_event_data_range_end, 
+                               validation, valid_event_data_range,  
                                sex, author, status, hdr_created_date, hdr_modified_date, description, implementation,
                                concept_informations, publication_doi, publication_link, secondary_publication_links, 
                                source_reference, citation_requirements, is_deleted, deleted, 
@@ -2970,8 +2970,7 @@ def getHistoryPhenotype(phenotype_history_id):
         hph.phenotype_id,
         hph.type,
         hph.validation,
-        hph.valid_event_data_range_start,
-        hph.valid_event_data_range_end,
+        hph.valid_event_data_range,
         hph.sex,
         hph.author,
         hph.status,
