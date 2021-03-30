@@ -156,7 +156,7 @@
                     <div class="form-group  highlight-row">
 						<label class="col-sm-3">UUID:</label>
 						<div class="col-sm-9">
-							{{ phenotype.phenotype_id }}
+							{{ phenotype.phenotype_uuid }}
 						</div>
 					</div>
 					
@@ -402,7 +402,12 @@
 						   </ul>
 						{% endif %}
                     </div>
-                    					
+
+					<hr />
+
+		{% include './phenotype_component_tabs.html' %}                 
+
+                                        					
 					<hr/>
 					
 <!-- 					<h3><i aria-hidden="true"></i> Concepts</h3> -->

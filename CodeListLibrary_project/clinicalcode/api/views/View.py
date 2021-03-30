@@ -401,6 +401,41 @@ def chk_data_sources(data_sources):
     return is_valid_data, err, ret_value
 
 #---------------------------------------------------------------------------
+def chk_concept_ids_list(request, concept_ids_list, item_name=''):
+    # checking concept ids list
+    is_valid_data = True
+    err = ""
+    ret_value = concept_ids_list
+    
+    if concept_ids_list is None or not isinstance(concept_ids_list, list):
+        is_valid_data = False
+        err = item_name + ' must have a valid concept ids list'
+    else:
+        if len(concept_ids_list) == 0:
+            is_valid_data = False
+            err = item_name + ' must have a valid non-empty concept ids list'
+        else:
+            if not chkListIsAllIntegers(concept_ids_list):
+                is_valid_data = False
+                err = item_name + ' must have a valid concept ids list'
+            else: 
+                if len(set(concept_ids_list)) != len(concept_ids_list):
+                    is_valid_data = False
+                    err = item_name + ' must have a unique concept ids list'
+                else:
+                    permittedConcepts = get_list_of_visible_concept_ids(
+                                                                        get_visible_live_or_published_concept_versions(request , exclude_deleted = True)
+                                                                        , return_id_or_history_id="id")
+                    if not (set(concept_ids_list).issubset(set(permittedConcepts))):
+                        is_valid_data = False
+                        err = item_name + ' invalid ids list, all concept ids must be valid and accessible by user'
+                    else:
+                        ret_value = concept_ids_list
+
+
+    return is_valid_data, err, ret_value
+
+#---------------------------------------------------------------------------
 def chk_components_and_codes(components_inputs):
     # handling components
     is_valid_data = True
@@ -456,7 +491,38 @@ def chk_components_and_codes(components_inputs):
                 
     return is_valid_data, err, ret_value
 
+#---------------------------------------------------------------------------
+def chk_phenotype_components(request, components_inputs):
+    # handling phenotype_components
+    is_valid_data = True
+    err = ""
+    ret_value = components_inputs
 
+    components = components_inputs
+    if components is None: 
+        is_valid_data = False
+        err = 'components must be provided'    
+    else:
+        if not isinstance(components, list): # check components is a list
+            is_valid_data = False
+            err = 'components must be valid list of dictionaries'    
+        else:
+            #-- Component table data ---------------
+            for comp in components:
+                if not isinstance(comp['tab_data'], list):
+                    is_valid_data = False
+                    err = 'components tab_data must be valid list of dictionaries'
+                    return is_valid_data, err, ret_value
+                    #break  
+                else:
+                    for tbl in comp['tab_data']:
+                        is_valid_data, err, ret_value2 = chk_concept_ids_list(request, tbl['concept_ids'], item_name='components')
+                        if not is_valid_data:
+                            return is_valid_data, err, components_inputs                      
+        
+       
+                
+    return is_valid_data, err, ret_value
 
 #---------------------------------------------------------------------------
 ############################################################################

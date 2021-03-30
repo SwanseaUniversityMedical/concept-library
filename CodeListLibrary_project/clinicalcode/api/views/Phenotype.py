@@ -13,6 +13,7 @@ from ...models.PhenotypeTagMap import PhenotypeTagMap
 from ...models.DataSource import DataSource
 from ...models.Brand import Brand
 from ...models.PublishedPhenotype import PublishedPhenotype
+from ...models.PhenotypeComponent import PhenotypeComponent
 
 from django.contrib.auth.models import User
 
@@ -49,17 +50,17 @@ def api_phenotype_create(request):
         errors_dict = {}
         is_valid = True
 
-        known_phenotypes = set(get_visible_phenotypes(request.user).exclude(is_deleted=True).values_list('phenotype_id', flat=True))
-        new_phenotype_id = request.data.get('phenotype_id')
-        if new_phenotype_id in known_phenotypes:
+        known_phenotypes = set(get_visible_phenotypes(request.user).exclude(is_deleted=True).values_list('phenotype_uuid', flat=True))
+        new_phenotype_uuid = request.data.get('phenotype_uuid')
+        if new_phenotype_uuid in known_phenotypes:
           return Response(
-            data = {'phenotype_id': 'Phenotype_id must be unique: submitted id is already found'}, 
+            data = {'phenotype_uuid': 'phenotype_uuid must be unique: submitted id is already found'}, 
             content_type="json", 
             status=status.HTTP_406_NOT_ACCEPTABLE
           )
 
         new_phenotype = Phenotype()
-        new_phenotype.phenotype_id = new_phenotype_id
+        new_phenotype.phenotype_uuid = new_phenotype_uuid
         new_phenotype.title = request.data.get('title')
         new_phenotype.name = request.data.get('name')
         new_phenotype.author = request.data.get('author')
@@ -90,28 +91,13 @@ def api_phenotype_create(request):
         new_phenotype.owner_access = Permissions.EDIT
         new_phenotype.owner_id = request.user.id
 
+        # concept_informations
         concept_ids_list = request.data.get('concept_informations')
-        if concept_ids_list is None or not isinstance(concept_ids_list, list):
-            errors_dict['concept_informations'] = 'concept_informations must have a valid concept ids list'
-        else:
-            if len(concept_ids_list) == 0:
-                errors_dict['concept_informations'] = 'concept_informations must have a valid non-empty concept ids list'
-            else:
-                if not chkListIsAllIntegers(concept_ids_list):
-                    errors_dict['concept_informations'] = 'concept_informations must have a valid concept ids list'
-                else: 
-                    if len(set(concept_ids_list)) != len(concept_ids_list):
-                        errors_dict['concept_informations'] = 'concept_informations must have a unique concept ids list'
-                    else:
-                        permittedConcepts = get_list_of_visible_concept_ids(get_visible_live_or_published_concept_versions(request , exclude_deleted = True)
-                                                                            , return_id_or_history_id="id")
-                        if not (set(concept_ids_list).issubset(set(permittedConcepts))):
-                            errors_dict['concept_informations'] = 'invalid concept_informations ids list, all concept ids must be valid and accessible by user'
-                        else:
-                            #print('')
-                            concept_informations = getPhenotypeConceptJson(concept_ids_list) #concept.history.latest.pkid
-                            new_phenotype.concept_informations = concept_informations
-                            new_phenotype.clinical_terminologies = get_CodingSystems_from_Phenotype_concept_informations(concept_informations)
+        is_valid_data, err, ret_value = chk_concept_ids_list(request, concept_ids_list, item_name='concept_informations')
+        if is_valid_data:
+            concept_informations = getPhenotypeConceptJson(concept_ids_list)  
+            new_phenotype.concept_informations = concept_informations
+            new_phenotype.clinical_terminologies = get_CodingSystems_from_Phenotype_concept_informations(concept_informations)
 
         # group id 
         is_valid_data, err, ret_value = chk_group(request.data.get('group') , user_groups)
@@ -156,6 +142,18 @@ def api_phenotype_create(request):
         else:
             errors_dict['data_sources'] = err  
         
+                
+        #-----------------------------------------------------------
+        is_valid_components = False
+        is_valid_data, err, ret_value = chk_phenotype_components(request, request.data.get('tabs_full_table'))
+        if is_valid_data:
+            is_valid_components = True
+            components = ret_value
+        else:
+            errors_dict['components'] = err  
+            
+            
+            
         # Validation
         errors_pt = {}
         if bool(errors_dict):
@@ -175,25 +173,29 @@ def api_phenotype_create(request):
             new_phenotype.save()
             created_pt = Phenotype.objects.get(pk=new_phenotype.pk)
             created_pt.history.latest().delete() 
-             
-#             tag_ids = tags
-#             if tag_ids:
-#                 new_tag_list = [int(i) for i in tag_ids]
-#             if tag_ids:
-#                 for tag_id_to_add in new_tag_list:
-#                     PhenotypeTagMap.objects.get_or_create(phenotype=new_phenotype, tag=Tag.objects.get(id=tag_id_to_add), created_by=request.user)
-            
-            
+
+            # - datasource -----
             if datasource_ids_list:
                 new_datasource_list = [int(i) for i in datasource_ids_list]
                 for datasource_id in new_datasource_list:
                     PhenotypeDataSourceMap.objects.get_or_create(phenotype=new_phenotype, datasource=DataSource.objects.get(id=datasource_id), created_by=request.user)
                     
-#             for cur_id in datasource_ids_list:
-#               new_phenotype.data_sources.add(
-#                 int(cur_id)
-#               )
-
+            # - phenotype components ----
+            for comp in components:
+                group_name = comp['tab_name']
+                for tbl in comp['tab_data']:
+                    component = PhenotypeComponent.objects.create(
+                                phenotype = new_phenotype,
+                                group_name = group_name,
+                                table_name = tbl['table_name'],
+                                file_name = tbl['file_name'],
+                                table_description = tbl['tab_text'],
+                                concept_ids = tbl['concept_ids'],                                    
+                                table_data = tbl['data'],                               
+                                created_by=request.user
+                                )
+        
+            
             created_pt.changeReason = "Created from API"
             created_pt.save()   
             data = {
@@ -244,7 +246,7 @@ def api_phenotype_update(request):
             )
         
         update_phenotype = Phenotype.objects.get(pk=phenotype_id)
-        update_phenotype.phenotype_id = request.data.get('phenotype_id')
+        update_phenotype.phenotype_uuid = request.data.get('phenotype_uuid')
         update_phenotype.title = request.data.get('title')
         update_phenotype.name = request.data.get('name')
         update_phenotype.author = request.data.get('author')
@@ -274,31 +276,15 @@ def api_phenotype_update(request):
         update_phenotype.updated_by = request.user        
         update_phenotype.modified = datetime.now() 
         
-        # concepts
+        # concept_informations
         concept_ids_list = request.data.get('concept_informations')
-        if concept_ids_list is None or not isinstance(concept_ids_list, list):
-            errors_dict['concept_informations'] = 'concept_informations must have a valid concept ids list'
-        else:
-            if len(concept_ids_list) == 0:
-                errors_dict['concept_informations'] = 'concept_informations must have a valid non-empty concept ids list'
-            else:
-                if not chkListIsAllIntegers(concept_ids_list):
-                    errors_dict['concept_informations'] = 'concept_informations must have a valid concept ids list'
-                else: 
-                    if len(set(concept_ids_list)) != len(concept_ids_list):
-                        errors_dict['concept_informations'] = 'concept_informations must have a unique concept ids list'
-                    else:
-                        permittedConcepts = get_list_of_visible_concept_ids(
-                                                                            get_visible_live_or_published_concept_versions(request , exclude_deleted = True)
-                                                                            , return_id_or_history_id="id")
-                        if not (set(concept_ids_list).issubset(set(permittedConcepts))):
-                            errors_dict['concept_informations'] = 'invalid concept_informations ids list, all concept ids must be valid and accessible by user'
-                        else:
-                            concept_informations = getPhenotypeConceptJson(concept_ids_list) #concept.history.latest.pkid
-                            update_phenotype.concept_informations = concept_informations
-                            update_phenotype.clinical_terminologies = get_CodingSystems_from_Phenotype_concept_informations(concept_informations)
-
-
+        is_valid_data, err, ret_value = chk_concept_ids_list(request, concept_ids_list, item_name='concept_informations')
+        if is_valid_data:
+            concept_informations = getPhenotypeConceptJson(concept_ids_list)  
+            update_phenotype.concept_informations = concept_informations
+            update_phenotype.clinical_terminologies = get_CodingSystems_from_Phenotype_concept_informations(concept_informations)
+            
+    
         #  group id 
         is_valid_data, err, ret_value = chk_group(request.data.get('group') , user_groups)
         if is_valid_data:
@@ -344,6 +330,16 @@ def api_phenotype_update(request):
         else:
             errors_dict['data_sources'] = err  
 
+        #-----------------------------------------------------------
+        is_valid_components = False
+        is_valid_data, err, ret_value = chk_phenotype_components(request, request.data.get('tabs_full_table'))
+        if is_valid_data:
+            is_valid_components = True
+            components = ret_value
+        else:
+            errors_dict['components'] = err  
+            
+            
         # Validation
         errors_pt = {}
         if bool(errors_dict):
@@ -375,8 +371,31 @@ def api_phenotype_update(request):
             for datasource_id_to_remove in datasource_ids_to_remove:
                 datasource_to_remove = PhenotypeDataSourceMap.objects.filter(phenotype=update_phenotype, datasource=DataSource.objects.get(id=datasource_id_to_remove))
                 datasource_to_remove.delete()
-                         
-                         
+              
+                      
+            # DELETE ALL EXISTING COMPONENTS FIRST SINCE THERE IS NO MAPPING
+            # get all the components attached to the phenotype
+            old_components = update_phenotype.phenotypecomponent_set.all()        
+            for old_comp in old_components:
+                old_comp.delete()
+                
+            # insert as new
+            #-- Components --------
+            for comp in components:
+                group_name = comp['tab_name']
+                for tbl in comp['tab_data']:
+                    component = PhenotypeComponent.objects.create(
+                                phenotype = update_phenotype,
+                                group_name = group_name,
+                                table_name = tbl['table_name'],
+                                file_name = tbl['file_name'],
+                                table_description = tbl['tab_text'],
+                                concept_ids = tbl['concept_ids'],                                    
+                                table_data = tbl['data'],                               
+                                created_by=request.user
+                                )
+        
+                                         
             update_phenotype.changeReason = "Updated from API"
             update_phenotype.save()   
             data = {
@@ -617,7 +636,7 @@ def getPhenotypes(request, is_authenticated_user=True):
         ret = [
                 c['id'],  
                 c['history_id'],  
-                c['phenotype_id'], #UUID
+                c['phenotype_uuid'], #UUID
                 c['name'].encode('ascii', 'ignore').decode('ascii'),
                 c['type'],           
                 c['author'],
@@ -801,13 +820,14 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None, is_authenticated_
             # , 'deleted_by', 'deleted_date' # no need here
             
             , 'concepts'
+            , 'components'
             , 'versions'
             ]
     
     ret = [
             phenotype['id'],
             phenotype['history_id'],
-            phenotype['phenotype_id'],  #UUID
+            phenotype['phenotype_uuid'],  #UUID
             phenotype['name'].encode('ascii', 'ignore').decode('ascii'),
             phenotype['type'],
             
@@ -876,11 +896,18 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None, is_authenticated_
         ret_concepts.append(ordr(zip(com_titles,  ret_comp_data )))
 
 
+    # concepts
     #ret += [concepts]
     ret += [ret_concepts]
     
-    ret += [get_visible_versions_list(request, Phenotype, pk, is_authenticated_user)]
+    # HDR-UK full tab data
+    components = getHistoryComponents_Phenotype(pk, phenotype_history_date)
+    ret += [components]    
     
+    # versions
+    ret += [get_visible_versions_list(request, Phenotype, pk, is_authenticated_user)]
+
+
     rows_to_return.append(ordr(zip(titles,  ret )))
                                    
     return Response(rows_to_return, status=status.HTTP_200_OK)                
