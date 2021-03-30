@@ -407,6 +407,13 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
             
         concept_data.append(c)
          
+    # HDR-UK full tab data
+    components = db_utils.getHistoryComponents_Phenotype(pk, phenotype_history_date)
+    distinct_tab_names = []
+    for t in components:
+        if t['group_name'] not in distinct_tab_names:
+            distinct_tab_names.append(t['group_name'])
+    
     context = {'phenotype': phenotype, 
                'concept_informations': json.dumps(phenotype['concept_informations']),
                'tags': tags,
@@ -425,16 +432,11 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
                'component_tab_active': component_tab_active,
                'codelist_tab_active': codelist_tab_active,
                'codelist': codelist, #json.dumps(codelist)
-               'codelist_loaded': codelist_loaded ,
-               
-               'concepts_id_name': concepts_id_name,
-#                'is_permitted_to_all': children_permitted_and_not_deleted,   ###
-#                'error_dic': error_dic,  ###
-#                'are_concepts_latest_version': are_concepts_latest_version,  ###
-#                'version_alerts': version_alerts,    ###
-#                'conceptBrands': json.dumps(db_utils.getConceptBrands(request, concept_id_list)),    ##
-               
-               'concept_data': concept_data
+               'codelist_loaded': codelist_loaded ,               
+               'concepts_id_name': concepts_id_name,              
+               'concept_data': concept_data,
+               'components': components,
+               'distinct_tab_names': distinct_tab_names
     
             }
     
@@ -565,7 +567,7 @@ def phenotype_create(request):
 #         
 #     import random
 #     new_phenotype = Phenotype()
-#     new_phenotype.phenotype_id = "1000" + str(random.randrange(100))
+#     new_phenotype.phenotype_uuid = "1000" + str(random.randrange(100))
 #     new_phenotype.title = "Xxz20 33" + str(random.randint(0, 100))
 #     new_phenotype.name = "ZXY 00" + str(random.randrange(100))
 #     new_phenotype.author = "me"
