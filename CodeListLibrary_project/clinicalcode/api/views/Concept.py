@@ -730,7 +730,7 @@ def api_concept_update(request):
 #             #-----------------------------------------------------
          
                   
-            # DELETE ALL EXISTING COMPONENTS FIRST SINCE THERE IS NA MAPPINGa
+            # DELETE ALL EXISTING COMPONENTS FIRST SINCE THERE IS NO MAPPING
             # get all the components attached to the concept
             old_components = update_concept.component_set.all()        
             for old_comp in old_components:

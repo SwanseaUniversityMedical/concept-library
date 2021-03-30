@@ -1832,11 +1832,6 @@ def get_where_query(component_type, code_field, desc_field,
     paramList = []
     if regex_type == CodeRegex.SIMPLE:
         if component_type == Component.COMPONENT_TYPE_QUERY_BUILDER:
-#             strSQL += " WHERE ( %s )" % (search_text)
-#             strSQL = strSQL.format(search_params)
-#             strSQL = strSQL.replace("?", "%s")
-#             strSQL = strSQL % tuple((format_sql_parameter(item) for item in search_params))
-            #--------------
             # the search here case-insensitive always
             # assume search_text s safe since it was checked against injection before
             strSQL = " WHERE ( %s )" % (search_text)            
@@ -1847,20 +1842,12 @@ def get_where_query(component_type, code_field, desc_field,
             
         elif component_type in (Component.COMPONENT_TYPE_EXPRESSION_SELECT, Component.COMPONENT_TYPE_EXPRESSION):
             if column_search == CodeRegex.CODE:
-                ##strSQL += " WHERE %s LIKE '%s' " % (code_field, regex_code)   # Replaced UPPER('%s') with '%s'
-                #strSQL = " WHERE %s " % (code_field)
-                #strSQL = strSQL + " LIKE  %s "
-
                 # check user choice of case-sensitive
                 strSQL = " WHERE %s " % (code_field) if case_sensitive_search else " WHERE UPPER(%s) " % (code_field)  
                 strSQL = strSQL + " LIKE  %s " if case_sensitive_search else strSQL + " LIKE  UPPER(%s) " 
 
                 paramList.append(regex_code)
-            elif column_search == CodeRegex.DESCRIPTION:
-                ##strSQL += " WHERE %s LIKE '%s' " % (desc_field, regex_code)   # Replaced UPPER('%s') with '%s'
-                #strSQL = " WHERE %s " % (desc_field)   
-                #strSQL = strSQL + " LIKE  %s "
-                
+            elif column_search == CodeRegex.DESCRIPTION:                
                 # check user choice of case-sensitive
                 strSQL = " WHERE %s " % (desc_field) if case_sensitive_search else " WHERE UPPER(%s) " % (desc_field)
                 strSQL = strSQL + " LIKE  %s "  if case_sensitive_search else  strSQL + " LIKE  UPPER(%s) " 
@@ -1868,15 +1855,11 @@ def get_where_query(component_type, code_field, desc_field,
                 
     elif regex_type == CodeRegex.POSIX:
         if column_search == CodeRegex.CODE:
-            ##strSQL += " WHERE %s ~ '%s' " % (code_field, regex_code)   # Replaced UPPER('%s') with '%s'. The * in ~* is case-insensitive.
             strSQL = " WHERE %s " % (code_field)  
-            #strSQL = strSQL + " ~  %s "
             strSQL = strSQL + " ~  %s "  if case_sensitive_search else strSQL + " ~*  %s "  
             paramList.append(regex_code)
         elif column_search == CodeRegex.DESCRIPTION:
-            ##strSQL += " WHERE %s ~ '%s' " % (desc_field, regex_code)   # Replaced UPPER('%s') with '%s'. The * in ~* is case-insensitive.
             strSQL = " WHERE %s " % (desc_field)   
-            #strSQL = strSQL + " ~  %s " 
             strSQL = strSQL + " ~  %s "  if case_sensitive_search else strSQL + " ~*  %s "  
             paramList.append(regex_code)
             
@@ -2928,7 +2911,7 @@ def get_visible_live_or_published_phenotype_versions(request
                                    FROM clinicalcode_publishedphenotype 
                                    WHERE phenotype_id=t.id and phenotype_history_id=t.history_id 
                                ) is_published,
-                               id, created, modified, title, name, layout, phenotype_id, type, 
+                               id, created, modified, title, name, layout, phenotype_uuid, type, 
                                validation, valid_event_data_range,  
                                sex, author, status, hdr_created_date, hdr_modified_date, description, implementation,
                                concept_informations, publication_doi, publication_link, secondary_publication_links, 
@@ -2961,13 +2944,14 @@ def getHistoryPhenotype(phenotype_history_id):
     ''' Get historic phenotype based on a phenotype history id '''
 
     with connection.cursor() as cursor:
-        cursor.execute('''SELECT hph.id,
+        cursor.execute('''SELECT 
+        hph.id,
         hph.created,
         hph.modified,
         hph.title,
         hph.name,
         hph.layout,
-        hph.phenotype_id,
+        hph.phenotype_uuid,
         hph.type,
         hph.validation,
         hph.valid_event_data_range,
@@ -3086,7 +3070,7 @@ def getHistoryDataSource_Phenotype(phenotype_id, phenotype_history_date):
         cursor.execute('''
         -- Select all the data from the DataSources historical record for all
         -- the entries that are contained in the JOIN which produces a list of
-        -- the latest history IDs for all codes that don't have a
+        -- the latest history IDs for all DataSources that don't have a
         -- delete event by the specified date.
         SELECT 
             hc.id,
@@ -3104,7 +3088,7 @@ def getHistoryDataSource_Phenotype(phenotype_id, phenotype_history_date):
         INNER JOIN (
             SELECT a.id, a.history_id
             FROM (
-                -- Get the list of all the DataSources for this concept and
+                -- Get the list of all the DataSources for this phenotype and
                 -- before the timestamp and return the latest history ID.
                 SELECT id, MAX(history_id) AS history_id
                 FROM   clinicalcode_historicalphenotypedatasourcemap
@@ -3114,7 +3098,7 @@ def getHistoryDataSource_Phenotype(phenotype_id, phenotype_history_date):
             ) AS a
             LEFT JOIN (
                 -- Get the list of all the DataSources that have been deleted
-                -- for this concept.
+                -- for this phenotype.
                 SELECT DISTINCT id
                 FROM   clinicalcode_historicalphenotypedatasourcemap
                 WHERE  (phenotype_id = %(phenotype_id)s AND 
@@ -3136,6 +3120,65 @@ def getHistoryDataSource_Phenotype(phenotype_id, phenotype_history_date):
             dict(zip(columns, row))
             for row in cursor.fetchall()
         ]
+
+def getHistoryComponents_Phenotype(phenotype_id, phenotype_history_date):
+    ''' Get historic components attached to a phenotype that were effective from a point in time '''
+
+    my_params = {
+        'phenotype_id': phenotype_id,
+        'phenotype_history_date': phenotype_history_date
+    }
+
+    with connection.cursor() as cursor:
+        cursor.execute('''
+        -- Select all the data from the components historical record for all
+        -- the entries that are contained in the JOIN which produces a list of
+        -- the latest history IDs for all components that don't have a
+        -- delete event by the specified date.
+        SELECT -- hc.*
+            hc.group_name
+          , hc.table_name
+          , hc.file_name
+          , hc.table_description
+          , hc.concept_ids
+          , hc.table_data
+        FROM clinicalcode_historicalphenotypecomponent AS hc
+        INNER JOIN (
+            SELECT a.id, a.history_id
+            FROM (
+                -- Get the list of all the components for this phenotype and
+                -- before the timestamp and return the latest history ID.
+                SELECT id, MAX(history_id) AS history_id
+                FROM   clinicalcode_historicalphenotypecomponent
+                WHERE  (phenotype_id = %(phenotype_id)s AND 
+                        history_date <= %(phenotype_history_date)s::timestamptz)
+                GROUP BY id
+            ) AS a
+            LEFT JOIN (
+                -- Get the list of all the components that have been deleted
+                -- for this phenotype.
+                SELECT DISTINCT id
+                FROM   clinicalcode_historicalphenotypecomponent
+                WHERE  (phenotype_id = %(phenotype_id)s AND 
+                        history_date <= %(phenotype_history_date)s::timestamptz AND
+                        history_type = '-')
+            ) AS b
+            -- Join only those from the first group that are not in the deleted
+            -- group.
+            ON a.id = b.id
+            WHERE b.id IS NULL
+        ) AS d
+        ON hc.history_id = d.history_id
+        ORDER BY hc.id
+        ''' , my_params)
+
+        columns = [col[0] for col in cursor.description]
+
+        return [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+
 
 def get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
     '''
@@ -3267,8 +3310,8 @@ def isValidPhenotype(request, phenotype):
         errors['layout'] = "Phenotype layout should be at least 3 characters"
         is_valid = False"""
     
-    if not phenotype.phenotype_id or len(phenotype.phenotype_id) < 3 or phenotype.phenotype_id is None:
-        errors['phenotype_id'] = "Phenotype phenotype_id should be at least 3 characters"
+    if not phenotype.phenotype_uuid or len(phenotype.phenotype_uuid) < 3 or phenotype.phenotype_uuid is None:
+        errors['phenotype_uuid'] = "Phenotype phenotype_uuid should be at least 3 characters"
         is_valid = False
     
     if not phenotype.type or len(phenotype.type) < 3 or phenotype.type is None:
