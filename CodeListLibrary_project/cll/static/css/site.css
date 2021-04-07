@@ -121,3 +121,116 @@
     }
   }
 }
+
+
+
+form.example input[type=text] {
+  padding: 10px;
+  font-size: 17px;
+  border: 1px solid grey;
+  float: left;
+  width: 60%;
+/*   background: #f1f1f1; */
+}
+
+form.example button {
+  float: left;
+  width: 10%;
+  padding: 10px;
+  background: #2196F3;
+  color: white;
+  font-size: 17px;
+  border: 1px solid grey;
+  border-left: none;
+  cursor: pointer;
+}
+
+form.example button:hover {
+  background: #0b7dda;
+}
+
+form.example::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+
+
+.bg-img {
+  /* The image used */
+  background-image: url("../img/bg1.png");
+
+  min-height: 150px;
+
+  /* Center and scale the image nicely */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: relative;
+}
+
+.bg-img2 {
+  /* The image used */
+  background-image: url("../img/bg2.png");
+
+  min-height: 150px;
+
+  /* Center and scale the image nicely */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: relative;
+}
+
+/* Add styles to the form container */
+.container_frm {
+  position: absolute;
+  top: 0px;
+  left: 180px;
+/*   margin: 20px; */
+  padding: 10px;
+}
+
+.container-1 {
+/*   margin: 0 auto; */
+  width: 70%;
+}
+
+.container_frm-2 {
+  position: absolute;
+  top: 0px;
+  left: 60px;
+  margin: 0px;
+  padding: 0px;
+}
+
+.container-2 {
+  margin: 0 auto;
+  width: 80%;
+  top: 20px;
+/*   left: 0px; */
+  padding: 10px;
+}
+
+
+/* Style the counter cards */
+.card {
+  box-shadow: 0 6px 8px 0 rgba(0, 0, 0, 0.2); /* this adds the "card" effect */
+  padding: 20px;
+  text-align: left;
+/*   background-color: #f1f1f1; */
+}
+
+.card:hover{
+    background-color: lightgoldenrodyellow;
+}
+
+.card-deleted{
+    background-color:#FCC;
+}
+
+.dark-div{
+	background-color:#f7f7f9;
+}
+

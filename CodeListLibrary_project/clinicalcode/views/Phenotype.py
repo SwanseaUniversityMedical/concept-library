@@ -409,13 +409,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
             
         concept_data.append(c)
          
-#     # HDR-UK full tab data
-#     components = db_utils.getHistoryComponents_Phenotype(pk, phenotype_history_date)
-#     distinct_tab_names = []
-#     for t in components:
-#         if t['group_name'] not in distinct_tab_names:
-#             distinct_tab_names.append(t['group_name'])
-    
+
     context = {'phenotype': phenotype, 
                'concept_informations': json.dumps(phenotype['concept_informations']),
                'tags': tags,
@@ -437,10 +431,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
                'codelist_loaded': codelist_loaded ,               
                'concepts_id_name': concepts_id_name,              
                'concept_data': concept_data
-               
-#                'components': components,
-#                'distinct_tab_names': distinct_tab_names
-    
+
             }
     
     return render(request, 'clinicalcode/phenotype/detail_combined.html',
