@@ -3121,64 +3121,6 @@ def getHistoryDataSource_Phenotype(phenotype_id, phenotype_history_date):
             for row in cursor.fetchall()
         ]
 
-def getHistoryComponents_Phenotype(phenotype_id, phenotype_history_date):
-    ''' Get historic components attached to a phenotype that were effective from a point in time '''
-
-    my_params = {
-        'phenotype_id': phenotype_id,
-        'phenotype_history_date': phenotype_history_date
-    }
-
-    with connection.cursor() as cursor:
-        cursor.execute('''
-        -- Select all the data from the components historical record for all
-        -- the entries that are contained in the JOIN which produces a list of
-        -- the latest history IDs for all components that don't have a
-        -- delete event by the specified date.
-        SELECT -- hc.*
-            hc.group_name
-          , hc.table_name
-          , hc.file_name
-          , hc.table_description
-          , hc.concept_ids
-          , hc.table_data
-        FROM clinicalcode_historicalphenotypecomponent AS hc
-        INNER JOIN (
-            SELECT a.id, a.history_id
-            FROM (
-                -- Get the list of all the components for this phenotype and
-                -- before the timestamp and return the latest history ID.
-                SELECT id, MAX(history_id) AS history_id
-                FROM   clinicalcode_historicalphenotypecomponent
-                WHERE  (phenotype_id = %(phenotype_id)s AND 
-                        history_date <= %(phenotype_history_date)s::timestamptz)
-                GROUP BY id
-            ) AS a
-            LEFT JOIN (
-                -- Get the list of all the components that have been deleted
-                -- for this phenotype.
-                SELECT DISTINCT id
-                FROM   clinicalcode_historicalphenotypecomponent
-                WHERE  (phenotype_id = %(phenotype_id)s AND 
-                        history_date <= %(phenotype_history_date)s::timestamptz AND
-                        history_type = '-')
-            ) AS b
-            -- Join only those from the first group that are not in the deleted
-            -- group.
-            ON a.id = b.id
-            WHERE b.id IS NULL
-        ) AS d
-        ON hc.history_id = d.history_id
-        ORDER BY hc.id
-        ''' , my_params)
-
-        columns = [col[0] for col in cursor.description]
-
-        return [
-            dict(zip(columns, row))
-            for row in cursor.fetchall()
-        ]
-
 
 def get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
     '''
