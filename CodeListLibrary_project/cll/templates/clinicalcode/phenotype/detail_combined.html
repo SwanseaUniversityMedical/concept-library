@@ -402,11 +402,6 @@
 						   </ul>
 						{% endif %}
                     </div>
-
-					<hr />
-
-		{% include './phenotype_component_tabs.html' %}                 
-
                                         					
 					<hr/>
 					
@@ -462,7 +457,7 @@
 				         {% endif %}	
 				    {% endif %}		         
 		        
-			      <span>
+			      <span>{{ c.codingsystem }}: 
 			         <a href="/concepts/{{ c.concept_id }}/version/{{ c.concept_version_id }}/detail/"  
 			            title="/concepts/{{ c.concept_id }}/version/{{ c.concept_version_id }}/detail/"  
 			            target="_blank" class="alert-link">					
