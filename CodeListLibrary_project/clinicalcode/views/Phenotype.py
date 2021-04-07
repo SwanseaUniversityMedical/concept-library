@@ -382,6 +382,8 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     conceptBrands = db_utils.getConceptBrands(request, concept_id_list)
     concept_data = []
     for c in json.loads(phenotype['concept_informations']):
+        c['codingsystem'] = CodingSystem.objects.get(pk = Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).coding_system_id)
+        
         c['alerts'] = ''
         if not are_concepts_latest_version:
             if c['concept_version_id'] in version_alerts: 
@@ -407,12 +409,12 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
             
         concept_data.append(c)
          
-    # HDR-UK full tab data
-    components = db_utils.getHistoryComponents_Phenotype(pk, phenotype_history_date)
-    distinct_tab_names = []
-    for t in components:
-        if t['group_name'] not in distinct_tab_names:
-            distinct_tab_names.append(t['group_name'])
+#     # HDR-UK full tab data
+#     components = db_utils.getHistoryComponents_Phenotype(pk, phenotype_history_date)
+#     distinct_tab_names = []
+#     for t in components:
+#         if t['group_name'] not in distinct_tab_names:
+#             distinct_tab_names.append(t['group_name'])
     
     context = {'phenotype': phenotype, 
                'concept_informations': json.dumps(phenotype['concept_informations']),
@@ -434,9 +436,10 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
                'codelist': codelist, #json.dumps(codelist)
                'codelist_loaded': codelist_loaded ,               
                'concepts_id_name': concepts_id_name,              
-               'concept_data': concept_data,
-               'components': components,
-               'distinct_tab_names': distinct_tab_names
+               'concept_data': concept_data
+               
+#                'components': components,
+#                'distinct_tab_names': distinct_tab_names
     
             }
     

@@ -41,6 +41,7 @@ from clinicalcode.models.PhenotypeDataSourceMap import PhenotypeDataSourceMap
 def api_phenotype_create(request):
     if not request.user.is_superuser:
         raise PermissionDenied
+    
     if is_member(request.user, group_name='ReadOnlyUsers'):
         raise PermissionDenied
 
@@ -50,14 +51,15 @@ def api_phenotype_create(request):
         errors_dict = {}
         is_valid = True
 
-        known_phenotypes = set(get_visible_phenotypes(request.user).exclude(is_deleted=True).values_list('phenotype_uuid', flat=True))
-        new_phenotype_uuid = request.data.get('phenotype_uuid')
-        if new_phenotype_uuid in known_phenotypes:
-          return Response(
-            data = {'phenotype_uuid': 'phenotype_uuid must be unique: submitted id is already found'}, 
-            content_type="json", 
-            status=status.HTTP_406_NOT_ACCEPTABLE
-          )
+    # don't check unique UUid
+#         known_phenotypes = set(get_visible_phenotypes(request.user).exclude(is_deleted=True).values_list('phenotype_uuid', flat=True))
+#         new_phenotype_uuid = request.data.get('phenotype_uuid')
+#         if new_phenotype_uuid in known_phenotypes:
+#           return Response(
+#             data = {'phenotype_uuid': 'phenotype_uuid must be unique: submitted id is already found'}, 
+#             content_type="json", 
+#             status=status.HTTP_406_NOT_ACCEPTABLE
+#           )
 
         new_phenotype = Phenotype()
         new_phenotype.phenotype_uuid = new_phenotype_uuid
@@ -143,14 +145,14 @@ def api_phenotype_create(request):
             errors_dict['data_sources'] = err  
         
                 
-        #-----------------------------------------------------------
-        is_valid_components = False
-        is_valid_data, err, ret_value = chk_phenotype_components(request, request.data.get('tabs_full_table'))
-        if is_valid_data:
-            is_valid_components = True
-            components = ret_value
-        else:
-            errors_dict['components'] = err  
+#         #-----------------------------------------------------------
+#         is_valid_components = False
+#         is_valid_data, err, ret_value = chk_phenotype_components(request, request.data.get('tabs_full_table'))
+#         if is_valid_data:
+#             is_valid_components = True
+#             components = ret_value
+#         else:
+#             errors_dict['components'] = err  
             
             
             
@@ -180,20 +182,20 @@ def api_phenotype_create(request):
                 for datasource_id in new_datasource_list:
                     PhenotypeDataSourceMap.objects.get_or_create(phenotype=new_phenotype, datasource=DataSource.objects.get(id=datasource_id), created_by=request.user)
                     
-            # - phenotype components ----
-            for comp in components:
-                group_name = comp['tab_name']
-                for tbl in comp['tab_data']:
-                    component = PhenotypeComponent.objects.create(
-                                phenotype = new_phenotype,
-                                group_name = group_name,
-                                table_name = tbl['table_name'],
-                                file_name = tbl['file_name'],
-                                table_description = tbl['tab_text'],
-                                concept_ids = tbl['concept_ids'],                                    
-                                table_data = tbl['data'],                               
-                                created_by=request.user
-                                )
+#             # - phenotype components ----
+#             for comp in components:
+#                 group_name = comp['tab_name']
+#                 for tbl in comp['tab_data']:
+#                     component = PhenotypeComponent.objects.create(
+#                                 phenotype = new_phenotype,
+#                                 group_name = group_name,
+#                                 table_name = tbl['table_name'],
+#                                 file_name = tbl['file_name'],
+#                                 table_description = tbl['tab_text'],
+#                                 concept_ids = tbl['concept_ids'],                                    
+#                                 table_data = tbl['data'],                               
+#                                 created_by=request.user
+#                                 )
         
             
             created_pt.changeReason = "Created from API"
@@ -330,14 +332,14 @@ def api_phenotype_update(request):
         else:
             errors_dict['data_sources'] = err  
 
-        #-----------------------------------------------------------
-        is_valid_components = False
-        is_valid_data, err, ret_value = chk_phenotype_components(request, request.data.get('tabs_full_table'))
-        if is_valid_data:
-            is_valid_components = True
-            components = ret_value
-        else:
-            errors_dict['components'] = err  
+#         #-----------------------------------------------------------
+#         is_valid_components = False
+#         is_valid_data, err, ret_value = chk_phenotype_components(request, request.data.get('tabs_full_table'))
+#         if is_valid_data:
+#             is_valid_components = True
+#             components = ret_value
+#         else:
+#             errors_dict['components'] = err  
             
             
         # Validation
@@ -373,27 +375,27 @@ def api_phenotype_update(request):
                 datasource_to_remove.delete()
               
                       
-            # DELETE ALL EXISTING COMPONENTS FIRST SINCE THERE IS NO MAPPING
-            # get all the components attached to the phenotype
-            old_components = update_phenotype.phenotypecomponent_set.all()        
-            for old_comp in old_components:
-                old_comp.delete()
-                
-            # insert as new
-            #-- Components --------
-            for comp in components:
-                group_name = comp['tab_name']
-                for tbl in comp['tab_data']:
-                    component = PhenotypeComponent.objects.create(
-                                phenotype = update_phenotype,
-                                group_name = group_name,
-                                table_name = tbl['table_name'],
-                                file_name = tbl['file_name'],
-                                table_description = tbl['tab_text'],
-                                concept_ids = tbl['concept_ids'],                                    
-                                table_data = tbl['data'],                               
-                                created_by=request.user
-                                )
+#             # DELETE ALL EXISTING COMPONENTS FIRST SINCE THERE IS NO MAPPING
+#             # get all the components attached to the phenotype
+#             old_components = update_phenotype.phenotypecomponent_set.all()        
+#             for old_comp in old_components:
+#                 old_comp.delete()
+#                 
+#             # insert as new
+#             #-- Components --------
+#             for comp in components:
+#                 group_name = comp['tab_name']
+#                 for tbl in comp['tab_data']:
+#                     component = PhenotypeComponent.objects.create(
+#                                 phenotype = update_phenotype,
+#                                 group_name = group_name,
+#                                 table_name = tbl['table_name'],
+#                                 file_name = tbl['file_name'],
+#                                 table_description = tbl['tab_text'],
+#                                 concept_ids = tbl['concept_ids'],                                    
+#                                 table_data = tbl['data'],                               
+#                                 created_by=request.user
+#                                 )
         
                                          
             update_phenotype.changeReason = "Updated from API"
@@ -820,7 +822,7 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None, is_authenticated_
             # , 'deleted_by', 'deleted_date' # no need here
             
             , 'concepts'
-            , 'components'
+            #, 'components'
             , 'versions'
             ]
     
@@ -900,9 +902,9 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None, is_authenticated_
     #ret += [concepts]
     ret += [ret_concepts]
     
-    # HDR-UK full tab data
-    components = getHistoryComponents_Phenotype(pk, phenotype_history_date)
-    ret += [components]    
+#     # HDR-UK full tab data
+#     components = getHistoryComponents_Phenotype(pk, phenotype_history_date)
+#     ret += [components]    
     
     # versions
     ret += [get_visible_versions_list(request, Phenotype, pk, is_authenticated_user)]
