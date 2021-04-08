@@ -562,6 +562,7 @@
 	  -->
 	  	  	<span id="history-section">
 				<hr/>
+				{% if user.is_authenticated %}
 				<div class="row">
 					<div class="col-sm-11" id="help-concept-history-container">
 						<h3><i class="fa fa-history" aria-hidden="true"></i> versions</h3>
@@ -572,6 +573,8 @@
 						</a>
 					</div>
 				</div>		
+				{% endif %}
+				
 				<div class="pre-scrollable">		
 					{% include '../concept/partial_history_list.html' %}
 			    </div>	
@@ -583,7 +586,25 @@
 			HELP POP-UP TEXTS
 			-------------------------------------------------------------------
 	  -->
-	  		
+	{% if user.is_authenticated %}	  		
+	  	<div id="popover-content-help-concept-history" class="hide popover-lg">
+			<p>
+				Every time you make a change to a concept whether it is saving concept information or
+				adding/editing/deleting components it is audited.
+			</p>
+			<p>
+				You can view a concept from a specific point in time by clicking the View link at the required save
+				point.
+			</p>
+			<p>
+				Within the view you can revert changes and restore a concept back to a specific point in time.
+			</p>
+			<p>
+				You can fork and create a new concept from a specific point in time.
+			</p>
+		</div>
+	{% endif %}
+		
 		<div id="popover-content-help-hist-concept" class="hide popover-lg">
 			<p>
 				<strong>Return to list</strong> - returns to the concept search page.

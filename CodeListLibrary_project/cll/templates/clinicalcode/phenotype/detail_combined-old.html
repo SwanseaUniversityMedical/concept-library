@@ -1,4 +1,4 @@
-{% extends "Base.html" %}
+{% extends "base.html" %}
 
 {% load staticfiles %}
 {% load markdownify %}
@@ -6,27 +6,35 @@
 {% block title %}| Historical phenotype{% endblock title %}
 
 {% block container %}
-<div class="row">
-			<div class="col-md-2" id="PhenotypeMenu"; style="padding-top: 20px; position: sticky; position: -webkit-sticky; top: 60px;">
-				<ul style="list-style-type: none; margin: 0; padding: 0;line-height: 1.5em;" >
-					<li><a href="#home">Home</a>					
-					<li><a href="#definition">Definition</a>
-					<li><a href="#implementation">Implementation</a>
-					<li><a href="#validation">Validation</a>
-					<li><a href="#Publications">Publications</a>
-					<li><a href="#CodeLists">Clinical Code Lists</a>
-					<li><a href="#permissions">Permissions</a>
-					<li><a href="#CodeListsVersions">Version History</a>
-				</ul>
-			</div>
-			
-			
-			
-			
-			<h3><span id="home"></span></h3>
-			<div class="col-md-10">
-			
-			<span id="topButtons">			
+
+{% if user.is_authenticated and not is_latest_version  %}
+	<h2 style="background-color:silver; padding-left:5px;"><i class="fa fa-history" aria-hidden="true"></i><i> {{ phenotype.name }} <br>(Historical version)</i>
+{% else %}
+	<h2><i class="fa fa-file-o" aria-hidden="true"></i><i> {{ phenotype.name }} </i>		
+{% endif %}	
+	{% for item in request.BRAND_GROUPS %}
+		{% for brand, groups in item.iteritems %}
+			{% if phenotype.group.name in groups %}
+			<img style="margin-top:-5px;" src="{% static 'img/brands/' %}{{brand}}/logo.png" height="29px" title="{{brand}}" alt="{{brand}}" />
+			{% endif %}
+		{% endfor %}
+	{% endfor %}
+</h2>
+
+<div class="panel panel-default">
+	<div class="panel-body">
+		<div class="row">
+			<div class="col-md-12">
+				<div class="form-horizontal">
+					<!--
+					<div class="form-group">
+						<label class="col-sm-3" for="">Name:</label>
+						<div class="col-sm-9">
+							{{ phenotype.name }}						
+						</div>
+					</div>
+					 -->		
+				  <span id="topButtons">			
 					<div class="row">
 						<div class="col-sm-10">
 							<a href="{% url "phenotype_list" %}" class="btn btn-success">
@@ -98,7 +106,8 @@
 							
 					 {% endif %}
 					 	
-					 						
+						 	
+					
 						</div>
 						<div class="col-md-2 text-right">
 							<a id="printBtn" class="btn btn-primary">
@@ -114,58 +123,17 @@
 					<div class="alert alert-danger alert-dismissable" id="error-message" style="display: none;" role="alert"></div>
 					<hr/>	
 				</span>
-			
-			
-			
-		
-			
-			
-				{% if user.is_authenticated and not is_latest_version  %}
-					<h2 style="background-color:silver; padding-left:5px;"><i class="fa fa-history" aria-hidden="true"></i>
-					{{ phenotype.name }} <br>(Historical version)
-				{% else %}
-					<h2><img src="{% static 'img/sail.svg' %}">
-					{{ phenotype.name }}	
-				{% endif %}	
-					{% for item in request.BRAND_GROUPS %}
-						{% for brand, groups in item.iteritems %}
-							{% if phenotype.group.name in groups %}
-							<img style="margin-top:-5px;" src="{% static 'img/brands/' %}{{brand}}/logo.png" height="29px" title="{{brand}}" alt="{{brand}}" />
-							{% endif %}
-						{% endfor %}
-					{% endfor %}
-				</h2>
-			
-				<div class="row">
-					<div class="alert alert-success alert-dismissable" id="success-message" style="display: none;" role="alert"></div>
-					<div class="alert alert-danger alert-dismissable" id="error-message" style="display: none;" role="alert"></div>
-				</div>
-
 				
-												
-				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-12">
-						{{ phenotype.author }}
-					</div>
-				</div>
-				
-				
-				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-12">
-						<strong>{{ phenotype.type }}</strong>
-					</div>
-				</div>
-				
-				
-				
-				<div style="margin-top: 10px;">
-						<label>ID:</label>
-						<span id="phenotype_id_div" phenotype_id="{{ phenotype.id }}">
+ 					<div class="form-group highlight-row">
+						<label class="col-sm-3">ID:</label>
+						<div class="col-sm-9" id="phenotype_id_div" phenotype_id="{{ phenotype.id }}">
 							{{ phenotype.id }}						
-						</span>					
-						&nbsp;&nbsp;&nbsp;&nbsp;						
-						<label>Version ID:</label>
-						<span id="phenotype_history_id_div" phenotype_history_id="{{ phenotype.history_id }}">
+						</div>
+					</div>
+										
+ 					<div class="form-group">
+						<label class="col-sm-3">Version ID:</label>
+						<div class="col-sm-9" id="phenotype_history_id_div" phenotype_history_id="{{ phenotype.history_id }}">
 							{{ phenotype.history_id }} 
 							{% if user.is_authenticated %}
 								{% if is_latest_version  %}
@@ -182,130 +150,250 @@
 									</span> 
 								{% endif %}				
 							{% endif %}				
-						</span>
-						
-						{% if phenotype.modified_by_username %}							
-							<span>
-								(Modified on: {{ phenotype.modified }})
-							</span>
-						{% endif %}	
-						
-						&nbsp;&nbsp;&nbsp;&nbsp;
-						<label>UUID:</label>
-						<span>
-							{{ phenotype.phenotype_uuid }}
-						</span>				
-				</div>				
-				
-				
-		
-				
-				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-12">
-						<strong>Data Sources:</strong>
-						{% for ds in data_sources %}
-							{% if ds.url|length %}
-								<a  href="{{ ds.url }}" target=_blank >{{ ds.name }}</a>
-							{% else %}
-								{{ ds.name }}
-							{% endif %} 
-							{% if not forloop.last %}
-								, 
-							{% endif %}
-						{% endfor %}	
+						</div>
 					</div>
-				</div>
 
-				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-12">
-						<strong>Valid Event Data Range:</strong>
-						{{phenotype.valid_event_data_range}}
-						
+                    <div class="form-group  highlight-row">
+						<label class="col-sm-3">UUID:</label>
+						<div class="col-sm-9">
+							{{ phenotype.phenotype_uuid }}
+						</div>
 					</div>
-						
-				</div>
-				
-				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-12">
-						<strong>Sex:</strong>
-						{{phenotype.sex}}
-						
-					</div>
-						
-				</div>				
 					
-				<div class="row" style="margin-top: 10px;">
-						<div class="col-sm-12">
-							<strong>Clinical Terminologies:</strong>						
+					<div class="form-group">
+						<label class="col-sm-3">Tags:</label>
+						<div class="col-sm-9">
+							{% for tag in tags %}
+							   <span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
+							{% endfor %}						
+						</div>
+					</div>
+					
+                    <div class="form-group highlight-row">
+						<label class="col-sm-3">Type:</label>
+						<div class="col-sm-9">
+							{{ phenotype.type }}						
+						</div>
+					</div>					
+
+                   <div class="form-group">
+						<label class="col-sm-3">Data Sources:</label>
+						<div class="col-sm-9">
+							{% for ds in data_sources %}							   
+							   		{% if ds.url|length %}
+							   			<span class="tag label">
+							   				<a  href="{{ ds.url }}" target=_blank >{{ ds.name }}</a>
+							   			</span>
+							   		{% else %}
+							   			{{ ds.name }}
+							   		{% endif %} 
+							   <br>
+							{% endfor %}							
+						</div>
+					</div>
+
+
+                   <div class="form-group  highlight-row">
+						<label class="col-sm-3">Clinical Terminologies:</label>
+						<div class="col-sm-9">
 							{% for ct in clinicalTerminologies %}
 							   <span class="tag label label-info">{{ ct.name }}</span>
 							{% endfor %}	
 						</div>
-				</div>	
-				
-				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-12">
-						{% for tag in tags %}
-							<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
-						{% endfor %}						
-						<em style="font-size: .95em;">Agreement Date:{{ phenotype.hdr_modified_date }} </em>
-											
 					</div>
-				</div>
-				
-				
-				
-				
+
+
+					<div class="form-group">
+						<label class="col-sm-3" for="">Author:</label>
+						<div class="col-sm-9">
+							{{ phenotype.author }}						
+						</div>
+					</div>
 					
-				
-				
-				<div class="col-sm-12" style="border: 1px solid #DFE3E6; box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);padding-bottom:20px;margin-top:18px">
-					<h3 class="paneltitle" style="margin-top:10px"><span id="definition"></span>Definition</h3>
-					<hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />
-					{{ phenotype.description|markdownify }}
-				</div>
-				
-				<div class="col-sm-12" style="border: 1px solid #DFE3E6; box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);padding-bottom:20px;margin-top:18px">
-					<h3 class="paneltitle" style="margin-top:10px"><span id="implementation"></span>Implementation</h3>
-					<hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />
 					
-					<div class="markdown-holder">
+                    <div class="form-group highlight-row">
+						<label class="col-sm-3">Agreement Date:</label>
+						<div class="col-sm-9">
+							{{ phenotype.hdr_modified_date }}
+						</div>
+					</div>
+
+					
+					<div class="form-group ">
+						<label class="col-sm-3">Validation performed:</label>
+						<div class="col-sm-9">
+							<input type="checkbox" {% if phenotype.validation_performed %}checked="checked"{% endif %} disabled />
+						</div>
+					</div>
+
+                    <div class="form-group  highlight-row">
+						<label class="col-sm-3">Validation:</label>
+						<div class="col-sm-9">
+							{{ phenotype.validation }}
+						</div>
+					</div>
+
+
+                    <div class="form-group ">
+						<label class="col-sm-3">Valid Event Data Range:</label>
+						<div class="col-sm-9">
+							{{ phenotype.valid_event_data_range }}
+						</div>
+					</div>
+										
+					<div class="form-group highlight-row">
+						<label class="col-sm-3">Primary publication DOI:</label>
+						<div class="col-sm-9">
+							{{ phenotype.publication_doi }}							
+						</div>
+					</div>
+					
+					<div class="form-group  ">
+						<label class="col-sm-3">Primary publication link:</label>
+						<div class="col-sm-9">
+							{{ phenotype.publication_link }}
+						</div>
+					</div>
+					
+<!-- 					<div class="form-group "> -->
+<!-- 						<label class="col-sm-3">Secondary  publication links:</label> -->
+<!-- 						<div class="col-sm-9"> -->
+<!-- 							{{ phenotype.secondary_publication_links }} -->
+<!-- 						</div> -->
+<!-- 					</div> -->
+					
+
+					<div class="form-group  highlight-row">
+						<label class="col-sm-3">Source reference:</label>
+						<div class="col-sm-9">
+							{{ phenotype.source_reference }}
+						</div>
+					</div>
+					
+					<div class="form-group ">
+						<label class="col-sm-3">Citation requirements:</label>
+						<div class="col-sm-9">
+							{{ phenotype.citation_requirements }}
+						</div>
+					</div>
+					
+					<div class="form-group ">
+						<label class="col-sm-3">PhenoFlow Implementation:</label>
+						<div class="col-sm-9">
+							{% if phenotype.phenoflowid|length  %}
+								<a  href="https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}" target=_blank >https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}</a> 
+							{% else %}
+								&nbsp;
+							{% endif %}	
+						</div>
+					</div>					
+					
+					{% if not user.is_authenticated  %}
+						<div class="form-group  highlight-row">
+							<label class="col-sm-3">Owner:</label>
+							<div class="col-sm-9">
+								{{ phenotype.owner.username }}
+							</div>
+						</div>
+					{% endif %}	
+					
+					
+					{% if user.is_authenticated  %}
+						<div class="form-group   highlight-row">
+							<label class="col-sm-3">Created by:</label>
+							<div class="col-sm-3">
+							 	{{ phenotype.created_by_username }}
+							</div>
+							<label class="col-sm-2 ">On:</label>
+							<div class="col-sm-4">
+							 	{{ phenotype.created }}
+							</div>
+						</div>
+						<div class="form-group  ">
+							<label class="col-sm-3">Modified by:</label>
+							<div class="col-sm-3">
+								{{ phenotype.modified_by_username }}
+							</div>
+							<label class="col-sm-2">On:</label>
+							<div class="col-sm-4">
+							 	{{ phenotype.modified }}
+							</div>
+						</div>
+					
+						<hr />
+						<div id="permissions" class="form-group  highlight-row">
+							<label class="col-sm-3 ">Owner:</label>
+							<div class="col-sm-3">
+								{{ phenotype.owner.username }}
+							</div>
+							<label class="col-sm-2">Owner access:</label>
+							<div class="col-sm-4">								
+								{% if phenotype.owner_access == 1 %}	
+									<span>None</span>
+								{% elif phenotype.owner_access == 2 %}
+									<span>View only</span>
+								{% elif phenotype.owner_access == 3 %}
+									<span>View and edit</span>
+								{% else %}
+									
+								{% endif %}
+							</div>
+						</div>
+						
+						<div id="permissions" class="form-group  ">
+							<label class="col-sm-3">Group:</label>
+							<div class="col-sm-3">
+								{{ phenotype.group }}
+							</div>
+							<label class="col-sm-2">Group access:</label>
+							<div class="col-sm-4">
+								{% if phenotype.group_access == 1 %}	
+									<span>No access</span>
+								{% elif phenotype.group_access == 2 %}
+									<span>View only</span>
+								{% elif phenotype.group_access == 3 %}
+									<span>View and edit</span>
+								{% else %}
+									
+								{% endif %}
+							</div>
+						</div>
+						
+						<div id="permissions" class="form-group  highlight-row">
+							<label class="col-sm-3">Everyone else access:</label>
+							<div class="col-sm-9">
+								{% if phenotype.world_access == 1 %}	
+									<span>No access</span>
+								{% elif phenotype.world_access == 2 %}
+									<span>View only</span>
+								{% elif phenotype.world_access == 3 %}
+									<span>View and edit</span>
+								{% else %}
+									
+								{% endif %}
+							</div>
+						</div>
+						 	
+					{% endif %}	
+					
+					<hr />
+
+                    <h3><i aria-hidden="true"></i> Description</h3>
+                    <div class="markdown-holder">
+                        {{ phenotype.description|markdownify }}
+                    </div>
+
+					<hr />
+
+                    <h3><i aria-hidden="true"></i> Implementation</h3>
+                    <div class="markdown-holder">
                         {{ phenotype.implementation|markdownify }}
                     </div>
-					<label class="col-sm-3">PhenoFlow Implementation:</label>
-					
-					<div class="col-sm-9">
-						{% if phenotype.phenoflowid|length  %}
-							<a  href="https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}" target=_blank >https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}</a> 
-						{% else %}
-							&nbsp;
-						{% endif %}	
-					</div>
-					
-				</div>
-				
-				<div class="col-sm-12" style="border: 1px solid #DFE3E6; box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);padding-bottom:20px;margin-top:18px">
-					<h3 class="paneltitle" style="margin-top:10px"><span id="validation"></span>Validation</h3>
-					<hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />
-					
-				<div class="row" style="margin-top: 10px;">
-						<label class="col-sm-3">Validation performed:</label>
-						<div class="col-sm-9"> <input type="checkbox" {% if phenotype.validation_performed %}checked="checked"{% endif %} disabled /></div>
-					</div>
-	
-					<div class="row" style="margin-top: 10px;">
-						<label class="col-sm-3">Validation:</label>
-						<div class="col-sm-9">{{ phenotype.validation }}</div>
-					</div>
-		
-				</div>
-				
-								
-				<div class="col-sm-12" style="border: 1px solid #DFE3E6; box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);padding-bottom:20px;margin-top:18px">
-					<h3 class="paneltitle" style="margin-top:10px"><span id="Publications"></span>Publications</h3>
-					<hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />
-					
-					<div class="markdown-holder">
+
+					<hr />
+
+                    <h3><i aria-hidden="true"></i> Publications</h3>
+                    <div class="markdown-holder">
                     	{% if phenotype.publications|length %}
                     	   <ul>
 	                    	{% for p in phenotype.publications %}
@@ -314,31 +402,28 @@
 						   </ul>
 						{% endif %}
                     </div>
-                    
-				</div>
-				
+                                        					
+					<hr/>
+					
+<!-- 					<h3><i aria-hidden="true"></i> Concepts</h3> -->
+					<input type="hidden" id="concepts_json" value="{{ phenotype.concept_informations }}">
+					<input type="hidden" id="concepts_id_name" value="{{ concepts_id_name }}">
+<!--  					<input type="hidden" id="concepts_id_versionID"  value="{{ concepts_id_versionID }}">  -->
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="col-sm-12" style="border: 1px solid #DFE3E6; box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);padding-bottom:20px;margin-top:18px">
-				<h3 class="paneltitle" id="ClinicalCodeLists" style="margin-top:10px"><span id="CodeLists"></span>Clinical Code List</h3>
-								
+					
+										
+				<ul class="nav nav-tabs tabs-up" role="tablist">
+				  <li class="nav-item {{ component_tab_active }}">
+				    <a href="#component-tab-div" data-toggle="tab" id="componentstab" data-target="#component-tab-div" class="media_node {{ component_tab_active }} span">
+				    	<h4><i class="fa fa-cogs" aria-hidden="true"></i> Concepts</h4>
+					</a>
+				  </li>
+				  <li class="nav-item {{ codelist_tab_active }}"  >
+				    <a href="#codelist-tab-div" data-toggle="tab" id="codelisttab" data-target="#codelist-tab-div" class="media_node {{ codelist_tab_active }} span">
+				    	<h4><i class="fa fa-barcode" aria-hidden="true"></i> Code List</h4>
+				    </a>
+				  </li>
+				</ul>
 				<div class="tab-content">
 					<div id="component-tab-div" class="tab-pane {{ component_tab_active }}" >
                  	 <!-- component-tab-div -->
@@ -494,7 +579,9 @@
 					  
 					<div class="form-group">
 						<div class="col-xs-offset-3 col-sm-6">
-							
+							<a href="{% url 'phenotype_list' %}" class="btn btn-success">
+								<i class="fa fa-reply" aria-hidden="true"></i> Return to list
+							</a>
 						
 <!-- 						{% if user.is_authenticated and not CLL_READ_ONLY %} -->
 <!-- 							&nbsp;&nbsp; -->
@@ -510,152 +597,40 @@
 					
 					
 				</div>
-
-
-
-
-		<!--	-------------------------------------------------------------------
-				PERMISSIONS
-				-------------------------------------------------------------------
-		  -->	
-		<div class="col-sm-12" style="border: 1px solid #DFE3E6; box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);padding-bottom:20px;margin-top:18px">
-			<h3 class="paneltitle" style="margin-top:10px"><span id="permissions"></span>Permissions</h3>
-			<hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />
-			
-			{% if user.is_authenticated  %}
-<!--							<div class="row" style="margin-top: 10px;">
-							<label class="col-sm-3">Created by:</label>
-							<div class="col-sm-3">
-								{{ phenotype.created_by_username }}
-							</div>
-							<label class="col-sm-3 ">On:</label>
-							<div class="col-sm-3">
-								{{ phenotype.created }}
-							</div>
-						</div>
-						<div class="row">
-							<label class="col-sm-3">Modified by:</label>
-							<div class="col-sm-3">
-								{{ phenotype.modified_by_username }}
-							</div>
-							<label class="col-sm-3">On:</label>
-							<div class="col-sm-3">
-								{{ phenotype.modified }}
-							</div>
-						</div>
--->					
-					
-				<div id="permissions" class="row">
-					<label class="col-sm-3 ">Owner:</label>
-					<div class="col-sm-3">
-						{{ phenotype.owner.username }}
-					</div>
-					<label class="col-sm-3">Owner access:</label>
-					<div class="col-sm-3">								
-						{% if phenotype.owner_access == 1 %}	
-							<span>None</span>
-						{% elif phenotype.owner_access == 2 %}
-							<span>View only</span>
-						{% elif phenotype.owner_access == 3 %}
-							<span>View and edit</span>
-						{% else %}
-							
-						{% endif %}
-					</div>
-				</div>
-				
-				<div id="permissions" class="row">
-					<label class="col-sm-3">Group:</label>
-					<div class="col-sm-3">
-						{{ phenotype.group }}
-					</div>
-					<label class="col-sm-3">Group access:</label>
-					<div class="col-sm-3">
-						{% if phenotype.group_access == 1 %}	
-							<span>No access</span>
-						{% elif phenotype.group_access == 2 %}
-							<span>View only</span>
-						{% elif phenotype.group_access == 3 %}
-							<span>View and edit</span>
-						{% else %}
-							
-						{% endif %}
-					</div>
-				</div>
-				
-				<div id="permissions" class="row">
-					<label class="col-sm-3">Everyone else access:</label>
-					<div class="col-sm-9">
-						{% if phenotype.world_access == 1 %}	
-							<span>No access</span>
-						{% elif phenotype.world_access == 2 %}
-							<span>View only</span>
-						{% elif phenotype.world_access == 3 %}
-							<span>View and edit</span>
-						{% else %}
-							
-						{% endif %}
-					</div>
-				</div>
-					
-			{% endif %}
+			</div>
 		</div>
-
-				
-				
-			
-		<!--	-------------------------------------------------------------------
-				VERSION HISTORY
-				-------------------------------------------------------------------
-		  -->				
-		<div class="col-sm-12 no-print" id="history-section" style="border: 1px solid #DFE3E6; box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);padding-bottom:20px;margin-top:18px">
-			<h3 class="paneltitle" id="ClinicalCodeHistory" style="margin-top:10px"><span id="CodeListsVersions"></span>Version History</h3>		
-			<hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />
-			<!-- ################################################################## -->
 		
-	  	  	<span>
-	  	  		{% if user.is_authenticated %}
+<!-- ################################################################## -->
+		
+	<!--	-------------------------------------------------------------------
+			CHANGE HISTORY
+			-------------------------------------------------------------------
+	  -->
+	  	  	<span id="history-section">
+				<hr/>
 				<div class="row">
 					<div class="col-sm-11" id="help-phenotype-history-container">
-						
+						<h3><i class="fa fa-history" aria-hidden="true"></i> versions</h3>
 					</div>
 					<div class="col-sm-1 text-right">
-						<a href="#" role="button" class="popovers" id="help-phenotype-history" data-container="#help-phenotype-history-container" data-toggle="popover" data-trigger="hover" title="" data-original-title="version history" data-placement="left">
+						<a href="#" role="button" class="popovers" id="help-phenotype-history" data-container="#help-phenotype-history-container" data-toggle="popover" data-trigger="hover" title="" data-original-title="Change history" data-placement="left">
 							<i class="fa fa-question-circle" aria-hidden="true"></i>
 						</a>
 					</div>
-				</div>	
-				{% endif %}	
+				</div>		
 				<div class="pre-scrollable">		
 					{% include '../phenotype/partial_history_list.html' %}
 			    </div>	
 			</span>
-
+				
+			</div>
 		</div>
 		
-		
-		<!--	-------------------------------------------------------------------
-				HELP POP-UP TEXTS
-				-------------------------------------------------------------------
-		  -->
-		 {% if user.is_authenticated %}
-			<div id="popover-content-help-phenotype-history" class="hide popover-lg">
-				<p>
-					Every time you make any change to a phenotype it is audited.
-				</p>
-				<p>
-					You can view a phenotype from a specific point in time by clicking the View link at the required save
-					point.
-				</p>
-				<p>
-					Within the view you can revert changes and restore a phenotype back to a specific point in time.
-				</p>
-				<p>
-					You can fork and create a new phenotype from a specific point in time.
-				</p>
-			</div>
-		{% endif %}
-		
+	<!--	-------------------------------------------------------------------
+			HELP POP-UP TEXTS
+			-------------------------------------------------------------------
+	  -->
+	  		
 		<div id="popover-content-help-hist-phenotype" class="hide popover-lg">
 			<p>
 				<strong>Return to list</strong> - returns to the phenotype search page.
@@ -687,17 +662,9 @@
 				</p>
 			{% endif %}
 		</div>
-
-
 	</div>
 </div>
-
 {% endblock container %}
-
-
-
-
-
 
 {% block scripts %}
 	<script src="{% static 'js/clinicalcode/component.js' %}"></script>
@@ -744,8 +711,7 @@
 		function printPage(callback) {
 			// before printing hide all unnecessary elements from webpage
 			$('.btn').hide();
-			//$('#history-section').hide();
-			$('#PhenotypeMenu').hide();
+			$('#history-section').hide();
 			$('#topButtons').hide();
 			$('footer').hide();
 			$('.popovers').hide();
@@ -762,8 +728,7 @@
 
 		function printCallback() {
 			// when printing is finished or cancel show all hidden elements
-			//$('#history-section').show();
-			$('#PhenotypeMenu').show();
+			$('#history-section').show();
 			$('#topButtons').show();
 			$('footer').show();
 			$('.btn').show();
@@ -776,6 +741,7 @@
 
 	</script>
 
+<!-- collapse all/ expand all interfere with individual +/- -->
 	<script type="text/javascript">
     	$(function() {
     		
