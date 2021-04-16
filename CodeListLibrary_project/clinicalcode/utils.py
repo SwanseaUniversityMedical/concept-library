@@ -182,3 +182,19 @@ def get_paginator_pages(paginator, page):
         
 #     print ', '.join([str(i) for i in pl])
     return pl
+
+def clean_str_as_db_col_name(txt):
+    # clean string to be a valid column name
+    
+    s = txt.strip()
+    s = s.replace(' ', '_').replace('.', '_').replace('-', '_')
+    if isInt(s[0]):
+        s = '_' + s
+        
+    s = re.sub('_+', '_', s)
+    return re.sub('[^A-Za-z0-9_]+', '', s)
+
+
+    
+    
+    

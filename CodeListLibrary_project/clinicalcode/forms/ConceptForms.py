@@ -15,11 +15,12 @@ from ..models.CodingSystem import CodingSystem
 from ..models.Component import Component
 from ..models.Concept import Concept
 from ..models.Tag import Tag
+from ..models.ConceptCodeAttribute import ConceptCodeAttribute  
 
 from ..permissions import (
     Permissions, allowed_to_permit
 )
-
+from django.contrib.postgres.forms import SimpleArrayField
 
 '''
     ConceptForm
@@ -194,6 +195,8 @@ class ConceptForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'form-control'})
         # No choices or initial value as these are assigned dynamically.
     )
+
+    
 
     class Meta:
         model = Concept

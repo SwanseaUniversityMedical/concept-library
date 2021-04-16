@@ -1,12 +1,21 @@
 {% for code in codes %}
 	<tr>
 		<td>{{ code.code }}</td>
-		<td>{{ code.description }}</td>				
+		<td>{{ code.description }}</td>	
+		{% for attr_hdr in code_attribute_header %}
+		   {% for key, value in code.items %}
+		   		{% if key == attr_hdr %}
+		      		<td>{{ value }}</td>
+		   		{% endif %}			
+		   {% endfor %}			
+		{% endfor %}
 	</tr>
 {% empty %}
 	<tr>
-		<td colspan="2" class="text-center bg-warning">
+		<td colspan="10" class="text-center bg-warning">
 			No codes
 		</td>
 	</tr>
 {% endfor %}
+
+
