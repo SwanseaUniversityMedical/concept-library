@@ -61,7 +61,7 @@ def api_phenotype_create(request):
 #           )
 
         new_phenotype = Phenotype()
-        new_phenotype.phenotype_uuid = new_phenotype_uuid
+        new_phenotype.phenotype_uuid = request.data.get('phenotype_uuid')
         new_phenotype.title = request.data.get('title')
         new_phenotype.name = request.data.get('name')
         new_phenotype.author = request.data.get('author')
@@ -87,6 +87,7 @@ def api_phenotype_create(request):
 
         new_phenotype.description = request.data.get('description')
         new_phenotype.implementation = request.data.get('implementation')
+        new_phenotype.phenoflowid = request.data.get('phenoflowid')
         
         new_phenotype.created_by = request.user        
         new_phenotype.owner_access = Permissions.EDIT
@@ -250,6 +251,7 @@ def api_phenotype_update(request):
         
         update_phenotype.description = request.data.get('description')
         update_phenotype.implementation = request.data.get('implementation')
+        update_phenotype.phenoflowid = request.data.get('phenoflowid')
         
         update_phenotype.updated_by = request.user        
         update_phenotype.modified = datetime.now() 

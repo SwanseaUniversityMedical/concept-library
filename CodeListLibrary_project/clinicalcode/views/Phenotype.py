@@ -383,6 +383,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     concept_data = []
     for c in json.loads(phenotype['concept_informations']):
         c['codingsystem'] = CodingSystem.objects.get(pk = Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).coding_system_id)
+        c['code_attribute_header'] =  Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).code_attribute_header
         
         c['alerts'] = ''
         if not are_concepts_latest_version:
@@ -526,12 +527,14 @@ def phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
            
         #c_codes_count_2 = len([c['code'] for c in codes if c['concept_id'] == concept_id and c['concept_version_id'] == concept_version_id ]) 
         
+        c_code_attribute_header =  Concept.history.get(id=concept_id, history_id=concept_version_id).code_attribute_header
         concept_codes_html.append({'concept_id': concept_id,
                                    'concept_version_id': concept_version_id,
                                    'c_codes_count': c_codes_count,
                                    'c_html': render_to_string(
                                                     'clinicalcode/phenotype/get_concept_codes.html',
                                                     {'codes': c_codes,
+                                                     'code_attribute_header': c_code_attribute_header,
                                                     'showConcept': False 
                                                     }
                                                     )
