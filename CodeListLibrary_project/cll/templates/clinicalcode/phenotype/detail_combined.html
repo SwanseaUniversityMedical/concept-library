@@ -407,7 +407,10 @@
 		                  <tr>
 		                     <th>Code</th>
 		                     <th>Description</th>
-		                     <th>Coding System</th>
+<!-- 		                     <th>Coding System</th> -->
+							{% for attr_hdr in c.code_attribute_header %}
+								<th>{{ attr_hdr }}</th>
+							{% endfor %}
 		                  </tr>
 		               </thead>
 		               <tbody>
@@ -416,12 +419,23 @@
 		                  <tr>
 		                     <td>{{ code.code }}</td>
 		                     <td>{{ code.description }}</td>
-		                     <td>{{ code.coding_system }}</td>
+		                     {% if c.code_attribute_header %}
+					
+								{% for attr_hdr in c.code_attribute_header %}
+								   {% for key, value in code.code_attributes.items %}
+								   		{% if key == attr_hdr %}
+								      		<td>{{ value }}</td>
+								   		{% endif %}				
+								   {% endfor %}			
+								{% endfor %}
+							
+							{% endif%}
+<!-- 		                     <td>{{ code.coding_system }}</td> -->
 		                  </tr>
 		                  {% endif %}
 		                  {% empty %}
 		                  <tr>
-		                     <td colspan="3" class="text-center bg-warning spinner" id="no-codes-td">
+		                     <td colspan="10" class="text-center bg-warning spinner" id="no-codes-td">
 		                        {% if codelist_loaded == 0 %}
 		                        Loading ...
 		                        {% else %}

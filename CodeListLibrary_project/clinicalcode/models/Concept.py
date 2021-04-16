@@ -37,7 +37,8 @@ class Concept(TimeStampedModel):
     group_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.NONE)
     world_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.NONE)
 
-    tags = ArrayField(models.IntegerField(), blank=True, null=True)  #default=list
+    tags = ArrayField(models.IntegerField(), blank=True, null=True)  
+    code_attribute_header = ArrayField(models.CharField(max_length=100), blank=True, null=True)  
 
     history = HistoricalRecords()
     

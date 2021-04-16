@@ -28,6 +28,7 @@ from ...models.WorkingSetTagMap import WorkingSetTagMap
 from ...models.CodingSystem import CodingSystem
 from ...models.Brand import Brand
 from ...models.PublishedConcept import PublishedConcept
+from ...models.ConceptCodeAttribute import ConceptCodeAttribute
 from django.contrib.auth.models import User
 
 from ...db_utils import *
@@ -53,6 +54,7 @@ from django.views.defaults import permission_denied
 from django.db.models.aggregates import Max
 from clinicalcode.permissions import get_visible_concepts_live
 #from ...permissions import Permissions
+import re 
 
 #--------------------------------------------------------------------------
 '''
@@ -231,25 +233,57 @@ def export_concept_codes(request, pk):
         concept = Concept.objects.filter(id=pk).exclude(is_deleted=True)
         if concept.count() == 0: raise Http404
         
-        rows_to_return = []
+        
+        # Use a SQL function to extract this data.
+        codes = getGroupOfCodesByConceptId(pk)       
+        
+        #---------
+        # latest concept_history_id
+        latest_history_id = Concept.objects.get(id=pk).history.latest('history_id').history_id
+        code_attribute_header = Concept.history.get(id=pk, history_id=latest_history_id).code_attribute_header
+        concept_history_date = Concept.history.get(id=pk, history_id=latest_history_id).history_date
+        codes_with_attributes = []
+        if code_attribute_header:
+            codes_with_attributes = getConceptCodes_withAttributes_HISTORICAL(concept_id = pk
+                                                                           , concept_history_date = concept_history_date
+                                                                           , allCodes = codes
+                                                                           , code_attribute_header = code_attribute_header
+                                                                           )
+    
+            codes = codes_with_attributes
+        #---------
+        
         titles = ['code', 'description', 'coding_system', 'concept_id', 'concept_version_id', 'concept_name']
+        if code_attribute_header:
+            if request.query_params.get('format', '').lower() == 'xml':
+                # clean attr names/ remove space, etc
+                titles = titles + [clean_str_as_db_col_name(a)  for a in code_attribute_header]
+            else:
+                titles = titles + [a  for a in code_attribute_header]
+            
         
         current_concept = Concept.objects.get(pk=pk)
 
         concept_coding_system = Concept.objects.get(id=pk).coding_system.name
         
-        # Use a SQL function to extract this data.
-        rows = getGroupOfCodesByConceptId(pk)
-        for row in rows:
+        rows_to_return = []
+        for c in codes:
+            code_attributes = []
+            if code_attribute_header:
+                for a in code_attribute_header:
+                    code_attributes.append(c[a])
+                    
             rows_to_return.append(ordr(zip(titles,  
                                 [
-                                    row['code'],  
-                                    row['description'].encode('ascii', 'ignore').decode('ascii'),
+                                    c['code'],  
+                                    c['description'].encode('ascii', 'ignore').decode('ascii'),
                                     concept_coding_system,
                                     pk,
                                     current_concept.history.latest().history_id,
                                     current_concept.name,
                                 ]
+                                +
+                                code_attributes    
                                 )))
     
         return Response(rows_to_return, status=status.HTTP_200_OK)
@@ -342,17 +376,49 @@ def get_historical_concept_codes(request, pk, concept_history_id):
 
     concept_coding_system = Concept.history.get(id=pk, history_id=concept_history_id).coding_system.name
 
-    rows = getGroupOfCodesByConceptId_HISTORICAL(pk, concept_history_id)
-    for row in rows:
+    codes = getGroupOfCodesByConceptId_HISTORICAL(pk, concept_history_id)
+    
+    #---------
+    code_attribute_header = Concept.history.get(id=pk, history_id=concept_history_id).code_attribute_header
+    concept_history_date = history_concept['history_date']  # Concept.history.get(id=pk, history_id=concept_history_id).history_date
+    codes_with_attributes = []
+    if code_attribute_header:
+        codes_with_attributes = getConceptCodes_withAttributes_HISTORICAL(concept_id = pk
+                                                                       , concept_history_date = concept_history_date
+                                                                       , allCodes = codes
+                                                                       , code_attribute_header = code_attribute_header
+                                                                       )
+
+        codes = codes_with_attributes
+    #---------
+    
+    titles = ['code', 'description', 'coding_system', 'concept_id', 'concept_version_id', 'concept_name']
+    if code_attribute_header:
+        if request.query_params.get('format', '').lower() == 'xml':
+            # clean attr names/ remove space, etc
+            titles = titles + [clean_str_as_db_col_name(a)  for a in code_attribute_header]
+        else:
+            titles = titles + [a  for a in code_attribute_header]
+            
+        
+            
+    for c in codes:
+        code_attributes = []
+        if code_attribute_header:
+            for a in code_attribute_header:
+                code_attributes.append(c[a])
+                    
         rows_to_return.append(ordr(zip(titles,  
                             [
-                                row['code'],  
-                                row['description'].encode('ascii', 'ignore').decode('ascii'),
+                                c['code'],  
+                                c['description'].encode('ascii', 'ignore').decode('ascii'),
                                 concept_coding_system,
                                 pk,
                                 concept_history_id,
                                 history_concept['name'],
                             ]
+                            +
+                            code_attributes
                             )))
 
     return Response(rows_to_return, status=status.HTTP_200_OK)
@@ -401,6 +467,15 @@ def api_concept_create(request):
         new_concept.owner_access = Permissions.EDIT   # int(request.data.get('ownerAccess'))     
         new_concept.owner_id = request.user.id        # int(request.data.get('owner_id'))     
           
+        
+        # handle code_attribute_header
+        is_valid_data, err, ret_value = chk_code_attribute_header(request.data.get('code_attribute_header'))
+        if is_valid_data:
+            new_concept.code_attribute_header = ret_value
+        else:
+            errors_dict['code_attribute_header'] = err
+                    
+        
         # handle coding_system
         is_valid_data, err, ret_value = chk_coding_system(request.data.get('coding_system'))
         if is_valid_data:
@@ -526,6 +601,7 @@ def api_concept_create(request):
                     row_count += 1
                     # Need to check stripped codes
                     if row['code'].strip() == '':      continue
+                    # store component codes
                     obj, created = Code.objects.get_or_create(
                                     code_list=code_list,
                                     code=row['code'],
@@ -533,6 +609,18 @@ def api_concept_create(request):
                                             'description': row['description']
                                         }
                                     )
+                    
+                    if new_concept.code_attribute_header is not None:
+                        # store code attribute lookup
+                        obj, created = ConceptCodeAttribute.objects.get_or_create(
+                                        concept=new_concept,
+                                        created_by=request.user,
+                                        code=row['code'],
+                                        defaults={
+                                                'attributes': row['attributes']
+                                            }
+                                        )
+            
             #--------------------------------------
             #--------------------------------------
               
@@ -621,6 +709,15 @@ def api_concept_update(request):
         #update_concept.owner_access = Permissions.EDIT   # int(request.data.get('ownerAccess'))     
         #update_concept.owner_id = request.user.id        # int(request.data.get('owner_id'))     
           
+               
+        # handle code_attribute_header
+        is_valid_data, err, ret_value = chk_code_attribute_header(request.data.get('code_attribute_header'))
+        if is_valid_data:
+            update_concept.code_attribute_header = ret_value
+        else:
+            errors_dict['code_attribute_header'] = err
+            
+            
         # handle coding_system
         is_valid_data, err, ret_value = chk_coding_system(request.data.get('coding_system'))
         if is_valid_data:
@@ -735,6 +832,11 @@ def api_concept_update(request):
             old_components = update_concept.component_set.all()        
             for old_comp in old_components:
                 old_comp.delete()
+            
+            old_ConceptCodeAttribute = update_concept.conceptcodeattribute_set.all()
+            for old_cd_attr in old_ConceptCodeAttribute:
+                old_cd_attr.delete()
+                
                 
             # insert as new
             #-- Components/codelists/codes --------
@@ -763,6 +865,7 @@ def api_concept_update(request):
                     row_count += 1
                     # Need to check stripped codes
                     if row['code'].strip() == '':      continue
+                    # store component codes
                     obj, created = Code.objects.get_or_create(
                                     code_list=code_list,
                                     code=row['code'],
@@ -770,6 +873,18 @@ def api_concept_update(request):
                                             'description': row['description']
                                         }
                                     )
+                    
+                    if update_concept.code_attribute_header is not None:
+                        # store code attribute lookup
+                        obj, created = ConceptCodeAttribute.objects.get_or_create(
+                                        concept=update_concept,
+                                        created_by=request.user,
+                                        code=row['code'],
+                                        defaults={
+                                                'attributes': row['attributes']
+                                            }
+                                        )
+                    
             #--------------------------------------
             #--------------------------------------
               

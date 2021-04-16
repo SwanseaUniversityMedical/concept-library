@@ -506,6 +506,9 @@
 									<tr>
 										<th>Code</th>
 										<th>Description</th>
+										{% for attr_hdr in code_attribute_header %}
+											<th>{{ attr_hdr }}</th>
+										{% endfor %}
 									</tr>
 								</thead>
 								<tbody>
@@ -513,10 +516,17 @@
 									<tr>
 										<td>{{ code.code }}</td>
 										<td>{{ code.description }}</td>
+										{% for attr_hdr in code_attribute_header %}
+										   {% for key, value in code.items %}
+										   		{% if key == attr_hdr %}
+										      		<td>{{ value }}</td>
+										   		{% endif %}			
+										   {% endfor %}			
+										{% endfor %}
 									</tr>
 								{% empty %}
 									<tr>
-										<td colspan="2" class="text-center bg-warning spinner" id="no-codes-td">
+										<td colspan="10" class="text-center bg-warning spinner" id="no-codes-td">
 											{% if codelist_loaded == 0 %}
 											    Loading ...
 											{% else %}

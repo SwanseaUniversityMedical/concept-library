@@ -25,6 +25,8 @@ from .models.WorkingSet import WorkingSet
 from .models.WorkingSetTagMap import WorkingSetTagMap
 from .models.PublishedConcept import PublishedConcept
 from .models.Phenotype import Phenotype
+from .models.PublishedPhenotype import PublishedPhenotype
+from .models.ConceptCodeAttribute import ConceptCodeAttribute
 
 from .permissions import *
 
@@ -84,15 +86,16 @@ def deleteConceptRelatedObjects(pk):
     # get selected concept
     concept = Concept.objects.get(pk=pk)
 
-#     # get all the tags attached to the concept
-#     concept_tag_maps = concept.concepttagmap_set.all()
-# 
-#     for ctm in concept_tag_maps:
-#         if ctm:
-#             ctm.delete()
-
-    if concept: # and concept_tag_maps:
-        #concept.changeReason = "Tags deleted"
+    # get all the ConceptCodeAttribute attached to the concept
+    concept_ConceptCodeAttributes = concept.conceptcodeattribute_set.all()
+ 
+    for cca in concept_ConceptCodeAttributes:
+        if cca:
+            cca.delete()
+            
+    # need to save root concept to have proper date-time stamp for retrieving history data
+    if concept and concept_ConceptCodeAttributes:
+        #concept.changeReason = "ConceptCodeAttributes deleted"
         #concept.save()
         concept.save_without_historical_record()
         
@@ -160,8 +163,9 @@ def fork(pk, user):
         and codes.
     '''
     has_components = False
+    has_ConceptCodeAttributes = False
     concept = Concept.objects.get(pk=pk)
-#     old_concept_tag_maps = concept.concepttagmap_set.all()
+    old_ConceptCodeAttributes = concept.conceptcodeattribute_set.all()
     old_components = concept.component_set.all()
     # Reset the concept primary key to none so that it is treated as a new
     # concept.
@@ -174,11 +178,11 @@ def fork(pk, user):
 #     #concept.save_without_historical_record()
     concept.history.latest().delete() 
     
-#     for ctm in old_concept_tag_maps:
-#         ctm.pk = None
-#         ctm.created_by = user
-#         ctm.concept = concept
-#         ctm.save()
+    for cca in old_ConceptCodeAttributes:
+        cca.pk = None
+        cca.created_by = user
+        cca.concept = concept
+        cca.save()
 
     # For all components reset the coderegex, codelist and codes. This will
     # ensure that they are treated as new entities and are attached to the
@@ -249,7 +253,7 @@ def fork(pk, user):
     # Save the concept again because the code lists, code regexes and codes get
     # saved after the concept is saved so we need to reflect these added
     # components in the history.
-    if has_components:
+    if has_components or has_ConceptCodeAttributes:
         #concept.changeReason = "Forked components"
         #concept.save()
         concept.save_without_historical_record()
@@ -263,6 +267,7 @@ def forkHistoryConcept(user, concept_history_id):
         Fork an historical concept as a new concept with a new id.
     '''
     has_components = False
+    has_ConceptCodeAttribute = False
     concept = getHistoryConcept(concept_history_id)
     # Recreate the historical concept. Note that we do use create here since
     # that will create and save the concept and we will not be able to set
@@ -291,7 +296,8 @@ def forkHistoryConcept(user, concept_history_id):
         owner_access=Permissions.EDIT,
         group_access=concept['group_access'],
         world_access=concept['world_access'],
-        tags=concept['tags']
+        tags=concept['tags'],
+        code_attribute_header=concept['code_attribute_header']
     )
     concept_obj.changeReason = "Forked root from concept %s/%s/%s" % (concept['id'], concept_history_id, concept['entry_date'])
     concept_obj.save()
@@ -301,17 +307,22 @@ def forkHistoryConcept(user, concept_history_id):
         # get the historic date this was effective from
         concept_history_date = concept['history_date']
 
-#         # get concept tags that were active from the time of the concepts effective date
-#         concept_tag_maps = getHistoryConceptTagMaps(concept['id'], concept_history_date)
-# 
-#         for ctm in concept_tag_maps:
-#             ctm_obj = ConceptTagMap.objects.create(
-#                 concept=concept_obj,
-#                 tag=Tag.objects.filter(pk=ctm['tag_id']).first(),
-#                 created_by=User.objects.filter(pk=ctm['created_by_id']).first(),
-#                 created=ctm['created'],
-#                 modified=ctm['modified']
-#             )
+        # get concept ConceptCodeAttributes  that were active from the time of the concepts effective date
+        concept_ConceptCodeAttributes = getHistory_ConceptCodeAttribute(concept_id = concept['id']
+                                                           , concept_history_date = concept_history_date
+                                                           , code_attribute_header = concept['code_attribute_header']
+                                                           , expand_attrs_into_cols = False )
+ 
+        for cca in concept_ConceptCodeAttributes:
+            has_ConceptCodeAttribute = True
+            cca_obj = ConceptCodeAttribute.objects.create(
+                concept=concept_obj,
+                code=cca['code'],
+                attributes=cca['attributes'],
+                created_by=User.objects.filter(pk=cca['created_by_id']).first(),
+                created=cca['created'],
+                modified=cca['modified']
+            )
 
         # get components that were active from the time of the concepts effective date
         components = getHistoryComponents(concept['id'], concept_history_date, skip_codes=True)
@@ -408,7 +419,7 @@ def forkHistoryConcept(user, concept_history_id):
     # Save the concept again because the code lists, code regexes and codes get
     # saved after the concept is saved so we need to reflect these added
     # components in the history.
-    if has_components:
+    if has_components or has_ConceptCodeAttribute:
         #concept_obj.changeReason = "Forked historic components"
         #concept_obj.save()
         concept_obj.save_without_historical_record()
@@ -782,7 +793,8 @@ def getHistoryConcept(concept_history_id):
         hc.is_deleted,
         hc.deleted,
         hc.deleted_by_id,
-        hc.tags
+        hc.tags,
+        hc.code_attribute_header
         FROM clinicalcode_historicalconcept AS hc
         JOIN clinicalcode_codingsystem AS cs ON hc.coding_system_id = cs.id
         LEFT OUTER JOIN auth_user AS ucb on ucb.id = hc.created_by_id
@@ -1581,6 +1593,7 @@ def getHistoryTags_Workingset(workingset_id, workingset_history_date):
 def revertHistoryConcept(user, concept_history_id):
     ''' Revert a selected historical concept and create it as a new concept using an existing concept id '''
     has_components = False
+    has_ConceptCodeAttributes = False
     concept = getHistoryConcept(concept_history_id)
 
     # get selected concept
@@ -1613,6 +1626,7 @@ def revertHistoryConcept(user, concept_history_id):
     concept_obj.group_access = concept['group_access']
     concept_obj.world_access = concept['world_access']
     concept_obj.tags = concept['tags']
+    concept_obj.code_attribute_header = concept['code_attribute_header']
     concept_obj.changeReason = "Reverted root historic concept"
     concept_obj.save()
     
@@ -1620,20 +1634,25 @@ def revertHistoryConcept(user, concept_history_id):
         # get the historic date this was effective from
         concept_history_date = concept['history_date']
 
-#         # get tags that were active from the time of the concepts effective date
-#         concept_tag_maps = getHistoryConceptTagMaps(concept['id'], concept_history_date)
-# 
-#         for ctm in concept_tag_maps:
-#             has_tags = True
-# 
-#             ctm_obj = ConceptTagMap.objects.create(
-#                 concept=concept_obj,
-#                 tag=Tag.objects.filter(pk=ctm['tag_id']).first(),
-#                 created_by=User.objects.filter(pk=ctm['created_by_id']).first(),
-#                 created=ctm['created'],
-#                 modified=ctm['modified']
-#             )
+        # get ConceptCodeAttributes that were active from the time of the concepts effective date
+        concept_ConceptCodeAttributes = getHistory_ConceptCodeAttribute(concept_id = concept['id']
+                                                           , concept_history_date = concept_history_date
+                                                           , code_attribute_header = concept['code_attribute_header']
+                                                           , expand_attrs_into_cols = False )
+ 
+        for cca in concept_ConceptCodeAttributes:
+            has_ConceptCodeAttributes = True
+             
+            cca_obj = ConceptCodeAttribute.objects.create(
+                            concept=concept_obj,
+                            code=cca['code'],
+                            attributes=cca['attributes'],
+                            created_by=User.objects.filter(pk=cca['created_by_id']).first(),
+                            created=cca['created'],
+                            modified=cca['modified']
+                        )
             
+                                    
 
         # get components that were active from the time of the concepts effective date
         components = getHistoryComponents(concept['id'], concept_history_date, skip_codes=True)
@@ -1729,7 +1748,8 @@ def revertHistoryConcept(user, concept_history_id):
 
     # save the concept again because the code lists, code regexes and codes get saved after the concept is saved
     # so we need to reflect these added components in the history
-    if has_components:
+    if has_components or has_ConceptCodeAttributes:
+        concept_obj.history.latest().delete() 
         concept_obj.changeReason = "Reverted historic components"
         concept_obj.save()
 
@@ -2289,10 +2309,6 @@ def get_net_codes(dfi):
 
 
 #---------------------------------------------------------------------------
-# def getSavedChildConceptCodes(component):
-#     #  for now, return the live re. concept's codes, as this system model maintains live ver. sync.
-#     return  getGroupOfCodesByConceptId(component.concept_ref_id)
-
 def save_child_concept_codes(concept_id, component_id, referenced_concept_id, 
                             concept_ref_history_id, insert_or_update ):
     # everything is synced to live version
@@ -2770,7 +2786,7 @@ def get_visible_live_or_published_concept_versions(request
                                owner_access, group_access, world_access, history_id, history_date, 
                                history_change_reason, history_type, coding_system_id, created_by_id, 
                                deleted_by_id, group_id, history_user_id, modified_by_id, owner_id
-                               , tags
+                               , tags, code_attribute_header
                             FROM clinicalcode_historicalconcept t
                             ) r
                             """ 
@@ -3145,10 +3161,13 @@ def get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
     # Get the list of concepts in the phenotype data
     concept_ids_historyIDs = getGroupOfConceptsByPhenotypeId_historical(pk, phenotype_history_id)
 
-    titles = (['code', 'description', 'coding_system', 'concept_id', 'concept_version_id']
-                    + ['concept_name']
-                    + ['phenotype_id', 'phenotype_version_id', 'phenotype_name']
-                    )
+    titles = (['code', 'description'
+               , 'code_attributes'
+               , 'coding_system', 'concept_id', 'concept_version_id'
+               , 'concept_name'
+               , 'phenotype_id', 'phenotype_version_id', 'phenotype_name'
+               ]
+            )
 
     codes = []
 
@@ -3160,12 +3179,40 @@ def get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
         rows_no = 0
         concept_codes = getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
 
+        #---------
+        code_attribute_header = Concept.history.get(id=concept_id, history_id=concept_version_id).code_attribute_header
+        concept_history_date = Concept.history.get(id=concept_id, history_id=concept_version_id).history_date
+        codes_with_attributes = []
+        if code_attribute_header:
+            codes_with_attributes = getConceptCodes_withAttributes_HISTORICAL(concept_id = concept_id
+                                                                           , concept_history_date = concept_history_date
+                                                                           , allCodes = concept_codes
+                                                                           , code_attribute_header = code_attribute_header
+                                                                           )
+
+            concept_codes = codes_with_attributes
+        #---------
+        
         for cc in concept_codes:
             rows_no += 1
+            attributes_dict = {}
+            if code_attribute_header:
+                for attr in code_attribute_header:
+                    if request.GET.get('format', '').lower() == 'xml':
+                        # clean attr names/ remove space, etc
+                        attr2 = utils.clean_str_as_db_col_name(attr)
+                    else:
+                        attr2 = attr
+                    attributes_dict[attr2] = cc[attr]
+                    
             codes.append(ordr(zip(titles,  
                             [
                                 cc['code'],
-                                cc['description'].encode('ascii', 'ignore').decode('ascii'),
+                                cc['description'].encode('ascii', 'ignore').decode('ascii')
+                            ]
+                            + [attributes_dict] 
+                            + 
+                            [
                                 concept_coding_system,
                                 concept_id,
                                 concept_version_id,
@@ -3178,7 +3225,11 @@ def get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
             codes.append(ordr(zip(titles,  
                             [
                                 '',
-                                '',
+                                ''
+                            ]
+                            + [attributes_dict]
+                            + 
+                            [
                                 concept_coding_system,
                                 concept_id,
                                 concept_version_id,
@@ -3333,4 +3384,120 @@ def isValidPhenotype(request, phenotype):
     
     return is_valid, errors
 
+
 #---------------------------------------------------------------------------
+def getHistory_ConceptCodeAttribute(concept_id, concept_history_date, code_attribute_header, expand_attrs_into_cols = False):
+    ''' Get historic ConceptCodeAttributes attached to a concept that were effective from a point in time '''
+
+    my_params = {
+        'concept_id': concept_id,
+        'concept_history_date': concept_history_date
+    }
+    
+    cols = ''
+    if not expand_attrs_into_cols:
+        cols = '''
+            , hc.id,
+            hc.created,
+            hc.modified,
+            hc.history_id,
+            hc.history_date,
+            hc.history_change_reason,
+            hc.history_type,
+            hc.concept_id,
+            hc.created_by_id,
+            hc.history_user_id
+        '''
+
+    with connection.cursor() as cursor:
+        cursor.execute('''
+        -- Select all the data from the ConceptCodeAttributes historical record for all
+        -- the entries that are contained in the JOIN which produces a list of
+        -- the latest history IDs for all ConceptCodeAttributes that don't have a
+        -- delete event by the specified date.
+        SELECT 
+            hc.code,
+            hc.attributes
+           '''
+            + cols +
+            '''
+        FROM clinicalcode_historicalconceptcodeattribute AS hc
+        INNER JOIN (
+            SELECT a.id, a.history_id
+            FROM (
+                -- Get the list of all the ConceptCodeAttributes for this concept and
+                -- before the timestamp and return the latest history ID.
+                SELECT id, MAX(history_id) AS history_id
+                FROM   clinicalcode_historicalconceptcodeattribute
+                WHERE  (concept_id = %(concept_id)s AND 
+                        history_date <= %(concept_history_date)s::timestamptz)
+                GROUP BY id
+            ) AS a
+            LEFT JOIN (
+                -- Get the list of all the ConceptCodeAttributes that have been deleted
+                -- for this concept.
+                SELECT DISTINCT id
+                FROM   clinicalcode_historicalconceptcodeattribute
+                WHERE  (concept_id = %(concept_id)s AND 
+                        history_date <= %(concept_history_date)s::timestamptz AND
+                        history_type = '-')
+            ) AS b
+            -- Join only those from the first group that are not in the deleted
+            -- group.
+            ON a.id = b.id
+            WHERE b.id IS NULL
+        ) AS d
+        ON hc.history_id = d.history_id
+        ORDER BY hc.id
+        ''' , my_params)
+
+        if not expand_attrs_into_cols:
+            columns = [col[0] for col in cursor.description]
+     
+            return [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
+        else:
+            columns = ['code'] + [str(a) for a in code_attribute_header]
+            return [
+                dict(zip(columns, tuple([str(row[0])] + [str(a) for a in row[1]])  ))
+                for row in cursor.fetchall()
+            ]
+        
+        
+    
+        
+#---------------------------------------------------------------------------
+def getConceptCodes_withAttributes_HISTORICAL(concept_id, concept_history_date, allCodes, code_attribute_header):
+    if not code_attribute_header:
+        return allCodes
+    
+
+    code_attributes = []
+    if code_attribute_header:
+        code_attributes = getHistory_ConceptCodeAttribute(concept_id, concept_history_date, code_attribute_header, expand_attrs_into_cols = True)
+        
+    if not code_attributes:
+        return allCodes
+    
+    allCodes_df = pd.DataFrame.from_dict(allCodes)
+    code_attributes_df = pd.DataFrame.from_dict(code_attributes)
+    
+    # left_join_df
+    codes_with_attr_df = pd.merge(allCodes_df,
+                                  code_attributes_df,
+                                  on="code",
+                                  how="left",
+                                  indicator=True)
+        
+     
+    codes_with_attr_df = codes_with_attr_df.sort_values(by=['code'])
+    codes_with_attr_df = codes_with_attr_df.replace(np.nan, '', regex=True)
+        
+    return  codes_with_attr_df.to_dict('records')
+
+        
+        
+
+        

@@ -2,7 +2,21 @@
 	<tr>
 		<td>{{ code.code }}</td>
 		<td>{{ code.description }}</td>				
-		<td>{{ code.coding_system }}</td>
+
+		{% if code_attribute_header %}
+
+			{% for attr_hdr in code_attribute_header %}
+			   {% for key, value in code.code_attributes.items %}
+			   		{% if key == attr_hdr %}
+			      		<td>{{ value }}</td>
+			   		{% endif %}				
+			   {% endfor %}			
+			{% endfor %}
+		
+		{% endif%}
+
+
+<!-- 		<td>{{ code.coding_system }}</td> -->
 		{% if showConcept %}
 			<td>{{ code.concept_id }}/{{ code.concept_version_id }}</td>
 		{% endif%}
@@ -10,7 +24,7 @@
 	</tr>
 {% empty %}
 	<tr>
-		<td colspan="4" class="text-center bg-warning">
+		<td colspan="10" class="text-center bg-warning">
 			No codes
 		</td>
 	</tr>

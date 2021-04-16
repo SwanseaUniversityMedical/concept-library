@@ -220,6 +220,8 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
     concept_history_date = concept['history_date']
     components = db_utils.getHistoryComponents(pk, concept_history_date, check_published_child_concept=True)
         
+    code_attribute_header = concept['code_attribute_header']
+    
     tags =  Tag.objects.filter(pk=-1)
     concept_tags = concept['tags']
     if concept_tags:
@@ -302,29 +304,42 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
         codelist_loaded = 0
     else:
         # published
+        #---------
+        concept_codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(pk, concept_history_id)
+        codes_with_attributes = []
+        if code_attribute_header:
+            codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(concept_id = pk
+                                                                           , concept_history_date = concept_history_date
+                                                                           , allCodes = concept_codes
+                                                                           , code_attribute_header = code_attribute_header
+                                                                           )
+
+            concept_codes = codes_with_attributes
+        #---------
         component_tab_active = "" 
         codelist_tab_active = "active"
-        codelist = db_utils.getGroupOfCodesByConceptId_HISTORICAL(pk, concept_history_id)
+        codelist = concept_codes    #db_utils.getGroupOfCodesByConceptId_HISTORICAL(pk, concept_history_id)
         codelist_loaded = 1
          
-    context = { 'concept': concept, 
-                   'components': components, 
-                   'tags': tags,
-                   'user_can_edit': can_edit,
-                   'allowed_to_create': user_allowed_to_create,
-                   'user_can_export': user_can_export,
-                   'history': other_historical_versions,
-                   'live_ver_is_deleted': Concept.objects.get(pk=pk).is_deleted,
-                   'published_historical_ids': published_historical_ids,
-                   'is_published': is_published,
-                   'publish_date': publish_date,
-                   'is_latest_version':is_latest_version,
-                   'current_concept_history_id': int(concept_history_id),
-                   'component_tab_active': component_tab_active,
-                   'codelist_tab_active': codelist_tab_active,
-                   'codelist': codelist, #json.dumps(codelist)
-                   'codelist_loaded': codelist_loaded 
-                }
+    context = {'concept': concept, 
+               'components': components, 
+               'tags': tags,
+               'user_can_edit': can_edit,
+               'allowed_to_create': user_allowed_to_create,
+               'user_can_export': user_can_export,
+               'history': other_historical_versions,
+               'live_ver_is_deleted': Concept.objects.get(pk=pk).is_deleted,
+               'published_historical_ids': published_historical_ids,
+               'is_published': is_published,
+               'publish_date': publish_date,
+               'is_latest_version':is_latest_version,
+               'current_concept_history_id': int(concept_history_id),
+               'component_tab_active': component_tab_active,
+               'codelist_tab_active': codelist_tab_active,
+               'codelist': codelist, #json.dumps(codelist)
+               'codelist_loaded': codelist_loaded,
+               'code_attribute_header': code_attribute_header
+            }
     if request.user.is_authenticated():
         if is_latest_version and (can_edit):
             needed_keys = ['user_can_view_component', 'user_can_edit_component','component_error_msg_view',
@@ -443,6 +458,9 @@ class ConceptUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Update
         with transaction.atomic():
             form.instance.modified_by = self.request.user
             form.instance.modified = datetime.now()
+            
+            code_attribute_headers = json.loads(self.request.POST.get('code_attribute_header'))
+            form.instance.code_attribute_header = code_attribute_headers 
             #-----------------------------------------------------
             # get tags
             tag_ids = self.request.POST.get('tagids')
@@ -451,19 +469,7 @@ class ConceptUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Update
                 # split tag ids into list
                 new_tag_list = [int(i) for i in tag_ids.split(",")]
                 form.instance.tags = new_tag_list
-#             # save the tag ids
-#             old_tag_list = list(ConceptTagMap.objects.filter(concept=self.get_object()).values_list('tag', flat=True))
-#             # detect tags to add
-#             tag_ids_to_add = list(set(new_tag_list) - set(old_tag_list))
-#             # detect tags to remove
-#             tag_ids_to_remove = list(set(old_tag_list) - set(new_tag_list))
-#             # add tags that have not been stored in db
-#             for tag_id_to_add in tag_ids_to_add:
-#                 ConceptTagMap.objects.get_or_create(concept=self.object, tag=Tag.objects.get(id=tag_id_to_add), created_by=self.request.user)
-#             # remove tags no longer required in db
-#             for tag_id_to_remove in tag_ids_to_remove:
-#                 tag_to_remove = ConceptTagMap.objects.filter(concept=self.object, tag=Tag.objects.get(id=tag_id_to_remove))
-#                 tag_to_remove.delete()
+
 #             #-----------------------------------------------------
 
             # save the concept with a change reason to reflect the update within the concept audit history
@@ -491,6 +497,7 @@ class ConceptUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Update
             messages.info(self.request, "This concept has been deleted.")
             
         context['tags'] = tags
+        context['code_attribute_header'] = json.dumps(self.get_object().code_attribute_header)
         context['history'] = self.get_object().history.all()
         # user_can_export is intended to control the Export CSV button. It might
         # be better described as user can view all children, but that currently
@@ -580,6 +587,18 @@ def concept_uniquecodesByVersion(request, pk, concept_history_id):
          
     codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(pk, concept_history_id)
     
+    code_attribute_header = Concept.history.get(id=pk, history_id=concept_history_id).code_attribute_header
+    concept_history_date = Concept.history.get(id=pk, history_id=concept_history_id).history_date
+    codes_with_attributes = []
+    if code_attribute_header:
+        codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(concept_id = pk
+                                                                                   , concept_history_date = concept_history_date
+                                                                                   , allCodes = codes
+                                                                                   , code_attribute_header = code_attribute_header
+                                                                                   )
+        
+        codes = codes_with_attributes
+    
     data = dict()
     data['form_is_valid'] = True
     codes_count = "0"
@@ -588,9 +607,11 @@ def concept_uniquecodesByVersion(request, pk, concept_history_id):
     except:
         codes_count = "0"
     data['codes_count'] = codes_count
-    data['html_uniquecodes_list'] = render_to_string(
-        'clinicalcode/component/get_child_concept_codes.html',
-        {'codes': codes})
+    data['html_uniquecodes_list'] = render_to_string('clinicalcode/component/get_child_concept_codes.html',
+                                                    {'codes': codes,
+                                                     'code_attribute_header': code_attribute_header
+                                                    }
+                                                    )
 
     return JsonResponse(data)    
     
@@ -1190,7 +1211,7 @@ def concept_codes_to_csv(request, pk):
         #raise PermissionDenied
     
     
-    rows = db_utils.getGroupOfCodesByConceptId(pk)
+    codes = db_utils.getGroupOfCodesByConceptId(pk)
 
     my_params = {
         'id': pk,
@@ -1200,20 +1221,51 @@ def concept_codes_to_csv(request, pk):
     response['Content-Disposition'] = ('attachment; filename="concept_%(id)s_group_codes_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
+    
+    
+    #---------
+    # latest concept_history_id
+    latest_history_id = Concept.objects.get(id=pk).history.latest('history_id').history_id
+    code_attribute_header = Concept.history.get(id=pk, history_id=latest_history_id).code_attribute_header
+    concept_history_date = Concept.history.get(id=pk, history_id=latest_history_id).history_date
+    codes_with_attributes = []
+    if code_attribute_header:
+        codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(concept_id = pk
+                                                                       , concept_history_date = concept_history_date
+                                                                       , allCodes = codes
+                                                                       , code_attribute_header = code_attribute_header
+                                                                       )
+
+        codes = codes_with_attributes
+    #---------
+        
+        
     titles = ['code', 'description', 'coding_system', 'concept_id', 'concept_version_id', 'concept_name']
+    if code_attribute_header:
+        titles = titles + code_attribute_header
+        
     writer.writerow(titles)
     
     concept_coding_system = Concept.objects.get(id=pk).coding_system.name
     
-    for row in rows:
+    for c in codes:
+        code_attributes = []
+        if code_attribute_header:
+            for a in code_attribute_header:
+                code_attributes.append(c[a])
+                
         writer.writerow([
-            row['code'], #.encode('ascii', 'ignore').decode('ascii'),
-            row['description'].encode('ascii', 'ignore').decode('ascii'),
-            concept_coding_system,
-            pk,
-            current_concept.history.latest().history_id,
-            current_concept.name,
-        ])
+                        c['code'], #.encode('ascii', 'ignore').decode('ascii'),
+                        c['description'].encode('ascii', 'ignore').decode('ascii'),
+                        concept_coding_system,
+                        pk,
+                        current_concept.history.latest().history_id,
+                        current_concept.name,
+                        ]
+                        +
+                        code_attributes        
+        )
+        
     return response
 
 
@@ -1274,7 +1326,7 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
     
     history_concept = db_utils.getHistoryConcept(concept_history_id)
     
-    rows = db_utils.getGroupOfCodesByConceptId_HISTORICAL(pk, concept_history_id)
+    codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(pk, concept_history_id)
 
     my_params = {
         'id': pk,
@@ -1285,20 +1337,47 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
     response['Content-Disposition'] = ('attachment; filename="concept_%(id)s_ver_%(concept_history_id)s_group_codes_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
+    
+    #---------
+    code_attribute_header = Concept.history.get(id=pk, history_id=concept_history_id).code_attribute_header
+    concept_history_date = history_concept['history_date']  # Concept.history.get(id=pk, history_id=concept_history_id).history_date
+    codes_with_attributes = []
+    if code_attribute_header:
+        codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(concept_id = pk
+                                                                       , concept_history_date = concept_history_date
+                                                                       , allCodes = codes
+                                                                       , code_attribute_header = code_attribute_header
+                                                                       )
+
+        codes = codes_with_attributes
+    #---------
+        
+        
     titles = ['code', 'description', 'coding_system', 'concept_id', 'concept_version_id', 'concept_name']
+    if code_attribute_header:
+        titles = titles + code_attribute_header
+        
     writer.writerow(titles)
 
     concept_coding_system = Concept.history.get(id=pk, history_id=concept_history_id).coding_system.name
 
-    for row in rows:
+    for c in codes:
+        code_attributes = []
+        if code_attribute_header:
+            for a in code_attribute_header:
+                code_attributes.append(c[a])
+                
         writer.writerow([
-            row['code'], #.encode('ascii', 'ignore').decode('ascii'),
-            row['description'].encode('ascii', 'ignore').decode('ascii'),
-            concept_coding_system, 
-            pk,
-            concept_history_id,
-            history_concept['name'],
-        ])
+                        c['code'], #.encode('ascii', 'ignore').decode('ascii'),
+                        c['description'].encode('ascii', 'ignore').decode('ascii'),
+                        concept_coding_system, 
+                        pk,
+                        concept_history_id,
+                        history_concept['name'],
+                        ]
+                        +
+                        code_attributes
+               )
     return response
 
 

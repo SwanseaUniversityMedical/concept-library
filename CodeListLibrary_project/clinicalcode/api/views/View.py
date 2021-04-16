@@ -491,6 +491,20 @@ def chk_components_and_codes(components_inputs):
                 
     return is_valid_data, err, ret_value
 
+#---------------------------------------------------------------------------
+def chk_code_attribute_header(code_attribute_header):
+    # checking concept code_attribute_header is a list 
+    is_valid_data = True
+    err = ""
+    ret_value = code_attribute_header
+    
+    if code_attribute_header is not None: 
+        if not isinstance(code_attribute_header, list):
+            is_valid_data = False
+            err = 'code_attribute_header mustbe a list'
+    
+
+    return is_valid_data, err, ret_value
 
 #---------------------------------------------------------------------------
 ############################################################################
