@@ -3494,6 +3494,7 @@ def getConceptCodes_withAttributes_HISTORICAL(concept_id, concept_history_date, 
      
     codes_with_attr_df = codes_with_attr_df.sort_values(by=['code'])
     codes_with_attr_df = codes_with_attr_df.replace(np.nan, '', regex=True)
+    codes_with_attr_df = codes_with_attr_df.replace(['None'], '', regex=True)
         
     return  codes_with_attr_df.to_dict('records')
 
