@@ -45,13 +45,15 @@
 					<div class="col-sm-6">
 						<input class="form-control" type="text" name="author" id="txtAuthor" data-role="authorinput" value="{{ author|default_if_none:'' }}">
 					</div>	
-					
+				
+				{% if user.is_authenticated %}
 					<div class="col-md-2">
 						<label for="owner">Owner: <i class="help-block-no-break" style="font-size: 10px;">(full user name)</i></label>
 					</div>
 					<div class="col-md-2"> 
 						<input class="form-control" type="text" name="owner" id="txtOwner" data-role="ownerinput" value="{{ owner|default_if_none:'' }}">
-					</div>				
+					</div>	
+				{% endif %}			
 				</div>	
 								
 				<div class="row form-group">
@@ -316,7 +318,7 @@
 			$('#txtTags').tagsinput('removeAll');
 			
 			$('#txtAuthor').val('');
-			$('#txtOwner').val('');
+			
 			
 			$('#concept_brand').val('');
 			$('#concept_brand_img').html('');
@@ -325,11 +327,12 @@
 				$('#show_deleted_concepts').prop("checked", false);
 				$('#show_my_concepts').prop("checked", false);					
 				$('#must_have_published_versions').prop("checked", false);
+				$('#txtOwner').val('');
 			{% endif %}						
 			
 			$('#show_only_validated_concepts').prop("checked", false);
 			
-
+			
 // 			{% if published_count %}
 // 				$('#expand_published_versions').prop("checked", false);
 // 			{% endif %}
