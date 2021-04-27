@@ -686,6 +686,7 @@ def history_workingset_to_csv(request, pk, workingset_history_id):
 
     for concept_id, data in concept_data.iteritems():
         concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version[concept_id]).coding_system.name
+        concept_name = Concept.history.get(id=concept_id , history_id=concept_version[concept_id]).name
         
         rows_no=0
         codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id , concept_version[concept_id])
@@ -699,10 +700,12 @@ def history_workingset_to_csv(request, pk, workingset_history_id):
                                 cc['description'].encode('ascii', 'ignore').decode('ascii'),
                                 concept_coding_system,
                                 concept_id,
-                                concept_version[concept_id]
+                                concept_version[concept_id],
+                                concept_name,
+                                current_ws_version.id,
+                                current_ws_version.history_id, 
+                                current_ws_version.name
                             ]
-                            + [Concept.history.get(id=concept_id , history_id=concept_version[concept_id] ).name] 
-                            + [current_ws_version.id , current_ws_version.history_id , current_ws_version.name]
                             + data)
             
         if rows_no==0:
@@ -711,10 +714,12 @@ def history_workingset_to_csv(request, pk, workingset_history_id):
                                 '',
                                 concept_coding_system,
                                 concept_id,
-                                concept_version[concept_id]
+                                concept_version[concept_id],
+                                concept_name, 
+                                current_ws_version.id,
+                                current_ws_version.history_id,
+                                current_ws_version.name
                             ]
-                            + [Concept.history.get(id=concept_id , history_id=concept_version[concept_id] ).name] 
-                            + [current_ws_version.id , current_ws_version.history_id , current_ws_version.name]
                             + data)
 
     return response      
