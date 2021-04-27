@@ -31,21 +31,16 @@ if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_P
     urlpatterns += [
         url(r'^adminTemp/api_remove_data/', 
             adminTemp.api_remove_data, 
-            name='api_remove_data'),
-        
-#         url(r'^adminTemp/api_remove_longIDfromName/', 
-#             adminTemp.api_remove_longIDfromName, 
-#             name='api_remove_longIDfromName'),
-      
-      
+            name='api_remove_data'),      
     ]
-if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
-    # add URL to some json inputs 
-    urlpatterns += [       
-        url(r'^adminTemp/moveTags/', 
-            adminTemp.moveTags, 
-            name='moveTags'),      
-    ]
+    
+# if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
+#     # add URL to some json inputs 
+#     urlpatterns += [       
+#         url(r'^adminTemp/moveTags/', 
+#             adminTemp.moveTags, 
+#             name='moveTags'),      
+#     ]
 
 
 # ======== Phenotypes ==============================================================================

@@ -108,6 +108,10 @@ def api_remove_data(request):
         
 @login_required    
 def moveTags(request):
+    # not needed any more
+    raise PermissionDenied
+
+
     if not request.user.is_superuser:
         raise PermissionDenied
         
