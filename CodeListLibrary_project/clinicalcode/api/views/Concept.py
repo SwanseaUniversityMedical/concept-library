@@ -617,7 +617,7 @@ def api_concept_create(request):
                                         created_by=request.user,
                                         code=row['code'],
                                         defaults={
-                                                'attributes': row['attributes']
+                                                'attributes': [ row['attributes'][attr_hdr] for attr_hdr in new_concept.code_attribute_header ]
                                             }
                                         )
             
@@ -881,7 +881,7 @@ def api_concept_update(request):
                                         created_by=request.user,
                                         code=row['code'],
                                         defaults={
-                                                'attributes': row['attributes']
+                                                'attributes': [ row['attributes'][attr_hdr] for attr_hdr in update_concept.code_attribute_header ]
                                             }
                                         )
                     
