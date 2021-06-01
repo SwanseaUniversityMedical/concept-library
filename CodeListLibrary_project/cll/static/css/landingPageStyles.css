@@ -1,0 +1,302 @@
+@import url('https://fonts.googleapis.com/css?family=IBM Plex Sans');
+.text-font {
+	font-family: 'IBM Plex Sans';
+}
+
+.search-design {
+	font-style: normal;
+	font-weight: normal;
+}
+
+.data-design {
+	font-style: normal;
+	font-size: 18px;
+	line-height: 31px;
+	letter-spacing: 0.5px;
+}
+
+.number-design {
+	height: 55px;
+	font-style: normal;
+	font-weight: 500;
+	font-size: 36px;
+}
+
+.text-contribute-design {
+	padding-left: 20px;
+	padding-right: 20px;
+	padding-top: 20px;
+	align: center;
+	height: 55px;
+	font-style: normal;
+	font-weight: 400;
+	font-size: 14px;
+}
+
+.header-design {
+	font-size: 42px;
+	font-weight: bold;
+	color: #000000;
+}
+
+.hr {
+	align: center;
+	box-sizing: content-box;
+	height: 10;
+	overflow: visible;
+	margin-top: 30px;
+	margin-bottom: 30px;
+}
+
+.text-size-xxlarge {
+	text-align: center;
+	font-size: 32px;
+}
+
+.text-bottom-header {
+	font-style: normal;
+	font-weight: 500;
+	font-size: 22px;
+	color: #000000;
+	line-height: 31px;
+}
+
+.text-color-medium {
+	color: #000000;
+}
+
+.text-style-center {
+	text-align: center;
+}
+
+.text-padding-top {
+	padding-top: 30px;
+}
+
+.row {
+	padding-bottom: 30px;
+	display: flex;
+	flex-wrap: wrap;
+	margin-right: -15px;
+	margin-left: -15px;
+}
+
+
+/* Dropdown Button */
+
+.dropbtn {
+	background-color: #000000;
+	color: white;
+	padding: 16px;
+	font-size: 16px;
+	border: none;
+	cursor: pointer;
+}
+
+
+/* Dropdown button on hover & focus */
+
+.dropbtn:hover,
+.dropbtn:focus {
+	background-color: #000000;
+}
+
+.big-banner {
+	background-color: #000000 background-image: url("../img/HDRUK/banner_design.jpg");
+	background-position: center;
+	height: 300px;
+}
+
+.banner-pic {
+	padding-left: 500px;
+	height: 200px;
+	width: 700px;
+}
+
+.info-pic {
+	background-image: url("../img/HDRUK/HDRUK_phenotyping_algorithm_web.jpg");
+	backgroung-repeat: no-repeat;
+	height: 336px;
+	width: 466px;
+}
+
+table.spacing {
+	padding-top: 30px;
+	border-spacing: 20px;
+}
+
+.flex {
+	background-color: #000000;
+	background-image: url("../img/HDRUK/banner_design.jpg");
+	height: 300px;
+	display: flex;
+	align-items: center;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	outline: none;
+	list-style: none;
+	font-family: 'IBM Plex Sans';
+}
+
+.search_box {
+	width: 520px;
+	background: #fff;
+	border-radius: 5px;
+	height: 50px;
+	display: flex;
+	padding: 10px;
+	box-shadow: 0 8px 6px -10px #b3c6ff;
+}
+
+.btn {
+	background-color: #475DA7;
+	border: none;
+	color: white;
+	font-size: 20px;
+	cursor: pointer;
+}
+
+.search_box .dropdown {
+	height: 100px;
+	width: 50px;
+	border-right: 2px solid #dde2f1;
+	color: #9fa3b1;
+	position: relative;
+	cursor: pointer;
+}
+
+.search_box .dropdown .default_option {
+	width: 100%;
+	height: 100%;
+	font-size: 16px;
+	padding-left: 20px;
+	padding-right: 38px;
+	padding-top: 5px;
+}
+
+.search_box .dropdown ul {
+	position: absolute;
+	top: 70px;
+	left: -10px;
+	background: #fff;
+	width: 150px;
+	border-radius: 5px;
+	padding: 20px;
+	display: none;
+	box-shadow: 8px 8px 6px -10px #b3c6ff;
+}
+
+.search_box .dropdown ul.active {
+	display: block;
+}
+
+.search_box .dropdown ul li {
+	padding-bottom: 20px;
+}
+
+.search_box .dropdown ul li:last-child {
+	padding-bottom: 0;
+}
+
+.search_box .dropdown ul li:hover {
+	color: #000000;
+}
+
+.search_box .dropdown:before {
+	padding-bottom: 10px;
+	content: "";
+	position: absolute;
+	top: 12px;
+	bottom: 20px;
+	right: 20px;
+	border: 8px solid;
+	border-color: #000000 transparent transparent transparent;
+}
+
+.search_box .search_field {
+	width: 500px;
+	height: 100%;
+	position: relative;
+}
+
+.search_box .search_field .input {
+	width: 100%;
+	height: 100%;
+	border: 0px;
+	font-size: 16px;
+	padding-left: 20px;
+	padding-right: 38px;
+	color: #000000;
+}
+
+.search_box .search_field .fas {
+	position: absolute;
+	top: 6px;
+	right: 10px;
+	font-size: 22px;
+	color: #000000;
+	cursor: pointer;
+}
+
+.paddingText {
+	font-style: normal;
+	font-size: normal;
+	font-size: 14px;
+	line-height: 23px;
+	padding-top: 10px;
+	padding-bottom: 20px;
+}
+
+table.key-principles-spacing {
+	border-collapse: separate;
+	padding-top: 5px;
+	border-spacing: 20px;
+}
+
+
+/* Float four columns side by side */
+
+.column {
+	float: left;
+	width: 50%;
+	padding: 0 10px;
+}
+
+.banner-column {
+	width: 100%;
+	padding: 0 10px;
+}
+
+
+/* Style the counter cards */
+
+.card {
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+	padding: 16px;
+	text-align: center;
+	background-color: #f1f1f1;
+}
+
+.card-icon {
+	position: absolute;
+	left: 12.5%;
+	top: 12.5%;
+	bottom: 31.25%;
+}
+
+.block {
+	display: block;
+	width: 532px;
+	height: 317px;
+	border: none;
+	background-color: #FFFFFF;
+	padding: 14px 28px;
+	cursor: pointer;
+	text-align: center;
+	height: 16px;
+}
+
