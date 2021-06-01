@@ -15,7 +15,9 @@
 			<li><a href="#validation">Validation</a>
 			<li><a href="#Publications">Publications</a>
 			<li><a href="#CodeLists">Clinical Code Lists</a>
-			<li><a href="#permissions">Permissions</a>
+			{% if user.is_authenticated  %}				
+				<li><a href="#permissions">Permissions</a>	
+			{% endif %}	
 			<li><a href="#CodeListsVersions">Version History</a>
 		</ul>
 	</div>
@@ -67,7 +69,7 @@
 							  </ul>
 							</div>
 							
-					{% if user.is_authenticated and not CLL_READ_ONLY %}
+					 {% if user.is_authenticated and not CLL_READ_ONLY %}
 							
 							{% if enable_publish %}
 								{% if is_published %}
@@ -116,9 +118,6 @@
 			
 			
 			
-		
-			
-			
 				{% if user.is_authenticated and not is_latest_version  %}
 					<h2 style="background-color:silver; padding-left:5px;"><i class="fa fa-history" aria-hidden="true"></i>
 					{{ phenotype.name }} <br>(Historical version)
@@ -135,11 +134,6 @@
 					{% endfor %}
 				</h2>
 			
-				<div class="row">
-					<div class="alert alert-success alert-dismissable" id="success-message" style="display: none;" role="alert"></div>
-					<div class="alert alert-danger alert-dismissable" id="error-message" style="display: none;" role="alert"></div>
-				</div>
-
 				
 												
 				<div class="row" style="margin-top: 10px;">
@@ -256,17 +250,26 @@
 				
 				
 					
-				
+		<!--	-------------------------------------------------------------------
+				DEFINITION
+				-------------------------------------------------------------------
+		  -->		
 				
 				<div class="col-sm-12 shadow-frame">
-					<h3 class="paneltitle" style="margin-top:10px"><span id="definition"></span>Definition</h3>
-					<hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />
+					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="definition"></span>Definition</h3>
+					<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
 					{{ phenotype.description|markdownify }}
 				</div>
 				
+				
+				
+		<!--	-------------------------------------------------------------------
+				IMPLEMENTATION
+				-------------------------------------------------------------------
+		  -->					
 				<div class="col-sm-12 shadow-frame">
-					<h3 class="paneltitle" style="margin-top:10px"><span id="implementation"></span>Implementation</h3>
-					<hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />
+					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="implementation"></span>Implementation</h3>
+					<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
 					
 					<div class="markdown-holder">
                         {{ phenotype.implementation|markdownify }}
@@ -283,9 +286,15 @@
 					
 				</div>
 				
+				
+				
+		<!--	-------------------------------------------------------------------
+				VALIDATION
+				-------------------------------------------------------------------
+		  -->						
 				<div class="col-sm-12 shadow-frame">
-					<h3 class="paneltitle" style="margin-top:10px"><span id="validation"></span>Validation</h3>
-					<hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />
+					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="validation"></span>Validation</h3>
+					<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
 					
 				<div class="row" style="margin-top: 10px;">
 						<label class="col-sm-3">Validation performed:</label>
@@ -299,10 +308,16 @@
 		
 				</div>
 				
+				
+		
+		<!--	-------------------------------------------------------------------
+				PUBLICATIONS
+				-------------------------------------------------------------------
+		  -->		
 								
 				<div class="col-sm-12 shadow-frame">
-					<h3 class="paneltitle" style="margin-top:10px"><span id="Publications"></span>Publications</h3>
-					<hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />
+					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="Publications"></span>Publications</h3>
+					<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
 					
 					<div class="markdown-holder">
                     	{% if phenotype.publications|length %}
@@ -318,13 +333,14 @@
 				
 
 
-
-
-
+		<!--	-------------------------------------------------------------------
+				CODE-LIST
+				-------------------------------------------------------------------
+		  -->
 
 <div class="col-sm-12 shadow-frame">
-				<h3 class="paneltitle" id="ClinicalCodeLists" style="margin-top:10px"><span id="CodeLists"></span>Clinical Code List</h3>
-				<hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />
+				<h3 class="paneltitle" id="ClinicalCodeLists" style="margin-top:20px; margin-bottom:20px;"><span id="CodeLists"></span>Clinical Code List</h3>
+				<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
 								
 				<div class="tab-content">
 					<div id="component-tab-div" class="tab-pane {{ component_tab_active }}" >
@@ -519,11 +535,11 @@
 				PERMISSIONS
 				-------------------------------------------------------------------
 		  -->	
+{% if user.is_authenticated  %}		  
 		<div class="col-sm-12 shadow-frame">
-			<h3 class="paneltitle" style="margin-top:10px"><span id="permissions"></span>Permissions</h3>
-			<hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />
+			<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="permissions"></span>Permissions</h3>
+			<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
 			
-			{% if user.is_authenticated  %}
 <!--							<div class="row" style="margin-top: 10px;">
 							<label class="col-sm-3">Created by:</label>
 							<div class="col-sm-3">
@@ -599,9 +615,8 @@
 					</div>
 				</div>
 					
-			{% endif %}
 		</div>
-
+{% endif %}
 				
 				
 			
@@ -609,10 +624,9 @@
 				VERSION HISTORY
 				-------------------------------------------------------------------
 		  -->				
-		<div class="col-sm-12 no-print shadow-frame id="history-section" >
-			<h3 class="paneltitle" id="ClinicalCodeHistory" style="margin-top:10px"><span id="CodeListsVersions"></span>Version History</h3>		
-			<hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />
-			<!-- ################################################################## -->
+		<div class="col-sm-12 no-print shadow-frame" id="history-section" >
+			<h3 class="paneltitle" id="ClinicalCodeHistory" style="margin-top:20px; margin-bottom:20px;"><span id="CodeListsVersions"></span>Version History</h3>		
+			<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
 		
 	  	  	<span>
 	  	  		{% if user.is_authenticated %}
