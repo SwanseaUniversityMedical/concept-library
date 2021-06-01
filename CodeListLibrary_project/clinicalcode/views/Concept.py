@@ -711,6 +711,7 @@ def concept_list(request):
     expand_published_versions = 0   # disable this option
     #expand_published_versions = request.GET.get('expand_published_versions', request.session.get('expand_published_versions', 0))
     must_have_published_versions = request.GET.get('must_have_published_versions', request.session.get('concept_must_have_published_versions', 0))
+    search_form = request.GET.get('search_form', request.session.get('concept_search_form', 'basic-form'))
     
     if request.method == 'POST':
         # get posted parameters
@@ -726,7 +727,7 @@ def concept_list(request):
         concept_brand = request.POST.get('concept_brand', request.CURRENT_BRAND)
         #expand_published_versions = request.POST.get('expand_published_versions', 0)
         must_have_published_versions = request.POST.get('must_have_published_versions', 0)
-
+        search_form = request.POST.get('search_form', 'basic-form')
 
     # store page index variables to session
     request.session['concept_page_size'] = page_size
@@ -741,6 +742,7 @@ def concept_list(request):
     request.session['concept_brand'] = concept_brand
     #request.session['expand_published_versions'] = expand_published_versions    
     request.session['concept_must_have_published_versions'] = must_have_published_versions
+    request.session['concept_search_form'] = search_form
 
     filter_cond = " 1=1 "
     exclude_deleted = True
@@ -835,6 +837,8 @@ def concept_list(request):
         'allowed_to_create': not settings.CLL_READ_ONLY,
         'concept_brand': concept_brand,
         'must_have_published_versions': must_have_published_versions,
+        'allTags': Tag.objects.all().order_by('description'),
+        'search_form': search_form,
         'p_btns': p_btns
         #'expand_published_versions': expand_published_versions,
         #'published_count': PublishedConcept.objects.all().count()
