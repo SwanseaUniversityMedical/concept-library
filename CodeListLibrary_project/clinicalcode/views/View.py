@@ -4,11 +4,17 @@
     ---------------------------------------------------------------------------
 '''
 import logging
+import json
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.contrib.auth.models import Group
 from ..models.Concept import Concept
 from ..models.Component import Component
+from ..models.DataSource import DataSource
+from ..models.Phenotype import Phenotype
+from ..models.PublishedConcept import PublishedConcept
+from ..models.PublishedPhenotype import PublishedPhenotype
+
 from ..permissions import (
     allowed_to_view, allowed_to_edit
 )
@@ -21,6 +27,26 @@ def index(request):
         Display the index homepage.
     '''   
     return render(request, 'clinicalcode/index.html')
+
+def index_HDRUK(request):
+    '''
+        Display the HDR UK homepage.
+    '''   
+
+    return render(request,
+                  'clinicalcode/index_HDRUK.html',
+                  {
+                     # ONLY PUBLISHED COUNTS HERE
+                    'published_concept_count': PublishedConcept.objects.values('concept_id').distinct().count(),
+                    'published_phenotype_count': PublishedPhenotype.objects.values('phenotype_id').distinct().count(),
+                    'published_clinical_codes': 12345,
+                    'datasources_component_count': DataSource.objects.all().count(),
+                    'clinical_terminologies': 9, # number of coding systems
+                    #terminologies to be added soon
+
+                  }
+                  )
+
 
 
 def build_permitted_components_list(user, concept_id, concept_history_id=None, check_published_child_concept=False):

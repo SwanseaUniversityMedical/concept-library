@@ -59,7 +59,7 @@
 						{% for cs in all_CodingSystems %}
 							{% for cs_id in phenotype.clinical_terminologies %}
 								{% if cs.id == cs_id %}
-							   		<span class="tag label label-info">{{ cs.name }}</span>
+							   		<span class="tag label label-primary">{{ cs.name }}</span>
 							   	{% endif %}
 							{% endfor %}						
 						{% endfor %}	

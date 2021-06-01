@@ -410,6 +410,8 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
             
         concept_data.append(c)
          
+    if phenotype['is_deleted'] == True:
+        messages.info(request, "This phenotype has been deleted.")
 
     context = {'phenotype': phenotype, 
                'concept_informations': json.dumps(phenotype['concept_informations']),

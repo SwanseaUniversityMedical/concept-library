@@ -157,9 +157,9 @@ form.example::after {
 
 
 
-.bg-img {
+.bg-img-basic-search {
   /* The image used */
-  background-image: url("../img/bg1.png");
+  /*   background-image: url("../img/bg1.png"); */
 
   min-height: 150px;
 
@@ -168,11 +168,12 @@ form.example::after {
   background-repeat: no-repeat;
   background-size: cover;
   position: relative;
+  background: #F7F9FC;
 }
 
-.bg-img2 {
+.bg-img-advanced-search {
   /* The image used */
-  background-image: url("../img/bg2.png");
+  /*   background-image: url("../img/bg2.png"); */
 
   min-height: 150px;
 
@@ -181,6 +182,7 @@ form.example::after {
   background-repeat: no-repeat;
   background-size: cover;
   position: relative;
+  background: #F7F9FC;
 }
 
 /* Add styles to the form container */
@@ -194,7 +196,7 @@ form.example::after {
 
 .container-1 {
 /*   margin: 0 auto; */
-  width: 70%;
+  width: 90%;
 }
 
 .container_frm-2 {
@@ -207,19 +209,42 @@ form.example::after {
 
 .container-2 {
   margin: 0 auto;
-  width: 80%;
+  width: 100%;
   top: 20px;
 /*   left: 0px; */
-  padding: 10px;
+  padding: 15px;
 }
 
 
 /* Style the counter cards */
 .card {
-  box-shadow: 0 6px 8px 0 rgba(0, 0, 0, 0.2); /* this adds the "card" effect */
+/*   box-shadow: 0 6px 8px 0 rgba(0, 0, 0, 0.2); this adds the "card" effect */
   padding: 20px;
   text-align: left;
 /*   background-color: #f1f1f1; */
+
+/* Auto Layout */
+/* 	display: flex; */
+/* 	flex-direction: column; */
+/* 	align-items: flex-start; */
+	
+	position: static;
+/* 	width: 1088px; */
+/* 	height: 198px; */
+	left: 0px;
+	top: 0px;
+	
+	background: #FFFFFF;
+	border: 1px solid rgba(208, 211, 212, 0.7);
+	box-sizing: border-box;
+	border-radius: 4px;
+	
+	/* Inside Auto Layout */
+	
+	flex: none;
+	order: 0;
+	flex-grow: 0;
+/* 	margin: 16px 0px; */
 }
 
 .card:hover{
@@ -227,16 +252,33 @@ form.example::after {
 }
 
 .card-deleted{
-    background-color:#FCC;
+    background-color:#FCC !important;
 }
 
 .dark-div{
 	background-color:#f7f7f9;
 }
 
-.shadow-frame{
+.shadow-frame-00{
 	border: 1px solid #DFE3E6; 
 	box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
 	padding-bottom:20px;
 	margin-top:18px;
+}
+
+.shadow-frame{
+	border: 1px solid #DFE3E6; 
+/* 	box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1); */
+	padding-bottom:20px;
+	margin-top:18px;
+	border-right: none;
+	border-left: none;
+	border-bottom: none;
+}
+
+.btn-1{
+	background: #FFFFFF;
+	border: 1px solid #475DA7;
+	box-sizing: border-box;
+	border-radius: 4px;
 }
