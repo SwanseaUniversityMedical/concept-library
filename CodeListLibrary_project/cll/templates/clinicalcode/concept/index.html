@@ -6,7 +6,8 @@
 
 {% block container %}
 
-<div id="basic-search" class="bg-img-basic-search">
+
+<div id="basic-search" class="bg-img-basic-search" {% if search_form == 'advanced-form' %} style="display:none;" {% endif %} >
 	<form class="container_frm container-1 example" id="basic-form" action="{% url 'concept_list' %}" method="POST"  >
 	    {% csrf_token %}
 		<div  class="row form-group">
@@ -29,7 +30,7 @@
 </div>
 
 
-<div id="advanced-search" >
+<div id="advanced-search" {% if search_form == 'basic-form' %} style="display:none;" {% endif %} >
 	<h2 class="page-header"><i class="fa fa-list" aria-hidden="true"></i> Concepts</h2>
 	<form id="advanced-form" action="{% url 'concept_list' %}" method="POST" >
 		{% csrf_token %}
