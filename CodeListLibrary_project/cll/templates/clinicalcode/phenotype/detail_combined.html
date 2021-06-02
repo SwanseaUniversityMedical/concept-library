@@ -278,7 +278,8 @@
 					
 					<div class="col-sm-9">
 						{% if phenotype.phenoflowid|length  %}
-							<a  href="https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}" target=_blank >https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}</a> 
+<!-- 							<a  href="https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}" target=_blank >https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}</a>  -->
+							<a  href="{{ phenotype.phenoflowid }}" target=_blank >{{ phenotype.phenoflowid }}</a> 
 						{% else %}
 							&nbsp;
 						{% endif %}	
