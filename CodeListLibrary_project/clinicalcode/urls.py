@@ -12,7 +12,7 @@ from django.conf import settings
 
 from views import (
     View, Concept, ComponentConcept, ComponentExpression,
-    ComponentQueryBuilder, WorkingSet, adminTemp, Phenotype
+    ComponentQueryBuilder, WorkingSet, adminTemp, Phenotype, Admin
 )
 
 urlpatterns = [
@@ -28,15 +28,20 @@ urlpatterns = [
 #======== Admin Temp ===============================================================================
 #======== API testing ==============================================================================
 if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
-    # add URL to some json inputs 
     urlpatterns += [
         url(r'^adminTemp/api_remove_data/', 
             adminTemp.api_remove_data, 
             name='api_remove_data'),      
     ]
     
+if not settings.CLL_READ_ONLY: 
+    urlpatterns += [
+        url(r'^admin/run-stat/', 
+            Admin.run_statistics, 
+            name='HDRUK_run_statistics'),      
+    ]
+    
 # if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
-#     # add URL to some json inputs 
 #     urlpatterns += [       
 #         url(r'^adminTemp/moveTags/', 
 #             adminTemp.moveTags, 

@@ -14,6 +14,7 @@ from ..models.DataSource import DataSource
 from ..models.Phenotype import Phenotype
 from ..models.PublishedConcept import PublishedConcept
 from ..models.PublishedPhenotype import PublishedPhenotype
+from ..models.Statistics import Statistics
 
 from ..permissions import (
     allowed_to_view, allowed_to_edit
@@ -28,24 +29,48 @@ def index(request):
     '''   
     return render(request, 'clinicalcode/index.html')
 
+
 def index_HDRUK(request):
     '''
         Display the HDR UK homepage.
     '''   
-
+    HDRUK_stat = Statistics.objects.get(org__iexact = 'HDRUK', type__iexact = 'landing-page').stat
+    
     return render(request,
                   'clinicalcode/index_HDRUK.html',
                   {
-                     # ONLY PUBLISHED COUNTS HERE
-                    'published_concept_count': PublishedConcept.objects.values('concept_id').distinct().count(),
-                    'published_phenotype_count': PublishedPhenotype.objects.values('phenotype_id').distinct().count(),
-                    'published_clinical_codes': 12345,
-                    'datasources_component_count': DataSource.objects.all().count(),
-                    'clinical_terminologies': 9, # number of coding systems
-                    #terminologies to be added soon
+                    # ONLY PUBLISHED COUNTS HERE
+                    'published_concept_count': HDRUK_stat['published_concept_count'], # PublishedConcept.objects.values('concept_id').distinct().count(),
+                    'published_phenotype_count': HDRUK_stat['published_phenotype_count'], # PublishedPhenotype.objects.values('phenotype_id').distinct().count(),
+                    'published_clinical_codes': HDRUK_stat['published_clinical_codes'], # get_published_clinical_codes(request),
+                    'datasources_component_count': HDRUK_stat['datasources_component_count'], # DataSource.objects.all().count(),
+                    'clinical_terminologies': HDRUK_stat['clinical_terminologies'], # , # number of coding systems
+                    # terminologies to be added soon
 
                   }
-                  )
+                )
+
+def get_published_clinical_codes(request):
+    '''
+        count (none distinct) the clinical codes 
+        in published concepts and phenotypes
+    '''
+
+    from ..db_utils import *
+    count = 0
+    
+    return 65645
+    # count codes in published concepts
+    # (to publish a phenotype you need to publish its concepts first)
+    # so this count will also include any code in published phenotypes as well.
+    
+    published_concepts_id_version = PublishedConcept.objects.values_list('concept_id' , 'concept_history_id')
+    for c in published_concepts_id_version:
+        cc = len(getGroupOfCodesByConceptId_HISTORICAL(concept_id = c[0], concept_history_id = c[1]))
+        count = count + cc
+        
+
+    return count
 
 
 

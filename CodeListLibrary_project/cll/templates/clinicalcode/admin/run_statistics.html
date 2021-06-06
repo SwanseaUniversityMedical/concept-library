@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block title %}
+	Run Statistics - Admin Only
+{% endblock title %}
+
+{% block container %}
+
+{% if request.user.is_superuser %}
+	<h2><i class="fa fa-file-text-o" aria-hidden="true"></i> Run Statistics</h2>
+	{% if errorMsg %}
+		<div class="bs-example">
+		    <div class="alert alert-danger fade in">
+		        <a href="#" class="close" data-dismiss="alert">&times;</a>
+		        <strong>Errors!</strong>
+				<br>
+		        <ul>
+		            {% for error in errorMsg %}
+	                	<li>{{ error|safe }}</li> 			                		            	                 
+		            {% endfor %}
+		        </ul>
+		    </div>
+		</div>
+	{% endif %}
+	
+	{% if successMsg %}
+		<div class="bs-example">
+		    <div class="alert alert-success fade in">
+		        <a href="#" class="close" data-dismiss="alert">&times;</a>
+		        <strong>Success!</strong>
+		        <br>
+		        <ul>
+		            {% for msg in successMsg %}
+		            <li>{{ msg|safe }}</li>
+		            {% endfor %}
+		        </ul>
+		    </div>
+		</div>
+	{% endif %}	
+	
+	<div class="panel panel-default">
+		<div class="panel-body">
+			<div class="row">
+				<div class="col-md-12">	
+				
+					<div class="bs-example"> 
+					    <div class="alert alert-success fade in">
+					        <a href="#" class="close" data-dismiss="alert">&times;</a>
+					        <strong>Success!</strong>
+					        <br>
+					        <ul>
+					            {% for s in stat %}
+					            	<li>{{ s|safe }}</li>            
+					            {% endfor %}
+					        </ul>
+					    </div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+{% endif %}				
+
+
+{% endblock container %}
+
+
+{% block scripts %}
+
+{% endblock scripts %}
