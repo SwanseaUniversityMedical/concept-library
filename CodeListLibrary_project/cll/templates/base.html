@@ -33,10 +33,10 @@
 		<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans&display=swap" rel="stylesheet">
 
 		{% block styles %}
-		<link href="{% static 'css/main.css' %}" rel="stylesheet" />
-		{% if request.CURRENT_BRAND|length %}
-		<link href="{% static 'css/brands/' %}{{request.CURRENT_BRAND}}/brand.css" rel="stylesheet" />
-		{% endif %}
+			<link href="{% static 'css/main.css' %}" rel="stylesheet" />
+			{% if request.CURRENT_BRAND|length %}
+				<link href="{% static 'css/brands/' %}{{request.CURRENT_BRAND}}/brand.css" rel="stylesheet" />
+			{% endif %}
 		{% endblock styles %}
 
 		{% block head %}{% endblock head %}
@@ -50,56 +50,66 @@
 	
 	<body>
 		<div class="loader" style="display:none;"></div>
-		<nav class="navbar navbar-inverse navbar-fixed-top">
-		<span style="color:yellow;position:absolute;left: 0;top: 0;">{{ DEV_PRODUCTION|safe }}</span>
-			<div class="container">
+		<nav id="nav_bar_main" class="navbar navbar-defaultxxx navbar-fixed-top">
+ 			<div class="container-fluid" id="nav_bar_main" >  <!--<div class="container"  id="nav_bar_main"  > -->
 				<div id="navbar" class="navbar-collapse collapse">
 					<div class="navbar-header">
 						
 						{% if request.CURRENT_BRAND|length %}
-							<a id="logo-link"  class="navbar-brand" 
+							<a id="logo-link"  class="navbar-brand"   rel="noopener noreferrer"
 							    {% if request.CURRENT_BRAND_WEBSITE|length %}
 							 	  href="{{ request.CURRENT_BRAND_WEBSITE }}"
 							    {% endif %}
                               target=_blank >
-								<img style="margin-top: -10px;" src="{% static 'img/brands/' %}{{request.CURRENT_BRAND}}/header_logo.png" height="45px"  alt="{{request.CURRENT_BRAND}} Logo" />
+								<img styleX="margin-top: -10px;" src="{% static 'img/brands/' %}{{request.CURRENT_BRAND}}/header_logo.png" height="25px"  alt="{{request.CURRENT_BRAND}} Logo" />
 							</a>
 						{% endif %}
-						
+
+						<a id="logo-hdruk"  href="https://www.hdruk.ac.uk/" target=_blank  class="navbar-brand"  rel="noopener noreferrer" >
+							<img style="margin-top: -5px;" src="{% static 'img/HDRUK/logo.png' %}" height="25px"  alt="HDR UK Logo" />
+						</a>
+												
 						<a id="logo-link-cl"  href="/{% if request.CURRENT_BRAND|length %}
 								{{ request.CURRENT_BRAND }}/home/
 								{% else %}home/
-								{% endif %}"  class="navbar-brand" >
-							<img style="margin-top: -10px;" 
-							src="{% static 'img/' %}{% if request.CURRENT_BRAND|length %}
-								brands/{{request.CURRENT_BRAND}}/cl_logo_dark_1600px_{{ request.CURRENT_BRAND }}.png
-								{% else %}
-								cl_logo_dark_1600px.png
-								{% endif %}" 
-							height="45px"  alt="Concept Library Logo" />
+								{% endif %}"  class="navbar-brand">
+							 
+<!-- 							<img style="margin-top: -10px;"  -->
+<!-- 							src="{% static 'img/' %}{% if request.CURRENT_BRAND|length %} -->
+<!-- 								brands/{{request.CURRENT_BRAND}}/cl_logo_dark_1600px_{{ request.CURRENT_BRAND }}.png -->
+<!-- 								{% else %} -->
+<!-- 								cl_logo_dark_1600px.png -->
+<!-- 								{% endif %}"  -->
+<!-- 							height="25px"  alt="Concept Library Logo" /> -->
+							<span class="CL-title"><i class="glyphicon glyphicon-home" aria-hidden="true"></i> <strong>Concept Library</strong></span>
 						</a>
+						
+						<span style="background-color: black; color: yellow;">{{ DEV_PRODUCTION|safe }}</span>
+<!-- 						<span style="color:yellow;position:absolute;left: 0;top: 0;">{{ DEV_PRODUCTION|safe }}</span> -->
 						
 					</div>
 					
-					
-					<ul class="list-inline nav navbar-nav" id='prjnavtabs' >
+			<div class="navbar-header" style="float: right !important;">			
+					<ul class="list-inline nav navbar-nav CL-tabs" id='prjnavtabs' styleXX="float: right !important;">
+						
+						<li id="phenotype_li">
+							<a id="phenotype_a" class="main_menu nav-bar-title" style00='color:black;' href="{% url 'phenotype_list' %}">Phenotypes</a>
+						</li>
+						
+						
 						<li id="concept_li" >
-							<a id="concept_a"  class="main_menu" href="{% url 'concept_list' %}">Concepts</a>
+							<a id="concept_a"  class="main_menu nav-bar-title" href="{% url 'concept_list' %}">Concepts</a>
 						</li>					
 
 						{% if user.is_authenticated %}					
 							<li id="workingset_li"  >
-								<a id="workingset_a" class="main_menu" href="{% url 'workingset_list' %}">Working Sets</a>
+								<a id="workingset_a" class="main_menu nav-bar-title" href="{% url 'workingset_list' %}">Working Sets</a>
 							</li>	
 						{% endif %}		
 							
-						<li id="phenotype_li">
-							<a id="phenotype_a" class="main_menu" href="{% url 'phenotype_list' %}">Phenotypes</a>
-						</li>
-						
 						{% if user.is_authenticated %}	
 							<li id="api_li"  >
-								<a id="api_a" class="main_menu"   
+								<a id="api_a" class="main_menu  nav-bar-title"   
 								 {% if request.CURRENT_BRAND|length %}
 								 	href="/{{ request.CURRENT_BRAND }}/api/"
 								 {% else %}
@@ -110,22 +120,45 @@
 						{% endif %}		
 							
 						{% if request.user.is_superuser and SHOWADMIN and not CLL_READ_ONLY %}
-						   <li id="admin_li"  >
-						  		<a id="admin_a" class="main_menu" href="{% url 'admin:index' %}" target=_blank >Admin</a>
+						   <li id="admin_li" >
+						  		<a id="admin_a" class="main_menu  nav-bar-title" href="{% url 'admin:index' %}" target=_blank >Admin</a>
 						   </li>	
-						{% endif %}				
+						{% endif %}		
+						
+						<li id="about_li" class="dropdown active">
+	                        <a href="https://portal.caliberresearch.org/about" class="dropdown-toggle active  nav-bar-title" 
+	                          data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">About <span class="caret"></span></a>
+	                        <ul class="dropdown-menu">                                                   
+	                                    <li>
+	                                        <a href="https://portal.caliberresearch.org/about" class="active"   target=_blank rel="noopener noreferrer" >About the project</a>
+	                                    </li>                                                            
+	                                
+	                                    <li>
+	                                        <a href="https://portal.caliberresearch.org/team"  target=_blank rel="noopener noreferrer" >Team</a>
+	                                    </li>                                                           
+	                                
+	                                    <li>
+	                                        <a href="https://portal.caliberresearch.org/tech"  target=_blank rel="noopener noreferrer" >Technical details</a>
+	                                    </li>                                                            
+	                                
+	                                    <li>
+	                                        <a href="https://portal.caliberresearch.org/covid-19"  target=_blank rel="noopener noreferrer" >COVID-19 response</a>
+	                                    </li>                                                                                                                       
+	                        </ul>
+                    	</li>
+								
 					</ul>
 					
 
 									
-					<div class="navbar-header" style="float: right !important;">
+	
 					   	 
 					   	 {% if request.user.is_superuser and user.is_authenticated and request.session.all_brands %}
 						   <div class="nav navbar-nav">
 						    <span {% if not request.CURRENT_BRAND|length %}
-						            style="color: white;"
+						            styleXX="color: white;"
 						          {% endif %}	   
-						    >&nbsp;&nbsp;&nbsp;Brand</span>
+						    class=" nav-bar-title" >&nbsp;&nbsp;&nbsp;Brand</span>
 							  <p class="active" style="position:relative;display: block;padding: 2px 5px">
 							     <select  name="userBrand" id="userBrand"  >  
 								    <option value=""  style='background-color: lightgreen;' >Default</option>
@@ -146,7 +179,7 @@
 						
 						<p class="navbar-text">
 							{% if CLL_READ_ONLY %}
-							   <span style="color:yellow;">read only&nbsp;&nbsp;</span>	
+							   <span style="background-color: black; color: yellow;">read only&nbsp;&nbsp;</span>	
 							{% endif %}		
 						
 							{% if user.is_authenticated %}
@@ -157,15 +190,15 @@
 								
 								{% if not CLL_READ_ONLY and 1 == 2 %}
 									<i class="glyphicon glyphicon-lock" aria-hidden="true"></i>
-									<a  href="{% url 'password_change' %}">Change Password</a>
+									<a class="navbar-link nav-bar-title" href="{% url 'password_change' %}">Change Password</a>
 								  <span style="width: 20px;">&nbsp;</span>
 								{% endif %}	
 								
-								<a class="navbar-link" href="{% url 'logout' %}?next={% url 'concept_list' %}">
+								<a class="navbar-link nav-bar-title" href="{% url 'logout' %}?next={% url 'concept_list' %}">
 									<i class="fa fa-sign-out" aria-hidden="true"></i> Log out
 								</a>
 							{% else %}
-								<a class="navbar-link" href="{% url 'login' %}?next={{ request.path|urlencode }}">
+								<a class="navbar-link nav-bar-title" href="{% url 'login' %}?next={{ request.path|urlencode }}">
 									<i class="fa fa-sign-in" aria-hidden="true"></i> Log in
 								</a>
 							{% endif %}
@@ -175,6 +208,11 @@
 				</div>
 			</div>
 		</nav>
+		
+		<div class="container-fluid centered">						
+			{% block container_fluid %}{% endblock container_fluid %}
+		</div>
+			
 		<div class="container">			
 			{% block messages %}
 				{% if messages %}
@@ -198,21 +236,32 @@
 			</div>
 		</div>
 		<br/>
+		
 		<!-- SITE FOOTER -->
 		{% block footer %}
-		<footer>
+		<footer id="footer_main">
 			<div class="container" id="baseFooter" >
-			    <span style="color:yellow;">{{ DEV_PRODUCTION|safe }}</span>
+			<hr>
+
 				<p>Copyright &copy; {% now 'Y' %} - SAIL Databank - Swansea University. All rights reserved.</p>	
 				
-				<div class="navbar-header">
+				<div class="navbar-header" style="background-color: #243060;">
 					<a href="http://saildatabank.com" target=_blank  class="navbar-brand" rel="noopener noreferrer">
-						<img style="margin-top: -10px;" src="{% static 'img/SAIL2-d.png' %}" height="45px"  alt="SAIL Databank Logo" />
+						<img style="margin-top: -10px;" src="{% static 'img/SAIL2-d.png' %}" height="30px"  alt="SAIL Databank Logo" />
 					</a>
 					<a href="http://www.swansea.ac.uk" target=_blank  class="navbar-brand" rel="noopener noreferrer">
-						<img style="margin-top: -10px;" src="{% static 'img/logo.png' %}" height="45px" alt="Swansea University Logo" />
+						<img style="margin-top: -10px;" src="{% static 'img/logo.png' %}" height="30px" alt="Swansea University Logo" />
 					</a>	
-				</div>					    
+				</div>		
+				
+				{% if DEV_PRODUCTION|length %}
+				<div class="row ">
+			    	<div class="col-xs-offset-3 col-xs-9 text-right">
+			    		<span class="alert alert-warning" role="alert">{{ DEV_PRODUCTION|safe }}</span>
+			    	</div>
+			    </div>
+			    {% endif %}
+			    			    
 			</div>
 		</footer>	 
 		{% endblock footer %}

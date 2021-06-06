@@ -122,7 +122,9 @@
 					<h2 style="background-color:silver; padding-left:5px;"><i class="fa fa-history" aria-hidden="true"></i>
 					{{ phenotype.name }} <br>(Historical version)
 				{% else %}
-					<h2><img src="{% static 'img/sail.svg' %}">
+					<h2>
+					<i class="fa fa-file-o" aria-hidden="true"></i>
+<!-- 					<img src="{% static 'img/sail.svg' %}"> -->
 					{{ phenotype.name }}	
 				{% endif %}	
 					{% for item in request.BRAND_GROUPS %}
