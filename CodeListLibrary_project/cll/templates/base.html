@@ -15,7 +15,14 @@
     	<meta name="description" content="{% block description %}{% endblock description %}">
     	<link rel="shortcut icon" href="{% static 'img/favicon.ico' %}">
     	
-    	<title>Concept Library {% block title %}{% endblock title %}</title>    	
+    	<title>
+			{% if request.CURRENT_BRAND|length and request.BRAND_OBJECT.site_title is not none %}
+				{{ request.BRAND_OBJECT.site_title }}
+			{% else %}
+				Concept Library
+			{% endif %} 
+    		 {% block title %}{% endblock title %}
+    	</title>    	
 		
 		<!-- core styles -->
 		<link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" />

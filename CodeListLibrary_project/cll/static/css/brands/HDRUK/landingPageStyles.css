@@ -22,6 +22,13 @@
 	font-size: 36px;
 }
 
+.welcome-text-design {
+
+    font-weight: 400;
+    font-style: normal;
+    font-size: 18px;
+}
+
 .text-contribute-design {
 	padding-left: 20px;
 	padding-right: 20px;
@@ -102,7 +109,9 @@
 }
 
 .big-banner {
-	background-color: #000000 background-image: url("../../../img/brands/HDRUK/banner_design.jpg");
+	background-color: #000000;
+	background-image: url("../../../img/brands/HDRUK/banner_design.jpg");
+	background-repeat: no-repeat;
 	background-position: center;
 	height: 300px;
 }
@@ -115,7 +124,7 @@
 
 .info-pic {
 	background-image: url("../../../img/brands/HDRUK/HDRUK_phenotyping_algorithm_web.jpg");
-	backgroung-repeat: no-repeat;
+	background-repeat: no-repeat;
 	height: 336px;
 	width: 466px;
 }
@@ -128,6 +137,7 @@ table.spacing {
 .flex {
 	background-color: #000000;
 	background-image: url("../../../img/brands/HDRUK/banner_design.jpg");
+	background-repeat: no-repeat;
 	height: 300px;
 	display: flex;
 	align-items: center;
@@ -143,7 +153,7 @@ table.spacing {
 }
 
 .search_box {
-	width: 520px;
+	width: 460px;
 	background: #fff;
 	border-radius: 5px;
 	height: 50px;
@@ -281,6 +291,10 @@ table.key-principles-spacing {
 	background-color: #f1f1f1;
 }
 
+.pointer {
+    cursor: pointer;
+}
+
 .card-icon {
 	position: absolute;
 	left: 12.5%;
@@ -293,7 +307,6 @@ table.key-principles-spacing {
 	width: 532px;
 	height: 317px;
 	border: none;
-	background-color: #FFFFFF;
 	padding: 14px 28px;
 	cursor: pointer;
 	text-align: center;

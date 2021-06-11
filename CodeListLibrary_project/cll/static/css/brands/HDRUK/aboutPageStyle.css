@@ -1,0 +1,178 @@
+@import url('https://fonts.googleapis.com/css?family=IBM Plex Sans');
+.text-font {
+	font-family: 'IBM Plex Sans';
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	outline: none;
+	list-style: none;
+	font-family: 'IBM Plex Sans';
+}
+
+
+  .text-rubric-design {
+	font-style: normal;
+	font-weight: 600;
+	font-size: 16px;
+	cursor: pointer;
+	text-align:left;
+	padding-bottom:10px;
+
+}
+
+  .text-rubric-design-v2 {
+	font-style: normal;
+	font-weight: 600;
+	font-size: 16px;
+	cursor: pointer;
+	text-align:left;
+
+}
+
+.header-content-design {
+    padding-top:20px;
+   padding-bottom:30px;
+   align:left;
+   font-style: normal;
+   font-weight:600;
+   font-size:36px;
+}
+
+.sm-header-design {
+   align:left;
+   font-style: normal;
+   font-weight:500;
+   font-size:16px;
+}
+
+.medium-header-design {
+    padding-top:30px;
+    padding-bottom:30px;
+   align:left;
+   font-style: normal;
+   font-weight:600;
+   font-size:26px;
+}
+:target:before {
+    content: "";
+    display: block;
+    margin-top:-26px;
+    height:60px;
+}
+
+
+.header-design {
+    font-style: normal;
+    font-size: 30px;
+}
+
+.row {
+align:center;
+	display: flex;
+	flex-wrap: wrap;
+	margin-right: -15px;
+	margin-left: -15px;
+	padding-top: 30px;
+
+}
+
+.column {
+	float: left;
+	width: 50%;
+	padding: 30px;
+}
+
+table.spacing {
+	padding-top: 30px;
+	border-spacing: 20px;
+}
+
+.member-photo-design {
+  height:80px;
+  width:80px;
+  background-image: url("../../../img/brands/HDRUK/banner_design.jpg");
+
+}
+
+.member-title-design {
+    font-style:normal;
+    font-weight:500;
+    font-size:20px;
+
+}
+
+.member-position-design {
+    font-style:normal;
+    font-weight:400;
+    font-size:16px;
+}
+
+.member-contact-design {
+    font-style:normal;
+    font-weight:normal;
+    font-size:16px;
+    color: #475DA7;
+}
+
+.member-bio-design {
+    padding-top:10px;
+   font-style: normal;
+   font-weight:400;
+   font-size:16px;
+}
+
+.collaborator-name-design {
+    padding-left:14px;
+    font-style:normal;
+    font-weight:normal;
+    font-size:16px;
+    color: #475DA7;
+}
+
+.collaborator-location-design {
+    font-style:normal;
+    font-weight:normal;
+    font-size:16px;
+    padding-left:16px;
+
+}
+
+.rubric-box{
+
+width:20%; padding-top:30px;
+
+}
+
+ul.left-navbar {
+  	list-style: none;
+	margin: 0;
+	padding: 0;
+	line-height: 2.5em;
+	margin-top: 25px;
+}
+
+ul.left-navbar a {
+  color: black;
+        display: block;
+        padding: 5px;
+        padding-left: 5px;
+        text-decoration: none;
+        outline: none;
+}
+
+ul.left-navbar a.active {
+  	color: #000000;
+        background: #fff;
+        position: relative;
+        border-left: 5px solid #3D70B2;
+	background: #475DA70D;
+	font-weight: bold;
+
+}
+
+div.hideleft-navbar {
+  padding: 20px;
+}

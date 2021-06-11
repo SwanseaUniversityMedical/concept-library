@@ -25,11 +25,11 @@ ul.left-navbar a.active {
 
 }
 
-.checkbox input {
+.validation-checkbox input {
   position: relative;
 }
 
-.checkbox input::before {
+.validation-checkbox input::before {
   position: absolute;
   content: "";
   height: 20px;
@@ -44,12 +44,12 @@ ul.left-navbar a.active {
   transition: 0.3s all ease;
 }
 
-.checkbox input:checked::before {
+.validation-checkbox input:checked::before {
   background-color: green;
   border: 1px solid green;
 }
 
-.checkbox input:checked::after {
+.validation-checkbox input:checked::after {
   position: absolute;
   content: "\f00c"; 
   font-family: "FontAwesome"; 

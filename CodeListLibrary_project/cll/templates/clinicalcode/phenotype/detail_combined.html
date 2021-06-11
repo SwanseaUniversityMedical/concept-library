@@ -5,6 +5,7 @@
 
 {% block title %}| Historical phenotype{% endblock title %}
 
+
 {% block crumbs %}
 	<a class="nav-bar-title underline" href="{% url 'phenotype_list' %}">Phenotypes</a>
     > <strong>{{ phenotype.name }}</strong> 
@@ -14,7 +15,7 @@
 {% block container %}
 <div class="row">
 	<div class="col-sm-2 hideleft-navbar" id="PhenotypeMenu"; style="padding-top: 20px; position: sticky; position: -webkit-sticky; top: 60px;">
-		<ul class="left-navbar" onclick="showSelection(event)" id='navList'>
+		<ul class="left-navbar active" onclick="showSelection(event)" id='navList'>
 			<li><a href="#home" id="Homelinkid">Home</a>					
 			<li><a href="#definition">Definition</a>
 			<li><a href="#implementation">Implementation</a>
@@ -30,7 +31,7 @@
 			
 			
 			
-	<h3><span id="home"></span></h3>
+	<h3><span id="home" style="margin-top: -80px;"></span></h3>
 		<div class="col-sm-10">
 			
 			<span id="topButtons">			
@@ -117,12 +118,12 @@
 				</span>
 			
 			<div class="col-md-12">
-				<div class="col-md-6" style="margin-left: -10px">
+				<div classXX="col-md-6" styleXX="margin-left: -10px">
 				{% if user.is_authenticated and not is_latest_version  %}
 					<h2 style="background-color:silver; padding-left:5px;"><i class="fa fa-history" aria-hidden="true"></i>
 					<strong>{{ phenotype.name }}</strong> <br>(Historical version)
 				{% else %}
-					<h2><img src="{% static 'img/sail.svg' %}">
+					<h2>
 					<strong>{{ phenotype.name }}</strong>	
 				{% endif %}	
 					{% for item in request.BRAND_GROUPS %}
@@ -275,7 +276,7 @@
 				
 				<div class="col-sm-12 shadow-frame">
 					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="definition"></span><strong>Definition</strong></h3>
-					<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
+					
 					{{ phenotype.description | markdownify }}
 				</div>
 				
@@ -287,7 +288,7 @@
 		  -->					
 				<div class="col-sm-12 shadow-frame">
 					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="implementation"></span><strong>Implementation</strong></h3>
-					<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
+					
 					
 					<div class="markdown-holder">
                         {{ phenotype.implementation|markdownify }}
@@ -315,17 +316,20 @@
 		  -->						
 				<div class="col-sm-12 shadow-frame">
 					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="validation"></span><strong>Validation</strong></h3>
-					<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
 					
-				<div class="row" style="margin-top:10px;">
-						<div class="col-sm-3">Validation performed:</div>
-							<div class="col-sm-9" style="margin-top: -10px"><div class="checkbox"> <input type="checkbox" {% if phenotype.validation_performed %}checked="checked" {% endif %} disabled /></div>
-						</div>
+					
+					<div class="row" style="margin-top:10px;">
+						<div class="col-sm-3">Validation performed</div>
+							<div class="col-sm-9" style="margin-top: -10px">
+								<div class="validation-checkbox">
+									 <input type="checkbox" {% if phenotype.validation_performed %}checked="checked" {% endif %} disabled />
+								</div>
+							</div>
 					</div>
 					<div class="row"></div>
 					
 					<div class="row" style="margin-top:10px;">
-						<div class="col-sm-3">Validation:</div>
+						<div class="col-sm-3">Validation</div>
 						<div class="col-sm-9" style="margin-left: -20px;">{{ phenotype.validation }}</div>
 					</div>
 		
@@ -340,7 +344,7 @@
 								
 				<div class="col-sm-12 shadow-frame">
 					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="Publications"></span><strong>Publications</strong></h3>
-					<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
+					
 					
 					<div class="markdown-holder">
                     	{% if phenotype.publications|length %}
@@ -363,7 +367,7 @@
 
 <div class="col-sm-12 shadow-frame">
 				<h3 class="paneltitle" id="ClinicalCodeLists" style="margin-top:20px; margin-bottom:20px;"><span id="CodeLists"></span><strong>Clinical Code List</strong></h3>
-				<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
+				
 								
 				<div class="tab-content">
 					<div id="component-tab-div" class="tab-pane {{ component_tab_active }}" >
@@ -561,24 +565,24 @@
 {% if user.is_authenticated  %}		  
 		<div class="col-sm-12 shadow-frame">
 			<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="permissions"></span><strong>Permissions</strong></h3>
-			<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
+			
 			
 <!--							<div class="row" style="margin-top: 10px;">
-							<label class="col-sm-3">Created by:</label>
+							<div  class="col-sm-3">Created by</div>
 							<div class="col-sm-3">
 								{{ phenotype.created_by_username }}
 							</div>
-							<label class="col-sm-3 ">On:</label>
+							<div  class="col-sm-3 ">On</div>
 							<div class="col-sm-3">
 								{{ phenotype.created }}
 							</div>
 						</div>
 						<div class="row">
-							<label class="col-sm-3">Modified by:</label>
+							<div  class="col-sm-3">Modified by</div>
 							<div class="col-sm-3">
 								{{ phenotype.modified_by_username }}
 							</div>
-							<label class="col-sm-3">On:</label>
+							<div  class="col-sm-3">On</div>
 							<div class="col-sm-3">
 								{{ phenotype.modified }}
 							</div>
@@ -586,11 +590,11 @@
 -->					
 					
 				<div id="permissions" class="row">
-					<label class="col-sm-3 ">Owner:</label>
+					<div  class="col-sm-3 ">Owner</div>
 					<div class="col-sm-3">
 						{{ phenotype.owner.username }}
 					</div>
-					<label class="col-sm-3">Owner access:</label>
+					<div  class="col-sm-3">Owner access</div>
 					<div class="col-sm-3">								
 						{% if phenotype.owner_access == 1 %}	
 							<span>None</span>
@@ -605,11 +609,11 @@
 				</div>
 				
 				<div id="permissions" class="row">
-					<label class="col-sm-3">Group:</label>
+					<div  class="col-sm-3">Group</div>
 					<div class="col-sm-3">
 						{{ phenotype.group }}
 					</div>
-					<label class="col-sm-3">Group access:</label>
+					<div  class="col-sm-3">Group access</div>
 					<div class="col-sm-3">
 						{% if phenotype.group_access == 1 %}	
 							<span>No access</span>
@@ -624,7 +628,7 @@
 				</div>
 				
 				<div id="permissions" class="row">
-					<label class="col-sm-3">Everyone else access:</label>
+					<div  class="col-sm-3">Everyone else access</div>
 					<div class="col-sm-9">
 						{% if phenotype.world_access == 1 %}	
 							<span>No access</span>
@@ -649,7 +653,7 @@
 		  -->				
 		<div class="col-sm-12 no-print shadow-frame" id="history-section" >
 			<h3 class="paneltitle" id="ClinicalCodeHistory" style="margin-top:20px; margin-bottom:20px;"><span id="CodeListsVersions"></span><strong>Version History</strong></h3>		
-			<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
+			
 		
 	  	  	<span>
 	  	  		{% if user.is_authenticated %}
@@ -855,12 +859,13 @@
 		}
 	</script>
 	
+
 	<script type="text/javascript">
 	 	window.onload=function(){
   			document.getElementById("Homelinkid").click();
 	 	};
 	</script>
-	
+			
 
 
 

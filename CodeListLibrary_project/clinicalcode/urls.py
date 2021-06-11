@@ -27,10 +27,7 @@ urlpatterns = [
 
 # About pages
 urlpatterns += [
-    # main CL about page
-    url(r'^about/(?P<pg_name>\w+)/$', View.about_pages, name='about_page' ),
-
-    # brand about pages
+    # brand/main about pages
     url(r'^about/(?P<pg_name>\w+)/$', View.about_pages, name='about_page' ),
 
 ]
