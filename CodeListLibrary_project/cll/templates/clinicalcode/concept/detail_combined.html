@@ -15,9 +15,9 @@
 {% block container %}
 
 <div class="row">
-	<div class="col-md-2" id="PhenotypeMenu"; style="padding-top: 20px; position: sticky; position: -webkit-sticky; top: 60px;">
-		<ul style="list-style-type: none; margin: 0; padding: 0;line-height: 1.5em;" >
-			<li><a href="#home">Home</a>					
+	<div class="col-sm-2 hideleft-navbar" id="PhenotypeMenu"; style="padding-top: 20px; position: sticky; position: -webkit-sticky; top: 60px;">
+		<ul class="left-navbar" onclick="showSelection(event)" id='navList'>
+			<li><a href="#home" id="Homelinkid">Home</a>					
 			<li><a href="#description">Description</a>
 			<li><a href="#validation">Validation</a>
 			<li><a href="#Publications">Publications</a>
@@ -28,6 +28,7 @@
 			<li><a href="#conceptVersions">Version History</a>
 		</ul>
 	</div>
+			
 
 
 	<h3><span id="home"></span></h3>
@@ -772,8 +773,23 @@
 
 		}
 
-
 	</script>
+
+	<script type="text/javascript">	
+		function showSelection(e) {
+  		if (document.querySelector('#navList a.active') !== null) {
+    		document.querySelector('#navList a.active').classList.remove('active');
+  		}
+		e.target.className = "active";
+		}
+	</script>
+	
+	<script type="text/javascript">
+	 	window.onload=function(){
+  			document.getElementById("Homelinkid").click();
+	 	};
+	</script>
+		
 
 
 {% endblock scripts %}

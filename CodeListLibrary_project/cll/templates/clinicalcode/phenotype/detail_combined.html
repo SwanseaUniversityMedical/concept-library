@@ -5,19 +5,17 @@
 
 {% block title %}| Historical phenotype{% endblock title %}
 
-
 {% block crumbs %}
 	<a class="nav-bar-title underline" href="{% url 'phenotype_list' %}">Phenotypes</a>
     > <strong>{{ phenotype.name }}</strong> 
 {% endblock crumbs %}
 
 	
-			
 {% block container %}
 <div class="row">
-	<div class="col-md-2" id="PhenotypeMenu"; style="padding-top: 20px; position: sticky; position: -webkit-sticky; top: 60px;">
-		<ul style="list-style-type: none; margin: 0; padding: 0;line-height: 1.5em;" >
-			<li><a href="#home">Home</a>					
+	<div class="col-sm-2 hideleft-navbar" id="PhenotypeMenu"; style="padding-top: 20px; position: sticky; position: -webkit-sticky; top: 60px;">
+		<ul class="left-navbar" onclick="showSelection(event)" id='navList'>
+			<li><a href="#home" id="Homelinkid">Home</a>					
 			<li><a href="#definition">Definition</a>
 			<li><a href="#implementation">Implementation</a>
 			<li><a href="#validation">Validation</a>
@@ -33,14 +31,11 @@
 			
 			
 	<h3><span id="home"></span></h3>
-		<div class="col-md-10">
+		<div class="col-sm-10">
 			
 			<span id="topButtons">			
-					<div class="row">
+					<div class="row" style="margin-left: 2px">
 						<div class="col-sm-12 text-right">
-<!-- 							<a href="{% url "phenotype_list" %}" class="btn btn-success"> -->
-<!-- 								<i class="fa fa-reply" aria-hidden="true"></i> Return to list -->
-<!-- 							</a> -->
 							
 						   <div class="dropdown btn-group" > 
 							  <button {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="export-btn">
@@ -107,9 +102,7 @@
 							
 					 {% endif %}
 					 	
-					 						
-<!-- 						</div> -->
-<!-- 						<div class="col-md-2 text-right"> -->
+
 							<a id="printBtn" class="btn btn-primary">
 								<i class="fa fa-print" aria-hidden="true"></i> Print
 							</a>
@@ -121,19 +114,16 @@
 			
 					<div class="alert alert-success alert-dismissable" id="success-message" style="display: none;" role="alert"></div>
 					<div class="alert alert-danger alert-dismissable" id="error-message" style="display: none;" role="alert"></div>
-<!-- 					<hr/>	 -->
 				</span>
 			
-			
-			
+			<div class="col-md-12">
+				<div class="col-md-6" style="margin-left: -10px">
 				{% if user.is_authenticated and not is_latest_version  %}
 					<h2 style="background-color:silver; padding-left:5px;"><i class="fa fa-history" aria-hidden="true"></i>
-					{{ phenotype.name }} <br>(Historical version)
+					<strong>{{ phenotype.name }}</strong> <br>(Historical version)
 				{% else %}
-					<h2>
-<!-- 					<i class="fa fa-file-o" aria-hidden="true"></i> -->
-<!-- 					<img src="{% static 'img/sail.svg' %}"> -->
-					{{ phenotype.name }}	
+					<h2><img src="{% static 'img/sail.svg' %}">
+					<strong>{{ phenotype.name }}</strong>	
 				{% endif %}	
 					{% for item in request.BRAND_GROUPS %}
 						{% for brand, groups in item.iteritems %}
@@ -142,32 +132,36 @@
 							{% endif %}
 						{% endfor %}
 					{% endfor %}
-				</h2>
-			
+					</h2>
 				
-												
+			   	</div>
+				
+				<!--<div class="row" style="margin-top: 10px;">	
+					<div class="sol-sm-2">Type:</div>				
+					<div class="col-sm-10">{{ phenotype.type }}</div>
+				</div>
+				-->
+				<div class="row"></div>
 				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-12">
-						{{ phenotype.author }}
-					</div>
+					<div class="col-sm-2">Type</div>
+					<div class="col-sm-10">
+					<span id="phenotype_type_div" phenotype_type="{{ phenotype.type }}">
+						{{ phenotype.type }}						
+					</span>				
+					</div>	
 				</div>
 				
-				
 				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-12">
-						<strong>{{ phenotype.type }}</strong>
-					</div>
-				</div>
-				
-				
-				
-				<div style="margin-top: 10px;">
-						<label>ID:</label>
-						<span id="phenotype_id_div" phenotype_id="{{ phenotype.id }}">
-							{{ phenotype.id }}						
-						</span>					
-						&nbsp;&nbsp;&nbsp;&nbsp;						
-						<label>Version ID:</label>
+					<div class="col-sm-2">ID</div>
+					<div class="col-sm-10">
+					<span id="phenotype_id_div" phenotype_id="{{ phenotype.id }}">
+						{{ phenotype.id }}						
+					</span>				
+					</div>	
+				</div>								
+					<div class="row" style="margin-top: 10px;">
+						<div class="col-sm-2">Version ID</div>
+						<div class="col-sm-10">
 						<span id="phenotype_history_id_div" phenotype_history_id="{{ phenotype.history_id }}">
 							{{ phenotype.history_id }} 
 							{% if user.is_authenticated %}
@@ -187,25 +181,27 @@
 							{% endif %}				
 						</span>
 						
-						{% if phenotype.modified_by_username %}							
+						<!--{% if phenotype.modified_by_username %}							
 							<span>
-								&nbsp;(Modified on: {{ phenotype.modified }})
+								(Modified on: {{ phenotype.modified }})
 							</span>
 						{% endif %}	
+						-->
+						</div>
+					</div>	
 						
-						&nbsp;&nbsp;&nbsp;&nbsp;
-						<label>UUID:</label>
-						<span>
-							{{ phenotype.phenotype_uuid }}
-						</span>				
-				</div>				
-				
-				
-		
-				
+					<div class="row" style="margin-top: 10px;">
+						<div class="col-sm-2">UUID:</div>
+						<div class="col-sm-10">
+							<span>
+								{{ phenotype.phenotype_uuid }}
+							</span>				
+						</div>
+					</div>			
+										
 				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-12">
-						<strong>Data Sources:</strong>
+					<div class="col-sm-2">Data Sources</div>
+					<div class="col-sm-10">	
 						{% for ds in data_sources %}
 							{% if ds.url|length %}
 								<a  href="{{ ds.url }}" target=_blank >{{ ds.name }}</a>
@@ -220,43 +216,55 @@
 				</div>
 
 				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-12">
-						<strong>Valid Event Data Range:</strong>
-						{{phenotype.valid_event_data_range}}
-						
+					<div class="col-sm-2">Valid event data range</div>
+					<div class="col-sm-10">	
+						{{phenotype.valid_event_data_range}}						
 					</div>
 						
 				</div>
 				
 				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-12">
-						<strong>Sex:</strong>
-						{{phenotype.sex}}
-						
-					</div>
-						
+					<div class="col-sm-2">Sex</div>
+					<div class="col-sm-10">	
+					    {{phenotype.sex}}						
+					</div>						
 				</div>				
 					
+				
 				<div class="row" style="margin-top: 10px;">
-						<div class="col-sm-12">
-							<strong>Clinical Terminologies:</strong>						
+					<div class="col-sm-2">Agreement Date</div>
+					<div class="col-sm-10">
+					    {{ phenotype.hdr_modified_date }} 
+					</div>
+				</div>	
+								
+				<div class="row" style="margin-top: 10px;">
+					<div class="col-sm-2">Author</div>
+					<div class="col-sm-10">
+						{{ phenotype.author }}
+					</div>
+				</div>
+				
+				<div class="row" style="margin-top: 10px;">
+						<div class="col-sm-2">Coding system</div>
+						<div class="col-sm-10">						
 							{% for ct in clinicalTerminologies %}
 							   <span class="tag label label-info">{{ ct.name }}</span>
 							{% endfor %}	
 						</div>
 				</div>	
-				
+				<!--
 				<div class="row" style="margin-top: 10px;">
 					<div class="col-sm-12">
 						{% for tag in tags %}
 							<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
 						{% endfor %}						
-						<em style="font-size: .95em;">Agreement Date:{{ phenotype.hdr_modified_date }} </em>
+						
 											
 					</div>
+				</div>-->
+				
 				</div>
-				
-				
 				
 				
 					
@@ -266,9 +274,9 @@
 		  -->		
 				
 				<div class="col-sm-12 shadow-frame">
-					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="definition"></span>Definition</h3>
+					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="definition"></span><strong>Definition</strong></h3>
 					<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
-					{{ phenotype.description|markdownify }}
+					{{ phenotype.description | markdownify }}
 				</div>
 				
 				
@@ -278,16 +286,18 @@
 				-------------------------------------------------------------------
 		  -->					
 				<div class="col-sm-12 shadow-frame">
-					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="implementation"></span>Implementation</h3>
+					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="implementation"></span><strong>Implementation</strong></h3>
 					<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
 					
 					<div class="markdown-holder">
                         {{ phenotype.implementation|markdownify }}
                     </div>
-					<label class="col-sm-3">PhenoFlow Implementation:</label>
+                    
+                    <br/>
+					<label class="col-sm-3" style="margin-left: -15px">PhenoFlow Implementation:</label>
 					
-					<div class="col-sm-9">
-						{% if phenotype.phenoflowid|length  %}
+					<div class="col-sm-9" style="margin-left: -15px">
+						{% if phenotype.phenoflowid|length %}
 <!-- 							<a  href="https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}" target=_blank >https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}</a>  -->
 							<a  href="{{ phenotype.phenoflowid }}" target=_blank >{{ phenotype.phenoflowid }}</a> 
 						{% else %}
@@ -304,17 +314,19 @@
 				-------------------------------------------------------------------
 		  -->						
 				<div class="col-sm-12 shadow-frame">
-					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="validation"></span>Validation</h3>
+					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="validation"></span><strong>Validation</strong></h3>
 					<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
 					
-				<div class="row" style="margin-top: 10px;">
-						<label class="col-sm-3">Validation performed:</label>
-						<div class="col-sm-9"> <input type="checkbox" {% if phenotype.validation_performed %}checked="checked"{% endif %} disabled /></div>
+				<div class="row" style="margin-top:10px;">
+						<div class="col-sm-3">Validation performed:</div>
+							<div class="col-sm-9" style="margin-top: -10px"><div class="checkbox"> <input type="checkbox" {% if phenotype.validation_performed %}checked="checked" {% endif %} disabled /></div>
+						</div>
 					</div>
-	
-					<div class="row" style="margin-top: 10px;">
-						<label class="col-sm-3">Validation:</label>
-						<div class="col-sm-9">{{ phenotype.validation }}</div>
+					<div class="row"></div>
+					
+					<div class="row" style="margin-top:10px;">
+						<div class="col-sm-3">Validation:</div>
+						<div class="col-sm-9" style="margin-left: -20px;">{{ phenotype.validation }}</div>
 					</div>
 		
 				</div>
@@ -327,7 +339,7 @@
 		  -->		
 								
 				<div class="col-sm-12 shadow-frame">
-					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="Publications"></span>Publications</h3>
+					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="Publications"></span><strong>Publications</strong></h3>
 					<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
 					
 					<div class="markdown-holder">
@@ -350,7 +362,7 @@
 		  -->
 
 <div class="col-sm-12 shadow-frame">
-				<h3 class="paneltitle" id="ClinicalCodeLists" style="margin-top:20px; margin-bottom:20px;"><span id="CodeLists"></span>Clinical Code List</h3>
+				<h3 class="paneltitle" id="ClinicalCodeLists" style="margin-top:20px; margin-bottom:20px;"><span id="CodeLists"></span><strong>Clinical Code List</strong></h3>
 				<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
 								
 				<div class="tab-content">
@@ -548,7 +560,7 @@
 		  -->	
 {% if user.is_authenticated  %}		  
 		<div class="col-sm-12 shadow-frame">
-			<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="permissions"></span>Permissions</h3>
+			<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="permissions"></span><strong>Permissions</strong></h3>
 			<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
 			
 <!--							<div class="row" style="margin-top: 10px;">
@@ -636,7 +648,7 @@
 				-------------------------------------------------------------------
 		  -->				
 		<div class="col-sm-12 no-print shadow-frame" id="history-section" >
-			<h3 class="paneltitle" id="ClinicalCodeHistory" style="margin-top:20px; margin-bottom:20px;"><span id="CodeListsVersions"></span>Version History</h3>		
+			<h3 class="paneltitle" id="ClinicalCodeHistory" style="margin-top:20px; margin-bottom:20px;"><span id="CodeListsVersions"></span><strong>Version History</strong></h3>		
 			<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
 		
 	  	  	<span>
@@ -833,6 +845,20 @@
 	
 	
 		});
+	</script>
+	<script type="text/javascript">	
+		function showSelection(e) {
+  		if (document.querySelector('#navList a.active') !== null) {
+    		document.querySelector('#navList a.active').classList.remove('active');
+  		}
+		e.target.className = "active";
+		}
+	</script>
+	
+	<script type="text/javascript">
+	 	window.onload=function(){
+  			document.getElementById("Homelinkid").click();
+	 	};
 	</script>
 	
 

@@ -24,7 +24,6 @@ from .. import utils
 from ..permissions import *
 from django.utils.timezone import now
 from datetime import datetime
-from nt import stat
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +31,7 @@ from django.core.exceptions import  PermissionDenied
 from django.db import connection, connections #, transaction
 import json
 import os
+
 
 
 @login_required    
