@@ -54,10 +54,13 @@ class brandMiddleware(MiddlewareMixin):
             
             root = current_page_url.split('/')[0]
             root = root.upper()
+            
             request.CURRENT_BRAND = ""
             settings.CURRENT_BRAND = ""
-            request.CURRENT_BRAND_WEBSITE = ""
-            settings.CURRENT_BRAND_WEBSITE = ""
+
+            request.BRAND_OBJECT = {}
+            settings.BRAND_OBJECT = {}
+            
             set_urlconf(None)
             request.urlconf = None
             urlconf = None 
@@ -86,9 +89,9 @@ class brandMiddleware(MiddlewareMixin):
                 settings.CURRENT_BRAND = root
                 request.CURRENT_BRAND = root
                 
-                brand_website = Brand.objects.filter(name__iexact = root).values_list('website', flat=True)
-                settings.CURRENT_BRAND_WEBSITE = brand_website[0] 
-                request.CURRENT_BRAND_WEBSITE = brand_website[0]
+                brand_object = Brand.objects.get(name__iexact = root)                
+                settings.BRAND_OBJECT = brand_object
+                request.BRAND_OBJECT = brand_object
                 
                 request.path_info = '/' + '/'.join([root.upper()] + current_page_url.split('/')[1:])
 #                 print "-------"

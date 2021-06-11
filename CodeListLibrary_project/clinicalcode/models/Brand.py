@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User, Group
 from simple_history.models import HistoricalRecords
 from TimeStampedModel import TimeStampedModel
-
+from django.contrib.postgres.fields import JSONField
 
 class Brand(TimeStampedModel):
     id = models.AutoField(primary_key=True)
@@ -14,6 +14,10 @@ class Brand(TimeStampedModel):
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="brand_owner")
     groups = models.ManyToManyField(Group, related_name="brand_groups")
 
+    site_title = models.CharField(max_length=50, blank=True, null=True)
+    about_menu = JSONField(blank=True, null=True)
+    allowed_tabs = JSONField(blank=True, null=True)
+    
     history = HistoricalRecords()
 
     class Meta:

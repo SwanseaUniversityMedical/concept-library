@@ -5,12 +5,19 @@
 
 {% block title %}| Historical concept{% endblock title %}
 
+
+{% block crumbs %}
+	<a class="nav-bar-title underline" href="{% url 'concept_list' %}">Concepts</a>
+    > <strong>{{ concept.name }}</strong> 
+{% endblock crumbs %}
+
+
 {% block container %}
 
 <div class="row">
-	<div class="col-md-2" id="PhenotypeMenu"; style="padding-top: 20px; position: sticky; position: -webkit-sticky; top: 60px;">
-		<ul style="list-style-type: none; margin: 0; padding: 0;line-height: 1.5em;" >
-			<li><a href="#home">Home</a>					
+	<div class="col-sm-2 hideleft-navbar" id="PhenotypeMenu"; style="padding-top: 20px; position: sticky; position: -webkit-sticky; top: 60px;">
+		<ul class="left-navbar" onclick="showSelection(event)" id='navList'>
+			<li><a href="#home" id="Homelinkid">Home</a>					
 			<li><a href="#description">Description</a>
 			<li><a href="#validation">Validation</a>
 			<li><a href="#Publications">Publications</a>
@@ -21,17 +28,15 @@
 			<li><a href="#conceptVersions">Version History</a>
 		</ul>
 	</div>
+			
 
 
-	<h3><span id="home"></span></h3>
-		<div class="col-md-10">
+	<h3><span id="home" style="margin-top: -80px;"></span></h3>
+		<div class="col-sm-10">
 			
 			<span id="topButtons">			
-					<div class="row">
-						<div class="col-sm-10">
-							<a href="{% url "concept_list" %}" class="btn btn-success">
-								<i class="fa fa-reply" aria-hidden="true"></i> Return to list
-							</a>
+					<div class="row" style="margin-left: 2px">
+						<div class="col-sm-12 text-right">
 							
 						   <div class="dropdown btn-group" > 
 							  <button {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="export-btn">
@@ -113,14 +118,14 @@
 								</a>
 							</span>		
 							
-					 {% endif %}					 	
-						</div>
-						
-						<div class="col-md-2 text-right">
+					 {% endif %}
+					 					 	
+<!-- 						</div>	 -->
+<!-- 						<div class="col-md-2 text-right"> -->
 							<a id="printBtn" class="btn btn-primary">
 								<i class="fa fa-print" aria-hidden="true"></i> Print
 							</a>
-							<a href="#" role="button" class="btn popovers" id="help-hist-concept" data-toggle="popover" data-trigger="hover" data-container="body" title="" data-original-title="" data-placement="right">
+							<a href="#" role="button" class="btn popovers" id="help-hist-concept" data-toggle="popover" data-trigger="hover" data-container="body" title="" data-original-title="" data-placement="left">
 								<i class="fa fa-question-circle" aria-hidden="true"></i>
 							</a>
 						</div>
@@ -128,41 +133,49 @@
 			
 					<div class="alert alert-success alert-dismissable" id="success-message" style="display: none;" role="alert"></div>
 					<div class="alert alert-danger alert-dismissable" id="error-message" style="display: none;" role="alert"></div>
-					<hr/>	
+<!-- 					<hr/>	 -->
 				</span>
 				
-				{% if user.is_authenticated and not is_latest_version  %}
-					<h2 style="background-color:silver; padding-left:5px;"><i class="fa fa-history" aria-hidden="true"></i>
-					{{ concept.name }} <br>(Historical version)
-				{% else %}
-					<h2>
-					<i class="fa fa-file-o" aria-hidden="true"></i>
-<!-- 					<img src="{% static 'img/sail.svg' %}"> -->
-					{{ concept.name }}	
-				{% endif %}	
-					{% for item in request.BRAND_GROUPS %}
-						{% for brand, groups in item.iteritems %}
-							{% if concept.group.name in groups %}
-							<img style="margin-top:-5px;" src="{% static 'img/brands/' %}{{brand}}/logo.png" height="29px" title="{{brand}}" alt="{{brand}}" />
-							{% endif %}
+			<div class="col-md-12">
+				<div classXX="col-md-6" styleXX="margin-left: -10px">
+					<h2>			
+						{% if user.is_authenticated and not is_latest_version  %}
+							<strong>{{ concept.name }}</strong>
+						{% else %}
+							<strong>{{ concept.name }}</strong>	
+						{% endif %}	
+						
+						{% for item in request.BRAND_GROUPS %}
+							{% for brand, groups in item.iteritems %}
+								{% if concept.group.name in groups %}
+								<img style="margin-top:-5px;" src="{% static 'img/brands/' %}{{brand}}/logo.png" height="29px" title="{{brand}}" alt="{{brand}}" />
+								{% endif %}
+							{% endfor %}
 						{% endfor %}
-					{% endfor %}
-				</h2>
-			
+					</h2>
+				</div>
+
+				<div class="row"></div>
 
 				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-12">
+					<div class="col-sm-2">Author</div>
+					<div class="col-sm-10">
 						{{ concept.author }}
 					</div>
 				</div>
 				
-				<div style="margin-top: 10px;">
-						<label>ID:</label>
+				<div class="row" style="margin-top: 10px;">
+					<div class="col-sm-2">ID</div>
+					<div class="col-sm-10">
 						<span id="concept_id_div" concept_id="{{ concept.id }}">
 							{{ concept.id }}						
-						</span>					
-						&nbsp;&nbsp;&nbsp;&nbsp;						
-						<label>Version ID:</label>
+						</span>			
+					</div>	
+				</div>	
+				
+				<div class="row" style="margin-top: 10px;">
+					<div class="col-sm-2">Version ID</div>
+					<div class="col-sm-10">
 						<span id="concept_history_id_div" concept_history_id="{{ concept.history_id }}">
 							{{ concept.history_id }} 
 							{% if user.is_authenticated %}
@@ -184,55 +197,61 @@
 						
 						{% if concept.modified_by_username %}							
 							<span>
-								(Modified on: {{ concept.modified }})
+								&nbsp;&nbsp;&nbsp;&nbsp;(Modified on: {{ concept.modified }})
 							</span>
 						{% endif %}	
+					</div>				
 				</div>				
 								
 				<div class="row" style="margin-top: 10px;">
-						<div class="col-sm-12">
-							<strong>Coding system: </strong>						
-							<span class="tag label label-info">{{ concept.coding_system_name }}</span>
-						</div>
+					<div class="col-sm-2">Coding system</div>
+					<div class="col-sm-10">
+						<span class="tag label label-info">
+							{{ concept.coding_system_name }}
+						</span>		
+					</div>	
 				</div>	
-								
+												
 				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-12">
-						<strong>Tags: </strong>
+					<div class="col-sm-2">Tags</div>
+					<div class="col-sm-10">
 						{% for tag in tags %}
 							<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
-						{% endfor %}																	
-					</div>
-				</div>
+						{% endfor %}		
+					</div>	
+				</div>	
+								
 				
 					
 			{% if not user.is_authenticated  %}
 				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-12">
-						<strong>Owner: </strong>
-						{{ concept.owner.username }}
-					</div>
-				</div>
+					<div class="col-sm-2">Owner</div>
+					<div class="col-sm-10">
+							{{ concept.owner.username }}
+					</div>	
+				</div>	
+
 			{% endif %}	
 									
 				
 			{% if user.is_authenticated  %}
 				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-12">					
-						<em style="font-size: .95em;">Entry Date: {{ concept.entry_date }}</em>											
-					</div>
-				</div>
+					<div class="col-sm-2">Entry Date</div>
+					<div class="col-sm-10">
+							{{ concept.entry_date }}
+					</div>	
+				</div>	
 	       {% endif %}					
 
-
+		</div>
+				
 		<!--	-------------------------------------------------------------------
 				DESCRIPTION
 				-------------------------------------------------------------------
 		  -->				
 				<div class="col-sm-12 shadow-frame">
-					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px"><span id="description"></span>Description</h3>
-					<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
-					{{ concept.description|markdownify }}
+					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px"><span id="description"></span><strong>Description</strong></h3>
+					{{ concept.description | markdownify }}
 				</div>
 				
 
@@ -241,62 +260,64 @@
 				-------------------------------------------------------------------
 		  -->
 				<div class="col-sm-12 shadow-frame">
-					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px"><span id="validation"></span>Validation</h3>
-					<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
+					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px"><span id="validation"></span><strong>Validation</strong></h3>
 					
 				    <div class="row" style="margin-top: 10px;">
-						<label class="col-sm-3">Validation performed:</label>
-						<div class="col-sm-9"> <input type="checkbox" {% if concept.validation_performed %}checked="checked"{% endif %} disabled /></div>
+						<div class="col-sm-3">Validation performed</div>
+							<div class="col-sm-9" style="margin-top: -10px">
+								<div class="validation-checkbox">
+								 	<input  type="checkbox" {% if concept.validation_performed %}checked="checked"{% endif %} disabled />
+								 </div>
+							</div>
 					</div>
+					<div class="row"></div>
 	
 					<div class="row" style="margin-top: 10px;">
-						<label class="col-sm-3">Validation description:</label>
-						<div class="col-sm-9">{{ concept.validation_description }}</div>
+						<div class="col-sm-3">Validation</div>
+						<div class="col-sm-9" style="margin-left: -20px;">{{ concept.validation_description }}</div>
 					</div>
 		
 				</div>
-						
-				
+			
 				
 		<!--	-------------------------------------------------------------------
 				PUBLICATIONS
 				-------------------------------------------------------------------
 		  -->
 				<div class="col-sm-12 shadow-frame">
-					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px"><span id="Publications"></span>Publications</h3>
-					<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
+					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px"><span id="Publications"></span><strong>Publications</strong></h3>
 					
 				    <div class="row" style="margin-top: 10px;">
-						<label class="col-sm-3">Primary publication DOI:</label>
+						<div  class="col-sm-3">Primary publication DOI</div>
 						<div class="col-sm-9">{{ concept.publication_doi }}</div>
 					</div>
 	
 					<div class="row" style="margin-top: 10px;">
-						<label class="col-sm-3">Primary publication link:</label>
+						<div  class="col-sm-3">Primary publication link</div>
 						<div class="col-sm-9">{{ concept.publication_link }}</div>
 					</div>						
 							
 					<div class="row" style="margin-top: 10px;">
-						<label class="col-sm-3">Secondary  publication link:</label>
+						<div  class="col-sm-3">Secondary  publication link</div>
 						<div class="col-sm-9">{{ concept.secondary_publication_links }}</div>
 					</div>
 
 					<div class="row">
-						<label class="col-sm-3">Paper published:</label>
+						<div  class="col-sm-3">Paper published</div>
 						<div class="col-sm-9">
 							<input type="checkbox" {% if concept.paper_published %}checked="checked"{% endif %} disabled />
 						</div>
 					</div>
 					
 					<div class="row">
-						<label class="col-sm-3">Source reference:</label>
+						<div  class="col-sm-3">Source reference</div>
 						<div class="col-sm-9">
 							{{ concept.source_reference }}
 						</div>
 					</div>
 					
 					<div class="row">
-						<label class="col-sm-3">Citation requirements:</label>
+						<div  class="col-sm-3">Citation requirements</div>
 						<div class="col-sm-9">
 							{{ concept.citation_requirements }}
 						</div>
@@ -309,8 +330,8 @@
 				-------------------------------------------------------------------
 		  -->					
 			<div class="col-sm-12 shadow-frame">
-				<h3 class="paneltitle" id="ClinicalCodeLists" style="margin-top:20px; margin-bottom:20px"><span id="CodeLists"></span>Clinical Code List</h3>
-				<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
+				<h3 class="paneltitle" id="ClinicalCodeLists" style="margin-top:20px; margin-bottom:20px"><span id="CodeLists"></span><strong>Clinical Code List</strong></h3>
+				
 					
 				<ul class="nav nav-tabs tabs-up" role="tablist">
 				  <li class="nav-item {{ component_tab_active }}">
@@ -519,26 +540,26 @@
 		  -->
 {% if user.is_authenticated  %}		
 		<div class="col-sm-12 shadow-frame">
-			<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px"><span id="permissions"></span>Permissions</h3>
-			<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
+			<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px"><span id="permissions"></span><strong>Permissions</strong></h3>
+			
 			
 <!-- 				<div class="row"> -->
-<!-- 					<label class="col-sm-3">Created by:</label> -->
+<!-- 					<div  class="col-sm-3">Created by</div> -->
 <!-- 					<div class="col-sm-3"> -->
 <!-- 					 	{{ concept.created_by_username }} -->
 <!-- 					</div> -->
-<!-- 					<label class="col-sm-2">On:</label> -->
+<!-- 					<div  class="col-sm-2">On</div> -->
 <!-- 					<div class="col-sm-4"> -->
 <!-- 					 	{{ concept.created }} -->
 <!-- 					</div> -->
 <!-- 				</div> -->
 <!-- 			 {% if concept.modified_by_username is not none %}				 -->
 <!-- 				<div class="row"> -->
-<!-- 					<label class="col-sm-3">Modified by:</label> -->
+<!-- 					<div  class="col-sm-3">Modified by</div> -->
 <!-- 					<div class="col-sm-3"> -->
 <!-- 						{{ concept.modified_by_username }} -->
 <!-- 					</div> -->
-<!-- 					<label class="col-sm-2">On:</label> -->
+<!-- 					<div  class="col-sm-2">On</div> -->
 <!-- 					<div class="col-sm-4"> -->
 <!-- 					 	{{ concept.modified }} -->
 <!-- 					</div> -->
@@ -546,11 +567,11 @@
 <!-- 		    {% endif %} -->
 			
 				<div id="permissions" class="row">
-					<label class="col-sm-3">Owner:</label>
+					<div  class="col-sm-3">Owner</div>
 					<div class="col-sm-3">
 						{{ concept.owner.username }}
 					</div>
-					<label class="col-sm-2">Owner access:</label>
+					<div  class="col-sm-2">Owner access</div>
 					<div class="col-sm-4">								
 						{% if concept.owner_access == 1 %}	
 							<span>None</span>
@@ -565,11 +586,11 @@
 				</div>
 				
 				<div id="permissions" class="row">
-					<label class="col-sm-3">Group:</label>
+					<div  class="col-sm-3">Group</div>
 					<div class="col-sm-3">
 						{{ concept.group }}
 					</div>
-					<label class="col-sm-2">Group access:</label>
+					<div  class="col-sm-2">Group access</div>
 					<div class="col-sm-4">
 						{% if concept.group_access == 1 %}	
 							<span>No access</span>
@@ -584,7 +605,7 @@
 				</div>
 				
 				<div id="permissions" class="row">
-					<label class="col-sm-3">Everyone else access:</label>
+					<div  class="col-sm-3">Everyone else access</div>
 					<div class="col-sm-9">
 						{% if concept.world_access == 1 %}	
 							<span>No access</span>
@@ -608,8 +629,8 @@
 				-------------------------------------------------------------------
 		  -->				
 		<div class="col-sm-12 no-print shadow-frame" id="history-section" >
-			<h3 class="paneltitle" id="ClinicalCodeHistory" style="margin-top:20px; margin-bottom:20px"><span id="conceptVersions"></span>Version History</h3>		
-			<!--  <hr style="margin-left: -15px; margin-right: -15px; margin-top: 0" />  -->
+			<h3 class="paneltitle" id="ClinicalCodeHistory" style="margin-top:20px; margin-bottom:20px"><span id="conceptVersions"></span><strong>Version History</strong></h3>		
+			
 		
 	  	  	<span id="history-section">
 	  	  		{% if user.is_authenticated %}
@@ -664,9 +685,11 @@
 			<p>
 				<strong>Export</strong> - export all codes into a csv file/JSON/XML for the current concept version.
 				{% if user.is_authenticated and not CLL_READ_ONLY %}
-					This will also take into account any code lists within related concepts. 
-					The exported codes will only contain inclusion code lists and exclude any code lists that have the logical type marked as exclusion(remove-codes).
-					The button will be disabled unless you have permission to view <b>all</b> of the component concepts.
+					<ul>
+						<li>This will also take into account any code lists within related concepts.</li>
+						<li>The exported codes will only contain inclusion code lists and exclude any code lists that have the logical type marked as exclusion(remove-codes).</li>
+						<li>The button will be disabled unless you have permission to view <b>all</b> of the component concepts.</li>
+					</ul>
 				{% endif %}
 			</p>
 			
@@ -765,8 +788,23 @@
 
 		}
 
-
 	</script>
+
+	<script type="text/javascript">	
+		function showSelection(e) {
+  		if (document.querySelector('#navList a.active') !== null) {
+    		document.querySelector('#navList a.active').classList.remove('active');
+  		}
+		e.target.className = "active";
+		}
+	</script>
+	
+	<script type="text/javascript">
+	 	window.onload=function(){
+  			document.getElementById("Homelinkid").click();
+	 	};
+	</script>
+		
 
 
 {% endblock scripts %}

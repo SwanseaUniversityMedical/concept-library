@@ -5,6 +5,11 @@
 {% block title %}| View Working Set
 {% endblock title %}
 
+{% block crumbs %}
+	<a class="nav-bar-title underline" href="{% url 'workingset_list' %}">Working Sets</a>
+    > <strong>{{ object.name }}</strong> 
+{% endblock crumbs %}
+
 {% block container %}
 
 <h2><i class="fa fa-file-o" aria-hidden="true"></i> {{ object.name }}
@@ -32,9 +37,9 @@
 					 -->
 					<div class="row">
 						<div class="col-sm-12">
-							<a href="{% url 'workingset_list' %}" class="btn btn-success">
-								<i class="fa fa-reply" aria-hidden="true"></i> Return to list
-							</a>
+<!-- 							<a href="{% url 'workingset_list' %}" class="btn btn-success"> -->
+<!-- 								<i class="fa fa-reply" aria-hidden="true"></i> Return to list -->
+<!-- 							</a> -->
 						{% if object.id %}						
 							<div class="dropdown btn-group">
 							  <button {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="export-btn">

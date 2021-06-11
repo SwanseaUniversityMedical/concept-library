@@ -73,7 +73,7 @@ def phenotype_list(request):
     owner = request.GET.get('owner', request.session.get('phenotype_owner', ''))
     author = request.GET.get('author', request.session.get('phenotype_author', ''))
     show_only_validated_phenotypes = request.GET.get('show_only_validated_phenotypes', request.session.get('show_only_validated_phenotypes', 0))
-    phenotype_brand = request.GET.get('phenotype_brand', request.session.get('phenotype_brand', request.CURRENT_BRAND))
+    phenotype_brand = request.GET.get('phenotype_brand', request.session.get('phenotype_brand', '')) # request.CURRENT_BRAND
     expand_published_versions = 0   # disable this option
     #expand_published_versions = request.GET.get('expand_published_versions', request.session.get('expand_published_versions', 0))
     phenotype_must_have_published_versions = request.GET.get('phenotype_must_have_published_versions', request.session.get('phenotype_must_have_published_versions', 0))
@@ -90,7 +90,7 @@ def phenotype_list(request):
         tag_ids = request.POST.get('tagids', '')
         owner = request.POST.get('owner', '')
         show_only_validated_phenotypes = request.POST.get('show_only_validated_phenotypes', 0)
-        phenotype_brand = request.POST.get('phenotype_brand', request.CURRENT_BRAND)
+        phenotype_brand = request.POST.get('phenotype_brand', '')    #    request.CURRENT_BRAND
         #expand_published_versions = request.POST.get('expand_published_versions', 0)
         phenotype_must_have_published_versions = request.POST.get('phenotype_must_have_published_versions', 0)
         search_form = request.POST.get('search_form', 'basic-form')

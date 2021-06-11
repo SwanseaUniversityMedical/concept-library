@@ -406,13 +406,13 @@ MESSAGE_TAGS = {
 }
 
 CURRENT_BRAND = ""
-CURRENT_BRAND_WEBSITE = ""
+BRAND_OBJECT = {}
 
 if not DEBUG:
     SESSION_COOKIE_AGE = 3600       # 1 hour
 
 DEV_PRODUCTION = ""
 if IS_DEMO:  # Demo server
-    DEV_PRODUCTION = "<i class='glyphicon glyphicon-cog'> </i>DEMO SITE<i class='glyphicon glyphicon-cog'> </i>"
+    DEV_PRODUCTION = "<i class='glyphicon glyphicon-cog'  aria-hidden='true'> </i> DEMO SITE <i class='glyphicon glyphicon-cog'  aria-hidden='true'> </i>"
  
   

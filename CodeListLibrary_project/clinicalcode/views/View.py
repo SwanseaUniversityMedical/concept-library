@@ -14,6 +14,7 @@ from ..models.DataSource import DataSource
 from ..models.Phenotype import Phenotype
 from ..models.PublishedConcept import PublishedConcept
 from ..models.PublishedPhenotype import PublishedPhenotype
+from ..models.Statistics import Statistics
 
 from ..permissions import (
     allowed_to_view, allowed_to_edit
@@ -26,26 +27,76 @@ def index(request):
     '''
         Display the index homepage.
     '''   
-    return render(request, 'clinicalcode/index.html')
+    
+    if request.CURRENT_BRAND == "":
+        return render(request, 'clinicalcode/index.html')
+    elif request.CURRENT_BRAND == "HDRUK":
+        return index_HDRUK(request)
+    else:
+        return render(request, 'clinicalcode/index.html')
+    
 
 def index_HDRUK(request):
     '''
         Display the HDR UK homepage.
     '''   
-
+    
+    if Statistics.objects.all().filter(org__iexact = 'HDRUK', type__iexact = 'landing-page').exists():
+        HDRUK_stat = Statistics.objects.get(org__iexact = 'HDRUK', type__iexact = 'landing-page').stat
+    else:
+        HDRUK_stat = {
+                        'published_concept_count': -1, 
+                        'published_phenotype_count': -1, 
+                        'published_clinical_codes': -1, 
+                        'datasources_component_count': -1,
+                        'clinical_terminologies': -1
+                    }
+    
     return render(request,
-                  'clinicalcode/index_HDRUK.html',
+                  'clinicalcode/HDRUK/index_HDRUK.html',
                   {
-                     # ONLY PUBLISHED COUNTS HERE
-                    'published_concept_count': PublishedConcept.objects.values('concept_id').distinct().count(),
-                    'published_phenotype_count': PublishedPhenotype.objects.values('phenotype_id').distinct().count(),
-                    'published_clinical_codes': 12345,
-                    'datasources_component_count': DataSource.objects.all().count(),
-                    'clinical_terminologies': 9, # number of coding systems
-                    #terminologies to be added soon
-
+                    # ONLY PUBLISHED COUNTS HERE
+                    'published_concept_count': HDRUK_stat['published_concept_count'], 
+                    'published_phenotype_count': HDRUK_stat['published_phenotype_count'], 
+                    'published_clinical_codes': HDRUK_stat['published_clinical_codes'], 
+                    'datasources_component_count': HDRUK_stat['datasources_component_count'],
+                    'clinical_terminologies': HDRUK_stat['clinical_terminologies']
                   }
-                  )
+                )
+
+
+
+def about_pages(request, pg_name=None):
+    '''
+        manage about pages
+    '''   
+
+    # main CL about page
+    if pg_name.lower() == "cl_about_page":
+        return render(request, 'clinicalcode/cl-about.html', {})
+    
+    # HDR-UK about pages                    
+    if pg_name.lower() == "hdruk_about_the_project":
+        return render(request, 'clinicalcode/HDRUK/about/about-the-project.html', {})
+    
+    elif pg_name.lower() == "hdruk_about_team":
+        return render(request, 'clinicalcode/HDRUK/about/team.html', {})
+    
+    elif pg_name.lower() == "hdruk_about_technical_details":
+        return render(request, 'clinicalcode/HDRUK/about/technical-details.html', {})
+    
+    elif pg_name.lower() == "hdruk_about_covid_19_response":
+        return render(request, 'clinicalcode/HDRUK/about/covid-19-response.html', {})
+    
+    elif pg_name.lower() == "hdruk_about_publications":
+        return render(request, 'clinicalcode/HDRUK/about/publications.html', {})
+    
+    else:
+        return render(request,
+                    'clinicalcode/cl-about.html',
+                    {}
+                )
+
 
 
 

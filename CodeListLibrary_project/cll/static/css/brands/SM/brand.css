@@ -1,0 +1,67 @@
+ul.left-navbar {
+  	list-style: none;	
+	margin: 0; 
+	padding: 0;  
+	line-height: 2.5em;
+	margin-top: 25px;
+}
+
+ul.left-navbar a {
+  color: black;
+        display: block;
+        padding: 5px;
+        padding-left: 5px;
+        text-decoration: none;
+        outline: none;
+}
+
+ul.left-navbar a.active {
+  	color: #000000;
+        background: #fff;
+        position: relative;        
+        border-left: 5px solid #3D70B2;
+	background: #475DA70D;
+	font-weight: bold;
+
+}
+
+.validation-checkbox input {
+  position: relative;
+}
+
+.validation-checkbox input::before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  background-color: #091921;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  transition: 0.3s all ease;
+}
+
+.validation-checkbox input:checked::before {
+  background-color: green;
+  border: 1px solid green;
+}
+
+.validation-checkbox input:checked::after {
+  position: absolute;
+  content: "\f00c"; 
+  font-family: "FontAwesome"; 
+  color: #fff;
+}
+
+div.hideleft-navbar {
+  padding: 20px;
+}
+
+@media screen and (max-width: 768px) {
+  div.hideleft-navbar {
+    display: none;
+  }
+

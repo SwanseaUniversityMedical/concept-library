@@ -4,9 +4,9 @@
 
 {% block title %}| Compare concept{% endblock title %}
 
-{% block styles %}
+{% block head %}
   <link href="{% static 'css/datatable/jquery.dataTables.min.css' %}" rel="stylesheet" />
-{% endblock styles %}
+{% endblock head %}
 
 
 {% block container %}
@@ -146,8 +146,7 @@
 	    		paging: false
 	    });
 	    
-	    // hide footer because datatable css damage footer style
-	    $( '#baseFooter').hide();
+
 	} );
 
 </script>
