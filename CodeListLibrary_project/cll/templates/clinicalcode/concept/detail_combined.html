@@ -5,6 +5,13 @@
 
 {% block title %}| Historical concept{% endblock title %}
 
+
+{% block crumbs %}
+	<a class="nav-bar-title underline" href="{% url 'concept_list' %}">Concepts</a>
+    > <strong>{{ concept.name }}</strong> 
+{% endblock crumbs %}
+
+
 {% block container %}
 
 <div class="row">
@@ -28,10 +35,10 @@
 			
 			<span id="topButtons">			
 					<div class="row">
-						<div class="col-sm-10">
-							<a href="{% url "concept_list" %}" class="btn btn-success">
-								<i class="fa fa-reply" aria-hidden="true"></i> Return to list
-							</a>
+						<div class="col-sm-12 text-right">
+<!-- 							<a href="{% url "concept_list" %}" class="btn btn-success"> -->
+<!-- 								<i class="fa fa-reply" aria-hidden="true"></i> Return to list -->
+<!-- 							</a> -->
 							
 						   <div class="dropdown btn-group" > 
 							  <button {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="export-btn">
@@ -113,10 +120,10 @@
 								</a>
 							</span>		
 							
-					 {% endif %}					 	
-						</div>
-						
-						<div class="col-md-2 text-right">
+					 {% endif %}
+					 					 	
+<!-- 						</div>	 -->
+<!-- 						<div class="col-md-2 text-right"> -->
 							<a id="printBtn" class="btn btn-primary">
 								<i class="fa fa-print" aria-hidden="true"></i> Print
 							</a>
@@ -128,7 +135,7 @@
 			
 					<div class="alert alert-success alert-dismissable" id="success-message" style="display: none;" role="alert"></div>
 					<div class="alert alert-danger alert-dismissable" id="error-message" style="display: none;" role="alert"></div>
-					<hr/>	
+<!-- 					<hr/>	 -->
 				</span>
 				
 				{% if user.is_authenticated and not is_latest_version  %}
@@ -136,7 +143,7 @@
 					{{ concept.name }} <br>(Historical version)
 				{% else %}
 					<h2>
-					<i class="fa fa-file-o" aria-hidden="true"></i>
+<!-- 					<i class="fa fa-file-o" aria-hidden="true"></i> -->
 <!-- 					<img src="{% static 'img/sail.svg' %}"> -->
 					{{ concept.name }}	
 				{% endif %}	
@@ -184,7 +191,7 @@
 						
 						{% if concept.modified_by_username %}							
 							<span>
-								(Modified on: {{ concept.modified }})
+								&nbsp;(Modified on: {{ concept.modified }})
 							</span>
 						{% endif %}	
 				</div>				

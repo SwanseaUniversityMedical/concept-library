@@ -102,7 +102,7 @@
 }
 
 .big-banner {
-	background-color: #000000 background-image: url("../img/HDRUK/banner_design.jpg");
+	background-color: #000000 background-image: url("../../../img/brands/HDRUK/banner_design.jpg");
 	background-position: center;
 	height: 300px;
 }
@@ -114,7 +114,7 @@
 }
 
 .info-pic {
-	background-image: url("../img/HDRUK/HDRUK_phenotyping_algorithm_web.jpg");
+	background-image: url("../../../img/brands/HDRUK/HDRUK_phenotyping_algorithm_web.jpg");
 	backgroung-repeat: no-repeat;
 	height: 336px;
 	width: 466px;
@@ -127,7 +127,7 @@ table.spacing {
 
 .flex {
 	background-color: #000000;
-	background-image: url("../img/HDRUK/banner_design.jpg");
+	background-image: url("../../../img/brands/HDRUK/banner_design.jpg");
 	height: 300px;
 	display: flex;
 	align-items: center;

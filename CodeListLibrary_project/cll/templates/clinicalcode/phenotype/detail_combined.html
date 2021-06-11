@@ -5,6 +5,14 @@
 
 {% block title %}| Historical phenotype{% endblock title %}
 
+
+{% block crumbs %}
+	<a class="nav-bar-title underline" href="{% url 'phenotype_list' %}">Phenotypes</a>
+    > <strong>{{ phenotype.name }}</strong> 
+{% endblock crumbs %}
+
+	
+			
 {% block container %}
 <div class="row">
 	<div class="col-md-2" id="PhenotypeMenu"; style="padding-top: 20px; position: sticky; position: -webkit-sticky; top: 60px;">
@@ -29,10 +37,10 @@
 			
 			<span id="topButtons">			
 					<div class="row">
-						<div class="col-sm-10">
-							<a href="{% url "phenotype_list" %}" class="btn btn-success">
-								<i class="fa fa-reply" aria-hidden="true"></i> Return to list
-							</a>
+						<div class="col-sm-12 text-right">
+<!-- 							<a href="{% url "phenotype_list" %}" class="btn btn-success"> -->
+<!-- 								<i class="fa fa-reply" aria-hidden="true"></i> Return to list -->
+<!-- 							</a> -->
 							
 						   <div class="dropdown btn-group" > 
 							  <button {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="export-btn">
@@ -100,8 +108,8 @@
 					 {% endif %}
 					 	
 					 						
-						</div>
-						<div class="col-md-2 text-right">
+<!-- 						</div> -->
+<!-- 						<div class="col-md-2 text-right"> -->
 							<a id="printBtn" class="btn btn-primary">
 								<i class="fa fa-print" aria-hidden="true"></i> Print
 							</a>
@@ -113,7 +121,7 @@
 			
 					<div class="alert alert-success alert-dismissable" id="success-message" style="display: none;" role="alert"></div>
 					<div class="alert alert-danger alert-dismissable" id="error-message" style="display: none;" role="alert"></div>
-					<hr/>	
+<!-- 					<hr/>	 -->
 				</span>
 			
 			
@@ -123,7 +131,7 @@
 					{{ phenotype.name }} <br>(Historical version)
 				{% else %}
 					<h2>
-					<i class="fa fa-file-o" aria-hidden="true"></i>
+<!-- 					<i class="fa fa-file-o" aria-hidden="true"></i> -->
 <!-- 					<img src="{% static 'img/sail.svg' %}"> -->
 					{{ phenotype.name }}	
 				{% endif %}	
@@ -181,7 +189,7 @@
 						
 						{% if phenotype.modified_by_username %}							
 							<span>
-								(Modified on: {{ phenotype.modified }})
+								&nbsp;(Modified on: {{ phenotype.modified }})
 							</span>
 						{% endif %}	
 						

@@ -19,10 +19,20 @@ urlpatterns = [
     url(r'^$', Concept.concept_list, name='concept_list' ),
     #url(r'^$', View.index, name='concept_index' ),
     url(r'^home/$', View.index, name='concept_index' ),
-    url(r'^home/HDR-UK$', View.index_HDRUK, name='HDRUK_index' ),
+    #url(r'^home/HDR-UK$', View.index_HDRUK, name='HDRUK_index' ),
     url(r'^concepts/$', Concept.concept_list, name='concept_list'),
     url(r'^workingset/$', WorkingSet.workingset_list, name='workingset_list'),
     url(r'^phenotype/$', Phenotype.phenotype_list, name='phenotype_list'),
+]
+
+# About pages
+urlpatterns += [
+    # main CL about page
+    url(r'^about/(?P<pg_name>\w+)/$', View.about_pages, name='about_page' ),
+
+    # brand about pages
+    url(r'^about/(?P<pg_name>\w+)/$', View.about_pages, name='about_page' ),
+
 ]
 
 #======== Admin Temp ===============================================================================
