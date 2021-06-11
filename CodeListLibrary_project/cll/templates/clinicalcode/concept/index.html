@@ -4,8 +4,17 @@
 
 {% block title %}| Search Concepts{% endblock title %}
 
+
 {% block container %}
 
+
+<!-- <div class="row bkg"> -->
+<!-- 	  <div class="col-mlg-9 col-offset-3 offset-lg-3">.col-md-6 .offset-md-3</div> -->
+<!-- </div> -->
+
+<!-- <div class="row bkg"> -->
+<!--  <div class="col-mlg-9 col-offset-3 offset-lg-3"> -->
+<!-- new wrapper ^ -->
 
 <div id="basic-search" class="bg-img-basic-search" {% if search_form == 'advanced-form' %} style="display:none;" {% endif %} >
 	<form class="container_frm container-1 example" id="basic-form" action="{% url 'concept_list' %}" method="POST"  >
@@ -189,6 +198,10 @@
 		</div>
 	</form>			
 </div>	
+
+<!-- new wrapper -->
+<!-- </div>	 -->
+<!-- </div>	 -->
 
 		
 	{% if user.is_authenticated %}		

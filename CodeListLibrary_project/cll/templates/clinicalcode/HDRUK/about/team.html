@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block title %}{% endblock title %}
+{% block head %}
+<link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
+<script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
+<!--    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script> -->
+{% endblock head %}
+{% block container %}
+<div style="padding-top:40px;align:left;" class="row">
+   <div class="rubric-box column" >
+      <ul class="left-navbar text-rubric-design pointer" onclick="showSelection(event)" id='navList'>
+         <li> <a href="#team">
+            Team
+            </a>
+         </li>
+         <li><a href="#collaborators">
+            Collaborators
+            </a>
+         </li>
+      </ul>
+   </div>
+   <div style="width:70%;" class="column" >
+      <div class="header-content-design" style="padding-bottom:30px;">
+         Team and Collaborators
+      </div>
+      <div class="medium-header-design" id="team">
+         Team
+      </div>
+      <div>
+         <table>
+            <tr>
+               <td>
+                  <div class="member-photo-design"></div>
+               </td>
+               <td>
+                  <div style="padding-left:20px;">
+                     <div class="member-title-design"> Dr Tanmay Basu</div>
+                     <div class="member-position-design">Research Fellow</div>
+                     <div class="member-contact-design">T.Basu@bham.ac.uk</div>
+                  </div>
+               </td>
+            </tr>
+         </table>
+         <div class="member-bio-design">Tanmay joined the University of Birmingham in 2019 to work on developing methods and tools for information extraction from electronic health records (EHR). A computer scientist by training, Tanmay has knowledge and skills within text mining, natural language processing (NLP) and machine learning (ML) techniques. His Computer Science doctoral thesis explained novel text clustering and classification methods. Subsequently, he worked as a postdoctoral fellow at Northwestern University, Chicago and then at University of Michigan, Ann Arbor, USA on various projects related to information extraction from biomedical publications and EHR using ML and NLP. In 2017, Tanmay worked as a junior faculty member at Ramakrishna Mission Vivekananda Educational and Research Institute, West Bengal, India. </div>
+      </div>
+      <div style="padding-top:50px;">
+         <table>
+            <tr>
+               <td>
+                  <div class="member-photo-design"></div>
+               </td>
+               <td>
+                  <div style="padding-left:20px;">
+                     <div class="member-title-design"> Dr Martin Chapman</div>
+                     <div class="member-position-design">Research Associate</div>
+                     <div class="member-contact-design">martin.chapman@kcl.ac.uk</div>
+                  </div>
+               </td>
+            </tr>
+         </table>
+         <div class="member-bio-design">Martin is a Research Associate working in Health Informatics at King’s College London. He is currently involved in developing models and tooling for computational phenotypes, funded by Health Data Research UK and the NIHR Biomedical Research Centre. </div>
+      </div>
+      <div style="padding-top:50px;">
+         <table>
+            <tr>
+               <td>
+                  <div class="member-photo-design"></div>
+               </td>
+               <td>
+                  <div style="padding-left:20px;">
+                     <div class="member-title-design"> Dr Vasa Curcin</div>
+                     <div class="member-position-design">Senior Lecturer in Health Informatics</div>
+                     <div class="member-contact-design">vasa.curcin@kcl.ac.uk</div>
+                  </div>
+               </td>
+            </tr>
+         </table>
+         <div class="member-bio-design">Vasa is a Senior Lecturer in Health Informatics, leading the Biomedical Informatics Group at School of Population Health and Environmental Sciences at King’s College London. His research focuses on the theoretical informatics foundations and resulting software infrastructures for the Learning Health Systems, specifically in the areas of clinical trials and decision support systems, together with the role of data provenance in delivering reproducibility and auditability to scientific tasks. </div>
+      </div>
+      <div class="medium-header-design" id="collaborators">
+         Collaborators
+      </div>
+      <div>
+         <div class="row">
+            <div class="collaborator-name-design">Prof Sinead Brophy</div>
+            <div class="collaborator-location-design">(Swansea University)</div>
+         </div>
+         <div class="row">
+            <div class="collaborator-name-design">Prof Martha Stewart</div>
+            <div class="collaborator-location-design">(Harvard University)</div>
+         </div>
+         <div class="row">
+            <div class="collaborator-name-design">Prof Thompson Roberts</div>
+            <div class="collaborator-location-design">(Yale University)</div>
+         </div>
+      </div>
+   </div>
+</div>
+<script type="text/javascript">
+   function showSelection(e) {
+   		if (document.querySelector('#navList a.active') !== null) {
+     		document.querySelector('#navList a.active').classList.remove('active');
+   		}
+   e.target.className = "active";
+   }
+</script>
+<script type="text/javascript">
+   window.onload=function(){
+   		document.getElementById("inclusion").click();
+   };
+</script>
+{% endblock container %}
+{% block scripts  %}
+{% endblock scripts %}
+

@@ -2,6 +2,7 @@
 <html lang="en">
 	{% load static %}
 	{% load mathfilters %}
+	{% load i18n %}
 	
 	<head>
 		<style>
@@ -14,7 +15,14 @@
     	<meta name="description" content="{% block description %}{% endblock description %}">
     	<link rel="shortcut icon" href="{% static 'img/favicon.ico' %}">
     	
-    	<title>Concept Library {% block title %}{% endblock title %}</title>    	
+    	<title>
+			{% if request.CURRENT_BRAND|length and request.BRAND_OBJECT.site_title is not none %}
+				{{ request.BRAND_OBJECT.site_title }}
+			{% else %}
+				Concept Library
+			{% endif %} 
+    		 {% block title %}{% endblock title %}
+    	</title>    	
 		
 		<!-- core styles -->
 		<link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" />
@@ -29,15 +37,15 @@
 		<link href="{% static 'css/query-builder.default.min.css' %}" rel="stylesheet" />
 		<link href="{% static 'css/site.css' %}" rel="stylesheet" />
 		
+		<link href="{% static 'css/brands/SM/brand.css' %}" rel="stylesheet" />
+		
 		<link rel="preconnect" href="https://fonts.gstatic.com">
 		<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans&display=swap" rel="stylesheet">
 
-		{% block styles %}
 		<link href="{% static 'css/main.css' %}" rel="stylesheet" />
 		{% if request.CURRENT_BRAND|length %}
-		<link href="{% static 'css/brands/' %}{{request.CURRENT_BRAND}}/brand.css" rel="stylesheet" />
+			<link href="{% static 'css/brands/' %}{{request.CURRENT_BRAND}}/brand.css" rel="stylesheet" />
 		{% endif %}
-		{% endblock styles %}
 
 		{% block head %}{% endblock head %}
 
@@ -50,132 +58,190 @@
 	
 	<body>
 		<div class="loader" style="display:none;"></div>
-		<nav class="navbar navbar-inverse navbar-fixed-top">
-		<span style="color:yellow;position:absolute;left: 0;top: 0;">{{ DEV_PRODUCTION|safe }}</span>
-			<div class="container">
+		<nav id="nav_bar_main" class="navbar navbar-default navbar-fixed-top">
+<!-- 		<span style="color:yellow;position:absolute;left: 0;top: 0;"><span class="alert alert-warning" role="alert">{{ DEV_PRODUCTION|safe }}</span></span> -->
+
+		
+ 			<div class="container" id="nav_bar_main" >  <!--<div class="container-fluid"  id="nav_bar_main"  > -->
 				<div id="navbar" class="navbar-collapse collapse">
 					<div class="navbar-header">
 						
-						{% if request.CURRENT_BRAND|length %}
-							<a id="logo-link"  class="navbar-brand" 
-							    {% if request.CURRENT_BRAND_WEBSITE|length %}
-							 	  href="{{ request.CURRENT_BRAND_WEBSITE }}"
-							    {% endif %}
-                              target=_blank >
-								<img style="margin-top: -10px;" src="{% static 'img/brands/' %}{{request.CURRENT_BRAND}}/header_logo.png" height="45px"  alt="{{request.CURRENT_BRAND}} Logo" />
-							</a>
-						{% endif %}
-						
-						<a id="logo-link-cl"  href="/{% if request.CURRENT_BRAND|length %}
-								{{ request.CURRENT_BRAND }}/home/
-								{% else %}home/
-								{% endif %}"  class="navbar-brand" >
-							<img style="margin-top: -10px;" 
-							src="{% static 'img/' %}{% if request.CURRENT_BRAND|length %}
-								brands/{{request.CURRENT_BRAND}}/cl_logo_dark_1600px_{{ request.CURRENT_BRAND }}.png
-								{% else %}
-								cl_logo_dark_1600px.png
-								{% endif %}" 
-							height="45px"  alt="Concept Library Logo" />
+						<!-- Header logo -->
+						<a id="logo-link"  class="navbar-brand" href="/{% if request.CURRENT_BRAND|length %}{{ request.CURRENT_BRAND }}/home/{% else %}home/{% endif %}" >
+							<img style="margin-top: -5px;" widthXX="115px" height="35px"   alt="{{request.CURRENT_BRAND}} Logo" 
+								{% if request.CURRENT_BRAND|length %} src="{% static 'img/brands/' %}{{request.CURRENT_BRAND}}/header_logo.png" {% else %} src="{% static 'img//header_logo.png' %}" {% endif %}
+							/>
 						</a>
-						
+		
+					
+						<a id="logo-link-cl"  class="navbar-brand" href="/{% if request.CURRENT_BRAND|length %}{{ request.CURRENT_BRAND }}/home/{% else %}home/{% endif %}" >							 
+							<span class="CL-title">
+								<strong>
+									{% if request.CURRENT_BRAND|length and request.BRAND_OBJECT.site_title is not none %}
+										{{ request.BRAND_OBJECT.site_title }}
+									{% else %}
+										Concept Library
+									{% endif %}
+								</strong>
+								</span>
+						</a>
+
 					</div>
 					
 					
-					<ul class="list-inline nav navbar-nav" id='prjnavtabs' >
-						<li id="concept_li" >
-							<a id="concept_a"  class="main_menu" href="{% url 'concept_list' %}">Concepts</a>
-						</li>					
+			<div class="navbar-header" style="float: right !important;">			
+					<ul class="list-inline nav navbar-nav CL-tabs" id='prjnavtabs' styleXX="float: right !important;">
 
-						{% if user.is_authenticated %}					
-							<li id="workingset_li"  >
-								<a id="workingset_a" class="main_menu" href="{% url 'workingset_list' %}">Working Sets</a>
-							</li>	
-						{% endif %}		
-							
-						<li id="phenotype_li">
-							<a id="phenotype_a" class="main_menu" href="{% url 'phenotype_list' %}">Phenotypes</a>
-						</li>
-						
-						{% if user.is_authenticated %}	
-							<li id="api_li"  >
-								<a id="api_a" class="main_menu"   
-								 {% if request.CURRENT_BRAND|length %}
-								 	href="/{{ request.CURRENT_BRAND }}/api/"
-								 {% else %}
-								 	href="/api/"
-								 {% endif %}
-								 target=_blank >API</a>
-							</li>	
-						{% endif %}		
-							
-						{% if request.user.is_superuser and SHOWADMIN and not CLL_READ_ONLY %}
-						   <li id="admin_li"  >
-						  		<a id="admin_a" class="main_menu" href="{% url 'admin:index' %}" target=_blank >Admin</a>
-						   </li>	
-						{% endif %}				
-					</ul>
-					
-
-									
-					<div class="navbar-header" style="float: right !important;">
-					   	 
-					   	 {% if request.user.is_superuser and user.is_authenticated and request.session.all_brands %}
-						   <div class="nav navbar-nav">
-						    <span {% if not request.CURRENT_BRAND|length %}
-						            style="color: white;"
-						          {% endif %}	   
-						    >&nbsp;&nbsp;&nbsp;Brand</span>
-							  <p class="active" style="position:relative;display: block;padding: 2px 5px">
-							     <select  name="userBrand" id="userBrand"  >  
-								    <option value=""  style='background-color: lightgreen;' >Default</option>
-								{% for brand in request.session.all_brands %}
-									<option value="{{ brand|upper }}" 
-									       {% if brand|upper == request.session.current_brand|upper %} selected="selected" {% endif %}
-									       >
-											{{ brand|upper }}
-											{% if brand|upper in request.session.user_brands %} (*) {% endif %}
-									</option>
-								{% empty %}
-									<option value="-1" >No Brands !!!</option>
-								{% endfor %}
-								  </select>
-							  </p>
-							</div>
+						{% if request.BRAND_OBJECT.allowed_tabs is none or 'home' in request.BRAND_OBJECT.allowed_tabs %}					
+							<li id="home_li">
+								<a id="home_a" class="main_menu nav-bar-title"  
+									href="/{% if request.CURRENT_BRAND|length %}{{ request.CURRENT_BRAND }}/home/{% else %}home/{% endif %}"
+								>Home</a>
+							</li>
+						{% endif %}
+												
+						{% if request.BRAND_OBJECT.allowed_tabs is none or 'phenotypes' in request.BRAND_OBJECT.allowed_tabs %}																	
+							<li id="phenotype_li">
+								<a id="phenotype_a" class="main_menu nav-bar-title"  href="{% url 'phenotype_list' %}">Phenotypes</a>
+							</li>
 						{% endif %}
 						
-						<p class="navbar-text">
-							{% if CLL_READ_ONLY %}
-							   <span style="color:yellow;">read only&nbsp;&nbsp;</span>	
+						{% if request.BRAND_OBJECT.allowed_tabs is none or 'concepts' in request.BRAND_OBJECT.allowed_tabs %}					
+							<li id="concept_li" >
+								<a id="concept_a"  class="main_menu nav-bar-title" href="{% url 'concept_list' %}">Concepts</a>
+							</li>	
+						{% endif %}				
+
+						{% if user.is_authenticated %}					
+							{% if request.BRAND_OBJECT.allowed_tabs is none or 'workingsets' in request.BRAND_OBJECT.allowed_tabs %}					
+								<li id="workingset_li"  >
+									<a id="workingset_a" class="main_menu nav-bar-title" href="{% url 'workingset_list' %}">Working Sets</a>
+								</li>	
 							{% endif %}		
+						{% endif %}		
+							
+						{% if user.is_authenticated %}								
+							{% if request.BRAND_OBJECT.allowed_tabs is none or 'api' in request.BRAND_OBJECT.allowed_tabs %}					
+								<li id="api_li"  >
+									<a id="api_a" class="main_menu  nav-bar-title"   
+									 {% if request.CURRENT_BRAND|length %}
+									 	href="/{{ request.CURRENT_BRAND }}/api/"
+									 {% else %}
+									 	href="/api/"
+									 {% endif %}
+									 target=_blank >API</a>
+								</li>	
+							{% endif %}		
+						{% endif %}		
+							
+	
 						
-							{% if user.is_authenticated %}
-								<i class="fa fa-user" aria-hidden="true"></i>
-								<span style00="color: white;" title="{{ user.get_username }}" >{{ user.get_username }} </span>
+						<li id="about_li" class="dropdown activeXX">
+	                        <a id="about_a" href="#" class="nav-bar-title dropdown-toggle activeXX "  style="font-weight: normal !important;"
+	                          data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">About <span class="caret"></span></a>
+	                        <ul class="dropdown-menu">                                                   
+                                {% if request.BRAND_OBJECT.about_menu is not none %}					
+									{% for lnk in request.BRAND_OBJECT.about_menu %}
+										{% for header, view_pg_name in lnk.iteritems %}
+										    <li>
+												<a href="{% url 'about_page' pg_name=view_pg_name %}" >{{ header }}</a>
+											</li>
+										{% endfor %}
+									{% endfor %}
+								{% else %}		
+    									<li><a href="{% url 'about_page' pg_name='cl_about_page' %}" >Concept Library</a></li>
+								{% endif %}						                                                                                                                                    
+	                        </ul>
+                    	</li>
+                    	
+                    	
+                    <!-- user/login -->
+                    {% if user.is_authenticated %}	
+                    	<li id="user_li" class="dropdown activeXX">
+                    		<a id="user_a" href="#" class="nav-bar-title dropdown-toggle activeXX " style="font-weight: normal !important;"
+	                          data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"  title="{{ user.get_username }}" >
+	                          <i class="fa fa-user" aria-hidden="true"></i> {{ user.get_username }} <span class="caret"></span></a>
+	                         <ul class="dropdown-menu"> 
 								
-								<span style="width: 20px;">&nbsp;</span>
-								
+								<!-- admin -->
+								{% if request.user.is_superuser and SHOWADMIN and not CLL_READ_ONLY %}
+								   <li >
+								  		<a href="{% url 'admin:index' %}" target=_blank >Admin</a>
+								   </li>	
+								{% endif %}	
+						
 								{% if not CLL_READ_ONLY and 1 == 2 %}
-									<i class="glyphicon glyphicon-lock" aria-hidden="true"></i>
-									<a  href="{% url 'password_change' %}">Change Password</a>
-								  <span style="width: 20px;">&nbsp;</span>
+									<!-- change password is disabled for now -->
+									<li>
+										<a href="{% url 'password_change' %}">
+											<i class="glyphicon glyphicon-lock" aria-hidden="true"></i> Change Password
+										</a>
+								    </li>
 								{% endif %}	
 								
-								<a class="navbar-link" href="{% url 'logout' %}?next={% url 'concept_list' %}">
-									<i class="fa fa-sign-out" aria-hidden="true"></i> Log out
-								</a>
-							{% else %}
-								<a class="navbar-link" href="{% url 'login' %}?next={{ request.path|urlencode }}">
-									<i class="fa fa-sign-in" aria-hidden="true"></i> Log in
-								</a>
-							{% endif %}
-						</p>
+								
+								<!-- brands -->
+								<li class="divider"></li>
+								
+							   	 {% if request.user.is_superuser  and request.session.all_brands %}
+							   	 	<li>
+										<a class="userBrand2" value="" href="javascript:void(null);">
+											Default site
+										</a>
+								    </li>
+								    
+										{% for brand in request.session.all_brands %}
+											<li {% if brand|upper == request.session.current_brand|upper %} class="active" {% endif %}  >
+												<a class="userBrand2" 
+													value="{{ brand|upper }}"  href="javascript:void(null);">
+													{{ brand|upper }}
+													{% if brand|upper in request.session.user_brands %} (*) {% endif %}
+												</a>
+										    </li>
+										{% endfor %}
+								{% endif %}
+								<li class="divider"></li>
+								
+						
+								<!-- logout -->
+								<li>
+									<a href="{% url 'logout' %}?next={% url 'concept_list' %}">
+										<i class="fa fa-sign-out" aria-hidden="true"></i> Log out
+									</a>
+								</li>
+								
+							</ul>
+                    	</li>
+					{% else %}
+					    <li id="login_li" >
+							<a id="login_a" class="navbar-link nav-bar-title" href="{% url 'login' %}?next={{ request.path|urlencode }}">
+								<i class="fa fa-sign-in" aria-hidden="true"></i> Log in
+							</a>
+						</li>
+					{% endif %}
+														
+					<!-- main ul -->	
+					</ul>
+					
+					
+
 					</div>
 					
 				</div>
 			</div>
 		</nav>
-		<div class="container">			
+		
+		<div class="container-fluid centered">						
+			{% block container_fluid %}{% endblock container_fluid %}
+		</div>
+			
+		<div class="container">		
+		    <div class="breadcrumbs breadcrumbs-padding">
+		        {% block crumbs %}
+		        {% endblock crumbs %}
+		    </div>
+			
+				
 			{% block messages %}
 				{% if messages %}
 					{% for message in messages %}
@@ -198,21 +264,37 @@
 			</div>
 		</div>
 		<br/>
+		
 		<!-- SITE FOOTER -->
 		{% block footer %}
-		<footer>
+		<footer id="footer_main">
 			<div class="container" id="baseFooter" >
-			    <span style="color:yellow;">{{ DEV_PRODUCTION|safe }}</span>
+			<hr>
+
 				<p>Copyright &copy; {% now 'Y' %} - SAIL Databank - Swansea University. All rights reserved.</p>	
 				
-				<div class="navbar-header">
+				<div class="navbar-header" style="background-color: #243060;">
 					<a href="http://saildatabank.com" target=_blank  class="navbar-brand" rel="noopener noreferrer">
-						<img style="margin-top: -10px;" src="{% static 'img/SAIL2-d.png' %}" height="45px"  alt="SAIL Databank Logo" />
+						<img style="margin-top: -10px;" src="{% static 'img/SAIL2-d.png' %}" height="30px"  alt="SAIL Databank Logo" />
 					</a>
 					<a href="http://www.swansea.ac.uk" target=_blank  class="navbar-brand" rel="noopener noreferrer">
-						<img style="margin-top: -10px;" src="{% static 'img/logo.png' %}" height="45px" alt="Swansea University Logo" />
+						<img style="margin-top: -10px;" src="{% static 'img/logo.png' %}" height="30px" alt="Swansea University Logo" />
 					</a>	
-				</div>					    
+				</div>		
+				
+				{% if DEV_PRODUCTION|length or CLL_READ_ONLY %}
+				<div class="row ">
+			    	<div class="col-xs-offset-3 col-xs-9 text-right">
+			    		<span class="alert alert-warning" role="alert">
+			    		{{ DEV_PRODUCTION|safe }}
+			    			{% if CLL_READ_ONLY %}
+							   read only 
+							{% endif %}	
+			    		</span>
+			    	</div>
+			    </div>
+			    {% endif %}
+			    			    
 			</div>
 		</footer>	 
 		{% endblock footer %}
@@ -251,8 +333,7 @@
 		</script>
 		
 		<script type="text/javascript">
-		//Setting an active menu item based on the current URL with jQuery
-		
+			//Setting an active menu item based on the current URL with jQuery		
 			$(function () {
 			    setNavigation();
 			});
@@ -280,20 +361,20 @@
 				    return input.replace(lTrimRegex, '');
 				}
 				
-				var all_brands = []; // {{ request.session.all_brands|safe }};
+				var all_brands = []; 
 				{% for brand in request.session.all_brands %}
 					all_brands.push('{{ brand|upper }}');
 			    {% endfor %}
 
-				$( '#userBrand' ).on('change', function(e){
+				$( '.userBrand2' ).click(function(e){
 					$(".loader").show();
 					var path = window.location.pathname;
 					path = lTrim(path);
 					old_root = path.split('/')[0];
 					
 					new_root = '';
-					if(this.value != ''){
-						new_root = '/' + this.value;
+					if($(this).attr("value") != ''){
+						new_root = '/' + $(this).attr("value");
 					}
 					
 					indx = 1;
@@ -304,7 +385,9 @@
 					
 					$(".loader").hide();
 
-					});
+				});
+				
+
 			});
 			
 		</script>

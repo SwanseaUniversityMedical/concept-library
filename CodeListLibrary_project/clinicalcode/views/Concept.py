@@ -707,7 +707,7 @@ def concept_list(request):
     owner = request.GET.get('owner', request.session.get('concept_owner', ''))
     author = request.GET.get('author', request.session.get('concept_author', ''))
     show_only_validated_concepts = request.GET.get('show_only_validated_concepts', request.session.get('show_only_validated_concepts', 0))
-    concept_brand = request.GET.get('concept_brand', request.session.get('concept_brand', request.CURRENT_BRAND))
+    concept_brand = request.GET.get('concept_brand', request.session.get('concept_brand', '')) # request.CURRENT_BRAND
     expand_published_versions = 0   # disable this option
     #expand_published_versions = request.GET.get('expand_published_versions', request.session.get('expand_published_versions', 0))
     must_have_published_versions = request.GET.get('must_have_published_versions', request.session.get('concept_must_have_published_versions', 0))
@@ -724,7 +724,7 @@ def concept_list(request):
         tag_ids = request.POST.get('tagids', '')
         owner = request.POST.get('owner', '')
         show_only_validated_concepts = request.POST.get('show_only_validated_concepts', 0)
-        concept_brand = request.POST.get('concept_brand', request.CURRENT_BRAND)
+        concept_brand = request.POST.get('concept_brand', '') # request.CURRENT_BRAND
         #expand_published_versions = request.POST.get('expand_published_versions', 0)
         must_have_published_versions = request.POST.get('must_have_published_versions', 0)
         search_form = request.POST.get('search_form', 'basic-form')

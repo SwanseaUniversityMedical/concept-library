@@ -10,6 +10,11 @@
 	{% endif %}
 {% endblock title %}
 
+{% block crumbs %}
+	<a class="nav-bar-title underline" href="{% url 'workingset_list' %}">Working Sets</a>
+    > <strong>{{ workingset.name|default_if_none:"" }}</strong> 
+{% endblock crumbs %}
+
 {% block container %}
 
 {% if pk is None %}
@@ -93,23 +98,8 @@
 							<input class="col-sm-7 form-control" type="text" name="name" id="name" value="{{ workingset.name }}">
 						</div>
 					</div>
+
 					
-					<div class="row" id="concept-button-list-container">
-						<div class="col-sm-12" >
-							<a href="{% url 'workingset_list' %}" class="btn btn-success">
-								<i class="fa fa-reply" aria-hidden="true"></i> Return to list
-							</a>
-							{% if pk is not none %}
-<!-- 							<a href="{% url 'workingset_to_csv' pk=pk %}" class="btn btn-success"> -->
-<!-- 								<i class="fa fa-file-excel-o" aria-hidden="true"></i> Export CSV -->
-<!-- 							</a> -->
-							<a href="#" role="button" class="btn popovers" id="concept-button-list" data-toggle="popover" data-trigger="hover" data-container="#concept-button-list-container" title="" data-original-title="" data-placement="right">
-								<i class="fa fa-question-circle" aria-hidden="true"></i>
-							</a>
-							{% endif %}
-						</div>
-						
-					</div>
 					<hr/>
 					
 					{% if pk is not None %}
@@ -503,17 +493,7 @@
 {% endif %} 
 
 			<div id="popover-content-concept-tag-form" class="hide popover-lg">
-				<p>Tags are added within the administration section. Once a tag has been stored then you can assign it here so that you can search this concept based on tag name(s). Simply start typing the tag name you are looking for and it will appear within a dropdown just beneath the textbox.</p>
-			</div>
-
-			
-			<div id="popover-content-concept-button-list" class="hide popover-lg">
-				<p>
-					<strong>Return to list</strong> - returns to the working set search page.
-				</p>
-<!-- 				<p>
-					<strong>Export csv</strong> - export all codes into a csv file for the current concept. This will also take into account any code lists within related concepts. The csv file will only contain inclusion code lists and exclude any code lists that have the logical type marked as exclusion.
-				</p> -->
+				<p>Tags are added within the administration section. Once a tag has been stored then you can assign it here so that you can search this working set based on tag name(s). Simply start typing the tag name you are looking for and it will appear within a dropdown just beneath the textbox.</p>
 			</div>
 			
 			</div>

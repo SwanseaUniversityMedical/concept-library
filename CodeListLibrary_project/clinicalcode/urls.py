@@ -12,31 +12,43 @@ from django.conf import settings
 
 from views import (
     View, Concept, ComponentConcept, ComponentExpression,
-    ComponentQueryBuilder, WorkingSet, adminTemp, Phenotype
+    ComponentQueryBuilder, WorkingSet, adminTemp, Phenotype, Admin
 )
 
 urlpatterns = [
     url(r'^$', Concept.concept_list, name='concept_list' ),
     #url(r'^$', View.index, name='concept_index' ),
     url(r'^home/$', View.index, name='concept_index' ),
-    url(r'^home/HDR-UK$', View.index_HDRUK, name='HDRUK_index' ),
+    #url(r'^home/HDR-UK$', View.index_HDRUK, name='HDRUK_index' ),
     url(r'^concepts/$', Concept.concept_list, name='concept_list'),
     url(r'^workingset/$', WorkingSet.workingset_list, name='workingset_list'),
     url(r'^phenotype/$', Phenotype.phenotype_list, name='phenotype_list'),
 ]
 
+# About pages
+urlpatterns += [
+    # brand/main about pages
+    url(r'^about/(?P<pg_name>\w+)/$', View.about_pages, name='about_page' ),
+
+]
+
 #======== Admin Temp ===============================================================================
 #======== API testing ==============================================================================
 if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
-    # add URL to some json inputs 
     urlpatterns += [
         url(r'^adminTemp/api_remove_data/', 
             adminTemp.api_remove_data, 
             name='api_remove_data'),      
     ]
     
+if not settings.CLL_READ_ONLY: 
+    urlpatterns += [
+        url(r'^admin/run-stat/', 
+            Admin.run_statistics, 
+            name='HDRUK_run_statistics'),      
+    ]
+    
 # if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
-#     # add URL to some json inputs 
 #     urlpatterns += [       
 #         url(r'^adminTemp/moveTags/', 
 #             adminTemp.moveTags, 

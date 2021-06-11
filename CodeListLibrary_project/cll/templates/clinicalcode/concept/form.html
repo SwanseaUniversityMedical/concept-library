@@ -10,14 +10,97 @@ Edit Concept
 {% endif %}
 {% endblock title %}
 
+{% block crumbs %}
+	<a class="nav-bar-title underline" href="{% url 'concept_list' %}">Concepts</a>
+    > <strong>{{ form.name.value|default_if_none:""  }}</strong> 
+{% endblock crumbs %}
+
+
 {% block container %}
 
-{% if form.instance.pk is None %}
-<h2><i class="fa fa-file-text-o" aria-hidden="true"></i> Create a new concept</h2>
-{% else %}
-<h2><i class="fa fa-edit" aria-hidden="true"></i> Edit concept</h2>
-{% endif %}
+<div class="row" id="concept-button-list-container">
+	<div class="col-sm-4">
+		{% if form.instance.pk is None %}
+			<h2><i class="fa fa-file-text-o" aria-hidden="true"></i> Create a new concept</h2>
+		{% else %}
+			<h2><i class="fa fa-edit" aria-hidden="true"></i> Edit concept</h2>
+		{% endif %}
+	</div>
+	<div class="col-sm-8 text-right">
+		{% if form.instance.pk %}
+			<div class="dropdown btn-group">
+				<button {% if not user_can_export %} disabled
+					title="Component concept(s) deleted or revoked access!!" {% endif %} type="button"
+					class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
+					aria-expanded="false">
+					Export
+					<span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu">
+					<li>
+						<a {% if user_can_export %} href="{% url 'concept_codes_to_csv' pk=object.id %}"
+							{% endif %} class="dropdown-item">
+							<i class="fa fa-file-excel-o" aria-hidden="true"></i> CSV
+						</a>
+					</li>
+					<li>
+						<a {% if user_can_export %}
+							href="/api/export_concept_codes/{{ object.id }}/?format=json" target=_blank
+							{% endif %} class="dropdown-item">
+							<i class="fa fa-file-text" aria-hidden="true"></i> JSON
+						</a>
+					</li>
+					<li>
+						<a {% if user_can_export %}
+							href="/api/export_concept_codes/{{ object.id }}/?format=xml" target=_blank
+							{% endif %} class="dropdown-item">
+							<i class="fa fa-file-code-o" aria-hidden="true"></i> XML
+						</a>
+					</li>
+				</ul>
+			</div>
+	
+			<a class="js-load-modal btn btn-primary" href="{% url 'concept_fork' form.instance.pk %}">
+				<i class="fa fa-code-fork" aria-hidden="true"></i> Fork
+			</a>
+			{% if enable_publish and not CLL_READ_ONLY %}
+				<button id="publish2"  
+					href="{% url 'concept_publish' pk=form.instance.pk concept_history_id=history.0.history_id %}"
+					{% if is_published %}
+					   class="js-load-modal btn btn-success" 	
+				    	disabled title="This version is already published" >
+					    	<i class="fa fa-paper-plane" aria-hidden="true"></i>							    		
+					    	&nbsp;Published&nbsp;
+					    	<span class="glyphicon glyphicon-ok" style="color:green"></span>
+					{% else %}
+						class="js-load-modal btn btn-primary"  >
+						<i class="fa fa-paper-plane" aria-hidden="true"></i> Publish
+					{% endif %}
+				</button>
+			{% endif %}
 
+	{% endif %}
+	
+		{% if form.instance.pk is not None %}
+			&nbsp;
+			<a href="#" role="button" class="popovers" id="concept-button-list"
+				data-toggle="popover" data-trigger="hover"
+				data-container="#concept-button-list-container" title="" data-original-title=""
+				data-placement="left">
+				<i class="fa fa-question-circle" aria-hidden="true"></i>
+			</a>
+		{% endif %}
+	</div>
+</div>
+
+<!-- This is used for the forking message. -->
+<div class="alert alert-success alert-dismissable" id="success-message" style="display: none;"
+	role="alert"></div>
+<div class="alert alert-danger alert-dismissable" id="error-message" style="display: none;"
+	role="alert"></div>
+						
+						
+<!-- main form panel -->						
 <div class="panel panel-default">
 	<div class="panel-body">
 		<div class="row">
@@ -64,78 +147,7 @@ Edit Concept
 						{% endfor %}
 						{% endfor %}
 					</div>
-					<div class="row" id="concept-button-list-container">
-						<div class="col-sm-12">
-							<a href="{% url 'concept_list' %}" class="btn btn-success">
-								<i class="fa fa-reply" aria-hidden="true"></i> Return to list
-							</a>
-							{% if form.instance.pk %}
-							<div class="dropdown btn-group">
-								<button {% if not user_can_export %} disabled
-									title="Component concept(s) deleted or revoked access!!" {% endif %} type="button"
-									class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
-									aria-expanded="false">
-									Export
-									<span class="caret"></span>
-								</button>
-								<ul class="dropdown-menu">
-									<li>
-										<a {% if user_can_export %} href="{% url 'concept_codes_to_csv' pk=object.id %}"
-											{% endif %} class="dropdown-item">
-											<i class="fa fa-file-excel-o" aria-hidden="true"></i> CSV
-										</a>
-									</li>
-									<li>
-										<a {% if user_can_export %}
-											href="/api/export_concept_codes/{{ object.id }}/?format=json" target=_blank
-											{% endif %} class="dropdown-item">
-											<i class="fa fa-file-text" aria-hidden="true"></i> JSON
-										</a>
-									</li>
-									<li>
-										<a {% if user_can_export %}
-											href="/api/export_concept_codes/{{ object.id }}/?format=xml" target=_blank
-											{% endif %} class="dropdown-item">
-											<i class="fa fa-file-code-o" aria-hidden="true"></i> XML
-										</a>
-									</li>
-								</ul>
-							</div>
 
-							<a class="js-load-modal btn btn-primary" href="{% url 'concept_fork' form.instance.pk %}">
-								<i class="fa fa-code-fork" aria-hidden="true"></i> Fork
-							</a>
-							{% if enable_publish and not CLL_READ_ONLY %}
-							<button id="publish2"  
-								href="{% url 'concept_publish' pk=form.instance.pk concept_history_id=history.0.history_id %}"
-								{% if is_published %}
-								   class="js-load-modal btn btn-success" 	
-							    	disabled title="This version is already published" >
-								    	<i class="fa fa-paper-plane" aria-hidden="true"></i>							    		
-								    	&nbsp;Published&nbsp;
-								    	<span class="glyphicon glyphicon-ok" style="color:green"></span>
-								{% else %}
-									class="js-load-modal btn btn-primary"  >
-									<i class="fa fa-paper-plane" aria-hidden="true"></i> Publish
-								{% endif %}
-							</button>
-							{% endif %}
-
-						{% endif %}
-							<a href="#" role="button" class="btn popovers" id="concept-button-list"
-								data-toggle="popover" data-trigger="hover"
-								data-container="#concept-button-list-container" title="" data-original-title=""
-								data-placement="right">
-								<i class="fa fa-question-circle" aria-hidden="true"></i>
-							</a>
-						</div>
-					</div>
-
-					<!-- This is used for the forking message. -->
-					<div class="alert alert-success alert-dismissable" id="success-message" style="display: none;"
-						role="alert"></div>
-					<div class="alert alert-danger alert-dismissable" id="error-message" style="display: none;"
-						role="alert"></div>
 					<hr />
 
 					{% if form.instance.pk is not None %}
@@ -635,16 +647,18 @@ Edit Concept
 			<img src="{% static 'img/code-list-library-erd.png' %}" width="600px" alt="Entity relationship diagram" />
 		</div>
 
-		<div id="popover-content-concept-button-list" class="hide popover-lg">
-			<p>
-				<strong>Return to list</strong> - returns to the concept search page.
-			</p>
+		<div id="popover-content-concept-button-list" class="hide popover-lg" >
+<!-- 			<p> -->
+<!-- 				<strong>Return to list</strong> - returns to the concept search page. -->
+<!-- 			</p> -->
 			{% if form.instance.pk is not None %}
 				<p>
-					<strong>Export</strong> - export all codes into a csv file/JSON/XML for the current concept. This will also
-					take into account any code lists within related concepts. The exported codes will only contain inclusion code
-					lists and exclude any code lists that have the logical type marked as exclusion(remove-codes).
-					The button will be disabled unless you have permission to view <b>all</b> of the component concepts.
+					<strong>Export</strong> - export all codes into a csv file/JSON/XML for the current concept. 
+					<ul>
+						<li>This will also take into account any code lists within related concepts.</li>
+						<li>The exported codes will only contain inclusion code lists and exclude any code lists that have the logical type marked as exclusion(remove-codes).</li>
+						<li>The button will be disabled unless you have permission to view <b>all</b> of the component concepts.</li>
+					</ul>
 				</p>
 				<p>
 					<strong>Fork</strong> - This will take a copy of the current concept and create a new concept with all

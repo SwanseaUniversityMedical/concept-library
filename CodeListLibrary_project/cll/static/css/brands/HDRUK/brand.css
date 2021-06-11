@@ -17,16 +17,6 @@ span.required{
 	color: red;
 }
 
-.loader {
-	position: fixed;
-	left: 0px;
-	top: 0px;
-	width: 100%;
-	height: 100%;
-	z-index: 9999;
-	background: url('../img/page-loader.gif') 50% 50% no-repeat rgb(249,249,249);
-	opacity: .8;
-}   
 
 .page-control-container{
 	padding-bottom: 5px;	
@@ -267,7 +257,7 @@ element.style {
 }
 
 .breadcrumbs-padding {
-    padding-top: 20px;
+    padding-top: 10px;
     padding-right: 5px;
     padding-bottom: 10px;
     padding-left:0px;
