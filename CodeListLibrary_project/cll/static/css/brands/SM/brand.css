@@ -51,7 +51,7 @@ ul.left-navbar a.active {
 
 .validation-checkbox input:checked::after {
   position: absolute;
-  content: "\f00c"; 
+  content: "\f00c";
   font-family: "FontAwesome"; 
   color: #fff;
 }
