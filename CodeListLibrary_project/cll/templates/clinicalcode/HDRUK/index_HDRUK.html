@@ -6,32 +6,36 @@
 <script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
 <!--    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script> -->
 {% endblock head %}
-{% block container %}
-<script>
-   function myFunction() {
-       console.log("myFunction is working"); //banner_design.jpg
-   }
-</script>
+
+
+{% block container_fluid %}
+
 <div class="big-banner">
    <div class="flex-banner">
-      <div style="padding-left:50px; padding-top:50px; color: #FFFFFF;">
-         <p style="width:45%; padding-left:20px" class="welcome-text-design">HDR UK Phenotype Library is a comprehensive, open access resource providing the research community
-            with information, tools and phenotyping algorithms for UK electronic health records.
-         </p>
-         <form class= "row" style="padding-top:15px; padding-left:30px;" id="basic-form" action="{% url 'phenotype_list' %}" method="POST" >
-            {% csrf_token %}
-            <div class="search_box">
-               <div class="search_field">
-                  <input type="text" class="input" placeholder="Search our Phenotype library" name="search" id="search1" value="{{ search|default_if_none:'' }}">
-               </div>
-            </div>
-            <div style="padding-left:10px;">
-               <button class="btn" name="page" value="1" style="height:50px;width:50px"><i class="fa fa-search"></i></button>
-            </div>
-         </form>
-      </div>
+   	<div class="container" >
+	      <div style="padding-left:0px; padding-top:50px; color: #FFFFFF;">
+	         <p style="width:45%; padding-left:20px" class="welcome-text-design">HDR UK Phenotype Library is a comprehensive, open access resource providing the research community
+	            with information, tools and phenotyping algorithms for UK electronic health records.
+	         </p>
+	         <form class= "row" style="padding-top:15px; padding-left:30px;" id="basic-form" action="{% url 'phenotype_list' %}" method="POST" >
+	            {% csrf_token %}
+	            <div class="search_box">
+	               <div class="search_field">
+	                  <input type="text" class="input" placeholder="Search our Phenotype library" name="search" id="search1" value="{{ search|default_if_none:'' }}">
+	               </div>
+	            </div>
+	            <div style="padding-left:10px;">
+	               <button class="btn" name="page" value="1" style="height:50px;width:50px"><i class="fa fa-search"></i></button>
+	            </div>
+	         </form>
+	      </div>
+		</div>
    </div>
 </div>
+{% endblock container_fluid %}
+
+{% block container %}
+
 <div>
    <!--<h2 class="header-design">Welcome to the Concept Library</h2>
       <p>The concept library is a system for storing, managing, sharing, and documenting clinical code lists in health research. The specific goals of this work are
@@ -120,7 +124,7 @@
       </div>
       <div class="column">
          <a style="text-decoration: none; color:black;" href="{% url 'about_page' 'hdruk_about_technical_details' %}">
-            <div class="card pointer" onclick="myFunction()">
+            <div class="card pointer" >
                <i class="fas fa-plus" style="position:relative;  right: 47.5%; font-size: 32px;"></i>
                <h4 style="text-align:left">Submit a Phenotype</h4>
                <p id="card" style="text-align:left">To submit a phenotype please follow the bellow process. Click on the button below to access the phenotype. To submit a phenotype please follow the bellow process.</p>

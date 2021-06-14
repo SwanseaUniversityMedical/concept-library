@@ -156,9 +156,7 @@ form.example::after {
 }
 
 
-
-
-.bg-img-basic-search {
+.bg-search {
   /* The image used */
   /*   background-image: url("../img/bg1.png"); */
 
@@ -172,19 +170,6 @@ form.example::after {
   background: #F7F9FC;
 }
 
-.bg-img-advanced-search {
-  /* The image used */
-  /*   background-image: url("../img/bg2.png"); */
-
-  min-height: 150px;
-
-  /* Center and scale the image nicely */
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  position: relative;
-  background: #F7F9FC;
-}
 
 /* Add styles to the form container */
 .container_frm {
