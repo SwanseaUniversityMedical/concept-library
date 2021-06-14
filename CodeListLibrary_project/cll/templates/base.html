@@ -71,20 +71,19 @@
 							<img style="margin-top: -5px;" widthXX="115px" height="35px"   alt="{{request.CURRENT_BRAND}} Logo" 
 								{% if request.CURRENT_BRAND|length %} src="{% static 'img/brands/' %}{{request.CURRENT_BRAND}}/header_logo.png" {% else %} src="{% static 'img//header_logo.png' %}" {% endif %}
 							/>
-						</a>
-		
+						</a>		
 					
-						<a id="logo-link-cl"  class="navbar-brand" href="/{% if request.CURRENT_BRAND|length %}{{ request.CURRENT_BRAND }}/home/{% else %}home/{% endif %}" >							 
-							<span class="CL-title">
-								<strong>
-									{% if request.CURRENT_BRAND|length and request.BRAND_OBJECT.site_title is not none %}
-										{{ request.BRAND_OBJECT.site_title }}
-									{% else %}
-										Concept Library
-									{% endif %}
-								</strong>
-								</span>
-						</a>
+<!-- 						<a id="logo-link-cl"  class="navbar-brand" href="/{% if request.CURRENT_BRAND|length %}{{ request.CURRENT_BRAND }}/home/{% else %}home/{% endif %}" >							  -->
+<!-- 							<span class="CL-title"> -->
+<!-- 								<strong> -->
+<!-- 									{% if request.CURRENT_BRAND|length and request.BRAND_OBJECT.site_title is not none %} -->
+<!-- 										{{ request.BRAND_OBJECT.site_title }} -->
+<!-- 									{% else %} -->
+<!-- 										Concept Library -->
+<!-- 									{% endif %} -->
+<!-- 								</strong> -->
+<!-- 								</span> -->
+<!-- 						</a> -->
 
 					</div>
 					
