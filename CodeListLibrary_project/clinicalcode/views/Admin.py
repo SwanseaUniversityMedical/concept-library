@@ -62,6 +62,7 @@ def save_statistics(request):
         HDRUK_stat = Statistics.objects.get(org__iexact = 'HDRUK', type__iexact = 'landing-page')
         HDRUK_stat.stat = stat
         HDRUK_stat.updated_by = request.user
+        HDRUK_stat.modified = datetime.now()
         HDRUK_stat.save()
         
         return [stat, HDRUK_stat.id]
@@ -114,3 +115,5 @@ def get_published_clinical_codes():
         
 
     return count       
+
+

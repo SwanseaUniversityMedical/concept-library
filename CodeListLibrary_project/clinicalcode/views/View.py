@@ -20,6 +20,7 @@ from ..permissions import (
     allowed_to_view, allowed_to_edit
 )
 
+import datetime     
 logger = logging.getLogger(__name__)
 
 
@@ -41,16 +42,22 @@ def index_HDRUK(request):
         Display the HDR UK homepage.
     '''   
     
+    from .Admin import save_statistics
+    
     if Statistics.objects.all().filter(org__iexact = 'HDRUK', type__iexact = 'landing-page').exists():
-        HDRUK_stat = Statistics.objects.get(org__iexact = 'HDRUK', type__iexact = 'landing-page').stat
+        stat = Statistics.objects.get(org__iexact = 'HDRUK', type__iexact = 'landing-page')
+        HDRUK_stat = stat.stat
+        last_updated = stat.modified.date()
+        current_date = datetime.datetime.now().date()
+        if current_date > last_updated:
+            # update stat
+            stat_obj = save_statistics(request)
+            HDRUK_stat = stat_obj[0]
     else:
-        HDRUK_stat = {
-                        'published_concept_count': -1, 
-                        'published_phenotype_count': -1, 
-                        'published_clinical_codes': -1, 
-                        'datasources_component_count': -1,
-                        'clinical_terminologies': -1
-                    }
+        # update stat
+        stat_obj = save_statistics(request)
+        HDRUK_stat = stat_obj[0]
+    
     
     return render(request,
                   'clinicalcode/HDRUK/index_HDRUK.html',
@@ -74,6 +81,8 @@ def about_pages(request, pg_name=None):
     # main CL about page
     if pg_name.lower() == "cl_about_page":
         return render(request, 'clinicalcode/cl-about.html', {})
+    
+    
     
     # HDR-UK about pages                    
     if pg_name.lower() == "hdruk_about_the_project":
