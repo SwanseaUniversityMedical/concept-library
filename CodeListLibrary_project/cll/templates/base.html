@@ -59,33 +59,32 @@
 	<body>
 		<div class="loader" style="display:none;"></div>
 		<nav id="nav_bar_main" class="navbar navbar-default navbar-fixed-top">
-<!-- 		<span style="color:yellow;position:absolute;left: 0;top: 0;"><span class="alert alert-warning" role="alert">{{ DEV_PRODUCTION|safe }}</span></span> -->
-
 		
- 			<div class="container" id="nav_bar_main" >  <!--<div class="container-fluid"  id="nav_bar_main"  > -->
-				<div id="navbar" class="navbar-collapse collapse">
-					<div class="navbar-header">
+ 			<div class="container" id="nav_bar_main" > 
+ 			    <!-- Brand and toggle get grouped for better mobile display -->
+			    <div class="navbar-header">
+			      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
+			        <span class="sr-only">Toggle navigation</span>
+			        <span class="icon-bar"></span>
+			        <span class="icon-bar"></span>
+			        <span class="icon-bar"></span>
+			      </button>
+			      
+<!-- 					<div class="navbar-header"> -->
 						
 						<!-- Header logo -->
 						<a id="logo-link"  class="navbar-brand" href="/{% if request.CURRENT_BRAND|length %}{{ request.CURRENT_BRAND }}/home/{% else %}home/{% endif %}" >
 							<img style="margin-top: -5px;" widthXX="115px" height="35px"   alt="{{request.CURRENT_BRAND}} Logo" 
 								{% if request.CURRENT_BRAND|length %} src="{% static 'img/brands/' %}{{request.CURRENT_BRAND}}/header_logo.png" {% else %} src="{% static 'img//header_logo.png' %}" {% endif %}
 							/>
-						</a>		
-					
-<!-- 						<a id="logo-link-cl"  class="navbar-brand" href="/{% if request.CURRENT_BRAND|length %}{{ request.CURRENT_BRAND }}/home/{% else %}home/{% endif %}" >							  -->
-<!-- 							<span class="CL-title"> -->
-<!-- 								<strong> -->
-<!-- 									{% if request.CURRENT_BRAND|length and request.BRAND_OBJECT.site_title is not none %} -->
-<!-- 										{{ request.BRAND_OBJECT.site_title }} -->
-<!-- 									{% else %} -->
-<!-- 										Concept Library -->
-<!-- 									{% endif %} -->
-<!-- 								</strong> -->
-<!-- 								</span> -->
-<!-- 						</a> -->
+						</a>	
+						
+<!-- 					</div> -->
+			    </div>
 
-					</div>
+    			<!-- Collect the nav links, forms, and other content for toggling -->
+				<div class="collapse navbar-collapse"  id="navbar" >
+
 					
 					
 			<div class="navbar-header" style="float: right !important;">			
@@ -134,9 +133,9 @@
 						{% endif %}		
 							
 	
-						
-						<li id="about_li" class="dropdown activeXX">
-	                        <a id="about_a" href="#" class="nav-bar-title dropdown-toggle activeXX "  style="font-weight: normal !important;"
+						<!-- about tab -->
+						<li id="about_li" class="dropdown">
+	                        <a id="about_a" href="#" class="nav-bar-title dropdown-toggle"  style="font-weight: normal !important;"
 	                          data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">About <span class="caret"></span></a>
 	                        <ul class="dropdown-menu">                                                   
                                 {% if request.BRAND_OBJECT.about_menu is not none %}					
@@ -156,7 +155,7 @@
                     	
                     <!-- user/login -->
                     {% if user.is_authenticated %}	
-                    	<li id="user_li" class="dropdown activeXX">
+                    	<li id="user_li" class="dropdown">
                     		<a id="user_a" href="#" class="nav-bar-title dropdown-toggle activeXX " style="font-weight: normal !important;"
 	                          data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"  title="{{ user.get_username }}" >
 	                          <i class="fa fa-user" aria-hidden="true"></i> {{ user.get_username }} <span class="caret"></span></a>
@@ -180,7 +179,7 @@
 								
 								
 								<!-- brands -->
-								<li class="divider"></li>
+								<li role="separator" class="divider"></li>
 								
 							   	 {% if request.user.is_superuser  and request.session.all_brands %}
 							   	 	<li>
@@ -194,12 +193,11 @@
 												<a class="userBrand2" 
 													value="{{ brand|upper }}"  href="javascript:void(null);">
 													{{ brand|upper }}
-<!-- 												{% if brand|upper in request.session.user_brands %} (*) {% endif %} -->
 												</a>
 										    </li>
 										{% endfor %}
 								{% endif %}
-								<li class="divider"></li>
+								<li role="separator" class="divider"></li>
 								
 						
 								<!-- logout -->
@@ -226,8 +224,8 @@
 
 					</div>
 					
-				</div>
-			</div>
+				</div> <!-- /.navbar-collapse -->
+			</div> <!-- /.container -->
 		</nav>
 		
 		<div class="container-fluid" style="padding-right: 0px; padding-left:0px;">							

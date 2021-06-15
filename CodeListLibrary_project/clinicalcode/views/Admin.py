@@ -100,7 +100,7 @@ def get_published_clinical_codes():
         in published concepts and phenotypes
     '''
 
-    from ..db_utils import *
+    from ..db_utils import getGroupOfCodesByConceptId_HISTORICAL
     count = 0
     
     #return 650645
