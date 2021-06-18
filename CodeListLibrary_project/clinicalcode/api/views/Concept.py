@@ -55,7 +55,6 @@ from django.db.models.aggregates import Max
 from clinicalcode.permissions import get_visible_concepts_live
 #from ...permissions import Permissions
 import re 
-from pyasn1_modules.rfc7292 import pkcs
 
 #--------------------------------------------------------------------------
 '''
