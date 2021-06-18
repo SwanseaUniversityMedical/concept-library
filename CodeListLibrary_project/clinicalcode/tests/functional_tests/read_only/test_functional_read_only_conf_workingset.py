@@ -115,7 +115,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/', 
+        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
                                 self.workingset_everybody_can_edit.id, '/history/', 
                                 self.workingset_everybody_can_edit.history.first().history_id, '/detail/'))
         
@@ -138,7 +138,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/', 
+        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
                                 self.workingset_everybody_can_edit.id, '/history/', 
                                 self.workingset_everybody_can_edit.history.first().history_id, '/revert/'))
         
@@ -152,7 +152,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/', 
+        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
                                 self.workingset_everybody_can_edit.id, '/history/', 
                                 self.workingset_everybody_can_edit.history.first().history_id, '/detail/'))
         
@@ -175,7 +175,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/', 
+        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
                                 self.workingset_everybody_can_edit.id, '/history/', 
                                 self.workingset_everybody_can_edit.history.first().history_id, '/revert/'))
         time.sleep(3)
@@ -190,7 +190,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_super_user_cannot_create(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/create/'))
+        browser.get('%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/create/'))
         
         self.login(su_user, su_password)
         
@@ -201,7 +201,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_super_user_cannot_edit(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/', 
+        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
                               self.workingset_everybody_can_edit.id, '/update/'))
         
         self.login(su_user, su_password)
@@ -213,7 +213,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_super_user_cannot_revert(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/', 
+        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
                                 self.workingset_everybody_can_edit.id, '/history/', 
                                 self.workingset_everybody_can_edit.history.first().history_id, '/detail/'))
         
@@ -235,7 +235,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_super_user_cannot_revert_through_url(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/', 
+        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
                                 self.workingset_everybody_can_edit.id, '/history/', 
                                 self.workingset_everybody_can_edit.history.first().history_id, '/revert/'))
         
@@ -250,7 +250,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_normal_user_cannot_edit_by_own_url(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/', 
+        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
                               self.workingset_everybody_can_edit.id, '/update/'))
         
         self.login(nm_user, nm_password)
@@ -262,7 +262,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_owner_cannot_edit_by_own_url(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/', 
+        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
                               self.workingset_everybody_can_edit.id, '/update/'))
         
         self.login(ow_user, ow_password)

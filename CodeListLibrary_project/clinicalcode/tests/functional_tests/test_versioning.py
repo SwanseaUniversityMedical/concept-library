@@ -249,7 +249,7 @@ class VersioningTest(StaticLiveServerTestCase):
         browser = self.browser
         print("WORKINGSET ID", self.workingset_everybody_can_edit.id)
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/', 
+        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
                                 self.workingset_everybody_can_edit.id, '/detail/'))
         
         time.sleep(3)
@@ -309,7 +309,7 @@ class VersioningTest(StaticLiveServerTestCase):
         browser = self.browser
         print("WORKINGSET ID", self.workingset_everybody_can_edit.id)
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/', 
+        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
                                 self.workingset_everybody_can_edit.id, '/detail/'))
         
         time.sleep(3)
@@ -362,7 +362,7 @@ class VersioningTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/'))
+        browser.get('%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/'))
         
         time.sleep(3)
         
@@ -431,13 +431,13 @@ class VersioningTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/', 
+        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
                                 self.workingset_everybody_can_edit.id, '/history/',
                                 latest_version,'/detail/'))
         
         time.sleep(3)
         
-        url = ('%s%s%s' % ('/workingset/', 
+        url = ('%s%s%s' % ('/workingsets/', 
                                 self.workingset_everybody_can_edit.id, '/export/codes'))
         
         request = self.factory.get(url) 

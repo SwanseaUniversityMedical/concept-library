@@ -32,6 +32,8 @@ from datetime import datetime
 from django.core.validators import URLValidator
 from View import *
 from django.db.models.aggregates import Max
+from clinicalcode.models.PhenotypeDataSourceMap import PhenotypeDataSourceMap
+from clinicalcode.models.Phenotype import Phenotype
 
 @api_view(['POST'])
 def api_datasource_create(request):
@@ -91,3 +93,113 @@ def api_datasource_create(request):
                 
                 
                 
+
+#--------------------------------------------------------------------------
+@api_view(['GET'])
+def get_data_source(request, pk=None, get_live_phenotypes=False):   
+    
+    if pk is not None:
+        data_source_id = pk
+    else:   
+        data_source_id = request.query_params.get('id', None)
+        
+
+    queryset = DataSource.objects.all()
+    
+    keyword_search = request.query_params.get('search', None)
+    if keyword_search is not None:
+        queryset = queryset.filter(name__icontains=keyword_search)
+    
+    if data_source_id is not None:
+        queryset = queryset.filter(id=data_source_id)
+
+    queryset = queryset.order_by('name')
+   
+        
+    rows_to_return = []
+    titles = ['id', 'name', 'url', 'uid', 'description', 'phenotypes']
+        
+    for ds in queryset:
+        ret = [
+                ds.id,  
+                ds.name.encode('ascii', 'ignore').decode('ascii'),
+                ds.url,
+                ds.uid,
+                ds.description
+            ]
+        if get_live_phenotypes:
+            ret.append(get_LIVE_phenotypes_associated_with_data_source(ds.id))
+        else:
+            ret.append(get_HISTORICAl_phenotypes_associated_with_data_source(ds.id))
+            
+        rows_to_return.append(ordr(zip(titles,  ret )))
+        
+        
+    
+    return Response(rows_to_return, status=status.HTTP_200_OK)   
+        
+         
+def get_LIVE_phenotypes_associated_with_data_source(data_source_id):   
+    
+    # return LIVE phenotypes associated with data_source
+    phenotype_ids = list(PhenotypeDataSourceMap.objects.filter(datasource_id=data_source_id).values_list('phenotype_id', flat=True))
+    phenotypes = Phenotype.objects.filter(id__in = phenotype_ids).order_by('name') 
+    
+    rows_to_return = []
+    titles = ['phenotype_id', 'phenotype_version_id', 'phenotype_name', 'phenotype_uuid', 'phenotype_author']
+    for p in phenotypes:
+        ret = [
+                p.id,  
+                Phenotype.objects.get(id=p.id).history.latest().history_id,
+                p.name.encode('ascii', 'ignore').decode('ascii'),
+                p.phenotype_uuid,
+                p.author
+            ]
+        rows_to_return.append(ordr(zip(titles,  ret )))
+        
+    return rows_to_return
+
+    
+def get_HISTORICAl_phenotypes_associated_with_data_source(data_source_id):   
+    
+    # return HISTORICAl phenotypes associated with data_source
+    associated_phenotype_ids = list(PhenotypeDataSourceMap.objects.filter(datasource_id=data_source_id).values_list('phenotype_id', flat=True))
+    
+    ver_to_return = []
+    rows_to_return = []
+    ph_titles = ['phenotype_id', 'versions']
+    ver_titles = ['phenotype_id', 'phenotype_version_id', 'phenotype_name', 'phenotype_uuid', 'phenotype_author']
+    
+    for p_id in associated_phenotype_ids:
+        ver_to_return = []
+        # get version obj
+        associated_phenotype_versions = Phenotype.history.filter(id=p_id)
+        for ver in associated_phenotype_versions:  
+            data_sources_history = getHistoryDataSource_Phenotype(p_id, ver.history_date)
+            if data_sources_history:
+                phenotype_ds_list = [i['datasource_id'] for i in data_sources_history if 'datasource_id' in i]
+                
+                if data_source_id in set(phenotype_ds_list):
+                    ret = [
+                            p_id,  
+                            ver.history_id,
+                            ver.name.encode('ascii', 'ignore').decode('ascii'),
+                            ver.phenotype_uuid,
+                            ver.author
+                        ]
+                    ver_to_return.append(ordr(zip(ver_titles,  ret )))
+                else:
+                    pass      
+        
+        rows_to_return.append(ordr(zip(ph_titles,  [p_id, ver_to_return] )))
+         
+    return rows_to_return
+
+
+
+
+
+    
+    
+    
+        

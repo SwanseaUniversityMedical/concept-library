@@ -401,7 +401,7 @@ class OtherTest(StaticLiveServerTestCase ):
         self.logout()
         #----------------------
         self.login(nm_user, nm_password) # logging as normal user
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/', 
+        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
                                 self.workingset_everybody_can_edit.id, '/detail/'))
         time.sleep(3)
         
@@ -410,7 +410,7 @@ class OtherTest(StaticLiveServerTestCase ):
         self.assertTrue(is_disabled)
         
         # Try to export to csv bu URL
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/', 
+        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
                                 self.concept_everybody_can_view.id, '/export/concepts/'))
         time.sleep(3)
         
@@ -445,7 +445,7 @@ class OtherTest(StaticLiveServerTestCase ):
         #--------------------
         self.login(nm_user, nm_password) # logging as normal user
         
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/', 
+        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
                                 self.workingset_everybody_can_edit.id, '/detail/'))
         time.sleep(3)
         
@@ -456,7 +456,7 @@ class OtherTest(StaticLiveServerTestCase ):
         self.assertTrue(is_disabled)
         
         # Try to export to csv bu URL
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/', 
+        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
                                 self.concept_everybody_can_view.id, '/export/concepts/'))
         time.sleep(3)
         
@@ -527,7 +527,7 @@ class OtherTest(StaticLiveServerTestCase ):
         self.login(nm_user, nm_password)
         
         browser = self.browser
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/', 
+        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
                                 self.concept_everybody_can_view.id, '/update/'))
         
         time.sleep(3)
@@ -540,7 +540,7 @@ class OtherTest(StaticLiveServerTestCase ):
         
         self.login(nm_user, nm_password)
         browser = self.browser
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/', 
+        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
                                 self.concept_everybody_can_view.id, '/delete/'))
         
         
@@ -553,7 +553,7 @@ class OtherTest(StaticLiveServerTestCase ):
         self.login(nm_user, nm_password)
         
         browser = self.browser
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/', 
+        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
                                 self.concept_everybody_can_view.id, '/history/', 
                                 self.concept_everybody_can_view.history.first().history_id, '/revert/'))
         
@@ -577,7 +577,7 @@ class OtherTest(StaticLiveServerTestCase ):
         
         self.assertTrue("Permission denied." in browser.page_source)
         
-        browser.get('%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/api/concepts/', 
+        browser.get('%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/api/concept-search/', 
                                 self.concept_none_can_access.id))
         time.sleep(3)
         
@@ -831,8 +831,8 @@ class OtherTest(StaticLiveServerTestCase ):
         
     
     def test_workingset_exclusion_and_inclusion(self):
-        url = ('%s%s%s' % ('/workingset/', 
-                                self.workingset_with_excluded_codes.id, '/export/concepts'))
+        url = ('%s%s%s' % ('/workingsets/', 
+                                self.workingset_with_excluded_codes.id, '/export/codes'))
         
         request = self.factory.get(url) 
         request.user = self.owner_user
@@ -851,8 +851,8 @@ class OtherTest(StaticLiveServerTestCase ):
         self.assertTrue(test)
         
     def test_workingset_exclusion(self):
-        url = ('%s%s%s' % ('/workingset/', 
-                                self.workingset_with_excluded_and_included_codes.id, '/export/concepts'))
+        url = ('%s%s%s' % ('/workingsets/', 
+                                self.workingset_with_excluded_and_included_codes.id, '/export/codes'))
         
         request = self.factory.get(url) 
         request.user = self.owner_user
@@ -927,7 +927,7 @@ class OtherTest(StaticLiveServerTestCase ):
         self.assertTrue(test)
         
     def test_workingset_to_csv_permission(self):
-        url = ('%s%s%s' % ('/workingset/', 
+        url = ('%s%s%s' % ('/workingsets/', 
                                 self.workingset_none_can_access.id, '/export/codes'))
         
         request = self.factory.get(url) 

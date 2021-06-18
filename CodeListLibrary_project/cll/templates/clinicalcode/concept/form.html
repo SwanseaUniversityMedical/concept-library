@@ -45,14 +45,14 @@ Edit Concept
 					</li>
 					<li>
 						<a {% if user_can_export %}
-							href="/api/export_concept_codes/{{ object.id }}/?format=json" target=_blank
+							href="{% url 'api:api_export_concept_codes' object.id %}?format=json" target=_blank
 							{% endif %} class="dropdown-item">
 							<i class="fa fa-file-text" aria-hidden="true"></i> JSON
 						</a>
 					</li>
 					<li>
 						<a {% if user_can_export %}
-							href="/api/export_concept_codes/{{ object.id }}/?format=xml" target=_blank
+							href="{% url 'api:api_export_concept_codes' object.id %}?format=xml" target=_blank
 							{% endif %} class="dropdown-item">
 							<i class="fa fa-file-code-o" aria-hidden="true"></i> XML
 						</a>

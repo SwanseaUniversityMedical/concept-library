@@ -52,9 +52,9 @@
 							   </li>
 							   <li>
 							   {% if user.is_authenticated %}
-									<a {% if user_can_export %} href="/api/export_concept_codes_byVersionID/{{ concept.id }}/version/{{ concept.history_id }}/?format=json" target=_blank {% endif %}
+									<a {% if user_can_export %} href="{% url 'api:api_export_concept_codes_byVersionID'  concept.id concept.history_id %}?format=json" target=_blank {% endif %} 
 							   {% elif enable_publish %}
-									<a {% if user_can_export %} href="/api/export_published_concept_codes/{{ concept.id }}/version/{{ concept.history_id }}/?format=json" target=_blank {% endif %}							    
+									<a {% if user_can_export %} href="{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=json" target=_blank {% endif %}							    
 							   {% endif %}
 								       class="dropdown-item" >
 										<i class="fa fa-file-text" aria-hidden="true"></i> JSON
@@ -62,9 +62,9 @@
 							   </li>
 							   <li>
 							   {% if user.is_authenticated %}
-									<a {% if user_can_export %} href="/api/export_concept_codes_byVersionID/{{ concept.id }}/version/{{ concept.history_id }}/?format=xml" target=_blank {% endif %} 
+									<a {% if user_can_export %} href="{% url 'api:api_export_concept_codes_byVersionID'  concept.id concept.history_id %}?format=xml" target=_blank {% endif %} 
 							   {% elif enable_publish %}
-									<a {% if user_can_export %} href="/api/export_published_concept_codes/{{ concept.id }}/version/{{ concept.history_id }}/?format=xml" target=_blank {% endif %}							    
+									<a {% if user_can_export %} href="{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=xml" target=_blank {% endif %}							    
 							   {% endif %}							   
 							       class="dropdown-item" >
 									<i class="fa fa-file-code-o" aria-hidden="true"></i> XML

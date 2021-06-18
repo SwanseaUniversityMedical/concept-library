@@ -549,12 +549,18 @@ def api_workingset_update(request):
 ##############################################################################
 # search my Working Sets 
 @api_view(['GET']) 
-def myWorkingSets(request):
+def workingsets(request, pk=None):
     '''
         Get the API output for the list of my Working Sets.
     '''
     search = request.query_params.get('search', None)
-    workingset_id = request.query_params.get('id', None)
+    
+    if pk is not None:
+        workingset_id = pk
+    else:   
+        workingset_id = request.query_params.get('id', None)
+        
+    
     tag_ids = request.query_params.get('tag_ids', '')
     owner = request.query_params.get('owner_username', '')
     show_only_my_workingsets = request.query_params.get('show_only_my_workingsets', "0")
@@ -670,7 +676,7 @@ def myWorkingSets(request):
                                                 
 # my working set detail 
 @api_view(['GET']) 
-def myWorkingset_detail(request, pk, workingset_history_id=None, get_versions_only=None):
+def workingset_detail(request, pk, workingset_history_id=None, get_versions_only=None):
     ''' 
         Display the detail of a working set at a point in time.
     '''

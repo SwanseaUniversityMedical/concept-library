@@ -55,6 +55,7 @@ from django.db.models.aggregates import Max
 from clinicalcode.permissions import get_visible_concepts_live
 #from ...permissions import Permissions
 import re 
+from pyasn1_modules.rfc7292 import pkcs
 
 #--------------------------------------------------------------------------
 '''
@@ -62,7 +63,7 @@ import re
     View sets (see http://www.django-rest-framework.org/api-guide/viewsets).
     ---------------------------------------------------------------------------
 '''
-# /api/concepts
+# /api/concepts-live
 class ConceptViewSet(viewsets.ReadOnlyModelViewSet): 
     '''
         Get the API output for the list of concepts.
@@ -913,28 +914,33 @@ def api_concept_update(request):
 @api_view(['GET'])
 @authentication_classes([])
 @permission_classes([]) 
-def published_concepts(request):
+def published_concepts(request, pk=None):
     '''
         Get the API output for the list of published concepts.
     '''
-    return  getConcepts(request, is_authenticated_user=False)
+    return  getConcepts(request, is_authenticated_user=False, pk=pk)
     
 #--------------------------------------------------------------------------
 @api_view(['GET'])
-def myConcepts(request):
+def user_concepts(request, pk=None):
     '''
-        Get the API output for the list of my concepts.
+        Get the API output for the list of user visible (pemitted) concepts.
     '''
-    return  getConcepts(request, is_authenticated_user=True)
+    return  getConcepts(request, is_authenticated_user=True, pk=pk)
     
 #--------------------------------------------------------------------------
 #disable authentication for this function
 @api_view(['GET'])
 @authentication_classes([])
 @permission_classes([]) 
-def getConcepts(request, is_authenticated_user=True):    
+def getConcepts(request, is_authenticated_user=True, pk=None):    
     search = request.query_params.get('search', '')
-    concept_id = request.query_params.get('id', None)
+    
+    if pk is not None:
+        concept_id = pk
+    else:   
+        concept_id = request.query_params.get('id', None)
+    
     tag_ids = request.query_params.get('tag_ids', '')
     owner = request.query_params.get('owner_username', '')
     show_only_my_concepts = request.query_params.get('show_only_my_concepts', "0")
@@ -1096,7 +1102,7 @@ def getConcepts(request, is_authenticated_user=True):
 # show concept detail
 #============================================================= 
 @api_view(['GET'])
-def myConcept_detail(request, pk, concept_history_id=None, get_versions_only=None):
+def concept_detail(request, pk, concept_history_id=None, get_versions_only=None):
     ''' 
         Display the detail of a concept at a point in time.
     '''
@@ -1135,7 +1141,7 @@ def myConcept_detail(request, pk, concept_history_id=None, get_versions_only=Non
 @api_view(['GET'])
 @authentication_classes([])
 @permission_classes([]) 
-def myConcept_detail_PUBLIC(request, pk, concept_history_id=None, get_versions_only=None):
+def concept_detail_PUBLIC(request, pk, concept_history_id=None, get_versions_only=None):
     ''' 
         Display the detail of a published concept at a point in time.
     '''
