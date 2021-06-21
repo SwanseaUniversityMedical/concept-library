@@ -168,12 +168,13 @@ def get_HISTORICAl_phenotypes_associated_with_data_source(data_source_id):
     ver_to_return = []
     rows_to_return = []
     ph_titles = ['phenotype_id', 'versions']
-    ver_titles = ['phenotype_id', 'phenotype_version_id', 'phenotype_name', 'phenotype_uuid', 'phenotype_author']
+    ver_titles = ['phenotype_id', 'phenotype_version_id', 'phenotype_name', 'phenotype_uuid', 'phenotype_author', 'is_latest']
     
     for p_id in associated_phenotype_ids:
         ver_to_return = []
-        # get version obj
-        associated_phenotype_versions = Phenotype.history.filter(id=p_id)
+        # get versions obj
+        associated_phenotype_versions = Phenotype.objects.get(pk=p_id).history.all().order_by('-history_id')
+        max_version_id = associated_phenotype_versions.aggregate(Max('history_id'))['history_id__max']
         for ver in associated_phenotype_versions:  
             data_sources_history = getHistoryDataSource_Phenotype(p_id, ver.history_date)
             if data_sources_history:
@@ -185,7 +186,8 @@ def get_HISTORICAl_phenotypes_associated_with_data_source(data_source_id):
                             ver.history_id,
                             ver.name.encode('ascii', 'ignore').decode('ascii'),
                             ver.phenotype_uuid,
-                            ver.author
+                            ver.author,
+                            [False, True][ver.history_id == max_version_id]
                         ]
                     ver_to_return.append(ordr(zip(ver_titles,  ret )))
                 else:

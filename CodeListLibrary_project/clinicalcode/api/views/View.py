@@ -166,15 +166,17 @@ def customRoot(request):
     urls_available = {
         'export_concept_codes': reverse('api:api_export_concept_codes', kwargs={'pk': 0}),
         'export_concept_codes_byVersionID': reverse('api:api_export_concept_codes_byVersionID', kwargs={'pk': 0, 'concept_history_id': 1}),
+        'api_export_published_concept_codes': reverse('api:api_export_published_concept_codes', kwargs={'pk': 0, 'concept_history_id': 1}),
         'concepts': reverse('api:concepts', kwargs={}),
         'api_concept_detail':  reverse('api:api_concept_detail', kwargs={'pk': 0}),
         'api_concept_detail_version': reverse('api:api_concept_detail_version', kwargs={'pk': 0, 'concept_history_id': 1}),
         'api_published_concepts': reverse('api:api_published_concepts', kwargs={}),
         'api_concept_detail_public': reverse('api:api_concept_detail_public', kwargs={'pk': 0}),
         'api_concept_detail_version_public': reverse('api:api_concept_detail_version_public', kwargs={'pk': 0, 'concept_history_id': 1}),
-        'api_export_published_concept_codes': reverse('api:api_export_published_concept_codes', kwargs={'pk': 0, 'concept_history_id': 1}),
         'get_concept_versions': reverse('api:get_concept_versions', kwargs={'pk': 0}),
         'get_concept_versions_public': reverse('api:get_concept_versions_public', kwargs={'pk': 0}),
+        'concept_by_id': reverse('api:concept_by_id', kwargs={'pk': 0}),
+        'api_published_concept_by_id': reverse('api:api_published_concept_by_id', kwargs={'pk': 0}),
         
         
         'export_workingset_codes': reverse('api:api_export_workingset_codes', kwargs={'pk': 0}),
@@ -183,6 +185,7 @@ def customRoot(request):
         'api_workingset_detail': reverse('api:api_workingset_detail', kwargs={'pk': 0}),
         'api_workingset_detail_version': reverse('api:api_workingset_detail_version', kwargs={'pk': 0, 'workingset_history_id': 1}),
         'get_workingset_versions': reverse('api:get_workingset_versions', kwargs={'pk': 0}),
+        'workingset_by_id': reverse('api:workingset_by_id', kwargs={'pk': 0}),
         
         # not implemented yet, will be done when creating/updating phenotype
         #'export_phenotype_codes': reverse('api:api_export_phenotype_codes', kwargs={'pk': 0}),
@@ -195,10 +198,22 @@ def customRoot(request):
         #'api_phenotype_detail_public': reverse('api:api_phenotype_detail_public', kwargs={'pk': 0}),
         'api_phenotype_detail_version_public': reverse('api:api_phenotype_detail_version_public', kwargs={'pk': 0, 'phenotype_history_id': 1}),
         'api_export_published_phenotype_codes': reverse('api:api_export_published_phenotype_codes', kwargs={'pk': 0, 'phenotype_history_id': 1}),
-        'getPhenotypeVersions': reverse('api:getPhenotypeVersions', kwargs={'pk': 0}),
-        'getPhenotypeVersions_public': reverse('api:getPhenotypeVersions_public', kwargs={'pk': 0}),
-                    
+        'get_phenotype_versions': reverse('api:get_phenotype_versions', kwargs={'pk': 0}),
+        'get_phenotype_versions_public': reverse('api:get_phenotype_versions_public', kwargs={'pk': 0}),
+        
+        'phenotype_by_id': reverse('api:phenotype_by_id', kwargs={'pk': 0}),
+        'api_published_phenotype_by_id': reverse('api:api_published_phenotype_by_id', kwargs={'pk': 0}),
+        'api_phenotype_detail_public': reverse('api:api_phenotype_detail_public', kwargs={'pk': 0}),
+        'api_phenotype_detail_version': reverse('api:api_phenotype_detail_version', kwargs={'pk': 0, 'phenotype_history_id': 1}),
+        'api_phenotype_detail_version_public': reverse('api:api_phenotype_detail_version_public', kwargs={'pk': 0, 'phenotype_history_id': 1}),
+        'api_export_phenotype_codes_byVersionID': reverse('api:api_export_phenotype_codes_byVersionID', kwargs={'pk': 0, 'phenotype_history_id': 1}),
+        'api_export_published_phenotype_codes': reverse('api:api_export_published_phenotype_codes', kwargs={'pk': 0, 'phenotype_history_id': 1}),
+        'get_phenotype_versions': reverse('api:get_phenotype_versions', kwargs={'pk': 0}),
+        'get_phenotype_versions_public': reverse('api:get_phenotype_versions_public', kwargs={'pk': 0}),
+        
+        'tags': reverse('api:tags-list'),
     }
+    
     
     if not settings.CLL_READ_ONLY:
         urls_available.update({
@@ -214,6 +229,11 @@ def customRoot(request):
         
         })
 
+    # relace 0/1 by {id}/{version_id}
+    for k, v in urls_available.items():
+        new_url = urls_available[k].replace('0', '{id}').replace('1', '{version_id}')
+        urls_available[k] = new_url
+        
     return render(request,
                    'rest_framework/API-root-pg.html',
                    urls_available

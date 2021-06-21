@@ -18,7 +18,7 @@ These paths will appear as links on the API page.
 router = routers.DefaultRouter()
 router.register('concepts-live', Concept.ConceptViewSet)
 router.register('codes', Concept.CodeViewSet)
-router.register('tags', View.TagViewSet)
+router.register('tags', View.TagViewSet, base_name='tags')
 router.register('datasources2', View.DataSourceViewSet)
 
 
@@ -29,7 +29,7 @@ be included via an include().
 urlpatterns = [
     url(r'^$', View.customRoot),    
     url(r'^', include(router.urls)),
-
+      
     #----------------------------------------------------------  
     # ---  concepts  ------------------------------------------
     #----------------------------------------------------------    
@@ -201,10 +201,10 @@ urlpatterns = [
     # show versions
     url(r'^phenotypes/(?P<pk>[0-9]+)/get-versions/$'
             , Phenotype.phenotype_detail, {'get_versions_only':'1'}
-            , name='getPhenotypeVersions'),
+            , name='get_phenotype_versions'),
     url(r'^public/phenotypes/(?P<pk>[0-9]+)/get-versions/$'
             , Phenotype.phenotype_detail_PUBLIC, {'get_versions_only':'1'}
-            , name='getPhenotypeVersions_public'),
+            , name='get_phenotype_versions_public'),
     
     
     # ---------------------------------------------------------  
@@ -222,10 +222,10 @@ urlpatterns = [
     # only get live phenotypes 
     url(r'^data-sources/live/$'
         , DataSource.get_data_source, {'get_live_phenotypes': True}
-        , name='data_sources'),
+        , name='data_sources_live'),
     url(r'^data-sources/live/(?P<pk>[0-9]+)/$'
         , DataSource.get_data_source, {'get_live_phenotypes': True}
-        , name='data_source_by_id'),    
+        , name='data_source_live_by_id'),    
     
 ]
 
@@ -242,6 +242,7 @@ if not settings.CLL_READ_ONLY:
             , name='api_concept_update'),   
                 
         
+        
         url(r'^api_workingset_create/$'
             , WorkingSet.api_workingset_create
             , name='api_workingset_create'),
@@ -250,6 +251,8 @@ if not settings.CLL_READ_ONLY:
             , WorkingSet.api_workingset_update
             , name='api_workingset_update'),
         
+        
+        
         url(r'^api_phenotype_create/$',
             Phenotype.api_phenotype_create,
             name='api_phenotype_create'),
@@ -257,6 +260,8 @@ if not settings.CLL_READ_ONLY:
         url(r'^api_phenotype_update/$',
             Phenotype.api_phenotype_update,
             name='api_phenotype_update'),
+        
+        
 
         url(r'^api_datasource_create/$',
             DataSource.api_datasource_create,
