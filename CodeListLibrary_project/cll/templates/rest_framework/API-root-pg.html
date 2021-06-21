@@ -19,7 +19,9 @@
 	<li class="active"><a data-toggle="tab" href="#Phenotypes"><strong>Phenotypes</strong></a></li>
 	<li><a data-toggle="tab" href="#Concepts"><strong>Concepts</strong></a></li>
 	<li><a data-toggle="tab" href="#data-sources"><strong>Data Sources</strong></a></li>
-	<li><a data-toggle="tab" href="#Working-Sets"><strong>Working Sets</strong></a></li>
+	{% if request.BRAND_OBJECT.allowed_tabs is none or 'workingsets' in request.BRAND_OBJECT.allowed_tabs %}
+		<li><a data-toggle="tab" href="#Working-Sets"><strong>Working Sets</strong></a></li>
+	{% endif %}
 	<li><a data-toggle="tab" href="#tags"><strong>Tags</strong></a></li>
 </ul>
 
@@ -169,7 +171,8 @@
 
 	  </div>
 
-<!-- ===============================================================  -->	  
+<!-- ===============================================================  -->	
+{% if request.BRAND_OBJECT.allowed_tabs is none or 'workingsets' in request.BRAND_OBJECT.allowed_tabs %}  
 	  <!-- working sets -->
 	  <div id="Working-Sets" class="tab-pane fade">
 	   	<h2>Working Sets:</h2>
@@ -267,7 +270,7 @@
 			</ol>
 
 	  </div>
-
+{% endif %}
 <!-- ===============================================================  -->	  	  
 	  <!-- phenotypes -->
 	  <div id="Phenotypes" class="tab-pane fade in active">
