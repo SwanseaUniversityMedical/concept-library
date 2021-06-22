@@ -67,7 +67,7 @@
     
         <div>    
          <p style="padding-top: 10px;">Lists <em>the published</em> concepts.</p>
-         <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {% url 'api:api_published_concepts' %}</code></pre>
+         <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> <a  href="{% url 'api:api_published_concepts' %}" target="_blank" class="alert-link">{% url 'api:api_published_concepts' %}</a></code></pre>
          <p style="padding-top: 10px;">
              User can search with criteria using a combinations of querystring parameters: <br>
                 <ul>
@@ -311,7 +311,7 @@
 		
 	    	<div>    
 			   <p style="padding-top: 10px;">Lists <em>the published</em> phenotypes and the data sources associated with each.</p>
-			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {% url 'api:api_published_phenotypes' %}</code></pre>
+			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> <a  href="{% url 'api:api_published_phenotypes' %}" target="_blank" class="alert-link">{% url 'api:api_published_phenotypes' %}</a></code></pre>
 			   <p style="padding-top: 10px;">
 		   	  	 User can search with criteria using a combinations of querystring parameters: <br>
 		            <ul>

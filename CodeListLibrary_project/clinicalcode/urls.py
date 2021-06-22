@@ -29,7 +29,11 @@ urlpatterns = [
 urlpatterns += [
     # brand/main about pages
     url(r'^about/(?P<pg_name>\w+)/$', View.about_pages, name='about_page' ),
+]
 
+# HDR-UK portal redirect to CL
+urlpatterns += [
+    url(r'^HDR-UK-portal-redirect/$', View.HDRUK_portal_redirect, name='HDRUK_portal_redirect' ),
 ]
 
 #======== Admin Temp ===============================================================================
