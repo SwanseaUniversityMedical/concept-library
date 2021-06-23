@@ -4,57 +4,6 @@
   }
 }
 
-@keyframes spinner-animation-demo {
-  to {transform: rotate(360deg);}
-}
-
-.spinner-animation-demo,
-.spinner-animation-demo:before {
-  width: 20px;
-  height: 20px;
-  box-sizing: border-box;
-}
-
-.spinner-animation-demo:before {
-  content: '';
-  display: block;
-  border-radius: 50%;
-  border: 2px solid #ccc;
-  border-top-color: #000;
-  animation: spinner-animation-demo .6s linear infinite;
-}
-
-.spinner-animation-demo-absolute {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin-top: -10px;
-  margin-left: -10px;
-}
-
-.spinner-animation-demo-add,
-.spinner-animation-demo-remove {
-  animation-fill-mode: both;
-  animation-duration: .4s;
-}
-
-.spinner-animation-demo-add {
-  animation-name: spinner-animation-demo-add;
-}
-
-@keyframes spinner-animation-demo-add {
-  from {transform: scale(0);}
-  to {transform: scale(1);}
-}
-
-.spinner-animation-demo-remove {
-  animation-name: spinner-animation-demo-remove;
-}
-
-@keyframes spinner-animation-demo-remove {
-  to {transform: scale(0);}
-}
-
 
 form.example input[type=text] {
   padding: 10px;
