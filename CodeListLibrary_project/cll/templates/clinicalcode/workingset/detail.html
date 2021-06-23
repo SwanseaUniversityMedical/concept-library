@@ -366,7 +366,7 @@
  					
  					
  					{% if request.CURRENT_BRAND|length %}
- 						 var c_url = '/{{ request.CURRENT_BRAND }}' + '/concepts/'+key+'/version/'+concepts_id_version[key]+'/detail/';
+ 						var c_url = '/{{ request.CURRENT_BRAND }}' + '/concepts/'+key+'/version/'+concepts_id_version[key]+'/detail/';
  		 			{% else %} 
  		 				var c_url = '/concepts/'+key+'/version/'+concepts_id_version[key]+'/detail/';
  		 			{% endif %} 

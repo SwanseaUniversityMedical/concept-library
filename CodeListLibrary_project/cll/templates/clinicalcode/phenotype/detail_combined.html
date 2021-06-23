@@ -168,18 +168,12 @@
 						<span id="phenotype_history_id_div" phenotype_history_id="{{ phenotype.history_id }}">
 							{{ phenotype.history_id }} 
 							{% if user.is_authenticated %}
+								&nbsp;&nbsp;
+								&nbsp;&nbsp;
 								{% if is_latest_version  %}
-									&nbsp;&nbsp;
-									&nbsp;&nbsp;
-									<span class="tag label label-success" style='color:yellow;' >
-									(latest version &nbsp;&nbsp; <span class="glyphicon glyphicon-asterisk" aria-hidden="true"></span>)
-									</span> 
+									<span class="tag label" style='background-color:#F98E2B;' >LATEST VERSION</span> 
 								{% else %}		
-									&nbsp;&nbsp;
-									&nbsp;&nbsp;
-									<span class="tag label label-default" style='color:yellow;' >
-									(Historical version &nbsp;&nbsp; <span class="fa fa-history" aria-hidden="true"></span>)
-									</span> 
+									<span class="tag label label-default" >HISTORICAL VERSION</span>
 								{% endif %}				
 							{% endif %}				
 						</span>
@@ -256,7 +250,7 @@
 						<div class="col-sm-2">Coding system</div>
 						<div class="col-sm-10">						
 							{% for ct in clinicalTerminologies %}
-							   <span class="tag label label-info">{{ ct.name }}</span>
+							   <span class="tag label label-primary">{{ ct.name }}</span>
 							{% endfor %}	
 						</div>
 				</div>	
