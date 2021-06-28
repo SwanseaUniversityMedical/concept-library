@@ -34,7 +34,7 @@
 						
 						{% if concept.is_deleted is not True and concept.can_edit %}
 							<span>&nbsp;&nbsp;</span>
-							<a  class="btn btn-outline-primary btn-1" href="{% url 'concept_update' concept.id %}" title="Edit concept">
+							<a  class="btn btn-outline-primary btn-secondary" href="{% url 'concept_update' concept.id %}" title="Edit concept">
 								Edit
 							</a> 
 						{% endif %}

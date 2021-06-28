@@ -776,9 +776,9 @@ def concept_list(request):
     else:
         # show published concepts
         get_live_and_or_published_ver = 2
-        if PublishedConcept.objects.all().count() == 0:
-            # redirect to login page if no published concepts
-            return HttpResponseRedirect(settings.LOGIN_URL)
+#         if PublishedConcept.objects.all().count() == 0:
+#             # redirect to login page if no published concepts
+#             return HttpResponseRedirect(settings.LOGIN_URL)
 
     show_top_version_only = True
     if expand_published_versions == "1":

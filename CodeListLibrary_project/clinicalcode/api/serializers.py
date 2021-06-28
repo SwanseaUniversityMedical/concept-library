@@ -26,15 +26,17 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ('id', 'description', 'display', 'get_display_display'
-                  ,  'created_by' , 'updated_by' 
+                # ,  'created_by' , 'updated_by' 
                   )
                 
 class DataSourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = DataSource
         fields = ('id', 'name', 'uid', 'url', 'description'
-                  ,  'created_by' , 'updated_by' 
+                # ,  'created_by' , 'updated_by' 
                   )
                 
 
         
+
+# api/concepts/

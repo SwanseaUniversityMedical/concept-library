@@ -5,204 +5,200 @@
 {% block title %}| Search Concepts{% endblock title %}
 
 
-{% block container %}
+{% block container_fluid %}
 
+<div class="bg-search">
+ 	<div class="container" >
 
-<!-- <div class="row bkg"> -->
-<!-- 	  <div class="col-mlg-9 col-offset-3 offset-lg-3">.col-md-6 .offset-md-3</div> -->
-<!-- </div> -->
-
-<!-- <div class="row bkg"> -->
-<!--  <div class="col-mlg-9 col-offset-3 offset-lg-3"> -->
-<!-- new wrapper ^ -->
-
-<div id="basic-search" class="bg-img-basic-search" {% if search_form == 'advanced-form' %} style="display:none;" {% endif %} >
-	<form class="container_frm container-1 example" id="basic-form" action="{% url 'concept_list' %}" method="POST"  >
-	    {% csrf_token %}
-		<div  class="row form-group">
-			<div>
-				<h2>Concepts</h2>
-				<input type="text" placeholder="Search Concepts" name="search" id="search1" value="{{ search|default_if_none:'' }}">				
-				<button classX="btn btn-info" name="page" value="1">
-					<i class="fa fa-search"></i>
-				</button>
-			</div>
-		</div>
-		<div class="row form-group">
-			<div >
-				<input type=hidden name="search_form" value='basic-form'>
-				<a  id="show-advanced-search" href="javascript:void(null);" >Advanced search</a>
-			</div>
-		</div>
-	</form>
-	<br/>
-</div>
-
-
-<div id="advanced-search" {% if search_form == 'basic-form' %} style="display:none;" {% endif %} >
-	<h2 class="page-header"><i class="fa fa-list" aria-hidden="true"></i> Concepts</h2>
-	<form id="advanced-form" action="{% url 'concept_list' %}" method="POST" >
-		{% csrf_token %}
-		<div class="panel panel-default bg-img-advanced-search">
-			<div class="panel-body container-2">
-			
-				<div class="row form-group">
-					<div class="col-md-2">
-						<label for="search">Search: <i class="help-block-no-break" style="font-size: 10px;">(concept name)</i></label>
-					</div>
-					<div class="col-sm-6">
-						<input class="form-control" type="text" placeholder="Search by name" name="search" id="search" value="{{ search|default_if_none:'' }}">
-					</div>
-					<div class="col-md-2">
-						<label for="page_size">Results per page:</label>
-					</div>
-					<div class="col-md-2"> 
-						<select class="form-control" id="page_size" name="page_size">
-							<option value="20" {% if page_size == "20" %}selected="selected" {% endif %}>20</option>
-							<option value="50" {% if page_size == "50" %}selected="selected" {% endif %}>50</option>
-							<option value="100" {% if page_size == "100" %}selected="selected" {% endif %}>100</option>
-						</select>
-					</div>
-				</div>
-				<div class="row form-group">
-					<div class="col-sm-2">
-						<label for="tag">Tag:</label>
-					</div>
-					<div class="col-sm-10">
-						<input class="form-control" type="text" name="tagids" id="txtTags" data-role="tagsinput" value="{{ tag|default_if_none:'' }}">
-					</div>					
-				</div>
-
-				<div class="row form-group">
-					<div class="col-sm-2">
-						<label for="author">Author: <i class="help-block-no-break" style="font-size: 10px;">(free text)</i></label>
-					</div>
-					<div class="col-sm-6">
-						<input class="form-control" type="text" name="author" id="txtAuthor" data-role="authorinput" value="{{ author|default_if_none:'' }}">
-					</div>	
-				
-				{% if user.is_authenticated %}
-					<div class="col-md-2">
-						<label for="owner">Owner: <i class="help-block-no-break" style="font-size: 10px;">(full user name)</i></label>
-					</div>
-					<div class="col-md-2"> 
-						<input class="form-control" type="text" name="owner" id="txtOwner" data-role="ownerinput" value="{{ owner|default_if_none:'' }}">
-					</div>	
-				{% endif %}			
-				</div>	
-								
-				<div class="row form-group">
-					<div class="col-md-2">
-						<label for="brand">Brand:</label>
-					</div>
-					<div class="col-md-10"> 
-					   {% if request.session.all_brands %}
-						   <ul class="nav navbar-nav">
-							     <select class="form-control" name="concept_brand" id="concept_brand"  >  
-								    <option value=""  style='background-color: lightgreen;' >Any</option>
-									{% for brand in request.session.all_brands %}
-										<option value="{{ brand|upper }}" 
-										       {% if brand|upper == concept_brand|upper %} selected="selected" {% endif %}
-										       >
-											{{ brand|upper }}
-											{% if brand|upper in request.session.user_brands %} (*) {% endif %}
-									</option>
-									{% empty %}
-										<option value="-1" >No Brands !!!</option>
-									{% endfor %}
-								  </select>
-							</ul>
-						{% endif %}
-						<span id="concept_brand_img">
-						{% if concept_brand|length %} 
-							&nbsp; <img height="29px" src="{% static 'img/brands/' %}{{concept_brand|upper}}/logo.png" title="{{concept_brand|upper}}" alt="{{concept_brand|upper}}" /> 
-						{% endif %}
-						</span>
-					</div>			
-
-				</div>				
-				
-
-			<div class="row form-group">
-				{% if user.is_authenticated %}
-					<div class="col-md-3">
-						<div class="checkbox"  >
-							<label>
-								<input id="show_deleted_concepts" type="checkbox" name="show_deleted_concepts" {% if show_deleted_concepts %}checked="checked"{% endif %} value="1" >
-								Show deleted concepts
-							</label>
-						</div>
-					</div>
-					
-					<div class="col-md-3">
-						<div class="checkbox"  >
-							<label>
-								<input id="show_my_concepts" type="checkbox" name="show_my_concepts" {% if show_my_concepts %}checked="checked"{% endif %} value="1" >
-								Only show concepts owned by me
-							</label>
-						</div>
-					</div>										
-				{% endif %}						
-					
-					<div 	class = "col-md-3">   
-						<div class="checkbox"  >
-							<label>
-								<input id="show_only_validated_concepts" type="checkbox" name="show_only_validated_concepts" {% if show_only_validated_concepts %}checked="checked"{% endif %} value="1" >
-								Only Show validated concepts
-							</label>
-						</div>
-					</div>					
-
-				{% if user.is_authenticated %}
-					<div  class = "col-md-3">
-						<div class="checkbox"  >
-							<label>
-								<input id="must_have_published_versions" type="checkbox" name="must_have_published_versions" {% if must_have_published_versions %}checked="checked"{% endif %} value="1" >
-								Only show concepts with published version
-							</label>
-						</div>
-					</div>		
-				{% endif %}						
-					
-<!-- 				{% if published_count %} -->
-<!-- 					<div  class = "col-md-3"> -->
-<!-- 						<div class="checkbox"  > -->
-<!-- 							<label> -->
-<!-- 								<input id="expand_published_versions" type="checkbox" name="expand_published_versions" {% if expand_published_versions %}checked="checked"{% endif %} value="1" > -->
-<!-- 								Expand published versions -->
-<!-- 							</label> -->
-<!-- 						</div> -->
-<!-- 					</div>		 -->
-<!-- 				{% endif %}	 -->
-			</div>
-							
-			<div class="row form-group">
-					<div class="col-md-2 ">
-						<input type=hidden name="search_form" value='advanced-form'>
-						<a  id="show-basic-search" href="javascript:void(null);" >Basic search</a>
-					</div>	
-					<div class="col-md-10 text-right">				
-						<a class="btn btn-info" name="reset-form" id="reset-form" >
-							<i class="glyphicon glyphicon-repeat"></i> Reset							
-						</a>
-						
-						<button class="btn btn-info" name="page" value="1">
-							<i class="fa fa-search"></i> Search Concepts
+		<div id="basic-search" class="bg-search" {% if search_form == 'advanced-form' %} style="display:none;" {% endif %} >
+			<form class="container_frm container-1 example" id="basic-form" action="{% url 'concept_list' %}" method="POST"  >
+			    {% csrf_token %}
+				<div  class="row form-group">
+					<div>
+						<h2>Concepts</h2>
+						<input type="text" placeholder="Search Concepts" name="search" id="search1" value="{{ search|default_if_none:'' }}">				
+						<button classX="btn btn-info" name="page" value="1">
+							<i class="fa fa-search"></i>
 						</button>
 					</div>
-					
-			</div>		
-				
-					
-			</div>
+				</div>
+				<div class="row form-group">
+					<div >
+						<input type=hidden name="search_form" value='basic-form'>
+						<a  id="show-advanced-search" href="javascript:void(null);" >Advanced search</a>
+					</div>
+				</div>
+			</form>
+			<br/>
 		</div>
-	</form>			
+
+
+		<div id="advanced-search" {% if search_form == 'basic-form' %} style="display:none;" {% endif %} >
+			<h2 class="page-header">Concepts</h2>
+			<form id="advanced-form" action="{% url 'concept_list' %}" method="POST" >
+				{% csrf_token %}
+				<div class="panel panel-default bg-search">
+					<div class="panel-body container-2">
+					
+						<div class="row form-group">
+							<div class="col-md-2">
+								<label for="search">Search: <i class="help-block-no-break" style="font-size: 10px;">(concept name)</i></label>
+							</div>
+							<div class="col-sm-6">
+								<input class="form-control" type="text" placeholder="Concept name" name="search" id="search" value="{{ search|default_if_none:'' }}">
+							</div>
+							<div class="col-md-2">
+								<label for="page_size">Results per page:</label>
+							</div>
+							<div class="col-md-2"> 
+								<select class="form-control" id="page_size" name="page_size">
+									<option value="20" {% if page_size == "20" %}selected="selected" {% endif %}>20</option>
+									<option value="50" {% if page_size == "50" %}selected="selected" {% endif %}>50</option>
+									<option value="100" {% if page_size == "100" %}selected="selected" {% endif %}>100</option>
+								</select>
+							</div>
+						</div>
+						<div class="row form-group">
+							<div class="col-sm-2">
+								<label for="tag">Tag:</label>
+							</div>
+							<div class="col-sm-10">
+								<input class="form-control" type="text" name="tagids" id="txtTags" data-role="tagsinput" value="{{ tag|default_if_none:'' }}">
+							</div>					
+						</div>
+		
+						<div class="row form-group">
+							<div class="col-sm-2">
+								<label for="author">Author: <i class="help-block-no-break" style="font-size: 10px;">(free text)</i></label>
+							</div>
+							<div class="col-sm-6">
+								<input class="form-control" type="text" name="author" id="txtAuthor" data-role="authorinput" value="{{ author|default_if_none:'' }}">
+							</div>	
+						
+						{% if user.is_authenticated %}
+							<div class="col-md-2">
+								<label for="owner">Owner: <i class="help-block-no-break" style="font-size: 10px;">(full user name)</i></label>
+							</div>
+							<div class="col-md-2"> 
+								<input class="form-control" type="text" name="owner" id="txtOwner" data-role="ownerinput" value="{{ owner|default_if_none:'' }}">
+							</div>	
+						{% endif %}			
+						</div>	
+										
+						<div class="row form-group">
+							<div class="col-md-2">
+								<label for="brand">Brand:</label>
+							</div>
+							<div class="col-md-10"> 
+							   {% if request.session.all_brands %}
+								   <ul class="nav navbar-nav">
+									     <select class="form-control" name="concept_brand" id="concept_brand"  >  
+										    <option value=""  style='background-color: lightgreen;' >Any</option>
+											{% for brand in request.session.all_brands %}
+												<option value="{{ brand|upper }}" 
+												       {% if brand|upper == concept_brand|upper %} selected="selected" {% endif %}
+												       >
+													{{ brand|upper }}
+													{% if brand|upper in request.session.user_brands %} (*) {% endif %}
+											</option>
+											{% empty %}
+												<option value="-1" >No Brands !!!</option>
+											{% endfor %}
+										  </select>
+									</ul>
+								{% endif %}
+								<span id="concept_brand_img">
+								{% if concept_brand|length %} 
+									&nbsp; <img height="29px" src="{% static 'img/brands/' %}{{concept_brand|upper}}/logo.png" title="{{concept_brand|upper}}" alt="{{concept_brand|upper}}" /> 
+								{% endif %}
+								</span>
+							</div>			
+		
+						</div>				
+						
+		
+					<div class="row form-group">
+						{% if user.is_authenticated %}
+							<div class="col-md-3">
+								<div class="checkbox"  >
+									<label>
+										<input id="show_deleted_concepts" type="checkbox" name="show_deleted_concepts" {% if show_deleted_concepts %}checked="checked"{% endif %} value="1" >
+										Show deleted concepts
+									</label>
+								</div>
+							</div>
+							
+							<div class="col-md-3">
+								<div class="checkbox"  >
+									<label>
+										<input id="show_my_concepts" type="checkbox" name="show_my_concepts" {% if show_my_concepts %}checked="checked"{% endif %} value="1" >
+										Only show concepts owned by me
+									</label>
+								</div>
+							</div>										
+						{% endif %}						
+							
+							<div 	class = "col-md-3">   
+								<div class="checkbox"  >
+									<label>
+										<input id="show_only_validated_concepts" type="checkbox" name="show_only_validated_concepts" {% if show_only_validated_concepts %}checked="checked"{% endif %} value="1" >
+										Only Show validated concepts
+									</label>
+								</div>
+							</div>					
+		
+						{% if user.is_authenticated %}
+							<div  class = "col-md-3">
+								<div class="checkbox"  >
+									<label>
+										<input id="must_have_published_versions" type="checkbox" name="must_have_published_versions" {% if must_have_published_versions %}checked="checked"{% endif %} value="1" >
+										Only show concepts with published version
+									</label>
+								</div>
+							</div>		
+						{% endif %}						
+							
+		<!-- 				{% if published_count %} -->
+		<!-- 					<div  class = "col-md-3"> -->
+		<!-- 						<div class="checkbox"  > -->
+		<!-- 							<label> -->
+		<!-- 								<input id="expand_published_versions" type="checkbox" name="expand_published_versions" {% if expand_published_versions %}checked="checked"{% endif %} value="1" > -->
+		<!-- 								Expand published versions -->
+		<!-- 							</label> -->
+		<!-- 						</div> -->
+		<!-- 					</div>		 -->
+		<!-- 				{% endif %}	 -->
+					</div>
+									
+					<div class="row form-group">
+							<div class="col-md-2 ">
+								<input type=hidden name="search_form" value='advanced-form'>
+								<a  id="show-basic-search" href="javascript:void(null);" >Basic search</a>
+							</div>	
+							<div class="col-md-10 text-right">				
+								<a class="btn btn-info" name="reset-form" id="reset-form" >
+									<i class="glyphicon glyphicon-repeat"></i> Reset							
+								</a>
+								
+								<button class="btn btn-info" name="page" value="1">
+									<i class="fa fa-search"></i> Search Concepts
+								</button>
+							</div>
+							
+					</div>		
+						
+							
+					</div>
+				</div>
+			</form>			
+		</div>	
+
+
+	</div>	
 </div>	
+{% endblock container_fluid %}
 
-<!-- new wrapper -->
-<!-- </div>	 -->
-<!-- </div>	 -->
-
+{% block container %}
 		
 	{% if user.is_authenticated %}		
 		<br/>

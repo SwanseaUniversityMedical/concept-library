@@ -153,7 +153,7 @@ table.spacing {
 }
 
 .search_box {
-	width: 460px;
+	width: 70%;
 	background: #fff;
 	border-radius: 5px;
 	height: 50px;
@@ -313,3 +313,22 @@ table.key-principles-spacing {
 	height: 16px;
 }
 
+@media screen and (max-width: 768px) {
+  div.info-pic {
+    display: none;
+}
+
+.container {
+    display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+}
+
+#parent {
+overflow:hidden;
+white-space:nowrap;
+}
+
+.child-element {
+display:inline-block;
+}

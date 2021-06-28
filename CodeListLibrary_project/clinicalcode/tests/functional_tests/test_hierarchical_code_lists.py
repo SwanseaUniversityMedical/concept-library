@@ -356,7 +356,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
             self.assertTrue(concept_history_change_reason in browser.page_source)
     
             # repeat the same for workingset
-            browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/',
+            browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/',
                                       self.workingset_everybody_can_edit.id, '/detail/'))
             time.sleep(3)
             
@@ -406,7 +406,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/',
+        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/',
                                       self.workingset_everybody_can_edit.id, '/version/',
                                       self.workingset_everybody_can_edit.history.last().history_id, '/detail/'))
 
@@ -590,7 +590,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingset/',
+        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/',
                                       self.workingset_everybody_can_edit.id, '/history/',
                                       self.workingset_everybody_can_edit.history.last().history_id, '/detail/'))
 

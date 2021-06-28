@@ -49,7 +49,7 @@ var dataService = new function(){
 	};
 	
 	getPhenotypeUniqueCodesByVersion = function(phenotype, version, callback){		
-		$.getJSON('/phenotype/' + phenotype + '/uniquecodesbyversion/'+ version +'/', function(data){
+		$.getJSON('/phenotypes/' + phenotype + '/uniquecodesbyversion/'+ version +'/', function(data){
 			callback(data);
 		});
 	};
@@ -77,7 +77,7 @@ var dataService = new function(){
 	};
 	
 	searchConcepts = function(search, callback){
-		$.getJSON('/api/concepts/?search=' + search, function(data){
+		$.getJSON('/api/concept-search/?search=' + search, function(data){
 			callback(data);
 		});
 	};

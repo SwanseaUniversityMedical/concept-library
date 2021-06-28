@@ -52,9 +52,9 @@
 							   </li>
 							   <li>
 							   {% if user.is_authenticated %}
-									<a {% if user_can_export %} href="/api/export_phenotype_codes_byVersionID/{{ phenotype.id }}/version/{{ phenotype.history_id }}/?format=json" target=_blank {% endif %}
+									<a {% if user_can_export %} href="{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=json" target=_blank {% endif %}
 							   {% elif enable_publish %}
-									<a {% if user_can_export %} href="/api/export_published_phenotype_codes/{{ phenotype.id }}/version/{{ phenotype.history_id }}/?format=json" target=_blank {% endif %}							    
+									<a {% if user_can_export %} href="{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=json" target=_blank {% endif %}
 							   {% endif %}
 								       class="dropdown-item" >
 										<i class="fa fa-file-text" aria-hidden="true"></i> JSON
@@ -62,9 +62,9 @@
 							   </li>
 							   <li>
 							   {% if user.is_authenticated %}
-									<a {% if user_can_export %} href="/api/export_phenotype_codes_byVersionID/{{ phenotype.id }}/version/{{ phenotype.history_id }}/?format=xml" target=_blank {% endif %} 
+									<a {% if user_can_export %} href="{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=xml" target=_blank {% endif %}
 							   {% elif enable_publish %}
-									<a {% if user_can_export %} href="/api/export_published_phenotype_codes/{{ phenotype.id }}/version/{{ phenotype.history_id }}/?format=xml" target=_blank {% endif %}							    
+									<a {% if user_can_export %} href="{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=xml" target=_blank {% endif %}
 							   {% endif %}							   
 							       class="dropdown-item" >
 									<i class="fa fa-file-code-o" aria-hidden="true"></i> XML
@@ -107,7 +107,7 @@
 							<a id="printBtn" class="btn btn-primary">
 								<i class="fa fa-print" aria-hidden="true"></i> Print
 							</a>
-							<a href="#" role="button" class="btn popovers" id="help-hist-phenotype" data-toggle="popover" data-trigger="hover" data-container="body" title="" data-original-title="" data-placement="right">
+							<a href="#" role="button" class="btn popovers" id="help-hist-phenotype" data-toggle="popover" data-trigger="hover" data-container="body" title="" data-original-title="" data-placement="left">
 								<i class="fa fa-question-circle" aria-hidden="true"></i>
 							</a>
 						</div>
@@ -134,7 +134,9 @@
 						{% endfor %}
 					{% endfor %}
 					</h2>
-				
+					<span>{{ phenotype.author }}</span>	
+					<br>
+					<br>	
 			   	</div>
 				
 				<!--<div class="row" style="margin-top: 10px;">	
@@ -166,18 +168,12 @@
 						<span id="phenotype_history_id_div" phenotype_history_id="{{ phenotype.history_id }}">
 							{{ phenotype.history_id }} 
 							{% if user.is_authenticated %}
+								&nbsp;&nbsp;
+								&nbsp;&nbsp;
 								{% if is_latest_version  %}
-									&nbsp;&nbsp;
-									&nbsp;&nbsp;
-									<span class="tag label label-success" style='color:yellow;' >
-									(latest version &nbsp;&nbsp; <span class="glyphicon glyphicon-asterisk" aria-hidden="true"></span>)
-									</span> 
+									<span class="tag label" style='background-color:#F98E2B;' >LATEST VERSION</span> 
 								{% else %}		
-									&nbsp;&nbsp;
-									&nbsp;&nbsp;
-									<span class="tag label label-default" style='color:yellow;' >
-									(Historical version &nbsp;&nbsp; <span class="fa fa-history" aria-hidden="true"></span>)
-									</span> 
+									<span class="tag label label-default" >HISTORICAL VERSION</span>
 								{% endif %}				
 							{% endif %}				
 						</span>
@@ -190,22 +186,26 @@
 						-->
 						</div>
 					</div>	
-						
-					<div class="row" style="margin-top: 10px;">
-						<div class="col-sm-2">UUID:</div>
-						<div class="col-sm-10">
-							<span>
-								{{ phenotype.phenotype_uuid }}
-							</span>				
-						</div>
-					</div>			
+					
+					
+					{% if user.is_authenticated  %}				
+						<div class="row" style="margin-top: 10px;">
+							<div class="col-sm-2">UUID:</div>
+							<div class="col-sm-10">
+								<span>
+									{{ phenotype.phenotype_uuid }}
+								</span>				
+							</div>
+						</div>	
+					{% endif %}	
+								
 										
 				<div class="row" style="margin-top: 10px;">
 					<div class="col-sm-2">Data Sources</div>
 					<div class="col-sm-10">	
 						{% for ds in data_sources %}
 							{% if ds.url|length %}
-								<a  href="{{ ds.url }}" target=_blank >{{ ds.name }}</a>
+								<a  href="{{ ds.url }}" target=_blank  rel="noopener noreferrer" >{{ ds.name }}</a>
 							{% else %}
 								{{ ds.name }}
 							{% endif %} 
@@ -239,18 +239,18 @@
 					</div>
 				</div>	
 								
-				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-2">Author</div>
-					<div class="col-sm-10">
-						{{ phenotype.author }}
-					</div>
-				</div>
+<!-- 				<div class="row" style="margin-top: 10px;"> -->
+<!-- 					<div class="col-sm-2">Author</div> -->
+<!-- 					<div class="col-sm-10"> -->
+<!-- 						{{ phenotype.author }} -->
+<!-- 					</div> -->
+<!-- 				</div> -->
 				
 				<div class="row" style="margin-top: 10px;">
 						<div class="col-sm-2">Coding system</div>
 						<div class="col-sm-10">						
 							{% for ct in clinicalTerminologies %}
-							   <span class="tag label label-info">{{ ct.name }}</span>
+							   <span class="tag label label-primary">{{ ct.name }}</span>
 							{% endfor %}	
 						</div>
 				</div>	
@@ -299,8 +299,8 @@
 					
 					<div class="col-sm-9" style="margin-left: -15px">
 						{% if phenotype.phenoflowid|length %}
-<!-- 							<a  href="https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}" target=_blank >https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}</a>  -->
-							<a  href="{{ phenotype.phenoflowid }}" target=_blank >{{ phenotype.phenoflowid }}</a> 
+							<a  href="https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}" target=_blank >https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}</a> 
+<!-- 							<a  href="{{ phenotype.phenoflowid }}" target=_blank >{{ phenotype.phenoflowid }}</a>  -->
 						{% else %}
 							&nbsp;
 						{% endif %}	
@@ -329,7 +329,7 @@
 					<div class="row"></div>
 					
 					<div class="row" style="margin-top:10px;">
-						<div class="col-sm-3">Validation</div>
+						<div class="col-sm-3">Validation description</div>
 						<div class="col-sm-9" style="margin-left: -20px;">{{ phenotype.validation }}</div>
 					</div>
 		
@@ -403,8 +403,8 @@
 				    {% endif %}		         
 		        
 			      <span>{{ c.codingsystem }}: 
-			         <a href="/concepts/{{ c.concept_id }}/version/{{ c.concept_version_id }}/detail/"  
-			            title="/concepts/{{ c.concept_id }}/version/{{ c.concept_version_id }}/detail/"  
+			         <a href="{% url 'concept_history_detail' c.concept_id c.concept_version_id %}"  
+			            title="{% url 'concept_history_detail' c.concept_id c.concept_version_id %}"
 			            target="_blank" class="alert-link">					
 			         {{ c.name }}&nbsp;{{ c.brands|safe }}
 			         </a>
