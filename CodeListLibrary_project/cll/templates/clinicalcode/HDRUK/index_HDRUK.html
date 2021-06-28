@@ -6,32 +6,33 @@
 <script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
 <!--    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script> -->
 {% endblock head %}
-{% block container %}
-<script>
-   function myFunction() {
-       console.log("myFunction is working"); //banner_design.jpg
-   }
-</script>
+{% block container_fluid %}
 <div class="big-banner">
-   <div class="flex-banner">
-      <div style="padding-left:50px; padding-top:50px; color: #FFFFFF;">
-         <p style="width:45%; padding-left:20px" class="welcome-text-design">HDR UK Phenotype Library is a comprehensive, open access resource providing the research community
-            with information, tools and phenotyping algorithms for UK electronic health records.
-         </p>
-         <form class= "row" style="padding-top:15px; padding-left:30px;" id="basic-form" action="{% url 'phenotype_list' %}" method="POST" >
-            {% csrf_token %}
-            <div class="search_box">
-               <div class="search_field">
-                  <input type="text" class="input" placeholder="Search our Phenotype library" name="search" id="search1" value="{{ search|default_if_none:'' }}">
+   <div class="container" >
+      <div style="padding-left:0px; padding-top:50px; color: #FFFFFF;">
+         <div style="width:100%; padding-left:20px; max-width:500px;">
+            <p class="welcome-text-design">HDR UK Phenotype Library is a comprehensive, open access resource providing the research community
+               with information, tools and phenotyping algorithms for UK electronic health records.
+            </p>
+         </div>
+         <div style="display: flex; flex-wrap:nowrap; ">
+            <form class= "row" style="padding-top:15px; padding-left:30px;" id="basic-form" action="{% url 'phenotype_list' %}" method="POST" >
+               {% csrf_token %}
+               <div class="search_box">
+                  <div class="search_field" style="padding-left:10px; display: flex; flex-wrap: nowrap;">
+                     <input type="text" class="input" placeholder="Search our Phenotype library" name="search" id="search1" value="{{ search|default_if_none:'' }}">
+                  </div>
                </div>
-            </div>
-            <div style="padding-left:10px;">
-               <button class="btn" name="page" value="1" style="height:50px;width:50px"><i class="fa fa-search"></i></button>
-            </div>
-         </form>
+               <div style="padding-left:10px; display: flex; flex-wrap: nowrap;">
+                  <button class="btn" name="page" value="1" style="height:50px;width:50px"><i class="fa fa-search"></i></button>
+               </div>
+            </form>
+         </div>
       </div>
    </div>
 </div>
+{% endblock container_fluid %}
+{% block container %}
 <div>
    <!--<h2 class="header-design">Welcome to the Concept Library</h2>
       <p>The concept library is a system for storing, managing, sharing, and documenting clinical code lists in health research. The specific goals of this work are
@@ -86,28 +87,30 @@
       </div>
    </div>
    {% endblock %}
-   <table class="spacing">
-      <tr>
-         <th></th>
-         <td>
-            <div class="info-pic"></div>
-         </td>
-         <td style="padding-left: 30px;">
-            <div class="text-bottom-header">What is a phenotyping algorithm?</div>
-            <div class="paddingText">
-               The <b>HDR UK Phenotype Library</b> is a a national platform for dissemination of citable algorithms (incl. validations) and tools which will reduce duplication of effort and improve research reproducibility. More
-               information can be found on the <a href="https://www.hdruk.ac.uk/projects/national-phenomics-resource/">HDR website</a>.
-            </div>
-            <div class="text-bottom-header" style="padding-top: 30px;">What is the HDR UK Phenotype Library?</div>
-            <div class="paddingText">
-               The <b>HDR UK Phenotype Library</b> is a a national platform for dissemination of citable algorithms (incl. validations) and tools which will reduce duplication of effort and improve research reproducibility. More
-               information can be found on the <a href="https://www.hdruk.ac.uk/projects/national-phenomics-resource/">HDR website</a>.
-               More information can be found on the <a href="https://www.hdruk.ac.uk/projects/national-phenomics-resource/">HDR website</a>.
-               More information can be found on the <a href="https://www.hdruk.ac.uk/projects/national-phenomics-resource/">HDR website</a>.
-            </div>
-         </td>
-      </tr>
-   </table>
+   <div class="container">
+      <table class="spacing">
+         <tr>
+            <th></th>
+            <td>
+               <div class="info-pic"></div>
+            </td>
+            <td style="padding-left: 30px;">
+               <div class="text-bottom-header">What is a phenotyping algorithm?</div>
+               <div class="paddingText">
+                  The <b>HDR UK Phenotype Library</b> is a a national platform for dissemination of citable algorithms (incl. validations) and tools which will reduce duplication of effort and improve research reproducibility. More
+                  information can be found on the <a href="https://www.hdruk.ac.uk/projects/national-phenomics-resource/" target=_blank   rel="noopener noreferrer">HDR website</a>.
+               </div>
+               <div class="text-bottom-header" style="padding-top: 30px;">What is the HDR UK Phenotype Library?</div>
+               <div class="paddingText">
+                  The <b>HDR UK Phenotype Library</b> is a a national platform for dissemination of citable algorithms (incl. validations) and tools which will reduce duplication of effort and improve research reproducibility. More
+                  information can be found on the <a href="https://www.hdruk.ac.uk/projects/national-phenomics-resource/" target=_blank   rel="noopener noreferrer">HDR website</a>.
+                  More information can be found on the <a href="https://www.hdruk.ac.uk/projects/national-phenomics-resource/" target=_blank   rel="noopener noreferrer">HDR website</a>.
+                  More information can be found on the <a href="https://www.hdruk.ac.uk/projects/national-phenomics-resource/" target=_blank   rel="noopener noreferrer">HDR website</a>.
+               </div>
+            </td>
+         </tr>
+      </table>
+   </div>
    <div class="row text-padding-top">
       <div class="column">
          <a style="text-decoration: none; color:black;" href="{% url 'phenotype_list' %}">
@@ -120,7 +123,7 @@
       </div>
       <div class="column">
          <a style="text-decoration: none; color:black;" href="{% url 'about_page' 'hdruk_about_technical_details' %}">
-            <div class="card pointer" onclick="myFunction()">
+            <div class="card pointer" >
                <i class="fas fa-plus" style="position:relative;  right: 47.5%; font-size: 32px;"></i>
                <h4 style="text-align:left">Submit a Phenotype</h4>
                <p id="card" style="text-align:left">To submit a phenotype please follow the bellow process. Click on the button below to access the phenotype. To submit a phenotype please follow the bellow process.</p>
@@ -158,14 +161,14 @@
             </div>
          </td>
          <td>
-            <div>Users should cite the <b>Phenotype Library</b> in all publications, presentations and reports as follows: “HDR UK CALIBER<a href="https://portal.caliberresearch.org"> Phenotype Library Website</a></div>
+            <div>Users should cite the <b>Phenotype Library</b> in all publications, presentations and reports as follows: “HDR UK CALIBER<a href="https://portal.caliberresearch.org" target=_blank   rel="noopener noreferrer"> Phenotype Library Website</a></div>
          </td>
       </tr>
    </table>
    <div class="text-bottom-header text-style-center text-padding-top">Hot to contribute?</div>
    <div class="key-principles-spacing">
       <div class="text-contribute-design" >
-         To submit an EHR phenotyping algorithm to the Phenotype Library please read <a href="https://portal.caliberresearch.org">our documentation pages</a>. If you want to provide feedback, or ask questions, <a href="https://portal.caliberresearch.org"> contact the team!</a>
+         To submit an EHR phenotyping algorithm to the Phenotype Library please read <a href="https://portal.caliberresearch.org" target=_blank   rel="noopener noreferrer">our documentation pages</a>. If you want to provide feedback, or ask questions, <a href="https://portal.caliberresearch.org" target=_blank   rel="noopener noreferrer"> contact the team!</a>
       </div>
    </div>
 </div>

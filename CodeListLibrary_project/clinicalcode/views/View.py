@@ -6,7 +6,7 @@
 import logging
 import json
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.models import Group
 from ..models.Concept import Concept
 from ..models.Component import Component
@@ -20,6 +20,9 @@ from ..permissions import (
     allowed_to_view, allowed_to_edit
 )
 
+import datetime    
+from django.http.response import Http404 
+from clinicalcode import db_utils
 logger = logging.getLogger(__name__)
 
 
@@ -41,16 +44,22 @@ def index_HDRUK(request):
         Display the HDR UK homepage.
     '''   
     
+    from .Admin import save_statistics
+    
     if Statistics.objects.all().filter(org__iexact = 'HDRUK', type__iexact = 'landing-page').exists():
-        HDRUK_stat = Statistics.objects.get(org__iexact = 'HDRUK', type__iexact = 'landing-page').stat
+        stat = Statistics.objects.get(org__iexact = 'HDRUK', type__iexact = 'landing-page')
+        HDRUK_stat = stat.stat
+        last_updated = stat.modified.date()
+        current_date = datetime.datetime.now().date()
+        if current_date > last_updated:
+            # update stat
+            stat_obj = save_statistics(request)
+            HDRUK_stat = stat_obj[0]
     else:
-        HDRUK_stat = {
-                        'published_concept_count': -1, 
-                        'published_phenotype_count': -1, 
-                        'published_clinical_codes': -1, 
-                        'datasources_component_count': -1,
-                        'clinical_terminologies': -1
-                    }
+        # update stat
+        stat_obj = save_statistics(request)
+        HDRUK_stat = stat_obj[0]
+    
     
     return render(request,
                   'clinicalcode/HDRUK/index_HDRUK.html',
@@ -75,6 +84,8 @@ def about_pages(request, pg_name=None):
     if pg_name.lower() == "cl_about_page":
         return render(request, 'clinicalcode/cl-about.html', {})
     
+    
+    
     # HDR-UK about pages                    
     if pg_name.lower() == "hdruk_about_the_project":
         return render(request, 'clinicalcode/HDRUK/about/about-the-project.html', {})
@@ -97,6 +108,27 @@ def about_pages(request, pg_name=None):
                     {}
                 )
 
+def HDRUK_portal_redirect(request):
+    '''
+        HDR-UK portal redirect to CL
+    ''' 
+    
+    unique_url = request.GET.get('url', None)
+    if unique_url is not None:
+        phenotype = list(Phenotype.objects.filter(source_reference__iendswith=("/"+unique_url+".md")).values_list('id', flat=True))
+        if phenotype:
+            versions = Phenotype.objects.get(pk=phenotype[0]).history.all().order_by('-history_id')
+            for v in versions:               
+                is_this_version_published = False
+                is_this_version_published = db_utils.checkIfPublished(Phenotype, v.id, v.history_id)
+                if is_this_version_published:
+                    return redirect('phenotype_history_detail', pk=v.id, phenotype_history_id=v.history_id)
+
+            raise Http404
+        else:
+            raise Http404
+    else:
+        raise Http404
 
 
 

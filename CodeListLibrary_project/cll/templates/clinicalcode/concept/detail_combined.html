@@ -52,9 +52,9 @@
 							   </li>
 							   <li>
 							   {% if user.is_authenticated %}
-									<a {% if user_can_export %} href="/api/export_concept_codes_byVersionID/{{ concept.id }}/version/{{ concept.history_id }}/?format=json" target=_blank {% endif %}
+									<a {% if user_can_export %} href="{% url 'api:api_export_concept_codes_byVersionID'  concept.id concept.history_id %}?format=json" target=_blank {% endif %} 
 							   {% elif enable_publish %}
-									<a {% if user_can_export %} href="/api/export_published_concept_codes/{{ concept.id }}/version/{{ concept.history_id }}/?format=json" target=_blank {% endif %}							    
+									<a {% if user_can_export %} href="{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=json" target=_blank {% endif %}							    
 							   {% endif %}
 								       class="dropdown-item" >
 										<i class="fa fa-file-text" aria-hidden="true"></i> JSON
@@ -62,9 +62,9 @@
 							   </li>
 							   <li>
 							   {% if user.is_authenticated %}
-									<a {% if user_can_export %} href="/api/export_concept_codes_byVersionID/{{ concept.id }}/version/{{ concept.history_id }}/?format=xml" target=_blank {% endif %} 
+									<a {% if user_can_export %} href="{% url 'api:api_export_concept_codes_byVersionID'  concept.id concept.history_id %}?format=xml" target=_blank {% endif %} 
 							   {% elif enable_publish %}
-									<a {% if user_can_export %} href="/api/export_published_concept_codes/{{ concept.id }}/version/{{ concept.history_id }}/?format=xml" target=_blank {% endif %}							    
+									<a {% if user_can_export %} href="{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=xml" target=_blank {% endif %}							    
 							   {% endif %}							   
 							       class="dropdown-item" >
 									<i class="fa fa-file-code-o" aria-hidden="true"></i> XML
@@ -153,16 +153,19 @@
 							{% endfor %}
 						{% endfor %}
 					</h2>
+					<span>{{ concept.author }}</span>					
+					<br>
+					<br>
 				</div>
 
 				<div class="row"></div>
 
-				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-2">Author</div>
-					<div class="col-sm-10">
-						{{ concept.author }}
-					</div>
-				</div>
+<!-- 				<div class="row" style="margin-top: 10px;"> -->
+<!-- 					<div class="col-sm-2">Author</div> -->
+<!-- 					<div class="col-sm-10"> -->
+<!-- 						{{ concept.author }} -->
+<!-- 					</div> -->
+<!-- 				</div> -->
 				
 				<div class="row" style="margin-top: 10px;">
 					<div class="col-sm-2">ID</div>
@@ -179,19 +182,13 @@
 						<span id="concept_history_id_div" concept_history_id="{{ concept.history_id }}">
 							{{ concept.history_id }} 
 							{% if user.is_authenticated %}
+								&nbsp;&nbsp;
+								&nbsp;&nbsp;
 								{% if is_latest_version  %}
-									&nbsp;&nbsp;
-									&nbsp;&nbsp;
-									<span class="tag label label-success" style='color:yellow;' >
-									(latest version &nbsp;&nbsp; <span class="glyphicon glyphicon-asterisk" aria-hidden="true"></span>)
-									</span> 
+									<span class="tag label" style='background-color:#F98E2B;' >LATEST VERSION</span> 
 								{% else %}		
-									&nbsp;&nbsp;
-									&nbsp;&nbsp;
-									<span class="tag label label-default" style='color:yellow;' >
-									(Historical version &nbsp;&nbsp; <span class="fa fa-history" aria-hidden="true"></span>)
-									</span> 
-								{% endif %}				
+									<span class="tag label label-default" >HISTORICAL VERSION</span>
+								{% endif %}					
 							{% endif %}				
 						</span>
 						
@@ -206,7 +203,7 @@
 				<div class="row" style="margin-top: 10px;">
 					<div class="col-sm-2">Coding system</div>
 					<div class="col-sm-10">
-						<span class="tag label label-info">
+						<span class="tag label label-primary">
 							{{ concept.coding_system_name }}
 						</span>		
 					</div>	
@@ -251,7 +248,9 @@
 		  -->				
 				<div class="col-sm-12 shadow-frame">
 					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px"><span id="description"></span><strong>Description</strong></h3>
-					{{ concept.description | markdownify }}
+					<div class="markdown-holder">
+						{{ concept.description | markdownify }}
+					</div>
 				</div>
 				
 
@@ -264,16 +263,23 @@
 					
 				    <div class="row" style="margin-top: 10px;">
 						<div class="col-sm-3">Validation performed</div>
-							<div class="col-sm-9" style="margin-top: -10px">
-								<div class="validation-checkbox">
-								 	<input  type="checkbox" {% if concept.validation_performed %}checked="checked"{% endif %} disabled />
-								 </div>
+							<div class="col-sm-9" styleXX="margin-top: -10px">
+<!-- 								<div class="validation-checkbox"> -->
+<!-- 								 	<input  type="checkbox" {% if concept.validation_performed %}checked="checked"{% endif %} disabled /> -->
+<!-- 								 </div> -->
+								 {% if concept.validation_performed %}
+								 	<span>&#10004;</span>
+<!-- 									<span class = "glyphicon glyphicon-ok"></span> -->
+								{% else %}
+									<span>&#10008;</span>
+<!-- 								<span class = "glyphicon glyphicon-remove"></span> -->
+						 		{% endif %} 
 							</div>
 					</div>
 					<div class="row"></div>
 	
 					<div class="row" style="margin-top: 10px;">
-						<div class="col-sm-3">Validation</div>
+						<div class="col-sm-3">Validation description</div>
 						<div class="col-sm-9" style="margin-left: -20px;">{{ concept.validation_description }}</div>
 					</div>
 		
@@ -302,21 +308,31 @@
 						<div class="col-sm-9">{{ concept.secondary_publication_links }}</div>
 					</div>
 
-					<div class="row">
+					<div class="row" style="margin-top: 10px;">
 						<div  class="col-sm-3">Paper published</div>
 						<div class="col-sm-9">
-							<input type="checkbox" {% if concept.paper_published %}checked="checked"{% endif %} disabled />
+<!-- 							<div class="validation-checkbox"> -->
+<!-- 							 	<input  type="checkbox" {% if concept.paper_published %}checked="checked"{% endif %} disabled /> -->
+<!-- 							 </div> -->
+<!-- 							<input type="checkbox" {% if concept.paper_published %}checked="checked"{% endif %} disabled /> -->
+							{% if concept.paper_published %}
+								<span>&#10004;</span>
+<!-- 								<span class = "glyphicon glyphicon-ok"></span> -->
+							{% else %}
+								<span>&#10008;</span>
+<!-- 								<span class = "glyphicon glyphicon-remove"></span> -->
+					 		{% endif %} 							
 						</div>
 					</div>
 					
-					<div class="row">
+					<div class="row" style="margin-top: 10px;">
 						<div  class="col-sm-3">Source reference</div>
 						<div class="col-sm-9">
 							{{ concept.source_reference }}
 						</div>
 					</div>
 					
-					<div class="row">
+					<div class="row" style="margin-top: 10px;">
 						<div  class="col-sm-3">Citation requirements</div>
 						<div class="col-sm-9">
 							{{ concept.citation_requirements }}

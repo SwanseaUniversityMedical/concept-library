@@ -274,7 +274,10 @@ element.style {
 }
 
 
-
+.btn-no-hover {
+    pointer-events: none;
+    display: inline-block; /* For added support */
+}
 
 
 

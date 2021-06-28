@@ -4,125 +4,6 @@
   }
 }
 
-@keyframes spinner-animation-demo {
-  to {transform: rotate(360deg);}
-}
-
-.spinner-animation-demo,
-.spinner-animation-demo:before {
-  width: 20px;
-  height: 20px;
-  box-sizing: border-box;
-}
-
-.spinner-animation-demo:before {
-  content: '';
-  display: block;
-  border-radius: 50%;
-  border: 2px solid #ccc;
-  border-top-color: #000;
-  animation: spinner-animation-demo .6s linear infinite;
-}
-
-.spinner-animation-demo-absolute {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin-top: -10px;
-  margin-left: -10px;
-}
-
-.spinner-animation-demo-add,
-.spinner-animation-demo-remove {
-  animation-fill-mode: both;
-  animation-duration: .4s;
-}
-
-.spinner-animation-demo-add {
-  animation-name: spinner-animation-demo-add;
-}
-
-@keyframes spinner-animation-demo-add {
-  from {transform: scale(0);}
-  to {transform: scale(1);}
-}
-
-.spinner-animation-demo-remove {
-  animation-name: spinner-animation-demo-remove;
-}
-
-@keyframes spinner-animation-demo-remove {
-  to {transform: scale(0);}
-}
-
-
-
-.db-autocomplete2 {
-  position: absolute;
-  z-index: 1000;
-  cursor: pointer;
-  padding: 0;
-  list-style: none;
-  background-color: #ffffff;
-  border: 1px solid #ccc  -webkit-border-radius: 5px;
-  -moz-border-radius: 5px;
-  border-radius: 5px;
-  -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-}
-
-
-.ui-autocomplete2 {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 1000;
-  float: left;
-  min-width: 160px;
-  _width: 160px;
-  padding: 4px 0;
-  margin: 2px 0 0 0;
-  list-style: none;
-  background-color: #ffffff;
-  border-color: #ccc;
-  border-color: rgba(0, 0, 0, 0.2);
-  border-style: solid;
-  border-width: 1px;
-  -webkit-border-radius: 5px;
-  -moz-border-radius: 5px;
-  border-radius: 5px;
-  -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  -webkit-background-clip: padding-box;
-  -moz-background-clip: padding;
-  background-clip: padding-box;
-  *border-right-width: 2px;
-  *border-bottom-width: 2px;
-
-  .ui-menu-item > a.ui-corner-all {
-    display: block;
-    padding: 3px 15px;
-    clear: both;
-    font-weight: normal;
-    line-height: 18px;
-    color: #555555;
-    white-space: nowrap;
-
-    &.ui-state-hover, &.ui-state-active {
-      color: #ffffff;
-      text-decoration: none;
-      background-color: #0088cc;
-      border-radius: 0px;
-      -webkit-border-radius: 0px;
-      -moz-border-radius: 0px;
-      background-image: none;
-    }
-  }
-}
-
-
 
 form.example input[type=text] {
   padding: 10px;
@@ -156,9 +37,7 @@ form.example::after {
 }
 
 
-
-
-.bg-img-basic-search {
+.bg-search {
   /* The image used */
   /*   background-image: url("../img/bg1.png"); */
 
@@ -172,19 +51,6 @@ form.example::after {
   background: #F7F9FC;
 }
 
-.bg-img-advanced-search {
-  /* The image used */
-  /*   background-image: url("../img/bg2.png"); */
-
-  min-height: 150px;
-
-  /* Center and scale the image nicely */
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  position: relative;
-  background: #F7F9FC;
-}
 
 /* Add styles to the form container */
 .container_frm {
@@ -257,15 +123,9 @@ form.example::after {
 }
 
 .dark-div{
-	background-color:#f7f7f9;
+	background-color:#F7F9FC;
 }
 
-.shadow-frame-00{
-	border: 1px solid #DFE3E6; 
-	box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
-	padding-bottom:20px;
-	margin-top:18px;
-}
 
 .shadow-frame{
 	border: 1px solid #DFE3E6; 
@@ -277,7 +137,7 @@ form.example::after {
 	border-bottom: none;
 }
 
-.btn-1{
+.btn-secondary{
 	background: #FFFFFF;
 	border: 1px solid #475DA7;
 	box-sizing: border-box;

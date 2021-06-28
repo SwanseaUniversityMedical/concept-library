@@ -265,8 +265,8 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     data_sources = DataSource.objects.filter(pk=-1)
     data_sources_comp = db_utils.getHistoryDataSource_Phenotype(pk, phenotype_history_date)
     if data_sources_comp:
-        tag_list = [i['datasource_id'] for i in data_sources_comp if 'datasource_id' in i]
-        data_sources = DataSource.objects.filter(pk__in=tag_list)
+        ds_list = [i['datasource_id'] for i in data_sources_comp if 'datasource_id' in i]
+        data_sources = DataSource.objects.filter(pk__in=ds_list)
         
     #----------------------------------------------------------------------
     

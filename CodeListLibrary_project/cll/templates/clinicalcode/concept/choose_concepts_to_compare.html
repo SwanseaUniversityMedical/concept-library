@@ -113,7 +113,7 @@ $(function(){
 	 //------------------------------------------------
 		// autocomplete for finding a concept, enter concept name and it will display a list of possible matches
 		$('#concept-search-text1,#concept-search-text2').autocomplete({			
-			serviceUrl: '/api/concepts/?concept_id_to_exclude=0',
+			serviceUrl: '/api/concept-search/?concept_id_to_exclude=0',
 			paramName: 'search',
 			transformResult: function(response){
 				// clear the selected field

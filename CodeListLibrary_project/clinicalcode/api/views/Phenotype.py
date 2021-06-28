@@ -427,19 +427,19 @@ def export_phenotype_codes_byVersionID(request, pk, phenotype_history_id):
 @api_view(['GET'])
 @authentication_classes([])
 @permission_classes([]) 
-def published_phenotypes(request):
+def published_phenotypes(request, pk=None):
     '''
         Get the API output for the list of published phenotypes.
     '''
-    return  getPhenotypes(request, is_authenticated_user=False)
+    return  getPhenotypes(request, is_authenticated_user=False, pk=pk)
     
 #--------------------------------------------------------------------------
 @api_view(['GET'])
-def myPhenotypes(request):
+def phenotypes(request, pk=None):
     '''
         Get the API output for the list of my phenotypes.
     '''
-    return  getPhenotypes(request, is_authenticated_user=True)
+    return  getPhenotypes(request, is_authenticated_user=True, pk=pk)
     
 
 
@@ -448,9 +448,15 @@ def myPhenotypes(request):
 @api_view(['GET'])
 @authentication_classes([])
 @permission_classes([]) 
-def getPhenotypes(request, is_authenticated_user=True):   
+def getPhenotypes(request, is_authenticated_user=True, pk=None):   
     search = request.query_params.get('search', '')
-    phenotype_id = request.query_params.get('id', None)
+    
+    if pk is not None:
+        phenotype_id = pk
+    else:   
+        phenotype_id = request.query_params.get('id', None)
+        
+    
     tag_ids = request.query_params.get('tag_ids', '')
     owner = request.query_params.get('owner_username', '')
     show_only_my_phenotypes = request.query_params.get('show_only_my_phenotypes', "0")
@@ -561,6 +567,7 @@ def getPhenotypes(request, is_authenticated_user=True):
             , 'author', 'owner'
             , 'tags'
             , 'clinical_terminologies'
+            , 'data_sources'
             , 'created_by', 'created_date'  
             , 'modified_by', 'modified_date'  
             , 'is_deleted', 'deleted_by', 'deleted_date'
@@ -581,6 +588,16 @@ def getPhenotypes(request, is_authenticated_user=True):
         if phenotype_clinical_terminologies:
             c_clinical_terminologies = list(CodingSystem.objects.filter(pk__in=phenotype_clinical_terminologies).values('name', 'id'))
             
+        #--------------
+            
+        data_sources = DataSource.objects.filter(pk=-1)
+        data_sources_comp = getHistoryDataSource_Phenotype(c['id'], c['history_date'])
+        if data_sources_comp:
+            ds_list = [i['datasource_id'] for i in data_sources_comp if 'datasource_id' in i]
+            data_sources = list(DataSource.objects.filter(pk__in=ds_list).values('id', 'name', 'url')) # , 'uid', 'description'
+        
+     
+     
         ret = [
                 c['id'],  
                 c['history_id'],  
@@ -591,6 +608,7 @@ def getPhenotypes(request, is_authenticated_user=True):
                 c['owner_name'],
                 c_tags,
                 c_clinical_terminologies,
+                data_sources,
                 
                 c['created_by_username'],
                 c['created'],
@@ -626,7 +644,7 @@ def getPhenotypes(request, is_authenticated_user=True):
 # show phenotype detail
 #============================================================= 
 @api_view(['GET'])
-def myPhenotype_detail(request, pk, phenotype_history_id=None, get_versions_only=None):
+def phenotype_detail(request, pk, phenotype_history_id=None, get_versions_only=None):
     ''' 
         Display the detail of a phenotype at a point in time.
     '''
@@ -665,7 +683,7 @@ def myPhenotype_detail(request, pk, phenotype_history_id=None, get_versions_only
 @api_view(['GET'])
 @authentication_classes([])
 @permission_classes([]) 
-def myPhenotype_detail_PUBLIC(request, pk, phenotype_history_id=None, get_versions_only=None):
+def phenotype_detail_PUBLIC(request, pk, phenotype_history_id=None, get_versions_only=None):
     ''' 
         Display the detail of a published phenotype at a point in time.
     '''
@@ -725,7 +743,14 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None, is_authenticated_
     clinicalTerminologies = list(CodingSystem.objects.filter(pk__in=list(CodingSystem_ids)).values('name', 'id'))
 
     #--------------
-       
+            
+    data_sources = DataSource.objects.filter(pk=-1)
+    data_sources_comp = getHistoryDataSource_Phenotype(pk, phenotype_history_date)
+    if data_sources_comp:
+        ds_list = [i['datasource_id'] for i in data_sources_comp if 'datasource_id' in i]
+        data_sources = list(DataSource.objects.filter(pk__in=ds_list).values('id', 'name', 'url')) # , 'uid', 'description'
+        
+     
     tags =  []
     phenotype_tags = phenotype['tags']
     if phenotype_tags:
@@ -744,6 +769,7 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None, is_authenticated_
             , 'author'
             #, 'entry_date'
             , 'clinical_terminologies'
+            , 'data_sources'
             #, 'description'            
             
             , 'created_by', 'created_date'  
@@ -782,6 +808,7 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None, is_authenticated_
             phenotype['author'],
             #phenotype['entry_date'],
             clinicalTerminologies,
+            data_sources,
             #phenotype['description'],
             
             

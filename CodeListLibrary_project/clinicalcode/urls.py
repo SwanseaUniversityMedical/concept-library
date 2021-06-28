@@ -16,20 +16,24 @@ from views import (
 )
 
 urlpatterns = [
-    url(r'^$', Concept.concept_list, name='concept_list' ),
-    #url(r'^$', View.index, name='concept_index' ),
+    #url(r'^$', Concept.concept_list, name='concept_list' ),
+    url(r'^$', View.index, name='concept_index' ),
     url(r'^home/$', View.index, name='concept_index' ),
-    #url(r'^home/HDR-UK$', View.index_HDRUK, name='HDRUK_index' ),
+
     url(r'^concepts/$', Concept.concept_list, name='concept_list'),
-    url(r'^workingset/$', WorkingSet.workingset_list, name='workingset_list'),
-    url(r'^phenotype/$', Phenotype.phenotype_list, name='phenotype_list'),
+    url(r'^workingsets/$', WorkingSet.workingset_list, name='workingset_list'),
+    url(r'^phenotypes/$', Phenotype.phenotype_list, name='phenotype_list'),
 ]
 
 # About pages
 urlpatterns += [
     # brand/main about pages
     url(r'^about/(?P<pg_name>\w+)/$', View.about_pages, name='about_page' ),
+]
 
+# HDR-UK portal redirect to CL
+urlpatterns += [
+    url(r'^HDR-UK-portal-redirect/$', View.HDRUK_portal_redirect, name='HDRUK_portal_redirect' ),
 ]
 
 #======== Admin Temp ===============================================================================
@@ -59,42 +63,42 @@ if not settings.CLL_READ_ONLY:
 # ======== Phenotypes ==============================================================================
 # add URLConf to create, update, and delete Phenotypes
 urlpatterns += [
-    url(r'^phenotype/(?P<pk>\d+)/detail/$',
+    url(r'^phenotypes/(?P<pk>\d+)/detail/$',
         Phenotype.PhenotypeDetail_combined,
         name='phenotype_detail'),
 
-    url(r'^phenotype/(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/detail/$',
+    url(r'^phenotypes/(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/detail/$',
         Phenotype.PhenotypeDetail_combined,
         name='phenotype_history_detail'),
     
-    url(r'^phenotype/(?P<pk>\d+)/history/(?P<phenotype_history_id>\d+)/export/concepts/$',
+    url(r'^phenotypes/(?P<pk>\d+)/history/(?P<phenotype_history_id>\d+)/export/concepts/$',
         Phenotype.history_phenotype_codes_to_csv,
         name='history_phenotype_codes_to_csv'),
     
-    url(r'^phenotype/(?P<pk>\d+)/uniquecodesbyversion/(?P<phenotype_history_id>\d+)/$',
+    url(r'^phenotypes/(?P<pk>\d+)/uniquecodesbyversion/(?P<phenotype_history_id>\d+)/$',
         Phenotype.phenotype_conceptcodesByVersion,
         name='phenotype_conceptcodesByVersion'),
 ]
 
 if not settings.CLL_READ_ONLY:
     urlpatterns += [
-        url(r'^phenotype/create/$',
+        url(r'^phenotypes/create/$',
             Phenotype.phenotype_create,
             name='phenotype_create'),
 
-        url(r'^phenotype/(?P<pk>\d+)/update/$',
+        url(r'^phenotypes/(?P<pk>\d+)/update/$',
             Phenotype.PhenotypeUpdate.as_view(),
             name='phenotype_update'),
 
-        url(r'^phenotype/(?P<pk>\d+)/delete/$',
+        url(r'^phenotypes/(?P<pk>\d+)/delete/$',
             Phenotype.PhenotypeDelete.as_view(),
             name='phenotype_delete'),
 
-        # url(r'^phenotype/(?P<pk>\d+)/history/(?P<phenotype_history_id>\d+)/revert/$',
+        # url(r'^phenotypes/(?P<pk>\d+)/history/(?P<phenotype_history_id>\d+)/revert/$',
         #     Phenotype.phenotype_history_revert,
         #     name='phenotype_history_revert'),
         #
-        # url(r'^phenotype/(?P<pk>\d+)/restore/$',
+        # url(r'^phenotypes/(?P<pk>\d+)/restore/$',
         #     Phenotype.PhenotypeRestore.as_view(),
         #     name='phenotype_restore'),
     ]
@@ -103,42 +107,42 @@ if not settings.CLL_READ_ONLY:
 #======== WorkingSets ==============================================================================
 # add URLConf to create, update, and delete working sets
 urlpatterns += [
-    url(r'^workingset/(?P<pk>\d+)/detail/$',
+    url(r'^workingsets/(?P<pk>\d+)/detail/$',
         WorkingSet.WorkingSetDetail.as_view(),
         name='workingset_detail'),
 
-    url(r'^workingset/(?P<pk>\d+)/history/(?P<workingset_history_id>\d+)/detail/$',
+    url(r'^workingsets/(?P<pk>\d+)/history/(?P<workingset_history_id>\d+)/detail/$',
         WorkingSet.workingset_history_detail,
         name='workingset_history_detail'),
 
-    url(r'^workingset/(?P<pk>\d+)/export/concepts/$',
+    url(r'^workingsets/(?P<pk>\d+)/export/codes/$',
         WorkingSet.workingset_to_csv,
         name='workingset_to_csv'),
     
-    url(r'^workingset/(?P<pk>\d+)/history/(?P<workingset_history_id>\d+)/export/concepts/$',
+    url(r'^workingsets/(?P<pk>\d+)/version/(?P<workingset_history_id>\d+)/export/codes/$',
         WorkingSet.history_workingset_to_csv,
         name='history_workingset_to_csv'),
 ]
 
 if not settings.CLL_READ_ONLY: 
     urlpatterns += [
-        url(r'^workingset/create/$', 
+        url(r'^workingsets/create/$', 
             WorkingSet.workingset_create, 
             name='workingset_create'),
     
-        url(r'^workingset/(?P<pk>\d+)/update/$',
+        url(r'^workingsets/(?P<pk>\d+)/update/$',
             WorkingSet.WorkingSetUpdate.as_view(),
             name='workingset_update'),
        
-        url(r'^workingset/(?P<pk>\d+)/delete/$',
+        url(r'^workingsets/(?P<pk>\d+)/delete/$',
             WorkingSet.WorkingSetDelete.as_view(),
             name='workingset_delete'),
     
-        url(r'^workingset/(?P<pk>\d+)/history/(?P<workingset_history_id>\d+)/revert/$',
+        url(r'^workingsets/(?P<pk>\d+)/history/(?P<workingset_history_id>\d+)/revert/$',
             WorkingSet.workingset_history_revert,
             name='workingset_history_revert'),
     
-        url(r'^workingset/(?P<pk>\d+)/restore/$',
+        url(r'^workingsets/(?P<pk>\d+)/restore/$',
             WorkingSet.WorkingSetRestore.as_view(),
             name='workingset_restore'),         
     ]
@@ -411,7 +415,7 @@ if settings.ENABLE_PUBLISH:
             Concept.ConceptPublish.as_view(),
             name='concept_publish'),
         
-        url(r'^phenotype/(?P<pk>\d+)/(?P<phenotype_history_id>\d+)/publish/$',
+        url(r'^phenotypes/(?P<pk>\d+)/(?P<phenotype_history_id>\d+)/publish/$',
             Phenotype.PhenotypePublish.as_view(),
             name='phenotype_publish'),
     ]
