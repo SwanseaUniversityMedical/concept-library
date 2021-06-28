@@ -7,9 +7,9 @@
 <!--    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script> -->
 {% endblock head %}
 {% block container %}
-<div id="techMenu"  style="padding-top:40px;align:left;" class="row">
+<div class="row">
    <div class="rubric-box column" >
-       <div class="leftnavbar-position">
+       <div class="hideleft-navbar leftnavbar-position">
          <ul class="left-navbar text-rubric-design pointer" onclick="showSelection(event)" id='navList'>
          <li><a href="#inclusion">Inclusion Criteria
             </a>
@@ -132,7 +132,7 @@
          </g>
          <switch>
             <g requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"></g>
-            <a transform="translate(0,-5)" xlink:href="https://desk.draw.io/support/solutions/articles/16000042487" target="_blank">
+            <a transform="translate(0,-5)" xlink:href="https://desk.draw.io/support/solutions/articles/16000042487" target=_blank >
                <text text-anchor="middle" font-size="10px" x="50%" y="100%">Viewer does not support full SVG 1.1</text>
             </a>
          </switch>
@@ -148,7 +148,7 @@
          </div>
       </div>
       <p>for example: <code class="language-plaintext highlighter-rouge">axson_bronchiestasis_ZckoXfUWNXn8Jn7fdLQuxj.md</code></p>
-      <p>Phenotype files are stored in the <a href="https://github.com/spiros/hdr-caliber-phenome-portal/tree/master/_phenotypes">_phenotypes directory</a>.</p>
+      <p>Phenotype files are stored in the <a href="https://github.com/spiros/hdr-caliber-phenome-portal/tree/master/_phenotypes" target=_blank  rel="noopener noreferrer">_phenotypes directory</a>.</p>
       <p>Similarly, code list files follow a similar pattern:</p>
       <pre class="highlight"><code>NAME_UUID_TERMINOLOGY.csv
 </code></pre>
@@ -156,7 +156,7 @@
          Phenotype definition file
       </div>
       <p>The phenotype definition file is a markdown file with a YAML header. The YAML header is used to record metadata fields capturing information about the algorithm, the data sources, controlled clinical terminologies and other information.</p>
-      <p>For example, the code snippet below displays the metadata associated with the <a href="https://portal.caliberresearch.org/phenotypes/axson-bronchiestasis-zckoxfuwnxn8jn7fdlquxj">bronchiestasis</a> phenotyping algorithm submitted by the HDR UK BREATHE Hub (you can view the <a href="https://raw.githubusercontent.com/spiros/hdr-caliber-phenome-portal/master/_phenotypes/axson_bronchiestasis_ZckoXfUWNXn8Jn7fdLQuxj.md">raw file</a> directly on the repository.)</p>
+      <p>For example, the code snippet below displays the metadata associated with the <a href="https://portal.caliberresearch.org/phenotypes/axson-bronchiestasis-zckoxfuwnxn8jn7fdlquxj" target=_blank   rel="noopener noreferrer">bronchiestasis</a> phenotyping algorithm submitted by the HDR UK BREATHE Hub (you can view the <a href="https://raw.githubusercontent.com/spiros/hdr-caliber-phenome-portal/master/_phenotypes/axson_bronchiestasis_ZckoXfUWNXn8Jn7fdLQuxj.md" target=_blank   rel="noopener noreferrer">raw file</a> directly on the repository.)</p>
       <pre class="highlight"><code><span class="na">title</span><span class="pi">:</span> <span class="s">Bronchiestasis</span>
 <span class="na">name</span><span class="pi">:</span> <span class="s">Bronchiestasis</span>
 <span class="na">phenotype_id</span><span class="pi">:</span> <span class="s">ZckoXfUWNXn8Jn7fdLQuxj</span>
@@ -199,7 +199,7 @@
       <ul>
          <li><strong>title</strong> (string): Phenotype (long) name</li>
          <li><strong>name (string)</strong>: Phenotype (short) name</li>
-         <li><strong>data_sources</strong> (list of strings): Names of data sources that phenotype sources information from. These should be identical, if possible, to the names used to identify individual datasets in the <a href="https://www.healthdatagateway.org/">HDR Gateway</a>.</li>
+         <li><strong>data_sources</strong> (list of strings): Names of data sources that phenotype sources information from. These should be identical, if possible, to the names used to identify individual datasets in the <a href="https://www.healthdatagateway.org/" target=_blank   rel="noopener noreferrer">HDR Gateway</a>.</li>
          <li><strong>clinical_terminologies</strong> (list of strings): List of controlled clinical terminologies that are used by the phenotype algorithm.</li>
          <li>
             <strong>validation</strong> (list of strings): evidence of validation used as evidence of phenotype robustness - valid values:
@@ -213,7 +213,7 @@
             </ul>
          </li>
          <li><strong>codelists</strong> (list of strings): (unordered) list of CSV terminology files associated with the phenotype</li>
-         <li><strong>phenotype_id</strong> (list of strings): Unique universal phenotype identifier, generated using the <code class="language-plaintext highlighter-rouge">shortuuid</code> <a href="https://pypi.org/project/shortuuid/">Python module</a>.</li>
+         <li><strong>phenotype_id</strong> (list of strings): Unique universal phenotype identifier, generated using the <code class="language-plaintext highlighter-rouge">shortuuid</code> <a href="https://pypi.org/project/shortuuid/" target=_blank   rel="noopener noreferrer">Python module</a>.</li>
          <li><strong>group</strong> (string): Disease group for phenotype</li>
          <li><strong>valid_event_data_range</strong> (list of strings): DD/MM/YYYY date range for events</li>
          <li><strong>sex</strong> (list of strings): list of sexes valid for the phenotype</li>
@@ -238,7 +238,7 @@ J47,Bronchiectasis
       <div class="medium-header-design" id="howto">
          How to submit data
       </div>
-      <p>You can download a <a href="https://raw.githubusercontent.com/spiros/hdr-caliber-phenome-portal/develop/sample_phenotype_1233456.md"><strong>sample template file</strong></a> from the repository:</p>
+      <p>You can download a <a href="https://raw.githubusercontent.com/spiros/hdr-caliber-phenome-portal/develop/sample_phenotype_1233456.md" target=_blank   rel="noopener noreferrer"><strong>sample template file</strong></a> from the repository:</p>
       <p>If you have a phenotyping algorithm that meets the eligibility requirements, we invite you to submit your data by one of the following ways:</p>
    </div>
 </div>

@@ -15,8 +15,8 @@
 
   .text-rubric-design {
 	font-style: normal;
-	font-weight: 600;
-	font-size: 16px;
+	font-weight: 500;
+	font-size: 14px;
 	cursor: pointer;
 	text-align:left;
 	padding-bottom:10px;
@@ -25,7 +25,7 @@
 
   .text-rubric-design-v2 {
 	font-style: normal;
-	font-weight: 600;
+	font-weight: 500;
 	font-size: 16px;
 	cursor: pointer;
 	text-align:left;
@@ -75,7 +75,6 @@ align:center;
 	flex-wrap: wrap;
 	margin-right: -15px;
 	margin-left: -15px;
-	padding-top: 30px;
 
 }
 
@@ -117,7 +116,7 @@ table.spacing {
     font-style:normal;
     font-weight:normal;
     font-size:16px;
-    color: #475DA7;
+    color: #525252;
 }
 
 .member-bio-design {
@@ -145,7 +144,7 @@ table.spacing {
 
 .rubric-box{
 
-width:20%; padding-top:30px;
+width:20%;
 
 }
 
@@ -155,7 +154,6 @@ ul.left-navbar {
 	margin: 0;
 	padding: 0;
 	line-height: 2.5em;
-	margin-top: 25px;
 }
 
 ul.left-navbar a {
@@ -177,12 +175,18 @@ ul.left-navbar a.active {
 
 }
 
-div.hideleft-navbar {
-  padding: 20px;
-}
 
 .leftnavbar-position {
 position:fixed;
+}
+
+@media screen and (max-width: 768px) {
+  div.hideleft-navbar {
+    display: none;
+  }
+
+.collaborator-padding {
+padding-bottom: 30px;
 }
 
 
