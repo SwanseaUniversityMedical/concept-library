@@ -8,20 +8,27 @@
 {% endblock head %}
 {% block container %}
 <div class="row">
-   <div class="rubric-box column">
-      <div class="hideleft-navbar leftnavbar-position">
+   <div class="rubric-box col-sm-2 hideleft-navbar" >
+      <div class="leftnavbar-position">
          <ul class="left-navbar text-rubric-design pointer" onclick="showSelection(event)" id='navList'>
-         <li> <a href="#2020">2020
-            </a>
-         </li>
-         <li><a href="#2019">
-            2019
-            </a>
-         </li>
-      </ul>
+            <li> <a href="#publications" id="publicationsHeader">Publications
+               </a>
+            </li>
+            <li> <a href="#2020">2020
+               </a>
+            </li>
+            <li><a href="#2019">
+               2019
+               </a>
+            </li>
+         </ul>
       </div>
    </div>
+   <h3><span id="publications"></span></h3>
    <div style="width:70%;" class="column" >
+      <div class="header-content-design" style="padding-bottom:30px;">
+         Publications
+      </div>
       <div class="medium-header-design" id="2020">
          2020
       </div>
@@ -50,7 +57,7 @@
 </script>
 <script type="text/javascript">
    window.onload=function(){
-   		document.getElementById("inclusion").click();
+   		document.getElementById("publicationsHeader").click();
    };
 </script>
 {% endblock container %}
