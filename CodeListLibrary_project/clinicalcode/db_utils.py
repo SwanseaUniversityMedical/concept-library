@@ -2650,7 +2650,16 @@ def get_can_edit_subquery(request):
             can_edit_subquery = " ( FALSE ) can_edit , " 
         else:
             if request.user.is_superuser:
-                can_edit_subquery = " ( TRUE ) can_edit , " 
+                # can_edit_subquery = " ( TRUE ) can_edit , " 
+                can_edit_subquery = ''' (CASE WHEN rn=1 AND
+                                                (
+                                                    COALESCE(is_deleted, FALSE) IS NOT TRUE 
+                                                )
+                                        THEN TRUE 
+                                        ELSE FALSE 
+                                        END
+                                        ) can_edit ,
+                                    '''
             else:
                 user_groups = list(request.user.groups.all().values_list('id', flat=True))
                 group_access_cond = ""
