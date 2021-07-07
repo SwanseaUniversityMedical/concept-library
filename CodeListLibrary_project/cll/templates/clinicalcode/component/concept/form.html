@@ -113,11 +113,11 @@
 					</p>
 			
 					<a href="{% url 'component_concept_update' concept_id=form.concept.value pk=object.id update_to_latest_version=1 %}" class="btn btn-primary" id="saveBtn2" >
-						<i class="fa fa-save" aria-hidden="true"></i> Update to newer version
+						Update to newer version
 					</a>
 					<span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-					<a href="{% url 'compare_concepts_codes' concept_id=form.instance.concept_ref_id version_id=form.instance.concept_ref_history_id concept_ref_id=form.instance.concept_ref_id version_ref_id=concept_ref_lates_version_id %}" class="btn btn-info" target="_blank" >
-						<i class="fa fa-columns" aria-hidden="true"></i> Compare codes of the two versions
+					<a href="{% url 'compare_concepts_codes' concept_id=form.instance.concept_ref_id version_id=form.instance.concept_ref_history_id concept_ref_id=form.instance.concept_ref_id version_ref_id=concept_ref_lates_version_id %}" class="btn btn-outline-primary btn-cl btn-cl-secondary" target="_blank" >
+						Compare codes of the two versions
 					</a>   	
 				</div>	
 			{% else %}	

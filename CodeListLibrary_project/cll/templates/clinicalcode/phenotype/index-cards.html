@@ -51,7 +51,7 @@
 				</div>				
 				
 				<div class="row form-group">
-					<div class="col-sm-4">
+					<div class="col-sm-2">
 						<i><strong>{{ phenotype.type }}</i></strong>
 					</div>	
 					<div class="col-sm-4">
@@ -59,12 +59,12 @@
 						{% for cs in all_CodingSystems %}
 							{% for cs_id in phenotype.clinical_terminologies %}
 								{% if cs.id == cs_id %}
-							   		<span class="tag label label-primary">{{ cs.name }}</span>
+							   		<span class="badge">{{ cs.name }}</span>
 							   	{% endif %}
 							{% endfor %}						
 						{% endfor %}	
 					</div>
-					<div class="col-sm-2 text-right">
+					<div class="col-sm-4">
 						{% if user.is_authenticated %}
 							<i>{{ phenotype.modified|date:"Y-m-d" }}</i>
 						{% else %}	

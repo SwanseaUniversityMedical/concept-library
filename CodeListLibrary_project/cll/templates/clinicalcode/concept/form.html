@@ -31,7 +31,7 @@ Edit Concept
 			<div class="dropdown btn-group">
 				<button {% if not user_can_export %} disabled
 					title="Component concept(s) deleted or revoked access!!" {% endif %} type="button"
-					class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
+					class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
 					aria-expanded="false">
 					Export
 					<span class="caret"></span>
@@ -40,44 +40,51 @@ Edit Concept
 					<li>
 						<a {% if user_can_export %} href="{% url 'concept_codes_to_csv' pk=object.id %}"
 							{% endif %} class="dropdown-item">
-							<i class="fa fa-file-excel-o" aria-hidden="true"></i> CSV
+							CSV
 						</a>
 					</li>
 					<li>
 						<a {% if user_can_export %}
 							href="{% url 'api:api_export_concept_codes' object.id %}?format=json" target=_blank
 							{% endif %} class="dropdown-item">
-							<i class="fa fa-file-text" aria-hidden="true"></i> JSON
+							JSON
 						</a>
 					</li>
 					<li>
 						<a {% if user_can_export %}
 							href="{% url 'api:api_export_concept_codes' object.id %}?format=xml" target=_blank
 							{% endif %} class="dropdown-item">
-							<i class="fa fa-file-code-o" aria-hidden="true"></i> XML
+							XML
 						</a>
 					</li>
 				</ul>
 			</div>
 	
-			<a class="js-load-modal btn btn-primary" href="{% url 'concept_fork' form.instance.pk %}">
-				<i class="fa fa-code-fork" aria-hidden="true"></i> Fork
+			<a class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary" href="{% url 'concept_fork' form.instance.pk %}">
+				Fork
 			</a>
 			{% if enable_publish and not CLL_READ_ONLY %}
 				<button id="publish2"  
 					href="{% url 'concept_publish' pk=form.instance.pk concept_history_id=history.0.history_id %}"
 					{% if is_published %}
-					   class="js-load-modal btn btn-success" 	
-				    	disabled title="This version is already published" >
-					    	<i class="fa fa-paper-plane" aria-hidden="true"></i>							    		
+					   class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary" 	
+				    	disabled title="This version is already published" >							    		
 					    	&nbsp;Published&nbsp;
 					    	<span class="glyphicon glyphicon-ok" style="color:green"></span>
 					{% else %}
-						class="js-load-modal btn btn-primary"  >
-						<i class="fa fa-paper-plane" aria-hidden="true"></i> Publish
+						class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"  >
+						Publish
 					{% endif %}
 				</button>
 			{% endif %}
+			
+			{% if not CLL_READ_ONLY %}
+				{% if form.instance.is_deleted is not True %}
+					<a class="js-load-modal btn btn-outline-danger btn-cl btn-cl-danger"  href="{% url 'concept_delete' form.instance.pk %}" title="Delete concept">
+						Delete
+					</a>							
+				{% endif %}
+			{% endif %}						
 
 	{% endif %}
 	
@@ -587,10 +594,10 @@ Edit Concept
 					<div class="form-group">
 						<div class="col-xs-offset-3 col-xs-9">
 							<button class="btn btn-primary" id="save-changes">
-								<i class="fa fa-save" aria-hidden="true"></i> Save Concept
+								Save Concept
 							</button>
-							<a href="{% url 'concept_list' %}" class="btn btn-success">
-								<i class="fa fa-reply" aria-hidden="true"></i> Return to list
+							<a href="{% url 'concept_list' %}" class="btn btn-outline-primary btn-cl btn-cl-secondary">
+								Return to list
 							</a>
 						</div>
 					</div>

@@ -8,7 +8,11 @@
 	{% for historyRow in history.all %}
 		<tr>
 			<td>{{ historyRow.history_id }}</td>
-			<td>{{ historyRow.name }}</td>
+			<td>
+				<a class="" href="{% url 'workingset_history_detail' pk=historyRow.id workingset_history_id=historyRow.history_id %}">
+				{{ historyRow.name }}
+				</a>
+			</td>
 			<td title="{{ historyRow.description }}">{{ historyRow.description|truncatechars:50 }}</td>
 			<td>{{ historyRow.history_date }}</td>
 <!-- 			<td>{{ historyRow.get_history_type_display }}</td> -->
@@ -24,11 +28,11 @@
 				{% if current_workingset_history_id == historyRow.history_id %}
 					<span class="help-block-no-break" style="font-size: 10px;">currently shown</span>
 				{% endif %}
-				<a class="" href="{% url 'workingset_history_detail' pk=historyRow.id workingset_history_id=historyRow.history_id %}">			
-				<button type="button" class="btn btn-info btn-xs" data-container="body" data-toggle="" data-html="true" data-placement="left" id="code-preview-{{ component.pk }}" data-trigger="hover">
-					<i class="glyphicon glyphicon-search"> </i>
-				</button>			
-				</a>
+<!-- 				<a class="" href="{% url 'workingset_history_detail' pk=historyRow.id workingset_history_id=historyRow.history_id %}">			 -->
+<!-- 				<button type="button" class="btn btn-info btn-xs" data-container="body" data-toggle="" data-html="true" data-placement="left" id="code-preview-{{ component.pk }}" data-trigger="hover"> -->
+<!-- 					<i class="glyphicon glyphicon-search"> </i> -->
+<!-- 				</button>			 -->
+<!-- 				</a> -->
 				<!-- a href="{% url 'workingset_history_detail' pk=historyRow.id workingset_history_id=historyRow.history_id %}">View</a-->
 			</td>
 		</tr>

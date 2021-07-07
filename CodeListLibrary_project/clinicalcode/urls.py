@@ -33,7 +33,7 @@ urlpatterns += [
 
 # HDR-UK portal redirect to CL
 urlpatterns += [
-    url(r'^HDR-UK-portal-redirect/$', View.HDRUK_portal_redirect, name='HDRUK_portal_redirect' ),
+    url(r'^old/phenotypes/(?P<unique_url>.+)/$', View.HDRUK_portal_redirect, name='HDRUK_portal_redirect' ),
 ]
 
 #======== Admin Temp ===============================================================================

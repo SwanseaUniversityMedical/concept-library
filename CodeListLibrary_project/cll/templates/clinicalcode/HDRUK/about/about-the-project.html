@@ -8,9 +8,12 @@
 {% endblock head %}
 {% block container %}
 <div class="row">
-   <div class="rubric-box column" >
-      <div class="hideleft-navbar leftnavbar-position">
-         <ul class="left-navbar text-rubric-design pointer" onclick="showSelection(event)" id='navList'>
+   <div class="rubric-box col-sm-2 hideleft-navbar " >
+   <div class="leftnavbar-position">
+      <ul class="left-navbar text-rubric-design pointer" onclick="showSelection(event)" id='navList'>
+         <li> <a href="#abouthdrsection" id="abouthdr">HDR UK Phenotype
+            </a>
+         </li>
          <li> <a href="#phenomics">What is phenomics
             </a>
          </li>
@@ -50,6 +53,9 @@
       </ul>
    </div>
 </div>
+
+   <h3><span id="abouthdrsection"></span></h3>
+
 <div style="width:70%;" class="column" >
    <div class="header-content-design">
       About the HDR UK Phenotype
@@ -110,8 +116,7 @@
             </li>
             <li style="list-style-type:circle;">The aim of the Library is not to standardize or harmonize disease definitions, therefore several phenotypes may be stored for the same condition and the onus is on individual researchers to explore which phenotypes they wish to use
             </li>
-      </ul>
-
+         </ul>
       </div>
       <div class="medium-header-design" id="future" >
          Future plans
@@ -129,7 +134,7 @@
 </script>
 <script type="text/javascript">
    window.onload=function(){
-   		document.getElementById("inclusion").click();
+   		document.getElementById("abouthdr").click();
    };
 </script>
 {% endblock container %}
