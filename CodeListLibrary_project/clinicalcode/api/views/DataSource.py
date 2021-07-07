@@ -95,8 +95,11 @@ def api_datasource_create(request):
                 
 
 #--------------------------------------------------------------------------
+#disable authentication for this function
 @api_view(['GET'])
-def get_data_source(request, pk=None, get_live_phenotypes=False):   
+@authentication_classes([])
+@permission_classes([])
+def get_data_source(request, pk=None, get_live_phenotypes=False, show_published_data_only=False):   
     
     if pk is not None:
         data_source_id = pk
@@ -128,9 +131,9 @@ def get_data_source(request, pk=None, get_live_phenotypes=False):
                 ds.description
             ]
         if get_live_phenotypes:
-            ret.append(get_LIVE_phenotypes_associated_with_data_source(ds.id))
+            ret.append(get_LIVE_phenotypes_associated_with_data_source(ds.id, show_published_data_only=show_published_data_only))
         else:
-            ret.append(get_HISTORICAl_phenotypes_associated_with_data_source(ds.id))
+            ret.append(get_HISTORICAl_phenotypes_associated_with_data_source(ds.id, show_published_data_only=show_published_data_only))
             
         rows_to_return.append(ordr(zip(titles,  ret )))
         
@@ -139,7 +142,7 @@ def get_data_source(request, pk=None, get_live_phenotypes=False):
     return Response(rows_to_return, status=status.HTTP_200_OK)   
         
          
-def get_LIVE_phenotypes_associated_with_data_source(data_source_id):   
+def get_LIVE_phenotypes_associated_with_data_source(data_source_id, show_published_data_only=False):   
     
     # return LIVE phenotypes associated with data_source
     phenotype_ids = list(PhenotypeDataSourceMap.objects.filter(datasource_id=data_source_id).values_list('phenotype_id', flat=True))
@@ -148,6 +151,12 @@ def get_LIVE_phenotypes_associated_with_data_source(data_source_id):
     rows_to_return = []
     titles = ['phenotype_id', 'phenotype_version_id', 'phenotype_name', 'phenotype_uuid', 'phenotype_author']
     for p in phenotypes:
+        if show_published_data_only:
+            phenotype_latest_history_id = Phenotype.objects.get(pk=p.id).history.latest().history_id 
+            is_published = checkIfPublished(Phenotype, p.id, phenotype_latest_history_id)
+            if not is_published:
+                continue
+            
         ret = [
                 p.id,  
                 Phenotype.objects.get(id=p.id).history.latest().history_id,
@@ -160,7 +169,7 @@ def get_LIVE_phenotypes_associated_with_data_source(data_source_id):
     return rows_to_return
 
     
-def get_HISTORICAl_phenotypes_associated_with_data_source(data_source_id):   
+def get_HISTORICAl_phenotypes_associated_with_data_source(data_source_id, show_published_data_only=False):   
     
     # return HISTORICAl phenotypes associated with data_source
     associated_phenotype_ids = list(PhenotypeDataSourceMap.objects.filter(datasource_id=data_source_id).values_list('phenotype_id', flat=True))
@@ -175,7 +184,13 @@ def get_HISTORICAl_phenotypes_associated_with_data_source(data_source_id):
         # get versions obj
         associated_phenotype_versions = Phenotype.objects.get(pk=p_id).history.all().order_by('-history_id')
         max_version_id = associated_phenotype_versions.aggregate(Max('history_id'))['history_id__max']
+        include_this_phenotype = False
         for ver in associated_phenotype_versions:  
+            if show_published_data_only:
+                is_published = checkIfPublished(Phenotype, p_id, ver.history_id)
+                if not is_published:
+                    continue
+            
             data_sources_history = getHistoryDataSource_Phenotype(p_id, ver.history_date)
             if data_sources_history:
                 phenotype_ds_list = [i['datasource_id'] for i in data_sources_history if 'datasource_id' in i]
@@ -190,10 +205,11 @@ def get_HISTORICAl_phenotypes_associated_with_data_source(data_source_id):
                             [False, True][ver.history_id == max_version_id]
                         ]
                     ver_to_return.append(ordr(zip(ver_titles,  ret )))
+                    include_this_phenotype = True
                 else:
                     pass      
-        
-        rows_to_return.append(ordr(zip(ph_titles,  [p_id, ver_to_return] )))
+        if include_this_phenotype:
+            rows_to_return.append(ordr(zip(ph_titles,  [p_id, ver_to_return] )))
          
     return rows_to_return
 

@@ -426,6 +426,24 @@
 			   <p style="padding-top: 10px;">Lists a data source by id and the associated phenotypes.</p>
 			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {% url 'api:data_sources' %}{id}</code></pre>
 			</div>
+			
+			
+			
+	    	<li><h3 class="pt-3">List data sources (with published phenotypes)</h3></li>
+	    	<div>
+	    		<p style="padding-top: 10px;">Only the published associated phenotypes wil be shown.</p>
+	    	</div>
+	    	<div>    
+			   <p style="padding-top: 10px;">Lists all data sources and the published phenotypes associated with each. User can search by part of the data source name (e.g. <code>?search=hospital</code>)</p>
+			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> <a  href="{% url 'api:data_sources_public' %}" target="_blank" class="alert-link">{% url 'api:data_sources_public' %}</a></code></pre>
+			</div>
+		
+	    	<div>    
+			   <p style="padding-top: 10px;">Lists a data source by id and the associated published phenotypes.</p>
+			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {% url 'api:data_sources_public' %}{id}</code></pre>
+			</div>			
+
+
 
 			{% if not CLL_READ_ONLY %}			                          
 		    	<li><h3 class="pt-3">Create a data source</h3></li>
