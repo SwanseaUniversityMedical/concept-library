@@ -8,9 +8,13 @@
 {% endblock head %}
 {% block container %}
 <div class="row">
-   <div class="rubric-box column" >
-      <div class="hideleft-navbar leftnavbar-position">
-         <ul class="left-navbar text-rubric-design pointer" onclick="showSelection(event)" id='navList'>
+   <div class="rubric-box col-sm-2 hideleft-navbar " >
+      <div class="leftnavbar-position">
+         <ul class="left-navbar" onclick="showSelection(event)" id='navList'>
+            <li> <a href="#teamandcollab" id="teamSection">
+               Team and Collaborators
+               </a>
+            </li>
             <li> <a href="#team">
                Team
                </a>
@@ -22,8 +26,22 @@
          </ul>
       </div>
    </div>
+
+
+      <!--<div class="col-sm-2 hideleft-navbar" style="padding-top: 40px; position: sticky; position: -webkit-sticky; top: 60px;">
+	<div class="hideleft-navbar">
+       <ul class="left-navbar" onclick="showSelection(event)" id='navList'>
+			<li><a href="#teamandcollab" id="teamSection">Home</a>
+			<li><a href="#team">Team</a>
+			<li><a href="#collaborators">Collaborators</a>
+
+		</ul></div>
+
+	</div>-->
+
+   <h3><span id="teamandcollab"></span></h3>
    <div style="width:70%;" class="column" >
-      <div class="header-content-design" style="padding-bottom:30px;">
+      <div class="header-content-design" >
          Team and Collaborators
       </div>
       <div class="medium-header-design" id="team">
@@ -390,7 +408,7 @@
 </script>
 <script type="text/javascript">
    window.onload=function(){
-   		document.getElementById("inclusion").click();
+   		document.getElementById("teamSection").click();
    };
 </script>
 {% endblock container %}

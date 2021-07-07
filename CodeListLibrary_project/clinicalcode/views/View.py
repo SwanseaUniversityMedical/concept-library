@@ -21,6 +21,8 @@ from ..permissions import (
 )
 
 import datetime    
+from django.db.models import Q
+
 from django.http.response import Http404 
 from clinicalcode import db_utils
 logger = logging.getLogger(__name__)
@@ -108,14 +110,16 @@ def about_pages(request, pg_name=None):
                     {}
                 )
 
-def HDRUK_portal_redirect(request):
+def HDRUK_portal_redirect(request, unique_url):
     '''
         HDR-UK portal redirect to CL
     ''' 
     
-    unique_url = request.GET.get('url', None)
     if unique_url is not None:
-        phenotype = list(Phenotype.objects.filter(source_reference__iendswith=("/"+unique_url+".md")).values_list('id', flat=True))
+        phenotype = list(Phenotype.objects.filter(Q(source_reference__iendswith=("/"+unique_url+".md"))
+                                                  |
+                                                  Q(source_reference__iendswith=("/"+unique_url))
+                                                  ).values_list('id', flat=True))
         if phenotype:
             versions = Phenotype.objects.get(pk=phenotype[0]).history.all().order_by('-history_id')
             for v in versions:               

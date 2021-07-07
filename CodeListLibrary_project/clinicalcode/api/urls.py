@@ -219,6 +219,15 @@ urlpatterns = [
         , DataSource.get_data_source
         , name='data_source_by_id'),    
     
+    # public 
+    url(r'^public/data-sources/$'
+        , DataSource.get_data_source, {'show_published_data_only': True}
+        , name='data_sources_public'),
+    url(r'^public/data-sources/(?P<pk>[0-9]+)/$'
+        , DataSource.get_data_source, {'show_published_data_only': True}
+        , name='data_source_by_id_public'), 
+        
+        
     # only get live phenotypes 
     url(r'^data-sources/live/$'
         , DataSource.get_data_source, {'get_live_phenotypes': True}
@@ -227,6 +236,13 @@ urlpatterns = [
         , DataSource.get_data_source, {'get_live_phenotypes': True}
         , name='data_source_live_by_id'),    
     
+    # only get live published phenotypes 
+    url(r'^public/data-sources/live/$'
+        , DataSource.get_data_source, {'get_live_phenotypes': True, 'show_published_data_only': True}
+        , name='data_sources_live_public'),
+    url(r'^public/data-sources/live/(?P<pk>[0-9]+)/$'
+        , DataSource.get_data_source, {'get_live_phenotypes': True, 'show_published_data_only': True}
+        , name='data_source_live_by_id_public'),    
 ]
 
 

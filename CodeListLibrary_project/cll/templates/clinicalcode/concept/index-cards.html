@@ -34,7 +34,7 @@
 						
 						{% if concept.is_deleted is not True and concept.can_edit %}
 							<span>&nbsp;&nbsp;</span>
-							<a  class="btn btn-outline-primary btn-secondary" href="{% url 'concept_update' concept.id %}" title="Edit concept">
+							<a  class="btn btn-outline-primary btn-cl btn-cl-secondary" href="{% url 'concept_update' concept.id %}" title="Edit concept">
 								Edit
 							</a> 
 						{% endif %}
@@ -51,7 +51,7 @@
 				<div class="row form-group">
 					<div class="col-sm-2">
 						<!-- CodingSystems -->
-				   		<span class="tag label label-primary">{{ concept.coding_system_name }}</span>
+				   		<span class="badge">{{ concept.coding_system_name }}</span>
 					</div>
 					<div class="col-sm-2">
 						{% if user.is_authenticated %}

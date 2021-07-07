@@ -39,7 +39,7 @@
 						<div class="col-sm-12 text-right">
 							
 						   <div class="dropdown btn-group" > 
-							  <button {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="export-btn">
+							  <button {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="export-btn">
 							    Export
 							    <span class="caret"></span>
 							  </button>
@@ -47,7 +47,7 @@
 							  <li>
 							    <a {% if user_can_export %} href="{% url 'history_concept_codes_to_csv' pk=concept.id concept_history_id=concept.history_id %}" {% endif %} 
 							       class="dropdown-item" >
-									<i class="fa fa-file-excel-o" aria-hidden="true"></i> CSV
+									CSV
 								</a>
 							   </li>
 							   <li>
@@ -57,7 +57,7 @@
 									<a {% if user_can_export %} href="{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=json" target=_blank {% endif %}							    
 							   {% endif %}
 								       class="dropdown-item" >
-										<i class="fa fa-file-text" aria-hidden="true"></i> JSON
+										JSON
 									</a>
 							   </li>
 							   <li>
@@ -67,7 +67,7 @@
 									<a {% if user_can_export %} href="{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=xml" target=_blank {% endif %}							    
 							   {% endif %}							   
 							       class="dropdown-item" >
-									<i class="fa fa-file-code-o" aria-hidden="true"></i> XML
+									XML
 								</a>
 							   </li>
 							  </ul>
@@ -75,15 +75,22 @@
 							
 							
 					{% if user.is_authenticated and not CLL_READ_ONLY %}
-							<a 	{% if allowed_to_create %} class="js-load-modal btn btn-primary" href="{% url 'concept_history_fork' pk=concept.id concept_history_id=concept.history_id %}"
-								{% else %} class="btn btn-primary" disabled 
+							<span>
+								<a {% if user_can_edit %}href="{% url 'concept_update' concept.id %}"{% endif %} class="btn btn-outline-primary btn-cl btn-cl-secondary"
+									{% if not user_can_edit %} disabled {% endif %} >
+									Edit
+								</a>
+							</span>		
+												
+							<a 	{% if allowed_to_create %} class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary" href="{% url 'concept_history_fork' pk=concept.id concept_history_id=concept.history_id %}"
+								{% else %} class="btn btn-outline-primary btn-cl btn-cl-secondary" disabled 
 								{% endif %} id="fork-btn">
-								<i class="fa fa-code-fork" aria-hidden="true"></i> Fork
+								Fork
 							</a>
-							<a  {% if allowed_to_create and user_can_edit and not is_latest_version %} class="js-load-modal btn btn-danger" href="{% url 'concept_history_revert' pk=concept.id concept_history_id=concept.history_id %}"
-								{% else %} class="btn btn-danger" disabled   title="You don't have access to update or this is already the latest version !" 
+							<a  {% if allowed_to_create and user_can_edit and not is_latest_version %} class="js-load-modal btn btn-outline-danger btn-cl btn-cl-danger" href="{% url 'concept_history_revert' pk=concept.id concept_history_id=concept.history_id %}"
+								{% else %} class="btn btn-outline-danger btn-cl btn-cl-danger" disabled   title="You don't have access to update or this is already the latest version !" 
 								{% endif %} id="revert-btn" >
-								<i class="fa fa-undo" aria-hidden="true"></i> Revert
+								Revert
 							</a>
 							{% if enable_publish %}
 								{% if is_published %}
@@ -95,9 +102,9 @@
 								{% else %}
 									<a 
 								    {% if not live_ver_is_deleted and not is_published %}
-								    	class="js-load-modal btn btn-primary" href="{% url 'concept_publish' pk=concept.id concept_history_id=concept.history_id %}" 
+								    	class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary" href="{% url 'concept_publish' pk=concept.id concept_history_id=concept.history_id %}" 
 									{% else %}
-										class="btn btn-primary" disabled 
+										class="btn btn-outline-primary btn-cl btn-cl-secondary" disabled 
 										{% if is_published %}
 									    	title="This version is already published" 
 										{% elif live_ver_is_deleted %}
@@ -105,25 +112,26 @@
 										{% endif %} 
 									{% endif %} 
 									 id="publish2" >
-									<i class="fa fa-paper-plane" aria-hidden="true"></i> Publish 
+									Publish 
 								   </a>
 								{% endif %}
 								
 						{% endif %}
 						
-							<span>
-								<a {% if user_can_edit %}href="{% url 'concept_update' concept.id %}"{% endif %} class="btn btn-primary"
-									{% if not user_can_edit %} disabled {% endif %} >
-									<i class="fa fa-edit" aria-hidden="true"></i> Edit
+
+							
+							{% if live_ver_is_deleted is True %}
+								<a class="js-load-modal btn btn-outline-danger btn-cl btn-cl-danger" href="{% url 'concept_restore' concept.id %}" title="Restore concept">
+									Restore
 								</a>
-							</span>		
+							{% endif %}
 							
 					 {% endif %}
 					 					 	
 <!-- 						</div>	 -->
 <!-- 						<div class="col-md-2 text-right"> -->
-							<a id="printBtn" class="btn btn-primary">
-								<i class="fa fa-print" aria-hidden="true"></i> Print
+							<a id="printBtn" class="btn btn-outline-primary btn-cl btn-cl-secondary">
+								Print
 							</a>
 							<a href="#" role="button" class="btn popovers" id="help-hist-concept" data-toggle="popover" data-trigger="hover" data-container="body" title="" data-original-title="" data-placement="left">
 								<i class="fa fa-question-circle" aria-hidden="true"></i>
@@ -192,18 +200,18 @@
 							{% endif %}				
 						</span>
 						
-						{% if concept.modified_by_username %}							
-							<span>
-								&nbsp;&nbsp;&nbsp;&nbsp;(Modified on: {{ concept.modified }})
-							</span>
-						{% endif %}	
+<!-- 						{% if concept.modified_by_username %}							 -->
+<!-- 							<span> -->
+<!-- 								&nbsp;&nbsp;&nbsp;&nbsp;(Modified on: {{ concept.modified }}) -->
+<!-- 							</span> -->
+<!-- 						{% endif %}	 -->
 					</div>				
 				</div>				
 								
 				<div class="row" style="margin-top: 10px;">
 					<div class="col-sm-2">Coding system</div>
 					<div class="col-sm-10">
-						<span class="tag label label-primary">
+						<span class="badge">
 							{{ concept.coding_system_name }}
 						</span>		
 					</div>	

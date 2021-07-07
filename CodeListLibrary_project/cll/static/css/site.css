@@ -137,9 +137,3 @@ form.example::after {
 	border-bottom: none;
 }
 
-.btn-secondary{
-	background: #FFFFFF;
-	border: 1px solid #475DA7;
-	box-sizing: border-box;
-	border-radius: 4px;
-}

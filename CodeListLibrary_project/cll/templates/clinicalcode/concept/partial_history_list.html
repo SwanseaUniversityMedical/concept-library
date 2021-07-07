@@ -28,7 +28,11 @@
 	{% for history in history %}
 		<tr>
 			<td>{{ history.history_id }}</td>
-			<td>{{ history.name }}</td>
+			<td>
+				<a class="" href="{% url 'concept_history_detail' pk=history.id concept_history_id=history.history_id %}">
+				{{ history.name }}
+				</a>
+			</td>
 			<td title="{{ history.description }}">{{ history.description|truncatechars:50 }}</td>
 			{% if user.is_authenticated %}
 				<td>{{ history.history_date}}</td>
@@ -55,11 +59,11 @@
 				{% if current_concept_history_id == history.history_id %}
 					<span class="help-block-no-break" style="font-size: 10px;">currently shown</span>
 				{% endif %}
-				<a class="" href="{% url 'concept_history_detail' pk=history.id concept_history_id=history.history_id %}">			
-					<button type="button" class="btn btn-info btn-xs" data-container="body" data-toggle="" data-html="true" data-placement="left" id="code-preview-{{ component.pk }}" data-trigger="hover">
-						<i class="glyphicon glyphicon-search"> </i>
-					</button>			
-				</a>
+<!-- 				<a class="" href="{% url 'concept_history_detail' pk=history.id concept_history_id=history.history_id %}">			 -->
+<!-- 					<button type="button" class="btn btn-info btn-xs" data-container="body" data-toggle="" data-html="true" data-placement="left" data-trigger="hover"> -->
+<!-- 						<i class="glyphicon glyphicon-search"> </i> -->
+<!-- 					</button>			 -->
+<!-- 				</a> -->
 			</td>
 		</tr>
 	{% empty %}

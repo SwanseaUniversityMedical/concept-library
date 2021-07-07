@@ -107,7 +107,7 @@
 							<i class="glyphicon glyphicon-repeat"></i> Reset							
 						</a>
 						
-						<button class="btn btn-info" name="page" value="1">
+						<button class="btn btn-primary" name="page" value="1">
 							<i class="fa fa-search"></i> Search Working Sets
 						</button>
 					</div>
@@ -117,7 +117,7 @@
 		{% if not CLL_READ_ONLY %}
 			<div>
 			<a class="btn btn-primary" {% if allowed_to_create %} href="{% url 'workingset_create' %}" {% else %} disabled {% endif %}>
-				<i class="fa fa-plus"></i> Add New Working Set
+				Add New Working Set
 			</a>
 			</div>
 		{% endif %}

@@ -6,7 +6,7 @@
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
-        <h4 class="modal-title"><i class="fa fa-paper-plane" aria-hidden="true"></i> Publish phenotype "<b>{{ name }}</b>"?</h4>
+        <h4 class="modal-title">Publish phenotype "<b>{{ name }}</b>"?</h4>
     </div>
     <div class="modal-body">  
     {% if is_published %}
@@ -105,7 +105,7 @@
         {% else %}
             <button {% if not allowed_to_publish %} disabled="true" {% endif %} id="publishButton"
                 type="submit" class="btn btn-primary">
-                <i class="fa fa-paper-plane" aria-hidden="true"></i> Publish
+                Publish
             </button>
         {% endif %}
 

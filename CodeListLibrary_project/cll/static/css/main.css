@@ -282,9 +282,26 @@ element.style {
 
 
 
+.btn-cl{
+	background: #FFFFFF;
+	box-sizing: border-box;
+	border-radius: 4px;
+}
 
+.btn-cl-secondary{
+	color: #475DA7;
+	border: 1px solid #475DA7;
+}
 
+.btn-cl-danger{
+	color: #DA1E28;
+	border: 1px solid #DA1E28;
+}
 
+.badge{
+	color: #3C3C3B;
+	background-color: rgba(208, 211, 212, 0.5);
+}
 
 
 

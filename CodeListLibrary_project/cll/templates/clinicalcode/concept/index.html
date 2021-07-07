@@ -180,7 +180,7 @@
 									<i class="glyphicon glyphicon-repeat"></i> Reset							
 								</a>
 								
-								<button class="btn btn-info" name="page" value="1">
+								<button class="btn btn-primary" name="page" value="1">
 									<i class="fa fa-search"></i> Search Concepts
 								</button>
 							</div>
@@ -205,13 +205,13 @@
 		<div>
 			{% if not CLL_READ_ONLY %}
 				<a class="btn btn-primary" {% if allowed_to_create %} href="{% url 'concept_create' %}" {% else %} disabled {% endif %}>
-					<i class="fa fa-plus"></i> Add new concept
+					Add new concept
 				</a>
 				<span style="width: 10px;">&nbsp;</span>
 			{% endif %}
 			
-				<a class="btn btn-info"  href="{% url 'choose_concepts_to_compare' %}" target=_blank >
-					<i class="fa fa-columns"></i> Compare concepts
+				<a class="btn btn-outline-primary btn-cl btn-cl-secondary"  href="{% url 'choose_concepts_to_compare' %}" target=_blank >
+					Compare concepts
 				</a>
 			     			
 		</div>
