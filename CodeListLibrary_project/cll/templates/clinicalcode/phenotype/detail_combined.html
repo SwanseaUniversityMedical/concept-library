@@ -3,7 +3,9 @@
 {% load staticfiles %}
 {% load markdownify %}
 
-{% block title %}| Historical phenotype{% endblock title %}
+{% block title %}| phenotype: {{ phenotype.name }}{% endblock title %}
+{% block description %}{{ phenotype.phenotype_uuid }} {{ phenotype.name }}{% endblock description %}
+{% block keywords %}, {{ phenotype.phenotype_uuid }}, {{ phenotype.name }}{% endblock keywords %}
 
 
 {% block crumbs %}

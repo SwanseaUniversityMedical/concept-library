@@ -3,7 +3,10 @@
 {% load staticfiles %}
 {% load markdownify %}
 
-{% block title %}| Historical concept{% endblock title %}
+{% block title %}| concept: {{ concept.name }}{% endblock title %}
+{% block description %}{{ concept.name }}{% endblock description %}
+{% block keywords %}, {{ concept.name }}{% endblock keywords %}
+
 
 
 {% block crumbs %}
