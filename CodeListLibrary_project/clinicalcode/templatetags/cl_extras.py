@@ -13,8 +13,6 @@ def cut(value, arg):
 @register.filter
 def islist(value):
     """Check if value is of type list"""
-    print(value)
-    print(type(value) == list)
     return type(value) == list
 
 
