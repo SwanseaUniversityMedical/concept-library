@@ -4,6 +4,8 @@
 	{% load mathfilters %}
 	{% load i18n %}
 	
+	{% load cl_extras %}
+	
 	<head>
 		<style>
 		h3{ position:relative; }
@@ -142,15 +144,34 @@
 	                        <ul class="dropdown-menu">                                                   
                                 {% if request.BRAND_OBJECT.about_menu is not none %}					
 									{% for lnk in request.BRAND_OBJECT.about_menu %}
-										{% for header, view_pg_name in lnk.iteritems %}
-										    <li>
-												<a href="{% url 'about_page' pg_name=view_pg_name %}" >{{ header }}</a>
-											</li>
-										{% endfor %}
+									
+											{% for header, view_pg_name in lnk.iteritems %}
+												{% if view_pg_name|islist  %}
+													<li role="separator" class="divider"></li>
+													<li class="dropdown-submenu">
+														<a tabindex="-1" href="#">{{ header }}</a>
+														<ul class="dropdown-menu">
+															{% for lnk2 in view_pg_name %}
+																{% for header2, view_pg_name2 in lnk2.iteritems %}
+																	  <li>
+																		<a href="{% url 'about_page' pg_name=view_pg_name2 %}" >{{ header2 }}</a>
+																	</li>
+																 {% endfor %}
+															 {% endfor %}
+														</ul>
+												     </li>
+												{% else %} 
+												    <li>
+														<a href="{% url 'about_page' pg_name=view_pg_name %}" >{{ header }}</a>
+													</li>
+												{% endif %}	
+											{% endfor %}
+																					
 									{% endfor %}
 								{% else %}		
     									<li><a href="{% url 'about_page' pg_name='cl_about_page' %}" >Concept Library</a></li>
-								{% endif %}						                                                                                                                                    
+								{% endif %}		
+        				                                                                                                                                    
 	                        </ul>
                     	</li>
                     	

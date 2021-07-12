@@ -83,26 +83,32 @@ def about_pages(request, pg_name=None):
     '''   
 
     # main CL about page
-    if pg_name.lower() == "cl_about_page":
+    if pg_name.lower() == "cl_about_page".lower():
         return render(request, 'clinicalcode/cl-about.html', {})
     
     
     
     # HDR-UK about pages                    
-    if pg_name.lower() == "hdruk_about_the_project":
+    if pg_name.lower() == "hdruk_about_the_project".lower():
         return render(request, 'clinicalcode/HDRUK/about/about-the-project.html', {})
     
-    elif pg_name.lower() == "hdruk_about_team":
+    elif pg_name.lower() == "hdruk_about_team".lower():
         return render(request, 'clinicalcode/HDRUK/about/team.html', {})
     
-    elif pg_name.lower() == "hdruk_about_technical_details":
+    elif pg_name.lower() == "hdruk_about_technical_details".lower():
         return render(request, 'clinicalcode/HDRUK/about/technical-details.html', {})
     
-    elif pg_name.lower() == "hdruk_about_covid_19_response":
+    elif pg_name.lower() == "hdruk_about_covid_19_response".lower():
         return render(request, 'clinicalcode/HDRUK/about/covid-19-response.html', {})
     
-    elif pg_name.lower() == "hdruk_about_publications":
+    elif pg_name.lower() == "hdruk_about_publications".lower():
         return render(request, 'clinicalcode/HDRUK/about/publications.html', {})
+    
+    elif pg_name.lower() == "breathe".lower():
+        return render(request, 'clinicalcode/HDRUK/collections/breathe.html', {})
+
+    elif pg_name.lower() == "bhf_data_science_centre".lower():
+        return render(request, 'clinicalcode/HDRUK/collections/bhf-data-science-centre.html', {})
     
     else:
         return render(request,
