@@ -627,7 +627,11 @@ def api_concept_create(request):
             created_concept.changeReason = "Created from API"
             created_concept.save()   
               
-
+            # publish immediately - for HDR-UK testing
+            if request.data.get('publish_immediately') == True:
+                publish_entity(request, Concept, created_concept.pk)  
+            
+            
             data = {'message': 'Concept created successfully',
                     'id': created_concept.pk
                     }
@@ -896,6 +900,11 @@ def api_concept_update(request):
             saveDependentConceptsChangeReason(update_concept.pk , "Component concept #" + str(update_concept.pk) + " was updated")
         
 
+            # publish immediately - for HDR-UK testing
+            if request.data.get('publish_immediately') == True:
+                publish_entity(request, Concept, update_concept.pk)  
+            
+            
             data = {'message': 'Concept updated successfully',
                     'id': update_concept.pk
                     }
