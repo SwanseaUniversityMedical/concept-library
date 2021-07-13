@@ -61,13 +61,18 @@
             <p>BREATHE has brought together a set of phenotypes (found below) covering a number of key respiratory conditions.
                This is not an exhaustive list of codes or mandatory, but a guide to aid researchers in starting to make code lists appropriate for their study. We will continue to update existing lists and add more over time, so do keep checking back!
             </p>
-            <div style="padding-left:30px;">
-               <ul>
-                  <li style="  list-style-type: circle;"><a href="{% url 'phenotype_list' %}">Asthma</a></li>
-                  <li style="  list-style-type: circle;"><a href="{% url 'phenotype_list' %}">Bronchiectasis</a></li>
-                  <li style="  list-style-type: circle;"><a href="{% url 'phenotype_list' %}">COPD</a></li>
-                  <li style="  list-style-type: circle;"><a href="{% url 'phenotype_list' %}">Cystic Fibrosis</a></li>
-               </ul>
+            <div style="display: flex; flex-wrap:nowrap; ">
+               <form class= "row" style="padding-left:12px;" id="basic-form" action="{% url 'phenotype_list' %}" method="POST" >
+                  {% csrf_token %}
+                  <div class="search_box">
+                     <div class="search_field" style="padding-left:10px; display: flex; flex-wrap: nowrap;">
+                        <input type="text" class="input" placeholder="Search our Phenotype library" name="search" id="search1" value="{{ search|default_if_none:'' }}">
+                     </div>
+                  </div>
+                  <div style="padding-left:10px; display: flex; flex-wrap: nowrap;">
+                     <button class="btn" name="page" value="1" style="height:50px;width:50px"><i class="fa fa-search"></i></button>
+                  </div>
+               </form>
             </div>
          </div>
       </div>

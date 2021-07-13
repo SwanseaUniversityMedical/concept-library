@@ -36,20 +36,19 @@
          <div id="pheno" class="medium-header-design" >
             Phenotypes in collection
          </div>
-         <table>
-            <thead>
-               <tr>
-                  <th>Phenotype</th>
-                  <th>Data Sources</th>
-               </tr>
-            </thead>
-            <tbody>
-               <tr>
-                  <td><a href="{% url 'phenotype_list' %}">COVID-19 infection </a></td>
-                  <td>GPES Data for Pandemic Planning and Research (COVID-19), Hospital Episode Statistics Admitted Patient Care, Civil Registration - Deaths, Covid-19 Second Generation Surveillance System</td>
-               </tr>
-            </tbody>
-         </table>
+         <div style="display: flex; flex-wrap:nowrap; ">
+            <form class= "row" style="padding-left:12px;" id="basic-form" action="{% url 'phenotype_list' %}" method="POST" >
+               {% csrf_token %}
+               <div class="search_box">
+                  <div class="search_field" style="padding-left:10px; display: flex; flex-wrap: nowrap;">
+                     <input type="text" class="input" placeholder="Search our Phenotype library" name="search" id="search1" value="{{ search|default_if_none:'' }}">
+                  </div>
+               </div>
+               <div style="padding-left:10px; display: flex; flex-wrap: nowrap;">
+                  <button class="btn" name="page" value="1" style="height:50px;width:50px"><i class="fa fa-search"></i></button>
+               </div>
+            </form>
+         </div>
       </div>
    </div>
 </div>
