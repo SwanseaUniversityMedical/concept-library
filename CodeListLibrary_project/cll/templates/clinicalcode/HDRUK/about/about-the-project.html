@@ -3,8 +3,6 @@
 {% block title %}{% endblock title %}
 {% block head %}
 <link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
-<script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
-<!--    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script> -->
 {% endblock head %}
 {% block container %}
 <div class="row">
@@ -124,6 +122,8 @@
       <div class="sm-header-design">Short term - we are currently working on expanding the Phenotype Library to include a number of new collections (HDR UK Hubs for critical care (PIONEER) and cancer (DATA-CAN), ClinicalCodes.org and UK Biobank). Longer term - we are taking the first steps towards establishing computational biomedical knowledge objects (e.g. guidelines with embedded phenotypes endorsed by NICE) which will enable the creation of actionable health analytics in the NHS.</div>
    </div>
 </div>
+{% endblock container %}
+{% block scripts  %}
 <script type="text/javascript">
    function showSelection(e) {
    		if (document.querySelector('#navList a.active') !== null) {
@@ -137,7 +137,5 @@
    		document.getElementById("abouthdr").click();
    };
 </script>
-{% endblock container %}
-{% block scripts  %}
 {% endblock scripts %}
 

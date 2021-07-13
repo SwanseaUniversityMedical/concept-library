@@ -1,21 +1,70 @@
 {% extends "base.html" %}
 {% load staticfiles %}
-
 {% block title %}{% endblock title %}
-
 {% block head %}
-	<link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
+<link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
 {% endblock head %}
-
 {% block container %}
-
-<br>
-<br>
-<br>
-
-<div>
-	<h2>BHF data science centre   ..</h2>
+<div class="row">
+   <div class="rubric-box col-sm-2 hideleft-navbar" >
+      <div class="leftnavbar-position">
+         <ul class="left-navbar text-rubric-design pointer" onclick="showSelection(event)" id='navList'>
+            <li> <a href="#bhf" id="bhf-data-science"> BHF Data Science Centre
+               </a>
+            </li>
+            <li><a href="#pheno">
+               Phenotypes
+               </a>
+            </li>
+         </ul>
+      </div>
+   </div>
+   <h3><span id="bhf"></span></h3>
+   <div style="width:70%;" class="column" >
+      <div class="header-content-design" style="padding-bottom:30px;">
+         BHF Data Science Centre
+      </div>
+      <div class="post-content">
+         <div class="medium-header-design" >
+            What is the BHF Data Science Centre?
+         </div>
+         <div class="sm-header-design">
+            <p>The BHF Data Science Centre is a partnership between Health Data Research UK (HDR UK) and the British Heart Foundation (BHF), and sits within HDR UK.</p>
+            <p>We work with a wide range of partners including patients, public, clinicians, researchers and NHS organisations to help them carry out research using health data into the causes, prevention and treatment of all diseases of the heart and circulation (such heart attacks, stroke and vascular dementia). We do this to ensure new advances in treatment and care for diseases of the heart and circulation get to the patient as quickly as possible.</p>
+            <p>Visit the <a href="https://www.hdruk.ac.uk/helping-with-health-data/bhf-data-science-centre/" target=_blank   rel="noopener noreferrer">website</a> for more information.</p>
+         </div>
+         <div id="pheno" class="medium-header-design" >
+            Phenotypes in collection
+         </div>
+         <table>
+            <thead>
+               <tr>
+                  <th>Phenotype</th>
+                  <th>Data Sources</th>
+               </tr>
+            </thead>
+            <tbody>
+               <tr>
+                  <td><a href="{% url 'phenotype_list' %}">COVID-19 infection </a></td>
+                  <td>GPES Data for Pandemic Planning and Research (COVID-19), Hospital Episode Statistics Admitted Patient Care, Civil Registration - Deaths, Covid-19 Second Generation Surveillance System</td>
+               </tr>
+            </tbody>
+         </table>
+      </div>
+   </div>
 </div>
-
+<script type="text/javascript">
+   function showSelection(e) {
+   		if (document.querySelector('#navList a.active') !== null) {
+     		document.querySelector('#navList a.active').classList.remove('active');
+   		}
+   e.target.className = "active";
+   }
+</script>
+<script type="text/javascript">
+   window.onload=function(){
+   		document.getElementById("bhf-data-science").click();
+   };
+</script>
 {% endblock container %}
 

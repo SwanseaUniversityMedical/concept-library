@@ -3,8 +3,6 @@
 {% block title %}{% endblock title %}
 {% block head %}
 <link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
-<script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
-<!--    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script> -->
 {% endblock head %}
 {% block container %}
 <div class="row">
@@ -246,6 +244,8 @@ J47,Bronchiectasis
       <p>If you have a phenotyping algorithm that meets the eligibility requirements, we invite you to submit your data by one of the following ways:</p>
    </div>
 </div>
+{% endblock container %}
+{% block scripts  %}
 <script type="text/javascript">
    function showSelection(e) {
    		if (document.querySelector('#navList a.active') !== null) {
@@ -259,7 +259,5 @@ J47,Bronchiectasis
    		document.getElementById("technicalHeader").click();
    };
 </script>
-{% endblock container %}
-{% block scripts  %}
 {% endblock scripts %}
 
