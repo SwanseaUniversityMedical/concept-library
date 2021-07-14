@@ -5,13 +5,11 @@
 <link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
 {% endblock head %}
 {% block container %}
-<link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
-<script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
 <div class="row">
    <div class="rubric-box col-sm-2 hideleft-navbar" >
       <div class="leftnavbar-position">
          <ul class="left-navbar text-rubric-design pointer" onclick="showSelection(event)" id='navList'>
-            <li> <a href="#collections" id="breatheHeader">Breathe
+            <li> <a href="#collections" id="breatheHeader">BREATHE
                </a>
             </li>
             <li> <a href="#help">Help
@@ -27,7 +25,7 @@
    <h3><span id="collections"></span></h3>
    <div style="width:70%;" class="column" >
       <div class="header-content-design" style="padding-bottom:30px;">
-         Breathe
+         BREATHE
       </div>
       <div class="post-content">
          <p>BREATHE – the Health Data Research Hub for Respiratory Health, has collated a set of respiratory phenotypes for use in research.</p>
@@ -78,6 +76,8 @@
       </div>
    </div>
 </div>
+{% endblock container %}
+{% block scripts  %}
 <script type="text/javascript">
    function showSelection(e) {
    		if (document.querySelector('#navList a.active') !== null) {
@@ -91,5 +91,6 @@
    		document.getElementById("breatheHeader").click();
    };
 </script>
-{% endblock container %}
+{% endblock scripts %}
+
 
