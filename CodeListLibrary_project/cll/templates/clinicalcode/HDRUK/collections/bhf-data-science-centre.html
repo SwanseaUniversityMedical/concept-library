@@ -52,6 +52,8 @@
       </div>
    </div>
 </div>
+{% endblock container %}
+{% block scripts  %}
 <script type="text/javascript">
    function showSelection(e) {
    		if (document.querySelector('#navList a.active') !== null) {
@@ -65,5 +67,5 @@
    		document.getElementById("bhf-data-science").click();
    };
 </script>
-{% endblock container %}
+{% endblock scripts %}
 
