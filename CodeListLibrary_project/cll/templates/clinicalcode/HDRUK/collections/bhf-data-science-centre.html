@@ -36,19 +36,30 @@
          <div id="pheno" class="medium-header-design" >
             Phenotypes in collection
          </div>
-         <div style="display: flex; flex-wrap:nowrap; ">
-            <form class= "row" style="padding-left:12px;" id="basic-form" action="{% url 'phenotype_list' %}" method="POST" >
-               {% csrf_token %}
-               <div class="search_box">
-                  <div class="search_field" style="padding-left:10px; display: flex; flex-wrap: nowrap;">
-                     <input type="text" class="input" placeholder="Search our Phenotype library" name="search" id="search1" value="{{ search|default_if_none:'' }}">
+       <div style="display: flex; flex-wrap:nowrap; ">
+               <form class= "row" style="padding-left:12px;" id="basic-form" action="{% url 'phenotype_list' %}" method="POST" >
+                  {% csrf_token %}
+                  <div style="height:0;width:0;overflow:hidden;">
+                     <input class="form-control" type="hidden" name="tagids" id="txtTags" data-role="tagsinput" value="20">
                   </div>
-               </div>
-               <div style="padding-left:10px; display: flex; flex-wrap: nowrap;">
-                  <button class="btn" name="page" value="1" style="height:50px;width:50px"><i class="fa fa-search"></i></button>
-               </div>
-            </form>
-         </div>
+                  <input type="text" class="input" placeholder="Phenotype name" name="search" id="search1">
+                  <div style=" padding-left:10px; display: flex; flex-wrap: nowrap;">
+                     <button  class="btn btn-primary" name="page" value="1" ><i class="fa fa-search"></i> Search </button>
+                     </button>
+                  </div>
+               </form>
+               <form class= "row" style="padding-left:12px;" action="{% url 'phenotype_list' %}" method="POST" >
+                  {% csrf_token %}
+                  <div style="height:0;width:0;overflow:hidden;">
+                     <input class="form-control" type="hidden" name="tagids" data-role="tagsinput" value="20">
+                  </div>
+                  <div style=" padding-left:30px; display: flex; flex-wrap: nowrap;">
+                     <button class="btn btn-primary" name="page" value="1">
+                     Browse BHF Phenotypes
+                     </button>
+                  </div>
+               </form>
+            </div>
       </div>
    </div>
 </div>
