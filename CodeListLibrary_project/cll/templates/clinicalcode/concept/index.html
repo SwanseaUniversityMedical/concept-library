@@ -2,8 +2,11 @@
 
 {% load staticfiles %}
 
-{% block title %}| Search Concepts{% endblock title %}
+{% load cl_extras %}
 
+{% block title %}| Search Concepts{% endblock title %}
+{% block description %}Search Concepts{% endblock description %}
+{% block keywords %}Search Concepts{% endblock keywords %}	
 
 {% block container_fluid %}
 
@@ -16,8 +19,9 @@
 				<div  class="row form-group">
 					<div>
 						<h2>Concepts</h2>
-						<input type="text" placeholder="Search Concepts" name="search" id="search1" value="{{ search|default_if_none:'' }}">				
-						<button classX="btn btn-info" name="page" value="1">
+						<input  type="text" placeholder="Search Concepts" name="search" id="search1" value="{{ search|default_if_none:'' }}">
+						<input type="hidden" name="tagids" id="tagids"  value="{{ tag_ids|default_if_none:'' }}">				
+						<button classXX="btn btn-info" name="page" value="1">
 							<i class="fa fa-search"></i>
 						</button>
 					</div>
@@ -201,7 +205,6 @@
 {% block container %}
 		
 	{% if user.is_authenticated %}		
-		<br/>
 		<div>
 			{% if not CLL_READ_ONLY %}
 				<a class="btn btn-primary" {% if allowed_to_create %} href="{% url 'concept_create' %}" {% else %} disabled {% endif %}>
@@ -282,23 +285,74 @@
 		
 		{% if search_form == 'advanced-form' %}
 			$("#basic-search").hide();
+			$("#FilterMenu").hide();
+			$("#result-div").removeClass( "col-sm-10" ).addClass( "col-sm-12" );
 		{% else %}
 			$("#advanced-search").hide();
+			$("#FilterMenu").show();
+			$("#result-div").removeClass( "col-sm-12" ).addClass( "col-sm-10" );
 		{% endif %}
 			
 		$(document).ready(function() {
 			$("#show-advanced-search").click(function(){
 				  $("#advanced-search").toggle();
 				  $("#basic-search").toggle();
+				  $("#FilterMenu").toggle();
+				  $("#result-div").toggleClass("col-sm-10 col-sm-12");
 			});
 			
 			$("#show-basic-search").click(function(){
 				  $("#advanced-search").toggle();
 				  $("#basic-search").toggle();
+				  $("#FilterMenu").toggle();
+				  $("#result-div").toggleClass("col-sm-10 col-sm-12");
 			});
 		});		
 		
 	</script>
+	
+	
+	
+	<script type="text/javascript">
+// 		$("#checkAll").click(function () {
+// 		    $(".collection_tag").prop('checked', $(this).prop('checked'));
+// 		});
+	
+		$(".collection_tag").change(function() {
+
+			if($(this).prop('id') == 'checkAll'){
+			    $(".collection_tag").prop('checked', $(this).prop('checked'));
+			}else{
+				if(!$(this).prop('checked')){
+					if($("#checkAll").prop('checked')){
+						$("#checkAll").prop('checked', false);
+					}
+				}
+			}
+			
+			//$("#basic-form input[name=search]").val('Hello World!');
+			$("#search_filter").val($("#basic-form input[name=search]").val());
+			
+			
+	         var selected_collections = []
+	         $("input:checkbox[name=collection_id]:checked").each(function(){
+	        	 //console.log($(this).val());
+	        	 selected_collections.push(parseInt($(this).val()));
+	         });
+	         
+	         $("#filter_form input[id=tagids]").val(selected_collections);
+	         $("#basic-form input[id=tagids]").val(selected_collections);
+	         //$("#tagids").val(selected_collections);
+	         
+			$(this.form).submit();
+// 		    if(this.checked) {
+// 		        //Do stuff
+// 		    	console.log($(this.form));
+// 		    }
+		});	
+		
+	</script>
+	
 	
 	{% endblock scripts %}
 

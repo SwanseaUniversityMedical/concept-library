@@ -16,5 +16,15 @@ def islist(value):
     return type(value) == list
 
 
+@register.filter
+def tolist(value, arg):
+    """Convert comma separated value to a list of type arg"""
+    
+    if arg == "int":
+        return [int(t) for t in value.split(',')]
+    else:
+        return [str(t) for t in value.split(',')]
+
+
 
 

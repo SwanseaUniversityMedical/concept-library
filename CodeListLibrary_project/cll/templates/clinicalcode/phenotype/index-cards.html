@@ -1,5 +1,66 @@
 {% load staticfiles %}
 
+<div class="row">
+	<div class="col-sm-2 hideleft-navbar" id="FilterMenu"
+	 	 style="{% if search_form == 'advanced-form' %} display:none;{% endif %} padding-top: 20px; position: sticky; position: -webkit-sticky; top: 60px;"
+	 >
+		
+		
+	<div class="panel panel-default" style="border: 0px;" >
+		<form id="filter_form" action="{% url 'phenotype_list' %}" method="POST"  >
+			{% csrf_token %}
+			<div class="panel-footer text-left"><strong>Collections</strong></div>
+			
+			<div class="filter-content">
+				<div class="panel-body" style="padding: 0;" id="filter_by_collection">
+			
+					<div style="display:none;">
+						<input type="hidden" name="search" id="search_filter" value="{{ search|default_if_none:'' }}">	
+						<input type="hidden" name="tagids" id="tagids"  value="{{ tag_ids|default_if_none:'' }}">
+									
+						<button  name="page" value="1">
+							<i class="fa fa-search"></i>
+						</button>
+					</div>
+	
+					<div class="checkbox">
+					  <label>
+					    <input type="checkbox" class="collection_tag" id="checkAll" name="collection_id" value="-1" {% if -1 in tag_ids_list  %} checked {% endif %}  > All
+					  </label>
+					</div>
+					<hr  style="padding: 0; margin: 0;">
+					<!-- collections tags -->
+					{% for tag in allTags %}
+						{% if tag.tag_type == 2 %}
+							<div class="checkbox">
+								<label>
+								<input class="form-check-input collection_tag" type="checkbox" name="collection_id" value="{{ tag.id }}" 
+								 {% if tag.id in tag_ids_list  %} checked {% endif %}  
+								>  
+								<span class="form-check-label">
+									{{ tag.description }}
+								<!--  <span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>	 -->
+								</span>
+								</label>
+							</div> 
+						{% endif %}												
+					{% endfor %}	
+						
+				</div> <!-- card-body.// -->
+			</div>
+				
+	<!-- 			  <div class="panel-footer">....</div> -->			
+		</form>
+	</div> <!-- card.// -->
+		
+	
+
+	</div>
+			
+	<div class="col-sm-10" id="result-div">
+		
+<!-- ******************** -->
+
 <div class="page-control-container">
 	{% include 'pagination.html' with form_target=search_form %}	
 	
@@ -7,7 +68,7 @@
 
 {% block content %}
 	{% for phenotype in page_obj.object_list %}  
-			<div class="card {% if phenotype.is_deleted is True %} card-deleted {% endif %} {% cycle ' dark-div ' '' %}   ">
+			<div class="cl-card {% if phenotype.is_deleted is True %} cl-card-deleted {% endif %} {% cycle ' dark-div ' '' %}   ">
 				<div class="row form-group">
 					<div class="col-sm-8">
 						{% if user.is_authenticated and phenotype.is_published != 1 %}
@@ -20,16 +81,6 @@
 				
 					</div>
 					<div class="col-sm-4 text-right">
-						<!-- tags -->
-						{% for tag in allTags %}
-							{% for tag_id in phenotype.tags %}
-								{% if tag.id == tag_id %}
-							   		<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
-							   	{% endif %}
-							{% endfor %}						
-						{% endfor %}			
-					
-						<span>&nbsp;&nbsp;</span>
 						<!-- brands -->
 						{% for item in request.BRAND_GROUPS %}
 							{% for brand, groups in item.iteritems %}
@@ -51,9 +102,6 @@
 				</div>				
 				
 				<div class="row form-group">
-					<div class="col-sm-2">
-						<i><strong>{{ phenotype.type }}</i></strong>
-					</div>	
 					<div class="col-sm-4">
 						<!-- CodingSystems -->
 						{% for cs in all_CodingSystems %}
@@ -64,6 +112,9 @@
 							{% endfor %}						
 						{% endfor %}	
 					</div>
+					<div class="col-sm-2">
+						<i><strong>{{ phenotype.type }}</i></strong>
+					</div>	
 					<div class="col-sm-4">
 						{% if user.is_authenticated %}
 							<i>{{ phenotype.modified|date:"Y-m-d" }}</i>
@@ -76,7 +127,23 @@
 							<span title="{{ phenotype.published }} on {{ phenotype.publish_date|date:"Y-m-d" }}" style="text-align: right;" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
 						{% endif %}	
 					</div>	
-				</div>				
+				</div>
+				
+			{% if phenotype.tags %}
+				<div class="row form-group">
+					<div class="col-sm-12">
+						<!-- tags -->
+						{% for tag in allTags %}
+							{% for tag_id in phenotype.tags %}
+								{% if tag.id == tag_id %}
+							   		<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
+							   	{% endif %}
+							{% endfor %}						
+						{% endfor %}			
+										
+					</div>	
+				</div>						
+			{% endif %}								
 					
 				
 	</div>				  
@@ -94,5 +161,11 @@
 
 <div class="page-control-container">
 	{% include 'pagination.html' with form_target=search_form %}	
+</div>
+
+
+<!-- ******************** -->
+
+	</div>
 </div>
 
