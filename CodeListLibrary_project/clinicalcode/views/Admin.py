@@ -34,7 +34,7 @@ import os
 
 
 
-@login_required    
+    
 def run_statistics(request):
     if not request.user.is_superuser:
         raise PermissionDenied
