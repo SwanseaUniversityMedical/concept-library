@@ -36,8 +36,8 @@ import os
 
     
 def run_statistics(request):
-    if not request.user.is_superuser:
-        raise PermissionDenied
+#     if not request.user.is_superuser:
+#         raise PermissionDenied
         
     if settings.CLL_READ_ONLY:
         raise PermissionDenied
