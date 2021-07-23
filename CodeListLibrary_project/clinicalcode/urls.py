@@ -71,7 +71,7 @@ urlpatterns += [
         Phenotype.PhenotypeDetail_combined,
         name='phenotype_history_detail'),
     
-    url(r'^phenotypes/(?P<pk>\d+)/history/(?P<phenotype_history_id>\d+)/export/concepts/$',
+    url(r'^phenotypes/(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/export/concepts/$',
         Phenotype.history_phenotype_codes_to_csv,
         name='history_phenotype_codes_to_csv'),
     
@@ -94,7 +94,7 @@ if not settings.CLL_READ_ONLY:
             Phenotype.PhenotypeDelete.as_view(),
             name='phenotype_delete'),
 
-        # url(r'^phenotypes/(?P<pk>\d+)/history/(?P<phenotype_history_id>\d+)/revert/$',
+        # url(r'^phenotypes/(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/revert/$',
         #     Phenotype.phenotype_history_revert,
         #     name='phenotype_history_revert'),
         #
@@ -111,7 +111,7 @@ urlpatterns += [
         WorkingSet.WorkingSetDetail.as_view(),
         name='workingset_detail'),
 
-    url(r'^workingsets/(?P<pk>\d+)/history/(?P<workingset_history_id>\d+)/detail/$',
+    url(r'^workingsets/(?P<pk>\d+)/version/(?P<workingset_history_id>\d+)/detail/$',
         WorkingSet.workingset_history_detail,
         name='workingset_history_detail'),
 
@@ -138,7 +138,7 @@ if not settings.CLL_READ_ONLY:
             WorkingSet.WorkingSetDelete.as_view(),
             name='workingset_delete'),
     
-        url(r'^workingsets/(?P<pk>\d+)/history/(?P<workingset_history_id>\d+)/revert/$',
+        url(r'^workingsets/(?P<pk>\d+)/version/(?P<workingset_history_id>\d+)/revert/$',
             WorkingSet.workingset_history_revert,
             name='workingset_history_revert'),
     
@@ -163,7 +163,7 @@ urlpatterns += [
 #         Concept.ConceptDetail.as_view(),
 #         name='concept_detail'),
  
-#     url(r'^concepts/(?P<pk>\d+)/history/(?P<concept_history_id>\d+)/detail/$',
+#     url(r'^concepts/(?P<pk>\d+)/version/(?P<concept_history_id>\d+)/detail/$',
 #         Concept.concept_history_detail,
 #         name='concept_history_detail'),
 
@@ -171,7 +171,7 @@ urlpatterns += [
         Concept.concept_codes_to_csv,
         name='concept_codes_to_csv'),
     
-    url(r'^concepts/(?P<pk>\d+)/history/(?P<concept_history_id>\d+)/export/codes/$',
+    url(r'^concepts/(?P<pk>\d+)/version/(?P<concept_history_id>\d+)/export/codes/$',
         Concept.history_concept_codes_to_csv,
         name='history_concept_codes_to_csv'),
     
@@ -222,7 +222,7 @@ if not settings.CLL_READ_ONLY:
             Concept.ConceptFork.as_view(),
             name='concept_fork'),
     
-        url(r'^concepts/(?P<pk>\d+)/history/(?P<concept_history_id>\d+)/fork/$',
+        url(r'^concepts/(?P<pk>\d+)/version/(?P<concept_history_id>\d+)/fork/$',
             Concept.concept_history_fork,
             name='concept_history_fork'),
     
@@ -230,7 +230,7 @@ if not settings.CLL_READ_ONLY:
             Concept.ConceptRestore.as_view(),
             name='concept_restore'),
     
-        url(r'^concepts/(?P<pk>\d+)/history/(?P<concept_history_id>\d+)/revert/$',
+        url(r'^concepts/(?P<pk>\d+)/version/(?P<concept_history_id>\d+)/revert/$',
             Concept.concept_history_revert,
             name='concept_history_revert'),
     
@@ -244,7 +244,7 @@ if not settings.CLL_READ_ONLY:
 #======== concept component ==============================================================================
 # urlConf for concept component
 urlpatterns += [
-    url(r'^components/(?P<concept_id>\d+)/history/(?P<concept_history_id>\d+)/historycomponent/(?P<component_history_id>\d+)/concept/(?P<pk>\d+)/detail/$',
+    url(r'^components/(?P<concept_id>\d+)/version/(?P<concept_history_id>\d+)/historycomponent/(?P<component_history_id>\d+)/concept/(?P<pk>\d+)/detail/$',
         ComponentConcept.component_history_concept_detail_combined,
         name='component_history_concept_detail'),
     
@@ -252,7 +252,7 @@ urlpatterns += [
 #         ComponentConcept.ComponentConceptDetail.as_view(),
 #         name='component_concept_detail'),
 
-#     url(r'^components/(?P<concept_id>\d+)/history/(?P<concept_history_id>\d+)/historycomponent/(?P<component_history_id>\d+)/concept/(?P<pk>\d+)/detail/$',
+#     url(r'^components/(?P<concept_id>\d+)/version/(?P<concept_history_id>\d+)/historycomponent/(?P<component_history_id>\d+)/concept/(?P<pk>\d+)/detail/$',
 #         ComponentConcept.component_history_concept_detail,
 #         name='component_history_concept_detail'),
 ]
@@ -275,7 +275,7 @@ if not settings.CLL_READ_ONLY:
 #======== query builder component ==============================================================================
 # urlConf for query builder component
 urlpatterns += [        
-    url(r'^components/(?P<concept_id>\d+)/history/(?P<concept_history_id>\d+)/historycomponent/(?P<component_history_id>\d+)/querybuilder/(?P<pk>\d+)/detail/$',
+    url(r'^components/(?P<concept_id>\d+)/version/(?P<concept_history_id>\d+)/historycomponent/(?P<component_history_id>\d+)/querybuilder/(?P<pk>\d+)/detail/$',
         ComponentQueryBuilder.component_history_querybuilder_detail_combined,
         name='component_history_querybuilder_detail'),
     
@@ -283,7 +283,7 @@ urlpatterns += [
 #         ComponentQueryBuilder.ComponentQueryBuilderDetail.as_view(),
 #         name='component_querybuilder_detail'),
 
-#     url(r'^components/(?P<concept_id>\d+)/history/(?P<concept_history_id>\d+)/historycomponent/(?P<component_history_id>\d+)/querybuilder/(?P<pk>\d+)/detail/$',
+#     url(r'^components/(?P<concept_id>\d+)/version/(?P<concept_history_id>\d+)/historycomponent/(?P<component_history_id>\d+)/querybuilder/(?P<pk>\d+)/detail/$',
 #         ComponentQueryBuilder.component_history_querybuilder_detail,
 #         name='component_history_querybuilder_detail'),
     
@@ -311,7 +311,7 @@ if not settings.CLL_READ_ONLY:
 #======== Match Code With An Expression Component ==============================================================================
 # urlConf for Match Code With An Expression Component
 urlpatterns += [
-    url(r'^components/(?P<concept_id>\d+)/history/(?P<concept_history_id>\d+)/historycomponent/(?P<component_history_id>\d+)/expression/(?P<pk>\d+)/detail/$',
+    url(r'^components/(?P<concept_id>\d+)/version/(?P<concept_history_id>\d+)/historycomponent/(?P<component_history_id>\d+)/expression/(?P<pk>\d+)/detail/$',
         ComponentExpression.component_history_expression_detail_combined,
         name='component_history_expression_detail'),
         
@@ -319,7 +319,7 @@ urlpatterns += [
 #         ComponentExpression.ComponentExpressionDetail.as_view(),
 #         name='component_expression_detail'),
 
-#     url(r'^components/(?P<concept_id>\d+)/history/(?P<concept_history_id>\d+)/historycomponent/(?P<component_history_id>\d+)/expression/(?P<pk>\d+)/detail/$',
+#     url(r'^components/(?P<concept_id>\d+)/version/(?P<concept_history_id>\d+)/historycomponent/(?P<component_history_id>\d+)/expression/(?P<pk>\d+)/detail/$',
 #         ComponentExpression.component_history_expression_detail,
 #         name='component_history_expression_detail'),
 
@@ -346,7 +346,7 @@ if not settings.CLL_READ_ONLY:
 #======== code list component ==============================================================================
 # urlConf for code list component
 urlpatterns += [    
-    url(r'^components/(?P<concept_id>\d+)/history/(?P<concept_history_id>\d+)/historycomponent/(?P<component_history_id>\d+)/expressionselect/(?P<pk>\d+)/detail/$',
+    url(r'^components/(?P<concept_id>\d+)/version/(?P<concept_history_id>\d+)/historycomponent/(?P<component_history_id>\d+)/expressionselect/(?P<pk>\d+)/detail/$',
         ComponentExpression.component_history_expressionselect_detail_combined,
         name='component_history_expressionselect_detail'),
     
@@ -354,7 +354,7 @@ urlpatterns += [
 #         ComponentExpression.ComponentExpressionSelectDetail.as_view(),
 #         name='component_expressionselect_detail'),
 
-#     url(r'^components/(?P<concept_id>\d+)/history/(?P<concept_history_id>\d+)/historycomponent/(?P<component_history_id>\d+)/expressionselect/(?P<pk>\d+)/detail/$',
+#     url(r'^components/(?P<concept_id>\d+)/version/(?P<concept_history_id>\d+)/historycomponent/(?P<component_history_id>\d+)/expressionselect/(?P<pk>\d+)/detail/$',
 #         ComponentExpression.component_history_expressionselect_detail,
 #         name='component_history_expressionselect_detail'),
 

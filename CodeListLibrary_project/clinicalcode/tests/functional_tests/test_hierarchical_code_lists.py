@@ -585,7 +585,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         browser = self.browser
         # get the test server url
         browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
-                                      self.workingset_everybody_can_edit.id, '/history/',
+                                      self.workingset_everybody_can_edit.id, '/version/',
                                       self.workingset_everybody_can_edit.history.last().history_id, '/detail/'))
 
         

@@ -12,7 +12,7 @@
 
 {% block container %}
 
-<h2><i class="fa fa-file-o" aria-hidden="true"></i> {{ object.name }}
+<h2> {{ object.name }}
 	{% for item in request.BRAND_GROUPS %}
 		{% for brand, groups in item.iteritems %}
 			{% if object.group.name in groups %}

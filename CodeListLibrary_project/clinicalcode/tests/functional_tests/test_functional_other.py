@@ -558,7 +558,7 @@ class OtherTest(StaticLiveServerTestCase ):
         
         browser = self.browser
         browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
-                                self.concept_everybody_can_view.id, '/history/', 
+                                self.concept_everybody_can_view.id, '/version/', 
                                 self.concept_everybody_can_view.history.first().history_id, '/revert/'))
         
         time.sleep(settings.TEST_SLEEP_TIME)

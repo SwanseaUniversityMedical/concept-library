@@ -427,7 +427,7 @@ class VersioningTest(StaticLiveServerTestCase):
         browser = self.browser
         # get the test server url
         browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
-                                self.workingset_everybody_can_edit.id, '/history/',
+                                self.workingset_everybody_can_edit.id, '/version/',
                                 latest_version,'/detail/'))
         
         time.sleep(settings.TEST_SLEEP_TIME)
