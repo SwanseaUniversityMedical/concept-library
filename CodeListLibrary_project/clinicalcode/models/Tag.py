@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from simple_history.models import HistoricalRecords
 from clinicalcode.models.TimeStampedModel import TimeStampedModel
+from clinicalcode.models.Brand import Brand
 
 
 class Tag(TimeStampedModel):
@@ -34,6 +35,7 @@ class Tag(TimeStampedModel):
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="tags_updated")
 
     tag_type = models.IntegerField(choices=TAG_TYPES, default=1)
+    collection_brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, related_name="tags_collection_brand")
     
     history = HistoricalRecords()
     
