@@ -45,6 +45,10 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
                     self.browser = webdriver.Chrome(os.path.join(location, "chromedriver.exe"), chrome_options=settings.chrome_options)
         super(ReadOnlyTestWorkingSet, self).setUp()
         
+        self.WEBAPP_HOST = self.live_server_url.replace('localhost', '127.0.0.1')
+        if settings.REMOTE_TEST:
+            self.WEBAPP_HOST = settings.WEBAPP_HOST
+                    
         # Users: a normal user and a super_user.
         super_user = User.objects.create_superuser(username=su_user, password=su_password, email=None)
         normal_user = User.objects.create_user(username=nm_user, password=nm_password, email=None)
@@ -95,7 +99,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.browser.find_element_by_name('password').send_keys(Keys.ENTER)
  
     def logout(self):
-        self.browser.get('%s%s' % (settings.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
+        self.browser.get('%s%s' % (self.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
            
         
     def wait_to_be_logged_in(self, username):
@@ -110,7 +114,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
                                 self.workingset_everybody_can_edit.id, '/version/', 
                                 self.workingset_everybody_can_edit.history.first().history_id, '/detail/'))
         
@@ -133,7 +137,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
                                 self.workingset_everybody_can_edit.id, '/version/', 
                                 self.workingset_everybody_can_edit.history.first().history_id, '/revert/'))
         
@@ -147,7 +151,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
                                 self.workingset_everybody_can_edit.id, '/version/', 
                                 self.workingset_everybody_can_edit.history.first().history_id, '/detail/'))
         
@@ -170,7 +174,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
                                 self.workingset_everybody_can_edit.id, '/version/', 
                                 self.workingset_everybody_can_edit.history.first().history_id, '/revert/'))
         time.sleep(settings.TEST_SLEEP_TIME)
@@ -185,7 +189,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_super_user_cannot_create(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s' % (settings.WEBAPP_HOST, '/workingsets/create/'))
+        browser.get('%s%s' % (self.WEBAPP_HOST, '/workingsets/create/'))
         
         self.login(su_user, su_password)
         
@@ -196,7 +200,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_super_user_cannot_edit(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
                               self.workingset_everybody_can_edit.id, '/update/'))
         
         self.login(su_user, su_password)
@@ -208,7 +212,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_super_user_cannot_revert(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
                                 self.workingset_everybody_can_edit.id, '/version/', 
                                 self.workingset_everybody_can_edit.history.first().history_id, '/detail/'))
         
@@ -230,7 +234,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_super_user_cannot_revert_through_url(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
                                 self.workingset_everybody_can_edit.id, '/version/', 
                                 self.workingset_everybody_can_edit.history.first().history_id, '/revert/'))
         
@@ -245,7 +249,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_normal_user_cannot_edit_by_own_url(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
                               self.workingset_everybody_can_edit.id, '/update/'))
         
         self.login(nm_user, nm_password)
@@ -257,7 +261,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_owner_cannot_edit_by_own_url(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
                               self.workingset_everybody_can_edit.id, '/update/'))
         
         self.login(ow_user, ow_password)

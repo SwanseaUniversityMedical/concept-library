@@ -45,6 +45,10 @@ class VersioningTest(StaticLiveServerTestCase):
         
         self.factory = RequestFactory()
         
+        self.WEBAPP_HOST = self.live_server_url.replace('localhost', '127.0.0.1')
+        if settings.REMOTE_TEST:
+            self.WEBAPP_HOST = settings.WEBAPP_HOST
+                    
         '''data'''
         super_user = User.objects.create_superuser(username=su_user, password=su_password, email=None)
         self.normal_user = User.objects.create_user(username=nm_user, password=nm_password, email=None)
@@ -180,7 +184,7 @@ class VersioningTest(StaticLiveServerTestCase):
         self.browser.find_element_by_name('password').send_keys(Keys.ENTER)
       
     def logout(self):
-        self.browser.get('%s%s' % (settings.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
+        self.browser.get('%s%s' % (self.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
       
         
     def wait_to_be_logged_in(self, username):
@@ -212,7 +216,7 @@ class VersioningTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/detail/'))
         
         time.sleep(settings.TEST_SLEEP_TIME)
@@ -244,7 +248,7 @@ class VersioningTest(StaticLiveServerTestCase):
         browser = self.browser
         print("WORKINGSET ID", self.workingset_everybody_can_edit.id)
         # get the test server url
-        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
                                 self.workingset_everybody_can_edit.id, '/detail/'))
         
         time.sleep(settings.TEST_SLEEP_TIME)
@@ -279,7 +283,7 @@ class VersioningTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/detail/'))
         
         
@@ -304,7 +308,7 @@ class VersioningTest(StaticLiveServerTestCase):
         browser = self.browser
         print("WORKINGSET ID", self.workingset_everybody_can_edit.id)
         # get the test server url
-        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
                                 self.workingset_everybody_can_edit.id, '/detail/'))
         
         time.sleep(settings.TEST_SLEEP_TIME)
@@ -330,7 +334,7 @@ class VersioningTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/detail/'))
         
         time.sleep(settings.TEST_SLEEP_TIME)
@@ -357,7 +361,7 @@ class VersioningTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s' % (settings.WEBAPP_HOST, '/workingsets/'))
+        browser.get('%s%s' % (self.WEBAPP_HOST, '/workingsets/'))
         
         time.sleep(settings.TEST_SLEEP_TIME)
         
@@ -389,7 +393,7 @@ class VersioningTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/version/',
                                 latest_version,'/detail/'))
         
@@ -426,7 +430,7 @@ class VersioningTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
                                 self.workingset_everybody_can_edit.id, '/version/',
                                 latest_version,'/detail/'))
         
@@ -463,12 +467,12 @@ class VersioningTest(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         
-        browser.get(settings.WEBAPP_HOST)
+        browser.get(self.WEBAPP_HOST)
         
         time.sleep(settings.TEST_SLEEP_TIME)
         
         # get the test server url
-        browser.get('%s%s%s' % (settings.WEBAPP_HOST, '/api/export_concept_codes/',
+        browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/export_concept_codes/',
                                 self.concept_everybody_can_edit.id))
         
         tree = ET.fromstring(browser.page_source)
@@ -483,11 +487,11 @@ class VersioningTest(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         
-        browser.get(settings.WEBAPP_HOST)
+        browser.get(self.WEBAPP_HOST)
         
         
         # get the test server url
-        browser.get('%s%s%s' % (settings.WEBAPP_HOST, '/api/export_workingset_codes/',
+        browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/export_workingset_codes/',
                                 self.workingset_everybody_can_edit.id))    
         
         time.sleep(settings.TEST_SLEEP_TIME)
@@ -506,11 +510,11 @@ class VersioningTest(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get(settings.WEBAPP_HOST)
+        browser.get(self.WEBAPP_HOST)
 
         
         
-        browser.get('%s%s%s' % (settings.WEBAPP_HOST, '/api/export_concept_codes/',
+        browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/export_concept_codes/',
                                 self.concept_everybody_can_edit.id))
         time.sleep(settings.TEST_SLEEP_TIME)
         
@@ -523,11 +527,11 @@ class VersioningTest(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get(settings.WEBAPP_HOST)
+        browser.get(self.WEBAPP_HOST)
 
        
         
-        browser.get('%s%s%s' % (settings.WEBAPP_HOST, '/api/export_workingset_codes/',
+        browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/export_workingset_codes/',
                                 self.workingset_everybody_can_edit.id))
         
         time.sleep(settings.TEST_SLEEP_TIME)
@@ -546,7 +550,7 @@ class VersioningTest(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/update/'))
         
         

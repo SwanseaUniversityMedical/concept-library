@@ -44,6 +44,10 @@ class RegularExpressionsTest(StaticLiveServerTestCase):
         
         self.factory = RequestFactory()
         
+        self.WEBAPP_HOST = self.live_server_url.replace('localhost', '127.0.0.1')
+        if settings.REMOTE_TEST:
+            self.WEBAPP_HOST = settings.WEBAPP_HOST
+                    
         '''data'''
         super_user = User.objects.create_superuser(username=su_user, password=su_password, email=None)
         normal_user = User.objects.create_user(username=nm_user, password=nm_password, email=None)
@@ -112,7 +116,7 @@ class RegularExpressionsTest(StaticLiveServerTestCase):
         self.browser.find_element_by_name('password').send_keys(Keys.ENTER)
   
     def logout(self):
-        self.browser.get('%s%s' % (settings.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
+        self.browser.get('%s%s' % (self.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
       
         
     def wait_to_be_logged_in(self, username):
@@ -168,7 +172,7 @@ class RegularExpressionsTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/update/'))
         
         time.sleep(settings.TEST_SLEEP_TIME)
