@@ -189,6 +189,7 @@
 								   <li >
 								  		<a href="{% url 'admin:index' %}" target=_blank >Admin</a>
 								   </li>	
+								   <li role="separator" class="divider"></li>
 								{% endif %}	
 						
 								{% if not CLL_READ_ONLY and 1 == 2 %}
@@ -198,12 +199,11 @@
 											<i class="glyphicon glyphicon-lock" aria-hidden="true"></i> Change Password
 										</a>
 								    </li>
+								    <li role="separator" class="divider"></li>
 								{% endif %}	
 								
 								
-								<!-- brands -->
-								<li role="separator" class="divider"></li>
-								
+								<!-- brands -->								
 							   	 {% if request.user.is_superuser  and request.session.all_brands %}
 							   	 	<li>
 										<a class="userBrand2" value="" href="javascript:void(null);">
@@ -219,8 +219,9 @@
 												</a>
 										    </li>
 										{% endfor %}
+									<li role="separator" class="divider"></li>
 								{% endif %}
-								<li role="separator" class="divider"></li>
+
 								
 						
 								<!-- logout -->
