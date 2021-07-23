@@ -33,21 +33,16 @@ import time
 class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     
     def setUp(self):
-        chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_argument('--headless')
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        
-        chrome_options.add_argument("--start-maximized")
-        chrome_options.add_argument("--disable-gpu")
-        #chrome_options.add_argument("--window-size=1280,800")
-        chrome_options.add_argument("--allow-insecure-localhost")
         
         location = dirname(dirname(__file__))
-        if settings.IS_LINUX:
-            self.browser = webdriver.Chrome(os.path.join(location, "chromedriver"), chrome_options=chrome_options)
+        if settings.REMOTE_TEST:
+            self.browser = webdriver.Remote(command_executor=settings.REMOTE_TEST_HOST,
+                                            desired_capabilities=settings.chrome_options.to_capabilities())
         else:
-            self.browser = webdriver.Chrome(os.path.join(location, "chromedriver.exe"), chrome_options=chrome_options)
+            if settings.IS_LINUX:
+                    self.browser = webdriver.Chrome(os.path.join(location, "chromedriver"), chrome_options=settings.chrome_options)
+            else:
+                    self.browser = webdriver.Chrome(os.path.join(location, "chromedriver.exe"), chrome_options=settings.chrome_options)
         super(ReadOnlyTestWorkingSet, self).setUp()
         
         # Users: a normal user and a super_user.
@@ -100,7 +95,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.browser.find_element_by_name('password').send_keys(Keys.ENTER)
  
     def logout(self):
-        self.browser.get('%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/account/logout/?next=/account/login/'))
+        self.browser.get('%s%s' % (settings.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
            
         
     def wait_to_be_logged_in(self, username):
@@ -115,11 +110,11 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
+        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
                                 self.workingset_everybody_can_edit.id, '/history/', 
                                 self.workingset_everybody_can_edit.history.first().history_id, '/detail/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         exist = True
         try:
@@ -138,11 +133,11 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
+        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
                                 self.workingset_everybody_can_edit.id, '/history/', 
                                 self.workingset_everybody_can_edit.history.first().history_id, '/revert/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         #self.wait_to_be_logged_in(nm_user)
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)
@@ -152,11 +147,11 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
+        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
                                 self.workingset_everybody_can_edit.id, '/history/', 
                                 self.workingset_everybody_can_edit.history.first().history_id, '/detail/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         exist = True
         try:
@@ -175,10 +170,10 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
+        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
                                 self.workingset_everybody_can_edit.id, '/history/', 
                                 self.workingset_everybody_can_edit.history.first().history_id, '/revert/'))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)
@@ -190,7 +185,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_super_user_cannot_create(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/create/'))
+        browser.get('%s%s' % (settings.WEBAPP_HOST, '/workingsets/create/'))
         
         self.login(su_user, su_password)
         
@@ -201,7 +196,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_super_user_cannot_edit(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
                               self.workingset_everybody_can_edit.id, '/update/'))
         
         self.login(su_user, su_password)
@@ -213,7 +208,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_super_user_cannot_revert(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
+        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
                                 self.workingset_everybody_can_edit.id, '/history/', 
                                 self.workingset_everybody_can_edit.history.first().history_id, '/detail/'))
         
@@ -235,7 +230,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_super_user_cannot_revert_through_url(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
+        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
                                 self.workingset_everybody_can_edit.id, '/history/', 
                                 self.workingset_everybody_can_edit.history.first().history_id, '/revert/'))
         
@@ -250,7 +245,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_normal_user_cannot_edit_by_own_url(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
                               self.workingset_everybody_can_edit.id, '/update/'))
         
         self.login(nm_user, nm_password)
@@ -262,7 +257,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_owner_cannot_edit_by_own_url(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
                               self.workingset_everybody_can_edit.id, '/update/'))
         
         self.login(ow_user, ow_password)

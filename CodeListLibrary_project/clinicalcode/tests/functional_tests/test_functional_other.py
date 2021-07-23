@@ -47,10 +47,14 @@ class OtherTest(StaticLiveServerTestCase ):
         self.factory = RequestFactory()
         
         location = os.path.dirname(__file__)
-        if settings_cll.IS_LINUX:
-            self.browser = webdriver.Chrome(os.path.join(location, "chromedriver"), chrome_options=chrome_options)
+        if settings_cll.REMOTE_TEST:
+            self.browser = webdriver.Remote(command_executor=settings_cll.REMOTE_TEST_HOST,
+                                            desired_capabilities=chrome_options.to_capabilities())
         else:
-            self.browser = webdriver.Chrome(os.path.join(location, "chromedriver.exe"), chrome_options=chrome_options)
+            if settings_cll.IS_LINUX:
+                self.browser = webdriver.Chrome(os.path.join(location, "chromedriver"), chrome_options=chrome_options)
+            else:
+                self.browser = webdriver.Chrome(os.path.join(location, "chromedriver.exe"), chrome_options=chrome_options)
         super(OtherTest, self).setUp()
         
         # Users: a normal user and a super_user.
@@ -373,7 +377,7 @@ class OtherTest(StaticLiveServerTestCase ):
         
         
     def logout(self):
-        self.browser.get('%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/account/logout/?next=/account/login/'))
+        self.browser.get('%s%s' % (settings.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
       
         
     def wait_to_be_logged_in(self, username):
@@ -390,10 +394,10 @@ class OtherTest(StaticLiveServerTestCase ):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/update/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         browser.find_element_by_xpath(".//input[@type='radio' and @name='world_access' and @value='1']").click() # Change world access permission to none
         browser.find_element_by_id("save-changes").click() # save
@@ -401,25 +405,25 @@ class OtherTest(StaticLiveServerTestCase ):
         self.logout()
         #----------------------
         self.login(nm_user, nm_password) # logging as normal user
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
                                 self.workingset_everybody_can_edit.id, '/detail/'))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         export_button = self.browser.find_element_by_id('export-btn')
         is_disabled = export_button.get_attribute("disabled")
         self.assertTrue(is_disabled)
         
         # Try to export to csv bu URL
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
                                 self.concept_everybody_can_view.id, '/export/concepts/'))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)
         
-        browser.get('%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/api/export_workingset_codes/', 
+        browser.get('%s%s%s' % (settings.WEBAPP_HOST, '/api/export_workingset_codes/',
                                 self.workingset_everybody_can_edit.id))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("Permission denied" in browser.page_source)
         
@@ -430,10 +434,10 @@ class OtherTest(StaticLiveServerTestCase ):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/delete/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         submit_button = browser.find_element_by_xpath("//button[@type='submit']").click()
         
@@ -445,9 +449,9 @@ class OtherTest(StaticLiveServerTestCase ):
         #--------------------
         self.login(nm_user, nm_password) # logging as normal user
         
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
                                 self.workingset_everybody_can_edit.id, '/detail/'))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         export_button = self.browser.find_element_by_id('export-btn')
         #print(str(export_button))
@@ -456,16 +460,16 @@ class OtherTest(StaticLiveServerTestCase ):
         self.assertTrue(is_disabled)
         
         # Try to export to csv bu URL
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
                                 self.concept_everybody_can_view.id, '/export/concepts/'))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)
         
-        browser.get('%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/api/export_workingset_codes/', 
+        browser.get('%s%s%s' % (settings.WEBAPP_HOST, '/api/export_workingset_codes/',
                                 self.workingset_everybody_can_edit.id))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("Permission denied" in browser.page_source)
            
@@ -479,10 +483,10 @@ class OtherTest(StaticLiveServerTestCase ):
         self.login(nm_user, nm_password)
         
         browser = self.browser
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_view.id, '/update/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)
@@ -496,10 +500,10 @@ class OtherTest(StaticLiveServerTestCase ):
         self.login(nm_user, nm_password)
         
         browser = self.browser
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                 deleted_concept.id, '/delete/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         #print("bps="+browser.page_source)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
@@ -512,10 +516,10 @@ class OtherTest(StaticLiveServerTestCase ):
         self.login(nm_user, nm_password)
         
         browser = self.browser
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_view.id, '/version/', 
                                 self.concept_everybody_can_view.history.first().history_id, '/revert/'))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         #self.login(nm_user, nm_password)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
@@ -527,10 +531,10 @@ class OtherTest(StaticLiveServerTestCase ):
         self.login(nm_user, nm_password)
         
         browser = self.browser
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
                                 self.concept_everybody_can_view.id, '/update/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)
@@ -540,11 +544,11 @@ class OtherTest(StaticLiveServerTestCase ):
         
         self.login(nm_user, nm_password)
         browser = self.browser
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
                                 self.concept_everybody_can_view.id, '/delete/'))
         
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)
         
@@ -553,11 +557,11 @@ class OtherTest(StaticLiveServerTestCase ):
         self.login(nm_user, nm_password)
         
         browser = self.browser
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
+        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
                                 self.concept_everybody_can_view.id, '/history/', 
                                 self.concept_everybody_can_view.history.first().history_id, '/revert/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)
@@ -568,18 +572,18 @@ class OtherTest(StaticLiveServerTestCase ):
         
         browser = self.browser
         
-        browser.get('%s' % (self.live_server_url.replace('localhost', '127.0.0.1')))
-        time.sleep(3)
+        browser.get('%s' % (settings.WEBAPP_HOST))
+        time.sleep(settings.TEST_SLEEP_TIME)
         
-        browser.get('%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/api/export_concept_codes/', 
+        browser.get('%s%s%s' % (settings.WEBAPP_HOST, '/api/export_concept_codes/',
                                 self.concept_none_can_access.id))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("Permission denied." in browser.page_source)
         
-        browser.get('%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/api/concept-search/', 
+        browser.get('%s%s%s' % (settings.WEBAPP_HOST, '/api/concepts/',
                                 self.concept_none_can_access.id))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("Not found." in browser.page_source)
         
@@ -588,13 +592,13 @@ class OtherTest(StaticLiveServerTestCase ):
         self.login(nm_user, nm_password)
         
         browser = self.browser
-        browser.get('%s' % (self.live_server_url.replace('localhost', '127.0.0.1')))
-        time.sleep(3)
+        browser.get('%s' % (settings.WEBAPP_HOST))
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         
-        browser.get('%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/api/export_workingset_codes/', 
+        browser.get('%s%s%s' % (settings.WEBAPP_HOST, '/api/export_workingset_codes/',
                                 self.workingset_none_can_access.id))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("Permission denied" in browser.page_source)
     
@@ -609,10 +613,10 @@ class OtherTest(StaticLiveServerTestCase ):
         browser = self.browser
         
         # check if normal user can see concept
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_view.id, '/detail/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         # user should be able to see concept
         self.assertTrue("403: Permission denied" not in browser.page_source and #or 
@@ -623,9 +627,9 @@ class OtherTest(StaticLiveServerTestCase ):
         # login as owner and change permission
         self.login(ow_user, ow_password)
         
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                 self.child_concept.id, '/update/'))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         browser.find_element_by_xpath(".//input[@type='radio' and @name='world_access' and @value='1']").click() # Change world access permission to none
         browser.find_element_by_id("save-changes").click() # save
@@ -634,7 +638,7 @@ class OtherTest(StaticLiveServerTestCase ):
         
         # login again as normal user and check if permission denied appears for concept with child
         self.login(nm_user, nm_password)
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_view.id, '/detail/'))
         
         export_button = self.browser.find_element_by_id('export-btn')
@@ -643,9 +647,9 @@ class OtherTest(StaticLiveServerTestCase ):
         self.assertTrue(is_disabled)
         
         # Try to export csv bu using URL
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_view.id, '/export/codes/'))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source or
@@ -658,10 +662,10 @@ class OtherTest(StaticLiveServerTestCase ):
         browser = self.browser
         
         # check if normal user can see concept
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_view.id, '/detail/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         # user should be able to see concept
         self.assertTrue("403: Permission denied" not in browser.page_source or 
@@ -672,9 +676,9 @@ class OtherTest(StaticLiveServerTestCase ):
         # login as owner and delete concept
         self.login(ow_user, ow_password)
         
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                 self.child_concept.id, '/delete/'))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         submit_button = browser.find_element_by_xpath("//button[@type='submit']").click()
         
@@ -682,23 +686,23 @@ class OtherTest(StaticLiveServerTestCase ):
         
         # login again as normal user and check if permission denied appears for concept with child
         self.login(nm_user, nm_password)
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_view.id, '/detail/'))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         export_button = self.browser.find_element_by_id('export-btn')
         is_disabled = export_button.get_attribute("disabled")
         self.assertTrue(is_disabled)
         
         # Try to export csv bu using URL
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_view.id, '/export/codes/'))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source or
                         "Not found." in browser.page_source)
         
-        #browser.get('%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/api/export_concept_codes/', 
+        #browser.get('%s%s%s' % (settings.WEBAPP_HOST, '/api/export_concept_codes/',
          #                       self.workingset_everybody_can_edit.id))
         
         #self.assertTrue("Permission denied" in browser.page_source)
@@ -710,12 +714,12 @@ class OtherTest(StaticLiveServerTestCase ):
         self.login(nm_user, nm_password)
         
         browser = self.browser
-        browser.get('%s' % (self.live_server_url.replace('localhost', '127.0.0.1')))
-        time.sleep(3)
+        browser.get('%s' % (settings.WEBAPP_HOST))
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         
-        browser.get('%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/api/'))
-        time.sleep(3)
+        browser.get('%s%s' % (settings.WEBAPP_HOST, '/api/'))
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         exist = True
         try:
@@ -774,12 +778,12 @@ class OtherTest(StaticLiveServerTestCase ):
         
         browser = self.browser
         
-        browser.get('%s' % (self.live_server_url.replace('localhost', '127.0.0.1')))
-        time.sleep(3)
+        browser.get('%s' % (settings.WEBAPP_HOST))
+        time.sleep(settings.TEST_SLEEP_TIME)
         
-        browser.get('%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/api/export_concept_codes/', 
+        browser.get('%s%s%s' % (settings.WEBAPP_HOST, '/api/export_concept_codes/',
                                 self.concept_with_excluded_codes.id))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         test_code1 = self.code_excluded1.code
         test_code2 = self.code_excluded2.code
@@ -815,12 +819,12 @@ class OtherTest(StaticLiveServerTestCase ):
         
         browser = self.browser
         
-        browser.get('%s' % (self.live_server_url.replace('localhost', '127.0.0.1')))
-        time.sleep(3)
+        browser.get('%s' % (settings.WEBAPP_HOST))
+        time.sleep(settings.TEST_SLEEP_TIME)
         
-        browser.get('%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/api/export_concept_codes/', 
+        browser.get('%s%s%s' % (settings.WEBAPP_HOST, '/api/export_concept_codes/',
                                 self.concept_with_excluded_codes.id))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         test_code1 = self.code_included.code
         test_code2 = self.code_excluded3.code
@@ -832,7 +836,7 @@ class OtherTest(StaticLiveServerTestCase ):
     
     def test_workingset_exclusion_and_inclusion(self):
         url = ('%s%s%s' % ('/workingsets/', 
-                                self.workingset_with_excluded_codes.id, '/export/codes'))
+                                self.workingset_with_excluded_codes.id, '/export/concepts'))
         
         request = self.factory.get(url) 
         request.user = self.owner_user
@@ -852,7 +856,7 @@ class OtherTest(StaticLiveServerTestCase ):
         
     def test_workingset_exclusion(self):
         url = ('%s%s%s' % ('/workingsets/', 
-                                self.workingset_with_excluded_and_included_codes.id, '/export/codes'))
+                                self.workingset_with_excluded_and_included_codes.id, '/export/concepts'))
         
         request = self.factory.get(url) 
         request.user = self.owner_user
@@ -875,12 +879,12 @@ class OtherTest(StaticLiveServerTestCase ):
         
         browser = self.browser
         
-        browser.get('%s' % (self.live_server_url.replace('localhost', '127.0.0.1')))
-        time.sleep(3)
+        browser.get('%s' % (settings.WEBAPP_HOST))
+        time.sleep(settings.TEST_SLEEP_TIME)
         
-        browser.get('%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/api/export_workingset_codes/', 
+        browser.get('%s%s%s' % (settings.WEBAPP_HOST, '/api/export_workingset_codes/',
                                 self.workingset_with_excluded_and_included_codes.id))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         test_code1 = self.code_included.code
         test_code2 = self.code_excluded3.code
@@ -894,12 +898,12 @@ class OtherTest(StaticLiveServerTestCase ):
         
         browser = self.browser
         
-        browser.get('%s' % (self.live_server_url.replace('localhost', '127.0.0.1')))
-        time.sleep(3)
+        browser.get('%s' % (settings.WEBAPP_HOST))
+        time.sleep(settings.TEST_SLEEP_TIME)
         
-        browser.get('%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/api/export_workingset_codes/', 
+        browser.get('%s%s%s' % (settings.WEBAPP_HOST, '/api/export_workingset_codes/',
                                 self.workingset_with_excluded_codes.id))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         test_code1 = self.code_excluded1.code
         test_code2 = self.code_excluded2.code

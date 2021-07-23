@@ -27,25 +27,19 @@ import time
 class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
     def setUp(self):
-        chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_argument('--headless')
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        
-        chrome_options.add_argument("--start-maximized")
-        chrome_options.add_argument("--disable-gpu")
-        #chrome_options.add_argument("--window-size=1280,800")
-        chrome_options.add_argument("--allow-insecure-localhost")
-        
-
         
         location = os.path.dirname(__file__)
-        if settings_cll.IS_LINUX:
-            self.browser = webdriver.Chrome(os.path.join(
-                location, "chromedriver"), chrome_options=chrome_options)
+        if settings_cll.REMOTE_TEST:
+            self.browser = webdriver.Remote(command_executor=settings_cll.REMOTE_TEST_HOST,
+                                            desired_capabilities=settings_cll.chrome_options.to_capabilities())
+            self.browser.implicitly_wait(settings_cll.IMPLICTLY_WAIT)
         else:
-            self.browser = webdriver.Chrome(os.path.join(
-                location, "chromedriver.exe"), chrome_options=chrome_options)
+            if settings_cll.IS_LINUX:
+                self.browser = webdriver.Chrome(os.path.join(
+                        location, "chromedriver"), chrome_options=settings_cll.chrome_options)
+            else:
+                self.browser = webdriver.Chrome(os.path.join(
+                        location, "chromedriver.exe"), chrome_options=settings_cll.chrome_options)
         super(HierarchicalCodeListsTest, self).setUp()
 
         '''data'''
@@ -174,7 +168,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
     def tearDown(self):
         #self.browser.refresh()
-        #time.sleep(3)
+        #time.sleep(settings.TEST_SLEEP_TIME)
 
         self.browser.quit()
         super(HierarchicalCodeListsTest, self).tearDown()
@@ -187,7 +181,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         self.browser.find_element_by_name('password').send_keys(Keys.ENTER)
 
     def logout(self):
-        self.browser.get('%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/account/logout/?next=/account/login/'))
+        self.browser.get('%s%s' % (settings.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
       
         
     def wait_to_be_logged_in(self, username):
@@ -209,10 +203,10 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/',
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                   self.concept_everybody_can_edit.id, '/update/'))
 
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
 
         wait = WebDriverWait(self.browser, 10)
         wait.until(EC.presence_of_element_located(
@@ -290,11 +284,11 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
             self.login(ow_user, ow_password)
             browser = self.browser
             # get the test server url
-            browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/',
+            browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                       self.child_concept.id, '/update/'))
     
             
-            time.sleep(3)
+            time.sleep(settings.TEST_SLEEP_TIME)
             
             # update child
             browser.find_element_by_id("save-changes").click()
@@ -330,11 +324,11 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
             
             browser = self.browser
             # get the test server url
-            browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/',
+            browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                       self.child_concept.id, '/update/'))
     
             
-            time.sleep(3)
+            time.sleep(settings.TEST_SLEEP_TIME)
     
             WebDriverWait(browser, 10).until(
                     EC.presence_of_element_located((By.ID, "save-changes"))
@@ -344,10 +338,10 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
     
             
     
-            browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/',
+            browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                       self.concept_everybody_can_edit.id, '/detail/'))
             
-            time.sleep(3)
+            time.sleep(settings.TEST_SLEEP_TIME)
     
             concept_history_change_reason = self.concept_everybody_can_edit.history.first(
             ).history_change_reason
@@ -356,9 +350,9 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
             self.assertTrue(concept_history_change_reason in browser.page_source)
     
             # repeat the same for workingset
-            browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/',
+            browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
                                       self.workingset_everybody_can_edit.id, '/detail/'))
-            time.sleep(3)
+            time.sleep(settings.TEST_SLEEP_TIME)
             
             workingset_history_change_reason = self.workingset_everybody_can_edit.history.first(
             ).history_change_reason
@@ -377,7 +371,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
     '''def test_concept_warning_message_when_revert(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/',
+        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                       self.concept_everybody_can_edit.id, '/version/',
                                       self.concept_everybody_can_edit.history.last().history_id, '/detail/'))
 
@@ -390,7 +384,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
     def test_concept_warning_message_when_fork(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/',
+        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                       self.concept_everybody_can_edit.id, '/version/',
                                       self.concept_everybody_can_edit.history.last().history_id, '/detail/'))
 
@@ -406,11 +400,11 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/',
+        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
                                       self.workingset_everybody_can_edit.id, '/version/',
                                       self.workingset_everybody_can_edit.history.last().history_id, '/detail/'))
 
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
 
         browser.find_element_by_id("revert-btn").click()
 
@@ -438,10 +432,10 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/',
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                   self.concept_everybody_can_edit.id, '/detail/'))
 
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
 
         # update child
         table = browser.find_element_by_id("component-table")
@@ -496,12 +490,12 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         
         self.login(nm_user, nm_password)
         browser = self.browser
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/',
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                   self.concept_everybody_can_edit.id, '/detail/'))
 
         
 
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
 
         # warning = browser.find_element_by_class_name("alert-danger").text
 
@@ -516,7 +510,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/',
+        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                       self.concept_everybody_can_edit.id, '/version/',
                                       self.concept_everybody_can_edit.history.last().history_id, '/detail/'))
 
@@ -535,9 +529,9 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
             "//button[@type='submit']").click()  # revert
 
         # go to the child details page
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/',
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                   self.child_concept.id, '/detail/'))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         latest = self.child_concept.history.first().history_id
 
@@ -552,7 +546,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/',
+        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                       self.concept_everybody_can_edit.id, '/version/',
                                       self.concept_everybody_can_edit.history.last().history_id, '/detail/'))
 
@@ -570,10 +564,10 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
             "//button[@type='submit']").click()  # revert
 
         # go to the child details page
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/',
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                   self.child_concept.id, '/detail/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         latest = self.child_concept.history.first().history_id
 
@@ -590,7 +584,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/',
+        browser.get('%s%s%s%s%s%s' % (settings.WEBAPP_HOST, '/workingsets/',
                                       self.workingset_everybody_can_edit.id, '/history/',
                                       self.workingset_everybody_can_edit.history.last().history_id, '/detail/'))
 
@@ -610,10 +604,10 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
             "//button[@type='submit']").click()  # revert
 
         # go to the child details page
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/',
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                   self.concept_everybody_can_edit.id, '/detail/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
 
         latest = self.concept_everybody_can_edit.history.first().history_id
 
@@ -634,10 +628,10 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/',
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                   self.concept_everybody_can_edit.id, '/update/'))
 
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         # try to add child
         browser.find_element_by_css_selector(
@@ -655,7 +649,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
         concept_search_field.send_keys("concept only owner can access")
 
-        time.sleep(3)  # wait to load concept prompt
+        time.sleep(settings.TEST_SLEEP_TIME)  # wait to load concept prompt
 
         # click on a prompt to fill the field
         concept_search_field.send_keys(Keys.DOWN)
@@ -680,11 +674,11 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/',
+        browser.get('%s%s%s%s' % (settings.WEBAPP_HOST, '/concepts/',
                                   self.child_concept3.id, '/update/'))
 
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         wait = WebDriverWait(self.browser, 10)
         wait.until(EC.presence_of_element_located(

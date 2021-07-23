@@ -1,11 +1,13 @@
 #!/bin/sh
       echo ">>>>> STARTING (production server deployment) <<<<<<<<<<<<<<<<<<<"
 
-      http_proxy=http://192.168.10.15:8080;
-      export http_proxy
+      #http_proxy=http://192.168.10.15:8080;
+      #export http_proxy
 
-      https_proxy=https://192.168.10.15:8080;
-      export https_proxy
+      #https_proxy=https://192.168.10.15:8080;
+      #export https_proxy
+
+      #export pip_proxy="--proxy http://192.168.10.15:8080"
      
 
 #      echo ">>>>> update .ini file (to be  arranged later)<<<<<<<<<<<<<<<<<<<"
@@ -23,16 +25,16 @@
       echo ">>>>> install requirements <<<<<<<<<<<<<<<<<<<"
       cd /var/www/concept_lib_sites/v1/requirements
 
-      pip --proxy http://192.168.10.15:8080 install  pip-20.2-py2.py3-none-any.whl
+      pip ${pip_proxy} install  pip-20.2-py2.py3-none-any.whl
 
       echo "@@@@@@@@@@ venv pip version="
       pip -V
 
-      #pip --proxy http://192.168.10.15:8080 install --upgrade "pip < 19.1"
-      pip --proxy http://192.168.10.15:8080 install -r base.txt
+      #pip ${pip_proxy} install --upgrade "pip < 19.1"
+      pip ${pip_proxy} install -r base.txt
 
-      pip --proxy http://192.168.10.15:8080 install psycopg2-binary
-      pip2 --proxy http://192.168.10.15:8080 install pandas
+      pip ${pip_proxy} install psycopg2-binary
+      pip2 ${pip_proxy} install pandas
 
       cd /var/www/concept_lib_sites/v1/CodeListLibrary_project
 

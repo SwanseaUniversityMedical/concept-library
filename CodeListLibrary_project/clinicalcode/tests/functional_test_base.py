@@ -17,7 +17,7 @@ SCREEN_DUMP_LOCATION = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), 'screendumps'
 )
 
-base_url = 'http://localhost:8000'
+base_url = settings.WEBAPP_HOST
 login_url = base_url + '/account/login?next=/'
 
 '''
@@ -40,7 +40,12 @@ def wait(fn):
 class FunctionalTest(StaticLiveServerTestCase):
 
     def setUp(self):      
-        self.browser = webdriver.Chrome()
+        if settings.REMOTE_TEST:
+            self.browser = webdriver.Remote(command_executor=settings.REMOTE_TEST_HOST,
+                                            desired_capabilities=settings.chrome_options.to_capabilities())
+            self.browser.implicitly_wait(settings.IMPLICTLY_WAIT)
+        else:
+            self.browser = webdriver.Chrome()
 
     def list2reason(self, exc_list):
         if exc_list and exc_list[-1][0] is self:

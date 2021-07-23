@@ -1,11 +1,11 @@
 #!/bin/sh
       echo ">>>>> STARTING (production server deployment) <<<<<<<<<<<<<<<<<<<"
 
-      http_proxy=http://192.168.10.15:8080;
-      export http_proxy
+      #http_proxy=http://192.168.10.15:8080;
+      #export http_proxy
 
-      https_proxy=https://192.168.10.15:8080;
-      export https_proxy
+      #https_proxy=https://192.168.10.15:8080;
+      #export https_proxy
      
 
 #      echo ">>>>> update .ini file (to be  arranged later)<<<<<<<<<<<<<<<<<<<"
