@@ -2758,8 +2758,8 @@ def get_visible_live_or_published_concept_versions(request
     where_clause_3 = ""
     if show_top_version_only:
         where_clause_3 = " WHERE rn_res = 1 "
-         
-           
+
+    
     with connection.cursor() as cursor:
         cursor.execute("""
                         SELECT 
@@ -2773,7 +2773,7 @@ def get_visible_live_or_published_concept_versions(request
                                 *
                                 , ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn_res
                                 , (CASE WHEN is_published=1 THEN 'published' ELSE 'not published' END) published
-                                , (SELECT name FROM clinicalcode_codingsystem WHERE coding_system_id=r.coding_system_id LIMIT 1) coding_system_name
+                                , (SELECT name FROM clinicalcode_codingsystem WHERE id=r.coding_system_id LIMIT 1) coding_system_name
                                 , (SELECT username FROM auth_user WHERE id=r.owner_id LIMIT 1) owner_name
                                 , (SELECT username FROM auth_user WHERE id=r.created_by_id LIMIT 1) created_by_username
                                 , (SELECT username FROM auth_user WHERE id=r.modified_by_id LIMIT 1) modified_by_username
