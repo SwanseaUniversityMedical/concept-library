@@ -61,7 +61,7 @@ def save_statistics(request):
     if Statistics.objects.all().filter(org__iexact = 'HDRUK', type__iexact = 'landing-page').exists():
         HDRUK_stat = Statistics.objects.get(org__iexact = 'HDRUK', type__iexact = 'landing-page')
         HDRUK_stat.stat = stat
-        HDRUK_stat.updated_by = request.user
+        HDRUK_stat.updated_by = [None, request.user][request.user.is_authenticated()]
         HDRUK_stat.modified = datetime.now()
         HDRUK_stat.save()
         
@@ -71,7 +71,7 @@ def save_statistics(request):
                                     org = 'HDRUK',
                                     type = 'landing-page',
                                     stat = stat,
-                                    created_by = request.user,                                    
+                                    created_by = [None, request.user][request.user.is_authenticated()]                                    
                                 )
     
         return [stat , obj.id]

@@ -51,12 +51,12 @@ def index_HDRUK(request):
     if Statistics.objects.all().filter(org__iexact = 'HDRUK', type__iexact = 'landing-page').exists():
         stat = Statistics.objects.get(org__iexact = 'HDRUK', type__iexact = 'landing-page')
         HDRUK_stat = stat.stat
-        last_updated = stat.modified.date()
-        current_date = datetime.datetime.now().date()
-        if current_date > last_updated:
-            # update stat
-            stat_obj = save_statistics(request)
-            HDRUK_stat = stat_obj[0]
+#         last_updated = stat.modified.date()
+#         current_date = datetime.datetime.now().date()
+#         if current_date > last_updated:
+#             # update stat
+#             stat_obj = save_statistics(request)
+#             HDRUK_stat = stat_obj[0]
     else:
         # update stat
         stat_obj = save_statistics(request)
