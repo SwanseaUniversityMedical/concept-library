@@ -298,26 +298,50 @@
 				<p>Copyright &copy; {% now 'Y' %} - SAIL Databank - Swansea University. All rights reserved.</p>	
 				
 				<div class="navbar-header">
-					<a href="https://www.hdruk.ac.uk/" target=_blank  class="navbar-brand" rel="noopener noreferrer">
-						<img style="margin-top: -10px;" src="{% static 'img/Footer_logos/hdruk-logo.png' %}" height="30px"  alt="HDR UK Logo" />
-					</a>
-					
-					<a href="https://conceptlibrary.saildatabank.com/" target=_blank  class="navbar-brand" rel="noopener noreferrer">
-						<img style="margin-top: -10px;" src="{% static 'img/Footer_logos/concept_library_on_white.png' %}" height="30px"  alt="Concept Library Logo" />
-					</a>
-					
-					<a href="http://saildatabank.com" target=_blank  class="navbar-brand" rel="noopener noreferrer">
-						<img style="margin-top: -10px;" src="{% static 'img/Footer_logos/SAIL_alt_logo_on_white.png' %}" height="30px"  alt="SAIL Databank Logo" />
-					</a>
-										
-					<a href="https://www.caliberresearch.org/portal" target=_blank  class="navbar-brand" rel="noopener noreferrer">
-						<img style="margin-top: -10px;" src="{% static 'img/Footer_logos/Caliber_Thin_Lines_Transparent.png' %}" height="30px"  alt="CALIBER Phenotype Portal Logo" />
-					</a>
-										
-					<a href="https://www.dundee.ac.uk/hic" target=_blank  class="navbar-brand" rel="noopener noreferrer">
-						<img style="margin-top: -10px;" src="{% static 'img/Footer_logos/HIC_Logo_bold_blue.png' %}" height="30px"  alt="HIC Logo" />
-					</a>			
+					{% if request.CURRENT_BRAND == 'HDRUK' %}
+						<a href="https://www.hdruk.ac.uk/" target=_blank  class="navbar-brand" rel="noopener noreferrer">
+							<img style="margin-top: -10px;" src="{% static 'img/Footer_logos/hdruk_logo.png' %}" height="30px"  alt="HDR UK Logo" />
+						</a>
 						
+						<a href="https://conceptlibrary.saildatabank.com/" target=_blank  class="navbar-brand" rel="noopener noreferrer">
+							<img style="margin-top: -10px;" src="{% static 'img/Footer_logos/concept_library_on_white.png' %}" height="30px"  alt="Concept Library Logo" />
+						</a>
+						
+						<a href="http://saildatabank.com" target=_blank  class="navbar-brand" rel="noopener noreferrer">
+							<img style="margin-top: -10px;" src="{% static 'img/Footer_logos/SAIL_alt_logo_on_white.png' %}" height="30px"  alt="SAIL Databank Logo" />
+						</a>
+											
+						<a href="https://www.caliberresearch.org/portal" target=_blank  class="navbar-brand" rel="noopener noreferrer">
+							<img style="margin-top: -10px;" src="{% static 'img/Footer_logos/Caliber_Thin_Lines_Transparent.png' %}" height="30px"  alt="CALIBER Phenotype Portal Logo" />
+						</a>
+											
+						<a href="https://www.dundee.ac.uk/hic" target=_blank  class="navbar-brand" rel="noopener noreferrer">
+							<img style="margin-top: -10px;" src="{% static 'img/Footer_logos/HIC_Logo_bold_blue.png' %}" height="30px"  alt="HIC Logo" />
+						</a>
+						
+					{% elif request.CURRENT_BRAND == 'ADP' %}
+						<a href="https://www.adolescentmentalhealth.uk/" target=_blank  class="navbar-brand" rel="noopener noreferrer">
+							<img style="margin-top: -10px;" src="{% static 'img/Footer_logos/ADP_logo.png' %}" height="30px"  alt="ADP UK Logo" />
+						</a>
+						
+						<a href="https://conceptlibrary.saildatabank.com/" target=_blank  class="navbar-brand" rel="noopener noreferrer">
+							<img style="margin-top: -10px;" src="{% static 'img/Footer_logos/concept_library_on_white.png' %}" height="30px"  alt="Concept Library Logo" />
+						</a>
+						
+						<a href="http://saildatabank.com" target=_blank  class="navbar-brand" rel="noopener noreferrer">
+							<img style="margin-top: -10px;" src="{% static 'img/Footer_logos/SAIL_alt_logo_on_white.png' %}" height="30px"  alt="SAIL Databank Logo" />
+						</a>
+
+					{% else %}
+						<a href="https://conceptlibrary.saildatabank.com/" target=_blank  class="navbar-brand" rel="noopener noreferrer">
+							<img style="margin-top: -10px;" src="{% static 'img/Footer_logos/concept_library_on_white.png' %}" height="30px"  alt="Concept Library Logo" />
+						</a>
+						
+						<a href="http://saildatabank.com" target=_blank  class="navbar-brand" rel="noopener noreferrer">
+							<img style="margin-top: -10px;" src="{% static 'img/Footer_logos/SAIL_alt_logo_on_white.png' %}" height="30px"  alt="SAIL Databank Logo" />
+						</a>
+					{% endif %} 
+
 				</div>		
 				
 				{% if DEV_PRODUCTION|length or CLL_READ_ONLY %}
