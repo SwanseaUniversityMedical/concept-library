@@ -5,10 +5,7 @@
 {% block keywords %}, hdr-uk, Phenotype, Phenotypes, Library, Data Science, Concepts, Clinical Codes, Data Sources, Coding Systems, algorithm, Github of phenotyping, EHR phenotyping, algoritm, Caliber {% endblock keywords %}
 {% block head %}
 <link href="{% static 'css/brands/HDRUK/landingPageStyles.css' %}" rel="stylesheet" />
-<script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
 <meta charset="UTF-8">
-<meta name="description" content="HDR UK Phenotype Library">
-<meta name="keywords" content="Algorithm Library, HDR-UK, HDR, Phenotypes, Library, Health">
 {% endblock head %}
 {% block container_fluid %}
 <div class="big-banner">
@@ -127,7 +124,7 @@
       <div class="column">
          <a style="text-decoration: none; color:black;" href="{% url 'phenotype_list' %}">
             <div class="card pointer">
-               <i class="fas fa-search" style="position:relative; right: 47.5%; font-size: 32px;"></i>
+               <i class="fa fa-search" style="position:relative; right: 47.5%; font-size: 32px;"></i>
                <h4 style="text-align:left">Search</h4>
                <p style="text-align:left">Start here to explore phenotypes in our library.</p>
             </div>
@@ -136,7 +133,7 @@
       <div class="column">
          <a style="text-decoration: none; color:black;" href="{% url 'about_page' 'hdruk_about_technical_details' %}">
             <div class="card pointer" >
-               <i class="fas fa-plus" style="position:relative;  right: 47.5%; font-size: 32px;"></i>
+               <i class="fa fa-plus" style="position:relative;  right: 47.5%; font-size: 32px;"></i>
                <h4 style="text-align:left">Submit a Phenotype</h4>
                <p id="card" style="text-align:left">Learn how to contribute your phenotypes to our library.</p>
             </div>
