@@ -34,7 +34,7 @@ from django.conf import settings
 class OtherTest(StaticLiveServerTestCase ):
     
     def setUp(self):
-        chrome_options = webdriver.ChromeOptions()
+#       chrome_options = webdriver.ChromeOptions()
         
 #         chrome_options.add_experimental_option( "prefs",{'profile.managed_default_content_settings.javascript': 'enable'})
 #         chrome_options.add_argument('--headless')
@@ -56,7 +56,10 @@ class OtherTest(StaticLiveServerTestCase ):
             if settings_cll.IS_LINUX:
                 self.browser = webdriver.Chrome(os.path.join(location, "chromedriver"), chrome_options=settings.chrome_options)
             else:
-                self.browser = webdriver.Chrome(os.path.join(location, "chromedriver.exe"), chrome_options=settings.chrome_options)
+                #Todo needs to be universal chromdriver
+                self.options = webdriver.ChromeOptions()
+                self.options.binary_location = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+                self.browser = webdriver.Chrome(os.path.join(location, "chromedriver.exe"), chrome_options=self.options)
         super(OtherTest, self).setUp()
         
        
@@ -396,7 +399,7 @@ class OtherTest(StaticLiveServerTestCase ):
     '''
     If one or more of workingset concepts is deleted or revoked permission 
     I do not have permission to view, cannot export csv and run api
-    ''' 
+    '''
     def test_revoking_permission(self):
         self.login(ow_user, ow_password)
         

@@ -37,6 +37,8 @@ if REMOTE_TEST:
     WEBAPP_HOST = 'http://webapp-test/'
 
 chrome_options = webdriver.ChromeOptions()
+#Todo needs to be validated
+chrome_options.binary_location = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 chrome_options.add_experimental_option( "prefs",{'profile.managed_default_content_settings.javascript': 'enable'})
 chrome_options.add_argument('--headless')
 chrome_options.add_argument("--no-sandbox")
