@@ -25,7 +25,7 @@ class CodeSerializer(serializers.ModelSerializer):
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ('id', 'description', 'display', 'get_display_display'
+        fields = ('id', 'description', 'display', 'get_display_display', 'tag_type', 'get_tag_type_display'
                 # ,  'created_by' , 'updated_by' 
                   )
                 

@@ -823,6 +823,12 @@ def concept_list(request):
         p = paginator.page(paginator.num_pages)
 
     p_btns = utils.get_paginator_pages(paginator, p)
+    
+    tag_ids2 = tag_ids
+    tag_ids_list = []
+    if tag_ids:
+        tag_ids_list = [int(t) for t in tag_ids.split(',')]
+        
     return render(request, 'clinicalcode/concept/index.html', {
         'page': page,
         'page_size': str(page_size),
@@ -832,6 +838,8 @@ def concept_list(request):
         'show_my_concepts': show_my_concepts,
         'show_deleted_concepts': show_deleted_concepts,
         'tags': tags,
+        'tag_ids': tag_ids2,
+        'tag_ids_list': tag_ids_list,
         'owner': owner,
         'show_only_validated_concepts': show_only_validated_concepts,
         'allowed_to_create': not settings.CLL_READ_ONLY,

@@ -177,10 +177,16 @@ def api_phenotype_create(request):
             
             created_pt.changeReason = "Created from API"
             created_pt.save()   
+            
+            # publish immediately - for HDR-UK testing
+            if request.data.get('publish_immediately') == True:
+                publish_entity(request, Phenotype, created_pt.pk) 
+                
             data = {
               'message': 'Phenotype created successfully',
               'id': created_pt.pk
             }
+            
             return Response(
               data = data, 
               content_type="text/json-comment-filtered", 
@@ -346,10 +352,16 @@ def api_phenotype_update(request):
                       
             update_phenotype.changeReason = "Updated from API"
             update_phenotype.save()   
+            
+            # publish immediately - for HDR-UK testing
+            if request.data.get('publish_immediately') == True:
+                publish_entity(request, Phenotype, update_phenotype.pk) 
+                
             data = {
               'message': 'Phenotype updated successfully',
               'id': update_phenotype.pk
             }
+            
             return Response(
               data = data, 
               content_type="text/json-comment-filtered", 

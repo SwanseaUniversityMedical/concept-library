@@ -409,7 +409,7 @@ class InclusionExclusionTest(TestCase):
             from clinicalcode.views.Concept import history_concept_codes_to_csv
              
             url = ('%s%s%s%s%s' % ('/concepts/', self.published_root.concept_id
-                               , '/history/', self.published_root.concept_history_id
+                               , '/version/', self.published_root.concept_history_id
                                , '/export/codes'))
     
             request = self.factory.get(url)

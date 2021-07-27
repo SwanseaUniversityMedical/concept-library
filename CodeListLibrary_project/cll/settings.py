@@ -22,14 +22,14 @@ import distutils
 from distutils import util
 
 
-def GET_SERVER_IP():
+def GET_SERVER_IP(TARGET_IP='10.255.255.255', PORT=1):
     """
         returns the server IP
     """
     S = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         # doesn't even have to be reachable
-        S.connect(('10.255.255.255', 1))
+        S.connect((TARGET_IP, PORT))
         IP = S.getsockname()[0]
     except:
         IP = '127.0.0.1'
@@ -117,18 +117,9 @@ SECRET_KEY = get_env_value('SECRET_KEY')
 DEBUG = get_env_value('DEBUG', cast='bool')
 
 
-        
 ADMIN = [('Muhammad', 'Muhammad.Elmessary@Swansea.ac.uk'), ('Dan', 'd.s.thayer@swansea.ac.uk')]
-ALLOWED_HOSTS = [ 'localhost', '127.0.0.1'
-                ]
-ALLOWED_HOSTS_env = get_env_value('ALLOWED_HOSTS').split(",")
-ALLOWED_HOSTS_env = map(lambda v: v.strip() , ALLOWED_HOSTS_env)
 
-ALLOWED_HOSTS = ALLOWED_HOSTS + ALLOWED_HOSTS_env
-ALLOWED_HOSTS = list(set(ALLOWED_HOSTS))
-#print ALLOWED_HOSTS
-
-
+ALLOWED_HOSTS = [i.strip() for i in get_env_value('ALLOWED_HOSTS').split(",")]
 
 ROOT_URLCONF = 'cll.urls'
 DATA_UPLOAD_MAX_MEMORY_SIZE = None

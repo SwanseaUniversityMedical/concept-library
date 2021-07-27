@@ -16,6 +16,7 @@ from selenium.common.exceptions import NoSuchElementException
 from os.path import dirname
 from unittest import skip, skipIf
 import sys
+from rest_framework.reverse import reverse
 
 # from django.conf import settings
 # from cll import read_only_test_settings
@@ -35,24 +36,22 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
     
     def setUp(self):
         # settings for gitlab running
-        chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_argument('--headless')
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        
-        chrome_options.add_argument("--start-maximized")
-        chrome_options.add_argument("--disable-gpu")
-        #chrome_options.add_argument("--window-size=1280,800")
-        chrome_options.add_argument("--allow-insecure-localhost")
-        
         location = dirname(dirname(__file__)) 
-        if settings.IS_LINUX:
-            self.browser = webdriver.Chrome(os.path.join(location, "chromedriver"), chrome_options=chrome_options)
+        if settings.REMOTE_TEST:
+            self.browser = webdriver.Remote(command_executor=settings.REMOTE_TEST_HOST,
+                                            desired_capabilities=settings.chrome_options.to_capabilities())
+            self.browser.implicitly_wait(settings.IMPLICTLY_WAIT)
         else:
-            self.browser = webdriver.Chrome(os.path.join(location, "chromedriver.exe"), chrome_options=chrome_options)
+            if settings.IS_LINUX:
+                    self.browser = webdriver.Chrome(os.path.join(location, "chromedriver"), chrome_options=settings.chrome_options)
+            else:
+                    self.browser = webdriver.Chrome(os.path.join(location, "chromedriver.exe"), chrome_options=settings.chrome_options)
         super(ReadOnlyTestConcept, self).setUp()
         
-        
+        self.WEBAPP_HOST = self.live_server_url.replace('localhost', '127.0.0.1')
+        if settings.REMOTE_TEST:
+            self.WEBAPP_HOST = settings.WEBAPP_HOST
+                    
         '''data'''
         super_user = User.objects.create_superuser(username=su_user, password=su_password, email=None)
         normal_user = User.objects.create_user(username=nm_user, password=nm_password, email=None)
@@ -118,7 +117,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.browser.find_element_by_name('password').send_keys(Keys.ENTER)
       
     def logout(self):
-        self.browser.get('%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/account/logout/?next=/account/login/'))
+        self.browser.get('%s%s' % (self.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
       
         
     def wait_to_be_logged_in(self, username):
@@ -132,11 +131,17 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
-                                self.concept_everybody_can_edit.id, '/version/', 
-                                self.concept_everybody_can_edit.history.first().history_id, '/detail/'))
+                    
+#         browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+#                                 self.concept_everybody_can_edit.id, '/version/', 
+#                                 self.concept_everybody_can_edit.history.first().history_id, '/detail/'))
+
+        browser.get(self.WEBAPP_HOST + reverse('concept_history_detail'
+                                                   , kwargs={'pk': self.concept_everybody_can_edit.id,
+                                                             'concept_history_id': self.concept_everybody_can_edit.history.first().history_id})
+                    )
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         #self.wait_to_be_logged_in(nm_user)
         
         exist = True
@@ -155,11 +160,11 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/version/', 
                                 self.concept_everybody_can_edit.history.first().history_id, '/revert/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)
     
@@ -168,11 +173,11 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/version/', 
                                 self.concept_everybody_can_edit.history.first().history_id, '/detail/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
              
         exist = True
         try:
@@ -191,11 +196,11 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/version/', 
                                 self.concept_everybody_can_edit.history.first().history_id, '/revert/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
              
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)
@@ -209,10 +214,10 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/detail/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         exist = True
         try:
@@ -230,10 +235,10 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/fork/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)
@@ -243,11 +248,11 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/version/', 
                                 self.concept_everybody_can_edit.history.first().history_id, '/detail/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         exist = True
         try:
@@ -265,11 +270,11 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/version/', 
                                 self.concept_everybody_can_edit.history.first().history_id, '/revert/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)
@@ -279,10 +284,10 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/detail/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         exist = True
         try:
@@ -300,10 +305,10 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/fork/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)
@@ -313,11 +318,11 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/version/', 
                                 self.concept_everybody_can_edit.history.first().history_id, '/detail/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         exist = True
         try:
@@ -335,11 +340,11 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/version/', 
                                 self.concept_everybody_can_edit.history.first().history_id, '/revert/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)
@@ -351,9 +356,9 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(su_user, su_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/create/'))
+        browser.get('%s%s' % (self.WEBAPP_HOST, '/concepts/create/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)
@@ -363,10 +368,10 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(su_user, su_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                               self.concept_everybody_can_edit.id, '/update/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)
@@ -376,11 +381,11 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(su_user, su_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/version/', 
                                 self.concept_everybody_can_edit.history.first().history_id, '/detail/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         exist = True
         try:
@@ -398,11 +403,11 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(su_user, su_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/version/', 
                                 self.concept_everybody_can_edit.history.first().history_id, '/revert/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)
@@ -412,10 +417,10 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(su_user, su_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/detail/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         #self.wait_to_be_logged_in(su_user)
         
         exist = True
@@ -434,10 +439,10 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(su_user, su_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/fork/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)
@@ -447,11 +452,11 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(su_user, su_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/version/', 
                                 self.concept_everybody_can_edit.history.first().history_id, '/detail/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         exist = True
         try:
@@ -469,11 +474,11 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(su_user, su_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/version/', 
                                 self.concept_everybody_can_edit.history.first().history_id, '/revert/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)
@@ -486,10 +491,10 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                               self.concept_everybody_can_edit.id, '/update/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)
@@ -499,10 +504,10 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                               self.concept_everybody_can_edit.id, '/update/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue("403: Permission denied" in browser.page_source or 
                         "500: Page unavailable" in browser.page_source)

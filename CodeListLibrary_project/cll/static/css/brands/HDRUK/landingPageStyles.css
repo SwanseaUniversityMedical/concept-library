@@ -332,3 +332,13 @@ white-space:nowrap;
 .child-element {
 display:inline-block;
 }
+
+.overview-text-spacing {
+	font-style: normal;
+	font-size: normal;
+	font-size: 14px;
+	line-height: 23px;
+	padding-top: 10px;
+	padding-bottom: 20px;
+	padding-left: 10px;
+}

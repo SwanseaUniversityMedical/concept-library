@@ -443,7 +443,7 @@ def chk_concept_ids_list(request, concept_ids_list, item_name=''):
                     is_valid_data = False
                     err = item_name + ' must have a unique concept ids list'
                 else:
-                    permittedConcepts = get_list_of_visible_concept_ids(
+                    permittedConcepts = get_list_of_visible_entity_ids(
                                                                         get_visible_live_or_published_concept_versions(request , exclude_deleted = True)
                                                                         , return_id_or_history_id="id")
                     if not (set(concept_ids_list).issubset(set(permittedConcepts))):
@@ -597,3 +597,42 @@ def get_visible_versions_list(request, set_class, pk, is_authenticated_user=True
     
     return rows_to_return
 
+
+def publish_entity(request, set_class, pk):
+    """
+        publish Concepts / Phenotypes directly from API
+        for HDR-UK testing
+        (No validation done here)
+    """
+    
+    latest_version_id = set_class.objects.get(pk=pk).history.latest().history_id
+    is_published = checkIfPublished(set_class, pk, latest_version_id)
+    
+    if is_published:
+        return True
+    
+    
+    if set_class == Concept:
+        concept = Concept.objects.get(pk=pk)
+        published_concept = PublishedConcept(concept=concept, 
+                                            concept_history_id=latest_version_id, 
+                                            created_by=request.user)
+        published_concept.save()
+        return True
+    
+    elif set_class == Phenotype:
+        phenotype = Phenotype.objects.get(pk=pk)
+        published_phenotype = PublishedPhenotype(phenotype=phenotype, 
+                                            phenotype_history_id=latest_version_id, 
+                                            created_by=request.user)
+        published_phenotype.save()
+        return True
+    
+    
+    return False
+
+
+            
+    
+    
+    

@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 {% block title %}{% endblock title %}
+{% block description %} COVID-19 response {% endblock description %}
+{% block keywords %}, covid, research, health, uk, risk, phenotype, calculator, Datamart, OurRisk {% endblock keywords %}
 {% block head %}
 <link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
-<script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
-<!--    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script> -->
 {% endblock head %}
 {% block container %}
 <div class="row">
@@ -57,6 +57,8 @@
       </div>
    </div>
 </div>
+{% endblock container %}
+{% block scripts  %}
 <script type="text/javascript">
    function showSelection(e) {
    		if (document.querySelector('#navList a.active') !== null) {
@@ -70,7 +72,5 @@
    		document.getElementById("covid19Header").click();
    };
 </script>
-{% endblock container %}
-{% block scripts  %}
 {% endblock scripts %}
 
