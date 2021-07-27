@@ -13,20 +13,7 @@ from simple_history.utils import update_change_reason
 
 from itertools import *
 
-from .models.Code import Code
-from .models.CodeList import CodeList
-from .models.CodeRegex import CodeRegex
-from .models.CodingSystem import CodingSystem
-from .models.Component import Component
-from .models.Concept import Concept
-from .models.ConceptTagMap import ConceptTagMap
-from .models.Tag import Tag
-from .models.WorkingSet import WorkingSet
-from .models.WorkingSetTagMap import WorkingSetTagMap
-from .models.PublishedConcept import PublishedConcept
-from .models.Phenotype import Phenotype
-from .models.PublishedPhenotype import PublishedPhenotype
-from .models.ConceptCodeAttribute import ConceptCodeAttribute
+from .models import *
 
 from .permissions import *
 
@@ -2817,7 +2804,7 @@ def get_visible_live_or_published_concept_versions(request
         ]
 
 
-def get_list_of_visible_concept_ids(data, return_id_or_history_id="both"):
+def get_list_of_visible_entity_ids(data, return_id_or_history_id="both"):
     ''' return list of visible concept/(or phenotypes) ids/versions 
     - data: list of dic is the output of get_visible_live_or_published_concept_versions()
                                     or get_visible_live_or_published_phenotype_versions()
@@ -3508,6 +3495,19 @@ def getConceptCodes_withAttributes_HISTORICAL(concept_id, concept_history_date, 
     return  codes_with_attr_df.to_dict('records')
 
         
-        
+#---------------------------------------------------------------------------
+def get_brand_collection_ids(brand_name):
+    """
+        returns list of collections (tags) ids associated with the brand
+    """
+    
+    
+    brand = Brand.objects.get(name = brand_name)
+    brand_collection_ids = list(Tag.objects.filter(collection_brand = brand.id).values_list('id', flat=True))
+    
+    return brand_collection_ids
 
+
+    
+    
         

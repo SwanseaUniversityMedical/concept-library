@@ -654,7 +654,7 @@ def get_visible_concepts(request, get_Published_concepts=True, show_concept_vers
     # This does NOT excludes deleted ones
     from .models.Concept import Concept
     from .models.PublishedConcept import PublishedConcept
-    from db_utils import (get_list_of_visible_concept_ids, get_visible_live_or_published_concept_versions)
+    from db_utils import (get_list_of_visible_entity_ids, get_visible_live_or_published_concept_versions)
     
     user = request.user
     
@@ -674,7 +674,7 @@ def get_visible_concepts(request, get_Published_concepts=True, show_concept_vers
         return query
     
     else:
-        history_ids_list = get_list_of_visible_concept_ids(
+        history_ids_list = get_list_of_visible_entity_ids(
                                                         get_visible_live_or_published_concept_versions(request , exclude_deleted = True)
                                                         , return_id_or_history_id="history_id")  
         return Concept.history.filter(history_id__in = history_ids_list)

@@ -443,7 +443,7 @@ def chk_concept_ids_list(request, concept_ids_list, item_name=''):
                     is_valid_data = False
                     err = item_name + ' must have a unique concept ids list'
                 else:
-                    permittedConcepts = get_list_of_visible_concept_ids(
+                    permittedConcepts = get_list_of_visible_entity_ids(
                                                                         get_visible_live_or_published_concept_versions(request , exclude_deleted = True)
                                                                         , return_id_or_history_id="id")
                     if not (set(concept_ids_list).issubset(set(permittedConcepts))):
