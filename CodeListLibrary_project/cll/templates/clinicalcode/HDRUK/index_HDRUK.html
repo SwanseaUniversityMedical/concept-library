@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 {% block title %}{% endblock title %}
+{% block description %} HDR-UK Phenotype Library {% endblock description %}
+{% block keywords %}, hdr-uk, Phenotype, Phenotypes, Library, Data Science, Concepts, Clinical Codes, Data Sources, Coding Systems, algorithm, Github of phenotyping, EHR phenotyping, algoritm, Caliber {% endblock keywords %}
 {% block head %}
 <link href="{% static 'css/brands/HDRUK/landingPageStyles.css' %}" rel="stylesheet" />
-<script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
-<!--    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script> -->
+<meta charset="UTF-8">
 {% endblock head %}
 {% block container_fluid %}
 <div class="big-banner">
@@ -97,36 +98,44 @@
             <td style="padding-left: 30px;">
                <div class="text-bottom-header">What is a phenotyping algorithm?</div>
                <div class="paddingText">
-                  The <b>HDR UK Phenotype Library</b> is a a national platform for dissemination of citable algorithms (incl. validations) and tools which will reduce duplication of effort and improve research reproducibility. More
-                  information can be found on the <a href="https://www.hdruk.ac.uk/projects/national-phenomics-resource/" target=_blank   rel="noopener noreferrer">HDR website</a>.
+                  When using electronic data sources for health research, understanding the contents of health records and how they relate to the real world is a significant challenge. Health data typically contains a wide variety of detailed information about patients’ health care and treatments, which researchers need to process to answer questions such as “which patients have diabetes?”
                </div>
-               <div class="text-bottom-header" style="padding-top: 30px;">What is the HDR UK Phenotype Library?</div>
                <div class="paddingText">
-                  The <b>HDR UK Phenotype Library</b> is a a national platform for dissemination of citable algorithms (incl. validations) and tools which will reduce duplication of effort and improve research reproducibility. More
-                  information can be found on the <a href="https://www.hdruk.ac.uk/projects/national-phenomics-resource/" target=_blank   rel="noopener noreferrer">HDR website</a>.
-                  More information can be found on the <a href="https://www.hdruk.ac.uk/projects/national-phenomics-resource/" target=_blank   rel="noopener noreferrer">HDR website</a>.
-                  More information can be found on the <a href="https://www.hdruk.ac.uk/projects/national-phenomics-resource/" target=_blank   rel="noopener noreferrer">HDR website</a>.
+                  Phenotyping algorithms are the solutions that researchers create to map complex, sometimes messy health data to real-world concepts of interest, so that the valuable information in these records can be used for research to improve health and well-being..
                </div>
             </td>
          </tr>
       </table>
    </div>
+
+      <div class="overview-text-spacing">
+   <div class="text-bottom-header" style="padding-top: 30px;">How are we enabling this work?</div>
+               <div class="paddingText">
+                  The <b>HDR UK Phenotype Library</b> is a platform to host phenotyping algorithms and harness their power for research. Our aim is to provide researchers with the “GitHub of phenotyping”: an open platform for
+                  <b>creation, storage, dissemination, re-use, evaluation, and citation </b>of curated algorithms and metadata. Our goal is for this to be a place where researchers can share their own work, benefit from what others have shared, and even build new collaborations.
+               As a funded project of <a href="https://www.hdruk.ac.uk/projects/national-phenomics-resource/" target=_blank   rel="noopener noreferrer">HDR UK</a> , our primary goal is to develop a national platform supporting researchers within the United Kingdom, but we don’t want to stop there: we welcome contributions from members of the health research community worldwide.
+               </div>
+               <div class="paddingText">
+            As a funded project of <a href="https://www.hdruk.ac.uk/projects/national-phenomics-resource/" target=_blank   rel="noopener noreferrer">HDR UK</a> , our primary goal is to develop a national platform supporting researchers within the United Kingdom, but we don’t want to stop there: we welcome contributions from members of the health research community worldwide.
+               </div>
+      </div>
+
    <div class="row text-padding-top">
       <div class="column">
          <a style="text-decoration: none; color:black;" href="{% url 'phenotype_list' %}">
             <div class="card pointer">
-               <i class="fas fa-search" style="position:relative; right: 47.5%; font-size: 32px;"></i>
+               <i class="fa fa-search" style="position:relative; right: 47.5%; font-size: 32px;"></i>
                <h4 style="text-align:left">Search</h4>
-               <p style="text-align:left">To submit a phenotype please follow the bellow process. Click on the button below to access the phenotype. To submit a phenotype please follow the bellow process.</p>
+               <p style="text-align:left">Start here to explore phenotypes in our library.</p>
             </div>
          </a>
       </div>
       <div class="column">
          <a style="text-decoration: none; color:black;" href="{% url 'about_page' 'hdruk_about_technical_details' %}">
             <div class="card pointer" >
-               <i class="fas fa-plus" style="position:relative;  right: 47.5%; font-size: 32px;"></i>
+               <i class="fa fa-plus" style="position:relative;  right: 47.5%; font-size: 32px;"></i>
                <h4 style="text-align:left">Submit a Phenotype</h4>
-               <p id="card" style="text-align:left">To submit a phenotype please follow the bellow process. Click on the button below to access the phenotype. To submit a phenotype please follow the bellow process.</p>
+               <p id="card" style="text-align:left">Learn how to contribute your phenotypes to our library.</p>
             </div>
          </a>
       </div>
@@ -135,33 +144,31 @@
    <table class="key-principles-spacing">
       <tr>
          <td>
-            <div>The <b>Library</b> stores phenotyping algorithms, metadata and tools only. No data are stored in the Library.</div>
+            <div>The aim of the Library is not to standardize or harmonize disease definitions, therefore several phenotypes may be stored for the same condition and the onus is on individual researchers to explore which phenotypes they wish to use</div>
          </td>
          <td>
-            <div>Phenotype definitions will be assigned a unique Digital Object Identifier (DOI) to facilitate identification of the phenotype.</div>
+            <div>Phenotype definitions will be assigned a unique Digital Object Identifier (DOI) to facilitate identification of the phenotype</div>
          </td>
       </tr>
       <tr>
          <td>
             <div>
-               Ideally, phenotypes that are deposited in the Library will have undergone some form of peer-review to assess validity and quality either through peer-reviewed publication or some other means of sharing the definition(s)
+                Ideally, phenotypes that are deposited in the Library will have undergone some form of peer-review to assess validity and quality either through peer-reviewed publication or some other means of sharing the definition(s)
             </div>
          </td>
          <td>
             <div>
-               All material deposited in the <b>Library</b> remain the intellectual property of the research group who created the phenotype(s) the default licensing agreement that information is available under is the Creative Commons
-               Attribution 4.0 (CC A).
+               All material deposited in the Library remain the intellectual property of the research group who created the phenotype(s) the default licensing agreement that information is available under is the Creative Commons Attribution 4.0 (CC A).
             </div>
          </td>
       </tr>
       <tr>
          <td>
-            <div>All material deposited in the <b>Library</b> remain the intellectual property of the research group who created the phenotype(s) the default licensing agreement that information is available under is the Creative Commons
-               Attribution 4.0 (CC A).
+            <div>The Library stores phenotyping algorithms, metadata and tools only. No data are stored in the Library.
             </div>
          </td>
          <td>
-            <div>Users should cite the <b>Phenotype Library</b> in all publications, presentations and reports as follows: “HDR UK CALIBER<a href="https://portal.caliberresearch.org" target=_blank   rel="noopener noreferrer"> Phenotype Library Website</a></div>
+            <div>Users should cite the Phenotype Library in all publications, presentations and reports as follows: “HDR UK CALIBER Phenotype Library https://portal.caliberresearch.org/”</div>
          </td>
       </tr>
    </table>

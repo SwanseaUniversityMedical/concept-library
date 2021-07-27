@@ -84,7 +84,7 @@ form.example::after {
 
 
 /* Style the counter cards */
-.card {
+.cl-card {
 /*   box-shadow: 0 6px 8px 0 rgba(0, 0, 0, 0.2); this adds the "card" effect */
   padding: 20px;
   text-align: left;
@@ -114,11 +114,11 @@ form.example::after {
 /* 	margin: 16px 0px; */
 }
 
-.card:hover{
+.cl-card:hover{
     background-color: lightgoldenrodyellow;
 }
 
-.card-deleted{
+.cl-card-deleted{
     background-color:#FCC !important;
 }
 

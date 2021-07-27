@@ -13,11 +13,7 @@
 
 {% block container %}
 
-{% if user.is_authenticated and not is_latest_version  %}
-	<h2 style="background-color:silver; padding-left:5px;"><i class="fa fa-history" aria-hidden="true"></i><i> {{ workingset.name }} <br>(Historical)</i>
-{% else %}
-	<h2><i class="fa fa-file-o" aria-hidden="true"></i><i> {{ workingset.name }} </i>		
-{% endif %}	
+<h2><i> {{ workingset.name }} </i>		
 	{% for item in request.BRAND_GROUPS %}
 		{% for brand, groups in item.iteritems %}
 			{% if workingset.group.name in groups %}

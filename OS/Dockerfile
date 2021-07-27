@@ -5,8 +5,11 @@ ARG DEBIAN_FRONTEND=noninteractive
 EXPOSE 80
 EXPOSE 443
 
-ENV http_proxy=http://192.168.10.15:8080 
-ENV https_proxy=http://192.168.10.15:8080
+#ENV http_proxy=http://192.168.10.15:8080
+#ENV https_proxy=http://192.168.10.15:8080
+
+#ENV pip_proxy="--proxy http://192.168.10.15:8080"
+#ENV pip_proxy=""
 
 # update packages
 RUN \
@@ -26,7 +29,7 @@ RUN apt-get install -y -q libsasl2-dev python-dev libldap2-dev libssl-dev
 # install & upgrade pip
 RUN \
   apt-get install -y -q python-pip && \
-  pip --proxy http://192.168.10.15:8080 install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip==20.2
+  pip ${pip_proxy} install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip==20.2
 
 
 #RUN \

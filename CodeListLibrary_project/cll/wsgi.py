@@ -12,7 +12,21 @@ import sys
 
 from django.core.wsgi import get_wsgi_application
 
+# if 'test' in sys.argv:
+#     # if a command contains read_only phrase at the end, then read cll.read_only_test_settings otherwise cll.test_settings
+#     if 'read_only' in sys.argv[-1]:
+#         os.environ["DJANGO_SETTINGS_MODULE"] = "cll.read_only_test_settings"
+#         print("<<<<<<<  WSGI Running read-Only Tests   >>>>>>>")
+#     else:
+#         os.environ["DJANGO_SETTINGS_MODULE"] = "cll.test_settings"
+#         print("<<<<<<< WSGI  Running Tests  >>>>>>>")
+#     
+# else:
+#     os.environ["DJANGO_SETTINGS_MODULE"] = "cll.settings"
+        
 os.environ["DJANGO_SETTINGS_MODULE"] = "cll.settings"
+
+
 
 
 path_prj = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

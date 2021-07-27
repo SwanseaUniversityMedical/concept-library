@@ -29,27 +29,26 @@ from cll import test_settings as settings_cll
 class VersioningTest(StaticLiveServerTestCase):
     
     def setUp(self):
-        chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_argument('--headless')
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        
-        chrome_options.add_argument("--start-maximized")
-        chrome_options.add_argument("--disable-gpu")
-        #chrome_options.add_argument("--window-size=1280,800")
-        chrome_options.add_argument("--allow-insecure-localhost")
-        
         location = os.path.dirname(__file__)
-        if settings_cll.IS_LINUX:
-            self.browser = webdriver.Chrome(os.path.join(location, "chromedriver"), chrome_options=chrome_options)
+        if settings_cll.REMOTE_TEST:
+            self.browser = webdriver.Remote(command_executor=settings_cll.REMOTE_TEST_HOST,
+                                            desired_capabilities=settings_cll.chrome_options.to_capabilities())
+            self.browser.implicitly_wait(settings.IMPLICTLY_WAIT)
         else:
-            self.browser = webdriver.Chrome(os.path.join(location, "chromedriver.exe"), chrome_options=chrome_options)
+            if settings_cll.IS_LINUX:
+                    self.browser = webdriver.Chrome(os.path.join(location, "chromedriver"), chrome_options=settings_cll.chrome_options)
+            else:
+                    self.browser = webdriver.Chrome(os.path.join(location, "chromedriver.exe"), chrome_options=settings_cll.chrome_options)
         super(VersioningTest, self).setUp()
 
         super(VersioningTest, self).setUp()
         
         self.factory = RequestFactory()
         
+        self.WEBAPP_HOST = self.live_server_url.replace('localhost', '127.0.0.1')
+        if settings.REMOTE_TEST:
+            self.WEBAPP_HOST = settings.WEBAPP_HOST
+                    
         '''data'''
         super_user = User.objects.create_superuser(username=su_user, password=su_password, email=None)
         self.normal_user = User.objects.create_user(username=nm_user, password=nm_password, email=None)
@@ -185,7 +184,7 @@ class VersioningTest(StaticLiveServerTestCase):
         self.browser.find_element_by_name('password').send_keys(Keys.ENTER)
       
     def logout(self):
-        self.browser.get('%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/account/logout/?next=/account/login/'))
+        self.browser.get('%s%s' % (self.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
       
         
     def wait_to_be_logged_in(self, username):
@@ -217,10 +216,10 @@ class VersioningTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/detail/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         table = self.browser.find_element_by_id('history-table')
         table_rows = table.find_elements_by_tag_name('tr')
@@ -249,10 +248,10 @@ class VersioningTest(StaticLiveServerTestCase):
         browser = self.browser
         print("WORKINGSET ID", self.workingset_everybody_can_edit.id)
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
                                 self.workingset_everybody_can_edit.id, '/detail/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         #self.wait_to_be_logged_in(ow_user)
         
         table = self.browser.find_element_by_id('history-table')
@@ -284,11 +283,11 @@ class VersioningTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/detail/'))
         
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         table = self.browser.find_element_by_id('history-table')
         table_rows = table.find_elements_by_tag_name('tr')
@@ -309,10 +308,10 @@ class VersioningTest(StaticLiveServerTestCase):
         browser = self.browser
         print("WORKINGSET ID", self.workingset_everybody_can_edit.id)
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
                                 self.workingset_everybody_can_edit.id, '/detail/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         table = self.browser.find_element_by_id('history-table')
         table_rows = table.find_elements_by_tag_name('tr')
@@ -335,10 +334,10 @@ class VersioningTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/detail/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         links = self.browser.find_elements_by_class_name('version-link')
         
@@ -362,9 +361,9 @@ class VersioningTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/'))
+        browser.get('%s%s' % (self.WEBAPP_HOST, '/workingsets/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         links = self.browser.find_elements_by_class_name('version-link')
         
@@ -394,11 +393,11 @@ class VersioningTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/version/',
                                 latest_version,'/detail/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
 
         url = ('%s%s%s' % ('/concepts/', 
@@ -431,11 +430,11 @@ class VersioningTest(StaticLiveServerTestCase):
         
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/workingsets/', 
-                                self.workingset_everybody_can_edit.id, '/history/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+                                self.workingset_everybody_can_edit.id, '/version/',
                                 latest_version,'/detail/'))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         url = ('%s%s%s' % ('/workingsets/', 
                                 self.workingset_everybody_can_edit.id, '/export/codes'))
@@ -468,12 +467,12 @@ class VersioningTest(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         
-        browser.get(self.live_server_url.replace('localhost', '127.0.0.1'))
+        browser.get(self.WEBAPP_HOST)
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         # get the test server url
-        browser.get('%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/api/export_concept_codes/', 
+        browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/export_concept_codes/',
                                 self.concept_everybody_can_edit.id))
         
         tree = ET.fromstring(browser.page_source)
@@ -488,14 +487,14 @@ class VersioningTest(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         
-        browser.get(self.live_server_url.replace('localhost', '127.0.0.1'))
+        browser.get(self.WEBAPP_HOST)
         
         
         # get the test server url
-        browser.get('%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/api/export_workingset_codes/', 
+        browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/export_workingset_codes/',
                                 self.workingset_everybody_can_edit.id))    
         
-        time.sleep(3)    
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         tree = ET.fromstring(browser.page_source)
         
@@ -511,13 +510,13 @@ class VersioningTest(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get(self.live_server_url.replace('localhost', '127.0.0.1'))
+        browser.get(self.WEBAPP_HOST)
 
         
         
-        browser.get('%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/api/export_concept_codes/', 
+        browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/export_concept_codes/',
                                 self.concept_everybody_can_edit.id))
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue(self.code.code in browser.page_source and
                          self.concept_everybody_can_edit.name in browser.page_source)
@@ -528,14 +527,14 @@ class VersioningTest(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get(self.live_server_url.replace('localhost', '127.0.0.1'))
+        browser.get(self.WEBAPP_HOST)
 
        
         
-        browser.get('%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/api/export_workingset_codes/', 
+        browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/export_workingset_codes/',
                                 self.workingset_everybody_can_edit.id))
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         
         self.assertTrue(self.code.code in browser.page_source and
                          self.concept_everybody_can_edit.name in browser.page_source)
@@ -551,11 +550,11 @@ class VersioningTest(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.live_server_url.replace('localhost', '127.0.0.1'), '/concepts/', 
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
                                 self.concept_everybody_can_edit.id, '/update/'))
         
         
-        time.sleep(3)
+        time.sleep(settings.TEST_SLEEP_TIME)
         #add child
         browser.find_element_by_css_selector('button.btn.btn-primary.dropdown-toggle').click()
         browser.find_element_by_link_text("Concept").click()

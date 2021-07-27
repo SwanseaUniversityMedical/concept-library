@@ -241,7 +241,7 @@ def api_workingset_create(request):
                         errors_dict['concept_informations'] = 'concept_informations must have a unique concept ids list'
                     else:
                         # check all concepts are permitted/or published
-                        permittedConcepts = get_list_of_visible_concept_ids(
+                        permittedConcepts = get_list_of_visible_entity_ids(
                                                                             get_visible_live_or_published_concept_versions(request , exclude_deleted = True)
                                                                             , return_id_or_history_id="id")
                         if not (set(concept_ids_list).issubset(set(permittedConcepts))):
@@ -425,7 +425,7 @@ def api_workingset_update(request):
                         errors_dict['concept_informations'] = 'concept_informations must have a unique concept ids list'
                     else:
                         # check all concepts are permitted
-                        permittedConcepts = get_list_of_visible_concept_ids(
+                        permittedConcepts = get_list_of_visible_entity_ids(
                                                                             get_visible_live_or_published_concept_versions(request , exclude_deleted = True)
                                                                             , return_id_or_history_id="id")               
                         if not (set(concept_ids_list).issubset(set(permittedConcepts))):

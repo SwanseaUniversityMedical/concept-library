@@ -189,6 +189,12 @@ def phenotype_list(request):
         p = paginator.page(paginator.num_pages)
 
     p_btns = utils.get_paginator_pages(paginator, p)
+    
+    tag_ids2 = tag_ids
+    tag_ids_list = []
+    if tag_ids:
+        tag_ids_list = [int(t) for t in tag_ids.split(',')]
+        
     return render(request, 'clinicalcode/phenotype/index.html', {
         'page': page,
         'page_size': str(page_size),
@@ -198,6 +204,8 @@ def phenotype_list(request):
         'show_my_phenotypes': show_my_phenotypes,
         'show_deleted_phenotypes': show_deleted_phenotypes,
         'tags': tags,
+        'tag_ids': tag_ids2,
+        'tag_ids_list': tag_ids_list,        
         'owner': owner,
         'show_only_validated_phenotypes': show_only_validated_phenotypes,
         'allowed_to_create': not settings.CLL_READ_ONLY,
