@@ -301,3 +301,31 @@ def moveTags(request):
 #                    )
 #             
 #             
+
+
+
+def update_concept_tags_from_phenotype_tags():
+    
+    phenotypes = Phenotype.objects.all()
+    for p in phenotypes:
+        concept_id_list = [x['concept_id'] for x in json.loads(p.concept_informations)] 
+        concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(p.concept_informations)] 
+        concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list) 
+   
+        for c in concepts: 
+            with connection.cursor() as cursor:
+                sql = """ UPDATE clinicalcode_historicalconcept 
+                            SET tags = '{""" + ','.join([str(i) for i in p.tags]) + """}'
+                            WHERE id="""+str(c.id)+""" and history_id="""+str(c.history_id)+""";
+                    """ 
+                cursor.execute(sql)
+                sql2 = """ UPDATE clinicalcode_concept 
+                            SET tags = '{""" + ','.join([str(i) for i in p.tags]) + """}'
+                            WHERE id="""+str(c.id)+"""  ;
+                    """ 
+                cursor.execute(sql2)
+                  
+                print("phenotype/concept: " + p.name + "/"+c.name+":: tags moved")
+
+        
+        
