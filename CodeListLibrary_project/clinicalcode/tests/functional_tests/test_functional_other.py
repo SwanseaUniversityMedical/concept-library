@@ -503,6 +503,7 @@ class OtherTest(StaticLiveServerTestCase):
         self.assertTrue(is_disabled)
 
         # Try to export to csv bu URL
+        # Todo needs to be confirmed which url should be used for reverse
         browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
                                   self.concept_everybody_can_view.id, '/export/concepts/'))
 
@@ -511,8 +512,12 @@ class OtherTest(StaticLiveServerTestCase):
         self.assertTrue("403: Permission denied" in browser.page_source or
                         "500: Page unavailable" in browser.page_source)
 
-        browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/export_workingset_codes/',
-                                self.workingset_everybody_can_edit.id))
+        # browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/export_workingset_codes/',
+        #                        self.workingset_everybody_can_edit.id))
+
+        browser.get(self.WEBAPP_HOST + reverse('api:api_export_workingset_codes'
+                                               , kwargs={'pk': self.workingset_everybody_can_edit.id})
+                    )
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
         self.assertTrue("Permission denied" in browser.page_source)
@@ -637,8 +642,12 @@ class OtherTest(StaticLiveServerTestCase):
         browser.get('%s' % (self.WEBAPP_HOST))
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/export_concept_codes/',
-                                self.concept_none_can_access.id))
+        # browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/export_concept_codes/',
+        #                        self.concept_none_can_access.id))
+
+        browser.get(self.WEBAPP_HOST + reverse('api:api_export_concept_codes'
+                                               , kwargs={'pk': self.concept_none_can_access.id})
+                    )
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
         self.assertTrue("Permission denied." in browser.page_source)
@@ -656,8 +665,13 @@ class OtherTest(StaticLiveServerTestCase):
         browser.get('%s' % (self.WEBAPP_HOST))
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/export_workingset_codes/',
-                                self.workingset_none_can_access.id))
+        # browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/export_workingset_codes/',
+        #                        self.workingset_none_can_access.id))
+
+        browser.get(self.WEBAPP_HOST + reverse('api:api_export_workingset_codes'
+                                               , kwargs={'pk': self.workingset_none_can_access.id})
+                    )
+
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
         self.assertTrue("Permission denied" in browser.page_source)

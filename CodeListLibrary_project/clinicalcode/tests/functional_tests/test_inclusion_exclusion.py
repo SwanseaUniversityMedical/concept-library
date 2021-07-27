@@ -9,18 +9,20 @@ from clinicalcode.models.CodeList import CodeList
 from clinicalcode.models.Code import Code
 from clinicalcode.models.CodeRegex import CodeRegex
 from clinicalcode.views.Concept import concept_codes_to_csv
-#from clinicalcode.publicsites.views import published_concept_codes_to_csv
+# from clinicalcode.publicsites.views import published_concept_codes_to_csv
 
 from django.test import TestCase, TransactionTestCase
 from datetime import datetime
 from django.test import RequestFactory
 
-from cll import test_settings as settings
+# from cll import test_settings as settings
 from cll import test_settings as settings_cll
+from rest_framework.reverse import reverse
 
 from unittest.case import skip
 
-#@skip("skip for now")
+
+# @skip("skip for now")
 class InclusionExclusionTest(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -39,7 +41,6 @@ class InclusionExclusionTest(TestCase):
             code_column_name="code",
             desc_column_name="description")
         coding_system.save()
-
 
         '''
             level 4
@@ -127,7 +128,6 @@ class InclusionExclusionTest(TestCase):
         cls.excl_comp_type4_4 = cls.create_component_with_codes(cls, comp_type=4, log_type=2, comp_name="excluded component 5", comp_parent=cls.incl_level4,
                                                                 code_list_description="included code list", codes_names_list=["i10"])'''
 
-        
         '''
             level 3
         '''
@@ -171,7 +171,6 @@ class InclusionExclusionTest(TestCase):
         cls.excl_comp_type3_3 = cls.create_component_with_codes(cls, comp_type=3, log_type=2, comp_name="excluded component 4", comp_parent=cls.incl_level3,
                                                                 code_list_description="excluded code list", codes_names_list=["i2"])'''
 
-        
         '''
             level 2
         '''
@@ -206,9 +205,6 @@ class InclusionExclusionTest(TestCase):
 
         cls.excl_comp_type2_2 = cls.create_component_with_codes(cls, comp_type=2, log_type=2, comp_name="excluded component 3", comp_parent=cls.level2,
                                                                 code_list_description="excluded code list", codes_names_list=["e6", "e7", "i5"])'''
-
-        
-
 
         '''
             level 1
@@ -257,7 +253,6 @@ class InclusionExclusionTest(TestCase):
         cls.excl_comp_type4_1 = cls.create_component_with_codes(cls, comp_type=4, log_type=2, comp_name="excluded component 2", comp_parent=cls.level1,
                                                                 code_list_description="excluded code list", codes_names_list=["ic3", "ic8"])'''
 
-
         '''
             root
         '''
@@ -283,49 +278,61 @@ class InclusionExclusionTest(TestCase):
             world_access=Permissions.EDIT
         )
 
-        
-        cls.incl_child_component_1 = cls.create_component_with_codes(cls, comp_type=1, log_type=1, comp_name="included child concept", comp_parent=cls.root,
-                                                                     code_list_description="included code list", codes_names_list=["i100", "i200", "i300"], concept_ref=cls.level1,
+        cls.incl_child_component_1 = cls.create_component_with_codes(cls, comp_type=1, log_type=1,
+                                                                     comp_name="included child concept",
+                                                                     comp_parent=cls.root,
+                                                                     code_list_description="included code list",
+                                                                     codes_names_list=["i100", "i200", "i300"],
+                                                                     concept_ref=cls.level1,
                                                                      concept_ref_history_id=cls.level1.history.first().history_id)
 
-        cls.excl_child_component_1 = cls.create_component_with_codes(cls, comp_type=1, log_type=2, comp_name="excluded child concept", comp_parent=cls.root,
-                                                                     code_list_description="included code list", codes_names_list=["i300"], concept_ref=cls.level1,
+        cls.excl_child_component_1 = cls.create_component_with_codes(cls, comp_type=1, log_type=2,
+                                                                     comp_name="excluded child concept",
+                                                                     comp_parent=cls.root,
+                                                                     code_list_description="included code list",
+                                                                     codes_names_list=["i300"], concept_ref=cls.level1,
                                                                      concept_ref_history_id=cls.level1.history.first().history_id)
 
-        cls.incl_comp_type2 = cls.create_component_with_codes(cls, comp_type=2, log_type=1, comp_name="included component", comp_parent=cls.root,
-                                                              code_list_description="included code list", codes_names_list=["i1", "i2", "i3"])
+        cls.incl_comp_type2 = cls.create_component_with_codes(cls, comp_type=2, log_type=1,
+                                                              comp_name="included component", comp_parent=cls.root,
+                                                              code_list_description="included code list",
+                                                              codes_names_list=["i1", "i2", "i3"])
 
-        cls.excl_comp_type2 = cls.create_component_with_codes(cls, comp_type=2, log_type=2, comp_name="excluded component", comp_parent=cls.root,
-                                                              code_list_description="excluded code list", codes_names_list=["i1", "e2"])
+        cls.excl_comp_type2 = cls.create_component_with_codes(cls, comp_type=2, log_type=2,
+                                                              comp_name="excluded component", comp_parent=cls.root,
+                                                              code_list_description="excluded code list",
+                                                              codes_names_list=["i1", "e2"])
 
-        cls.incl_comp_type3 = cls.create_component_with_codes(cls, comp_type=3, log_type=1, comp_name="included component", comp_parent=cls.root,
-                                                              code_list_description="included code list", codes_names_list=["ic1", "ic2"])
+        cls.incl_comp_type3 = cls.create_component_with_codes(cls, comp_type=3, log_type=1,
+                                                              comp_name="included component", comp_parent=cls.root,
+                                                              code_list_description="included code list",
+                                                              codes_names_list=["ic1", "ic2"])
 
-        cls.excl_comp_type3 = cls.create_component_with_codes(cls, comp_type=3, log_type=2, comp_name="excluded component", comp_parent=cls.root,
-                                                              code_list_description="excluded code list", codes_names_list=["ic2", "ec1"])
+        cls.excl_comp_type3 = cls.create_component_with_codes(cls, comp_type=3, log_type=2,
+                                                              comp_name="excluded component", comp_parent=cls.root,
+                                                              code_list_description="excluded code list",
+                                                              codes_names_list=["ic2", "ec1"])
 
-        cls.incl_comp_type4 = cls.create_component_with_codes(cls, comp_type=4, log_type=1, comp_name="included component", comp_parent=cls.root,
-                                                              code_list_description="included code list", codes_names_list=["ic3", "ic4"])
+        cls.incl_comp_type4 = cls.create_component_with_codes(cls, comp_type=4, log_type=1,
+                                                              comp_name="included component", comp_parent=cls.root,
+                                                              code_list_description="included code list",
+                                                              codes_names_list=["ic3", "ic4"])
 
-        cls.excl_comp_type4 = cls.create_component_with_codes(cls, comp_type=4, log_type=2, comp_name="excluded component", comp_parent=cls.root,
-                                                              code_list_description="excluded code list", codes_names_list=["ic4"])
+        cls.excl_comp_type4 = cls.create_component_with_codes(cls, comp_type=4, log_type=2,
+                                                              comp_name="excluded component", comp_parent=cls.root,
+                                                              code_list_description="excluded code list",
+                                                              codes_names_list=["ic4"])
 
         cls.root.save()
 
-        
+        cls.output = ['i2', 'i3', 'ic1', 'ic3', 'i100', 'i200']
 
-
-
-        cls.output = ['i2', 'i3', 'ic1', 'ic3','i100','i200']
-             
         '''published concept'''
         cls.root_history_id = cls.root.history.first().history_id
-        cls.published_root = PublishedConcept.objects.create(concept=cls.root, 
+        cls.published_root = PublishedConcept.objects.create(concept=cls.root,
                                                              concept_history_id=cls.root_history_id,
                                                              created_by=cls.owner_user)
-        
 
-        
     @classmethod
     def tearDownClass(cls):
         super(InclusionExclusionTest, cls).tearDownClass()
@@ -333,7 +340,8 @@ class InclusionExclusionTest(TestCase):
     # Returns logical type of component and list of codes 
     # Concept ref for reference to the child concept (optional)
     @staticmethod
-    def create_component_with_codes(self, comp_type, log_type, comp_name, comp_parent, code_list_description, codes_names_list, concept_ref=None, concept_ref_history_id=None):
+    def create_component_with_codes(self, comp_type, log_type, comp_name, comp_parent, code_list_description,
+                                    codes_names_list, concept_ref=None, concept_ref_history_id=None):
         component = Component.objects.create(
             component_type=comp_type,
             concept=comp_parent,
@@ -345,8 +353,6 @@ class InclusionExclusionTest(TestCase):
         if comp_type == 1:
             component.concept_ref = concept_ref
             component.concept_ref_history_id = concept_ref_history_id
-
-        
 
         code_list = CodeList.objects.create(
             component=component, description=code_list_description)
@@ -361,13 +367,12 @@ class InclusionExclusionTest(TestCase):
                 code_list=code_list, code=name, description=name)
             code.save()
             list_of_codes.append(code.code)
-        
+
         code_list.save()
         component.save()
         comp_parent.save()
-        
-        return log_type, list_of_codes
 
+        return log_type, list_of_codes
 
     def get_codes_from_response(self, response):
         response = response.splitlines()
@@ -378,7 +383,7 @@ class InclusionExclusionTest(TestCase):
         for r in response:
             code = r.split(",")[0]
             codes.append(code)
-        
+
         # sort both lists
         codes.sort()
         self.output.sort()
@@ -401,25 +406,25 @@ class InclusionExclusionTest(TestCase):
         expected_output = self.output
 
         self.assertEqual(response_codes, expected_output,
-                        "response codes and expected output are not equal")
+                         "response codes and expected output are not equal")
 
-    
     def test_published(self):
-        if settings.ENABLE_PUBLISH:
+        if settings_cll.ENABLE_PUBLISH:
             from clinicalcode.views.Concept import history_concept_codes_to_csv
-             
+
             url = ('%s%s%s%s%s' % ('/concepts/', self.published_root.concept_id
-                               , '/version/', self.published_root.concept_history_id
-                               , '/export/codes'))
-    
+                                   , '/version/', self.published_root.concept_history_id
+                                   , '/export/codes'))
+
             request = self.factory.get(url)
             request.user = self.owner_user
-    
-            response = history_concept_codes_to_csv(request, self.published_root.concept_id, self.published_root.concept_history_id)
-    
+
+            response = history_concept_codes_to_csv(request, self.published_root.concept_id,
+                                                    self.published_root.concept_history_id)
+
             response_codes = self.get_codes_from_response(response.content)
-    
+
             expected_output = self.output
-    
+
             self.assertEqual(response_codes, expected_output,
-                            "response codes and expected output are not equal")
+                             "response codes and expected output are not equal")
