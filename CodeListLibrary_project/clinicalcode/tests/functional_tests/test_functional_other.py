@@ -490,7 +490,7 @@ class OtherTest(StaticLiveServerTestCase):
         #                          self.workingset_everybody_can_edit.id, '/detail/'))
         #
         browser.get(self.WEBAPP_HOST + reverse('workingset_detail'
-                                               , kwargs={'pk': self.concept_everybody_can_edit.id,
+                                               , kwargs={'pk': self.workingset_everybody_can_edit.id,
                                                          })
                     )
 
@@ -652,8 +652,13 @@ class OtherTest(StaticLiveServerTestCase):
 
         self.assertTrue("Permission denied." in browser.page_source)
 
-        browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/concepts/',
-                                self.concept_none_can_access.id))
+        # browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/concepts/',
+        #                       self.concept_none_can_access.id))
+
+        browser.get(self.WEBAPP_HOST + reverse('api:concept_by_id'
+                                               , kwargs={'pk': self.concept_none_can_access.id,
+                                                         })
+                    )
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
         self.assertTrue("Not found." in browser.page_source)
@@ -828,6 +833,7 @@ class OtherTest(StaticLiveServerTestCase):
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
         browser.get('%s%s' % (self.WEBAPP_HOST, '/api/'))
+
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
         exist = True
@@ -1002,7 +1008,7 @@ class OtherTest(StaticLiveServerTestCase):
         #                        self.workingset_with_excluded_and_included_codes.id))
 
         browser.get(self.WEBAPP_HOST + reverse('api:api_export_workingset_codes'
-                                               , kwargs={'pk': self.workingset_with_excluded_codes.id})
+                                               , kwargs={'pk': self.workingset_with_excluded_and_included_codes.id})
                     )
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
