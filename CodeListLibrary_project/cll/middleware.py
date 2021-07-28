@@ -113,7 +113,11 @@ class brandMiddleware(MiddlewareMixin):
 
             if settings.DEBUG:
                 print request.path_info
-                print str(request.get_full_path() ) 
+                print str(request.get_full_path())
+               
+            # Do NOT allow concept create under HDRUK - for now 
+            if str(request.get_full_path()).upper() == "/HDRUK/concepts/create/".upper():
+                raise PermissionDenied
                  
             #print "get_urlconf=" , str(get_urlconf())  
             #print "settings.CURRENT_BRAND=" , settings.CURRENT_BRAND  

@@ -560,59 +560,19 @@ def phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
      
 @login_required
 def phenotype_create(request):      
-        
-    return redirect('phenotype_list')
-###################################################        
+    """
+        create a phenotype
+    """     
     # TODO: implement this
-    #pass
+    pass
 
-###################################################
-# #     ph = Phenotype.objects.all()
-# #     for p in ph:
-# #         p.save()
-# #         p.save()
-#         
-#     import random
-#     new_phenotype = Phenotype()
-#     new_phenotype.phenotype_uuid = "1000" + str(random.randrange(100))
-#     new_phenotype.title = "Xxz20 33" + str(random.randint(0, 100))
-#     new_phenotype.name = "ZXY 00" + str(random.randrange(100))
-#     new_phenotype.author = "me"
-#     new_phenotype.layout = "layout"
-#     new_phenotype.type = "2"
-#     new_phenotype.validation = "True"
-#     new_phenotype.valid_event_data_range_start = datetime.now()
-#     new_phenotype.valid_event_data_range_end = datetime.now()
-#     new_phenotype.sex = "M"
-#     new_phenotype.status = "9"
-#     new_phenotype.hdr_created_date = datetime.now()
-#     new_phenotype.hdr_modified_date = datetime.now()
-#     new_phenotype.publications = "publications"
-#     new_phenotype.publication_doi = ""
-#     new_phenotype.publication_link = ""
-#     new_phenotype.secondary_publication_links = ""
-#     new_phenotype.source_reference = ""
-#     new_phenotype.citation_requirements = ""
-#     new_phenotype.concept_informations = "\"[{\"concept_version_id\": 12870, \"concept_id\": 3790, \"attributes\": []}, {\"concept_version_id\": 12872, \"concept_id\": 3791, \"attributes\": []}]\""
-#      
-#     new_phenotype.created_by = request.user
-#     new_phenotype.owner_access = Permissions.EDIT
-#     new_phenotype.owner_id = request.user.id
-#      
-#     new_phenotype.group_id = None
-#     new_phenotype.group_access = 1
-#     new_phenotype.world_access = 1
-#      
-#     new_phenotype.save()
-#     new_phenotype.save()
 
-#    return redirect('phenotype_list')
 
 
 class PhenotypeUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeCheckMixin, UpdateView):
-    '''
+    """
         Update the current phenotype.
-    '''
+    """
     # ToDo
     pass
 

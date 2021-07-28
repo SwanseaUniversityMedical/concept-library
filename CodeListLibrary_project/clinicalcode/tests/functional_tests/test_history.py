@@ -16,12 +16,13 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from datetime import datetime
+from rest_framework.reverse import reverse
 from urlparse import urlparse
 import unittest
 
-#from django.conf import settings
-#from cll import settings as settings_cll
-from cll import test_settings as settings
+# from django.conf import settings
+# from cll import settings as settings_cll
+# from cll import test_settings as settings
 from cll import test_settings as settings_cll
 
 import time
@@ -30,7 +31,7 @@ import time
 class HistoryTest(StaticLiveServerTestCase):
 
     def setUp(self):
-        
+
         location = os.path.dirname(__file__)
         if settings_cll.REMOTE_TEST:
             self.browser = webdriver.Remote(command_executor=settings_cll.REMOTE_TEST_HOST,
@@ -39,16 +40,16 @@ class HistoryTest(StaticLiveServerTestCase):
         else:
             if settings_cll.IS_LINUX:
                 self.browser = webdriver.Chrome(os.path.join(
-                        location, "chromedriver"), chrome_options=settings_cll.chrome_options)
+                    location, "chromedriver"), chrome_options=settings_cll.chrome_options)
             else:
                 self.browser = webdriver.Chrome(os.path.join(
-                        location, "chromedriver.exe"), chrome_options=settings_cll.chrome_options)
+                    location, "chromedriver.exe"), chrome_options=settings_cll.chrome_options)
         super(HistoryTest, self).setUp()
 
         self.WEBAPP_HOST = self.live_server_url.replace('localhost', '127.0.0.1')
-        if settings.REMOTE_TEST:
-            self.WEBAPP_HOST = settings.WEBAPP_HOST
-        #self.factory = RequestFactory()
+        if settings_cll.REMOTE_TEST:
+            self.WEBAPP_HOST = settings_cll.WEBAPP_HOST
+        # self.factory = RequestFactory()
 
         self.owner_user = User.objects.create_user(
             username=ow_user, password=ow_password, email=None)
@@ -90,16 +91,17 @@ class HistoryTest(StaticLiveServerTestCase):
             created_by=self.owner_user
         )
         self.tag.save()
-        
+
         '''self.conceptTag = ConceptTagMap.objects.create(
             concept=self.concept1,
             tag = self.tag,
             created_by=self.owner_user
         )'''
 
-
-        self.comp1 = self.create_component_with_codes(self, comp_type=4, log_type=1, comp_name="comp1", comp_parent=self.concept1,
-                                                                code_list_description="com1 comp 1", codes_names_list=["i1", "i2"])
+        self.comp1 = self.create_component_with_codes(self, comp_type=4, log_type=1, comp_name="comp1",
+                                                      comp_parent=self.concept1,
+                                                      code_list_description="com1 comp 1",
+                                                      codes_names_list=["i1", "i2"])
 
         self.comp_pk = self.comp1[0].pk
 
@@ -117,16 +119,17 @@ class HistoryTest(StaticLiveServerTestCase):
 
     def logout(self):
         self.browser.get('%s%s' % (self.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
-      
-        
+
     def wait_to_be_logged_in(self, username):
         wait = WebDriverWait(self.browser, 10)
-        element = wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, 'p.navbar-text'), username)) 
-    
-    # Returns logical type of component and list of codes
+        element = wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, 'p.navbar-text'), username))
+
+        # Returns logical type of component and list of codes
+
     # Concept ref for reference to the child concept (optional)
     @staticmethod
-    def create_component_with_codes(self, comp_type, log_type, comp_name, comp_parent, code_list_description, codes_names_list, concept_ref=None, concept_ref_history_id=None):
+    def create_component_with_codes(self, comp_type, log_type, comp_name, comp_parent, code_list_description,
+                                    codes_names_list, concept_ref=None, concept_ref_history_id=None):
         component = Component.objects.create(
             component_type=comp_type,
             concept=comp_parent,
@@ -138,8 +141,6 @@ class HistoryTest(StaticLiveServerTestCase):
         if comp_type == 1:
             component.concept_ref = concept_ref
             component.concept_ref_history_id = concept_ref_history_id
-
-        
 
         code_list = CodeList.objects.create(
             component=component, description=code_list_description)
@@ -155,19 +156,19 @@ class HistoryTest(StaticLiveServerTestCase):
                 code_list=code_list, code=name, description="isudhfsuidhf")
             code.save()
             list_of_codes.append(code)
-        
+
         code_list.save()
         component.save()
         comp_parent.save()
-        
-        return component, log_type, list_of_codes
 
+        return component, log_type, list_of_codes
 
     '''
         Select/express component is edited then concept is saved.
         The test checks if latest historical version of the concept contains
         the correct version of the component.
     '''
+
     def test_select_comp_after_edit(self):
 
         # remove one code and update the concept
@@ -176,21 +177,26 @@ class HistoryTest(StaticLiveServerTestCase):
         self.concept1.save()
 
         self.login(ow_user, ow_password)
-        
+
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
-                                  self.concept1.id, '/update/'))
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        #                          self.concept1.id, '/update/'))
+        browser.get(self.WEBAPP_HOST + reverse('concept_update'
+                                               , kwargs={'pk': self.concept1.id,
+                                                         })
+                    )
 
-        time.sleep(settings.TEST_SLEEP_TIME)
+        time.sleep(settings_cll.TEST_SLEEP_TIME)
 
         # go to the latest historical version of the concept
-        href = "/concepts/" + str(self.concept1.id) + "/version/" + str(self.concept1.history.first().history_id) + "/detail/"
-        browser.find_element_by_xpath('//a[@href="'+ href +'"]').click()
+        href = "/concepts/" + str(self.concept1.id) + "/version/" + str(
+            self.concept1.history.first().history_id) + "/detail/"
+        browser.find_element_by_xpath('//a[@href="' + href + '"]').click()
 
         # click the component details button
         id = "code-preview-" + str(self.comp_pk)
-        browser.find_element_by_xpath('//button[@id="'+ id +'"]').click()
+        browser.find_element_by_xpath('//button[@id="' + id + '"]').click()
 
         time.sleep(2)
 
@@ -202,19 +208,23 @@ class HistoryTest(StaticLiveServerTestCase):
         name = browser.find_element_by_xpath('//tbody[@id="expressionSelectContentArea"]/tr/td').text
         self.assertEqual(name, "i2")
 
-
     '''
         Concept with a tag is created. Test checks if the latest historical version
         of the concept contains the tag.
     '''
+
     def test_history_tags(self):
         self.login(ow_user, ow_password)
-        
+
         browser = self.browser
         # get the test server url
         browser.get('%s%s' % (self.WEBAPP_HOST, '/concepts/create'))
 
-        time.sleep(settings.TEST_SLEEP_TIME)
+        browser.get(self.WEBAPP_HOST + reverse('concept_create'
+                                               , kwargs=None)
+                    )
+
+        time.sleep(settings_cll.TEST_SLEEP_TIME)
 
         # create a concept
         browser.find_element_by_id('id_name').send_keys("concept2")
@@ -237,7 +247,7 @@ class HistoryTest(StaticLiveServerTestCase):
 
         # go to the latest historical version of the concept
         href = "/concepts/" + str(concept.id) + "/version/" + str(concept.history.first().history_id) + "/detail/"
-        browser.find_element_by_xpath('//a[@href="'+ href +'"]').click()
+        browser.find_element_by_xpath('//a[@href="' + href + '"]').click()
 
         # TO-DO assertTrue or equal that tag exist
         self.assertTrue("tagTest" in browser.page_source)
