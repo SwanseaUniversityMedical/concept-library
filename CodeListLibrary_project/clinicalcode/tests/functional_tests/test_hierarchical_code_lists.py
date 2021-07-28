@@ -16,10 +16,11 @@ from datetime import datetime
 from urlparse import urlparse
 import unittest
 
-#from django.conf import settings
-#from cll import settings as settings_cll
-from cll import test_settings as settings
+# from django.conf import settings
+# from cll import settings as settings_cll
+# from cll import test_settings as settings
 from cll import test_settings as settings_cll
+from rest_framework.reverse import reverse
 
 import time
 
@@ -27,7 +28,7 @@ import time
 class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
     def setUp(self):
-        
+
         location = os.path.dirname(__file__)
         if settings_cll.REMOTE_TEST:
             self.browser = webdriver.Remote(command_executor=settings_cll.REMOTE_TEST_HOST,
@@ -36,16 +37,16 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         else:
             if settings_cll.IS_LINUX:
                 self.browser = webdriver.Chrome(os.path.join(
-                        location, "chromedriver"), chrome_options=settings_cll.chrome_options)
+                    location, "chromedriver"), chrome_options=settings_cll.chrome_options)
             else:
                 self.browser = webdriver.Chrome(os.path.join(
-                        location, "chromedriver.exe"), chrome_options=settings_cll.chrome_options)
+                    location, "chromedriver.exe"), chrome_options=settings_cll.chrome_options)
         super(HierarchicalCodeListsTest, self).setUp()
 
         self.WEBAPP_HOST = self.live_server_url.replace('localhost', '127.0.0.1')
-        if settings.REMOTE_TEST:
-            self.WEBAPP_HOST = settings.WEBAPP_HOST
-            
+        if settings_cll.REMOTE_TEST:
+            self.WEBAPP_HOST = settings_cll.WEBAPP_HOST
+
         '''data'''
         self.super_user = User.objects.create_superuser(
             username=su_user, password=su_password, email=None)
@@ -100,7 +101,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
         self.child_concept = self.add_concept(self, name="child concept to be updated", world_access=Permissions.VIEW)
         self.child_component = self.add_child_component(
-            self, name="child to be updated", parent=self.concept_everybody_can_edit, 
+            self, name="child to be updated", parent=self.concept_everybody_can_edit,
             concept_ref=self.child_concept, concept_ref_history_id=self.child_concept.history.first().history_id)
 
         self.concept_only_owner_can_access = self.add_concept(self, name="concept only owner can access",
@@ -110,12 +111,14 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         self.child_concept2 = self.add_concept(
             self, name="child concept 2", world_access=Permissions.VIEW)
         self.child_component2 = self.add_child_component(
-            self, name="child 2", parent=self.child_concept, concept_ref=self.child_concept2, concept_ref_history_id=self.child_concept2.history.first().history_id)
+            self, name="child 2", parent=self.child_concept, concept_ref=self.child_concept2,
+            concept_ref_history_id=self.child_concept2.history.first().history_id)
 
         self.child_concept3 = self.add_concept(
             self, name="child concept 3", world_access=Permissions.VIEW)
         self.child_component3 = self.add_child_component(
-            self, name="child 3", parent=self.child_concept2, concept_ref=self.child_concept3, concept_ref_history_id=self.child_concept3.history.first().history_id)
+            self, name="child 3", parent=self.child_concept2, concept_ref=self.child_concept3,
+            concept_ref_history_id=self.child_concept3.history.first().history_id)
 
     @staticmethod
     def add_concept(self, name, world_access):
@@ -161,22 +164,21 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
             component=child, description="code_list_description")
 
         code_list.save()
-        
+
         # insert some codes as a proper data structure
         Code.objects.create(code_list=code_list, code="c2", description="Test 2")
         Code.objects.create(code_list=code_list, code="c3", description="Test 3")
-    
+
         child.save()
 
         return child
 
     def tearDown(self):
-        #self.browser.refresh()
-        #time.sleep(settings.TEST_SLEEP_TIME)
+        # self.browser.refresh()
+        # time.sleep(settings.TEST_SLEEP_TIME)
 
         self.browser.quit()
         super(HierarchicalCodeListsTest, self).tearDown()
-
 
     def login(self, username, password):
         self.logout()
@@ -186,12 +188,11 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
     def logout(self):
         self.browser.get('%s%s' % (self.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
-      
-        
+
     def wait_to_be_logged_in(self, username):
         wait = WebDriverWait(self.browser, 10)
-        element = wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, 'p.navbar-text'), username)) 
-        
+        element = wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, 'p.navbar-text'), username))
+
     '''
         When a child concept is added to a concept or working set, the latest version is always added.
         Functions checks both concept and workingset.
@@ -203,14 +204,18 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         print("0 concept_latest_version=" + str(concept_latest_version))
         workingset_latest_version = self.workingset_everybody_can_edit.history.first().history_id
         print("0 workingset_latest_version=" + str(workingset_latest_version))
-        
+
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
-                                  self.concept_everybody_can_edit.id, '/update/'))
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        #                         self.concept_everybody_can_edit.id, '/update/'))
+        browser.get(self.WEBAPP_HOST + reverse('concept_update'
+                                               , kwargs={'pk': self.concept_everybody_can_edit.id,
+                                                         })
+                    )
 
-        time.sleep(settings.TEST_SLEEP_TIME)
+        time.sleep(settings_cll.TEST_SLEEP_TIME)
 
         wait = WebDriverWait(self.browser, 10)
         wait.until(EC.presence_of_element_located(
@@ -220,16 +225,16 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
             'conceptTypes')
         btn.click()
 
-        time.sleep(2) # wait for popup
+        time.sleep(2)  # wait for popup
         btn.send_keys(Keys.DOWN)
-        time.sleep(2) 
+        time.sleep(2)
         browser.find_element_by_id(
             'addConcept').click()
 
         wait.until(EC.presence_of_element_located(
             (By.ID, "concept-search-text")))
 
-        #time.sleep(2)
+        # time.sleep(2)
         concept_search_field = browser.find_element_by_id(
             "concept-search-text")
 
@@ -243,32 +248,33 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         concept_search_field.send_keys(Keys.DOWN)
         concept_search_field.send_keys(Keys.ENTER)
 
-        time.sleep(10) 
-#         #component_name = browser.find_element_by_id("id_name")
-#         #component_name = browser.find_element_by_name("name")
-#         #component_name.send_keys('comp name')
-        
+        time.sleep(10)
+        #         #component_name = browser.find_element_by_id("id_name")
+        #         #component_name = browser.find_element_by_name("name")
+        #         #component_name.send_keys('comp name')
+
         browser.find_element_by_id("saveBtn").click()
 
         time.sleep(5)  # wait to submition be completed
 
-#         wait = WebDriverWait(self.browser, 10)
-#         wait.until(EC.presence_of_element_located(
-#             (By.CLASS_NAME, "alert-success")))
-        
+        #         wait = WebDriverWait(self.browser, 10)
+        #         wait.until(EC.presence_of_element_located(
+        #             (By.CLASS_NAME, "alert-success")))
+
         browser.find_element_by_id("save-changes").click()  # save changes
 
         concept_latest_version_after_adding_child = self.concept_everybody_can_edit.history.first().history_id
         workingset_latest_version_after_adding_child = self.workingset_everybody_can_edit.history.first().history_id
-#         print("1 concept_latest_version_after_adding_child=" + str(concept_latest_version_after_adding_child))
-#         print("1 workingset_latest_version_after_adding_child=" + str(workingset_latest_version_after_adding_child))
+        #         print("1 concept_latest_version_after_adding_child=" + str(concept_latest_version_after_adding_child))
+        #         print("1 workingset_latest_version_after_adding_child=" + str(workingset_latest_version_after_adding_child))
 
         self.assertNotEquals(concept_latest_version,
                              concept_latest_version_after_adding_child)
         # propagation sync is stopped
-#         # Michal: no idea why is not working... in live it is working...
-#         self.assertNotEquals(workingset_latest_version,
-#                              workingset_latest_version_after_adding_child)
+
+    #         # Michal: no idea why is not working... in live it is working...
+    #         self.assertNotEquals(workingset_latest_version,
+    #                              workingset_latest_version_after_adding_child)
 
     '''
         When a child concept is updated, any concept or working set that contains it automatically generates a new version.
@@ -308,14 +314,13 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
                                  concept_latest_version_after_adding_child)
             self.assertNotEquals(workingset_latest_version,
                                  workingset_latest_version_after_adding_child)
-    '''        
-        
+    '''
 
     '''
         The version history shows this update as "Concept changed, automatic update" or something,
         and the user field makes it clear that this was a system update, not a user update.
     '''
-            
+
     '''
         def test_version_history_shows_update(self):
             # propagation sync is stopped
@@ -364,8 +369,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
             self.assertTrue(
                 workingset_history_change_reason in browser.page_source)
             
-    '''  
-              
+    '''
 
     '''
         When a user clicks "revert" or "fork" on a historical version of a concept or working set that has a child,
@@ -416,8 +420,6 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         self.assertTrue(
             "The concepts will automatically refer to the latest version" in browser.page_source)
     '''
-        
-        
 
     '''
         When one code list includes another code list as a component,
@@ -465,41 +467,44 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
     '''
         If the user no longer has access to view the child code list, this is highlighted with a warning.
     '''
+
     def test_warning_message(self):
         # change permission of the child concept
         self.child_concept.world_access = Permissions.NONE
         self.child_concept.save()
-        
-#         ######################
-#         from ... import db_utils
-# 
-#         print(self.child_concept.id)
-#         print(Component.objects.all().count())
-#         print(Component.objects.filter(concept_id=self.concept_everybody_can_edit.id).values_list('id', 'concept_id'))
-#         print(Component.objects.get(concept_id=self.concept_everybody_can_edit.id).concept.id)
-#         print(Component.objects.get(concept_id=self.concept_everybody_can_edit.id).concept_ref)
-#         print(Component.objects.get(concept_id=self.concept_everybody_can_edit.id).concept_ref.id)
-#         print(Component.objects.get(concept_id=self.concept_everybody_can_edit.id).concept_ref_history_id)
-#                
-#         concept_history_id = int(Concept.objects.get(pk=self.concept_everybody_can_edit.id).history.latest().history_id)         
-#   
-#         concept = db_utils.getHistoryConcept(concept_history_id)
-#     
-#         concept_history_date = concept['history_date']
-#         print(concept_history_date)
-#         components = db_utils.getHistoryComponents(self.concept_everybody_can_edit.id, concept_history_date, skip_codes=True)
-#         print(components)
-#         #############################
-        
-        
+
+        #         ######################
+        #         from ... import db_utils
+        #
+        #         print(self.child_concept.id)
+        #         print(Component.objects.all().count())
+        #         print(Component.objects.filter(concept_id=self.concept_everybody_can_edit.id).values_list('id', 'concept_id'))
+        #         print(Component.objects.get(concept_id=self.concept_everybody_can_edit.id).concept.id)
+        #         print(Component.objects.get(concept_id=self.concept_everybody_can_edit.id).concept_ref)
+        #         print(Component.objects.get(concept_id=self.concept_everybody_can_edit.id).concept_ref.id)
+        #         print(Component.objects.get(concept_id=self.concept_everybody_can_edit.id).concept_ref_history_id)
+        #
+        #         concept_history_id = int(Concept.objects.get(pk=self.concept_everybody_can_edit.id).history.latest().history_id)
+        #
+        #         concept = db_utils.getHistoryConcept(concept_history_id)
+        #
+        #         concept_history_date = concept['history_date']
+        #         print(concept_history_date)
+        #         components = db_utils.getHistoryComponents(self.concept_everybody_can_edit.id, concept_history_date, skip_codes=True)
+        #         print(components)
+        #         #############################
+
         self.login(nm_user, nm_password)
         browser = self.browser
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
-                                  self.concept_everybody_can_edit.id, '/detail/'))
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        #                         self.concept_everybody_can_edit.id, '/detail/'))
 
-        
+        browser.get(self.WEBAPP_HOST + reverse('concept_detail'
+                                               , kwargs={'pk': self.concept_everybody_can_edit.id,
+                                                         })
+                    )
 
-        time.sleep(settings.TEST_SLEEP_TIME)
+        time.sleep(settings_cll.TEST_SLEEP_TIME)
 
         # warning = browser.find_element_by_class_name("alert-danger").text
 
@@ -508,21 +513,27 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
     '''
         test if a child concept is pointing to the latest version when a parent is reverted or forked
     '''
+
     def test_concept_child_is_pointing_to_the_latest_version_when_parent_reverted(self):
-        
+
         self.login(ow_user, ow_password)
-        
+
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
-                                      self.concept_everybody_can_edit.id, '/version/',
-                                      self.concept_everybody_can_edit.history.last().history_id, '/detail/'))
+        # browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        #                              self.concept_everybody_can_edit.id, '/version/',
+        #                             self.concept_everybody_can_edit.history.last().history_id, '/detail/'))
+
+        browser.get(self.WEBAPP_HOST + reverse('concept_history_detail'
+                                               , kwargs={'pk': self.concept_everybody_can_edit.id,
+                                                         'concept_history_id': self.concept_everybody_can_edit.history.last().history_id
+                                                         })
+                    )
 
         time.sleep(5)
         WebDriverWait(browser, 10).until(
             EC.presence_of_element_located((By.ID, "revert-btn"))
         )
-        
 
         # revert to the first version of the parent
         browser.find_element_by_id("revert-btn").click()
@@ -533,10 +544,15 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
             "//button[@type='submit']").click()  # revert
 
         # go to the child details page
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
-                                  self.child_concept.id, '/detail/'))
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        #                          self.child_concept.id, '/detail/'))
+
+        browser.get(self.WEBAPP_HOST + reverse('concept_detail'
+                                               , kwargs={'pk': self.child_concept.id,
+                                                         })
+                    )
         time.sleep(settings.TEST_SLEEP_TIME)
-        
+
         latest = self.child_concept.history.first().history_id
 
         element = browser.find_element_by_xpath(
@@ -544,21 +560,26 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
         self.assertEqual(str(element.text.split('(')[0].strip()), str(latest))
 
-
     def test_concept_child_is_pointing_to_the_latest_version_when_parent_forked(self):
         self.login(ow_user, ow_password)
-        
+
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
-                                      self.concept_everybody_can_edit.id, '/version/',
-                                      self.concept_everybody_can_edit.history.last().history_id, '/detail/'))
+        # browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        #                              self.concept_everybody_can_edit.id, '/version/',
+        #                             self.concept_everybody_can_edit.history.last().history_id, '/detail/'))
+
+        browser.get(self.WEBAPP_HOST + reverse('concept_history_detail'
+                                               , kwargs={'pk': self.concept_everybody_can_edit.id,
+                                                         'concept_history_id': self.concept_everybody_can_edit.history.last().history_id
+                                                         })
+                    )
 
         time.sleep(5)
         WebDriverWait(browser, 10).until(
             EC.presence_of_element_located((By.ID, "fork-btn"))
         )
-        
+
         # revert to the first version of the parent
         browser.find_element_by_id("fork-btn").click()
 
@@ -568,11 +589,16 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
             "//button[@type='submit']").click()  # revert
 
         # go to the child details page
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
-                                  self.child_concept.id, '/detail/'))
-        
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        #                         self.child_concept.id, '/detail/'))
+
+        browser.get(self.WEBAPP_HOST + reverse('concept_detail'
+                                               , kwargs={'pk': self.child_concept.id,
+                                                         })
+                    )
+
         time.sleep(settings.TEST_SLEEP_TIME)
-        
+
         latest = self.child_concept.history.first().history_id
 
         element = browser.find_element_by_xpath(
@@ -580,24 +606,26 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
         self.assertEqual(str(element.text.split('(')[0].strip()), str(latest))
 
-
     def test_workingset_child_is_pointing_to_the_latest_version_when_parent_reverted(self):
         # unnecessary test
-        
+
         self.login(ow_user, ow_password)
-        
+
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
-                                      self.workingset_everybody_can_edit.id, '/version/',
-                                      self.workingset_everybody_can_edit.history.last().history_id, '/detail/'))
+        # browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+        #                              self.workingset_everybody_can_edit.id, '/version/',
+        #                             self.workingset_everybody_can_edit.history.last().history_id, '/detail/'))
 
-        
+        browser.get(self.WEBAPP_HOST + reverse('workingset_history_detail'
+                                               , kwargs={'pk': self.workingset_everybody_can_edit.id,
+                                                         'workingset_history_id': self.workingset_everybody_can_edit.history.last().history_id})
+                    )
+
         time.sleep(5)
         WebDriverWait(browser, 10).until(
             EC.presence_of_element_located((By.ID, "revert-btn"))
         )
-
 
         # revert to the first version of the parent
         browser.find_element_by_id("revert-btn").click()
@@ -608,9 +636,14 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
             "//button[@type='submit']").click()  # revert
 
         # go to the child details page
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
-                                  self.concept_everybody_can_edit.id, '/detail/'))
-        
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        #                          self.concept_everybody_can_edit.id, '/detail/'))
+
+        browser.get(self.WEBAPP_HOST + reverse('concept_detail'
+                                               , kwargs={'pk': self.concept_everybody_can_edit.id,
+                                                         })
+                    )
+
         time.sleep(settings.TEST_SLEEP_TIME)
 
         latest = self.concept_everybody_can_edit.history.first().history_id
@@ -620,23 +653,27 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
         self.assertEqual(str(element.text.split('(')[0].strip()), str(latest))
 
-
     '''
         A concept cannot be added as a child 
         if you don't have permission to use that concept (i.e. view permission on all descendants).
     '''
+
     def test_child_cannot_be_added_without_permission(self):
         # login as normal so he does not have access to the child
         self.login(nm_user, nm_password)
 
-        
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
-                                  self.concept_everybody_can_edit.id, '/update/'))
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        #                         self.concept_everybody_can_edit.id, '/update/'))
+
+        browser.get(self.WEBAPP_HOST + reverse('concept_update'
+                                               , kwargs={'pk': self.concept_everybody_can_edit.id,
+                                                         })
+                    )
 
         time.sleep(settings.TEST_SLEEP_TIME)
-        
+
         # try to add child
         browser.find_element_by_css_selector(
             'button.btn.btn-primary.dropdown-toggle').click()
@@ -664,7 +701,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         time.sleep(2)
 
         self.assertTrue("Please enter component name"
-                        #in browser.page_source
+                        # in browser.page_source
                         in str(browser.switch_to_alert().text)
                         )
 
