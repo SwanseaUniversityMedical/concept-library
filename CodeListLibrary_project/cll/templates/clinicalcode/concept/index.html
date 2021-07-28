@@ -64,7 +64,7 @@
 						</div>
 						<div class="row form-group">
 							<div class="col-sm-2">
-								<label for="tag">Tag:</label>
+								<label for="tag">Tag/Collection:</label>
 							</div>
 							<div class="col-sm-10">
 								<input class="form-control" type="text" name="tagids" id="txtTags" data-role="tagsinput" value="{{ tag|default_if_none:'' }}">
@@ -89,36 +89,36 @@
 						{% endif %}			
 						</div>	
 										
-						<div class="row form-group">
-							<div class="col-md-2">
-								<label for="brand">Brand:</label>
-							</div>
-							<div class="col-md-10"> 
-							   {% if request.session.all_brands %}
-								   <ul class="nav navbar-nav">
-									     <select class="form-control" name="concept_brand" id="concept_brand"  >  
-										    <option value=""  style='background-color: lightgreen;' >Any</option>
-											{% for brand in request.session.all_brands %}
-												<option value="{{ brand|upper }}" 
-												       {% if brand|upper == concept_brand|upper %} selected="selected" {% endif %}
-												       >
-													{{ brand|upper }}
-													{% if brand|upper in request.session.user_brands %} (*) {% endif %}
-											</option>
-											{% empty %}
-												<option value="-1" >No Brands !!!</option>
-											{% endfor %}
-										  </select>
-									</ul>
-								{% endif %}
-								<span id="concept_brand_img">
-								{% if concept_brand|length %} 
-									&nbsp; <img height="29px" src="{% static 'img/brands/' %}{{concept_brand|upper}}/logo.png" title="{{concept_brand|upper}}" alt="{{concept_brand|upper}}" /> 
-								{% endif %}
-								</span>
-							</div>			
+<!-- 						<div class="row form-group"> -->
+<!-- 							<div class="col-md-2"> -->
+<!-- 								<label for="brand">Brand:</label> -->
+<!-- 							</div> -->
+<!-- 							<div class="col-md-10">  -->
+<!-- 							   {% if request.session.all_brands %} -->
+<!-- 								   <ul class="nav navbar-nav"> -->
+<!-- 									     <select class="form-control" name="concept_brand" id="concept_brand"  >   -->
+<!-- 										    <option value=""  style='background-color: lightgreen;' >Any</option> -->
+<!-- 											{% for brand in request.session.all_brands %} -->
+<!-- 												<option value="{{ brand|upper }}"  -->
+<!-- 												       {% if brand|upper == concept_brand|upper %} selected="selected" {% endif %} -->
+<!-- 												       > -->
+<!-- 													{{ brand|upper }} -->
+<!-- 													{% if brand|upper in request.session.user_brands %} (*) {% endif %} -->
+<!-- 											</option> -->
+<!-- 											{% empty %} -->
+<!-- 												<option value="-1" >No Brands !!!</option> -->
+<!-- 											{% endfor %} -->
+<!-- 										  </select> -->
+<!-- 									</ul> -->
+<!-- 								{% endif %} -->
+<!-- 								<span id="concept_brand_img"> -->
+<!-- 								{% if concept_brand|length %}  -->
+<!-- 									&nbsp; <img height="29px" src="{% static 'img/brands/' %}{{concept_brand|upper}}/logo.png" title="{{concept_brand|upper}}" alt="{{concept_brand|upper}}" />  -->
+<!-- 								{% endif %} -->
+<!-- 								</span> -->
+<!-- 							</div>			 -->
 		
-						</div>				
+<!-- 						</div>				 -->
 						
 		
 					<div class="row form-group">
@@ -207,10 +207,12 @@
 	{% if user.is_authenticated %}		
 		<div>
 			{% if not CLL_READ_ONLY %}
-				<a class="btn btn-primary" {% if allowed_to_create %} href="{% url 'concept_create' %}" {% else %} disabled {% endif %}>
-					Add new concept
-				</a>
-				<span style="width: 10px;">&nbsp;</span>
+				{% if request.CURRENT_BRAND != 'HDRUK' %}
+					<a class="btn btn-primary" {% if allowed_to_create %} href="{% url 'concept_create' %}" {% else %} disabled {% endif %}>
+						Add new concept
+					</a>
+					<span style="width: 10px;">&nbsp;</span>
+				{% endif %}
 			{% endif %}
 			
 				<a class="btn btn-outline-primary btn-cl btn-cl-secondary"  href="{% url 'choose_concepts_to_compare' %}" target=_blank >
@@ -285,27 +287,21 @@
 		
 		{% if search_form == 'advanced-form' %}
 			$("#basic-search").hide();
-			$("#FilterMenu").hide();
-			$("#result-div").removeClass( "col-sm-10" ).addClass( "col-sm-12" );
 		{% else %}
 			$("#advanced-search").hide();
-			$("#FilterMenu").show();
-			$("#result-div").removeClass( "col-sm-12" ).addClass( "col-sm-10" );
 		{% endif %}
 			
 		$(document).ready(function() {
 			$("#show-advanced-search").click(function(){
 				  $("#advanced-search").toggle();
 				  $("#basic-search").toggle();
-				  $("#FilterMenu").toggle();
-				  $("#result-div").toggleClass("col-sm-10 col-sm-12");
+				  $("#collection_search_form").val('advanced-form');
 			});
 			
 			$("#show-basic-search").click(function(){
 				  $("#advanced-search").toggle();
 				  $("#basic-search").toggle();
-				  $("#FilterMenu").toggle();
-				  $("#result-div").toggleClass("col-sm-10 col-sm-12");
+				  $("#collection_search_form").val('basic-form');				  
 			});
 		});		
 		
