@@ -52,13 +52,6 @@ if not settings.CLL_READ_ONLY:
             name='HDRUK_run_statistics'),      
     ]
     
-# if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
-#     urlpatterns += [       
-#         url(r'^adminTemp/moveTags/', 
-#             adminTemp.moveTags, 
-#             name='moveTags'),      
-#     ]
-
 
 # ======== Phenotypes ==============================================================================
 # add URLConf to create, update, and delete Phenotypes
@@ -80,28 +73,28 @@ urlpatterns += [
         name='phenotype_conceptcodesByVersion'),
 ]
 
-if not settings.CLL_READ_ONLY:
-    urlpatterns += [
-        url(r'^phenotypes/create/$',
-            Phenotype.phenotype_create,
-            name='phenotype_create'),
-
-        url(r'^phenotypes/(?P<pk>\d+)/update/$',
-            Phenotype.PhenotypeUpdate.as_view(),
-            name='phenotype_update'),
-
-        url(r'^phenotypes/(?P<pk>\d+)/delete/$',
-            Phenotype.PhenotypeDelete.as_view(),
-            name='phenotype_delete'),
-
-        # url(r'^phenotypes/(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/revert/$',
-        #     Phenotype.phenotype_history_revert,
-        #     name='phenotype_history_revert'),
-        #
-        # url(r'^phenotypes/(?P<pk>\d+)/restore/$',
-        #     Phenotype.PhenotypeRestore.as_view(),
-        #     name='phenotype_restore'),
-    ]
+# if not settings.CLL_READ_ONLY:
+#     urlpatterns += [
+#         url(r'^phenotypes/create/$',
+#             Phenotype.phenotype_create,
+#             name='phenotype_create'),
+# 
+#         url(r'^phenotypes/(?P<pk>\d+)/update/$',
+#             Phenotype.PhenotypeUpdate.as_view(),
+#             name='phenotype_update'),
+# 
+#         url(r'^phenotypes/(?P<pk>\d+)/delete/$',
+#             Phenotype.PhenotypeDelete.as_view(),
+#             name='phenotype_delete'),
+# 
+#         # url(r'^phenotypes/(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/revert/$',
+#         #     Phenotype.phenotype_history_revert,
+#         #     name='phenotype_history_revert'),
+#         #
+#         # url(r'^phenotypes/(?P<pk>\d+)/restore/$',
+#         #     Phenotype.PhenotypeRestore.as_view(),
+#         #     name='phenotype_restore'),
+#     ]
 
 
 #======== WorkingSets ==============================================================================
@@ -158,14 +151,6 @@ urlpatterns += [
     url(r'^concepts/(?P<pk>\d+)/version/(?P<concept_history_id>\d+)/detail/$',
         Concept.ConceptDetail_combined,
         name='concept_history_detail'),
-    
-#     url(r'^concepts/(?P<pk>\d+)/detail/$',
-#         Concept.ConceptDetail.as_view(),
-#         name='concept_detail'),
- 
-#     url(r'^concepts/(?P<pk>\d+)/version/(?P<concept_history_id>\d+)/detail/$',
-#         Concept.concept_history_detail,
-#         name='concept_history_detail'),
 
     url(r'^concepts/(?P<pk>\d+)/export/codes/$',
         Concept.concept_codes_to_csv,
@@ -239,7 +224,6 @@ if not settings.CLL_READ_ONLY:
             name='concept_upload_codes'),
 
     ]
-
 
 #======== concept component ==============================================================================
 # urlConf for concept component

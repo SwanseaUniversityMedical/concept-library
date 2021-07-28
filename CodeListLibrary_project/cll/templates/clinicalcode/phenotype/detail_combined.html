@@ -389,15 +389,7 @@
 		            <i class="plus-minus glyphicon glyphicon-plus" id="i-c{{ c.concept_version_id }}" ></i>    
 		            {{ c.concept_id }}/{{ c.concept_version_id }}
 		            </a>
-						
-					&nbsp;
-				    {% if user.is_authenticated %}
-				         {% if c.is_published %}
-				         	<span title="Published" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
-				         {% else %}
-				         	&nbsp;&nbsp;
-				         {% endif %}	
-				    {% endif %}		         
+					&nbsp;&nbsp;         
 		        
 			      <span>{{ c.codingsystem }}: 
 			         <a href="{% url 'concept_history_detail' c.concept_id c.concept_version_id %}"  
@@ -405,6 +397,12 @@
 			            target="_blank" class="alert-link">					
 			         {{ c.name }}&nbsp;{{ c.brands|safe }}
 			         </a>
+			        &nbsp;
+				    {% if user.is_authenticated %}
+				         {% if c.is_published %}
+				         	(Published)	         	
+				         {% endif %}	
+				    {% endif %}		
 			      </span>
 			      
 			      <span >

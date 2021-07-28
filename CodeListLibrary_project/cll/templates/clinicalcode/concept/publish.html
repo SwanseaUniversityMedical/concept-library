@@ -6,7 +6,7 @@
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
-        <h4 class="modal-title"><i class="fa fa-paper-plane" aria-hidden="true"></i> Publish concept "<b>{{ name }}</b>"?</h4>
+        <h4 class="modal-title">Publish concept "<b>{{ name }}</b>"?</h4>
     </div>
     <div class="modal-body">  
     {% if is_published %}
@@ -107,7 +107,7 @@
     	{% else %}
             <button {% if not allowed_to_publish %} disabled="true" {% endif %} id="publishButton"
 	            type="submit" class="btn btn-primary">
-	            <i class="fa fa-paper-plane" aria-hidden="true"></i> Publish
+	            Publish
 	        </button>
         {% endif %}
 
@@ -160,7 +160,7 @@ $(function(){
 						$('#publish2').attr("title", "This version is already published" );
 						$('#publish2').addClass("btn-success");
 						$('#publish2').removeClass("btn-primary");
-						$('#publish2').html("<i class='fa fa-paper-plane' aria-hidden='true'></i>&nbsp;Published&nbsp;<span class='glyphicon glyphicon-ok' style='color:green'></span>");
+						$('#publish2').html("Published&nbsp;<span class='glyphicon glyphicon-ok' style='color:green'></span>");
 						
 					}
 					
