@@ -1,5 +1,6 @@
 {% load staticfiles %}
-
+{% load cl_extras %}
+	
 <div class="row">
 	<div class="col-sm-2 hideleft-navbar" id="FilterMenu"
 	 	 style="padding-top: 20px; position: sticky; position: -webkit-sticky; top: 60px;"
@@ -33,17 +34,19 @@
 					<!-- collections tags -->
 					{% for tag in allTags %}
 						{% if tag.tag_type == 2 %}
-							<div class="checkbox">
-								<label>
-								<input class="form-check-input collection_tag" type="checkbox" name="collection_id" value="{{ tag.id }}" 
-								 {% if tag.id in tag_ids_list  %} checked {% endif %}  
-								>  
-								<span class="form-check-label">
-									{{ tag.description }}
-								<!--  <span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>	 -->
-								</span>
-								</label>
-							</div> 
+							{% if  request.CURRENT_BRAND|length and tag.collection_brand|toString == request.CURRENT_BRAND|toString  or not request.CURRENT_BRAND|length %}
+								<div class="checkbox"  {% if not request.CURRENT_BRAND|length %} title="{{ tag.collection_brand }}" {% endif %}>
+									<label>
+									<input class="form-check-input collection_tag" type="checkbox" name="collection_id" value="{{ tag.id }}" 
+									 {% if tag.id in tag_ids_list  %} checked {% endif %}  
+									>  
+									<span class="form-check-label">
+										{{ tag.description }}
+									<!--  <span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>	 -->
+									</span>
+									</label>
+								</div> 
+							{% endif %}												
 						{% endif %}												
 					{% endfor %}	
 						

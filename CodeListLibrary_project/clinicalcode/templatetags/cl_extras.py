@@ -26,5 +26,8 @@ def tolist(value, arg):
         return [str(t) for t in value.split(',')]
 
 
-
+@register.filter
+def toString(value):
+    """Convert value to string"""
+    return str(value)
 
