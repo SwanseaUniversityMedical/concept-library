@@ -555,10 +555,9 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
         latest = self.child_concept.history.first().history_id
 
-        element = browser.find_element_by_xpath(
-            "//label[contains(text(),'Version ID:')]/following-sibling::div")
+        element = browser.find_element_by_id('concept_history_id_div')
 
-        self.assertEqual(str(element.text.split('(')[0].strip()), str(latest))
+        self.assertEqual(''.join(filter(str.isdigit, str(element.text))), str(latest))
 
     def test_concept_child_is_pointing_to_the_latest_version_when_parent_forked(self):
         self.login(ow_user, ow_password)
@@ -601,10 +600,9 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
         latest = self.child_concept.history.first().history_id
 
-        element = browser.find_element_by_xpath(
-            "//label[contains(text(),'Version ID:')]/following-sibling::div")
+        element = browser.find_element_by_id('concept_history_id_div')
 
-        self.assertEqual(str(element.text.split('(')[0].strip()), str(latest))
+        self.assertEqual(''.join(filter(str.isdigit, str(element.text))), str(latest))
 
     def test_workingset_child_is_pointing_to_the_latest_version_when_parent_reverted(self):
         # unnecessary test
@@ -648,10 +646,9 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
         latest = self.concept_everybody_can_edit.history.first().history_id
 
-        element = browser.find_element_by_xpath(
-            "//label[contains(text(),'Version ID:')]/following-sibling::div")
+        element = browser.find_element_by_id('concept_history_id_div')
 
-        self.assertEqual(str(element.text.split('(')[0].strip()), str(latest))
+        self.assertEqual(''.join(filter(str.isdigit, str(element.text))), str(latest))
 
     '''
         A concept cannot be added as a child 
@@ -675,9 +672,11 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         time.sleep(settings.TEST_SLEEP_TIME)
 
         # try to add child
-        browser.find_element_by_css_selector(
-            'button.btn.btn-primary.dropdown-toggle').click()
-        browser.find_element_by_link_text("Concept").click()
+        browser.find_element_by_id(
+            'conceptTypes').click()
+
+        browser.implicitly_wait(5)
+        browser.find_element_by_id('addConcept').click()
 
         wait = WebDriverWait(self.browser, 10)
         wait.until(EC.presence_of_element_located(

@@ -602,8 +602,12 @@ class VersioningTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
         # add child
-        browser.find_element_by_css_selector('button.btn.btn-primary.dropdown-toggle').click()
-        browser.find_element_by_link_text("Concept").click()
+        # try to add child
+        browser.find_element_by_id(
+            'conceptTypes').click()
+
+        browser.implicitly_wait(5)
+        browser.find_element_by_id('addConcept').click()
 
         wait = WebDriverWait(self.browser, 10)
         wait.until(EC.presence_of_element_located((By.ID, "concept-search-text")))
