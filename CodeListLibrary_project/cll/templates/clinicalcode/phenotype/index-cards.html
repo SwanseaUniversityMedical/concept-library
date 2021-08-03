@@ -116,7 +116,7 @@
 							{% endfor %}						
 						{% endfor %}	
 					</div>
-					<div class="col-sm-2">
+					<div class="col-sm-4">
 						<i><strong>{{ phenotype.type }}</i></strong>
 					</div>	
 					<div class="col-sm-4">
@@ -126,11 +126,11 @@
 							<i>{{ phenotype.publish_date|date:"Y-m-d" }}</i>
 						{% endif %}	
 					</div>		
-					<div class="col-sm-2 text-right">
+<!-- 					<div class="col-sm-2 text-right">
 						{% if user.is_authenticated and phenotype.is_published == 1 %}
-<!-- 							<span title="{{ phenotype.published }} on {{ phenotype.publish_date|date:"Y-m-d" }}" style="text-align: right;" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span> -->
+							<span title="{{ phenotype.published }} on {{ phenotype.publish_date|date:"Y-m-d" }}" style="text-align: right;" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
 						{% endif %}	
-					</div>	
+					</div>	 -->
 				</div>
 				
 			{% if phenotype.tags %}
