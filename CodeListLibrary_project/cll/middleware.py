@@ -57,6 +57,9 @@ class brandMiddleware(MiddlewareMixin):
             
             request.CURRENT_BRAND = ""
             settings.CURRENT_BRAND = ""
+            
+            request.CURRENT_BRAND_WITH_SLASH = ""
+            settings.CURRENT_BRAND_WITH_SLASH = ""
 
             request.BRAND_OBJECT = {}
             settings.BRAND_OBJECT = {}
@@ -88,6 +91,9 @@ class brandMiddleware(MiddlewareMixin):
                 if settings.DEBUG: print "root=", root
                 settings.CURRENT_BRAND = root
                 request.CURRENT_BRAND = root
+                
+                settings.CURRENT_BRAND_WITH_SLASH = "/" + root
+                request.CURRENT_BRAND_WITH_SLASH = "/" + root
                 
                 brand_object = Brand.objects.get(name__iexact = root)                
                 settings.BRAND_OBJECT = brand_object

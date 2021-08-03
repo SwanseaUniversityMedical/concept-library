@@ -23,8 +23,8 @@ class OperatorAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ['id', 'description', 'display', 'tag_type', 'created_by', 'updated_by']# , 'created', 'modified']
-    list_filter = ['description', 'tag_type', 'display']
+    list_display = ['id', 'description', 'display', 'tag_type', 'collection_brand']#,, 'updated_by' 'created_by' , 'created', 'modified']
+    list_filter = ['collection_brand', 'tag_type', 'display']
     search_fields = ['description']
     exclude = ['created_by', 'updated_by']
 
