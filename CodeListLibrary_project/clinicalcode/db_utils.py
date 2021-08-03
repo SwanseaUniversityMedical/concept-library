@@ -2746,7 +2746,17 @@ def get_visible_live_or_published_concept_versions(request
     if show_top_version_only:
         where_clause_3 = " WHERE rn_res = 1 "
 
-    
+    # --- when in a brand, show only this brand's data
+    brand_filter_cond = " "
+    brand = request.CURRENT_BRAND
+    if brand != "":
+        brand_collection_ids = get_brand_collection_ids(brand)
+        brand_collection_ids = [str(i) for i in brand_collection_ids]
+            
+        if brand_collection_ids:
+            brand_filter_cond = " WHERE tags && '{" + ','.join(brand_collection_ids) + "}' "
+            
+        
     with connection.cursor() as cursor:
         cursor.execute("""
                         SELECT 
@@ -2784,6 +2794,7 @@ def get_visible_live_or_published_concept_versions(request
                                deleted_by_id, group_id, history_user_id, modified_by_id, owner_id
                                , tags, code_attribute_header
                             FROM clinicalcode_historicalconcept t
+                                """ + brand_filter_cond + """
                             ) r
                             """ 
                             + where_clause  
@@ -2895,7 +2906,17 @@ def get_visible_live_or_published_phenotype_versions(request
     if show_top_version_only:
         where_clause_3 = " WHERE rn_res = 1 "
          
-           
+    # --- when in a brand, show only this brand's data
+    brand_filter_cond = " "
+    brand = request.CURRENT_BRAND
+    if brand != "":
+        brand_collection_ids = get_brand_collection_ids(brand)
+        brand_collection_ids = [str(i) for i in brand_collection_ids]
+            
+        if brand_collection_ids:
+            brand_filter_cond = " WHERE tags && '{" + ','.join(brand_collection_ids) + "}' "
+                       
+                       
     with connection.cursor() as cursor:
         cursor.execute("""
                         SELECT 
@@ -2933,6 +2954,7 @@ def get_visible_live_or_published_phenotype_versions(request
                                group_id, history_user_id, owner_id, updated_by_id, validation_performed, 
                                phenoflowid, tags, clinical_terminologies, publications
                             FROM clinicalcode_historicalphenotype t
+                                """ + brand_filter_cond + """
                             ) r
                             """ 
                             + where_clause  

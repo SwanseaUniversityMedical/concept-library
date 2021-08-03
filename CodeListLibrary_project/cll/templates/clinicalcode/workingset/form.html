@@ -533,7 +533,7 @@
 			$("input.concept").on("focus", function(event){
 				var id = $(this).attr('id').split('_')[1];
 				$(this).autocomplete({
-					serviceUrl: '/api/concept-search/?concept_id_to_exclude=0',
+					serviceUrl: '{{ request.CURRENT_BRAND_WITH_SLASH }}/api/concept-search/?concept_id_to_exclude=0',
 					paramName: 'search',
 					transformResult: function(response){
 						// clear the selected field

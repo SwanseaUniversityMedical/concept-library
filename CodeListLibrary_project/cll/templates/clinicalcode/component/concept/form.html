@@ -179,7 +179,7 @@
 	   Once the component has been saved, the concept ID cannot be changed: to do this, the component must be deleted and a new one created.</p>
 </div>
 
-<script src="/static/js/clinicalcode/dataService.js"></script>
+<script src="{% static 'js/clinicalcode/dataService.js' %}" type="text/javascript"></script>
 
 <script  type="text/javascript"> 
 $(function(){
@@ -265,7 +265,7 @@ $(function(){
 
 		// autocomplete for finding a concept, enter concept name and it will display a list of possible matches
 		$('#concept-search-text').autocomplete({
-			serviceUrl: '/api/concept-search/?concept_id_to_exclude=' + $('#id_concept').val(),
+			serviceUrl: '{{ request.CURRENT_BRAND_WITH_SLASH }}/api/concept-search/?concept_id_to_exclude=' + $('#id_concept').val(),
 			paramName: 'search',
 			transformResult: function(response){
 				// clear the selected field

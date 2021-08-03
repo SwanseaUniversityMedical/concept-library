@@ -20,8 +20,7 @@
 		<div class="row">
 			<div class="col-md-12">
 				<div class="form-horizontal">
-				
-				
+			
 									
 <table class="table" style="margin-bottom: 0px;">
 	<thead>
@@ -57,11 +56,11 @@
 		
 		<tr>
 			<td colspan=2>
-				<h4><i class="fa fa-history" aria-hidden="true"></i> Versions</h4>
+				<h4><i class="fa fa-history" aria-hidden="true"></i> Versions #1</h4>
 			</td>
 			<td >&nbsp;</td>
 			<td colspan=2>
-				<h4><i class="fa fa-history" aria-hidden="true"></i> Versions</h4>
+				<h4><i class="fa fa-history" aria-hidden="true"></i> Versions #2</h4>
 			</td>
 		</tr> 
 
@@ -106,14 +105,14 @@
 
 {% block scripts %}
 		
-<script src="/static/js/clinicalcode/dataService.js"></script>
+<script src="{% static 'js/clinicalcode/dataService.js' %}" type="text/javascript"></script>
 
 <script  type="text/javascript"> 
 $(function(){
 	 //------------------------------------------------
 		// autocomplete for finding a concept, enter concept name and it will display a list of possible matches
 		$('#concept-search-text1,#concept-search-text2').autocomplete({			
-			serviceUrl: '/api/concept-search/?concept_id_to_exclude=0',
+			serviceUrl: '{{ request.CURRENT_BRAND_WITH_SLASH }}/api/concept-search/?concept_id_to_exclude=0',
 			paramName: 'search',
 			transformResult: function(response){
 				// clear the selected field
@@ -132,22 +131,12 @@ $(function(){
 			},
 			onSelect : function(suggestion){
 				// set the id of the selected concept
-				//alert($('#id_concept_ref'+$(this).attr("indx")).val());
 				$('#id_concept_ref'+$(this).attr("indx")).val(suggestion.data);
-				
-				//$('#compareForm #id_name').val(suggestion.value.split(', author: ')[0].split(' - ').slice(1).join(' - '));
-				//$('#div_id_name').removeClass('has-error');
-		        //$('#help_id_name').html('');
 		        		     
 				// get the historical versions of the concept
 				dataService.getConceptVersions(suggestion.data, suggestion.version, $(this).attr("indx"), function(data){
 					if(data.form_is_valid){
-						//alert(data.html_versions_list);
-						//alert('data.indx='+data.indx);
-						//alert($('#concept-versions-'+data.indx).html());
 						$('#concept-versions-'+data.indx).html(data.html_versions_list);
-						//$('#concept-versions-1').html(data.html_versions_list);
-						//alert($('#concept-versions-'+data.indx).html());
 					}
 				});
 			}
@@ -156,7 +145,6 @@ $(function(){
 				$('#id_concept_ref'+$(this).attr("indx")).val('');
 				$('#concept-versions-'+$(this).attr("indx")).html('&nbsp;');
 
-				//$('#xx').val(	$(this).attr("indx") ); 
 			}
 		});
 		//------------------------------------------------
@@ -170,29 +158,26 @@ $(function(){
 			if(c1 == ''){
 		            alert("You have to search and select Concept #1");
 		            return false;
-		        }
+		    }
 			 			
 			c2 = $('#id_concept_ref2').val();
 			if(c2 == ''){
 	            alert("You have to search and select Concept #2");
 	            return false;
 	        }
-		 		
-			//alert('c1='+c1+'   ...  c2='+c2);
-			
-			 if(! $("#ver-sel-1").length){
+		 					
+			if(! $("#ver-sel-1").length){
 		            alert("You have to choose a version for Concept #1");
 		            return false;
-		        }
+		    }
 			 
-			 if(! $("#ver-sel-2").length){
+			if(! $("#ver-sel-2").length){
 		            alert("You have to choose a version for Concept #2");
 		            return false;
-		        }
+		    }
 			 
 			v1 = $('#ver-sel-1').children("option:selected").val();
 			v2 = $('#ver-sel-2').children("option:selected").val();
-			//alert('v1='+v1+'   ...  v2='+v2);
 			
 			if(c1 == c2 && v1 == v2){
 	            alert("You cannot compare the same concept with the same version. \n choose different versions");
@@ -201,13 +186,10 @@ $(function(){
 		 	
 			//..................
 			var form = $(this).closest("form");
-		    //alert($(this).closest("form").attr('action'));
-		    //alert(form.attr('action')); with
 		    
 		    href = "/concepts/"+c1+"/"+v1+"/compare/"+c2+"/"+v2+"/";
 			form.attr('action' , href);
 			
-			//alert(form.attr('action'));
 			$(".loader").show();
 			form.submit();	
 			return false;

@@ -470,8 +470,10 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
     def test_warning_message(self):
         # change permission of the child concept
-        self.child_concept.world_access = Permissions.NONE
-        self.child_concept.save()
+        # self.child_concept.world_access = Permissions.NONE
+        # self.child_concept.save()
+
+        self.login(su_user, su_password)
 
         #         ######################
         #         from ... import db_utils
@@ -494,20 +496,48 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         #         print(components)
         #         #############################
 
-        self.login(nm_user, nm_password)
+        # self.login(nm_user, nm_password)
         browser = self.browser
         # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
         #                         self.concept_everybody_can_edit.id, '/detail/'))
+
+        browser.get(self.WEBAPP_HOST + reverse('concept_update'
+                                               , kwargs={'pk': self.child_concept.id,
+                                                         })
+                    )
+        # Find the no acces flag and click
+        browser.find_element_by_id("id_world_access_0").click()
+
+        # Wait for changes to apply
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+        browser.find_element_by_id("save-changes").click()
+
+        browser.get(self.WEBAPP_HOST + reverse('concept_update'
+                                               , kwargs={'pk': self.concept_everybody_can_edit.id,
+                                                         })
+                    )
+        # Update the child concept
+        browser.find_element_by_xpath('//*[@title="Edit component"]').click()
+
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+        # Time wait for changes for cicking apply button
+        browser.find_element_by_id("saveBtn2").click()
+
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+        self.logout()
+
+        # login as user and see changes
+        self.login(nm_user, nm_password)
 
         browser.get(self.WEBAPP_HOST + reverse('concept_detail'
                                                , kwargs={'pk': self.concept_everybody_can_edit.id,
                                                          })
                     )
 
-        time.sleep(settings_cll.TEST_SLEEP_TIME)
-
         # warning = browser.find_element_by_class_name("alert-danger").text
-
         self.assertTrue("no view permission" in browser.page_source)
 
     '''
@@ -555,10 +585,9 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
         latest = self.child_concept.history.first().history_id
 
-        element = browser.find_element_by_xpath(
-            "//label[contains(text(),'Version ID:')]/following-sibling::div")
+        element = browser.find_element_by_id('concept_history_id_div')
 
-        self.assertEqual(str(element.text.split('(')[0].strip()), str(latest))
+        self.assertEqual(''.join(filter(str.isdigit, str(element.text))), str(latest))
 
     def test_concept_child_is_pointing_to_the_latest_version_when_parent_forked(self):
         self.login(ow_user, ow_password)
@@ -601,10 +630,9 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
         latest = self.child_concept.history.first().history_id
 
-        element = browser.find_element_by_xpath(
-            "//label[contains(text(),'Version ID:')]/following-sibling::div")
+        element = browser.find_element_by_id('concept_history_id_div')
 
-        self.assertEqual(str(element.text.split('(')[0].strip()), str(latest))
+        self.assertEqual(''.join(filter(str.isdigit, str(element.text))), str(latest))
 
     def test_workingset_child_is_pointing_to_the_latest_version_when_parent_reverted(self):
         # unnecessary test
@@ -648,10 +676,9 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
         latest = self.concept_everybody_can_edit.history.first().history_id
 
-        element = browser.find_element_by_xpath(
-            "//label[contains(text(),'Version ID:')]/following-sibling::div")
+        element = browser.find_element_by_id('concept_history_id_div')
 
-        self.assertEqual(str(element.text.split('(')[0].strip()), str(latest))
+        self.assertEqual(''.join(filter(str.isdigit, str(element.text))), str(latest))
 
     '''
         A concept cannot be added as a child 
@@ -675,9 +702,11 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         time.sleep(settings.TEST_SLEEP_TIME)
 
         # try to add child
-        browser.find_element_by_css_selector(
-            'button.btn.btn-primary.dropdown-toggle').click()
-        browser.find_element_by_link_text("Concept").click()
+        browser.find_element_by_id(
+            'conceptTypes').click()
+
+        browser.implicitly_wait(5)
+        browser.find_element_by_id('addConcept').click()
 
         wait = WebDriverWait(self.browser, 10)
         wait.until(EC.presence_of_element_located(

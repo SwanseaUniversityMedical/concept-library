@@ -76,6 +76,7 @@ var dataService = new function(){
 		});
 	};
 	
+	// not in use - for now
 	searchConcepts = function(search, callback){
 		$.getJSON('/api/concept-search/?search=' + search, function(data){
 			callback(data);
