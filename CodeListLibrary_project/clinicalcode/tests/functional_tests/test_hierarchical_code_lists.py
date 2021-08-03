@@ -39,9 +39,6 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
                 self.browser = webdriver.Chrome(os.path.join(
                     location, "chromedriver"), chrome_options=settings_cll.chrome_options)
             else:
-                # Delete later
-                # self.chrome_options = webdriver.ChromeOptions()
-                # self.chrome_options.binary_location = "C:\Program Files\Google\Chrome\Application\chrome.exe"
                 self.browser = webdriver.Chrome(os.path.join(
                     location, "chromedriver.exe"), chrome_options=settings_cll.chrome_options)
         super(HierarchicalCodeListsTest, self).setUp()
