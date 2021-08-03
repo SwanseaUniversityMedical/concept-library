@@ -39,6 +39,9 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
                 self.browser = webdriver.Chrome(os.path.join(
                     location, "chromedriver"), chrome_options=settings_cll.chrome_options)
             else:
+                # Delete later
+                # self.chrome_options = webdriver.ChromeOptions()
+                # self.chrome_options.binary_location = "C:\Program Files\Google\Chrome\Application\chrome.exe"
                 self.browser = webdriver.Chrome(os.path.join(
                     location, "chromedriver.exe"), chrome_options=settings_cll.chrome_options)
         super(HierarchicalCodeListsTest, self).setUp()
@@ -470,8 +473,10 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
     def test_warning_message(self):
         # change permission of the child concept
-        self.child_concept.world_access = Permissions.NONE
-        self.child_concept.save()
+        # self.child_concept.world_access = Permissions.NONE
+        # self.child_concept.save()
+
+        self.login(su_user, su_password)
 
         #         ######################
         #         from ... import db_utils
@@ -494,20 +499,48 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         #         print(components)
         #         #############################
 
-        self.login(nm_user, nm_password)
+        # self.login(nm_user, nm_password)
         browser = self.browser
         # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
         #                         self.concept_everybody_can_edit.id, '/detail/'))
+
+        browser.get(self.WEBAPP_HOST + reverse('concept_update'
+                                               , kwargs={'pk': self.child_concept.id,
+                                                         })
+                    )
+        # Find the no acces flag and click
+        browser.find_element_by_id("id_world_access_0").click()
+
+        # Wait for changes to apply
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+        browser.find_element_by_id("save-changes").click()
+
+        browser.get(self.WEBAPP_HOST + reverse('concept_update'
+                                               , kwargs={'pk': self.concept_everybody_can_edit.id,
+                                                         })
+                    )
+        # Update the child concept
+        browser.find_element_by_xpath('//*[@title="Edit component"]').click()
+
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+        # Time wait for changes for cicking apply button
+        browser.find_element_by_id("saveBtn2").click()
+
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+        self.logout()
+
+        # login as user and see changes
+        self.login(nm_user, nm_password)
 
         browser.get(self.WEBAPP_HOST + reverse('concept_detail'
                                                , kwargs={'pk': self.concept_everybody_can_edit.id,
                                                          })
                     )
 
-        time.sleep(settings_cll.TEST_SLEEP_TIME)
-
         # warning = browser.find_element_by_class_name("alert-danger").text
-
         self.assertTrue("no view permission" in browser.page_source)
 
     '''
