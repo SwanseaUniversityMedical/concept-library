@@ -21,7 +21,7 @@
 			<li><a href="#home" id="Homelinkid">Home</a>					
 			<li><a href="#definition">Definition</a>
 			<li><a href="#implementation">Implementation</a>
-			<li><a href="#validation">Validation</a>
+			<!--<li><a href="#validation">Validation</a>-->
 			<li><a href="#Publications">Publications</a>
 			<li><a href="#CodeLists">Clinical Code Lists</a>
 			{% if user.is_authenticated  %}				
@@ -251,16 +251,15 @@
 							{% endfor %}	
 						</div>
 				</div>	
-				<!--
+				
 				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-12">
+				    <div class="col-sm-2">Organization Tags</div>
+					<div class="col-sm-10">
 						{% for tag in tags %}
 							<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
-						{% endfor %}						
-						
-											
+						{% endfor %}				
 					</div>
-				</div>-->
+				</div>
 				
 				</div>
 				
@@ -311,7 +310,7 @@
 				VALIDATION
 				-------------------------------------------------------------------
 		  -->						
-				<div class="col-sm-12 shadow-frame">
+		<!--		<div class="col-sm-12 shadow-frame">
 					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="validation"></span><strong>Validation</strong></h3>
 					
 					
@@ -332,7 +331,7 @@
 		
 				</div>
 				
-				
+			-->			
 		
 		<!--	-------------------------------------------------------------------
 				PUBLICATIONS
