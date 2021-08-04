@@ -263,39 +263,7 @@
 						{{ concept.description | markdownify }}
 					</div>
 				</div>
-				
-
-		<!--	-------------------------------------------------------------------
-				VALIDATION
-				-------------------------------------------------------------------
-		  -->
-				<div class="col-sm-12 shadow-frame">
-					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px"><span id="validation"></span><strong>Validation</strong></h3>
-					
-				    <div class="row" style="margin-top: 10px;">
-						<div class="col-sm-3">Validation performed</div>
-							<div class="col-sm-9" styleXX="margin-top: -10px">
-<!-- 								<div class="validation-checkbox"> -->
-<!-- 								 	<input  type="checkbox" {% if concept.validation_performed %}checked="checked"{% endif %} disabled /> -->
-<!-- 								 </div> -->
-								 {% if concept.validation_performed %}
-								 	<span>&#10004;</span>
-<!-- 									<span class = "glyphicon glyphicon-ok"></span> -->
-								{% else %}
-									<span>&#10008;</span>
-<!-- 								<span class = "glyphicon glyphicon-remove"></span> -->
-						 		{% endif %} 
-							</div>
-					</div>
-					<div class="row"></div>
-	
-					<div class="row" style="margin-top: 10px;">
-						<div class="col-sm-3">Validation description</div>
-						<div class="col-sm-9" style="margin-left: -20px;">{{ concept.validation_description }}</div>
-					</div>
 		
-				</div>
-			
 				
 		<!--	-------------------------------------------------------------------
 				PUBLICATIONS
