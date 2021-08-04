@@ -723,6 +723,22 @@ class OtherTest(StaticLiveServerTestCase):
             ".//input[@type='radio' and @name='world_access' and @value='1']").click()  # Change world access permission to none
         browser.find_element_by_id("save-changes").click()  # save
 
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+        browser.get(self.WEBAPP_HOST + reverse('concept_update'
+                                               , kwargs={'pk': self.concept_everybody_can_view.id,
+                                                         })
+                    )
+        # Update the child concept
+        browser.find_element_by_xpath('//*[@title="Edit component"]').click()
+
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+        # Time wait for changes for cicking apply button
+        browser.find_element_by_id("saveBtn2").click()
+
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+
         self.logout()
 
         # login again as normal user and check if permission denied appears for concept with child
@@ -786,6 +802,16 @@ class OtherTest(StaticLiveServerTestCase):
 
         submit_button = browser.find_element_by_xpath("//button[@type='submit']").click()
 
+        browser.get(self.WEBAPP_HOST + reverse('concept_update'
+                                               , kwargs={'pk': self.concept_everybody_can_view.id,
+                                                         })
+                    )
+
+        # Time wait for changes for cicking apply button to save current parent concept
+        browser.find_element_by_id("save-changes").click()  # save
+
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+
         self.logout()
 
         # login again as normal user and check if permission denied appears for concept with child
@@ -799,6 +825,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
         export_button = self.browser.find_element_by_id('export-btn')
+
         is_disabled = export_button.get_attribute("disabled")
         self.assertTrue(is_disabled)
 
