@@ -6,34 +6,34 @@ from django.db.models import Q
 
 from ..serializers import *
 
-from ...models.Concept import Concept
-from ...models.Tag import Tag
-from ...models.Phenotype import Phenotype
-from ...models.PhenotypeTagMap import PhenotypeTagMap
-from ...models.DataSource import DataSource
-from ...models.Brand import Brand
+from ...models import *
+# from ...models.Tag import Tag
+# from ...models.Phenotype import Phenotype
+# from ...models.PhenotypeTagMap import PhenotypeTagMap
+# from ...models.DataSource import DataSource
+# from ...models.Brand import Brand
+# from clinicalcode.models.PhenotypeDataSourceMap import PhenotypeDataSourceMap
+# from clinicalcode.models.Phenotype import Phenotype
 
 from django.contrib.auth.models import User
 
 from ...db_utils import *
-from ...viewmodels.js_tree_model import TreeModelManager
 from ...permissions import *
 
 from collections import OrderedDict
 from django.core.exceptions import PermissionDenied
 import json
-from clinicalcode.context_processors import clinicalcode
+# from clinicalcode.context_processors import clinicalcode
 from collections import OrderedDict as ordr
 from ...utils import *
-from numpy.distutils.fcompiler import none
+# from numpy.distutils.fcompiler import none
 
 from django.core import serializers
 from datetime import datetime
 from django.core.validators import URLValidator
 from View import *
 from django.db.models.aggregates import Max
-from clinicalcode.models.PhenotypeDataSourceMap import PhenotypeDataSourceMap
-from clinicalcode.models.Phenotype import Phenotype
+
 
 @api_view(['POST'])
 def api_datasource_create(request):
