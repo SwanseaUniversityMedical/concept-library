@@ -692,11 +692,7 @@
 			</div>
 		{% endif %}
 		
-		<div id="popover-content-help-hist-phenotype" class="hide popover-lg">
-			<p>
-				<strong>Return to list</strong> - returns to the phenotype search page.
-			</p>
-			
+		<div id="popover-content-help-hist-phenotype" class="hide popover-lg">		
 			<p>
 				<strong>Export</strong> - export all codes into a csv file/JSON/XML for the current phenotype version.
 				{% if user.is_authenticated and not CLL_READ_ONLY %}
@@ -705,12 +701,18 @@
 			</p>
 			
 			{% if user.is_authenticated and not CLL_READ_ONLY %}
+<!-- 				<p>
+					<strong>Edit</strong> - Edit phenotype.
+				</p>
+				
 				<p>
 					<strong>Fork</strong> - This will take a copy of the historic phenotype version and create a new phenotype.
 				</p>
+				
 				<p>
 					<strong>Revert</strong> - This will restore the phenotype back to this version.
-				</p>
+				</p> -->
+				
 				<p>
 					<strong>Publish</strong> - This will publish the chosen version of the phenotype to the public.
 						<br>Conditions to publish: 
@@ -722,6 +724,11 @@
 						</ul>
 				</p>
 			{% endif %}
+			
+			<p>
+				<strong>Print</strong> - Print page.
+			</p>
+				
 		</div>
 
 

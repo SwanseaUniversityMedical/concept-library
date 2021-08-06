@@ -675,11 +675,7 @@
 		
 		<div id="popover-content-help-hist-concept" class="hide popover-lg">
 			<p>
-				<strong>Return to list</strong> - returns to the concept search page.
-			</p>
-			
-			<p>
-				<strong>Export</strong> - export all codes into a csv file/JSON/XML for the current concept version.
+				<strong>Export</strong> - Export all codes into a csv file/JSON/XML for the current concept version.
 				{% if user.is_authenticated and not CLL_READ_ONLY %}
 					<ul>
 						<li>This will also take into account any code lists within related concepts.</li>
@@ -691,11 +687,17 @@
 			
 			{% if user.is_authenticated and not CLL_READ_ONLY %}
 				<p>
+					<strong>Edit</strong> - Edit concept.
+				</p>
+				
+				<p>
 					<strong>Fork</strong> - This will take a copy of the historic concept version and create a new concept along with the historic concept components.
 				</p>
+								
 				<p>
 					<strong>Revert</strong> - This will restore the concept back to this version.
 				</p>
+				
 				<p>
 					<strong>Publish</strong> - This will publish the chosen version of the concept to the public.
 						<br>Conditions to publish: 
@@ -709,6 +711,11 @@
 						</ul>
 				</p>
 			{% endif %}
+			
+			<p>
+				<strong>Print</strong> - Print page.
+			</p>
+						
 		</div>
 	</div>
 </div>

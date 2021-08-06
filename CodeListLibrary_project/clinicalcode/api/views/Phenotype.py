@@ -648,9 +648,13 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None):
             ret += [get_visible_versions_list(request, Phenotype, c['id'], is_authenticated_user)]
         
         rows_to_return.append(ordr(zip(titles,  ret )))
-                                   
-    return Response(rows_to_return, status=status.HTTP_200_OK)                                   
-
+                                                              
+    
+    if phenotypes_srch:                    
+        return Response(rows_to_return, status=status.HTTP_200_OK)
+    else:
+        raise Http404
+        #return Response(rows_to_return, status=status.HTTP_404_NOT_FOUND)
 
                                                
 # show phenotype detail
