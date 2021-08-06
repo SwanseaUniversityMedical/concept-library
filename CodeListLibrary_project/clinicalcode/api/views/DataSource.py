@@ -50,6 +50,9 @@ def api_datasource_create(request):
         new_datasource.uid = request.data.get('uid')
         new_datasource.url = request.data.get('url')
         new_datasource.description = request.data.get('description')
+        brand_id = 3    # HDRUK  -- fixed for now
+        #brand_id = request.data.get('brand_id')
+        new_datasource.brand = Brand.objects.get(id=brand_id)
 
         new_datasource.created_by = request.user
 
@@ -109,6 +112,13 @@ def get_data_source(request, pk=None, get_live_phenotypes=False, show_published_
 
     queryset = DataSource.objects.all()
     
+    # --- when in a brand, show only this brand's data
+    brand_name = request.CURRENT_BRAND
+    if brand_name != "":
+        brand_id = Brand.objects.get(name__iexact = brand_name).id
+        queryset = queryset.filter(brand_id = brand_id)
+            
+    
     keyword_search = request.query_params.get('search', None)
     if keyword_search is not None:
         queryset = queryset.filter(name__icontains=keyword_search)
@@ -137,10 +147,12 @@ def get_data_source(request, pk=None, get_live_phenotypes=False, show_published_
             
         rows_to_return.append(ordr(zip(titles,  ret )))
         
-        
-    
-    return Response(rows_to_return, status=status.HTTP_200_OK)   
-        
+          
+    if rows_to_return:                    
+        return Response(rows_to_return, status=status.HTTP_200_OK) 
+    else:
+        raise Http404
+        #return Response(rows_to_return, status=status.HTTP_404_NOT_FOUND)
          
 def get_LIVE_phenotypes_associated_with_data_source(data_source_id, show_published_data_only=False):   
     
