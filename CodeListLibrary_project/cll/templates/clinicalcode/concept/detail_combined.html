@@ -710,6 +710,12 @@
 							<li>All components of type=concept refer to concepts which are published (and their dependencies).</li>
 						</ul>
 				</p>
+				
+				{% if live_ver_is_deleted is True %}
+					<p>
+						<strong>Restore</strong> - Restore the deleted concept as active.
+					</p>
+				{% endif %}
 			{% endif %}
 			
 			<p>

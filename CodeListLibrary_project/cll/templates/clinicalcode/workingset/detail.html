@@ -37,9 +37,6 @@
 					 -->
 					<div class="row">
 						<div class="col-sm-12">
-<!-- 							<a href="{% url 'workingset_list' %}" class="btn btn-outline-primary btn-cl btn-cl-secondary"> -->
-<!-- 								Return to list -->
-<!-- 							</a> -->
 						{% if object.id %}						
 							<div class="dropdown btn-group">
 							  <button {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="export-btn">

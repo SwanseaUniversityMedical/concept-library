@@ -655,9 +655,7 @@ Edit Concept
 		</div>
 
 		<div id="popover-content-concept-button-list" class="hide popover-lg" >
-<!-- 			<p> -->
-<!-- 				<strong>Return to list</strong> - returns to the concept search page. -->
-<!-- 			</p> -->
+
 			{% if form.instance.pk is not None %}
 				<p>
 					<strong>Export</strong> - export all codes into a csv file/JSON/XML for the current concept. 
@@ -682,6 +680,10 @@ Edit Concept
 							<li>All components of type=concept refer to concepts which are not deleted (and their dependencies).</li>
 							<li>All components of type=concept refer to concepts which are published (and their dependencies).</li>
 						</ul>
+				</p>
+				
+				<p>
+					<strong>Delete</strong> - Mark the concept as deleted. You can still see it and restore it back.
 				</p>
 
 			{% endif %}
