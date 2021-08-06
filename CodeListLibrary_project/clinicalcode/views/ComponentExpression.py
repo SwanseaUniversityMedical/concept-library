@@ -892,23 +892,11 @@ def component_history_expression_detail_combined(request,
     '''
     
     # validate access for login and public site
-    if request.user.is_authenticated():
-        validate_access_to_view(request, Concept, concept_id, set_history_id=concept_history_id)
-    else:
-        if not Concept.objects.filter(id=concept_id).exists(): 
-            raise PermissionDenied
-    
-    if not Concept.history.filter(id=concept_id, history_id=concept_history_id).exists():
-        raise PermissionDenied
+    validate_access_to_view(request, Concept, concept_id, set_history_id=concept_history_id)
         
     if not Component.history.filter(Q(id=pk), Q(history_id=component_history_id), Q(concept_id=concept_id), ~Q(history_type = '-')).exists(): 
             raise PermissionDenied
         
-    is_published = PublishedConcept.objects.filter(concept_id=concept_id, concept_history_id=concept_history_id).exists()
-    if not request.user.is_authenticated():
-        # check if the concept version is published
-        if not is_published: 
-            raise PermissionDenied 
 
     #----------------------------------------------------------------------
 
@@ -1012,24 +1000,11 @@ def component_history_expressionselect_detail_combined(request,
     '''
     
     # validate access for login and public site
-    if request.user.is_authenticated():
-        validate_access_to_view(request, Concept, concept_id, set_history_id=concept_history_id)
-    else:
-        if not Concept.objects.filter(id=concept_id).exists(): 
-            raise PermissionDenied
-    
-    if not Concept.history.filter(id=concept_id, history_id=concept_history_id).exists():
-        raise PermissionDenied
+    validate_access_to_view(request, Concept, concept_id, set_history_id=concept_history_id)
         
     if not Component.history.filter(Q(id=pk), Q(history_id=component_history_id), Q(concept_id=concept_id), ~Q(history_type = '-')).exists(): 
             raise PermissionDenied
         
-    is_published = PublishedConcept.objects.filter(concept_id=concept_id, concept_history_id=concept_history_id).exists()
-    if not request.user.is_authenticated():
-        # check if the concept version is published
-        if not is_published: 
-            raise PermissionDenied 
-
     #----------------------------------------------------------------------
     concept = db_utils.getHistoryConcept(concept_history_id)
     concept_history_date = concept['history_date']

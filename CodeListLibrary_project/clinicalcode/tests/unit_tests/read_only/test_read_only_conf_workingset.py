@@ -62,8 +62,8 @@ class ReadOnlyTest(TestCase):
     '''
     def test_owner_not_allowed_to_edit(self):
         owner = User.objects.get(username=ow_user);
-        permitted = allowed_to_edit(owner, WorkingSet,
-                        ReadOnlyTest.workingset_everybody_can_edit.id)
+        permitted = allowed_to_edit(None, WorkingSet,
+                        ReadOnlyTest.workingset_everybody_can_edit.id, user=owner)
         self.assertFalse(permitted)
     
     
@@ -80,6 +80,6 @@ class ReadOnlyTest(TestCase):
     '''
     def test_super_user_not_allowed_to_edit(self):
         super = User.objects.get(username=su_user);
-        permitted = allowed_to_edit(super, WorkingSet,
-                        ReadOnlyTest.workingset_everybody_can_edit.id)
+        permitted = allowed_to_edit(None, WorkingSet,
+                        ReadOnlyTest.workingset_everybody_can_edit.id, user=super)
         self.assertFalse(permitted)

@@ -680,10 +680,7 @@ def workingset_detail(request, pk, workingset_history_id=None, get_versions_only
     ''' 
         Display the detail of a working set at a point in time.
     '''
-    
-    if WorkingSet.objects.filter(id=pk).count() == 0: 
-        raise Http404
-    
+       
     # validate access
     if not allowed_to_view(request, WorkingSet, pk):
         raise PermissionDenied
@@ -829,15 +826,7 @@ def get_workingset_concepts(request, pk, workingset_history_id):
     
     # validate access
     validate_access_to_view(request, WorkingSet, pk) 
-    
-    #exclude(is_deleted=True)
-    if WorkingSet.objects.filter(id=pk).count() == 0:
-        raise Http404         
-        
-    #exclude(is_deleted=True)
-    if WorkingSet.history.filter(id=pk , history_id=workingset_history_id).count() == 0:
-        raise Http404          
-        
+
     # here, check live version
     current_ws = WorkingSet.objects.get(pk=pk)
         
@@ -899,14 +888,7 @@ def get_workingset_codes(request, pk, workingset_history_id):
     
     # validate access
     validate_access_to_view(request, WorkingSet, pk) 
-    
-    #exclude(is_deleted=True)
-    if WorkingSet.objects.filter(id=pk).count() == 0:
-        raise Http404         
         
-    #exclude(is_deleted=True)
-    if WorkingSet.history.filter(id=pk , history_id=workingset_history_id).count() == 0:
-        raise Http404          
         
     # here, check live version
     current_ws = WorkingSet.objects.get(pk=pk)

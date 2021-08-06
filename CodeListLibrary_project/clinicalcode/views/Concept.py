@@ -1191,10 +1191,6 @@ def concept_codes_to_csv(request, pk):
     """     
     db_utils.validate_access_to_view(request, Concept, pk)
     
-    #exclude(is_deleted=True)
-    if Concept.objects.filter(id=pk).count() == 0:
-        return HttpResponseNotFound("Not found.")          
-        #raise permission_denied # although 404 is more relevant
         
     current_concept = Concept.objects.get(pk=pk)
         
@@ -1273,27 +1269,15 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
     """     
 
     # validate access for login and public site
-    if request.user.is_authenticated():
-        db_utils.validate_access_to_view(request, Concept, pk, set_history_id=concept_history_id)
-    else:
-        if not Concept.objects.filter(id=pk).exists(): 
-            raise PermissionDenied
-
-
-    if concept_history_id is not None:
-        if not Concept.history.filter(id=pk, history_id=concept_history_id).exists():
-            raise PermissionDenied
-
+    db_utils.validate_access_to_view(request, Concept, pk, set_history_id=concept_history_id)
+    
         
 #     if concept_history_id is None:
 #         # get the latest version
 #         concept_history_id = int(Concept.objects.get(pk=pk).history.latest().history_id) 
         
     is_published = PublishedConcept.objects.filter(concept_id=pk, concept_history_id=concept_history_id).exists()
-    if not request.user.is_authenticated():
-        # check if the concept version is published
-        if not is_published: 
-            raise PermissionDenied 
+
     
     #----------------------------------------------------------------------
     
