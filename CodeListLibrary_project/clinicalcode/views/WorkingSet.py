@@ -177,7 +177,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, 
         
         
     def has_access_to_edit_workingset(self, user):
-        return allowed_to_edit(user, WorkingSet, self.kwargs['pk'])
+        return allowed_to_edit(self.request, WorkingSet, self.kwargs['pk'])
 
 
     def get(self, request, pk):
@@ -192,7 +192,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, 
         #----------------------------------------------------------
         children_permitted_and_not_deleted = True
         error_dic = {}
-        children_permitted_and_not_deleted , error_dic2 = db_utils.chk_children_permission_and_deletion(self.request.user, WorkingSet, pk)
+        children_permitted_and_not_deleted , error_dic2 = db_utils.chk_children_permission_and_deletion(self.request, WorkingSet, pk)
         if not children_permitted_and_not_deleted:
             error_dic['children']= error_dic2
         #-----------------------------------------------------------
@@ -287,7 +287,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, 
             warnings.append("This working set has an updated version, Do you want to continue and override it? ")
         #----------------------------------------------------------
         children_permitted_and_not_deleted = True
-        children_permitted_and_not_deleted , error_dic2 = db_utils.chk_children_permission_and_deletion(self.request.user
+        children_permitted_and_not_deleted , error_dic2 = db_utils.chk_children_permission_and_deletion(self.request
                                                                                                         , WorkingSet, pk
                                                                                                         , WS_concepts_json = workingset.concept_informations
                                                                                                         , submitted_concept_version = workingset.concept_version
@@ -384,7 +384,7 @@ class WorkingSetDelete(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, 
 
 
     def has_access_to_edit_workingset(self, user):
-        return allowed_to_edit(user, WorkingSet, self.kwargs['pk'])
+        return allowed_to_edit(self.request, WorkingSet, self.kwargs['pk'])
 
 
     def get(self, request, pk):
@@ -409,8 +409,9 @@ class WorkingSetDetail(LoginRequiredMixin, HasAccessToViewWorkingsetCheckMixin, 
         workingset = WorkingSet.objects.get(pk=workingset_id)
         if workingset.is_deleted == True:
             messages.info(self.request, "Workingset has been deleted.")
-        #permitted = allowed_to_view_children(user, WorkingSet, self.kwargs['pk'])
-        return allowed_to_view(user, WorkingSet, self.kwargs['pk'])
+        #permitted = allowed_to_view_children(self.request, WorkingSet, self.kwargs['pk'])
+        
+        return allowed_to_view(self.request, WorkingSet, self.kwargs['pk'])
         
         
     def get_context_data(self, **kwargs):
@@ -423,10 +424,10 @@ class WorkingSetDetail(LoginRequiredMixin, HasAccessToViewWorkingsetCheckMixin, 
 #        concepts = Concept.history.all().filter(id__in=concept_list, history_id__in=workingset['concept_version'].values()).values('id','name', 'group')
         context['concepts_id_name'] = json.dumps(list(concepts))
         context['concepts_id_versionID'] = json.dumps(self.get_object().concept_version)
-        context['user_can_edit'] = (not workingset.is_deleted and allowed_to_edit(self.request.user, WorkingSet, self.get_object().id))
+        context['user_can_edit'] = (not workingset.is_deleted and allowed_to_edit(self.request, WorkingSet, self.get_object().id))
         context['history'] = self.get_object().history.all()
         
-        children_permitted_and_not_deleted , error_dic = db_utils.chk_children_permission_and_deletion(self.request.user, WorkingSet, self.kwargs['pk'])
+        children_permitted_and_not_deleted , error_dic = db_utils.chk_children_permission_and_deletion(self.request, WorkingSet, self.kwargs['pk'])
         are_concepts_latest_version , version_alerts = checkConceptVersionIsTheLatest(self.kwargs['pk'])
         
         context['user_can_export'] = (children_permitted_and_not_deleted and not workingset.is_deleted)
@@ -476,7 +477,7 @@ class WorkingSetRestore(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin,
 
 
     def has_access_to_edit_workingset(self, user):
-        return allowed_to_edit(user, WorkingSet, self.kwargs['pk'])
+        return allowed_to_edit(self.request, WorkingSet, self.kwargs['pk'])
 
 
     def get(self, request, pk):
@@ -496,7 +497,8 @@ def workingset_history_detail(request, pk, workingset_history_id):
     '''
         Display the detail of a workingset at a point in time.
     '''    
-    validate_access_to_view(request.user, WorkingSet, pk) 
+    validate_access_to_view(request, WorkingSet, pk) 
+        
     workingset = db_utils.getHistoryWorkingset(workingset_history_id)
     # Get the owner and group data from the IDs stored in the DB and add to the
     # page data.
@@ -526,7 +528,7 @@ def workingset_history_detail(request, pk, workingset_history_id):
  
     workingset_live = WorkingSet.objects.get(pk=pk)
     
-    children_permitted_and_not_deleted , error_dic = db_utils.chk_children_permission_and_deletion(request.user, WorkingSet, pk, set_history_id=workingset_history_id)
+    children_permitted_and_not_deleted , error_dic = db_utils.chk_children_permission_and_deletion(request, WorkingSet, pk, set_history_id=workingset_history_id)
     user_can_export = (children_permitted_and_not_deleted and not workingset_live.is_deleted)
     
     conceptBrands = json.dumps(db_utils.getConceptBrands(request, concept_list))
@@ -538,7 +540,7 @@ def workingset_history_detail(request, pk, workingset_history_id):
                    'tags': tags,
                    'concepts_id_name': concepts_id_name, 
                    'concepts_id_versionID': json.dumps(workingset['concept_version'])  ,
-                   'user_can_edit': (not workingset_live.is_deleted and allowed_to_edit(request.user, WorkingSet, pk)),
+                   'user_can_edit': (not workingset_live.is_deleted and allowed_to_edit(request, WorkingSet, pk)),
                    'allowed_to_create': allowed_to_create(),
                    'user_can_export': user_can_export,
                    'conceptBrands': conceptBrands,
@@ -552,7 +554,7 @@ def workingset_history_revert(request, pk, workingset_history_id):
     '''
         Revert to a previously saved historical version of the working set.
     '''
-    validate_access_to_edit(request.user, WorkingSet, pk)
+    validate_access_to_edit(request, WorkingSet, pk)
     data = dict()
     if request.method == 'POST':
         # Don't allow revert if the active object is deleted
@@ -586,16 +588,12 @@ def workingset_to_csv(request, pk):
     """
         Return a csv file of codes+attributes for a working set (live-latest version).
     """
-    validate_access_to_view(request.user, WorkingSet, pk) 
+    validate_access_to_view(request, WorkingSet, pk) 
     
-    #exclude(is_deleted=True)
-    if WorkingSet.objects.filter(id=pk).count() == 0:
-        return HttpResponseNotFound("Not found.")          
-        #raise permission_denied # although 404 is more relevant
         
     current_ws = WorkingSet.objects.get(pk=pk)
         
-    children_permitted_and_not_deleted , error_dic = db_utils.chk_children_permission_and_deletion(request.user, WorkingSet, pk)
+    children_permitted_and_not_deleted , error_dic = db_utils.chk_children_permission_and_deletion(request, WorkingSet, pk)
     if not children_permitted_and_not_deleted:
         raise PermissionDenied
         
@@ -613,22 +611,13 @@ def history_workingset_to_csv(request, pk, workingset_history_id):
     """
         Return a csv file of codes+attributes for a working set for a specific historical version.
     """
-    validate_access_to_view(request.user, WorkingSet, pk) 
-    
-    #exclude(is_deleted=True)
-    if WorkingSet.objects.filter(id=pk).count() == 0:
-        return HttpResponseNotFound("Not found.")          
-        #raise permission_denied # although 404 is more relevant
-        
-    #exclude(is_deleted=True)
-    if WorkingSet.history.filter(id=pk , history_id=workingset_history_id).count() == 0:
-        return HttpResponseNotFound("Not found.")          
-        #raise permission_denied # although 404 is more relevant        
+    validate_access_to_view(request, WorkingSet, pk) 
+          
         
     # here, check live version
     current_ws = WorkingSet.objects.get(pk=pk)
         
-    children_permitted_and_not_deleted , error_dic = db_utils.chk_children_permission_and_deletion(request.user, WorkingSet, pk, set_history_id=workingset_history_id)
+    children_permitted_and_not_deleted , error_dic = db_utils.chk_children_permission_and_deletion(request, WorkingSet, pk, set_history_id=workingset_history_id)
     if not children_permitted_and_not_deleted:
         raise PermissionDenied
         
@@ -815,7 +804,7 @@ def workingset_list(request):
   
     # Run through the workingsets and add a 'can edit this workingset' field, etc.
     for workingset in workingsets:
-        workingset.can_edit = allowed_to_edit(request.user, WorkingSet, workingset.id)
+        workingset.can_edit = allowed_to_edit(request, WorkingSet, workingset.id)
         workingset.history_id = WorkingSet.objects.get(pk=workingset.id).history.latest().history_id
         
     # create pagination

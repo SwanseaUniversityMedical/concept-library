@@ -142,12 +142,13 @@ def HDRUK_portal_redirect(request, unique_url):
 
 
 
-def build_permitted_components_list(user, concept_id, concept_history_id=None, check_published_child_concept=False):
+def build_permitted_components_list(request, concept_id, concept_history_id=None, check_published_child_concept=False):
     '''
         Look through the components that are associated with the specified
         concept ID and decide whether each has view and edit permission for
         the specified user.
     '''
+    user = request.user
     user_can_view_components = []
     user_can_edit_components = []
     component_error_msg_view = {}
@@ -183,10 +184,10 @@ def build_permitted_components_list(user, concept_id, concept_history_id=None, c
                 component_error_msg_view[component.id] += ["concept deleted"]
                 component_error_msg_edit[component.id] += ["concept deleted"]
 
-            if not allowed_to_view(user, Concept, component.concept_ref.id, set_history_id=component.concept_ref_history_id):
+            if not allowed_to_view(request, Concept, component.concept_ref.id, set_history_id=component.concept_ref_history_id):
                 component_error_msg_view[component.id] += ["no view permission"]
                 
-            if not allowed_to_edit(user, Concept, component.concept_ref.id):
+            if not allowed_to_edit(request, Concept, component.concept_ref.id):
                 component_error_msg_edit[component.id] += ["no edit permission"]
                 
             # check component child version is the latest

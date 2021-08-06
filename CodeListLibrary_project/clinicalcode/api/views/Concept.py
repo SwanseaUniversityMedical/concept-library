@@ -222,10 +222,10 @@ def export_concept_codes(request, pk):
         concept (pk).
     '''
     # Require that the user has access to the base concept.
-    validate_access_to_view(request.user, Concept, pk)
-    if not (allowed_to_view_children(request.user, Concept, pk)
+    validate_access_to_view(request, Concept, pk)
+    if not (allowed_to_view_children(request, Concept, pk)
             and
-            chk_deleted_children(request.user, Concept, pk, returnErrors = False)
+            chk_deleted_children(request, Concept, pk, returnErrors = False)
            ):
         raise PermissionDenied
     #
@@ -329,7 +329,7 @@ def export_concept_codes_byVersionID(request, pk, concept_history_id):
     '''
     # Require that the user has access to the base concept.
     # validate access for login site
-    validate_access_to_view(request.user, Concept, pk, set_history_id=concept_history_id)
+    validate_access_to_view(request, Concept, pk, set_history_id=concept_history_id)
 
         
 #     if concept_history_id is None:
@@ -340,9 +340,9 @@ def export_concept_codes_byVersionID(request, pk, concept_history_id):
         
     current_concept = Concept.objects.get(pk=pk)
 
-    user_can_export = (allowed_to_view_children(request.user, Concept, pk, set_history_id=concept_history_id)
+    user_can_export = (allowed_to_view_children(request, Concept, pk, set_history_id=concept_history_id)
                         and
-                        chk_deleted_children(request.user, Concept, pk, returnErrors = False, set_history_id=concept_history_id)
+                        chk_deleted_children(request, Concept, pk, returnErrors = False, set_history_id=concept_history_id)
                         and 
                         not current_concept.is_deleted 
                       )
@@ -679,7 +679,7 @@ def api_concept_update(request):
                             , status=status.HTTP_406_NOT_ACCEPTABLE
                             )
             
-        if not allowed_to_edit(request.user, Concept, concept_id):
+        if not allowed_to_edit(request, Concept, concept_id):
             errors_dict['id'] = 'concept_id must be a valid accessible concept id.' 
             return Response( 
                             data = errors_dict
@@ -1127,15 +1127,15 @@ def concept_detail(request, pk, concept_history_id=None, get_versions_only=None)
         
         
     # validate access concept
-    if not allowed_to_view(request.user, Concept, pk, set_history_id=concept_history_id):
+    if not allowed_to_view(request, Concept, pk, set_history_id=concept_history_id):
         raise PermissionDenied
     
     # we can remove this check as in concept-detail
     #---------------------------------------------------------
     # validate access to child concepts 
-    if not (allowed_to_view_children(request.user, Concept, pk, set_history_id=concept_history_id)
+    if not (allowed_to_view_children(request, Concept, pk, set_history_id=concept_history_id)
             and
-            chk_deleted_children(request.user, Concept, pk, returnErrors = False, set_history_id=concept_history_id)
+            chk_deleted_children(request, Concept, pk, returnErrors = False, set_history_id=concept_history_id)
            ):
         raise PermissionDenied
     #---------------------------------------------------------

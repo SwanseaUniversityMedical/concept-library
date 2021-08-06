@@ -198,6 +198,7 @@ class RegularExpressionsTest(StaticLiveServerTestCase):
 
         request = self.factory.get(url)
         request.user = self.owner_user
+        request.CURRENT_BRAND = ''
 
         # make export to csv request
         response = concept_codes_to_csv(request, self.concept_everybody_can_edit.id)

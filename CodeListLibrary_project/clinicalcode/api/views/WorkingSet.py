@@ -68,8 +68,8 @@ def export_workingset_codes(request, pk):
     '''
 
     # Require that the user has access to the base workingset and all its concepts.
-    validate_access_to_view(request.user, WorkingSet, pk)
-    children_permitted_and_not_deleted , error_dic = chk_children_permission_and_deletion(request.user, WorkingSet, pk)
+    validate_access_to_view(request, WorkingSet, pk)
+    children_permitted_and_not_deleted , error_dic = chk_children_permission_and_deletion(request, WorkingSet, pk)
     if(not children_permitted_and_not_deleted):
         #return Response(error_dic, status=status.HTTP_200_OK)
         raise PermissionDenied 
@@ -95,8 +95,8 @@ def export_workingset_codes_byVersionID(request, pk, workingset_history_id):
     '''
 
     # Require that the user has access to the base workingset and all its concepts.
-    validate_access_to_view(request.user, WorkingSet, pk)
-    children_permitted_and_not_deleted , error_dic = chk_children_permission_and_deletion(request.user, WorkingSet, pk, set_history_id=workingset_history_id)
+    validate_access_to_view(request, WorkingSet, pk)
+    children_permitted_and_not_deleted , error_dic = chk_children_permission_and_deletion(request, WorkingSet, pk, set_history_id=workingset_history_id)
     if(not children_permitted_and_not_deleted):
         #return Response(error_dic, status=status.HTTP_200_OK)
         raise PermissionDenied 
@@ -384,7 +384,7 @@ def api_workingset_update(request):
                             , status=status.HTTP_406_NOT_ACCEPTABLE
                             )
             
-        if not allowed_to_edit(request.user, WorkingSet, workingset_id):
+        if not allowed_to_edit(request, WorkingSet, workingset_id):
             errors_dict['id'] = 'workingset_id must be a valid accessible working set id.' 
             return Response( 
                             data = errors_dict
@@ -685,7 +685,7 @@ def workingset_detail(request, pk, workingset_history_id=None, get_versions_only
         raise Http404
     
     # validate access
-    if not allowed_to_view(request.user, WorkingSet, pk):
+    if not allowed_to_view(request, WorkingSet, pk):
         raise PermissionDenied
     
     if workingset_history_id is not None:
@@ -699,7 +699,7 @@ def workingset_detail(request, pk, workingset_history_id=None, get_versions_only
     # here, check live version
     current_ws = WorkingSet.objects.get(pk=pk)
         
-    children_permitted_and_not_deleted , error_dic = chk_children_permission_and_deletion(request.user, WorkingSet, pk, set_history_id=workingset_history_id)
+    children_permitted_and_not_deleted , error_dic = chk_children_permission_and_deletion(request, WorkingSet, pk, set_history_id=workingset_history_id)
     if not children_permitted_and_not_deleted:
         raise PermissionDenied
         
@@ -828,7 +828,7 @@ def get_workingset_concepts(request, pk, workingset_history_id):
     """
     
     # validate access
-    validate_access_to_view(request.user, WorkingSet, pk) 
+    validate_access_to_view(request, WorkingSet, pk) 
     
     #exclude(is_deleted=True)
     if WorkingSet.objects.filter(id=pk).count() == 0:
@@ -841,7 +841,7 @@ def get_workingset_concepts(request, pk, workingset_history_id):
     # here, check live version
     current_ws = WorkingSet.objects.get(pk=pk)
         
-    children_permitted_and_not_deleted , error_dic = chk_children_permission_and_deletion(request.user, WorkingSet, pk, set_history_id=workingset_history_id)
+    children_permitted_and_not_deleted , error_dic = chk_children_permission_and_deletion(request, WorkingSet, pk, set_history_id=workingset_history_id)
     if not children_permitted_and_not_deleted:
         raise PermissionDenied
         
@@ -898,7 +898,7 @@ def get_workingset_codes(request, pk, workingset_history_id):
     """
     
     # validate access
-    validate_access_to_view(request.user, WorkingSet, pk) 
+    validate_access_to_view(request, WorkingSet, pk) 
     
     #exclude(is_deleted=True)
     if WorkingSet.objects.filter(id=pk).count() == 0:
@@ -911,7 +911,7 @@ def get_workingset_codes(request, pk, workingset_history_id):
     # here, check live version
     current_ws = WorkingSet.objects.get(pk=pk)
         
-    children_permitted_and_not_deleted , error_dic = chk_children_permission_and_deletion(request.user, WorkingSet, pk, set_history_id=workingset_history_id)
+    children_permitted_and_not_deleted , error_dic = chk_children_permission_and_deletion(request, WorkingSet, pk, set_history_id=workingset_history_id)
     if not children_permitted_and_not_deleted:
         raise PermissionDenied
         

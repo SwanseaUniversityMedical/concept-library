@@ -222,7 +222,7 @@ def api_phenotype_update(request):
               content_type="json", 
               status=status.HTTP_406_NOT_ACCEPTABLE
             )
-        if not allowed_to_edit(request.user, Phenotype, phenotype_id):
+        if not allowed_to_edit(request, Phenotype, phenotype_id):
             errors_dict['id'] = 'phenotype_id must be a valid accessible phenotype id.' 
             return Response( 
               data = errors_dict, 
@@ -408,15 +408,15 @@ def export_phenotype_codes_byVersionID(request, pk, phenotype_history_id):
     '''
     # Require that the user has access to the base phenotype.
     # validate access for login site
-    validate_access_to_view(request.user, Phenotype, pk, set_history_id=phenotype_history_id)
+    validate_access_to_view(request, Phenotype, pk, set_history_id=phenotype_history_id)
 
     #----------------------------------------------------------------------
         
     current_phenotype = Phenotype.objects.get(pk=pk)
 
-    user_can_export = (allowed_to_view_children(request.user, Phenotype, pk, set_history_id=phenotype_history_id)
+    user_can_export = (allowed_to_view_children(request, Phenotype, pk, set_history_id=phenotype_history_id)
                         and
-                        chk_deleted_children(request.user, Phenotype, pk, returnErrors = False, set_history_id=phenotype_history_id)
+                        chk_deleted_children(request, Phenotype, pk, returnErrors = False, set_history_id=phenotype_history_id)
                         and 
                         not current_phenotype.is_deleted 
                       )
@@ -670,15 +670,15 @@ def phenotype_detail(request, pk, phenotype_history_id=None, get_versions_only=N
         
         
     # validate access phenotype
-    if not allowed_to_view(request.user, Phenotype, pk, set_history_id=phenotype_history_id):
+    if not allowed_to_view(request, Phenotype, pk, set_history_id=phenotype_history_id):
         raise PermissionDenied
     
     # we can remove this check as in phenotype-detail
     #---------------------------------------------------------
     # validate access to child phenotypes 
-    if not (allowed_to_view_children(request.user, Phenotype, pk, set_history_id=phenotype_history_id)
+    if not (allowed_to_view_children(request, Phenotype, pk, set_history_id=phenotype_history_id)
             and
-            chk_deleted_children(request.user, Phenotype, pk, returnErrors = False, set_history_id=phenotype_history_id)
+            chk_deleted_children(request, Phenotype, pk, returnErrors = False, set_history_id=phenotype_history_id)
            ):
         raise PermissionDenied
     #---------------------------------------------------------

@@ -2068,7 +2068,7 @@ def search_codes(component_type, database_connection_name, table_name,
         return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
 
-def chk_deleted_children(user, set_class, set_id, returnErrors = True
+def chk_deleted_children(request, set_class, set_id, returnErrors = True
                          , WS_concepts_json = ""
                          , WS_concept_version = ""
                          , set_history_id = None):
@@ -2076,7 +2076,8 @@ def chk_deleted_children(user, set_class, set_id, returnErrors = True
         check if there are any deleted children of a concept or a working set
         THIS DOES NOT CHECK PRMISSIONS
     '''
-
+    
+    user = request.user
     errors = dict()
 
     concepts = []
@@ -2085,7 +2086,7 @@ def chk_deleted_children(user, set_class, set_id, returnErrors = True
     # The Working Set and Concept systems are fundamentally different, so we
     # need to check that here. Why?
     if (set_class == WorkingSet):
-        permitted = allowed_to_view(user, WorkingSet, set_id, set_history_id=set_history_id)
+        permitted = allowed_to_view(request, WorkingSet, set_id, set_history_id=set_history_id)
         if (not permitted):
             errors[set_id] = 'Working set not permitted.'
         # Need to parse the concept_informations section of the database and use
@@ -2100,7 +2101,7 @@ def chk_deleted_children(user, set_class, set_id, returnErrors = True
             unique_concepts.add(int(concept))
         pass
     elif set_class == Phenotype:
-        permitted = allowed_to_view(user, Phenotype, set_id)
+        permitted = allowed_to_view(request, Phenotype, set_id)
         if (not permitted):
             errors[set_id] = 'Phenotype not permitted.'
             # Need to parse the concept_informations section of the database and use
@@ -2115,7 +2116,7 @@ def chk_deleted_children(user, set_class, set_id, returnErrors = True
             unique_concepts.add(concept[0])
         pass
     elif (set_class == Concept):
-        permitted = allowed_to_view(user, Concept, set_id, set_history_id=set_history_id)
+        permitted = allowed_to_view(request, Concept, set_id, set_history_id=set_history_id)
         if (not permitted):
             errors[set_id] = 'Concept not permitted.'
             
@@ -2158,7 +2159,7 @@ def chk_deleted_children(user, set_class, set_id, returnErrors = True
         return AllnotDeleted
 
 
-def chk_children_permission_and_deletion(user, set_class, set_id, WS_concepts_json="", set_history_id=None, submitted_concept_version=None):
+def chk_children_permission_and_deletion(request, set_class, set_id, WS_concepts_json="", set_history_id=None, submitted_concept_version=None):
     '''
         check if there are any deleted/ or not permitted children
             of a concept or a working set.
@@ -2170,12 +2171,12 @@ def chk_children_permission_and_deletion(user, set_class, set_id, WS_concepts_js
     is_ok = False
     error_dict = {}
     
-    is_permitted_to_all , error_perms = allowed_to_view_children(user, set_class, set_id
+    is_permitted_to_all , error_perms = allowed_to_view_children(request, set_class, set_id
                                                                 , returnErrors = True
                                                                 , WS_concepts_json = WS_concepts_json
                                                                 , WS_concept_version = submitted_concept_version
                                                                 , set_history_id=set_history_id)
-    children_not_deleted , error_del = chk_deleted_children(user, set_class, set_id
+    children_not_deleted , error_del = chk_deleted_children(request, set_class, set_id
                                                             , returnErrors = True
                                                             , WS_concepts_json = WS_concepts_json
                                                             , WS_concept_version = submitted_concept_version
@@ -3524,7 +3525,7 @@ def get_brand_collection_ids(brand_name):
     """
     
     
-    brand = Brand.objects.get(name = brand_name)
+    brand = Brand.objects.get(name__iexact = brand_name)
     brand_collection_ids = list(Tag.objects.filter(collection_brand = brand.id).values_list('id', flat=True))
     
     return brand_collection_ids

@@ -177,7 +177,7 @@ class ComponentQueryBuilderCreate(LoginRequiredMixin,
             # update component list
             data['html_component_list'] = render_to_string(
                 'clinicalcode/component/partial_component_list.html',
-                build_permitted_components_list(self.request.user, self.kwargs['concept_id'])
+                build_permitted_components_list(self.request, self.kwargs['concept_id'])
                 )
 
             concept = Concept.objects.get(pk=self.kwargs['concept_id'])
@@ -238,7 +238,7 @@ class ComponentQueryBuilderDelete(LoginRequiredMixin,
         data['form_is_valid'] = True
         data['html_component_list'] = render_to_string(
             'clinicalcode/component/partial_component_list.html',
-            build_permitted_components_list(self.request.user, self.kwargs['concept_id'])
+            build_permitted_components_list(self.request, self.kwargs['concept_id'])
             )
         concept = Concept.objects.get(id=component.concept_id)
 
@@ -379,7 +379,7 @@ class ComponentQueryBuilderUpdate(LoginRequiredMixin,
             data['form_is_valid'] = True
             data['html_component_list'] = render_to_string(
                 'clinicalcode/component/partial_component_list.html',
-                build_permitted_components_list(self.request.user, self.kwargs['concept_id'])
+                build_permitted_components_list(self.request, self.kwargs['concept_id'])
                 )
 
             concept = Concept.objects.get(pk=self.kwargs['concept_id'])
@@ -491,7 +491,7 @@ def component_history_querybuilder_detail_combined(request,
 
     # validate access for login and public site
     if request.user.is_authenticated():
-        validate_access_to_view(request.user, Concept, concept_id, set_history_id=concept_history_id)
+        validate_access_to_view(request, Concept, concept_id, set_history_id=concept_history_id)
     else:
         if not Concept.objects.filter(id=concept_id).exists(): 
             raise PermissionDenied

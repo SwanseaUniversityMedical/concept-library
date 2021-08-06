@@ -170,7 +170,7 @@ class ComponentExpressionCreate(LoginRequiredMixin,
             # refresh component list
             data['html_component_list'] = render_to_string(
                 'clinicalcode/component/partial_component_list.html',
-                build_permitted_components_list(self.request.user, self.kwargs['concept_id'])
+                build_permitted_components_list(self.request, self.kwargs['concept_id'])
                 )
 
             # update history list
@@ -231,7 +231,7 @@ class ComponentExpressionDelete(LoginRequiredMixin,
         # refresh component list
         data['html_component_list'] = render_to_string(
             'clinicalcode/component/partial_component_list.html',
-            build_permitted_components_list(self.request.user, self.kwargs['concept_id'])
+            build_permitted_components_list(self.request, self.kwargs['concept_id'])
         )
         
         concept = Concept.objects.get(id=kwargs['concept_id'])
@@ -354,7 +354,7 @@ class ComponentExpressionUpdate(LoginRequiredMixin,
             # refresh component list
             data['html_component_list'] = render_to_string(
                 'clinicalcode/component/partial_component_list.html',
-                build_permitted_components_list(self.request.user, self.kwargs['concept_id'])
+                build_permitted_components_list(self.request, self.kwargs['concept_id'])
                 )
 
 
@@ -483,7 +483,7 @@ class ComponentExpressionSelectCodeCreate(LoginRequiredMixin,
         data['form_is_valid'] = True
         data['html_component_list'] = render_to_string(
             'clinicalcode/component/partial_component_list.html',
-            build_permitted_components_list(self.request.user, self.kwargs['concept_id'])
+            build_permitted_components_list(self.request, self.kwargs['concept_id'])
             )
 
         concept = Concept.objects.get(id=self.kwargs['concept_id'])
@@ -637,7 +637,7 @@ class ComponentExpressionSelectCreate(LoginRequiredMixin,
             # refresh component list
             data['html_component_list'] = render_to_string(
                 'clinicalcode/component/partial_component_list.html',
-                build_permitted_components_list(self.request.user, self.kwargs['concept_id'])
+                build_permitted_components_list(self.request, self.kwargs['concept_id'])
                 )
 
             concept = Concept.objects.get(id=self.kwargs['concept_id'])
@@ -700,7 +700,7 @@ class ComponentExpressionSelectDelete(LoginRequiredMixin,
         # refresh component list
         data['html_component_list'] = render_to_string(
             'clinicalcode/component/partial_component_list.html',
-            build_permitted_components_list(self.request.user, self.kwargs['concept_id'])
+            build_permitted_components_list(self.request, self.kwargs['concept_id'])
         )
         
         concept = Concept.objects.get(id=component.concept_id)
@@ -844,7 +844,7 @@ class ComponentExpressionSelectUpdate(LoginRequiredMixin,
             # refresh component list
             data['html_component_list'] = render_to_string(
                 'clinicalcode/component/partial_component_list.html',
-                build_permitted_components_list(self.request.user, self.kwargs['concept_id'])
+                build_permitted_components_list(self.request, self.kwargs['concept_id'])
                 )
 
             concept = Concept.objects.get(id=self.kwargs['concept_id'])
@@ -893,7 +893,7 @@ def component_history_expression_detail_combined(request,
     
     # validate access for login and public site
     if request.user.is_authenticated():
-        validate_access_to_view(request.user, Concept, concept_id, set_history_id=concept_history_id)
+        validate_access_to_view(request, Concept, concept_id, set_history_id=concept_history_id)
     else:
         if not Concept.objects.filter(id=concept_id).exists(): 
             raise PermissionDenied
@@ -940,7 +940,7 @@ def component_expression_searchcodes(request, concept_id):
         !!! (2) Should we do %patt% by default?
         !!! (3) How do we do whole-word only, e.g. search for PSA not xxxPSAxxx? Not quite % PSA %?
     '''
-    validate_access_to_view(request.user, Concept, concept_id)
+    validate_access_to_view(request, Concept, concept_id)
     concept = Concept.objects.get(id=concept_id)
     coding_system = concept.coding_system
     codes = db_utils.search_codes(Component.COMPONENT_TYPE_EXPRESSION,
@@ -976,7 +976,7 @@ def component_expressionselect_search_codes(request, concept_id):
         Search code select regex codes by regex_code.
     '''
 
-    validate_access_to_view(request.user, Concept, concept_id)
+    validate_access_to_view(request, Concept, concept_id)
 
     # logical_type, regex_type
     # get coding system for the current concept
@@ -1013,7 +1013,7 @@ def component_history_expressionselect_detail_combined(request,
     
     # validate access for login and public site
     if request.user.is_authenticated():
-        validate_access_to_view(request.user, Concept, concept_id, set_history_id=concept_history_id)
+        validate_access_to_view(request, Concept, concept_id, set_history_id=concept_history_id)
     else:
         if not Concept.objects.filter(id=concept_id).exists(): 
             raise PermissionDenied

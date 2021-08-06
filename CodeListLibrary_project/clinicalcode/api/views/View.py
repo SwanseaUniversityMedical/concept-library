@@ -571,7 +571,7 @@ def get_visible_versions_list(request, set_class, pk, is_authenticated_user=True
         ver['is_published'] = is_this_version_published
         
         if is_authenticated_user: 
-            if allowed_to_edit(request.user, set_class, pk) or allowed_to_view(request.user, set_class, pk):
+            if allowed_to_edit(request, set_class, pk) or allowed_to_view(request, set_class, pk):
                 visible_versions.append(ver)
             else:
                 if is_this_version_published:

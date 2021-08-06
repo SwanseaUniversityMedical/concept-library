@@ -899,6 +899,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         request = self.factory.get(url)
         request.user = self.normal_user
+        request.CURRENT_BRAND = ''
 
         # pass request to the view
         response = concept_codes_to_csv(request, self.concept_with_excluded_codes.id)
@@ -945,6 +946,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         request = self.factory.get(url)
         request.user = self.normal_user
+        request.CURRENT_BRAND = ''
 
         # pass request to the view
         response = concept_codes_to_csv(request, self.concept_with_excluded_and_included_codes.id)
@@ -989,6 +991,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         request = self.factory.get(url)
         request.user = self.owner_user
+        request.CURRENT_BRAND = ''
 
         # pass request to the view
         response = workingset_to_csv(request, self.workingset_with_excluded_codes.id)
@@ -1009,6 +1012,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         request = self.factory.get(url)
         request.user = self.owner_user
+        request.CURRENT_BRAND = ''
 
         # pass request to the view
         response = workingset_to_csv(request, self.workingset_with_excluded_and_included_codes.id)
@@ -1079,6 +1083,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         request = self.factory.get(url)
         request.user = self.normal_user
+        request.CURRENT_BRAND = ''
 
         test = False
         try:
@@ -1094,6 +1099,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         request = self.factory.get(url)
         request.user = self.normal_user
+        request.CURRENT_BRAND = ''
 
         test = False
         try:

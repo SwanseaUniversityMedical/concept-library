@@ -433,7 +433,8 @@ class VersioningTest(StaticLiveServerTestCase):
 
         request = self.factory.get(url)
         request.user = self.normal_user
-
+        request.CURRENT_BRAND = ''
+        
         # make export to csv request
         response = concept_codes_to_csv(request, self.concept_everybody_can_edit.id)
 
@@ -474,6 +475,7 @@ class VersioningTest(StaticLiveServerTestCase):
 
         request = self.factory.get(url)
         request.user = self.normal_user
+        request.CURRENT_BRAND = ''
 
         # make export to csv request
         response = workingset_to_csv(request, self.workingset_everybody_can_edit.id)

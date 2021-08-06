@@ -396,9 +396,11 @@ class InclusionExclusionTest(TestCase):
         url = ('%s%s%s' % ('/concepts/',
                            self.root.id, '/export/codes'))
 
+        
         request = self.factory.get(url)
         request.user = self.owner_user
-
+        request.CURRENT_BRAND = ''
+        
         response = concept_codes_to_csv(request, self.root.id)
 
         response_codes = self.get_codes_from_response(response.content)
@@ -418,6 +420,7 @@ class InclusionExclusionTest(TestCase):
 
             request = self.factory.get(url)
             request.user = self.owner_user
+            request.CURRENT_BRAND = ''
 
             response = history_concept_codes_to_csv(request, self.published_root.concept_id,
                                                     self.published_root.concept_history_id)
