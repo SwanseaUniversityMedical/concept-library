@@ -50,8 +50,8 @@ def api_datasource_create(request):
         new_datasource.uid = request.data.get('uid')
         new_datasource.url = request.data.get('url')
         new_datasource.description = request.data.get('description')
-        brand_id = 3    # HDRUK  -- fixed for now
-        #brand_id = request.data.get('brand_id')
+        #brand_id = 3    # HDRUK  -- fixed for now
+        brand_id = request.data.get('brand_id')
         new_datasource.brand = Brand.objects.get(id=brand_id)
 
         new_datasource.created_by = request.user
@@ -130,7 +130,7 @@ def get_data_source(request, pk=None, get_live_phenotypes=False, show_published_
    
         
     rows_to_return = []
-    titles = ['id', 'name', 'url', 'uid', 'description', 'phenotypes']
+    titles = ['id', 'name', 'url', 'uid', 'description', 'brand', 'phenotypes']
         
     for ds in queryset:
         ret = [
@@ -138,7 +138,8 @@ def get_data_source(request, pk=None, get_live_phenotypes=False, show_published_
                 ds.name.encode('ascii', 'ignore').decode('ascii'),
                 ds.url,
                 ds.uid,
-                ds.description
+                ds.description,
+                ds.brand
             ]
         if get_live_phenotypes:
             ret.append(get_LIVE_phenotypes_associated_with_data_source(ds.id, show_published_data_only=show_published_data_only))
