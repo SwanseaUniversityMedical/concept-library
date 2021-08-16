@@ -64,7 +64,7 @@ def index_HDRUK(request):
     
     
     return render(request,
-                  'clinicalcode/HDRUK/index_HDRUK.html',
+                  'clinicalcode/brand/HDRUK/index_HDRUK.html',
                   {
                     # ONLY PUBLISHED COUNTS HERE
                     'published_concept_count': HDRUK_stat['published_concept_count'], 
@@ -90,25 +90,25 @@ def about_pages(request, pg_name=None):
     
     # HDR-UK about pages                    
     if pg_name.lower() == "hdruk_about_the_project".lower():
-        return render(request, 'clinicalcode/HDRUK/about/about-the-project.html', {})
+        return render(request, 'clinicalcode/brand/HDRUK/about/about-the-project.html', {})
     
     elif pg_name.lower() == "hdruk_about_team".lower():
-        return render(request, 'clinicalcode/HDRUK/about/team.html', {})
+        return render(request, 'clinicalcode/brand/HDRUK/about/team.html', {})
     
     elif pg_name.lower() == "hdruk_about_technical_details".lower():
-        return render(request, 'clinicalcode/HDRUK/about/technical-details.html', {})
+        return render(request, 'clinicalcode/brand/HDRUK/about/technical-details.html', {})
     
     elif pg_name.lower() == "hdruk_about_covid_19_response".lower():
-        return render(request, 'clinicalcode/HDRUK/about/covid-19-response.html', {})
+        return render(request, 'clinicalcode/brand/HDRUK/about/covid-19-response.html', {})
     
     elif pg_name.lower() == "hdruk_about_publications".lower():
-        return render(request, 'clinicalcode/HDRUK/about/publications.html', {})
+        return render(request, 'clinicalcode/brand/HDRUK/about/publications.html', {})
     
     elif pg_name.lower() == "breathe".lower():
-        return render(request, 'clinicalcode/HDRUK/collections/breathe.html', {})
+        return render(request, 'clinicalcode/brand/HDRUK/collections/breathe.html', {})
 
     elif pg_name.lower() == "bhf_data_science_centre".lower():
-        return render(request, 'clinicalcode/HDRUK/collections/bhf-data-science-centre.html', {})
+        return render(request, 'clinicalcode/brand/HDRUK/collections/bhf-data-science-centre.html', {})
     
     else:
         return render(request,

@@ -39,17 +39,19 @@
 		<link href="{% static 'css/bootstrap-tagsinput.css' %}" rel="stylesheet" />
 		<link href="{% static 'css/bootstrap-tagsinput-typeahead.css' %}" rel="stylesheet" />	
 		<link href="{% static 'css/query-builder.default.min.css' %}" rel="stylesheet" />
+
+		
 		<link href="{% static 'css/site.css' %}" rel="stylesheet" />
-		
 		<link href="{% static 'css/brands/SM/brand.css' %}" rel="stylesheet" />
-		
-		<link rel="preconnect" href="https://fonts.gstatic.com">
-		<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans&display=swap" rel="stylesheet">
 
 		<link href="{% static 'css/main.css' %}" rel="stylesheet" />
 		{% if request.CURRENT_BRAND|length %}
 			<link href="{% static 'css/brands/' %}{{request.CURRENT_BRAND}}/brand.css" rel="stylesheet" />
 		{% endif %}
+		
+		<link rel="preconnect" href="https://fonts.gstatic.com">
+		<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans&display=swap" rel="stylesheet">
+		
 
 		{% block head %}{% endblock head %}
 
