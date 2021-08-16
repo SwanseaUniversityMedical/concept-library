@@ -401,7 +401,8 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         c['codesCount'] = 0
         if codelist:
             c['codesCount'] = len([x['code'] for x in codelist if x['concept_id'] == c['concept_id'] and x['concept_version_id'] == c['concept_version_id'] ])
-            
+        
+        c['concept_friendly_id'] = 'C' + str(c['concept_id'])  
         concept_data.append(c)
          
     if phenotype['is_deleted'] == True:
@@ -514,7 +515,7 @@ def phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
         concept_version_id = concept[1]
         c_codes = []
         for c in codes:
-            if c['concept_id'] == concept_id and c['concept_version_id'] == concept_version_id:
+            if c['concept_id'] == 'C'+str(concept_id) and c['concept_version_id'] == concept_version_id:
                 c_codes.append(c)
         
         c_codes_count = "0"
@@ -623,7 +624,7 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id):
     }
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = (
-                'attachment; filename="phenotype_%(phenotype_id)s_ver_%(phenotype_history_id)s_concepts_%(creation_date)s.csv"' % my_params)
+                'attachment; filename="phenotype_PH%(phenotype_id)s_ver_%(phenotype_history_id)s_concepts_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
 
@@ -648,11 +649,13 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id):
                                 cc['code'],
                                 cc['description'].encode('ascii', 'ignore').decode('ascii'),
                                 concept_coding_system,
-                                concept_id,
+                                'C'+str(concept_id),
                                 concept_version_id
                             ]
                             + [Concept.history.get(id=concept_id, history_id=concept_version_id).name]
-                            + [current_ph_version.id, current_ph_version.history_id, current_ph_version.name]
+                            + [current_ph_version.friendly_id, 
+                               current_ph_version.history_id,
+                               current_ph_version.name]
                             )
 
         if rows_no == 0:
@@ -660,11 +663,13 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id):
                                 '',
                                 '',
                                 concept_coding_system,
-                                concept_id,
+                                'C'+str(concept_id),
                                 concept_version_id
                             ]
                             + [Concept.history.get(id=concept_id, history_id=concept_version_id).name]
-                            + [current_ph_version.id, current_ph_version.history_id, current_ph_version.name]
+                            + [current_ph_version.friendly_id, 
+                               current_ph_version.history_id, 
+                               current_ph_version.name]
                             )
 
     return response

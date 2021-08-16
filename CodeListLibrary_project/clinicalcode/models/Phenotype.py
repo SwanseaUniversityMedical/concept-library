@@ -15,7 +15,6 @@ class Phenotype(TimeStampedModel):
         Representation of a Phenotype imported from the HDR UK Gateway.
         Has the following additional relationships:
         - DataSource: One to Many. A phenotype can have a number of data sources.
-        - ClinicalTerminology: One to Many. A phenotype can have a number of clinical terminologies.
     """
 
     # Metadata (imported from HDR UK):
@@ -59,11 +58,17 @@ class Phenotype(TimeStampedModel):
     world_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.NONE)
 
     tags = ArrayField(models.IntegerField(), blank=True, null=True)  #default=list
-    clinical_terminologies = ArrayField(models.IntegerField(), blank=True, null=True)  #default=list
-    publications = ArrayField(models.CharField(max_length=500), blank=True, null=True)  #default=list
+    clinical_terminologies = ArrayField(models.IntegerField(), blank=True, null=True)  # coding systems
+    publications = ArrayField(models.CharField(max_length=500), blank=True, null=True)
+    
+    friendly_id = models.CharField(max_length=50, default='', editable=False)
     
     history = HistoricalRecords()
 
+    def save(self, *args, **kwargs):
+        self.friendly_id = 'PH' + str(self.id)
+        super(Phenotype, self).save(*args, **kwargs)
+        
     def save_without_historical_record(self, *args, **kwargs):
         self.skip_history_when_saving = True
         try:

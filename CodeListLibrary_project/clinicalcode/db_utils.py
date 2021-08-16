@@ -781,7 +781,8 @@ def getHistoryConcept(concept_history_id):
         hc.deleted,
         hc.deleted_by_id,
         hc.tags,
-        hc.code_attribute_header
+        hc.code_attribute_header,
+        hc.friendly_id
         FROM clinicalcode_historicalconcept AS hc
         JOIN clinicalcode_codingsystem AS cs ON hc.coding_system_id = cs.id
         LEFT OUTER JOIN auth_user AS ucb on ucb.id = hc.created_by_id
@@ -831,7 +832,8 @@ def getHistoryWorkingset(workingset_history_id):
         hw.history_type,
         hw.is_deleted,
         hw.deleted,
-        hw.deleted_by_id        
+        hw.deleted_by_id,
+        hw.friendly_id    
         FROM clinicalcode_historicalworkingset AS hw
         LEFT OUTER JOIN auth_user AS ucb on ucb.id = hw.created_by_id
         LEFT OUTER JOIN auth_user AS umb on umb.id = hw.updated_by_id
@@ -2792,8 +2794,8 @@ def get_visible_live_or_published_concept_versions(request
                                source_reference, citation_requirements, is_deleted, deleted, 
                                owner_access, group_access, world_access, history_id, history_date, 
                                history_change_reason, history_type, coding_system_id, created_by_id, 
-                               deleted_by_id, group_id, history_user_id, modified_by_id, owner_id
-                               , tags, code_attribute_header
+                               deleted_by_id, group_id, history_user_id, modified_by_id, owner_id,
+                               tags, code_attribute_header, friendly_id
                             FROM clinicalcode_historicalconcept t
                                 """ + brand_filter_cond + """
                             ) r
@@ -2953,7 +2955,8 @@ def get_visible_live_or_published_phenotype_versions(request
                                owner_access, group_access, world_access, history_id, history_date, 
                                history_change_reason, history_type, created_by_id, deleted_by_id, 
                                group_id, history_user_id, owner_id, updated_by_id, validation_performed, 
-                               phenoflowid, tags, clinical_terminologies, publications
+                               phenoflowid, tags, clinical_terminologies, publications,
+                               friendly_id
                             FROM clinicalcode_historicalphenotype t
                                 """ + brand_filter_cond + """
                             ) r
@@ -3023,6 +3026,7 @@ def getHistoryPhenotype(phenotype_history_id):
         hph.tags,
         hph.clinical_terminologies,
         hph.publications,
+        hph.friendly_id,
         ucb.username as created_by_username,
         umb.username as modified_by_username,
         uhu.username as history_user
@@ -3182,9 +3186,13 @@ def get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
 
     titles = (['code', 'description'
                , 'code_attributes'
-               , 'coding_system', 'concept_id', 'concept_version_id'
+               , 'coding_system'
+               , 'concept_id'
+               , 'concept_version_id'
                , 'concept_name'
-               , 'phenotype_id', 'phenotype_version_id', 'phenotype_name'
+               , 'phenotype_id'
+               , 'phenotype_version_id'
+               , 'phenotype_name'
                ]
             )
 
@@ -3233,10 +3241,12 @@ def get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
                             + 
                             [
                                 concept_coding_system,
-                                concept_id,
+                                'C'+str(concept_id),
                                 concept_version_id,
                                 Concept.history.get(id=concept_id, history_id=concept_version_id).name,
-                                current_ph_version.id, current_ph_version.history_id, current_ph_version.name
+                                current_ph_version.friendly_id,
+                                current_ph_version.history_id, 
+                                current_ph_version.name
                             ]
                         )))
 
@@ -3250,10 +3260,12 @@ def get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
                             + 
                             [
                                 concept_coding_system,
-                                concept_id,
+                                'C'+str(concept_id),
                                 concept_version_id,
                                 Concept.history.get(id=concept_id, history_id=concept_version_id).name,
-                                current_ph_version.id, current_ph_version.history_id, current_ph_version.name
+                                current_ph_version.friendly_id, 
+                                current_ph_version.history_id,
+                                current_ph_version.name
                             ]
                         )))
 
@@ -3485,8 +3497,6 @@ def getHistory_ConceptCodeAttribute(concept_id, concept_history_date, code_attri
             ]
         
         
-    
-        
 #---------------------------------------------------------------------------
 def getConceptCodes_withAttributes_HISTORICAL(concept_id, concept_history_date, allCodes, code_attribute_header):
     if not code_attribute_header:
@@ -3503,7 +3513,7 @@ def getConceptCodes_withAttributes_HISTORICAL(concept_id, concept_history_date, 
     allCodes_df = pd.DataFrame.from_dict(allCodes)
     code_attributes_df = pd.DataFrame.from_dict(code_attributes)
     
-    # left_join_df
+    # left_join_df join with the passed code list
     codes_with_attr_df = pd.merge(allCodes_df,
                                   code_attributes_df,
                                   on="code",

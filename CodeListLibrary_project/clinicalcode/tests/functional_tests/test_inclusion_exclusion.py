@@ -393,10 +393,11 @@ class InclusionExclusionTest(TestCase):
         return codes
 
     def test_root(self):
-        url = ('%s%s%s' % ('/concepts/',
-                           self.root.id, '/export/codes'))
+#         url = ('%s%s%s' % ('/concepts/C',
+#                            self.root.id, '/export/codes'))
 
-        
+        url = reverse('concept_codes_to_csv', kwargs={'pk': self.root.id}) 
+                
         request = self.factory.get(url)
         request.user = self.owner_user
         request.CURRENT_BRAND = ''
@@ -414,10 +415,13 @@ class InclusionExclusionTest(TestCase):
         if settings_cll.ENABLE_PUBLISH:
             from clinicalcode.views.Concept import history_concept_codes_to_csv
 
-            url = ('%s%s%s%s%s' % ('/concepts/', self.published_root.concept_id
-                                   , '/version/', self.published_root.concept_history_id
-                                   , '/export/codes'))
-
+#             url = ('%s%s%s%s%s' % ('/concepts/C', self.published_root.concept_id
+#                                    , '/version/', self.published_root.concept_history_id
+#                                    , '/export/codes'))
+        
+            url = reverse('history_concept_codes_to_csv'
+                                               , kwargs={'pk': self.published_root.concept_id,
+                                                         'concept_history_id': self.published_root.concept_history_id}) 
             request = self.factory.get(url)
             request.user = self.owner_user
             request.CURRENT_BRAND = ''

@@ -1,6 +1,6 @@
 {% for component in components %}
 	<tr>
-		<td>{% if component.component_type == 1 %}({{ component.concept_ref_id }}) {% endif %}{{ component.name }}</td>
+		<td>{% if component.component_type == 1 %}(C{{ component.concept_ref_id }}) {% endif %}{{ component.name }}</td>
 		<td>{{ component.get_component_type_display }}</td>
 		<td>{{ component.get_logical_type_display }}</td>
 		<td class="text-right">

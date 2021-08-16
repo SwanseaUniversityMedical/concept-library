@@ -231,7 +231,7 @@ def customRoot(request):
 
     # relace 0/1 by {id}/{version_id}
     for k, v in urls_available.items():
-        new_url = urls_available[k].replace('0', '{id}').replace('1', '{version_id}')
+        new_url = urls_available[k].replace('C0', '{id}').replace('PH0', '{id}').replace('WS0', '{id}').replace('1', '{version_id}')
         urls_available[k] = new_url
         
     return render(request,

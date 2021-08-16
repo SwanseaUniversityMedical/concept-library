@@ -381,6 +381,8 @@ class OtherTest(StaticLiveServerTestCase):
             owner_access=Permissions.EDIT,
             world_access=Permissions.NONE
         )
+        
+        update_friendly_id()
 
     def tearDown(self):
         # self.browser.refresh()
@@ -412,7 +414,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         browser = self.browser
         # get the test server url
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                           self.concept_everybody_can_edit.id, '/update/'))
 
         browser.get(self.WEBAPP_HOST + reverse('concept_update'
@@ -429,7 +431,7 @@ class OtherTest(StaticLiveServerTestCase):
         self.logout()
         # ----------------------
         self.login(nm_user, nm_password)  # logging as normal user
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
         #                         self.workingset_everybody_can_edit.id, '/detail/'))
 
         browser.get(self.WEBAPP_HOST + reverse('workingset_detail'
@@ -444,7 +446,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         # Try to export to csv bu URL
         # Todo needs to be confirmed which url should be used for reverse
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
                                   self.concept_everybody_can_view.id, '/export/concepts/'))
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
@@ -467,7 +469,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         browser = self.browser
         # get the test server url
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                         self.concept_everybody_can_edit.id, '/delete/'))
         browser.get(self.WEBAPP_HOST + reverse('concept_delete'
                                                , kwargs={'pk': self.concept_everybody_can_edit.id,
@@ -486,7 +488,7 @@ class OtherTest(StaticLiveServerTestCase):
         # --------------------
         self.login(nm_user, nm_password)  # logging as normal user
 
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
         #                          self.workingset_everybody_can_edit.id, '/detail/'))
         #
         browser.get(self.WEBAPP_HOST + reverse('workingset_detail'
@@ -504,7 +506,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         # Try to export to csv bu URL
         # Todo needs to be confirmed which url should be used for reverse
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
                                   self.concept_everybody_can_view.id, '/export/concepts/'))
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
@@ -532,7 +534,7 @@ class OtherTest(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
 
         browser = self.browser
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                         self.concept_everybody_can_view.id, '/update/'))
         browser.get(self.WEBAPP_HOST + reverse('concept_update'
                                                , kwargs={'pk': self.concept_everybody_can_view.id})
@@ -551,7 +553,7 @@ class OtherTest(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
 
         browser = self.browser
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                          deleted_concept.id, '/delete/'))
 
         browser.get(self.WEBAPP_HOST + reverse('concept_delete'
@@ -571,7 +573,7 @@ class OtherTest(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
 
         browser = self.browser
-        # browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        # browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                             self.concept_everybody_can_view.id, '/version/',
         #                            self.concept_everybody_can_view.history.first().history_id, '/revert/'))
         browser.get(self.WEBAPP_HOST + reverse('concept_history_revert'
@@ -590,7 +592,7 @@ class OtherTest(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
 
         browser = self.browser
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
         #                          self.concept_everybody_can_view.id, '/update/'))
         browser.get(self.WEBAPP_HOST + reverse('workingset_update'
                                                , kwargs={'pk': self.concept_everybody_can_view.id})
@@ -605,7 +607,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         self.login(nm_user, nm_password)
         browser = self.browser
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
         #                          self.concept_everybody_can_view.id, '/delete/'))
         browser.get(self.WEBAPP_HOST + reverse('workingset_delete'
                                                , kwargs={'pk': self.concept_everybody_can_view.id})
@@ -620,7 +622,7 @@ class OtherTest(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
 
         browser = self.browser
-        # browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+        # browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
         #                              self.concept_everybody_can_view.id, '/version/',
         #                             self.concept_everybody_can_view.history.first().history_id, '/revert/'))
 
@@ -652,7 +654,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         self.assertTrue("Permission denied." in browser.page_source)
 
-        # browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/concepts/',
+        # browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/concepts/C',
         #                       self.concept_none_can_access.id))
 
         browser.get(self.WEBAPP_HOST + reverse('api:concept_by_id'
@@ -692,7 +694,7 @@ class OtherTest(StaticLiveServerTestCase):
         browser = self.browser
 
         # check if normal user can see concept
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                         self.concept_everybody_can_view.id, '/detail/'))
 
         browser.get(self.WEBAPP_HOST + reverse('concept_detail'
@@ -710,7 +712,7 @@ class OtherTest(StaticLiveServerTestCase):
         # login as owner and change permission
         self.login(ow_user, ow_password)
 
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                         self.child_concept.id, '/update/'))
 
         browser.get(self.WEBAPP_HOST + reverse('concept_update'
@@ -743,7 +745,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         # login again as normal user and check if permission denied appears for concept with child
         self.login(nm_user, nm_password)
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                          self.concept_everybody_can_view.id, '/detail/'))
 
         browser.get(self.WEBAPP_HOST + reverse('concept_detail'
@@ -756,7 +758,7 @@ class OtherTest(StaticLiveServerTestCase):
         self.assertTrue(is_disabled)
 
         # Try to export csv bu using URL
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                          self.concept_everybody_can_view.id, '/export/codes/'))
 
         browser.get(self.WEBAPP_HOST + reverse('concept_codes_to_csv'
@@ -775,7 +777,7 @@ class OtherTest(StaticLiveServerTestCase):
         browser = self.browser
 
         # check if normal user can see concept
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                          self.concept_everybody_can_view.id, '/detail/'))
 
         browser.get(self.WEBAPP_HOST + reverse('concept_detail'
@@ -793,7 +795,7 @@ class OtherTest(StaticLiveServerTestCase):
         # login as owner and delete concept
         self.login(ow_user, ow_password)
 
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                          self.child_concept.id, '/delete/'))
         browser.get(self.WEBAPP_HOST + reverse('concept_delete'
                                                , kwargs={'pk': self.child_concept.id})
@@ -816,7 +818,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         # login again as normal user and check if permission denied appears for concept with child
         self.login(nm_user, nm_password)
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                         self.concept_everybody_can_view.id, '/detail/'))
 
         browser.get(self.WEBAPP_HOST + reverse('concept_detail'
@@ -830,7 +832,7 @@ class OtherTest(StaticLiveServerTestCase):
         self.assertTrue(is_disabled)
 
         # Try to export csv bu using URL
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                         self.concept_everybody_can_view.id, '/export/codes/'))
 
         browser.get(self.WEBAPP_HOST + reverse('concept_codes_to_csv'
@@ -894,8 +896,11 @@ class OtherTest(StaticLiveServerTestCase):
     '''
 
     def test_concept_codes_exclusion(self):
-        url = ('%s%s%s' % ('/concepts/',
-                           self.concept_with_excluded_codes.id, '/export/codes'))
+#         url = ('%s%s%s' % ('/concepts/C',
+#                            self.concept_with_excluded_codes.id, '/export/codes'))
+        
+        url = self.WEBAPP_HOST + reverse('concept_codes_to_csv'
+                                               , kwargs={'pk': self.concept_with_excluded_codes.id})         
 
         request = self.factory.get(url)
         request.user = self.normal_user
@@ -941,8 +946,11 @@ class OtherTest(StaticLiveServerTestCase):
                          or test_code2 in browser.page_source)
 
     def test_concept_codes_inclusion_and_exclusion(self):
-        url = ('%s%s%s' % ('/concepts/',
-                           self.concept_with_excluded_and_included_codes.id, '/export/codes'))
+#         url = ('%s%s%s' % ('/concepts/C',
+#                            self.concept_with_excluded_and_included_codes.id, '/export/codes'))
+        
+        url = self.WEBAPP_HOST + reverse('concept_codes_to_csv'
+                                               , kwargs={'pk': self.concept_with_excluded_and_included_codes.id})         
 
         request = self.factory.get(url)
         request.user = self.normal_user
@@ -986,9 +994,11 @@ class OtherTest(StaticLiveServerTestCase):
                          or test_code2 in browser.page_source)
 
     def test_workingset_exclusion_and_inclusion(self):
-        url = ('%s%s%s' % ('/workingsets/',
-                           self.workingset_with_excluded_codes.id, '/export/concepts'))
-
+#         url = ('%s%s%s' % ('/workingsets/WS',
+#                            self.workingset_with_excluded_codes.id, '/export/concepts'))
+        
+        url = self.WEBAPP_HOST + reverse('workingset_to_csv'
+                                               , kwargs={'pk': self.workingset_with_excluded_codes.id}) 
         request = self.factory.get(url)
         request.user = self.owner_user
         request.CURRENT_BRAND = ''
@@ -1007,9 +1017,11 @@ class OtherTest(StaticLiveServerTestCase):
         self.assertTrue(test)
 
     def test_workingset_exclusion(self):
-        url = ('%s%s%s' % ('/workingsets/',
-                           self.workingset_with_excluded_and_included_codes.id, '/export/concepts'))
-
+#         url = ('%s%s%s' % ('/workingsets/WS',
+#                            self.workingset_with_excluded_and_included_codes.id, '/export/concepts'))
+        
+        url = self.WEBAPP_HOST + reverse('workingset_to_csv'
+                                               , kwargs={'pk': self.workingset_with_excluded_and_included_codes.id}) 
         request = self.factory.get(url)
         request.user = self.owner_user
         request.CURRENT_BRAND = ''
@@ -1078,8 +1090,11 @@ class OtherTest(StaticLiveServerTestCase):
     '''
 
     def test_concept_to_csv_permission(self):
-        url = ('%s%s%s' % ('/concepts/',
-                           self.concept_none_can_access.id, '/export/codes'))
+#         url = ('%s%s%s' % ('/concepts/C',
+#                            self.concept_none_can_access.id, '/export/codes'))
+        
+        url = self.WEBAPP_HOST + reverse('concept_codes_to_csv'
+                                               , kwargs={'pk': self.concept_none_can_access.id})         
 
         request = self.factory.get(url)
         request.user = self.normal_user
@@ -1094,8 +1109,11 @@ class OtherTest(StaticLiveServerTestCase):
         self.assertTrue(test)
 
     def test_workingset_to_csv_permission(self):
-        url = ('%s%s%s' % ('/workingsets/',
-                           self.workingset_none_can_access.id, '/export/codes'))
+#         url = ('%s%s%s' % ('/workingsets/WS',
+#                            self.workingset_none_can_access.id, '/export/codes'))
+        
+        url = self.WEBAPP_HOST + reverse('workingset_to_csv'
+                                               , kwargs={'pk': self.workingset_none_can_access.id})         
 
         request = self.factory.get(url)
         request.user = self.normal_user

@@ -33,9 +33,15 @@ class WorkingSet(TimeStampedModel):
     owner_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.EDIT)
     group_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.NONE)
     world_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.NONE)
-    
+        
+    friendly_id = models.CharField(max_length=50, default='', editable=False)
+        
     history = HistoricalRecords()
     
+    def save(self, *args, **kwargs):
+        self.friendly_id = 'WS' + str(self.id)
+        super(WorkingSet, self).save(*args, **kwargs)
+        
     def save_without_historical_record(self, *args, **kwargs):
         self.skip_history_when_saving = True
         try:

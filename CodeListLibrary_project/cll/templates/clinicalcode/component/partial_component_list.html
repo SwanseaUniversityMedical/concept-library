@@ -5,7 +5,7 @@
 {% load staticfiles %}
 {% for component in components %}
 	<tr>
-		<td>{% if component.component_type == 1 %}({{ component.concept_ref_id }}) {% endif %}{{ component.name }}
+		<td>{% if component.component_type == 1 %}(C{{ component.concept_ref_id }}) {% endif %}{{ component.name }}
 			{% if component.component_type == 1 %}
 				{% for item in request.BRAND_GROUPS %}
 					{% for brand, groups in item.iteritems %}

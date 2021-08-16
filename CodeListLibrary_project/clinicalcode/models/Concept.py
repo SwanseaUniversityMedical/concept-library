@@ -10,6 +10,7 @@ from CodingSystem import CodingSystem
 from TimeStampedModel import TimeStampedModel
 from ..permissions import Permissions
 from django.contrib.postgres.fields import ArrayField
+from django.template.defaultfilters import default
 
 class Concept(TimeStampedModel):
     id = models.AutoField(primary_key=True)
@@ -39,9 +40,14 @@ class Concept(TimeStampedModel):
 
     tags = ArrayField(models.IntegerField(), blank=True, null=True)  
     code_attribute_header = ArrayField(models.CharField(max_length=100), blank=True, null=True)  
+    friendly_id = models.CharField(max_length=50, default='', editable=False)
 
     history = HistoricalRecords()
-    
+            
+    def save(self, *args, **kwargs):
+        self.friendly_id = 'C' + str(self.id)
+        super(Concept, self).save(*args, **kwargs)
+        
     def save_without_historical_record(self, *args, **kwargs):
         self.skip_history_when_saving = True
         try:

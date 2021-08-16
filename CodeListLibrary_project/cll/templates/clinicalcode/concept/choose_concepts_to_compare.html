@@ -10,7 +10,7 @@
 	{% csrf_token %}
 	
 <h2 >
-	<i class="fa fa-columns" aria-hidden="true"></i><i> Choose 2 concepts to compare</i>
+	Choose 2 concepts to compare</i>
 </h2>
 <i class="help-block" style="font-size: 12px;">Start typing a concept name to see search result</i>
 
@@ -121,9 +121,8 @@ $(function(){
 				
 				return {
 					suggestions: $.map($.parseJSON(response), function(item){
-						//return {data: String(item.id), value: "Concept: " + item.id + " - " + item.name + ", author: " + item.author};
 						return {data: String(item.id) 
-							, value: "Concept: " + item.id + "/" +item.history_id + " - " + "(" + (item.rn==1?'latest: ':'') + item.published+")" + " - " + item.name + ", author: " + item.author
+							, value: item.friendly_id + "/" +item.history_id + " - " + "(" + (item.rn==1?'latest: ':'') + item.published+")" + " - " + item.name + ", author: " + item.author
 							, version: String(item.history_id)
 							};
 					})
@@ -187,7 +186,7 @@ $(function(){
 			//..................
 			var form = $(this).closest("form");
 		    
-		    href = "/concepts/"+c1+"/"+v1+"/compare/"+c2+"/"+v2+"/";
+		    href = "/concepts/C"+c1+"/"+v1+"/compare/C"+c2+"/"+v2+"/";
 			form.attr('action' , href);
 			
 			$(".loader").show();

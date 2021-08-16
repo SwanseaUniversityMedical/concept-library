@@ -497,7 +497,7 @@ def workingset_history_detail(request, pk, workingset_history_id):
     '''
         Display the detail of a workingset at a point in time.
     '''    
-    validate_access_to_view(request, WorkingSet, pk) 
+    validate_access_to_view(request, WorkingSet, pk, workingset_history_id) 
         
     workingset = db_utils.getHistoryWorkingset(workingset_history_id)
     # Get the owner and group data from the IDs stored in the DB and add to the
@@ -638,7 +638,7 @@ def history_workingset_to_csv(request, pk, workingset_history_id):
         'creation_date': time.strftime("%Y%m%dT%H%M%S")
     }
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = ('attachment; filename="workingset_%(workingset_id)s_ver_%(workingset_history_id)s_concepts_%(creation_date)s.csv"' % my_params)
+    response['Content-Disposition'] = ('attachment; filename="workingset_WS%(workingset_id)s_ver_%(workingset_history_id)s_concepts_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
 
@@ -688,10 +688,10 @@ def history_workingset_to_csv(request, pk, workingset_history_id):
                                 cc['code'], 
                                 cc['description'].encode('ascii', 'ignore').decode('ascii'),
                                 concept_coding_system,
-                                concept_id,
+                                'C'+str(concept_id),
                                 concept_version[concept_id],
                                 concept_name,
-                                current_ws_version.id,
+                                current_ws_version.friendly_id,
                                 current_ws_version.history_id, 
                                 current_ws_version.name
                             ]
@@ -702,10 +702,10 @@ def history_workingset_to_csv(request, pk, workingset_history_id):
                                 '', 
                                 '',
                                 concept_coding_system,
-                                concept_id,
+                                'C'+str(concept_id),
                                 concept_version[concept_id],
                                 concept_name, 
-                                current_ws_version.id,
+                                current_ws_version.friendly_id,
                                 current_ws_version.history_id,
                                 current_ws_version.name
                             ]
@@ -732,7 +732,7 @@ def workingset_list(request):
     tag_ids = request.GET.get('tagids', request.session.get('workingset_tagids', ''))
     owner = request.GET.get('owner', request.session.get('workingset_owner', ''))
     author = request.GET.get('author', request.session.get('workingset_author', ''))
-    ws_brand = request.GET.get('ws_brand', request.session.get('workingset_brand', request.CURRENT_BRAND))
+    ws_brand = request.GET.get('ws_brand', request.session.get('workingset_brand', '')) # request.CURRENT_BRAND   
  
     if request.method == 'POST':
         # get posted parameters
@@ -744,7 +744,7 @@ def workingset_list(request):
         author = request.POST.get('author', '')
         tag_ids = request.POST.get('tagids', '')
         owner = request.POST.get('owner', '')
-        ws_brand = request.POST.get('ws_brand', request.CURRENT_BRAND)
+        ws_brand = request.POST.get('ws_brand', '') #    request.CURRENT_BRAND
 
     # store page index variables to session
     request.session['workingset_page_size'] = page_size
@@ -760,6 +760,16 @@ def workingset_list(request):
     # Ensure that user is only allowed to view the relevant workingsets.
     workingsets = get_visible_workingsets(request.user)
   
+  
+    # When in a brand, show only this brand's data ----------------
+    brand = request.CURRENT_BRAND
+    if brand != "":
+        brand_collection_ids = db_utils.get_brand_collection_ids(brand)
+        if brand_collection_ids:           
+            workingsets = workingsets.filter(workingsettagmap__tag__id__in=brand_collection_ids)           
+    #--------------------------------------------------------------
+    
+    
     # check if there is any search criteria supplied
     if search is not None:
         if search != '':

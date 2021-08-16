@@ -88,6 +88,8 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
             owner_access=Permissions.NONE,
             world_access=Permissions.EDIT
         )
+        
+        update_friendly_id()
 
     def tearDown(self):
         self.browser.quit()
@@ -114,7 +116,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
                                       self.workingset_everybody_can_edit.id, '/version/',
                                       self.workingset_everybody_can_edit.history.first().history_id, '/detail/'))
 
@@ -136,7 +138,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
                                       self.workingset_everybody_can_edit.id, '/version/',
                                       self.workingset_everybody_can_edit.history.first().history_id, '/revert/'))
 
@@ -149,7 +151,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
                                       self.workingset_everybody_can_edit.id, '/version/',
                                       self.workingset_everybody_can_edit.history.first().history_id, '/detail/'))
 
@@ -171,7 +173,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
                                       self.workingset_everybody_can_edit.id, '/version/',
                                       self.workingset_everybody_can_edit.history.first().history_id, '/revert/'))
         time.sleep(settings.TEST_SLEEP_TIME)
@@ -196,7 +198,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_super_user_cannot_edit(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
                                   self.workingset_everybody_can_edit.id, '/update/'))
 
         self.login(su_user, su_password)
@@ -207,7 +209,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_super_user_cannot_revert(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
                                       self.workingset_everybody_can_edit.id, '/version/',
                                       self.workingset_everybody_can_edit.history.first().history_id, '/detail/'))
 
@@ -228,7 +230,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_super_user_cannot_revert_through_url(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
                                       self.workingset_everybody_can_edit.id, '/version/',
                                       self.workingset_everybody_can_edit.history.first().history_id, '/revert/'))
 
@@ -243,7 +245,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_normal_user_cannot_edit_by_own_url(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
                                   self.workingset_everybody_can_edit.id, '/update/'))
 
         self.login(nm_user, nm_password)
@@ -254,7 +256,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_owner_cannot_edit_by_own_url(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
                                   self.workingset_everybody_can_edit.id, '/update/'))
 
         self.login(ow_user, ow_password)

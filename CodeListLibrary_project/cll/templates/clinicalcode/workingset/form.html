@@ -18,9 +18,9 @@
 {% block container %}
 
 {% if pk is None %}
-	<h2><i class="fa fa-file-text-o" aria-hidden="true"></i> Create a new working set</h2>
+	<h2>Create a new working set</h2>
 {% else %}
-	<h2><i class="fa fa-edit" aria-hidden="true"></i> Edit working set</h2>
+	<h2>Edit working set</h2>
 {% endif %}
 
 {% if errorMsg %}
@@ -104,7 +104,7 @@
 					
 					{% if pk is not None %}
 						 <div class="form-group">
-							<label class="col-sm-3">Latest history ID:</label>
+							<label class="col-sm-3">Latest version ID:</label>
 							<div class="col-sm-7">
 								<input type="hidden" id="latest_history_id" name="latest_history_id"  value="{{ latest_history_id }}">
 								<input type="hidden" id="overrideVersion" name="overrideVersion"  value="{{ overrideVersion|default_if_none:'0' }}">
@@ -540,8 +540,7 @@
 						//$('#concepthidden_' + id).val('');
 						return {
 							suggestions: $.map($.parseJSON(response), function(item){
-								//return {data: String(item.id), value: "Concept: " + item.id + "/latest" + " - " + item.name + ", author: " + item.author};
-								return {data: String(item.id), value: "Concept: " + item.id + "/" +item.history_id + " - " + "(" + (item.rn==1?'latest: ':'') + item.published+")" + " - " + item.name + ", author: " + item.author};
+								return {data: String(item.id), value: "C"+ item.id + "/" +item.history_id + " - " + "(" + (item.rn==1?'latest: ':'') + item.published+")" + " - " + item.name + ", author: " + item.author};
 							})
 						};
 					},
@@ -789,7 +788,7 @@
 					concept_id = $(concept_data[0].children[4]).val();		// concept id			
 					//alert('concept_id00='+concept_id);
 					
-					concept_ver = $.trim($(concept_data[0].children[3]).val().split('-')[0].replace("Concept: " , "")).split('/')[1];		// concept ver	
+					concept_ver = $.trim($(concept_data[0].children[3]).val().split('-')[0]).split('/')[1];		// concept ver	
 					concepts_versions[concept_id] = concept_ver; 
 					//alert('concept_concept_ver='+concept_ver);
 					
@@ -887,7 +886,7 @@
  	  						if(id == key) {    
  	  							name = "{{concept.name}}";
  	  							author = "{{concept.author}}";
- 	  							full_name = "Concept: " + {{concept.id}} + "/" + concepts_id_version[key] + " - " + name + ", author: " + author;
+ 	  							full_name = "C"+ {{concept.id}} + "/" + concepts_id_version[key] + " - " + name + ", author: " + author;
  	  							
  	  						}
  	  					{% endfor %}

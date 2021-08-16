@@ -234,7 +234,7 @@ def allowed_to_view(request, set_class, set_id, set_history_id = None, user = No
     
     # check brand access
     if is_allowed_to_view and request is not None:
-        if not is_brand_accessible(request, set_class, set_id):
+        if not is_brand_accessible(request, set_class, set_id, set_history_id):
             is_allowed_to_view = False
 
     return is_allowed_to_view
@@ -809,6 +809,12 @@ def is_brand_accessible(request, set_class, set_id, set_history_id = None):
     from .models.Concept import Concept
     from .models.Phenotype import Phenotype
     from .models.WorkingSet import WorkingSet
+    
+    
+    # setting set_history_id = None, 
+    # so this permission is always checked from the live obj like other permissions
+    set_history_id = None
+    
     
     brand = request.CURRENT_BRAND
     if brand == "":

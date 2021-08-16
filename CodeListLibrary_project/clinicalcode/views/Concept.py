@@ -132,12 +132,14 @@ class ConceptCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageMixi
            
             #form.changeReason = "Created"   
             #self.object = form.save()
-            
-            
+                        
             self.object = form.save()
             db_utils.modifyConceptChangeReason(self.object.pk, "Created")
-#             concept = Concept.objects.get(pk=self.object.pk)
-#             concept.history.latest().delete() 
+            # to save correctly the computed friendly_id field
+            concept = Concept.objects.get(pk=self.object.pk)
+            concept.history.latest().delete()
+            concept.changeReason = "Created"
+            concept.save()   
 # 
 #             # add tags that have not been stored in db
 #             if tag_ids:
@@ -1034,24 +1036,18 @@ def concept_upload_codes(request, pk):
                                     world_access=current_concept.world_access,
                                     coding_system=current_concept.coding_system,
                                     is_deleted=current_concept.is_deleted)
-                                # Create a new concept component and attach
-                                # it to the original concept.
-                                component_main = Component.objects.create(
-                                            comment=cat,
-                                            component_type=Component.COMPONENT_TYPE_CONCEPT,
-                                            concept=current_concept,
-                                            concept_ref=new_concept,
-                                            created_by=request.user,
-                                            logical_type=1,
-                                            name="%s component" % cat,
-                                            concept_ref_history_id = new_concept.history.latest().pk 
-                                            )
+                                
+                                # to save correctly the computed friendly_id field
+                                new_concept.history.latest().delete()
+                                new_concept.changeReason = "Created via upload"
+                                new_concept.save()   
+            
+
                                 row_count = 0
                                 # get unique set of sub categories for the current category
                                 for row in codes:
                                     row_count += 1
-                                    if (first_row_has_column_headings == 'on'
-                                       and row_count == 1):
+                                    if (first_row_has_column_headings == 'on' and row_count == 1):
                                         continue
                                     # get a list of unique sub-category names
                                     # Need to check stripped category.
@@ -1091,6 +1087,23 @@ def concept_upload_codes(request, pk):
                                                         'description': row[code_desc_col]
                                                     }
                                                 )
+                                    # Save the concept with a change reason to reflect the creation
+                                    db_utils.saveConceptWithChangeReason(new_concept.pk,
+                                                                    "Created component: %s via upload" % (component.name) , modified_by_user=request.user)
+                                     
+                                # Create a new concept component and attach
+                                # it to the original concept.
+                                component_main = Component.objects.create(
+                                            comment=cat,
+                                            component_type=Component.COMPONENT_TYPE_CONCEPT,
+                                            concept=current_concept,
+                                            concept_ref=new_concept,
+                                            created_by=request.user,
+                                            logical_type=1,
+                                            name="%s component" % cat,
+                                            concept_ref_history_id = new_concept.history.latest().pk 
+                                            )
+                                                                            
                                 # save child-concept codes
                                 db_utils.save_child_concept_codes(concept_id = current_concept.pk,
                                                                 component_id = component_main.pk,
@@ -1098,11 +1111,12 @@ def concept_upload_codes(request, pk):
                                                                 concept_ref_history_id = new_concept.history.latest().pk,
                                                                 insert_or_update = 'insert'
                                                                 )
+
                                 
                     #components = Component.objects.filter(concept_id=pk)
                     # save the concept with a change reason to reflect the restore within the concept audit history
-                    db_utils.saveConceptWithChangeReason(pk,
-                        "Codes uploaded: %s" % upload_name)
+                    db_utils.saveConceptWithChangeReason(pk, "Codes uploaded: %s" % upload_name)
+                    
                     # Update dependent concepts & working sets
                     db_utils.saveDependentConceptsChangeReason(pk, "Component concept #" + str(pk) + " was updated")
                             
@@ -1212,7 +1226,7 @@ def concept_codes_to_csv(request, pk):
         'creation_date': time.strftime("%Y%m%dT%H%M%S")
     }
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = ('attachment; filename="concept_%(id)s_group_codes_%(creation_date)s.csv"' % my_params)
+    response['Content-Disposition'] = ('attachment; filename="concept_C%(id)s_group_codes_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
     
@@ -1252,7 +1266,7 @@ def concept_codes_to_csv(request, pk):
                         c['code'], #.encode('ascii', 'ignore').decode('ascii'),
                         c['description'].encode('ascii', 'ignore').decode('ascii'),
                         concept_coding_system,
-                        pk,
+                        current_concept.friendly_id,
                         current_concept.history.latest().history_id,
                         current_concept.name,
                         ]
@@ -1316,7 +1330,7 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
         'creation_date': time.strftime("%Y%m%dT%H%M%S")
     }
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = ('attachment; filename="concept_%(id)s_ver_%(concept_history_id)s_group_codes_%(creation_date)s.csv"' % my_params)
+    response['Content-Disposition'] = ('attachment; filename="concept_C%(id)s_ver_%(concept_history_id)s_group_codes_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
     
@@ -1353,7 +1367,7 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
                         c['code'], #.encode('ascii', 'ignore').decode('ascii'),
                         c['description'].encode('ascii', 'ignore').decode('ascii'),
                         concept_coding_system, 
-                        pk,
+                        current_concept.friendly_id,
                         concept_history_id,
                         history_concept['name'],
                         ]
@@ -1499,8 +1513,8 @@ def compare_concepts_codes(request, concept_id, version_id, concept_ref_id, vers
     #main_name = main_concept.name + " - (" + str(concept_id) + "/" + str(version_id) + ") - " + main_concept.author
     # get data from version history
     main_name = (main_concept_history_version.name 
-                 + "<BR>(" + str(concept_id) + "/" + str(version_id) + ") " 
-                 + "<BR>author: " + main_concept_history_version.author)
+                 + "<BR><strong>(" + str(main_concept_history_version.friendly_id) + "/" + str(version_id) + ")</strong> " 
+                 + "<BR><strong>author:</strong> " + main_concept_history_version.author)
     
     
     #----------------------------------
@@ -1512,8 +1526,8 @@ def compare_concepts_codes(request, concept_id, version_id, concept_ref_id, vers
     #ref_name = ref_concept.name + " - (" + str(concept_ref_id) + "/" + str(version_ref_id) + ") - " + ref_concept.author
     # get data from version history
     ref_name = (ref_concept_history_version.name 
-                + "<BR>(" + str(concept_ref_id) + "/" + str(version_ref_id) + ") " 
-                + "<BR>author: " + ref_concept_history_version.author)
+                + "<BR><strong>(" + str(ref_concept_history_version.friendly_id) + "/" + str(version_ref_id) + ")</strong> " 
+                + "<BR><strong>author:</strong> " + ref_concept_history_version.author)
               
 
 

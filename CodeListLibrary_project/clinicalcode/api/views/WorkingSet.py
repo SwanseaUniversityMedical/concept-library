@@ -17,15 +17,9 @@ from ..serializers import *
 # The models imports have to be done as follows to avoid Eclipse flagging up
 # access to the objects list as ambiguous.
 from ...models.Concept import Concept
-# from ...models.Component import Component
-# from ...models.CodeRegex import CodeRegex
-# from ...models.CodeList import CodeList
-# from ...models.Code import Code
 from ...models.Tag import Tag
-# from ...models.ConceptTagMap import ConceptTagMap
 from ...models.WorkingSet import WorkingSet
 from ...models.WorkingSetTagMap import WorkingSetTagMap
-# from ...models.CodingSystem import CodingSystem
 from ...models.Brand import Brand
 
 from django.contrib.auth.models import User
@@ -156,10 +150,10 @@ def export_workingset_codes_byVersionID(request, pk, workingset_history_id):
                                         cc['code'], 
                                         cc['description'].encode('ascii', 'ignore').decode('ascii'),
                                         concept_coding_system,
-                                        concept_id,
+                                        'C'+str(concept_id),
                                         concept_version[concept_id],
                                         concept_name,
-                                        current_ws_version.id,
+                                        current_ws_version.friendly_id,
                                         current_ws_version.history_id, 
                                         current_ws_version.name
                                     ] 
@@ -172,10 +166,10 @@ def export_workingset_codes_byVersionID(request, pk, workingset_history_id):
                                     '', 
                                     '',
                                     concept_coding_system,
-                                    concept_id,
+                                    'C'+str(concept_id),
                                     concept_version[concept_id],
                                     concept_name,
-                                    current_ws_version.id,
+                                    current_ws_version.friendly_id,
                                     current_ws_version.history_id,
                                     current_ws_version.name
                                 ]
@@ -637,7 +631,7 @@ def workingsets(request, pk=None):
 
     for c in workingsets:
         ret = [
-                c.id,  
+                c.friendly_id,  
                 c.name.encode('ascii', 'ignore').decode('ascii'),
                 WorkingSet.objects.get(pk=c.id).history.latest().history_id,
                 c.author,
@@ -735,7 +729,7 @@ def workingset_detail(request, pk, workingset_history_id=None, get_versions_only
     tags_comp = getHistoryTags_Workingset(pk, ws_history_date)
     if tags_comp:
         tag_list = [i['tag_id'] for i in tags_comp if 'tag_id' in i]
-        tags = list(Tag.objects.filter(pk__in=tag_list).values('description', 'id'))
+        tags = list(Tag.objects.filter(pk__in=tag_list).values('description', 'id', 'tag_type', 'collection_brand'))
     
     rows_to_return = []
     titles = [
@@ -771,7 +765,7 @@ def workingset_detail(request, pk, workingset_history_id=None, get_versions_only
     titles += ['versions']
     
     ret = [
-            ws['id'],
+            ws['friendly_id'],
             ws['name'].encode('ascii', 'ignore').decode('ascii'),
             ws['history_id'],
             tags,
@@ -869,7 +863,7 @@ def get_workingset_concepts(request, pk, workingset_history_id):
 
     rows_to_return = []
     for concept_id, data in concept_data.iteritems():
-        ret = ([concept_id, concept_version[concept_id]] 
+        ret = (['C'+str(concept_id), concept_version[concept_id]] 
                 + [Concept.history.get(id=concept_id , history_id=concept_version[concept_id] ).name] 
                 + data
             )
@@ -942,15 +936,17 @@ def get_workingset_codes(request, pk, workingset_history_id):
         #Allow Working sets with zero attributes
         if title_row == [] and data == ['']:
             data = []
+            
+        concept_name = Concept.history.get(id=concept_id , history_id=concept_version[concept_id] ).name
         for cc in codes:
             rows_no+=1
             ret = ([
                         cc['code'], 
                         cc['description'].encode('ascii', 'ignore').decode('ascii'),
-                        concept_id
+                        'C'+str(concept_id)
                     ] 
                     + [concept_version[concept_id]] 
-                    + [Concept.history.get(id=concept_id , history_id=concept_version[concept_id] ).name] 
+                    + [concept_name]
                     #+ [current_ws_version.id ,current_ws_version.history_id , current_ws_version.name] 
                     + data
                 )
@@ -961,10 +957,10 @@ def get_workingset_codes(request, pk, workingset_history_id):
             ret = ([
                         '', 
                         '',
-                        concept_id
+                        'C'+str(concept_id)
                     ] 
                     + [concept_version[concept_id]] 
-                    + [Concept.history.get(id=concept_id , history_id=concept_version[concept_id] ).name] 
+                    + [concept_name]
                     #+ [current_ws_version.id ,current_ws_version.history_id , current_ws_version.name] 
                     + data
                 )

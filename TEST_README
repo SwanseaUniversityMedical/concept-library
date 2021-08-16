@@ -10,7 +10,9 @@ manage.py manage which settings file is read. If a command contains read_only ph
 
 
 
-To test:
+To test via remote test (Docker):
+
+first set REMOTE_TEST = True in both test_settings.py and read_only_settings.py
 
 Go into the webapp docker container: `docker exec -it concept-library-dev-db_webapp_1 /bin/bash`
 
