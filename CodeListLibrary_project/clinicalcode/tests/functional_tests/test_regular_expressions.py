@@ -107,6 +107,8 @@ class RegularExpressionsTest(StaticLiveServerTestCase):
                                                           comp_parent=self.concept_everybody_can_edit,
                                                           code_list_description="included code list",
                                                           codes_names_list=["i1", "i2", "i3"])
+        
+        update_friendly_id()
 
     def tearDown(self):
         self.browser.quit()
@@ -174,7 +176,7 @@ class RegularExpressionsTest(StaticLiveServerTestCase):
 
         browser = self.browser
         # get the test server url
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                       self.concept_everybody_can_edit.id, '/update/'))
 
         browser.get(self.WEBAPP_HOST + reverse('concept_update'
@@ -193,11 +195,14 @@ class RegularExpressionsTest(StaticLiveServerTestCase):
 
         browser.find_element_by_id("save-changes").click()  # save changes
 
-        url = ('%s%s%s' % ('/concepts/',
-                           self.concept_everybody_can_edit.id, '/export/codes'))
-
+#         url = ('%s%s%s' % ('/concepts/C',
+#                            self.concept_everybody_can_edit.id, '/export/codes'))
+        
+        url = self.WEBAPP_HOST + reverse('concept_codes_to_csv'
+                                               , kwargs={'pk': self.concept_everybody_can_edit.id}) 
         request = self.factory.get(url)
         request.user = self.owner_user
+        request.CURRENT_BRAND = ''
 
         # make export to csv request
         response = concept_codes_to_csv(request, self.concept_everybody_can_edit.id)

@@ -222,10 +222,10 @@ def export_concept_codes(request, pk):
         concept (pk).
     '''
     # Require that the user has access to the base concept.
-    validate_access_to_view(request.user, Concept, pk)
-    if not (allowed_to_view_children(request.user, Concept, pk)
+    validate_access_to_view(request, Concept, pk)
+    if not (allowed_to_view_children(request, Concept, pk)
             and
-            chk_deleted_children(request.user, Concept, pk, returnErrors = False)
+            chk_deleted_children(request, Concept, pk, returnErrors = False)
            ):
         raise PermissionDenied
     #
@@ -255,7 +255,7 @@ def export_concept_codes(request, pk):
         
         titles = ['code', 'description', 'coding_system', 'concept_id', 'concept_version_id', 'concept_name']
         if code_attribute_header:
-            if request.query_params.get('format', '').lower() == 'xml':
+            if request.query_params.get('format', 'xml').lower() == 'xml':
                 # clean attr names/ remove space, etc
                 titles = titles + [clean_str_as_db_col_name(a)  for a in code_attribute_header]
             else:
@@ -278,7 +278,7 @@ def export_concept_codes(request, pk):
                                     c['code'],  
                                     c['description'].encode('ascii', 'ignore').decode('ascii'),
                                     concept_coding_system,
-                                    pk,
+                                    current_concept.friendly_id,
                                     current_concept.history.latest().history_id,
                                     current_concept.name,
                                 ]
@@ -329,7 +329,7 @@ def export_concept_codes_byVersionID(request, pk, concept_history_id):
     '''
     # Require that the user has access to the base concept.
     # validate access for login site
-    validate_access_to_view(request.user, Concept, pk, set_history_id=concept_history_id)
+    validate_access_to_view(request, Concept, pk, set_history_id=concept_history_id)
 
         
 #     if concept_history_id is None:
@@ -340,9 +340,9 @@ def export_concept_codes_byVersionID(request, pk, concept_history_id):
         
     current_concept = Concept.objects.get(pk=pk)
 
-    user_can_export = (allowed_to_view_children(request.user, Concept, pk, set_history_id=concept_history_id)
+    user_can_export = (allowed_to_view_children(request, Concept, pk, set_history_id=concept_history_id)
                         and
-                        chk_deleted_children(request.user, Concept, pk, returnErrors = False, set_history_id=concept_history_id)
+                        chk_deleted_children(request, Concept, pk, returnErrors = False, set_history_id=concept_history_id)
                         and 
                         not current_concept.is_deleted 
                       )
@@ -394,7 +394,7 @@ def get_historical_concept_codes(request, pk, concept_history_id):
     
     titles = ['code', 'description', 'coding_system', 'concept_id', 'concept_version_id', 'concept_name']
     if code_attribute_header:
-        if request.query_params.get('format', '').lower() == 'xml':
+        if request.query_params.get('format', 'xml').lower() == 'xml':
             # clean attr names/ remove space, etc
             titles = titles + [clean_str_as_db_col_name(a)  for a in code_attribute_header]
         else:
@@ -413,7 +413,7 @@ def get_historical_concept_codes(request, pk, concept_history_id):
                                 c['code'],  
                                 c['description'].encode('ascii', 'ignore').decode('ascii'),
                                 concept_coding_system,
-                                pk,
+                                history_concept['friendly_id'],
                                 concept_history_id,
                                 history_concept['name'],
                             ]
@@ -561,19 +561,7 @@ def api_concept_create(request):
             new_concept.save()
             created_concept = Concept.objects.get(pk=new_concept.pk)
             created_concept.history.latest().delete() 
- 
-#             #-- Tags -------------------------------             
-#             tag_ids = tags  
-#             # new_tag_list = tags
-#             if tag_ids:
-#                 new_tag_list = [int(i) for i in tag_ids]
-#                 new_concept.tags = new_tag_list
-                  
-#             # add tags that have not been stored in db
-#             if tag_ids:
-#                 for tag_id_to_add in new_tag_list:
-#                     ConceptTagMap.objects.get_or_create(concept=new_concept, tag=Tag.objects.get(id=tag_id_to_add), created_by=request.user)
-                      
+    
                       
             #-- Components/codelists/codes --------
             for comp in components:
@@ -679,7 +667,7 @@ def api_concept_update(request):
                             , status=status.HTTP_406_NOT_ACCEPTABLE
                             )
             
-        if not allowed_to_edit(request.user, Concept, concept_id):
+        if not allowed_to_edit(request, Concept, concept_id):
             errors_dict['id'] = 'concept_id must be a valid accessible concept id.' 
             return Response( 
                             data = errors_dict
@@ -807,29 +795,7 @@ def api_concept_update(request):
   
         #-----------------------------------------------------------
         else:
-            # update ...
-#             #-- Tags -------------------------------------------    
-#             # get tags
-#             tag_ids = tags  
-#             new_tag_list = []
-#             if tag_ids:
-#                 # split tag ids into list
-#                 new_tag_list = [int(i) for i in tag_ids]
-#             # save the tag ids
-#             old_tag_list = list(ConceptTagMap.objects.filter(concept=update_concept).values_list('tag', flat=True))
-#             # detect tags to add
-#             tag_ids_to_add = list(set(new_tag_list) - set(old_tag_list))
-#             # detect tags to remove
-#             tag_ids_to_remove = list(set(old_tag_list) - set(new_tag_list))
-#             # add tags that have not been stored in db
-#             for tag_id_to_add in tag_ids_to_add:
-#                 ConceptTagMap.objects.get_or_create(concept=update_concept, tag=Tag.objects.get(id=tag_id_to_add), created_by=request.user)
-#             # remove tags no longer required in db
-#             for tag_id_to_remove in tag_ids_to_remove:
-#                 tag_to_remove = ConceptTagMap.objects.filter(concept=update_concept, tag=Tag.objects.get(id=tag_id_to_remove))
-#                 tag_to_remove.delete()
-#             #-----------------------------------------------------
-         
+            # update ...      
                   
             # DELETE ALL EXISTING COMPONENTS FIRST SINCE THERE IS NO MAPPING
             # get all the components attached to the concept
@@ -1054,13 +1020,20 @@ def getConcepts(request, is_authenticated_user=True, pk=None):
      
 
     rows_to_return = []
-    titles = ['concept_id', 'concept_name'
-            , 'version_id'
-            , 'author', 'coding_system', 'owner'
-            , 'created_by', 'created_date'  
-            , 'modified_by', 'modified_date'  
-            , 'is_deleted', 'deleted_by', 'deleted_date'
-            , 'is_published'
+    titles = ['concept_id',
+              'concept_name', 
+              'version_id', 
+              'author', 
+              'coding_system', 
+              'owner', 
+              'created_by', 
+              'created_date', 
+              'modified_by', 
+              'modified_date', 
+              'is_deleted', 
+              'deleted_by', 
+              'deleted_date', 
+              'is_published'
             ]
     if do_not_show_versions != "1":
         titles += ['versions']
@@ -1068,7 +1041,7 @@ def getConcepts(request, is_authenticated_user=True, pk=None):
 
     for c in concepts_srch:
         ret = [
-                c['id'],  
+                c['friendly_id'],  
                 c['name'].encode('ascii', 'ignore').decode('ascii'),
                 c['history_id'],                
                 c['author'],
@@ -1127,15 +1100,15 @@ def concept_detail(request, pk, concept_history_id=None, get_versions_only=None)
         
         
     # validate access concept
-    if not allowed_to_view(request.user, Concept, pk, set_history_id=concept_history_id):
+    if not allowed_to_view(request, Concept, pk, set_history_id=concept_history_id):
         raise PermissionDenied
     
     # we can remove this check as in concept-detail
     #---------------------------------------------------------
     # validate access to child concepts 
-    if not (allowed_to_view_children(request.user, Concept, pk, set_history_id=concept_history_id)
+    if not (allowed_to_view_children(request, Concept, pk, set_history_id=concept_history_id)
             and
-            chk_deleted_children(request.user, Concept, pk, returnErrors = False, set_history_id=concept_history_id)
+            chk_deleted_children(request, Concept, pk, returnErrors = False, set_history_id=concept_history_id)
            ):
         raise PermissionDenied
     #---------------------------------------------------------
@@ -1206,15 +1179,9 @@ def getConceptDetail(request, pk, concept_history_id=None, is_authenticated_user
     
     tags =  []
     concept_tags = concept['tags']
-    if concept_tags:
-        tags = list(Tag.objects.filter(pk__in=concept_tags).values('description', 'id'))
+    if concept_tags: 
+        tags = list(Tag.objects.filter(pk__in=concept_tags).values('description', 'id', 'tag_type', 'collection_brand'))
         
-#     tags =  []
-#     tags_comp = getHistoryTags(pk, concept_history_date)
-#     if tags_comp:
-#         tag_list = [i['tag_id'] for i in tags_comp if 'tag_id' in i]
-#         tags = list(Tag.objects.filter(pk__in=tag_list).values('description', 'id'))
-    
     
     rows_to_return = []
     titles = [
@@ -1249,7 +1216,7 @@ def getConceptDetail(request, pk, concept_history_id=None, is_authenticated_user
             ]
     
     ret = [
-            concept['id'],
+            concept['friendly_id'],
             concept['name'].encode('ascii', 'ignore').decode('ascii'),
             concept['history_id'],
             tags,
@@ -1295,7 +1262,6 @@ def getConceptDetail(request, pk, concept_history_id=None, is_authenticated_user
     for com in components:
         # each component already contains the logical_type and codes
         codes = com['codes']
-        
         ret_codes = []
         for code in codes:
             ret_codes.append(ordr(zip(
@@ -1304,14 +1270,57 @@ def getConceptDetail(request, pk, concept_history_id=None, is_authenticated_user
                                     )
                                 )
                             )
-            
+                    
+        #################################################################
+        final_ret_codes = []
+        #################
+        #---------
+        code_attribute_header = concept['code_attribute_header']
+        codes_with_attributes = []
+        if code_attribute_header:
+            codes_with_attributes = getConceptCodes_withAttributes_HISTORICAL(concept_id = pk
+                                                                           , concept_history_date = concept_history_date
+                                                                           , allCodes = ret_codes
+                                                                           , code_attribute_header = code_attribute_header
+                                                                           )
+    
+            ret_codes = codes_with_attributes
+        #---------
+        
+        code_titles = ['code', 'description']
+        if code_attribute_header:
+            if request.query_params.get('format', 'xml').lower() == 'xml':
+                # clean attr names/ remove space, etc
+                code_titles = code_titles + [clean_str_as_db_col_name(a)  for a in code_attribute_header]
+            else:
+                code_titles = code_titles + [a  for a in code_attribute_header]
+                 
+             
+                 
+        for cd in ret_codes:
+            code_attributes = []
+            if code_attribute_header:
+                for a in code_attribute_header:
+                    code_attributes.append(cd[a])
+                         
+            final_ret_codes.append(ordr(zip(code_titles,  
+                                [
+                                    cd['code'],  
+                                    cd['description'].encode('ascii', 'ignore').decode('ascii')
+                                ]
+                                +
+                                code_attributes
+                                )))
+        #################          
+        #################################################################
+        
         ret_comp_data = [com['name'], 
                         com['comment'],
                         dict(Component.COMPONENT_TYPES)[com['component_type']],
                         com['get_logical_type_display'],
-                        com['concept_ref_id'],
+                        ['', 'C'+str(com['concept_ref_id'])][com['concept_ref_id'] is not None],
                         com['concept_ref_history_id'],
-                        ret_codes
+                        final_ret_codes
                         ]
         ret_components.append(ordr(zip(com_titles,  ret_comp_data )))
 

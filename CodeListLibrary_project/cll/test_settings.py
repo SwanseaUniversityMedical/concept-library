@@ -28,7 +28,7 @@ from selenium import webdriver
 WEBAPP_HOST = ''
 
 # remote test features
-REMOTE_TEST = False #True
+REMOTE_TEST = False  # True
 REMOTE_TEST_HOST = 'http://selenium-hub:4444/wd/hub'
 IMPLICTLY_WAIT = 10
 TEST_SLEEP_TIME = 5
@@ -37,7 +37,8 @@ if REMOTE_TEST:
     WEBAPP_HOST = 'http://webapp-test/'
 
 chrome_options = webdriver.ChromeOptions()
-chrome_options.add_experimental_option( "prefs",{'profile.managed_default_content_settings.javascript': 'enable'})
+chrome_options.add_experimental_option("prefs", {'profile.managed_default_content_settings.javascript': 'enable'})
+
 chrome_options.add_argument('--headless')
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
@@ -57,7 +58,6 @@ AUTHENTICATION_BACKENDS = [
     # 'django_auth_ldap.backend.LDAPBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
-
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases

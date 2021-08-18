@@ -80,7 +80,7 @@
 						{% else %}
 							<a class="" href="{% url 'phenotype_history_detail' phenotype.id phenotype.history_id %}">
 						{% endif %}
-							<span style='font-size: 22px;margin-top:0;'>PH{{ phenotype.id }} - {{ phenotype.name }}</span>
+							<span style='font-size: 22px;margin-top:0;'>{{ phenotype.friendly_id }} - {{ phenotype.name }}</span>
 							</a>
 				
 					</div>

@@ -42,25 +42,25 @@ urlpatterns = []
 # admin system
 if not settings.CLL_READ_ONLY:     
     urlpatterns += [
-        url(r'^'+current_brand+'/admin/', admin.site.urls ),
+        url(r'^(?i)'+current_brand+'/admin/', admin.site.urls ),
     ]
 #--------------------------------------------------------------------
 
 # api
 urlpatterns += [
-    url(r'^'+current_brand+'/api/', include('clinicalcode.api.urls', namespace='api')),
+    url(r'^(?i)'+current_brand+'/api/', include('clinicalcode.api.urls', namespace='api')),
 ]
 #--------------------------------------------------------------------
 
 # clinical code application
 urlpatterns += [
-    url(r'^'+current_brand+'/', include('clinicalcode.urls')),
+    url(r'^(?i)'+current_brand+'/', include('clinicalcode.urls')),
     ] 
 #--------------------------------------------------------------------
 
 # Add django site authentication urls (for login, logout, password management)
 urlpatterns += [
-    url(r'^'+current_brand+'/account/', include('django.contrib.auth.urls')),
+    url(r'^(?i)'+current_brand+'/account/', include('django.contrib.auth.urls')),
 ]
 
 #--------------------------------------------------------------------

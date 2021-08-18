@@ -2,7 +2,8 @@
 
 {% load staticfiles %}
 {% load markdownify %}
-
+{% load cl_extras %}
+	
 {% block title %}| phenotype: {{ phenotype.name }}{% endblock title %}
 {% block description %}{{ phenotype.phenotype_uuid }} {{ phenotype.name }}{% endblock description %}
 {% block keywords %}, {{ phenotype.phenotype_uuid }}, {{ phenotype.name }}{% endblock keywords %}
@@ -21,7 +22,7 @@
 			<li><a href="#home" id="Homelinkid">Home</a>					
 			<li><a href="#definition">Definition</a>
 			<li><a href="#implementation">Implementation</a>
-			<li><a href="#validation">Validation</a>
+			<!--<li><a href="#validation">Validation</a>-->
 			<li><a href="#Publications">Publications</a>
 			<li><a href="#CodeLists">Clinical Code Lists</a>
 			{% if user.is_authenticated  %}				
@@ -155,7 +156,7 @@
 					<div class="col-sm-2">ID</div>
 					<div class="col-sm-10">
 					<span id="phenotype_id_div" phenotype_id="{{ phenotype.id }}">
-						{{ phenotype.id }}						
+						{{ phenotype.friendly_id }}						
 					</span>				
 					</div>	
 				</div>								
@@ -251,16 +252,15 @@
 							{% endfor %}	
 						</div>
 				</div>	
-				<!--
+				
 				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-12">
+				    <div class="col-sm-2">Tags</div>
+					<div class="col-sm-10">
 						{% for tag in tags %}
 							<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
-						{% endfor %}						
-						
-											
+						{% endfor %}				
 					</div>
-				</div>-->
+				</div>
 				
 				</div>
 				
@@ -311,7 +311,7 @@
 				VALIDATION
 				-------------------------------------------------------------------
 		  -->						
-				<div class="col-sm-12 shadow-frame">
+		<!--		<div class="col-sm-12 shadow-frame">
 					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="validation"></span><strong>Validation</strong></h3>
 					
 					
@@ -332,7 +332,7 @@
 		
 				</div>
 				
-				
+			-->			
 		
 		<!--	-------------------------------------------------------------------
 				PUBLICATIONS
@@ -387,16 +387,18 @@
 		               data-parent-xxx="#accordion" 
 		               href="#collapse_c{{ c.concept_version_id }}" aria-expanded="true" aria-controls="collapse_c{{ c.concept_version_id }}">
 		            <i class="plus-minus glyphicon glyphicon-plus" id="i-c{{ c.concept_version_id }}" ></i>    
-		            {{ c.concept_id }}/{{ c.concept_version_id }}
+		            C{{ c.concept_id }}/{{ c.concept_version_id }}
 		            </a>
 					&nbsp;&nbsp;         
 		        
-			      <span>{{ c.codingsystem }}: 
+			      <span>
 			         <a href="{% url 'concept_history_detail' c.concept_id c.concept_version_id %}"  
 			            title="{% url 'concept_history_detail' c.concept_id c.concept_version_id %}"
 			            target="_blank" class="alert-link">					
 			         {{ c.name }}&nbsp;{{ c.brands|safe }}
 			         </a>
+			        &nbsp;
+			        - {{ c.codingsystem }}
 			        &nbsp;
 				    {% if user.is_authenticated %}
 				         {% if c.is_published %}
@@ -441,7 +443,7 @@
 		               </thead>
 		               <tbody>
 		                  {% for code in codelist %}
-		                  {% if code.concept_id == c.concept_id and code.concept_version_id == c.concept_version_id %}
+		                  {% if code.concept_id == c.concept_friendly_id and code.concept_version_id == c.concept_version_id %}
 		                  <tr>
 		                     <td>{{ code.code }}</td>
 		                     <td>{{ code.description }}</td>
@@ -510,7 +512,7 @@
 										<td>{{ code.code }}</td>
 										<td>{{ code.description }}</td>
 										<td>{{ code.coding_system }}</td>
-										<td>{{ code.concept_id }}/{{ code.concept_version_id }}</td>													
+										<td>C{{ code.concept_id }}/{{ code.concept_version_id }}</td>													
 									</tr>
 								{% empty %}
 									<tr>
@@ -693,11 +695,7 @@
 			</div>
 		{% endif %}
 		
-		<div id="popover-content-help-hist-phenotype" class="hide popover-lg">
-			<p>
-				<strong>Return to list</strong> - returns to the phenotype search page.
-			</p>
-			
+		<div id="popover-content-help-hist-phenotype" class="hide popover-lg">		
 			<p>
 				<strong>Export</strong> - export all codes into a csv file/JSON/XML for the current phenotype version.
 				{% if user.is_authenticated and not CLL_READ_ONLY %}
@@ -706,12 +704,18 @@
 			</p>
 			
 			{% if user.is_authenticated and not CLL_READ_ONLY %}
+<!-- 				<p>
+					<strong>Edit</strong> - Edit phenotype.
+				</p>
+				
 				<p>
 					<strong>Fork</strong> - This will take a copy of the historic phenotype version and create a new phenotype.
 				</p>
+				
 				<p>
 					<strong>Revert</strong> - This will restore the phenotype back to this version.
-				</p>
+				</p> -->
+				
 				<p>
 					<strong>Publish</strong> - This will publish the chosen version of the phenotype to the public.
 						<br>Conditions to publish: 
@@ -722,7 +726,13 @@
 							<li>All concepts are published.</li>
 						</ul>
 				</p>
+								
 			{% endif %}
+			
+			<p>
+				<strong>Print</strong> - Print page.
+			</p>
+				
 		</div>
 
 
@@ -845,6 +855,7 @@
 	
 		});
 	</script>
+	
 	<script type="text/javascript">	
 		function showSelection(e) {
   		if (document.querySelector('#navList a.active') !== null) {

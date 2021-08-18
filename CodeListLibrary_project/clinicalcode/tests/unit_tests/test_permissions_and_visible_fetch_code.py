@@ -390,43 +390,43 @@ class PermissionTest(TestCase):
     '''    
     def test_owner_allowed_to_view_new_concept_con(self):
         owner = User.objects.get(username=ow_user)
-        permitted = allowed_to_view(owner, Concept,
-                        PermissionTest.concept_owner_can_edit.id)
+        permitted = allowed_to_view(None , Concept,
+                        PermissionTest.concept_owner_can_edit.id, user=owner )
         self.assertTrue(permitted)
         
         
     def test_owner_allowed_to_edit_new_concept_con(self):
         owner = User.objects.get(username=ow_user)
-        permitted = allowed_to_edit(owner, Concept,
-                        PermissionTest.concept_owner_can_edit.id)
+        permitted = allowed_to_edit(None, Concept,
+                        PermissionTest.concept_owner_can_edit.id, user=owner)
         self.assertTrue(permitted)  
         
         
     def test_normal_user_not_allowed_to_view_new_concept_con(self):
         user = User.objects.get(username=nm_user)
-        permitted = allowed_to_view(user, Concept,
-                        PermissionTest.concept_owner_can_edit.id)
+        permitted = allowed_to_view(None , Concept,
+                        PermissionTest.concept_owner_can_edit.id, user=user )
         self.assertFalse(permitted)
         
         
     def test_normal_user_not_allowed_to_edit_new_concept_con(self):
         user = User.objects.get(username=nm_user)
-        permitted = allowed_to_edit(user, Concept,
-                        PermissionTest.concept_owner_can_edit.id)
+        permitted = allowed_to_edit(None, Concept,
+                        PermissionTest.concept_owner_can_edit.id, user=user)
         self.assertFalse(permitted)
         
         
     def test_group_user_not_allowed_to_view_new_concept_con(self):
         group = User.objects.get(username=gp_user)
-        permitted = allowed_to_view(group, Concept,
-                        PermissionTest.concept_owner_can_edit.id)
+        permitted = allowed_to_view(None , Concept,
+                        PermissionTest.concept_owner_can_edit.id, user=group )
         self.assertFalse(permitted)
         
         
     def test_group_user_not_allowed_to_edit_new_concept_con(self):
         group = User.objects.get(username=gp_user)
-        permitted = allowed_to_edit(group, Concept,
-                        PermissionTest.concept_owner_can_edit.id)
+        permitted = allowed_to_edit(None, Concept,
+                        PermissionTest.concept_owner_can_edit.id, user=group)
         self.assertFalse(permitted)
         
     '''
@@ -435,43 +435,43 @@ class PermissionTest(TestCase):
     '''
     def test_normal_user_allowed_to_view_when_everybody_set_to_view_con(self):
         user = User.objects.get(username=nm_user)
-        permitted = allowed_to_view(user, Concept,
-                        PermissionTest.concept_everyone_can_view.id)
+        permitted = allowed_to_view(None , Concept,
+                        PermissionTest.concept_everyone_can_view.id, user=user )
         self.assertTrue(permitted)
         
     
     def test_normal_user_not_allowed_to_edit_when_everybody_set_to_view_con(self):
         user = User.objects.get(username=nm_user)
-        permitted = allowed_to_edit(user, Concept,
-                        PermissionTest.concept_everyone_can_view.id)
+        permitted = allowed_to_edit(None, Concept,
+                        PermissionTest.concept_everyone_can_view.id, user=user)
         self.assertFalse(permitted)
         
         
     def test_group_user_allowed_to_view_when_everybody_set_to_view_con(self):
         group = User.objects.get(username=gp_user)
-        permitted = allowed_to_view(group, Concept,
-                        PermissionTest.concept_everyone_can_view.id)
+        permitted = allowed_to_view(None , Concept,
+                        PermissionTest.concept_everyone_can_view.id, user=group )
         self.assertTrue(permitted)
         
     
     def test_group_user_not_allowed_to_edit_when_everybody_set_to_view_con(self):
         group = User.objects.get(username=gp_user)
-        permitted = allowed_to_edit(group, Concept,
-                        PermissionTest.concept_everyone_can_view.id)
+        permitted = allowed_to_edit(None, Concept,
+                        PermissionTest.concept_everyone_can_view.id, user=group)
         self.assertFalse(permitted)
         
         
     def test_owner_allowed_to_view_when_everybody_set_to_view_con(self):
         owner = User.objects.get(username=ow_user)
-        permitted = allowed_to_view(owner, Concept,
-                        PermissionTest.concept_everyone_can_view.id)
+        permitted = allowed_to_view(None , Concept,
+                        PermissionTest.concept_everyone_can_view.id, user=owner )
         self.assertTrue(permitted)
         
     
     def test_owner_allowed_to_edit_when_everybody_set_to_view_con(self):
         owner = User.objects.get(username=ow_user)
-        permitted = allowed_to_edit(owner, Concept,
-                        PermissionTest.concept_everyone_can_view.id)
+        permitted = allowed_to_edit(None, Concept,
+                        PermissionTest.concept_everyone_can_view.id, user=owner)
         self.assertTrue(permitted)
         
     
@@ -481,43 +481,43 @@ class PermissionTest(TestCase):
     '''
     def test_normal_user_allowed_to_edit_when_everybody_set_to_edit_con(self):
         user = User.objects.get(username=nm_user)
-        permitted = allowed_to_edit(user, Concept,
-                        PermissionTest.concept_everyone_can_edit.id)
+        permitted = allowed_to_edit(None, Concept,
+                        PermissionTest.concept_everyone_can_edit.id, user=user)
         self.assertTrue(permitted)
         
     
     def test_normal_user_allowed_to_view_when_everybody_set_to_edit_con(self):
         user = User.objects.get(username=nm_user)
-        permitted = allowed_to_view(user, Concept,
-                        PermissionTest.concept_everyone_can_edit.id)
+        permitted = allowed_to_view(None , Concept,
+                        PermissionTest.concept_everyone_can_edit.id, user=user )
         self.assertTrue(permitted)
     
         
     def test_group_user_allowed_to_edit_when_everybody_set_to_edit_con(self):
         group = User.objects.get(username=gp_user)
-        permitted = allowed_to_edit(group, Concept,
-                        PermissionTest.concept_everyone_can_edit.id)
+        permitted = allowed_to_edit(None, Concept,
+                        PermissionTest.concept_everyone_can_edit.id, user=group)
         self.assertTrue(permitted)
         
     
     def test_group_user_allowed_to_view_when_everybody_set_to_edit_con(self):
         group = User.objects.get(username=gp_user)
-        permitted = allowed_to_view(group, Concept,
-                        PermissionTest.concept_everyone_can_edit.id)
+        permitted = allowed_to_view(None , Concept,
+                        PermissionTest.concept_everyone_can_edit.id, user=group )
         self.assertTrue(permitted)      
         
         
     def test_owner_allowed_to_edit_when_everybody_set_to_edit_con(self):
         owner = User.objects.get(username=ow_user)
-        permitted = allowed_to_edit(owner, Concept,
-                        PermissionTest.concept_everyone_can_edit.id)
+        permitted = allowed_to_edit(None, Concept,
+                        PermissionTest.concept_everyone_can_edit.id, user=owner)
         self.assertTrue(permitted)
         
     
     def test_owner_allowed_to_view_when_everybody_set_to_edit_con(self):
         owner = User.objects.get(username=ow_user)
-        permitted = allowed_to_view(owner, Concept,
-                        PermissionTest.concept_everyone_can_edit.id)
+        permitted = allowed_to_view(None , Concept,
+                        PermissionTest.concept_everyone_can_edit.id, user=owner )
         self.assertTrue(permitted) 
     
     
@@ -527,15 +527,15 @@ class PermissionTest(TestCase):
     '''
     def test_group_allowed_to_view_when_group_set_to_view_con(self):
         group = User.objects.get(username=gp_user)
-        permitted = allowed_to_view(group, Concept,
-                        PermissionTest.concept_group_can_view.id)
+        permitted = allowed_to_view(None , Concept,
+                        PermissionTest.concept_group_can_view.id, user=group )
         self.assertTrue(permitted)
         
     
     def test_group_not_allowed_to_edit_when_group_set_to_view_con(self):
         group = User.objects.get(username=gp_user)
-        permitted = allowed_to_edit(group, Concept,
-                        PermissionTest.concept_group_can_view.id)
+        permitted = allowed_to_edit(None, Concept,
+                        PermissionTest.concept_group_can_view.id, user=group)
         self.assertFalse(permitted)
         
         
@@ -545,15 +545,15 @@ class PermissionTest(TestCase):
     '''
     def test_group_allowed_to_view_when_group_set_to_edit_con(self):
         group = User.objects.get(username=gp_user)
-        permitted = allowed_to_view(group, Concept,
-                        PermissionTest.concept_group_can_edit.id)
+        permitted = allowed_to_view(None , Concept,
+                        PermissionTest.concept_group_can_edit.id, user=group )
         self.assertTrue(permitted)
         
     
     def test_group_allowed_to_edit_when_group_set_to_edit_con(self):
         group = User.objects.get(username=gp_user)
-        permitted = allowed_to_edit(group, Concept,
-                        PermissionTest.concept_group_can_edit.id)
+        permitted = allowed_to_edit(None, Concept,
+                        PermissionTest.concept_group_can_edit.id, user=group)
         self.assertTrue(permitted)
     
         
@@ -563,29 +563,29 @@ class PermissionTest(TestCase):
     '''
     def test_normal_user_not_allowed_to_view_when_only_group_set_to_edit_con(self):
         user = User.objects.get(username=nm_user)
-        permitted = allowed_to_view(user, Concept,
-                        PermissionTest.concept_group_can_edit.id)
+        permitted = allowed_to_view(None , Concept,
+                        PermissionTest.concept_group_can_edit.id, user=user )
         self.assertFalse(permitted)
         
     
     def test_normal_user_not_allowed_to_edit_when_only_group_set_to_edit_con(self):
         user = User.objects.get(username=nm_user)
-        permitted = allowed_to_edit(user, Concept,
-                        PermissionTest.concept_group_can_edit.id)
+        permitted = allowed_to_edit(None, Concept,
+                        PermissionTest.concept_group_can_edit.id, user=user)
         self.assertFalse(permitted)
         
         
     def test_owner_allowed_to_view_when_only_group_set_to_edit_con(self):
         owner = User.objects.get(username=ow_user)
-        permitted = allowed_to_view(owner, Concept,
-                        PermissionTest.concept_group_can_edit.id)
+        permitted = allowed_to_view(None , Concept,
+                        PermissionTest.concept_group_can_edit.id, user=owner )
         self.assertTrue(permitted)
         
     
     def test_owner_allowed_to_edit_when_only_group_set_to_edit_con(self):
         owner = User.objects.get(username=ow_user)
-        permitted = allowed_to_edit(owner, Concept,
-                        PermissionTest.concept_group_can_edit.id)
+        permitted = allowed_to_edit(None, Concept,
+                        PermissionTest.concept_group_can_edit.id, user=owner)
         self.assertTrue(permitted)
         
         
@@ -602,99 +602,99 @@ class PermissionTest(TestCase):
         
     def test_superuser_allowed_to_view_when_everybody_set_to_view_con(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_view(super_user, Concept,
-                        PermissionTest.concept_everyone_can_view.id)
+        permitted = allowed_to_view(None , Concept,
+                        PermissionTest.concept_everyone_can_view.id, user=super_user )
         self.assertTrue(permitted)
         
         
     def test_superuser_allowed_to_edit_when_everybody_set_to_view_con(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_edit(super_user, Concept,
-                        PermissionTest.concept_everyone_can_view.id)
+        permitted = allowed_to_edit(None, Concept,
+                        PermissionTest.concept_everyone_can_view.id, user=super_user)
         self.assertTrue(permitted)
         
     
     def test_superuser_allowed_to_view_when_everybody_set_to_edit_con(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_view(super_user, Concept,
-                        PermissionTest.concept_everyone_can_edit.id)
+        permitted = allowed_to_view(None , Concept,
+                        PermissionTest.concept_everyone_can_edit.id, user=super_user )
         self.assertTrue(permitted)
         
         
     def test_superuser_allowed_to_edit_when_everybody_set_to_edit_con(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_edit(super_user, Concept,
-                        PermissionTest.concept_everyone_can_edit.id)
+        permitted = allowed_to_edit(None, Concept,
+                        PermissionTest.concept_everyone_can_edit.id, user=super_user)
         self.assertTrue(permitted)
         
         
     def test_superuser_allowed_to_view_when_owner_set_to_view_con(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_view(super_user, Concept,
-                        PermissionTest.concept_owner_can_view.id)
+        permitted = allowed_to_view(None , Concept,
+                        PermissionTest.concept_owner_can_view.id, user=super_user )
         self.assertTrue(permitted)
         
         
     def test_superuser_allowed_to_edit_when_owner_set_to_view_con(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_edit(super_user, Concept,
-                        PermissionTest.concept_owner_can_view.id)
+        permitted = allowed_to_edit(None, Concept,
+                        PermissionTest.concept_owner_can_view.id, user=super_user)
         self.assertTrue(permitted)
         
         
     def test_superuser_allowed_to_view_when_owner_set_to_edit_con(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_view(super_user, Concept,
-                        PermissionTest.concept_owner_can_edit.id)
+        permitted = allowed_to_view(None , Concept,
+                        PermissionTest.concept_owner_can_edit.id, user=super_user )
         self.assertTrue(permitted)
         
         
     def test_superuser_allowed_to_edit_when_owner_set_to_edit_con(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_edit(super_user, Concept,
-                        PermissionTest.concept_owner_can_edit.id)
+        permitted = allowed_to_edit(None, Concept,
+                        PermissionTest.concept_owner_can_edit.id, user=super_user)
         self.assertTrue(permitted)
         
         
     def test_superuser_allowed_to_view_when_group_set_to_view_con(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_view(super_user, Concept,
-                        PermissionTest.concept_group_can_view.id)
+        permitted = allowed_to_view(None , Concept,
+                        PermissionTest.concept_group_can_view.id, user=super_user )
         self.assertTrue(permitted)
         
         
     def test_superuser_allowed_to_edit_when_group_set_to_view_con(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_edit(super_user, Concept,
-                        PermissionTest.concept_group_can_view.id)
+        permitted = allowed_to_edit(None, Concept,
+                        PermissionTest.concept_group_can_view.id, user=super_user)
         self.assertTrue(permitted)
       
         
     def test_superuser_allowed_to_view_when_group_set_to_edit_con(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_view(super_user, Concept,
-                        PermissionTest.concept_group_can_edit.id)
+        permitted = allowed_to_view(None , Concept,
+                        PermissionTest.concept_group_can_edit.id, user=super_user )
         self.assertTrue(permitted)
         
         
     def test_superuser_allowed_to_edit_when_group_set_to_edit_con(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_edit(super_user, Concept,
-                        PermissionTest.concept_group_can_edit.id)
+        permitted = allowed_to_edit(None, Concept,
+                        PermissionTest.concept_group_can_edit.id, user=super_user)
         self.assertTrue(permitted)
         
     
     def test_superuser_allowed_to_view_when_none_has_access_con(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_view(super_user, Concept,
-                        PermissionTest.concept_none_can_access.id)
+        permitted = allowed_to_view(None , Concept,
+                        PermissionTest.concept_none_can_access.id, user=super_user )
         self.assertTrue(permitted)
         
         
     def test_superuser_allowed_to_edit_when_none_has_access_con(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_edit(super_user, Concept,
-                        PermissionTest.concept_none_can_access.id)
+        permitted = allowed_to_edit(None, Concept,
+                        PermissionTest.concept_none_can_access.id, user=super_user)
         self.assertTrue(permitted)
 
     
@@ -735,43 +735,43 @@ class PermissionTest(TestCase):
     '''    
     def test_owner_allowed_to_view_new_workingset(self):
         owner = User.objects.get(username=ow_user)
-        permitted = allowed_to_view(owner, WorkingSet,
-                        PermissionTest.workingset_owner_can_edit.id)
+        permitted = allowed_to_view(None , WorkingSet,
+                        PermissionTest.workingset_owner_can_edit.id, user=owner )
         self.assertTrue(permitted)
         
         
     def test_owner_allowed_to_edit_new_workingset(self):
         owner = User.objects.get(username=ow_user)
-        permitted = allowed_to_edit(owner, WorkingSet,
-                        PermissionTest.workingset_owner_can_edit.id)
+        permitted = allowed_to_edit(None , WorkingSet,
+                        PermissionTest.workingset_owner_can_edit.id, user=owner )
         self.assertTrue(permitted)  
         
         
     def test_normal_user_not_allowed_to_view_new_workingset(self):
         user = User.objects.get(username=nm_user)
-        permitted = allowed_to_view(user, WorkingSet,
-                        PermissionTest.workingset_owner_can_edit.id)
+        permitted = allowed_to_view(None , WorkingSet,
+                        PermissionTest.workingset_owner_can_edit.id, user=user )
         self.assertFalse(permitted)
         
         
     def test_normal_user_not_allowed_to_edit_new_workingset(self):
         user = User.objects.get(username=nm_user)
-        permitted = allowed_to_edit(user, WorkingSet,
-                        PermissionTest.workingset_owner_can_edit.id)
+        permitted = allowed_to_edit(None , WorkingSet,
+                        PermissionTest.workingset_owner_can_edit.id, user=user)
         self.assertFalse(permitted)
         
         
     def test_group_user_not_allowed_to_view_new_workingset(self):
         group = User.objects.get(username=gp_user)
-        permitted = allowed_to_view(group, WorkingSet,
-                        PermissionTest.workingset_owner_can_edit.id)
+        permitted = allowed_to_view(None , WorkingSet,
+                        PermissionTest.workingset_owner_can_edit.id, user=group )
         self.assertFalse(permitted)
         
         
     def test_group_user_not_allowed_to_edit_new_workingset(self):
         group = User.objects.get(username=gp_user)
-        permitted = allowed_to_edit(group, WorkingSet,
-                        PermissionTest.workingset_owner_can_edit.id)
+        permitted = allowed_to_edit(None , WorkingSet,
+                        PermissionTest.workingset_owner_can_edit.id, user=group )
         self.assertFalse(permitted)
         
     '''
@@ -780,43 +780,43 @@ class PermissionTest(TestCase):
     '''
     def test_normal_user_allowed_to_view_when_everybody_set_to_view_ws(self):
         user = User.objects.get(username=nm_user)
-        permitted = allowed_to_view(user, WorkingSet,
-                        PermissionTest.workingset_everyone_can_view.id)
+        permitted = allowed_to_view(None , WorkingSet,
+                        PermissionTest.workingset_everyone_can_view.id, user=user )
         self.assertTrue(permitted)
         
     
     def test_normal_user_not_allowed_to_edit_when_everybody_set_to_view_ws(self):
         user = User.objects.get(username=nm_user)
-        permitted = allowed_to_edit(user, WorkingSet,
-                        PermissionTest.workingset_everyone_can_view.id)
+        permitted = allowed_to_edit(None , WorkingSet,
+                        PermissionTest.workingset_everyone_can_view.id, user=user )
         self.assertFalse(permitted)
         
         
     def test_group_user_allowed_to_view_when_everybody_set_to_view_ws(self):
         group = User.objects.get(username=gp_user)
-        permitted = allowed_to_view(group, WorkingSet,
-                        PermissionTest.workingset_everyone_can_view.id)
+        permitted = allowed_to_view(None , WorkingSet,
+                        PermissionTest.workingset_everyone_can_view.id, user=group )
         self.assertTrue(permitted)
         
     
     def test_group_user_not_allowed_to_edit_when_everybody_set_to_view_ws(self):
         group = User.objects.get(username=gp_user)
-        permitted = allowed_to_edit(group, WorkingSet,
-                        PermissionTest.workingset_everyone_can_view.id)
+        permitted = allowed_to_edit(None , WorkingSet,
+                        PermissionTest.workingset_everyone_can_view.id, user=group )
         self.assertFalse(permitted)
         
         
     def test_owner_allowed_to_view_when_everybody_set_to_view_ws(self):
         owner = User.objects.get(username=ow_user)
-        permitted = allowed_to_view(owner, WorkingSet,
-                        PermissionTest.workingset_everyone_can_view.id)
+        permitted = allowed_to_view(None , WorkingSet,
+                        PermissionTest.workingset_everyone_can_view.id, user=owner )
         self.assertTrue(permitted)
         
     
     def test_owner_allowed_to_edit_when_everybody_set_to_view_ws(self):
         owner = User.objects.get(username=ow_user)
-        permitted = allowed_to_edit(owner, WorkingSet,
-                        PermissionTest.workingset_everyone_can_view.id)
+        permitted = allowed_to_edit(None , WorkingSet,
+                        PermissionTest.workingset_everyone_can_view.id, user=owner )
         self.assertTrue(permitted)
         
     
@@ -826,43 +826,43 @@ class PermissionTest(TestCase):
     '''
     def test_normal_user_allowed_to_edit_when_everybody_set_to_edit_ws(self):
         user = User.objects.get(username=nm_user)
-        permitted = allowed_to_edit(user, WorkingSet,
-                        PermissionTest.workingset_everyone_can_edit.id)
+        permitted = allowed_to_edit(None , WorkingSet,
+                        PermissionTest.workingset_everyone_can_edit.id, user=user )
         self.assertTrue(permitted)
         
     
     def test_normal_user_allowed_to_view_when_everybody_set_to_edit_ws(self):
         user = User.objects.get(username=nm_user)
-        permitted = allowed_to_view(user, WorkingSet,
-                        PermissionTest.workingset_everyone_can_edit.id)
+        permitted = allowed_to_view(None , WorkingSet,
+                        PermissionTest.workingset_everyone_can_edit.id, user=user )
         self.assertTrue(permitted)
     
         
     def test_group_user_allowed_to_edit_when_everybody_set_to_edit_ws(self):
         group = User.objects.get(username=gp_user)
-        permitted = allowed_to_edit(group, WorkingSet,
-                        PermissionTest.workingset_everyone_can_edit.id)
+        permitted = allowed_to_edit(None , WorkingSet,
+                        PermissionTest.workingset_everyone_can_edit.id, user=group )
         self.assertTrue(permitted)
         
     
     def test_group_user_allowed_to_view_when_everybody_set_to_edit_ws(self):
         group = User.objects.get(username=gp_user)
-        permitted = allowed_to_view(group, WorkingSet,
-                        PermissionTest.workingset_everyone_can_edit.id)
+        permitted = allowed_to_view(None , WorkingSet,
+                        PermissionTest.workingset_everyone_can_edit.id, user=group )
         self.assertTrue(permitted)      
         
         
     def test_owner_allowed_to_edit_when_everybody_set_to_edit_ws(self):
         owner = User.objects.get(username=ow_user)
-        permitted = allowed_to_edit(owner, WorkingSet,
-                        PermissionTest.workingset_everyone_can_edit.id)
+        permitted = allowed_to_edit(None , WorkingSet,
+                        PermissionTest.workingset_everyone_can_edit.id, user=owner )
         self.assertTrue(permitted)
         
     
     def test_owner_allowed_to_view_when_everybody_set_to_edit_ws(self):
         owner = User.objects.get(username=ow_user)
-        permitted = allowed_to_view(owner, WorkingSet,
-                        PermissionTest.workingset_everyone_can_edit.id)
+        permitted = allowed_to_view(None , WorkingSet,
+                        PermissionTest.workingset_everyone_can_edit.id, user=owner )
         self.assertTrue(permitted) 
     
     
@@ -872,15 +872,15 @@ class PermissionTest(TestCase):
     '''
     def test_group_allowed_to_view_when_group_set_to_view_ws(self):
         group = User.objects.get(username=gp_user)
-        permitted = allowed_to_view(group, WorkingSet,
-                        PermissionTest.workingset_group_can_view.id)
+        permitted = allowed_to_view(None , WorkingSet,
+                        PermissionTest.workingset_group_can_view.id, user=group )
         self.assertTrue(permitted)
         
     
     def test_group_not_allowed_to_edit_when_group_set_to_view_ws(self):
         group = User.objects.get(username=gp_user)
-        permitted = allowed_to_edit(group, WorkingSet,
-                        PermissionTest.workingset_group_can_view.id)
+        permitted = allowed_to_edit(None , WorkingSet,
+                        PermissionTest.workingset_group_can_view.id, user=group )
         self.assertFalse(permitted)
         
         
@@ -890,15 +890,15 @@ class PermissionTest(TestCase):
     '''
     def test_group_allowed_to_view_when_group_set_to_edit_ws(self):
         group = User.objects.get(username=gp_user)
-        permitted = allowed_to_view(group, WorkingSet,
-                        PermissionTest.workingset_group_can_edit.id)
+        permitted = allowed_to_view(None , WorkingSet,
+                        PermissionTest.workingset_group_can_edit.id, user=group )
         self.assertTrue(permitted)
         
     
     def test_group_allowed_to_edit_when_group_set_to_edit_ws(self):
         group = User.objects.get(username=gp_user)
-        permitted = allowed_to_edit(group, WorkingSet,
-                        PermissionTest.workingset_group_can_edit.id)
+        permitted = allowed_to_edit(None , WorkingSet,
+                        PermissionTest.workingset_group_can_edit.id, user=group )
         self.assertTrue(permitted)
     
         
@@ -908,29 +908,29 @@ class PermissionTest(TestCase):
     '''
     def test_normal_user_not_allowed_to_view_when_only_group_set_to_edit_ws(self):
         user = User.objects.get(username=nm_user)
-        permitted = allowed_to_view(user, WorkingSet,
-                        PermissionTest.workingset_group_can_edit.id)
+        permitted = allowed_to_view(None , WorkingSet,
+                        PermissionTest.workingset_group_can_edit.id, user=user )
         self.assertFalse(permitted)
         
     
     def test_normal_user_not_allowed_to_edit_when_only_group_set_to_edit_ws(self):
         user = User.objects.get(username=nm_user)
-        permitted = allowed_to_edit(user, WorkingSet,
-                        PermissionTest.workingset_group_can_edit.id)
+        permitted = allowed_to_edit(None , WorkingSet,
+                        PermissionTest.workingset_group_can_edit.id, user=user )
         self.assertFalse(permitted)
         
         
     def test_owner_allowed_to_view_when_only_group_set_to_edit_ws(self):
         owner = User.objects.get(username=ow_user)
-        permitted = allowed_to_view(owner, WorkingSet,
-                        PermissionTest.workingset_group_can_edit.id)
+        permitted = allowed_to_view(None , WorkingSet,
+                        PermissionTest.workingset_group_can_edit.id, user=owner )
         self.assertTrue(permitted)
         
     
     def test_owner_allowed_to_edit_when_only_group_set_to_edit_ws(self):
         owner = User.objects.get(username=ow_user)
-        permitted = allowed_to_edit(owner, WorkingSet,
-                        PermissionTest.workingset_group_can_edit.id)
+        permitted = allowed_to_edit(None , WorkingSet,
+                        PermissionTest.workingset_group_can_edit.id, user=owner )
         self.assertTrue(permitted)
         
         
@@ -947,99 +947,99 @@ class PermissionTest(TestCase):
         
     def test_superuser_allowed_to_view_when_everybody_set_to_view_ws(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_view(super_user, WorkingSet,
-                        PermissionTest.workingset_everyone_can_view.id)
+        permitted = allowed_to_view(None , WorkingSet,
+                        PermissionTest.workingset_everyone_can_view.id, user=super_user )
         self.assertTrue(permitted)
         
         
     def test_superuser_allowed_to_edit_when_everybody_set_to_view_ws(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_edit(super_user, WorkingSet,
-                        PermissionTest.workingset_everyone_can_view.id)
+        permitted = allowed_to_edit(None , WorkingSet,
+                        PermissionTest.workingset_everyone_can_view.id, user=super_user)
         self.assertTrue(permitted)
         
     
     def test_superuser_allowed_to_view_when_everybody_set_to_edit_ws(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_view(super_user, WorkingSet,
-                        PermissionTest.workingset_everyone_can_edit.id)
+        permitted = allowed_to_view(None , WorkingSet,
+                        PermissionTest.workingset_everyone_can_edit.id, user=super_user )
         self.assertTrue(permitted)
         
         
     def test_superuser_allowed_to_edit_when_everybody_set_to_edit_ws(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_edit(super_user, WorkingSet,
-                        PermissionTest.workingset_everyone_can_edit.id)
+        permitted = allowed_to_edit(None , WorkingSet,
+                        PermissionTest.workingset_everyone_can_edit.id, user=super_user )
         self.assertTrue(permitted)
         
         
     def test_superuser_allowed_to_view_when_owner_set_to_view_ws(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_view(super_user, WorkingSet,
-                        PermissionTest.workingset_owner_can_view.id)
+        permitted = allowed_to_view(None , WorkingSet,
+                        PermissionTest.workingset_owner_can_view.id, user=super_user )
         self.assertTrue(permitted)
         
         
     def test_superuser_allowed_to_edit_when_owner_set_to_view_ws(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_edit(super_user, WorkingSet,
-                        PermissionTest.workingset_owner_can_view.id)
+        permitted = allowed_to_edit(None , WorkingSet,
+                        PermissionTest.workingset_owner_can_view.id, user=super_user )
         self.assertTrue(permitted)
         
         
     def test_superuser_allowed_to_view_when_owner_set_to_edit_ws(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_view(super_user, WorkingSet,
-                        PermissionTest.workingset_owner_can_edit.id)
+        permitted = allowed_to_view(None , WorkingSet,
+                        PermissionTest.workingset_owner_can_edit.id, user=super_user )
         self.assertTrue(permitted)
         
         
     def test_superuser_allowed_to_edit_when_owner_set_to_edit_ws(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_edit(super_user, WorkingSet,
-                        PermissionTest.workingset_owner_can_edit.id)
+        permitted = allowed_to_edit(None , WorkingSet,
+                        PermissionTest.workingset_owner_can_edit.id, user=super_user )
         self.assertTrue(permitted)
         
         
     def test_superuser_allowed_to_view_when_group_set_to_view_ws(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_view(super_user, WorkingSet,
-                        PermissionTest.workingset_group_can_view.id)
+        permitted = allowed_to_view(None , WorkingSet,
+                        PermissionTest.workingset_group_can_view.id, user=super_user )
         self.assertTrue(permitted)
         
         
     def test_superuser_allowed_to_edit_when_group_set_to_view_ws(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_edit(super_user, WorkingSet,
-                        PermissionTest.workingset_group_can_view.id)
+        permitted = allowed_to_edit(None , WorkingSet,
+                        PermissionTest.workingset_group_can_view.id, user=super_user )
         self.assertTrue(permitted)
       
         
     def test_superuser_allowed_to_view_when_group_set_to_edit_ws(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_view(super_user, WorkingSet,
-                        PermissionTest.workingset_group_can_edit.id)
+        permitted = allowed_to_view(None , WorkingSet,
+                        PermissionTest.workingset_group_can_edit.id, user=super_user )
         self.assertTrue(permitted)
         
         
     def test_superuser_allowed_to_edit_when_group_set_to_edit_ws(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_edit(super_user, WorkingSet,
-                        PermissionTest.workingset_group_can_edit.id)
+        permitted = allowed_to_edit(None , WorkingSet,
+                        PermissionTest.workingset_group_can_edit.id, user=super_user )
         self.assertTrue(permitted)
         
     
     def test_superuser_allowed_to_view_when_none_has_access_ws(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_view(super_user, WorkingSet,
-                        PermissionTest.workingset_none_can_access.id)
+        permitted = allowed_to_view(None , WorkingSet,
+                        PermissionTest.workingset_none_can_access.id, user=super_user )
         self.assertTrue(permitted)
         
         
     def test_superuser_allowed_to_edit_when_none_has_access_ws(self):
         super_user = User.objects.get(username=su_user)
-        permitted = allowed_to_edit(super_user, WorkingSet,
-                        PermissionTest.workingset_none_can_access.id)
+        permitted = allowed_to_edit(None , WorkingSet,
+                        PermissionTest.workingset_none_can_access.id, user=super_user )
         self.assertTrue(permitted)
         
     '''

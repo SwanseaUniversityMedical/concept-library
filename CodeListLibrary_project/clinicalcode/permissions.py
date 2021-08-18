@@ -50,7 +50,7 @@ def checkIfPublished(set_class, set_id, set_history_id):
     allowed_to test.
     ---------------------------------------------------------------------------
 '''
-def allowed_to_view_children(user, set_class, set_id
+def allowed_to_view_children(request, set_class, set_id
                             , returnErrors = False
                             , WS_concepts_json = ""
                             , WS_concept_version = None
@@ -73,6 +73,8 @@ def allowed_to_view_children(user, set_class, set_id
                           , get_concept_versions_in_workingset
                           , getGroupOfConceptsByPhenotypeId_historical
                           )
+    
+    user = request.user
     errors = dict()
     if user.is_superuser: 
         if returnErrors:
@@ -84,7 +86,7 @@ def allowed_to_view_children(user, set_class, set_id
     # The Working Set and Concept systems are fundamentally different, so we
     # need to check that here. Why?
     if (set_class == WorkingSet):
-        permitted = allowed_to_view(user, WorkingSet, set_id, set_history_id=set_history_id)
+        permitted = allowed_to_view(request, WorkingSet, set_id, set_history_id=set_history_id)
         if (not permitted):
             errors[set_id] = 'Working set not permitted.'
         # Need to parse the concept_informations section of the database and use
@@ -104,7 +106,7 @@ def allowed_to_view_children(user, set_class, set_id
             unique_concepts.add((int(concept), concepts[concept]))
         pass
     elif set_class == Phenotype:
-        permitted = allowed_to_view(user, Phenotype, set_id)
+        permitted = allowed_to_view(request, Phenotype, set_id)
         if (not permitted):
             errors[set_id] = 'Phenotype not permitted.'
             # Need to parse the concept_informations section of the database and use
@@ -119,7 +121,7 @@ def allowed_to_view_children(user, set_class, set_id
             unique_concepts.add(concept)
         pass
     elif (set_class == Concept):
-        permitted = allowed_to_view(user, Concept, set_id, set_history_id=set_history_id)
+        permitted = allowed_to_view(request, Concept, set_id, set_history_id=set_history_id)
         if (not permitted):
             errors[set_id] = 'Concept not permitted.'
         
@@ -149,7 +151,7 @@ def allowed_to_view_children(user, set_class, set_id
     permittedToAll = True
     for concept in unique_concepts:
         permitted = False
-        permitted = allowed_to_view(user, Concept, set_id=concept[0], set_history_id=concept[1])
+        permitted = allowed_to_view(request, Concept, set_id=concept[0], set_history_id=concept[1])
 
         if (not permitted):
             errors[concept[0]] = 'Child concept not permitted.'             
@@ -162,7 +164,7 @@ def allowed_to_view_children(user, set_class, set_id
         return permittedToAll
 
 
-def allowed_to_view(user, set_class, set_id, set_history_id = None):
+def allowed_to_view(request, set_class, set_id, set_history_id = None, user = None):
     '''
         Permit viewing access if:
         user is a super-user or the OWNER
@@ -170,9 +172,18 @@ def allowed_to_view(user, set_class, set_id, set_history_id = None):
         viewing is permitted to EVERYONE
         OR
         viewing is permitted to a GROUP that contains the user
+        
+        if login_required is False this means it can be a published content
+        --
+        user will be read from request.user unless given directly via param: user
     '''
+    
+    if user is None and request is not None:
+        user = request.user
+        
     from .models.Concept import Concept
     from .models.Phenotype import Phenotype
+    #from .models.WorkingSet import WorkingSet
     
     # check if the entity/version exists
     if not set_class.objects.filter(id=set_id).exists(): 
@@ -183,23 +194,53 @@ def allowed_to_view(user, set_class, set_id, set_history_id = None):
             return False
     
     # Check if the user is permitted to view the entity
-    # once permission is granted for any reason return immediately.
-    if user.is_superuser: return True
+    # *** here check if the user can view  *******
+    is_allowed_to_view = False
     
-    # if a specific version is published
-    if set_history_id is not None and set_class in(Concept, Phenotype):
-        if checkIfPublished(set_class, set_id, set_history_id): return True
+    is_authenticated = False
+    if request is None: # from unit-testing only
+        is_authenticated = True
+    else:
+        is_authenticated = request.user.is_authenticated()
+        
+    if is_authenticated:
+        if user.is_superuser:
+            is_allowed_to_view = True
+        else:
+            # if a specific version is published
+            if set_history_id is not None and set_class in(Concept, Phenotype):
+                if checkIfPublished(set_class, set_id, set_history_id): 
+                    is_allowed_to_view = True
+            
+            # Owner is always allowed to view
+            if set_class.objects.filter(Q(id=set_id), Q(owner=user)).count() > 0: is_allowed_to_view = True
+            if set_class.objects.filter(Q(id=set_id), Q(world_access=Permissions.VIEW)).count() > 0: is_allowed_to_view = True
+            # this condition is not active now (from the interface), since not logical to give Edit permission to all users
+            if set_class.objects.filter(Q(id=set_id), Q(world_access=Permissions.EDIT)).count() > 0: is_allowed_to_view = True
+            for group in user.groups.all() :
+                if  set_class.objects.filter(Q(id=set_id), Q(group_access=Permissions.VIEW, group_id=group)).count() > 0: is_allowed_to_view = True
+                if  set_class.objects.filter(Q(id=set_id), Q(group_access=Permissions.EDIT, group_id=group)).count() > 0: is_allowed_to_view = True
+ 
+    else:   # public content
+        # check if the version is published
+        if set_history_id is None:
+            # get the latest version
+            set_history_id = int(set_class.objects.get(pk=set_id).history.latest().history_id) 
     
-    # Owner is always allowed to view
-    if set_class.objects.filter(Q(id=set_id), Q(owner=user)).count() > 0: return True
-    if set_class.objects.filter(Q(id=set_id), Q(world_access=Permissions.VIEW)).count() > 0: return True
-    if set_class.objects.filter(Q(id=set_id), Q(world_access=Permissions.EDIT)).count() > 0: return True
-    for group in user.groups.all() :
-        if  set_class.objects.filter(Q(id=set_id), Q(group_access=Permissions.VIEW, group_id=group)).count() > 0: return True
-        if  set_class.objects.filter(Q(id=set_id), Q(group_access=Permissions.EDIT, group_id=group)).count() > 0: return True      
-    return False
+        is_published = checkIfPublished(set_class, set_id, set_history_id)                
+        if is_published: 
+            is_allowed_to_view = True
+    # ********************************************
+    
+    # check brand access
+    if is_allowed_to_view and request is not None:
+        if not is_brand_accessible(request, set_class, set_id, set_history_id):
+            is_allowed_to_view = False
 
-def allowed_to_edit(user, set_class, set_id, to_restore=False):
+    return is_allowed_to_view
+    
+
+def allowed_to_edit(request, set_class, set_id, user=None):
     '''
         Permit editing access if:
         user is a super-user or the OWNER
@@ -211,24 +252,43 @@ def allowed_to_edit(user, set_class, set_id, to_restore=False):
         the application is configured as READ-ONLY.
         
         (skip this for now)(The object must not be marked as deleted - even for superuser)
+        --
+        user will be read from request.user unless given directly via param: user
     '''
+    
+    if user is None and request is not None:
+        user = request.user
+    
     if settings.CLL_READ_ONLY: return False
   
+    # to_restore = False
     # skip this for now
     # skip this when restoring 
     #if not to_restore:
     #   if set_class.objects.get(id=set_id).is_deleted==True: return False
 
-    if user.is_superuser: return True
+    # *** here check if the user can edit  *******
+    is_allowed_to_edit = False
     
-
-    if set_class.objects.filter(Q(id=set_id), Q(owner=user)).count() > 0: return True
-
-    if set_class.objects.filter(Q(id=set_id), Q(world_access=Permissions.EDIT)).count() > 0: return True
+    if user.is_superuser: 
+        is_allowed_to_edit = True
+    else:
+        if set_class.objects.filter(Q(id=set_id), Q(owner=user)).count() > 0: is_allowed_to_edit = True
     
-    for group in user.groups.all() :
-        if set_class.objects.filter(Q(id=set_id), Q(group_access=Permissions.EDIT, group_id=group)).count() > 0: return True
-    return False
+        # this condition is not active now (from the interface), since not logical to give Edit permission to all users
+        if set_class.objects.filter(Q(id=set_id), Q(world_access=Permissions.EDIT)).count() > 0: is_allowed_to_edit = True
+        
+        for group in user.groups.all() :
+            if set_class.objects.filter(Q(id=set_id), Q(group_access=Permissions.EDIT, group_id=group)).count() > 0: is_allowed_to_edit = True
+    # ********************************************
+
+    # check brand access
+    if is_allowed_to_edit and request is not None:
+        if not is_brand_accessible(request, set_class, set_id):
+            is_allowed_to_edit = False
+    
+    return is_allowed_to_edit
+
 
 def allowed_to_create():
     '''
@@ -278,23 +338,24 @@ def getGroups(user):
     return user.groups.all().exclude(name='ReadOnlyUsers')
     
     
-def validate_access_to_view(user, set_class, set_id, set_history_id = None):
+def validate_access_to_view(request, set_class, set_id, set_history_id = None):
     '''
         Validate if user has access to view the entity.
         Raises an exception if access is not allowed which causes the 403.html
         page to be displayed.
     '''
-    if allowed_to_view(user, set_class, set_id, set_history_id = set_history_id) == False:
+    if allowed_to_view(request, set_class, set_id, set_history_id = set_history_id) == False:
         raise PermissionDenied
 
 
-def validate_access_to_edit(user, set_class, set_id):
+def validate_access_to_edit(request, set_class, set_id):
     '''
         Validate if user has access to edit a dataset.
         Raises an exception if access is not allowed which causes the 403.html
         page to be displayed.
     '''
-    if allowed_to_edit(user, set_class, set_id) == False:
+
+    if allowed_to_edit(request, set_class, set_id) == False:
         raise PermissionDenied
 
 
@@ -341,7 +402,7 @@ class HasAccessToViewConceptCheckMixin(object):
     '''
     def has_access_to_view_concept(self, user, concept):
         from .models.Concept import Concept
-        return allowed_to_view(user, Concept, concept)
+        return allowed_to_view(self.request, Concept, concept)
 
     def access_to_view_concept_failed(self, request, *args, **kwargs):
         raise PermissionDenied
@@ -360,7 +421,7 @@ class HasAccessToViewParentConceptCheckMixin(object):
     '''
     def has_access_to_view_concept(self, user, concept):
         from .models.Concept import Concept
-        return allowed_to_view(user, Concept, concept)
+        return allowed_to_view(self.request, Concept, concept)
 
     def access_to_view_concept_failed(self, request, *args, **kwargs):
         raise PermissionDenied
@@ -380,7 +441,7 @@ class HasAccessToEditConceptCheckMixin(object):
 
     def has_access_to_edit_concept(self, user, concept):
         from .models.Concept import Concept
-        return allowed_to_edit(user, Concept, concept)
+        return allowed_to_edit(self.request, Concept, concept)
 
     def access_to_edit_concept_failed(self, request, *args, **kwargs):
         raise PermissionDenied
@@ -400,7 +461,7 @@ class HasAccessToEditParentConceptCheckMixin(object):
     '''
     def has_access_to_edit_concept(self, user, concept):
         from .models.Concept import Concept
-        return allowed_to_edit(user, Concept, concept)
+        return allowed_to_edit(self.request, Concept, concept)
 
     def access_to_edit_concept_failed(self, request, *args, **kwargs):
         raise PermissionDenied
@@ -419,7 +480,7 @@ class HasAccessToEditWorkingsetCheckMixin(object):
     '''
     def has_access_to_edit_workingset(self, user, workingset_id):
         from .models.WorkingSet import WorkingSet
-        return allowed_to_edit(user, WorkingSet, workingset_id)
+        return allowed_to_edit(self.request, WorkingSet, workingset_id)
 
     def access_to_edit_workingset_failed(self, request, *args, **kwargs):
         raise PermissionDenied
@@ -438,7 +499,7 @@ class HasAccessToViewWorkingsetCheckMixin(object):
     '''
     def has_access_to_view_workingset(self, user, workingset_id):
         from .models.WorkingSet import WorkingSet
-        return allowed_to_view(user, WorkingSet, workingset_id)
+        return allowed_to_view(self.request, WorkingSet, workingset_id)
 
     def access_to_view_workingset_failed(self, request, *args, **kwargs):
         raise PermissionDenied
@@ -457,7 +518,7 @@ class HasAccessToEditPhenotypeCheckMixin(object):
     """
     def has_access_to_edit_phenotype(self, user, phenotype_id):
         from .models.Phenotype import Phenotype
-        return allowed_to_edit(user, Phenotype, phenotype_id)
+        return allowed_to_edit(self.request, Phenotype, phenotype_id)
 
     def access_to_edit_phenotype_failed(self, request, *args, **kwargs):
         raise PermissionDenied
@@ -476,7 +537,7 @@ class HasAccessToViewPhenotypeCheckMixin(object):
     """
     def has_access_to_view_phenotype(self, user, phenotype_id):
         from .models.Phenotype import Phenotype
-        return allowed_to_view(user, Phenotype, phenotype_id)
+        return allowed_to_view(self.request, Phenotype, phenotype_id)
 
     def access_to_view_phenotype_failed(self, request, *args, **kwargs):
         raise PermissionDenied
@@ -739,4 +800,51 @@ def get_visible_data_sources(user):
 def is_member(user, group_name):
     return user.groups.filter(name__iexact=group_name).exists()
 
+
+def is_brand_accessible(request, set_class, set_id, set_history_id = None):
+    """
+        When in a brand, show only this brand's data
+    """
+    from db_utils import (get_brand_collection_ids, getHistoryTags_Workingset)
+    from .models.Concept import Concept
+    from .models.Phenotype import Phenotype
+    from .models.WorkingSet import WorkingSet
+    
+    
+    # setting set_history_id = None, 
+    # so this permission is always checked from the live obj like other permissions
+    set_history_id = None
+    
+    
+    brand = request.CURRENT_BRAND
+    if brand == "":
+        return True
+    else:
+        brand_collection_ids = get_brand_collection_ids(brand)
+            
+        if not brand_collection_ids:
+            return True
+
+        if brand_collection_ids:           
+            history_id = set_history_id
+            if set_history_id is None:
+                history_id = set_class.objects.get(pk=set_id).history.latest().history_id 
+
+            set_tags = []
+            if set_class in(Concept, Phenotype):
+                set_tags = set_class.history.get(id=set_id, history_id=history_id).tags
+            elif set_class == WorkingSet:
+                workingset_history_date = set_class.history.get(id=set_id, history_id=history_id).history_date 
+                ws_tags = getHistoryTags_Workingset(set_id, workingset_history_date)
+                if ws_tags:
+                    set_tags = [i['tag_id'] for i in ws_tags if 'tag_id' in i]       
+                    
+            if not set_tags:
+                return False
+            else:
+                # check if the set tags has any of the brand's collection tags
+                return any(c in set_tags for c in brand_collection_ids)
+            
+            
+        
 

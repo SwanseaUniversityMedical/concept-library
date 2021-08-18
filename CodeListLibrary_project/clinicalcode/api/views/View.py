@@ -231,7 +231,7 @@ def customRoot(request):
 
     # relace 0/1 by {id}/{version_id}
     for k, v in urls_available.items():
-        new_url = urls_available[k].replace('0', '{id}').replace('1', '{version_id}')
+        new_url = urls_available[k].replace('C0', '{id}').replace('PH0', '{id}').replace('WS0', '{id}').replace('1', '{version_id}')
         urls_available[k] = new_url
         
     return render(request,
@@ -571,7 +571,7 @@ def get_visible_versions_list(request, set_class, pk, is_authenticated_user=True
         ver['is_published'] = is_this_version_published
         
         if is_authenticated_user: 
-            if allowed_to_edit(request.user, set_class, pk) or allowed_to_view(request.user, set_class, pk):
+            if allowed_to_edit(request, set_class, pk) or allowed_to_view(request, set_class, pk):
                 visible_versions.append(ver)
             else:
                 if is_this_version_published:

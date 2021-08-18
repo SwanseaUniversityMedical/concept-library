@@ -40,7 +40,7 @@
 			<div class="col-sm-7">
 				<!-- Link to the concept history detail page -->
 		    	<a href="{% url 'concept_history_detail' pk=component.concept_ref_id concept_history_id=component.concept_ref_history_id %}" target="_blank" class="alert-link">
-		    	(CONCEPT ID: {{ component.concept_ref_id }}/{{ component.concept_ref_history_id }})
+		    	(CONCEPT ID: C{{ component.concept_ref_id }}/{{ component.concept_ref_history_id }})
 		    	</a>
 			    {% if user.is_authenticated  %}
 				    {% if component.id in user_can_view_component or component.id in user_can_edit_component %}

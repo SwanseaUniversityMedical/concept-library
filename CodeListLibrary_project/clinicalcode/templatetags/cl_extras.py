@@ -31,3 +31,8 @@ def toString(value):
     """Convert value to string"""
     return str(value)
 
+
+@register.filter
+def addStr(value, arg):
+    """concatenate value & arg"""
+    return str(value) + str(arg)

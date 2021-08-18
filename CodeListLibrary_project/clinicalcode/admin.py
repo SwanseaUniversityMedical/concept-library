@@ -53,8 +53,8 @@ class BrandAdmin(admin.ModelAdmin):
     
 @admin.register(DataSource)
 class DataSourceAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'uid', 'url',  'description']
-    list_filter = ['name', 'uid', 'description', 'created', 'modified']
+    list_display = ['id', 'name', 'uid', 'url', 'brand', 'description']
+    list_filter = ['brand', 'name', 'description']
     search_fields = ['name', 'uid', 'description']
     exclude = ['created_by', 'updated_by']
     

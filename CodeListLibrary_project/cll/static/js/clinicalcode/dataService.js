@@ -5,7 +5,7 @@ var dataService = new function(){
 	getCodesByRegex = function(concept, searchText, regexCode, logicalType, regexType, csrfmiddlewaretoken, searchColumn, case_sensitive_search, callback){		
 		$.ajax({
 			type: 'POST',
-			url: serviceBase + concept + '/searchcodes/',
+			url: serviceBase + 'C' + concept + '/searchcodes/',
 			data: {search_text: searchText, search_params: '', regex_code: regexCode, logical_type: logicalType
 				, regex_type: regexType, csrfmiddlewaretoken:csrfmiddlewaretoken, column_search: searchColumn
 				, case_sensitive_search: case_sensitive_search
@@ -17,7 +17,7 @@ var dataService = new function(){
 	};
 
 	getCodes = function(concept, pk, callback){		
-		$.getJSON(serviceBase + concept + '/expression/' + pk + '/getcodes/', function(data){
+		$.getJSON(serviceBase + 'C' + concept + '/expression/' + pk + '/getcodes/', function(data){
 			callback(data);
 		});
 	};
@@ -30,32 +30,32 @@ var dataService = new function(){
 	
 	getComponents = function(concept, callback){
 			
-		$.getJSON('/concepts/' + concept + '/components/', function(data){
+		$.getJSON('/concepts/C' + concept + '/components/', function(data){
 			callback(data);
 		});
 	};
 
 	
 	getConceptUniqueCodes = function(concept, callback){		
-		$.getJSON('/concepts/' + concept + '/uniquecodes/', function(data){
+		$.getJSON('/concepts/C' + concept + '/uniquecodes/', function(data){
 			callback(data);
 		});
 	};
 	
 	getConceptUniqueCodesByVersion = function(concept, version, callback){		
-		$.getJSON('/concepts/' + concept + '/uniquecodesbyversion/'+ version +'/', function(data){
+		$.getJSON('/concepts/C' + concept + '/uniquecodesbyversion/'+ version +'/', function(data){
 			callback(data);
 		});
 	};
 	
 	getPhenotypeUniqueCodesByVersion = function(phenotype, version, callback){		
-		$.getJSON('/phenotypes/' + phenotype + '/uniquecodesbyversion/'+ version +'/', function(data){
+		$.getJSON('/phenotypes/PH' + phenotype + '/uniquecodesbyversion/'+ version +'/', function(data){
 			callback(data);
 		});
 	};
 	
 	getConceptVersions = function(concept, version, indx, callback){		
-		$.getJSON('/concepts/' + concept + '/conceptversions/'+ version +'/'+ indx +'/', function(data){
+		$.getJSON('/concepts/C' + concept + '/conceptversions/'+ version +'/'+ indx +'/', function(data){
 			callback(data);
 		});
 	};	
@@ -63,7 +63,7 @@ var dataService = new function(){
 	searchCodeList = function(concept, searchText, searchParams, sqlRules, logicalType, csrfmiddlewaretoken, latest_history_id_shown, callback){
 		$.ajax({
 			type: 'POST',
-			url: serviceBase + concept + '/querybuilder/search/',
+			url: serviceBase + 'C' + concept + '/querybuilder/search/',
 			data: {search_text: searchText
 				, search_params: JSON.stringify(searchParams)
 				, logical_type: logicalType

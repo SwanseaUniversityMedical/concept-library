@@ -106,6 +106,8 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
             owner_access=Permissions.NONE,
             world_access=Permissions.EDIT
         )
+        
+        update_friendly_id()
 
     def tearDown(self):
         self.browser.quit()
@@ -132,7 +134,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        #         browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        #         browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                                 self.concept_everybody_can_edit.id, '/version/',
         #                                 self.concept_everybody_can_edit.history.first().history_id, '/detail/'))
 
@@ -159,7 +161,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
                                       self.concept_everybody_can_edit.id, '/version/',
                                       self.concept_everybody_can_edit.history.first().history_id, '/revert/'))
 
@@ -171,7 +173,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
                                       self.concept_everybody_can_edit.id, '/version/',
                                       self.concept_everybody_can_edit.history.first().history_id, '/detail/'))
 
@@ -192,7 +194,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
                                       self.concept_everybody_can_edit.id, '/version/',
                                       self.concept_everybody_can_edit.history.first().history_id, '/revert/'))
 
@@ -209,7 +211,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
                                   self.concept_everybody_can_edit.id, '/detail/'))
 
         time.sleep(settings.TEST_SLEEP_TIME)
@@ -229,7 +231,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
                                   self.concept_everybody_can_edit.id, '/fork/'))
 
         time.sleep(settings.TEST_SLEEP_TIME)
@@ -241,7 +243,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
                                       self.concept_everybody_can_edit.id, '/version/',
                                       self.concept_everybody_can_edit.history.first().history_id, '/detail/'))
 
@@ -262,7 +264,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
                                       self.concept_everybody_can_edit.id, '/version/',
                                       self.concept_everybody_can_edit.history.first().history_id, '/fork/'))
 
@@ -275,7 +277,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
                                   self.concept_everybody_can_edit.id, '/detail/'))
 
         time.sleep(settings.TEST_SLEEP_TIME)
@@ -295,7 +297,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
                                   self.concept_everybody_can_edit.id, '/fork/'))
 
         time.sleep(settings.TEST_SLEEP_TIME)
@@ -308,7 +310,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         browser = self.browser
         # get the test server url
 
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
                                       self.concept_everybody_can_edit.id, '/version/',
                                       self.concept_everybody_can_edit.history.first().history_id, '/detail/'))
 
@@ -329,7 +331,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
                                       self.concept_everybody_can_edit.id, '/version/',
                                       self.concept_everybody_can_edit.history.first().history_id, '/fork/'))
 
@@ -357,7 +359,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(su_user, su_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
                                   self.concept_everybody_can_edit.id, '/update/'))
 
         time.sleep(settings.TEST_SLEEP_TIME)
@@ -369,7 +371,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(su_user, su_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
                                       self.concept_everybody_can_edit.id, '/version/',
                                       self.concept_everybody_can_edit.history.first().history_id, '/detail/'))
 
@@ -390,7 +392,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(su_user, su_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
                                       self.concept_everybody_can_edit.id, '/version/',
                                       self.concept_everybody_can_edit.history.first().history_id, '/revert/'))
 
@@ -403,7 +405,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(su_user, su_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
                                   self.concept_everybody_can_edit.id, '/detail/'))
 
         time.sleep(settings.TEST_SLEEP_TIME)
@@ -424,7 +426,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(su_user, su_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
                                   self.concept_everybody_can_edit.id, '/fork/'))
 
         time.sleep(settings.TEST_SLEEP_TIME)
@@ -436,7 +438,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(su_user, su_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
                                       self.concept_everybody_can_edit.id, '/version/',
                                       self.concept_everybody_can_edit.history.first().history_id, '/detail/'))
 
@@ -457,7 +459,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(su_user, su_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
                                       self.concept_everybody_can_edit.id, '/version/',
                                       self.concept_everybody_can_edit.history.first().history_id, '/revert/'))
 
@@ -474,7 +476,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
                                   self.concept_everybody_can_edit.id, '/update/'))
 
         time.sleep(settings.TEST_SLEEP_TIME)
@@ -486,7 +488,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
                                   self.concept_everybody_can_edit.id, '/update/'))
 
         time.sleep(settings.TEST_SLEEP_TIME)

@@ -4,6 +4,7 @@
     Set-up and tear-down etc. which are common for unit and functional tests.
 '''
 import os
+from django.db import connection, connections #, transaction
 
 SCREEN_DUMP_LOCATION = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), 'screendumps'
@@ -26,3 +27,18 @@ nm_user = 'reginald'
 nm_password = 'reginaldspassword'
 Google_website = "https://www.google.com"
 
+def update_friendly_id():
+    update_sqls = [
+        "UPDATE clinicalcode_historicalconcept       SET       friendly_id = concat('C', cast(id as text));",
+        "UPDATE clinicalcode_concept                 SET       friendly_id = concat('C', cast(id as text));",   
+#         "UPDATE clinicalcode_historicalphenotype     SET       friendly_id = concat('PH', cast(id as text));",
+#         "UPDATE clinicalcode_phenotype               SET       friendly_id = concat('PH', cast(id as text));",
+        "UPDATE clinicalcode_historicalworkingset    SET       friendly_id = concat('WS', cast(id as text));",
+        "UPDATE clinicalcode_workingset              SET       friendly_id = concat('WS', cast(id as text));"
+        ]
+    
+    for sql in update_sqls:
+        with connection.cursor() as cursor:
+            cursor.execute(sql)
+        
+    print "######  update_friendly_id   #############################"
