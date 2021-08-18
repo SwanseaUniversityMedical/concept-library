@@ -6,34 +6,34 @@ from django.db.models import Q
 
 from ..serializers import *
 
-from ...models.Concept import Concept
-from ...models.Tag import Tag
-from ...models.Phenotype import Phenotype
-from ...models.PhenotypeTagMap import PhenotypeTagMap
-from ...models.DataSource import DataSource
-from ...models.Brand import Brand
+from ...models import *
+# from ...models.Tag import Tag
+# from ...models.Phenotype import Phenotype
+# from ...models.PhenotypeTagMap import PhenotypeTagMap
+# from ...models.DataSource import DataSource
+# from ...models.Brand import Brand
+# from clinicalcode.models.PhenotypeDataSourceMap import PhenotypeDataSourceMap
+# from clinicalcode.models.Phenotype import Phenotype
 
 from django.contrib.auth.models import User
 
 from ...db_utils import *
-from ...viewmodels.js_tree_model import TreeModelManager
 from ...permissions import *
 
 from collections import OrderedDict
 from django.core.exceptions import PermissionDenied
 import json
-from clinicalcode.context_processors import clinicalcode
+# from clinicalcode.context_processors import clinicalcode
 from collections import OrderedDict as ordr
 from ...utils import *
-from numpy.distutils.fcompiler import none
+# from numpy.distutils.fcompiler import none
 
 from django.core import serializers
 from datetime import datetime
 from django.core.validators import URLValidator
 from View import *
 from django.db.models.aggregates import Max
-from clinicalcode.models.PhenotypeDataSourceMap import PhenotypeDataSourceMap
-from clinicalcode.models.Phenotype import Phenotype
+
 
 @api_view(['POST'])
 def api_datasource_create(request):
@@ -50,6 +50,9 @@ def api_datasource_create(request):
         new_datasource.uid = request.data.get('uid')
         new_datasource.url = request.data.get('url')
         new_datasource.description = request.data.get('description')
+        #brand_id = 3    # HDRUK  -- fixed for now
+        brand_id = request.data.get('brand_id')
+        new_datasource.brand = Brand.objects.get(id=brand_id)
 
         new_datasource.created_by = request.user
 
@@ -109,6 +112,13 @@ def get_data_source(request, pk=None, get_live_phenotypes=False, show_published_
 
     queryset = DataSource.objects.all()
     
+    # --- when in a brand, show only this brand's data
+    brand_name = request.CURRENT_BRAND
+    if brand_name != "":
+        brand_id = Brand.objects.get(name__iexact = brand_name).id
+        queryset = queryset.filter(brand_id = brand_id)
+            
+    
     keyword_search = request.query_params.get('search', None)
     if keyword_search is not None:
         queryset = queryset.filter(name__icontains=keyword_search)
@@ -120,7 +130,7 @@ def get_data_source(request, pk=None, get_live_phenotypes=False, show_published_
    
         
     rows_to_return = []
-    titles = ['id', 'name', 'url', 'uid', 'description', 'phenotypes']
+    titles = ['id', 'name', 'url', 'uid', 'description', 'brand', 'phenotypes']
         
     for ds in queryset:
         ret = [
@@ -128,7 +138,8 @@ def get_data_source(request, pk=None, get_live_phenotypes=False, show_published_
                 ds.name.encode('ascii', 'ignore').decode('ascii'),
                 ds.url,
                 ds.uid,
-                ds.description
+                ds.description,
+                ds.brand
             ]
         if get_live_phenotypes:
             ret.append(get_LIVE_phenotypes_associated_with_data_source(ds.id, show_published_data_only=show_published_data_only))
@@ -137,10 +148,12 @@ def get_data_source(request, pk=None, get_live_phenotypes=False, show_published_
             
         rows_to_return.append(ordr(zip(titles,  ret )))
         
-        
-    
-    return Response(rows_to_return, status=status.HTTP_200_OK)   
-        
+          
+    if rows_to_return:                    
+        return Response(rows_to_return, status=status.HTTP_200_OK) 
+    else:
+        raise Http404
+        #return Response(rows_to_return, status=status.HTTP_404_NOT_FOUND)
          
 def get_LIVE_phenotypes_associated_with_data_source(data_source_id, show_published_data_only=False):   
     
@@ -158,7 +171,7 @@ def get_LIVE_phenotypes_associated_with_data_source(data_source_id, show_publish
                 continue
             
         ret = [
-                p.id,  
+                p.friendly_id,  
                 Phenotype.objects.get(id=p.id).history.latest().history_id,
                 p.name.encode('ascii', 'ignore').decode('ascii'),
                 p.phenotype_uuid,
@@ -197,7 +210,7 @@ def get_HISTORICAl_phenotypes_associated_with_data_source(data_source_id, show_p
                 
                 if data_source_id in set(phenotype_ds_list):
                     ret = [
-                            p_id,  
+                            ver.friendly_id,  
                             ver.history_id,
                             ver.name.encode('ascii', 'ignore').decode('ascii'),
                             ver.phenotype_uuid,
@@ -209,7 +222,7 @@ def get_HISTORICAl_phenotypes_associated_with_data_source(data_source_id, show_p
                 else:
                     pass      
         if include_this_phenotype:
-            rows_to_return.append(ordr(zip(ph_titles,  [p_id, ver_to_return] )))
+            rows_to_return.append(ordr(zip(ph_titles,  ['PH'+str(p_id), ver_to_return] )))
          
     return rows_to_return
 

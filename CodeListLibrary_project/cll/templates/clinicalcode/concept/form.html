@@ -3,11 +3,11 @@
 {% load staticfiles %}
 
 {% block title %}
-{% if form.instance.pk is None %}
-New Concept
-{% else %}
-Edit Concept
-{% endif %}
+	{% if form.instance.pk is None %}
+		New Concept
+	{% else %}
+		Edit Concept
+	{% endif %}
 {% endblock title %}
 
 {% block crumbs %}
@@ -21,9 +21,9 @@ Edit Concept
 <div class="row" id="concept-button-list-container">
 	<div class="col-sm-4">
 		{% if form.instance.pk is None %}
-			<h2><i class="fa fa-file-text-o" aria-hidden="true"></i> Create a new concept</h2>
+			<h2>Create a new concept</h2>
 		{% else %}
-			<h2><i class="fa fa-edit" aria-hidden="true"></i> Edit concept</h2>
+			<h2>Edit concept</h2>
 		{% endif %}
 	</div>
 	<div class="col-sm-8 text-right">
@@ -161,7 +161,7 @@ Edit Concept
 					<div class="form-group {% if form.author.errors %}has-error{% endif %}">
 						<label class="col-sm-3" for="{{ form.author.id_for_label }}">ID:</label>
 						<div class="col-sm-7">
-							{{ form.instance.pk }}
+							{{ form.instance.friendly_id }}
 						</div>
 					</div>
 					<div class="form-group">
@@ -655,9 +655,7 @@ Edit Concept
 		</div>
 
 		<div id="popover-content-concept-button-list" class="hide popover-lg" >
-<!-- 			<p> -->
-<!-- 				<strong>Return to list</strong> - returns to the concept search page. -->
-<!-- 			</p> -->
+
 			{% if form.instance.pk is not None %}
 				<p>
 					<strong>Export</strong> - export all codes into a csv file/JSON/XML for the current concept. 
@@ -682,6 +680,10 @@ Edit Concept
 							<li>All components of type=concept refer to concepts which are not deleted (and their dependencies).</li>
 							<li>All components of type=concept refer to concepts which are published (and their dependencies).</li>
 						</ul>
+				</p>
+				
+				<p>
+					<strong>Delete</strong> - Mark the concept as deleted. You can still see it and restore it back.
 				</p>
 
 			{% endif %}

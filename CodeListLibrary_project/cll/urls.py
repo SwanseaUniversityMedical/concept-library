@@ -52,13 +52,13 @@ urlpatterns = []
 # admin system
 if not settings.CLL_READ_ONLY: 
     urlpatterns += [
-        url(r'^admin/', admin.site.urls ),
+        url(r'^(?i)admin/', admin.site.urls ),
     ]
 #--------------------------------------------------------------------
 
 # api
 urlpatterns += [
-    url(r'^api/', include('clinicalcode.api.urls', namespace='api')),
+    url(r'^(?i)api/', include('clinicalcode.api.urls', namespace='api')),
 ]
 #--------------------------------------------------------------------
 
@@ -72,7 +72,7 @@ for brand in brands:
     
 # enable login for the main app            
 urlpatterns += [
-    url(r'^account/', include('django.contrib.auth.urls')),
+    url(r'^(?i)account/', include('django.contrib.auth.urls')),
 ]
 #--------------------------------------------------------------------
 
@@ -80,14 +80,14 @@ urlpatterns += [
 # enable index page for all brands
 for brand in brands:
     urlpatterns += [
-        url(r'^'+brand+'', View.index, name='concept_index' ),
+        url(r'^(?i)'+brand+'', View.index, name='concept_index' ),
         ]
 #--------------------------------------------------------------------
 
 # clinical code application 
 # for the main app
 urlpatterns += [
-    url(r'^', include('clinicalcode.urls')),
+    url(r'^(?i)', include('clinicalcode.urls')),
     ] 
 
 #--------------------------------------------------------------------

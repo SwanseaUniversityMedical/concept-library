@@ -64,7 +64,7 @@ def index_HDRUK(request):
     
     
     return render(request,
-                  'clinicalcode/HDRUK/index_HDRUK.html',
+                  'clinicalcode/brand/HDRUK/index_HDRUK.html',
                   {
                     # ONLY PUBLISHED COUNTS HERE
                     'published_concept_count': HDRUK_stat['published_concept_count'], 
@@ -90,25 +90,25 @@ def about_pages(request, pg_name=None):
     
     # HDR-UK about pages                    
     if pg_name.lower() == "hdruk_about_the_project".lower():
-        return render(request, 'clinicalcode/HDRUK/about/about-the-project.html', {})
+        return render(request, 'clinicalcode/brand/HDRUK/about/about-the-project.html', {})
     
     elif pg_name.lower() == "hdruk_about_team".lower():
-        return render(request, 'clinicalcode/HDRUK/about/team.html', {})
+        return render(request, 'clinicalcode/brand/HDRUK/about/team.html', {})
     
     elif pg_name.lower() == "hdruk_about_technical_details".lower():
-        return render(request, 'clinicalcode/HDRUK/about/technical-details.html', {})
+        return render(request, 'clinicalcode/brand/HDRUK/about/technical-details.html', {})
     
     elif pg_name.lower() == "hdruk_about_covid_19_response".lower():
-        return render(request, 'clinicalcode/HDRUK/about/covid-19-response.html', {})
+        return render(request, 'clinicalcode/brand/HDRUK/about/covid-19-response.html', {})
     
     elif pg_name.lower() == "hdruk_about_publications".lower():
-        return render(request, 'clinicalcode/HDRUK/about/publications.html', {})
+        return render(request, 'clinicalcode/brand/HDRUK/about/publications.html', {})
     
     elif pg_name.lower() == "breathe".lower():
-        return render(request, 'clinicalcode/HDRUK/collections/breathe.html', {})
+        return render(request, 'clinicalcode/brand/HDRUK/collections/breathe.html', {})
 
     elif pg_name.lower() == "bhf_data_science_centre".lower():
-        return render(request, 'clinicalcode/HDRUK/collections/bhf-data-science-centre.html', {})
+        return render(request, 'clinicalcode/brand/HDRUK/collections/bhf-data-science-centre.html', {})
     
     else:
         return render(request,
@@ -142,12 +142,13 @@ def HDRUK_portal_redirect(request, unique_url):
 
 
 
-def build_permitted_components_list(user, concept_id, concept_history_id=None, check_published_child_concept=False):
+def build_permitted_components_list(request, concept_id, concept_history_id=None, check_published_child_concept=False):
     '''
         Look through the components that are associated with the specified
         concept ID and decide whether each has view and edit permission for
         the specified user.
     '''
+    user = request.user
     user_can_view_components = []
     user_can_edit_components = []
     component_error_msg_view = {}
@@ -183,10 +184,10 @@ def build_permitted_components_list(user, concept_id, concept_history_id=None, c
                 component_error_msg_view[component.id] += ["concept deleted"]
                 component_error_msg_edit[component.id] += ["concept deleted"]
 
-            if not allowed_to_view(user, Concept, component.concept_ref.id, set_history_id=component.concept_ref_history_id):
+            if not allowed_to_view(request, Concept, component.concept_ref.id, set_history_id=component.concept_ref_history_id):
                 component_error_msg_view[component.id] += ["no view permission"]
                 
-            if not allowed_to_edit(user, Concept, component.concept_ref.id):
+            if not allowed_to_edit(request, Concept, component.concept_ref.id):
                 component_error_msg_edit[component.id] += ["no edit permission"]
                 
             # check component child version is the latest

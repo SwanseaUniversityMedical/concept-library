@@ -106,6 +106,8 @@ class HistoryTest(StaticLiveServerTestCase):
         self.comp_pk = self.comp1[0].pk
 
         self.codes = self.comp1[2]
+        
+        update_friendly_id()
 
     def tearDown(self):
         self.browser.quit()
@@ -180,7 +182,7 @@ class HistoryTest(StaticLiveServerTestCase):
 
         browser = self.browser
         # get the test server url
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                          self.concept1.id, '/update/'))
         browser.get(self.WEBAPP_HOST + reverse('concept_update'
                                                , kwargs={'pk': self.concept1.id,
@@ -190,7 +192,7 @@ class HistoryTest(StaticLiveServerTestCase):
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
         # go to the latest historical version of the concept
-        href = "/concepts/" + str(self.concept1.id) + "/version/" + str(
+        href = "/concepts/C" + str(self.concept1.id) + "/version/" + str(
             self.concept1.history.first().history_id) + "/detail/"
         browser.find_element_by_xpath('//a[@href="' + href + '"]').click()
 
@@ -246,7 +248,7 @@ class HistoryTest(StaticLiveServerTestCase):
         concept = Concept.objects.all().order_by('-id')[0]
 
         # go to the latest historical version of the concept
-        href = "/concepts/" + str(concept.id) + "/version/" + str(concept.history.first().history_id) + "/detail/"
+        href = "/concepts/C" + str(concept.id) + "/version/" + str(concept.history.first().history_id) + "/detail/"
         browser.find_element_by_xpath('//a[@href="' + href + '"]').click()
 
         # TO-DO assertTrue or equal that tag exist

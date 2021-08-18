@@ -80,7 +80,7 @@
 			{% if component.pk in user_can_view_component or component.pk in user_can_edit_component %}
 				<!-- Link to the concept history detail page -->
 				<a href="{% url 'concept_history_detail' pk=form.instance.concept_ref_id concept_history_id=form.instance.concept_ref_history_id %}" target="_blank" class="alert-link">
-				(CONCEPT ID: {{ form.instance.concept_ref_id }}/{{ form.instance.concept_ref_history_id }})</a>
+				(CONCEPT ID: C{{ form.instance.concept_ref_id }}/{{ form.instance.concept_ref_history_id }})</a>
 				
 				{% if component.pk in component_error_msg_view %}
 		 				    <div class="alert-danger col-sm-12" role="alert"  >
@@ -110,7 +110,7 @@
 			{% if concept_ref_is_accessible %}
 				<div class="alert alert-warning" role="alert">
 					<p>This concept has a newer version: <a href="{% url 'concept_history_detail' pk=form.instance.concept_ref_id concept_history_id=concept_ref_lates_version_id %}" target="_blank" class="alert-link">
-							({{ form.instance.concept_ref_id }}/{{ concept_ref_lates_version_id }})
+							(C{{ form.instance.concept_ref_id }}/{{ concept_ref_lates_version_id }})
 					   </a>
 					</p>
 			
@@ -279,7 +279,7 @@ $(function(){
 				return {
 					suggestions: $.map($.parseJSON(response), function(item){
 						return {data: String(item.id)
-							, value: "Concept: " + item.id + "/" +item.history_id + " - " + "(" + (item.rn==1?'latest: ':'') + item.published+")" + " - " + item.name + ", author: " + item.author
+							, value: item.friendly_id + "/" +item.history_id + " - " + "(" + (item.rn==1?'latest: ':'') + item.published+")" + " - " + item.name + ", author: " + item.author
 							, concept_name: item.name
 							, concept_history_id: String(item.history_id) 
 						};

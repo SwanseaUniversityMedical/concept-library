@@ -98,9 +98,9 @@ class ConceptCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageMixi
         return kwargs
         
     def get_success_url(self):
-        if allowed_to_edit(self.request.user, Concept, self.object.id):
+        if allowed_to_edit(self.request, Concept, self.object.id):
             return reverse('concept_update', args=(self.object.id,))
-        elif allowed_to_view(self.request.user, Concept, self.object.id):
+        elif allowed_to_view(self.request, Concept, self.object.id):
             return reverse('concept_detail', args=(self.object.id,))
         else:
             return reverse('concept_list')
@@ -132,12 +132,14 @@ class ConceptCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageMixi
            
             #form.changeReason = "Created"   
             #self.object = form.save()
-            
-            
+                        
             self.object = form.save()
             db_utils.modifyConceptChangeReason(self.object.pk, "Created")
-#             concept = Concept.objects.get(pk=self.object.pk)
-#             concept.history.latest().delete() 
+            # to save correctly the computed friendly_id field
+            concept = Concept.objects.get(pk=self.object.pk)
+            concept.history.latest().delete()
+            concept.changeReason = "Created"
+            concept.save()   
 # 
 #             # add tags that have not been stored in db
 #             if tag_ids:
@@ -183,17 +185,7 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
         Display the detail of a concept at a point in time.
     '''
     # validate access for login and public site
-    
-    if not Concept.objects.filter(id=pk).exists(): 
-        raise PermissionDenied
-    
-    if concept_history_id is not None:
-        if not Concept.history.filter(id=pk, history_id=concept_history_id).exists():
-            raise PermissionDenied
-
-
-    if request.user.is_authenticated():
-        validate_access_to_view(request.user, Concept, pk, set_history_id=concept_history_id)
+    validate_access_to_view(request, Concept, pk, set_history_id=concept_history_id)
 
         
     if concept_history_id is None:
@@ -201,11 +193,7 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
         concept_history_id = int(Concept.objects.get(pk=pk).history.latest().history_id) 
         
     is_published = checkIfPublished(Concept, pk, concept_history_id)
-    if not request.user.is_authenticated():
-        # check if the concept version is published
-        if not is_published: 
-            raise PermissionDenied 
-    
+
     #----------------------------------------------------------------------
   
     concept = db_utils.getHistoryConcept(concept_history_id)
@@ -235,13 +223,13 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
     #----------------------------------------------------------------------
     
     if request.user.is_authenticated():
-        components_permissions = build_permitted_components_list(request.user, pk, concept_history_id=concept_history_id)
+        components_permissions = build_permitted_components_list(request, pk, concept_history_id=concept_history_id)
 
-        can_edit = (not Concept.objects.get(pk=pk).is_deleted) and allowed_to_edit(request.user, Concept, pk)
+        can_edit = (not Concept.objects.get(pk=pk).is_deleted) and allowed_to_edit(request, Concept, pk)
         
-        user_can_export = (allowed_to_view_children(request.user, Concept, pk, set_history_id=concept_history_id)
+        user_can_export = (allowed_to_view_children(request, Concept, pk, set_history_id=concept_history_id)
                           and
-                          db_utils.chk_deleted_children(request.user, Concept, pk, returnErrors = False, set_history_id=concept_history_id)
+                          db_utils.chk_deleted_children(request, Concept, pk, returnErrors = False, set_history_id=concept_history_id)
                           and 
                           not Concept.objects.get(pk=pk).is_deleted
                           )
@@ -287,7 +275,7 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
             ver['publish_date'] = None
             
         if request.user.is_authenticated(): 
-            if allowed_to_edit(request.user, Concept, pk) or allowed_to_view(request.user, Concept, pk):
+            if allowed_to_edit(request, Concept, pk) or allowed_to_view(request, Concept, pk):
                 other_historical_versions.append(ver)
             else:
                 if is_this_version_published:
@@ -491,7 +479,7 @@ class ConceptUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Update
         if concept_tags:
             tags = Tag.objects.filter(pk__in=concept_tags)
         
-        context.update(build_permitted_components_list(self.request.user, self.get_object().pk, check_published_child_concept=True))
+        context.update(build_permitted_components_list(self.request, self.get_object().pk, check_published_child_concept=True))
         
         if self.get_object().is_deleted == True:
             messages.info(self.request, "This concept has been deleted.")
@@ -502,9 +490,9 @@ class ConceptUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Update
         # user_can_export is intended to control the Export CSV button. It might
         # be better described as user can view all children, but that currently
         # seems more obscure.    
-        context['user_can_export'] = (allowed_to_view_children(self.request.user, Concept, self.get_object().id)
+        context['user_can_export'] = (allowed_to_view_children(self.request, Concept, self.get_object().id)
                                       and
-                                      db_utils.chk_deleted_children(self.request.user, Concept, self.get_object().id, returnErrors = False)
+                                      db_utils.chk_deleted_children(self.request, Concept, self.get_object().id, returnErrors = False)
                                       )
         context['allowed_to_permit'] = allowed_to_permit(self.request.user, Concept, self.get_object().id)
         #context['enable_publish'] = settings.ENABLE_PUBLISH
@@ -535,7 +523,7 @@ def concept_components(request, pk):
         Returns:        data       Dict with the components and flags. 
         Accesses the Component table's concept_id field.
     '''
-    validate_access_to_view(request.user, Concept, pk)
+    validate_access_to_view(request, Concept, pk)
 
     components = Component.objects.filter(concept_id=pk)
     data = dict()
@@ -554,7 +542,7 @@ def concept_uniquecodes(request, pk):
                         pk         The concept id.
         Returns:        data       Dict with the unique codes. 
     '''
-    validate_access_to_view(request.user, Concept, pk)
+    validate_access_to_view(request, Concept, pk)
 
     codes = db_utils.getGroupOfCodesByConceptId(pk)
     data = dict()
@@ -582,7 +570,7 @@ def concept_uniquecodesByVersion(request, pk, concept_history_id):
         Returns:        data       Dict with the unique codes. 
     '''
             
-    validate_access_to_view(request.user, Concept, pk, set_history_id=concept_history_id)
+    validate_access_to_view(request, Concept, pk, set_history_id=concept_history_id)
 
          
     codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(pk, concept_history_id)
@@ -621,7 +609,7 @@ def concept_history_fork(request, pk, concept_history_id):
     '''
         Fork from a concept from the concept's history list.
     '''
-    validate_access_to_view(request.user, Concept, pk, set_history_id=concept_history_id)
+    validate_access_to_view(request, Concept, pk, set_history_id=concept_history_id)
     data = dict()
     if request.method == 'POST':
         try:
@@ -652,7 +640,7 @@ def concept_history_revert(request, pk, concept_history_id):
     ''' 
         Revert a previously saved concept from the history.
     '''
-    validate_access_to_edit(request.user, Concept, pk)
+    validate_access_to_edit(request, Concept, pk)
     data = dict()
     if request.method == 'POST':
         # Don't allow revert if the active object is deleted
@@ -868,7 +856,7 @@ def concept_upload_codes(request, pk):
     '''
         Upload a set of codes for a concept.
     '''
-    validate_access_to_edit(request.user, Concept, pk)
+    validate_access_to_edit(request, Concept, pk)
     form_class = ConceptUploadForm
     errorMsg = []
     
@@ -1048,24 +1036,18 @@ def concept_upload_codes(request, pk):
                                     world_access=current_concept.world_access,
                                     coding_system=current_concept.coding_system,
                                     is_deleted=current_concept.is_deleted)
-                                # Create a new concept component and attach
-                                # it to the original concept.
-                                component_main = Component.objects.create(
-                                            comment=cat,
-                                            component_type=Component.COMPONENT_TYPE_CONCEPT,
-                                            concept=current_concept,
-                                            concept_ref=new_concept,
-                                            created_by=request.user,
-                                            logical_type=1,
-                                            name="%s component" % cat,
-                                            concept_ref_history_id = new_concept.history.latest().pk 
-                                            )
+                                
+                                # to save correctly the computed friendly_id field
+                                new_concept.history.latest().delete()
+                                new_concept.changeReason = "Created via upload"
+                                new_concept.save()   
+            
+
                                 row_count = 0
                                 # get unique set of sub categories for the current category
                                 for row in codes:
                                     row_count += 1
-                                    if (first_row_has_column_headings == 'on'
-                                       and row_count == 1):
+                                    if (first_row_has_column_headings == 'on' and row_count == 1):
                                         continue
                                     # get a list of unique sub-category names
                                     # Need to check stripped category.
@@ -1105,6 +1087,23 @@ def concept_upload_codes(request, pk):
                                                         'description': row[code_desc_col]
                                                     }
                                                 )
+                                    # Save the concept with a change reason to reflect the creation
+                                    db_utils.saveConceptWithChangeReason(new_concept.pk,
+                                                                    "Created component: %s via upload" % (component.name) , modified_by_user=request.user)
+                                     
+                                # Create a new concept component and attach
+                                # it to the original concept.
+                                component_main = Component.objects.create(
+                                            comment=cat,
+                                            component_type=Component.COMPONENT_TYPE_CONCEPT,
+                                            concept=current_concept,
+                                            concept_ref=new_concept,
+                                            created_by=request.user,
+                                            logical_type=1,
+                                            name="%s component" % cat,
+                                            concept_ref_history_id = new_concept.history.latest().pk 
+                                            )
+                                                                            
                                 # save child-concept codes
                                 db_utils.save_child_concept_codes(concept_id = current_concept.pk,
                                                                 component_id = component_main.pk,
@@ -1112,11 +1111,12 @@ def concept_upload_codes(request, pk):
                                                                 concept_ref_history_id = new_concept.history.latest().pk,
                                                                 insert_or_update = 'insert'
                                                                 )
+
                                 
                     #components = Component.objects.filter(concept_id=pk)
                     # save the concept with a change reason to reflect the restore within the concept audit history
-                    db_utils.saveConceptWithChangeReason(pk,
-                        "Codes uploaded: %s" % upload_name)
+                    db_utils.saveConceptWithChangeReason(pk, "Codes uploaded: %s" % upload_name)
+                    
                     # Update dependent concepts & working sets
                     db_utils.saveDependentConceptsChangeReason(pk, "Component concept #" + str(pk) + " was updated")
                             
@@ -1126,7 +1126,7 @@ def concept_upload_codes(request, pk):
                     # refresh component list
                     data['html_component_list'] = render_to_string(
                         'clinicalcode/component/partial_component_list.html',
-                        build_permitted_components_list(request.user, pk)
+                        build_permitted_components_list(request, pk)
                         )
                     
                     concept = Concept.objects.get(id=pk)
@@ -1203,18 +1203,14 @@ def concept_codes_to_csv(request, pk):
     """
         Return a csv file of distinct codes for a concept group
     """     
-    db_utils.validate_access_to_view(request.user, Concept, pk)
+    db_utils.validate_access_to_view(request, Concept, pk)
     
-    #exclude(is_deleted=True)
-    if Concept.objects.filter(id=pk).count() == 0:
-        return HttpResponseNotFound("Not found.")          
-        #raise permission_denied # although 404 is more relevant
         
     current_concept = Concept.objects.get(pk=pk)
         
-    user_can_export = (allowed_to_view_children(request.user, Concept, pk)
+    user_can_export = (allowed_to_view_children(request, Concept, pk)
                         and
-                        db_utils.chk_deleted_children(request.user, Concept, pk, returnErrors = False)
+                        db_utils.chk_deleted_children(request, Concept, pk, returnErrors = False)
                         and 
                         not current_concept.is_deleted 
                       )
@@ -1230,7 +1226,7 @@ def concept_codes_to_csv(request, pk):
         'creation_date': time.strftime("%Y%m%dT%H%M%S")
     }
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = ('attachment; filename="concept_%(id)s_group_codes_%(creation_date)s.csv"' % my_params)
+    response['Content-Disposition'] = ('attachment; filename="concept_C%(id)s_group_codes_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
     
@@ -1270,7 +1266,7 @@ def concept_codes_to_csv(request, pk):
                         c['code'], #.encode('ascii', 'ignore').decode('ascii'),
                         c['description'].encode('ascii', 'ignore').decode('ascii'),
                         concept_coding_system,
-                        pk,
+                        current_concept.friendly_id,
                         current_concept.history.latest().history_id,
                         current_concept.name,
                         ]
@@ -1287,27 +1283,15 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
     """     
 
     # validate access for login and public site
-    if request.user.is_authenticated():
-        db_utils.validate_access_to_view(request.user, Concept, pk, set_history_id=concept_history_id)
-    else:
-        if not Concept.objects.filter(id=pk).exists(): 
-            raise PermissionDenied
-
-
-    if concept_history_id is not None:
-        if not Concept.history.filter(id=pk, history_id=concept_history_id).exists():
-            raise PermissionDenied
-
+    db_utils.validate_access_to_view(request, Concept, pk, set_history_id=concept_history_id)
+    
         
 #     if concept_history_id is None:
 #         # get the latest version
 #         concept_history_id = int(Concept.objects.get(pk=pk).history.latest().history_id) 
         
     is_published = PublishedConcept.objects.filter(concept_id=pk, concept_history_id=concept_history_id).exists()
-    if not request.user.is_authenticated():
-        # check if the concept version is published
-        if not is_published: 
-            raise PermissionDenied 
+
     
     #----------------------------------------------------------------------
     
@@ -1323,9 +1307,9 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
     current_concept = Concept.objects.get(pk=pk)
         
     if request.user.is_authenticated():
-        user_can_export = (allowed_to_view_children(request.user, Concept, pk, set_history_id=concept_history_id)
+        user_can_export = (allowed_to_view_children(request, Concept, pk, set_history_id=concept_history_id)
                             and
-                            db_utils.chk_deleted_children(request.user, Concept, pk, returnErrors = False, set_history_id=concept_history_id)
+                            db_utils.chk_deleted_children(request, Concept, pk, returnErrors = False, set_history_id=concept_history_id)
                             and 
                             not current_concept.is_deleted 
                           )
@@ -1346,7 +1330,7 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
         'creation_date': time.strftime("%Y%m%dT%H%M%S")
     }
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = ('attachment; filename="concept_%(id)s_ver_%(concept_history_id)s_group_codes_%(creation_date)s.csv"' % my_params)
+    response['Content-Disposition'] = ('attachment; filename="concept_C%(id)s_ver_%(concept_history_id)s_group_codes_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
     
@@ -1383,7 +1367,7 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
                         c['code'], #.encode('ascii', 'ignore').decode('ascii'),
                         c['description'].encode('ascii', 'ignore').decode('ascii'),
                         concept_coding_system, 
-                        pk,
+                        current_concept.friendly_id,
                         concept_history_id,
                         history_concept['name'],
                         ]
@@ -1457,7 +1441,7 @@ def conceptversions(request, pk, concept_history_id, indx):
         Returns:        data       Dict with the versions ids. 
     '''
     
-    validate_access_to_view(request.user, Concept, pk, set_history_id=concept_history_id)
+    validate_access_to_view(request, Concept, pk, set_history_id=concept_history_id)
     
     concept = Concept.objects.get(pk=pk)
     #versions = concept.history.order_by('-history_id')
@@ -1492,12 +1476,12 @@ def conceptversions(request, pk, concept_history_id, indx):
 @login_required
 def compare_concepts_codes(request, concept_id, version_id, concept_ref_id, version_ref_id):
     
-    validate_access_to_view(request.user, Concept, concept_id, set_history_id=version_id)
-    validate_access_to_view(request.user, Concept, concept_ref_id, set_history_id=version_ref_id)
+    validate_access_to_view(request, Concept, concept_id, set_history_id=version_id)
+    validate_access_to_view(request, Concept, concept_ref_id, set_history_id=version_ref_id)
     
     # checking access to child concepts is not needed here
-    # allowed_to_view_children(request.user, Concept, pk)
-    # chk_deleted_children(request.user, Concept, pk, returnErrors = False)
+    # allowed_to_view_children(request, Concept, pk)
+    # chk_deleted_children(request, Concept, pk, returnErrors = False)
 
     
     
@@ -1529,8 +1513,8 @@ def compare_concepts_codes(request, concept_id, version_id, concept_ref_id, vers
     #main_name = main_concept.name + " - (" + str(concept_id) + "/" + str(version_id) + ") - " + main_concept.author
     # get data from version history
     main_name = (main_concept_history_version.name 
-                 + "<BR>(" + str(concept_id) + "/" + str(version_id) + ") " 
-                 + "<BR>author: " + main_concept_history_version.author)
+                 + "<BR><strong>(" + str(main_concept_history_version.friendly_id) + "/" + str(version_id) + ")</strong> " 
+                 + "<BR><strong>author:</strong> " + main_concept_history_version.author)
     
     
     #----------------------------------
@@ -1542,8 +1526,8 @@ def compare_concepts_codes(request, concept_id, version_id, concept_ref_id, vers
     #ref_name = ref_concept.name + " - (" + str(concept_ref_id) + "/" + str(version_ref_id) + ") - " + ref_concept.author
     # get data from version history
     ref_name = (ref_concept_history_version.name 
-                + "<BR>(" + str(concept_ref_id) + "/" + str(version_ref_id) + ") " 
-                + "<BR>author: " + ref_concept_history_version.author)
+                + "<BR><strong>(" + str(ref_concept_history_version.friendly_id) + "/" + str(version_ref_id) + ")</strong> " 
+                + "<BR><strong>author:</strong> " + ref_concept_history_version.author)
               
 
 
@@ -1726,7 +1710,7 @@ class ConceptPublish(LoginRequiredMixin, HasAccessToViewConceptCheckMixin, Templ
 #                     # refresh component list
 #                     data['html_component_list'] = render_to_string(
 #                         'clinicalcode/component/partial_component_list.html',
-#                         build_permitted_components_list(self.request.user, pk)
+#                         build_permitted_components_list(self.request, pk)
 #                         )
         
         
@@ -1802,7 +1786,7 @@ def checkAllChildConcepts4Publish_Historical(request, concept_id, concept_histor
     
     for concept in chk_view_concepts:
         permitted = False
-        permitted = allowed_to_view(request.user, Concept, set_id=concept[0], set_history_id=concept[1])
+        permitted = allowed_to_view(request, Concept, set_id=concept[0], set_history_id=concept[1])
 
         if (not permitted):
             errors[str(concept[0])+'_view'] = 'Child concept ('+str(concept[0])+') is not permitted.'             

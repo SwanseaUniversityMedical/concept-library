@@ -146,7 +146,7 @@ class ComponentConceptCreate(LoginRequiredMixin,
         # refresh component list
         data['html_component_list'] = render_to_string(
             'clinicalcode/component/partial_component_list.html',
-            build_permitted_components_list(self.request.user, self.kwargs['concept_id']))
+            build_permitted_components_list(self.request, self.kwargs['concept_id']))
         
         concept = Concept.objects.get(id=self.kwargs['concept_id'])
         
@@ -201,7 +201,7 @@ class ComponentConceptDelete(LoginRequiredMixin,
         # refresh component list
         data['html_component_list'] = render_to_string(
             'clinicalcode/component/partial_component_list.html',
-            build_permitted_components_list(request.user, kwargs['concept_id']))
+            build_permitted_components_list(request, kwargs['concept_id']))
         
         concept = Concept.objects.get(id=kwargs['concept_id'])
         
@@ -238,7 +238,7 @@ class ComponentConceptUpdate(LoginRequiredMixin,
     def get_context_data(self, **kwargs):
         context = UpdateView.get_context_data(self, **kwargs)
         component = Component.objects.get(pk=self.kwargs['pk'])
-        context.update(build_permitted_components_list(self.request.user, component.concept_id))
+        context.update(build_permitted_components_list(self.request, component.concept_id))
 #         # Set up the components element again (already done in buildPermittedComponentList)
 #         # as we want the components not for this concept but for the referenced concept.
 #         context['components'] = list(Component.objects.filter(concept=component.concept_ref_id))
@@ -261,7 +261,7 @@ class ComponentConceptUpdate(LoginRequiredMixin,
         # show latest version of the child concept for comparison
         context['concept_ref_lates_version_id'] = Concept.objects.get(pk=component.concept_ref_id).history.latest().pk
         context['concept_ref_deleted'] = Concept.objects.get(pk=component.concept_ref_id).is_deleted
-        context['concept_ref_is_accessible'] = allowed_to_view(self.request.user, Concept, component.concept_ref_id, set_history_id=component.concept_ref_history.pk)
+        context['concept_ref_is_accessible'] = allowed_to_view(self.request, Concept, component.concept_ref_id, set_history_id=component.concept_ref_history.pk)
 
         context['child_history_id'] = component.concept_ref_history.pk
         #------------------------------
@@ -339,7 +339,7 @@ class ComponentConceptUpdate(LoginRequiredMixin,
         # refresh component list
         data['html_component_list'] = render_to_string(
             'clinicalcode/component/partial_component_list.html',
-            build_permitted_components_list(self.request.user, self.kwargs['concept_id'])
+            build_permitted_components_list(self.request, self.kwargs['concept_id'])
             )
         
         concept = Concept.objects.get(id=self.kwargs['concept_id'])
@@ -381,30 +381,18 @@ def component_history_concept_detail_combined(request,
         component_history_id - The historical version of the component.
     '''
     # validate access for login and public site
-    if request.user.is_authenticated():
-        validate_access_to_view(request.user, Concept, concept_id, set_history_id=concept_history_id)
-    else:
-        if not Concept.objects.filter(id=concept_id).exists(): 
-            raise PermissionDenied
-    
-    if not Concept.history.filter(id=concept_id, history_id=concept_history_id).exists():
-        raise PermissionDenied
+    validate_access_to_view(request, Concept, concept_id, set_history_id=concept_history_id)
         
     if not Component.history.filter(Q(id=pk), Q(history_id=component_history_id), Q(concept_id=concept_id), ~Q(history_type = '-')).exists(): 
             raise PermissionDenied
         
-    is_published = PublishedConcept.objects.filter(concept_id=concept_id, concept_history_id=concept_history_id).exists()
-    if not request.user.is_authenticated():
-        # check if the concept version is published
-        if not is_published: 
-            raise PermissionDenied 
-    
+
     #----------------------------------------------------------------------
     is_latest_version = (int(concept_history_id) == Concept.objects.get(pk=concept_id).history.latest().history_id)
 
     if request.user.is_authenticated():
-        components_permissions = build_permitted_components_list(request.user, concept_id)
-        can_edit = (not Concept.objects.get(pk=concept_id).is_deleted) and allowed_to_edit(request.user, Concept, concept_id)
+        components_permissions = build_permitted_components_list(request, concept_id)
+        can_edit = (not Concept.objects.get(pk=concept_id).is_deleted) and allowed_to_edit(request, Concept, concept_id)
         
     else:
         can_edit = False        

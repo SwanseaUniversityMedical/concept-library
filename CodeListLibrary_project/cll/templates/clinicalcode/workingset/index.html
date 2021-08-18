@@ -55,35 +55,35 @@
 					</div>	
 				</div>
 											
-				<div class="row form-group">							
-				   <div class="col-sm-2">
-						<label for="brand">Brand:</label>
-					</div>
-					<div class="col-sm-10">
-					   {% if request.session.all_brands %}
-						   <ul class="nav navbar-nav">
-							     <select class="form-control" name="ws_brand" id="ws_brand"  >  
-								    <option value=""  style='background-color: lightgreen;' >Any</option>
-									{% for brand in request.session.all_brands %}
-										<option value="{{ brand|upper }}" 
-										       {% if brand|upper == ws_brand|upper %} selected="selected" {% endif %}
-										       >
-											{{ brand|upper }}
-											{% if brand|upper in request.session.user_brands %} (*) {% endif %}
-									</option>
-									{% empty %}
-										<option value="-1" >No Brands !!!</option>
-									{% endfor %}
-								  </select>
-							</ul>
-						{% endif %}
-						<span id="workingset_brand_img">
-						{% if ws_brand|length %} 
-							&nbsp; <img height="29px" src="{% static 'img/brands/' %}{{ws_brand|upper}}/logo.png" title="{{ws_brand|upper}}" alt="{{ws_brand|upper}}" /> 
-						{% endif %}
-						</span>
-					</div>	
-				</div>
+<!-- 				<div class="row form-group">							 -->
+<!-- 				   <div class="col-sm-2"> -->
+<!-- 						<label for="brand">Brand:</label> -->
+<!-- 					</div> -->
+<!-- 					<div class="col-sm-10"> -->
+<!-- 					   {% if request.session.all_brands %} -->
+<!-- 						   <ul class="nav navbar-nav"> -->
+<!-- 							     <select class="form-control" name="ws_brand" id="ws_brand"  >   -->
+<!-- 								    <option value=""  style='background-color: lightgreen;' >Any</option> -->
+<!-- 									{% for brand in request.session.all_brands %} -->
+<!-- 										<option value="{{ brand|upper }}"  -->
+<!-- 										       {% if brand|upper == ws_brand|upper %} selected="selected" {% endif %} -->
+<!-- 										       > -->
+<!-- 											{{ brand|upper }} -->
+<!-- 											{% if brand|upper in request.session.user_brands %} (*) {% endif %} -->
+<!-- 									</option> -->
+<!-- 									{% empty %} -->
+<!-- 										<option value="-1" >No Brands !!!</option> -->
+<!-- 									{% endfor %} -->
+<!-- 								  </select> -->
+<!-- 							</ul> -->
+<!-- 						{% endif %} -->
+<!-- 						<span id="workingset_brand_img"> -->
+<!-- 						{% if ws_brand|length %}  -->
+<!-- 							&nbsp; <img height="29px" src="{% static 'img/brands/' %}{{ws_brand|upper}}/logo.png" title="{{ws_brand|upper}}" alt="{{ws_brand|upper}}" />  -->
+<!-- 						{% endif %} -->
+<!-- 						</span> -->
+<!-- 					</div>	 -->
+<!-- 				</div> -->
 				
 				<div class="row form-group">
 					<div class="col-md-3">
@@ -157,7 +157,7 @@
 			{% block content %}
 				{% for workingset in page_obj.object_list %}  
 				<tr {% cycle '' ' class="form-group highlight-row" ' %} >
-					<td>{{ workingset.id }}</td>
+					<td>{{ workingset.friendly_id }}</td>
 					<td>{{ workingset.history_id }}</td>
 					<td><!-- a href="{% url 'workingset_detail' workingset.id %}" title="View working set details">{{ workingset.name }}</a-->{{ workingset.name }}
 					{% for item in request.BRAND_GROUPS %}

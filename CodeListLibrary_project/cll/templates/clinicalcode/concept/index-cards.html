@@ -80,7 +80,7 @@
 						{% else %}
 							<a class="" href="{% url 'concept_history_detail' concept.id concept.history_id %}">
 						{% endif %}
-							<span style='font-size: 22px;margin-top:0;'>C{{ concept.id }} - {{ concept.name }}</span> 
+							<span style='font-size: 22px;margin-top:0;'>{{ concept.friendly_id }} - {{ concept.name }}</span> 
 							</a>
 				
 					</div>

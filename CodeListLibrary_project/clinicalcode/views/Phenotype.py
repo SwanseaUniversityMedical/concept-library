@@ -227,17 +227,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         Display the detail of a phenotype at a point in time.
     '''
     # validate access for login and public site
-    
-    if not Phenotype.objects.filter(id=pk).exists(): 
-        raise PermissionDenied
-    
-    if phenotype_history_id is not None:
-        if not Phenotype.history.filter(id=pk, history_id=phenotype_history_id).exists():
-            raise PermissionDenied
-
-
-    if request.user.is_authenticated():
-        validate_access_to_view(request.user, Phenotype, pk, set_history_id=phenotype_history_id)
+    validate_access_to_view(request, Phenotype, pk, set_history_id=phenotype_history_id)
 
         
     if phenotype_history_id is None:
@@ -245,10 +235,6 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         phenotype_history_id = int(Phenotype.objects.get(pk=pk).history.latest().history_id) 
         
     is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
-    if not request.user.is_authenticated():
-        # check if the phenotype version is published
-        if not is_published: 
-            raise PermissionDenied 
     
     #----------------------------------------------------------------------
   
@@ -297,17 +283,17 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     version_alerts = {}
         
     if request.user.is_authenticated():
-        can_edit = (not Phenotype.objects.get(pk=pk).is_deleted) and allowed_to_edit(request.user, Phenotype, pk)
+        can_edit = (not Phenotype.objects.get(pk=pk).is_deleted) and allowed_to_edit(request, Phenotype, pk)
         
-        user_can_export = (allowed_to_view_children(request.user, Phenotype, pk, set_history_id=phenotype_history_id)
+        user_can_export = (allowed_to_view_children(request, Phenotype, pk, set_history_id=phenotype_history_id)
                           and
-                          db_utils.chk_deleted_children(request.user, Phenotype, pk, returnErrors = False, set_history_id=phenotype_history_id)
+                          db_utils.chk_deleted_children(request, Phenotype, pk, returnErrors = False, set_history_id=phenotype_history_id)
                           and 
                           not Phenotype.objects.get(pk=pk).is_deleted
                           )
         user_allowed_to_create = allowed_to_create()
         
-        children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(request.user,
+        children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(request,
                                                                                                 Phenotype,
                                                                                                 pk)
         
@@ -358,7 +344,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
             ver['publish_date'] = None
             
         if request.user.is_authenticated(): 
-            if allowed_to_edit(request.user, Phenotype, pk) or allowed_to_view(request.user, Phenotype, pk):
+            if allowed_to_edit(request, Phenotype, pk) or allowed_to_view(request, Phenotype, pk):
                 other_historical_versions.append(ver)
             else:
                 if is_this_version_published:
@@ -415,7 +401,8 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         c['codesCount'] = 0
         if codelist:
             c['codesCount'] = len([x['code'] for x in codelist if x['concept_id'] == c['concept_id'] and x['concept_version_id'] == c['concept_version_id'] ])
-            
+        
+        c['concept_friendly_id'] = 'C' + str(c['concept_id'])  
         concept_data.append(c)
          
     if phenotype['is_deleted'] == True:
@@ -484,12 +471,12 @@ def phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
         Returns:        data       Dict with the codes. 
     '''
             
-    validate_access_to_view(request.user, Phenotype, pk, set_history_id=phenotype_history_id)
+    validate_access_to_view(request, Phenotype, pk, set_history_id=phenotype_history_id)
 
     # here, check live version
     current_ph = Phenotype.objects.get(pk=pk)
 
-#     children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(request.user,
+#     children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(request,
 #                                                                                                 Phenotype, pk,
 #                                                                                                 set_history_id=phenotype_history_id)
 #     if not children_permitted_and_not_deleted:
@@ -497,6 +484,8 @@ def phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
 
     if current_ph.is_deleted == True:
         raise PermissionDenied
+
+                        
     #--------------------------------------------------
     
     codes = db_utils.get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id)
@@ -526,7 +515,7 @@ def phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
         concept_version_id = concept[1]
         c_codes = []
         for c in codes:
-            if c['concept_id'] == concept_id and c['concept_version_id'] == concept_version_id:
+            if c['concept_id'] == 'C'+str(concept_id) and c['concept_version_id'] == concept_version_id:
                 c_codes.append(c)
         
         c_codes_count = "0"
@@ -593,28 +582,10 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id):
         Return a csv file of codes for a phenotype for a specific historical version.
     """
     # validate access for login and public site
-    if request.user.is_authenticated():
-        validate_access_to_view(request.user, Phenotype, pk, set_history_id=phenotype_history_id)
-    else:
-        if not Phenotype.objects.filter(id=pk).exists(): 
-            raise PermissionDenied
+    validate_access_to_view(request, Phenotype, pk, set_history_id=phenotype_history_id)
 
-
-    if phenotype_history_id is not None:
-        if not Phenotype.history.filter(id=pk, history_id=phenotype_history_id).exists():
-            raise PermissionDenied
-
-        
-#     if phenotype_history_id is None:
-#         # get the latest version
-#         phenotype_history_id = int(Phenotype.objects.get(pk=pk).history.latest().history_id) 
-        
     is_published = PublishedPhenotype.objects.filter(phenotype_id=pk, phenotype_history_id=phenotype_history_id).exists()
-    if not request.user.is_authenticated():
-        # check if the phenotype version is published
-        if not is_published: 
-            raise PermissionDenied 
-    
+                    
     #----------------------------------------------------------------------
     
     # exclude(is_deleted=True)
@@ -631,7 +602,7 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id):
     current_ph = Phenotype.objects.get(pk=pk)
 
     if not is_published:
-        children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(request.user,
+        children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(request,
                                                                                                 Phenotype, pk,
                                                                                                 set_history_id=phenotype_history_id)
         if not children_permitted_and_not_deleted:
@@ -653,7 +624,7 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id):
     }
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = (
-                'attachment; filename="phenotype_%(phenotype_id)s_ver_%(phenotype_history_id)s_concepts_%(creation_date)s.csv"' % my_params)
+                'attachment; filename="phenotype_PH%(phenotype_id)s_ver_%(phenotype_history_id)s_concepts_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
 
@@ -678,11 +649,13 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id):
                                 cc['code'],
                                 cc['description'].encode('ascii', 'ignore').decode('ascii'),
                                 concept_coding_system,
-                                concept_id,
+                                'C'+str(concept_id),
                                 concept_version_id
                             ]
                             + [Concept.history.get(id=concept_id, history_id=concept_version_id).name]
-                            + [current_ph_version.id, current_ph_version.history_id, current_ph_version.name]
+                            + [current_ph_version.friendly_id, 
+                               current_ph_version.history_id,
+                               current_ph_version.name]
                             )
 
         if rows_no == 0:
@@ -690,11 +663,13 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id):
                                 '',
                                 '',
                                 concept_coding_system,
-                                concept_id,
+                                'C'+str(concept_id),
                                 concept_version_id
                             ]
                             + [Concept.history.get(id=concept_id, history_id=concept_version_id).name]
-                            + [current_ph_version.id, current_ph_version.history_id, current_ph_version.name]
+                            + [current_ph_version.friendly_id, 
+                               current_ph_version.history_id, 
+                               current_ph_version.name]
                             )
 
     return response
@@ -880,7 +855,7 @@ def checkAllChildConcepts4Publish_Historical(request, phenotype_id, phenotype_hi
 
     for cc in child_concepts_versions:
         permitted = False
-        permitted = allowed_to_view(request.user, Concept, set_id=cc[0], set_history_id=cc[1])
+        permitted = allowed_to_view(request, Concept, set_id=cc[0], set_history_id=cc[1])
 
         if (not permitted):
             errors[str(cc[0])+'_view'] = 'Child concept ('+str(cc[0])+') is not permitted.'             

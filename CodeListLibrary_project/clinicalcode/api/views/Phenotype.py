@@ -222,7 +222,7 @@ def api_phenotype_update(request):
               content_type="json", 
               status=status.HTTP_406_NOT_ACCEPTABLE
             )
-        if not allowed_to_edit(request.user, Phenotype, phenotype_id):
+        if not allowed_to_edit(request, Phenotype, phenotype_id):
             errors_dict['id'] = 'phenotype_id must be a valid accessible phenotype id.' 
             return Response( 
               data = errors_dict, 
@@ -408,15 +408,15 @@ def export_phenotype_codes_byVersionID(request, pk, phenotype_history_id):
     '''
     # Require that the user has access to the base phenotype.
     # validate access for login site
-    validate_access_to_view(request.user, Phenotype, pk, set_history_id=phenotype_history_id)
+    validate_access_to_view(request, Phenotype, pk, set_history_id=phenotype_history_id)
 
     #----------------------------------------------------------------------
         
     current_phenotype = Phenotype.objects.get(pk=pk)
 
-    user_can_export = (allowed_to_view_children(request.user, Phenotype, pk, set_history_id=phenotype_history_id)
+    user_can_export = (allowed_to_view_children(request, Phenotype, pk, set_history_id=phenotype_history_id)
                         and
-                        chk_deleted_children(request.user, Phenotype, pk, returnErrors = False, set_history_id=phenotype_history_id)
+                        chk_deleted_children(request, Phenotype, pk, returnErrors = False, set_history_id=phenotype_history_id)
                         and 
                         not current_phenotype.is_deleted 
                       )
@@ -593,7 +593,7 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None):
         c_tags =  []
         phenotype_tags = c['tags']
         if phenotype_tags:
-            c_tags = list(Tag.objects.filter(pk__in=phenotype_tags).values('description', 'id'))
+            c_tags = list(Tag.objects.filter(pk__in=phenotype_tags).values('description', 'id', 'tag_type', 'collection_brand'))
         
         c_clinical_terminologies = []
         phenotype_clinical_terminologies = c['clinical_terminologies']
@@ -611,7 +611,7 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None):
      
      
         ret = [
-                c['id'],  
+                c['friendly_id'],  
                 c['history_id'],  
                 c['phenotype_uuid'], #UUID
                 c['name'].encode('ascii', 'ignore').decode('ascii'),
@@ -648,9 +648,13 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None):
             ret += [get_visible_versions_list(request, Phenotype, c['id'], is_authenticated_user)]
         
         rows_to_return.append(ordr(zip(titles,  ret )))
-                                   
-    return Response(rows_to_return, status=status.HTTP_200_OK)                                   
-
+                                                              
+    
+    if phenotypes_srch:                    
+        return Response(rows_to_return, status=status.HTTP_200_OK)
+    else:
+        raise Http404
+        #return Response(rows_to_return, status=status.HTTP_404_NOT_FOUND)
 
                                                
 # show phenotype detail
@@ -670,15 +674,15 @@ def phenotype_detail(request, pk, phenotype_history_id=None, get_versions_only=N
         
         
     # validate access phenotype
-    if not allowed_to_view(request.user, Phenotype, pk, set_history_id=phenotype_history_id):
+    if not allowed_to_view(request, Phenotype, pk, set_history_id=phenotype_history_id):
         raise PermissionDenied
     
     # we can remove this check as in phenotype-detail
     #---------------------------------------------------------
     # validate access to child phenotypes 
-    if not (allowed_to_view_children(request.user, Phenotype, pk, set_history_id=phenotype_history_id)
+    if not (allowed_to_view_children(request, Phenotype, pk, set_history_id=phenotype_history_id)
             and
-            chk_deleted_children(request.user, Phenotype, pk, returnErrors = False, set_history_id=phenotype_history_id)
+            chk_deleted_children(request, Phenotype, pk, returnErrors = False, set_history_id=phenotype_history_id)
            ):
         raise PermissionDenied
     #---------------------------------------------------------
@@ -749,7 +753,11 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None, is_authenticated_
         
     concept_id_list = [x['concept_id'] for x in json.loads(phenotype['concept_informations'])] 
     concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(phenotype['concept_informations'])] 
-    concepts = list(Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).values('id', 'history_id', 'name', 'group'))
+#     concepts = list(Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).values('id', 'history_id', 'name'
+#                                                                                                                 , 'friendly_id', 'history_date'
+#                                                                                                                 , 'code_attribute_header'
+#                                                                                                                 , 'group'))
+    concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list)
     
     CodingSystem_ids = phenotype['clinical_terminologies']  #  Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).order_by().values('coding_system_id').distinct()
     clinicalTerminologies = list(CodingSystem.objects.filter(pk__in=list(CodingSystem_ids)).values('name', 'id'))
@@ -766,7 +774,7 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None, is_authenticated_
     tags =  []
     phenotype_tags = phenotype['tags']
     if phenotype_tags:
-        tags = list(Tag.objects.filter(pk__in=phenotype_tags).values('description', 'id'))
+        tags = list(Tag.objects.filter(pk__in=phenotype_tags).values('description', 'id', 'tag_type', 'collection_brand'))
         
     
 
@@ -810,7 +818,7 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None, is_authenticated_
             ]
     
     ret = [
-            phenotype['id'],
+            phenotype['friendly_id'],
             phenotype['history_id'],
             phenotype['phenotype_uuid'],  #UUID
             phenotype['name'].encode('ascii', 'ignore').decode('ascii'),
@@ -855,35 +863,66 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None, is_authenticated_
             
 
     # concepts
-    com_titles = ['name', 'concept_id', 'concept_version_id'
-                , 'codes'
+    com_titles = ['name', 'concept_id', 'concept_version_id', 'coding_system', 
+                  'codes'
                 ]
     
     ret_concepts = []
     for c in concepts:
         ret_codes = []
-        ret_codes = getGroupOfCodesByConceptId_HISTORICAL(c['id'], c['history_id'])
+        ret_codes = getGroupOfCodesByConceptId_HISTORICAL(c.id, c.history_id)
+        final_ret_codes = []
+        #################
+        #---------
+        code_attribute_header = c.code_attribute_header
+        concept_history_date = c.history_date
+        codes_with_attributes = []
+        if code_attribute_header:
+            codes_with_attributes = getConceptCodes_withAttributes_HISTORICAL(concept_id = c.id
+                                                                           , concept_history_date = concept_history_date
+                                                                           , allCodes = ret_codes
+                                                                           , code_attribute_header = code_attribute_header
+                                                                           )
+    
+            ret_codes = codes_with_attributes
+        #---------
         
-        
-#         for code in codes:
-#             ret_codes.append(ordr(zip(
-#                                         ['code', 'description']
-#                                         ,  [code['code'], code['description']] 
-#                                     )
-#                                 )
-#                             )
-            
+        code_titles = ['code', 'description']
+        if code_attribute_header:
+            if request.query_params.get('format', 'xml').lower() == 'xml':
+                # clean attr names/ remove space, etc
+                code_titles = code_titles + [clean_str_as_db_col_name(a)  for a in code_attribute_header]
+            else:
+                code_titles = code_titles + [a  for a in code_attribute_header]
+                 
+             
+                 
+        for cd in ret_codes:
+            code_attributes = []
+            if code_attribute_header:
+                for a in code_attribute_header:
+                    code_attributes.append(cd[a])
+                         
+            final_ret_codes.append(ordr(zip(code_titles,  
+                                [
+                                    cd['code'],  
+                                    cd['description'].encode('ascii', 'ignore').decode('ascii')
+                                ]
+                                +
+                                code_attributes
+                                )))
+        #################  
         ret_comp_data = [
-                            c['name'], 
-                            c['id'],
-                            c['history_id'],
-                            ret_codes
+                            c.name, 
+                            c.friendly_id,
+                            c.history_id,
+                            c.coding_system.name,
+                            final_ret_codes
                         ]
         ret_concepts.append(ordr(zip(com_titles,  ret_comp_data )))
 
 
     # concepts
-    #ret += [concepts]
     ret += [ret_concepts]
     
 

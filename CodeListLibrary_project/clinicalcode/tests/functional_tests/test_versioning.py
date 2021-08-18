@@ -173,6 +173,8 @@ class VersioningTest(StaticLiveServerTestCase):
         self.workingset_everybody_can_edit.save()
         self.workingset_everybody_can_edit.author = "the_test_goat2"
         self.workingset_everybody_can_edit.save()
+        
+        update_friendly_id()
 
     def tearDown(self):
         self.browser.quit()
@@ -216,7 +218,7 @@ class VersioningTest(StaticLiveServerTestCase):
 
         browser = self.browser
         # get the test server url
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                          self.concept_everybody_can_edit.id, '/detail/'))
 
         browser.get(self.WEBAPP_HOST + reverse('concept_detail'
@@ -252,7 +254,7 @@ class VersioningTest(StaticLiveServerTestCase):
         browser = self.browser
         print("WORKINGSET ID", self.workingset_everybody_can_edit.id)
         # get the test server url
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
         #                          self.workingset_everybody_can_edit.id, '/detail/'))
 
         browser.get(self.WEBAPP_HOST + reverse('workingset_detail'
@@ -292,7 +294,7 @@ class VersioningTest(StaticLiveServerTestCase):
 
         browser = self.browser
         # get the test server url
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                          self.concept_everybody_can_edit.id, '/detail/'))
 
         browser.get(self.WEBAPP_HOST + reverse('concept_detail'
@@ -320,7 +322,7 @@ class VersioningTest(StaticLiveServerTestCase):
         browser = self.browser
         print("WORKINGSET ID", self.workingset_everybody_can_edit.id)
         # get the test server url
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
         #                         self.workingset_everybody_can_edit.id, '/detail/'))
 
         browser.get(self.WEBAPP_HOST + reverse('workingset_detail'
@@ -351,7 +353,7 @@ class VersioningTest(StaticLiveServerTestCase):
 
         browser = self.browser
         # get the test server url
-        #  browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        #  browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                           self.concept_everybody_can_edit.id, '/detail/'))
 
         browser.get(self.WEBAPP_HOST + reverse('concept_detail'
@@ -417,7 +419,7 @@ class VersioningTest(StaticLiveServerTestCase):
 
         browser = self.browser
         # get the test server url
-        # browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        # browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                              self.concept_everybody_can_edit.id, '/version/',
         #                             latest_version, '/detail/'))
 
@@ -428,12 +430,15 @@ class VersioningTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        url = ('%s%s%s' % ('/concepts/',
-                           self.concept_everybody_can_edit.id, '/export/codes'))
-
+#         url = ('%s%s%s' % ('/concepts/C',
+#                            self.concept_everybody_can_edit.id, '/export/codes'))
+        
+        url = self.WEBAPP_HOST + reverse('concept_codes_to_csv'
+                                               , kwargs={'pk': self.concept_everybody_can_edit.id}) 
         request = self.factory.get(url)
         request.user = self.normal_user
-
+        request.CURRENT_BRAND = ''
+        
         # make export to csv request
         response = concept_codes_to_csv(request, self.concept_everybody_can_edit.id)
 
@@ -458,7 +463,7 @@ class VersioningTest(StaticLiveServerTestCase):
 
         browser = self.browser
         # get the test server url
-        # browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/',
+        # browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
         #                              self.workingset_everybody_can_edit.id, '/version/',
         #                             latest_version, '/detail/'))
 
@@ -469,11 +474,14 @@ class VersioningTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        url = ('%s%s%s' % ('/workingsets/',
-                           self.workingset_everybody_can_edit.id, '/export/codes'))
-
+#         url = ('%s%s%s' % ('/workingsets/WS',
+#                            self.workingset_everybody_can_edit.id, '/export/codes'))
+        
+        url = self.WEBAPP_HOST + reverse('workingset_to_csv'
+                                               , kwargs={'pk': self.workingset_everybody_can_edit.id}) 
         request = self.factory.get(url)
         request.user = self.normal_user
+        request.CURRENT_BRAND = ''
 
         # make export to csv request
         response = workingset_to_csv(request, self.workingset_everybody_can_edit.id)
@@ -593,7 +601,7 @@ class VersioningTest(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/',
+        # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                          self.concept_everybody_can_edit.id, '/update/'))
         browser.get(self.WEBAPP_HOST + reverse('concept_update'
                                                , kwargs={'pk': self.concept_everybody_can_edit.id,
@@ -614,18 +622,18 @@ class VersioningTest(StaticLiveServerTestCase):
 
         concept_search_field = browser.find_element_by_id("concept-search-text")
 
-        time.sleep(2)  # wait to load component form
+        time.sleep(3)  # wait to load component form
 
         concept_search_field.send_keys("concept")
 
-        time.sleep(2)  # wait to load concept prompt
+        time.sleep(3)  # wait to load concept prompt
 
         concept_search_field.send_keys(Keys.DOWN)
         concept_search_field.send_keys(Keys.ENTER)
 
         browser.find_element_by_id("saveBtn").click()
 
-        time.sleep(2)  # wait to submition be completed
+        time.sleep(4)  # wait to submition be completed
 
         latest_version_after_adding_child = self.concept_everybody_can_edit.history.first().history_id
         self.assertNotEquals(latest_version, latest_version_after_adding_child)

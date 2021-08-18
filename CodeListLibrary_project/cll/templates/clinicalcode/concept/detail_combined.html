@@ -22,7 +22,7 @@
 		<ul class="left-navbar" onclick="showSelection(event)" id='navList'>
 			<li><a href="#home" id="Homelinkid">Home</a>					
 			<li><a href="#description">Description</a>
-			<li><a href="#validation">Validation</a>
+			<!--<li><a href="#validation">Validation</a>-->
 			<li><a href="#Publications">Publications</a>
 			<li><a href="#CodeLists">Clinical Code Lists</a>
 			{% if user.is_authenticated  %}				
@@ -182,7 +182,7 @@
 					<div class="col-sm-2">ID</div>
 					<div class="col-sm-10">
 						<span id="concept_id_div" concept_id="{{ concept.id }}">
-							{{ concept.id }}						
+							{{ concept.friendly_id }}						
 						</span>			
 					</div>	
 				</div>	
@@ -263,39 +263,7 @@
 						{{ concept.description | markdownify }}
 					</div>
 				</div>
-				
-
-		<!--	-------------------------------------------------------------------
-				VALIDATION
-				-------------------------------------------------------------------
-		  -->
-				<div class="col-sm-12 shadow-frame">
-					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px"><span id="validation"></span><strong>Validation</strong></h3>
-					
-				    <div class="row" style="margin-top: 10px;">
-						<div class="col-sm-3">Validation performed</div>
-							<div class="col-sm-9" styleXX="margin-top: -10px">
-<!-- 								<div class="validation-checkbox"> -->
-<!-- 								 	<input  type="checkbox" {% if concept.validation_performed %}checked="checked"{% endif %} disabled /> -->
-<!-- 								 </div> -->
-								 {% if concept.validation_performed %}
-								 	<span>&#10004;</span>
-<!-- 									<span class = "glyphicon glyphicon-ok"></span> -->
-								{% else %}
-									<span>&#10008;</span>
-<!-- 								<span class = "glyphicon glyphicon-remove"></span> -->
-						 		{% endif %} 
-							</div>
-					</div>
-					<div class="row"></div>
-	
-					<div class="row" style="margin-top: 10px;">
-						<div class="col-sm-3">Validation description</div>
-						<div class="col-sm-9" style="margin-left: -20px;">{{ concept.validation_description }}</div>
-					</div>
 		
-				</div>
-			
 				
 		<!--	-------------------------------------------------------------------
 				PUBLICATIONS
@@ -388,7 +356,7 @@
 							<tbody>
 								{% for component in components %}
 									<tr>
-										<td>{% if component.component_type == 1 %}({{ component.concept_ref_id }}) {% endif %}{{ component.name }}
+										<td>{% if component.component_type == 1 %}(C{{ component.concept_ref_id }}) {% endif %}{{ component.name }}
 											{% if component.component_type == 1 %}
 												{% for item in request.BRAND_GROUPS %}
 													{% for brand, groups in item.iteritems %}
@@ -707,11 +675,7 @@
 		
 		<div id="popover-content-help-hist-concept" class="hide popover-lg">
 			<p>
-				<strong>Return to list</strong> - returns to the concept search page.
-			</p>
-			
-			<p>
-				<strong>Export</strong> - export all codes into a csv file/JSON/XML for the current concept version.
+				<strong>Export</strong> - Export all codes into a csv file/JSON/XML for the current concept version.
 				{% if user.is_authenticated and not CLL_READ_ONLY %}
 					<ul>
 						<li>This will also take into account any code lists within related concepts.</li>
@@ -723,11 +687,17 @@
 			
 			{% if user.is_authenticated and not CLL_READ_ONLY %}
 				<p>
+					<strong>Edit</strong> - Edit concept.
+				</p>
+				
+				<p>
 					<strong>Fork</strong> - This will take a copy of the historic concept version and create a new concept along with the historic concept components.
 				</p>
+								
 				<p>
 					<strong>Revert</strong> - This will restore the concept back to this version.
 				</p>
+				
 				<p>
 					<strong>Publish</strong> - This will publish the chosen version of the concept to the public.
 						<br>Conditions to publish: 
@@ -740,7 +710,18 @@
 							<li>All components of type=concept refer to concepts which are published (and their dependencies).</li>
 						</ul>
 				</p>
+				
+				{% if live_ver_is_deleted is True %}
+					<p>
+						<strong>Restore</strong> - Restore the deleted concept as active.
+					</p>
+				{% endif %}
 			{% endif %}
+			
+			<p>
+				<strong>Print</strong> - Print page.
+			</p>
+						
 		</div>
 	</div>
 </div>
