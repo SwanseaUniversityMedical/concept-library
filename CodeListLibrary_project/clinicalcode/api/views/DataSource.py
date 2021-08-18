@@ -171,7 +171,7 @@ def get_LIVE_phenotypes_associated_with_data_source(data_source_id, show_publish
                 continue
             
         ret = [
-                p.id,  
+                p.friendly_id,  
                 Phenotype.objects.get(id=p.id).history.latest().history_id,
                 p.name.encode('ascii', 'ignore').decode('ascii'),
                 p.phenotype_uuid,
@@ -210,7 +210,7 @@ def get_HISTORICAl_phenotypes_associated_with_data_source(data_source_id, show_p
                 
                 if data_source_id in set(phenotype_ds_list):
                     ret = [
-                            p_id,  
+                            ver.friendly_id,  
                             ver.history_id,
                             ver.name.encode('ascii', 'ignore').decode('ascii'),
                             ver.phenotype_uuid,
@@ -222,7 +222,7 @@ def get_HISTORICAl_phenotypes_associated_with_data_source(data_source_id, show_p
                 else:
                     pass      
         if include_this_phenotype:
-            rows_to_return.append(ordr(zip(ph_titles,  [p_id, ver_to_return] )))
+            rows_to_return.append(ordr(zip(ph_titles,  ['PH'+str(p_id), ver_to_return] )))
          
     return rows_to_return
 
