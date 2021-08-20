@@ -51,7 +51,17 @@ if not settings.CLL_READ_ONLY:
             Admin.run_statistics, 
             name='HDRUK_run_statistics'),      
     ]
-    
+
+urlpatterns += [
+    url(r'^(?i)admin/uc/$',
+        adminTemp.check_concepts_not_assocated_with_phenotypes,
+        name='check_concepts_not_assocated_with_phenotypes'),
+
+    url(r'^(?i)admin/concepts_not_in_phenotypes/$',
+        adminTemp.check_concepts_not_assocated_with_phenotypes,
+        name='check_concepts_not_assocated_with_phenotypes'),    
+    ]  
+      
 
 # ======== Phenotypes ==============================================================================
 # add URLConf to create, update, and delete Phenotypes
