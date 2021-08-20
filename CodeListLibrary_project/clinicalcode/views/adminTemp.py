@@ -329,3 +329,64 @@ def update_concept_tags_from_phenotype_tags():
 
         
         
+
+def check_concepts_not_assocated_with_phenotypes(request):
+    
+    phenotypes = db_utils.get_visible_live_or_published_phenotype_versions(request
+                                                                            , exclude_deleted = False
+                                                                            )
+    phenotypes_id = db_utils.get_list_of_visible_entity_ids(phenotypes, return_id_or_history_id="id")
+    
+    concepts_ids_in_phenotypes = []
+    for p in phenotypes_id:
+        phenotype = Phenotype.objects.get(pk = p)
+        concept_id_list = [x['concept_id'] for x in json.loads(phenotype.concept_informations)] 
+        
+        concepts_ids_in_phenotypes = concepts_ids_in_phenotypes + concept_id_list
+    
+    concepts_ids_in_phenotypes = set(concepts_ids_in_phenotypes)
+    
+    
+    concepts = db_utils.get_visible_live_or_published_concept_versions(request
+                                                                        , exclude_deleted = False
+                                                                        )
+    
+        
+    all_concepts_ids = db_utils.get_list_of_visible_entity_ids(concepts, return_id_or_history_id="id")
+        
+    result =  all(elem in concepts_ids_in_phenotypes  for elem in all_concepts_ids)
+    if result:
+        print("Yes, all concepts are associated with phenotypes.")    
+    else :
+        print("No, NOT all concepts are associated with phenotypes.")
+        
+    unasscoiated_concepts_ids = list(set(all_concepts_ids) - set(concepts_ids_in_phenotypes))
+
+    rowsAffected = {}
+    
+    unasscoiated_concepts = Concept.objects.filter(id__in=unasscoiated_concepts_ids).order_by('id')
+
+    return render(request, 
+                'clinicalcode/adminTemp/concepts_not_in_phenotypes.html', 
+                {   'count': unasscoiated_concepts.count(),
+                    'concepts' : unasscoiated_concepts
+                }
+                )
+            
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
