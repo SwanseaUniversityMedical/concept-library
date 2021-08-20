@@ -1,39 +1,32 @@
+import random
+import time
+from datetime import datetime
+
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from clinicalcode.tests.test_base import *
-from clinicalcode.tests.unit_test_base import *
-from clinicalcode.permissions import *
-from clinicalcode.models.Phenotype import *
-from clinicalcode.models.Concept import *
-from clinicalcode.models.WorkingSet import *
-from clinicalcode.models.Component import Component
-from clinicalcode.models.CodeList import CodeList
-from clinicalcode.models.CodeRegex import CodeRegex
-from clinicalcode.models.Code import Code
-from clinicalcode.models.Tag import Tag
-from clinicalcode.models.Brand import Brand
-from clinicalcode.models.ConceptTagMap import ConceptTagMap
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from datetime import datetime
 from rest_framework.reverse import reverse
-from urlparse import urlparse
-import unittest
 
+from clinicalcode.models.Brand import Brand
+from clinicalcode.models.Concept import *
+from clinicalcode.models.Phenotype import *
+from clinicalcode.models.Tag import Tag
+from clinicalcode.models.WorkingSet import *
+from clinicalcode.tests.test_base import *
 # from django.conf import settings
 # from cll import settings as settings_cll
 # from cll import test_settings as settings
 from cll import test_settings as settings_cll
-
-import time
 
 
 class SearchTest(StaticLiveServerTestCase):
 
     def setUp(self):
         location = os.path.dirname(__file__)
+        self.NUM_PHENOTYPES = 50
         if settings_cll.REMOTE_TEST:
             self.browser = webdriver.Remote(command_executor=settings_cll.REMOTE_TEST_HOST,
                                             desired_capabilities=settings_cll.chrome_options.to_capabilities())
@@ -61,7 +54,6 @@ class SearchTest(StaticLiveServerTestCase):
         permitted_group = Group.objects.create(name="permitted_group")
         # Add the group to the group-user's groups.
         group_user.groups.add(permitted_group)
-        brand =
 
         coding_system = CodingSystem.objects.create(
             name="Lookup table",
@@ -88,7 +80,7 @@ class SearchTest(StaticLiveServerTestCase):
             created_by=super_user,
             modified_by=super_user,
             coding_system=coding_system,
-            tags=[18],
+            tags=[1],
 
             is_deleted=False,
             owner=self.owner_user,
@@ -97,25 +89,18 @@ class SearchTest(StaticLiveServerTestCase):
             owner_access=Permissions.EDIT,
             world_access=Permissions.EDIT
         )
+        self.brand = self.create_brand("HDRUK", "cll/static/img/brands/HDRUK")
+
+        self.nameTags = ["Phenotype_library", "ADP", "BREATHE", "CALIBER", "PIONEER", "SAIL", "BHF DSC"]
+        self.collectionOftags = []
+
+        for i in range(len(self.nameTags)):
+            self.collectionOftags.append(self.creat_tag(self.nameTags[i],self.brand))
 
         self.test_phenotypes = []
-        for i in range(10):
-            self.test_phenotypes.append(self.create_test_phenotype(i+1, "desc" + str(i+1), tags=[18],group=permitted_group))
-
-        self.tag = Tag.objects.create(
-                description="tagTest",
-                created_by=self.owner_user,
-
-            )
-        self.tag.save()
-
-        '''self.conceptTag = ConceptTagMap.objects.create(
-            concept=self.concept1,
-            tag = self.tag,
-            created_by=self.owner_user
-        )'''
-
-
+        for i in range(self.NUM_PHENOTYPES):
+            self.test_phenotypes.append(
+                self.create_test_phenotype(i + 1, "desc" + str(i + 1), tags=[random.randrange(len(self.nameTags))+1], group=permitted_group))
 
         update_friendly_id()
 
@@ -126,10 +111,10 @@ class SearchTest(StaticLiveServerTestCase):
             author="the_test_goat",
             layout="Phenotype",
             valid_event_data_range="01/01/1999 - 01/07/2016",
-            phenotype_uuid="ideeee"+str(name),
+            phenotype_uuid="ideeee" + str(name),
 
             type="Biomarker",
-            sex = "Female,Male",
+            sex="Female,Male",
             phenoflowid=4,
             concept_informations='[{"concept_version_id": %s, "concept_id": %s, "attributes": []}]' % (
                 str(self.concept_everybody_can_edit.id), str(self.concept_everybody_can_edit.id)),
@@ -155,7 +140,26 @@ class SearchTest(StaticLiveServerTestCase):
         ).save()
         return phenotype
 
+    def creat_tag(self, nameTag, brand):
+        tag = Tag.objects.create(
+            collection_brand=brand,
+            description=nameTag,
+            created_by=self.owner_user,
+            tag_type=2,
+            display=random.randint(1,6)
+        ).save()
+        return tag
 
+    def create_brand(self, nameBrand, pathBrand):
+        brand = Brand.objects.create(
+            name=nameBrand,
+            description='',
+            logo_path=pathBrand,
+            css_path=pathBrand,
+            owner=self.owner_user
+        ).save()
+
+        return brand
 
     def tearDown(self):
         self.browser.quit()
@@ -174,8 +178,24 @@ class SearchTest(StaticLiveServerTestCase):
         wait = WebDriverWait(self.browser, 10)
         element = wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, 'p.navbar-text'), username))
 
-    def test_history_tags(self):
+    def test_tags_filter(self):
         self.login(su_user, su_password)
-
         browser = self.browser
+
+        browser.get(self.WEBAPP_HOST + reverse('phenotype_list')
+                    )
+
+        checkboxes = browser.find_elements_by_name("collection_id")
+        print len(checkboxes)
+        for i in range(len(checkboxes)):
+            browser.find_elements_by_name("collection_id")[i].click()
+            time.sleep(settings_cll.IMPLICTLY_WAIT)
+            browser.find_elements_by_name("collection_id")[i].click()
+            updated_element =  browser.find_elements_by_name("collection_id")[i]
+            self.assertTrue(updated_element.is_enabled())
+
+
+        time.sleep(settings_cll.TEST_SLEEP_TIME)
+
+
         time.sleep(1000)
