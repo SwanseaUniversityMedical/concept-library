@@ -362,7 +362,6 @@ def check_concepts_not_assocated_with_phenotypes(request):
         
     unasscoiated_concepts_ids = list(set(all_concepts_ids) - set(concepts_ids_in_phenotypes))
 
-    rowsAffected = {}
     
     unasscoiated_concepts = Concept.objects.filter(id__in=unasscoiated_concepts_ids).order_by('id')
 
