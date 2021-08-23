@@ -26,7 +26,7 @@ class SearchTest(StaticLiveServerTestCase):
 
     def setUp(self):
         location = os.path.dirname(__file__)
-        self.NUM_PHENOTYPES = 50
+        self.NUM_PHENOTYPES = 70
         if settings_cll.REMOTE_TEST:
             self.browser = webdriver.Remote(command_executor=settings_cll.REMOTE_TEST_HOST,
                                             desired_capabilities=settings_cll.chrome_options.to_capabilities())
@@ -95,12 +95,13 @@ class SearchTest(StaticLiveServerTestCase):
         self.collectionOftags = []
 
         for i in range(len(self.nameTags)):
-            self.collectionOftags.append(self.creat_tag(self.nameTags[i],self.brand))
+            self.collectionOftags.append(self.creat_tag(self.nameTags[i], self.brand))
 
         self.test_phenotypes = []
         for i in range(self.NUM_PHENOTYPES):
             self.test_phenotypes.append(
-                self.create_test_phenotype(i + 1, "desc" + str(i + 1), tags=[random.randrange(len(self.nameTags))+1], group=permitted_group))
+                self.create_test_phenotype(i + 1, "desc" + str(i + 1), tags=[random.randrange(len(self.nameTags)) + 1],
+                                           group=permitted_group))
 
         update_friendly_id()
 
@@ -108,12 +109,13 @@ class SearchTest(StaticLiveServerTestCase):
         phenotype = Phenotype.objects.create(
             name="Phenotype" + str(name),
             description="phenotype level " + str(description),
-            author="the_test_goat",
+            author="the_test_goat_author" + str(name),
             layout="Phenotype",
             valid_event_data_range="01/01/1999 - 01/07/2016",
             phenotype_uuid="ideeee" + str(name),
+            is_deleted=random.choice([True, False]),
 
-            type="Biomarker",
+            type=random.choice(["Disease or Syndrome", "Biomarker", "Lifestyle Risk Factor"]),
             sex="Female,Male",
             phenoflowid=4,
             concept_informations='[{"concept_version_id": %s, "concept_id": %s, "attributes": []}]' % (
@@ -130,7 +132,6 @@ class SearchTest(StaticLiveServerTestCase):
             citation_requirements="",
             created_by=self.owner_user,
             updated_by=self.owner_user,
-            is_deleted=False,
             owner=self.owner_user,
             group_access=Permissions.EDIT,
             tags=tags,
@@ -146,7 +147,7 @@ class SearchTest(StaticLiveServerTestCase):
             description=nameTag,
             created_by=self.owner_user,
             tag_type=2,
-            display=random.randint(1,6)
+            display=random.randint(1, 6)
         ).save()
         return tag
 
@@ -191,11 +192,27 @@ class SearchTest(StaticLiveServerTestCase):
             browser.find_elements_by_name("collection_id")[i].click()
             time.sleep(settings_cll.IMPLICTLY_WAIT)
             browser.find_elements_by_name("collection_id")[i].click()
-            updated_element =  browser.find_elements_by_name("collection_id")[i]
+            updated_element = browser.find_elements_by_name("collection_id")[i]
             self.assertTrue(updated_element.is_enabled())
-
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
+    def test_tags_onrelevance(self):
 
-        time.sleep(1000)
+        self.login(su_user, su_password)
+        browser = self.browser
+
+        browser.get(self.WEBAPP_HOST + reverse('phenotype_list')
+                    )
+
+        checkboxes = browser.find_elements_by_name("collection_id")
+        for i in range(1,len(checkboxes)):
+
+            browser.find_elements_by_name("collection_id")[i].click()
+            time.sleep(settings_cll.IMPLICTLY_WAIT)
+            element = browser.find_elements_by_class_name("col-sm-12")
+            tag = browser.find_elements_by_class_name("form-check-label")[i-1].text
+            for j in range(1, len(element), 2):
+                self.assertEqual(element[j].text, tag)
+
+            browser.find_elements_by_name("collection_id")[i].click()
