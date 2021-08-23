@@ -2681,6 +2681,7 @@ def get_visible_live_or_published_concept_versions(request
                                                     , filter_cond = ""
                                                     , show_top_version_only = False
                                                     ):
+    # type: (object, object, object, object, object, object, object, object) -> object
     ''' Get all visible live or published concept versions 
     - return all columns
     '''
@@ -3539,6 +3540,27 @@ def get_brand_collection_ids(brand_name):
     brand_collection_ids = list(Tag.objects.filter(collection_brand = brand.id).values_list('id', flat=True))
     
     return brand_collection_ids
+
+
+def get_brand_associated_collections(request, concept_or_phenotype):
+    if concept_or_phenotype == 'concept':
+        data = get_visible_live_or_published_concept_versions(request
+                                                                       ,
+                                                                       exclude_deleted=False
+                                                                       )
+    elif concept_or_phenotype == 'phenotype':
+        data = get_visible_live_or_published_phenotype_versions(request
+                                                                       ,
+                                                                       exclude_deleted=False
+                                                                       )
+    Tag_List = []
+    for i in data:
+        if i['tags'] is not None:
+            Tag_List = Tag_List + i['tags']
+    unique_tags = []
+    unique_tags = list(set(Tag_List))
+    return Tag.objects.filter(id__in = unique_tags, tag_type = 2)
+
 
 
     
