@@ -178,9 +178,6 @@ def phenotype_list(request):
                                                 , filter_cond = filter_cond
                                                 , show_top_version_only = show_top_version_only
                                                 )
-    
-    
-        
     # create pagination
     paginator = Paginator(phenotype_srch, page_size, allow_empty_first_page=True)
     try:
@@ -214,7 +211,8 @@ def phenotype_list(request):
         'allTags': Tag.objects.all().order_by('description'),
         'all_CodingSystems': CodingSystem.objects.all().order_by('id'),
         'search_form': search_form,
-        'p_btns': p_btns
+        'p_btns': p_btns,
+        'brand_associated_collections': db_utils.get_brand_associated_collections(request, concept_or_phenotype='phenotype')
         #'expand_published_versions': expand_published_versions,
         #'published_count': PublishedPhenotype.objects.all().count()
     })
