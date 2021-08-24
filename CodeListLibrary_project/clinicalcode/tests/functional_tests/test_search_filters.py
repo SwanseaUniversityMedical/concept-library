@@ -20,6 +20,7 @@ from clinicalcode.tests.test_base import *
 # from cll import settings as settings_cll
 # from cll import test_settings as settings
 from cll import test_settings as settings_cll
+import string
 
 
 class SearchTest(StaticLiveServerTestCase):
@@ -51,9 +52,9 @@ class SearchTest(StaticLiveServerTestCase):
         self.owner_user = User.objects.create_user(username=ow_user, password=ow_password, email=None)
         group_user = User.objects.create_user(username=gp_user, password=gp_password, email=None)
 
-        permitted_group = Group.objects.create(name="permitted_group")
+        self.permitted_group = Group.objects.create(name="permitted_group")
         # Add the group to the group-user's groups.
-        group_user.groups.add(permitted_group)
+        group_user.groups.add(self.permitted_group)
 
         coding_system = CodingSystem.objects.create(
             name="Lookup table",
@@ -84,7 +85,7 @@ class SearchTest(StaticLiveServerTestCase):
 
             is_deleted=False,
             owner=self.owner_user,
-            group=permitted_group,
+            group=self.permitted_group,
             group_access=Permissions.EDIT,
             owner_access=Permissions.EDIT,
             world_access=Permissions.EDIT
@@ -100,20 +101,21 @@ class SearchTest(StaticLiveServerTestCase):
         self.test_phenotypes = []
         for i in range(self.NUM_PHENOTYPES):
             self.test_phenotypes.append(
-                self.create_test_phenotype(i + 1, "desc" + str(i + 1), tags=[random.randrange(len(self.nameTags)) + 1],
-                                           group=permitted_group))
+                self.create_test_phenotype("Phenotype" + str(i + 1), "desc" + str(i + 1),
+                                           tags=[random.randrange(len(self.nameTags)) + 1],
+                                           group=self.permitted_group, is_deleted=random.choice([True, False])))
 
         update_friendly_id()
 
-    def create_test_phenotype(self, name, description, tags, group):
+    def create_test_phenotype(self, name, description, tags, group, is_deleted):
         phenotype = Phenotype.objects.create(
-            name="Phenotype" + str(name),
+            name=str(name),
             description="phenotype level " + str(description),
             author="the_test_goat_author" + str(name),
             layout="Phenotype",
             valid_event_data_range="01/01/1999 - 01/07/2016",
             phenotype_uuid="ideeee" + str(name),
-            is_deleted=random.choice([True, False]),
+            is_deleted=is_deleted,
 
             type=random.choice(["Disease or Syndrome", "Biomarker", "Lifestyle Risk Factor"]),
             sex="Female,Male",
@@ -141,10 +143,10 @@ class SearchTest(StaticLiveServerTestCase):
         ).save()
         return phenotype
 
-    def creat_tag(self, nameTag, brand):
+    def creat_tag(self, nametag, brand):
         tag = Tag.objects.create(
             collection_brand=brand,
-            description=nameTag,
+            description=nametag,
             created_by=self.owner_user,
             tag_type=2,
             display=random.randint(1, 6)
@@ -206,13 +208,115 @@ class SearchTest(StaticLiveServerTestCase):
                     )
 
         checkboxes = browser.find_elements_by_name("collection_id")
-        for i in range(1,len(checkboxes)):
+        for i in range(1, len(checkboxes)):
 
             browser.find_elements_by_name("collection_id")[i].click()
             time.sleep(settings_cll.IMPLICTLY_WAIT)
             element = browser.find_elements_by_class_name("col-sm-12")
-            tag = browser.find_elements_by_class_name("form-check-label")[i-1].text
+            tag = browser.find_elements_by_class_name("form-check-label")[i - 1].text
             for j in range(1, len(element), 2):
                 self.assertEqual(element[j].text, tag)
 
             browser.find_elements_by_name("collection_id")[i].click()
+
+    def test_unexpected_symbol_search(self):
+        self.login(su_user, su_password)
+        browser = self.browser
+
+        browser.get(self.WEBAPP_HOST + reverse('phenotype_list')
+                    )
+        browser.find_element_by_xpath("//*[@id='show-advanced-search']").click()
+
+        checkboxes = browser.find_elements_by_name("collection_id")
+        for i in range(1, len(checkboxes)):
+            browser.find_elements_by_name("collection_id")[i].click()
+            # time.sleep(settings_cll.IMPLICTLY_WAIT)
+            browser.find_element_by_id("search").send_keys("Phenotype")
+            browser.find_element_by_xpath('//button[@class = "btn btn-primary"]').click()
+            self.assertTrue("No phenotypes" not in browser.page_source)
+
+            time.sleep(settings_cll.IMPLICTLY_WAIT)
+            browser.find_element_by_id("reset-form").click()
+            randomstring = ''.join(
+                [random.choice(string.ascii_letters + string.digits + string.punctuation) for i in range(5)])
+
+            browser.find_element_by_id("search").send_keys(randomstring)
+            browser.find_element_by_xpath('//button[@class = "btn btn-primary"]').click()
+
+            self.assertTrue("No phenotypes" in browser.page_source)
+            browser.find_element_by_id("reset-form").click()
+
+    def test_unexpected_phenotype_name(self):
+        self.login(su_user, su_password)
+        browser = self.browser
+
+        browser.get(self.WEBAPP_HOST + reverse('phenotype_list')
+                    )
+        browser.find_element_by_xpath("//*[@id='show-advanced-search']").click()
+
+        checkboxes = browser.find_elements_by_name("collection_id")
+        for i in range(1, len(checkboxes)):
+            browser.find_elements_by_name("collection_id")[i].click()
+            # time.sleep(settings_cll.IMPLICTLY_WAIT)
+            browser.find_element_by_id("search").send_keys("Phenotype")
+            browser.find_element_by_xpath('//button[@class = "btn btn-primary"]').click()
+            time.sleep(settings_cll.IMPLICTLY_WAIT)
+            self.assertTrue("No phenotypes" not in browser.page_source)
+
+            browser.find_element_by_id("reset-form").click()
+
+            randomstring = ''.join(
+                [random.choice(string.ascii_letters + string.digits + string.punctuation) for _ in range(5)])
+
+            self.create_test_phenotype(randomstring, "desc", [i], self.permitted_group, False)
+
+            browser.find_element_by_id("search").send_keys(randomstring)
+            browser.find_element_by_xpath('//button[@class = "btn btn-primary"]').click()
+
+            self.assertTrue("No phenotypes" not in browser.page_source)
+            browser.find_element_by_id("reset-form").click()
+
+    def test_blank_search_input(self):
+        self.login(su_user, su_password)
+        browser = self.browser
+
+        browser.get(self.WEBAPP_HOST + reverse('phenotype_list')
+                    )
+        browser.find_element_by_xpath("//*[@id='show-advanced-search']").click()
+
+        checkboxes = browser.find_elements_by_name("collection_id")
+        for i in range(1, len(checkboxes)):
+            browser.find_elements_by_name("collection_id")[i].click()
+
+            browser.find_element_by_id("search").send_keys(Keys.SPACE)
+            browser.find_element_by_xpath('//button[@class = "btn btn-primary"]').click()
+            time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+            # Should be discussed
+            self.assertTrue("No phenotypes" not in browser.page_source)
+
+            browser.find_element_by_id("reset-form").click()
+
+            browser.find_elements_by_name("collection_id")[i].click()
+
+
+    def test_blank_phenotype_search(self):
+        self.login(su_user, su_password)
+        browser = self.browser
+
+        browser.get(self.WEBAPP_HOST + reverse('phenotype_list')
+                    )
+        browser.find_element_by_xpath("//*[@id='show-advanced-search']").click()
+
+        browser.find_element_by_id("search").send_keys(Keys.SPACE)
+        browser.find_element_by_xpath('//button[@class = "btn btn-primary"]').click()
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+        self.assertTrue("No phenotypes"  in browser.page_source)
+        browser.find_element_by_id("reset-form").click()
+
+        self.create_test_phenotype(" ", "desc", [1], self.permitted_group, False)
+
+        browser.find_element_by_id("search").send_keys(Keys.SPACE)
+        browser.find_element_by_xpath('//button[@class = "btn btn-primary"]').click()
+
+        self.assertTrue("No phenotypes" not in browser.page_source)
