@@ -35,11 +35,20 @@ def index(request):
     
     if request.CURRENT_BRAND == "":
         return render(request, 'clinicalcode/index.html')
+    elif request.CURRENT_BRAND == "BREATHE":
+        return index_BREATHE(request)
     elif request.CURRENT_BRAND == "HDRUK":
         return index_HDRUK(request)
     else:
         return render(request, 'clinicalcode/index.html')
     
+
+def index_BREATHE(request):
+    return render(request,
+                  'clinicalcode/brand/BREATHE/index_BREATHE.html',
+                )
+
+
 
 def index_HDRUK(request):
     '''
