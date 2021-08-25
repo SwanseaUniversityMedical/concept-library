@@ -3552,21 +3552,17 @@ def get_brand_collection_ids(brand_name):
 
 def get_brand_associated_collections(request, concept_or_phenotype):
     if concept_or_phenotype == 'concept':
-        data = get_visible_live_or_published_concept_versions(request
-                                                                       ,
-                                                                       exclude_deleted=False
-                                                                       )
+        data = get_visible_live_or_published_concept_versions(request , exclude_deleted=False)
     elif concept_or_phenotype == 'phenotype':
-        data = get_visible_live_or_published_phenotype_versions(request
-                                                                       ,
-                                                                       exclude_deleted=False
-                                                                       )
+        data = get_visible_live_or_published_phenotype_versions(request , exclude_deleted=False)
+        
     Tag_List = []
     for i in data:
         if i['tags'] is not None:
             Tag_List = Tag_List + i['tags']
     unique_tags = []
     unique_tags = list(set(Tag_List))
+    
     return Tag.objects.filter(id__in = unique_tags, tag_type = 2)
 
 

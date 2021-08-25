@@ -856,25 +856,6 @@ def concept_list(request):
     })
 
 
-#def get_brand_associated_collections(request):
-#    concepts = db_utils.get_visible_live_or_published_concept_versions(request
-#                                                                       ,
-#                                                                       exclude_deleted = False
-#                                                                       )
-#    Tag_List = []
-#    Unique_Tag_List = []
-#        Tag_List.append((i['tags']))
-#
-#    for i in concepts:
-#        if i['tags'] is not None:
-#            Tag_List = Tag_List + i['tags']
-#
-#    unique_tags = []
-#    unique_tags = list(set(Tag_List))
-#    return Tag.objects.filter(id__in = unique_tags, tag_type = 2)
-
-
-
 
 @login_required
 def concept_tree(request, pk):
