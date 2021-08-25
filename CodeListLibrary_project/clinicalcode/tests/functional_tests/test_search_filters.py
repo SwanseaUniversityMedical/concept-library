@@ -404,18 +404,38 @@ class SearchTest(StaticLiveServerTestCase):
 
         checkboxes = browser.find_elements_by_name("collection_id")
 
+        #Iterate and check search by all tags except all tag
         for i in range(1, len(checkboxes)):
             browser.find_elements_by_name("collection_id")[i].click()
 
             element = browser.find_elements_by_class_name("col-sm-8")
 
-            
-            random_phenotype = [random.choice(element) for _ in range(len(element))][i].text
+            random_phenotype = [random.choice(element) for k in range(len(element))][0].text
 
             # Test with actual name
             browser.find_element_by_id("search").send_keys(random_phenotype[6:].strip())
-
             browser.find_element_by_xpath('//button[@class = "btn btn-primary"]').click()
+
+            self.assertTrue("No phenotypes" not in browser.page_source)
+
+            time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+            browser.find_element_by_id("reset-form").click()
+
+            # Find phenotype by friendly ID
+            browser.find_element_by_id("search").send_keys(random_phenotype[:3].strip())
+            browser.find_element_by_xpath('//button[@class = "btn btn-primary"]').click()
+
+            self.assertTrue("No phenotypes" not in browser.page_source)
+
+            time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+            browser.find_element_by_id("reset-form").click()
+
+            # Find phenotype by full name
+            browser.find_element_by_id("search").send_keys(random_phenotype.strip())
+            browser.find_element_by_xpath('//button[@class = "btn btn-primary"]').click()
+            #time.sleep(1000)
 
             self.assertTrue("No phenotypes" not in browser.page_source)
 
@@ -425,5 +445,3 @@ class SearchTest(StaticLiveServerTestCase):
 
             browser.find_elements_by_name("collection_id")[i].click()
 
-
-        time.sleep(1000)
