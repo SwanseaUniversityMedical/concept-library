@@ -807,14 +807,12 @@ def concept_list(request):
         filter_cond += " AND group_id IN(" + ', '.join(map(str, group_list)) + ") "
 
     concepts_srch = db_utils.get_visible_live_or_published_concept_versions(request
-                                                                            ,
-                                                                            get_live_and_or_published_ver=get_live_and_or_published_ver
+                                                                            , get_live_and_or_published_ver=get_live_and_or_published_ver
                                                                             , searchByName=search
                                                                             , author=author
                                                                             , exclude_deleted=exclude_deleted
                                                                             , filter_cond=filter_cond
-                                                                            ,
-                                                                            show_top_version_only=show_top_version_only
+                                                                            , show_top_version_only=show_top_version_only
                                                                             )
 
     # create pagination
