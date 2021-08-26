@@ -18,16 +18,20 @@ from clinicalcode.models.WorkingSet import *
 from clinicalcode.tests.test_base import *
 # from django.conf import settings
 # from cll import settings as settings_cll
+from django.test import RequestFactory
 # from cll import test_settings as settings
 from cll import test_settings as settings_cll
 import string
 
 
 class SearchTest(StaticLiveServerTestCase):
+    reset_sequences = True
 
     def setUp(self):
         location = os.path.dirname(__file__)
         self.NUM_PHENOTYPES = 70
+
+        self.factory = RequestFactory()
         if settings_cll.REMOTE_TEST:
             self.browser = webdriver.Remote(command_executor=settings_cll.REMOTE_TEST_HOST,
                                             desired_capabilities=settings_cll.chrome_options.to_capabilities())
@@ -39,13 +43,16 @@ class SearchTest(StaticLiveServerTestCase):
             else:
                 self.browser = webdriver.Chrome(os.path.join(
                     location, "chromedriver.exe"), chrome_options=settings_cll.chrome_options)
+
         super(SearchTest, self).setUp()
 
         self.WEBAPP_HOST = self.live_server_url.replace('localhost', '127.0.0.1')
         if settings_cll.REMOTE_TEST:
             self.WEBAPP_HOST = settings_cll.WEBAPP_HOST
-        # self.factory = RequestFactory()
 
+        self.load_data()
+
+    def load_data(self):
         # Users: a normal user and a super_user.
         self.normal_user = User.objects.create_user(username=nm_user, password=nm_password, email=None)
         super_user = User.objects.create_superuser(username=su_user, password=su_password, email=None)
@@ -103,12 +110,14 @@ class SearchTest(StaticLiveServerTestCase):
             self.test_phenotypes.append(
                 self.create_test_phenotype("Phenotype" + str(i + 1), "desc" + str(i + 1),
                                            tags=[random.randrange(len(self.nameTags)) + 1],
-                                           group=self.permitted_group, is_deleted=random.choice([True, False])))
-
+                                           group=self.permitted_group, is_deleted=random.choice([True, False])
+                                           ))
+        print len(self.test_phenotypes)
         update_friendly_id()
 
     def create_test_phenotype(self, name, description, tags, group, is_deleted):
         phenotype = Phenotype.objects.create(
+
             name=str(name),
             description="phenotype level " + str(description),
             author="the_test_goat_author" + str(name),
@@ -161,7 +170,6 @@ class SearchTest(StaticLiveServerTestCase):
             css_path=pathBrand,
             owner=self.owner_user
         ).save()
-
         return brand
 
     def tearDown(self):
@@ -232,6 +240,7 @@ class SearchTest(StaticLiveServerTestCase):
             browser.find_elements_by_name("collection_id")[i].click()
 
     def test_unexpected_symbol_search(self):
+
         self.login(su_user, su_password)
         browser = self.browser
 
@@ -240,6 +249,8 @@ class SearchTest(StaticLiveServerTestCase):
         browser.find_element_by_xpath("//*[@id='show-advanced-search']").click()
 
         checkboxes = browser.find_elements_by_name("collection_id")
+
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
 
         # Iterate through checkboxes and test could search bar handle the random symbols
         for i in range(1, len(checkboxes)):
@@ -276,6 +287,8 @@ class SearchTest(StaticLiveServerTestCase):
         browser.find_element_by_xpath("//*[@id='show-advanced-search']").click()
 
         checkboxes = browser.find_elements_by_name("collection_id")
+
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
 
         # Iterate through checkboxes and test if search bar could find the unexpected name of the phenotype
         for i in range(1, len(checkboxes)):
@@ -404,13 +417,13 @@ class SearchTest(StaticLiveServerTestCase):
 
         checkboxes = browser.find_elements_by_name("collection_id")
 
-        #Iterate and check search by all tags except all tag
+        # Iterate and check search by all tags except all tag
         for i in range(1, len(checkboxes)):
             browser.find_elements_by_name("collection_id")[i].click()
 
             element = browser.find_elements_by_class_name("col-sm-8")
 
-            random_phenotype = [random.choice(element) for k in range(len(element))][0].text
+            random_phenotype = [random.choice(element) for _ in range(len(element))][0].text
 
             # Test with actual name
             browser.find_element_by_id("search").send_keys(random_phenotype[6:].strip())
@@ -435,7 +448,7 @@ class SearchTest(StaticLiveServerTestCase):
             # Find phenotype by full name
             browser.find_element_by_id("search").send_keys(random_phenotype.strip())
             browser.find_element_by_xpath('//button[@class = "btn btn-primary"]').click()
-            #time.sleep(1000)
+            # time.sleep(1000)
 
             self.assertTrue("No phenotypes" not in browser.page_source)
 
@@ -444,4 +457,3 @@ class SearchTest(StaticLiveServerTestCase):
             browser.find_element_by_id("reset-form").click()
 
             browser.find_elements_by_name("collection_id")[i].click()
-
