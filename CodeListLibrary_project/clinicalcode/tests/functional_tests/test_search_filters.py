@@ -360,8 +360,6 @@ class SearchTest(StaticLiveServerTestCase):
             self.assertTrue("No phenotypes" not in browser.page_source)
             browser.find_element_by_id("reset-form").click()
 
-
-
             browser.find_elements_by_name("collection_id")[i].click()
 
     def test_blank_phenotype_search(self):
@@ -545,6 +543,7 @@ class SearchTest(StaticLiveServerTestCase):
 
         checkboxes = browser.find_elements_by_name("collection_id")
 
+        # Check author name with author names of phenotype
         for i in range(1, len(checkboxes)):
             browser.find_elements_by_name("collection_id")[i].click()
 
@@ -558,3 +557,68 @@ class SearchTest(StaticLiveServerTestCase):
                 self.assertEqual(element[j].text, "test_author")
 
             browser.find_elements_by_name("collection_id")[i].click()
+
+    def test_phenotype_with_all_attributes(self):
+        self.login(ow_user, ow_password)
+
+        browser = self.browser
+
+        browser.get(self.WEBAPP_HOST + reverse('phenotype_list'))
+
+        browser.find_element_by_xpath("//*[@id='show-advanced-search']").click()
+
+        browser.find_elements_by_name("collection_id")[0].click()
+
+        # Test phenotype which combines all filters
+        self.create_test_phenotype("test", "desc", [1, 2, 3, 4, 5, 6, 7], self.permitted_group, False,
+                                   owner=self.owner_user,
+                                   author="owneruser")
+
+        browser.find_element_by_name("author").send_keys("owneruser")
+
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+        browser.find_element_by_id("search").send_keys("test")
+
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+        browser.find_element_by_name("owner").send_keys("owneruser")
+
+        browser.find_element_by_name("show_my_phenotypes").click()
+
+        browser.find_element_by_xpath('//button[@class = "btn btn-primary"]').click()
+
+        self.assertTrue("No phenotypes" not in browser.page_source)
+
+    def test_basic_to_advanced_search(self):
+        self.login(ow_user, ow_password)
+
+        browser = self.browser
+
+        browser.get(self.WEBAPP_HOST + reverse('phenotype_list'))
+
+        # Search phenotype in basic search
+        browser.find_element_by_id("search1").send_keys("Phenotype")
+
+        browser.find_element_by_xpath('//button[@classxx = "btn btn-info"]').click()
+
+        self.assertFalse(browser.find_element_by_id("search1").get_attribute("value") == "")
+
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+        # Find phenotype in advanced search and go back to basic search to check the clear input
+        browser.find_element_by_xpath("//*[@id='show-advanced-search']").click()
+
+        browser.find_element_by_xpath('//button[@class = "btn btn-primary"]').click()
+
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+        self.assertTrue("No phenotypes" not in browser.page_source)
+
+        browser.find_element_by_id("search").clear()
+
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+        browser.find_element_by_xpath("//*[@id='show-basic-search']").click()
+
+        self.assertTrue(browser.find_element_by_id("search1").get_attribute("value") == "")
