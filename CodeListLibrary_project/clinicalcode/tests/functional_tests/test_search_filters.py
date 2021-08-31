@@ -539,7 +539,7 @@ class SearchTest(StaticLiveServerTestCase):
         browser = self.browser
         browser.get(self.WEBAPP_HOST + reverse('phenotype_list'))
 
-        browser.find_element_by_xpath("//*[@id='show-advanced-search']").click()
+        browser.find_elements_by_xpath("//*[@id='show-advanced-search']").click()
 
         checkboxes = browser.find_elements_by_name("collection_id")
 
@@ -622,3 +622,32 @@ class SearchTest(StaticLiveServerTestCase):
         browser.find_element_by_xpath("//*[@id='show-basic-search']").click()
 
         self.assertTrue(browser.find_element_by_id("search1").get_attribute("value") == "")
+
+    def test_tag_input_bar(self):
+        self.login(ow_user, ow_password)
+
+        browser = self.browser
+
+        browser.get(self.WEBAPP_HOST + reverse('phenotype_list'))
+
+        browser.find_element_by_xpath("//*[@id='show-advanced-search']").click()
+
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+        browser.find_element_by_xpath("//*[@class='bootstrap-tagsinput']").click()
+
+        browser.find_element_by_class_name("tt-input").send_keys("Phenotype_library")
+
+        self.assertTrue("Nothing found." not in browser.page_source)
+
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+        browser.find_element_by_class_name("tt-input").clear()
+
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+        browser.find_element_by_class_name("tt-input").send_keys("test")
+
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+        self.assertTrue("Nothing found." in browser.page_source)
