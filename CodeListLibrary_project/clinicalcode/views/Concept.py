@@ -807,12 +807,14 @@ def concept_list(request):
         filter_cond += " AND group_id IN(" + ', '.join(map(str, group_list)) + ") "
 
     concepts_srch = db_utils.get_visible_live_or_published_concept_versions(request
-                                                                            , get_live_and_or_published_ver=get_live_and_or_published_ver
+                                                                            ,
+                                                                            get_live_and_or_published_ver=get_live_and_or_published_ver
                                                                             , searchByName=search
                                                                             , author=author
                                                                             , exclude_deleted=exclude_deleted
                                                                             , filter_cond=filter_cond
-                                                                            , show_top_version_only=show_top_version_only
+                                                                            ,
+                                                                            show_top_version_only=show_top_version_only
                                                                             )
 
     # create pagination
@@ -852,8 +854,6 @@ def concept_list(request):
         # 'expand_published_versions': expand_published_versions,
         # 'published_count': PublishedConcept.objects.all().count()
     })
-
-
 
 @login_required
 def concept_tree(request, pk):

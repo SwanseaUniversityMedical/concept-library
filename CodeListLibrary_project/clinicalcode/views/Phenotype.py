@@ -186,7 +186,7 @@ def phenotype_list(request):
         p = paginator.page(paginator.num_pages)
 
     p_btns = utils.get_paginator_pages(paginator, p)
-    
+
     tag_ids2 = tag_ids
     tag_ids_list = []
     if tag_ids:
@@ -216,7 +216,6 @@ def phenotype_list(request):
         #'expand_published_versions': expand_published_versions,
         #'published_count': PublishedPhenotype.objects.all().count()
     })
-
 
 
 
