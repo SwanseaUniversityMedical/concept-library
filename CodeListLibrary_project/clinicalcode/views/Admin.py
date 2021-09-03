@@ -186,7 +186,6 @@ def save_statistics_collections(request, concept_or_phenotype, brand):
             concept_stat.modified = datetime.now()
             return [concept_stat, concept_stat.id]
         else:
-
             obj, created = Statistics.objects.get_or_create(
                 modified=datetime.now(),
                 created=datetime.now(),
@@ -196,6 +195,7 @@ def save_statistics_collections(request, concept_or_phenotype, brand):
                 created_by=[None, request.user][request.user.is_authenticated()],
                 updated_by=[None, request.user][request.user.is_authenticated()]
             )
+
     else:
         if concept_or_phenotype == 'phenotype':
             concept_stat = get_brand_collections(request, 'phenotype', force_brand=brand)
@@ -227,7 +227,6 @@ def get_brand_collections(request, concept_or_phenotype, force_brand=None):
     elif concept_or_phenotype == 'phenotype':
         data = db_utils.get_visible_live_or_published_phenotype_versions(request, exclude_deleted=False,
                                                                          force_brand=force_brand)
-
     Tag_List = []
     for i in data:
         if i['tags'] is not None:

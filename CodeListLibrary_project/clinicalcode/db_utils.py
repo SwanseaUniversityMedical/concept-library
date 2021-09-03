@@ -2754,13 +2754,14 @@ def get_visible_live_or_published_concept_versions(request
     # --- when in a brand, show only this brand's data
     brand_filter_cond = " "
     brand = request.CURRENT_BRAND
+
     if force_brand is not None:
         brand = force_brand
-        
+
     if brand != "":
         brand_collection_ids = get_brand_collection_ids(brand)
         brand_collection_ids = [str(i) for i in brand_collection_ids]
-            
+
         if brand_collection_ids:
             brand_filter_cond = " WHERE tags && '{" + ','.join(brand_collection_ids) + "}' "
             
@@ -3552,12 +3553,8 @@ def get_brand_collection_ids(brand_name):
 #Collect the unique list of tags in a brand from the statistic object and return as a list.
 def get_brand_associated_collections(request, concept_or_phenotype):
     brand = request.CURRENT_BRAND
-
-    if brand == '':
-        brand == "ALL BRANDS"
-
     collection_ids = Statistics.objects.get(org__iexact=brand
-                                            , type__iexact=['PHENOTYPE_COLLECTIONS', 'CONCEPT_COLLECTIONS'][concept_or_phenotype == 'concept'])
+                                            , type__iexact=['PHENOTYPE_COLLECTIONS', 'CONCEPT_COLLECTIONS'])
 
     stat_ids = collection_ids.stat
     return Tag.objects.filter(id__in=stat_ids, tag_type=2)
