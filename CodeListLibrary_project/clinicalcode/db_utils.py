@@ -3063,7 +3063,9 @@ def getGroupOfConceptsByPhenotypeId_historical(phenotype_id, phenotype_history_i
         phenotype_history_id = Phenotype.objects.get(pk=phenotype_id).history.latest('history_id').history_id
         
     concept_id_version = []
-    concept_informations = json.loads(Phenotype.history.get(id=phenotype_id, history_id=phenotype_history_id).concept_informations)
+    concept_informations = Phenotype.history.get(id=phenotype_id, history_id=phenotype_history_id).concept_informations
+    if concept_informations:
+        concept_informations = json.loads(concept_informations)
     
     for c in concept_informations:
         concept_id_version.append((c['concept_id'], c['concept_version_id']))
@@ -3075,7 +3077,7 @@ def getGroupOfConceptsByPhenotypeId_historical(phenotype_id, phenotype_history_i
 
 def getPhenotypeConceptJson(concept_ids_list):
     if len(concept_ids_list) < 1:
-        return None
+        return []   #None
 
     concept_history_ids = getPhenotypeConceptHistoryIDs(concept_ids_list)
 
@@ -3096,6 +3098,8 @@ def getPhenotypeConceptHistoryIDs(concept_ids_list):
     return concept_history_ids
 
 def get_CodingSystems_from_Phenotype_concept_informations(concept_informations):
+    if not concept_informations:
+        return []
         
     concept_id_list = [x['concept_id'] for x in json.loads(concept_informations)] 
     concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(concept_informations)]    
