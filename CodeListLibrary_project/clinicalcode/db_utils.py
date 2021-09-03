@@ -3549,24 +3549,15 @@ def get_brand_collection_ids(brand_name):
     
     return brand_collection_ids
 
-
+#Collect the unique list of tags in a brand from the statistic object and return as a list.
 def get_brand_associated_collections(request, concept_or_phenotype):
-    if concept_or_phenotype == 'concept':
-        data = get_visible_live_or_published_concept_versions(request , exclude_deleted=False)
-    elif concept_or_phenotype == 'phenotype':
-        data = get_visible_live_or_published_phenotype_versions(request , exclude_deleted=False)
-        
-    Tag_List = []
-    for i in data:
-        if i['tags'] is not None:
-            Tag_List = Tag_List + i['tags']
-    unique_tags = []
-    unique_tags = list(set(Tag_List))
-    
-    return Tag.objects.filter(id__in = unique_tags, tag_type = 2)
+    brand = request.CURRENT_BRAND
 
+    if brand == '':
+        brand == "ALL BRANDS"
 
+    collection_ids = Statistics.objects.get(org__iexact=brand
+                                            , type__iexact=['PHENOTYPE_COLLECTIONS', 'CONCEPT_COLLECTIONS'][concept_or_phenotype == 'concept'])
 
-    
-    
-        
+    stat_ids = collection_ids.stat
+    return Tag.objects.filter(id__in=stat_ids, tag_type=2)
