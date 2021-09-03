@@ -3554,7 +3554,7 @@ def get_brand_collection_ids(brand_name):
 def get_brand_associated_collections(request, concept_or_phenotype):
     brand = request.CURRENT_BRAND
     collection_ids = Statistics.objects.get(org__iexact=brand
-                                            , type__iexact=['PHENOTYPE_COLLECTIONS', 'CONCEPT_COLLECTIONS'])
+                                            , type__iexact=['PHENOTYPE_COLLECTIONS', 'CONCEPT_COLLECTIONS'][concept_or_phenotype == 'concept'])
 
     stat_ids = collection_ids.stat
     return Tag.objects.filter(id__in=stat_ids, tag_type=2)
