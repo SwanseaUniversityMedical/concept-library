@@ -51,13 +51,7 @@ if not settings.CLL_READ_ONLY:
             Admin.run_statistics, 
             name='HDRUK_run_statistics'),      
     ]
-####RUN STATISTICS TO GATHER COLLECTIONS
-if not settings.CLL_READ_ONLY:
-    urlpatterns += [
-        url(r'^(?i)admin/run-stat-collections/',
-            Admin.run_statistics_collections,
-            name='collections_run_statistics'),
-    ]
+
 urlpatterns += [
     url(r'^(?i)admin/uc/$',
         adminTemp.check_concepts_not_assocated_with_phenotypes,
