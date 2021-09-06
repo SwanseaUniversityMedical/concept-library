@@ -161,8 +161,8 @@ def run_statistics_collections(request):
         for brand in brand_list:
             save_statistics_collections(request, 'concept', brand)
             save_statistics_collections(request, 'phenotype', brand)
-        save_statistics_collections(request, 'concept', brand='')
-        save_statistics_collections(request, 'phenotype', brand='')
+        save_statistics_collections(request, 'concept', brand='ALL')
+        save_statistics_collections(request, 'phenotype', brand='ALL')
 
     return render(request,
                   'clinicalcode/admin/run_statistics.html',
@@ -179,11 +179,13 @@ def run_statistics_collections(request):
 def save_statistics_collections(request, concept_or_phenotype, brand):
     if concept_or_phenotype == 'concept':
         concept_stat = get_brand_collections(request, 'concept', force_brand=brand)
+
         if Statistics.objects.all().filter(org__iexact=brand, type__iexact='CONCEPT_COLLECTIONS').exists():
             concept_stat = Statistics.objects.get(org__iexact=brand, type__iexact='CONCEPT_COLLECTIONS')
-            concept_stat.stat = concept_stat
+            concept_stat.stat = concept_stat.stat
             concept_stat.updated_by = [None, request.user][request.user.is_authenticated()]
             concept_stat.modified = datetime.now()
+            concept_stat.save()
             return [concept_stat, concept_stat.id]
         else:
             obj, created = Statistics.objects.get_or_create(
@@ -201,9 +203,10 @@ def save_statistics_collections(request, concept_or_phenotype, brand):
             concept_stat = get_brand_collections(request, 'phenotype', force_brand=brand)
             if Statistics.objects.all().filter(org__iexact=brand, type__iexact='PHENOTYPE_COLLECTIONS').exists():
                 concept_stat = Statistics.objects.get(org__iexact=brand, type__iexact='PHENOTYPE_COLLECTIONS')
-                concept_stat.stat = concept_stat
+                concept_stat.stat = concept_stat.stat
                 concept_stat.updated_by = [None, request.user][request.user.is_authenticated()]
                 concept_stat.modified = datetime.now()
+                concept_stat.save()
                 return [concept_stat, concept_stat.id]
             else:
                 obj, created = Statistics.objects.get_or_create(
@@ -221,6 +224,9 @@ def save_statistics_collections(request, concept_or_phenotype, brand):
 # Gathers all of the unique collection IDs for a particular brand
 # ForceBrand = Brand Name to search via, concept_or_phenotype will
 def get_brand_collections(request, concept_or_phenotype, force_brand=None):
+    if force_brand == 'ALL':
+        force_brand = None
+
     if concept_or_phenotype == 'concept':
         data = db_utils.get_visible_live_or_published_concept_versions(request, exclude_deleted=False,
                                                                        force_brand=force_brand)

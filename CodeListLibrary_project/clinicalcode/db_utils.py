@@ -2856,7 +2856,7 @@ def get_visible_live_or_published_phenotype_versions(request
     #from psycopg2.extensions import AsIs, quote_ident
     
     my_params = []
-    
+
     user_cond = ""
     if not request.user.is_authenticated():
         get_live_and_or_published_ver = 2   #    2= published only
@@ -2921,7 +2921,7 @@ def get_visible_live_or_published_phenotype_versions(request
     brand = request.CURRENT_BRAND
     if force_brand is not None:
         brand = force_brand
-        
+
     if brand != "":
         brand_collection_ids = get_brand_collection_ids(brand)
         brand_collection_ids = [str(i) for i in brand_collection_ids]
@@ -3544,7 +3544,7 @@ def get_brand_collection_ids(brand_name):
         returns list of collections (tags) ids associated with the brand
     """
     
-    
+
     brand = Brand.objects.get(name__iexact = brand_name)
     brand_collection_ids = list(Tag.objects.filter(collection_brand = brand.id).values_list('id', flat=True))
     
@@ -3553,6 +3553,9 @@ def get_brand_collection_ids(brand_name):
 #Collect the unique list of tags in a brand from the statistic object and return as a list.
 def get_brand_associated_collections(request, concept_or_phenotype):
     brand = request.CURRENT_BRAND
+    if brand == "":
+        brand = 'ALL'
+
     collection_ids = Statistics.objects.get(org__iexact=brand
                                             , type__iexact=['PHENOTYPE_COLLECTIONS', 'CONCEPT_COLLECTIONS'][concept_or_phenotype == 'concept'])
 
