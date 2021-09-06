@@ -149,7 +149,10 @@ class DataSourceViewSet(viewsets.ReadOnlyModelViewSet):
 
 #--------------------------------------------------------------------------
 
+#disable authentication for this function
 @api_view(['GET'])
+@authentication_classes([])
+@permission_classes([])
 def customRoot(request):
     '''
         Custom API Root page.
