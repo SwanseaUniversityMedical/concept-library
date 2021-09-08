@@ -33,6 +33,7 @@ BEGIN;
 	INSERT INTO clinicalcode_codingsystem (id, name, description, link, table_name, code_column_name, desc_column_name, database_connection_name, filter) VALUES (10, 'PROD codes', 'PROD codes', ' ', 'PROD_CODES', 'CODE', 'DESCRIPTION', 'default', NULL);
 	INSERT INTO clinicalcode_codingsystem (id, name, description, link, table_name, code_column_name, desc_column_name, database_connection_name, filter) VALUES (11, 'BNF codes', 'BNF codes', ' ', 'BNF_CODES', 'CODE', 'DESCRIPTION', 'default', NULL);
 	INSERT INTO clinicalcode_codingsystem (id, name, description, link, table_name, code_column_name, desc_column_name, database_connection_name, filter) VALUES (12, 'UKBioBank codes', 'UKBioBank codes', ' ', 'UKBIOBANK_CODES', 'CODE', 'DESCRIPTION', 'default', NULL);
+	INSERT INTO clinicalcode_codingsystem (id, name, description, link, table_name, code_column_name, desc_column_name, database_connection_name, filter) VALUES (13, 'Non-standard codes', 'Non-standard codes', ' ', 'NON_STANDARD_CODES', 'CODE', 'DESCRIPTION', 'default', NULL);
 
 	SELECT pg_catalog.setval('clinicalcode_codingsystem_id_seq', 12, true);
 	

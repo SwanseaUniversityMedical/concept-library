@@ -100,7 +100,7 @@ class ConceptForm(forms.ModelForm):
     )
     description = forms.CharField(
         label='Description:',
-        required=True,
+        required=False,
         error_messages={'required': 'Please enter a description'},
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
         max_length=3000

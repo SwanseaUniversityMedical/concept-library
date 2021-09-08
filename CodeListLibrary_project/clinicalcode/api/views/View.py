@@ -149,7 +149,10 @@ class DataSourceViewSet(viewsets.ReadOnlyModelViewSet):
 
 #--------------------------------------------------------------------------
 
+#disable authentication for this function
 @api_view(['GET'])
+@authentication_classes([])
+@permission_classes([])
 def customRoot(request):
     '''
         Custom API Root page.
@@ -261,9 +264,9 @@ def isValidConcept(request, concept):
         errors['author'] = "Author should be at least 3 characters"
         is_valid = False
 
-    if concept.description.isspace() or len(concept.description) < 10 or concept.description is None:
-        errors['description'] = "concept description should be at least 10 characters"
-        is_valid = False
+#     if concept.description.isspace() or len(concept.description) < 10 or concept.description is None:
+#         errors['description'] = "concept description should be at least 10 characters"
+#         is_valid = False
       
     if not concept.publication_link.isspace()  and len(concept.publication_link) > 0 and not concept.publication_link is None:
         # if publication_link is given, it must be a valid URL
@@ -432,8 +435,9 @@ def chk_concept_ids_list(request, concept_ids_list, item_name=''):
         err = item_name + ' must have a valid concept ids list'
     else:
         if len(concept_ids_list) == 0:
-            is_valid_data = False
-            err = item_name + ' must have a valid non-empty concept ids list'
+            # allow empty concepts list
+            is_valid_data = True        # False
+            #err = item_name + ' must have a valid non-empty concept ids list'
         else:
             if not chkListIsAllIntegers(concept_ids_list):
                 is_valid_data = False

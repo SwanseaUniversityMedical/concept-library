@@ -2680,7 +2680,9 @@ def get_visible_live_or_published_concept_versions(request
                                                     , exclude_deleted = True
                                                     , filter_cond = ""
                                                     , show_top_version_only = False
+                                                    , force_brand = None
                                                     ):
+    # type: (object, object, object, object, object, object, object, object) -> object
     ''' Get all visible live or published concept versions 
     - return all columns
     '''
@@ -2752,6 +2754,9 @@ def get_visible_live_or_published_concept_versions(request
     # --- when in a brand, show only this brand's data
     brand_filter_cond = " "
     brand = request.CURRENT_BRAND
+    if force_brand is not None:
+        brand = force_brand
+        
     if brand != "":
         brand_collection_ids = get_brand_collection_ids(brand)
         brand_collection_ids = [str(i) for i in brand_collection_ids]
@@ -2773,12 +2778,12 @@ def get_visible_live_or_published_concept_versions(request
                                 *
                                 , ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn_res
                                 , (CASE WHEN is_published=1 THEN 'published' ELSE 'not published' END) published
-                                , (SELECT name FROM clinicalcode_codingsystem WHERE id=r.coding_system_id LIMIT 1) coding_system_name
-                                , (SELECT username FROM auth_user WHERE id=r.owner_id LIMIT 1) owner_name
-                                , (SELECT username FROM auth_user WHERE id=r.created_by_id LIMIT 1) created_by_username
-                                , (SELECT username FROM auth_user WHERE id=r.modified_by_id LIMIT 1) modified_by_username
-                                , (SELECT username FROM auth_user WHERE id=r.deleted_by_id LIMIT 1) deleted_by_username
-                                , (SELECT name FROM auth_group WHERE id=r.group_id LIMIT 1) group_name
+                                , (SELECT name FROM clinicalcode_codingsystem WHERE id=r.coding_system_id ) coding_system_name
+                                , (SELECT username FROM auth_user WHERE id=r.owner_id ) owner_name
+                                , (SELECT username FROM auth_user WHERE id=r.created_by_id ) created_by_username
+                                , (SELECT username FROM auth_user WHERE id=r.modified_by_id ) modified_by_username
+                                , (SELECT username FROM auth_user WHERE id=r.deleted_by_id ) deleted_by_username
+                                , (SELECT name FROM auth_group WHERE id=r.group_id ) group_name
                                 , (SELECT created FROM clinicalcode_publishedconcept WHERE concept_id=r.id and concept_history_id=r.history_id  LIMIT 1) publish_date
                             FROM
                             (
@@ -2841,6 +2846,7 @@ def get_visible_live_or_published_phenotype_versions(request
                                                     , exclude_deleted = True
                                                     , filter_cond = ""
                                                     , show_top_version_only = False
+                                                    , force_brand = None
                                                     ):
     ''' Get all visible live or published phenotype versions 
     - return all columns
@@ -2912,6 +2918,9 @@ def get_visible_live_or_published_phenotype_versions(request
     # --- when in a brand, show only this brand's data
     brand_filter_cond = " "
     brand = request.CURRENT_BRAND
+    if force_brand is not None:
+        brand = force_brand
+        
     if brand != "":
         brand_collection_ids = get_brand_collection_ids(brand)
         brand_collection_ids = [str(i) for i in brand_collection_ids]
@@ -2933,11 +2942,11 @@ def get_visible_live_or_published_phenotype_versions(request
                                 *
                                 , ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn_res
                                 , (CASE WHEN is_published=1 THEN 'published' ELSE 'not published' END) published
-                                , (SELECT username FROM auth_user WHERE id=r.owner_id LIMIT 1) owner_name
-                                , (SELECT username FROM auth_user WHERE id=r.created_by_id LIMIT 1) created_by_username
-                                , (SELECT username FROM auth_user WHERE id=r.updated_by_id LIMIT 1) modified_by_username
-                                , (SELECT username FROM auth_user WHERE id=r.deleted_by_id LIMIT 1) deleted_by_username
-                                , (SELECT name FROM auth_group WHERE id=r.group_id LIMIT 1) group_name
+                                , (SELECT username FROM auth_user WHERE id=r.owner_id ) owner_name
+                                , (SELECT username FROM auth_user WHERE id=r.created_by_id ) created_by_username
+                                , (SELECT username FROM auth_user WHERE id=r.updated_by_id ) modified_by_username
+                                , (SELECT username FROM auth_user WHERE id=r.deleted_by_id ) deleted_by_username
+                                , (SELECT name FROM auth_group WHERE id=r.group_id ) group_name
                                 , (SELECT created FROM clinicalcode_publishedphenotype WHERE phenotype_id=r.id and phenotype_history_id=r.history_id  LIMIT 1) publish_date
                             FROM
                             (
@@ -3054,7 +3063,9 @@ def getGroupOfConceptsByPhenotypeId_historical(phenotype_id, phenotype_history_i
         phenotype_history_id = Phenotype.objects.get(pk=phenotype_id).history.latest('history_id').history_id
         
     concept_id_version = []
-    concept_informations = json.loads(Phenotype.history.get(id=phenotype_id, history_id=phenotype_history_id).concept_informations)
+    concept_informations = Phenotype.history.get(id=phenotype_id, history_id=phenotype_history_id).concept_informations
+    if concept_informations:
+        concept_informations = json.loads(concept_informations)
     
     for c in concept_informations:
         concept_id_version.append((c['concept_id'], c['concept_version_id']))
@@ -3066,7 +3077,7 @@ def getGroupOfConceptsByPhenotypeId_historical(phenotype_id, phenotype_history_i
 
 def getPhenotypeConceptJson(concept_ids_list):
     if len(concept_ids_list) < 1:
-        return None
+        return []   #None
 
     concept_history_ids = getPhenotypeConceptHistoryIDs(concept_ids_list)
 
@@ -3087,6 +3098,8 @@ def getPhenotypeConceptHistoryIDs(concept_ids_list):
     return concept_history_ids
 
 def get_CodingSystems_from_Phenotype_concept_informations(concept_informations):
+    if not concept_informations:
+        return []
         
     concept_id_list = [x['concept_id'] for x in json.loads(concept_informations)] 
     concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(concept_informations)]    
@@ -3539,6 +3552,23 @@ def get_brand_collection_ids(brand_name):
     brand_collection_ids = list(Tag.objects.filter(collection_brand = brand.id).values_list('id', flat=True))
     
     return brand_collection_ids
+
+
+def get_brand_associated_collections(request, concept_or_phenotype):
+    if concept_or_phenotype == 'concept':
+        data = get_visible_live_or_published_concept_versions(request , exclude_deleted=False)
+    elif concept_or_phenotype == 'phenotype':
+        data = get_visible_live_or_published_phenotype_versions(request , exclude_deleted=False)
+        
+    Tag_List = []
+    for i in data:
+        if i['tags'] is not None:
+            Tag_List = Tag_List + i['tags']
+    unique_tags = []
+    unique_tags = list(set(Tag_List))
+    
+    return Tag.objects.filter(id__in = unique_tags, tag_type = 2)
+
 
 
     
