@@ -178,9 +178,6 @@ def phenotype_list(request):
                                                 , filter_cond = filter_cond
                                                 , show_top_version_only = show_top_version_only
                                                 )
-    
-    
-        
     # create pagination
     paginator = Paginator(phenotype_srch, page_size, allow_empty_first_page=True)
     try:
@@ -214,7 +211,8 @@ def phenotype_list(request):
         'allTags': Tag.objects.all().order_by('description'),
         'all_CodingSystems': CodingSystem.objects.all().order_by('id'),
         'search_form': search_form,
-        'p_btns': p_btns
+        'p_btns': p_btns,
+        'brand_associated_collections': db_utils.get_brand_associated_collections(request, concept_or_phenotype='phenotype')
         #'expand_published_versions': expand_published_versions,
         #'published_count': PublishedPhenotype.objects.all().count()
     })
@@ -263,14 +261,19 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         data_sources = DataSource.objects.filter(pk__in=ds_list)
         
     #----------------------------------------------------------------------
-    
-    concept_id_list = [x['concept_id'] for x in json.loads(phenotype['concept_informations'])] 
-    concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(phenotype['concept_informations'])] 
-    concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).values('id', 'history_id', 'name', 'group')
+    concept_id_list = []
+    concept_hisoryid_list = []
+    concepts = Concept.history.filter(pk=-1).values('id', 'history_id', 'name', 'group')
+                                                                                                                   
+    if phenotype['concept_informations']:
+        concept_id_list = [x['concept_id'] for x in json.loads(phenotype['concept_informations'])] 
+        concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(phenotype['concept_informations'])] 
+        concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).values('id', 'history_id', 'name', 'group')
+        
     concepts_id_name = json.dumps(list(concepts))
     
     clinicalTerminologies = CodingSystem.objects.filter(pk=-1)
-    CodingSystem_ids = phenotype['clinical_terminologies']  #Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).order_by().values('coding_system_id').distinct()
+    CodingSystem_ids = phenotype['clinical_terminologies'] 
     if CodingSystem_ids:
         clinicalTerminologies = CodingSystem.objects.filter(pk__in=list(CodingSystem_ids))
 
@@ -375,35 +378,36 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     
     conceptBrands = db_utils.getConceptBrands(request, concept_id_list)
     concept_data = []
-    for c in json.loads(phenotype['concept_informations']):
-        c['codingsystem'] = CodingSystem.objects.get(pk = Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).coding_system_id)
-        c['code_attribute_header'] =  Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).code_attribute_header
-        
-        c['alerts'] = ''
-        if not are_concepts_latest_version:
-            if c['concept_version_id'] in version_alerts: 
-                c['alerts'] = version_alerts[c['concept_version_id']]
-        
-        if not children_permitted_and_not_deleted:
-            if c['concept_id'] in error_dic:
-                c['alerts'] += "<BR>- " + "<BR>- ".join(error_dic[c['concept_id']]) 
-         
-        c['alerts'] = re.sub("Child " , "" ,  c['alerts'] , flags=re.IGNORECASE)
-        
-        c['brands'] = ''
-        if c['concept_id'] in conceptBrands:
-            for brand in conceptBrands[c['concept_id']]:
-                c['brands'] += "<img src='" + static('img/brands/' + brand + '/logo.png') + "' height='10px' title='" + brand + "' alt='" + brand + "' /> "
-           
-        c['is_published'] = checkIfPublished(Concept, c['concept_id'], c['concept_version_id'])
-        c['name'] = concepts.get(id=c['concept_id'], history_id=c['concept_version_id'])['name']
-        
-        c['codesCount'] = 0
-        if codelist:
-            c['codesCount'] = len([x['code'] for x in codelist if x['concept_id'] == c['concept_id'] and x['concept_version_id'] == c['concept_version_id'] ])
-        
-        c['concept_friendly_id'] = 'C' + str(c['concept_id'])  
-        concept_data.append(c)
+    if phenotype['concept_informations']:
+        for c in json.loads(phenotype['concept_informations']):
+            c['codingsystem'] = CodingSystem.objects.get(pk = Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).coding_system_id)
+            c['code_attribute_header'] =  Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).code_attribute_header
+            
+            c['alerts'] = ''
+            if not are_concepts_latest_version:
+                if c['concept_version_id'] in version_alerts: 
+                    c['alerts'] = version_alerts[c['concept_version_id']]
+            
+            if not children_permitted_and_not_deleted:
+                if c['concept_id'] in error_dic:
+                    c['alerts'] += "<BR>- " + "<BR>- ".join(error_dic[c['concept_id']]) 
+             
+            c['alerts'] = re.sub("Child " , "" ,  c['alerts'] , flags=re.IGNORECASE)
+            
+            c['brands'] = ''
+            if c['concept_id'] in conceptBrands:
+                for brand in conceptBrands[c['concept_id']]:
+                    c['brands'] += "<img src='" + static('img/brands/' + brand + '/logo.png') + "' height='10px' title='" + brand + "' alt='" + brand + "' /> "
+               
+            c['is_published'] = checkIfPublished(Concept, c['concept_id'], c['concept_version_id'])
+            c['name'] = concepts.get(id=c['concept_id'], history_id=c['concept_version_id'])['name']
+            
+            c['codesCount'] = 0
+            if codelist:
+                c['codesCount'] = len([x['code'] for x in codelist if x['concept_id'] == c['concept_id'] and x['concept_version_id'] == c['concept_version_id'] ])
+            
+            c['concept_friendly_id'] = 'C' + str(c['concept_id'])  
+            concept_data.append(c)
          
     if phenotype['is_deleted'] == True:
         messages.info(request, "This phenotype has been deleted.")
@@ -442,12 +446,16 @@ def checkConceptVersionIsTheLatest(phenotypeID):
     # check live version
     
     phenotype = Phenotype.objects.get(pk=phenotypeID)
-    concepts_id_versionID = json.loads(phenotype.concept_informations)
     
-    is_ok = True
-    
+    is_ok = True    
     version_alerts = {}
     
+    if not phenotype.concept_informations:
+        return is_ok, version_alerts
+    
+    
+    concepts_id_versionID = json.loads(phenotype.concept_informations)
+        
     # loop for concept versions
     for c in concepts_id_versionID:
         c_id = c['concept_id']
