@@ -539,7 +539,9 @@ class SearchTest(StaticLiveServerTestCase):
         browser = self.browser
         browser.get(self.WEBAPP_HOST + reverse('phenotype_list'))
 
-        browser.find_elements_by_xpath("//*[@id='show-advanced-search']").click()
+        time.sleep(settings_cll.IMPLICTLY_WAIT)
+
+        browser.find_element_by_xpath("//*[@id='show-advanced-search']").click()
 
         checkboxes = browser.find_elements_by_name("collection_id")
 
