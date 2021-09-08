@@ -267,7 +267,7 @@ $(function(){
 
 		// autocomplete for finding a concept, enter concept name and it will display a list of possible matches
 		$('#concept-search-text').autocomplete({
-			serviceUrl: '{{ request.CURRENT_BRAND_WITH_SLASH }}/api/concept-search/?concept_id_to_exclude=' + $('#id_concept').val(),
+			serviceUrl: "{% url 'api:concepts_live_and_published' %}?concept_id_to_exclude=" + $('#id_concept').val(),
 			paramName: 'search',
 			transformResult: function(response){
 				// clear the selected field

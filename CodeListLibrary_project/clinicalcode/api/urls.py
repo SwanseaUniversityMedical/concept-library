@@ -27,7 +27,7 @@ Paths which are available as REST API URLs. The router URLs listed above can
 be included via an include().
 '''
 urlpatterns = [
-    url(r'^$', View.customRoot),    
+    url(r'^$', View.customRoot, name='root'),    
     url(r'^', include(router.urls)),
       
     #----------------------------------------------------------  

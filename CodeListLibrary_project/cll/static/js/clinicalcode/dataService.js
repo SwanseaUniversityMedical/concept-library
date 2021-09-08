@@ -23,7 +23,7 @@ var dataService = new function(){
 	};
 	
 	getCodesByCodeList = function(code_list_id, callback){		
-		$.getJSON('/api/codes/?code_list_id=' + code_list_id, function(data){
+		$.getJSON('/api/v1/codes/?code_list_id=' + code_list_id, function(data){
 			callback(data);
 		});
 	};
@@ -78,7 +78,7 @@ var dataService = new function(){
 	
 	// not in use - for now
 	searchConcepts = function(search, callback){
-		$.getJSON('/api/concept-search/?search=' + search, function(data){
+		$.getJSON('/api/v1/concept-search/?search=' + search, function(data){
 			callback(data);
 		});
 	};

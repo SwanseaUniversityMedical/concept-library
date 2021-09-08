@@ -62,7 +62,7 @@ import re
     View sets (see http://www.django-rest-framework.org/api-guide/viewsets).
     ---------------------------------------------------------------------------
 '''
-# /api/concepts-live
+# /api/v1/concepts-live
 class ConceptViewSet(viewsets.ReadOnlyModelViewSet): 
     '''
         Get the API output for the list of concepts.
@@ -94,7 +94,7 @@ class ConceptViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset.order_by('id')
 
 #--------------------------------------------------------------------------
-# /api/concepts_live_and_published
+# /api/v1/concepts_live_and_published
 @api_view(['GET']) 
 def concepts_live_and_published(request):
     
@@ -112,7 +112,7 @@ def concepts_live_and_published(request):
 
 
 #--------------------------------------------------------------------------
-# /api/codes/?code_list_id=123
+# /api/v1/codes/?code_list_id=123
 class CodeViewSet(viewsets.ReadOnlyModelViewSet):
     '''
         Get the API output for the list of codes.
