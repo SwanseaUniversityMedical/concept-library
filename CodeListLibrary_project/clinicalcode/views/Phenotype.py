@@ -192,6 +192,10 @@ def phenotype_list(request):
     if tag_ids:
         tag_ids_list = [int(t) for t in tag_ids.split(',')]
         
+    brand_associated_collections = db_utils.get_brand_associated_collections(request, concept_or_phenotype = 'phenotype')
+    brand_associated_collections_ids = list(brand_associated_collections.values_list('id', flat=True))
+        
+        
     return render(request, 'clinicalcode/phenotype/index.html', {
         'page': page,
         'page_size': str(page_size),
@@ -212,7 +216,9 @@ def phenotype_list(request):
         'all_CodingSystems': CodingSystem.objects.all().order_by('id'),
         'search_form': search_form,
         'p_btns': p_btns,
-        'brand_associated_collections': db_utils.get_brand_associated_collections(request, concept_or_phenotype='phenotype')
+        'brand_associated_collections': brand_associated_collections,
+        'brand_associated_collections_ids': brand_associated_collections_ids,
+        'all_collections_selected': all(item in tag_ids_list for item in brand_associated_collections_ids)
         #'expand_published_versions': expand_published_versions,
         #'published_count': PublishedPhenotype.objects.all().count()
     })

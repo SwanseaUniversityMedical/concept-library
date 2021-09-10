@@ -14,20 +14,10 @@
 			
 			<div class="filter-content">
 				<div class="panel-body" style="padding: 0;" id="filter_by_collection">
-			
-					<div style="display:none;">
-						<input type="hidden" name="search" id="search_filter" value="{{ search|default_if_none:'' }}">	
-						<input type="hidden" name="tagids" id="tagids"  value="{{ tag_ids|default_if_none:'' }}">
-						<input type="hidden" name="search_form" id="collection_search_form"  value="{{ search_form }}">
-									
-						<button  name="page" value="1">
-							<i class="fa fa-search"></i>
-						</button>
-					</div>
 	
 					<div class="checkbox">
 					  <label>
-					    <input type="checkbox" class="collection_tag" id="checkAll" name="collection_id" value="-1" {% if -1 in tag_ids_list  %} checked {% endif %}  > All
+					    <input type="checkbox" class="collection_tag" id="checkAll" name="collection_id" value="-1" {% if all_collections_selected  %} checked {% endif %}  > All
 					  </label>
 					</div>
 					<hr  style="padding: 0; margin: 0;">

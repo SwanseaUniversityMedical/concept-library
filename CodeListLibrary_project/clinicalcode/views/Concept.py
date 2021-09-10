@@ -829,6 +829,11 @@ def concept_list(request):
     if tag_ids:
         tag_ids_list = [int(t) for t in tag_ids.split(',')]
 
+       
+    brand_associated_collections = db_utils.get_brand_associated_collections(request, concept_or_phenotype = 'concept')
+    brand_associated_collections_ids = list(brand_associated_collections.values_list('id', flat=True))
+
+
     return render(request, 'clinicalcode/concept/index.html', {
         'page': page,
         'page_size': str(page_size),
@@ -848,7 +853,9 @@ def concept_list(request):
         'allTags': Tag.objects.all().order_by('description'),
         'search_form': search_form,
         'p_btns': p_btns,
-        'brand_associated_collections': db_utils.get_brand_associated_collections(request, concept_or_phenotype = 'concept')
+        'brand_associated_collections': brand_associated_collections,
+        'brand_associated_collections_ids': brand_associated_collections_ids,
+        'all_collections_selected': all(item in tag_ids_list for item in brand_associated_collections_ids)
         # 'expand_published_versions': expand_published_versions,
         # 'published_count': PublishedConcept.objects.all().count()
     })
