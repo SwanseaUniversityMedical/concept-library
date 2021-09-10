@@ -19,7 +19,8 @@ from django.core.exceptions import ImproperlyConfigured
 import distutils
 from distutils import util
 from decouple import Config, RepositoryEnv, Csv
-
+from rest_framework.reverse import reverse
+from django.shortcuts import render, redirect
        
 class brandMiddleware(MiddlewareMixin):
 
@@ -87,6 +88,7 @@ class brandMiddleware(MiddlewareMixin):
             request.session['user_brands'] = userBrands  #json.dumps(userBrands) 
             request.BRAND_GROUPS = all_brands_groups
 
+            do_redirect = False
             if root in brands_list:
                 if settings.DEBUG: print "root=", root
                 settings.CURRENT_BRAND = root
@@ -99,6 +101,15 @@ class brandMiddleware(MiddlewareMixin):
                 settings.BRAND_OBJECT = brand_object
                 request.BRAND_OBJECT = brand_object
                 
+                if not current_page_url.strip().endswith('/'):
+                    current_page_url = current_page_url.strip() + '/'
+                    
+                # redirect /{brand}/api/  to  /{brand}/api/v1/
+                if '/'.join(current_page_url.split('/')[1:]).strip().lower() in ['api/', 'api']:
+                    do_redirect = True
+                    current_page_url = current_page_url.split('/')[0] + '/api/v1/'
+                   
+                    
                 request.path_info = '/' + '/'.join([root.upper()] + current_page_url.split('/')[1:])
 #                 print "-------"
 #                 print current_page_url
@@ -125,6 +136,10 @@ class brandMiddleware(MiddlewareMixin):
             if str(request.get_full_path()).upper() == "/HDRUK/concepts/create/".upper():
                 raise PermissionDenied
                  
+            # redirect /{brand}/api/  to  /{brand}/api/v1/ to appear in URL address bar
+            if do_redirect:   
+                return redirect(reverse('api:root')) 
+        
             #print "get_urlconf=" , str(get_urlconf())  
             #print "settings.CURRENT_BRAND=" , settings.CURRENT_BRAND  
             #print "request.CURRENT_BRAND=" , request.CURRENT_BRAND  

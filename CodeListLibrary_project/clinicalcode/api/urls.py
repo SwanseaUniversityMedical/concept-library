@@ -10,6 +10,8 @@ from rest_framework import routers
 #from cll import settings
 from django.conf import settings
 from views import (View, Concept, WorkingSet, Phenotype, DataSource)
+
+from clinicalcode.views import View as cc_view
  
 '''
 Use the default REST API router to access the API details explicitly.
@@ -27,7 +29,7 @@ Paths which are available as REST API URLs. The router URLs listed above can
 be included via an include().
 '''
 urlpatterns = [
-    url(r'^$', View.customRoot, name='root'),    
+    url(r'^$', cc_view.customRoot, name='root'),    
     url(r'^', include(router.urls)),
       
     #----------------------------------------------------------  

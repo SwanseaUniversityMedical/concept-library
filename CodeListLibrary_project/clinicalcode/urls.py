@@ -15,16 +15,23 @@ from views import (
     ComponentQueryBuilder, WorkingSet, adminTemp, Phenotype, Admin
 )
 
+from api.views import View as api_view
+from django.views.generic import RedirectView
+from django.core.urlresolvers import reverse_lazy, reverse
+
 urlpatterns = [
-    #url(r'^(?i)$', Concept.concept_list, name='concept_list' ),
     url(r'^$', View.index, name='concept_index' ),
     url(r'^(?i)home/$', View.index, name='concept_index' ),
 
     url(r'^(?i)concepts/$', Concept.concept_list, name='concept_list'),
     url(r'^(?i)workingsets/$', WorkingSet.workingset_list, name='workingset_list'),
     url(r'^(?i)phenotypes/$', Phenotype.phenotype_list, name='phenotype_list'),
+    
+    # redirect api root '/api' to '/api/v1'
+    url(r'^(?i)api/$', RedirectView.as_view(url= reverse('api:root')) , name='api_root_v1'),
 ]
 
+ 
 # About pages
 urlpatterns += [
     # brand/main about pages
