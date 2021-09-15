@@ -274,7 +274,7 @@
 				<div class="col-sm-12 shadow-frame">
 					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="definition"></span><strong>Definition</strong></h3>
 					
-					{{ phenotype.description | markdownify }}
+					{{ phenotype.description|markdownify }}
 				</div>
 				
 				
@@ -347,7 +347,7 @@
                     	{% if phenotype.publications|length %}
                     	   <ul>
 	                    	{% for p in phenotype.publications %}
-							   <li>{{ p|markdownify }}</li>
+							   <li>{{ p }}</li>
 							{% endfor %}
 						   </ul>
 						{% endif %}
