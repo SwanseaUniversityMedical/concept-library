@@ -2765,7 +2765,6 @@ def get_visible_live_or_published_concept_versions(request
         if brand_collection_ids:
             brand_filter_cond = " WHERE tags && '{" + ','.join(brand_collection_ids) + "}' "
             
-        
     with connection.cursor() as cursor:
         cursor.execute("""
                         SELECT 
@@ -3543,21 +3542,54 @@ def get_brand_collection_ids(brand_name):
     """
         returns list of collections (tags) ids associated with the brand
     """
-    
+
 
     brand = Brand.objects.get(name__iexact = brand_name)
     brand_collection_ids = list(Tag.objects.filter(collection_brand = brand.id).values_list('id', flat=True))
     
     return brand_collection_ids
 
-#Collect the unique list of tags in a brand from the statistic object and return as a list.
 def get_brand_associated_collections(request, concept_or_phenotype):
+    '''
+    If user is authenticated show all collection IDs, including those that are deleted, as filtes.
+    If not, show only non-deleted(excluded) IDs.
+    '''
     brand = request.CURRENT_BRAND
     if brand == "":
         brand = 'ALL'
-
     collection_ids = Statistics.objects.get(org__iexact=brand
                                             , type__iexact=['PHENOTYPE_COLLECTIONS', 'CONCEPT_COLLECTIONS'][concept_or_phenotype == 'concept'])
-
     stat_ids = collection_ids.stat
+
+    if request.user.is_authenticated():
+        # If user is authenticated, bring back exclude deleted = 'False'
+        stat_dict = stat_ids[0]
+        stat_ids = stat_dict['Collection_IDs']
+    else:
+        # If user is not authenticated, bring back exclude deleted = 'True'
+        stat_dict = stat_ids[1]
+        stat_ids = stat_dict['Collection_IDs']
+
     return Tag.objects.filter(id__in=stat_ids, tag_type=2)
+
+def get_brand_associated_collections_dynamic(request, concept_or_phenotype):
+    '''
+    get associated collections of the current brand (or all if using default site)
+    dynamically, but not from statistics.
+    '''
+    request.user.is_authenticated()
+    if concept_or_phenotype == 'concept':
+        data = get_visible_live_or_published_concept_versions(request
+                                                              , exclude_deleted=[True, False][request.user.is_authenticated()]
+                                                              )
+    elif concept_or_phenotype == 'phenotype':
+        data = get_visible_live_or_published_phenotype_versions(request
+                                                                , exclude_deleted=[True, False][request.user.is_authenticated()]
+                                                                )
+    Tag_List = []
+    for i in data:
+        if i['tags'] is not None:
+            Tag_List = Tag_List + i['tags']
+    unique_tags = []
+    unique_tags = list(set(Tag_List))
+    return Tag.objects.filter(id__in=unique_tags, tag_type=2)

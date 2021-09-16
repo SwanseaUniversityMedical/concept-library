@@ -172,17 +172,21 @@ def run_statistics_collections(request):
                   )
 
 
-# Function to insert statistics to the table clinicalcode_statistics.
-# This will include the number of collections associated with each brand for phenotype/concepts.
-# The code will not update if an existing unchanged record exists.
 
 def save_statistics_collections(request, concept_or_phenotype, brand):
+    '''
+    Function to insert statistics to the table clinicalcode_statistics.
+    This will include the number of collections associated with each brand for phenotype/concepts.
+    The code will not update if an existing unchanged record exists.
+    '''
+
     if concept_or_phenotype == 'concept':
         concept_stat = get_brand_collections(request, 'concept', force_brand=brand)
 
-        if Statistics.objects.all().filter(org__iexact=brand, type__iexact='CONCEPT_COLLECTIONS').exists():
-            concept_stat = Statistics.objects.get(org__iexact=brand, type__iexact='CONCEPT_COLLECTIONS')
-            concept_stat.stat = concept_stat.stat
+        if Statistics.objects.all().filter(org__iexact=brand, type__iexact='concept_collections').exists():
+            concept_stat_update = get_brand_collections(request, 'concept', force_brand=brand)
+            concept_stat = Statistics.objects.get(org__iexact=brand, type__iexact='concept_collections')
+            concept_stat.stat = concept_stat_update
             concept_stat.updated_by = [None, request.user][request.user.is_authenticated()]
             concept_stat.modified = datetime.now()
             concept_stat.save()
@@ -192,7 +196,7 @@ def save_statistics_collections(request, concept_or_phenotype, brand):
                 modified=datetime.now(),
                 created=datetime.now(),
                 org=brand,
-                type='CONCEPT_COLLECTIONS',
+                type='concept_collections',
                 stat=concept_stat,
                 created_by=[None, request.user][request.user.is_authenticated()],
                 updated_by=[None, request.user][request.user.is_authenticated()]
@@ -201,9 +205,10 @@ def save_statistics_collections(request, concept_or_phenotype, brand):
     else:
         if concept_or_phenotype == 'phenotype':
             concept_stat = get_brand_collections(request, 'phenotype', force_brand=brand)
-            if Statistics.objects.all().filter(org__iexact=brand, type__iexact='PHENOTYPE_COLLECTIONS').exists():
-                concept_stat = Statistics.objects.get(org__iexact=brand, type__iexact='PHENOTYPE_COLLECTIONS')
-                concept_stat.stat = concept_stat.stat
+            if Statistics.objects.all().filter(org__iexact=brand, type__iexact='phenotype_collections').exists():
+                concept_stat_update = get_brand_collections(request, 'phenotype', force_brand=brand)
+                concept_stat = Statistics.objects.get(org__iexact=brand, type__iexact='phenotype_collections')
+                concept_stat.stat = concept_stat_update
                 concept_stat.updated_by = [None, request.user][request.user.is_authenticated()]
                 concept_stat.modified = datetime.now()
                 concept_stat.save()
@@ -213,7 +218,7 @@ def save_statistics_collections(request, concept_or_phenotype, brand):
                     modified=datetime.now(),
                     created=datetime.now(),
                     org=brand,
-                    type='PHENOTYPE_COLLECTIONS',
+                    type='phenotype_collections',
                     stat=concept_stat,
                     created_by=[None, request.user][request.user.is_authenticated()],
                     updated_by=[None, request.user][request.user.is_authenticated()]
@@ -221,22 +226,57 @@ def save_statistics_collections(request, concept_or_phenotype, brand):
         return [concept_stat, obj.id]
 
 
-# Gathers all of the unique collection IDs for a particular brand
-# ForceBrand = Brand Name to search via, concept_or_phenotype will
 def get_brand_collections(request, concept_or_phenotype, force_brand=None):
+    '''
+    For each brand this function will add a new row to the table "Statistics" which will list all of the
+    collection IDs in a dictionary for when they are listed as excluded = True or False.
+    '''
+
     if force_brand == 'ALL':
-        force_brand = None
+        force_brand = ''
 
     if concept_or_phenotype == 'concept':
         data = db_utils.get_visible_live_or_published_concept_versions(request, exclude_deleted=False,
                                                                        force_brand=force_brand)
+        data_deleted = db_utils.get_visible_live_or_published_concept_versions(request, exclude_deleted=True,
+                                                                       force_brand=force_brand)
     elif concept_or_phenotype == 'phenotype':
         data = db_utils.get_visible_live_or_published_phenotype_versions(request, exclude_deleted=False,
-                                                                         force_brand=force_brand)
+                                                                       force_brand=force_brand)
+        data_deleted = db_utils.get_visible_live_or_published_concept_versions(request, exclude_deleted=True,
+                                                                       force_brand=force_brand)
+
+    #Creation of two lists, one for where it is excluded, one for where there are no exclusions.
     Tag_List = []
+    Tag_List_Exclude = []
+
     for i in data:
         if i['tags'] is not None:
             Tag_List = Tag_List + i['tags']
-    unique_tags_ids = []
+    for i in data_deleted:
+        if i['tags'] is not None:
+            Tag_List_Exclude = Tag_List_Exclude + i['tags']
+
+    #create a list for both deleted and excluded tags
     unique_tags_ids = list(set(Tag_List))
-    return list(Tag.objects.filter(id__in=unique_tags_ids, tag_type=2).values_list('id', flat=True))
+    unique_tags_ids_exclude = list(set(Tag_List_Exclude))
+    unique_tags_ids_list = list(Tag.objects.filter(id__in=unique_tags_ids, tag_type=2).values_list('id', flat=True))
+    unique_tags_ids_excluded_list = list(Tag.objects.filter(id__in=unique_tags_ids_exclude, tag_type=2).values_list('id', flat=True))
+
+    #Create two distinct dictionaries for both Exclude Delete = True and False.
+    StatsDict_Exclude = {}
+    StatsDict = {}
+
+
+    StatsDict_Exclude["Exclude_Deleted_Entites"] = True
+    StatsDict_Exclude["Collection_IDs"] = unique_tags_ids_excluded_list
+    StatsDict["Exclude_Deleted_Entites"] = False
+    StatsDict["Collection_IDs"] = unique_tags_ids_list
+
+    #Create list of the two created dictionaries above.
+    StatsDictFinal = []
+    StatsDictFinal.append(StatsDict.copy())
+    StatsDictFinal.append(StatsDict_Exclude.copy())
+
+    #return list(Tag.objects.filter(id__in=unique_tags_ids, tag_type=2).values_list('id', flat=True))
+    return StatsDictFinal
