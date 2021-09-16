@@ -553,14 +553,12 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None):
         filter_cond += " AND COALESCE(validation_performed, FALSE) IS TRUE "
 
     # show phenotypes for a specific brand
+    force_brand = None
     if phenotype_brand != "":
         if Brand.objects.all().filter(name__iexact = phenotype_brand.strip()).exists():
-            current_brand = Brand.objects.all().filter(name__iexact = phenotype_brand.strip())
-            group_list = list(current_brand.values_list('groups', flat=True))
-            filter_cond += " AND group_id IN("+ ', '.join(map(str, group_list)) +") "
-        else:
-            # brand name not found
-            filter_cond += " AND group_id IN(-1) "
+            current_brand = Brand.objects.get(name__iexact = phenotype_brand.strip())
+            force_brand = current_brand.name
+
        
     phenotypes_srch = get_visible_live_or_published_phenotype_versions(request
                                                 , get_live_and_or_published_ver = get_live_and_or_published_ver 
@@ -569,6 +567,7 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None):
                                                 , exclude_deleted = exclude_deleted
                                                 , filter_cond = filter_cond
                                                 , show_top_version_only = show_top_version_only
+                                                , force_brand = force_brand
                                                 )
          
 
@@ -602,7 +601,7 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None):
             
         #--------------
             
-        data_sources = DataSource.objects.filter(pk=-1)
+        data_sources = [] # DataSource.objects.filter(pk=-1)
         data_sources_comp = getHistoryDataSource_Phenotype(c['id'], c['history_date'])
         if data_sources_comp:
             ds_list = [i['datasource_id'] for i in data_sources_comp if 'datasource_id' in i]
@@ -750,21 +749,26 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None, is_authenticated_
 
     phenotype_history_date = phenotype['history_date']
     #--------------
+
         
-    concept_id_list = [x['concept_id'] for x in json.loads(phenotype['concept_informations'])] 
-    concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(phenotype['concept_informations'])] 
-#     concepts = list(Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).values('id', 'history_id', 'name'
-#                                                                                                                 , 'friendly_id', 'history_date'
-#                                                                                                                 , 'code_attribute_header'
-#                                                                                                                 , 'group'))
-    concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list)
+    #----------------------------------------------------------------------
+    concept_id_list = []
+    concept_hisoryid_list = []
+    concepts = Concept.history.filter(pk=-1)
+         
+    if phenotype['concept_informations']:   
+        concept_id_list = [x['concept_id'] for x in json.loads(phenotype['concept_informations'])] 
+        concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(phenotype['concept_informations'])] 
+        concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list)
     
-    CodingSystem_ids = phenotype['clinical_terminologies']  #  Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).order_by().values('coding_system_id').distinct()
-    clinicalTerminologies = list(CodingSystem.objects.filter(pk__in=list(CodingSystem_ids)).values('name', 'id'))
+    clinicalTerminologies = [] #CodingSystem.objects.filter(pk=-1)
+    CodingSystem_ids = phenotype['clinical_terminologies']
+    if CodingSystem_ids: 
+        clinicalTerminologies = list(CodingSystem.objects.filter(pk__in=list(CodingSystem_ids)).values('name', 'id'))
 
     #--------------
             
-    data_sources = DataSource.objects.filter(pk=-1)
+    data_sources = []  #DataSource.objects.filter(pk=-1)
     data_sources_comp = getHistoryDataSource_Phenotype(pk, phenotype_history_date)
     if data_sources_comp:
         ds_list = [i['datasource_id'] for i in data_sources_comp if 'datasource_id' in i]

@@ -861,7 +861,9 @@ class OtherTest(StaticLiveServerTestCase):
         browser.get('%s' % (self.WEBAPP_HOST))
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        browser.get('%s%s' % (self.WEBAPP_HOST, '/api/'))
+        #browser.get('%s%s' % (self.WEBAPP_HOST, '/api/'))
+        browser.get('%s%s' % (self.WEBAPP_HOST, reverse('api:root'
+                                               , kwargs={})))
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 

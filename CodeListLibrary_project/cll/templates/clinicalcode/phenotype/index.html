@@ -21,6 +21,8 @@
 						<h2>Phenotypes</h2>
 						<input type="text" placeholder="Search Phenotypes" name="search" id="search1" value="{{ search|default_if_none:'' }}">
 						<input type="hidden" name="tagids" id="tagids"  value="{{ tag_ids|default_if_none:'' }}">
+						<input type="hidden" name="search_form" id="collection_search_form1"  class="collection_search_form"  value="{{ search_form }}"> 
+						
 						<button classXX="btn btn-info" name="page" value="1">
 							<i class="fa fa-search"></i>
 						</button>
@@ -58,6 +60,9 @@
 									<option value="50" {% if page_size == "50" %}selected="selected" {% endif %}>50</option>
 									<option value="100" {% if page_size == "100" %}selected="selected" {% endif %}>100</option>
 								</select>
+								
+								<input type="hidden" name="search_form" id="collection_search_form"  class="collection_search_form"  value="{{ search_form }}"> 
+								
 							</div>
 						</div>
 						<div class="row form-group">
@@ -229,7 +234,7 @@
 			 } else {
 				 $('#phenotype_brand_img').html(imgPath.replace(/BRANDT1/ig, this.value ) );
 			 }
-			});
+		});
 
 	</script>
 	
@@ -272,59 +277,92 @@
 			$("#show-advanced-search").click(function(){
 				  $("#advanced-search").toggle();
 				  $("#basic-search").toggle();
-				  $("#collection_search_form").val('advanced-form');
+				  $(".collection_search_form").val('advanced-form');
 			});
 			
 			$("#show-basic-search").click(function(){
 				  $("#advanced-search").toggle();
 				  $("#basic-search").toggle();
-				  $("#collection_search_form").val('basic-form');				  
+				  $(".collection_search_form").val('basic-form');				  
 			});
 		});		
 					
 	</script>
 			
+
 	
 	<script type="text/javascript">
-// 		$("#checkAll").click(function () {
-// 		    $(".collection_tag").prop('checked', $(this).prop('checked'));
-// 		});
-	
+		// check if all elements in array 'arr1' are included in array 'arr2'
+		function isSubset(arr1, arr2){
+		  return arr1.every(i => arr2.includes(i));
+		}
+
+		//------------------------------------------
 		$(".collection_tag").change(function() {
 
-			if($(this).prop('id') == 'checkAll'){
-			    $(".collection_tag").prop('checked', $(this).prop('checked'));
-			}else{
-				if(!$(this).prop('checked')){
-					if($("#checkAll").prop('checked')){
-						$("#checkAll").prop('checked', false);
+				if($(this).prop('id') == 'checkAll'){
+				    $(".collection_tag").prop('checked', $(this).prop('checked'));
+				}else{
+					if(!$(this).prop('checked')){
+						if($("#checkAll").prop('checked')){
+							$("#checkAll").prop('checked', false);
+						}
 					}
 				}
-			}
+						
+				
+		         var selected_collections = []
+		         $("input:checkbox[name=collection_id]:checked").each(function(){
+		        	 selected_collections.push(parseInt($(this).val()));
+		         });
+		         
+		         $("#filter_form input[id=tagids]").val(selected_collections);
+		         
+		         
+		        var all_tags = [];
+				{% for tag in allTags %}
+					tg = {"id": {{ tag.id }}, "description": "{{ tag.description }}", "display": "{{ tag.get_display_display }}" };
+					all_tags.push(tg);
+				{% endfor %}	   
+				
+				if($("#collection_search_form1").val() == 'advanced-form'){
+						
+						//first - remove all associated collections
+						{% for tag in brand_associated_collections %}
+							$('#txtTags').tagsinput('remove', {'id': {{ tag.id }}, 'description': '{{ tag.description }}'});
+						{% endfor %}
+						
+						
+						for (let t = 0; t < all_tags.length; t++) { 
+							for( let c = 0; c < selected_collections.length; c++) { 
+								if(selected_collections[c] == all_tags[t].id){
+									$('#txtTags').tagsinput('add', {'id': all_tags[t].id , 'description': all_tags[t].description, 'display': all_tags[t].display} );
+								}
+							}
+						}
+
+						if(isSubset({{ brand_associated_collections_ids|safe }}, selected_collections)){
+							$("#checkAll").prop('checked', true);
+						}
+
+						
+						$("#advanced-form").submit();
+						
+				}else{
+						$("#basic-form input[id=tagids]").val(selected_collections);
+	
+						if(isSubset({{ brand_associated_collections_ids|safe }}, selected_collections)){
+							$("#checkAll").prop('checked', true);
+						}
+						
+						$("#basic-form").submit();
+				}
 			
-			//$("#basic-form input[name=search]").val('Hello World!');
-			$("#search_filter").val($("#basic-form input[name=search]").val());
-			
-			
-	         var selected_collections = []
-	         $("input:checkbox[name=collection_id]:checked").each(function(){
-	        	 //console.log($(this).val());
-	        	 selected_collections.push(parseInt($(this).val()));
-	         });
-	         
-	         $("#filter_form input[id=tagids]").val(selected_collections);
-	         $("#basic-form input[id=tagids]").val(selected_collections);
-	         //$("#tagids").val(selected_collections);
-	         
-			$(this.form).submit();
-// 		    if(this.checked) {
-// 		        //Do stuff
-// 		    	console.log($(this.form));
-// 		    }
 		});	
 		
+			
 	</script>
 	
-
-{% endblock scripts %}
+	
+	{% endblock scripts %}
 

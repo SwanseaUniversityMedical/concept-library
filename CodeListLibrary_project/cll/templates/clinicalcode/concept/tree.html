@@ -106,8 +106,8 @@ $(function(){
 	  }).jstree({
            "core" : {
                "data":{
-               	"url" : "{{ request.CURRENT_BRAND_WITH_SLASH }}/api/childconcepts/" + {{ pk }},
-               	"dataType": "json"
+                   	"url" : "{% url 'api:api_child_concepts' pk %}",
+                   	"dataType": "json"
                }
            },
            "plugins" : [ "themes", "json_data", "ui" ]
@@ -124,8 +124,8 @@ $(function(){
 	  }).jstree({
            "core" : {
                "data":{
-               	"url" : "{{ request.CURRENT_BRAND_WITH_SLASH }}/api/parentconcepts/" + {{ pk }},
-               	"dataType": "json"
+                   	"url" : "{% url 'api:api_parent_concepts' pk %}",
+               		"dataType": "json"
                }
            },
            "plugins" : [ "themes", "json_data", "ui" ]
