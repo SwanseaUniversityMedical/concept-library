@@ -369,6 +369,11 @@ def chk_components_and_codes(components_inputs):
     is_valid_data = True
     err = ""
     ret_value = components_inputs
+    
+    # accepts concepts without components
+    if not components_inputs:
+        return is_valid_data, err, ret_value
+
 
     components = components_inputs
     if components is not None: 
