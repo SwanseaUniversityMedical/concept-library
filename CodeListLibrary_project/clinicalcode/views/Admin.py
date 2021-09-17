@@ -24,6 +24,7 @@ from .. import utils
 from ..permissions import *
 from django.utils.timezone import now
 from datetime import datetime
+from clinicalcode.api.views.Concept import published_concepts
 
 logger = logging.getLogger(__name__)
 
@@ -86,15 +87,16 @@ def get_HDRUK_statistics(request):
     HDRUK_brand_collection_ids = db_utils.get_brand_collection_ids('HDRUK')
     HDRUK_brand_collection_ids = [str(i) for i in HDRUK_brand_collection_ids]
         
-    filter_cond = " 1=1 "
-    if HDRUK_brand_collection_ids:
-        filter_cond += " AND tags && '{" + ','.join(HDRUK_brand_collection_ids) + "}' "
+#     filter_cond = " 1=1 "
+#     if HDRUK_brand_collection_ids:
+#         filter_cond += " AND tags && '{" + ','.join(HDRUK_brand_collection_ids) + "}' "
         
     HDRUK_published_concepts = db_utils.get_visible_live_or_published_concept_versions(request
                                             , get_live_and_or_published_ver = 2 # 1= live only, 2= published only, 3= live+published 
-                                            , exclude_deleted = False
-                                            , filter_cond = filter_cond
+                                            , exclude_deleted = True
+                                            #, filter_cond = filter_cond
                                             , show_top_version_only = False
+                                            , force_brand = 'HDRUK'
                                             )
     
     HDRUK_published_concepts_ids = db_utils.get_list_of_visible_entity_ids(HDRUK_published_concepts
@@ -104,15 +106,16 @@ def get_HDRUK_statistics(request):
                                                                             , return_id_or_history_id = "both")
         
     #--------------------------
-    filter_cond = " 1=1 "
-    if HDRUK_brand_collection_ids:
-        filter_cond += " AND tags && '{" + ','.join(HDRUK_brand_collection_ids) + "}' "
+#     filter_cond = " 1=1 "
+#     if HDRUK_brand_collection_ids:
+#         filter_cond += " AND tags && '{" + ','.join(HDRUK_brand_collection_ids) + "}' "
         
     HDRUK_published_phenotypes = db_utils.get_visible_live_or_published_phenotype_versions(request
                                             , get_live_and_or_published_ver = 2 # 1= live only, 2= published only, 3= live+published 
-                                            , exclude_deleted = False
-                                            , filter_cond = filter_cond
+                                            , exclude_deleted = True
+                                            #, filter_cond = filter_cond
                                             , show_top_version_only = False
+                                            , force_brand = 'HDRUK'
                                             )
     
     HDRUK_published_phenotypes_ids = db_utils.get_list_of_visible_entity_ids(HDRUK_published_phenotypes
@@ -120,13 +123,12 @@ def get_HDRUK_statistics(request):
         
     #return {}
     return  {
-                # ONLY PUBLISHED COUNTS HERE
+                # ONLY PUBLISHED COUNTS HERE (count original entity, not versions)
                 'published_concept_count': len(HDRUK_published_concepts_ids),   #PublishedConcept.objects.filter(concept_id__in = HDRUK_published_concepts_ids).values('concept_id').distinct().count(),
                 'published_phenotype_count': len(HDRUK_published_phenotypes_ids),   # PublishedPhenotype.objects.filter(phenotype_id__in = HDRUK_published_phenotypes_ids).values('phenotype_id').distinct().count(),
                 'published_clinical_codes': get_published_clinical_codes(HDRUK_published_concepts_id_version),
                 'datasources_component_count': DataSource.objects.all().count(),
-                'clinical_terminologies': 9, # number of coding systems
-                # terminologies to be added soon
+                'clinical_terminologies': CodingSystem.objects.all().count(), # number of coding systems
 
             }
 
@@ -135,6 +137,7 @@ def get_published_clinical_codes(published_concepts_id_version):
     '''
         count (none distinct) the clinical codes 
         in published concepts and phenotypes
+        (using directly published concepts of HDRUK
     '''
 
     count = 0
@@ -145,11 +148,30 @@ def get_published_clinical_codes(published_concepts_id_version):
     
     #published_concepts_id_version = PublishedConcept.objects.values_list('concept_id' , 'concept_history_id')
     for c in published_concepts_id_version:
-        cc = len(db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id = c[0], concept_history_id = c[1]))
-        count = count + cc
+        #codecount = len(db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id = c[0], concept_history_id = c[1]))
+        codecount = get_published_concept_codecount(concept_id = c[0], concept_history_id = c[1])
+        count = count + codecount
         
 
     return count  
+
+def get_published_concept_codecount(concept_id , concept_history_id):
+    """
+        return the code count of a published concept version.
+        will save this count in PublishedConcept table if not already so.
+    """
+
+    codecount = 0
+        
+    published_concept = PublishedConcept.objects.get(concept_id = concept_id, concept_history_id = concept_history_id)
+    saved_codecount = published_concept.code_count
+    if saved_codecount is None or saved_codecount == '':
+        codecount = len(db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id = concept_id, concept_history_id = concept_history_id))
+        published_concept.code_count = codecount 
+        published_concept.save()
+        return codecount  
+    else:
+        return saved_codecount
 
 
      
