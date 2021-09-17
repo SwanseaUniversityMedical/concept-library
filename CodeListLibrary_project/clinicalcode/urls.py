@@ -43,7 +43,7 @@ urlpatterns += [
     url(r'^(?i)old/phenotypes/(?P<unique_url>.+)/$', View.HDRUK_portal_redirect, name='HDRUK_portal_redirect' ),
 ]
 
-#======== Admin Temp ===============================================================================
+#======== Admin ===================================================================================
 #======== API testing ==============================================================================
 if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
     urlpatterns += [
@@ -68,7 +68,14 @@ urlpatterns += [
         adminTemp.check_concepts_not_assocated_with_phenotypes,
         name='check_concepts_not_assocated_with_phenotypes'),    
     ]  
-      
+
+# Run statistics to gather collections
+if not settings.CLL_READ_ONLY:
+    urlpatterns += [
+        url(r'^(?i)admin/run-stat-collections/',
+            Admin.run_statistics_collections,
+            name='collections_run_statistics'),
+    ]      
 
 # ======== Phenotypes ==============================================================================
 # add URLConf to create, update, and delete Phenotypes
