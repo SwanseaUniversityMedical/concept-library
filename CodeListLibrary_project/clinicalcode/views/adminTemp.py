@@ -330,7 +330,7 @@ def update_concept_tags_from_phenotype_tags():
         
         
 
-def check_concepts_not_assocated_with_phenotypes(request):
+def check_concepts_not_associated_with_phenotypes(request):
     
     phenotypes = db_utils.get_visible_live_or_published_phenotype_versions(request
                                                                             , exclude_deleted = False
@@ -356,9 +356,9 @@ def check_concepts_not_assocated_with_phenotypes(request):
         
     result =  all(elem in concepts_ids_in_phenotypes  for elem in all_concepts_ids)
     if result:
-        print("Yes, all concepts are associated with phenotypes.")    
+        messages.success(request, "Yes, all concepts are associated with phenotypes.") 
     else :
-        print("No, NOT all concepts are associated with phenotypes.")
+        messages.warning(request, "No, NOT all concepts are associated with phenotypes.") 
         
     unasscoiated_concepts_ids = list(set(all_concepts_ids) - set(concepts_ids_in_phenotypes))
 

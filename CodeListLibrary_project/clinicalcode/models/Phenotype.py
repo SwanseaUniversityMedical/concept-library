@@ -38,7 +38,7 @@ class Phenotype(TimeStampedModel):
     publication_doi = models.CharField(max_length=100)  # DOI of publication
     publication_link = models.URLField(max_length=1000)  # http link to pub
     secondary_publication_links = models.CharField(max_length=3000, null=True, blank=True)
-    implementation = models.CharField(max_length=3000, null=True, blank=True)
+    implementation = models.CharField(max_length=5000, null=True, blank=True)
     source_reference = models.CharField(max_length=250)  # Was this code list from another source?  Reference here.
     citation_requirements = models.CharField(max_length=250)  # Any request for citation requirements to be honoured
     

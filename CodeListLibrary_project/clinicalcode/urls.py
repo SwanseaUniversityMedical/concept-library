@@ -43,8 +43,8 @@ urlpatterns += [
     url(r'^(?i)old/phenotypes/(?P<unique_url>.+)/$', View.HDRUK_portal_redirect, name='HDRUK_portal_redirect' ),
 ]
 
-#======== Admin Temp ===============================================================================
-#======== API testing ==============================================================================
+#======== Admin ===================================================================================
+# for API testing 
 if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
     urlpatterns += [
         url(r'^(?i)adminTemp/api_remove_data/', 
@@ -52,23 +52,29 @@ if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_P
             name='api_remove_data'),      
     ]
     
+# saving statistics 
 if not settings.CLL_READ_ONLY: 
     urlpatterns += [
-        url(r'^(?i)admin/run-stat/', 
+        url(r'^(?i)admin/run-stat/',    # HDRUK stat
             Admin.run_statistics, 
             name='HDRUK_run_statistics'),      
-    ]
 
+        url(r'^(?i)admin/run-stat-collections/',    # collections filter stat
+            Admin.run_statistics_collections,
+            name='collections_run_statistics'),
+    ]      
+
+# check concepts not associated with phenotypes
 urlpatterns += [
     url(r'^(?i)admin/uc/$',
-        adminTemp.check_concepts_not_assocated_with_phenotypes,
-        name='check_concepts_not_assocated_with_phenotypes'),
+        adminTemp.check_concepts_not_associated_with_phenotypes,
+        name='check_concepts_not_associated_with_phenotypes-uc'),
 
     url(r'^(?i)admin/concepts_not_in_phenotypes/$',
-        adminTemp.check_concepts_not_assocated_with_phenotypes,
-        name='check_concepts_not_assocated_with_phenotypes'),    
+        adminTemp.check_concepts_not_associated_with_phenotypes,
+        name='check_concepts_not_associated_with_phenotypes'),    
     ]  
-      
+
 
 # ======== Phenotypes ==============================================================================
 # add URLConf to create, update, and delete Phenotypes
