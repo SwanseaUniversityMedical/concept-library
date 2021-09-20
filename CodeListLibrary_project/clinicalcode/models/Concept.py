@@ -15,7 +15,7 @@ from django.template.defaultfilters import default
 class Concept(TimeStampedModel):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=250)
-    description = models.CharField(max_length=3000)
+    description = models.CharField(max_length=5000)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="concepts_created")
     author = models.CharField(max_length=250)
     entry_date = models.DateField()
