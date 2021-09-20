@@ -27,6 +27,7 @@ from django.http.response import Http404
 from clinicalcode import db_utils
 logger = logging.getLogger(__name__)
 
+from django.conf import settings
 
 def index(request):
     '''
@@ -35,6 +36,8 @@ def index(request):
     
     if request.CURRENT_BRAND == "":
         return render(request, 'clinicalcode/index.html')
+    elif request.CURRENT_BRAND == "BREATHE":
+        return index_BREATHE(request)
     elif request.CURRENT_BRAND == "HDRUK":
         return index_HDRUK(request)
     else:
@@ -75,6 +78,10 @@ def index_HDRUK(request):
                   }
                 )
 
+def index_BREATHE(request):
+    return render(request,
+                  'clinicalcode/brand/BREATHE/index_BREATHE.html',
+                )
 
 
 def about_pages(request, pg_name=None):
@@ -222,3 +229,98 @@ def build_permitted_components_list(request, concept_id, concept_history_id=None
             'latest_history_id':  Concept.objects.get(id=concept_id).history.latest().pk
             }
     return data
+
+
+
+#--------------------------------------------------------------------------
+
+# No authentication for this function
+def customRoot(request):
+    '''
+        Custom API Root page.
+        Replace pk=0 (i.e.'/0/' in the url) with the relevant id.
+        Replace history=0 (i.e.'/0/' in the url) with the relevant version_id.
+    '''
+    from django.shortcuts import render    
+    from rest_framework.reverse import reverse
+    from rest_framework.views import APIView
+
+    #api_absolute_ip = str(request.build_absolute_uri(reverse('api:api_export_concept_codes', kwargs={'pk': 0}))).split('/')[2]
+
+    urls_available = {
+        'export_concept_codes': reverse('api:api_export_concept_codes', kwargs={'pk': 0}),
+        'export_concept_codes_byVersionID': reverse('api:api_export_concept_codes_byVersionID', kwargs={'pk': 0, 'concept_history_id': 123}),
+        'api_export_published_concept_codes': reverse('api:api_export_published_concept_codes', kwargs={'pk': 0, 'concept_history_id': 123}),
+        'concepts': reverse('api:concepts', kwargs={}),
+        'api_concept_detail':  reverse('api:api_concept_detail', kwargs={'pk': 0}),
+        'api_concept_detail_version': reverse('api:api_concept_detail_version', kwargs={'pk': 0, 'concept_history_id': 123}),
+        'api_published_concepts': reverse('api:api_published_concepts', kwargs={}),
+        'api_concept_detail_public': reverse('api:api_concept_detail_public', kwargs={'pk': 0}),
+        'api_concept_detail_version_public': reverse('api:api_concept_detail_version_public', kwargs={'pk': 0, 'concept_history_id': 123}),
+        'get_concept_versions': reverse('api:get_concept_versions', kwargs={'pk': 0}),
+        'get_concept_versions_public': reverse('api:get_concept_versions_public', kwargs={'pk': 0}),
+        'concept_by_id': reverse('api:concept_by_id', kwargs={'pk': 0}),
+        'api_published_concept_by_id': reverse('api:api_published_concept_by_id', kwargs={'pk': 0}),
+        
+        
+        'export_workingset_codes': reverse('api:api_export_workingset_codes', kwargs={'pk': 0}),
+        'export_workingset_codes_byVersionID': reverse('api:api_export_workingset_codes_byVersionID', kwargs={'pk': 0, 'workingset_history_id': 123}),
+        'workingsets': reverse('api:workingsets', kwargs={}),
+        'api_workingset_detail': reverse('api:api_workingset_detail', kwargs={'pk': 0}),
+        'api_workingset_detail_version': reverse('api:api_workingset_detail_version', kwargs={'pk': 0, 'workingset_history_id': 123}),
+        'get_workingset_versions': reverse('api:get_workingset_versions', kwargs={'pk': 0}),
+        'workingset_by_id': reverse('api:workingset_by_id', kwargs={'pk': 0}),
+        
+        # not implemented yet, will be done when creating/updating phenotype
+        #'export_phenotype_codes': reverse('api:api_export_phenotype_codes', kwargs={'pk': 0}),
+        'api_export_phenotype_codes_byVersionID': reverse('api:api_export_phenotype_codes_byVersionID', kwargs={'pk': 0, 'phenotype_history_id': 123}),
+        'phenotypes': reverse('api:phenotypes', kwargs={}),
+        'api_phenotype_detail':  reverse('api:api_phenotype_detail', kwargs={'pk': 0}),
+        'api_phenotype_detail_version': reverse('api:api_phenotype_detail_version', kwargs={'pk': 0, 'phenotype_history_id': 123}),
+        'api_published_phenotypes': reverse('api:api_published_phenotypes', kwargs={}),
+        # not needed to be public
+        #'api_phenotype_detail_public': reverse('api:api_phenotype_detail_public', kwargs={'pk': 0}),
+        'api_phenotype_detail_version_public': reverse('api:api_phenotype_detail_version_public', kwargs={'pk': 0, 'phenotype_history_id': 123}),
+        'api_export_published_phenotype_codes': reverse('api:api_export_published_phenotype_codes', kwargs={'pk': 0, 'phenotype_history_id': 123}),
+        'get_phenotype_versions': reverse('api:get_phenotype_versions', kwargs={'pk': 0}),
+        'get_phenotype_versions_public': reverse('api:get_phenotype_versions_public', kwargs={'pk': 0}),
+        
+        'phenotype_by_id': reverse('api:phenotype_by_id', kwargs={'pk': 0}),
+        'api_published_phenotype_by_id': reverse('api:api_published_phenotype_by_id', kwargs={'pk': 0}),
+        'api_phenotype_detail_public': reverse('api:api_phenotype_detail_public', kwargs={'pk': 0}),
+        'api_phenotype_detail_version': reverse('api:api_phenotype_detail_version', kwargs={'pk': 0, 'phenotype_history_id': 123}),
+        'api_phenotype_detail_version_public': reverse('api:api_phenotype_detail_version_public', kwargs={'pk': 0, 'phenotype_history_id': 123}),
+        'api_export_phenotype_codes_byVersionID': reverse('api:api_export_phenotype_codes_byVersionID', kwargs={'pk': 0, 'phenotype_history_id': 123}),
+        'api_export_published_phenotype_codes': reverse('api:api_export_published_phenotype_codes', kwargs={'pk': 0, 'phenotype_history_id': 123}),
+        'get_phenotype_versions': reverse('api:get_phenotype_versions', kwargs={'pk': 0}),
+        'get_phenotype_versions_public': reverse('api:get_phenotype_versions_public', kwargs={'pk': 0}),
+        
+        'tags': reverse('api:tags-list'),
+    }
+    
+    
+    if not settings.CLL_READ_ONLY:
+        urls_available.update({
+        'api_concept_create': reverse('api:api_concept_create', kwargs={}),
+        'api_concept_update': reverse('api:api_concept_update', kwargs={}),     
+        
+        'api_workingset_create': reverse('api:api_workingset_create', kwargs={}),
+        'api_workingset_update': reverse('api:api_workingset_update', kwargs={}),
+        
+        'api_phenotype_create': reverse('api:api_phenotype_create', kwargs={}),
+        'api_phenotype_update': reverse('api:api_phenotype_update', kwargs={}),
+        'api_datasource_create': reverse('api:api_datasource_create', kwargs={})
+        
+        })
+
+    # replace 0/123 by {id}/{version_id}
+    for k, v in urls_available.items():
+        new_url = urls_available[k].replace('C0', '{id}').replace('PH0', '{id}').replace('WS0', '{id}').replace('123', '{version_id}')
+        urls_available[k] = new_url
+        
+    return render(request,
+                   'rest_framework/API-root-pg.html',
+                   urls_available
+                   )
+
+    

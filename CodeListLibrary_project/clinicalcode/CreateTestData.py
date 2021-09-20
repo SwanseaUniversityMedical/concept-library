@@ -9,7 +9,9 @@ def generate_codes():
         if you want to test your local database with high volume data then call this procedure 
         this method currently populates a coding system table with many records
     '''
-
+    
+    return
+    
     fake = Faker()
 
     with transaction.atomic():
@@ -18,4 +20,4 @@ def generate_codes():
                 cursor.execute("insert into clinicalcode_lookup (code, description) values (%s, %s); ", [fake.ean(length=8), fake.text(max_nb_chars=250, ext_word_list=None)])
 
 
-generate_codes()
+#generate_codes()

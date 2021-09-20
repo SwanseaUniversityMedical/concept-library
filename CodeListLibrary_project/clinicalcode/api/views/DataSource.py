@@ -139,7 +139,7 @@ def get_data_source(request, pk=None, get_live_phenotypes=False, show_published_
                 ds.url,
                 ds.uid,
                 ds.description,
-                ds.brand
+                ds.brand.name
             ]
         if get_live_phenotypes:
             ret.append(get_LIVE_phenotypes_associated_with_data_source(ds.id, show_published_data_only=show_published_data_only))

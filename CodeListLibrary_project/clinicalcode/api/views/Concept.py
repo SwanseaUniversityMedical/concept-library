@@ -62,7 +62,7 @@ import re
     View sets (see http://www.django-rest-framework.org/api-guide/viewsets).
     ---------------------------------------------------------------------------
 '''
-# /api/concepts-live
+# /api/v1/concepts-live
 class ConceptViewSet(viewsets.ReadOnlyModelViewSet): 
     '''
         Get the API output for the list of concepts.
@@ -94,7 +94,7 @@ class ConceptViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset.order_by('id')
 
 #--------------------------------------------------------------------------
-# /api/concepts_live_and_published
+# /api/v1/concepts_live_and_published
 @api_view(['GET']) 
 def concepts_live_and_published(request):
     
@@ -112,7 +112,7 @@ def concepts_live_and_published(request):
 
 
 #--------------------------------------------------------------------------
-# /api/codes/?code_list_id=123
+# /api/v1/codes/?code_list_id=123
 class CodeViewSet(viewsets.ReadOnlyModelViewSet):
     '''
         Get the API output for the list of codes.
@@ -1000,14 +1000,11 @@ def getConcepts(request, is_authenticated_user=True, pk=None):
         filter_cond += " AND COALESCE(validation_performed, FALSE) IS TRUE "
 
     # show concepts for a specific brand
+    force_brand = None
     if concept_brand != "":
         if Brand.objects.all().filter(name__iexact = concept_brand.strip()).exists():
-            current_brand = Brand.objects.all().filter(name__iexact = concept_brand.strip())
-            group_list = list(current_brand.values_list('groups', flat=True))
-            filter_cond += " AND group_id IN("+ ', '.join(map(str, group_list)) +") "
-        else:
-            # brand name not found
-            filter_cond += " AND group_id IN(-1) "
+            current_brand = Brand.objects.get(name__iexact = concept_brand.strip())
+            force_brand = current_brand.name
        
     concepts_srch = get_visible_live_or_published_concept_versions(request
                                                 , get_live_and_or_published_ver = get_live_and_or_published_ver 
@@ -1016,6 +1013,7 @@ def getConcepts(request, is_authenticated_user=True, pk=None):
                                                 , exclude_deleted = exclude_deleted
                                                 , filter_cond = filter_cond
                                                 , show_top_version_only = show_top_version_only
+                                                , force_brand = force_brand
                                                 )
      
 

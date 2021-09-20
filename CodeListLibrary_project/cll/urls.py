@@ -58,7 +58,7 @@ if not settings.CLL_READ_ONLY:
 
 # api
 urlpatterns += [
-    url(r'^(?i)api/', include('clinicalcode.api.urls', namespace='api')),
+    url(r'^(?i)api/v1/', include('clinicalcode.api.urls', namespace='api')),
 ]
 #--------------------------------------------------------------------
 

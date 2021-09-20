@@ -325,10 +325,25 @@
 				-------------------------------------------------------------------
 		  -->					
 			<div class="col-sm-12 shadow-frame">
-				<h3 class="paneltitle" id="ClinicalCodeLists" style="margin-top:20px; margin-bottom:20px"><span id="CodeLists"></span><strong>Clinical Code List</strong></h3>
+				<h3 class="paneltitle" id="ClinicalCodeLists" style="margin-top:20px; margin-bottom:20px"><span id="CodeLists"></span><strong>Clinical Code List</strong>
+		<!--		<a href="#" role="button" class="btn popovers" id="help-components-codelist-concept" data-toggle="popover" data-trigger="hover" data-container="body" title="" data-original-title="" data-placement="right">
+								<i class="fa fa-question-circle" aria-hidden="true"></i>
+				</a>
+		-->
+				</h3>
 				
 					
 				<ul class="nav nav-tabs tabs-up" role="tablist">
+				<div class="row">
+					<div class="col-sm-1" id="help-phenotype-history-container">
+						
+					</div>
+					<div class="col-sm-11 text-right">
+						<a href="#" role="button" class="btn-popovers" id="help-components-codelist-concept" data-toggle="popover" data-trigger="hover" title="" data-original-title="" data-placement="left">
+							<i class="fa fa-question-circle" aria-hidden="true"></i>
+						</a>
+					</div>
+				</div>	
 				  <li class="nav-item {{ component_tab_active }}">
 				    <a href="#component-tab-div" data-toggle="tab" id="componentstab" data-target="#component-tab-div" class="media_node {{ component_tab_active }} span">
 				    	<h4><i class="fa fa-cogs" aria-hidden="true"></i> Components</h4>
@@ -631,13 +646,13 @@
 	  	  	<span id="history-section">
 	  	  		{% if user.is_authenticated %}
 				<div class="row">
-					<div class="col-sm-11" id="help-phenotype-history-container">
+					<div class="col-sm-1" id="help-phenotype-history-container">
 						
 					</div>
-					<div class="col-sm-1 text-right">
-						<a href="#" role="button" class="popovers" id="help-concept-history" data-container="#help-concept-history-container" data-toggle="popover" data-trigger="hover" title="" data-original-title="version history" data-placement="left">
+					<div class="col-sm-11 text-right">
+						<a href="#" role="button" class="btn-popovers" id="help-concept-history" data-toggle="popover" data-trigger="hover" title="" data-original-title="" data-placement="left">
 							<i class="fa fa-question-circle" aria-hidden="true"></i>
-						</a>
+						</a>						
 					</div>
 				</div>	
 				{% endif %}	
@@ -722,6 +737,11 @@
 				<strong>Print</strong> - Print page.
 			</p>
 						
+		</div>
+		<div id="popover-content-help-components-codelist-concept" class="hide popover-lg">
+			<p>
+				Components are individual rules matching a set of codes. One or more components are used to define the codes contained within a concept.
+			</p>
 		</div>
 	</div>
 </div>
