@@ -80,7 +80,7 @@ urlpatterns += [
 # enable index page for all brands
 for brand in brands:
     urlpatterns += [
-        url(r'^(?i)'+brand+'', View.index, name='concept_index' ),
+        url(r'^(?i)'+brand+'', View.index, name='concept_library_home' ),
         ]
 #--------------------------------------------------------------------
 
