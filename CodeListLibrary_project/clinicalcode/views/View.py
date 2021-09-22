@@ -91,7 +91,7 @@ def about_pages(request, pg_name=None):
 
     # main CL about page
     if pg_name.lower() == "cl_about_page".lower():
-        return render(request, 'clinicalcode/cl-about.html', {})
+        return render(request, 'clinicalcode/index.html', {})
     
     
     
@@ -119,7 +119,7 @@ def about_pages(request, pg_name=None):
     
     else:
         return render(request,
-                    'clinicalcode/cl-about.html',
+                    'clinicalcode/index.html',
                     {}
                 )
 
