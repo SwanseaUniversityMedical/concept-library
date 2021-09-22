@@ -20,8 +20,8 @@ from django.views.generic import RedirectView
 from django.core.urlresolvers import reverse_lazy, reverse
 
 urlpatterns = [
-    url(r'^$', View.index, name='concept_index' ),
-    url(r'^(?i)home/$', View.index, name='concept_index' ),
+    url(r'^$', View.index, name='concept_library_home' ),
+    url(r'^(?i)home/$', View.index, name='concept_library_home' ),
 
     url(r'^(?i)concepts/$', Concept.concept_list, name='concept_list'),
     url(r'^(?i)workingsets/$', WorkingSet.workingset_list, name='workingset_list'),
@@ -401,7 +401,7 @@ if not settings.CLL_READ_ONLY:
 urlpatterns += [
     url('^change-password/$', 
         auth_views.password_change, 
-        {'post_change_redirect': 'concept_index'},
+        {'post_change_redirect': 'concept_library_home'},
         name='password_change'),
     ]
 
