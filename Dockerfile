@@ -38,7 +38,7 @@ RUN \
 
 #########################################
 # pip old ver for py2
-COPY pip-20.2-py2.py3-none-any.whl /var/www/concept_lib_sites/v1/requirements/pip-20.2-py2.py3-none-any.whl
+#COPY pip-20.2-py2.py3-none-any.whl /var/www/concept_lib_sites/v1/requirements/pip-20.2-py2.py3-none-any.whl
 
 
 # Deploy script
