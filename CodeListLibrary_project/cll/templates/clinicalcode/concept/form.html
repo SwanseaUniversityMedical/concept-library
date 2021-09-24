@@ -525,8 +525,7 @@
 					<hr />
 					{% if form.instance.pk is None %}
 					<div id="concept-components" class="form-group">
-						<h3 class="col-sm-3" style="margin:0px;"><i class="fa fa-cogs" aria-hidden="true"></i>
-							Components</h3>
+						<h3 class="col-sm-3" style="margin:0px;">Components</h3>
 						<div class="col-sm-7">
 							<div class="alert alert-danger" role="alert">
 								<span>Initial concept details must be saved before adding components</span>
@@ -535,8 +534,7 @@
 					</div>
 					{% else %}
 					<div id="concept-components" class="form-group">
-						<h3 class="col-sm-3" style="margin:0px;"><i class="fa fa-cogs" aria-hidden="true"></i>
-							Components</h3>
+						<h3 class="col-sm-3" style="margin:0px;">Components</h3>
 						<div class="col-sm-8" id="concept-component-form-container">
 							{% with pk=form.instance.pk %}
 								{% include './add_menu_items.html' %}
@@ -602,14 +600,14 @@
 						</div>
 					</div>
 				</form>
-				<!--	-------------------------------------------------------------------
-			CHANGE HISTORY
+	<!--	-------------------------------------------------------------------
+			Version History
 			-------------------------------------------------------------------
 	  -->
 				<hr />
 				<div class="row">
 					<div class="col-sm-11" id="help-concept-history-container">
-						<h3><i class="fa fa-history" aria-hidden="true"></i> versions</h3>
+						<h3>Version History</h3>
 					</div>
 					<div class="col-sm-1 text-right">
 						<a href="#" role="button" class="popovers" id="help-concept-history"

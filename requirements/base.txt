@@ -1,8 +1,10 @@
 aldjemy==0.3.10
+bleach==3.3.1
 defusedxml==0.5.0
 Django==1.11.3
 django-auth-ldap==1.2.16
 django-extensions==2.1.2
+django-markdownify==0.8.1
 django-mathfilters==0.4.0
 django-simple-history==1.9.0
 djangorestframework==3.6.3
@@ -15,6 +17,10 @@ Faker==0.8.3
 graphviz==0.9
 idna==2.6
 ipaddress==1.0.18
+Markdown==3.1.1
+numpy==1.16.6
+packaging==20.9
+pandas==0.24.2
 pathlib==1.0.1
 psycopg2==2.7.1
 pydot==1.2.4
@@ -28,4 +34,4 @@ six==1.11.0
 SQLAlchemy==1.1.11
 typing==3.6.6
 urllib3==1.24.1
-django-markdownify==0.8.1
+webencodings==0.5.1
