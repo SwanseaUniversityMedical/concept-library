@@ -347,7 +347,7 @@
                     	{% if phenotype.publications|length %}
                     	   <ul>
 	                    	{% for p in phenotype.publications %}
-							   <li>{{ p }}</li>
+							   <li>{{ p|markdownify }}</li>
 							{% endfor %}
 						   </ul>
 						{% endif %}
