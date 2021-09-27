@@ -2850,7 +2850,7 @@ def get_visible_live_or_published_phenotype_versions(request
                                                     , filter_cond = ""
                                                     , show_top_version_only = False
                                                     , force_brand = None
-                                                    , force_get_live_and_or_published_ver = None
+                                                    , force_get_live_and_or_published_ver = None      # used only with no login
                                                     ):
     ''' Get all visible live or published phenotype versions 
     - return all columns
@@ -3593,12 +3593,12 @@ def get_brand_associated_collections_dynamic(request, concept_or_phenotype):
     """
 
     if concept_or_phenotype == 'concept':
-        data = get_visible_live_or_published_concept_versions(request, 
-                                                            exclude_deleted=[True, False][request.user.is_authenticated()]
+        data = get_visible_live_or_published_concept_versions(request 
+                                                            , exclude_deleted=[True, False][request.user.is_authenticated()]
                                                             )
     elif concept_or_phenotype == 'phenotype':
-        data = get_visible_live_or_published_phenotype_versions(request, 
-                                                            exclude_deleted=[True, False][request.user.is_authenticated()]
+        data = get_visible_live_or_published_phenotype_versions(request 
+                                                            , exclude_deleted=[True, False][request.user.is_authenticated()]
                                                             )
         
     Tag_List = []
