@@ -90,6 +90,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         )
         
         update_friendly_id()
+        save_stat(self.WEBAPP_HOST)
 
     def tearDown(self):
         self.browser.quit()
