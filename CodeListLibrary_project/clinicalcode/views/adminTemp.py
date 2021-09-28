@@ -329,7 +329,7 @@ def update_concept_tags_from_phenotype_tags():
 
         
         
-
+@login_required   
 def check_concepts_not_associated_with_phenotypes(request):
     
     phenotypes = db_utils.get_visible_live_or_published_phenotype_versions(request

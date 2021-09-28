@@ -2681,6 +2681,7 @@ def get_visible_live_or_published_concept_versions(request
                                                     , filter_cond = ""
                                                     , show_top_version_only = False
                                                     , force_brand = None
+                                                    , force_get_live_and_or_published_ver = None    # used only with no login
                                                     ):
     # type: (object, object, object, object, object, object, object, object) -> object
     ''' Get all visible live or published concept versions 
@@ -2694,6 +2695,8 @@ def get_visible_live_or_published_concept_versions(request
     user_cond = ""
     if not request.user.is_authenticated():
         get_live_and_or_published_ver = 2   #    2= published only
+        if force_get_live_and_or_published_ver is not None:
+            get_live_and_or_published_ver = force_get_live_and_or_published_ver
     else:  
         if request.user.is_superuser:
             user_cond = ""
@@ -2847,6 +2850,7 @@ def get_visible_live_or_published_phenotype_versions(request
                                                     , filter_cond = ""
                                                     , show_top_version_only = False
                                                     , force_brand = None
+                                                    , force_get_live_and_or_published_ver = None      # used only with no login
                                                     ):
     ''' Get all visible live or published phenotype versions 
     - return all columns
@@ -2859,6 +2863,8 @@ def get_visible_live_or_published_phenotype_versions(request
     user_cond = ""
     if not request.user.is_authenticated():
         get_live_and_or_published_ver = 2   #    2= published only
+        if force_get_live_and_or_published_ver is not None:
+            get_live_and_or_published_ver = force_get_live_and_or_published_ver
     else:  
         if request.user.is_superuser:
             user_cond = ""
@@ -3579,6 +3585,7 @@ def get_brand_associated_collections(request, concept_or_phenotype):
 
     return Tag.objects.filter(id__in=stat_ids, tag_type=2)
 
+
 def get_brand_associated_collections_dynamic(request, concept_or_phenotype):
     """
         get associated collections of the current brand (or all if using default site)
@@ -3586,12 +3593,12 @@ def get_brand_associated_collections_dynamic(request, concept_or_phenotype):
     """
 
     if concept_or_phenotype == 'concept':
-        data = get_visible_live_or_published_concept_versions(request, 
-                                                            exclude_deleted=[True, False][request.user.is_authenticated()]
+        data = get_visible_live_or_published_concept_versions(request 
+                                                            , exclude_deleted=[True, False][request.user.is_authenticated()]
                                                             )
     elif concept_or_phenotype == 'phenotype':
-        data = get_visible_live_or_published_phenotype_versions(request, 
-                                                            exclude_deleted=[True, False][request.user.is_authenticated()]
+        data = get_visible_live_or_published_phenotype_versions(request 
+                                                            , exclude_deleted=[True, False][request.user.is_authenticated()]
                                                             )
         
     Tag_List = []
