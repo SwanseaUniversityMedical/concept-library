@@ -4,6 +4,7 @@
 	 the page is created and also dynamically when a new component is added.
 	 ---------------------------------------------------------------------- 
 -->
+{% load markdownify %}
 <table class="table table-striped small-table table-hover" id="history-table" >
 	<thead>
 		<tr>
@@ -33,7 +34,7 @@
 				{{ history.name }}
 				</a>
 			</td>
-			<td title="{{ history.description }}">{{ history.description|truncatechars:50 }}</td>
+			<td title="{{ history.description }}">{{ history.description|truncatechars:50| markdownify}}</td>
 			{% if user.is_authenticated %}
 				<td>{{ history.history_date}}</td>
 				<td>{{ history.history_change_reason }}</td>
