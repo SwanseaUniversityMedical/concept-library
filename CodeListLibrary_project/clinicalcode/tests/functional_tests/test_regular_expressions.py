@@ -109,6 +109,7 @@ class RegularExpressionsTest(StaticLiveServerTestCase):
                                                           codes_names_list=["i1", "i2", "i3"])
         
         update_friendly_id()
+        save_stat(self.WEBAPP_HOST)
 
     def tearDown(self):
         self.browser.quit()

@@ -108,6 +108,7 @@ class HistoryTest(StaticLiveServerTestCase):
         self.codes = self.comp1[2]
         
         update_friendly_id()
+        save_stat(self.WEBAPP_HOST)
 
     def tearDown(self):
         self.browser.quit()

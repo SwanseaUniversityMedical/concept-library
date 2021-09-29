@@ -29,7 +29,7 @@ class SearchTest(StaticLiveServerTestCase):
 
     def setUp(self):
         location = os.path.dirname(__file__)
-        self.NUM_PHENOTYPES = 70
+        self.NUM_PHENOTYPES = 100
 
         self.factory = RequestFactory()
         if settings_cll.REMOTE_TEST:
@@ -50,6 +50,7 @@ class SearchTest(StaticLiveServerTestCase):
         if settings_cll.REMOTE_TEST:
             self.WEBAPP_HOST = settings_cll.WEBAPP_HOST
 
+        save_stat(self.WEBAPP_HOST)
         self.load_data()
 
     def load_data(self):
@@ -116,6 +117,7 @@ class SearchTest(StaticLiveServerTestCase):
                                            ))
 
         update_friendly_id()
+        save_stat(self.WEBAPP_HOST)
 
     def create_test_phenotype(self, name, description, tags, group, is_deleted, owner, author):
         phenotype = Phenotype.objects.create(
@@ -192,6 +194,7 @@ class SearchTest(StaticLiveServerTestCase):
         wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, 'p.navbar-text'), username))
 
     def test_tags_filter(self):
+
         self.login(su_user, su_password)
         browser = self.browser
 
@@ -315,12 +318,18 @@ class SearchTest(StaticLiveServerTestCase):
 
             browser.find_element_by_id("search").send_keys(randomstring)
 
+            time.sleep(5)
+
             browser.find_element_by_xpath('//button[@class = "btn btn-primary"]').click()
+
+            time.sleep(5)
 
             self.assertTrue("No phenotypes" not in browser.page_source)
 
             browser.find_element_by_id("reset-form").click()
 
+    """
+    NOT FOR REALEASE 1
     def test_blank_search_input(self):
         self.login(su_user, su_password)
         browser = self.browser
@@ -361,6 +370,7 @@ class SearchTest(StaticLiveServerTestCase):
             browser.find_element_by_id("reset-form").click()
 
             browser.find_elements_by_name("collection_id")[i].click()
+        """
 
     def test_blank_phenotype_search(self):
         self.login(su_user, su_password)
@@ -418,8 +428,9 @@ class SearchTest(StaticLiveServerTestCase):
         time.sleep(settings_cll.IMPLICTLY_WAIT)
 
         browser.find_elements_by_name("collection_id")[0].click()
+        print browser.find_element_by_id("search").text
 
-        self.assertTrue(browser.find_element_by_id("search").text is None)
+        self.assertTrue(browser.find_element_by_id("search").text == "")
 
     def test_search(self):
         self.login(su_user, su_password)
@@ -447,20 +458,22 @@ class SearchTest(StaticLiveServerTestCase):
             time.sleep(settings_cll.IMPLICTLY_WAIT)
             browser.find_element_by_id("reset-form").click()
 
-            # Find phenotype by friendly ID
-            browser.find_element_by_id("search").send_keys(random_phenotype[:3].strip())
-            browser.find_element_by_xpath('//button[@class = "btn btn-primary"]').click()
-            self.assertTrue("No phenotypes" not in browser.page_source)
-            time.sleep(settings_cll.IMPLICTLY_WAIT)
-            browser.find_element_by_id("reset-form").click()
+            # Find phenotype by friendly ID (GOING to be extra feature)
+            # browser.find_element_by_id("search").send_keys(random_phenotype[:3].strip())
+            # browser.find_element_by_xpath('//button[@class = "btn btn-primary"]').click()
+            # self.assertTrue("No phenotypes" not in browser.page_source)
+            # time.sleep(settings_cll.IMPLICTLY_WAIT)
+            # browser.find_element_by_id("reset-form").click()
 
+            # time.sleep(settings_cll.IMPLICTLY_WAIT)
             # Find phenotype by full name
-            browser.find_element_by_id("search").send_keys(random_phenotype.strip())
-            browser.find_element_by_xpath('//button[@class = "btn btn-primary"]').click()
-            self.assertTrue("No phenotypes" not in browser.page_source)
-            time.sleep(settings_cll.IMPLICTLY_WAIT)
-            browser.find_element_by_id("reset-form").click()
+            # browser.find_element_by_id("search").send_keys(random_phenotype.strip())
+            # browser.find_element_by_xpath('//button[@class = "btn btn-primary"]').click()
+            # self.assertTrue("No phenotypes" not in browser.page_source)
+            # time.sleep(settings_cll.IMPLICTLY_WAIT)
+            # browser.find_element_by_id("reset-form").click()
 
+            time.sleep(settings_cll.IMPLICTLY_WAIT)
             # Find by partial name of phenotype
             self.create_test_phenotype("COVID-19 infection", "desc", [i], self.permitted_group, False,
                                        owner=self.owner_user, author="author")
@@ -592,6 +605,8 @@ class SearchTest(StaticLiveServerTestCase):
 
         self.assertTrue("No phenotypes" not in browser.page_source)
 
+    """
+    NOT FOR RELEASE 1
     def test_basic_to_advanced_search(self):
         self.login(ow_user, ow_password)
 
@@ -624,6 +639,8 @@ class SearchTest(StaticLiveServerTestCase):
         browser.find_element_by_xpath("//*[@id='show-basic-search']").click()
 
         self.assertTrue(browser.find_element_by_id("search1").get_attribute("value") == "")
+        
+        """
 
     def test_tag_input_bar(self):
         self.login(ow_user, ow_password)
