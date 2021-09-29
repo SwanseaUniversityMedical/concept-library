@@ -3563,43 +3563,54 @@ def get_brand_collection_ids(brand_name):
 def get_brand_associated_collections(request, concept_or_phenotype):
     """
         If user is authenticated show all collection IDs, including those that are deleted, as filters.
-        If not, show only non-deleted entities related collection IDs.
+        If not, show only non-deleted/published entities related collection IDs.
     """
     
     brand = request.CURRENT_BRAND
     if brand == "":
         brand = 'ALL'
         
-    collection_ids = Statistics.objects.get(org__iexact=brand
-                                            , type__iexact=['phenotype_collections', 'concept_collections'][concept_or_phenotype == 'concept'])
-    stat_ids = collection_ids.stat
+    collection_ids = Statistics.objects.get(org__iexact = brand
+                                            , type__iexact = ['phenotype_collections', 'concept_collections'][concept_or_phenotype == 'concept']
+                                            )
+    stats = collection_ids.stat
 
-    if request.user.is_authenticated():
-        # If user is authenticated, bring back exclude deleted = 'False'
-        stat_dict = stat_ids[0]
-        stat_ids = stat_dict['Collection_IDs']
-    else:
-        # If user is not authenticated, bring back exclude deleted = 'True'
-        stat_dict = stat_ids[1]
-        stat_ids = stat_dict['Collection_IDs']
+    collections_ids = []
+    for s in stats:
+        if request.user.is_authenticated():
+            # If user is authenticated, bring back all collections IDs
+            if s['Data_Scope'] == 'all_data':
+                collections_ids = s['Collection_IDs']
+        else:
+            # If user is not authenticated, bring back published data related collections IDs
+            if s['Data_Scope'] == 'published_data':
+                collections_ids = s['Collection_IDs']   
 
-    return Tag.objects.filter(id__in=stat_ids, tag_type=2)
+
+    return Tag.objects.filter(id__in=collections_ids, tag_type=2)
 
 
 def get_brand_associated_collections_dynamic(request, concept_or_phenotype):
     """
         get associated collections of the current brand (or all if using default site)
-        dynamically, but not from statistics.
+        dynamically, Not from statistics.
     """
 
     if concept_or_phenotype == 'concept':
-        data = get_visible_live_or_published_concept_versions(request 
-                                                            , exclude_deleted=[True, False][request.user.is_authenticated()]
-                                                            )
+        data = get_visible_live_or_published_concept_versions(request
+                                                               , get_live_and_or_published_ver = [2, 3][request.user.is_authenticated()] # 1= live only, 2= published only, 3= live+published 
+                                                               , exclude_deleted=[True, False][request.user.is_authenticated()]
+                                                               , force_get_live_and_or_published_ver = [2, 3][request.user.is_authenticated()]
+                                                               )
+        
     elif concept_or_phenotype == 'phenotype':
-        data = get_visible_live_or_published_phenotype_versions(request 
-                                                            , exclude_deleted=[True, False][request.user.is_authenticated()]
-                                                            )
+        data = get_visible_live_or_published_phenotype_versions(request
+                                                               , get_live_and_or_published_ver = [2, 3][request.user.is_authenticated()] # 1= live only, 2= published only, 3= live+published 
+                                                               , exclude_deleted=[True, False][request.user.is_authenticated()]
+                                                               , force_get_live_and_or_published_ver = [2, 3][request.user.is_authenticated()]
+                                                               )
+
+
         
     Tag_List = []
     for i in data:
