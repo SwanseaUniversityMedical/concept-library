@@ -175,6 +175,7 @@ class VersioningTest(StaticLiveServerTestCase):
         self.workingset_everybody_can_edit.save()
         
         update_friendly_id()
+        save_stat(self.WEBAPP_HOST)
 
     def tearDown(self):
         self.browser.quit()

@@ -37,6 +37,9 @@ import os
 
     
 def run_statistics(request):
+    """
+        save HDR-UK home page statistics
+    """
 #     if not request.user.is_superuser:
 #         raise PermissionDenied
 
@@ -87,16 +90,12 @@ def get_HDRUK_statistics(request):
     HDRUK_brand_collection_ids = db_utils.get_brand_collection_ids('HDRUK')
     HDRUK_brand_collection_ids = [str(i) for i in HDRUK_brand_collection_ids]
         
-#     filter_cond = " 1=1 "
-#     if HDRUK_brand_collection_ids:
-#         filter_cond += " AND tags && '{" + ','.join(HDRUK_brand_collection_ids) + "}' "
-        
     HDRUK_published_concepts = db_utils.get_visible_live_or_published_concept_versions(request
                                             , get_live_and_or_published_ver = 2 # 1= live only, 2= published only, 3= live+published 
                                             , exclude_deleted = True
-                                            #, filter_cond = filter_cond
                                             , show_top_version_only = False
                                             , force_brand = 'HDRUK'
+                                            , force_get_live_and_or_published_ver = 2 # get published data
                                             )
     
     HDRUK_published_concepts_ids = db_utils.get_list_of_visible_entity_ids(HDRUK_published_concepts
@@ -106,22 +105,18 @@ def get_HDRUK_statistics(request):
                                                                             , return_id_or_history_id = "both")
         
     #--------------------------
-#     filter_cond = " 1=1 "
-#     if HDRUK_brand_collection_ids:
-#         filter_cond += " AND tags && '{" + ','.join(HDRUK_brand_collection_ids) + "}' "
         
     HDRUK_published_phenotypes = db_utils.get_visible_live_or_published_phenotype_versions(request
                                             , get_live_and_or_published_ver = 2 # 1= live only, 2= published only, 3= live+published 
                                             , exclude_deleted = True
-                                            #, filter_cond = filter_cond
                                             , show_top_version_only = False
                                             , force_brand = 'HDRUK'
+                                            , force_get_live_and_or_published_ver = 2 # get published data
                                             )
     
     HDRUK_published_phenotypes_ids = db_utils.get_list_of_visible_entity_ids(HDRUK_published_phenotypes
                                                                             , return_id_or_history_id = "id")
         
-    #return {}
     return  {
                 # ONLY PUBLISHED COUNTS HERE (count original entity, not versions)
                 'published_concept_count': len(HDRUK_published_concepts_ids),   #PublishedConcept.objects.filter(concept_id__in = HDRUK_published_concepts_ids).values('concept_id').distinct().count(),
@@ -198,7 +193,7 @@ def run_statistics_collections(request):
     return render(request,
                   'clinicalcode/admin/run_statistics.html',
                   {
-                      'successMsg': ['Collections for concepts//Phenotypes statistics saved'],
+                      'successMsg': ['Collections for concepts/Phenotypes statistics saved'],
                   }
                   )
 
@@ -253,62 +248,79 @@ def save_statistics_collections(request, concept_or_phenotype, brand):
 def get_brand_collections(request, concept_or_phenotype, force_brand=None):
     """
         For each brand this function will add a new row to the table "Statistics" which will list all of the
-        collection IDs in a dictionary for when they are listed as excluded = True or False.
+        collection IDs in a dictionary for when they are listed as published or not.
     """
 
     if force_brand == 'ALL':
         force_brand = ''
 
     if concept_or_phenotype == 'concept':
-        data = db_utils.get_visible_live_or_published_concept_versions(request, 
-                                                                       exclude_deleted=False,
-                                                                       force_brand=force_brand)
-        data_deleted = db_utils.get_visible_live_or_published_concept_versions(request, 
-                                                                               exclude_deleted=True,
-                                                                               force_brand=force_brand)
+        # to be shown with login
+        data = db_utils.get_visible_live_or_published_concept_versions(request
+                                                                       , get_live_and_or_published_ver = 3 # 1= live only, 2= published only, 3= live+published 
+                                                                       , exclude_deleted = False
+                                                                       , force_brand = force_brand
+                                                                       , force_get_live_and_or_published_ver = 3 # get live + published data
+                                                                       )
+        
+        # to be shown without login - publish data only
+        data_published = db_utils.get_visible_live_or_published_concept_versions(request
+                                                                       , get_live_and_or_published_ver = 2 # 1= live only, 2= published only, 3= live+published 
+                                                                       , exclude_deleted = True
+                                                                       , force_brand = force_brand
+                                                                       , force_get_live_and_or_published_ver = 2 # get published data
+                                                                       )
     elif concept_or_phenotype == 'phenotype':
-        data = db_utils.get_visible_live_or_published_phenotype_versions(request, 
-                                                                        exclude_deleted=False,
-                                                                        force_brand=force_brand)
-        data_deleted = db_utils.get_visible_live_or_published_phenotype_versions(request, 
-                                                                               exclude_deleted=True,
-                                                                               force_brand=force_brand)
-
+        # to be shown with login
+        data = db_utils.get_visible_live_or_published_phenotype_versions(request
+                                                                       , get_live_and_or_published_ver = 3 # 1= live only, 2= published only, 3= live+published 
+                                                                       , exclude_deleted = False
+                                                                       , force_brand = force_brand
+                                                                       , force_get_live_and_or_published_ver = 3 # get live + published data
+                                                                       )
+        
+        # to be shown without login - publish data only
+        data_published = db_utils.get_visible_live_or_published_phenotype_versions(request
+                                                                       , get_live_and_or_published_ver = 2 # 1= live only, 2= published only, 3= live+published 
+                                                                       , exclude_deleted = True
+                                                                       , force_brand = force_brand
+                                                                       , force_get_live_and_or_published_ver = 2 # get published data
+                                                                       )
     # Creation of two lists, one for where it is excluding deleted entities, one for where there are no exclusions.
     Tag_List = []
-    Tag_List_Exclude = []
+    Tag_List_Published = []
 
     for i in data:
         if i['tags'] is not None:
             Tag_List = Tag_List + i['tags']
             
-    for i in data_deleted:
+    for i in data_published:
         if i['tags'] is not None:
-            Tag_List_Exclude = Tag_List_Exclude + i['tags']
+            Tag_List_Published = Tag_List_Published + i['tags']
 
 
     # Create a list for both deleted and excluded tags
     unique_tags_ids = list(set(Tag_List))
     unique_tags_ids_list = list(Tag.objects.filter(id__in=unique_tags_ids, tag_type=2).values_list('id', flat=True))
 
-    unique_tags_ids_exclude = list(set(Tag_List_Exclude))
-    unique_tags_ids_excluded_list = list(Tag.objects.filter(id__in=unique_tags_ids_exclude, tag_type=2).values_list('id', flat=True))
+    unique_tags_ids_published = list(set(Tag_List_Published))
+    unique_tags_ids_published_list = list(Tag.objects.filter(id__in=unique_tags_ids_published, tag_type=2).values_list('id', flat=True))
 
-    # Create two distinct dictionaries for both Exclude Delete = True and False.
-    StatsDict_Exclude = {}
+    # Create two distinct dictionaries for both allData and published.
+    StatsDict_Published = {}
     StatsDict = {}
 
 
-    StatsDict_Exclude["Exclude_Deleted_Entites"] = True
-    StatsDict_Exclude["Collection_IDs"] = unique_tags_ids_excluded_list
+    StatsDict_Published['Data_Scope'] = 'published_data'
+    StatsDict_Published['Collection_IDs'] = unique_tags_ids_published_list
     
-    StatsDict["Exclude_Deleted_Entites"] = False
-    StatsDict["Collection_IDs"] = unique_tags_ids_list
+    StatsDict['Data_Scope'] = 'all_data'
+    StatsDict['Collection_IDs'] = unique_tags_ids_list
 
     # Create list of the two created dictionaries above.
     StatsDictFinal = []
     StatsDictFinal.append(StatsDict.copy())
-    StatsDictFinal.append(StatsDict_Exclude.copy())
+    StatsDictFinal.append(StatsDict_Published.copy())
 
     return StatsDictFinal
 

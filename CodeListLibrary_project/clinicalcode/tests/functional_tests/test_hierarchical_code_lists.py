@@ -121,6 +121,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
             concept_ref_history_id=self.child_concept3.history.first().history_id)
         
         update_friendly_id()
+        save_stat(self.WEBAPP_HOST)
 
     @staticmethod
     def add_concept(self, name, world_access):
