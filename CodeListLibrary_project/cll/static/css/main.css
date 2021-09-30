@@ -76,46 +76,49 @@ span.required{
   overflow-x:scroll;
   overflow-y:auto;
   border-collapse: collapse;
+  
  
 }
 .table td {
-  white-space: nowrap;
+  white-space: normal;
 }
 
-
-.table-responsive-md  thead>tr>th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
+.table-responsive-md thead th {
+  position:sticky;
+  top: 0px;
+  
   background: white;
 }
 
+.table-responsive-md  thead>tr>th:first-child{
+  z-index: 1;
+}
+.table-responsive-md  thead>tr>th:nth-child(2){
+  z-index: 1;
+}
 
 .table-responsive-md  thead>tr>th:first-child,
 .table-responsive-md  tbody>tr>td:first-child {
   position: sticky;
-  top: 0;
-  
   left: 0px;
+  background:white;
   color: #373737;
   margin: 5px;
+}
+
+.table-responsive-md  tbody>tr>td:first-child {
+  background:#ededed ;
 }
 
 .table-responsive-md  thead>tr>th:nth-child(2),
 .table-responsive-md  tbody>tr>td:nth-child(2) {
   position: sticky;
-  top:0;
-  left: 0px;
+  left: 70px;
   background:white;
   color: #373737; 
+
   margin: 5px;
 }
-
-
-
-
-
-
 
 
 
