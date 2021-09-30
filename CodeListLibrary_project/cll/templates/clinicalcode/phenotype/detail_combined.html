@@ -430,7 +430,7 @@
 		            </div>
 		         </div>
 		         <div>
-		            <table class="table table-striped small-table" id="codelist-tab-table-c{{ c.concept_version_id }}" >
+		            <table class="table table-striped table-responsive-md" id="codelist-tab-table-c{{ c.concept_version_id }}" >
 		               <thead>
 		                  <tr>
 		                     <th>Code</th>
@@ -750,6 +750,7 @@
 	<script src="{% static 'js/clinicalcode/component.js' %}"></script>
 	<script src="{% static 'js/clinicalcode/concept.js' %}"></script>
 	<script src="{% static 'js/clinicalcode/dataService.js' %}"></script>
+
 	
 	<script type="text/javascript">
 		$('#codelisttab').click(function(e) {
