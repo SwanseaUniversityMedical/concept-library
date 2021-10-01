@@ -122,18 +122,50 @@ def get_HDRUK_statistics(request):
                 'published_concept_count': len(HDRUK_published_concepts_ids),   #PublishedConcept.objects.filter(concept_id__in = HDRUK_published_concepts_ids).values('concept_id').distinct().count(),
                 'published_phenotype_count': len(HDRUK_published_phenotypes_ids),   # PublishedPhenotype.objects.filter(phenotype_id__in = HDRUK_published_phenotypes_ids).values('phenotype_id').distinct().count(),
                 'published_clinical_codes': get_published_clinical_codes(HDRUK_published_concepts_id_version),
-                'datasources_component_count': DataSource.objects.all().count(),
-                'clinical_terminologies': CodingSystem.objects.all().count(), # number of coding systems
+                'datasources_component_count': get_dataSources_count(HDRUK_published_phenotypes_ids), #    DataSource.objects.all().count(),
+                'clinical_terminologies': get_codingSystems_count(HDRUK_published_phenotypes) # number of coding systems used in published phenotypes 
 
             }
 
+def get_codingSystems_count(published_phenotypes):
+    """
+        get only coding systems count used in (published) phenotypes
+    """
+    
+    coding_systems_ids = []
+
+    for p in published_phenotypes:
+        if p['clinical_terminologies'] is not None:
+            coding_systems_ids = list(set( coding_systems_ids + p['clinical_terminologies'] ))
+
+
+    unique_coding_systems_ids = list(set(coding_systems_ids))
+    # make sure coding system exists
+    unique_coding_systems_ids_list = list(CodingSystem.objects.filter(id__in=unique_coding_systems_ids).values_list('id', flat=True))
+    
+    return len(unique_coding_systems_ids_list)
+
+
+def get_dataSources_count(published_phenotypes_ids):
+    """
+        get only data-sources count used in (published) phenotypes
+    """
+    
+    ds_ids = PhenotypeDataSourceMap.objects.filter(phenotype_id__in = published_phenotypes_ids).values('datasource_id').distinct()
+        
+    unique_ds_ids = list(set( [i['datasource_id'] for i in ds_ids] ))
+    # make sure data-source exists
+    unique_ds_ids_list = list(DataSource.objects.filter(id__in=unique_ds_ids).values_list('id', flat=True))
+    
+    return len(unique_ds_ids_list)
+
 
 def get_published_clinical_codes(published_concepts_id_version):
-    '''
+    """
         count (none distinct) the clinical codes 
         in published concepts and phenotypes
         (using directly published concepts of HDRUK
-    '''
+    """
 
     count = 0
     
@@ -286,27 +318,28 @@ def get_brand_collections(request, concept_or_phenotype, force_brand=None):
                                                                        , force_brand = force_brand
                                                                        , force_get_live_and_or_published_ver = 2 # get published data
                                                                        )
-    # Creation of two lists, one for where it is excluding deleted entities, one for where there are no exclusions.
+        
+    # Creation of two lists, one for all data and the other for published data
     Tag_List = []
     Tag_List_Published = []
 
     for i in data:
         if i['tags'] is not None:
-            Tag_List = Tag_List + i['tags']
+            Tag_List = list(set( Tag_List + i['tags'] ))
             
     for i in data_published:
         if i['tags'] is not None:
-            Tag_List_Published = Tag_List_Published + i['tags']
+            Tag_List_Published = list(set( Tag_List_Published + i['tags'] ))
 
 
-    # Create a list for both deleted and excluded tags
+    # Create a list for both allData and published.
     unique_tags_ids = list(set(Tag_List))
     unique_tags_ids_list = list(Tag.objects.filter(id__in=unique_tags_ids, tag_type=2).values_list('id', flat=True))
 
     unique_tags_ids_published = list(set(Tag_List_Published))
     unique_tags_ids_published_list = list(Tag.objects.filter(id__in=unique_tags_ids_published, tag_type=2).values_list('id', flat=True))
 
-    # Create two distinct dictionaries for both allData and published.
+    # Create two distinct dictionaries for both allData and published
     StatsDict_Published = {}
     StatsDict = {}
 
