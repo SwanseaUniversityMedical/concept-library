@@ -68,7 +68,12 @@ span.required{
 }
 
 .panel-body{
-	padding: 10px 15px;
+	padding: 10px 6px;
+}
+
+div[role="tabpanel"]{
+  overflow-y: scroll;
+  max-height: 700px;
 }
 
 
