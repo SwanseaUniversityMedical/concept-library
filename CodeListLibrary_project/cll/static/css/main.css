@@ -4,6 +4,9 @@ body{
 	height: 100%;
 	font-family: IBM Plex Sans;
 }
+
+
+   
  
 
 .page-header{
@@ -68,7 +71,7 @@ span.required{
 }
 
 .panel-body{
-	padding: 10px 6px;
+	padding: 10px 15px;
 }
 
 div[role="tabpanel"]{
