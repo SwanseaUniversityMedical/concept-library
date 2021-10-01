@@ -3224,69 +3224,69 @@ def get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
         
         rows_no = 0
         concept_codes = getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
-
-        #---------
-        code_attribute_header = Concept.history.get(id=concept_id, history_id=concept_version_id).code_attribute_header
-        concept_history_date = Concept.history.get(id=concept_id, history_id=concept_version_id).history_date
-        codes_with_attributes = []
-        if code_attribute_header:
-            codes_with_attributes = getConceptCodes_withAttributes_HISTORICAL(concept_id = concept_id
-                                                                           , concept_history_date = concept_history_date
-                                                                           , allCodes = concept_codes
-                                                                           , code_attribute_header = code_attribute_header
-                                                                           )
-
-            concept_codes = codes_with_attributes
-        #---------
-        
-        for cc in concept_codes:
-            rows_no += 1
-            attributes_dict = {}
+        if concept_codes:
+            #---------
+            code_attribute_header = Concept.history.get(id=concept_id, history_id=concept_version_id).code_attribute_header
+            concept_history_date = Concept.history.get(id=concept_id, history_id=concept_version_id).history_date
+            codes_with_attributes = []
             if code_attribute_header:
-                for attr in code_attribute_header:
-                    if request.GET.get('format', '').lower() == 'xml':
-                        # clean attr names/ remove space, etc
-                        attr2 = utils.clean_str_as_db_col_name(attr)
-                    else:
-                        attr2 = attr
-                    attributes_dict[attr2] = cc[attr]
-                    
-            codes.append(ordr(zip(titles,  
-                            [
-                                cc['code'],
-                                cc['description'].encode('ascii', 'ignore').decode('ascii')
-                            ]
-                            + [attributes_dict] 
-                            + 
-                            [
-                                concept_coding_system,
-                                'C'+str(concept_id),
-                                concept_version_id,
-                                Concept.history.get(id=concept_id, history_id=concept_version_id).name,
-                                current_ph_version.friendly_id,
-                                current_ph_version.history_id, 
-                                current_ph_version.name
-                            ]
-                        )))
-
-        if rows_no == 0:
-            codes.append(ordr(zip(titles,  
-                            [
-                                '',
-                                ''
-                            ]
-                            + [attributes_dict]
-                            + 
-                            [
-                                concept_coding_system,
-                                'C'+str(concept_id),
-                                concept_version_id,
-                                Concept.history.get(id=concept_id, history_id=concept_version_id).name,
-                                current_ph_version.friendly_id, 
-                                current_ph_version.history_id,
-                                current_ph_version.name
-                            ]
-                        )))
+                codes_with_attributes = getConceptCodes_withAttributes_HISTORICAL(concept_id = concept_id
+                                                                               , concept_history_date = concept_history_date
+                                                                               , allCodes = concept_codes
+                                                                               , code_attribute_header = code_attribute_header
+                                                                               )
+    
+                concept_codes = codes_with_attributes
+            #---------
+            
+            for cc in concept_codes:
+                rows_no += 1
+                attributes_dict = {}
+                if code_attribute_header:
+                    for attr in code_attribute_header:
+                        if request.GET.get('format', '').lower() == 'xml':
+                            # clean attr names/ remove space, etc
+                            attr2 = utils.clean_str_as_db_col_name(attr)
+                        else:
+                            attr2 = attr
+                        attributes_dict[attr2] = cc[attr]
+                        
+                codes.append(ordr(zip(titles,  
+                                [
+                                    cc['code'],
+                                    cc['description'].encode('ascii', 'ignore').decode('ascii')
+                                ]
+                                + [attributes_dict] 
+                                + 
+                                [
+                                    concept_coding_system,
+                                    'C'+str(concept_id),
+                                    concept_version_id,
+                                    Concept.history.get(id=concept_id, history_id=concept_version_id).name,
+                                    current_ph_version.friendly_id,
+                                    current_ph_version.history_id, 
+                                    current_ph_version.name
+                                ]
+                            )))
+    
+            if rows_no == 0:
+                codes.append(ordr(zip(titles,  
+                                [
+                                    '',
+                                    ''
+                                ]
+                                + [attributes_dict]
+                                + 
+                                [
+                                    concept_coding_system,
+                                    'C'+str(concept_id),
+                                    concept_version_id,
+                                    Concept.history.get(id=concept_id, history_id=concept_version_id).name,
+                                    current_ph_version.friendly_id, 
+                                    current_ph_version.history_id,
+                                    current_ph_version.name
+                                ]
+                            )))
 
     return codes
 
