@@ -68,8 +68,70 @@ span.required{
 }
 
 .panel-body{
-	padding: 10px 15px;
+	padding: 10px 6px;
 }
+
+div[role="tabpanel"]{
+  overflow-y: scroll;
+  max-height: 700px;
+}
+
+
+.table-responsive-md{
+  overflow-x:scroll;
+  overflow-y:auto;
+  border-collapse: collapse;
+  
+ 
+}
+.table td {
+  white-space: normal;
+}
+
+.table-responsive-md thead th {
+  position:sticky;
+  top: 0px;
+  
+  background: white;
+}
+
+.table-responsive-md  thead>tr>th:first-child{
+  z-index: 1;
+}
+.table-responsive-md  thead>tr>th:nth-child(2){
+  z-index: 1;
+}
+
+.table-responsive-md  thead>tr>th:first-child,
+.table-responsive-md  tbody>tr>td:first-child {
+  position: sticky;
+  left: 0px;
+  background:white;
+  color: #373737;
+  margin: 5px;
+}
+
+.table-responsive-md  tbody>tr>td:first-child {
+  background:#ededed ;
+}
+
+.table-responsive-md  thead>tr>th:nth-child(2),
+.table-responsive-md  tbody>tr>td:nth-child(2) {
+  position: sticky;
+  left: 70px;
+  background:white;
+  color: #373737; 
+
+  margin: 5px;
+}
+
+
+
+.label-primary{
+  display: -webkit-inline-box;
+} 
+
+
 
 .navbar{
 	margin-bottom: 10px;
@@ -104,7 +166,7 @@ span.required{
 }
 
 .form-horizontal .control-label{
-	padding-top: 4px !important;
+	padding-top: 4px!important;
 }
 
 .form-help-popover {
@@ -491,3 +553,5 @@ element.style {
   -moz-border-radius: 6px 0 6px 6px;
   border-radius: 6px 0 6px 6px;
 }
+
+
