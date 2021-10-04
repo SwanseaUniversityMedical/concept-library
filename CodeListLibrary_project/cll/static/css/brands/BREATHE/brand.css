@@ -176,3 +176,10 @@
     font-style: normal;
     font-size: 30px;
 }
+
+.table-responsive-md thead th{
+	background: #408090;
+	color: white;
+}
+
+
