@@ -95,33 +95,35 @@ def about_pages(request, pg_name=None):
     
     
     
-    # HDR-UK about pages                    
-    if pg_name.lower() == "hdruk_about_the_project".lower():
-        return render(request, 'clinicalcode/brand/HDRUK/about/about-the-project.html', {})
+    # HDR-UK about pages      
+    if request.CURRENT_BRAND == "HDRUK":              
+        if pg_name.lower() == "hdruk_about_the_project".lower():
+            return render(request, 'clinicalcode/brand/HDRUK/about/about-the-project.html', {})
+        
+        elif pg_name.lower() == "hdruk_about_team".lower():
+            return render(request, 'clinicalcode/brand/HDRUK/about/team.html', {})
+        
+        elif pg_name.lower() == "hdruk_about_technical_details".lower():
+            return render(request, 'clinicalcode/brand/HDRUK/about/technical-details.html', {})
+        
+        elif pg_name.lower() == "hdruk_about_covid_19_response".lower():
+            return render(request, 'clinicalcode/brand/HDRUK/about/covid-19-response.html', {})
+        
+        elif pg_name.lower() == "hdruk_about_publications".lower():
+            return render(request, 'clinicalcode/brand/HDRUK/about/publications.html', {})
+        
+        elif pg_name.lower() == "breathe".lower():
+            return render(request, 'clinicalcode/brand/HDRUK/collections/breathe.html', {})
     
-    elif pg_name.lower() == "hdruk_about_team".lower():
-        return render(request, 'clinicalcode/brand/HDRUK/about/team.html', {})
+        elif pg_name.lower() == "bhf_data_science_centre".lower():
+            return render(request, 'clinicalcode/brand/HDRUK/collections/bhf-data-science-centre.html', {})
     
-    elif pg_name.lower() == "hdruk_about_technical_details".lower():
-        return render(request, 'clinicalcode/brand/HDRUK/about/technical-details.html', {})
-    
-    elif pg_name.lower() == "hdruk_about_covid_19_response".lower():
-        return render(request, 'clinicalcode/brand/HDRUK/about/covid-19-response.html', {})
-    
-    elif pg_name.lower() == "hdruk_about_publications".lower():
-        return render(request, 'clinicalcode/brand/HDRUK/about/publications.html', {})
-    
-    elif pg_name.lower() == "breathe".lower():
-        return render(request, 'clinicalcode/brand/HDRUK/collections/breathe.html', {})
+#     else:
+#         return render(request, 'clinicalcode/index.html', {})
 
-    elif pg_name.lower() == "bhf_data_science_centre".lower():
-        return render(request, 'clinicalcode/brand/HDRUK/collections/bhf-data-science-centre.html', {})
-    
-    else:
-        return render(request,
-                    'clinicalcode/index.html',
-                    {}
-                )
+    raise Http404
+
+
 
 def HDRUK_portal_redirect(request, unique_url):
     '''
