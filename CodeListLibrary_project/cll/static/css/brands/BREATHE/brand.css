@@ -1,5 +1,5 @@
 /* ************************************************************************* */
-/* Branding CSS for ADP.													 */
+/* Branding CSS for BREATHE.													 */
 /* ************************************************************************* */
 /* The following CSS file is used after all other files have been            */
 /* processed. The changes listed here can be modified or commented out.      */
@@ -13,160 +13,166 @@
 /* definitions if we make a change.                                          */
 /* ************************************************************************* */
 
-/* 1. Background image (logo). */
-/* ========================================================================= */
-/* 1.1. Behind/adjacent to the navbar. */
-/* ------------------------------------------------------------------------- */
-/* Have to have an image to make the background colour appear. */
 .navbar {
 	background-color: #3c3c3b;
 	/*background-image: url("../../../img/brands/BREATHE/placeholder.png");*/
 	/*background-repeat: no-repeat;*/
 	/*background-position: top right;*/
 }
-/* 1.2. Behind/adjacent to the main UI. */
-/* ------------------------------------------------------------------------- */
-body {
-	/*background-color: #408090;*/
-	/*background-image: url("../../../img/brands/BREATHE/page.png");*/
-	/* background-repeat: repeat; */
-	background-size: cover;
+
+#nav_bar_main {
+  background-color: #000000;
+  border-color: #000000;
+  text-shadow: 0 1px 0 rgb(255 255 255 / 25%);
+  box-shadow: none;
+}
+
+.nav-bar-title {
+    color: white !important;
+    /* font-weight: bold; */
+}
+
+.navbar-default .navbar-nav > .active > a, .navbar-default .navbar-nav > .active > a:hover, .navbar-default .navbar-nav > .active > a:focus {
+    color: #000000;
+    background-color: #000000;
+    background-image: none;
+    background-repeat: none;
+    box-shadow: none;
+    font-weight: bold;
 }
 
 .big-banner_breathe {
+	height: 165px;
+	width: 100%;
 	background-image: url("../../../img/brands/BREATHE/breathe_banner.png");
 	background-repeat: no-repeat;
-	height:300px
+  	background-size: 100%;
+	margin: 0;
 }
 
-
-/* 1.3. Behind the footer. */
-/* ------------------------------------------------------------------------- */
-footer {
-	background-color: #3c3c3b;
-}
-
-/* 2. Main UI panel colours. */
-/* ========================================================================= */
-/* 2.1. Background colours.
-/* ------------------------------------------------------------------------- */
-/* 2.1.1. The background colour of the containers. */
-/*        The 'nav' section is the part with the title, logos and links. */
-/*        The 'footer' section is at the bottom of the page with (c). */
-.container {
-	background-color: transparent;
-}
-nav>.container{
-	background-color: #FFFFFF; /*#E5E6E6;*/
-	background-image: none; /*url("../../../img/brands/BREATHE/header_logo.png");*/
-	background-position: top right;
-	background-repeat: no-repeat;
-	background-size: contain;
-	box-shadow: 1px 2px 4px rgba(0, 0, 0, .5);
-}
-footer>.container {
-	background-color: #ffffff;
-/* 	color: white; */
-}
-/* 2.1.2. The currently selected nav-bar option. */
-.navbar-inverse .navbar-nav a {
-	/* background-image: linear-gradient(to bottom, orange, red 100%); */
-	color: purple;
-}
-.navbar-inverse .navbar-nav>.active>a {
-	background-image: linear-gradient(to bottom, #70c0d8, #408090 100%);
+.header-breathe{
+	background-color: #333f48;
 	color: white;
+  	padding-bottom: 25px;
+  	padding-top: 25px;
+	padding-left: 5px;
+	display: block;
+    	font-family: 'Crimson Text',serif;
+    	font-weight: 400;
+	font-size: 33px;
+	margin: 0;
 }
-/* 2.1.3. The table background colour (above the container or the panel). */
-table {
-	background-color: white;
+
+
+@import url('https://fonts.googleapis.com/css?family=IBM Plex Sans');
+.text-font {
+	font-family: 'IBM Plex Sans';
 }
-/* 2.1.4. The header row colour for the tables. */
-tr>th {
-	background-color: #408090;
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	outline: none;
+	list-style: none;
+	font-family: 'IBM Plex Sans';
+}
+
+
+.search-design {
+	font-style: normal;
+	font-weight: normal;
+}
+
+
+.search_box {
+	width: 70%;
+	background: #fff;
+	border-radius: 5px;
+	height: 50px;
+	display: flex;
+	padding: 10px;
+	box-shadow: 0 8px 6px -10px #b3c6ff;
+	border:1px solid black;
+
+
+}
+
+.btn {
+	background-color: #475DA7;
+	border: none;
 	color: white;
-}
-/* 2.1.5. The high-lighted row colour for tables (unhighlighted=background). */
-.highlight-row {
-	background-color: #d8d8d8;
-}
-/* 2.1.6. The hover colour for table rows. */
-.table-hover>tbody>tr:hover {
-	background-color: #70c0d8
-}
-/* 2.1.7. The borders for the rows. */
-tr {
-	border-bottom: 1px solid black;
+	cursor: pointer;
 }
 
-/* 2.2. Text colours */
-/* ------------------------------------------------------------------------- */
-/* 2.2.1. General text. */
-/* Using a darker colour to show-up better on the transparent background. */
-body {
-	color: #205060;
-}
-/* 2.2.2. Nav-bar text (not the links). */
-.navbar-inverse .navbar-nav>li>a, .navbar-inverse .navbar-link, 
-.navbar .navbar-text {
-	color: black
-}
-/* ------------------------------------------------------------------------- */
-.custom-select{
-	color: black;
-}
-/* ------------------------------------------------------------------------- */
-
-
-/* 2.3. Button colours. */
-/* ------------------------------------------------------------------------- */
-/* The buttons are used as follows:											 */
-/* info - generally used for showing information.							 */
-/* primary - generally used for actions that generate something.			 */
-/* success - generally used for actions that don't affect the database.		 */
-/* danger - generally used for actions that may delete something.			 */
-/* ------------------------------------------------------------------------- */
-.btn-info {
-	background-image: linear-gradient(to bottom, #70c0d8, #408090 100%);
-	border-color: #103040;
-}
-.btn-info:hover {
-	color: lemonchiffon;
-	background-color: #408090;
-	border-color: #103040
-}
-.btn-success {
-	background-image: linear-gradient(to bottom, #70c0d8, #103040 100%);
-	border-color: #103040;
-}
-.btn-success:hover {
-	color: lemonchiffon;
-	background-color: #103040;
-	border-color: #103040
-}
-.btn-primary {
-	background-image: linear-gradient(to bottom, lightgreen, darkgreen 100%);
-	border-color: #103040;
-}
-.btn-primary:hover {
-	color: lemonchiffon;
-	background-color: darkgreen;
-	border-color: #103040
-}
-.btn-danger {
-	background-image: linear-gradient(to bottom, salmon, maroon 100%);
-	border-color: maroon;
-}
-.btn-danger:hover {
-	color: lemonchiffon;
-	background-color: maroon;
-	border-color: maroon
+.search_box .search_field {
+	width: 500px;
+	height: 100%;
+	position: relative;
 }
 
-/* 2.4. Panel colours. */
-/* ------------------------------------------------------------------------- */
-.panel {
-	background-color: #E5E6E6; /*#d8d8d8;*/
+.search_box .search_field .input {
+	width: 100%;
+	height: 100%;
+	border: 0px;
+	font-size: 16px;
+	padding-right: 38px;
+	color: #000000;
 }
 
 
+  .text-rubric-design {
+	font-style: normal;
+	font-weight: 500;
+	font-size: 14px;
+	cursor: pointer;
+	text-align:left;
+	padding-bottom:10px;
+
+}
+
+  .text-rubric-design-v2 {
+	font-style: normal;
+	font-weight: 500;
+	font-size: 16px;
+	cursor: pointer;
+	text-align:left;
+
+}
+
+.header-content-design {
+    padding-top:20px;
+   padding-bottom:30px;
+   align:left;
+   font-style: normal;
+   font-weight:600;
+   font-size:36px;
+}
+
+.sm-header-design {
+   align:left;
+   font-style: normal;
+   font-weight:500;
+   font-size:16px;
+}
+
+.medium-header-design {
+    padding-top:30px;
+    padding-bottom:30px;
+   align:left;
+   font-style: normal;
+   font-weight:600;
+   font-size:26px;
+}
+:target:before {
+    content: "";
+    display: block;
+    margin-top:-26px;
+    height:60px;
+}
+
+
+.header-design {
+    font-style: normal;
+    font-size: 30px;
+}

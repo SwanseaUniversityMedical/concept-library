@@ -326,6 +326,19 @@
 							<img style="margin-top: -10px;" src="{% static 'img/Footer_logos/SAIL_alt_logo_on_white.png' %}" height="30px"  alt="SAIL Databank Logo" />
 						</a>
 
+					{% elif request.CURRENT_BRAND == 'BREATHE' %}
+						<a href="https://www.ed.ac.uk/usher/breathe/" target=_blank  class="navbar-brand" rel="noopener noreferrer">
+							<img style="margin-top: -10px;" src="{% static 'img/Footer_logos/breathe_logo.png' %}" height="30px"  alt="BREATHE Logo" />
+						</a>
+
+						<a href="https://conceptlibrary.saildatabank.com/" target=_blank  class="navbar-brand" rel="noopener noreferrer">
+							<img style="margin-top: -10px;" src="{% static 'img/Footer_logos/concept_library_on_white.png' %}" height="30px"  alt="Concept Library Logo" />
+						</a>
+
+						<a href="http://saildatabank.com" target=_blank  class="navbar-brand" rel="noopener noreferrer">
+							<img style="margin-top: -10px;" src="{% static 'img/Footer_logos/SAIL_alt_logo_on_white.png' %}" height="30px"  alt="SAIL Databank Logo" />
+						</a>g
+
 					{% else %}
 						<a href="https://conceptlibrary.saildatabank.com/" target=_blank  class="navbar-brand" rel="noopener noreferrer">
 							<img style="margin-top: -10px;" src="{% static 'img/Footer_logos/concept_library_on_white.png' %}" height="30px"  alt="Concept Library Logo" />

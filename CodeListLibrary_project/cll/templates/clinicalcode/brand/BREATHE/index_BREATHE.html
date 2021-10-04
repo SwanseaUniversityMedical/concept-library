@@ -7,42 +7,73 @@
 {% block container %}
     <div class="big-banner_breathe">
     </div>
-
-	<h1>Concept Library (Breathe)</h1>
-
-
-	<p>The concept library is a system for storing, managing, sharing, and documenting clinical code lists in health research.  The specific goals of this work are:</p>
-	<ul>
-		<li>Store code lists along with metadata that captures important information about quality, author, etc.</li>
-		<li>Store version history and provide a way to unambiguously reference a particular version of a code list.</li>
-		<li>Allow programmatic interaction with code lists via an API, so that they can be directly used in queries, statistical scripts, etc.</li>
-		<li>Provide a mechanism for sharing code lists between projects and organizations.</li>
-	</ul>
+	<div class="header-breathe">
+		BREATHE - HEALTH DATA RESEARCH HUB FOR RESPIRATORY HEALTH
+	</div>
 
 
 
-	<h2><span class="glyphicon">&#xe032;</span> Documentation</h2>
-	<p>
-	{% if IS_INSIDE_GATEWAY or request.get_host == "conceptlibrary.sail.ukserp.ac.uk" %}
-	Documentation not yet available inside the SAIL gateway. <br>Please access via the external application
-	{% else %}
-	Concept Library documentation is available at this URL
-	<br>
-	<a href="https://docs.hiru.swan.ac.uk/display/SATP/Concept+Library+Documentation" target=_blank rel="noopener noreferrer">https://docs.hiru.swan.ac.uk/display/SATP/Concept+Library+Documentation</a>
-	{% endif %}
 
-	<h2>Background</h2>
-
-	<p>A significant aspect of research using routinely collected health records is defining how concepts of interest (including conditions, treatments, symptoms, etc.) will be measured.  This typically involves identifying sets of clinical codes that map to a variable that the researcher wants to measure, and sometimes a set of rules as well (e.g. a sufferer from a disease may be defined as someone who has a diagnosis code from list A and a medication from list B, but excluding anyone who has a code from list C).  A large part of the analysis work may involve consulting clinicians, investigating the data, and creating and testing definitions of clinical concepts to be used.</p>
-
-	<p>Often the definitions that are created are of interest to researchers for many studies, but there are barriers to easily sharing them.  The definitions may be embedded within study-specific scripts, such that it is not easy to extract the part that may be of general interest.  Also, often researchers do not fully document how a concept was created, its precise meaning, limitations, etc.  Crucial information may be lost when passing it to other researchers, resulting in mistakes.  Often there simply is no mechanism to discover and share work that has been done previously, leading researchers to waste time and resources reinventing the wheel.  In theory, when research is published, information on the precise methods used should be included, but in reality this is often inadequate.</p>
-
-	<h2>Overview</h2>
-	<p>Our goal is to create a system that describes research study designs in a machine-readable format to facilitate rapid study development; higher quality research; easier replication; and sharing of methods between researchers, institutions, and countries.</p>
-
-
-
+<div class="sm-header-design">
+         <div class="medium-header-design" >
+            Concept Library - BREATHE
+         </div>
+            <p>BREATHE is a UK-wide collaboration, enabling the use of health data in research to transform respiratory health.
+               The Hub is a partnership between patients and publics, UK Universities, third sector, Government organisations and industry from across the UK and globally. It is led by The University of Edinburgh, Imperial College London, University of Leicester, Nottingham University Hospitals NHS Trust, Queen Mary University of London and Swansea University.
+            </p>
+            <p>Visit the <a href="https://www.ed.ac.uk/usher/breathe" target=_blank   rel="noopener noreferrer">BREATHE website</a> for more information</p>
+         </div>
+         <div id="help" class="medium-header-design" >
+            How can we help?
+         </div>
+         <div class="sm-header-design">
+            <p>Electronic Health Records (EHR) hold a wealth of information, but can be complicated to use due to variable quality and inconsistencies in reporting.</p>
+            <p>BREATHE is facilitating their use in research through:</p>
+            <div style="padding-left:30px;">
+               <ul>
+                  <li style="  list-style-type: circle;">The generation of standardised phenotypes for respiratory conditions in routinely collected healthcare data</li>
+                  <li style="  list-style-type: circle;">Support for the use of phenotypes in research</li>
+                  <li style="  list-style-type: circle;">Providing estimates of population sizes meeting each phenotype in each database</li>
+                  <li style="  list-style-type: circle;">Expertly reviewing phenotypes at their definition and updating regularly</li>
+               </ul>
+            </div>
+            <p>If you would like more information, or require support, please <a href="mailto:breathe.admin@ed.ac.uk?subject=Respiratory%20phenotypes" target=_blank   rel="noopener noreferrer">get in touch</a>.</p>
+            <div class="medium-header-design" id="pheno">
+               Standardised respiratory phenotypes
+            </div>
+            <p>BREATHE has brought together a set of phenotypes (found below) covering a number of key respiratory conditions.
+               This is not an exhaustive list of codes or mandatory, but a guide to aid researchers in starting to make code lists appropriate for their study. We will continue to update existing lists and add more over time, so do keep checking back!
+            </p>
+            <div style="display: flex; flex-wrap:nowrap; ">
+               <form class= "row" style="padding-left:12px;" action="{% url 'phenotype_list' %}" method="POST" >
+                  {% csrf_token %}
+                  <div style="height:0;width:0;overflow:hidden;">
+                     <input class="form-control" type="hidden" name="tagids" data-role="tagsinput" value="19">
+                  </div>
+                  <div style="display: flex; flex-wrap: nowrap;">
+                     <button class="btn-link" name="page" value="1">
+                     Browse BREATHE Phenotypes
+                     </button>
+                  </div>
+               </form>
+            </div>
+         </div>
+      </div>
+   </div>
+</div>
 {% endblock container %}
 {% block scripts  %}
+<script type="text/javascript">
+   function showSelection(e) {
+   		if (document.querySelector('#navList a.active') !== null) {
+     		document.querySelector('#navList a.active').classList.remove('active');
+   		}
+   e.target.className = "active";
+   }
+</script>
+<script type="text/javascript">
+   window.onload=function(){
+   		document.getElementById("breatheHeader").click();
+   };
+</script>
 {% endblock scripts %}
-
