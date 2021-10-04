@@ -82,8 +82,8 @@ table {
 	background-color: white;
 }
 /* 2.1.4. The header row colour for the tables. */
-tr>th {
-	background-color: #408090;
+.table-responsive-md thead th{
+	background: #408090;
 	color: white;
 }
 /* 2.1.5. The high-lighted row colour for tables (unhighlighted=background). */
