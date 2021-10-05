@@ -1296,67 +1296,6 @@ def restoreWorkingset(pk, user):
         
 
 
-def getHistoryConceptTagMaps(concept_id, concept_history_date):
-    ''' Get historic concept tag maps that are attached to a concept 
-        that were effective from a point in time
-    '''
-
-    my_params = {
-        'concept_id': concept_id,
-        'concept_history_date': concept_history_date
-    }
-
-    with connection.cursor() as cursor:
-        cursor.execute('''
-        -- Select all the data from the tags historical record for all
-        -- the entries that are contained in the JOIN which produces a list of
-        -- the latest history IDs for all codes that don't have a
-        -- delete event by the specified date.
-        SELECT 
-            hc.id,
-            hc.created,
-            hc.modified,
-            hc.history_id,
-            hc.history_date,
-            hc.history_change_reason,
-            hc.history_type,
-            hc.concept_id,
-            hc.created_by_id,
-            hc.history_user_id,
-            hc.tag_id
-        FROM clinicalcode_historicalconcepttagmap AS hc
-        INNER JOIN (
-            SELECT a.id, a.history_id
-            FROM (
-                -- Get the list of all the tags for this concept and
-                -- before the timestamp and return the latest history ID.
-                SELECT id, MAX(history_id) AS history_id
-                FROM   clinicalcode_historicalconcepttagmap
-                WHERE  (concept_id = %(concept_id)s AND 
-                        history_date <= %(concept_history_date)s::timestamptz)
-                GROUP BY id
-            ) AS a
-            LEFT JOIN (
-                -- Get the list of all the tags that have been deleted
-                -- for this concept.
-                SELECT DISTINCT id
-                FROM   clinicalcode_historicalconcepttagmap
-                WHERE  (concept_id = %(concept_id)s AND 
-                        history_date <= %(concept_history_date)s::timestamptz AND
-                        history_type = '-')
-            ) AS b
-            -- Join only those from the first group that are not in the deleted
-            -- group.
-            ON a.id = b.id
-            WHERE b.id IS NULL
-        ) AS d
-        ON hc.history_id = d.history_id
-        ORDER BY hc.id
-        ''' , my_params)
-        col_names = [col[0] for col in cursor.description]
-        return [dict(zip(col_names, row)) for row in cursor.fetchall()]
-
-
 def getHistoryComponents(concept_id, concept_history_date, skip_codes=False, check_published_child_concept=False):
     '''
         Get historic components attached to a concept that were effective from
