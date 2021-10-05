@@ -43,13 +43,13 @@ def api_remove_data(request):
          
 
     if request.method == 'GET':
-        if not settings.CLL_READ_ONLY:# and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
+        if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
             return render(request, 'clinicalcode/adminTemp/adminTemp.html', 
                           { }
                         )
         
     elif request.method == 'POST':  
-        if not settings.CLL_READ_ONLY:# and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
+        if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
             code =  request.POST.get('code')
             if code.strip()!="nvd)#_0-i_a05n^5p6az2q_cd(_(+_4g)r&9h!#ru*pr(xa@=k":
                 raise PermissionDenied
@@ -166,47 +166,47 @@ def moveTags(request):
 #                             rowsAffected[hp.id] = "phenotype: " + hp.name + ":: tags moved"
 
                  
-            ######################################################################
-            # move concept tags as attribute
-            distinct_concepts_with_tags = ConceptTagMap.objects.all().distinct('concept_id')
-            for dp in distinct_concepts_with_tags:
-                #print "*************"
-                #print dp.concept_id
-                hisp = Concept.history.filter(id=dp.concept_id)
-                for hp in hisp:
-                    #print hp.id, "...", hp.history_id
-                    concept_tags_history = db_utils.getHistoryTags(hp.id, hp.history_date)
-                    if concept_tags_history:
-                        concept_tag_list = [i['tag_id'] for i in concept_tags_history if 'tag_id' in i]
-                    else:
-                        concept_tag_list = []
-                    #print concept_tag_list
-                    with connection.cursor() as cursor:
-                        sql = """ UPDATE clinicalcode_historicalconcept 
-                                    SET tags = '{""" + ','.join([str(i) for i in concept_tag_list]) + """}'
-                                    WHERE id="""+str(hp.id)+""" and history_id="""+str(hp.history_id)+""";
-                             """ 
-                        cursor.execute(sql)
-                        if hp.history_id == int(Concept.objects.get(pk=hp.id).history.latest().history_id):
-                            sql2 = """ UPDATE clinicalcode_concept 
-                                    SET tags = '{""" + ','.join([str(i) for i in concept_tag_list]) + """}'
-                                    WHERE id="""+str(hp.id)+"""  ;
-                             """ 
-                            cursor.execute(sql2)
-                            
-                            rowsAffected[hp.id] = "concept: " + hp.name + ":: tags moved"
-
-    
-        
-    
-            
-            return render(request, 
-                        'clinicalcode/adminTemp/moveTags.html', 
-                        {   'pk': -10,
-                            'strSQL': {},
-                            'rowsAffected' : rowsAffected
-                        }
-                        )
+#             ######################################################################
+#             # move concept tags as attribute
+#             distinct_concepts_with_tags = ConceptTagMap.objects.all().distinct('concept_id')
+#             for dp in distinct_concepts_with_tags:
+#                 #print "*************"
+#                 #print dp.concept_id
+#                 hisp = Concept.history.filter(id=dp.concept_id)
+#                 for hp in hisp:
+#                     #print hp.id, "...", hp.history_id
+#                     concept_tags_history = db_utils.getHistoryTags(hp.id, hp.history_date)
+#                     if concept_tags_history:
+#                         concept_tag_list = [i['tag_id'] for i in concept_tags_history if 'tag_id' in i]
+#                     else:
+#                         concept_tag_list = []
+#                     #print concept_tag_list
+#                     with connection.cursor() as cursor:
+#                         sql = """ UPDATE clinicalcode_historicalconcept 
+#                                     SET tags = '{""" + ','.join([str(i) for i in concept_tag_list]) + """}'
+#                                     WHERE id="""+str(hp.id)+""" and history_id="""+str(hp.history_id)+""";
+#                              """ 
+#                         cursor.execute(sql)
+#                         if hp.history_id == int(Concept.objects.get(pk=hp.id).history.latest().history_id):
+#                             sql2 = """ UPDATE clinicalcode_concept 
+#                                     SET tags = '{""" + ','.join([str(i) for i in concept_tag_list]) + """}'
+#                                     WHERE id="""+str(hp.id)+"""  ;
+#                              """ 
+#                             cursor.execute(sql2)
+#                             
+#                             rowsAffected[hp.id] = "concept: " + hp.name + ":: tags moved"
+# 
+#     
+#         
+#     
+#             
+#             return render(request, 
+#                         'clinicalcode/adminTemp/moveTags.html', 
+#                         {   'pk': -10,
+#                             'strSQL': {},
+#                             'rowsAffected' : rowsAffected
+#                         }
+#                         )
             
                         
             
