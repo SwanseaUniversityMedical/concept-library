@@ -30,7 +30,6 @@ from ..forms.ConceptForms import ConceptForm, ConceptUploadForm
 from ..models.Code import Code
 from ..models.CodeList import CodeList
 from ..models.CodeRegex import CodeRegex
-from ..models.ConceptTagMap import ConceptTagMap
 from ..models.Tag import Tag
 from ..models.Brand import Brand
 from ..models.PublishedConcept import PublishedConcept
@@ -140,14 +139,8 @@ class ConceptCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageMixi
             concept.history.latest().delete()
             concept.changeReason = "Created"
             concept.save()
-            #
-            #             # add tags that have not been stored in db
-            #             if tag_ids:
-            #                 for tag_id_to_add in new_tag_list:
-            #                     ConceptTagMap.objects.get_or_create(concept=self.object, tag=Tag.objects.get(id=tag_id_to_add), created_by=self.request.user)
-            #
-            #             concept.changeReason = "Created"
-            #             concept.save()
+
+
 
             messages.success(self.request, "Concept has been successfully created.")
 
@@ -473,7 +466,6 @@ class ConceptUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Update
 
     def get_context_data(self, **kwargs):
         context = UpdateView.get_context_data(self, **kwargs)
-        # tags = ConceptTagMap.objects.filter(concept=self.get_object())
         tags = Tag.objects.filter(pk=-1)
         concept_tags = self.get_object().tags
         if concept_tags:

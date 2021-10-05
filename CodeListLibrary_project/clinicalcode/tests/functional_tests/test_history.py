@@ -9,7 +9,6 @@ from clinicalcode.models.CodeList import CodeList
 from clinicalcode.models.CodeRegex import CodeRegex
 from clinicalcode.models.Code import Code
 from clinicalcode.models.Tag import Tag
-from clinicalcode.models.ConceptTagMap import ConceptTagMap
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
@@ -63,6 +62,13 @@ class HistoryTest(StaticLiveServerTestCase):
             code_column_name="CODE",
             desc_column_name="DESCRIPTION")
         coding_system.save()
+        
+        
+        self.tag = Tag.objects.create(
+            description="tagTest",
+            created_by=self.owner_user
+        )
+        self.tag.save()        
 
         self.concept1 = Concept.objects.create(
             name="concept level 4",
@@ -83,20 +89,12 @@ class HistoryTest(StaticLiveServerTestCase):
             owner=self.owner_user,
             group_access=Permissions.EDIT,
             owner_access=Permissions.EDIT,
-            world_access=Permissions.EDIT
+            world_access=Permissions.EDIT,
+            tags = '{'+str(self.tag.id)+'}'
         )
 
-        self.tag = Tag.objects.create(
-            description="tagTest",
-            created_by=self.owner_user
-        )
-        self.tag.save()
 
-        '''self.conceptTag = ConceptTagMap.objects.create(
-            concept=self.concept1,
-            tag = self.tag,
-            created_by=self.owner_user
-        )'''
+
 
         self.comp1 = self.create_component_with_codes(self, comp_type=4, log_type=1, comp_name="comp1",
                                                       comp_parent=self.concept1,

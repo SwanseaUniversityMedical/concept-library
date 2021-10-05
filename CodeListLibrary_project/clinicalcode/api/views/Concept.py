@@ -22,7 +22,6 @@ from ...models.CodeRegex import CodeRegex
 from ...models.CodeList import CodeList
 from ...models.Code import Code
 from ...models.Tag import Tag
-from ...models.ConceptTagMap import ConceptTagMap
 from ...models.WorkingSet import WorkingSet
 from ...models.WorkingSetTagMap import WorkingSetTagMap
 from ...models.CodingSystem import CodingSystem

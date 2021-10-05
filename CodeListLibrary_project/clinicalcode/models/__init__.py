@@ -8,7 +8,6 @@ from Concept import Concept
 from Operator import Operator
 from TimeStampedModel import TimeStampedModel
 from Tag import Tag
-from ConceptTagMap import ConceptTagMap
 from ICD10_CODES_AND_TITLES_AND_METADATA import ICD10_CODES_AND_TITLES_AND_METADATA
 from OPCS4_CODES_AND_TITLES import OPCS4_CODES_AND_TITLES
 from READ_CD_CV2_SCD import READ_CD_CV2_SCD
