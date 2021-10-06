@@ -1296,67 +1296,6 @@ def restoreWorkingset(pk, user):
         
 
 
-def getHistoryConceptTagMaps(concept_id, concept_history_date):
-    ''' Get historic concept tag maps that are attached to a concept 
-        that were effective from a point in time
-    '''
-
-    my_params = {
-        'concept_id': concept_id,
-        'concept_history_date': concept_history_date
-    }
-
-    with connection.cursor() as cursor:
-        cursor.execute('''
-        -- Select all the data from the tags historical record for all
-        -- the entries that are contained in the JOIN which produces a list of
-        -- the latest history IDs for all codes that don't have a
-        -- delete event by the specified date.
-        SELECT 
-            hc.id,
-            hc.created,
-            hc.modified,
-            hc.history_id,
-            hc.history_date,
-            hc.history_change_reason,
-            hc.history_type,
-            hc.concept_id,
-            hc.created_by_id,
-            hc.history_user_id,
-            hc.tag_id
-        FROM clinicalcode_historicalconcepttagmap AS hc
-        INNER JOIN (
-            SELECT a.id, a.history_id
-            FROM (
-                -- Get the list of all the tags for this concept and
-                -- before the timestamp and return the latest history ID.
-                SELECT id, MAX(history_id) AS history_id
-                FROM   clinicalcode_historicalconcepttagmap
-                WHERE  (concept_id = %(concept_id)s AND 
-                        history_date <= %(concept_history_date)s::timestamptz)
-                GROUP BY id
-            ) AS a
-            LEFT JOIN (
-                -- Get the list of all the tags that have been deleted
-                -- for this concept.
-                SELECT DISTINCT id
-                FROM   clinicalcode_historicalconcepttagmap
-                WHERE  (concept_id = %(concept_id)s AND 
-                        history_date <= %(concept_history_date)s::timestamptz AND
-                        history_type = '-')
-            ) AS b
-            -- Join only those from the first group that are not in the deleted
-            -- group.
-            ON a.id = b.id
-            WHERE b.id IS NULL
-        ) AS d
-        ON hc.history_id = d.history_id
-        ORDER BY hc.id
-        ''' , my_params)
-        col_names = [col[0] for col in cursor.description]
-        return [dict(zip(col_names, row)) for row in cursor.fetchall()]
-
-
 def getHistoryComponents(concept_id, concept_history_date, skip_codes=False, check_published_child_concept=False):
     '''
         Get historic components attached to a concept that were effective from
@@ -3224,69 +3163,69 @@ def get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
         
         rows_no = 0
         concept_codes = getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
-
-        #---------
-        code_attribute_header = Concept.history.get(id=concept_id, history_id=concept_version_id).code_attribute_header
-        concept_history_date = Concept.history.get(id=concept_id, history_id=concept_version_id).history_date
-        codes_with_attributes = []
-        if code_attribute_header:
-            codes_with_attributes = getConceptCodes_withAttributes_HISTORICAL(concept_id = concept_id
-                                                                           , concept_history_date = concept_history_date
-                                                                           , allCodes = concept_codes
-                                                                           , code_attribute_header = code_attribute_header
-                                                                           )
-
-            concept_codes = codes_with_attributes
-        #---------
-        
-        for cc in concept_codes:
-            rows_no += 1
-            attributes_dict = {}
+        if concept_codes:
+            #---------
+            code_attribute_header = Concept.history.get(id=concept_id, history_id=concept_version_id).code_attribute_header
+            concept_history_date = Concept.history.get(id=concept_id, history_id=concept_version_id).history_date
+            codes_with_attributes = []
             if code_attribute_header:
-                for attr in code_attribute_header:
-                    if request.GET.get('format', '').lower() == 'xml':
-                        # clean attr names/ remove space, etc
-                        attr2 = utils.clean_str_as_db_col_name(attr)
-                    else:
-                        attr2 = attr
-                    attributes_dict[attr2] = cc[attr]
-                    
-            codes.append(ordr(zip(titles,  
-                            [
-                                cc['code'],
-                                cc['description'].encode('ascii', 'ignore').decode('ascii')
-                            ]
-                            + [attributes_dict] 
-                            + 
-                            [
-                                concept_coding_system,
-                                'C'+str(concept_id),
-                                concept_version_id,
-                                Concept.history.get(id=concept_id, history_id=concept_version_id).name,
-                                current_ph_version.friendly_id,
-                                current_ph_version.history_id, 
-                                current_ph_version.name
-                            ]
-                        )))
-
-        if rows_no == 0:
-            codes.append(ordr(zip(titles,  
-                            [
-                                '',
-                                ''
-                            ]
-                            + [attributes_dict]
-                            + 
-                            [
-                                concept_coding_system,
-                                'C'+str(concept_id),
-                                concept_version_id,
-                                Concept.history.get(id=concept_id, history_id=concept_version_id).name,
-                                current_ph_version.friendly_id, 
-                                current_ph_version.history_id,
-                                current_ph_version.name
-                            ]
-                        )))
+                codes_with_attributes = getConceptCodes_withAttributes_HISTORICAL(concept_id = concept_id
+                                                                               , concept_history_date = concept_history_date
+                                                                               , allCodes = concept_codes
+                                                                               , code_attribute_header = code_attribute_header
+                                                                               )
+    
+                concept_codes = codes_with_attributes
+            #---------
+            
+            for cc in concept_codes:
+                rows_no += 1
+                attributes_dict = {}
+                if code_attribute_header:
+                    for attr in code_attribute_header:
+                        if request.GET.get('format', '').lower() == 'xml':
+                            # clean attr names/ remove space, etc
+                            attr2 = utils.clean_str_as_db_col_name(attr)
+                        else:
+                            attr2 = attr
+                        attributes_dict[attr2] = cc[attr]
+                        
+                codes.append(ordr(zip(titles,  
+                                [
+                                    cc['code'],
+                                    cc['description'].encode('ascii', 'ignore').decode('ascii')
+                                ]
+                                + [attributes_dict] 
+                                + 
+                                [
+                                    concept_coding_system,
+                                    'C'+str(concept_id),
+                                    concept_version_id,
+                                    Concept.history.get(id=concept_id, history_id=concept_version_id).name,
+                                    current_ph_version.friendly_id,
+                                    current_ph_version.history_id, 
+                                    current_ph_version.name
+                                ]
+                            )))
+    
+            if rows_no == 0:
+                codes.append(ordr(zip(titles,  
+                                [
+                                    '',
+                                    ''
+                                ]
+                                + [attributes_dict]
+                                + 
+                                [
+                                    concept_coding_system,
+                                    'C'+str(concept_id),
+                                    concept_version_id,
+                                    Concept.history.get(id=concept_id, history_id=concept_version_id).name,
+                                    current_ph_version.friendly_id, 
+                                    current_ph_version.history_id,
+                                    current_ph_version.name
+                                ]
+                            )))
 
     return codes
 
@@ -3563,43 +3502,54 @@ def get_brand_collection_ids(brand_name):
 def get_brand_associated_collections(request, concept_or_phenotype):
     """
         If user is authenticated show all collection IDs, including those that are deleted, as filters.
-        If not, show only non-deleted entities related collection IDs.
+        If not, show only non-deleted/published entities related collection IDs.
     """
     
     brand = request.CURRENT_BRAND
     if brand == "":
         brand = 'ALL'
         
-    collection_ids = Statistics.objects.get(org__iexact=brand
-                                            , type__iexact=['phenotype_collections', 'concept_collections'][concept_or_phenotype == 'concept'])
-    stat_ids = collection_ids.stat
+    collection_ids = Statistics.objects.get(org__iexact = brand
+                                            , type__iexact = ['phenotype_collections', 'concept_collections'][concept_or_phenotype == 'concept']
+                                            )
+    stats = collection_ids.stat
 
-    if request.user.is_authenticated():
-        # If user is authenticated, bring back exclude deleted = 'False'
-        stat_dict = stat_ids[0]
-        stat_ids = stat_dict['Collection_IDs']
-    else:
-        # If user is not authenticated, bring back exclude deleted = 'True'
-        stat_dict = stat_ids[1]
-        stat_ids = stat_dict['Collection_IDs']
+    collections_ids = []
+    for s in stats:
+        if request.user.is_authenticated():
+            # If user is authenticated, bring back all collections IDs
+            if s['Data_Scope'] == 'all_data':
+                collections_ids = s['Collection_IDs']
+        else:
+            # If user is not authenticated, bring back published data related collections IDs
+            if s['Data_Scope'] == 'published_data':
+                collections_ids = s['Collection_IDs']   
 
-    return Tag.objects.filter(id__in=stat_ids, tag_type=2)
+
+    return Tag.objects.filter(id__in=collections_ids, tag_type=2)
 
 
 def get_brand_associated_collections_dynamic(request, concept_or_phenotype):
     """
         get associated collections of the current brand (or all if using default site)
-        dynamically, but not from statistics.
+        dynamically, Not from statistics.
     """
 
     if concept_or_phenotype == 'concept':
-        data = get_visible_live_or_published_concept_versions(request 
-                                                            , exclude_deleted=[True, False][request.user.is_authenticated()]
-                                                            )
+        data = get_visible_live_or_published_concept_versions(request
+                                                               , get_live_and_or_published_ver = [2, 3][request.user.is_authenticated()] # 1= live only, 2= published only, 3= live+published 
+                                                               , exclude_deleted=[True, False][request.user.is_authenticated()]
+                                                               , force_get_live_and_or_published_ver = [2, 3][request.user.is_authenticated()]
+                                                               )
+        
     elif concept_or_phenotype == 'phenotype':
-        data = get_visible_live_or_published_phenotype_versions(request 
-                                                            , exclude_deleted=[True, False][request.user.is_authenticated()]
-                                                            )
+        data = get_visible_live_or_published_phenotype_versions(request
+                                                               , get_live_and_or_published_ver = [2, 3][request.user.is_authenticated()] # 1= live only, 2= published only, 3= live+published 
+                                                               , exclude_deleted=[True, False][request.user.is_authenticated()]
+                                                               , force_get_live_and_or_published_ver = [2, 3][request.user.is_authenticated()]
+                                                               )
+
+
         
     Tag_List = []
     for i in data:

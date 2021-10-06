@@ -50,9 +50,10 @@ def api_datasource_create(request):
         new_datasource.uid = request.data.get('uid')
         new_datasource.url = request.data.get('url')
         new_datasource.description = request.data.get('description')
-        #brand_id = 3    # HDRUK  -- fixed for now
-        brand_id = request.data.get('brand_id')
-        new_datasource.brand = Brand.objects.get(id=brand_id)
+        
+        # remove brand from ds
+        #brand_id = request.data.get('brand_id')
+        #new_datasource.brand = Brand.objects.get(id=brand_id)
 
         new_datasource.created_by = request.user
 
@@ -110,15 +111,33 @@ def get_data_source(request, pk=None, get_live_phenotypes=False, show_published_
         data_source_id = request.query_params.get('id', None)
         
 
-    queryset = DataSource.objects.all()
+    # set phenotype search status
+    # 1= live only, 2= published only, 3= live+published
+    # based on show_published_data_only / get_live_phenotypes
+    live_and_or_published_ver = 3
+    if show_published_data_only:
+        live_and_or_published_ver = 2
     
     # --- when in a brand, show only this brand's data
-    brand_name = request.CURRENT_BRAND
-    if brand_name != "":
-        brand_id = Brand.objects.get(name__iexact = brand_name).id
-        queryset = queryset.filter(brand_id = brand_id)
-            
+    # get only brands used inside the phenotypes of the current brand (or all, if no brand)
+    phenotypes = get_visible_live_or_published_phenotype_versions(request
+                                            , get_live_and_or_published_ver = live_and_or_published_ver # 1= live only, 2= published only, 3= live+published 
+                                            , exclude_deleted = True
+                                            , show_top_version_only = [False, True][get_live_phenotypes]
+                                            , force_get_live_and_or_published_ver = live_and_or_published_ver
+                                            )
     
+    phenotypes_ids = get_list_of_visible_entity_ids(phenotypes, return_id_or_history_id = "id")
+    
+    
+    datasource_ids = list(set(
+                            list(PhenotypeDataSourceMap.history.filter(phenotype_id__in = phenotypes_ids).values_list('datasource_id', flat=True))
+                            )
+                        )
+    
+    queryset = DataSource.objects.filter(id__in = datasource_ids)
+
+ 
     keyword_search = request.query_params.get('search', None)
     if keyword_search is not None:
         queryset = queryset.filter(name__icontains=keyword_search)
@@ -130,7 +149,7 @@ def get_data_source(request, pk=None, get_live_phenotypes=False, show_published_
    
         
     rows_to_return = []
-    titles = ['id', 'name', 'url', 'uid', 'description', 'brand', 'phenotypes']
+    titles = ['id', 'name', 'url', 'uid', 'description', 'phenotypes']
         
     for ds in queryset:
         ret = [
@@ -138,13 +157,12 @@ def get_data_source(request, pk=None, get_live_phenotypes=False, show_published_
                 ds.name.encode('ascii', 'ignore').decode('ascii'),
                 ds.url,
                 ds.uid,
-                ds.description,
-                ds.brand.name
+                ds.description
             ]
         if get_live_phenotypes:
-            ret.append(get_LIVE_phenotypes_associated_with_data_source(ds.id, show_published_data_only=show_published_data_only))
+            ret.append(get_LIVE_phenotypes_associated_with_data_source(ds.id, phenotypes_ids, show_published_data_only=show_published_data_only))
         else:
-            ret.append(get_HISTORICAl_phenotypes_associated_with_data_source(ds.id, show_published_data_only=show_published_data_only))
+            ret.append(get_HISTORICAl_phenotypes_associated_with_data_source(ds.id, phenotypes_ids, show_published_data_only=show_published_data_only))
             
         rows_to_return.append(ordr(zip(titles,  ret )))
         
@@ -155,24 +173,28 @@ def get_data_source(request, pk=None, get_live_phenotypes=False, show_published_
         raise Http404
         #return Response(rows_to_return, status=status.HTTP_404_NOT_FOUND)
          
-def get_LIVE_phenotypes_associated_with_data_source(data_source_id, show_published_data_only=False):   
+def get_LIVE_phenotypes_associated_with_data_source(data_source_id, brand_phenotypes_ids, show_published_data_only=False):   
     
     # return LIVE phenotypes associated with data_source
-    phenotype_ids = list(PhenotypeDataSourceMap.objects.filter(datasource_id=data_source_id).values_list('phenotype_id', flat=True))
+    phenotype_ids = list(set(
+                            list(PhenotypeDataSourceMap.objects.filter(datasource_id=data_source_id, phenotype_id__in=brand_phenotypes_ids).values_list('phenotype_id', flat=True))
+                            )
+                        )
     phenotypes = Phenotype.objects.filter(id__in = phenotype_ids).order_by('name') 
     
     rows_to_return = []
     titles = ['phenotype_id', 'phenotype_version_id', 'phenotype_name', 'phenotype_uuid', 'phenotype_author']
     for p in phenotypes:
-        if show_published_data_only:
-            phenotype_latest_history_id = Phenotype.objects.get(pk=p.id).history.latest().history_id 
+        phenotype_latest_history_id = Phenotype.objects.get(pk=p.id).history.latest().history_id
+        
+        if show_published_data_only: 
             is_published = checkIfPublished(Phenotype, p.id, phenotype_latest_history_id)
             if not is_published:
                 continue
             
         ret = [
                 p.friendly_id,  
-                Phenotype.objects.get(id=p.id).history.latest().history_id,
+                phenotype_latest_history_id,
                 p.name.encode('ascii', 'ignore').decode('ascii'),
                 p.phenotype_uuid,
                 p.author
@@ -182,10 +204,13 @@ def get_LIVE_phenotypes_associated_with_data_source(data_source_id, show_publish
     return rows_to_return
 
     
-def get_HISTORICAl_phenotypes_associated_with_data_source(data_source_id, show_published_data_only=False):   
+def get_HISTORICAl_phenotypes_associated_with_data_source(data_source_id, brand_phenotypes_ids, show_published_data_only=False):   
     
     # return HISTORICAl phenotypes associated with data_source
-    associated_phenotype_ids = list(PhenotypeDataSourceMap.objects.filter(datasource_id=data_source_id).values_list('phenotype_id', flat=True))
+    associated_phenotype_ids = list(set(
+                                        list(PhenotypeDataSourceMap.history.filter(datasource_id=data_source_id, phenotype_id__in=brand_phenotypes_ids).values_list('phenotype_id', flat=True))
+                                        )
+                                    )
     
     ver_to_return = []
     rows_to_return = []

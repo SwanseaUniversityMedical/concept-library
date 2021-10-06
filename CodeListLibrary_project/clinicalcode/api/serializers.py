@@ -6,7 +6,7 @@
     ---------------------------------------------------------------------------
 '''
 from rest_framework import serializers
-from ..models import Concept, Component, CodeRegex, CodeList, Code, ConceptTagMap, Tag, WorkingSet, WorkingSetTagMap, DataSource
+from ..models import Concept, Component, CodeRegex, CodeList, Code, Tag, WorkingSet, WorkingSetTagMap, DataSource
 
 
 class ConceptSerializer(serializers.ModelSerializer):

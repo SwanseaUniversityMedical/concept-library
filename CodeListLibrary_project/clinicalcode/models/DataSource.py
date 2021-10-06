@@ -17,7 +17,7 @@ class DataSource(TimeStampedModel):
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="data_source_created")
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="data_source_updated")
 
-    brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True, related_name="data_source_brand")
+    #brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True, related_name="data_source_brand")
 
 
     history = HistoricalRecords()

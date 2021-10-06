@@ -410,7 +410,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
             
             c['codesCount'] = 0
             if codelist:
-                c['codesCount'] = len([x['code'] for x in codelist if x['concept_id'] == c['concept_id'] and x['concept_version_id'] == c['concept_version_id'] ])
+                c['codesCount'] = len([x['code'] for x in codelist if x['concept_id'] == 'C'+str(c['concept_id']) and x['concept_version_id'] == c['concept_version_id'] ])
             
             c['concept_friendly_id'] = 'C' + str(c['concept_id'])  
             concept_data.append(c)
