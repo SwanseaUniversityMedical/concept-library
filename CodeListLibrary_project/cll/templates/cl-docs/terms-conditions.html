@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block title %}{% endblock title %}
+{% block description %} HDR-UK BREATHE {% endblock description %}
+{% block keywords %}, hdr-uk, Phenotype, Phenotypes, BREATHE, Data Science Centre, Health Data, Research Hub {% endblock keywords %}
+{% block head %}
+<link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
+{% endblock head %}
+{% block container %}
+<div class="row">
+   <div class="rubric-box col-sm-2 hideleft-navbar" >
+      <div class="leftnavbar-position">
+         <ul class="left-navbar text-rubric-design pointer" onclick="showSelection(event)" id='navList'>
+            <li> <a href="#Terms-Conditions" id="header">Terms & Conditions
+               </a>
+            </li>
+            <li> <a href="#general">General
+            </a>
+            </li>
+            <li> <a href="#working-with-us">Working With Us
+            </a>
+            </li>
+            <li><a href="#data-usage">Data Usage
+               </a>
+            </li>
+            <li><a href="#Who-we-share-with">Who We Share With
+               </a>
+            </li>
+            <li><a href="#how-long">How Long Do We Hold Data
+            </a>
+            </li>
+            <li><a href="#where-do-we-store">Where Do We Store Data
+            </a>
+            </li>
+            <li><a href="#Your-Rights">Your Rights
+            </a>
+            </li>
+            <li><a href="#Complaint">Complaints
+            </a>
+            </li>
+            <li><a href="#Changes">Changes to Privacy Policy
+            </a>
+            </li>
+         </ul>
+      </div>
+   </div>
+   <h3><span id="Terms-Conditions"></span></h3>
+   <div style="width:70%;" class="column" >
+      <div class="header-content-design" style="padding-bottom:30px;">
+         Terms & Conditions
+      </div>
+      <div class="post-content">
+         <div id="general"  class="medium-header-design" >
+            General
+         </div>
+         <div class="sm-header-design">
+            <p>
+               HDR UK is committed to protecting the privacy of all individuals who work with us,
+               and complies with the principles of the EU General Data Protection Regulations and
+               the UK Data Protection Act. We are committed to ensuring that your data is handled
+               properly and any information we hold is stored securely and used in a lawful and
+               ethical way.
+               This privacy policy explains:
+            </p>
+
+            <div style="padding-left:30px;">
+               <ul>
+                  <li style="  list-style-type: circle;">What data we collect.</li>
+                  <li style="  list-style-type: circle;">On what grounds we hold personal data.</li>
+                  <li style="  list-style-type: circle;">How it is used.</li>
+                  <li style="  list-style-type: circle;">Who we share it with.</li>
+                  <li style="  list-style-type: circle;">How long we hold it.</li>
+                  <li style="  list-style-type: circle;">Where it is stored.</li>
+
+               </ul>
+         </div>
+         <div id="working-with-us" class="medium-header-design" >
+            Working with us
+         </div>
+         <div class="sm-header-design">
+            <p>
+            This section relates to the collection, handling and storage of data we obtain from
+            individuals who work with HDR UK, either those directly employed by SAIL or those
+            who work with SAIL data to undertake research projects. It does not relate to the de-
+            identified data held within the SAIL Databank itself. For this, please see the section
+            regarding patients and the public.
+            For the purposes of collecting, processing and storing data from individuals
+            employed by or working with SAIL, Swansea University is the Data Controller and is
+            committed to protecting the rights of individuals in line with the Data Protection Act
+            1998 (DPA) and the new General Data Protection Regulation (GDPR).
+            </p>
+            </div>
+
+            <div class="medium-header-design" id="data-usage">
+               What data do we collect, on what grounds do we hold it, and how will it be used?
+            </div>
+
+            <div class="medium-header-design">
+            i. SAIL staff
+            </div>
+            <p>
+            Individuals directly employed within the Data Science Building at Swansea
+            University, whose role is entirely or partly to support the SAIL Databank core
+            services and infrastructure are considered SAIL staff. Various departments within
+            Swansea University (e.g. Human Resources, Finance) hold personal data on
+            employees. This is collected and held under the individual’s contract of employment,
+            and is used for the purposes of managing the individual’s contract of employment.
+            </p>
+            <div class="medium-header-design">
+            ii. Project researchers’ contacts
+            </div>
+            <p>
+            These are individuals whose work is directly related to using the data held within the
+            SAIL databank, and who provide personal information to SAIL as part of their
+            applications to use SAIL data. This data is initially held under specific, explicit and
+            recorded consent, and later as part of the terms of the contract governing the
+            research project being undertaken with SAIL. The following personal information will
+            be held:
+
+            <li style="  list-style-type: circle;">Name and job title.</li>
+            <li style="  list-style-type: circle;">Email address.</li>
+            <li style="  list-style-type: circle;">Curriculum vitae.</li>
+            <li style="  list-style-type: circle;">Evidence of Safe Researcher training or equivalent having been completed.</li>
+            <li style="  list-style-type: circle;">The name of your organisation, institution or place of work.</li>
+            <br>
+            All data held within the SAIL Databank has been provided by third party Data
+            Owners, who impose a number of information governance conditions on use of their
+            data, to ensure that it is appropriate and in the public interest. Part of these
+            conditions are that individuals given access to the data are named, professional
+            researchers with appropriate skills and training. The personal data we collect and
+            hold from researchers is mainly to satisfy these information governance
+            requirements and to demonstrate continued compliance them to any audit
+            undertaken during or after the project lifecycle. We also use researchers contact
+            details to contact them throughout the life of their project to inform them of their
+            project’s status, report any downtime in access to data and other administrative
+            functions required to allow us to set up and manage their project. Researchers
+            should be aware that if consent to hold personal data is withdrawn, this will result in
+            the individual being unable to continue to access SAIL data, since we will no longer
+            hold sufficient information to demonstrate their compliance with our information
+            governance requirements.
+            </p>
+
+            <div class="medium-header-design" id="Who-we-share-with">
+               Who do we share your information with?
+            </div>
+            <p>
+            SAIL staff data is held under performance of employment contract and may be
+            shared within Swansea University in line Human Resources policies and procedures
+            for the purposes of managing the individual’s contract of employment.
+            Data provided to SAIL by project researchers / contacts as part of their application to
+            use SAIL data is not passed on to any third party. Your data will be used solely to
+            comply with our information governance requirements and for the purpose of set up
+            and management of your research project.
+            </p>
+
+            <div class="medium-header-design" id="how-long">
+               How long will it be held for?
+            </div>
+            <p>
+               SAIL staff data will be held in line with Swansea University personnel policies and
+               procedures. For more information see <a href="http://www.swansea.ac.uk/personnel/policies-and-procedures/">click here.</a>
+
+               <br> <br>
+            Personal data provided by researchers working with SAIL will be held for the period
+            of their access to SAIL data, then archived for a period of five years (to comply with
+            audit requirements), after which we will delete our records of your data. If for any
+            reason you wish us to retain your information for a different period than five years
+            following conclusion of your project, this can be agreed as part of the project
+            application process.
+            </p>
+
+            <div class="medium-header-design" id="where-do-we-store">
+            Where do we store your data?
+            </div>
+            <p>
+               We are committed to keeping your data secure. Any data you provide to us will be
+            held only on secure servers owned and administered by Swansea University which
+            are subject to suitable physical, electronic, and managerial procedures to safeguard
+            and secure the information we collect. <br> <br>
+            If you are not currently working with us, and have any questions about security
+            please <a href="https://saildatabank.com/contact/">contact us</a>. <br> <br>
+            If you are already in discussion with us about a project or have a live project using
+            SAIL data please contact <a href="https://jira.hiru.swan.ac.uk/servicedesk/customer/portal/6/group/72">our helpdesk.</a>
+               quoting your SAIL project reference number.
+            </p>
+              <div class="medium-header-design" id="Our-Website">
+            Our website
+            </div>
+            <p>
+            This site uses cookies – small text files that are placed on your machine to help the
+            site provide a better user experience. In general, cookies are used to retain user
+            preferences, store information for things like shopping carts, and provide
+            anonymised tracking data to third party applications like Google Analytics. As a rule,
+            cookies will make your browsing experience better. However, you may prefer to
+            disable cookies on this site and on others. The most effective way to do this is to
+            disable cookies in your browser. We suggest consulting the Help section of your
+            browser or taking a look at the <a href="http://www.aboutcookies.org/">About Cookies.</a>
+               website which offers guidance for all modern browsers.
+               <br><br>
+               We use Google Analytics to track the performance of our website and patterns in
+            use. We do not link statistics collected by Google Analytics to personally identifiable
+            information. Find out more on the <a href="http://www.google.com/analytics/learn/privacy.html">Google Analytics privacy policy.</a>
+               and how to <a href="https://tools.google.com/dlpage/gaoptout">opt out of tracking.</a>
+               <br><br>
+
+            More details about cookies used by Google Analytics are published on the Google
+            website. <a href="https://developers.google.com/analytics/resources/concepts/gaConceptsCookies">Cookies and Google Analytics.</a>
+            <br><br>
+            Google also publishes a browser add-on that will stop cookie information for Google
+            Analytics being stored. <a href="https://tools.google.com/dlpage/gaoptout">Google Analytics opt-out browser add-on.</a>
+            <br><br>
+               <b>NONE OF THE INFORMATION WE GATHER VIA COOKIES IDENTIFIES YOU AS
+               AN INDIVIDUAL – IT IS ALL ENTIRELY ANONYMOUS.</b>
+            </p>
+
+            <div class="medium-header-design" id="Your-Rights">
+            Your rights
+            </div>
+            <p>
+            The General Data Protection Regulation (GDPR) strengthens and adds to
+            individuals’ rights that exist under the Data Protection Act and SAIL is committed to
+            supporting these rights.
+            <br><br>
+            You have a right to access your personal information, to object to the processing of
+            your personal information, to rectify, to erase, to restrict and to port your personal
+            information. Please visit the <a href="http://www.swansea.ac.uk/the-university/world-class/vicechancellorsoffice/compliance/dataprotection/dataprotectionpolicy/">University Data Protection webpages</a> for further
+            information in relation to your rights.
+            <br><br>
+            Any requests or objections should be made in writing to the University Data
+            Protection Officer:-
+            <br><br>
+            University Compliance Officer (FOI/DP) <br>
+            Vice-Chancellor’s Office Swansea University <br>
+            Singleton Park <br>
+            Swansea <br>
+            SA2 8PP <br> <br>
+            Email: <a href="mailto:dataprotection@swansea.ac.uk">dataprotection@swansea.ac.uk</a>
+            <div class="medium-header-design" id="Complaint">
+            How to Make a Complaint
+            </div>
+            <p>
+            If you are unhappy with the way in which your personal data has been processed
+            you may in the first instance contact the University Data Protection Officer using the
+            contact details above.
+            </p>
+            <br>
+            If you remain dissatisfied then you have the right to apply directly to the Information
+            Commissioner for a decision. The Information Commissioner can be contacted at: –
+            <br><br>
+            Information Commissioner’s Office, <br>
+            Wycliffe House,<br>
+            Water Lane,<br>
+            Wilmslow,<br>
+            Cheshire,<br>
+            SK9 5AF<br><br>
+            <a href="http://www.ico.org.uk/">http://www.ico.org.uk/</a>
+
+              <div class="medium-header-design" id="Changes">
+            Changes to the privacy policy
+            </div>
+            <p>
+            Please note that SAIL Databank may change this notice by updating this page.
+            This notice was last updated on 25/05/2018.
+            </p>
+
+
+         </div>
+      </div>
+   </div>
+</div>
+{% endblock container %}
+{% block scripts  %}
+<script type="text/javascript">
+   function showSelection(e) {
+   		if (document.querySelector('#navList a.active') !== null) {
+     		document.querySelector('#navList a.active').classList.remove('active');
+   		}
+   e.target.className = "active";
+   }
+</script>
+<script type="text/javascript">
+   window.onload=function(){
+   		document.getElementById("breatheHeader").click();
+   };
+</script>
+{% endblock scripts %}
+
