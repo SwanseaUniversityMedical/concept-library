@@ -45,7 +45,7 @@ urlpatterns += [
 
 #======== Admin ===================================================================================
 # for API testing 
-if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
+if not settings.CLL_READ_ONLY:# and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
     urlpatterns += [
         url(r'^(?i)adminTemp/api_remove_data/', 
             adminTemp.api_remove_data, 

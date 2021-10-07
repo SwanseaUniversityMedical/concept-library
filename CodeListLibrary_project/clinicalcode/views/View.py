@@ -92,6 +92,9 @@ def about_pages(request, pg_name=None):
     # main CL about page
     if pg_name.lower() == "cl_about_page".lower():
         return render(request, 'clinicalcode/index.html', {})
+
+    elif pg_name.lower() == "cl_terms".lower():
+        return render(request, 'cl-docs/terms-conditions.html', {})
     
     
     
@@ -105,12 +108,15 @@ def about_pages(request, pg_name=None):
         
         elif pg_name.lower() == "hdruk_about_technical_details".lower():
             return render(request, 'clinicalcode/brand/HDRUK/about/technical-details.html', {})
-        
+
         elif pg_name.lower() == "hdruk_about_covid_19_response".lower():
             return render(request, 'clinicalcode/brand/HDRUK/about/covid-19-response.html', {})
         
         elif pg_name.lower() == "hdruk_about_publications".lower():
             return render(request, 'clinicalcode/brand/HDRUK/about/publications.html', {})
+
+        elif pg_name.lower() == "hdruk_terms".lower():
+            return render(request, 'cl-docs/terms-conditions.html', {})
         
         elif pg_name.lower() == "breathe".lower():
             return render(request, 'clinicalcode/brand/HDRUK/collections/breathe.html', {})
