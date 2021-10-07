@@ -1,0 +1,12 @@
+{% load i18n static %}
+<div class="text-center cookiealert" role="alert">
+    <span class ='cookies_text'>
+    This site uses cookies: <a href="/home/" target="_blank">Learn more</a>
+</span>
+
+    <button type="button" class="btn btn-primary btn-sm acceptcookies">
+        Accept cookies
+    </button>
+</div>
+<script src="{% static 'cookielaw/js/cookiealert.js' %}"></script>
+<link href="{% static 'cookielaw/css/cookiealert.css' %}" rel="stylesheet" />

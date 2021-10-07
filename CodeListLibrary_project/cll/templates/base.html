@@ -3,9 +3,10 @@
 	{% load static %}
 	{% load mathfilters %}
 	{% load i18n %}
-	
 	{% load cl_extras %}
-	
+    {% load cookielaw_tags%}
+
+
 	<head>
 		<style>
 		h3{ position:relative; }
@@ -368,6 +369,7 @@
 		</footer>	 
 		{% endblock footer %}
 
+
 		<script src="{% static 'js/lib/jquery/jquery-3.1.1.min.js' %}" type="text/javascript"></script>
 		<script src="{% static 'js/lib/moment-with-locales.min.js'%}" type="text/javascript"></script>
 		<script src="{% static 'js/lib/bootstrap/bootstrap.min.js' %}" type="text/javascript"></script>
@@ -461,9 +463,10 @@
 			
 		</script>
 		
-		
+
 		{% block scripts %}
 		{% endblock scripts %}
+        {% cookielaw_banner %}
 
 	</body>
 </html>
