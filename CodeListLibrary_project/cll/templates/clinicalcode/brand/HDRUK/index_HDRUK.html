@@ -1,12 +1,18 @@
 {% extends "base.html" %}
 {% load staticfiles %}
-{% block title %}{% endblock title %}
+
+{% block title %} | HDRUK{% endblock title %}
+
 {% block description %} HDR-UK Phenotype Library {% endblock description %}
+
 {% block keywords %}, hdr-uk, Phenotype, Phenotypes, Library, Data Science, Concepts, Clinical Codes, Data Sources, Coding Systems, algorithm, Github of phenotyping, EHR phenotyping, algoritm, Caliber {% endblock keywords %}
+
 {% block head %}
 <link href="{% static 'css/brands/HDRUK/landingPageStyles.css' %}" rel="stylesheet" />
 <meta charset="UTF-8">
 {% endblock head %}
+
+
 {% block container_fluid %}
 <div class="big-banner">
    <div class="container" >
@@ -152,7 +158,7 @@
    <div class="text-bottom-header text-style-center text-padding-top">Key Principles</div>
    <table class="key-principles-spacing" border=0>
       <tr>
-         <td>
+         <td style="vertical-align: top;">
             <div>The aim of the Library is not to standardize or harmonize disease definitions, therefore several phenotypes may be stored for the same condition and the onus is on individual researchers to explore which phenotypes they wish to use</div>
          </td>
          <td style="vertical-align: top;">
@@ -160,23 +166,23 @@
          </td>
       </tr>
       <tr>
-         <td>
+         <td style="vertical-align: top;">
             <div>
                 Ideally, phenotypes that are deposited in the Library will have undergone some form of peer-review to assess validity and quality either through peer-reviewed publication or some other means of sharing the definition(s)
             </div>
          </td>
-         <td>
+         <td style="vertical-align: top;">
             <div>
                All material deposited in the Library remain the intellectual property of the research group who created the phenotype(s) the default licensing agreement that information is available under is the Creative Commons Attribution 4.0 (CC A).
             </div>
          </td>
       </tr>
       <tr>
-         <td>
+         <td style="vertical-align: top;">
             <div>The Library stores phenotyping algorithms, metadata and tools only. No data are stored in the Library.
             </div>
          </td>
-         <td>
+         <td style="vertical-align: top;">
             <div>Users should cite the Phenotype Library in all publications, presentations and reports as follows: “HDR UK Phenotype Library phenotypes.healthdatagateway.org”</div>
          </td>
       </tr>
