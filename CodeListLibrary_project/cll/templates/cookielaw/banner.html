@@ -1,8 +1,8 @@
+
 {% load i18n static %}
 <div class="text-center cookiealert" role="alert">
     <span class ='cookies_text'>
-    This site uses cookies: <a href="/home/" target="_blank">Learn more</a>
-</span>
+    This site uses cookies: <a class="link" href="{% url 'about_page' pg_name='cl_terms'%}" target="_blank">Learn more</a>
 
     <button type="button" class="btn btn-primary btn-sm acceptcookies">
         Accept cookies
