@@ -220,6 +220,7 @@ INSTALLED_APPS = INSTALLED_APPS + [
     #'mod_wsgi.server',
     'django_extensions',
     'markdownify',
+    'cookielaw'
 ]
 
 MIDDLEWARE = [
@@ -283,6 +284,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'cookielaw.context_processors.cookielaw',
                 'cll.context_processors.general_var',
             ],
         },

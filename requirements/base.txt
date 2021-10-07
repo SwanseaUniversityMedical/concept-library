@@ -1,6 +1,8 @@
 aldjemy==0.3.10
 bleach==3.3.1
 defusedxml==0.5.0
+django-classy-tags==0.3.0
+django-cookie-law
 Django==1.11.3
 django-auth-ldap==1.2.16
 django-extensions==2.1.2
