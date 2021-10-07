@@ -43,13 +43,13 @@ def api_remove_data(request):
          
 
     if request.method == 'GET':
-        if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
+        if not settings.CLL_READ_ONLY: # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
             return render(request, 'clinicalcode/adminTemp/adminTemp.html', 
                           { }
                         )
         
     elif request.method == 'POST':  
-        if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
+        if not settings.CLL_READ_ONLY: # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
             code =  request.POST.get('code')
             if code.strip()!="nvd)#_0-i_a05n^5p6az2q_cd(_(+_4g)r&9h!#ru*pr(xa@=k":
                 raise PermissionDenied
