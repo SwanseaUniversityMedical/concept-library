@@ -115,6 +115,9 @@ def about_pages(request, pg_name=None):
         elif pg_name.lower() == "hdruk_about_publications".lower():
             return render(request, 'clinicalcode/brand/HDRUK/about/publications.html', {})
 
+        elif pg_name.lower() == "hdruk_terms".lower():
+            return render(request, 'cl-docs/terms-conditions.html', {})
+        
         elif pg_name.lower() == "breathe".lower():
             return render(request, 'clinicalcode/brand/HDRUK/collections/breathe.html', {})
     
