@@ -12,6 +12,7 @@ def general_var(request):
             'REGEX_TYPE_CHOICES': REGEX_TYPE_CHOICES,
             'DEV_PRODUCTION': settings.DEV_PRODUCTION,
             'IS_INSIDE_GATEWAY': settings.IS_INSIDE_GATEWAY,
-            'enable_publish': settings.ENABLE_PUBLISH
+            'enable_publish': settings.ENABLE_PUBLISH,
+            'IS_PRODUCTION_SERVER': (not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC and not settings.DEBUG)
             }
 

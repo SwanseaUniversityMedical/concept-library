@@ -31,6 +31,20 @@
 			{% endif %} 
     		 {% block title %}{% endblock title %}
     	</title>    	
+    	
+    	{% if IS_PRODUCTION_SERVER %}
+	    	<!-- Global site tag (gtag.js) - Google Analytics -->
+	    	<!-- for sub-directory = https://conceptlibrary.saildatabank.com/HDRUK/ -->
+			<script async src="https://www.googletagmanager.com/gtag/js?id=G-QE37B9J5WK"></script>
+			<script>
+			  window.dataLayer = window.dataLayer || [];
+			  function gtag(){dataLayer.push(arguments);}
+			  gtag('js', new Date());
+			
+			  gtag('config', 'G-QE37B9J5WK');
+			</script>
+		{% endif %}
+		
 		
 		<!-- core styles -->
 		<link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" />
