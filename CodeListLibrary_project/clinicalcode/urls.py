@@ -47,7 +47,7 @@ urlpatterns += [
 # for API testing 
 if not settings.CLL_READ_ONLY:# and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 
     urlpatterns += [
-        url(r'^(?i)adminTemp/api_remove_data/', 
+        url(r'^(?i)adminTemp/api_remove_data/$', 
             adminTemp.api_remove_data, 
             name='api_remove_data'),      
     ]
@@ -55,11 +55,11 @@ if not settings.CLL_READ_ONLY:# and (settings.IS_DEMO or settings.IS_DEVELOPMENT
 # saving statistics 
 if not settings.CLL_READ_ONLY: 
     urlpatterns += [
-        url(r'^(?i)admin/run-stat/',    # HDRUK stat
+        url(r'^(?i)admin/run-stat/$',    # HDRUK stat
             Admin.run_statistics, 
             name='HDRUK_run_statistics'),      
 
-        url(r'^(?i)admin/run-stat-collections/',    # collections filter stat
+        url(r'^(?i)admin/run-stat-collections/$',    # collections filter stat
             Admin.run_statistics_collections,
             name='collections_run_statistics'),
     ]      

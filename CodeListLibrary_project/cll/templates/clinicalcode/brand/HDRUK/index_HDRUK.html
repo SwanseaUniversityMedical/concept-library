@@ -1,12 +1,18 @@
 {% extends "base.html" %}
 {% load staticfiles %}
-{% block title %}{% endblock title %}
+
+{% block title %} | HDRUK{% endblock title %}
+
 {% block description %} HDR-UK Phenotype Library {% endblock description %}
+
 {% block keywords %}, hdr-uk, Phenotype, Phenotypes, Library, Data Science, Concepts, Clinical Codes, Data Sources, Coding Systems, algorithm, Github of phenotyping, EHR phenotyping, algoritm, Caliber {% endblock keywords %}
+
 {% block head %}
 <link href="{% static 'css/brands/HDRUK/landingPageStyles.css' %}" rel="stylesheet" />
 <meta charset="UTF-8">
 {% endblock head %}
+
+
 {% block container_fluid %}
 <div class="big-banner">
    <div class="container" >
@@ -112,9 +118,7 @@
       <div class="overview-text-spacing">
             <div class="text-bottom-header" style="padding-top: 30px;">What is a phenotyping algorithm?</div>
                <div class="paddingText">
-                  When using electronic data sources for health research, understanding the contents of health records and how they relate to the real world is a significant challenge. Health data typically contains a wide variety of detailed information about patients’ health care and treatments, which researchers need to process to answer questions such as “which patients have diabetes?”
-                  <br><br>
-                  Phenotyping algorithms are the solutions that researchers create to map complex, sometimes messy health data to real-world concepts of interest, so that the valuable information in these records can be used for research to improve health and well-being..
+                  A phenotype is a observable and measurable piece of information that is relevant to health or healthcare. For example, it can be a disease (e.g. type 2 diabetes), a blood pressure measurement, a blood sugar value or a prescription of antibiotics. Phenotyping algorithms are special tools that enable researchers to extract phenotypes from complex, and often messy data that get generated during routine interactions within the healthcare system. They identify and extract data from medical records using clinical codes which are the building block of how information is recorded in healthcare (for example ICD-10). Using these specialized algorithms, researchers and clinicians can maximize the value of patient data contained in medical records and answer important questions that can improve health and healthcare.
                </div>
 
       <div class="overview-text-spacing">
@@ -152,7 +156,7 @@
    <div class="text-bottom-header text-style-center text-padding-top">Key Principles</div>
    <table class="key-principles-spacing" border=0>
       <tr>
-         <td>
+         <td style="vertical-align: top;">
             <div>The aim of the Library is not to standardize or harmonize disease definitions, therefore several phenotypes may be stored for the same condition and the onus is on individual researchers to explore which phenotypes they wish to use</div>
          </td>
          <td style="vertical-align: top;">
@@ -160,23 +164,23 @@
          </td>
       </tr>
       <tr>
-         <td>
+         <td style="vertical-align: top;">
             <div>
                 Ideally, phenotypes that are deposited in the Library will have undergone some form of peer-review to assess validity and quality either through peer-reviewed publication or some other means of sharing the definition(s)
             </div>
          </td>
-         <td>
+         <td style="vertical-align: top;">
             <div>
                All material deposited in the Library remain the intellectual property of the research group who created the phenotype(s) the default licensing agreement that information is available under is the Creative Commons Attribution 4.0 (CC A).
             </div>
          </td>
       </tr>
       <tr>
-         <td>
+         <td style="vertical-align: top;">
             <div>The Library stores phenotyping algorithms, metadata and tools only. No data are stored in the Library.
             </div>
          </td>
-         <td>
+         <td style="vertical-align: top;">
             <div>Users should cite the Phenotype Library in all publications, presentations and reports as follows: “HDR UK Phenotype Library phenotypes.healthdatagateway.org”</div>
          </td>
       </tr>
