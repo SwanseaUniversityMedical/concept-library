@@ -157,11 +157,11 @@ urlpatterns = [
     # --- phenotypes   ----------------------------------------
     #----------------------------------------------------------  
     
-    url(r'^phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/export/codes$',
+    url(r'^phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/export/codes/$',
         Phenotype.export_phenotype_codes_byVersionID,
         name='api_export_phenotype_codes_byVersionID'),
     
-    url(r'^public/phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/export/codes$',
+    url(r'^public/phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/export/codes/$',
         Phenotype.export_published_phenotype_codes,
         name='api_export_published_phenotype_codes'),
 
