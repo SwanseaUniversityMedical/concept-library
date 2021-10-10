@@ -33,16 +33,29 @@
     	</title>    	
     	
     	{% if IS_PRODUCTION_SERVER %}
-	    	<!-- Global site tag (gtag.js) - Google Analytics -->
-	    	<!-- for sub-directory = https://conceptlibrary.saildatabank.com/HDRUK/ -->
-			<script async src="https://www.googletagmanager.com/gtag/js?id=G-QE37B9J5WK"></script>
-			<script>
-			  window.dataLayer = window.dataLayer || [];
-			  function gtag(){dataLayer.push(arguments);}
-			  gtag('js', new Date());
-			
-			  gtag('config', 'G-QE37B9J5WK');
-			</script>
+    		{% if request.CURRENT_BRAND == 'HDRUK' %}
+		    	<!-- Global site tag (gtag.js) - Google Analytics -->
+		    	<!-- for sub-directory = https://conceptlibrary.saildatabank.com/HDRUK/ -->
+				<script async src="https://www.googletagmanager.com/gtag/js?id=G-QE37B9J5WK"></script>
+				<script>
+				  window.dataLayer = window.dataLayer || [];
+				  function gtag(){dataLayer.push(arguments);}
+				  gtag('js', new Date());
+				
+				  gtag('config', 'G-QE37B9J5WK');
+				</script>
+			{% else %}
+				<!-- Global site tag (gtag.js) - Google Analytics -->
+				<!-- for the default/other brands -->
+				<script async src="https://www.googletagmanager.com/gtag/js?id=G-KLBS2646W1"></script>
+				<script>
+				  window.dataLayer = window.dataLayer || [];
+				  function gtag(){dataLayer.push(arguments);}
+				  gtag('js', new Date());
+				
+				  gtag('config', 'G-KLBS2646W1');
+				</script>
+			{% endif %}
 		{% endif %}
 		
 		
