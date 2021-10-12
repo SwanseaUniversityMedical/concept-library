@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block title %}{% endblock title %}
+{% block description %} HDR-UK BREATHE {% endblock description %}
+{% block keywords %}, hdr-uk, Phenotype, Phenotypes, BREATHE, Data Science Centre, Health Data, Research Hub {% endblock keywords %}
+{% block head %}
+<link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
+{% endblock head %}
+{% block container %}
+<div class="row">
+   <div class="rubric-box col-sm-2 hideleft-navbar" >
+      <div class="leftnavbar-position">
+         <ul class="left-navbar text-rubric-design pointer" onclick="showSelection(event)" id='navList'>
+            <li> <a href="#Terms-Conditions" id="header">Privacy & Cookie Policy
+               </a>
+            </li>
+            <li><a href="#What-Data-We-Collect">What Data We Collect
+               </a>
+            </li>
+            <li><a href="#On-What-Grounds">On What Grounds...?
+               </a>
+            </li>
+              <li><a href="#How-We-Use">How we Use Your Personal Data?
+               </a>
+              </li>
+            <li><a href="#Complaint">Complaints
+            </a>
+            </li>
+            <li><a href="#Cookies">Cookie Policy
+            </a>
+            </li>
+         </ul>
+      </div>
+   </div>
+   <h3><span id="Terms-Conditions"></span></h3>
+   <div style="width:70%;" class="column" >
+      <div class="header-content-design" style="padding-bottom:30px;">
+         Privacy & Cookie Policy
+      </div>
+      <div class="post-content">
+         <div id="General"  class="medium-header-design" >
+            General
+         </div>
+         <div class="sm-header-design">
+            <p>
+            Swansea University, Singleton Park, Swansea, SA2 8PP is the data controller of information collected on this website.
+            This privacy policy explains:
+            <li style="  list-style-type: circle;">What data we collect</li>
+            <li style="  list-style-type: circle;">On what grounds we hold your personal data</li>
+            <li style="list-style-type: circle;">How it is used</li>
+            <li style="  list-style-type: circle;">Who we share it with</li>
+            <li style="  list-style-type: circle;">How long we hold it</li>
+            <li style="  list-style-type: circle;">Where it is stored</li>
+            <p>
+         </div>
+         <div id="What-Data-We-Collect" class="medium-header-design" >
+            What Data do we Collect?
+         </div>
+         <div class="sm-header-design">
+            When you use this website you may either do so via direct access or you may log in using an existing SAIL account.
+            If you choose direct access we will not collect any information about you other than that collected through cookies placed on your machine.
+            This information is subject to our cookie policy as detailed below.
+            <br><br>
+            If you log in using an existing SAIL account <a href="https://saildatabank.com/privacy-and-cookie-policy/">(see SAIL’s privacy policy and terms of use)</a> we will hold information on the searches you have made and the phenotypes or concepts you create or edit together with details of your Email (login). We will not use this information other than for the purposes of understanding how we can best tailor the website to our users.
+            </div>
+            <div class="medium-header-design" id="On-What-Grounds">
+               On What Grounds do you Hold my Information?
+            </div>
+            <div class="sm-header-design">
+            <p>
+            The very limited information that we hold on you will be anonymised if it is collected from a cookie or will be subject to the terms of the SAIL privacy policy and will be processed on the basis of your consent. You are free to withdraw your consent at any time without any adverse consequences.</p>
+            </div>
+            <div class="medium-header-design" id="How-We-Use">
+               How we use your Personal Data?
+            </div>
+                     <div class="sm-header-design">
+
+            <p>If we hold personal data through your SAIL account this will be used solely for the purposes of improving our website and making it more accessible to our users. We will not make any automated decisions on you nor will we share your data or transfer it outside of the United Kingdom. We will not use your data for marketing purposes nor will we share it with any third party without your consent.</p>
+            <br>
+            If you wish to raise an enquiry about how your data is processed contact <a href="mailto:dataprotection@swansea.ac.uk">dataprotection@swansea.ac.uk</a>
+            <br>
+            You can ask us to tell you what information we hold about you, to delete your data or correct it or to transfer it where appropriate.
+      </div>
+            <div class="medium-header-design" id="Complaint">
+               How to Make a Complaint?
+            </div>
+         <div class="sm-header-design">
+         <p> If you are unhappy with the way in which your personal data has been processed you may in the first instance contact the University Data Protection Officer using the contact details above.
+            <br><br>
+            If you remain dissatisfied then you have the right to apply directly to the Information Commissioner for a decision. The Information Commissioner can be contacted at: –
+            <br><br>
+
+            Information Commissioner’s Office <br>
+         Wycliffe House <br>
+         Water Lane <br>
+         Wilmslow <br>
+         Cheshire <br>
+         SK9 5AF <br>
+         <a href="www.ico.org.uk">www.ico.org.uk</a><br><br>
+      We hold and retain personal data in line with our data retention policy which is available on request.
+      <br>
+      You can update your details or make a request to delete your personal data at any point.
+         </div>
+   </div>
+      <div class="medium-header-design" id="Cookies">
+         Cookie Policy
+      </div>
+      <div class="sm-header-design">
+      Our site uses cookies – small text files that are placed on your machine to help the site provide a better user experience. In general, cookies are used to retain user preferences, store information for things like your preferences, and provide anonymised tracking data to third party applications like Google Analytics. As a rule, cookies will make your browsing experience better. However, you may prefer to disable cookies on this site and on others. The most effective way to do this is to disable cookies in your browser or through our cookie banner. We suggest consulting the Help section of your browser or taking a look at the <a href="https://www.aboutcookies.org/">About Cookies website</a>
+       which offers guidance for all modern browsers. <br><br>
+      This website does not actively track you as an individual or hold personal data for these purposes. We use Google Analytics to track the performance of our website and patterns in use. We do not link statistics collected by Google Analytics to personally identifiable information. Find out more on the <a href="https://policies.google.com/privacy?hl=en">Google Analytics privacy policy</a> and how to <a href="https://tools.google.com/dlpage/gaoptout">opt out of tracking.</a>
+      <br><br>
+         More details about cookies used by Google Analytics are published on the Google website. <a href="https://developers.google.com/analytics/devguides/collection/analyticsjs/cookie-usage">Cookies and Google Analytics.</a>
+      Google also publishes a browser add-on that will stop cookie information for Google Analytics being stored.<a href="https://tools.google.com/dlpage/gaoptout">Google Analytics opt-out browser add-on.</a>
+      </div>
+</div>
+{% endblock container %}
+{% block scripts  %}
+<script type="text/javascript">
+   function showSelection(e) {
+   		if (document.querySelector('#navList a.active') !== null) {
+     		document.querySelector('#navList a.active').classList.remove('active');
+   		}
+   e.target.className = "active";
+   }
+</script>
+<script type="text/javascript">
+   window.onload=function(){
+   		document.getElementById("breatheHeader").click();
+   };
+</script>
+{% endblock scripts %}
+

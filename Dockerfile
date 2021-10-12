@@ -31,7 +31,8 @@ RUN a2enmod wsgi
 RUN \
   cd /etc/apache2/sites-available && \
   a2ensite cll  && \
-  a2dissite 000-default.conf
+  a2dissite 000-default.conf && \
+  a2enmod rewrite
 
 # restart apache ....................
 #RUN /etc/init.d/apache2 restart

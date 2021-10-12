@@ -409,6 +409,8 @@ DEV_PRODUCTION = ""
 if IS_DEMO:  # Demo server
     DEV_PRODUCTION = "<i class='glyphicon glyphicon-cog'  aria-hidden='true'> </i> DEMO SITE <i class='glyphicon glyphicon-cog'  aria-hidden='true'> </i>"
  
+IS_HDRUK_EXT = "0"
+ 
  
  # MARKDOWNIFY 
 

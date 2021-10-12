@@ -30,7 +30,12 @@ if settings.DEBUG:
 
 
 current_brand = ""
-current_brand = settings.CURRENT_BRAND
+current_brand = settings.CURRENT_BRAND + "/"
+if settings.IS_HDRUK_EXT == "1":
+    current_brand = ""
+
+
+    
 if settings.DEBUG:
     print "current_brand(settings.CURRENT_BRAND)= ", current_brand
 
@@ -42,25 +47,25 @@ urlpatterns = []
 # admin system
 if not settings.CLL_READ_ONLY:     
     urlpatterns += [
-        url(r'^(?i)'+current_brand+'/admin/', admin.site.urls ),
+        url(r'^(?i)'+current_brand+'admin/', admin.site.urls ),
     ]
 #--------------------------------------------------------------------
 
 # api
 urlpatterns += [
-    url(r'^(?i)'+current_brand+'/api/v1/', include('clinicalcode.api.urls', namespace='api')),
+    url(r'^(?i)'+current_brand+'api/v1/', include('clinicalcode.api.urls', namespace='api')),
 ]
 #--------------------------------------------------------------------
 
 # clinical code application
 urlpatterns += [
-    url(r'^(?i)'+current_brand+'/', include('clinicalcode.urls')),
+    url(r'^(?i)'+current_brand+'', include('clinicalcode.urls')),
     ] 
 #--------------------------------------------------------------------
 
 # Add django site authentication urls (for login, logout, password management)
 urlpatterns += [
-    url(r'^(?i)'+current_brand+'/account/', include('django.contrib.auth.urls')),
+    url(r'^(?i)'+current_brand+'account/', include('django.contrib.auth.urls')),
 ]
 
 #--------------------------------------------------------------------

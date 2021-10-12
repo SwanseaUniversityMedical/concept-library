@@ -43,6 +43,11 @@ urlpatterns += [
     url(r'^(?i)old/phenotypes/(?P<unique_url>.+)/$', View.HDRUK_portal_redirect, name='HDRUK_portal_redirect' ),
 ]
 
+# (terms and conditions) and privacy/cookie policy pages 
+urlpatterns += [
+    url(r'^(?i)terms-and-conditions/$', View.termspage, name='terms'),
+    url(r'^(?i)privacy-and-cookie-policy/$', View.cookiespage, name='privacy_and_cookie_policy'),
+]
 #======== Admin ===================================================================================
 # for API testing 
 if not settings.CLL_READ_ONLY:# and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC): 

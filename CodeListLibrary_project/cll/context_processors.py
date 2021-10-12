@@ -13,6 +13,6 @@ def general_var(request):
             'DEV_PRODUCTION': settings.DEV_PRODUCTION,
             'IS_INSIDE_GATEWAY': settings.IS_INSIDE_GATEWAY,
             'enable_publish': settings.ENABLE_PUBLISH,
-            'IS_PRODUCTION_SERVER': (not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC and not settings.DEBUG)
+            'IS_PRODUCTION_SERVER': (not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC and not settings.IS_INSIDE_GATEWAY)    #  and not settings.DEBUG
             }
 

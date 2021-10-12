@@ -2,7 +2,7 @@
 {% load i18n static %}
 <div class="text-center cookiealert" role="alert">
     <span class ='cookies_text'>
-    This site uses cookies: <a class="link" href="https://saildatabank.com/privacy-and-cookie-policy" target="_blank">Learn more</a>
+    This site uses cookies: <a id="link_privacy" href="{% url 'privacy_and_cookie_policy' %}" target="_blank">Learn more</a>
 
     <button type="button" class="btn btn-primary btn-sm acceptcookies">
         Accept cookies
