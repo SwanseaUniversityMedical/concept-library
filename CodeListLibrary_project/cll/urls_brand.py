@@ -25,6 +25,8 @@ from django.contrib.staticfiles.views import serve
 from django.views.decorators.cache import cache_control
 
 # Brands
+from clinicalcode.views import View
+
 if settings.DEBUG:
     print "BRANDING url file ..."
 
@@ -74,3 +76,10 @@ if settings.DEBUG:
 
 #--------------------------------------------------------------------
 
+#Adding URL for branding T&C pages.
+urlpatterns += [
+    url(r'^(?i)' +current_brand+'/terms_and_conditions/', View.termspage, name='terms'),
+]
+urlpatterns += [
+    url(r'^(?i)' +current_brand+ '/cookies_policy/', View.cookiespage, name='cookies'),
+]
