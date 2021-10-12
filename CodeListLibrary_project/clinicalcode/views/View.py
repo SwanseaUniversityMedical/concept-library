@@ -95,7 +95,7 @@ def about_pages(request, pg_name=None):
 
     elif pg_name.lower() == "cl_terms".lower():
         return render(request, 'cl-docs/terms-conditions.html', {})
-    
+
     
     
     # HDR-UK about pages      
@@ -331,4 +331,14 @@ def customRoot(request):
                    urls_available
                    )
 
-    
+#addition of terms & cookies pages rendering
+def termspage(request):
+            return render(request,
+                'cl-docs/terms-conditions.html',
+                )
+
+
+def cookiespage(request):
+    return render(request,
+                  'cl-docs/privacy-policy.html',
+                  )
