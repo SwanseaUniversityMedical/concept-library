@@ -101,10 +101,4 @@ urlpatterns +=  static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, view=cache_control(no_cache=True, must_revalidate=True)(serve))
 
-# addition of terms and cookies pages to URLpatterns
-urlpatterns += [
-    url(r'^(?i)terms_and_conditions/', View.termspage, name='terms'),
-]
-urlpatterns += [
-    url(r'^(?i)cookies_policy/', View.cookiespage, name='cookies'),
-]
+
