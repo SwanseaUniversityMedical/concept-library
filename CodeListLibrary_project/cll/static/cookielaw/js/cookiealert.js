@@ -44,11 +44,25 @@
     // cookie to remember user's choice and close the banner
     acceptCookies.addEventListener("click", function () {
         setCookie("acceptCookies", true, 365);
-        cookieAlert.classList.remove("show");
+         cookieAlert.classList.remove("show");
 
         // dispatch the accept event
         window.dispatchEvent(new Event("cookieAlertAccept"))
+
     });
+
+   // var ele = document.getElementById('link_privacy')
+    //ele.addEventListener('click',function(){
+      //   setCookie("acceptCookies", true, 365);
+        // cookieAlert.classList.remove("show");
+
+        // dispatch the accept event
+        //window.dispatchEvent(new Event("cookieAlertAccept"))
+   // });
+
+
+
+
 
 
     

@@ -18,6 +18,7 @@ RUN \
   apt-get install -y -q --no-install-recommends apt-utils && \
   apt-get install -y -q ssh apache2 && \
   apt-get install -y -q libapache2-mod-wsgi && \
+  apt-get install -y -q wget && \
   apt-get -y -q install sudo nano
 
 

@@ -53,7 +53,17 @@ class brandMiddleware(MiddlewareMixin):
             brands_list = [x.upper() for x in  list(brands.values_list('name', flat=True))]
             current_page_url = request.path_info.lstrip('/')
             
+            print "**** get_host= " , str(request.get_host())
+            
+            request.IS_HDRUK_EXT = "0"
+            settings.IS_HDRUK_EXT = "0"
+             
             root = current_page_url.split('/')[0]
+            if (request.get_host().lower().find('phenotypes.healthdatagateway') != -1 or request.get_host().lower().find('web-phenotypes-hdr') != -1 ):
+                root = 'HDRUK'
+                request.IS_HDRUK_EXT = "1"
+                settings.IS_HDRUK_EXT = "1"
+                
             root = root.upper()
             
             request.CURRENT_BRAND = ""
@@ -94,6 +104,7 @@ class brandMiddleware(MiddlewareMixin):
                 settings.CURRENT_BRAND = root
                 request.CURRENT_BRAND = root
                 
+                    
                 settings.CURRENT_BRAND_WITH_SLASH = "/" + root
                 request.CURRENT_BRAND_WITH_SLASH = "/" + root
                 
@@ -105,12 +116,20 @@ class brandMiddleware(MiddlewareMixin):
                     current_page_url = current_page_url.strip() + '/'
                     
                 # redirect /{brand}/api/  to  /{brand}/api/v1/
-                if '/'.join(current_page_url.split('/')[1:]).strip().lower() in ['api/', 'api']:
+                # default non-branded /api/ is handeled in urls.py
+                #if '/'.join(current_page_url.split('/')[1:]).strip().lower() in ['api/', 'api']:
+                if current_page_url.strip().rstrip('/').split('/')[-1].lower() in ['api']:
                     do_redirect = True
-                    current_page_url = current_page_url.split('/')[0] + '/api/v1/'
+                    #current_page_url = current_page_url.split('/')[0] + '/api/v1/'
+                    current_page_url = current_page_url.strip().rstrip('/') + '/v1/'
+                
                    
+                if (request.get_host().lower().find('phenotypes.healthdatagateway') != -1  or request.get_host().lower().find('web-phenotypes-hdr') != -1 ):
+                    pass 
+                else:
+                # # path_info does not change address bar urls
+                    request.path_info = '/' + '/'.join([root.upper()] + current_page_url.split('/')[1:])
                     
-                request.path_info = '/' + '/'.join([root.upper()] + current_page_url.split('/')[1:])
 #                 print "-------"
 #                 print current_page_url
 #                 print current_page_url.split('/')[1:]
@@ -133,7 +152,11 @@ class brandMiddleware(MiddlewareMixin):
                 print str(request.get_full_path())
                
             # Do NOT allow concept create under HDRUK - for now 
-            if str(request.get_full_path()).upper() == "/HDRUK/concepts/create/".upper():
+            if (str(request.get_full_path()).upper().replace('/','') == "/HDRUK/concepts/create/".upper().replace('/','') or
+                    ( (request.get_host().lower().find('phenotypes.healthdatagateway') != -1  or request.get_host().lower().find('web-phenotypes-hdr') != -1 )and 
+                        str(request.get_full_path()).upper().replace('/','').endswith('/concepts/create/'.upper().replace('/','') )
+                    )
+                ):
                 raise PermissionDenied
                  
             # redirect /{brand}/api/  to  /{brand}/api/v1/ to appear in URL address bar

@@ -93,9 +93,9 @@ def about_pages(request, pg_name=None):
     if pg_name.lower() == "cl_about_page".lower():
         return render(request, 'clinicalcode/index.html', {})
 
-    elif pg_name.lower() == "cl_terms".lower():
-        return render(request, 'cl-docs/terms-conditions.html', {})
-    
+#     elif pg_name.lower() == "cl_terms".lower():
+#         return render(request, 'cl-docs/terms-conditions.html', {})
+
     
     
     # HDR-UK about pages      
@@ -115,8 +115,8 @@ def about_pages(request, pg_name=None):
         elif pg_name.lower() == "hdruk_about_publications".lower():
             return render(request, 'clinicalcode/brand/HDRUK/about/publications.html', {})
 
-        elif pg_name.lower() == "hdruk_terms".lower():
-            return render(request, 'cl-docs/terms-conditions.html', {})
+#         elif pg_name.lower() == "hdruk_terms".lower():
+#             return render(request, 'cl-docs/terms-conditions.html', {})
         
         elif pg_name.lower() == "breathe".lower():
             return render(request, 'clinicalcode/brand/HDRUK/collections/breathe.html', {})
@@ -331,4 +331,22 @@ def customRoot(request):
                    urls_available
                    )
 
-    
+
+def termspage(request):
+    """
+        terms and conditions page
+    """
+    return render(request,
+                'cl-docs/terms-conditions.html',
+                {}
+                )
+
+
+def cookiespage(request):
+    """
+        privacy and cookie policy page
+    """
+    return render(request,
+                'cl-docs/privacy-cookie-policy.html',
+                {}
+                )
