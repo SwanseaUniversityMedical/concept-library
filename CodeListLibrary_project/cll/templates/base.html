@@ -34,8 +34,8 @@
     	
     	{% if IS_PRODUCTION_SERVER %}
     		{% if request.CURRENT_BRAND == 'HDRUK' %}
-		    	<!-- Global site tag (gtag.js) - Google Analytics -->
 		    	<!-- for sub-directory = https://conceptlibrary.saildatabank.com/HDRUK/ -->
+		    	<!-- Global site tag (gtag.js) - Google Analytics -->
 				<script async src="https://www.googletagmanager.com/gtag/js?id=G-QE37B9J5WK"></script>
 				<script>
 				  window.dataLayer = window.dataLayer || [];
@@ -44,9 +44,20 @@
 				
 				  gtag('config', 'G-QE37B9J5WK');
 				</script>
-			{% else %}
+				
+				<!-- for https://phenotypes.healthdatagateway.org -->
 				<!-- Global site tag (gtag.js) - Google Analytics -->
+				<script async src="https://www.googletagmanager.com/gtag/js?id=G-W6XK339B16"></script>
+				<script>
+				  window.dataLayer = window.dataLayer || [];
+				  function gtag(){dataLayer.push(arguments);}
+				  gtag('js', new Date());
+				
+				  gtag('config', 'G-W6XK339B16');
+				</script>
+			{% else %}
 				<!-- for the default/other brands -->
+				<!-- Global site tag (gtag.js) - Google Analytics -->
 				<script async src="https://www.googletagmanager.com/gtag/js?id=G-KLBS2646W1"></script>
 				<script>
 				  window.dataLayer = window.dataLayer || [];
@@ -130,7 +141,7 @@
 						{% if request.BRAND_OBJECT.allowed_tabs is none or 'home' in request.BRAND_OBJECT.allowed_tabs %}					
 							<li id="home_li">
 								<a id="home_a" class="main_menu nav-bar-title"  
-									href="/{% if request.CURRENT_BRAND|length %}{{ request.CURRENT_BRAND }}/home/{% else %}home/{% endif %}"
+									href="{% url 'concept_library_home' %}"
 								>Home</a>
 							</li>
 						{% endif %}
@@ -487,7 +498,27 @@
 					if(all_brands.indexOf(old_root.toUpperCase()) == -1){
 						indx = 0;
 					}
-					window.location.href = document.location.origin + new_root + '/' + path.split('/').slice(indx).join('/');
+					
+					
+					{% if IS_PRODUCTION_SERVER %}
+						if(window.location.href.toLowerCase().includes('phenotypes.healthdatagateway'.toLowerCase()) ){
+							if(new_root == '/HDRUK'){
+								// do nothing
+							}else{
+								window.location.href = 'https://conceptlibrary.saildatabank.com' + new_root + '/' + path.split('/').slice(indx).join('/');
+							}
+
+						}else{
+							if(new_root == '/HDRUK'){
+								new_root = '';
+								window.location.href = 'https://phenotypes.healthdatagateway.org' + new_root + '/' + path.split('/').slice(indx).join('/');
+							}else{
+								window.location.href = 'https://conceptlibrary.saildatabank.com' + new_root + '/' + path.split('/').slice(indx).join('/');
+							}
+						}
+					{% else %}
+						window.location.href = document.location.origin + new_root + '/' + path.split('/').slice(indx).join('/');
+					{% endif %}
 					
 					$(".loader").hide();
 

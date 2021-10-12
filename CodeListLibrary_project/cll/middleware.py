@@ -53,9 +53,17 @@ class brandMiddleware(MiddlewareMixin):
             brands_list = [x.upper() for x in  list(brands.values_list('name', flat=True))]
             current_page_url = request.path_info.lstrip('/')
             
+            print "**** get_host= " , str(request.get_host())
+            
+            request.IS_HDRUK_EXT = "0"
+            settings.IS_HDRUK_EXT = "0"
+             
             root = current_page_url.split('/')[0]
-            if request.get_host().lower().find('phenotypes.healthdatagateway') != -1:
+            if (request.get_host().lower().find('phenotypes.healthdatagateway') != -1 or request.get_host().lower().find('web-phenotypes-hdr') != -1 ):
                 root = 'HDRUK'
+                request.IS_HDRUK_EXT = "1"
+                settings.IS_HDRUK_EXT = "1"
+                
             root = root.upper()
             
             request.CURRENT_BRAND = ""
@@ -116,11 +124,11 @@ class brandMiddleware(MiddlewareMixin):
                     current_page_url = current_page_url.strip().rstrip('/') + '/v1/'
                 
                    
-                #if request.get_host().lower().find('phenotypes.healthdatagateway') != -1:
-                #    pass 
-                #else:
+                if (request.get_host().lower().find('phenotypes.healthdatagateway') != -1  or request.get_host().lower().find('web-phenotypes-hdr') != -1 ):
+                    pass 
+                else:
                 # # path_info does not change address bar urls
-                request.path_info = '/' + '/'.join([root.upper()] + current_page_url.split('/')[1:])
+                    request.path_info = '/' + '/'.join([root.upper()] + current_page_url.split('/')[1:])
                     
 #                 print "-------"
 #                 print current_page_url
@@ -145,8 +153,8 @@ class brandMiddleware(MiddlewareMixin):
                
             # Do NOT allow concept create under HDRUK - for now 
             if (str(request.get_full_path()).upper().replace('/','') == "/HDRUK/concepts/create/".upper().replace('/','') or
-                    (request.get_host().lower().find('phenotypes.healthdatagateway') != -1 and 
-                        str(request.get_full_path()).upper().endswith('/concepts/create/'.upper().replace('/','') )
+                    ( (request.get_host().lower().find('phenotypes.healthdatagateway') != -1  or request.get_host().lower().find('web-phenotypes-hdr') != -1 )and 
+                        str(request.get_full_path()).upper().replace('/','').endswith('/concepts/create/'.upper().replace('/','') )
                     )
                 ):
                 raise PermissionDenied
