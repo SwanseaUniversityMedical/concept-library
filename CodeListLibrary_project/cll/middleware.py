@@ -53,7 +53,7 @@ class brandMiddleware(MiddlewareMixin):
             brands_list = [x.upper() for x in  list(brands.values_list('name', flat=True))]
             current_page_url = request.path_info.lstrip('/')
             
-            print "**** get_host= " , str(request.get_host())
+            #print "**** get_host= " , str(request.get_host())
             
             request.IS_HDRUK_EXT = "0"
             settings.IS_HDRUK_EXT = "0"
