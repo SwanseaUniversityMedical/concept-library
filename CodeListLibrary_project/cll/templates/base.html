@@ -121,7 +121,7 @@
 <!-- 					<div class="navbar-header"> -->
 						
 						<!-- Header logo -->
-						<a id="logo-link"  class="navbar-brand" href="/{% if request.CURRENT_BRAND|length %}{{ request.CURRENT_BRAND }}/home/{% else %}home/{% endif %}" >
+						<a id="logo-link"  class="navbar-brand" href="{% url 'concept_library_home' %}"	>
 							<img style="margin-top: -5px;" widthXX="115px" height="35px"   alt="{{request.CURRENT_BRAND}} Logo" 
 								{% if request.CURRENT_BRAND|length %} src="{% static 'img/brands/' %}{{request.CURRENT_BRAND}}/header_logo.png" {% else %} src="{% static 'img//header_logo.png' %}" {% endif %}
 							/>
