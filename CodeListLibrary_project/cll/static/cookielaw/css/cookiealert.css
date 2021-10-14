@@ -28,19 +28,18 @@
     text-decoration: underline
 }
 
-.cookiealert .acceptcookies {
-    margin-left: 30px;
+.cookiealert .acceptcookies, .rejectcookies, .preferencecookies {
+    margin-left: 20px;
     vertical-align: baseline;
 }
 
-.btn.acceptcookies:hover{
+.btn.acceptcookies:hover, .btn.preferencecookies:hover, .btn.rejectcookies:hover{
      background-color: #e7e7e7;
      transition: all 500ms ease-out;
      color: #000;
 }
 
-.btn.acceptcookies{
-   
+.btn.acceptcookies, .btn.preferencecookies, .btn.rejectcookies{
   width: 130px;
   text-align: center;
   line-height: 30px;
