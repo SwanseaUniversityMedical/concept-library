@@ -32,42 +32,7 @@
     		 {% block title %}{% endblock title %}
     	</title>    	
     	
-    	{% if IS_PRODUCTION_SERVER %}
-    		{% if request.CURRENT_BRAND == 'HDRUK' %}
-		    	<!-- for sub-directory = https://conceptlibrary.saildatabank.com/HDRUK/ -->
-		    	<!-- Global site tag (gtag.js) - Google Analytics -->
-				<script async src="https://www.googletagmanager.com/gtag/js?id=G-QE37B9J5WK"></script>
-				<script>
-				  window.dataLayer = window.dataLayer || [];
-				  function gtag(){dataLayer.push(arguments);}
-				  gtag('js', new Date());
-				
-				  gtag('config', 'G-QE37B9J5WK');
-				</script>
-				
-				<!-- for https://phenotypes.healthdatagateway.org -->
-				<!-- Global site tag (gtag.js) - Google Analytics -->
-				<script async src="https://www.googletagmanager.com/gtag/js?id=G-W6XK339B16"></script>
-				<script>
-				  window.dataLayer = window.dataLayer || [];
-				  function gtag(){dataLayer.push(arguments);}
-				  gtag('js', new Date());
-				
-				  gtag('config', 'G-W6XK339B16');
-				</script>
-			{% else %}
-				<!-- for the default/other brands -->
-				<!-- Global site tag (gtag.js) - Google Analytics -->
-				<script async src="https://www.googletagmanager.com/gtag/js?id=G-KLBS2646W1"></script>
-				<script>
-				  window.dataLayer = window.dataLayer || [];
-				  function gtag(){dataLayer.push(arguments);}
-				  gtag('js', new Date());
-				
-				  gtag('config', 'G-KLBS2646W1');
-				</script>
-			{% endif %}
-		{% endif %}
+
 		
 		
 		<!-- core styles -->

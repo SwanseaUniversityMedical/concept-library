@@ -22,6 +22,8 @@ from django.core.urlresolvers import reverse_lazy, reverse
 urlpatterns = [
     url(r'^$', View.index, name='concept_library_home' ),
     url(r'^(?i)home/$', View.index, name='concept_library_home' ),
+    url(r'^(?i)cookies_settings/?$',View.cookies_settings, name='cookies_settings'),
+
 
     url(r'^(?i)concepts/$', Concept.concept_list, name='concept_list'),
     url(r'^(?i)workingsets/$', WorkingSet.workingset_list, name='workingset_list'),
