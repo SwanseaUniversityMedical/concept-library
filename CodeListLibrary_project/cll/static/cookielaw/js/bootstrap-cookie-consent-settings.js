@@ -13,6 +13,9 @@ function BootstrapCookieConsentSettings(props) {
         cookieStorageDays: 365, // the duration the cookie configuration is stored on the client
         postSelectionCallback: undefined // callback function, called after the user has made his selection
     }
+
+
+
     for (var property in props) {
         // noinspection JSUnfilteredForInLoop
         this.props[property] = props[property]
@@ -89,6 +92,7 @@ function BootstrapCookieConsentSettings(props) {
                         self.$buttonAgree = $("#bccs-buttonAgree")
                         self.$buttonSave = $("#bccs-buttonSave")
                         self.$buttonAgreeAll = $("#bccs-buttonAgreeAll")
+                        self.$analysesButton = $("#bccs-checkboxAnalyses").prop("checked", true);
                         updateButtons()
                         updateOptionsFromCookie()
                         $("#bccs-options").on("hide.bs.collapse", function () {
@@ -152,7 +156,7 @@ function BootstrapCookieConsentSettings(props) {
         for (var i = 0; i < $options.length; i++) {
             var option = $options[i]
             var name = option.getAttribute("data-name")
-            if (name === "necessary") {
+            if (name === "necessary" ) {
                 options[name] = true
             } else if (setAllExceptNecessary === undefined) {
                 var $checkbox = $(option).find("input[type='checkbox']")

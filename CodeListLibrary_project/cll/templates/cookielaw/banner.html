@@ -1,158 +1,56 @@
 {% load i18n static %}
 <div class="text-center cookiealert" role="alert">
-    <span class='cookies_text'>
-    This site uses cookies: <a id="link_privacy" href="{% url 'privacy_and_cookie_policy' %}"
-                               target="_blank">Learn more</a>
 
+    <div class='cookies_text' style="display:inline-flex">
+    This site uses cookies: <a id="link_privacy" href="{% url 'privacy_and_cookie_policy' %}"
+                               target="_blank">Learn more</a></div>
+
+
+
+        <div class="cookie_buttons">
+
+
+          <button type="button" id="cookie_preference" class="btn btn-link  preferencecookies" value="">
+        Customise settings
+        </button>
 
         <button type="button" id="reject_button" class="btn btn-primary btn-sm rejectcookies" value="">
-        Reject cookies
+        Disable analytics
         </button>
 
-        <button type="button" id="cookie_preference" class="btn btn-primary btn-sm preferencecookies" value="">
-        Cookie settings
-        </button>
 
         <button type="button" id="accept_button" class="btn btn-primary btn-sm acceptcookies" value="">
-        Accept cookies
+        Accept all
         </button>
 
-        {% if IS_PRODUCTION_SERVER %}
-            {% if request.CURRENT_BRAND == 'HDRUK' %}
-                <!-- for sub-directory = https://conceptlibrary.saildatabank.com/HDRUK/ -->
-                <!-- Global site tag (gtag.js) - Google Analytics -->
-                <script async src="https://www.googletagmanager.com/gtag/js?id=G-QE37B9J5WK"></script>
-                <script async src="https://www.googletagmanager.com/gtag/js?id=G-W6XK339B16"></script>
-                <script type="text/javascript">
-
-        this.props = {
-            autoShowDialog: true, // disable autoShowModal on the privacy policy and legal notice pages, to make these pages readable
-            lang: navigator.language, // the language, in which the modal is shown
-            languages: ["en", "de"], // supported languages (in ./content/), defaults to first in array
-            contentURL: "{% url 'cookies_settings' %}",
-            cookieName: "cookieSettings",  // the name of the cookie in which the configuration is stored as JSON
-            cookieStorageDays: 365, // the duration the cookie configuration is stored on the client
-            postSelectionCallback: undefined // callback function, called after the user has made his selection
-        }
-
-        $("#cookie_preference").click(function () {
-            var cookieSettings = new BootstrapCookieConsentSettings(props)
-            cookieSettings.showDialog()
-            if (cookieSettings.getSettings("analyses")) {
-                window.dataLayer = window.dataLayer || [];
-
-                function gtag() {
-                    dataLayer.push(arguments);
-                }
-
-                gtag('js', new Date());
 
 
-                gtag('consent', 'update', {
-                    'ad_storage': 'granted'
-                });
-                gtag('config', 'G-QE37B9J5WK');
+        </div>
 
 
-                gtag('consent', 'update', {
-                    'ad_storage': 'granted'
-                });
-                gtag('config', 'G-W6XK339B16');
 
 
-            } else {
-                window.dataLayer = window.dataLayer || [];
+    {% if request.CURRENT_BRAND == 'HDRUK' %}
+        <!-- for sub-directory = https://conceptlibrary.saildatabank.com/HDRUK/ -->
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-QE37B9J5WK"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-W6XK339B16"></script>
+        <script type="text/javascript">
 
-                function gtag() {
-                    dataLayer.push(arguments);
-                }
-
-                gtag('js', new Date());
-                gtag('consent', 'default', {
-                    'ad_storage': 'denied',
-                    'analytics_storage': 'denied'
-                });
-                gtag('config', 'G-QE37B9J5WK');
-
-                gtag('consent', 'default', {
-                    'ad_storage': 'denied',
-                    'analytics_storage': 'denied'
-                });
-                gtag('config', 'G-W6XK339B16');
-
+            this.props = {
+                autoShowDialog: true, // disable autoShowModal on the privacy policy and legal notice pages, to make these pages readable
+                lang: navigator.language, // the language, in which the modal is shown
+                languages: ["en", "de"], // supported languages (in ./content/), defaults to first in array
+                contentURL: "{% url 'cookies_settings' %}",
+                cookieName: "cookieSettings",  // the name of the cookie in which the configuration is stored as JSON
+                cookieStorageDays: 365, // the duration the cookie configuration is stored on the client
+                postSelectionCallback: undefined // callback function, called after the user has made his selection
             }
 
-        })
-
-    </script>
-            {% else %}
-                <!-- for the default/other brands -->
-                <!-- Global site tag (gtag.js) - Google Analytics -->
-                <script async src="https://www.googletagmanager.com/gtag/js?id=G-KLBS2646W1"></script>
-                <script type="text/javascript">
-
-        this.props = {
-            autoShowDialog: true, // disable autoShowModal on the privacy policy and legal notice pages, to make these pages readable
-            lang: navigator.language, // the language, in which the modal is shown
-            languages: ["en", "de"], // supported languages (in ./content/), defaults to first in array
-            contentURL: "{% url 'cookies_settings' %}",
-            cookieName: "cookie-consent-settings",  // the name of the cookie in which the configuration is stored as JSON
-            cookieStorageDays: 365, // the duration the cookie configuration is stored on the client
-            postSelectionCallback: undefined // callback function, called after the user has made his selection
-        }
-
-        $("#cookie_preference").click(function () {
-            var cookieSettings = new BootstrapCookieConsentSettings(props)
-            cookieSettings.showDialog()
-            if (cookieSettings.getSettings("analyses")) {
-                window.dataLayer = window.dataLayer || [];
-
-                function gtag() {
-                    dataLayer.push(arguments);
-                }
-
-                gtag('js', new Date());
-
-                gtag('consent', 'update', {
-                    'ad_storage': 'granted'
-                });
-                gtag('config', 'G-KLBS2646W1');
-
-
-            } else {
-                window.dataLayer = window.dataLayer || [];
-
-                function gtag() {
-                    dataLayer.push(arguments);
-                }
-
-                gtag('js', new Date());
-                gtag('consent', 'default', {
-                    'ad_storage': 'denied',
-                    'analytics_storage': 'denied'
-                });
-                gtag('config', 'G-KLBS2646W1');
-
-            }
-
-        })
-
-    </script>
-
-            {% endif %}
-        {% endif %}
-
-
-        {% if IS_PRODUCTION_SERVER %}
-            {% if request.CURRENT_BRAND == 'HDRUK' %}
-                <!-- for sub - directory = https://conceptlibrary.saildatabank.com/HDRUK/ -->
-                <!-- Global site tag (gtag.js) - Google Analytics -->
-                <script async src="https://www.googletagmanager.com/gtag/js?id=G-QE37B9J5WK"></script>
-
-                <script type="text/javascript">
-                $("#accept_button").click(function () {
-                    console.log("pidor1")
-
+            $("#cookie_preference").click(function () {
+                var cookieSettings = new BootstrapCookieConsentSettings(props)
+                cookieSettings.showDialog()
+                if (cookieSettings.getSettings("analyses")) {
                     window.dataLayer = window.dataLayer || [];
 
                     function gtag() {
@@ -166,11 +64,15 @@
                         'ad_storage': 'granted'
                     });
                     gtag('config', 'G-QE37B9J5WK');
-                })
-
-                $("#reject_button").click(function () {
 
 
+                    gtag('consent', 'update', {
+                        'ad_storage': 'granted'
+                    });
+                    gtag('config', 'G-W6XK339B16');
+
+
+                } else {
                     window.dataLayer = window.dataLayer || [];
 
                     function gtag() {
@@ -184,90 +86,198 @@
                     });
                     gtag('config', 'G-QE37B9J5WK');
 
-                })
-				</script>
+                    gtag('consent', 'default', {
+                        'ad_storage': 'denied',
+                        'analytics_storage': 'denied'
+                    });
+                    gtag('config', 'G-W6XK339B16');
 
-                <!-- for https://phenotypes.healthdatagateway.org -->
-                <!-- Global site tag (gtag.js) - Google Analytics -->
-                <script async src="https://www.googletagmanager.com/gtag/js?id=G-W6XK339B16"></script>
-                <script type="text/javascript">
-                 $("#accept_button").click(function () {
-                     window.dataLayer = window.dataLayer || [];
+                }
 
+            })
 
-                     function gtag() {
-                         dataLayer.push(arguments);
-                     }
+        </script>
+    {% else %}
+        <!-- for the default/other brands -->
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-KLBS2646W1"></script>
+        <script type="text/javascript">
 
-                     gtag('js', new Date());
+            this.props = {
+                autoShowDialog: true, // disable autoShowModal on the privacy policy and legal notice pages, to make these pages readable
+                lang: navigator.language, // the language, in which the modal is shown
+                languages: ["en", "de"], // supported languages (in ./content/), defaults to first in array
+                contentURL: "{% url 'cookies_settings' %}",
+                cookieName: "cookieSettings",  // the name of the cookie in which the configuration is stored as JSON
+                cookieStorageDays: 365, // the duration the cookie configuration is stored on the client
+                postSelectionCallback: undefined // callback function, called after the user has made his selection
+            }
 
+            $("#cookie_preference").click(function () {
+                var cookieSettings = new BootstrapCookieConsentSettings(props)
+                cookieSettings.showDialog()
+                if (cookieSettings.getSettings("analyses")) {
+                    window.dataLayer = window.dataLayer || [];
 
-                     gtag('consent', 'update', {
-                         'ad_storage': 'granted'
-                     });
-                     gtag('config', 'G-W6XK339B16');
-                 })
-                 $("#reject_button").click(function () {
+                    function gtag() {
+                        dataLayer.push(arguments);
+                    }
 
-                     window.dataLayer = window.dataLayer || [];
+                    gtag('js', new Date());
 
-                     function gtag() {
-                         dataLayer.push(arguments);
-                     }
-
-                     gtag('js', new Date());
-
-
-                     gtag('consent', 'default', {
-                         'ad_storage': 'denied',
-                         'analytics_storage': 'denied'
-                     });
-                     gtag('config', 'G-W6XK339B16');
-                 })
-				</script>
-            {% else %}
-                <!-- for the default/other brands -->
-                <!-- Global site tag (gtag.js) - Google Analytics -->
-                <script async src="https://www.googletagmanager.com/gtag/js?id=G-KLBS2646W1"></script>
-                <script type="text/javascript">
-                 $("#accept_button").click(function () {
-                     window.dataLayer = window.dataLayer || [];
-
-                     function gtag() {
-                         dataLayer.push(arguments);
-                     }
-
-                     gtag('js', new Date());
+                    gtag('consent', 'update', {
+                        'ad_storage': 'granted'
+                    });
+                    gtag('config', 'G-KLBS2646W1');
 
 
-                     gtag('consent', 'update', {
-                         'ad_storage': 'granted'
-                     });
-                     gtag('config', 'G-KLBS2646W1');
+                } else {
+                    window.dataLayer = window.dataLayer || [];
 
-                 })
+                    function gtag() {
+                        dataLayer.push(arguments);
+                    }
 
-                 $("#reject_button").click(function () {
+                    gtag('js', new Date());
+                    gtag('consent', 'default', {
+                        'ad_storage': 'denied',
+                        'analytics_storage': 'denied'
+                    });
+                    gtag('config', 'G-KLBS2646W1');
 
-                     window.dataLayer = window.dataLayer || [];
+                }
 
-                     function gtag() {
-                         dataLayer.push(arguments);
-                     }
+            })
 
-                     gtag('js', new Date());
+        </script>
+
+    {% endif %}
 
 
-                     gtag('consent', 'default', {
-                         'ad_storage': 'denied',
-                         'analytics_storage': 'denied'
-                     });
-                     gtag('config', 'G-KLBS2646W1');
 
-                 })
-				</script>
-            {% endif %}
-        {% endif %}
+    {% if request.CURRENT_BRAND == 'HDRUK' %}
+        <!-- for sub - directory = https://conceptlibrary.saildatabank.com/HDRUK/ -->
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-QE37B9J5WK"></script>
+
+        <script type="text/javascript">
+            $("#accept_button").click(function () {
+
+
+                window.dataLayer = window.dataLayer || [];
+
+                function gtag() {
+                    dataLayer.push(arguments);
+                }
+
+                gtag('js', new Date());
+
+
+                gtag('consent', 'update', {
+                    'ad_storage': 'granted'
+                });
+                gtag('config', 'G-QE37B9J5WK');
+            })
+
+            $("#reject_button").click(function () {
+
+
+                window.dataLayer = window.dataLayer || [];
+
+                function gtag() {
+                    dataLayer.push(arguments);
+                }
+
+                gtag('js', new Date());
+                gtag('consent', 'default', {
+                    'ad_storage': 'denied',
+                    'analytics_storage': 'denied'
+                });
+                gtag('config', 'G-QE37B9J5WK');
+
+            })
+        </script>
+
+        <!-- for https://phenotypes.healthdatagateway.org -->
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-W6XK339B16"></script>
+        <script type="text/javascript">
+            $("#accept_button").click(function () {
+                window.dataLayer = window.dataLayer || [];
+
+
+                function gtag() {
+                    dataLayer.push(arguments);
+                }
+
+                gtag('js', new Date());
+
+
+                gtag('consent', 'update', {
+                    'ad_storage': 'granted'
+                });
+                gtag('config', 'G-W6XK339B16');
+            })
+            $("#reject_button").click(function () {
+
+                window.dataLayer = window.dataLayer || [];
+
+                function gtag() {
+                    dataLayer.push(arguments);
+                }
+
+                gtag('js', new Date());
+
+
+                gtag('consent', 'default', {
+                    'ad_storage': 'denied',
+                    'analytics_storage': 'denied'
+                });
+                gtag('config', 'G-W6XK339B16');
+            })
+        </script>
+    {% else %}
+        <!-- for the default/other brands -->
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-KLBS2646W1"></script>
+        <script type="text/javascript">
+            $("#accept_button").click(function () {
+                window.dataLayer = window.dataLayer || [];
+
+                function gtag() {
+                    dataLayer.push(arguments);
+                }
+
+                gtag('js', new Date());
+
+
+                gtag('consent', 'update', {
+                    'ad_storage': 'granted'
+                });
+                gtag('config', 'G-KLBS2646W1');
+
+            })
+
+            $("#reject_button").click(function () {
+
+                window.dataLayer = window.dataLayer || [];
+
+                function gtag() {
+                    dataLayer.push(arguments);
+                }
+
+                gtag('js', new Date());
+
+
+                gtag('consent', 'default', {
+                    'ad_storage': 'denied',
+                    'analytics_storage': 'denied'
+                });
+                gtag('config', 'G-KLBS2646W1');
+
+            })
+        </script>
+    {% endif %}
 
 
 
