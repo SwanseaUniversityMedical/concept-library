@@ -28,23 +28,50 @@
     text-decoration: underline
 }
 
-.cookiealert .acceptcookies {
+.cookie_buttons{
+    display: inline-flex;
+    
+    
     margin-left: 30px;
-    vertical-align: baseline;
+    margin-right: 10px;
+    
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    flex-direction: row;
 }
 
-.btn.acceptcookies:hover{
+
+.cookiealert .acceptcookies, .rejectcookies, .preferencecookies {
+    margin-left: 15px;
+    vertical-align: baseline;
+    
+}
+
+.btn.acceptcookies:hover, .btn.rejectcookies:hover{
      background-color: #e7e7e7;
      transition: all 500ms ease-out;
      color: #000;
 }
 
-.btn.acceptcookies{
-   
-  width: 130px;
+.btn.acceptcookies,  .btn.rejectcookies{
+  width: fit-content;
   text-align: center;
   line-height: 30px;
   background: #18adca;
   font-size: 1.05em;
+  
+
+  border-radius: 2px;
 }
+
+.btn.preferencecookies{
+    color: #ffffff;
+    
+    font-size: 14px;
+    width: fit-content;
+    text-align: center;
+    border-radius: 0em;
+    background-color:transparent;
+}
+
 

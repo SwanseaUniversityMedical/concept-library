@@ -84,6 +84,8 @@ def index_BREATHE(request):
                 )
 
 
+
+
 def about_pages(request, pg_name=None):
     '''
         manage about pages
@@ -350,3 +352,6 @@ def cookiespage(request):
                 'cl-docs/privacy-cookie-policy.html',
                 {}
                 )
+
+def cookies_settings(request):
+    return render(request,'cookielaw/en.html',{})
