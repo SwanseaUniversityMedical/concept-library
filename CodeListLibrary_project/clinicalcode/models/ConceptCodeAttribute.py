@@ -20,7 +20,7 @@ class ConceptCodeAttribute(TimeStampedModel):
     '''
 
     concept = models.ForeignKey(Concept)
-    code = models.CharField(max_length=20)  # A Single Code
+    code = models.CharField(max_length=100)  # A Single Code
     attributes = ArrayField(models.CharField(max_length=250), blank=True, null=True)  # Array of attribute value /without headers
 
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="cocept_code_attr_created")

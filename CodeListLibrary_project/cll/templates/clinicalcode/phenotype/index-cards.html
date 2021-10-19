@@ -62,7 +62,7 @@
 	{% for phenotype in page_obj.object_list %}  
 			<div class="cl-card {% if phenotype.is_deleted is True %} cl-card-deleted {% endif %} {% cycle ' dark-div ' '' %}   ">
 				<div class="row form-group">
-					<div class="col-sm-8">
+					<div class="col-sm-12">
 						{% if user.is_authenticated and phenotype.is_published != 1 %}
 							<a class="" href="{% url 'phenotype_detail' phenotype.id %}">
 						{% else %}
@@ -72,24 +72,12 @@
 							</a>
 				
 					</div>
-					<div class="col-sm-4 text-right">
-						<!-- brands -->
-						{% for item in request.BRAND_GROUPS %}
-							{% for brand, groups in item.iteritems %}
-								{% if phenotype.group_name in groups %}
-								<span >&nbsp;&nbsp;&nbsp;</span>
-								<span class="text-right">	
-									<img src="{% static 'img/brands/' %}{{brand}}/logo.png" style="text-align: right;height:25px;" title="{{brand}}" alt="{{brand}}" />
-								</span>
-								{% endif %}
-							{% endfor %}
-						{% endfor %}
-					</div>					
 				</div>
 				
 				<div class="row form-group">
 					<div class="col-sm-12">
-						<span {%if phenotype.author|length > 120 %}title="{{ phenotype.author }}" {% endif %} >{{ phenotype.author|truncatechars:120 }}</span>
+<!-- 						<span {%if phenotype.author|length > 120 %}title="{{ phenotype.author }}" {% endif %} >{{ phenotype.author|truncatechars:120 }}</span> -->
+						{{ phenotype.author }}
 					</div>
 				</div>				
 				
