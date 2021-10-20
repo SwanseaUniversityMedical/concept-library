@@ -430,7 +430,7 @@
 		            </div>
 		         </div>
 		         <div>
-		            <table class="table table-striped table-responsive-md" id="codelist-tab-table-c{{ c.concept_version_id }}" >
+		            <table class="table table-striped table-responsive-md display " id="codelist-tab-table-c{{ c.concept_version_id }}" >
 		               <thead>
 		                  <tr>
 		                     <th>Code</th>
@@ -765,8 +765,10 @@
 								
 				dataService.getPhenotypeUniqueCodesByVersion(phenotype_id, phenotype_history_id, function(data){
 						$('#codelist-tab-table tbody').html(data.html_uniquecodes_list);
+
 						$('#codesCount_all').text('Rows: ' + data.codes_count);
 						showConceptsCodes(data.concept_codes_html);
+
 				});
 				
 				
@@ -779,8 +781,23 @@
 		function showConceptsCodes(concept_codes_html_list) {
 			$.each(concept_codes_html_list, function( i , v ) {
 					$('#codelist-tab-table-c' + v.concept_version_id + ' tbody').html(v.c_html);
-					$('#codesCount_c' + v.concept_version_id).text('Rows: ' + v.c_codes_count);		
-				});		
+					$('#codesCount_c' + v.concept_version_id).text('Rows: ' + v.c_codes_count);
+					 var table = $('#codelist-tab-table-c' + v.concept_version_id).DataTable({
+                         "initComplete":function (settings,json) {
+                             $('#codelist-tab-table-c' + v.concept_version_id).wrap(
+                                 "<div style='overflow:auto; width:100%;position:relative;'></div>")
+                         },
+                         "scrollY":"700px",
+                         "scrollCollapse": true,
+                         "colReorder": true,
+                         "rowReorder": true,
+                         "fixedHeader": true
+
+                    });
+
+				});
+
+
 		}
 		
 
@@ -816,6 +833,7 @@
 			$('footer').show();
 			$('.btn').show();
 			$('.popovers').show();
+
 			
 			{% if user.is_authenticated %}
 				$('#codelist-div-container').addClass('pre-scrollable');

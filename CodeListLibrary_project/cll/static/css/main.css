@@ -75,8 +75,8 @@ span.required{
 }
 
 div[role="tabpanel"]{
-  overflow-y: scroll;
-  max-height: 700px;
+  overflow-y: hidden;
+  max-height: fit-content;
 }
 
 
@@ -91,12 +91,14 @@ div[role="tabpanel"]{
   white-space: normal;
 }
 
-.table-responsive-md thead th {
+.table-responsive-md thead th, .table-responsive-md thead th.sorting {
   position:sticky;
   top: 0px;
-  
   background: white;
 }
+
+
+
 
 .table-responsive-md  thead>tr>th:first-child{
   z-index: 1;
@@ -117,6 +119,9 @@ div[role="tabpanel"]{
 .table-responsive-md  tbody>tr>td:first-child {
   background:#ededed ;
 }
+
+
+
 
 .table-responsive-md  thead>tr>th:nth-child(2),
 .table-responsive-md  tbody>tr>td:nth-child(2) {
@@ -492,6 +497,7 @@ element.style {
     font-weight: bold;
   }
 }
+
 
 
 
