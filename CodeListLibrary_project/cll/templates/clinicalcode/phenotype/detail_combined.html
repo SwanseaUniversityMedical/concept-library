@@ -783,10 +783,11 @@
 					$('#codelist-tab-table-c' + v.concept_version_id + ' tbody').html(v.c_html);
 					$('#codesCount_c' + v.concept_version_id).text('Rows: ' + v.c_codes_count);
 					 var table = $('#codelist-tab-table-c' + v.concept_version_id).DataTable({
-                         "initComplete":function (settings,json) {
-                             $('#codelist-tab-table-c' + v.concept_version_id).wrap(
-                                 "<div style='overflow:auto; width:100%;position:relative;'></div>")
+                         "initComplete":function () {
+                             $('#codelist-tab-table-c' + v.concept_version_id).addClass(
+                                 "table-responsive-md")
                          },
+                         //"scrollX":"700px",
                          "scrollY":"700px",
                          "scrollCollapse": true,
                          "colReorder": true,
