@@ -498,8 +498,8 @@
 							</div>
 						</div>
 						
-						<div id="codelist-div-container" {% if user.is_authenticated %} class="pre-scrollable" {% endif %} >						
-							<table class="table table-striped table-responsive-md" id="codelist-tab-table" >
+						<div id="codelist-div-container" {% if user.is_authenticated %} style="overflow: hidden;max-height:fit-content" class="pre-scrollable" {% endif %} >
+							<table class="table table-striped table-responsive-md display " style="width: 100%" id="codelist-tab-table" >
 								<thead>
 									<tr>
 										<th>Code</th>
@@ -767,6 +767,21 @@
 				dataService.getConceptUniqueCodesByVersion(concept_id, concept_history_id, function(data){
 						$('#codelist-tab-table tbody').html(data.html_uniquecodes_list);
 						$('.codesAmount').text('Rows: ' + data.codes_count);
+
+						 var table = $('#codelist-tab-table').DataTable({
+                         "initComplete":function () {
+                             $('#codelist-tab-table').addClass(
+                                 "table-responsive-md")
+                         },
+                         "scrollX":true,
+                         "scrollY":"700px",
+                         "scrollCollapse": true,
+                         "colReorder": true,
+                         "rowReorder": true,
+                         "fixedHeader": true
+
+                    });
+
 				});
 				
 				//$(".loader").hide();
