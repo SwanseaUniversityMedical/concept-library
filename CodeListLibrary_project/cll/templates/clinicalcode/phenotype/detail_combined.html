@@ -430,7 +430,7 @@
 		            </div>
 		         </div>
 		         <div>
-		            <table class="table table-striped table-responsive-md display " id="codelist-tab-table-c{{ c.concept_version_id }}" >
+		            <table class="table table-striped table-responsive-md display " style="width: 100%" id="codelist-tab-table-c{{ c.concept_version_id }}" >
 		               <thead>
 		                  <tr>
 		                     <th>Code</th>
@@ -787,7 +787,7 @@
                              $('#codelist-tab-table-c' + v.concept_version_id).addClass(
                                  "table-responsive-md")
                          },
-                         //"scrollX":"700px",
+                         "scrollX":true,
                          "scrollY":"700px",
                          "scrollCollapse": true,
                          "colReorder": true,
