@@ -382,7 +382,7 @@
 	   <div class="panel panel-default">
 	      <div class="panel-heading" role="tab" id="c{{ c.concept_version_id }}" >	
 		      <div>
-		         <h4 class="panel-title" id="panel-title-c{{ c.concept_version_id }}" concept_version_id="{{ c.concept_version_id }}" >
+		         <h4 class="panel-title " id="panel-title-c{{ c.concept_version_id }}" concept_version_id="{{ c.concept_version_id }}" >
 		            <a role="button" data-toggle="collapse"  id="sign_c{{ c.concept_version_id }}"
 		               data-parent-xxx="#accordion" 
 		               href="#collapse_c{{ c.concept_version_id }}" aria-expanded="true" aria-controls="collapse_c{{ c.concept_version_id }}">
@@ -430,7 +430,7 @@
 		            </div>
 		         </div>
 		         <div>
-		            <table class="table table-striped table-responsive-md display " style="width: 100%" id="codelist-tab-table-c{{ c.concept_version_id }}" >
+		            <table class="table  display " style="width: 100%" id="codelist-tab-table-c{{ c.concept_version_id }}" >
 		               <thead>
 		                  <tr>
 		                     <th>Code</th>
@@ -791,10 +791,12 @@
                          "scrollY":"700px",
                          "scrollCollapse": true,
                          "colReorder": true,
-                         "rowReorder": true,
-                         "fixedHeader": true
+                         "rowReorder": true
+                         //"fixedHeader": true
+
 
                     });
+
 
 				});
 
