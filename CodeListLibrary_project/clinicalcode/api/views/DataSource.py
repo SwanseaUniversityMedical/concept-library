@@ -66,7 +66,8 @@ def api_datasource_create(request):
             )
         else:
             #    check if already exists 
-            if not DataSource.objects.filter(name=new_datasource.name, uid=new_datasource.uid, url=new_datasource.url, description=new_datasource.description).exists():            
+            #if not DataSource.objects.filter(name=new_datasource.name, uid=new_datasource.uid, url=new_datasource.url, description=new_datasource.description).exists():            
+            if not DataSource.objects.filter(name__iexact = new_datasource.name.strip()).exists():            
                 new_datasource.save()
                 created_ds = DataSource.objects.get(pk=new_datasource.pk)
                 created_ds.history.latest().delete() 
@@ -84,7 +85,8 @@ def api_datasource_create(request):
                 )
                 
             else:
-                existed_id = DataSource.objects.get(name=new_datasource.name, uid=new_datasource.uid, url=new_datasource.url, description=new_datasource.description).id
+                #existed_id = DataSource.objects.get(name=new_datasource.name, uid=new_datasource.uid, url=new_datasource.url, description=new_datasource.description).id
+                existed_id = DataSource.objects.get(name__iexact = new_datasource.name.strip()).id
                 data = {
                   'message': 'DataSource created successfully', # left the msg as it in create case not to confuse the scraper
                   'id': existed_id
