@@ -15,9 +15,8 @@ from views import (
     ComponentQueryBuilder, WorkingSet, adminTemp, Phenotype, Admin
 )
 
-from api.views import View as api_view
-from django.views.generic import RedirectView
-from django.core.urlresolvers import reverse_lazy, reverse
+#from django.views.generic import RedirectView
+#from django.core.urlresolvers import reverse_lazy, reverse
 
 urlpatterns = [
     url(r'^$', View.index, name='concept_library_home' ),
@@ -29,8 +28,8 @@ urlpatterns = [
     url(r'^(?i)workingsets/$', WorkingSet.workingset_list, name='workingset_list'),
     url(r'^(?i)phenotypes/$', Phenotype.phenotype_list, name='phenotype_list'),
     
-    # redirect api root '/api' to '/api/v1'
-    url(r'^(?i)api/$', RedirectView.as_view(url= reverse('api:root')) , name='api_root_v1'),
+#     # redirect api root '/api' to '/api/v1'
+#     #url(r'^(?i)api/$', RedirectView.as_view(url= reverse('api:root')) , name='api_root_v1'),
 ]
 
  
