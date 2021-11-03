@@ -114,15 +114,7 @@ class brandMiddleware(MiddlewareMixin):
                 
                 if not current_page_url.strip().endswith('/'):
                     current_page_url = current_page_url.strip() + '/'
-                    
-                # redirect /{brand}/api/  to  /{brand}/api/v1/
-                # default non-branded /api/ is handeled in urls.py
-                #if '/'.join(current_page_url.split('/')[1:]).strip().lower() in ['api/', 'api']:
-                if current_page_url.strip().rstrip('/').split('/')[-1].lower() in ['api']:
-                    do_redirect = True
-                    #current_page_url = current_page_url.split('/')[0] + '/api/v1/'
-                    current_page_url = current_page_url.strip().rstrip('/') + '/v1/'
-                
+                                  
                    
                 if (request.get_host().lower().find('phenotypes.healthdatagateway') != -1  or request.get_host().lower().find('web-phenotypes-hdr') != -1 ):
                     pass 
@@ -141,6 +133,13 @@ class brandMiddleware(MiddlewareMixin):
                 set_urlconf(urlconf)
                 request.urlconf = urlconf   # this is the python file path to custom urls.py file
 
+              
+            # redirect /{brand}/api/  to  /{brand}/api/v1/
+            if current_page_url.strip().rstrip('/').split('/')[-1].lower() in ['api']:
+                do_redirect = True
+                current_page_url = current_page_url.strip().rstrip('/') + '/v1/'       
+                
+                       
                 
             if urlconf in sys.modules:
                 clear_url_caches()
