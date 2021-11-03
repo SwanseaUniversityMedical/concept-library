@@ -22,6 +22,11 @@
 <!--     	<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo="> -->
 		<link rel="icon" href="data:,">
 
+			{% if IS_DEMO %}
+				<!-- Stop indexing the demo site -->
+				<meta name="robots" content="noindex">
+				<meta name="googlebot" content="noindex">
+			{% endif %} 
     	
     	<title>
 			{% if request.CURRENT_BRAND|length and request.BRAND_OBJECT.site_title is not none %}
