@@ -437,12 +437,15 @@
 		                     <th>Description</th>
 <!-- 		                     <th>Coding System</th> -->
 							{% for item in c.code_attribute_header %}
-                              {% if item.lower|slice:":7" in c.name.lower %}
-                                <th><a href="{% url 'concept_history_detail' c.concept_id c.concept_version_id%}">{{ item }}</a></th>
-                                  {% else %}
-                                         <th>{{ item }}</th>
-                                    {% endif %}
-							{% endfor %}
+                                {% for names in concept_data %}
+                                  {% if item.lower|slice:":7" in names.name.lower %}
+                                    <th><a href="{% url 'concept_history_detail' names.concept_id names.concept_version_id%}">{{ item }}</a></th>
+                                     {% endif %}
+                                {% endfor %}
+                                {% if "BREATHE" not in item %}
+                                    <th>{{ item }}</th>
+                                {% endif %}
+                                {% endfor %}
 
 		                  </tr>
 		               </thead>
