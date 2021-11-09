@@ -9,7 +9,6 @@ from ..serializers import *
 from ...models.Concept import Concept
 from ...models.Tag import Tag
 from ...models.Phenotype import Phenotype
-from ...models.PhenotypeTagMap import PhenotypeTagMap
 from ...models.DataSource import DataSource
 from ...models.Brand import Brand
 from ...models.PublishedPhenotype import PublishedPhenotype

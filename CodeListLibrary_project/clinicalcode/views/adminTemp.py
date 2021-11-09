@@ -134,37 +134,7 @@ def moveTags(request):
             rowsAffected = {}
             
     
-                 
-#             ######################################################################
-#             # move phenotype tags as attribute
-#             distinct_phenotypes_with_tags = PhenotypeTagMap.objects.all().distinct('phenotype_id')
-#             for dp in distinct_phenotypes_with_tags:
-#                 #print "*************"
-#                 #print dp.phenotype_id
-#                 hisp = Phenotype.history.filter(id=dp.phenotype_id)
-#                 for hp in hisp:
-#                     #print hp.id, "...", hp.history_id
-#                     phenotype_tags_history = db_utils.getHistoryTags_Phenotype(hp.id, hp.history_date)
-#                     if phenotype_tags_history:
-#                         phenotype_tag_list = [i['tag_id'] for i in phenotype_tags_history if 'tag_id' in i]
-#                     else:
-#                         phenotype_tag_list = []
-#                     #print phenotype_tag_list
-#                     with connection.cursor() as cursor:
-#                         sql = """ UPDATE clinicalcode_historicalphenotype 
-#                                     SET tags = '{""" + ','.join([str(i) for i in phenotype_tag_list]) + """}'
-#                                     WHERE id="""+str(hp.id)+""" and history_id="""+str(hp.history_id)+""";
-#                              """ 
-#                         cursor.execute(sql)
-#                         if hp.history_id == int(Phenotype.objects.get(pk=hp.id).history.latest().history_id):
-#                             sql2 = """ UPDATE clinicalcode_phenotype 
-#                                     SET tags = '{""" + ','.join([str(i) for i in phenotype_tag_list]) + """}'
-#                                     WHERE id="""+str(hp.id)+"""  ;
-#                              """ 
-#                             cursor.execute(sql2)
-#                              
-#                             rowsAffected[hp.id] = "phenotype: " + hp.name + ":: tags moved"
-
+                
                  
 #             ######################################################################
 #             # move concept tags as attribute

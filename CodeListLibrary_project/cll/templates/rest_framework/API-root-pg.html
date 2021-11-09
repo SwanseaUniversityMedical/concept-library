@@ -7,13 +7,20 @@
 {% block container %}
 
 <h1>API</h1>
-	
+
+
 <div class="alert  alert-success" role="alert">
 	<ul>
 		<li>All urls with <code>/public/</code> will search published entities only and require no authentication.</li>
 		<li>You can add the querystring <code>?format=json</code> or <code>?format=xml</code> to specify the required API output format.</li>
+		<li>An R package implementing the API is available at 
+			<code><a href="https://github.com/SwanseaUniversityMedical/concept-library-client-r" target=_blank  rel="noopener noreferrer" class="alert-link">
+			concept-library-R-client</a></code>	
+		</li>
 	</ul>
 </div>
+	
+
     
  <ul class="nav nav-tabs">
 	<li class="active"><a data-toggle="tab" href="#Phenotypes"><strong>Phenotypes</strong></a></li>
@@ -30,42 +37,11 @@
 <!-- ===============================================================  -->	  	    
 	<!-- concepts -->
 	  <div id="Concepts" class="tab-pane fade">
-          <h2>concepts:</h2>  
+          <h2>Concepts:</h2>
         <ol>
         
           <li><h3 class="pt-3">List/Search concepts</h3></li>
-        <div>    
-         <p style="padding-top: 10px;">Lists all available concepts <em>for the user</em>.</p>
-         <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> <a  href="{% url 'api:concepts' %}" target="_blank" class="alert-link">{% url 'api:concepts' %}</a></code></pre>
-         <p style="padding-top: 10px;">
-             User can search with criteria using a combinations of querystring parameters: <br>
-                <ul>
-                  <li><code>?search=Alcohol</code><br>
-                  search by part of concept name (do not put wild characters here)</li>
-                  <li><code>?tag_ids=11,4</code><br>
-                  You can specify tags ids (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)</li>
-                  <li><code>?show_only_my_concepts=1</code><br>
-                  Only show concepts owned by me</li>
-                  <li><code>?show_deleted_concepts=1</code><br>
-                  will show also deleted concepts (by default, deleted objects are not shown)</li>
-                  <li><code>?show_only_validated_concepts=1</code><br>
-                  will show only validated concepts</li>
-                  <li><code>?brand=HDRUK</code><br>
-                  will show only concepts with brand=HDRUK</li>
-                  <li><code>?author=Kuan</code><br>
-                  search by part of the author name</li>
-                  <li><code>?owner_username=a.john</code><br>
-                  search by full username of the owner</li>         
-                  <li><code>?do_not_show_versions=1</code><br>
-                  do not show concepts versions (by default, all concept's version ids are shown)</li>
-                  <li><code>?must_have_published_versions=1</code><br>
-            show only concepts which have a published version(by default, all concepts are shown)</li>
-                </ul>
-              (<code>Example: {% url 'api:concepts' %}?author=m&brand=adp&tag_ids=11</code>)
-          </p>
-      </div>
-    
-        <div>    
+        <div>
          <p style="padding-top: 10px;">Lists <em>the published</em> concepts.</p>
          <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> <a  href="{% url 'api:api_published_concepts' %}" target="_blank" class="alert-link">{% url 'api:api_published_concepts' %}</a></code></pre>
          <p style="padding-top: 10px;">
@@ -88,14 +64,10 @@
           </p>
           
         </div>
-          
-          
+
+
           <li><h3 class="pt-3">List concept by id</h3></li>
-        <div>    
-         <p style="padding-top: 10px;">Lists a concept by id <em>for the user</em>.</p>
-         <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ concept_by_id }}</code></pre>
-      </div>
-    
+
         <div>    
          <p style="padding-top: 10px;">Lists <em>a published</em> concepts by id.</p>
          <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_published_concept_by_id }}</code></pre>          
@@ -103,11 +75,7 @@
                     
           
        <li><h3 class="pt-3">List concept detail (latest version)</h3></li>
-        <div>    
-         <p style="padding-top: 10px;">Lists the concept detail <em>of the latest version</em>.</p>
-         <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_concept_detail }}</code></pre>
-      </div>
-    
+
         <div>    
          <p style="padding-top: 10px;">Lists the pubished concept detail <em>of the latest published version</em>.</p>
          <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_concept_detail_public }}</code></pre>          
@@ -115,10 +83,6 @@
                     
           
         <li><h3 class="pt-3">List concept detail (of a specific version)</h3></li>
-        <div>    
-         <p style="padding-top: 10px;">Lists the concept detail <em>of the specified version</em>.</p>
-         <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_concept_detail_version }}</code></pre>
-      </div>
     
         <div>    
          <p style="padding-top: 10px;">Lists the published concept detail <em>of the specified published version</em>.</p>
@@ -127,31 +91,94 @@
                           
         <li><h3 class="pt-3">Export the code list of a specific version of a concept</h3></li>
         <div>    
-         <p style="padding-top: 10px;"> Exports the code list of<em> the latest version</em> of a concept <em>for the user</em>.</p>
-         <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ export_concept_codes }}</code></pre>
-        </div>
-        
-        <div>    
-         <p style="padding-top: 10px;"> Exports the code list of<em> a specific version</em> of a concept <em>for the user</em>.</p>
-         <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ export_concept_codes_byVersionID }}</code></pre>
-        </div>        
-    
-        <div>    
          <p style="padding-top: 10px;"> Exports the code list of<em> a specific version</em> of a <em>published</em> concept.</p>
          <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_export_published_concept_codes }}</code></pre>         
         </div>
                     
         <li><h3 class="pt-3">List the versions of a concept</h3></li>
-        <div>    
-         <p style="padding-top: 10px;"> Lists all the versions of the concept <em>for the user</em>.</p>
-         <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ get_concept_versions }}</code></pre>
-      </div>
-    
+
+
         <div>    
          <p style="padding-top: 10px;"> Lists the <em>published</em> versions of the published concept .</p>
          <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ get_concept_versions_public }}</code></pre>          
         </div>
-                    
+	</ol>
+		<h2>Authenticated APIs:</h2>
+		  <div class="alert  alert-success" role="alert">
+			<p>Authenticated APIs return both public content and content that has not yet been published. A user account is required.</p>
+		</div>
+	<ol>
+	 <li><h3 class="pt-3">List/Search concepts</h3></li>
+        <div>
+         <p style="padding-top: 10px;">Lists all available concepts <em>for the user</em>.</p>
+         <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> <a  href="{% url 'api:concepts' %}" target="_blank" class="alert-link">{% url 'api:concepts' %}</a></code></pre>
+         <p style="padding-top: 10px;">
+             User can search with criteria using a combinations of querystring parameters: <br>
+                <ul>
+                  <li><code>?search=Alcohol</code><br>
+                  search by part of concept name (do not put wild characters here)</li>
+                  <li><code>?tag_ids=11,4</code><br>
+                  You can specify tags ids (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)</li>
+                  <li><code>?show_only_my_concepts=1</code><br>
+                  Only show concepts owned by me</li>
+                  <li><code>?show_deleted_concepts=1</code><br>
+                  will show also deleted concepts (by default, deleted objects are not shown)</li>
+                  <li><code>?show_only_validated_concepts=1</code><br>
+                  will show only validated concepts</li>
+                  <li><code>?brand=HDRUK</code><br>
+                  will show only concepts with brand=HDRUK</li>
+                  <li><code>?author=Kuan</code><br>
+                  search by part of the author name</li>
+                  <li><code>?owner_username=a.john</code><br>
+                  search by full username of the owner</li>
+                  <li><code>?do_not_show_versions=1</code><br>
+                  do not show concepts versions (by default, all concept's version ids are shown)</li>
+                  <li><code>?must_have_published_versions=1</code><br>
+            show only concepts which have a published version(by default, all concepts are shown)</li>
+                </ul>
+              (<code>Example: {% url 'api:concepts' %}?author=m&brand=adp&tag_ids=11</code>)
+          </p>
+      </div>
+
+	   <li><h3 class="pt-3">List concept by id</h3></li>
+	           <div>
+         <p style="padding-top: 10px;">Lists a concept by id <em>for the user</em>.</p>
+         <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ concept_by_id }}</code></pre>
+      </div>
+
+       <li><h3 class="pt-3">List concept detail (latest version)</h3></li>
+
+        <div>
+         <p style="padding-top: 10px;">Lists the concept detail <em>of the latest version</em>.</p>
+         <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_concept_detail }}</code></pre>
+      </div>
+
+	          <li><h3 class="pt-3">List concept detail (of a specific version)</h3></li>
+        <div>
+         <p style="padding-top: 10px;">Lists the concept detail <em>of the specified version</em>.</p>
+         <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_concept_detail_version }}</code></pre>
+      </div>
+
+	          <li><h3 class="pt-3">Export the code list of a specific version of a concept</h3></li>
+        <div>
+         <p style="padding-top: 10px;"> Exports the code list of<em> the latest version</em> of a concept <em>for the user</em>.</p>
+         <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ export_concept_codes }}</code></pre>
+        </div>
+
+        <div>
+         <p style="padding-top: 10px;"> Exports the code list of<em> a specific version</em> of a concept <em>for the user</em>.</p>
+         <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ export_concept_codes_byVersionID }}</code></pre>
+        </div>
+
+
+        <li><h3 class="pt-3">List the versions of a concept</h3></li>
+        <div>
+         <p style="padding-top: 10px;"> Lists all the versions of the concept <em>for the user</em>.</p>
+         <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ get_concept_versions }}</code></pre>
+      </div>
+
+
+
          
        {% if not CLL_READ_ONLY %}
             <li><h3 class="pt-3">Create/Update a concept</h3></li>
@@ -176,6 +203,9 @@
 	  <!-- working sets -->
 	  <div id="Working-Sets" class="tab-pane fade">
 	   	<h2>Working Sets:</h2>
+		<h2>Authenticated APIs:</h2><div class="alert  alert-success" role="alert">
+		<p>Authenticated APIs return both public content and content that has not yet been published. A user account is required.</p>
+		</div>
 		<ol>
 		
 		<li><h3 class="pt-3">List/Search working sets</h3></li>
@@ -279,37 +309,6 @@
 	      
 	      	<li><h3 class="pt-3">List/Search phenotypes</h3></li>
 	    	<div>    
-			   <p style="padding-top: 10px;">Lists all available phenotypes <em>for the user</em> and the data sources associated with each.</p>
-			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> <a  href="{% url 'api:phenotypes' %}" target="_blank" class="alert-link">{% url 'api:phenotypes' %}</a></code></pre>
-			   <p style="padding-top: 10px;">
-		   	  	 User can search with criteria using a combinations of querystring parameters: <br>
-		            <ul>
-		              <li><code>?search=Alcohol</code><br>
-		              search by part of phenotype name (do not put wild characters here)</li>
-		              <li><code>?tag_ids=11,4</code><br>
-		              You can specify tags ids (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)</li>
-		              <li><code>?show_only_my_phenotypes=1</code><br>
-		              Only show phenotypes owned by me</li>
-		              <li><code>?show_deleted_phenotypes=1</code><br>
-		              will show also deleted phenotypes (by default, deleted objects are not shown)</li>
-		              <li><code>?show_only_validated_phenotypes=1</code><br>
-		              will show only validated phenotypes</li>
-		              <li><code>?brand=HDRUK</code><br>
-		              will show only phenotypes with brand=HDRUK</li>
-		              <li><code>?author=Kuan</code><br>
-		              search by part of the author name</li>
-		              <li><code>?owner_username=a.john</code><br>
-		              search by full username of the owner</li>         
-		              <li><code>?do_not_show_versions=1</code><br>
-		              do not show phenotypes versions (by default, all phenotype's version ids are shown)</li>
-		              <li><code>?must_have_published_versions=1</code><br>
-					  show only phenotypes which have a published version(by default, all phenotypes are shown)</li>
-		            </ul>
-		          (<code>Example: {% url 'api:phenotypes' %}?author=m&brand=adp&tag_ids=11</code>)
-		    	</p>
-			</div>
-		
-	    	<div>    
 			   <p style="padding-top: 10px;">Lists <em>the published</em> phenotypes and the data sources associated with each.</p>
 			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> <a  href="{% url 'api:api_published_phenotypes' %}" target="_blank" class="alert-link">{% url 'api:api_published_phenotypes' %}</a></code></pre>
 			   <p style="padding-top: 10px;">
@@ -336,22 +335,13 @@
 		      
 	      	<li><h3 class="pt-3">List phenotype by id</h3></li>
 	    	<div>    
-			   <p style="padding-top: 10px;">Lists a phenotype by id <em>for the user</em> and the data sources associated with it.</p>
-			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ phenotype_by_id }}</code></pre>
-			</div>
-		
-	    	<div>    
 			   <p style="padding-top: 10px;">Lists <em>a published</em> phenotypes by id and the data sources associated with it.</p>
 			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_published_phenotype_by_id }}</code></pre>		    	
 		    </div>
 		      		      
 		      
 		   <li><h3 class="pt-3">List phenotype detail (latest version)</h3></li>
-	    	<div>    
-			   <p style="padding-top: 10px;">Lists the phenotype detail <em>of the latest version</em>.</p>
-			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_phenotype_detail }}</code></pre>
-			</div>
-		
+
 	    	<div>    
 			   <p style="padding-top: 10px;">Lists the pubished phenotype detail <em>of the latest published version</em>.</p>
 			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_phenotype_detail_public }}</code></pre>		    	
@@ -360,52 +350,103 @@
 		      
 		    <li><h3 class="pt-3">List phenotype detail (of a specific version)</h3></li>
 	    	<div>    
-			   <p style="padding-top: 10px;">Lists the phenotype detail <em>of the specified version</em>.</p>
-			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_phenotype_detail_version }}</code></pre>
-			</div>
-		
-	    	<div>    
 			   <p style="padding-top: 10px;">Lists the published phenotype detail <em>of the specified published version</em>.</p>
 			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_phenotype_detail_version_public }}</code></pre>		    	
 		    </div>
 		      		   		      
 		    <li><h3 class="pt-3">Export the code list of a specific version of a phenotype</h3></li>
 	    	<div>    
-			   <p style="padding-top: 10px;"> Exports the code list of<em> a specific version</em> of a phenotype <em>for the user</em>.</p>
-			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_export_phenotype_codes_byVersionID }}</code></pre>
-			</div>
-		
-	    	<div>    
 			   <p style="padding-top: 10px;"> Exports the code list of<em> a specific version</em> of a <em>published</em> phenotype.</p>
 			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_export_published_phenotype_codes }}</code></pre>		    	
 		    </div>
 		      		      
 		    <li><h3 class="pt-3">List the versions of a phenotype</h3></li>
-	    	<div>    
-			   <p style="padding-top: 10px;"> Lists all the versions of the phenotype <em>for the user</em>.</p>
-			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ get_phenotype_versions }}</code></pre>
-			</div>
-		
+
 	    	<div>    
 			   <p style="padding-top: 10px;"> Lists the <em>published</em> versions of the published phenotype .</p>
 			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ get_phenotype_versions_public }}</code></pre>		    	
 		    </div>
 		      		      
-		     
-		   {% if not CLL_READ_ONLY %}
+	</ol>
+		<h2>Authenticated APIs:</h2>
+		  <div class="alert  alert-success" role="alert">
+			<p>Authenticated APIs return both public content and content that has not yet been published. A user account is required.</p>
+		</div>
+	<ol>
+		<li><h3 class="pt-3">List/Search phenotypes</h3></li>
+
+
+	    	<div>
+			   <p style="padding-top: 10px;">Lists all available phenotypes <em>for the user</em> and the data sources associated with each.</p>
+			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> <a  href="{% url 'api:phenotypes' %}" target="_blank" class="alert-link">{% url 'api:phenotypes' %}</a></code></pre>
+			   <p style="padding-top: 10px;">
+		   	  	 User can search with criteria using a combinations of querystring parameters: <br>
+		            <ul>
+		              <li><code>?search=Alcohol</code><br>
+		              search by part of phenotype name (do not put wild characters here)</li>
+		              <li><code>?tag_ids=11,4</code><br>
+		              You can specify tags ids (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)</li>
+		              <li><code>?show_only_my_phenotypes=1</code><br>
+		              Only show phenotypes owned by me</li>
+		              <li><code>?show_deleted_phenotypes=1</code><br>
+		              will show also deleted phenotypes (by default, deleted objects are not shown)</li>
+		              <li><code>?show_only_validated_phenotypes=1</code><br>
+		              will show only validated phenotypes</li>
+		              <li><code>?brand=HDRUK</code><br>
+		              will show only phenotypes with brand=HDRUK</li>
+		              <li><code>?author=Kuan</code><br>
+		              search by part of the author name</li>
+		              <li><code>?owner_username=a.john</code><br>
+		              search by full username of the owner</li>
+		              <li><code>?do_not_show_versions=1</code><br>
+		              do not show phenotypes versions (by default, all phenotype's version ids are shown)</li>
+		              <li><code>?must_have_published_versions=1</code><br>
+					  show only phenotypes which have a published version(by default, all phenotypes are shown)</li>
+		            </ul>
+		          (<code>Example: {% url 'api:phenotypes' %}?author=m&brand=adp&tag_ids=11</code>)
+		    	</p>
+			</div>
+
+			<li><h3 class="pt-3">List phenotype by id</h3></li>
+				<div>
+			   <p style="padding-top: 10px;">Lists a phenotype by id <em>for the user</em> and the data sources associated with it.</p>
+			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ phenotype_by_id }}</code></pre>
+			</div>
+				<li><h3 class="pt-3">List phenotype detail (latest version)</h3></li>
+			<div>
+			   <p style="padding-top: 10px;">Lists the phenotype detail <em>of the latest version</em>.</p>
+			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_phenotype_detail }}</code></pre>
+			</div>
+
+		    <li><h3 class="pt-3">List phenotype detail (of a specific version)</h3></li>
+				    	<div>
+			   <p style="padding-top: 10px;">Lists the phenotype detail <em>of the specified version</em>.</p>
+			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_phenotype_detail_version }}</code></pre>
+			</div>
+			<li><h3 class="pt-3">Export the code list of a specific version of a phenotype</h3></li>
+
+	    	<div>
+			   <p style="padding-top: 10px;"> Exports the code list of<em> a specific version</em> of a phenotype <em>for the user</em>.</p>
+			   <pre><cde><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_export_phenotype_codes_byVersionID }}</code></pre>
+			</div>
+			<li><h3 class="pt-3">List the versions of a phenotype</h3></li>
+	    	<div>
+			   <p style="padding-top: 10px;"> Lists all the versions of the phenotype <em>for the user</em>.</p>
+			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ get_phenotype_versions }}</code></pre>
+			</div>
+
+			{% if not CLL_READ_ONLY %}
 	   		    <li><h3 class="pt-3">Create/Update a phenotype</h3></li>
-		    	<div>    
+		    	<div>
 				   <p style="padding-top: 10px;"> Create a phenotype by passing a JSON object.</p>
 				   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">post</span> {{ api_phenotype_create }}</code></pre>
 				</div>
-			
-		    	<div>    
-				   <p style="padding-top: 10px;"> Update a phenotype by passing a JSON object.</p>
-				   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">put</span> {{ api_phenotype_update }}</code></pre>		    	
-			    </div>
-		   {% endif %}	
-		      
 
+		    	<div>
+				   <p style="padding-top: 10px;"> Update a phenotype by passing a JSON object.</p>
+				   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">put</span> {{ api_phenotype_update }}</code></pre>
+			    </div>
+		   {% endif %}
 		  </ol>
 	  </div>
 	  
@@ -414,21 +455,7 @@
  <!-- data-sources -->
  	<div id="data-sources" class="tab-pane fade">
 	  <h2>Data Sources:</h2>
-	    <ol>		                          
-    	
-	    	<li><h3 class="pt-3">List data sources</h3></li>
-	    	<div>    
-			   <p style="padding-top: 10px;">Lists all data sources and the phenotypes associated with each. User can search by part of the data source name (e.g. <code>?search=hospital</code>)</p>
-			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> <a  href="{% url 'api:data_sources' %}" target="_blank" class="alert-link">{% url 'api:data_sources' %}</a></code></pre>
-			</div>
-		
-	    	<div>    
-			   <p style="padding-top: 10px;">Lists a data source by id and the associated phenotypes.</p>
-			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {% url 'api:data_sources' %}{id}</code></pre>
-			</div>
-			
-			
-			
+	    <ol>
 	    	<li><h3 class="pt-3">List data sources (with published phenotypes)</h3></li>
 	    	<div>
 	    		<p style="padding-top: 10px;">Only the published associated phenotypes wil be shown.</p>
@@ -442,7 +469,22 @@
 			   <p style="padding-top: 10px;">Lists a data source by id and the associated published phenotypes.</p>
 			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {% url 'api:data_sources_public' %}{id}</code></pre>
 			</div>			
+	</ol>
+		<h2>Authenticated APIs:</h2>
+		  <div class="alert  alert-success" role="alert">
+			<p>Authenticated APIs return both public content and content that has not yet been published. A user account is required.</p>
+		</div>
+	<ol>
+	    	<li><h3 class="pt-3">List data sources</h3></li>
+	    	<div>
+			   <p style="padding-top: 10px;">Lists all data sources and the phenotypes associated with each. User can search by part of the data source name (e.g. <code>?search=hospital</code>)</p>
+			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> <a  href="{% url 'api:data_sources' %}" target="_blank" class="alert-link">{% url 'api:data_sources' %}</a></code></pre>
+			</div>
 
+	    	<div>
+			   <p style="padding-top: 10px;">Lists a data source by id and the associated phenotypes.</p>
+			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {% url 'api:data_sources' %}{id}</code></pre>
+			</div>
 
 
 			{% if not CLL_READ_ONLY %}			                          
@@ -460,8 +502,8 @@
 	<!-- tags -->
 	<div id="tags" class="tab-pane fade">
 		<h2>Tags:</h2>  
-		<ol>		                          
-	    	
+		<ol>
+
 	   		<li><h3 class="pt-3">List tags</h3></li>
 	   		<div>    
 		   		<p style="padding-top: 10px;">Lists all available tags.</p>
