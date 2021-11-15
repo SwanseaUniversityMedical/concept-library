@@ -267,7 +267,7 @@ nav>.container{
 }
 
 .CL-title{
-	Font-family: Inter-Regular;
+    Font-family: "IBM Plex Sans", sans-serif;
 	Font-style: SemiBold;
 	Font-size: 18px;
 /* 	Line height: 23px; */
@@ -278,7 +278,7 @@ nav>.container{
 }
 
 .CL-tabs{
-	Font-family: Inter-Regular;
+    Font-family: "IBM Plex Sans", sans-serif;
 	Font-style: Bold;
 	Font-size: 14px;
 /* 	Line height: 23px; */
