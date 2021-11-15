@@ -1,6 +1,6 @@
-
+@import url('https://fonts.googleapis.com/css?family=IBM Plex Sans');
 .text-font {
-	font-family: Inter-Regular, sans-serif;
+	font-family: 'IBM Plex Sans';
 }
 
 * {
@@ -9,7 +9,7 @@
 	box-sizing: border-box;
 	outline: none;
 	list-style: none;
-	font-family: Inter-Regular, sans-serif;
+	font-family: 'IBM Plex Sans';
 }
 
 

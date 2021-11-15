@@ -2,35 +2,8 @@ body{
 	padding-top: 60px;
 	padding-bottom: 20px;
 	height: 100%;
-    font-family: Inter-Regular, sans-serif;
-    font-weight:400;
-
+	font-family: IBM Plex Sans;
 }
-
-@font-face {
-    font-family: Inter-Regular;
-    src: local('Inter-Regular'),url('/static/fonts/Inter-Regular.ttf') format('truetype');
-}
-
-@font-face {
-    font-family: Inter-Light;
-    src: local('Inter-Light'),url('/static/fonts/Inter-Light.ttf') format('truetype');
-}
-@font-face {
-    font-family: Inter-Medium;
-    src: local('Inter-Medium'),url('/static/fonts/Inter-Medium.ttf') format('truetype');
-}
-@font-face {
-    font-family: Inter-Black;
-    src: local('Inter-Black'),url('/static/fonts/Inter-Black.ttf') format('truetype');
-}
-
-@font-face {
-    font-family: Inter-SemiBold;
-    src: local('Inter-SemiBold'),url('/static/fonts/Inter-SemiBold.ttf') format('truetype');
-}
-
-
 
 
    
