@@ -882,6 +882,7 @@
 				$('#codelist-tab-div').attr("codelist_loaded" , "1");
 				
 			}else {
+			    // Generate standard type of table in code list if not login
                 {% if not user.is_authenticated %}
                     var table = $('.display-table').DataTable();
                 {% endif %}
@@ -904,11 +905,12 @@
 					 var table = $('#codelist-tab-table-c' + v.concept_version_id).DataTable({
                          "initComplete":function () {
                              $('#codelist-tab-table-c' + v.concept_version_id).addClass(
-                                 "table-responsive-md")
+                                 "specific_tablist")
                          },
                          "scrollX":true,
                          "scrollY":"700px",
                          "scrollCollapse": true,
+                         "lengthMenu": [[10, 25, 50,100, -1], [10, 25, 50, 100, "All"]],
                          "colReorder": true,
                          "rowReorder": true,
                          //"fixedHeader": true
@@ -937,12 +939,16 @@
 			$('footer').hide();
 			$('.popovers').hide();
 
-			var table = $('.display-table');
-			table.DataTable().destroy();
-			table.DataTable({
-                "searching":false,
-                "pagging":false
-            });
+            // Hide elements of table for printing
+            {% if not user.is_authenticated %}
+                var table = $('.display-table');
+                table.DataTable().destroy();
+                table.DataTable({
+                    "searching":false,
+                    "paging":false
+
+                });
+            {% endif %}
 
 
 
@@ -965,6 +971,13 @@
 			$('footer').show();
 			$('.btn').show();
 			$('.popovers').show();
+
+			// restore the table if user not login when printing finished
+			{% if not user.is_authenticated %}
+                 var table = $('.display-table');
+                table.DataTable().destroy();
+                table.DataTable();
+            {% endif %}
 
 
 			
