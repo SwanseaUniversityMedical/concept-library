@@ -299,8 +299,9 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
 
             concept_codes = codes_with_attributes
         # ---------
-        component_tab_active = ""
-        codelist_tab_active = "active"
+        #Choose which tab will be opened first
+        component_tab_active = "active"
+        codelist_tab_active = ""
         codelist = concept_codes  # db_utils.getGroupOfCodesByConceptId_HISTORICAL(pk, concept_history_id)
         codelist_loaded = 1
 
