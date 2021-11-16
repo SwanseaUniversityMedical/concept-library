@@ -3492,12 +3492,13 @@ def get_brand_collection_ids(brand_name):
         returns list of collections (tags) ids associated with the brand
     """
     
-    
-    brand = Brand.objects.get(name__iexact = brand_name)
-    brand_collection_ids = list(Tag.objects.filter(collection_brand = brand.id).values_list('id', flat=True))
-    
-    return brand_collection_ids
-
+    if Brand.objects.all().filter(name__iexact = brand_name).exists():
+        brand = Brand.objects.get(name__iexact = brand_name)
+        brand_collection_ids = list(Tag.objects.filter(collection_brand = brand.id).values_list('id', flat=True))
+        
+        return brand_collection_ids
+    else:
+        return [-1]
 
 def get_brand_associated_collections(request, concept_or_phenotype):
     """

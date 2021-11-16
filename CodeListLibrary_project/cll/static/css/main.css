@@ -267,7 +267,7 @@ nav>.container{
 }
 
 .CL-title{
-	Font-family: IBM Plex Sans;
+    Font-family: "IBM Plex Sans", sans-serif;
 	Font-style: SemiBold;
 	Font-size: 18px;
 /* 	Line height: 23px; */
@@ -278,7 +278,7 @@ nav>.container{
 }
 
 .CL-tabs{
-	Font-family: IBM Plex Sans;
+    Font-family: "IBM Plex Sans", sans-serif;
 	Font-style: Bold;
 	Font-size: 14px;
 /* 	Line height: 23px; */
@@ -314,6 +314,8 @@ element.style {
     padding-bottom: 10px;
     line-height: 20px;
 }
+
+
 
 .nav>li>a {
     position: relative;
@@ -417,6 +419,8 @@ element.style {
   color: #3c3c3b;
 }
 .navbar-default .navbar-nav > li > a {
+    padding-left: 1rem;
+    padding-right: 1rem;
   color: #3c3c3b;
 }
 .navbar-default .navbar-nav > li > a:hover,
@@ -474,6 +478,7 @@ element.style {
 .navbar-default .navbar-collapse,
 .navbar-default .navbar-form {
   border-color: #3c3c3b;
+    padding-top: 10px;
 }
 .navbar-default .navbar-link {
   color: #3c3c3b;
