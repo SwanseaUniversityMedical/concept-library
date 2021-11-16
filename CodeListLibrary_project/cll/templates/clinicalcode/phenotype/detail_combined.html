@@ -25,6 +25,7 @@
 			<!--<li><a href="#validation">Validation</a>-->
 			<li><a href="#Publications">Publications</a>
 			<li><a href="#CodeLists">Clinical Code Lists</a>
+			<li><a href="#API">API</a>
 			{% if user.is_authenticated  %}				
 				<li><a href="#permissions">Permissions</a>	
 			{% endif %}	
@@ -43,21 +44,15 @@
 							
 						   <div class="dropdown btn-group" > 
 							  <button {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="export-btn">
-							    Export
+							    Export Phenotype
 							    <span class="caret"></span>
 							  </button>
 							  <ul class="dropdown-menu">
-							  <li>
-							    <a {% if user_can_export %} href="{% url 'history_phenotype_codes_to_csv' pk=phenotype.id phenotype_history_id=phenotype.history_id %}" {% endif %} 
-							       class="dropdown-item" >
-									CSV
-								</a>
-							   </li>
 							   <li>
 							   {% if user.is_authenticated %}
-									<a {% if user_can_export %} href="{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=json" target=_blank {% endif %}
+									<a {% if user_can_export %} href="{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=json" target=_blank {% endif %}
 							   {% elif enable_publish %}
-									<a {% if user_can_export %} href="{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=json" target=_blank {% endif %}
+									<a {% if user_can_export %} href="{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=json" target=_blank {% endif %}
 							   {% endif %}
 								       class="dropdown-item" >
 										JSON
@@ -65,9 +60,9 @@
 							   </li>
 							   <li>
 							   {% if user.is_authenticated %}
-									<a {% if user_can_export %} href="{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=xml" target=_blank {% endif %}
+									<a {% if user_can_export %} href="{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=xml" target=_blank {% endif %}
 							   {% elif enable_publish %}
-									<a {% if user_can_export %} href="{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=xml" target=_blank {% endif %}
+									<a {% if user_can_export %} href="{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=xml" target=_blank {% endif %}
 							   {% endif %}							   
 							       class="dropdown-item" >
 									XML
@@ -338,11 +333,11 @@
 				PUBLICATIONS
 				-------------------------------------------------------------------
 		  -->		
-								
+
 				<div class="col-sm-12 shadow-frame">
 					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="Publications"></span><strong>Publications</strong></h3>
-					
-					
+
+
 					<div class="markdown-holder">
                     	{% if phenotype.publications|length %}
                     	   <ul>
@@ -352,9 +347,9 @@
 						   </ul>
 						{% endif %}
                     </div>
-                    
+
 				</div>
-				
+
 
 
 		<!--	-------------------------------------------------------------------
@@ -363,8 +358,45 @@
 		  -->
 
 <div class="col-sm-12 shadow-frame">
-				<h3 class="paneltitle" id="ClinicalCodeLists" style="margin-top:20px; margin-bottom:20px;"><span id="CodeLists"></span><strong>Clinical Code List</strong></h3>
-				
+
+				<h3 class="paneltitle" id="ClinicalCodeLists" style="margin-top:20px; margin-bottom:20px;"><span id="CodeLists"></span><strong>Clinical Code List</strong>
+					<div class="dropdown btn-group" style="float: right;">
+
+							  <button {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="export-btn">
+							    Export Code List
+							    <span class="caret"></span>
+							  </button>
+							  <ul class="dropdown-menu">
+							  <li>
+							    <a {% if user_can_export %} href="{% url 'history_phenotype_codes_to_csv' pk=phenotype.id phenotype_history_id=phenotype.history_id %}" {% endif %}
+							       class="dropdown-item" >
+									CSV
+								</a>
+							   </li>
+							   <li>
+							   {% if user.is_authenticated %}
+									<a {% if user_can_export %} href="{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=json" target=_blank {% endif %}
+							   {% elif enable_publish %}
+									<a {% if user_can_export %} href="{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=json" target=_blank {% endif %}
+							   {% endif %}
+								       class="dropdown-item" >
+										JSON
+									</a>
+							   </li>
+							   <li>
+							   {% if user.is_authenticated %}
+									<a {% if user_can_export %} href="{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=xml" target=_blank {% endif %}
+							   {% elif enable_publish %}
+									<a {% if user_can_export %} href="{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=xml" target=_blank {% endif %}
+							   {% endif %}
+							       class="dropdown-item" >
+									XML
+								</a>
+							   </li>
+							  </ul>
+							</div>
+				</h3>
+
 								
 				<div class="tab-content">
 					<div id="component-tab-div" class="tab-pane {{ component_tab_active }}" >
@@ -376,7 +408,7 @@
     &nbsp;/&nbsp;
     <a href="javascript:void(0)" class="toggle-accordion active" id="Collapse_all" >Collapse All</a>
   </div>
-                   
+
  <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
    {% for c in concept_data %}
 	   <div class="panel panel-default">
@@ -430,7 +462,7 @@
 		            </div>
 		         </div>
 		         <div>
-		            <table class="table table-striped table-responsive-md display " style="width: 100%" id="codelist-tab-table-c{{ c.concept_version_id }}" >
+		            <table class="table table-striped table-responsive-md display-table" style="width: 100%" id="codelist-tab-table-c{{ c.concept_version_id }}" >
 		               <thead>
 		                  <tr>
 		                     <th>Code</th>
@@ -448,15 +480,15 @@
 		                     <td>{{ code.code }}</td>
 		                     <td>{{ code.description }}</td>
 		                     {% if c.code_attribute_header %}
-					
+
 								{% for attr_hdr in c.code_attribute_header %}
 								   {% for key, value in code.code_attributes.items %}
 								   		{% if key == attr_hdr %}
 								      		<td>{{ value }}</td>
-								   		{% endif %}				
-								   {% endfor %}			
+								   		{% endif %}
+								   {% endfor %}
 								{% endfor %}
-							
+
 							{% endif%}
 <!-- 		                     <td>{{ code.coding_system }}</td> -->
 		                  </tr>
@@ -468,7 +500,7 @@
 		                        Loading ...
 		                        {% else %}
 		                        No codes
-		                        {% endif %} 											
+		                        {% endif %}
 		                     </td>
 		                  </tr>
 		                  {% endfor %}
@@ -642,9 +674,84 @@
 		</div>
 {% endif %}
 				
-				
-			
 		<!--	-------------------------------------------------------------------
+				api
+				-------------------------------------------------------------------
+		  -->
+		<div class="col-sm-12 no-print shadow-frame" >
+			<h3 class="paneltitle" id="API_Header" style="margin-top:20px; margin-bottom:20px;"><span id="API"></span><strong>API</strong></h3>
+
+			<span id="api_id" phenotype_id="{{ phenotype.id }}">
+				<p> To Export Phenotype Details:</p>
+
+				<table class="table table-striped table-responsive-md" style="width: 80%">
+				  <tr>
+					<th>Format</th>
+					<th>API</th>
+				  </tr>
+				  <tr>
+					<td>XML</td>
+					<td>
+					{% if user.is_authenticated  %}
+					<a href="{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=xml" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=xml</a>
+					{% else %}
+					<a href="{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=xml" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=xml</a>
+					{% endif %}
+					</td>
+				  </tr>
+				  <tr>
+					<td>JSON</td>
+					<td>
+					{% if user.is_authenticated  %}
+					<a href="{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=json" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=json</a>
+					{% else %}
+					<a href="{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=json" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=json</a>
+					{% endif %}
+					</td>
+				  </tr>
+				</table>
+				<p> To Export Phenotype Code List:</p>
+
+					<table class="table table-striped table-responsive-md" style="width: 80%">
+				  <tr>
+					<th>Format</th>
+					<th>API</th>
+				  </tr>
+
+					  <tr>
+					<td>XML</td>
+					<td>
+					{% if user.is_authenticated  %}
+					<a href="{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=xml" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=xml</a>
+					{% else %}
+					<a href="{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=xml" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=xml</a>
+					{% endif %}
+					</td>
+				  </tr>
+				  <tr>
+					<td>JSON</td>
+					<td>
+					{% if user.is_authenticated  %}
+					<a href="{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=json" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=json</a>
+					{% else %}
+					<a href="{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=json" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=json</a>
+					{% endif %}
+					</td>
+
+				  </tr>
+						<tr>
+					{% if user_can_export %}
+					<tr>
+					<td>CSV</td>
+					<td>
+					<a href="{% url 'history_phenotype_codes_to_csv' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'history_phenotype_codes_to_csv' phenotype.id phenotype.history_id %}</a>
+					{% endif %}
+					</tr>
+
+				</table>
+			</span>
+		</div>
+		<!--	----------------------------- --------------------------------------
 				VERSION HISTORY
 				-------------------------------------------------------------------
 		  -->				
@@ -758,7 +865,7 @@
 		});
 
 		function getConceptsCodes() {
-			if($('#codelist-tab-div').attr("codelist_loaded") == "0"){
+			if($('#codelist-tab-div').attr("codelist_loaded") === "0"){
 				// get the unique codes for the phenotype version
 				phenotype_id = $('#phenotype_id_div').attr("phenotype_id");
 				phenotype_history_id =$('#phenotype_history_id_div').attr("phenotype_history_id");
@@ -774,7 +881,20 @@
 				
 				$('#codelist-tab-div').attr("codelist_loaded" , "1");
 				
-			}
+			}else {
+			    // Generate standard type of table in code list if not login
+                {% if not user.is_authenticated %}
+                    var table = $('.display-table').DataTable();
+                {% endif %}
+
+            }
+
+
+
+
+
+
+
 		}
 		
 		
@@ -785,11 +905,12 @@
 					 var table = $('#codelist-tab-table-c' + v.concept_version_id).DataTable({
                          "initComplete":function () {
                              $('#codelist-tab-table-c' + v.concept_version_id).addClass(
-                                 "table-responsive-md")
+                                 "specific_tablist")
                          },
                          "scrollX":true,
                          "scrollY":"700px",
                          "scrollCollapse": true,
+                         "lengthMenu": [[10, 25, 50,100, -1], [10, 25, 50, 100, "All"]],
                          "colReorder": true,
                          "rowReorder": true,
                          //"fixedHeader": true
@@ -817,6 +938,20 @@
 			$('#topButtons').hide();
 			$('footer').hide();
 			$('.popovers').hide();
+
+            // Hide elements of table for printing
+            {% if not user.is_authenticated %}
+                var table = $('.display-table');
+                table.DataTable().destroy();
+                table.DataTable({
+                    "searching":false,
+                    "paging":false
+
+                });
+            {% endif %}
+
+
+
 			
 			{% if user.is_authenticated %}
 				$('#codelist-div-container').removeClass('pre-scrollable');
@@ -836,6 +971,14 @@
 			$('footer').show();
 			$('.btn').show();
 			$('.popovers').show();
+
+			// restore the table if user not login when printing finished
+			{% if not user.is_authenticated %}
+                 var table = $('.display-table');
+                table.DataTable().destroy();
+                table.DataTable();
+            {% endif %}
+
 
 			
 			{% if user.is_authenticated %}

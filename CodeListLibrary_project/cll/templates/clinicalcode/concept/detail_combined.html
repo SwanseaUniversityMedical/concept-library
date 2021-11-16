@@ -25,6 +25,8 @@
 			<!--<li><a href="#validation">Validation</a>-->
 			<li><a href="#Publications">Publications</a>
 			<li><a href="#CodeLists">Clinical Code Lists</a>
+			<li><a href="#API">API</a>
+
 			{% if user.is_authenticated  %}				
 				<li><a href="#permissions">Permissions</a>	
 			{% endif %}	
@@ -43,21 +45,15 @@
 							
 						   <div class="dropdown btn-group" > 
 							  <button {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="export-btn">
-							    Export
+							    Export Concept
 							    <span class="caret"></span>
 							  </button>
 							  <ul class="dropdown-menu">
-							  <li>
-							    <a {% if user_can_export %} href="{% url 'history_concept_codes_to_csv' pk=concept.id concept_history_id=concept.history_id %}" {% endif %} 
-							       class="dropdown-item" >
-									CSV
-								</a>
-							   </li>
-							   <li>
+								  <li>
 							   {% if user.is_authenticated %}
-									<a {% if user_can_export %} href="{% url 'api:api_export_concept_codes_byVersionID'  concept.id concept.history_id %}?format=json" target=_blank {% endif %} 
+									<a {% if user_can_export %} href="{% url 'api:api_concept_detail_version'  concept.id concept.history_id %}?format=json" target=_blank {% endif %}
 							   {% elif enable_publish %}
-									<a {% if user_can_export %} href="{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=json" target=_blank {% endif %}							    
+									<a {% if user_can_export %} href="{% url 'api:api_concept_detail_version_public' concept.id concept.history_id %}?format=json" target=_blank {% endif %}
 							   {% endif %}
 								       class="dropdown-item" >
 										JSON
@@ -65,9 +61,9 @@
 							   </li>
 							   <li>
 							   {% if user.is_authenticated %}
-									<a {% if user_can_export %} href="{% url 'api:api_export_concept_codes_byVersionID'  concept.id concept.history_id %}?format=xml" target=_blank {% endif %} 
+									<a {% if user_can_export %} href="{% url 'api:api_concept_detail_version'  concept.id concept.history_id %}?format=xml" target=_blank {% endif %}
 							   {% elif enable_publish %}
-									<a {% if user_can_export %} href="{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=xml" target=_blank {% endif %}							    
+									<a {% if user_can_export %} href="{% url 'api:api_concept_detail_version_public' concept.id concept.history_id %}?format=xml" target=_blank {% endif %}
 							   {% endif %}							   
 							       class="dropdown-item" >
 									XML
@@ -326,6 +322,40 @@
 		  -->					
 			<div class="col-sm-12 shadow-frame">
 				<h3 class="paneltitle" id="ClinicalCodeLists" style="margin-top:20px; margin-bottom:20px"><span id="CodeLists"></span><strong>Clinical Code List</strong>
+						   <div class="dropdown btn-group" style="float: right;">
+							  <button {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="export-btn">
+							    Export Code List
+							    <span class="caret"></span>
+							  </button>
+							  <ul class="dropdown-menu">
+							  <li>
+							    <a {% if user_can_export %} href="{% url 'history_concept_codes_to_csv' pk=concept.id concept_history_id=concept.history_id %}" {% endif %}
+							       class="dropdown-item" >
+									CSV
+								</a>
+							   </li>
+							   <li>
+							   {% if user.is_authenticated %}
+									<a {% if user_can_export %} href="{% url 'api:api_export_concept_codes_byVersionID'  concept.id concept.history_id %}?format=json" target=_blank {% endif %}
+							   {% elif enable_publish %}
+									<a {% if user_can_export %} href="{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=json" target=_blank {% endif %}
+							   {% endif %}
+								       class="dropdown-item" >
+										JSON
+									</a>
+							   </li>
+							   <li>
+							   {% if user.is_authenticated %}
+									<a {% if user_can_export %} href="{% url 'api:api_export_concept_codes_byVersionID'  concept.id concept.history_id %}?format=xml" target=_blank {% endif %}
+							   {% elif enable_publish %}
+									<a {% if user_can_export %} href="{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=xml" target=_blank {% endif %}
+							   {% endif %}
+							       class="dropdown-item" >
+									XML
+								</a>
+							   </li>
+							  </ul>
+							</div>
 		<!--		<a href="#" role="button" class="btn popovers" id="help-components-codelist-concept" data-toggle="popover" data-trigger="hover" data-container="body" title="" data-original-title="" data-placement="right">
 								<i class="fa fa-question-circle" aria-hidden="true"></i>
 				</a>
@@ -499,7 +529,7 @@
 						</div>
 						
 						<div id="codelist-div-container" {% if user.is_authenticated %} style="overflow: hidden;max-height:fit-content" class="pre-scrollable" {% endif %} >
-							<table class="table table-striped table-responsive-md display " style="width: 100%" id="codelist-tab-table" >
+							<table class="table table-striped table-responsive-md display-table" style="width: 100%" id="codelist-tab-table" >
 								<thead>
 									<tr>
 										<th>Code</th>
@@ -633,7 +663,82 @@
 		</div>
 {% endif %}					
 				
-				
+	<!--	-------------------------------------------------------------------
+				api
+				-------------------------------------------------------------------
+		  -->
+		<div class="col-sm-12 no-print shadow-frame" >
+			<h3 class="paneltitle" id="API_Header" style="margin-top:20px; margin-bottom:20px;"><span id="API"></span><strong>API</strong></h3>
+
+			<span id="api_id" concept_Id="{{ concept.id }}">
+				<p>To Export Concept Details: </p>
+				<table class="table table-striped table-responsive-md " style="width: 80%">
+				  <tr>
+					<th>Format</th>
+					<th>API</th>
+				  </tr>
+				  <tr>
+					<td>XML</td>
+					<td>
+					{% if user.is_authenticated  %}
+					<a href="{% url 'api:api_concept_detail_version' concept.id concept.history_id %}?format=xml" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_concept_detail_version' concept.id concept.history_id %}?format=xml</a>
+					{% else %}
+					<a href="{% url 'api:api_concept_detail_version_public' concept.id concept.history_id %}?format=xml" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_concept_detail_version_public' concept.id concept.history_id %}?format=xml</a>
+					{% endif %}
+					</td>
+				  </tr>
+				  <tr>
+					<td>JSON</td>
+					<td>
+					{% if user.is_authenticated  %}
+					<a href="{% url 'api:api_concept_detail_version' concept.id concept.history_id %}?format=json" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_concept_detail_version' concept.id concept.history_id %}?format=json</a>
+					{% else %}
+					<a href="{% url 'api:api_concept_detail_version_public' concept.id concept.history_id %}?format=json" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_concept_detail_version_public' concept.id concept.history_id %}?format=json</a>
+					{% endif %}
+					</td>
+				  </tr>
+				</table>
+				<p> To Export Concept Code List:</p>
+
+					<table class="table table-striped table-responsive-md" style="width: 80%">
+				  <tr>
+					<th>Format</th>
+					<th>API</th>
+				  </tr>
+
+					  <tr>
+					<td>XML</td>
+					<td>
+					{% if user.is_authenticated  %}
+					<a href="{% url 'api:api_export_concept_codes_byVersionID' concept.id concept.history_id %}?format=xml" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_export_concept_codes_byVersionID' concept.id concept.history_id %}?format=xml</a>
+					{% else %}
+					<a href="{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=xml" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=xml</a>
+					{% endif %}
+					</td>
+				  </tr>
+				  <tr>
+					<td>JSON</td>
+					<td>
+					{% if user.is_authenticated  %}
+					<a href="{% url 'api:api_export_concept_codes_byVersionID' concept.id concept.history_id %}?format=json" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_export_concept_codes_byVersionID' concept.id concept.history_id %}?format=json</a>
+					{% else %}
+					<a href="{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=json" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=json</a>
+					{% endif %}
+					</td>
+
+				  </tr>
+						<tr>
+					{% if user_can_export %}
+					<tr>
+					<td>CSV</td>
+					<td>
+					<a href="{% url 'history_concept_codes_to_csv' pk=concept.id concept_history_id=concept.history_id %}"target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'history_concept_codes_to_csv' concept.id concept.history_id %}</a>
+					{% endif %}
+					</tr>
+
+				</table>			
+			</span>
+		</div>
 				
 		<!--	-------------------------------------------------------------------
 				VERSION HISTORY
@@ -755,7 +860,7 @@
 	
 	<script type="text/javascript">
 		$('#codelisttab').click(function(e) {
-			if($('#codelist-tab-div').attr("codelist_loaded") == "0"){
+			if($('#codelist-tab-div').attr("codelist_loaded") === "0"){
 				// get the unique codes for the concept version
 				concept_id = $('#concept_id_div').attr("concept_id");
 				concept_history_id =$('#concept_history_id_div').attr("concept_history_id");
@@ -771,16 +876,19 @@
 						 var table = $('#codelist-tab-table').DataTable({
                          "initComplete":function () {
                              $('#codelist-tab-table').addClass(
-                                 "table-responsive-md")
+                                 "specific_tablist")
                          },
-                         "scrollX":true,
-                         "scrollY":"700px",
-                         "scrollCollapse": true,
-                         "colReorder": true,
-                         "rowReorder": true,
-                         "fixedHeader": true
+                             "scrollX":true,
+                             "scrollY":"700px",
+                             "scrollCollapse": true,
+                             "lengthMenu": [[10, 25, 50,100, -1], [10, 25, 50, 100, "All"]],
+                             "colReorder": true,
+                             "rowReorder": true
+                             //"fixedHeader": true
 
                     });
+
+
 
 				});
 				
@@ -789,9 +897,22 @@
 				
 				$('#codelist-tab-div').attr("codelist_loaded" , "1");
 				
-			}
+			}else{
+			    // Generate standard type of table in code list if not login
+                {% if not user.is_authenticated %}
+                    var table = $('.display-table').DataTable();
+                {% endif %}
+
+            }
+
+
+
 
 		});
+            //if current tab is active on external user 
+		    {% if codelist_tab_active %}
+                var table = $('.display-table').DataTable();
+            {% endif %}
 		
 		
 
@@ -808,6 +929,18 @@
 			$('#topButtons').hide();
 			$('footer').hide();
 			$('.popovers').hide();
+
+			// Hide elements of table for printing
+            {% if not user.is_authenticated %}
+                var table = $('.display-table');
+                table.DataTable().destroy();
+                table.DataTable({
+                    "searching":false,
+                    "paging":false
+
+                });
+            {% endif %}
+
 			
 			{% if user.is_authenticated %}
 				$('#codelist-div-container').removeClass('pre-scrollable');
@@ -827,6 +960,13 @@
 			$('footer').show();
 			$('.btn').show();
 			$('.popovers').show();
+
+			// restore the table if user not login when printing finished
+			{% if not user.is_authenticated %}
+                 var table = $('.display-table');
+                table.DataTable().destroy();
+                table.DataTable();
+            {% endif %}
 			
 			{% if user.is_authenticated %}
 				$('#codelist-div-container').addClass('pre-scrollable');

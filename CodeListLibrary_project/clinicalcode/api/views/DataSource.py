@@ -7,13 +7,6 @@ from django.db.models import Q
 from ..serializers import *
 
 from ...models import *
-# from ...models.Tag import Tag
-# from ...models.Phenotype import Phenotype
-# from ...models.PhenotypeTagMap import PhenotypeTagMap
-# from ...models.DataSource import DataSource
-# from ...models.Brand import Brand
-# from clinicalcode.models.PhenotypeDataSourceMap import PhenotypeDataSourceMap
-# from clinicalcode.models.Phenotype import Phenotype
 
 from django.contrib.auth.models import User
 

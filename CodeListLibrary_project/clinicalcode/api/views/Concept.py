@@ -1001,6 +1001,7 @@ def getConcepts(request, is_authenticated_user=True, pk=None):
     # show concepts for a specific brand
     force_brand = None
     if concept_brand != "":
+        force_brand = "-xzy"  # an invalid brand name
         if Brand.objects.all().filter(name__iexact = concept_brand.strip()).exists():
             current_brand = Brand.objects.get(name__iexact = concept_brand.strip())
             force_brand = current_brand.name
@@ -1030,7 +1031,8 @@ def getConcepts(request, is_authenticated_user=True, pk=None):
               'is_deleted', 
               'deleted_by', 
               'deleted_date', 
-              'is_published'
+              'is_published',
+              'tags'
             ]
     if do_not_show_versions != "1":
         titles += ['versions']
@@ -1066,6 +1068,16 @@ def getConcepts(request, is_authenticated_user=True, pk=None):
             ret += [None]
         
         ret += [c['deleted'], c['published']]
+       
+       
+        c_tags =  []
+        concept_tags = c['tags']
+        if concept_tags:
+            c_tags = list(Tag.objects.filter(pk__in=concept_tags).values('description', 'id', 'tag_type', 'collection_brand'))
+        
+        ret += [c_tags]
+        
+        
         
         if do_not_show_versions != "1":
             ret += [get_visible_versions_list(request, Concept, c['id'], is_authenticated_user)]

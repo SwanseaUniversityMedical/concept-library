@@ -9,7 +9,6 @@ from ..serializers import *
 from ...models.Concept import Concept
 from ...models.Tag import Tag
 from ...models.Phenotype import Phenotype
-from ...models.PhenotypeTagMap import PhenotypeTagMap
 from ...models.DataSource import DataSource
 from ...models.Brand import Brand
 from ...models.PublishedPhenotype import PublishedPhenotype
@@ -555,6 +554,7 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None):
     # show phenotypes for a specific brand
     force_brand = None
     if phenotype_brand != "":
+        force_brand = "-xzy"  # an invalid brand name
         if Brand.objects.all().filter(name__iexact = phenotype_brand.strip()).exists():
             current_brand = Brand.objects.get(name__iexact = phenotype_brand.strip())
             force_brand = current_brand.name
