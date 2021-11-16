@@ -888,6 +888,8 @@
 
                     });
 
+
+
 				});
 				
 				//$(".loader").hide();
@@ -903,7 +905,14 @@
 
             }
 
+
+
+
 		});
+            //if current tab is active on external user 
+		    {% if codelist_tab_active %}
+                var table = $('.display-table').DataTable();
+            {% endif %}
 		
 		
 
