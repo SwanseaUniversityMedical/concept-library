@@ -185,3 +185,10 @@ def markdownify(text, custom_settings="default"):
  
     return mark_safe(html)
 
+
+@register.filter
+def api_url_fix(value):
+    if 'http://web-phenotypes-hdr.chi.swan.ac.uk' in value:
+        return value.replace(value, "https://phenotypes.healthdatagateway.org")
+    elif 'http://192.168.20.157' or '127.0.0.1:8000' in value:
+        return value.replace(value, "https://conceptlibrary.saildatabank.com")
