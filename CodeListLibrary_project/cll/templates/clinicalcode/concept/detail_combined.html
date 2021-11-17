@@ -2,6 +2,7 @@
 
 {% load staticfiles %}
 {% load markdownify %}
+{% load cl_extras %}
 
 {% block title %}| concept: {{ concept.name }}{% endblock title %}
 {% block description %}{{ concept.name }}{% endblock description %}
@@ -323,9 +324,8 @@
 			<div class="col-sm-12 shadow-frame">
 				<h3 class="paneltitle" id="ClinicalCodeLists" style="margin-top:20px; margin-bottom:20px"><span id="CodeLists"></span><strong>Clinical Code List</strong>
 						   <div class="dropdown btn-group" style="float: right;">
-							  <button {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="export-btn">
-							    Export Code List
-							    <span class="caret"></span>
+							  <button {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="export-btn-codelist">
+								  Export Code List <i class="caret"></i>
 							  </button>
 							  <ul class="dropdown-menu">
 							  <li>
@@ -681,9 +681,9 @@
 					<td>XML</td>
 					<td>
 					{% if user.is_authenticated  %}
-					<a href="{% url 'api:api_concept_detail_version' concept.id concept.history_id %}?format=xml" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_concept_detail_version' concept.id concept.history_id %}?format=xml</a>
+					<a href="{% url 'api:api_concept_detail_version' concept.id concept.history_id %}?format=xml" target=_blank>site_root{% url 'api:api_concept_detail_version' concept.id concept.history_id %}?format=xml</a>
 					{% else %}
-					<a href="{% url 'api:api_concept_detail_version_public' concept.id concept.history_id %}?format=xml" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_concept_detail_version_public' concept.id concept.history_id %}?format=xml</a>
+					<a href="{% url 'api:api_concept_detail_version_public' concept.id concept.history_id %}?format=xml" target=_blank>site_root{% url 'api:api_concept_detail_version_public' concept.id concept.history_id %}?format=xml</a>
 					{% endif %}
 					</td>
 				  </tr>
@@ -691,9 +691,9 @@
 					<td>JSON</td>
 					<td>
 					{% if user.is_authenticated  %}
-					<a href="{% url 'api:api_concept_detail_version' concept.id concept.history_id %}?format=json" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_concept_detail_version' concept.id concept.history_id %}?format=json</a>
+					<a href="{% url 'api:api_concept_detail_version' concept.id concept.history_id %}?format=json" target=_blank>site_root{% url 'api:api_concept_detail_version' concept.id concept.history_id %}?format=json</a>
 					{% else %}
-					<a href="{% url 'api:api_concept_detail_version_public' concept.id concept.history_id %}?format=json" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_concept_detail_version_public' concept.id concept.history_id %}?format=json</a>
+					<a href="{% url 'api:api_concept_detail_version_public' concept.id concept.history_id %}?format=json" target=_blank>site_root{% url 'api:api_concept_detail_version_public' concept.id concept.history_id %}?format=json</a>
 					{% endif %}
 					</td>
 				  </tr>
@@ -710,9 +710,9 @@
 					<td>XML</td>
 					<td>
 					{% if user.is_authenticated  %}
-					<a href="{% url 'api:api_export_concept_codes_byVersionID' concept.id concept.history_id %}?format=xml" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_export_concept_codes_byVersionID' concept.id concept.history_id %}?format=xml</a>
+					<a href="{% url 'api:api_export_concept_codes_byVersionID' concept.id concept.history_id %}?format=xml" target=_blank>site_root{% url 'api:api_export_concept_codes_byVersionID' concept.id concept.history_id %}?format=xml</a>
 					{% else %}
-					<a href="{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=xml" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=xml</a>
+					<a href="{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=xml" target=_blank>site_root{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=xml</a>
 					{% endif %}
 					</td>
 				  </tr>
@@ -720,9 +720,9 @@
 					<td>JSON</td>
 					<td>
 					{% if user.is_authenticated  %}
-					<a href="{% url 'api:api_export_concept_codes_byVersionID' concept.id concept.history_id %}?format=json" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_export_concept_codes_byVersionID' concept.id concept.history_id %}?format=json</a>
+					<a href="{% url 'api:api_export_concept_codes_byVersionID' concept.id concept.history_id %}?format=json" target=_blank>site_root{% url 'api:api_export_concept_codes_byVersionID' concept.id concept.history_id %}?format=json</a>
 					{% else %}
-					<a href="{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=json" target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=json</a>
+					<a href="{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=json" target=_blank>site_root{% url 'api:api_export_published_concept_codes' concept.id concept.history_id %}?format=json</a>
 					{% endif %}
 					</td>
 
@@ -732,7 +732,7 @@
 					<tr>
 					<td>CSV</td>
 					<td>
-					<a href="{% url 'history_concept_codes_to_csv' pk=concept.id concept_history_id=concept.history_id %}"target=_blank>{{ request.scheme }}://{{ request.get_host }}{% url 'history_concept_codes_to_csv' concept.id concept.history_id %}</a>
+					<a href="{% url 'history_concept_codes_to_csv' pk=concept.id concept_history_id=concept.history_id %}"target=_blank>site_root{% url 'history_concept_codes_to_csv' concept.id concept.history_id %}</a>
 					{% endif %}
 					</tr>
 
@@ -985,12 +985,20 @@
 		}
 	</script>
 	
+
 	<script type="text/javascript">
 	 	window.onload=function(){
   			document.getElementById("Homelinkid").click();
 	 	};
 	</script>
-		
-
+	
+	<script type="text/javascript">
+		$(function() {
+			var v = $('#api_id').html();
+			v = v.replace(/site_root/g,  'http://' + document.location.host);
+		    $('#api_id').html(v)
+		});
+	</script>
+	
 
 {% endblock scripts %}
