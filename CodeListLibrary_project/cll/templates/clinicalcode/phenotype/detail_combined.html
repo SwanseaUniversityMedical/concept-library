@@ -692,9 +692,9 @@
 					<td>XML</td>
 					<td>
 					{% if user.is_authenticated  %}
-					<a href="{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=xml" target=_blank>{{ request.get_host|api_url_fix }}{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=xml</a>
+					<a href="{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=xml" target=_blank>site_root{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=xml</a>
 					{% else %}
-					<a href="{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=xml" target=_blank>{{ request.get_host|api_url_fix }}{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=xml</a>
+					<a href="{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=xml" target=_blank>site_root{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=xml</a>
 					{% endif %}
 					</td>
 				  </tr>
@@ -702,9 +702,9 @@
 					<td>JSON</td>
 					<td>
 					{% if user.is_authenticated  %}
-					<a href="{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=json" target=_blank>{{ request.get_host|api_url_fix }}{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=json</a>
+					<a href="{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=json" target=_blank>site_root{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=json</a>
 					{% else %}
-					<a href="{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=json" target=_blank>{{ request.get_host|api_url_fix }}{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=json</a>
+					<a href="{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=json" target=_blank>site_root{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=json</a>
 					{% endif %}
 					</td>
 				  </tr>
@@ -721,9 +721,9 @@
 					<td>XML</td>
 					<td>
 					{% if user.is_authenticated  %}
-					<a href="{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=xml" target=_blank>{{ request.get_host|api_url_fix }}{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=xml</a>
+					<a href="{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=xml" target=_blank>site_root{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=xml</a>
 					{% else %}
-					<a href="{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=xml" target=_blank>{{ request.get_host|api_url_fix }}{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=xml</a>
+					<a href="{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=xml" target=_blank>site_root{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=xml</a>
 					{% endif %}
 					</td>
 				  </tr>
@@ -731,9 +731,9 @@
 					<td>JSON</td>
 					<td>
 					{% if user.is_authenticated  %}
-					<a href="{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=json" target=_blank>{{ request.get_host|api_url_fix }}{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=json</a>
+					<a href="{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=json" target=_blank>site_root{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=json</a>
 					{% else %}
-					<a href="{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=json" target=_blank>{{ request.get_host|api_url_fix }}{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=json</a>
+					<a href="{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=json" target=_blank>site_root{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=json</a>
 					{% endif %}
 					</td>
 
@@ -743,7 +743,7 @@
 					<tr>
 					<td>CSV</td>
 					<td>
-					<a href="{% url 'history_phenotype_codes_to_csv' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"target=_blank>{{ request.get_host|api_url_fix }}{% url 'history_phenotype_codes_to_csv' phenotype.id phenotype.history_id %}</a>
+					<a href="{% url 'history_phenotype_codes_to_csv' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"target=_blank>site_root{% url 'history_phenotype_codes_to_csv' phenotype.id phenotype.history_id %}</a>
 					{% endif %}
 					</tr>
 
@@ -1035,5 +1035,13 @@
   			document.getElementById("Homelinkid").click();
 	 	};
 	</script>
+	
+	<script type="text/javascript">
+		$(function() {
+			var v = $('#api_id').html();
+			v = v.replace(/site_root/g,  'http://' + document.location.host);
+		    $('#api_id').html(v)
+		});
+	</script>	
 
 {% endblock scripts %}
