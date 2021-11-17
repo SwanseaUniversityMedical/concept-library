@@ -16,7 +16,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from datetime import datetime
 from rest_framework.reverse import reverse
-from urlparse import urlparse
+from urllib.parse import urlparse
 import unittest
 
 # from django.conf import settings

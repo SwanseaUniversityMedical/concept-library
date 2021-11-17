@@ -42,11 +42,11 @@ class Component(TimeStampedModel):
 
     comment = models.TextField()
     component_type = models.IntegerField(choices=COMPONENT_TYPES)
-    concept = models.ForeignKey(Concept, blank=True, null=True)
+    concept = models.ForeignKey(Concept, on_delete=models.CASCADE, blank=True, null=True)
 
     # The ID of a concept (if this component is another concept). Otherwise null.
-    concept_ref = models.ForeignKey(Concept, blank=True, null=True, related_name="concept_ref")
-    concept_ref_history = models.ForeignKey(HistoricalConcept, blank=True, null=True, related_name="+")
+    concept_ref = models.ForeignKey(Concept, on_delete=models.SET_NULL, blank=True, null=True, related_name="concept_ref")
+    concept_ref_history = models.ForeignKey(HistoricalConcept, on_delete=models.SET_NULL, blank=True, null=True, related_name="+")
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="components_created")
     logical_type = models.IntegerField(choices=LOGICAL_TYPES, default=LOGICAL_TYPE_INCLUSION)
     modified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="components_modified")

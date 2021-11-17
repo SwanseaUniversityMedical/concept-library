@@ -387,8 +387,8 @@ class InclusionExclusionTest(TestCase):
         # sort both lists
         codes.sort()
         self.output.sort()
-        print("EXPECTED OUTPUT: ", self.output)
-        print("RESPONSE_CODES: ", codes)
+        print(("EXPECTED OUTPUT: ", self.output))
+        print(("RESPONSE_CODES: ", codes))
 
         return codes
 

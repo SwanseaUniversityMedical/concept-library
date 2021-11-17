@@ -12,7 +12,8 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
 from django.core.paginator import Paginator, EmptyPage
-from django.core.urlresolvers import reverse_lazy, reverse
+#from django.core.urlresolvers import reverse_lazy, reverse
+from django.urls import reverse_lazy, reverse
 from django.db import transaction  # , models, IntegrityError
 from django.http import HttpResponseRedirect  # , StreamingHttpResponse, HttpResponseForbidden
 from django.http.response import HttpResponse, JsonResponse
@@ -35,7 +36,7 @@ from ..models.Brand import Brand
 from ..models.PublishedConcept import PublishedConcept
 from ..models.CodingSystem import CodingSystem
 
-from View import *
+from .View import *
 from .. import db_utils
 from .. import utils
 from ..permissions import *
@@ -212,7 +213,7 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
     #         tags = Tag.objects.filter(pk__in=tag_list)
     # ----------------------------------------------------------------------
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         components_permissions = build_permitted_components_list(request, pk, concept_history_id=concept_history_id)
 
         can_edit = (not Concept.objects.get(pk=pk).is_deleted) and allowed_to_edit(request, Concept, pk)
@@ -267,7 +268,7 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
         else:
             ver['publish_date'] = None
 
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             if allowed_to_edit(request, Concept, pk) or allowed_to_view(request, Concept, pk):
                 other_historical_versions.append(ver)
             else:
@@ -278,7 +279,7 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
                 other_historical_versions.append(ver)
 
     # how to show codelist tab
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         component_tab_active = "active"
         codelist_tab_active = ""
         codelist = []
@@ -299,7 +300,6 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
 
             concept_codes = codes_with_attributes
         # ---------
-        #Choose which tab will be opened first
         component_tab_active = ""
         codelist_tab_active = "active"
         codelist = concept_codes  # db_utils.getGroupOfCodesByConceptId_HISTORICAL(pk, concept_history_id)
@@ -324,7 +324,7 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
                'codelist_loaded': codelist_loaded,
                'code_attribute_header': code_attribute_header
                }
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         if is_latest_version and (can_edit):
             needed_keys = ['user_can_view_component', 'user_can_edit_component', 'component_error_msg_view',
                            'component_error_msg_edit', 'component_concpet_version_msg', 'latest_history_id']
@@ -751,7 +751,7 @@ def concept_list(request):
         filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
 
     # check if it is the public site or not
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         # ensure that user is only allowed to view/edit the relevant concepts
 
         get_live_and_or_published_ver = 3
@@ -891,7 +891,10 @@ def concept_upload_codes(request, pk):
                     if request.FILES.get('upload_concept_file'):
                         current_concept = Concept.objects.get(pk=pk)
                         concept_upload_file = request.FILES['upload_concept_file']
-                        codes = list(csv.reader(concept_upload_file, delimiter=','))
+                        
+                        #codes = list(csv.reader(concept_upload_file, delimiter=','))
+                        codes = list(csv.reader([line.decode() for line in concept_upload_file], delimiter=','))
+                        
                         # The posted variables:
                         upload_name = request.POST.get('upload_name')
                         logical_type = request.POST.get('logical_type')
@@ -1326,7 +1329,7 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
 
     current_concept = Concept.objects.get(pk=pk)
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         user_can_export = (allowed_to_view_children(request, Concept, pk, set_history_id=concept_history_id)
                            and
                            db_utils.chk_deleted_children(request, Concept, pk, returnErrors=False,
@@ -1574,7 +1577,7 @@ def compare_concepts_codes(request, concept_id, version_id, concept_ref_id, vers
     columns = ['code', 'description_x', 'description_y', 'merge']
     rows = [tuple(r) for r in full_outer_join_df.to_numpy()]
     net_comparison = [
-        dict(zip(columns, row))
+        dict(list(zip(columns, row)))
         for row in rows
     ]
 

@@ -390,7 +390,7 @@ def component_history_concept_detail_combined(request,
     #----------------------------------------------------------------------
     is_latest_version = (int(concept_history_id) == Concept.objects.get(pk=concept_id).history.latest().history_id)
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         components_permissions = build_permitted_components_list(request, concept_id)
         can_edit = (not Concept.objects.get(pk=concept_id).is_deleted) and allowed_to_edit(request, Concept, concept_id)
         
@@ -414,7 +414,7 @@ def component_history_concept_detail_combined(request,
                'codes': json.dumps(codes)
                }
     
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         if is_latest_version and (can_edit):
             needed_keys = ['user_can_view_component', 'user_can_edit_component','component_error_msg_view',
                            'component_error_msg_edit', 'component_concpet_version_msg', 'latest_history_id']

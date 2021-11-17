@@ -283,7 +283,7 @@ class OtherTest(StaticLiveServerTestCase):
             publication_link=Google_website,
             source_reference="",
             citation_requirements="",
-            concept_informations=unicode('[{"3":{"ttt|3":"yyy"}}]'),
+            concept_informations=str('[{"3":{"ttt|3":"yyy"}}]'),
             concept_version={"3": 1},
             created_by=super_user,
             updated_by=super_user,
@@ -302,7 +302,7 @@ class OtherTest(StaticLiveServerTestCase):
             publication_link=Google_website,
             source_reference="",
             citation_requirements="",
-            concept_informations=unicode('[{"%s":{"ttt|3":"yyy"}}, {"%s":{"ttt|3":"yyy"}}]' % (
+            concept_informations=str('[{"%s":{"ttt|3":"yyy"}}, {"%s":{"ttt|3":"yyy"}}]' % (
                 str(self.concept_everybody_can_view.id), str(self.concept_everybody_can_edit.id))),
             concept_version={
                 (str(self.concept_everybody_can_view.id)): self.concept_everybody_can_view.history.first().history_id,
@@ -324,7 +324,7 @@ class OtherTest(StaticLiveServerTestCase):
             publication_link=Google_website,
             source_reference="",
             citation_requirements="",
-            concept_informations=unicode('[{"%s":{"ttt|3":"yyy"}}]' % (str(self.concept_everybody_can_view.id))),
+            concept_informations=str('[{"%s":{"ttt|3":"yyy"}}]' % (str(self.concept_everybody_can_view.id))),
             concept_version={
                 (str(self.concept_everybody_can_view.id)): self.concept_everybody_can_view.history.first().history_id},
             created_by=super_user,
@@ -888,7 +888,7 @@ class OtherTest(StaticLiveServerTestCase):
             if 'rest_framework.renderers.BrowsableAPIRenderer' in setting_django.REST_FRAMEWORK[
                 'DEFAULT_RENDERER_CLASSES']:
                 test = False
-                print("FROM ELSE: ", setting_django.REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'])
+                print(("FROM ELSE: ", setting_django.REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES']))
         else:
             test = False  # browsable=fail
 
@@ -912,7 +912,7 @@ class OtherTest(StaticLiveServerTestCase):
         # pass request to the view
         response = concept_codes_to_csv(request, self.concept_with_excluded_codes.id)
 
-        print("RESPONSE ", response.content)
+        print(("RESPONSE ", response.content))
 
         codes = response.content  # list with response content which contains codes
         test_code1 = self.code_excluded1.code

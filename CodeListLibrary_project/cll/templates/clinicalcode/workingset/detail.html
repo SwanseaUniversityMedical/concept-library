@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% load staticfiles %}
+{% load static %}
 
 {% block title %}| View Working Set
 {% endblock title %}
@@ -14,7 +14,7 @@
 
 <h2> {{ object.name }}
 	{% for item in request.BRAND_GROUPS %}
-		{% for brand, groups in item.iteritems %}
+		{% for brand, groups in item.items %}
 			{% if object.group.name in groups %}
 			<img style="margin-top:-5px;" src="{% static 'img/brands/' %}{{brand}}/logo.png" height="30px" title="{{brand}}" alt="{{brand}}" />
 			{% endif %}

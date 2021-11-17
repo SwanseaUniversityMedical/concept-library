@@ -13,7 +13,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from datetime import datetime
-from urlparse import urlparse
+from urllib.parse import urlparse
 import time
 import xml.etree.ElementTree as ET
 from django.test import RequestFactory
@@ -206,7 +206,7 @@ class VersioningTest(StaticLiveServerTestCase):
 
         codes.sort()
         # self.output.sort()
-        print("REPONSE_CODES: ", codes)
+        print(("REPONSE_CODES: ", codes))
 
         return codes
 
@@ -253,7 +253,7 @@ class VersioningTest(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
 
         browser = self.browser
-        print("WORKINGSET ID", self.workingset_everybody_can_edit.id)
+        print(("WORKINGSET ID", self.workingset_everybody_can_edit.id))
         # get the test server url
         # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
         #                          self.workingset_everybody_can_edit.id, '/detail/'))
@@ -321,7 +321,7 @@ class VersioningTest(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
 
         browser = self.browser
-        print("WORKINGSET ID", self.workingset_everybody_can_edit.id)
+        print(("WORKINGSET ID", self.workingset_everybody_can_edit.id))
         # get the test server url
         # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
         #                         self.workingset_everybody_can_edit.id, '/detail/'))
@@ -371,13 +371,13 @@ class VersioningTest(StaticLiveServerTestCase):
             url = link.get_attribute("href")
             u = urlparse(url)
             # check if url is valid
-            self.assertEquals(u.scheme, 'http')
+            self.assertEqual(u.scheme, 'http')
             path = u.path.split('/')
             # check if url contains concept id
-            self.assertEquals(int(path[2]), self.concept_everybody_can_edit.id)
+            self.assertEqual(int(path[2]), self.concept_everybody_can_edit.id)
             # check if url contains unique history id
             version_id = self.concept_everybody_can_edit.history.all()[id_index].history_id
-            self.assertEquals(int(path[4]), version_id)
+            self.assertEqual(int(path[4]), version_id)
             id_index += 1
 
     def test_workingset_every_version_has_url(self):
@@ -399,13 +399,13 @@ class VersioningTest(StaticLiveServerTestCase):
             url = link.get_attribute("href")
             u = urlparse(url)
             # check if url is valid
-            self.assertEquals(u.scheme, 'http')
+            self.assertEqual(u.scheme, 'http')
             path = u.path.split('/')
             # check if url contains workingset id
-            self.assertEquals(int(path[2]), self.workingset_everybody_can_edit.id)
+            self.assertEqual(int(path[2]), self.workingset_everybody_can_edit.id)
             # check if url contains unique history id
             version_id = self.workingset_everybody_can_edit.history.all()[id_index].history_id
-            self.assertEquals(int(path[4]), version_id)
+            self.assertEqual(int(path[4]), version_id)
             id_index += 1
 
     '''
@@ -524,7 +524,7 @@ class VersioningTest(StaticLiveServerTestCase):
         tree = ET.fromstring(browser.page_source)
 
         for x in tree.iter("concept_version_id"):
-            self.assertEquals(int(x.text), latest_version)
+            self.assertEqual(int(x.text), latest_version)
 
     def test_workingset_has_url_to_latest_ver_in_api(self):
         latest_version = self.concept_everybody_can_edit.history.first().history_id
@@ -547,7 +547,7 @@ class VersioningTest(StaticLiveServerTestCase):
         tree = ET.fromstring(browser.page_source)
 
         for x in tree.iter("concept_version_id"):
-            self.assertEquals(int(x.text), latest_version)
+            self.assertEqual(int(x.text), latest_version)
 
     '''
     The API can get a specific version of a code list
@@ -637,7 +637,7 @@ class VersioningTest(StaticLiveServerTestCase):
         time.sleep(4)  # wait to submition be completed
 
         latest_version_after_adding_child = self.concept_everybody_can_edit.history.first().history_id
-        self.assertNotEquals(latest_version, latest_version_after_adding_child)
+        self.assertNotEqual(latest_version, latest_version_after_adding_child)
 
     '''
     When a child concept is updated, the parent concept does not change
@@ -651,4 +651,4 @@ class VersioningTest(StaticLiveServerTestCase):
 
         latest_version_after_child_updatge = self.concept_everybody_can_edit.history.first().history_id
 
-        self.assertEquals(latest_version, latest_version_after_child_updatge)
+        self.assertEqual(latest_version, latest_version_after_child_updatge)

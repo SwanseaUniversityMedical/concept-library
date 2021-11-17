@@ -21,7 +21,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/
 """
 
-from settings import *
+from .settings import *
 
 from selenium import webdriver
 

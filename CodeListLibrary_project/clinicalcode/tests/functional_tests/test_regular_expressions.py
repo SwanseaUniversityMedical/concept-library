@@ -14,7 +14,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from datetime import datetime
-from urlparse import urlparse
+from urllib.parse import urlparse
 from clinicalcode.views.Concept import concept_codes_to_csv
 from django.test import RequestFactory
 
@@ -163,7 +163,7 @@ class RegularExpressionsTest(StaticLiveServerTestCase):
             code = r.split(",")[0]
             codes.append(code)
 
-        print("REPONSE_CODES: ", codes)
+        print(("REPONSE_CODES: ", codes))
 
         return codes
 

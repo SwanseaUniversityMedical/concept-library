@@ -12,7 +12,9 @@ import socket
 
 from django_auth_ldap.config import LDAPSearch, GroupOfNamesType, NestedActiveDirectoryGroupType, LDAPSearchUnion
 from django.conf.global_settings import EMAIL_BACKEND, AUTHENTICATION_BACKENDS
-from django.core.urlresolvers import reverse_lazy
+#from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
+
 from django.contrib.messages import constants as messages
 
 from decouple import Config, RepositoryEnv, Csv
@@ -106,7 +108,7 @@ BROWSABLEAPI = get_env_value('BROWSABLEAPI', cast='bool')
 IS_INSIDE_GATEWAY = get_env_value('IS_INSIDE_GATEWAY', cast='bool')
 IS_DEVELOPMENT_PC = get_env_value('IS_DEVELOPMENT_PC', cast='bool')
 if IS_DEVELOPMENT_PC:
-    print "SRV_IP=" + SRV_IP
+    print("SRV_IP=" + SRV_IP)
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -259,6 +261,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
+                'rest_framework.authentication.TokenAuthentication',
+
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',

@@ -21,6 +21,7 @@ from distutils import util
 from decouple import Config, RepositoryEnv, Csv
 from rest_framework.reverse import reverse
 from django.shortcuts import render, redirect
+import importlib
        
 class brandMiddleware(MiddlewareMixin):
 
@@ -28,11 +29,11 @@ class brandMiddleware(MiddlewareMixin):
     def process_request(self, request):
         #---------------------------------
             # if the user is a member of  'ReadOnlyUsers' group, make READ-ONLY True
-            if request.user.is_authenticated():
+            if request.user.is_authenticated:
                 CLL_READ_ONLY_org = self.get_env_value('CLL_READ_ONLY', cast='bool')
-                if settings.DEBUG: print "CLL_READ_ONLY_org = " , str(CLL_READ_ONLY_org )
+                if settings.DEBUG: print("CLL_READ_ONLY_org = " , str(CLL_READ_ONLY_org ))
                 settings.CLL_READ_ONLY = CLL_READ_ONLY_org
-                if settings.DEBUG: print "CLL_READ_ONLY_org (after) = " , str(CLL_READ_ONLY_org )
+                if settings.DEBUG: print("CLL_READ_ONLY_org (after) = " , str(CLL_READ_ONLY_org ))
                 
                 #self.chkReadOnlyUsers(request)
                 if not settings.CLL_READ_ONLY:
@@ -43,10 +44,10 @@ class brandMiddleware(MiddlewareMixin):
                             messages.error(request, msg1)
                             
                         settings.CLL_READ_ONLY = True
-                        if settings.DEBUG: print "settings.CLL_READ_ONLY = " , str(settings.CLL_READ_ONLY )
+                        if settings.DEBUG: print("settings.CLL_READ_ONLY = " , str(settings.CLL_READ_ONLY ))
         #---------------------------------
                 
-        #if request.user.is_authenticated():
+        #if request.user.is_authenticated:
             #print "...........start..............."
             #brands = Brand.objects.values_list('name', flat=True)
             brands = Brand.objects.all()
@@ -100,7 +101,7 @@ class brandMiddleware(MiddlewareMixin):
 
             do_redirect = False
             if root in brands_list:
-                if settings.DEBUG: print "root=", root
+                if settings.DEBUG: print("root=", root)
                 settings.CURRENT_BRAND = root
                 request.CURRENT_BRAND = root
                 
@@ -143,12 +144,12 @@ class brandMiddleware(MiddlewareMixin):
                 
             if urlconf in sys.modules:
                 clear_url_caches()
-                reload(sys.modules[urlconf])
-                reload(import_module(urlconf))
+                importlib.reload(sys.modules[urlconf])
+                importlib.reload(import_module(urlconf))
 
             if settings.DEBUG:
-                print request.path_info
-                print str(request.get_full_path())
+                print(request.path_info)
+                print(str(request.get_full_path()))
                
             # Do NOT allow concept create under HDRUK - for now 
             if (str(request.get_full_path()).upper().replace('/','') == "/HDRUK/concepts/create/".upper().replace('/','') or

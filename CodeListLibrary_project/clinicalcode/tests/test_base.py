@@ -46,7 +46,7 @@ def update_friendly_id():
             except:
                 pass
 
-    print "######  update_friendly_id   #############################"
+    print("######  update_friendly_id   #############################")
 
 
 def save_stat(host):
@@ -54,9 +54,9 @@ def save_stat(host):
     http = urllib3.PoolManager()
     resp_stat = http.request("GET", url_run)
 
-    print (str(resp_stat.status) + "#### Run-stat ####")
+    print((str(resp_stat.status) + "#### Run-stat ####"))
 
     url_save = host + "/admin/run-stat-collections"
     resp_stat = http.request("GET", url_save)
 
-    print (str(resp_stat.status) + "#### Run-stat-collections save ####")
+    print((str(resp_stat.status) + "#### Run-stat-collections save ####"))

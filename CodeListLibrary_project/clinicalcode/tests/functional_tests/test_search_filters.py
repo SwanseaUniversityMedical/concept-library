@@ -428,7 +428,7 @@ class SearchTest(StaticLiveServerTestCase):
         time.sleep(settings_cll.IMPLICTLY_WAIT)
 
         browser.find_elements_by_name("collection_id")[0].click()
-        print browser.find_element_by_id("search").text
+        print(browser.find_element_by_id("search").text)
 
         self.assertTrue(browser.find_element_by_id("search").text == "")
 

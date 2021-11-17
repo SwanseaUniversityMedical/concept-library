@@ -454,7 +454,8 @@ class ComponentExpressionSelectCodeCreate(LoginRequiredMixin,
             # get and process any uploaded files
             if self.request.FILES.get('upload_file'):
                 csv_file = self.request.FILES['upload_file']
-                file_reader = csv.reader(csv_file, delimiter=',')
+                #file_reader = csv.reader(csv_file, delimiter=',')
+                file_reader = csv.reader([line.decode() for line in csv_file], delimiter=',')
 
                 row_count = 0
 
@@ -593,8 +594,9 @@ class ComponentExpressionSelectCreate(LoginRequiredMixin,
             # process any uploaded files
             if self.request.FILES.get('upload_file'):
                 csv_file = self.request.FILES['upload_file']
-                file_reader = csv.reader(csv_file, delimiter=',')
-
+                #file_reader = csv.reader(csv_file, delimiter=',')
+                file_reader = csv.reader([line.decode() for line in csv_file], delimiter=',')
+                
                 row_count = 0
                 for row in file_reader:
                     row_count += 1
@@ -788,7 +790,8 @@ class ComponentExpressionSelectUpdate(LoginRequiredMixin,
                 # process any uploaded files
                 if self.request.FILES.get('upload_file'):
                     csv_file = self.request.FILES['upload_file']
-                    file_reader = csv.reader(csv_file, delimiter=',')
+                    #file_reader = csv.reader(csv_file, delimiter=',')
+                    file_reader = csv.reader([line.decode() for line in csv_file], delimiter=',')
 
                     row_count = 0
                     for row in file_reader:

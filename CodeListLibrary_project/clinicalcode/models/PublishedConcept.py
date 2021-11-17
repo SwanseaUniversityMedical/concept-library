@@ -5,7 +5,7 @@ from .Concept import Concept
 
 
 class PublishedConcept(models.Model):
-    concept = models.ForeignKey(Concept)
+    concept = models.ForeignKey(Concept, on_delete=models.CASCADE)
     concept_history_id = models.IntegerField()
     created = models.DateTimeField(auto_now_add=True)  # date of publication
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="publication_owner")

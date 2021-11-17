@@ -13,7 +13,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from datetime import datetime
-from urlparse import urlparse
+from urllib.parse import urlparse
 import unittest
 
 # from django.conf import settings
@@ -204,9 +204,9 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
     def test_latest_version_added_after_adding_child_to_concept(self):
         # get latest version
         concept_latest_version = self.concept_everybody_can_edit.history.first().history_id
-        print("0 concept_latest_version=" + str(concept_latest_version))
+        print(("0 concept_latest_version=" + str(concept_latest_version)))
         workingset_latest_version = self.workingset_everybody_can_edit.history.first().history_id
-        print("0 workingset_latest_version=" + str(workingset_latest_version))
+        print(("0 workingset_latest_version=" + str(workingset_latest_version)))
 
         self.login(ow_user, ow_password)
         browser = self.browser
@@ -271,7 +271,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         #         print("1 concept_latest_version_after_adding_child=" + str(concept_latest_version_after_adding_child))
         #         print("1 workingset_latest_version_after_adding_child=" + str(workingset_latest_version_after_adding_child))
 
-        self.assertNotEquals(concept_latest_version,
+        self.assertNotEqual(concept_latest_version,
                              concept_latest_version_after_adding_child)
         # propagation sync is stopped
 
