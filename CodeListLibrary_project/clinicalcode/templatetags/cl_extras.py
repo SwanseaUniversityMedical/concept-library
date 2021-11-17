@@ -185,3 +185,4 @@ def markdownify(text, custom_settings="default"):
  
     return mark_safe(html)
 
+   
