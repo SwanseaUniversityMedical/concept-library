@@ -1003,6 +1003,12 @@
 			
 
 
+	<script>
+	let text = document.getElementById("api_id").innerHTML;
+	let resultlocal = text.replaceAll('http://127.0.0.1:8000', 'https://conceptlibrary.saildatabank.com');
+	let resultweb = resultlocal.replaceAll('http://192.168.20.157', 'https://conceptlibrary.saildatabank.com');
+	let resulthdruk = resultweb.replaceAll('http://web-phenotypes-hdr.chi.swan.ac.uk', 'https://phenotypes.healthdatagateway.org');
+	document.getElementById("api_id").innerHTML = resulthdruk;
+	</script>
 
-		
 {% endblock scripts %}
