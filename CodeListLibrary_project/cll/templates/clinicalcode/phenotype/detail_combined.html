@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% load static %}
+{% load staticfiles %}
 {% load markdownify %}
 {% load cl_extras %}
 	
@@ -124,7 +124,7 @@
 							<strong>{{ phenotype.name }}</strong>	
 						{% endif %}	
 							{% for item in request.BRAND_GROUPS %}
-								{% for brand, groups in item.items %}
+								{% for brand, groups in item.iteritems %}
 									{% if phenotype.group.name in groups %}
 									<img style="margin-top:-5px;" src="{% static 'img/brands/' %}{{brand}}/logo.png" height="29px" title="{{brand}}" alt="{{brand}}" />
 									{% endif %}
@@ -462,7 +462,7 @@
 		            </div>
 		         </div>
 		         <div>
-		            <table class="table table-striped table-responsive-md display " style="width: 100%" id="codelist-tab-table-c{{ c.concept_version_id }}" >
+		            <table class="table table-striped table-responsive-md display-table" style="width: 100%" id="codelist-tab-table-c{{ c.concept_version_id }}" >
 		               <thead>
 		                  <tr>
 		                     <th>Code</th>
@@ -684,7 +684,7 @@
 			<span id="api_id" phenotype_id="{{ phenotype.id }}">
 				<p> To Export Phenotype Details:</p>
 
-				<table class="table table-striped table-responsive-md display " style="width: 80%">
+				<table class="table table-striped table-responsive-md" style="width: 80%">
 				  <tr>
 					<th>Format</th>
 					<th>API</th>
@@ -712,7 +712,7 @@
 				</table>
 				<p> To Export Phenotype Code List:</p>
 
-					<table class="table table-striped table-responsive-md display " style="width: 80%">
+					<table class="table table-striped table-responsive-md" style="width: 80%">
 				  <tr>
 					<th>Format</th>
 					<th>API</th>
@@ -865,7 +865,7 @@
 		});
 
 		function getConceptsCodes() {
-			if($('#codelist-tab-div').attr("codelist_loaded") == "0"){
+			if($('#codelist-tab-div').attr("codelist_loaded") === "0"){
 				// get the unique codes for the phenotype version
 				phenotype_id = $('#phenotype_id_div').attr("phenotype_id");
 				phenotype_history_id =$('#phenotype_history_id_div').attr("phenotype_history_id");
@@ -881,7 +881,20 @@
 				
 				$('#codelist-tab-div').attr("codelist_loaded" , "1");
 				
-			}
+			}else {
+			    // Generate standard type of table in code list if not login
+                {% if not user.is_authenticated %}
+                    var table = $('.display-table').DataTable();
+                {% endif %}
+
+            }
+
+
+
+
+
+
+
 		}
 		
 		
@@ -892,11 +905,12 @@
 					 var table = $('#codelist-tab-table-c' + v.concept_version_id).DataTable({
                          "initComplete":function () {
                              $('#codelist-tab-table-c' + v.concept_version_id).addClass(
-                                 "table-responsive-md")
+                                 "specific_tablist")
                          },
                          "scrollX":true,
                          "scrollY":"700px",
                          "scrollCollapse": true,
+                         "lengthMenu": [[10, 25, 50,100, -1], [10, 25, 50, 100, "All"]],
                          "colReorder": true,
                          "rowReorder": true,
                          //"fixedHeader": true
@@ -924,6 +938,20 @@
 			$('#topButtons').hide();
 			$('footer').hide();
 			$('.popovers').hide();
+
+            // Hide elements of table for printing
+            {% if not user.is_authenticated %}
+                var table = $('.display-table');
+                table.DataTable().destroy();
+                table.DataTable({
+                    "searching":false,
+                    "paging":false
+
+                });
+            {% endif %}
+
+
+
 			
 			{% if user.is_authenticated %}
 				$('#codelist-div-container').removeClass('pre-scrollable');
@@ -943,6 +971,14 @@
 			$('footer').show();
 			$('.btn').show();
 			$('.popovers').show();
+
+			// restore the table if user not login when printing finished
+			{% if not user.is_authenticated %}
+                 var table = $('.display-table');
+                table.DataTable().destroy();
+                table.DataTable();
+            {% endif %}
+
 
 			
 			{% if user.is_authenticated %}
