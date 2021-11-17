@@ -188,7 +188,13 @@ def markdownify(text, custom_settings="default"):
 
 @register.filter
 def api_url_fix(value):
-    if 'http://web-phenotypes-hdr.chi.swan.ac.uk' in value:
-        return value.replace(value, "https://phenotypes.healthdatagateway.org")
-    elif 'http://192.168.20.157' or '127.0.0.1:8000' in value:
-        return value.replace(value, "https://conceptlibrary.saildatabank.com")
+    
+    value = value.replace('http://web-phenotypes-hdr.chi.swan.ac.uk', 'https://phenotypes.healthdatagateway.org')
+    value = value.replace('http://192.168.20.157', 'https://conceptlibrary.saildatabank.com')
+    
+    value = value.replace('http://192.168.11.36', 'https://conceptlibrary.demo.saildatabank.com')
+    value = value.replace('http://192.168.11.33', 'https://conceptlibrary-ro.demo.saildatabank.com')
+    
+    return value
+    
+    
