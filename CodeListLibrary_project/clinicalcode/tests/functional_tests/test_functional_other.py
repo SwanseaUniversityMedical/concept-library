@@ -395,6 +395,10 @@ class OtherTest(StaticLiveServerTestCase):
         self.browser.find_element_by_name('username').send_keys(username)
         self.browser.find_element_by_name('password').send_keys(password)
         self.browser.find_element_by_name('password').send_keys(Keys.ENTER)
+        
+        # self.browser.find_element_by_xpath(".//*[@id='username']").send_keys(username)
+        # self.browser.find_element_by_xpath(".//*[@id='password']").send_keys(password)
+        # self.browser.find_element_by_xpath(".//*[@id='password']").send_keys(Keys.ENTER)
 
     def logout(self):
         # self.browser.get('%s%s' % (self.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
@@ -912,11 +916,11 @@ class OtherTest(StaticLiveServerTestCase):
         # pass request to the view
         response = concept_codes_to_csv(request, self.concept_with_excluded_codes.id)
 
-        print(("RESPONSE ", response.content))
+        print(("RESPONSE ", response.content.decode('utf-8')))
 
-        codes = response.content  # list with response content which contains codes
+        codes = response.content.decode('utf-8')  # list with response content which contains codes
         test_code1 = self.code_excluded1.code
-        test_code2 = self.code_excluded2.code
+        test_code2 = self.code_excluded2.code#
 
         test = True
         if test_code1 in codes or test_code2 in codes:
@@ -962,7 +966,7 @@ class OtherTest(StaticLiveServerTestCase):
         # pass request to the view
         response = concept_codes_to_csv(request, self.concept_with_excluded_and_included_codes.id)
 
-        codes = response.content  # list with response content which contains codes
+        codes = response.content.decode('utf-8')  # list with response content which contains codes
         test_code1 = self.code_included.code
         test_code2 = self.code_excluded3.code
 
@@ -1009,7 +1013,7 @@ class OtherTest(StaticLiveServerTestCase):
         # pass request to the view
         response = workingset_to_csv(request, self.workingset_with_excluded_codes.id)
 
-        codes = response.content  # list with response content which contains codes
+        codes = response.content.decode('utf-8')  # list with response content which contains codes
         test_code1 = self.code_excluded1.code
         test_code2 = self.code_excluded2.code
 
@@ -1032,7 +1036,7 @@ class OtherTest(StaticLiveServerTestCase):
         # pass request to the view
         response = workingset_to_csv(request, self.workingset_with_excluded_and_included_codes.id)
 
-        codes = response.content  # list with response content which contains codes
+        codes = response.content.decode('utf-8')  # list with response content which contains codes
         test_code1 = self.code_included.code
         test_code2 = self.code_excluded3.code
 

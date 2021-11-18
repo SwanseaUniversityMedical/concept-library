@@ -208,7 +208,7 @@ class RegularExpressionsTest(StaticLiveServerTestCase):
         # make export to csv request
         response = concept_codes_to_csv(request, self.concept_everybody_can_edit.id)
 
-        codes = self.get_codes_from_response(response.content)
+        codes = self.get_codes_from_response(response.content.decode('utf-8'))
 
         # Assert that the defined codes in setUp appears in the response
         for code in self.code_list:

@@ -404,7 +404,7 @@ class InclusionExclusionTest(TestCase):
         
         response = concept_codes_to_csv(request, self.root.id)
 
-        response_codes = self.get_codes_from_response(response.content)
+        response_codes = self.get_codes_from_response(response.content.decode('utf-8'))
 
         expected_output = self.output
 
@@ -429,7 +429,7 @@ class InclusionExclusionTest(TestCase):
             response = history_concept_codes_to_csv(request, self.published_root.concept_id,
                                                     self.published_root.concept_history_id)
 
-            response_codes = self.get_codes_from_response(response.content)
+            response_codes = self.get_codes_from_response(response.content.decode('utf-8'))
 
             expected_output = self.output
 

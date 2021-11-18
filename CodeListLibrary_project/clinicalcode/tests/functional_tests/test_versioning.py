@@ -443,7 +443,7 @@ class VersioningTest(StaticLiveServerTestCase):
         # make export to csv request
         response = concept_codes_to_csv(request, self.concept_everybody_can_edit.id)
 
-        codes = self.get_codes_from_response(response.content)
+        codes = self.get_codes_from_response(response.content.decode('utf-8'))
 
         historical_codes = getGroupOfCodesByConceptId_HISTORICAL(self.concept_everybody_can_edit.id, latest_version)[0][
             'code']
@@ -487,7 +487,7 @@ class VersioningTest(StaticLiveServerTestCase):
         # make export to csv request
         response = workingset_to_csv(request, self.workingset_everybody_can_edit.id)
 
-        codes = self.get_codes_from_response(response.content)
+        codes = self.get_codes_from_response(response.content.decode('utf-8'))
 
         # check if workingset returns code contained by concept
         self.assertEqual(codes, ['45554'])
