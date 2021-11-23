@@ -395,10 +395,7 @@ class OtherTest(StaticLiveServerTestCase):
         self.browser.find_element_by_name('username').send_keys(username)
         self.browser.find_element_by_name('password').send_keys(password)
         self.browser.find_element_by_name('password').send_keys(Keys.ENTER)
-        
-        # self.browser.find_element_by_xpath(".//*[@id='username']").send_keys(username)
-        # self.browser.find_element_by_xpath(".//*[@id='password']").send_keys(password)
-        # self.browser.find_element_by_xpath(".//*[@id='password']").send_keys(Keys.ENTER)
+
 
     def logout(self):
         # self.browser.get('%s%s' % (self.WEBAPP_HOST, '/account/logout/?next=/account/login/'))

@@ -4,8 +4,10 @@
 	{% load mathfilters %}
 	{% load i18n %}
 	{% load cl_extras %}
+	
+{% if SHOW_COOKIE_ALERT %}
     {% load cookielaw_tags%}
-
+{% endif %}
 
 	<head>
 		<style>
@@ -306,7 +308,8 @@
 					<a href="{% url 'terms' %}" target=_blank  >Terms & Conditions</a>
 				 	 |
 					<a href="{% url 'privacy_and_cookie_policy' %}" target=_blank  >Privacy & Cookie Policy</a>
-					</a>
+					 |
+					<a href="https://docs.hiru.swan.ac.uk/display/SATP/Concept+Library+Documentation" target=_blank  >Support & Documentation</a>
 				</p>
 				<p>Copyright &copy; {% now 'Y' %} - SAIL Databank - Swansea University. All rights reserved.</p>	
 				
@@ -508,7 +511,10 @@
 
 		{% block scripts %}
 		{% endblock scripts %}
-        {% cookielaw_banner %}
+
+	{% if SHOW_COOKIE_ALERT %}
+	    {% cookielaw_banner %}
+	{% endif %}		
 
 	</body>
 </html>
