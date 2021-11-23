@@ -399,7 +399,7 @@
 	var codesToAddRows = [];
 	
 	codesToDeleteContentArea.onchange = handleCodesToDeleteEvent;
-	codesToDeleteContentArea.onchange = handleCodesToAddEvent;
+	codesToAddScrollArea.onchange = handleCodesToAddEvent;
 //});	
 
 	function handleCodesToDeleteEvent(e){
@@ -715,7 +715,11 @@
 		    
 		    if (codesToDeleteClusterize == null)
 		    {
-		    	codesToDeleteClusterize.update(codesToDeleteRows);
+		    	 codesToDeleteClusterize = new Clusterize({
+                     rows: codesToDeleteRows,
+					scrollId: 'codesToDeleteScrollArea',
+					contentId: 'codesToDeleteContentArea'
+				});
 		    	console.log("deleteclusterize" + codesToDeleteClusterize.getRowsAmount())
 		    }
 		    
