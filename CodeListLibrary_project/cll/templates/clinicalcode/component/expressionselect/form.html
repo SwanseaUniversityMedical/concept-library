@@ -492,7 +492,7 @@
 					scrollId: 'codesToDeleteScrollArea',
 					contentId: 'codesToDeleteContentArea'
 				});
-				console.log("refresh" + codesToDeleteClusterize.getRowsAmount())
+
 	
 				$('.codesToDeleteAmount').text('Rows: ' + codesToDeleteClusterize.getRowsAmount());
 			}
@@ -688,7 +688,7 @@
 				if(codesToAddRows){
 					codesToAddClusterize.update(codesToAddRows);
 
-					console.log("populatecode" + codesToAddClusterize.getRowsAmount())
+					
 
 					$('.codesToAddAmount').text('Rows: ' + codesToAddClusterize.getRowsAmount());
 					//codesToAddClusterize.destroy();
@@ -723,7 +723,7 @@
 					scrollId: 'codesToDeleteScrollArea',
 					contentId: 'codesToDeleteContentArea'
 				});
-		    	console.log("deleteclusterize" + codesToDeleteClusterize.getRowsAmount())
+
 		    }
 		    
 		    codesToDeleteClusterize.update(codesToDeleteRows);
@@ -764,7 +764,7 @@
 		    if(codesToAddRows){
     			 codesToAddClusterize.update(codesToAddRows);
     			$('.codesToAddAmount').text('Rows: ' + codesToAddClusterize.getRowsAmount());
-    			console.log("selectall" + codesToAddClusterize.getRowsAmount())
+
 			}
 		    //-------
 		    codesToAddClusterize.update(codesToAddRows);
