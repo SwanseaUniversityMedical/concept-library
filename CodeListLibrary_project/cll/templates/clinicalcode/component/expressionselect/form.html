@@ -384,15 +384,7 @@
 	var codesToDeleteContentArea = document.getElementById('codesToDeleteContentArea');
 	var codesToAddContentArea = document.getElementById('codesToAddContentArea');
 
-	var codesToAddClusterize = new Clusterize({
-						scrollId: 'codesToAddScrollArea',
-						contentId: 'codesToAddContentArea',
-            });
 
-	var codesToDeleteClusterize = new Clusterize({
-					scrollId: 'codesToDeleteScrollArea',
-					contentId: 'codesToDeleteContentArea'
-				});
 
 	
 	var codesToDeleteRows = [];
@@ -495,7 +487,11 @@
 			codesToDeleteRows = formatCodesToDelete(data);
 			
 			if(codesToDeleteRows){
-				codesToDeleteClusterize.update(codesToDeleteRows);
+				codesToDeleteClusterize = new Clusterize({
+                    rows: codesToDeleteRows,
+					scrollId: 'codesToDeleteScrollArea',
+					contentId: 'codesToDeleteContentArea'
+				});
 				console.log("refresh" + codesToDeleteClusterize.getRowsAmount())
 	
 				$('.codesToDeleteAmount').text('Rows: ' + codesToDeleteClusterize.getRowsAmount());
@@ -506,8 +502,15 @@
 
 //----------------------------------------------------------------------
 	$(function(){
-		//var codesToDeleteClusterize;
-		//var codesToAddClusterize;
+		var codesToAddClusterize = new Clusterize({
+						scrollId: 'codesToAddScrollArea',
+						contentId: 'codesToAddContentArea',
+            });
+
+	    var codesToDeleteClusterize = new Clusterize({
+					scrollId: 'codesToDeleteScrollArea',
+					contentId: 'codesToDeleteContentArea'
+				});
 	
 		var searchText = $('#search-text').val();
 		var regexCode = $('#id_coderegex-0-regex_code').val();
