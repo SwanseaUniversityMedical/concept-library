@@ -65,8 +65,10 @@ def api_datasource_create(request):
                 created_ds = DataSource.objects.get(pk=new_datasource.pk)
                 created_ds.history.latest().delete() 
     
-                created_ds.changeReason = "Created from API"
-                created_ds.save()   
+                # created_ds.changeReason = "Created from API"
+                # created_ds.save()   
+                save_Entity_With_ChangeReason(DataSource, created_ds.pk, "Created from API")
+                                              
                 data = {
                   'message': 'DataSource created successfully',
                   'id': created_ds.pk

@@ -610,9 +610,9 @@ def api_concept_create(request):
             
             #--------------------------------------
             #--------------------------------------
-              
-            created_concept.changeReason = "Created from API"
-            created_concept.save()   
+            save_Entity_With_ChangeReason(Concept, created_concept.pk, "Created from API")
+            # created_concept.changeReason = "Created from API"
+            # created_concept.save()   
               
             # publish immediately - for HDR-UK testing
             if request.data.get('publish_immediately') == True:
@@ -856,9 +856,9 @@ def api_concept_update(request):
                     
             #--------------------------------------
             #--------------------------------------
-              
-            update_concept.changeReason = "Updates from API"
-            update_concept.save()   
+            save_Entity_With_ChangeReason(Concept, update_concept.pk, "Updated from API")
+            # update_concept.changeReason = "Updated from API"
+            # update_concept.save()   
 
             # Get all the 'parent' concepts i.e. those that include this one,
             # and add a history entry to those that this concept has been updated.

@@ -156,9 +156,9 @@ def workingset_create(request):
                 for tag_id_to_add in new_tag_list:
                     WorkingSetTagMap.objects.get_or_create(workingset=new_workingset, tag=Tag.objects.get(id=tag_id_to_add), created_by=request.user)
                     
-            
-            created_WS.changeReason = "Created"
-            created_WS.save()   
+            db_utils.save_Entity_With_ChangeReason(WorkingSet, created_WS.pk, "Created")
+            # created_WS.changeReason = "Created"
+            # created_WS.save()   
             
             messages.success(request, "Workingset created successfully")
             #return redirect('workingset_list')
@@ -359,9 +359,9 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, 
                     tag_to_remove.delete()
                     
                 #-----------------------------------------------------
-                
-                workingset.changeReason = db_utils.standardiseChangeReason("Updated")            
-                workingset.save()
+                db_utils.save_Entity_With_ChangeReason(WorkingSet, workingset.pk, "Updated")
+                # workingset.changeReason = db_utils.standardiseChangeReason("Updated")            
+                # workingset.save()
 
             #db_utils.saveWorkingsetChangeReason(pk, "Working set has been updated")
             messages.success(self.request, "Working set has been successfully updated.")
@@ -396,7 +396,8 @@ class WorkingSetDelete(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, 
     def post(self, request, pk):
         with transaction.atomic():
             db_utils.deleteWorkingset(pk, request.user)
-        messages.success(self.request, "Working Set has been deleted.")
+            db_utils.modify_Entity_ChangeReason(WorkingSet, pk, "Working set has been deleted")
+        messages.success(self.request, "Working Set has been deleted")
         return HttpResponseRedirect(self.get_success_url())
     
 
@@ -489,7 +490,8 @@ class WorkingSetRestore(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin,
     def post(self, request, pk):
         with transaction.atomic():
             db_utils.restoreWorkingset(pk, request.user)
-        messages.success(self.request, "Workingset has been restored.")
+            db_utils.modify_Entity_ChangeReason(WorkingSet, pk, "Working set has been restored")
+        messages.success(self.request, "Working set has been restored")
         return HttpResponseRedirect(self.get_success_url())
 
     

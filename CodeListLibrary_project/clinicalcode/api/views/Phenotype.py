@@ -173,9 +173,9 @@ def api_phenotype_create(request):
                     PhenotypeDataSourceMap.objects.get_or_create(phenotype=new_phenotype, datasource=DataSource.objects.get(id=datasource_id), created_by=request.user)
                     
         
-            
-            created_pt.changeReason = "Created from API"
-            created_pt.save()   
+            save_Entity_With_ChangeReason(Phenotype, created_pt.pk, "Created from API")
+            # created_pt.changeReason = "Created from API"
+            # created_pt.save()   
             
             # publish immediately - for HDR-UK testing
             if request.data.get('publish_immediately') == True:
@@ -348,9 +348,9 @@ def api_phenotype_update(request):
                 datasource_to_remove = PhenotypeDataSourceMap.objects.filter(phenotype=update_phenotype, datasource=DataSource.objects.get(id=datasource_id_to_remove))
                 datasource_to_remove.delete()
               
-                      
-            update_phenotype.changeReason = "Updated from API"
-            update_phenotype.save()   
+            save_Entity_With_ChangeReason(Phenotype, update_phenotype.pk, "Updated from API")        
+            # update_phenotype.changeReason = "Updated from API"
+            # update_phenotype.save()   
             
             # publish immediately - for HDR-UK testing
             if request.data.get('publish_immediately') == True:

@@ -1015,7 +1015,8 @@ def revertHistoryWorkingset(user, workingset_history_id):
                 modified=wtm['modified']
             )
         
-        workingset_obj.save()
+        save_Entity_With_ChangeReason(WorkingSet, workingset_obj.pk, "Working set reverted from version "+str(workingset_history_id))
+        #workingset_obj.save()
 
 def deleteWorkingset(pk, user):
     ''' Delete a working set based on a working set id '''
@@ -1060,36 +1061,84 @@ def saveWorkingsetChangeReason(id, reason):
 """
 
 
-def modifyConceptChangeReason(id, reason):
+# def modifyConceptChangeReason(id, reason):
+#     '''
+#         Save a historical reason for a concept change.
+#         By using update_change_reason() we avoid having two saves when the first
+#         derives from a form (i.e. form.save()) which will not save any
+#         changeReason value. Using another concept.save() after that produces
+#         two entries in the history, the first with no reason and the second
+#         with the specified reason.
+#         This will modify the current history entry and does not increment
+#         the sequence number.
+#     '''
+#     concept = Concept.objects.get(id=id)
+#     update_change_reason(concept, standardiseChangeReason(reason))
+#
+#
+# def saveConceptWithChangeReason(id, reason, modified_by_user=None):
+#     '''
+#         Save the concept with the specified reason.
+#     '''
+#     concept = Concept.objects.get(id=id)
+#     if modified_by_user != None:
+#         concept.modified_by = modified_by_user
+#
+#     concept.changeReason = standardiseChangeReason(reason)
+#     concept.save()
+#
+#     # fix for Django 2
+#     modifyConceptChangeReason(id, reason)
+
+#------------------------------------------------------------------------------------
+def modify_Entity_ChangeReason(set_class, id, reason):
     '''
-        Save an historical reason for a concept change.
-        By using update_change_reason we avoid having two saves when the first
+        Save a historical reason for an entity change.
+        By using update_change_reason() we avoid having two saves when the first
         derives from a form (i.e. form.save()) which will not save any
-        changeReason value. Using another concept.save() after that produces
+        changeReason value. Using another obj.save() after that produces
         two entries in the history, the first with no reason and the second
         with the specified reason.
         This will modify the current history entry and does not increment
         the sequence number.
     '''
-    concept = Concept.objects.get(id=id)
-    update_change_reason(concept, standardiseChangeReason(reason))
+    entity = set_class.objects.get(id=id)
+    update_change_reason(entity, standardiseChangeReason(reason))
 
 
-def saveConceptWithChangeReason(id, reason, modified_by_user=None):
+def save_Entity_With_ChangeReason(set_class, id, reason, modified_by_user=None):
     '''
-        Save an historical reason for a concept change.
-        By using update_change_reason we avoid having two saves when the first
-        derives from a form (i.e. form.save()) which will not save any
-        changeReason value. Using another concept.save() after that produces
-        two entries in the history, the first with no reason and the second
-        with the specified reason.
+        Save the entity with the specified reason.
     '''
-    concept = Concept.objects.get(id=id)
+    entity = set_class.objects.get(id=id)
     if modified_by_user != None:
-        concept.modified_by = modified_by_user
+        entity.modified_by = modified_by_user
         
-    concept.changeReason = standardiseChangeReason(reason)
-    concept.save()
+    entity.changeReason = standardiseChangeReason(reason)
+    entity.save()
+    
+    # fix for Django 2
+    modify_Entity_ChangeReason(set_class, id, reason)
+
+
+
+
+
+#------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def saveDependentConceptsChangeReason(concept_ref_id, reason):

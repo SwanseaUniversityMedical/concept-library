@@ -136,7 +136,7 @@ class ComponentConceptCreate(LoginRequiredMixin,
                                     insert_or_update = 'insert' )
             
             # Save the concept containing this component with new history.
-            db_utils.saveConceptWithChangeReason(self.kwargs['concept_id'],
+            db_utils.save_Entity_With_ChangeReason(Concept, self.kwargs['concept_id'],
                 "Created component %s" % (form.instance.name) , modified_by_user=self.request.user)
             # Update dependent concepts & working sets
             db_utils.saveDependentConceptsChangeReason(form.instance.concept_id, "Component concept #" + str(form.instance.concept_id) + " was updated")
@@ -191,7 +191,7 @@ class ComponentConceptDelete(LoginRequiredMixin,
             component.delete()
             # Save the *concept* with a change reason to note the component
             # deletion in its history.
-            db_utils.saveConceptWithChangeReason(kwargs['concept_id'],
+            db_utils.save_Entity_With_ChangeReason(Concept, kwargs['concept_id'],
                 "Deleted component: %s" % (component_name) , modified_by_user=self.request.user)
             # Update dependent concepts & working sets
             db_utils.saveDependentConceptsChangeReason(kwargs['concept_id'], "Component concept #" + str(kwargs['concept_id']) + " was updated")
@@ -327,7 +327,7 @@ class ComponentConceptUpdate(LoginRequiredMixin,
             #-------------------------------------
             
             # Save the concept that contains this component with new history.
-            db_utils.saveConceptWithChangeReason(self.kwargs['concept_id'],
+            db_utils.save_Entity_With_ChangeReason(Concept, self.kwargs['concept_id'],
                 "Updated component %s" % (form.instance.name) , modified_by_user=self.request.user)
             
             # Update dependent concepts & working sets

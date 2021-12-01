@@ -166,7 +166,7 @@ class ComponentQueryBuilderCreate(LoginRequiredMixin,
 
                 # save the concept with a change reason to reflect the code
                 # list addition within the concept audit history
-                db_utils.saveConceptWithChangeReason(self.kwargs['concept_id'],
+                db_utils.save_Entity_With_ChangeReason(Concept, self.kwargs['concept_id'],
                     "Created component: %s" % (form.instance.name) , modified_by_user=self.request.user)
                 # Update dependent concepts & working sets
                 db_utils.saveDependentConceptsChangeReason(self.kwargs['concept_id'], "Component concept #" + str(self.kwargs['concept_id']) + " was updated")
@@ -229,7 +229,7 @@ class ComponentQueryBuilderDelete(LoginRequiredMixin,
             component.delete()
             # Save the *concept* with a change reason to note the component
             # deletion in its history.
-            db_utils.saveConceptWithChangeReason(kwargs['concept_id'],
+            db_utils.save_Entity_With_ChangeReason(Concept, kwargs['concept_id'],
                 "Deleted component: %s" % (component_name) , modified_by_user=self.request.user)
             # Update dependent concepts & working sets
             db_utils.saveDependentConceptsChangeReason(kwargs['concept_id'], "Component concept #" + str(kwargs['concept_id']) + " was updated")
@@ -370,7 +370,7 @@ class ComponentQueryBuilderUpdate(LoginRequiredMixin,
 
                 # save the concept with a change reason to reflect the update
                 # within the concept audit history
-                db_utils.saveConceptWithChangeReason(self.kwargs['concept_id'],
+                db_utils.save_Entity_With_ChangeReason(Concept, self.kwargs['concept_id'],
                     "Updated component: %s" % (form.instance.name) , modified_by_user=self.request.user)
                 # Update dependent concepts & working sets
                 db_utils.saveDependentConceptsChangeReason(self.kwargs['concept_id'], "Component concept #" + str(self.kwargs['concept_id']) + " was updated")

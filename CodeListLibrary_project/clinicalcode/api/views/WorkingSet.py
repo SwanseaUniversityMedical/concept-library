@@ -326,8 +326,9 @@ def api_workingset_create(request):
                     WorkingSetTagMap.objects.get_or_create(workingset=new_workingset, tag=Tag.objects.get(id=tag_id_to_add), created_by=request.user)
                      
              
-            created_WS.changeReason = "Created from API"
-            created_WS.save()   
+            save_Entity_With_ChangeReason(WorkingSet, created_WS.pk, "Created from API")
+            # created_WS.changeReason = "Created from API"
+            # created_WS.save()   
              
 
             data = {'message': 'Workingset created successfully',
@@ -523,9 +524,9 @@ def api_workingset_update(request):
                 
             #-----------------------------------------------------
 
-             
-            update_workingset.changeReason = "Updated from API"
-            update_workingset.save()   
+            save_Entity_With_ChangeReason(WorkingSet, update_workingset.pk, "Updated from API")
+            # update_workingset.changeReason = "Updated from API"
+            # update_workingset.save()   
              
 
             data = {'message': 'Workingset updated successfully',
