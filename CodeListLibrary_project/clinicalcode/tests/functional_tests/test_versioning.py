@@ -582,11 +582,14 @@ class VersioningTest(StaticLiveServerTestCase):
         # browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/export_workingset_codes/',
         #                       self.workingset_everybody_can_edit.id))
 
+
         browser.get(self.WEBAPP_HOST + reverse('api:api_export_workingset_codes'
                                                , kwargs={'pk': self.workingset_everybody_can_edit.id})
                     )
-
+        time.sleep(1000)
         time.sleep(settings_cll.TEST_SLEEP_TIME)
+
+
 
         self.assertTrue(self.code.code in browser.page_source and
                         self.concept_everybody_can_edit.name in browser.page_source)
