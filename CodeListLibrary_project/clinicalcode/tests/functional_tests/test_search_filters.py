@@ -235,7 +235,7 @@ class SearchTest(StaticLiveServerTestCase):
 
             time.sleep(settings_cll.IMPLICTLY_WAIT)
 
-            element = browser.find_elements_by_class_name("col-sm-12")
+            element = browser.find_elements_by_css_selector(".col-sm-12 > .tag")
 
             tag = browser.find_elements_by_class_name("form-check-label")[i - 1].text
 
@@ -322,7 +322,7 @@ class SearchTest(StaticLiveServerTestCase):
 
             browser.find_element_by_xpath('//button[@class = "btn btn-primary"]').click()
 
-            time.sleep(5)
+            time.sleep(10)
 
             self.assertTrue("No phenotypes" not in browser.page_source)
 
@@ -447,15 +447,19 @@ class SearchTest(StaticLiveServerTestCase):
         for i in range(1, len(checkboxes)):
             browser.find_elements_by_name("collection_id")[i].click()
 
-            element = browser.find_elements_by_class_name("col-sm-8")
+            element = browser.find_element_by_xpath("//span[contains(text(),'PH')]")
 
-            random_phenotype = [random.choice(element) for _ in range(len(element))][0].text
+
+            random_phenotype = element.text
+            print(random_phenotype)
+
 
             # Test with actual name
             browser.find_element_by_id("search").send_keys(random_phenotype[6:].strip())
             browser.find_element_by_xpath('//button[@class = "btn btn-primary"]').click()
-            self.assertTrue("No phenotypes" not in browser.page_source)
             time.sleep(settings_cll.IMPLICTLY_WAIT)
+            self.assertTrue("No phenotypes" not in browser.page_source)
+
             browser.find_element_by_id("reset-form").click()
 
             # Find phenotype by friendly ID (GOING to be extra feature)

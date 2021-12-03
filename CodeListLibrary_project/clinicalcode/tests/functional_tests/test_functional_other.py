@@ -464,7 +464,7 @@ class OtherTest(StaticLiveServerTestCase):
                     )
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        self.assertTrue("Permission denied" in browser.page_source)
+        self.assertTrue("You do not have permission to perform this action." or "Permission denied" in browser.page_source)
 
     def test_deleting_concept(self):
         self.login(ow_user, ow_password)
@@ -524,7 +524,7 @@ class OtherTest(StaticLiveServerTestCase):
                     )
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        self.assertTrue("Permission denied" in browser.page_source)
+        self.assertTrue("You do not have permission to perform this action." or "Permission denied" in browser.page_source)
 
     '''
     Check if user has access to update, delete, API when 
@@ -654,7 +654,9 @@ class OtherTest(StaticLiveServerTestCase):
                     )
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        self.assertTrue("Permission denied." in browser.page_source)
+
+        self.assertTrue("You do not have permission to perform this action." or "Permission denied" in browser.page_source)
+
 
         # browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/concepts/C',
         #                       self.concept_none_can_access.id))
@@ -683,7 +685,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        self.assertTrue("Permission denied" in browser.page_source)
+        self.assertTrue("You do not have permission to perform this action." or "Permission denied" in browser.page_source)
 
     '''
     If one or more child concepts of a concept is deleted or 
