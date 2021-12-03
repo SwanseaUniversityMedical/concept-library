@@ -583,10 +583,11 @@ class VersioningTest(StaticLiveServerTestCase):
         #                       self.workingset_everybody_can_edit.id))
 
 
-        browser.get(self.WEBAPP_HOST + reverse('api:api_export_workingset_codes'
-                                               , kwargs={'pk': self.workingset_everybody_can_edit.id})
-                    )
-        time.sleep(1000)
+        browser.get(self.WEBAPP_HOST + reverse('api:api_export_workingset_codes_byVersionID'
+                                               , kwargs={'pk': self.workingset_everybody_can_edit.id,
+                                                         'workingset_history_id':self.workingset_everybody_can_edit.history.first().history_id}))
+
+
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
 
