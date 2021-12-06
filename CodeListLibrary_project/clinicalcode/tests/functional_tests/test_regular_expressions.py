@@ -117,9 +117,9 @@ class RegularExpressionsTest(StaticLiveServerTestCase):
 
     def login(self, username, password):
         self.logout()
-        self.browser.find_element_by_name('username').send_keys(username)
-        self.browser.find_element_by_name('password').send_keys(password)
-        self.browser.find_element_by_name('password').send_keys(Keys.ENTER)
+        self.browser.find_element(By.NAME,'username').send_keys(username)
+        self.browser.find_element(By.NAME,'password').send_keys(password)
+        self.browser.find_element(By.NAME,'password').send_keys(Keys.ENTER)
 
     def logout(self):
         self.browser.get('%s%s' % (self.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
@@ -187,14 +187,14 @@ class RegularExpressionsTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        coding_system_select = browser.find_element_by_id("id_coding_system")
+        coding_system_select = browser.find_element(By.ID,"id_coding_system")
 
         # Change lookup table
         coding_system_select.click()
         coding_system_select.send_keys(Keys.DOWN)
         coding_system_select.send_keys(Keys.ENTER)
 
-        browser.find_element_by_id("save-changes").click()  # save changes
+        browser.find_element(By.ID,"save-changes").click()  # save changes
 
 #         url = ('%s%s%s' % ('/concepts/C',
 #                            self.concept_everybody_can_edit.id, '/export/codes'))
