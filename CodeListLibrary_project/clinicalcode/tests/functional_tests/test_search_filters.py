@@ -310,7 +310,7 @@ class SearchTest(StaticLiveServerTestCase):
             browser.find_element(By.ID,"reset-form").click()
 
             randomstring = ''.join(
-                [random.choice(string.ascii_letters + string.digits + string.punctuation) for _ in range(5)])
+                [random.choice(string.ascii_letters + string.digits) for _ in range(5)])
 
             # Create test phenotype
             self.create_test_phenotype(randomstring, "desc", [i], self.permitted_group, False, owner=self.owner_user,

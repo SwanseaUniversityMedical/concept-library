@@ -392,9 +392,9 @@ class OtherTest(StaticLiveServerTestCase):
 
     def login(self, username, password):
         self.logout()
-        self.browser.find_element_by_name('username').send_keys(username)
-        self.browser.find_element_by_name('password').send_keys(password)
-        self.browser.find_element_by_name('password').send_keys(Keys.ENTER)
+        self.browser.find_element(By.NAME,'username').send_keys(username)
+        self.browser.find_element(By.NAME,'password').send_keys(password)
+        self.browser.find_element(By.NAME,'password').send_keys(Keys.ENTER)
 
 
     def logout(self):
@@ -426,9 +426,9 @@ class OtherTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        browser.find_element_by_xpath(
+        browser.find_element(By.XPATH,
             ".//input[@type='radio' and @name='world_access' and @value='1']").click()  # Change world access permission to none
-        browser.find_element_by_id("save-changes").click()  # save
+        browser.find_element(By.ID,"save-changes").click()  # save
 
         self.logout()
         # ----------------------
@@ -442,7 +442,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        export_button = self.browser.find_element_by_id('export-btn')
+        export_button = self.browser.find_element(By.ID,'export-btn')
         is_disabled = export_button.get_attribute("disabled")
         self.assertTrue(is_disabled)
 
@@ -480,7 +480,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        submit_button = browser.find_element_by_xpath("//button[@type='submit']").click()
+        submit_button = browser.find_element(By.XPATH,"//button[@type='submit']").click()
 
         is_deleted = Concept.objects.get(pk=self.concept_everybody_can_edit.id).is_deleted
         # print(self.concept_everybody_can_edit.id)
@@ -500,7 +500,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        export_button = self.browser.find_element_by_id('export-btn')
+        export_button = self.browser.find_element(By.ID,'export-btn')
         # print(str(export_button))
         is_disabled = export_button.get_attribute("disabled")
         # print(is_disabled)
@@ -725,9 +725,9 @@ class OtherTest(StaticLiveServerTestCase):
                     )
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        browser.find_element_by_xpath(
+        browser.find_element(By.XPATH,
             ".//input[@type='radio' and @name='world_access' and @value='1']").click()  # Change world access permission to none
-        browser.find_element_by_id("save-changes").click()  # save
+        browser.find_element(By.ID,"save-changes").click()  # save
 
         time.sleep(settings_cll.IMPLICTLY_WAIT)
 
@@ -736,12 +736,12 @@ class OtherTest(StaticLiveServerTestCase):
                                                          })
                     )
         # Update the child concept
-        browser.find_element_by_xpath('//*[@title="Edit component"]').click()
+        browser.find_element(By.XPATH,'//*[@title="Edit component"]').click()
 
         time.sleep(settings_cll.IMPLICTLY_WAIT)
 
         # Time wait for changes for cicking apply button
-        browser.find_element_by_id("saveBtn2").click()
+        browser.find_element(By.ID,"saveBtn2").click()
 
         time.sleep(settings_cll.IMPLICTLY_WAIT)
 
@@ -756,7 +756,7 @@ class OtherTest(StaticLiveServerTestCase):
                                                , kwargs={'pk': self.concept_everybody_can_view.id})
                     )
 
-        export_button = self.browser.find_element_by_id('export-btn')
+        export_button = self.browser.find_element(By.ID,'export-btn')
         is_disabled = export_button.get_attribute("disabled")
 
         self.assertTrue(is_disabled)
@@ -806,7 +806,7 @@ class OtherTest(StaticLiveServerTestCase):
                     )
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        submit_button = browser.find_element_by_xpath("//button[@type='submit']").click()
+        submit_button = browser.find_element(By.XPATH,"//button[@type='submit']").click()
 
         browser.get(self.WEBAPP_HOST + reverse('concept_update'
                                                , kwargs={'pk': self.concept_everybody_can_view.id,
@@ -814,7 +814,7 @@ class OtherTest(StaticLiveServerTestCase):
                     )
 
         # Time wait for changes for cicking apply button to save current parent concept
-        browser.find_element_by_id("save-changes").click()  # save
+        browser.find_element(By.ID,"save-changes").click()  # save
 
         time.sleep(settings_cll.IMPLICTLY_WAIT)
 
@@ -830,7 +830,7 @@ class OtherTest(StaticLiveServerTestCase):
                     )
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
-        export_button = self.browser.find_element_by_id('export-btn')
+        export_button = self.browser.find_element(By.ID,'export-btn')
 
         is_disabled = export_button.get_attribute("disabled")
         self.assertTrue(is_disabled)
@@ -873,8 +873,8 @@ class OtherTest(StaticLiveServerTestCase):
 
         exist = True
         try:
-            browser.find_element_by_xpath('//button[text()="OPTIONS"]')
-            browser.find_element_by_xpath('//a[text()="GET"]')
+            browser.find_element(By.XPATH,'//button[text()="OPTIONS"]')
+            browser.find_element(By.XPATH,'//a[text()="GET"]')
         except NoSuchElementException:
             exist = False
 
