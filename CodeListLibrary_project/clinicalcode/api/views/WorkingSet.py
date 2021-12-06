@@ -75,13 +75,23 @@ def export_workingset_codes(request, pk):
         #make all export csv work on historical data
         current_ws = WorkingSet.objects.get(pk=pk)
         latest_history_id = current_ws.history.latest().history_id
-        return export_workingset_codes_byVersionID(request, pk, latest_history_id)
+        return get_workingset_codes_byVersionID(request, pk, latest_history_id)
 
   
     
     
 @api_view(['GET'])
 def export_workingset_codes_byVersionID(request, pk, workingset_history_id):
+    '''
+        Returns the unique set of codes and descriptions for the specified working set saved concepts.
+        Returns concepts codes + attributes for a workingset
+        for a specific version.
+    '''
+    
+    return get_workingset_codes_byVersionID(request, pk, workingset_history_id)
+
+    
+def get_workingset_codes_byVersionID(request, pk, workingset_history_id):
     '''
         Returns the unique set of codes and descriptions for the specified working set saved concepts.
         Returns concepts codes + attributes for a workingset
