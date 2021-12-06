@@ -383,6 +383,9 @@
 	// arrays of added and deleted codes
 	var codesToDeleteContentArea = document.getElementById('codesToDeleteContentArea');
 	var codesToAddContentArea = document.getElementById('codesToAddContentArea');
+
+
+
 	
 	var codesToDeleteRows = [];
 	var codesToAddRows = [];
@@ -485,10 +488,11 @@
 			
 			if(codesToDeleteRows){
 				codesToDeleteClusterize = new Clusterize({
-					rows: codesToDeleteRows,
+                    rows: codesToDeleteRows,
 					scrollId: 'codesToDeleteScrollArea',
 					contentId: 'codesToDeleteContentArea'
 				});
+
 	
 				$('.codesToDeleteAmount').text('Rows: ' + codesToDeleteClusterize.getRowsAmount());
 			}
@@ -498,8 +502,15 @@
 
 //----------------------------------------------------------------------
 	$(function(){
-		var codesToDeleteClusterize;
-		var codesToAddClusterize;
+		var codesToAddClusterize = new Clusterize({
+						scrollId: 'codesToAddScrollArea',
+						contentId: 'codesToAddContentArea',
+            });
+
+	    var codesToDeleteClusterize = new Clusterize({
+					scrollId: 'codesToDeleteScrollArea',
+					contentId: 'codesToDeleteContentArea'
+				});
 	
 		var searchText = $('#search-text').val();
 		var regexCode = $('#id_coderegex-0-regex_code').val();
@@ -527,12 +538,9 @@
 		    			codesToAddRows = formatCodesToAdd(data);
 		    			
 		    			if(codesToAddRows){
-			    			var codesToAddClusterize = new Clusterize({
-			    				rows: codesToAddRows,
-			    				scrollId: 'codesToAddScrollArea',
-			    				contentId: 'codesToAddContentArea'
-			    			});
+			    			codesToAddClusterize.update(codesToAddRows);
 			    			$('.codesToAddAmount').text('Rows: ' + codesToAddClusterize.getRowsAmount());
+
 		    			}
 		    			deferred.resolve();
 		    		});
@@ -556,12 +564,10 @@
 		    			codesToDeleteRows = formatCodesToDelete(data);	
 		    			
 		    			if(codesToDeleteRows){
-			    			codesToDeleteClusterize = new Clusterize({
-			    				rows: codesToDeleteRows,
-			    				scrollId: 'codesToDeleteScrollArea',
-			    				contentId: 'codesToDeleteContentArea'
-			    			});
+			    			codesToDeleteClusterize.update(codesToDeleteRows);
 			    			$('.codesToDeleteAmount').text('Rows: ' + codesToDeleteClusterize.getRowsAmount());
+
+
 		    			}
 		    			deferred.resolve();
 		    		});
@@ -591,7 +597,8 @@
 		// get the regex codes based on supplied posix pattern query
 		$('body').on('click', '#btnRunExpressionSelectQuery', function(e){
 			e.preventDefault();
-			
+			codesToAddClusterize.clear();
+
 			var csrfmiddlewaretoken = $('input[name=csrfmiddlewaretoken]').val();
 			var regexCode = $('#id_coderegex-0-regex_code').val();
 			var concept = $('#id_concept').val();
@@ -606,7 +613,8 @@
 			// source.
 			if (checkRegex(regexType, regexCode)){
 				populateCodes(concept, "", regexCode, logicalType,
-							  csrfmiddlewaretoken, regexType, searchColumn, case_sensitive_search);
+							  csrfmiddlewaretoken, regexType, searchColumn, case_sensitive_search,codesToAddClusterize);
+
 			}
 			
 			// uncheck "selectall-codestoadd-checkbox"
@@ -668,19 +676,23 @@
 			}
 		}
 		
-		var populateCodes = function(concept, searchText, regexCode, logicalType, csrfmiddlewaretoken, regexType, searchColumn, case_sensitive_search){
+		var populateCodes = function(concept, searchText, regexCode, logicalType, csrfmiddlewaretoken, regexType, searchColumn, case_sensitive_search,codesToAddClusterize){
+
+
 			$(".loader").show();
 			//alert('srch='+case_sensitive_search);
 			dataService.getCodesByRegex(concept, searchText, regexCode, logicalType, regexType, csrfmiddlewaretoken, searchColumn, case_sensitive_search, function(data){
 				codesToAddRows = formatCodesToAdd(data);
+
 				
 				if(codesToAddRows){
-					codesToAddClusterize = new Clusterize({
-						rows: codesToAddRows,
-						scrollId: 'codesToAddScrollArea',
-						contentId: 'codesToAddContentArea'
-					});
+					codesToAddClusterize.update(codesToAddRows);
+
+					
+
 					$('.codesToAddAmount').text('Rows: ' + codesToAddClusterize.getRowsAmount());
+					//codesToAddClusterize.destroy();
+
 				}
 				$(".loader").hide();
 			});
@@ -706,11 +718,12 @@
 		    
 		    if (codesToDeleteClusterize == null)
 		    {
-		    	codesToDeleteClusterize = new Clusterize({
-					rows: codesToDeleteRows,
+		    	 codesToDeleteClusterize = new Clusterize({
+                     rows: codesToDeleteRows,
 					scrollId: 'codesToDeleteScrollArea',
-					contentId: 'codesToDeleteContentArea',
+					contentId: 'codesToDeleteContentArea'
 				});
+
 		    }
 		    
 		    codesToDeleteClusterize.update(codesToDeleteRows);
@@ -749,12 +762,9 @@
 		    }
 		    //-------
 		    if(codesToAddRows){
-    			var codesToAddClusterize = new Clusterize({
-    				rows: codesToAddRows,
-    				scrollId: 'codesToAddScrollArea',
-    				contentId: 'codesToAddContentArea'
-    			});
+    			 codesToAddClusterize.update(codesToAddRows);
     			$('.codesToAddAmount').text('Rows: ' + codesToAddClusterize.getRowsAmount());
+
 			}
 		    //-------
 		    codesToAddClusterize.update(codesToAddRows);
