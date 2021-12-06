@@ -183,9 +183,9 @@ class VersioningTest(StaticLiveServerTestCase):
 
     def login(self, username, password):
         self.logout()
-        self.browser.find_element_by_name('username').send_keys(username)
-        self.browser.find_element_by_name('password').send_keys(password)
-        self.browser.find_element_by_name('password').send_keys(Keys.ENTER)
+        self.browser.find_element(By.NAME,'username').send_keys(username)
+        self.browser.find_element(By.NAME,'password').send_keys(password)
+        self.browser.find_element(By.NAME,'password').send_keys(Keys.ENTER)
 
     def logout(self):
         self.browser.get('%s%s' % (self.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
@@ -229,7 +229,7 @@ class VersioningTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        table = self.browser.find_element_by_id('history-table')
+        table = self.browser.find_element(By.ID,'history-table')
         table_rows = table.find_elements_by_tag_name('tr')
 
         i = 1
@@ -266,7 +266,7 @@ class VersioningTest(StaticLiveServerTestCase):
         time.sleep(settings_cll.TEST_SLEEP_TIME)
         # self.wait_to_be_logged_in(ow_user)
 
-        table = self.browser.find_element_by_id('history-table')
+        table = self.browser.find_element(By.ID,'history-table')
         table_rows = table.find_elements_by_tag_name('tr')
 
         i = 1
@@ -305,7 +305,7 @@ class VersioningTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        table = self.browser.find_element_by_id('history-table')
+        table = self.browser.find_element(By.ID,'history-table')
         table_rows = table.find_elements_by_tag_name('tr')
 
         i = 1
@@ -333,7 +333,7 @@ class VersioningTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        table = self.browser.find_element_by_id('history-table')
+        table = self.browser.find_element(By.ID,'history-table')
         table_rows = table.find_elements_by_tag_name('tr')
 
         i = 1
@@ -364,7 +364,7 @@ class VersioningTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        links = self.browser.find_elements_by_class_name('version-link')
+        links = self.browser.find_elements(By.CLASS_NAME,'version-link')
 
         id_index = 0
         for link in links:
@@ -392,7 +392,7 @@ class VersioningTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        links = self.browser.find_elements_by_class_name('version-link')
+        links = self.browser.find_elements(By.CLASS_NAME,'version-link')
 
         id_index = 0
         for link in links:
@@ -451,7 +451,7 @@ class VersioningTest(StaticLiveServerTestCase):
         # test if live codes equals historical codes
         self.assertEqual(codes[0], historical_codes)
 
-        title = self.browser.find_element_by_tag_name('h2').text
+        title = self.browser.find_element(By.TAG_NAME,'h2').text
         # title = self.browser.find_elements_by_tag_name('i')
 
         # test if page contains concept name 
@@ -492,7 +492,7 @@ class VersioningTest(StaticLiveServerTestCase):
         # check if workingset returns code contained by concept
         self.assertEqual(codes, ['45554'])
 
-        title = self.browser.find_element_by_tag_name('h2').text
+        title = self.browser.find_element(By.TAG_NAME,'h2').text
 
         # title = self.browser.find_elements_by_tag_name('i')
 
@@ -616,16 +616,16 @@ class VersioningTest(StaticLiveServerTestCase):
         time.sleep(settings_cll.TEST_SLEEP_TIME)
         # add child
         # try to add child
-        browser.find_element_by_id(
+        browser.find_element(By.ID,
             'conceptTypes').click()
 
         browser.implicitly_wait(5)
-        browser.find_element_by_id('addConcept').click()
+        browser.find_element(By.ID,'addConcept').click()
 
         wait = WebDriverWait(self.browser, 10)
         wait.until(EC.presence_of_element_located((By.ID, "concept-search-text")))
 
-        concept_search_field = browser.find_element_by_id("concept-search-text")
+        concept_search_field = browser.find_element(By.ID,"concept-search-text")
 
         time.sleep(3)  # wait to load component form
 
@@ -636,7 +636,7 @@ class VersioningTest(StaticLiveServerTestCase):
         concept_search_field.send_keys(Keys.DOWN)
         concept_search_field.send_keys(Keys.ENTER)
 
-        browser.find_element_by_id("saveBtn").click()
+        browser.find_element(By.ID,"saveBtn").click()
 
         time.sleep(4)  # wait to submition be completed
 
