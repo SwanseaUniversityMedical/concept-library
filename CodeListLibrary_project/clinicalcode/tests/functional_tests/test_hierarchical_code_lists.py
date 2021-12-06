@@ -185,9 +185,9 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
     def login(self, username, password):
         self.logout()
-        self.browser.find_element_by_name('username').send_keys(username)
-        self.browser.find_element_by_name('password').send_keys(password)
-        self.browser.find_element_by_name('password').send_keys(Keys.ENTER)
+        self.browser.find_element(By.NAME,'username').send_keys(username)
+        self.browser.find_element(By.NAME,'password').send_keys(password)
+        self.browser.find_element(By.NAME,'password').send_keys(Keys.ENTER)
 
     def logout(self):
         self.browser.get('%s%s' % (self.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
@@ -224,21 +224,21 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         wait.until(EC.presence_of_element_located(
             (By.ID, "conceptTypes")))
         # add child
-        btn = browser.find_element_by_id(
+        btn = browser.find_element(By.ID,
             'conceptTypes')
         btn.click()
 
         time.sleep(2)  # wait for popup
         btn.send_keys(Keys.DOWN)
         time.sleep(2)
-        browser.find_element_by_id(
+        browser.find_element(By.ID,
             'addConcept').click()
 
         wait.until(EC.presence_of_element_located(
             (By.ID, "concept-search-text")))
 
         # time.sleep(2)
-        concept_search_field = browser.find_element_by_id(
+        concept_search_field = browser.find_element(By.ID,
             "concept-search-text")
 
         time.sleep(2)  # wait to load component form
@@ -252,11 +252,11 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         concept_search_field.send_keys(Keys.ENTER)
 
         time.sleep(10)
-        #         #component_name = browser.find_element_by_id("id_name")
-        #         #component_name = browser.find_element_by_name("name")
+        #         #component_name = browser.find_element(By.ID,"id_name")
+        #         #component_name = browser.find_element(By.NAME,"name")
         #         #component_name.send_keys('comp name')
 
-        browser.find_element_by_id("saveBtn").click()
+        browser.find_element(By.ID,"saveBtn").click()
 
         time.sleep(5)  # wait to submition be completed
 
@@ -264,7 +264,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         #         wait.until(EC.presence_of_element_located(
         #             (By.CLASS_NAME, "alert-success")))
 
-        browser.find_element_by_id("save-changes").click()  # save changes
+        browser.find_element(By.ID,"save-changes").click()  # save changes
 
         concept_latest_version_after_adding_child = self.concept_everybody_can_edit.history.first().history_id
         workingset_latest_version_after_adding_child = self.workingset_everybody_can_edit.history.first().history_id
@@ -304,7 +304,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
             time.sleep(settings.TEST_SLEEP_TIME)
             
             # update child
-            browser.find_element_by_id("save-changes").click()
+            browser.find_element(By.ID,"save-changes").click()
     
             wait = WebDriverWait(self.browser, 10)
             wait.until(EC.presence_of_element_located(
@@ -346,7 +346,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
                     EC.presence_of_element_located((By.ID, "save-changes"))
                 )
             # update child
-            browser.find_element_by_id("save-changes").click()
+            browser.find_element(By.ID,"save-changes").click()
     
             
     
@@ -388,7 +388,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
         self.login(ow_user, ow_password)
 
-        browser.find_element_by_id("revert-btn").click()
+        browser.find_element(By.ID,"revert-btn").click()
         time.sleep(2)
         self.assertTrue("warning text" in browser.page_source)
 
@@ -401,7 +401,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
         self.login(ow_user, ow_password)
 
-        browser.find_element_by_id("fork-btn").click()
+        browser.find_element(By.ID,"fork-btn").click()
         time.sleep(2)
         self.assertTrue("warning text" in browser.page_source)'''
 
@@ -417,7 +417,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
         time.sleep(settings.TEST_SLEEP_TIME)
 
-        browser.find_element_by_id("revert-btn").click()
+        browser.find_element(By.ID,"revert-btn").click()
 
         time.sleep(2)
         self.assertTrue(
@@ -447,7 +447,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         time.sleep(settings.TEST_SLEEP_TIME)
 
         # update child
-        table = browser.find_element_by_id("component-table")
+        table = browser.find_element(By.ID,"component-table")
 
         # time.sleep(100)
 
@@ -509,24 +509,24 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
                                                          })
                     )
         # Find the no acces flag and click
-        browser.find_element_by_id("id_world_access_0").click()
+        browser.find_element(By.ID,"id_world_access_0").click()
 
         # Wait for changes to apply
         time.sleep(settings_cll.IMPLICTLY_WAIT)
 
-        browser.find_element_by_id("save-changes").click()
+        browser.find_element(By.ID,"save-changes").click()
 
         browser.get(self.WEBAPP_HOST + reverse('concept_update'
                                                , kwargs={'pk': self.concept_everybody_can_edit.id,
                                                          })
                     )
         # Update the child concept
-        browser.find_element_by_xpath('//*[@title="Edit component"]').click()
+        browser.find_element(By.XPATH,'//*[@title="Edit component"]').click()
 
         time.sleep(settings_cll.IMPLICTLY_WAIT)
 
         # Time wait for changes for cicking apply button
-        browser.find_element_by_id("saveBtn2").click()
+        browser.find_element(By.ID,"saveBtn2").click()
 
         time.sleep(settings_cll.IMPLICTLY_WAIT)
 
@@ -569,11 +569,11 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         )
 
         # revert to the first version of the parent
-        browser.find_element_by_id("revert-btn").click()
+        browser.find_element(By.ID,"revert-btn").click()
 
         time.sleep(2)  # wait for pop up
 
-        browser.find_element_by_xpath(
+        browser.find_element(By.XPATH,
             "//button[@type='submit']").click()  # revert
 
         # go to the child details page
@@ -588,7 +588,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
         latest = self.child_concept.history.first().history_id
 
-        element = browser.find_element_by_id('concept_history_id_div')
+        element = browser.find_element(By.ID,'concept_history_id_div')
 
         self.assertEqual(''.join(filter(str.isdigit, str(element.text))), str(latest))
 
@@ -613,11 +613,11 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         )
 
         # revert to the first version of the parent
-        browser.find_element_by_id("fork-btn").click()
+        browser.find_element(By.ID,"fork-btn").click()
 
         time.sleep(2)  # wait for pop up
 
-        browser.find_element_by_xpath(
+        browser.find_element(By.XPATH,
             "//button[@type='submit']").click()  # revert
 
         # go to the child details page
@@ -633,7 +633,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
         latest = self.child_concept.history.first().history_id
 
-        element = browser.find_element_by_id('concept_history_id_div')
+        element = browser.find_element(By.ID,'concept_history_id_div')
 
         self.assertEqual(''.join(filter(str.isdigit, str(element.text))), str(latest))
 
@@ -659,11 +659,11 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         )
 
         # revert to the first version of the parent
-        browser.find_element_by_id("revert-btn").click()
+        browser.find_element(By.ID,"revert-btn").click()
 
         time.sleep(2)  # wait for pop up
 
-        browser.find_element_by_xpath(
+        browser.find_element(By.XPATH,
             "//button[@type='submit']").click()  # revert
 
         # go to the child details page
@@ -679,7 +679,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
         latest = self.concept_everybody_can_edit.history.first().history_id
 
-        element = browser.find_element_by_id('concept_history_id_div')
+        element = browser.find_element(By.ID,'concept_history_id_div')
 
         self.assertEqual(''.join(filter(str.isdigit, str(element.text))), str(latest))
 
@@ -705,17 +705,17 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         time.sleep(settings.TEST_SLEEP_TIME)
 
         # try to add child
-        browser.find_element_by_id(
+        browser.find_element(By.ID,
             'conceptTypes').click()
 
         browser.implicitly_wait(5)
-        browser.find_element_by_id('addConcept').click()
+        browser.find_element(By.ID,'addConcept').click()
 
         wait = WebDriverWait(self.browser, 10)
         wait.until(EC.presence_of_element_located(
             (By.ID, "concept-search-text")))
 
-        concept_search_field = browser.find_element_by_id(
+        concept_search_field = browser.find_element(By.ID,
             "concept-search-text")
 
         time.sleep(2)  # wait to load component form
@@ -728,7 +728,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         concept_search_field.send_keys(Keys.DOWN)
         concept_search_field.send_keys(Keys.ENTER)
 
-        browser.find_element_by_id("saveBtn").click()
+        browser.find_element(By.ID,"saveBtn").click()
 
         time.sleep(2)
 
@@ -765,7 +765,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         wait.until(EC.presence_of_element_located(
             (By.ID, "concept-search-text")))
 
-        concept_search_field = browser.find_element_by_id(
+        concept_search_field = browser.find_element(By.ID,
             "concept-search-text")
 
         time.sleep(2)  # wait to load component form
@@ -778,6 +778,6 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
         concept_search_field.send_keys(Keys.DOWN)
         concept_search_field.send_keys(Keys.ENTER)
 
-        browser.find_element_by_xpath("//button[@type='submit']").click()
+        browser.find_element(By.XPATH,"//button[@type='submit']").click()
 
         # time.sleep(100)  # wait to submition be completed'''
