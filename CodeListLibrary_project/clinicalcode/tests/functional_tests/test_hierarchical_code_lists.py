@@ -734,7 +734,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
         self.assertTrue("Please enter component name"
                         # in browser.page_source
-                        in str(browser.switch_to_alert().text)
+                        in str(browser.switch_to.alert.text)
                         )
 
     '''
