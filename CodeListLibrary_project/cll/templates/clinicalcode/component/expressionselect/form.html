@@ -19,13 +19,13 @@
         $(":submit").click(function () { $("#action").val(this.name); });
     });
 </script>
-	
+
 <div id="div_id_name" class="form-group {% if form.name.errors %}has-error{% endif %}">
 	<label for="{{ form.name.id_for_label }}" class="col-sm-3 required">{{ form.name.label }}</label>
 	<div class="col-sm-7"   id="div_id_name2" >
 		{{ form.name }}
 		<span class="help-block"  id="help_id_name">
-		  {% if form.name.errors %}              
+		  {% if form.name.errors %}
                {% for error in form.name.errors %}{{ error }}{% endfor %}
              {% endif %}
            </span>
@@ -33,11 +33,11 @@
 </div>
 
 <div>
-	<input type="hidden" id="latest_history_id_shown" name="latest_history_id_shown"  value="{{ request.GET.latest_history_id }}"> 
+	<input type="hidden" id="latest_history_id_shown" name="latest_history_id_shown"  value="{{ request.GET.latest_history_id }}">
  	<input type="hidden" id="component_id" name="component_id"  value="{{ object.id }}">
- 	
+
  	<input type="hidden" id="latest_history_id_concept" name="latest_history_id_concept"  value="{{ latest_history_ID }}">
- 	 
+
 </div>
 
 <div class="form-group {% if form.comment.errors %}has-error{% endif %}">
@@ -54,10 +54,10 @@
 
 <div class="form-group">
 	<label class="col-sm-3">{{ form.logical_type.label }}</label>
-	<div class="col-sm-9" id="logical-type-container">								
+	<div class="col-sm-9" id="logical-type-container">
 		{% for choice in form.logical_type %}
 		<div class="radio">
-			<label>										
+			<label>
 				{{ choice.tag }}
 				{{ choice.choice_label }}
 			</label>
@@ -66,7 +66,7 @@
 			</a>
 		</div>
 		{% endfor %}
-		
+
 	</div>
 </div>
 {% for coderegex_form in coderegex_formset %}
@@ -77,10 +77,10 @@
 
 <div class="form-group">
 	<label class="col-sm-3">{{ coderegex_form.regex_type.label }}</label>
-	<div class="col-sm-7">								
+	<div class="col-sm-7">
 		{% for choice in coderegex_form.regex_type %}
 		<div class="radio">
-			<label>										
+			<label>
 				{{ choice.tag }}
 				{{ choice.choice_label }}
 			</label>
@@ -93,10 +93,10 @@
 </div>
 <div class="form-group">
 	<label class="col-sm-3">{{ coderegex_form.column_search.label }}</label>
-	<div class="col-sm-7">								
+	<div class="col-sm-7">
 		{% for choice in coderegex_form.column_search %}
 		<div class="radio">
-			<label>										
+			<label>
 				{{ choice.tag }}
 				{{ choice.choice_label }}
 			</label>
@@ -139,8 +139,8 @@
 		</span>
 		{% endif %}
 	</div>
-</div>	
-	
+</div>
+
 <ul class="nav nav-tabs">
 	<li role="presentation" class="active">
 		<a data-toggle="tab" href="#search-existing-codes">Search existing codes</a>
@@ -159,13 +159,13 @@
 				</button>
 			</div>
 		</div>
-	
+
 		<hr/>
-	
+
 		<div class="row">
 			<div class="col-md-5">
 				<h4 class="page-header">New codes to add</h4>
-				
+
 				<div class="row">
 					<div class="col-md-6">
 						<div class="checkbox">
@@ -181,7 +181,7 @@
 						<span class="codesToAddAmount label label-primary"></span>
 					</div>
 				</div>
-				
+
 				<div class="clusterize" style="height: 500px;">
 					<table class="table table-striped small-table search-code-table" id="codesToAddTable" style="margin-bottom: 0px;">
 						<thead>
@@ -261,10 +261,10 @@
 			</div>
 		</div>
 	</div>
-	
+
 	<div id="upload-codes" class="tab-pane fade in">
 		<div class="alert alert-info" role="alert">
-			To save codes ensure the csv file contains only 2 columns. The first column will be the codes and the second column will be the descriptions. 
+			To save codes ensure the csv file contains only 2 columns. The first column will be the codes and the second column will be the descriptions.
 			<ul>
 				<li>Please click "Choose File"</li>
 				<li>Navigate to where your csv file is stored and then select the file.</li>
@@ -272,7 +272,7 @@
 			</ul>
 		</div>
 		<div class="form-group">
-			<div class="col-md-12">								
+			<div class="col-md-12">
 				<div class="checkbox">
 					<label>
 						<input type="checkbox" id="first_row_contains_column_headings_checkbox" name="first_row_contains_column_headings_checkbox" value="1" /> Does the first row contain the column headings?
@@ -298,7 +298,7 @@
 			<li>Select the type</li>
 			<li>Select if its going to be a simple query or regular expression</li>
 			<li>Finally enter the actual simple query or a regular expression into the Pattern field and click the Run Pattern Query button</li>
-		</ol> 
+		</ol>
 	</p>
 	<p>
 		Or you can simply upload a csv file containing the code and descriptions.
@@ -317,7 +317,7 @@
 </div>
 <div id="popover-content-expression-select-regex-type" class="hide popover-lg">
 	<p>You can match records using a basic like statement (Simple) using just % or using a regular expression (POSIX). Examples are highlighted below:</p>
- 
+
 	<p><strong>Simple (% only)</strong> - examples:</p>
 	<dl>
 		<dt>A02%</dt>
@@ -330,7 +330,7 @@
 		<dd>This will match any item starting with neoplasm</dd>
 		<dt>%neoplasm</dt>
 		<dd>This will match any item ending with neoplasm</dd>
-	</dl> 
+	</dl>
 	<p>
 		<strong>POSIX regex</strong> - this will match codes using a regular expression. Examples:
 	</p>
@@ -340,7 +340,7 @@
 		<dt>^(C0[0-9]|C1[0-4])$</dt>
 		<dd>This will match items that equal any of these: (C00, C01, C02, C03, C04, C05, C06, C07, C08, C09) or (C10, C11, C12, C13, C14)</dd>
 	</dl>
-	
+
 </div>
 
 <div id="popover-content-expression-select-regex-code" class="hide">
@@ -386,28 +386,28 @@
 
 
 
-	
+
 	var codesToDeleteRows = [];
 	var codesToAddRows = [];
-	
+
 	codesToDeleteContentArea.onchange = handleCodesToDeleteEvent;
 	codesToAddScrollArea.onchange = handleCodesToAddEvent;
-//});	
+//});
 
 	function handleCodesToDeleteEvent(e){
 		e = e || event;
 		var target = e.target || e.srcElement;
-		
+
 		if(target.nodeName != "INPUT") { return; }
-		
+
 		var dataSet = target.dataset;
-		
+
 		if (dataSet == null)
 		{
 			var cell = e.srcElement.getAttribute('data-cell'),
 				description = e.srcElement.getAttribute('data-description'),
 				clid = e.srcElement.getAttribute('data-clid');
-			
+
 			codesToDeleteRows[cell] = generateCodesToDeleteRow(cell, target.value, clid, description, target.checked);
 		}
 		else
@@ -415,20 +415,20 @@
 			codesToDeleteRows[dataSet.cell] = generateCodesToDeleteRow(dataSet.cell, target.value, dataSet.clid, dataSet.description, target.checked);
 		}
 	}
-	
-	function handleCodesToAddEvent(e){		
+
+	function handleCodesToAddEvent(e){
 		e = e || event;
 		var target = e.target || e.srcElement;
-		
+
 		if(target.nodeName != "INPUT") { return;}
-		
+
 		var dataSet = target.dataset;
-		
+
 		if (dataSet == null)
 		{
 			var cell = e.srcElement.getAttribute('data-cell'),
 				description = e.srcElement.getAttribute('data-description');
-			
+
 			codesToAddRows[cell] = generateCodesToAddRow(cell, target.value, description, target.checked);
 		}
 		else
@@ -436,8 +436,8 @@
 			codesToAddRows[dataSet.cell] = generateCodesToAddRow(dataSet.cell, target.value, dataSet.description, target.checked);
 		}
 	}
-	
-	var generateCodesToDeleteRow = function(cell, code, id, description, isChecked){			
+
+	var generateCodesToDeleteRow = function(cell, code, id, description, isChecked){
 		var checkedStr = "";
 		if(isChecked){
 			checkedStr = 'checked="checked"';
@@ -445,17 +445,17 @@
 		return ("<tr><td><input type='checkbox' value='" + code + "' name='code-to-delete' class='code-to-delete-checkbox' id='cl" + code + "' data-description='" + description + "' data-clid='" + id + "' data-cell='" + cell + "' " + checkedStr + " /></td><td>" + code + "</td><td>" + description + "</td></tr>");
 	}
 
-	var generateCodesToAddRow = function(cell, code, description, isChecked){		
+	var generateCodesToAddRow = function(cell, code, description, isChecked){
 		var checkedStr = "";
 		if(isChecked){
 			checkedStr = 'checked="checked"';
 		}
 		return("<tr><td><input type='checkbox' value='" + code + "' name='code-to-add' class='code-to-add-checkbox' data-description='" + description + "' data-cell='" + cell + "' " + checkedStr + " /></td><td>" + code + "</td><td>" + description + "</td></tr>");
 	}
-	
+
 	var formatCodesToAdd = function(data){
 	    // Must start at rowNumber = 0 (--> data-cell="0").
-		var rowNumber = -1;	
+		var rowNumber = -1;
 		if (data) {
 			return data.map(function(row) {
 				rowNumber += 1;
@@ -463,10 +463,10 @@
 			});
 		}
 	};
-	
+
 	var formatCodesToDelete = function(data){
 	    // Must start at rowNumber = 0 (--> data-cell="0").
-		var rowNumber = -1;	
+		var rowNumber = -1;
 		if(data){
 			return data.map(function(row){
 				rowNumber += 1;
@@ -474,27 +474,28 @@
 			});
 		}
 	};
-	
+
 	function format4display(object) {
 		return JSON.stringify(object, null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;');
 	}
-	
+
 	function RefreshCodes(codeListId)
 	{
 		$(".loader").show();
-		
+
 		dataService.getCodesByCodeList(codeListId, function(data){
 			codesToDeleteRows = formatCodesToDelete(data);
-			
+
 			if(codesToDeleteRows){
 				codesToDeleteClusterize = new Clusterize({
                     rows: codesToDeleteRows,
 					scrollId: 'codesToDeleteScrollArea',
 					contentId: 'codesToDeleteContentArea'
 				});
+				codesToDeleteClusterize.destroy();
 
-	
-				$('.codesToDeleteAmount').text('Rows: ' + codesToDeleteClusterize.getRowsAmount());
+
+				$('.codesToDeleteAmount').text('Rows: ' + codesToDeleteRows.length);
 			}
 			$(".loader").hide();
 		});
@@ -504,14 +505,14 @@
 	$(function(){
 		var codesToAddClusterize = new Clusterize({
 						scrollId: 'codesToAddScrollArea',
-						contentId: 'codesToAddContentArea',
+						contentId: 'codesToAddContentArea'
             });
 
 	    var codesToDeleteClusterize = new Clusterize({
 					scrollId: 'codesToDeleteScrollArea',
 					contentId: 'codesToDeleteContentArea'
 				});
-	
+
 		var searchText = $('#search-text').val();
 		var regexCode = $('#id_coderegex-0-regex_code').val();
 		var concept = $('#id_concept').val();
@@ -522,24 +523,25 @@
 		var csrfmiddlewaretoken = $('input[name=csrfmiddlewaretoken]').val();
 		var case_sensitive_search = $('#case_sensitive_search').is(':checked');
 		//alert($('#case_sensitive_search').is(':checked'));
-		
+
 	    function getRegexCodes(regexCode){
 	    	var deferred = $.Deferred();
-	    	
+
 	    	// get the regex codes for a code regex component
-	    	if(regexCode) { 
+	    	if(regexCode) {
 	    		if (checkRegex(regexType, regexCode)) {
 		    		$(".loader").show();
-		
+
 		    		case_sensitive_search = $('#case_sensitive_search').is(':checked');
 					//alert(case_sensitive_search);
-					
+
 		    		dataService.getCodesByRegex(concept, searchText, regexCode, logicalType, regexType, csrfmiddlewaretoken, searchColumn, case_sensitive_search, function(data) {
 		    			codesToAddRows = formatCodesToAdd(data);
-		    			
+
 		    			if(codesToAddRows){
 			    			codesToAddClusterize.update(codesToAddRows);
-			    			$('.codesToAddAmount').text('Rows: ' + codesToAddClusterize.getRowsAmount());
+			    			codesToAddClusterize.destroy();
+			    			$('.codesToAddAmount').text('Rows: ' + codesToAddRows.length);
 
 		    			}
 		    			deferred.resolve();
@@ -552,20 +554,21 @@
 	    	}
 	    	return deferred.promise();
 	    }
-	    
+
 	    function getCodeList(codeListId){
 	    	var deferred = $.Deferred();
-	    	
+
 	    	{% if form.instance.pk is not None %}
 		    	if(codeListId){
 		    		$(".loader").show();
 		    		// get current codes for the code list
 		    		dataService.getCodesByCodeList(codeListId, function(data){
-		    			codesToDeleteRows = formatCodesToDelete(data);	
-		    			
+		    			codesToDeleteRows = formatCodesToDelete(data);
+
 		    			if(codesToDeleteRows){
 			    			codesToDeleteClusterize.update(codesToDeleteRows);
-			    			$('.codesToDeleteAmount').text('Rows: ' + codesToDeleteClusterize.getRowsAmount());
+			    			codesToDeleteClusterize.destroy();
+			    			$('.codesToDeleteAmount').text('Rows: ' + codesToDeleteRows.length);
 
 
 		    			}
@@ -578,26 +581,25 @@
 		    {% else %}
 		    	deferred.resolve();
 	    	{% endif %}
-	    	
+
 	    	return deferred.promise();
 	    }
-	    
+
 	    var combinedPromise = $.when(getRegexCodes(regexCode), getCodeList(codeListId));
-	    
+
 	    combinedPromise.done(function(){
 	    	$(".loader").hide();
-	    });	
-	    combinedPromise.fail(function(){
-	    	$(".loader").hide();	
 	    });
-	    
+	    combinedPromise.fail(function(){
+	    	$(".loader").hide();
+	    });
+
 	 	// unattach the click event (it was posting multiple times because of validation)
 		$('body').off('click', '#btnRunExpressionSelectQuery');
-	 
+
 		// get the regex codes based on supplied posix pattern query
 		$('body').on('click', '#btnRunExpressionSelectQuery', function(e){
 			e.preventDefault();
-			codesToAddClusterize.clear();
 
 			var csrfmiddlewaretoken = $('input[name=csrfmiddlewaretoken]').val();
 			var regexCode = $('#id_coderegex-0-regex_code').val();
@@ -607,7 +609,7 @@
 			var searchColumn = $("input[name='coderegex-0-column_search']:checked").val();
 			var case_sensitive_search = $('#case_sensitive_search').is(':checked');
 			//alert(case_sensitive_search);
-			
+
 			// If the regex entered in the form is OK, populate the codes with
 			// the results of a new search with the current regexin the data
 			// source.
@@ -616,13 +618,13 @@
 							  csrfmiddlewaretoken, regexType, searchColumn, case_sensitive_search,codesToAddClusterize);
 
 			}
-			
+
 			// uncheck "selectall-codestoadd-checkbox"
 			$("#selectall-codestoadd-checkbox").prop("checked", false);
-					
-			return false;			
+
+			return false;
 		});
-		
+
 		// Check that the POSIX regular expression is valid.
 		// Parameter: 	regex	input	A string containing a POSIX regular expression.
 		// Return:		true 			if regex is acceptable.
@@ -634,7 +636,7 @@
 			}
 			return true;
 		}
-		
+
 		// Check that the simple regular expression is valid.
 		// Parameter: 	regex	input	A string containing a simple regular expression.
 		// Return:		true 			if regex is acceptable.
@@ -646,7 +648,7 @@
 			}
 			return true;
 		}
-		
+
 		// Check that the regular expression in the modal dialogue is valid.
 		// Need to handle all the regex types (simple and POSIX).
 		// If the regex is acceptable, then hide any existing error messages
@@ -675,7 +677,7 @@
 				}
 			}
 		}
-		
+
 		var populateCodes = function(concept, searchText, regexCode, logicalType, csrfmiddlewaretoken, regexType, searchColumn, case_sensitive_search,codesToAddClusterize){
 
 
@@ -684,28 +686,29 @@
 			dataService.getCodesByRegex(concept, searchText, regexCode, logicalType, regexType, csrfmiddlewaretoken, searchColumn, case_sensitive_search, function(data){
 				codesToAddRows = formatCodesToAdd(data);
 
-				
+
+
+
 				if(codesToAddRows){
-					codesToAddClusterize.update(codesToAddRows);
 
-					
+					$('.codesToAddAmount').text('Rows: ' + codesToAddRows.length);
+                    codesToAddClusterize.update(codesToAddRows);
+                    codesToAddClusterize.destroy();
 
-					$('.codesToAddAmount').text('Rows: ' + codesToAddClusterize.getRowsAmount());
-					//codesToAddClusterize.destroy();
 
 				}
 				$(".loader").hide();
 			});
 		};
-		
+
 		// on the click of the select all checkbox for adding items then either select or deselect all items in the left hand list
-		$("#selectall-codestodelete-checkbox").change(function(){  //"select all" change 
-			
+		$("#selectall-codestodelete-checkbox").change(function(){  //"select all" change
+
 			$(".loader").show();
-		
+
 			var status = this.checked; // "select all" checked status
 		    var n = codesToDeleteRows.length;
-		    
+
 		    for(var i=0;i<n;i++){
 		    	if(status == true){
 		    		codesToDeleteRows[i] = codesToDeleteRows[i].replace('checked="checked" ', '');
@@ -715,7 +718,7 @@
 		    		codesToDeleteRows[i] = codesToDeleteRows[i].replace('checked="checked" ', '');
 		    	}
 		    }
-		    
+
 		    if (codesToDeleteClusterize == null)
 		    {
 		    	 codesToDeleteClusterize = new Clusterize({
@@ -725,34 +728,34 @@
 				});
 
 		    }
-		    
 		    codesToDeleteClusterize.update(codesToDeleteRows);
-		    
+		    codesToDeleteClusterize.destroy();
+
 		    $(".loader").hide();
-		    
+
 		    return false;
 		});
-		
+
 		function RemoveTicks()
-		{	
+		{
 			$("#selectall-codestodelete-checkbox").prop('checked', false);
-			$("#selectall-codestoadd-checkbox").prop('checked', false);		
-								
+			$("#selectall-codestoadd-checkbox").prop('checked', false);
+
 			var searchButton = $("#btnRunExpressionSelectQuery");
-			searchButton.click();		
-		  
+			searchButton.click();
+
 		    return false;
 		}
-		
+
 		// on the click of the select all checkbox for removing items then either select or deselect all items in the right hand list
-		$("#selectall-codestoadd-checkbox").change(function(){  //"select all" change 
+		$("#selectall-codestoadd-checkbox").change(function(){  //"select all" change
 			$(".loader").show();
-		
+
 		    var status = this.checked; // "select all" checked status
 			var n = codesToAddRows.length;
-		    
+
 		    for(var i=0;i<n;i++){
-		    	
+
 		    	if(status == true){
 		    		codesToAddRows[i] = codesToAddRows[i].replace('checked="checked" ', '');
 		    		codesToAddRows[i] = [codesToAddRows[i].slice(0, 15), 'checked="checked" ', codesToAddRows[i].slice(15)].join('');
@@ -763,40 +766,41 @@
 		    //-------
 		    if(codesToAddRows){
     			 codesToAddClusterize.update(codesToAddRows);
-    			$('.codesToAddAmount').text('Rows: ' + codesToAddClusterize.getRowsAmount());
+    			 codesToAddClusterize.destroy();
+    			$('.codesToAddAmount').text('Rows: ' + codesToAddRows.length);
 
 			}
 		    //-------
-		    codesToAddClusterize.update(codesToAddRows);
-		    
+		    //codesToAddClusterize.update(codesToAddRows);
+
 		    $(".loader").hide();
-		    
+
 		    return false;
 		});
-		 
+
 		// unattach the submit event (it was posting multiple times because of validation)
 		$('#modal-section').off('submit', '#expression-select-form');
-		
+
 		function extractValue(str,searchStr, indexStr){
 		    var startOfSection = str.indexOf(searchStr);
 		    var startOfValue = str.indexOf("" + indexStr + "",startOfSection)+1;
 		    var endOffValue  = str.indexOf("" + indexStr + "",startOfValue); //Position of first char AFTER the value, as needed for substring
-	
+
 		    var value = str.substring(startOfValue,endOffValue);
-	
+
 		    return value;
 		}
-		
+
 		// submit form to save code regex
 		$('#modal-section').on('submit', '#expression-select-form', function(e){
 			e.preventDefault();
-			
+
 			var form = $(this);
-			
+
 			// check component name is not empty
-			// this is crucial to be done in script first 
+			// this is crucial to be done in script first
 			var comp_name = form.find('input[name=name]').val();
-			if($.trim(comp_name) == ''){			
+			if($.trim(comp_name) == ''){
 				$('#div_id_name').addClass('has-error');
 		        $('#help_id_name').html('Please enter a name');
 		        alert('Please enter component name');
@@ -805,32 +809,32 @@
 		    	$('#div_id_name').removeClass('has-error');
 		        $('#help_id_name').html('');
 		    }
-			
+
 			//alert($("input[name='coderegex-0-column_search']").is(":checked"));
 			if(!$("input[name='coderegex-0-column_search']").is(":checked")){
 				alert('Please select Column to search (code ordescription)');//column_search
 		        return false;
 			}
 			//=============================================
-	
+
 			// get serialized form information
 			var params = form.serializeArray();
-			
+
 			// get added codes
-			var n = codesToDeleteRows.length;	
+			var n = codesToDeleteRows.length;
 			var codesToAdd = [];
 			var codesToDelete = [];
 			var codeListId = $("#id_coderegex-0-code_list").val();
-			
+
 			// get a lst of deleted codes
 		    for(var i=0;i<n;i++){
 		    	var checkedValue = extractValue(codesToDeleteRows[i], 'checked', '"');
-		    	
+
 		    	if(checkedValue){
 		    		var id = extractValue(codesToDeleteRows[i], 'clid', '\''),
 		    			description = extractValue(codesToDeleteRows[i], 'description', '\''),
 		    			code = extractValue(codesToDeleteRows[i], 'value', '\'');
-	
+
 		    		codesToDelete.push({
 						'id': id,
 						'code': code,
@@ -839,17 +843,17 @@
 					});
 		    	}
 		    }
-			
+
 			n = codesToAddRows.length;
-			
+
 			// get a list of added codes
 		    for(var i=0;i<n;i++){
 		    	var checkedValue = extractValue(codesToAddRows[i], 'checked', '"');
-		    	
+
 		    	if(checkedValue){
 		    		var description = extractValue(codesToAddRows[i], 'description', '\''),
 		    			code = extractValue(codesToAddRows[i], 'value', '\'');
-		    		
+
 		    		codesToAdd.push({
 						'id': 0,
 						'code': code,
@@ -858,31 +862,31 @@
 					});
 		    	}
 		    }
-			// include the added and deleted codes to the form params 
+			// include the added and deleted codes to the form params
 			params.push({name: 'added_codes', value: JSON.stringify(codesToAdd)});
 			params.push({name: 'deleted_codes', value: JSON.stringify(codesToDelete)});
-	
+
 			// get the files collection
-			var files = $("#upload_file")[0].files; 
-			
+			var files = $("#upload_file")[0].files;
+
 	 		var formData = new FormData();
-	
-	 		// Looping through uploaded files collection in case there is a Multi File Upload. This also works for single i.e simply remove MULTIPLE attribute from file control in HTML.  
+
+	 		// Looping through uploaded files collection in case there is a Multi File Upload. This also works for single i.e simply remove MULTIPLE attribute from file control in HTML.
             for (var i = 0; i < files.length; i++) {
                 formData.append('upload_file', files[i]);
             }
-	 	
-	 		//Now Looping the parameters for all form input fields and assigning them as Name Value pairs. 
+
+	 		//Now Looping the parameters for all form input fields and assigning them as Name Value pairs.
 	        $(params).each(function (index, element) {
-	        	
+
 	        	// do not post search code input form elements
 	        	if(element.name != 'code-to-add' && element.name != 'search-desc' && element.name != 'code-to-delete'){
 	            	formData.append(element.name, element.value);
 	        	}
 	        });
-	          
-			//=============================================	 	
-			var doFormSubmit = function(form){	
+
+			//=============================================
+			var doFormSubmit = function(form){
 			// post the code regex details
 			$.ajax({
 				url: form.attr('action'),
@@ -901,9 +905,9 @@
 						$('#latest_history_id').val(data.latest_history_ID);
 						$('#concept-component-form-container').html(data.add_menu_items);
 						form.find('input[name=latest_history_id_shown]').val(data.latest_history_ID);
-							
+
 						// href needs to be updated for publish concept to get latest history id
-						if($('#publish2').length){ 
+						if($('#publish2').length){
 							var pub_href = $('#publish2').attr("href").split("/");
 							pub_href[3] = data.latest_history_ID;
 							pub_href = pub_href.join("/")
@@ -914,9 +918,9 @@
 							$('#publish2').removeClass("btn-success");
 							$('#publish2').addClass("btn-primary");
 							$('#publish2').html("Publish");
-							
+
 						}
-						
+
 						if ($("#action").val() == "Save")
 						{
 							$('#modal-section').modal('hide');
@@ -943,14 +947,14 @@
 			});
 			}
 			//=============================================
-			   
+
 			//=============================================
 			//alert( "first ajax....." );
 			$.ajax({
 				url: '{% url "check_concurrent_concept_update" form.concept.value %}',
 		        type: 'GET',
-				data: {"latest_history_id_shown": form.find('input[name=latest_history_id_shown]').val()  
-					  ,"component_id": form.find('input[name=component_id]').val()  
+				data: {"latest_history_id_shown": form.find('input[name=latest_history_id_shown]').val()
+					  ,"component_id": form.find('input[name=component_id]').val()
 					},
 				//dataType: 'json',
 				beforeSend: function(xhr, opts){
@@ -958,7 +962,7 @@
 				},
 				success: function(data){
 					//alert('check done.......');
-							 
+
 					if(data.errorMsg){
 						 if(data.overrideVersion == -1){
 							 alert(data.errorMsg);
@@ -973,11 +977,11 @@
 							 }
 						 }
 					}
-						   
+
 
 					if(data.successMsg){
 						//alert(data.successMsg);
-						doFormSubmit(form);		
+						doFormSubmit(form);
 					}
 				},
 				complete: function(){
@@ -985,22 +989,22 @@
 				}
 			});
             //=============================================
-            	
+
 			return false;
 		});
 	});
-	
+
 
    $(document).on("keypress", ":input:not(textarea):not([type=submit])", function(event) {
-		return event.keyCode != 13;		
+		return event.keyCode != 13;
    });
-	
+
    $('#id_coderegex-0-regex_code').bind('keypress', function(e){
-       if(e.keyCode == 13) 
+       if(e.keyCode == 13)
        {
     	   e.preventDefault();
     	   document.getElementById("btnRunExpressionSelectQuery").click();
     	}
     });
-	   
+
 </script>
