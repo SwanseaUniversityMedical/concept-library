@@ -185,23 +185,23 @@ class brandMiddleware(MiddlewareMixin):
     
     def get_env_value(self, env_variable , cast = None):
         try:
-            if settings.IS_DEMO: # Demo non-docker    
-                # separate settings for different environments
-                DOTINI_FILE = settings.BASE_DIR  + "/cll/.ini"
-                env_config = Config(RepositoryEnv(DOTINI_FILE))
-                if cast == 'bool':
-                    return env_config.get(env_variable, cast=bool)
-                else:
-                    return env_config.get(env_variable)
+            # if settings.IS_DEMO: # Demo non-docker    
+            #     # separate settings for different environments
+            #     DOTINI_FILE = settings.BASE_DIR  + "/cll/.ini"
+            #     env_config = Config(RepositoryEnv(DOTINI_FILE))
+            #     if cast == 'bool':
+            #         return env_config.get(env_variable, cast=bool)
+            #     else:
+            #         return env_config.get(env_variable)
+            # else:
+            if cast == None:
+                return os.environ[env_variable]
+            elif cast == 'int':
+                return int(os.environ[env_variable])
+            elif cast == 'bool':
+                return bool(distutils.util.strtobool(os.environ[env_variable]))
             else:
-                if cast == None:
-                    return os.environ[env_variable]
-                elif cast == 'int':
-                    return int(os.environ[env_variable])
-                elif cast == 'bool':
-                    return bool(distutils.util.strtobool(os.environ[env_variable]))
-                else:
-                    return os.environ[env_variable]        
+                return os.environ[env_variable]        
         except KeyError:
             error_msg = 'Set the {} environment variable'.format(env_variable)
             raise ImproperlyConfigured(error_msg)
