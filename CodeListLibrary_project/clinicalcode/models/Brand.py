@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User, Group
 from simple_history.models import HistoricalRecords
-from TimeStampedModel import TimeStampedModel
+from .TimeStampedModel import TimeStampedModel
 from django.contrib.postgres.fields import JSONField
 
 class Brand(TimeStampedModel):

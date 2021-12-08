@@ -4,8 +4,10 @@
 	{% load mathfilters %}
 	{% load i18n %}
 	{% load cl_extras %}
+	
+{% if SHOW_COOKIE_ALERT %}
     {% load cookielaw_tags%}
-
+{% endif %}
 
 	<head>
 		<style>
@@ -22,7 +24,7 @@
 <!--     	<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo="> -->
 		<link rel="icon" href="data:,">
 
-			{% if IS_DEMO %}
+			{% if IS_DEMO or IS_DEVELOPMENT_PC %}
 				<!-- Stop indexing the demo site -->
 				<meta name="robots" content="noindex">
 				<meta name="googlebot" content="noindex">
@@ -62,10 +64,7 @@
 		{% if request.CURRENT_BRAND|length %}
 			<link href="{% static 'css/brands/' %}{{request.CURRENT_BRAND}}/brand.css" rel="stylesheet" />
 		{% endif %}
-		
-		<link rel="preconnect" href="https://fonts.gstatic.com">
-		<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans&display=swap" rel="stylesheet">
-		
+
 
 		{% block head %}{% endblock head %}
 
@@ -152,15 +151,15 @@
 	                        <ul class="dropdown-menu">                                                   
                                 {% if request.BRAND_OBJECT.about_menu is not none %}					
 									{% for lnk in request.BRAND_OBJECT.about_menu %}
-									
-											{% for header, view_pg_name in lnk.iteritems %}
+
+											{% for header, view_pg_name in lnk.items %}
 												{% if view_pg_name|islist  %}
 													<li role="separator" class="divider"></li>
 													<li class="dropdown-submenu">
 														<a tabindex="-1" href="#">{{ header }}</a>
 														<ul class="dropdown-menu">
 															{% for lnk2 in view_pg_name %}
-																{% for header2, view_pg_name2 in lnk2.iteritems %}
+																{% for header2, view_pg_name2 in lnk2.items %}
 																	  <li>
 																		<a href="{% url 'about_page' pg_name=view_pg_name2 %}" >{{ header2 }}</a>
 																	</li>
@@ -260,7 +259,7 @@
 			</div> <!-- /.container -->
 		</nav>
 		
-		<div class="container-fluid" style="padding-right: 0px; padding-left:0px;">							
+		<div class="container-fluid" style="padding-right: 0px; padding-left:0px;">			
 			{% block container_fluid %}
 			{% endblock container_fluid %}
 		</div>
@@ -509,7 +508,10 @@
 
 		{% block scripts %}
 		{% endblock scripts %}
-        {% cookielaw_banner %}
+
+	{% if SHOW_COOKIE_ALERT %}
+	    {% cookielaw_banner %}
+	{% endif %}		
 
 	</body>
 </html>

@@ -18,7 +18,7 @@ from .models import *
 from .permissions import *
 
 import datetime
-import utils
+from . import utils
 import json
 import ast
 from collections import OrderedDict
@@ -62,7 +62,7 @@ def format_sql_parameter(param):
         return "'{}'".format(str(param))
     elif utils.isInt(param) or utils.isFloat(param):
         return "{}".format(str(param))
-    elif type(param) is unicode:
+    elif type(param) is str:
         return "UPPER('{}')".format(str(param))
 
     return param
@@ -440,7 +440,7 @@ def getConceptTreeByConceptId(concept_id):
         columns = [col[0] for col in cursor.description]
 
         return [
-            dict(zip(columns, row))
+            dict(list(zip(columns, row)))
             for row in cursor.fetchall()
         ]
 
@@ -456,7 +456,7 @@ def getParentConceptTreeByConceptId(concept_id):
         columns = [col[0] for col in cursor.description]
 
         return [
-            dict(zip(columns, row))
+            dict(list(zip(columns, row)))
             for row in cursor.fetchall()
         ]
 
@@ -485,7 +485,7 @@ def getGroupOfCodesByConceptId(concept_id):
         columns = [col[0] for col in cursor.description]
 
         return [
-            dict(zip(columns, row))
+            dict(list(zip(columns, row)))
             for row in cursor.fetchall()
         ]
                 
@@ -567,7 +567,7 @@ def getHistoryCodeListByComponentId(component_id, concept_history_date):
         if row is None:
             return None
 
-        row_dict = dict(izip(col_names, row))
+        row_dict = dict(zip(col_names, row))
 
         return row_dict
 
@@ -601,7 +601,7 @@ def getHistoryCodeListById(code_list_id, concept_history_date):
 
         col_names = [col[0] for col in cursor.description]
         row = cursor.fetchone()
-        row_dict = dict(izip(col_names, row))
+        row_dict = dict(zip(col_names, row))
 
         return row_dict
 
@@ -633,7 +633,7 @@ def getHistoryCodeRegex(component_id, concept_history_date):
 
         col_names = [col[0] for col in cursor.description]
         row = cursor.fetchone()
-        row_dict = dict(izip(col_names, row))
+        row_dict = dict(zip(col_names, row))
 
         return row_dict
 
@@ -692,7 +692,7 @@ def getHistoryCodes(code_list_id, concept_history_date):
         ORDER BY c.id
         ''' , my_params)
         col_names = [col[0] for col in cursor.description]
-        return [dict(zip(col_names, row)) for row in cursor.fetchall()]
+        return [dict(list(zip(col_names, row))) for row in cursor.fetchall()]
 
 
 def getHistoryComponentByHistoryId(component_history_id):
@@ -726,7 +726,7 @@ def getHistoryComponentByHistoryId(component_history_id):
 
         col_names = [col[0] for col in cursor.description]
         row = cursor.fetchone()
-        component = dict(izip(col_names, row))
+        component = dict(zip(col_names, row))
         
        
         
@@ -792,7 +792,7 @@ def getHistoryConcept(concept_history_id):
 
         col_names = [col[0] for col in cursor.description]
         row = cursor.fetchone()
-        row_dict = dict(izip(col_names, row))
+        row_dict = dict(zip(col_names, row))
 
         return row_dict
 
@@ -842,7 +842,7 @@ def getHistoryWorkingset(workingset_history_id):
 
         col_names = [col[0] for col in cursor.description]
         row = cursor.fetchone()
-        row_dict = dict(izip(col_names, row))
+        row_dict = dict(zip(col_names, row))
 
         return row_dict
 
@@ -904,7 +904,7 @@ def getHistoryWorkingsetTagMaps(workingset_id, workingset_history_date):
         ''' , my_params)
         
         col_names = [col[0] for col in cursor.description]
-        return [dict(zip(col_names, row)) for row in cursor.fetchall()]
+        return [dict(list(zip(col_names, row))) for row in cursor.fetchall()]
 
 
 
@@ -917,10 +917,10 @@ def getConceptsFromJSON(pk="", concepts_json=""):
     conceptIDs = []
     if pk.strip() != "":
         rows = getGroupOfConceptsByWorkingsetId_historical(pk)
-        conceptIDs = rows.keys()
+        conceptIDs = list(rows.keys())
     elif concepts_json.strip() != "":
         rows = ast.literal_eval(concepts_json)
-        conceptIDs = [k for d in rows for k in d.keys()]
+        conceptIDs = [k for d in rows for k in list(d.keys())]
 
     return conceptIDs
 
@@ -936,7 +936,7 @@ def getConceptBrands(request, concept_list):
         if c['group'] != None:
             g = Group.objects.get(pk=c['group'])
             for item in request.BRAND_GROUPS:
-                for brand, groups in item.iteritems():
+                for brand, groups in item.items():
                     if g.name in groups: 
                         #conceptBrands[c['id']].append('<img src="{% static "img/brands/' + brand + '/logo.png %}" height="10px" title="' + brand + '" alt="' + brand + '" />') 
                         conceptBrands[c['id']].append(brand) 
@@ -1015,7 +1015,8 @@ def revertHistoryWorkingset(user, workingset_history_id):
                 modified=wtm['modified']
             )
         
-        workingset_obj.save()
+        save_Entity_With_ChangeReason(WorkingSet, workingset_obj.pk, "Working set reverted from version "+str(workingset_history_id))
+        #workingset_obj.save()
 
 def deleteWorkingset(pk, user):
     ''' Delete a working set based on a working set id '''
@@ -1060,36 +1061,84 @@ def saveWorkingsetChangeReason(id, reason):
 """
 
 
-def modifyConceptChangeReason(id, reason):
+# def modifyConceptChangeReason(id, reason):
+#     '''
+#         Save a historical reason for a concept change.
+#         By using update_change_reason() we avoid having two saves when the first
+#         derives from a form (i.e. form.save()) which will not save any
+#         changeReason value. Using another concept.save() after that produces
+#         two entries in the history, the first with no reason and the second
+#         with the specified reason.
+#         This will modify the current history entry and does not increment
+#         the sequence number.
+#     '''
+#     concept = Concept.objects.get(id=id)
+#     update_change_reason(concept, standardiseChangeReason(reason))
+#
+#
+# def saveConceptWithChangeReason(id, reason, modified_by_user=None):
+#     '''
+#         Save the concept with the specified reason.
+#     '''
+#     concept = Concept.objects.get(id=id)
+#     if modified_by_user != None:
+#         concept.modified_by = modified_by_user
+#
+#     concept.changeReason = standardiseChangeReason(reason)
+#     concept.save()
+#
+#     # fix for Django 2
+#     modifyConceptChangeReason(id, reason)
+
+#------------------------------------------------------------------------------------
+def modify_Entity_ChangeReason(set_class, id, reason):
     '''
-        Save an historical reason for a concept change.
-        By using update_change_reason we avoid having two saves when the first
+        Save a historical reason for an entity change.
+        By using update_change_reason() we avoid having two saves when the first
         derives from a form (i.e. form.save()) which will not save any
-        changeReason value. Using another concept.save() after that produces
+        changeReason value. Using another obj.save() after that produces
         two entries in the history, the first with no reason and the second
         with the specified reason.
         This will modify the current history entry and does not increment
         the sequence number.
     '''
-    concept = Concept.objects.get(id=id)
-    update_change_reason(concept, standardiseChangeReason(reason))
+    entity = set_class.objects.get(id=id)
+    update_change_reason(entity, standardiseChangeReason(reason))
 
 
-def saveConceptWithChangeReason(id, reason, modified_by_user=None):
+def save_Entity_With_ChangeReason(set_class, id, reason, modified_by_user=None):
     '''
-        Save an historical reason for a concept change.
-        By using update_change_reason we avoid having two saves when the first
-        derives from a form (i.e. form.save()) which will not save any
-        changeReason value. Using another concept.save() after that produces
-        two entries in the history, the first with no reason and the second
-        with the specified reason.
+        Save the entity with the specified reason.
     '''
-    concept = Concept.objects.get(id=id)
+    entity = set_class.objects.get(id=id)
     if modified_by_user != None:
-        concept.modified_by = modified_by_user
+        entity.modified_by = modified_by_user
         
-    concept.changeReason = standardiseChangeReason(reason)
-    concept.save()
+    entity.changeReason = standardiseChangeReason(reason)
+    entity.save()
+    
+    # fix for Django 2
+    modify_Entity_ChangeReason(set_class, id, reason)
+
+
+
+
+
+#------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def saveDependentConceptsChangeReason(concept_ref_id, reason):
@@ -1243,7 +1292,7 @@ def getWSConceptsHistoryIDs(concept_informations, saved_concept_version={}, conc
 
     # loop for concept info
     for concept_info in stored_concepts:
-        for key, value in concept_info.iteritems():
+        for key, value in concept_info.items():
             latest_history_id = Concept.objects.get(pk=key).history.latest('history_id').history_id
             if(len(concepts_to_update)>0 and saved_concept_version):
                 if(int(key) in concepts_to_update):
@@ -1274,7 +1323,7 @@ def getWSConceptsVersionsData(concept_informations, submitted_concept_version):
 
     # loop for concept info
     for concept_info in stored_concepts:
-        for key, value in concept_info.iteritems():
+        for key, value in concept_info.items():
             if(submitted_concept_version[key] == "latest"):
                 latest_history_id = Concept.objects.get(pk=key).history.latest('history_id').history_id
                 new_concept_version[key] = latest_history_id
@@ -1342,7 +1391,7 @@ def getHistoryComponents(concept_id, concept_history_date, skip_codes=False, che
         ORDER BY c.id
         ''' , my_params)
         columns = [col[0] for col in cursor.description]
-        components = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        components = [dict(list(zip(columns, row))) for row in cursor.fetchall()]
         # Modify the logical_type data with the display data in Component.
         # This allows the component display to look the same as on the other
         # pages.
@@ -1447,7 +1496,7 @@ def getHistoryTags(concept_id, concept_history_date):
         columns = [col[0] for col in cursor.description]
 
         return [
-            dict(zip(columns, row))
+            dict(list(zip(columns, row)))
             for row in cursor.fetchall()
         ]
 
@@ -1512,7 +1561,7 @@ def getHistoryTags_Workingset(workingset_id, workingset_history_date):
         columns = [col[0] for col in cursor.description]
 
         return [
-            dict(zip(columns, row))
+            dict(list(zip(columns, row)))
             for row in cursor.fetchall()
         ]
 
@@ -1753,7 +1802,7 @@ def is_valid_column_name(name):
         return is_valid 
     except Exception as e:
         is_valid = False
-        print('NOT is_valid_column_name() error (' + str(e).replace("'", "\'") + ').')
+        print(('NOT is_valid_column_name() error (' + str(e).replace("'", "\'") + ').'))
         raise
         return is_valid 
 
@@ -1818,7 +1867,7 @@ def get_where_query(component_type, code_field, desc_field,
     return {'strSQL': strSQL , 'paramList': paramList}
 
 def get_placeholder(param):
-    if type(param) is unicode:
+    if type(param) is str:
         return "UPPER(%s)"
     else:
         return "%s"
@@ -2006,7 +2055,7 @@ def search_codes(component_type, database_connection_name, table_name,
         cursor.execute(strSQL , paramList)
         
         columns = [col[0] for col in cursor.description]
-        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+        return [dict(list(zip(columns, row))) for row in cursor.fetchall()]
 
 
 def chk_deleted_children(request, set_class, set_id, returnErrors = True
@@ -2128,7 +2177,7 @@ def chk_children_permission_and_deletion(request, set_class, set_id, WS_concepts
     dd = defaultdict(list)
      
     for d in (error_perms, error_del): # you can list as many input dicts as you want here
-        for key, value in d.iteritems():
+        for key, value in d.items():
             dd[key].append(value)
      
     error_dict = dict(dd)
@@ -2148,7 +2197,7 @@ def get_concept_structure_Live(concept_id):
         columns = [col[0] for col in cursor.description]
 
         return [
-            dict(zip(columns, row))
+            dict(list(zip(columns, row)))
             for row in cursor.fetchall()
         ]
 
@@ -2164,7 +2213,7 @@ def getConceptUniqueCodesLive(concept_id):
         columns = ['code' , 'description']
         rows = [tuple(r) for r in df.to_numpy()] 
         net_output = [
-                dict(zip(columns, row))
+                dict(list(zip(columns, row)))
                 for row in rows
             ]
         return net_output
@@ -2186,7 +2235,7 @@ def getConceptUniqueCodesLive(concept_id):
     columns = ['code' , 'description']
     rows = [tuple(r) for r in final_code_list.to_numpy()] 
     net_output = [
-            dict(zip(columns, row))
+            dict(list(zip(columns, row)))
             for row in rows
         ]
 
@@ -2345,7 +2394,7 @@ def getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_history_id):
         columns = ['code' , 'description']
         rows = [tuple(r) for r in df.to_numpy()] 
         net_output = [
-                dict(zip(columns, row))
+                dict(list(zip(columns, row)))
                 for row in rows
             ]
         return net_output
@@ -2365,7 +2414,7 @@ def getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_history_id):
     columns = ['code' , 'description']
     rows = [tuple(r) for r in final_code_list.to_numpy()] 
     net_output = [
-            dict(zip(columns, row))
+            dict(list(zip(columns, row)))
             for row in rows
         ]
 
@@ -2434,15 +2483,15 @@ def isValidWorkingSet(request, working_set):
     
         # validation the type of input for attributes
         for data in decoded_concepts:
-            for key, value in data.iteritems():
+            for key, value in data.items():
                 attribute_names[key] = []
                 
-                for header, concept_data in value.iteritems():
+                for header, concept_data in value.items():
                     #Allow Working sets with zero attributes 
                     if len(value)==1 and header=="" and concept_data=="":
                         continue
                     
-                    header_type = header.encode("utf-8").split("|")
+                    header_type = header.split("|")
                     header = header_type[0]
                     type = header_type[1]
                         
@@ -2485,8 +2534,8 @@ def isValidWorkingSet(request, working_set):
                         errors['type'] = "Choose a type of the attribute"
                         is_valid = False
                         
-            if(data.keys()[0] and data.keys()[0].strip() !=""):
-                concept_keys.append(data.keys()[0])
+            if(list(data.keys())[0] and list(data.keys())[0].strip() !=""):
+                concept_keys.append(list(data.keys())[0])
             else: 
                 errors['empty_id'] = "Fill in concepts inputs by clicking on autocomplete prompt"
                 is_valid = False
@@ -2561,9 +2610,9 @@ def get_history_child_concept_components(concept_id, concept_history_id=None):
             
             columns = [col[0] for col in cursor.description]
             #columns = ['concept_ref_id' , 'concept_ref_history_id']
-            childConcepts = [dict(zip(columns
+            childConcepts = [dict(list(zip(columns
                                    , row
-                                   )) for row in cursor.fetchall()]
+                                   ))) for row in cursor.fetchall()]
             
            
             return childConcepts
@@ -2572,7 +2621,7 @@ def get_can_edit_subquery(request):
     # check can_edit in SQl - faster way
     
     can_edit_subquery = ""
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         can_edit_subquery = " ( FALSE ) can_edit , "   #    2= published only
     else:  
         if settings.CLL_READ_ONLY:
@@ -2632,7 +2681,7 @@ def get_visible_live_or_published_concept_versions(request
     my_params = []
     
     user_cond = ""
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         get_live_and_or_published_ver = 2   #    2= published only
         if force_get_live_and_or_published_ver is not None:
             get_live_and_or_published_ver = force_get_live_and_or_published_ver
@@ -2760,7 +2809,7 @@ def get_visible_live_or_published_concept_versions(request
         col_names = [col[0] for col in cursor.description]
 
         return [
-            dict(zip(col_names, row))
+            dict(list(zip(col_names, row)))
             for row in cursor.fetchall()
         ]
 
@@ -2800,7 +2849,7 @@ def get_visible_live_or_published_phenotype_versions(request
     my_params = []
     
     user_cond = ""
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         get_live_and_or_published_ver = 2   #    2= published only
         if force_get_live_and_or_published_ver is not None:
             get_live_and_or_published_ver = force_get_live_and_or_published_ver
@@ -2928,7 +2977,7 @@ def get_visible_live_or_published_phenotype_versions(request
         col_names = [col[0] for col in cursor.description]
 
         return [
-            dict(zip(col_names, row))
+            dict(list(zip(col_names, row)))
             for row in cursor.fetchall()
         ]
 
@@ -2993,7 +3042,7 @@ def getHistoryPhenotype(phenotype_history_id):
 
         col_names = [col[0] for col in cursor.description]
         row = cursor.fetchone()
-        row_dict = dict(izip(col_names, row))
+        row_dict = dict(zip(col_names, row))
 
         return row_dict
 
@@ -3114,7 +3163,7 @@ def getHistoryDataSource_Phenotype(phenotype_id, phenotype_history_date):
         columns = [col[0] for col in cursor.description]
 
         return [
-            dict(zip(columns, row))
+            dict(list(zip(columns, row)))
             for row in cursor.fetchall()
         ]
 
@@ -3190,7 +3239,7 @@ def get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
                             attr2 = attr
                         attributes_dict[attr2] = cc[attr]
                         
-                codes.append(ordr(zip(titles,  
+                codes.append(ordr(list(zip(titles,  
                                 [
                                     cc['code'],
                                     cc['description'].encode('ascii', 'ignore').decode('ascii')
@@ -3206,10 +3255,10 @@ def get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
                                     current_ph_version.history_id, 
                                     current_ph_version.name
                                 ]
-                            )))
+                            ))))
     
             if rows_no == 0:
-                codes.append(ordr(zip(titles,  
+                codes.append(ordr(list(zip(titles,  
                                 [
                                     '',
                                     ''
@@ -3225,7 +3274,7 @@ def get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
                                     current_ph_version.history_id,
                                     current_ph_version.name
                                 ]
-                            )))
+                            ))))
 
     return codes
 
@@ -3321,7 +3370,7 @@ def isValidPhenotype(request, phenotype):
                     if len(value)==1 and header=="" and concept_data=="":
                         continue
                     
-                    header_type = header.encode("utf-8").split("|")
+                    header_type = header.split("|")
                     header = header_type[0]
                     type = header_type[1]
                         
@@ -3444,13 +3493,13 @@ def getHistory_ConceptCodeAttribute(concept_id, concept_history_date, code_attri
             columns = [col[0] for col in cursor.description]
      
             return [
-                dict(zip(columns, row))
+                dict(list(zip(columns, row)))
                 for row in cursor.fetchall()
             ]
         else:
             columns = ['code'] + [str(a) for a in code_attribute_header]
             return [
-                dict(zip(columns, tuple([str(row[0])] + [str(a) for a in row[1]])  ))
+                dict(list(zip(columns, tuple([str(row[0])] + [str(a) for a in row[1]])  )))
                 for row in cursor.fetchall()
             ]
         
@@ -3517,7 +3566,7 @@ def get_brand_associated_collections(request, concept_or_phenotype):
 
     collections_ids = []
     for s in stats:
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             # If user is authenticated, bring back all collections IDs
             if s['Data_Scope'] == 'all_data':
                 collections_ids = s['Collection_IDs']
@@ -3538,16 +3587,16 @@ def get_brand_associated_collections_dynamic(request, concept_or_phenotype):
 
     if concept_or_phenotype == 'concept':
         data = get_visible_live_or_published_concept_versions(request
-                                                               , get_live_and_or_published_ver = [2, 3][request.user.is_authenticated()] # 1= live only, 2= published only, 3= live+published 
-                                                               , exclude_deleted=[True, False][request.user.is_authenticated()]
-                                                               , force_get_live_and_or_published_ver = [2, 3][request.user.is_authenticated()]
+                                                               , get_live_and_or_published_ver = [2, 3][request.user.is_authenticated] # 1= live only, 2= published only, 3= live+published 
+                                                               , exclude_deleted=[True, False][request.user.is_authenticated]
+                                                               , force_get_live_and_or_published_ver = [2, 3][request.user.is_authenticated]
                                                                )
         
     elif concept_or_phenotype == 'phenotype':
         data = get_visible_live_or_published_phenotype_versions(request
-                                                               , get_live_and_or_published_ver = [2, 3][request.user.is_authenticated()] # 1= live only, 2= published only, 3= live+published 
-                                                               , exclude_deleted=[True, False][request.user.is_authenticated()]
-                                                               , force_get_live_and_or_published_ver = [2, 3][request.user.is_authenticated()]
+                                                               , get_live_and_or_published_ver = [2, 3][request.user.is_authenticated] # 1= live only, 2= published only, 3= live+published 
+                                                               , exclude_deleted=[True, False][request.user.is_authenticated]
+                                                               , force_get_live_and_or_published_ver = [2, 3][request.user.is_authenticated]
                                                                )
 
 

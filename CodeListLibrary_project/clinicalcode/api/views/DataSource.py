@@ -1,5 +1,5 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import detail_route, api_view, permission_classes, authentication_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
 from django.http.response import Http404
 from django.db.models import Q
@@ -24,7 +24,7 @@ from ...utils import *
 from django.core import serializers
 from datetime import datetime
 from django.core.validators import URLValidator
-from View import *
+from .View import *
 from django.db.models.aggregates import Max
 
 
@@ -65,8 +65,10 @@ def api_datasource_create(request):
                 created_ds = DataSource.objects.get(pk=new_datasource.pk)
                 created_ds.history.latest().delete() 
     
-                created_ds.changeReason = "Created from API"
-                created_ds.save()   
+                # created_ds.changeReason = "Created from API"
+                # created_ds.save()   
+                save_Entity_With_ChangeReason(DataSource, created_ds.pk, "Created from API")
+                                              
                 data = {
                   'message': 'DataSource created successfully',
                   'id': created_ds.pk
@@ -91,14 +93,29 @@ def api_datasource_create(request):
                 )
                 
                 
-                
-
 #--------------------------------------------------------------------------
 #disable authentication for this function
 @api_view(['GET'])
 @authentication_classes([])
-@permission_classes([])
-def get_data_source(request, pk=None, get_live_phenotypes=False, show_published_data_only=False):   
+@permission_classes([]) 
+def published_data_sources(request, pk=None, get_live_phenotypes=False, show_published_data_only=False):   
+    '''
+        Get the API output for the list of data sources included in published phenotypes.
+    '''
+    return  get_data_sources(request, pk=pk, get_live_phenotypes=get_live_phenotypes, show_published_data_only=show_published_data_only, is_authenticated_user=False)
+    
+#--------------------------------------------------------------------------
+@api_view(['GET'])
+def data_sources(request, pk=None, get_live_phenotypes=False, show_published_data_only=False):   
+    '''
+        Get the API output for the list of user data sources.
+    '''
+    return  get_data_sources(request, pk=pk, get_live_phenotypes=get_live_phenotypes, show_published_data_only=show_published_data_only, is_authenticated_user=True)
+    
+                
+
+#--------------------------------------------------------------------------
+def get_data_sources(request, pk=None, get_live_phenotypes=False, show_published_data_only=False , is_authenticated_user=True):   
     
     if pk is not None:
         data_source_id = pk
@@ -159,7 +176,7 @@ def get_data_source(request, pk=None, get_live_phenotypes=False, show_published_
         else:
             ret.append(get_HISTORICAl_phenotypes_associated_with_data_source(ds.id, phenotypes_ids, show_published_data_only=show_published_data_only))
             
-        rows_to_return.append(ordr(zip(titles,  ret )))
+        rows_to_return.append(ordr(list(zip(titles,  ret ))))
         
           
     if rows_to_return:                    
@@ -194,7 +211,7 @@ def get_LIVE_phenotypes_associated_with_data_source(data_source_id, brand_phenot
                 p.phenotype_uuid,
                 p.author
             ]
-        rows_to_return.append(ordr(zip(titles,  ret )))
+        rows_to_return.append(ordr(list(zip(titles,  ret ))))
         
     return rows_to_return
 
@@ -237,12 +254,12 @@ def get_HISTORICAl_phenotypes_associated_with_data_source(data_source_id, brand_
                             ver.author,
                             [False, True][ver.history_id == max_version_id]
                         ]
-                    ver_to_return.append(ordr(zip(ver_titles,  ret )))
+                    ver_to_return.append(ordr(list(zip(ver_titles,  ret ))))
                     include_this_phenotype = True
                 else:
                     pass      
         if include_this_phenotype:
-            rows_to_return.append(ordr(zip(ph_titles,  ['PH'+str(p_id), ver_to_return] )))
+            rows_to_return.append(ordr(list(zip(ph_titles,  ['PH'+str(p_id), ver_to_return] ))))
          
     return rows_to_return
 

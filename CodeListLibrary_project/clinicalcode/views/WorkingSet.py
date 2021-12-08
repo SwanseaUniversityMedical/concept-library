@@ -11,7 +11,8 @@ from django.contrib import messages
 from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.core.paginator import Paginator, EmptyPage
-from django.core.urlresolvers import reverse_lazy, reverse
+#from django.core.urlresolvers import reverse_lazy, reverse
+from django.urls import reverse_lazy, reverse
 #from django.db.models import Q
 from django.db import transaction #, models, IntegrityError
 # from django.forms.models import model_to_dict
@@ -33,7 +34,7 @@ from ..models.Brand import Brand
 from django.contrib.auth.models import User, Group
 from django.http import HttpResponseNotFound
 
-from View import *
+from .View import *
 from .. import db_utils, utils
 from ..permissions import *
 
@@ -155,9 +156,9 @@ def workingset_create(request):
                 for tag_id_to_add in new_tag_list:
                     WorkingSetTagMap.objects.get_or_create(workingset=new_workingset, tag=Tag.objects.get(id=tag_id_to_add), created_by=request.user)
                     
-            
-            created_WS.changeReason = "Created"
-            created_WS.save()   
+            db_utils.save_Entity_With_ChangeReason(WorkingSet, created_WS.pk, "Created")
+            # created_WS.changeReason = "Created"
+            # created_WS.save()   
             
             messages.success(request, "Workingset created successfully")
             #return redirect('workingset_list')
@@ -358,9 +359,9 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, 
                     tag_to_remove.delete()
                     
                 #-----------------------------------------------------
-                
-                workingset.changeReason = db_utils.standardiseChangeReason("Updated")            
-                workingset.save()
+                db_utils.save_Entity_With_ChangeReason(WorkingSet, workingset.pk, "Updated")
+                # workingset.changeReason = db_utils.standardiseChangeReason("Updated")            
+                # workingset.save()
 
             #db_utils.saveWorkingsetChangeReason(pk, "Working set has been updated")
             messages.success(self.request, "Working set has been successfully updated.")
@@ -395,7 +396,8 @@ class WorkingSetDelete(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, 
     def post(self, request, pk):
         with transaction.atomic():
             db_utils.deleteWorkingset(pk, request.user)
-        messages.success(self.request, "Working Set has been deleted.")
+            db_utils.modify_Entity_ChangeReason(WorkingSet, pk, "Working set has been deleted")
+        messages.success(self.request, "Working Set has been deleted")
         return HttpResponseRedirect(self.get_success_url())
     
 
@@ -452,7 +454,7 @@ def checkConceptVersionIsTheLatest(workingsetID):
     version_alerts = {}     
     
     # loop for concept versions
-    for c_id0, c_ver in concepts_id_versionID.iteritems():
+    for c_id0, c_ver in concepts_id_versionID.items():
         c_id = int(c_id0)
         latest_history_id = Concept.objects.get(pk=c_id).history.latest('history_id').history_id
         if latest_history_id != int(c_ver):
@@ -488,7 +490,8 @@ class WorkingSetRestore(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin,
     def post(self, request, pk):
         with transaction.atomic():
             db_utils.restoreWorkingset(pk, request.user)
-        messages.success(self.request, "Workingset has been restored.")
+            db_utils.modify_Entity_ChangeReason(WorkingSet, pk, "Working set has been restored")
+        messages.success(self.request, "Working set has been restored")
         return HttpResponseRedirect(self.get_success_url())
 
     
@@ -523,7 +526,7 @@ def workingset_history_detail(request, pk, workingset_history_id):
       
     concept_list = db_utils.getConceptsFromJSON(concepts_json=workingset['concept_informations'])
     #concepts = Concept.objects.filter(id__in=concept_list).values('id','name', 'group')
-    concepts = Concept.history.all().filter(id__in=concept_list, history_id__in=workingset['concept_version'].values()).values('id','name', 'group')
+    concepts = Concept.history.all().filter(id__in=concept_list, history_id__in=list(workingset['concept_version'].values())).values('id','name', 'group')
     concepts_id_name = json.dumps(list(concepts))  
  
     workingset_live = WorkingSet.objects.get(pk=pk)
@@ -650,10 +653,10 @@ def history_workingset_to_csv(request, pk, workingset_history_id):
     # Run through the concept_informations rows = one concept at a time.
     #for row in rows:
     #for key, value in row.iteritems():
-    for concept_id, columns in rows.iteritems():
+    for concept_id, columns in rows.items():
         concept_data[concept_id] = []
         #data = json.loads(columns, object_pairs_hook=OrderedDict)
-        for column_name, column_data in columns.iteritems():
+        for column_name, column_data in columns.items():
             if concept_id in concept_data:
                 concept_data[concept_id].append(column_data)
             else:
@@ -673,7 +676,7 @@ def history_workingset_to_csv(request, pk, workingset_history_id):
 
     concept_version = WorkingSet.history.get(id=pk , history_id=workingset_history_id).concept_version 
 
-    for concept_id, data in concept_data.iteritems():
+    for concept_id, data in concept_data.items():
         concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version[concept_id]).coding_system.name
         concept_name = Concept.history.get(id=concept_id , history_id=concept_version[concept_id]).name
         

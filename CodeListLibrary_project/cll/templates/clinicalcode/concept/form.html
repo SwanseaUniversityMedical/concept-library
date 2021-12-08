@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% load staticfiles %}
+{% load static %}
 
 {% block title %}
 	{% if form.instance.pk is None %}
@@ -146,7 +146,7 @@
 							{% endif %}
 						</div>
 						{% for item in request.BRAND_GROUPS %}
-						{% for brand, groups in item.iteritems %}
+						{% for brand, groups in item.items %}
 						{% if concept.group.name in groups %}
 						<img src="{% static 'img/brands/' %}{{brand}}/logo.png" height="20px" title="{{brand}}"
 							alt="{{brand}}" />

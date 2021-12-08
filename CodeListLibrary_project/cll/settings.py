@@ -12,7 +12,9 @@ import socket
 
 from django_auth_ldap.config import LDAPSearch, GroupOfNamesType, NestedActiveDirectoryGroupType, LDAPSearchUnion
 from django.conf.global_settings import EMAIL_BACKEND, AUTHENTICATION_BACKENDS
-from django.core.urlresolvers import reverse_lazy
+#from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
+
 from django.contrib.messages import constants as messages
 
 from decouple import Config, RepositoryEnv, Csv
@@ -41,43 +43,43 @@ SRV_IP = GET_SERVER_IP()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# This is for DEMO server only since it is configured in a different way
-IS_DEMO = False
-def chk_IS_DEMO():
-    try:
-        return bool(distutils.util.strtobool(os.environ["IS_DEMO"]))       
-    except KeyError:
-        try:
-            DOTINI_FILE = BASE_DIR  + "/cll/.ini"
-            env_config = Config(RepositoryEnv(DOTINI_FILE))
-            return env_config.get("IS_DEMO", cast=bool)
-        except KeyError:
-            error_msg = 'Set the IS_DEMO environment variable !!'
-            raise ImproperlyConfigured(error_msg)
-
-        
-IS_DEMO = chk_IS_DEMO()
+# # This is for DEMO server only since it is configured in a different way
+# IS_DEMO = False
+# def chk_IS_DEMO():
+#     try:
+#         return bool(distutils.util.strtobool(os.environ["IS_DEMO"]))       
+#     except KeyError:
+#         try:
+#             DOTINI_FILE = BASE_DIR  + "/cll/.ini"
+#             env_config = Config(RepositoryEnv(DOTINI_FILE))
+#             return env_config.get("IS_DEMO", cast=bool)
+#         except KeyError:
+#             error_msg = 'Set the IS_DEMO environment variable !!'
+#             raise ImproperlyConfigured(error_msg)
+#
+#
+# IS_DEMO = chk_IS_DEMO()
 #print IS_DEMO
     
 def get_env_value(env_variable , cast = None):
     try:
-        if IS_DEMO: # Demo non-docker    
-            # separate settings for different environments
-            DOTINI_FILE = BASE_DIR  + "/cll/.ini"
-            env_config = Config(RepositoryEnv(DOTINI_FILE))
-            if cast == 'bool':
-                return env_config.get(env_variable, cast=bool)
-            else:
-                return env_config.get(env_variable)
+        # if IS_DEMO: # Demo non-docker    
+        #     # separate settings for different environments
+        #     DOTINI_FILE = BASE_DIR  + "/cll/.ini"
+        #     env_config = Config(RepositoryEnv(DOTINI_FILE))
+        #     if cast == 'bool':
+        #         return env_config.get(env_variable, cast=bool)
+        #     else:
+        #         return env_config.get(env_variable)
+        # else:
+        if cast == None:
+            return os.environ[env_variable]
+        elif cast == 'int':
+            return int(os.environ[env_variable])
+        elif cast == 'bool':
+            return bool(distutils.util.strtobool(os.environ[env_variable]))
         else:
-            if cast == None:
-                return os.environ[env_variable]
-            elif cast == 'int':
-                return int(os.environ[env_variable])
-            elif cast == 'bool':
-                return bool(distutils.util.strtobool(os.environ[env_variable]))
-            else:
-                return os.environ[env_variable]        
+            return os.environ[env_variable]        
     except KeyError:
         error_msg = 'Set the {} environment variable'.format(env_variable)
         raise ImproperlyConfigured(error_msg)
@@ -98,6 +100,8 @@ if path_prj not in sys.path:
 #==========================================================================
 # separate settings for different environments
 #general variables
+IS_DEMO = get_env_value('IS_DEMO', cast='bool')
+
 CLL_READ_ONLY =  get_env_value('CLL_READ_ONLY', cast='bool')
 ENABLE_PUBLISH = get_env_value('ENABLE_PUBLISH', cast='bool')
 SHOWADMIN  = get_env_value('SHOWADMIN', cast='bool')
@@ -106,7 +110,7 @@ BROWSABLEAPI = get_env_value('BROWSABLEAPI', cast='bool')
 IS_INSIDE_GATEWAY = get_env_value('IS_INSIDE_GATEWAY', cast='bool')
 IS_DEVELOPMENT_PC = get_env_value('IS_DEVELOPMENT_PC', cast='bool')
 if IS_DEVELOPMENT_PC:
-    print "SRV_IP=" + SRV_IP
+    print("SRV_IP=" + SRV_IP)
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -259,6 +263,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
+                'rest_framework.authentication.TokenAuthentication',
+
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -409,11 +415,13 @@ DEV_PRODUCTION = ""
 if IS_DEMO:  # Demo server
     DEV_PRODUCTION = "<i class='glyphicon glyphicon-cog'  aria-hidden='true'> </i> DEMO SITE <i class='glyphicon glyphicon-cog'  aria-hidden='true'> </i>"
  
-IS_HDRUK_EXT = "0"
- 
- 
- # MARKDOWNIFY 
 
+
+
+IS_HDRUK_EXT = "0"
+SHOW_COOKIE_ALERT = True
+ 
+# MARKDOWNIFY
 MARKDOWNIFY = {
     "default": {
         "WHITELIST_TAGS": [

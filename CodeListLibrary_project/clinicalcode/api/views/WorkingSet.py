@@ -7,7 +7,7 @@
     ---------------------------------------------------------------------------
 '''
 from rest_framework import viewsets, status
-from rest_framework.decorators import detail_route, api_view, permission_classes, authentication_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
 from django.http.response import Http404
 from django.db.models import Q
@@ -42,7 +42,7 @@ from datetime import datetime
 # from snippets.models import Snippet
 # from snippets.serializers import SnippetSerializer
 from django.core.validators import URLValidator
-from View import *
+from .View import *
 from django.db.models.aggregates import Max
 from clinicalcode.models.WorkingSet import WorkingSet
 
@@ -75,13 +75,23 @@ def export_workingset_codes(request, pk):
         #make all export csv work on historical data
         current_ws = WorkingSet.objects.get(pk=pk)
         latest_history_id = current_ws.history.latest().history_id
-        return export_workingset_codes_byVersionID(request, pk, latest_history_id)
+        return get_workingset_codes_byVersionID(request, pk, latest_history_id)
 
   
     
     
 @api_view(['GET'])
 def export_workingset_codes_byVersionID(request, pk, workingset_history_id):
+    '''
+        Returns the unique set of codes and descriptions for the specified working set saved concepts.
+        Returns concepts codes + attributes for a workingset
+        for a specific version.
+    '''
+    
+    return get_workingset_codes_byVersionID(request, pk, workingset_history_id)
+
+    
+def get_workingset_codes_byVersionID(request, pk, workingset_history_id):
     '''
         Returns the unique set of codes and descriptions for the specified working set saved concepts.
         Returns concepts codes + attributes for a workingset
@@ -115,9 +125,9 @@ def export_workingset_codes_byVersionID(request, pk, workingset_history_id):
         rows_to_return = []
         
         # Run through the concept_informations                                                    
-        for concept_id, columns in concepts_info.iteritems():
+        for concept_id, columns in concepts_info.items():
             concept_data[concept_id] = []
-            for column_name, column_data in columns.iteritems():
+            for column_name, column_data in columns.items():
                 if concept_id in concept_data:
                     concept_data[concept_id].append(column_data)
                 else:
@@ -135,7 +145,7 @@ def export_workingset_codes_byVersionID(request, pk, workingset_history_id):
         
         concept_version = WorkingSet.history.get(id=pk , history_id=workingset_history_id).concept_version 
         
-        for concept_id, data in concept_data.iteritems():
+        for concept_id, data in concept_data.items():
             concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version[concept_id]).coding_system.name
             concept_name = Concept.history.get(id=concept_id , history_id=concept_version[concept_id]).name
             rows_no=0
@@ -145,7 +155,7 @@ def export_workingset_codes_byVersionID(request, pk, workingset_history_id):
                 data = []
             for cc in codes:
                 rows_no+=1
-                rows_to_return.append(ordr(zip(final_titles,  
+                rows_to_return.append(ordr(list(zip(final_titles,  
                                     [
                                         cc['code'], 
                                         cc['description'].encode('ascii', 'ignore').decode('ascii'),
@@ -158,10 +168,10 @@ def export_workingset_codes_byVersionID(request, pk, workingset_history_id):
                                         current_ws_version.name
                                     ] 
                                     + data
-                            )))
+                            ))))
                 
             if rows_no==0:
-                rows_to_return.append(ordr(zip(final_titles,  
+                rows_to_return.append(ordr(list(zip(final_titles,  
                                 [
                                     '', 
                                     '',
@@ -174,7 +184,7 @@ def export_workingset_codes_byVersionID(request, pk, workingset_history_id):
                                     current_ws_version.name
                                 ]
                                 + data
-                            )))
+                            ))))
     
         return Response(rows_to_return, status=status.HTTP_200_OK)    
 
@@ -326,8 +336,9 @@ def api_workingset_create(request):
                     WorkingSetTagMap.objects.get_or_create(workingset=new_workingset, tag=Tag.objects.get(id=tag_id_to_add), created_by=request.user)
                      
              
-            created_WS.changeReason = "Created from API"
-            created_WS.save()   
+            save_Entity_With_ChangeReason(WorkingSet, created_WS.pk, "Created from API")
+            # created_WS.changeReason = "Created from API"
+            # created_WS.save()   
              
 
             data = {'message': 'Workingset created successfully',
@@ -523,9 +534,9 @@ def api_workingset_update(request):
                 
             #-----------------------------------------------------
 
-             
-            update_workingset.changeReason = "Updated from API"
-            update_workingset.save()   
+            save_Entity_With_ChangeReason(WorkingSet, update_workingset.pk, "Updated from API")
+            # update_workingset.changeReason = "Updated from API"
+            # update_workingset.save()   
              
 
             data = {'message': 'Workingset updated successfully',
@@ -662,7 +673,7 @@ def workingsets(request, pk=None):
         if do_not_show_versions != "1":
             ret += [get_visible_versions_list(request, WorkingSet, c.id, is_authenticated_user=True)]
         
-        rows_to_return.append(ordr(zip(titles,  ret )))
+        rows_to_return.append(ordr(list(zip(titles,  ret ))))
                                    
     return Response(rows_to_return, status=status.HTTP_200_OK)                                   
 
@@ -706,7 +717,7 @@ def workingset_detail(request, pk, workingset_history_id=None, get_versions_only
             titles = ['versions']
             ret = [get_visible_versions_list(request, WorkingSet, pk, is_authenticated_user=True)]
             rows_to_return = []
-            rows_to_return.append(ordr(zip(titles,  ret )))
+            rows_to_return.append(ordr(list(zip(titles,  ret ))))
             return Response(rows_to_return, status=status.HTTP_200_OK)   
     #--------------------------
     
@@ -807,7 +818,7 @@ def workingset_detail(request, pk, workingset_history_id=None, get_versions_only
   
     ret += [get_visible_versions_list(request, WorkingSet, pk, is_authenticated_user=True)]
      
-    rows_to_return.append(ordr(zip(titles,  ret )))
+    rows_to_return.append(ordr(list(zip(titles,  ret ))))
                                    
     return Response(rows_to_return, status=status.HTTP_200_OK)                
     
@@ -845,9 +856,9 @@ def get_workingset_concepts(request, pk, workingset_history_id):
     title_row = []
     
     # Run through the concept_informations rows = one concept at a time.
-    for concept_id, columns in rows.iteritems():
+    for concept_id, columns in rows.items():
         concept_data[concept_id] = []
-        for column_name, column_data in columns.iteritems():
+        for column_name, column_data in columns.items():
             if concept_id in concept_data:
                 concept_data[concept_id].append(column_data)
             else:
@@ -862,13 +873,13 @@ def get_workingset_concepts(request, pk, workingset_history_id):
     concept_version = WorkingSet.history.get(id=pk , history_id=workingset_history_id).concept_version 
 
     rows_to_return = []
-    for concept_id, data in concept_data.iteritems():
+    for concept_id, data in concept_data.items():
         ret = (['C'+str(concept_id), concept_version[concept_id]] 
                 + [Concept.history.get(id=concept_id , history_id=concept_version[concept_id] ).name] 
                 + data
             )
                 
-        rows_to_return.append(ordr(zip(titles,  ret )))
+        rows_to_return.append(ordr(list(zip(titles,  ret ))))
             
 
     return rows_to_return         
@@ -908,9 +919,9 @@ def get_workingset_codes(request, pk, workingset_history_id):
     title_row = []
     
     # Run through the concept_informations rows = one concept at a time.
-    for concept_id, columns in rows.iteritems():
+    for concept_id, columns in rows.items():
         concept_data[concept_id] = []
-        for column_name, column_data in columns.iteritems():
+        for column_name, column_data in columns.items():
             if concept_id in concept_data:
                 concept_data[concept_id].append(column_data)
             else:
@@ -930,7 +941,7 @@ def get_workingset_codes(request, pk, workingset_history_id):
     concept_version = WorkingSet.history.get(id=pk , history_id=workingset_history_id).concept_version 
 
     rows_to_return = []
-    for concept_id, data in concept_data.iteritems():
+    for concept_id, data in concept_data.items():
         rows_no=0
         codes = getGroupOfCodesByConceptId_HISTORICAL(concept_id , concept_version[concept_id])
         #Allow Working sets with zero attributes
@@ -951,7 +962,7 @@ def get_workingset_codes(request, pk, workingset_history_id):
                     + data
                 )
                     
-            rows_to_return.append(ordr(zip(titles,  ret )))
+            rows_to_return.append(ordr(list(zip(titles,  ret ))))
             
         if rows_no==0:
             ret = ([
@@ -965,7 +976,7 @@ def get_workingset_codes(request, pk, workingset_history_id):
                     + data
                 )
                     
-            rows_to_return.append(ordr(zip(titles,  ret )))
+            rows_to_return.append(ordr(list(zip(titles,  ret ))))
 
     return rows_to_return         
     

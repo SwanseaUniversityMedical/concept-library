@@ -1,4 +1,4 @@
-{% load staticfiles %}
+{% load static %}
 
 	{{ codelist_formset.management_form }}
 	{{ codelist_formset.non_form_errors }}
@@ -251,7 +251,7 @@
 			});
 		});
 
-$(function() {
+
 		// arrays of added and deleted codes
 		var existingCodesContentArea = document.getElementById('existingCodesContentArea');
 		var newCodesArea = document.getElementById('newCodesArea');
@@ -259,9 +259,14 @@ $(function() {
 		var existingCodeRows = [];
 		var newCodeRows = [];
 
+		var newCodesClusterize = new Clusterize({
+							scrollId: 'newCodesScrollArea',
+							contentId: 'newCodesArea',
+						});
+
 		existingCodesContentArea.onchange = handleExistingCodesEvent;
 		newCodesScrollArea.onchange = handleNewCodesEvent;
-});		
+
 
 		function handleExistingCodesEvent(e){
 			e = e || event;
@@ -359,11 +364,8 @@ $(function() {
 					newCodeRows = formatCodeRow(data.codes);
 					
 					if(newCodeRows){
-						var newCodesClusterize = new Clusterize({
-							rows: newCodeRows,
-							scrollId: 'newCodesScrollArea',
-							contentId: 'newCodesArea',
-						});
+						 newCodesClusterize.update(newCodeRows);
+						 newCodesClusterize.destroy();
 						
 						$('.newCodesCount').text('Rows: ' + newCodesClusterize.getRowsAmount());
 					}
@@ -382,7 +384,10 @@ $(function() {
 
 //-------------------------------------------------------------------------------		
 		$(function(){
-			var existingCodesClusterize;
+			var existingCodesClusterize  = new Clusterize({
+								scrollId: 'existingCodesScrollArea',
+								contentId: 'existingCodesContentArea',
+							});
 			
 			{% if form.instance.pk is not None %}
 				
@@ -409,13 +414,10 @@ $(function() {
 						existingCodeRows = formatCodeRow(data);
 						
 						if(existingCodeRows){
-							existingCodesClusterize = new Clusterize({
-								rows: existingCodeRows,
-								scrollId: 'existingCodesScrollArea',
-								contentId: 'existingCodesContentArea',
-							});
-							
-							$('.existingCodesCount').text('Rows: ' + existingCodesClusterize.getRowsAmount());
+
+							$('.existingCodesCount').text('Rows: ' + existingCodeRows.length);
+							existingCodesClusterize.update(existingCodeRows);
+							existingCodesClusterize.destroy();
 						}
 						$(".loader").hide();
 					});
@@ -438,6 +440,7 @@ $(function() {
 			// search codes
 			$('body').on('click', '#search-querybuilder-btn', function(e){
 				e.preventDefault();
+				//existingCodesClusterize.clear();
 				
 				// get sql code from the jquery querybuilder
 				var searchParams = populateQueryBuilder($(this).data('stmt'));

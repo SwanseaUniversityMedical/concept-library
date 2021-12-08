@@ -3,7 +3,8 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
 from django.core.paginator import Paginator, EmptyPage
-from django.core.urlresolvers import reverse_lazy, reverse
+#from django.core.urlresolvers import reverse_lazy, reverse
+from django.urls import reverse_lazy, reverse
 from django.db import transaction #, models, IntegrityError
 from django.http import HttpResponseRedirect #, StreamingHttpResponse, HttpResponseForbidden
 from django.http.response import HttpResponse, JsonResponse
@@ -18,7 +19,7 @@ import time
 
 #from ..forms.ConceptForms import ConceptForm, ConceptUploadForm
 from ..models import *
-from View import *
+from .View import *
 from .. import db_utils
 from .. import utils
 from ..permissions import *
@@ -66,7 +67,7 @@ def save_statistics(request):
     if Statistics.objects.all().filter(org__iexact = 'HDRUK', type__iexact = 'landing-page').exists():
         HDRUK_stat = Statistics.objects.get(org__iexact = 'HDRUK', type__iexact = 'landing-page')
         HDRUK_stat.stat = stat
-        HDRUK_stat.updated_by = [None, request.user][request.user.is_authenticated()]
+        HDRUK_stat.updated_by = [None, request.user][request.user.is_authenticated]
         HDRUK_stat.modified = datetime.now()
         HDRUK_stat.save()
         
@@ -76,7 +77,7 @@ def save_statistics(request):
                                     org = 'HDRUK',
                                     type = 'landing-page',
                                     stat = stat,
-                                    created_by = [None, request.user][request.user.is_authenticated()]                                    
+                                    created_by = [None, request.user][request.user.is_authenticated]                                    
                                 )
     
         return [stat , obj.id]
@@ -243,7 +244,7 @@ def save_statistics_collections(request, concept_or_phenotype, brand):
         if Statistics.objects.all().filter(org__iexact=brand, type__iexact='concept_collections').exists():
             concept_stat_update = Statistics.objects.get(org__iexact=brand, type__iexact='concept_collections')
             concept_stat_update.stat = concept_stat
-            concept_stat_update.updated_by = [None, request.user][request.user.is_authenticated()]
+            concept_stat_update.updated_by = [None, request.user][request.user.is_authenticated]
             concept_stat_update.modified = datetime.now()
             concept_stat_update.save()
             return [concept_stat, concept_stat_update.id]
@@ -252,7 +253,7 @@ def save_statistics_collections(request, concept_or_phenotype, brand):
                                        org = brand
                                     , type = 'concept_collections'
                                     , stat = concept_stat
-                                    , created_by = [None, request.user][request.user.is_authenticated()]
+                                    , created_by = [None, request.user][request.user.is_authenticated]
                                 )
             return [concept_stat, obj.id]
 
@@ -263,7 +264,7 @@ def save_statistics_collections(request, concept_or_phenotype, brand):
             if Statistics.objects.all().filter(org__iexact=brand, type__iexact='phenotype_collections').exists():
                 phenotype_stat_update = Statistics.objects.get(org__iexact=brand, type__iexact='phenotype_collections')
                 phenotype_stat_update.stat = phenotype_stat
-                phenotype_stat_update.updated_by = [None, request.user][request.user.is_authenticated()]
+                phenotype_stat_update.updated_by = [None, request.user][request.user.is_authenticated]
                 phenotype_stat_update.modified = datetime.now()
                 phenotype_stat_update.save()
                 return [phenotype_stat, phenotype_stat_update.id]
@@ -272,7 +273,7 @@ def save_statistics_collections(request, concept_or_phenotype, brand):
                                           org = brand
                                         , type = 'phenotype_collections'
                                         , stat = phenotype_stat
-                                        , created_by = [None, request.user][request.user.is_authenticated()]
+                                        , created_by = [None, request.user][request.user.is_authenticated]
                                     )
                 return [phenotype_stat, obj.id]
 
