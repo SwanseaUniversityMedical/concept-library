@@ -279,7 +279,7 @@
 <script src="{% static 'js/clinicalcode/dataService.js' %}" type="text/javascript"></script>
 
 <script>
-$(function() {
+
 
 	// arrays of added and deleted codes
 	var existingCodesContentArea = document.getElementById('existingCodesContentArea');
@@ -290,7 +290,7 @@ $(function() {
 	
 	existingCodesContentArea.onchange = handleExistingCodesEvent;
 	newCodesScrollArea.onchange = handleNewCodesEvent;
-});
+
 
 
 	function handleExistingCodesEvent(e){
@@ -361,7 +361,15 @@ $(function() {
 			  }
 			});
 		
-		var existingCodesClusterize;
+		var existingCodesClusterize  = new Clusterize({
+			    				scrollId: 'existingCodesScrollArea',
+			    				contentId: 'existingCodesContentArea'
+			    			});
+
+		var newCodesClusterize = new Clusterize({
+						scrollId: 'newCodesScrollArea',
+						contentId: 'newCodesArea'
+					});
 	
 		var searchText = $('#search-text').val();
 		var regexCode = $('#id_coderegex-0-regex_code').val();
@@ -389,12 +397,10 @@ $(function() {
 		    			newCodeRows = formatCodeRow(data);
 		    			
 		    			if(newCodeRows){
-			    			var newCodesClusterize = new Clusterize({
-			    				rows: newCodeRows,
-			    				scrollId: 'newCodesScrollArea',
-			    				contentId: 'newCodesArea'
-			    			});
-			    			$('.newCodesCount').text('Rows: ' + newCodesClusterize.getRowsAmount());
+
+			    			$('.newCodesCount').text('Rows: ' + newCodeRows.length);
+			    			existingCodesClusterize.update(newCodeRows);
+			    			existingCodesClusterize.destroy();
 		    			}
 		    			deferred.resolve();
 		    		});
@@ -419,12 +425,10 @@ $(function() {
 		    			existingCodeRows = formatCodeRow(data);	
 		    			
 		    			if(existingCodeRows){
-			    			existingCodesClusterize = new Clusterize({
-			    				rows: existingCodeRows,
-			    				scrollId: 'existingCodesScrollArea',
-			    				contentId: 'existingCodesContentArea'
-			    			});
-			    			$('.existingCodesCount').text('Rows: ' + existingCodesClusterize.getRowsAmount());
+
+			    			$('.existingCodesCount').text('Rows: ' + existingCodeRows.length);
+			    			existingCodesClusterize.update(existingCodeRows);
+			    			existingCodesClusterize.destroy();
 		    			}
 		    			deferred.resolve();
 		    		});
@@ -535,12 +539,10 @@ $(function() {
 				newCodeRows = formatCodeRow(data);
 				
 				if(newCodeRows){
-					var newCodesClusterize = new Clusterize({
-						rows: newCodeRows,
-						scrollId: 'newCodesScrollArea',
-						contentId: 'newCodesArea'
-					});
-					$('.newCodesCount').text('Rows: ' + newCodesClusterize.getRowsAmount());
+
+					$('.newCodesCount').text('Rows: ' + newCodeRows.length);
+					newCodesClusterize.update(newCodeRows);
+					newCodesClusterize.destroy();
 				}
 				$(".loader").hide();
 			});
