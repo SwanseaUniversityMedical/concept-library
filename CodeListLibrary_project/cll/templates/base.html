@@ -64,10 +64,7 @@
 		{% if request.CURRENT_BRAND|length %}
 			<link href="{% static 'css/brands/' %}{{request.CURRENT_BRAND}}/brand.css" rel="stylesheet" />
 		{% endif %}
-		
-		<link rel="preconnect" href="https://fonts.gstatic.com">
-		<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans&display=swap" rel="stylesheet">
-		
+
 
 		{% block head %}{% endblock head %}
 
