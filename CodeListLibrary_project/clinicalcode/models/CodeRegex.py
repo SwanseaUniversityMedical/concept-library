@@ -28,7 +28,7 @@ class CodeRegex(models.Model):
     regex_code = models.CharField(max_length=1000, blank=True, null=True)
     column_search = models.IntegerField(choices=SEARCH_COLUMN_CHOICES, blank=True, null=True)
     sql_rules = models.CharField(max_length=1000, blank=True, null=True)
-    code_list = models.ForeignKey(CodeList, blank=True, null=True)
+    code_list = models.ForeignKey(CodeList, on_delete=models.CASCADE, blank=True, null=True)
     
     case_sensitive_search = models.NullBooleanField(default=False)
     

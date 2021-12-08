@@ -16,7 +16,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from datetime import datetime
 from rest_framework.reverse import reverse
-from urlparse import urlparse
+from urllib.parse import urlparse
 import unittest
 
 # from django.conf import settings
@@ -114,9 +114,9 @@ class HistoryTest(StaticLiveServerTestCase):
 
     def login(self, username, password):
         self.logout()
-        self.browser.find_element_by_name('username').send_keys(username)
-        self.browser.find_element_by_name('password').send_keys(password)
-        self.browser.find_element_by_name('password').send_keys(Keys.ENTER)
+        self.browser.find_element(By.NAME,'username').send_keys(username)
+        self.browser.find_element(By.NAME,'password').send_keys(password)
+        self.browser.find_element(By.NAME,'password').send_keys(Keys.ENTER)
 
     def logout(self):
         self.browser.get('%s%s' % (self.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
@@ -193,20 +193,20 @@ class HistoryTest(StaticLiveServerTestCase):
         # go to the latest historical version of the concept
         href = "/concepts/C" + str(self.concept1.id) + "/version/" + str(
             self.concept1.history.first().history_id) + "/detail/"
-        browser.find_element_by_xpath('//a[@href="' + href + '"]').click()
+        browser.find_element(By.XPATH,'//a[@href="' + href + '"]').click()
 
         # click the component details button
         id = "code-preview-" + str(self.comp_pk)
-        browser.find_element_by_xpath('//button[@id="' + id + '"]').click()
+        browser.find_element(By.XPATH,'//button[@id="' + id + '"]').click()
 
         time.sleep(2)
 
-        rows = browser.find_elements_by_xpath('//tbody[@id="expressionSelectContentArea"]/tr')
+        rows = browser.find_elements(By.XPATH,'//tbody[@id="expressionSelectContentArea"]/tr')
         # make sure there is one row of codes (there is one code)
         self.assertEqual(len(rows), 1)
 
         # check the name of the code
-        name = browser.find_element_by_xpath('//tbody[@id="expressionSelectContentArea"]/tr/td').text
+        name = browser.find_element(By.XPATH,'//tbody[@id="expressionSelectContentArea"]/tr/td').text
         self.assertEqual(name, "i2")
 
     '''
@@ -228,7 +228,7 @@ class HistoryTest(StaticLiveServerTestCase):
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
         # create a concept
-        browser.find_element_by_id('id_name').send_keys("concept2")
+        browser.find_element(By.ID,'id_name').send_keys("concept2")
         tagField = browser.find_element_by_class_name('tt-input')
         tagField.send_keys("tag")
 
@@ -238,17 +238,17 @@ class HistoryTest(StaticLiveServerTestCase):
         tagField.send_keys(Keys.DOWN)
         tagField.send_keys(Keys.ENTER)
 
-        browser.find_element_by_id('id_author').send_keys("conceptAuthor")
-        browser.find_element_by_id('id_description').send_keys("concept2222222")
-        browser.find_element_by_id('id_coding_system').send_keys(Keys.DOWN)
+        browser.find_element(By.ID,'id_author').send_keys("conceptAuthor")
+        browser.find_element(By.ID,'id_description').send_keys("concept2222222")
+        browser.find_element(By.ID,'id_coding_system').send_keys(Keys.DOWN)
 
-        browser.find_element_by_id('save-changes').click()
+        browser.find_element(By.ID,'save-changes').click()
 
         concept = Concept.objects.all().order_by('-id')[0]
 
         # go to the latest historical version of the concept
         href = "/concepts/C" + str(concept.id) + "/version/" + str(concept.history.first().history_id) + "/detail/"
-        browser.find_element_by_xpath('//a[@href="' + href + '"]').click()
+        browser.find_element(By.XPATH,'//a[@href="' + href + '"]').click()
 
         # TO-DO assertTrue or equal that tag exist
         self.assertTrue("tagTest" in browser.page_source)

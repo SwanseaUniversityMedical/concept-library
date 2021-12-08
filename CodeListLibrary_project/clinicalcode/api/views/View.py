@@ -7,7 +7,7 @@
     ---------------------------------------------------------------------------
 '''
 from rest_framework import viewsets, status
-from rest_framework.decorators import detail_route, api_view, permission_classes, authentication_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
 from django.http.response import Http404
 from django.db.models import Q
@@ -457,7 +457,7 @@ def get_versions_list(request, set_class, pk):
                 v.history_date,
                 [False, True][v.history_id == max_version_id]
             ]
-        rows_to_return.append(ordr(zip(titles,  ret )))
+        rows_to_return.append(ordr(list(zip(titles,  ret ))))
     
     return rows_to_return
 
@@ -505,7 +505,7 @@ def get_visible_versions_list(request, set_class, pk, is_authenticated_user=True
                 v['is_published'],
                 [False, True][v['history_id'] == max_version_id]
             ]
-        rows_to_return.append(ordr(zip(titles,  ret )))
+        rows_to_return.append(ordr(list(zip(titles,  ret ))))
     
     return rows_to_return
 

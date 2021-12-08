@@ -116,9 +116,9 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
 
     def login(self, username, password):
         self.logout()
-        self.browser.find_element_by_name('username').send_keys(username)
-        self.browser.find_element_by_name('password').send_keys(password)
-        self.browser.find_element_by_name('password').send_keys(Keys.ENTER)
+        self.browser.find_element(By.NAME,'username').send_keys(username)
+        self.browser.find_element(By.NAME,'password').send_keys(password)
+        self.browser.find_element(By.NAME,'password').send_keys(Keys.ENTER)
 
     def logout(self):
         self.browser.get('%s%s' % (self.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
@@ -149,7 +149,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
 
         exist = True
         try:
-            button = self.browser.find_element_by_id('revert-btn')
+            button = self.browser.find_element(By.ID,'revert-btn')
             is_disabled = button.get_attribute("disabled")
             self.assertTrue(is_disabled)
             return True
@@ -182,7 +182,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
 
         exist = True
         try:
-            button = self.browser.find_element_by_id('revert-btn')
+            button = self.browser.find_element(By.ID,'revert-btn')
             is_disabled = button.get_attribute("disabled")
             self.assertTrue(is_disabled)
             return True
@@ -219,7 +219,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
 
         exist = True
         try:
-            button = self.browser.find_element_by_id('fork-btn')
+            button = self.browser.find_element(By.ID,'fork-btn')
             is_disabled = button.get_attribute("disabled")
             self.assertTrue(is_disabled)
             return True
@@ -252,7 +252,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
 
         exist = True
         try:
-            button = self.browser.find_element_by_id('fork-btn')
+            button = self.browser.find_element(By.ID,'fork-btn')
             is_disabled = button.get_attribute("disabled")
             self.assertTrue(is_disabled)
             return True
@@ -285,7 +285,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
 
         exist = True
         try:
-            button = self.browser.find_element_by_id('fork-btn')
+            button = self.browser.find_element(By.ID,'fork-btn')
             is_disabled = button.get_attribute("disabled")
             self.assertTrue(is_disabled)
             return True
@@ -319,7 +319,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
 
         exist = True
         try:
-            button = self.browser.find_element_by_id('fork-btn')
+            button = self.browser.find_element(By.ID,'fork-btn')
             is_disabled = button.get_attribute("disabled")
             self.assertTrue(is_disabled)
             return True
@@ -380,7 +380,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
 
         exist = True
         try:
-            button = self.browser.find_element_by_id('revert-btn')
+            button = self.browser.find_element(By.ID,'revert-btn')
             is_disabled = button.get_attribute("disabled")
             self.assertTrue(is_disabled)
             return True
@@ -414,7 +414,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
 
         exist = True
         try:
-            button = self.browser.find_element_by_id('fork-btn')
+            button = self.browser.find_element(By.ID,'fork-btn')
             is_disabled = button.get_attribute("disabled")
             self.assertTrue(is_disabled)
             return True
@@ -447,7 +447,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
 
         exist = True
         try:
-            button = self.browser.find_element_by_id('fork-btn')
+            button = self.browser.find_element(By.ID,'fork-btn')
             is_disabled = button.get_attribute("disabled")
             self.assertTrue(is_disabled)
             return True

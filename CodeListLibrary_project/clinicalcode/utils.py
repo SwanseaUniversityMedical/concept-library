@@ -160,7 +160,7 @@ def get_paginator_pages(paginator, page):
     rf = False
     # middle  fill '...'
     mf = False
-    for p in xrange(1, np+1):              
+    for p in range(1, np+1):              
         if np <=10:                
             pl.append(p)
         else:

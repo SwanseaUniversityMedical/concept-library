@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% load staticfiles %}
+{% load static %}
 
 {% block title %}| Search Workingset{% endblock title %}
 
@@ -161,7 +161,7 @@
 					<td>{{ workingset.history_id }}</td>
 					<td><!-- a href="{% url 'workingset_detail' workingset.id %}" title="View working set details">{{ workingset.name }}</a-->{{ workingset.name }}
 					{% for item in request.BRAND_GROUPS %}
-						{% for brand, groups in item.iteritems %}
+						{% for brand, groups in item.items %}
 							{% if workingset.group.name in groups %}
 							<img src="{% static 'img/brands/' %}{{brand}}/logo.png" height="10px" title="{{brand}}" alt="{{brand}}" />
 							{% endif %}

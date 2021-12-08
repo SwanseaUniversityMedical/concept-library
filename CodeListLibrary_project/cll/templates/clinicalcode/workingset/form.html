@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% load staticfiles %}
+{% load static %}
 
 {% block title %}
 	{% if pk is None %}
@@ -886,7 +886,7 @@
  	  						if(id == key) {    
  	  							name = "{{concept.name}}";
  	  							author = "{{concept.author}}";
- 	  							full_name = "C"+ {{concept.id}} + "/" + concepts_id_version[key] + " - " + name + ", author: " + author;
+ 	  							full_name = "C"+ "{{concept.id}}" + "/" + concepts_id_version[key] + " - " + name + ", author: " + author;
  	  							
  	  						}
  	  					{% endfor %}

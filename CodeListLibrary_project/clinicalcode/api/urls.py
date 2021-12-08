@@ -9,7 +9,7 @@ from rest_framework import routers
 #from . import views
 #from cll import settings
 from django.conf import settings
-from views import (View, Concept, WorkingSet, Phenotype, DataSource)
+from .views import (View, Concept, WorkingSet, Phenotype, DataSource)
 
 from clinicalcode.views import View as cc_view
  
@@ -20,7 +20,7 @@ These paths will appear as links on the API page.
 router = routers.DefaultRouter()
 router.register('concepts-live', Concept.ConceptViewSet)
 router.register('codes', Concept.CodeViewSet)
-router.register('tags', View.TagViewSet, base_name='tags')
+router.register('tags', View.TagViewSet, basename='tags')
 router.register('datasources2', View.DataSourceViewSet)
 
 
@@ -215,35 +215,35 @@ urlpatterns = [
     
     #==== search data sources =====
     url(r'^data-sources/$',
-        DataSource.get_data_source,
+        DataSource.data_sources,
         name='data_sources'),
     url(r'^data-sources/(?P<pk>\d+)/$',
-        DataSource.get_data_source,
+        DataSource.data_sources,
         name='data_source_by_id'),    
     
     # public 
     url(r'^public/data-sources/$',
-        DataSource.get_data_source, {'show_published_data_only': True},
+        DataSource.published_data_sources, {'show_published_data_only': True},
         name='data_sources_public'),
     url(r'^public/data-sources/(?P<pk>\d+)/$',
-        DataSource.get_data_source, {'show_published_data_only': True},
+        DataSource.published_data_sources, {'show_published_data_only': True},
         name='data_source_by_id_public'), 
         
         
     # only get live phenotypes 
     url(r'^data-sources/live/$',
-        DataSource.get_data_source, {'get_live_phenotypes': True},
+        DataSource.data_sources, {'get_live_phenotypes': True},
         name='data_sources_live'),
     url(r'^data-sources/live/(?P<pk>\d+)/$',
-        DataSource.get_data_source, {'get_live_phenotypes': True},
+        DataSource.data_sources, {'get_live_phenotypes': True},
         name='data_source_live_by_id'),    
     
     # only get live published phenotypes 
     url(r'^public/data-sources/live/$',
-        DataSource.get_data_source, {'get_live_phenotypes': True, 'show_published_data_only': True},
+        DataSource.published_data_sources, {'get_live_phenotypes': True, 'show_published_data_only': True},
         name='data_sources_live_public'),
     url(r'^public/data-sources/live/(?P<pk>\d+)/$',
-        DataSource.get_data_source, {'get_live_phenotypes': True, 'show_published_data_only': True},
+        DataSource.published_data_sources, {'get_live_phenotypes': True, 'show_published_data_only': True},
         name='data_source_live_by_id_public'),    
 ]
 

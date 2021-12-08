@@ -12,7 +12,8 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
 from django.core.paginator import Paginator, EmptyPage
-from django.core.urlresolvers import reverse_lazy, reverse
+#from django.core.urlresolvers import reverse_lazy, reverse
+from django.urls import reverse_lazy, reverse
 from django.db import transaction  # , models, IntegrityError
 from django.http import HttpResponseRedirect  # , StreamingHttpResponse, HttpResponseForbidden
 from django.http.response import HttpResponse, JsonResponse
@@ -35,7 +36,7 @@ from ..models.Brand import Brand
 from ..models.PublishedConcept import PublishedConcept
 from ..models.CodingSystem import CodingSystem
 
-from View import *
+from .View import *
 from .. import db_utils
 from .. import utils
 from ..permissions import *
@@ -133,12 +134,13 @@ class ConceptCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageMixi
             # self.object = form.save()
 
             self.object = form.save()
-            db_utils.modifyConceptChangeReason(self.object.pk, "Created")
+            db_utils.modify_Entity_ChangeReason(Concept, self.object.pk, "Created")
             # to save correctly the computed friendly_id field
             concept = Concept.objects.get(pk=self.object.pk)
             concept.history.latest().delete()
-            concept.changeReason = "Created"
-            concept.save()
+            db_utils.save_Entity_With_ChangeReason(Concept, self.object.pk, "Created")
+            # concept.changeReason = "Created"
+            # concept.save()
 
 
 
@@ -166,7 +168,7 @@ class ConceptDelete(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Templa
     def post(self, request, pk):
         with transaction.atomic():
             db_utils.deleteConcept(pk, request.user)
-            db_utils.modifyConceptChangeReason(pk, "Concept has been deleted")
+            db_utils.modify_Entity_ChangeReason(Concept, pk, "Concept has been deleted")
         messages.success(self.request, "Concept has been successfully deleted.")
         return HttpResponseRedirect(self.get_success_url())
 
@@ -212,7 +214,7 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
     #         tags = Tag.objects.filter(pk__in=tag_list)
     # ----------------------------------------------------------------------
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         components_permissions = build_permitted_components_list(request, pk, concept_history_id=concept_history_id)
 
         can_edit = (not Concept.objects.get(pk=pk).is_deleted) and allowed_to_edit(request, Concept, pk)
@@ -267,7 +269,7 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
         else:
             ver['publish_date'] = None
 
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             if allowed_to_edit(request, Concept, pk) or allowed_to_view(request, Concept, pk):
                 other_historical_versions.append(ver)
             else:
@@ -278,7 +280,7 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
                 other_historical_versions.append(ver)
 
     # how to show codelist tab
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         component_tab_active = "active"
         codelist_tab_active = ""
         codelist = []
@@ -299,7 +301,6 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
 
             concept_codes = codes_with_attributes
         # ---------
-        #Choose which tab will be opened first
         component_tab_active = ""
         codelist_tab_active = "active"
         codelist = concept_codes  # db_utils.getGroupOfCodesByConceptId_HISTORICAL(pk, concept_history_id)
@@ -324,7 +325,7 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
                'codelist_loaded': codelist_loaded,
                'code_attribute_header': code_attribute_header
                }
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         if is_latest_version and (can_edit):
             needed_keys = ['user_can_view_component', 'user_can_edit_component', 'component_error_msg_view',
                            'component_error_msg_edit', 'component_concpet_version_msg', 'latest_history_id']
@@ -356,7 +357,7 @@ class ConceptFork(LoginRequiredMixin, HasAccessToViewConceptCheckMixin, HasAcces
                 data['form_is_valid'] = True
                 data['message'] = render_to_string('clinicalcode/concept/forked.html',
                                                    {'id': new_concept_id}, self.request)
-                db_utils.saveConceptWithChangeReason(new_concept_id,
+                db_utils.save_Entity_With_ChangeReason(Concept, new_concept_id,
                                                      "Forked from concept %s" % pk
                                                      )
         except Exception as e:
@@ -384,7 +385,7 @@ class ConceptRestore(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Templ
     def post(self, request, pk):
         with transaction.atomic():
             db_utils.restoreConcept(pk, request.user)
-            db_utils.modifyConceptChangeReason(pk, "Concept has been restored")
+            db_utils.modify_Entity_ChangeReason(Concept, pk, "Concept has been restored")
         messages.success(self.request, "Concept has been successfully restored.")
         return HttpResponseRedirect(self.get_success_url())
 
@@ -455,7 +456,7 @@ class ConceptUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Update
 
             # save the concept with a change reason to reflect the update within the concept audit history
             self.object = form.save()
-            db_utils.modifyConceptChangeReason(self.kwargs['pk'], "Updated")
+            db_utils.modify_Entity_ChangeReason(Concept, self.kwargs['pk'], "Updated")
             # Get all the 'parent' concepts i.e. those that include this one,
             # and add a history entry to those that this concept has been
             # updated.
@@ -621,7 +622,7 @@ def concept_history_fork(request, pk, concept_history_id):
                 # fork selected concept, returning a newly created concept id
                 new_concept_id, changeReason1 = db_utils.forkHistoryConcept(request.user, concept_history_id)
                 # save the concept with a change reason to reflect the fork from history within the concept audit history
-                db_utils.saveConceptWithChangeReason(new_concept_id, changeReason1)
+                db_utils.save_Entity_With_ChangeReason(Concept, new_concept_id, changeReason1)
                 data['form_is_valid'] = True
                 data['message'] = render_to_string(
                     'clinicalcode/concept/history/forked.html',
@@ -653,7 +654,7 @@ def concept_history_revert(request, pk, concept_history_id):
             with transaction.atomic():
                 db_utils.deleteConceptRelatedObjects(pk)
                 db_utils.revertHistoryConcept(request.user, concept_history_id)
-                db_utils.modifyConceptChangeReason(pk,
+                db_utils.modify_Entity_ChangeReason(Concept, pk,
                                                    "Concept reverted from version %s" % concept_history_id)
 
                 # Update dependent concepts & working sets
@@ -751,7 +752,7 @@ def concept_list(request):
         filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
 
     # check if it is the public site or not
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         # ensure that user is only allowed to view/edit the relevant concepts
 
         get_live_and_or_published_ver = 3
@@ -891,7 +892,10 @@ def concept_upload_codes(request, pk):
                     if request.FILES.get('upload_concept_file'):
                         current_concept = Concept.objects.get(pk=pk)
                         concept_upload_file = request.FILES['upload_concept_file']
-                        codes = list(csv.reader(concept_upload_file, delimiter=','))
+                        
+                        #codes = list(csv.reader(concept_upload_file, delimiter=','))
+                        codes = list(csv.reader([line.decode() for line in concept_upload_file], delimiter=','))
+                        
                         # The posted variables:
                         upload_name = request.POST.get('upload_name')
                         logical_type = request.POST.get('logical_type')
@@ -980,7 +984,7 @@ def concept_upload_codes(request, pk):
                                     }
                                 )
                             ## Now save the concept with a change reason.
-                            # db_utils.saveConceptWithChangeReason(pk, "Created component: %s" % upload_name)
+                            # db_utils.save_Entity_With_ChangeReason(Concept, pk, "Created component: %s" % upload_name)
 
                         # if the concept level depth is 1 and it has categories,
                         # then create a code list for each category and populate
@@ -1058,8 +1062,9 @@ def concept_upload_codes(request, pk):
 
                                 # to save correctly the computed friendly_id field
                                 new_concept.history.latest().delete()
-                                new_concept.changeReason = "Created via upload"
-                                new_concept.save()
+                                # new_concept.changeReason = "Created via upload"
+                                # new_concept.save()
+                                db_utils.save_Entity_With_ChangeReason(Concept, new_concept.pk, "Created via upload")
 
                                 row_count = 0
                                 # get unique set of sub categories for the current category
@@ -1077,7 +1082,7 @@ def concept_upload_codes(request, pk):
                                         component_type=Component.COMPONENT_TYPE_EXPRESSION_SELECT,
                                         concept=new_concept,
                                         created_by=request.user,
-                                        logical_type=logical_type,
+                                        logical_type= 1, # include
                                         name=sub_cat)
                                     code_list = CodeList.objects.create(component=component, description=sub_cat)
                                     codeRegex = CodeRegex.objects.create(
@@ -1107,7 +1112,7 @@ def concept_upload_codes(request, pk):
                                                 }
                                             )
                                     # Save the concept with a change reason to reflect the creation
-                                    db_utils.saveConceptWithChangeReason(new_concept.pk,
+                                    db_utils.save_Entity_With_ChangeReason(Concept, new_concept.pk,
                                                                          "Created component: %s via upload" % (
                                                                              component.name),
                                                                          modified_by_user=request.user)
@@ -1120,7 +1125,7 @@ def concept_upload_codes(request, pk):
                                     concept=current_concept,
                                     concept_ref=new_concept,
                                     created_by=request.user,
-                                    logical_type=1,
+                                    logical_type=logical_type,
                                     name="%s component" % cat,
                                     concept_ref_history_id=new_concept.history.latest().pk
                                 )
@@ -1135,7 +1140,7 @@ def concept_upload_codes(request, pk):
 
                     # components = Component.objects.filter(concept_id=pk)
                     # save the concept with a change reason to reflect the restore within the concept audit history
-                    db_utils.saveConceptWithChangeReason(pk, "Codes uploaded: %s" % upload_name)
+                    db_utils.save_Entity_With_ChangeReason(Concept, pk, "Codes uploaded: %s" % upload_name)
 
                     # Update dependent concepts & working sets
                     db_utils.saveDependentConceptsChangeReason(pk, "Component concept #" + str(pk) + " was updated")
@@ -1326,7 +1331,7 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
 
     current_concept = Concept.objects.get(pk=pk)
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         user_can_export = (allowed_to_view_children(request, Concept, pk, set_history_id=concept_history_id)
                            and
                            db_utils.chk_deleted_children(request, Concept, pk, returnErrors=False,
@@ -1574,7 +1579,7 @@ def compare_concepts_codes(request, concept_id, version_id, concept_ref_id, vers
     columns = ['code', 'description_x', 'description_y', 'merge']
     rows = [tuple(r) for r in full_outer_join_df.to_numpy()]
     net_comparison = [
-        dict(zip(columns, row))
+        dict(list(zip(columns, row)))
         for row in rows
     ]
 

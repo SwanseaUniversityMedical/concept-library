@@ -7,7 +7,7 @@
     ---------------------------------------------------------------------------
 '''
 from rest_framework import viewsets, status
-from rest_framework.decorators import detail_route, api_view, permission_classes, authentication_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
 from django.http.response import Http404
 from django.db.models import Q
@@ -48,7 +48,7 @@ from datetime import datetime
 # from snippets.models import Snippet
 # from snippets.serializers import SnippetSerializer
 from django.core.validators import URLValidator
-from View import *
+from .View import *
 from django.views.defaults import permission_denied
 from django.db.models.aggregates import Max
 from clinicalcode.permissions import get_visible_concepts_live
@@ -272,7 +272,7 @@ def export_concept_codes(request, pk):
                 for a in code_attribute_header:
                     code_attributes.append(c[a])
                     
-            rows_to_return.append(ordr(zip(titles,  
+            rows_to_return.append(ordr(list(zip(titles,  
                                 [
                                     c['code'],  
                                     c['description'].encode('ascii', 'ignore').decode('ascii'),
@@ -283,7 +283,7 @@ def export_concept_codes(request, pk):
                                 ]
                                 +
                                 code_attributes    
-                                )))
+                                ))))
     
         return Response(rows_to_return, status=status.HTTP_200_OK)
 
@@ -407,7 +407,7 @@ def get_historical_concept_codes(request, pk, concept_history_id):
             for a in code_attribute_header:
                 code_attributes.append(c[a])
                     
-        rows_to_return.append(ordr(zip(titles,  
+        rows_to_return.append(ordr(list(zip(titles,  
                             [
                                 c['code'],  
                                 c['description'].encode('ascii', 'ignore').decode('ascii'),
@@ -418,7 +418,7 @@ def get_historical_concept_codes(request, pk, concept_history_id):
                             ]
                             +
                             code_attributes
-                            )))
+                            ))))
 
     return Response(rows_to_return, status=status.HTTP_200_OK)
 
@@ -610,9 +610,9 @@ def api_concept_create(request):
             
             #--------------------------------------
             #--------------------------------------
-              
-            created_concept.changeReason = "Created from API"
-            created_concept.save()   
+            save_Entity_With_ChangeReason(Concept, created_concept.pk, "Created from API")
+            # created_concept.changeReason = "Created from API"
+            # created_concept.save()   
               
             # publish immediately - for HDR-UK testing
             if request.data.get('publish_immediately') == True:
@@ -856,9 +856,9 @@ def api_concept_update(request):
                     
             #--------------------------------------
             #--------------------------------------
-              
-            update_concept.changeReason = "Updates from API"
-            update_concept.save()   
+            save_Entity_With_ChangeReason(Concept, update_concept.pk, "Updated from API")
+            # update_concept.changeReason = "Updated from API"
+            # update_concept.save()   
 
             # Get all the 'parent' concepts i.e. those that include this one,
             # and add a history entry to those that this concept has been updated.
@@ -902,10 +902,6 @@ def user_concepts(request, pk=None):
     return  getConcepts(request, is_authenticated_user=True, pk=pk)
     
 #--------------------------------------------------------------------------
-#disable authentication for this function
-@api_view(['GET'])
-@authentication_classes([])
-@permission_classes([]) 
 def getConcepts(request, is_authenticated_user=True, pk=None):    
     search = request.query_params.get('search', '')
     
@@ -1082,7 +1078,7 @@ def getConcepts(request, is_authenticated_user=True, pk=None):
         if do_not_show_versions != "1":
             ret += [get_visible_versions_list(request, Concept, c['id'], is_authenticated_user)]
         
-        rows_to_return.append(ordr(zip(titles,  ret )))
+        rows_to_return.append(ordr(list(zip(titles,  ret ))))
                
     if concepts_srch:                    
         return Response(rows_to_return, status=status.HTTP_200_OK)
@@ -1167,7 +1163,7 @@ def getConceptDetail(request, pk, concept_history_id=None, is_authenticated_user
             titles = ['versions']
             ret = [get_visible_versions_list(request, Concept, pk, is_authenticated_user)]
             rows_to_return = []
-            rows_to_return.append(ordr(zip(titles,  ret )))
+            rows_to_return.append(ordr(list(zip(titles,  ret ))))
             return Response(rows_to_return, status=status.HTTP_200_OK)   
     #--------------------------
             
@@ -1273,10 +1269,10 @@ def getConceptDetail(request, pk, concept_history_id=None, is_authenticated_user
         codes = com['codes']
         ret_codes = []
         for code in codes:
-            ret_codes.append(ordr(zip(
+            ret_codes.append(ordr(list(zip(
                                         ['code', 'description']
                                         ,  [code['code'], code['description']] 
-                                    )
+                                    ))
                                 )
                             )
                     
@@ -1312,14 +1308,14 @@ def getConceptDetail(request, pk, concept_history_id=None, is_authenticated_user
                 for a in code_attribute_header:
                     code_attributes.append(cd[a])
                          
-            final_ret_codes.append(ordr(zip(code_titles,  
+            final_ret_codes.append(ordr(list(zip(code_titles,  
                                 [
                                     cd['code'],  
                                     cd['description'].encode('ascii', 'ignore').decode('ascii')
                                 ]
                                 +
                                 code_attributes
-                                )))
+                                ))))
         #################          
         #################################################################
         
@@ -1331,7 +1327,7 @@ def getConceptDetail(request, pk, concept_history_id=None, is_authenticated_user
                         com['concept_ref_history_id'],
                         final_ret_codes
                         ]
-        ret_components.append(ordr(zip(com_titles,  ret_comp_data )))
+        ret_components.append(ordr(list(zip(com_titles,  ret_comp_data ))))
 
 
     #ret += [components]
@@ -1339,7 +1335,7 @@ def getConceptDetail(request, pk, concept_history_id=None, is_authenticated_user
     
     ret += [get_visible_versions_list(request, Concept, pk, is_authenticated_user)]
     
-    rows_to_return.append(ordr(zip(titles,  ret )))
+    rows_to_return.append(ordr(list(zip(titles,  ret ))))
                                    
     return Response(rows_to_return, status=status.HTTP_200_OK)                
     

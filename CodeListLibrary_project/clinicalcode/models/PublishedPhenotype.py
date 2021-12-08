@@ -5,7 +5,7 @@ from .Phenotype import  Phenotype
 
 
 class PublishedPhenotype(models.Model):
-    phenotype = models.ForeignKey(Phenotype)
+    phenotype = models.ForeignKey(Phenotype, on_delete=models.CASCADE)
     phenotype_history_id = models.IntegerField(null=False)
     created = models.DateTimeField(auto_now_add=True)  # date of publication
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="ph_publication_owner")
