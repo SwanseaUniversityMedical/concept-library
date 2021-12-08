@@ -3,7 +3,8 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
 from django.core.paginator import Paginator, EmptyPage
-from django.core.urlresolvers import reverse_lazy, reverse
+#from django.core.urlresolvers import reverse_lazy, reverse
+from django.urls import reverse_lazy, reverse
 from django.db import transaction #, models, IntegrityError
 from django.http import HttpResponseRedirect #, StreamingHttpResponse, HttpResponseForbidden
 from django.http.response import HttpResponse, JsonResponse
@@ -18,7 +19,7 @@ import time
 
 #from ..forms.ConceptForms import ConceptForm, ConceptUploadForm
 from ..models import *
-from View import *
+from .View import *
 from .. import db_utils
 from .. import utils
 from ..permissions import *
@@ -295,7 +296,7 @@ def update_concept_tags_from_phenotype_tags():
                     """ 
                 cursor.execute(sql2)
                   
-                print("phenotype/concept: " + p.name + "/"+c.name+":: tags moved")
+                print(("phenotype/concept: " + p.name + "/"+c.name+":: tags moved"))
 
         
         

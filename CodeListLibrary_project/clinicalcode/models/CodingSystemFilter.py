@@ -28,7 +28,7 @@ class CodingSystemFilter(models.Model):
 	label = models.CharField(max_length=50)
 	type = models.CharField(choices=DATA_TYPES, max_length=20)
 	operators = models.ManyToManyField(Operator)
-	coding_system = models.ForeignKey(CodingSystem, blank=True, null=True)
+	coding_system = models.ForeignKey(CodingSystem, on_delete=models.CASCADE, blank=True, null=True)
 
 	def __str__(self):
 		return self.id

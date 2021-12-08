@@ -31,12 +31,12 @@ def db_table_exists(table_name):
 
 
 if settings.DEBUG:
-    print "main url file ..."
+    print("main url file ...")
 
 current_brand = ""
 current_brand = settings.CURRENT_BRAND
 if settings.DEBUG:
-    print "current_brand(settings.CURRENT_BRAND)= ", current_brand
+    print("current_brand(settings.CURRENT_BRAND)= ", current_brand)
     
 #--------------------------------------------------------------------
 brands = []
@@ -52,13 +52,13 @@ urlpatterns = []
 # admin system
 if not settings.CLL_READ_ONLY: 
     urlpatterns += [
-        url(r'^(?i)admin/', admin.site.urls ),
+        url(r'^admin/', admin.site.urls ),
     ]
 #--------------------------------------------------------------------
 
 # api
 urlpatterns += [
-    url(r'^(?i)api/v1/', include('clinicalcode.api.urls', namespace='api')),
+    url(r'^api/v1/', include(('clinicalcode.api.urls', 'cll'), namespace='api')),
 ]
 #--------------------------------------------------------------------
 
@@ -72,7 +72,7 @@ for brand in brands:
     
 # enable login for the main app            
 urlpatterns += [
-    url(r'^(?i)account/', include('django.contrib.auth.urls')),
+    url(r'^account/', include('django.contrib.auth.urls')),
 ]
 #--------------------------------------------------------------------
 
@@ -80,14 +80,14 @@ urlpatterns += [
 # enable index page for all brands
 for brand in brands:
     urlpatterns += [
-        url(r'^(?i)'+brand+'', View.index, name='concept_library_home' ),
+        url(r'^'+brand+'', View.index, name='concept_library_home' ),
         ]
 #--------------------------------------------------------------------
 
 # clinical code application 
 # for the main app
 urlpatterns += [
-    url(r'^(?i)', include('clinicalcode.urls')),
+    url(r'^', include('clinicalcode.urls')),
     ] 
 
 #--------------------------------------------------------------------

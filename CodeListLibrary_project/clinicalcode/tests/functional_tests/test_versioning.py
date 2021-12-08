@@ -13,7 +13,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from datetime import datetime
-from urlparse import urlparse
+from urllib.parse import urlparse
 import time
 import xml.etree.ElementTree as ET
 from django.test import RequestFactory
@@ -183,9 +183,9 @@ class VersioningTest(StaticLiveServerTestCase):
 
     def login(self, username, password):
         self.logout()
-        self.browser.find_element_by_name('username').send_keys(username)
-        self.browser.find_element_by_name('password').send_keys(password)
-        self.browser.find_element_by_name('password').send_keys(Keys.ENTER)
+        self.browser.find_element(By.NAME,'username').send_keys(username)
+        self.browser.find_element(By.NAME,'password').send_keys(password)
+        self.browser.find_element(By.NAME,'password').send_keys(Keys.ENTER)
 
     def logout(self):
         self.browser.get('%s%s' % (self.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
@@ -206,7 +206,7 @@ class VersioningTest(StaticLiveServerTestCase):
 
         codes.sort()
         # self.output.sort()
-        print("REPONSE_CODES: ", codes)
+        print(("REPONSE_CODES: ", codes))
 
         return codes
 
@@ -229,7 +229,7 @@ class VersioningTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        table = self.browser.find_element_by_id('history-table')
+        table = self.browser.find_element(By.ID,'history-table')
         table_rows = table.find_elements_by_tag_name('tr')
 
         i = 1
@@ -253,7 +253,7 @@ class VersioningTest(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
 
         browser = self.browser
-        print("WORKINGSET ID", self.workingset_everybody_can_edit.id)
+        print(("WORKINGSET ID", self.workingset_everybody_can_edit.id))
         # get the test server url
         # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
         #                          self.workingset_everybody_can_edit.id, '/detail/'))
@@ -266,7 +266,7 @@ class VersioningTest(StaticLiveServerTestCase):
         time.sleep(settings_cll.TEST_SLEEP_TIME)
         # self.wait_to_be_logged_in(ow_user)
 
-        table = self.browser.find_element_by_id('history-table')
+        table = self.browser.find_element(By.ID,'history-table')
         table_rows = table.find_elements_by_tag_name('tr')
 
         i = 1
@@ -305,7 +305,7 @@ class VersioningTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        table = self.browser.find_element_by_id('history-table')
+        table = self.browser.find_element(By.ID,'history-table')
         table_rows = table.find_elements_by_tag_name('tr')
 
         i = 1
@@ -321,7 +321,7 @@ class VersioningTest(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
 
         browser = self.browser
-        print("WORKINGSET ID", self.workingset_everybody_can_edit.id)
+        print(("WORKINGSET ID", self.workingset_everybody_can_edit.id))
         # get the test server url
         # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
         #                         self.workingset_everybody_can_edit.id, '/detail/'))
@@ -333,7 +333,7 @@ class VersioningTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        table = self.browser.find_element_by_id('history-table')
+        table = self.browser.find_element(By.ID,'history-table')
         table_rows = table.find_elements_by_tag_name('tr')
 
         i = 1
@@ -364,20 +364,20 @@ class VersioningTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        links = self.browser.find_elements_by_class_name('version-link')
+        links = self.browser.find_elements(By.CLASS_NAME,'version-link')
 
         id_index = 0
         for link in links:
             url = link.get_attribute("href")
             u = urlparse(url)
             # check if url is valid
-            self.assertEquals(u.scheme, 'http')
+            self.assertEqual(u.scheme, 'http')
             path = u.path.split('/')
             # check if url contains concept id
-            self.assertEquals(int(path[2]), self.concept_everybody_can_edit.id)
+            self.assertEqual(int(path[2]), self.concept_everybody_can_edit.id)
             # check if url contains unique history id
             version_id = self.concept_everybody_can_edit.history.all()[id_index].history_id
-            self.assertEquals(int(path[4]), version_id)
+            self.assertEqual(int(path[4]), version_id)
             id_index += 1
 
     def test_workingset_every_version_has_url(self):
@@ -392,20 +392,20 @@ class VersioningTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        links = self.browser.find_elements_by_class_name('version-link')
+        links = self.browser.find_elements(By.CLASS_NAME,'version-link')
 
         id_index = 0
         for link in links:
             url = link.get_attribute("href")
             u = urlparse(url)
             # check if url is valid
-            self.assertEquals(u.scheme, 'http')
+            self.assertEqual(u.scheme, 'http')
             path = u.path.split('/')
             # check if url contains workingset id
-            self.assertEquals(int(path[2]), self.workingset_everybody_can_edit.id)
+            self.assertEqual(int(path[2]), self.workingset_everybody_can_edit.id)
             # check if url contains unique history id
             version_id = self.workingset_everybody_can_edit.history.all()[id_index].history_id
-            self.assertEquals(int(path[4]), version_id)
+            self.assertEqual(int(path[4]), version_id)
             id_index += 1
 
     '''
@@ -443,7 +443,7 @@ class VersioningTest(StaticLiveServerTestCase):
         # make export to csv request
         response = concept_codes_to_csv(request, self.concept_everybody_can_edit.id)
 
-        codes = self.get_codes_from_response(response.content)
+        codes = self.get_codes_from_response(response.content.decode('utf-8'))
 
         historical_codes = getGroupOfCodesByConceptId_HISTORICAL(self.concept_everybody_can_edit.id, latest_version)[0][
             'code']
@@ -451,7 +451,7 @@ class VersioningTest(StaticLiveServerTestCase):
         # test if live codes equals historical codes
         self.assertEqual(codes[0], historical_codes)
 
-        title = self.browser.find_element_by_tag_name('h2').text
+        title = self.browser.find_element(By.TAG_NAME,'h2').text
         # title = self.browser.find_elements_by_tag_name('i')
 
         # test if page contains concept name 
@@ -487,12 +487,12 @@ class VersioningTest(StaticLiveServerTestCase):
         # make export to csv request
         response = workingset_to_csv(request, self.workingset_everybody_can_edit.id)
 
-        codes = self.get_codes_from_response(response.content)
+        codes = self.get_codes_from_response(response.content.decode('utf-8'))
 
         # check if workingset returns code contained by concept
         self.assertEqual(codes, ['45554'])
 
-        title = self.browser.find_element_by_tag_name('h2').text
+        title = self.browser.find_element(By.TAG_NAME,'h2').text
 
         # title = self.browser.find_elements_by_tag_name('i')
 
@@ -524,7 +524,7 @@ class VersioningTest(StaticLiveServerTestCase):
         tree = ET.fromstring(browser.page_source)
 
         for x in tree.iter("concept_version_id"):
-            self.assertEquals(int(x.text), latest_version)
+            self.assertEqual(int(x.text), latest_version)
 
     def test_workingset_has_url_to_latest_ver_in_api(self):
         latest_version = self.concept_everybody_can_edit.history.first().history_id
@@ -547,7 +547,7 @@ class VersioningTest(StaticLiveServerTestCase):
         tree = ET.fromstring(browser.page_source)
 
         for x in tree.iter("concept_version_id"):
-            self.assertEquals(int(x.text), latest_version)
+            self.assertEqual(int(x.text), latest_version)
 
     '''
     The API can get a specific version of a code list
@@ -582,11 +582,15 @@ class VersioningTest(StaticLiveServerTestCase):
         # browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/export_workingset_codes/',
         #                       self.workingset_everybody_can_edit.id))
 
-        browser.get(self.WEBAPP_HOST + reverse('api:api_export_workingset_codes'
-                                               , kwargs={'pk': self.workingset_everybody_can_edit.id})
-                    )
+
+        browser.get(self.WEBAPP_HOST + reverse('api:api_export_workingset_codes_byVersionID'
+                                               , kwargs={'pk': self.workingset_everybody_can_edit.id,
+                                                         'workingset_history_id':self.workingset_everybody_can_edit.history.first().history_id}))
+
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
+
+
 
         self.assertTrue(self.code.code in browser.page_source and
                         self.concept_everybody_can_edit.name in browser.page_source)
@@ -612,16 +616,16 @@ class VersioningTest(StaticLiveServerTestCase):
         time.sleep(settings_cll.TEST_SLEEP_TIME)
         # add child
         # try to add child
-        browser.find_element_by_id(
+        browser.find_element(By.ID,
             'conceptTypes').click()
 
         browser.implicitly_wait(5)
-        browser.find_element_by_id('addConcept').click()
+        browser.find_element(By.ID,'addConcept').click()
 
         wait = WebDriverWait(self.browser, 10)
         wait.until(EC.presence_of_element_located((By.ID, "concept-search-text")))
 
-        concept_search_field = browser.find_element_by_id("concept-search-text")
+        concept_search_field = browser.find_element(By.ID,"concept-search-text")
 
         time.sleep(3)  # wait to load component form
 
@@ -632,12 +636,12 @@ class VersioningTest(StaticLiveServerTestCase):
         concept_search_field.send_keys(Keys.DOWN)
         concept_search_field.send_keys(Keys.ENTER)
 
-        browser.find_element_by_id("saveBtn").click()
+        browser.find_element(By.ID,"saveBtn").click()
 
         time.sleep(4)  # wait to submition be completed
 
         latest_version_after_adding_child = self.concept_everybody_can_edit.history.first().history_id
-        self.assertNotEquals(latest_version, latest_version_after_adding_child)
+        self.assertNotEqual(latest_version, latest_version_after_adding_child)
 
     '''
     When a child concept is updated, the parent concept does not change
@@ -651,4 +655,4 @@ class VersioningTest(StaticLiveServerTestCase):
 
         latest_version_after_child_updatge = self.concept_everybody_can_edit.history.first().history_id
 
-        self.assertEquals(latest_version, latest_version_after_child_updatge)
+        self.assertEqual(latest_version, latest_version_after_child_updatge)

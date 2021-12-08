@@ -283,7 +283,7 @@ class OtherTest(StaticLiveServerTestCase):
             publication_link=Google_website,
             source_reference="",
             citation_requirements="",
-            concept_informations=unicode('[{"3":{"ttt|3":"yyy"}}]'),
+            concept_informations=str('[{"3":{"ttt|3":"yyy"}}]'),
             concept_version={"3": 1},
             created_by=super_user,
             updated_by=super_user,
@@ -302,7 +302,7 @@ class OtherTest(StaticLiveServerTestCase):
             publication_link=Google_website,
             source_reference="",
             citation_requirements="",
-            concept_informations=unicode('[{"%s":{"ttt|3":"yyy"}}, {"%s":{"ttt|3":"yyy"}}]' % (
+            concept_informations=str('[{"%s":{"ttt|3":"yyy"}}, {"%s":{"ttt|3":"yyy"}}]' % (
                 str(self.concept_everybody_can_view.id), str(self.concept_everybody_can_edit.id))),
             concept_version={
                 (str(self.concept_everybody_can_view.id)): self.concept_everybody_can_view.history.first().history_id,
@@ -324,7 +324,7 @@ class OtherTest(StaticLiveServerTestCase):
             publication_link=Google_website,
             source_reference="",
             citation_requirements="",
-            concept_informations=unicode('[{"%s":{"ttt|3":"yyy"}}]' % (str(self.concept_everybody_can_view.id))),
+            concept_informations=str('[{"%s":{"ttt|3":"yyy"}}]' % (str(self.concept_everybody_can_view.id))),
             concept_version={
                 (str(self.concept_everybody_can_view.id)): self.concept_everybody_can_view.history.first().history_id},
             created_by=super_user,
@@ -392,9 +392,10 @@ class OtherTest(StaticLiveServerTestCase):
 
     def login(self, username, password):
         self.logout()
-        self.browser.find_element_by_name('username').send_keys(username)
-        self.browser.find_element_by_name('password').send_keys(password)
-        self.browser.find_element_by_name('password').send_keys(Keys.ENTER)
+        self.browser.find_element(By.NAME,'username').send_keys(username)
+        self.browser.find_element(By.NAME,'password').send_keys(password)
+        self.browser.find_element(By.NAME,'password').send_keys(Keys.ENTER)
+
 
     def logout(self):
         # self.browser.get('%s%s' % (self.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
@@ -425,9 +426,9 @@ class OtherTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        browser.find_element_by_xpath(
+        browser.find_element(By.XPATH,
             ".//input[@type='radio' and @name='world_access' and @value='1']").click()  # Change world access permission to none
-        browser.find_element_by_id("save-changes").click()  # save
+        browser.find_element(By.ID,"save-changes").click()  # save
 
         self.logout()
         # ----------------------
@@ -441,7 +442,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        export_button = self.browser.find_element_by_id('export-btn')
+        export_button = self.browser.find_element(By.ID,'export-btn')
         is_disabled = export_button.get_attribute("disabled")
         self.assertTrue(is_disabled)
 
@@ -463,7 +464,7 @@ class OtherTest(StaticLiveServerTestCase):
                     )
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        self.assertTrue("Permission denied" in browser.page_source)
+        self.assertTrue("You do not have permission to perform this action." or "Permission denied" in browser.page_source)
 
     def test_deleting_concept(self):
         self.login(ow_user, ow_password)
@@ -479,7 +480,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        submit_button = browser.find_element_by_xpath("//button[@type='submit']").click()
+        submit_button = browser.find_element(By.XPATH,"//button[@type='submit']").click()
 
         is_deleted = Concept.objects.get(pk=self.concept_everybody_can_edit.id).is_deleted
         # print(self.concept_everybody_can_edit.id)
@@ -499,7 +500,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        export_button = self.browser.find_element_by_id('export-btn')
+        export_button = self.browser.find_element(By.ID,'export-btn')
         # print(str(export_button))
         is_disabled = export_button.get_attribute("disabled")
         # print(is_disabled)
@@ -523,7 +524,7 @@ class OtherTest(StaticLiveServerTestCase):
                     )
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        self.assertTrue("Permission denied" in browser.page_source)
+        self.assertTrue("You do not have permission to perform this action." or "Permission denied" in browser.page_source)
 
     '''
     Check if user has access to update, delete, API when 
@@ -653,7 +654,9 @@ class OtherTest(StaticLiveServerTestCase):
                     )
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        self.assertTrue("Permission denied." in browser.page_source)
+
+        self.assertTrue("You do not have permission to perform this action." or "Permission denied" in browser.page_source)
+
 
         # browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/concepts/C',
         #                       self.concept_none_can_access.id))
@@ -682,7 +685,7 @@ class OtherTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        self.assertTrue("Permission denied" in browser.page_source)
+        self.assertTrue("You do not have permission to perform this action." or "Permission denied" in browser.page_source)
 
     '''
     If one or more child concepts of a concept is deleted or 
@@ -722,9 +725,9 @@ class OtherTest(StaticLiveServerTestCase):
                     )
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        browser.find_element_by_xpath(
+        browser.find_element(By.XPATH,
             ".//input[@type='radio' and @name='world_access' and @value='1']").click()  # Change world access permission to none
-        browser.find_element_by_id("save-changes").click()  # save
+        browser.find_element(By.ID,"save-changes").click()  # save
 
         time.sleep(settings_cll.IMPLICTLY_WAIT)
 
@@ -733,12 +736,12 @@ class OtherTest(StaticLiveServerTestCase):
                                                          })
                     )
         # Update the child concept
-        browser.find_element_by_xpath('//*[@title="Edit component"]').click()
+        browser.find_element(By.XPATH,'//*[@title="Edit component"]').click()
 
         time.sleep(settings_cll.IMPLICTLY_WAIT)
 
         # Time wait for changes for cicking apply button
-        browser.find_element_by_id("saveBtn2").click()
+        browser.find_element(By.ID,"saveBtn2").click()
 
         time.sleep(settings_cll.IMPLICTLY_WAIT)
 
@@ -753,7 +756,7 @@ class OtherTest(StaticLiveServerTestCase):
                                                , kwargs={'pk': self.concept_everybody_can_view.id})
                     )
 
-        export_button = self.browser.find_element_by_id('export-btn')
+        export_button = self.browser.find_element(By.ID,'export-btn')
         is_disabled = export_button.get_attribute("disabled")
 
         self.assertTrue(is_disabled)
@@ -803,7 +806,7 @@ class OtherTest(StaticLiveServerTestCase):
                     )
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        submit_button = browser.find_element_by_xpath("//button[@type='submit']").click()
+        submit_button = browser.find_element(By.XPATH,"//button[@type='submit']").click()
 
         browser.get(self.WEBAPP_HOST + reverse('concept_update'
                                                , kwargs={'pk': self.concept_everybody_can_view.id,
@@ -811,7 +814,7 @@ class OtherTest(StaticLiveServerTestCase):
                     )
 
         # Time wait for changes for cicking apply button to save current parent concept
-        browser.find_element_by_id("save-changes").click()  # save
+        browser.find_element(By.ID,"save-changes").click()  # save
 
         time.sleep(settings_cll.IMPLICTLY_WAIT)
 
@@ -827,7 +830,7 @@ class OtherTest(StaticLiveServerTestCase):
                     )
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
-        export_button = self.browser.find_element_by_id('export-btn')
+        export_button = self.browser.find_element(By.ID,'export-btn')
 
         is_disabled = export_button.get_attribute("disabled")
         self.assertTrue(is_disabled)
@@ -870,8 +873,8 @@ class OtherTest(StaticLiveServerTestCase):
 
         exist = True
         try:
-            browser.find_element_by_xpath('//button[text()="OPTIONS"]')
-            browser.find_element_by_xpath('//a[text()="GET"]')
+            browser.find_element(By.XPATH,'//button[text()="OPTIONS"]')
+            browser.find_element(By.XPATH,'//a[text()="GET"]')
         except NoSuchElementException:
             exist = False
 
@@ -888,7 +891,7 @@ class OtherTest(StaticLiveServerTestCase):
             if 'rest_framework.renderers.BrowsableAPIRenderer' in setting_django.REST_FRAMEWORK[
                 'DEFAULT_RENDERER_CLASSES']:
                 test = False
-                print("FROM ELSE: ", setting_django.REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'])
+                print(("FROM ELSE: ", setting_django.REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES']))
         else:
             test = False  # browsable=fail
 
@@ -912,11 +915,11 @@ class OtherTest(StaticLiveServerTestCase):
         # pass request to the view
         response = concept_codes_to_csv(request, self.concept_with_excluded_codes.id)
 
-        print("RESPONSE ", response.content)
+        print(("RESPONSE ", response.content.decode('utf-8')))
 
-        codes = response.content  # list with response content which contains codes
+        codes = response.content.decode('utf-8')  # list with response content which contains codes
         test_code1 = self.code_excluded1.code
-        test_code2 = self.code_excluded2.code
+        test_code2 = self.code_excluded2.code#
 
         test = True
         if test_code1 in codes or test_code2 in codes:
@@ -962,7 +965,7 @@ class OtherTest(StaticLiveServerTestCase):
         # pass request to the view
         response = concept_codes_to_csv(request, self.concept_with_excluded_and_included_codes.id)
 
-        codes = response.content  # list with response content which contains codes
+        codes = response.content.decode('utf-8')  # list with response content which contains codes
         test_code1 = self.code_included.code
         test_code2 = self.code_excluded3.code
 
@@ -1009,7 +1012,7 @@ class OtherTest(StaticLiveServerTestCase):
         # pass request to the view
         response = workingset_to_csv(request, self.workingset_with_excluded_codes.id)
 
-        codes = response.content  # list with response content which contains codes
+        codes = response.content.decode('utf-8')  # list with response content which contains codes
         test_code1 = self.code_excluded1.code
         test_code2 = self.code_excluded2.code
 
@@ -1032,7 +1035,7 @@ class OtherTest(StaticLiveServerTestCase):
         # pass request to the view
         response = workingset_to_csv(request, self.workingset_with_excluded_and_included_codes.id)
 
-        codes = response.content  # list with response content which contains codes
+        codes = response.content.decode('utf-8')  # list with response content which contains codes
         test_code1 = self.code_included.code
         test_code2 = self.code_excluded3.code
 

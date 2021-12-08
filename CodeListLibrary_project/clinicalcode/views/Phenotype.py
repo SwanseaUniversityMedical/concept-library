@@ -11,7 +11,8 @@ from django.contrib import messages
 from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.core.paginator import Paginator, EmptyPage
-from django.core.urlresolvers import reverse_lazy, reverse
+#from django.core.urlresolvers import reverse_lazy, reverse
+from django.urls import reverse_lazy, reverse
 #from django.db.models import Q
 from django.db import transaction #, models, IntegrityError
 # from django.forms.models import model_to_dict
@@ -35,9 +36,9 @@ from ..models.CodingSystem import CodingSystem
 from django.contrib.auth.models import User, Group
 
 from django.http import HttpResponseNotFound
-from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.templatetags.static import static
 
-from View import *
+from .View import *
 from .. import db_utils, utils
 from ..permissions import *
 
@@ -122,7 +123,7 @@ def phenotype_list(request):
         filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
         
     # check if it is the public site or not
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         # ensure that user is only allowed to view/edit the relevant phenotype
            
         get_live_and_or_published_ver = 3
@@ -291,7 +292,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     are_concepts_latest_version = True
     version_alerts = {}
         
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         can_edit = (not Phenotype.objects.get(pk=pk).is_deleted) and allowed_to_edit(request, Phenotype, pk)
         
         user_can_export = (allowed_to_view_children(request, Phenotype, pk, set_history_id=phenotype_history_id)
@@ -352,7 +353,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         else:
             ver['publish_date'] = None
             
-        if request.user.is_authenticated(): 
+        if request.user.is_authenticated: 
             if allowed_to_edit(request, Phenotype, pk) or allowed_to_view(request, Phenotype, pk):
                 other_historical_versions.append(ver)
             else:
@@ -363,7 +364,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
                 other_historical_versions.append(ver)
            
     # how to show codelist tab
-    if request.user.is_authenticated():        
+    if request.user.is_authenticated:        
         component_tab_active = "active"
         codelist_tab_active = ""
         codelist = []

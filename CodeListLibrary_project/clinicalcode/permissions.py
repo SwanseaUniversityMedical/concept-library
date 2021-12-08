@@ -67,7 +67,7 @@ def allowed_to_view_children(request, set_class, set_id
     from .models.Component import Component
     from .models.Phenotype import Phenotype
     
-    from db_utils import (getConceptTreeByConceptId
+    from .db_utils import (getConceptTreeByConceptId
                           , getConceptsFromJSON, getGroupOfConceptsByWorkingsetId_historical
                           , get_history_child_concept_components
                           , get_concept_versions_in_workingset
@@ -201,7 +201,7 @@ def allowed_to_view(request, set_class, set_id, set_history_id = None, user = No
     if request is None: # from unit-testing only
         is_authenticated = True
     else:
-        is_authenticated = request.user.is_authenticated()
+        is_authenticated = request.user.is_authenticated
         
     if is_authenticated:
         if user.is_superuser:
@@ -319,7 +319,7 @@ def allowed_to_publish(user, set_class, set_id, historical_id):
         - user is an owner
         - Concept contains codes
     '''
-    from db_utils import getGroupOfCodesByConceptId_HISTORICAL 
+    from .db_utils import getGroupOfCodesByConceptId_HISTORICAL 
 
     if(set_class.objects.get(id=set_id).is_deleted == True): return False
     
@@ -715,7 +715,7 @@ def get_visible_concepts(request, get_Published_concepts=True, show_concept_vers
     # This does NOT excludes deleted ones
     from .models.Concept import Concept
     from .models.PublishedConcept import PublishedConcept
-    from db_utils import (get_list_of_visible_entity_ids, get_visible_live_or_published_concept_versions)
+    from .db_utils import (get_list_of_visible_entity_ids, get_visible_live_or_published_concept_versions)
     
     user = request.user
     
@@ -805,7 +805,7 @@ def is_brand_accessible(request, set_class, set_id, set_history_id = None):
     """
         When in a brand, show only this brand's data
     """
-    from db_utils import (get_brand_collection_ids, getHistoryTags_Workingset)
+    from .db_utils import (get_brand_collection_ids, getHistoryTags_Workingset)
     from .models.Concept import Concept
     from .models.Phenotype import Phenotype
     from .models.WorkingSet import WorkingSet

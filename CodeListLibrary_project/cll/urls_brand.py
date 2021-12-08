@@ -26,7 +26,7 @@ from django.views.decorators.cache import cache_control
 
 # Brands
 if settings.DEBUG:
-    print "BRANDING url file ..."
+    print("BRANDING url file ...")
 
 
 current_brand = ""
@@ -37,7 +37,7 @@ if settings.IS_HDRUK_EXT == "1":
 
     
 if settings.DEBUG:
-    print "current_brand(settings.CURRENT_BRAND)= ", current_brand
+    print("current_brand(settings.CURRENT_BRAND)= ", current_brand)
 
 #--------------------------------------------------------------------
 
@@ -47,25 +47,25 @@ urlpatterns = []
 # admin system
 if not settings.CLL_READ_ONLY:     
     urlpatterns += [
-        url(r'^(?i)'+current_brand+'admin/', admin.site.urls ),
+        url(r'^'+current_brand+'admin/', admin.site.urls ),
     ]
 #--------------------------------------------------------------------
 
 # api
 urlpatterns += [
-    url(r'^(?i)'+current_brand+'api/v1/', include('clinicalcode.api.urls', namespace='api')),
+    url(r'^'+current_brand+'api/v1/', include(('clinicalcode.api.urls', 'cll'), namespace='api')),
 ]
 #--------------------------------------------------------------------
 
 # clinical code application
 urlpatterns += [
-    url(r'^(?i)'+current_brand+'', include('clinicalcode.urls')),
+    url(r'^'+current_brand+'', include('clinicalcode.urls')),
     ] 
 #--------------------------------------------------------------------
 
 # Add django site authentication urls (for login, logout, password management)
 urlpatterns += [
-    url(r'^(?i)'+current_brand+'account/', include('django.contrib.auth.urls')),
+    url(r'^'+current_brand+'account/', include('django.contrib.auth.urls')),
 ]
 
 #--------------------------------------------------------------------

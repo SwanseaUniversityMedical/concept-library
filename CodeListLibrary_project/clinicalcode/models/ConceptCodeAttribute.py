@@ -19,7 +19,7 @@ class ConceptCodeAttribute(TimeStampedModel):
         This is a lookup not related to the concept components.
     '''
 
-    concept = models.ForeignKey(Concept)
+    concept = models.ForeignKey(Concept, on_delete=models.CASCADE)
     code = models.CharField(max_length=100)  # A Single Code
     attributes = ArrayField(models.CharField(max_length=250), blank=True, null=True)  # Array of attribute value /without headers
 

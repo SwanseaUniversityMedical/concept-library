@@ -7,8 +7,8 @@ from .Tag import Tag
 
 
 class WorkingSetTagMap(TimeStampedModel):
-    workingset = models.ForeignKey(WorkingSet)
-    tag = models.ForeignKey(Tag)
+    workingset = models.ForeignKey(WorkingSet, on_delete=models.CASCADE)
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="workingsettagmaps_created")
 
     history = HistoricalRecords()

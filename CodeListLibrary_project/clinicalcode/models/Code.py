@@ -10,7 +10,7 @@ class CodeManager(models.Manager):
 
 
 class Code(models.Model):
-    code_list = models.ForeignKey(CodeList, related_name="codes")
+    code_list = models.ForeignKey(CodeList, on_delete=models.CASCADE, related_name="codes")
     code = models.CharField(max_length=100)  # A Single Code
     description = models.CharField(max_length=510)
 

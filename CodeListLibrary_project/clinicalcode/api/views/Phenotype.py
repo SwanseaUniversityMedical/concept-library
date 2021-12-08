@@ -1,5 +1,5 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import detail_route, api_view, permission_classes, authentication_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
 from django.http.response import Http404
 from django.db.models import Q
@@ -27,11 +27,11 @@ from collections import OrderedDict as ordr
 from ...utils import *
 from numpy.distutils.fcompiler import none
 
-from View import *
+from .View import *
 from django.core import serializers
 from datetime import datetime
 from django.core.validators import URLValidator
-from View import chk_group, chk_group_access, chk_tags, chk_world_access
+from .View import chk_group, chk_group_access, chk_tags, chk_world_access
 from django.db.models.aggregates import Max
 from clinicalcode.models.PhenotypeDataSourceMap import PhenotypeDataSourceMap
 
@@ -173,9 +173,9 @@ def api_phenotype_create(request):
                     PhenotypeDataSourceMap.objects.get_or_create(phenotype=new_phenotype, datasource=DataSource.objects.get(id=datasource_id), created_by=request.user)
                     
         
-            
-            created_pt.changeReason = "Created from API"
-            created_pt.save()   
+            save_Entity_With_ChangeReason(Phenotype, created_pt.pk, "Created from API")
+            # created_pt.changeReason = "Created from API"
+            # created_pt.save()   
             
             # publish immediately - for HDR-UK testing
             if request.data.get('publish_immediately') == True:
@@ -348,9 +348,9 @@ def api_phenotype_update(request):
                 datasource_to_remove = PhenotypeDataSourceMap.objects.filter(phenotype=update_phenotype, datasource=DataSource.objects.get(id=datasource_id_to_remove))
                 datasource_to_remove.delete()
               
-                      
-            update_phenotype.changeReason = "Updated from API"
-            update_phenotype.save()   
+            save_Entity_With_ChangeReason(Phenotype, update_phenotype.pk, "Updated from API")        
+            # update_phenotype.changeReason = "Updated from API"
+            # update_phenotype.save()   
             
             # publish immediately - for HDR-UK testing
             if request.data.get('publish_immediately') == True:
@@ -448,17 +448,13 @@ def published_phenotypes(request, pk=None):
 @api_view(['GET'])
 def phenotypes(request, pk=None):
     '''
-        Get the API output for the list of my phenotypes.
+        Get the API output for the list of user phenotypes.
     '''
     return  getPhenotypes(request, is_authenticated_user=True, pk=pk)
     
 
 
 #--------------------------------------------------------------------------
-#disable authentication for this function
-@api_view(['GET'])
-@authentication_classes([])
-@permission_classes([]) 
 def getPhenotypes(request, is_authenticated_user=True, pk=None):   
     search = request.query_params.get('search', '')
     
@@ -646,7 +642,7 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None):
         if do_not_show_versions != "1":
             ret += [get_visible_versions_list(request, Phenotype, c['id'], is_authenticated_user)]
         
-        rows_to_return.append(ordr(zip(titles,  ret )))
+        rows_to_return.append(ordr(list(zip(titles,  ret ))))
                                                               
     
     if phenotypes_srch:                    
@@ -731,7 +727,7 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None, is_authenticated_
             titles = ['versions']
             ret = [get_visible_versions_list(request, Phenotype, pk, is_authenticated_user)]
             rows_to_return = []
-            rows_to_return.append(ordr(zip(titles,  ret )))
+            rows_to_return.append(ordr(list(zip(titles,  ret ))))
             return Response(rows_to_return, status=status.HTTP_200_OK)   
     #--------------------------
         
@@ -907,14 +903,14 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None, is_authenticated_
                 for a in code_attribute_header:
                     code_attributes.append(cd[a])
                          
-            final_ret_codes.append(ordr(zip(code_titles,  
+            final_ret_codes.append(ordr(list(zip(code_titles,  
                                 [
                                     cd['code'],  
                                     cd['description'].encode('ascii', 'ignore').decode('ascii')
                                 ]
                                 +
                                 code_attributes
-                                )))
+                                ))))
         #################  
         ret_comp_data = [
                             c.name, 
@@ -923,7 +919,7 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None, is_authenticated_
                             c.coding_system.name,
                             final_ret_codes
                         ]
-        ret_concepts.append(ordr(zip(com_titles,  ret_comp_data )))
+        ret_concepts.append(ordr(list(zip(com_titles,  ret_comp_data ))))
 
 
     # concepts
@@ -935,7 +931,7 @@ def getPhenotypeDetail(request, pk, phenotype_history_id=None, is_authenticated_
     ret += [get_visible_versions_list(request, Phenotype, pk, is_authenticated_user)]
 
 
-    rows_to_return.append(ordr(zip(titles,  ret )))
+    rows_to_return.append(ordr(list(zip(titles,  ret ))))
                                    
     return Response(rows_to_return, status=status.HTTP_200_OK)                
     

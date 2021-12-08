@@ -7,7 +7,7 @@ from django.db import models
 from django.contrib.auth.models import User, Group
 from simple_history.models import HistoricalRecords
 from django.contrib.postgres.fields import JSONField
-from TimeStampedModel import TimeStampedModel
+from .TimeStampedModel import TimeStampedModel
 from ..permissions import Permissions
 
 class WorkingSet(TimeStampedModel):
@@ -27,7 +27,7 @@ class WorkingSet(TimeStampedModel):
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="working_set_updated")
     is_deleted = models.NullBooleanField()
     deleted = models.DateTimeField(null=True, blank=True)
-    deleted_by = models.ForeignKey(User, null=True, related_name="working_set_deleted")
+    deleted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="working_set_deleted")
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="working_set_owned")
     group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True)
     owner_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.EDIT)

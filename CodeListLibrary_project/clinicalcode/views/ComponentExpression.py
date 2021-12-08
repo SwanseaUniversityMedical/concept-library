@@ -157,7 +157,7 @@ class ComponentExpressionCreate(LoginRequiredMixin,
 
             # Save the concept with a change reason to reflect the creation
             # within the concept audit history.
-            db_utils.saveConceptWithChangeReason(self.kwargs['concept_id'],
+            db_utils.save_Entity_With_ChangeReason(Concept, self.kwargs['concept_id'],
                 "Created component: %s" % (form.instance.name) , modified_by_user=self.request.user)
             # Update dependent concepts & working sets
             db_utils.saveDependentConceptsChangeReason(self.kwargs['concept_id'], "Component concept #" + str(self.kwargs['concept_id']) + " was updated")
@@ -221,7 +221,7 @@ class ComponentExpressionDelete(LoginRequiredMixin,
         #components = Component.objects.filter(concept_id=component.concept_id)
         # Save the *concept* with a change reason to note the component
         # deletion in its history.
-        db_utils.saveConceptWithChangeReason(kwargs['concept_id'],
+        db_utils.save_Entity_With_ChangeReason(Concept, kwargs['concept_id'],
             "Deleted component: %s" % (component_name) , modified_by_user=self.request.user)
         # Update dependent concepts & working sets
         db_utils.saveDependentConceptsChangeReason(kwargs['concept_id'], "Component concept #" + str(kwargs['concept_id']) + " was updated")
@@ -340,7 +340,7 @@ class ComponentExpressionUpdate(LoginRequiredMixin,
 
                 # Save the concept with a change reason to reflect the update
                 # within the concept audit history.
-                db_utils.saveConceptWithChangeReason(self.kwargs['concept_id'],
+                db_utils.save_Entity_With_ChangeReason(Concept, self.kwargs['concept_id'],
                     "Updated component: %s" % (form.instance.name) , modified_by_user=self.request.user)
                 # Update dependent concepts & working sets
                 db_utils.saveDependentConceptsChangeReason(self.kwargs['concept_id'], "Component concept #" + str(self.kwargs['concept_id']) + " was updated")
@@ -454,7 +454,8 @@ class ComponentExpressionSelectCodeCreate(LoginRequiredMixin,
             # get and process any uploaded files
             if self.request.FILES.get('upload_file'):
                 csv_file = self.request.FILES['upload_file']
-                file_reader = csv.reader(csv_file, delimiter=',')
+                #file_reader = csv.reader(csv_file, delimiter=',')
+                file_reader = csv.reader([line.decode() for line in csv_file], delimiter=',')
 
                 row_count = 0
 
@@ -472,7 +473,7 @@ class ComponentExpressionSelectCodeCreate(LoginRequiredMixin,
 
             # save the concept with a change reason to reflect the creation
             # within the concept audit history
-            db_utils.saveConceptWithChangeReason(self.kwargs['concept_id'],
+            db_utils.save_Entity_With_ChangeReason(Concept, self.kwargs['concept_id'],
                 "Created code %s for component: %s" %
                 (form.instance.code, code_list.component.name) , modified_by_user=self.request.user)
                 
@@ -593,8 +594,9 @@ class ComponentExpressionSelectCreate(LoginRequiredMixin,
             # process any uploaded files
             if self.request.FILES.get('upload_file'):
                 csv_file = self.request.FILES['upload_file']
-                file_reader = csv.reader(csv_file, delimiter=',')
-
+                #file_reader = csv.reader(csv_file, delimiter=',')
+                file_reader = csv.reader([line.decode() for line in csv_file], delimiter=',')
+                
                 row_count = 0
                 for row in file_reader:
                     row_count += 1
@@ -625,7 +627,7 @@ class ComponentExpressionSelectCreate(LoginRequiredMixin,
 
             # save the concept with a change reason to reflect the creation
             # within the concept audit history
-            db_utils.saveConceptWithChangeReason(self.kwargs['concept_id'],
+            db_utils.save_Entity_With_ChangeReason(Concept, self.kwargs['concept_id'],
                 "Created component: %s" % (form.instance.name) , modified_by_user=self.request.user)
             # Update dependent concepts & working sets
             db_utils.saveDependentConceptsChangeReason(self.kwargs['concept_id'], "Component concept #" + str(self.kwargs['concept_id']) + " was updated")
@@ -690,7 +692,7 @@ class ComponentExpressionSelectDelete(LoginRequiredMixin,
         #components = Component.objects.filter(concept_id=component.concept_id)
         # Save the *concept* with a change reason to note the component
         # deletion in its history.
-        db_utils.saveConceptWithChangeReason(kwargs['concept_id'],
+        db_utils.save_Entity_With_ChangeReason(Concept, kwargs['concept_id'],
             "Deleted component: %s" % (component_name) , modified_by_user=self.request.user)
         # Update dependent concepts & working sets
         db_utils.saveDependentConceptsChangeReason(kwargs['concept_id'], "Component concept #" + str(kwargs['concept_id']) + " was updated")
@@ -788,7 +790,8 @@ class ComponentExpressionSelectUpdate(LoginRequiredMixin,
                 # process any uploaded files
                 if self.request.FILES.get('upload_file'):
                     csv_file = self.request.FILES['upload_file']
-                    file_reader = csv.reader(csv_file, delimiter=',')
+                    #file_reader = csv.reader(csv_file, delimiter=',')
+                    file_reader = csv.reader([line.decode() for line in csv_file], delimiter=',')
 
                     row_count = 0
                     for row in file_reader:
@@ -832,7 +835,7 @@ class ComponentExpressionSelectUpdate(LoginRequiredMixin,
 
                 # save the concept with a change reason to reflect the update
                 # within the concept audit history
-                db_utils.saveConceptWithChangeReason(self.kwargs['concept_id'],
+                db_utils.save_Entity_With_ChangeReason(Concept, self.kwargs['concept_id'],
                     "Updated component: %s" % (form.instance.name) , modified_by_user=self.request.user)
                 # Update dependent concepts & working sets
                 db_utils.saveDependentConceptsChangeReason(self.kwargs['concept_id'], "Component concept #" + str(self.kwargs['concept_id']) + " was updated")

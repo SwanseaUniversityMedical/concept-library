@@ -218,15 +218,15 @@ def build_permitted_components_list(request, concept_id, concept_history_id=None
             user_can_edit_components += [component.id]
 
     # clean error msg
-    for cid, value in component_error_msg_view.items():
+    for cid, value in list(component_error_msg_view.items()):
         if value ==[]:
             component_error_msg_view.pop(cid, None)
         
-    for cid, value in component_error_msg_edit.items():
+    for cid, value in list(component_error_msg_edit.items()):
         if value ==[]:
             component_error_msg_edit.pop(cid, None)
         
-    for cid, value in component_concpet_version_msg.items():
+    for cid, value in list(component_concpet_version_msg.items()):
         if value ==[]:
             component_concpet_version_msg.pop(cid, None)
                 
@@ -324,7 +324,7 @@ def customRoot(request):
         })
 
     # replace 0/123 by {id}/{version_id}
-    for k, v in urls_available.items():
+    for k, v in list(urls_available.items()):
         new_url = urls_available[k].replace('C0', '{id}').replace('PH0', '{id}').replace('WS0', '{id}').replace('123', '{version_id}')
         urls_available[k] = new_url
         

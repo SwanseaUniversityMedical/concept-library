@@ -1,4 +1,4 @@
-FROM amd64/debian:stretch AS base
+FROM amd64/debian:bullseye AS base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -17,7 +17,7 @@ RUN \
   apt-get upgrade -y -q && \
   apt-get install -y -q --no-install-recommends apt-utils && \
   apt-get install -y -q ssh apache2 && \
-  apt-get install -y -q libapache2-mod-wsgi && \
+  apt-get install -y -q libapache2-mod-wsgi-py3 && \
   apt-get install -y -q wget && \
   apt-get -y -q install sudo nano
 
@@ -29,16 +29,17 @@ RUN apt-get install -y -q libsasl2-dev python-dev libldap2-dev libssl-dev
 
 # install & upgrade pip
 RUN \
-  apt-get install -y -q python-pip && \
-  pip ${pip_proxy} install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip==20.2
+  apt-get install -y -q python3-pip 
+  #&& \
+  #pip ${pip_proxy} install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip==20.2
 
 
-#RUN \
-#  pip --proxy http://192.168.10.15:8080 install  --upgrade pip 
+RUN \
+  pip --proxy http://192.168.10.15:8080 install  --upgrade pip 
 
 RUN \
   pip install virtualenv && \
-  pip install psycopg2-binary
+  pip install psycopg2-binary==2.8.6
 
 RUN mkdir -p /home/config_cll/cll_srvr_logs
 RUN chmod 750 /home/config_cll/cll_srvr_logs

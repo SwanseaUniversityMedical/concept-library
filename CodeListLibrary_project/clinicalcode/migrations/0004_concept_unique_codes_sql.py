@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Modified by: Pete Arnold
-from __future__ import unicode_literals
+
 
 from django.db import migrations
 
