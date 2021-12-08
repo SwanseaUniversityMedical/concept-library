@@ -415,7 +415,6 @@ DEV_PRODUCTION = ""
 if IS_DEMO:  # Demo server
     DEV_PRODUCTION = "<i class='glyphicon glyphicon-cog'  aria-hidden='true'> </i> DEMO SITE <i class='glyphicon glyphicon-cog'  aria-hidden='true'> </i>"
  
-DEV_PRODUCTION += "<i class='glyphicon glyphicon-cog'  aria-hidden='true'> </i> Python 3.9 <i class='glyphicon glyphicon-cog'  aria-hidden='true'> </i>"
 
 
 
