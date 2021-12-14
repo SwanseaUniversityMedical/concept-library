@@ -3168,7 +3168,7 @@ def getHistoryDataSource_Phenotype(phenotype_id, phenotype_history_date):
         ]
 
 
-def get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
+def get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id, target_concept_id=None, target_concept_history_id=None):
     '''
         Get the codes of the phenotype concepts
         for a specific version
@@ -3208,6 +3208,11 @@ def get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
     for concept in concept_ids_historyIDs:
         concept_id = concept[0]
         concept_version_id = concept[1]
+        
+        if (target_concept_id is not None and target_concept_history_id is not None):
+            if target_concept_id != str(concept_id) and target_concept_history_id != str(concept_version_id) :
+                continue
+        
         concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version_id).coding_system.name
         
         rows_no = 0

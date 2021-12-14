@@ -96,8 +96,8 @@ urlpatterns += [
     url(r'^phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/export/concepts/$',
         Phenotype.history_phenotype_codes_to_csv,
         name='history_phenotype_codes_to_csv'),
-    
-    url(r'^phenotypes/PH(?P<pk>\d+)/uniquecodesbyversion/(?P<phenotype_history_id>\d+)/$',
+  
+    url(r'^phenotypes/PH(?P<pk>\d+)/uniquecodesbyversion/(?P<phenotype_history_id>\d+)/concept/C(?P<target_concept_id>\d+)/(?P<target_concept_history_id>\d+)/$',
         Phenotype.phenotype_conceptcodesByVersion,
         name='phenotype_conceptcodesByVersion'),
 ]
