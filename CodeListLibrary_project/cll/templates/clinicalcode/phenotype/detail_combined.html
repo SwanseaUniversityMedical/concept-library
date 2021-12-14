@@ -398,7 +398,7 @@
 
 								
 				<div class="tab-content">
-					<div id="component-tab-div" class="tab-pane {{ component_tab_active }}" >
+					<div id="component-tab-div" class="tab-pane {{ component_tab_active }}" codelist_loaded="{{ codelist_loaded }}" >
                  	 <!-- component-tab-div -->
                  
 
@@ -451,7 +451,7 @@
 		      </div>
 			      
 		   </div>
-		   <div  id="collapse_c{{ c.concept_version_id }}"  codelist_loaded="{{ codelist_loaded }}" 
+		   <div  id="collapse_c{{ c.concept_version_id }}"  codelist_loaded="{{ codelist_loaded }}" target_concept_id="{{ c.concept_id }}"  target_concept_history_id="{{ c.concept_version_id }}" 
 		      class="panel-collapse collapse{% if user.is_authenticated %} pre-scrollable{% endif %}"
 		      role="tabpanel" aria-labelledby="c{{ c.concept_version_id }}" >
 		      <div class="panel-body">
@@ -518,49 +518,7 @@
 			         </div>
 					
 					
-					<!-- TAB FOR ALL CODES TOGETHER -->
-					<div id="codelist-tab-div" codelist_loaded="{{ codelist_loaded }}" class="tab-pane {{ codelist_tab_active }} " >
-						<div class="row">
-						<br>
-							<div class="col-md-6">
-								<span id="codesCount_all" class="codesCount label label-primary">Rows: {{ codelist|length }}</span>
-							</div>
-						</div>
-						
-						<div id="codelist-div-container" {% if user.is_authenticated %} class="pre-scrollable" {% endif %} >						
-							<table class="table table-striped small-table" id="codelist-tab-table" >
-								<thead>
-									<tr>
-										<th>Code</th>
-										<th>Description</th>
-										<th>Coding System</th>
-										<th>Concept</th>
-									</tr>
-								</thead>
-								<tbody>
-								{% for code in codelist %}
-									<tr>
-										<td>{{ code.code }}</td>
-										<td>{{ code.description }}</td>
-										<td>{{ code.coding_system }}</td>
-										<td>C{{ code.concept_id }}/{{ code.concept_version_id }}</td>													
-									</tr>
-								{% empty %}
-									<tr>
-										<td colspan="4" class="text-center bg-warning spinner" id="no-codes-td">
-											{% if codelist_loaded == 0 %}
-											    Loading ...
-											{% else %}
-												No codes
-											{% endif %} 											
-										</td>
-									</tr>
-								{% endfor %}
-								</tbody>
-							</table>
-							
-						</div>
-					</div>
+
 					
 				</div>
 					  
@@ -595,7 +553,7 @@
 			<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="permissions"></span><strong>Permissions</strong></h3>
 			
 			
-<!--							<div class="row" style="margin-top: 10px;">
+<!--					<div class="row" style="margin-top: 10px;">
 							<div  class="col-sm-3">Created by</div>
 							<div class="col-sm-3">
 								{{ phenotype.created_by_username }}
@@ -859,26 +817,19 @@
 
 	
 	<script type="text/javascript">
-		$('#codelisttab').click(function(e) {
-			getConceptsCodes();
-		});
 
-		function getConceptsCodes() {
-			if($('#codelist-tab-div').attr("codelist_loaded") === "0"){
+		function getConceptsCodes(target_concept_id, target_concept_history_id) {
+			if($('#collapse_c'+ target_concept_history_id).attr("codelist_loaded") === "0"){
 				// get the unique codes for the phenotype version
 				phenotype_id = $('#phenotype_id_div').attr("phenotype_id");
 				phenotype_history_id =$('#phenotype_history_id_div').attr("phenotype_history_id");
 								
-				dataService.getPhenotypeUniqueCodesByVersion(phenotype_id, phenotype_history_id, function(data){
-						$('#codelist-tab-table tbody').html(data.html_uniquecodes_list);
-
-						$('#codesCount_all').text('Rows: ' + data.codes_count);
-						showConceptsCodes(data.concept_codes_html);
-
+				dataService.getPhenotypeUniqueCodesByVersion(phenotype_id, phenotype_history_id, target_concept_id, target_concept_history_id, function(data){
+						showConceptsCodes(data.concept_codes_html, target_concept_id, target_concept_history_id);
 				});
 				
 				
-				$('#codelist-tab-div').attr("codelist_loaded" , "1");
+				$('#collapse_c'+ target_concept_history_id).attr("codelist_loaded" , "1");
 				
 			}else {
 			    // Generate standard type of table in code list if not login
@@ -897,7 +848,7 @@
 		}
 		
 		
-		function showConceptsCodes(concept_codes_html_list) {
+		function showConceptsCodes(concept_codes_html_list, target_concept_id, target_concept_history_id) {
 			$.each(concept_codes_html_list, function( i , v ) {
 					$('#codelist-tab-table-c' + v.concept_version_id + ' tbody').html(v.c_html);
 					$('#codesCount_c' + v.concept_version_id).text('Rows: ' + v.c_codes_count);
@@ -923,6 +874,32 @@
 
 		}
 		
+		function showConceptsCodes_XX(concept_codes_html_list, target_concept_id, target_concept_history_id) {
+			$.each(concept_codes_html_list, function( i , v ) {
+					$('#codelist-tab-table-c' + v.concept_version_id + ' tbody').html(v.c_html);
+					$('#codesCount_c' + v.concept_version_id).text('Rows: ' + v.c_codes_count);
+					 var table = $('#codelist-tab-table-c' + v.concept_version_id).DataTable({
+                         "initComplete":function () {
+                             $('#codelist-tab-table-c' + v.concept_version_id).addClass(
+                                 "specific_tablist")
+                         },
+                         "scrollX":true,
+                         "scrollY":"700px",
+                         "scrollCollapse": true,
+                         "lengthMenu": [[10, 25, 50,100, -1], [10, 25, 50, 100, "All"]],
+                         "colReorder": true,
+                         "rowReorder": true,
+                         //"fixedHeader": true
+
+
+                    });
+
+
+				});
+
+
+		}
+				
 
 		$("#printBtn").click(function () {
 			//window.print();
@@ -1000,7 +977,10 @@
 			    //$('#accordion .panel-collapse').collapse('hide');
 			});
 			
-			function toggleIcon(e) { getConceptsCodes(); 
+			function toggleIcon(e) { 
+				getConceptsCodes($(e.target).attr("target_concept_id") , $(e.target).attr("target_concept_history_id")); 
+				//alert($(e.target).attr("target_concept_id") +'/'+ $(e.target).attr("target_concept_history_id")); 
+				
 			      $(e.target)
 			          .prev('.panel-heading')
 			          .find(".plus-minus")
@@ -1022,10 +1002,10 @@
 	
 	<script type="text/javascript">	
 		function showSelection(e) {
-  		if (document.querySelector('#navList a.active') !== null) {
-    		document.querySelector('#navList a.active').classList.remove('active');
-  		}
-		e.target.className = "active";
+	  		if (document.querySelector('#navList a.active') !== null) {
+	    		document.querySelector('#navList a.active').classList.remove('active');
+	  		}
+			e.target.className = "active";
 		}
 	</script>
 	
