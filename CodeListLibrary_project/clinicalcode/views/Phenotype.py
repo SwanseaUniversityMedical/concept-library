@@ -476,13 +476,16 @@ def checkConceptVersionIsTheLatest(phenotypeID):
     return is_ok, version_alerts
     
 @login_required
-def phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
+def phenotype_conceptcodesByVersion(request, pk, phenotype_history_id, target_concept_id=None, target_concept_history_id=None):
     '''
         Get the codes of the phenotype concepts
         for a specific version
+        for a specific concept
         Parameters:     request    The request.
                         pk         The phenotype id.
                         phenotype_history_id  The version id
+                        target_concept_id
+                        target_concept_history_id
         Returns:        data       Dict with the codes. 
     '''
             
@@ -503,22 +506,23 @@ def phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
                         
     #--------------------------------------------------
     
-    codes = db_utils.get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id)
+    codes = db_utils.get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id, target_concept_id, target_concept_history_id)
        
     data = dict()
     data['form_is_valid'] = True
-    codes_count = "0"
-    try:
-        codes_count = str(len(codes))
-    except:
-        codes_count = "0"
-    data['codes_count'] = codes_count
-    data['html_uniquecodes_list'] = render_to_string(
-                                                    'clinicalcode/phenotype/get_concept_codes.html',
-                                                    {'codes': codes,
-                                                    'showConcept': True 
-                                                    }
-                                                    )
+    
+    # codes_count = "0"
+    # try:
+    #     codes_count = str(len(codes))
+    # except:
+    #     codes_count = "0"
+    # data['codes_count'] = codes_count
+    # data['html_uniquecodes_list'] = render_to_string(
+    #                                                 'clinicalcode/phenotype/get_concept_codes.html',
+    #                                                 {'codes': codes,
+    #                                                 'showConcept': True 
+    #                                                 }
+    #                                                 )
     
     
     # Get the list of concepts in the phenotype data
@@ -528,10 +532,17 @@ def phenotype_conceptcodesByVersion(request, pk, phenotype_history_id):
     for concept in concept_ids_historyIDs:
         concept_id = concept[0]
         concept_version_id = concept[1]
+        
+        if (target_concept_id is not None and target_concept_history_id is not None):
+            if target_concept_id != str(concept_id) and target_concept_history_id != str(concept_version_id) :
+                continue
+            
         c_codes = []
-        for c in codes:
-            if c['concept_id'] == 'C'+str(concept_id) and c['concept_version_id'] == concept_version_id:
-                c_codes.append(c)
+        # for c in c:
+        #     if c['concept_id'] == 'C'+str(concept_id) and c['concept_version_id'] == concept_version_id:
+        #         c_codes.append(c)
+                
+        c_codes = codes
         
         c_codes_count = "0"
         try:
