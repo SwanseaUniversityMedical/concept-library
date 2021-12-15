@@ -362,6 +362,10 @@ def cookies_settings(request):
     return render(request,'cookielaw/en.html',{})
 
 def contact_us(request):
+    '''
+        Generation of Contact us page/form and email send functionality.
+    '''
+
     issuetypes = [
         ('General Enquiries', 'General Enquiries')
     ]
@@ -372,13 +376,13 @@ def contact_us(request):
         message = forms.CharField(widget=forms.Textarea)
         categories = forms.CharField(widget=forms.Select(choices=issuetypes))
 
-    test = check_recaptcha(request)
+    captcha = check_recaptcha(request)
     status = 'N/A'
     if request.method == 'GET':
         form = ContactForm()
     else:
         form = ContactForm(request.POST)
-        if form.is_valid() and test is True:
+        if form.is_valid() and captcha is True:
             name = form.cleaned_data['name']
             from_email = form.cleaned_data['from_email']
             message = form.cleaned_data['message']
@@ -392,7 +396,7 @@ def contact_us(request):
                 status = 'Issue Reported Successfully.'
             except BadHeaderError:
                 return HttpResponse('Invalid header found.')
-        if test == False:
+        if captcha == False:
             status = 'Please Fill out Captcha.'
 
     return render(request,
@@ -403,12 +407,10 @@ def contact_us(request):
                     }
                     )
 
-
-    #return render(request, 'cl-docs/contact-us.html', {'form': form})
-
-
 def check_recaptcha(request):
-    recaptcha_is_valid = None
+    '''
+        Contact Us Recaptcha code
+    '''
     if request.method == 'POST':
         recaptcha_response = request.POST.get('g-recaptcha-response')
         data = {
