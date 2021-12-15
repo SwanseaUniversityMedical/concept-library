@@ -417,6 +417,14 @@ if IS_DEMO:  # Demo server
  
 
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_HOST = get_env_value('EMAIL_HOST')
+EMAIL_PORT = get_env_value('EMAIL_PORT')
+GOOGLE_RECAPTCHA_SECRET_KEY = get_env_value('GOOGLE_RECAPTCHA_SECRET_KEY')
+EMAIL_HOST_PASSWORD = get_env_value('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_USER = get_env_value('EMAIL_HOST_USER')
 
 IS_HDRUK_EXT = "0"
 SHOW_COOKIE_ALERT = True
