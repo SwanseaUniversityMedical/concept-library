@@ -16,6 +16,11 @@ from ..models.PublishedConcept import PublishedConcept
 from ..models.PublishedPhenotype import PublishedPhenotype
 from ..models.Statistics import Statistics
 
+from django.core.mail import EmailMultiAlternatives
+
+import requests
+from django import forms
+
 from ..permissions import (
     allowed_to_view, allowed_to_edit
 )
@@ -355,3 +360,67 @@ def cookiespage(request):
 
 def cookies_settings(request):
     return render(request,'cookielaw/en.html',{})
+
+def contact_us(request):
+    '''
+        Generation of Contact us page/form and email send functionality.
+    '''
+
+    issuetypes = [
+        ('General Enquiries', 'General Enquiries')
+    ]
+
+    class ContactForm(forms.Form):
+        from_email = forms.EmailField(required=True)
+        name = forms.CharField(required=True)
+        message = forms.CharField(widget=forms.Textarea)
+        categories = forms.CharField(widget=forms.Select(choices=issuetypes))
+
+    captcha = check_recaptcha(request)
+    status = 'N/A'
+    if request.method == 'GET':
+        form = ContactForm()
+    else:
+        form = ContactForm(request.POST)
+        if form.is_valid() and captcha is True:
+            name = form.cleaned_data['name']
+            from_email = form.cleaned_data['from_email']
+            message = form.cleaned_data['message']
+            category = form.cleaned_data['categories']
+            email_subject = ('Concept Library - New Message From ' +name)
+            try:
+                html_content = '<strong>New Message from Concept Library Website</strong> <br><br> <strong>Name:</strong><br>' + name +  '<br><br> <strong>Email:</strong><br>' + from_email +  '<br><br> <strong>Issue Type:</strong><br>' + category +'<br><br><strong> Tell us about your Enquiry: </strong><br>' + message
+                msg = EmailMultiAlternatives(email_subject, html_content, from_email, ['christopher.green@swansea.ac.uk'], cc=[from_email])
+                msg.content_subtype = "html"  # Main content is now text/html
+                msg.send()
+                status = 'Issue Reported Successfully.'
+            except BadHeaderError:
+                return HttpResponse('Invalid header found.')
+        if captcha == False:
+            status = 'Please Fill out Captcha.'
+
+    return render(request,
+                    'cl-docs/contact-us.html',
+                    {
+                        'form': form,
+                        'message': [status],
+                    }
+                    )
+
+def check_recaptcha(request):
+    '''
+        Contact Us Recaptcha code
+    '''
+    if request.method == 'POST':
+        recaptcha_response = request.POST.get('g-recaptcha-response')
+        data = {
+            'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
+            'response': recaptcha_response
+         }
+        r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=data)
+        result = r.json()
+        if result['success']:
+            recaptcha_is_valid = True
+        else:
+            recaptcha_is_valid = False
+        return recaptcha_is_valid;
