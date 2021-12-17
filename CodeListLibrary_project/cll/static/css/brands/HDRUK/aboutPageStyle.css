@@ -264,3 +264,17 @@ position:fixed;
 .collaborator-padding {
 padding-bottom: 30px;
 }
+
+
+
+input {
+    line-height: normal;
+}
+
+/* Style inputs */
+textarea {
+    width: 80%;
+    height: 200px;
+}
+
+
