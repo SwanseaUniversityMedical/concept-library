@@ -16,8 +16,8 @@ from ..models.PublishedConcept import PublishedConcept
 from ..models.PublishedPhenotype import PublishedPhenotype
 from ..models.Statistics import Statistics
 
-from django.core.mail import EmailMultiAlternatives
-
+from django.core.mail import EmailMultiAlternatives, BadHeaderError
+from django.http import HttpResponse
 import requests
 from django import forms
 
