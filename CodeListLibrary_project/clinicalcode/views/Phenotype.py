@@ -533,6 +533,7 @@ def phenotype_conceptcodesByVersion(request, pk, phenotype_history_id, target_co
         concept_id = concept[0]
         concept_version_id = concept[1]
         
+        # check if the sent concept id/ver are valid
         if (target_concept_id is not None and target_concept_history_id is not None):
             if target_concept_id != str(concept_id) and target_concept_history_id != str(concept_version_id) :
                 continue
