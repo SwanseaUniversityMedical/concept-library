@@ -29,8 +29,10 @@ logger = logging.getLogger(__name__)
 
 from django.conf import settings
 
-from django.core.mail import EmailMultiAlternatives
-#import requests
+
+from django.core.mail import EmailMultiAlternatives, BadHeaderError
+from django.http import HttpResponse
+import requests
 from django import forms
 
 
