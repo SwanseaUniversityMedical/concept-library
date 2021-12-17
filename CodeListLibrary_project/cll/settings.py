@@ -138,8 +138,6 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
 CLINICALCODE_SESSION_ID = 'concept'
 
 #===========================================================================
@@ -416,7 +414,16 @@ if IS_DEMO:  # Demo server
     DEV_PRODUCTION = "<i class='glyphicon glyphicon-cog'  aria-hidden='true'> </i> DEMO SITE <i class='glyphicon glyphicon-cog'  aria-hidden='true'> </i>"
  
 
-
+##EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Email, contact us page
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_HOST = get_env_value('EMAIL_HOST')
+EMAIL_PORT = get_env_value('EMAIL_PORT')
+GOOGLE_RECAPTCHA_SECRET_KEY = get_env_value('GOOGLE_RECAPTCHA_SECRET_KEY')
+EMAIL_HOST_PASSWORD = get_env_value('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_USER = get_env_value('EMAIL_HOST_USER')
 
 IS_HDRUK_EXT = "0"
 SHOW_COOKIE_ALERT = True

@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block description %} CONTACT-US-PAGE {% endblock description %}
+{% block head %}
+
+<style>
+.fieldWrapperHeader:after {
+    content:" *";
+    color: red;
+  }
+</style>
+
+<link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
+{% endblock head %}
+{% block container %}
+<div class="row">
+   <div class="rubric-box col-sm-2 hideleft-navbar" >
+      <div class="leftnavbar-position">
+         <ul class="left-navbar text-rubric-design pointer" onclick="showSelection(event)" id='navList'>
+            <li> <a href="#Contact-Us">Contact Us
+               </a>
+            </li>
+            <li><a href="#Submitting-Phenotypes" >Submitting Phenotypes
+               </a>
+            </li>
+            <li><a href="#Issues">Issues & Future Features
+               </a>
+            </li>
+         </ul>
+      </div>
+   </div>
+
+
+   <h3><span id="Contact-Us"></span></h3>
+   <div style="width:70%;" class="column" >
+      <div class="post-content">
+      <div class="header-content-design">
+         Contact Us
+      </div>
+
+         <div id="Submitting-Phenotypes">
+            <div class="sm-header-design">
+            <h2>Submitting Phenotypes</h2>
+            Please see our <a href="https://docs.hiru.swan.ac.uk/display/SATP/Concept+Library+Documentation" target=_blank>technical documentation</a> for further information on submitting phenotypes. Feel free to get in touch with us directly or via the form below if you are not sure where to start.
+            </div>
+         </div>
+         <div id="Issues">
+             <div class="sm-header-design">
+             <h2>Issues and Feature Requests</h2>
+            If you would like to report a bug or give feedback or suggestions for the Phenotype Library website, please submit an issue to our <a href="https://github.com/SwanseaUniversityMedical/concept-library/issues" target=_blank>Github Repository</a>.
+            </div>
+         </div>
+         <div id="General-Enquiries" >
+           <div class="sm-header-design">
+               <h2>General Enquiries</h2>
+               By submitting your enquiry you are consenting to your data being held by the SAIL Databank, Swansea University. Your data will be used for the purposes of dealing with your enquiry and sending you relevant information about the Concept Library.</p>
+                <br>
+            </div>
+          </div>
+
+             {% for msg in message %}
+                {% if msg != 'N/A' %}
+                    <div class="bs-example" id="Alert">
+                        {% if msg == 'Issue Reported Successfully.' %}
+                        <div class="alert alert-success fade in">
+                            <a href="#" class="close" data-dismiss="alert">&times;</a>
+                            <ul>
+                                <li>{{ msg }}</li>
+                            </ul>
+                        </div>
+                        {% elif msg == 'Please Fill out Captcha.' %}
+                        <div class="alert alert-warning fade in">
+                            <a href="#" class="close" data-dismiss="alert">&times;</a>
+                            <ul>
+                                <li>{{ msg }}</li>
+                            </ul>
+                        </div>
+                        {% endif %}
+                        {% endif %}
+                  </div>
+             {% endfor %}
+
+            <form method="post">
+               <div class="fieldWrapperHeader">
+                  <b>Name:</b>
+               </div>
+               <div class="fieldWrapper">
+                        {{ form.name }}<br><br>
+               </div>
+               <div class="fieldWrapperHeader">
+                  <b>Email Address:</b>
+               </div>
+               <div class="fieldWrapper">
+                    {{ form.from_email }}<br><br>
+               </div>
+               <div class="fieldWrapperHeader">
+                  <b>Category:</b>
+               </div>
+               <div class="fieldWrapper">
+                    {{ form.categories }}<br><br>
+               </div>
+               <div class="fieldWrapperHeader">
+                  <b>Message:</b>
+               </div>
+               <div class="fieldWrapper">
+                    {{ form.message }}<br><br>
+               </div>
+               <script src='https://www.google.com/recaptcha/api.js'></script>
+               <div class="g-recaptcha" data-sitekey="6LfzUCIdAAAAAHosi5zRa7OwwEnQouFGmEKDFZH6"></div>
+                <br>
+               <div class="form-actions">
+               {% csrf_token %}
+               <button type="submit" class="btn btn-primary" onClick='window.location="#Alert"'>Submit</button>
+               </div>
+            </form>
+         </div>
+    {% endblock container %}
+    <script type="text/javascript">
+       function showSelection(e) {
+            if (document.querySelector('#navList a.active') !== null) {
+                document.querySelector('#navList a.active').classList.remove('active');
+            }
+       e.target.className = "active";
+       }
+    </script>
+
+	</body>
+</html>

@@ -256,15 +256,11 @@ ul.left-navbar a.active {
 position:fixed;
 }
 
-@media screen and (max-width: 768px) {
-  div.hideleft-navbar {
-    display: none;
-  }
+
 
 .collaborator-padding {
 padding-bottom: 30px;
 }
-
 
 
 input {
@@ -276,5 +272,4 @@ textarea {
     width: 80%;
     height: 200px;
 }
-
 
