@@ -18,7 +18,8 @@ class CodingSystemManager(models.Manager):
 class CodingSystem(models.Model):
     name = models.CharField(max_length=250)
     description = models.TextField()
-    link = models.CharField(max_length=2083)  # Link to external resource about CS
+    link = models.CharField(
+        max_length=2083)  # Link to external resource about CS
     database_connection_name = models.CharField(max_length=250)
     table_name = models.CharField(max_length=250)
     code_column_name = models.CharField(max_length=250)

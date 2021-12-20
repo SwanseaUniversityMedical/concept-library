@@ -3,28 +3,29 @@
 
     Set-up and tear-down etc. for unit tests and functional tests.
 '''
+import datetime
 import os
 import time
-import datetime
+
+from clinicalcode.tests.test_base import *
 #from django.conf import settings
 from cll import test_settings as settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import WebDriverException
-from clinicalcode.tests.test_base import *
+from selenium.webdriver.common.keys import Keys
 
-SCREEN_DUMP_LOCATION = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), 'screendumps'
-)
+SCREEN_DUMP_LOCATION = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                    'screendumps')
 
 base_url = settings.WEBAPP_HOST
 login_url = base_url + '/account/login?next=/'
-
 '''
     Test helper functions.
 '''
 MAX_WAIT = 10
+
+
 def wait(fn):
     def modified_fn(*args, **kwargs):
         start_time = time.time()
@@ -35,15 +36,16 @@ def wait(fn):
                 if time.time() - start_time > MAX_WAIT:
                     raise e
                 time.sleep(0.5)
+
     return modified_fn
 
 
 class FunctionalTest(StaticLiveServerTestCase):
-
-    def setUp(self):      
+    def setUp(self):
         if settings.REMOTE_TEST:
-            self.browser = webdriver.Remote(command_executor=settings.REMOTE_TEST_HOST,
-                                            desired_capabilities=settings.chrome_options.to_capabilities())
+            self.browser = webdriver.Remote(
+                command_executor=settings.REMOTE_TEST_HOST,
+                desired_capabilities=settings.chrome_options.to_capabilities())
             self.browser.implicitly_wait(settings.IMPLICTLY_WAIT)
         else:
             self.browser = webdriver.Chrome()
@@ -51,10 +53,11 @@ class FunctionalTest(StaticLiveServerTestCase):
     def list2reason(self, exc_list):
         if exc_list and exc_list[-1][0] is self:
             return exc_list[-1][1]
-        
+
     def tearDown(self):
         print("Functional test tear-down ...")
-        self.result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
+        self.result = getattr(self, '_outcomeForDoCleanups',
+                              self._resultForDoCleanups)
         #error = self.list2reason(result.errors)
         #failure = self.list2reason(result.failures)
         #ok = not error and not failure
@@ -91,5 +94,4 @@ class FunctionalTest(StaticLiveServerTestCase):
             classname=self.__class__.__name__,
             method=self._testMethodName,
             windowid=self._windowid,
-            timestamp=timestamp
-        )
+            timestamp=timestamp)

@@ -6,15 +6,17 @@
     ---------------------------------------------------------------------------
 '''
 from rest_framework import serializers
-from ..models import Concept, Component, CodeRegex, CodeList, Code, Tag, WorkingSet, WorkingSetTagMap, DataSource
+
+from ..models import (Code, CodeList, CodeRegex, Component, Concept,
+                      DataSource, Tag, WorkingSet, WorkingSetTagMap)
 
 
 class ConceptSerializer(serializers.ModelSerializer):
     class Meta:
         model = Concept
         fields = '__all__'
-    
-     
+
+
 class CodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Code
@@ -25,18 +27,17 @@ class CodeSerializer(serializers.ModelSerializer):
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ('id', 'description', 'display', 'get_display_display', 
-                  'tag_type', 'get_tag_type_display', 
-                  'collection_brand' 
-                # ,  'created_by' , 'updated_by' 
-                  )
-                
+        fields = (
+            'id', 'description', 'display', 'get_display_display', 'tag_type',
+            'get_tag_type_display', 'collection_brand'
+            # ,  'created_by' , 'updated_by'
+        )
+
+
 class DataSourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = DataSource
-        fields = ('id', 'name', 'uid', 'url', 'brand', 'description'
-                # ,  'created_by' , 'updated_by' 
-                  )
-                
-
-    
+        fields = (
+            'id', 'name', 'uid', 'url', 'brand', 'description'
+            # ,  'created_by' , 'updated_by'
+        )

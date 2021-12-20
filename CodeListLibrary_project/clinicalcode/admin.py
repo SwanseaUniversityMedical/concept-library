@@ -1,11 +1,12 @@
 from django.contrib import admin
-from .models import CodingSystem, CodingSystemFilter, Tag, Operator, Brand, DataSource
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group, User
+
+from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource,
+                     Operator, Tag)
 
 # from forms import GroupAdminForm
 # from django import forms
 # from django.forms.models import inlineformset_factory, ModelChoiceField
-
 
 # Register your models here.
 admin.site.register(CodingSystem)
@@ -23,7 +24,9 @@ class OperatorAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ['id', 'description', 'display', 'tag_type', 'collection_brand']#,, 'updated_by' 'created_by' , 'created', 'modified']
+    list_display = [
+        'id', 'description', 'display', 'tag_type', 'collection_brand'
+    ]  #,, 'updated_by' 'created_by' , 'created', 'modified']
     list_filter = ['collection_brand', 'tag_type', 'display']
     search_fields = ['description']
     exclude = ['created_by', 'updated_by']
@@ -42,7 +45,6 @@ class TagAdmin(admin.ModelAdmin):
         return instance
 
 
-
 #admin.site.register(Brand)
 @admin.register(Brand)
 class BrandAdmin(admin.ModelAdmin):
@@ -50,18 +52,21 @@ class BrandAdmin(admin.ModelAdmin):
     list_filter = ['name', 'description', 'created', 'modified', 'owner']
     search_fields = ['name', 'id', 'description']
     exclude = ['created_by', 'updated_by']
-    
+
+
 @admin.register(DataSource)
 class DataSourceAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'uid', 'url', 'created_by', 'updated_by']#, 'description'
+    list_display = ['id', 'name', 'uid', 'url', 'created_by',
+                    'updated_by']  #, 'description'
     list_filter = ['description']
     search_fields = ['name', 'url', 'uid', 'description']
     exclude = []
-    
-# ############################################    
+
+
+# ############################################
 # # Unregister the original Group admin.
 # admin.site.unregister(Group)
-# 
+#
 # # Create a new Group admin.
 # class GroupAdmin(admin.ModelAdmin):
 #     # Use our custom form.
@@ -69,11 +74,6 @@ class DataSourceAdmin(admin.ModelAdmin):
 #     #form_class = GroupAdminForm
 #     # Filter permissions horizontal as well.
 #     filter_horizontal = ['permissions']
-# 
+#
 # # Register the new Group ModelAdmin.
-# admin.site.register(Group, GroupAdmin)  
-
-
-
-
-
+# admin.site.register(Group, GroupAdmin)

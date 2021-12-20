@@ -1,61 +1,71 @@
-from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from clinicalcode.tests.test_base import *
-from clinicalcode.tests.unit_test_base import *
-from clinicalcode.permissions import *
-from clinicalcode.models.Concept import *
-from clinicalcode.models.WorkingSet import *
-from clinicalcode.models.Component import Component
-from clinicalcode.models.CodeList import CodeList
-from clinicalcode.models.Code import Code
-from clinicalcode.models.CodeRegex import CodeRegex
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
+import time
 from datetime import datetime
 from urllib.parse import urlparse
-from clinicalcode.views.Concept import concept_codes_to_csv
-from django.test import RequestFactory
 
+from clinicalcode.models.Code import Code
+from clinicalcode.models.CodeList import CodeList
+from clinicalcode.models.CodeRegex import CodeRegex
+from clinicalcode.models.Component import Component
+from clinicalcode.models.Concept import *
+from clinicalcode.models.WorkingSet import *
+from clinicalcode.permissions import *
+from clinicalcode.tests.test_base import *
+from clinicalcode.tests.unit_test_base import *
+from clinicalcode.views.Concept import concept_codes_to_csv
 # from django.conf import settings
 # from cll import settings as settings_cll
 # from cll import test_settings as settings
 from cll import test_settings as settings_cll
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.test import RequestFactory
 from rest_framework.reverse import reverse
-
-import time
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 class RegularExpressionsTest(StaticLiveServerTestCase):
-
     def setUp(self):
 
         location = os.path.dirname(__file__)
         if settings_cll.REMOTE_TEST:
-            self.browser = webdriver.Remote(command_executor=settings_cll.REMOTE_TEST_HOST,
-                                            desired_capabilities=settings_cll.chrome_options.to_capabilities())
+            self.browser = webdriver.Remote(
+                command_executor=settings_cll.REMOTE_TEST_HOST,
+                desired_capabilities=settings_cll.chrome_options.
+                to_capabilities())
             self.browser.implicitly_wait(settings_cll.IMPLICTLY_WAIT)
         else:
             if settings_cll.IS_LINUX:
-                self.browser = webdriver.Chrome(os.path.join(location, "chromedriver"),
-                                                chrome_options=settings_cll.chrome_options)
+                self.browser = webdriver.Chrome(
+                    os.path.join(location, "chromedriver"),
+                    chrome_options=settings_cll.chrome_options)
             else:
-                self.browser = webdriver.Chrome(os.path.join(location, "chromedriver.exe"),
-                                                chrome_options=settings_cll.chrome_options)
+                self.browser = webdriver.Chrome(
+                    os.path.join(location, "chromedriver.exe"),
+                    chrome_options=settings_cll.chrome_options)
         super(RegularExpressionsTest, self).setUp()
 
         self.factory = RequestFactory()
 
-        self.WEBAPP_HOST = self.live_server_url.replace('localhost', '127.0.0.1')
+        self.WEBAPP_HOST = self.live_server_url.replace(
+            'localhost', '127.0.0.1')
         if settings_cll.REMOTE_TEST:
             self.WEBAPP_HOST = settings_cll.WEBAPP_HOST
-
         '''data'''
-        super_user = User.objects.create_superuser(username=su_user, password=su_password, email=None)
-        normal_user = User.objects.create_user(username=nm_user, password=nm_password, email=None)
-        self.owner_user = User.objects.create_user(username=ow_user, password=ow_password, email=None)
-        group_user = User.objects.create_user(username=gp_user, password=gp_password, email=None)
+        super_user = User.objects.create_superuser(username=su_user,
+                                                   password=su_password,
+                                                   email=None)
+        normal_user = User.objects.create_user(username=nm_user,
+                                               password=nm_password,
+                                               email=None)
+        self.owner_user = User.objects.create_user(username=ow_user,
+                                                   password=ow_password,
+                                                   email=None)
+        group_user = User.objects.create_user(username=gp_user,
+                                              password=gp_password,
+                                              email=None)
 
         permitted_group = Group.objects.create(name="permitted_group")
         group_user.groups.add(permitted_group)
@@ -100,14 +110,15 @@ class RegularExpressionsTest(StaticLiveServerTestCase):
             group=permitted_group,
             group_access=Permissions.NONE,
             owner_access=Permissions.NONE,
-            world_access=Permissions.EDIT
-        )
+            world_access=Permissions.EDIT)
 
-        self.code_list = self.create_component_with_codes(self, comp_name="included component",
-                                                          comp_parent=self.concept_everybody_can_edit,
-                                                          code_list_description="included code list",
-                                                          codes_names_list=["i1", "i2", "i3"])
-        
+        self.code_list = self.create_component_with_codes(
+            self,
+            comp_name="included component",
+            comp_parent=self.concept_everybody_can_edit,
+            code_list_description="included code list",
+            codes_names_list=["i1", "i2", "i3"])
+
         update_friendly_id()
         save_stat(self.WEBAPP_HOST)
 
@@ -117,37 +128,47 @@ class RegularExpressionsTest(StaticLiveServerTestCase):
 
     def login(self, username, password):
         self.logout()
-        self.browser.find_element(By.NAME,'username').send_keys(username)
-        self.browser.find_element(By.NAME,'password').send_keys(password)
-        self.browser.find_element(By.NAME,'password').send_keys(Keys.ENTER)
+        self.browser.find_element(By.NAME, 'username').send_keys(username)
+        self.browser.find_element(By.NAME, 'password').send_keys(password)
+        self.browser.find_element(By.NAME, 'password').send_keys(Keys.ENTER)
 
     def logout(self):
-        self.browser.get('%s%s' % (self.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
+        self.browser.get(
+            '%s%s' %
+            (self.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
 
     def wait_to_be_logged_in(self, username):
         wait = WebDriverWait(self.browser, 10)
-        element = wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, 'p.navbar-text'), username))
+        element = wait.until(
+            EC.text_to_be_present_in_element(
+                (By.CSS_SELECTOR, 'p.navbar-text'), username))
 
         # Returns logical type of component and list of codes
 
     # Concept ref for reference to the child concept (optional)
     @staticmethod
-    def create_component_with_codes(self, comp_name, comp_parent, code_list_description, codes_names_list):
-        component = Component.objects.create(
-            component_type=2,
-            concept=comp_parent,
-            created_by=self.owner_user,
-            logical_type=1,
-            name=comp_name)
+    def create_component_with_codes(self, comp_name, comp_parent,
+                                    code_list_description, codes_names_list):
+        component = Component.objects.create(component_type=2,
+                                             concept=comp_parent,
+                                             created_by=self.owner_user,
+                                             logical_type=1,
+                                             name=comp_name)
 
-        code_list = CodeList.objects.create(component=component, description=code_list_description)
+        code_list = CodeList.objects.create(component=component,
+                                            description=code_list_description)
         code_list.save()
         list_of_codes = []
 
-        codeRegex = CodeRegex.objects.create(component=component, regex_type=1, regex_code="%i%", code_list=code_list)
+        codeRegex = CodeRegex.objects.create(component=component,
+                                             regex_type=1,
+                                             regex_code="%i%",
+                                             code_list=code_list)
 
         for name in codes_names_list:
-            code = Code.objects.create(code_list=code_list, code=name, description=name)
+            code = Code.objects.create(code_list=code_list,
+                                       code=name,
+                                       description=name)
             code.save()
             list_of_codes.append(code.code)
 
@@ -180,33 +201,36 @@ class RegularExpressionsTest(StaticLiveServerTestCase):
         # browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/concepts/C',
         #                       self.concept_everybody_can_edit.id, '/update/'))
 
-        browser.get(self.WEBAPP_HOST + reverse('concept_update'
-                                               , kwargs={'pk': self.concept_everybody_can_edit.id,
-                                                         })
-                    )
+        browser.get(self.WEBAPP_HOST +
+                    reverse('concept_update',
+                            kwargs={
+                                'pk': self.concept_everybody_can_edit.id,
+                            }))
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
-        coding_system_select = browser.find_element(By.ID,"id_coding_system")
+        coding_system_select = browser.find_element(By.ID, "id_coding_system")
 
         # Change lookup table
         coding_system_select.click()
         coding_system_select.send_keys(Keys.DOWN)
         coding_system_select.send_keys(Keys.ENTER)
 
-        browser.find_element(By.ID,"save-changes").click()  # save changes
+        browser.find_element(By.ID, "save-changes").click()  # save changes
 
-#         url = ('%s%s%s' % ('/concepts/C',
-#                            self.concept_everybody_can_edit.id, '/export/codes'))
-        
-        url = self.WEBAPP_HOST + reverse('concept_codes_to_csv'
-                                               , kwargs={'pk': self.concept_everybody_can_edit.id}) 
+        #         url = ('%s%s%s' % ('/concepts/C',
+        #                            self.concept_everybody_can_edit.id, '/export/codes'))
+
+        url = self.WEBAPP_HOST + reverse(
+            'concept_codes_to_csv',
+            kwargs={'pk': self.concept_everybody_can_edit.id})
         request = self.factory.get(url)
         request.user = self.owner_user
         request.CURRENT_BRAND = ''
 
         # make export to csv request
-        response = concept_codes_to_csv(request, self.concept_everybody_can_edit.id)
+        response = concept_codes_to_csv(request,
+                                        self.concept_everybody_can_edit.id)
 
         codes = self.get_codes_from_response(response.content.decode('utf-8'))
 

@@ -8,7 +8,6 @@ from django.test import TestCase
 
 
 class SmokeTest(TestCase):
-
     @classmethod
     def setUp(self):
         print("Permissions tests ...")

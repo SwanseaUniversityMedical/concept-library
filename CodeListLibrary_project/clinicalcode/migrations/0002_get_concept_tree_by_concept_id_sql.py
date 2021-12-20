@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # Modified by: Pete Arnold
 
-
 from django.db import migrations
+
 
 class Migration(migrations.Migration):
 
