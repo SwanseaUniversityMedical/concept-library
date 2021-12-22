@@ -6,9 +6,29 @@
 {% block head %}
 
 <style>
+
+.fieldWrapperHeader {
+    font-size: 15px;
+  }
+
 .fieldWrapperHeader:after {
     content:" *";
     color: red;
+  }
+
+input {
+width: 250px;
+font-size: 15px;
+  }
+
+Textarea {
+width: 600px;
+font-size: 15px;
+  }
+
+Select {
+width: 250px;
+font-size: 15px;
   }
 </style>
 
@@ -117,14 +137,11 @@
             </form>
          </div>
     {% endblock container %}
-    <script type="text/javascript">
-       function showSelection(e) {
-            if (document.querySelector('#navList a.active') !== null) {
-                document.querySelector('#navList a.active').classList.remove('active');
-            }
-       e.target.className = "active";
-       }
-    </script>
-
-	</body>
-</html>
+<script type="text/javascript">
+    function showSelection(e) {
+    if (document.querySelector('#navList a.active') !== null) {
+    document.querySelector('#navList a.active').classList.remove('active');
+    }
+    e.target.className = "active";
+    }
+</script>
