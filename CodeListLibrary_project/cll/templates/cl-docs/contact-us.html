@@ -8,7 +8,7 @@
 <style>
 
 .fieldWrapperHeader {
-    font-size: 15px;
+    font-size: 18px;
   }
 
 .fieldWrapperHeader:after {
@@ -18,17 +18,17 @@
 
 input {
 width: 250px;
-font-size: 15px;
+font-size: 18px;
   }
 
 Textarea {
 width: 600px;
-font-size: 15px;
+font-size: 18px;
   }
 
 Select {
 width: 250px;
-font-size: 15px;
+font-size: 18px;
   }
 </style>
 
@@ -137,6 +137,8 @@ font-size: 15px;
             </form>
          </div>
     {% endblock container %}
+
+{% block scripts %}
 <script type="text/javascript">
     function showSelection(e) {
     if (document.querySelector('#navList a.active') !== null) {
@@ -145,3 +147,6 @@ font-size: 15px;
     e.target.className = "active";
     }
 </script>
+{% endblock scripts %}
+
+
