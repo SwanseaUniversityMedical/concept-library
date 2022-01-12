@@ -13,6 +13,7 @@ from ..models.Concept import Concept
 from ..models.Component import Component
 from ..models.DataSource import DataSource
 from ..models.Phenotype import Phenotype
+from ..models.ContactUsForm import ContactForm
 from ..models.PublishedConcept import PublishedConcept
 from ..models.PublishedPhenotype import PublishedPhenotype
 from ..models.Statistics import Statistics
@@ -371,16 +372,6 @@ def contact_us(request):
         Generation of Contact us page/form and email send functionality.
     '''
     if not settings.CLL_READ_ONLY:
-        issuetypes = [
-            ('General Enquiries', 'General Enquiries')
-        ]
-
-        class ContactForm(forms.Form):
-            from_email = forms.EmailField(required=True)
-            name = forms.CharField(required=True)
-            message = forms.CharField(widget=forms.Textarea)
-            categories = forms.CharField(widget=forms.Select(choices=issuetypes))
-
         captcha = check_recaptcha(request)
         status = 'N/A'
         if request.method == 'GET':
