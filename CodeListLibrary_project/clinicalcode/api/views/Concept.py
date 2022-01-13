@@ -484,7 +484,9 @@ def api_concept_create(request):
             'validation_performed')
         new_concept.validation_description = request.data.get(
             'validation_description')
-        new_concept.entry_date = datetime.now()
+
+        new_concept.entry_date = datetime.datetime.now()
+
 
         new_concept.created_by = request.user
         new_concept.owner_access = Permissions.EDIT  # int(request.data.get('ownerAccess'))
