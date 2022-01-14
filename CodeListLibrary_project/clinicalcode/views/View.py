@@ -13,7 +13,7 @@ from ..models.Concept import Concept
 from ..models.Component import Component
 from ..models.DataSource import DataSource
 from ..models.Phenotype import Phenotype
-from ..models.ContactUsForm import ContactForm
+from ..forms.ContactUsForm import ContactForm
 from ..models.PublishedConcept import PublishedConcept
 from ..models.PublishedPhenotype import PublishedPhenotype
 from ..models.Statistics import Statistics
