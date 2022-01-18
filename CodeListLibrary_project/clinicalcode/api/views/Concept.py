@@ -712,7 +712,7 @@ def api_concept_update(request):
         else:
             update_concept.description = request.data.get('description')
 
-        update_concept.modified = datetime.now()
+        update_concept.modified = datetime.datetime.now()
         update_concept.modified_by = request.user
 
         #update_concept.owner_access = Permissions.EDIT   # int(request.data.get('ownerAccess'))

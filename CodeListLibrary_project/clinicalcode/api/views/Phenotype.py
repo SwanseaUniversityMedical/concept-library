@@ -267,8 +267,7 @@ def api_phenotype_update(request):
         update_phenotype.phenoflowid = request.data.get('phenoflowid')
 
         update_phenotype.updated_by = request.user
-        update_phenotype.modified = datetime.now()
-
+        update_phenotype.modified = datetime.datetime.now()
         # concept_informations
         concept_ids_list = request.data.get('concept_informations')
         is_valid_data, err, ret_value = chk_concept_ids_list(
