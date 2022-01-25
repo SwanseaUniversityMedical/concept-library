@@ -1,3 +1,5 @@
+
+
 <form method="post" action="{% url 'phenotype_publish' pk=pk phenotype_history_id=phenotype_history_id %}"
   id="publish-form"  class="form-horizontal" novalidate enctype="multipart/form-data">
     {% csrf_token %}
@@ -6,12 +8,12 @@
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
-        <h4 class="modal-title">Publish phenotype "<b>{{ name }}</b>"?</h4>
+        <h4 class="modal-title">  moderator is {{ is_moderator }} {{ is_approved }}Publish phenotype"<b>{{ name }}</b>"?</h4>
     </div>
     <div class="modal-body">  
-    {% if is_published %}
+    {% if is_published and is_approved %}
         <div class="alert alert-success" role="alert">
-          This version is already published.
+          This version {{ is_approved }} is already published.
         </div>
     {% else %}
 
@@ -21,6 +23,7 @@
                 <span class="text-danger">&nbsp;This phenotype is deleted.</span>
             </div>      
         {% endif %}
+
 
         {% if not is_owner %}
             <div class="col-md-12">             
@@ -33,7 +36,8 @@
             <div class="col-md-12">         
                 <span class="glyphicon glyphicon-remove" style="color:red"></span>
                 <span class="text-danger">&nbsp;The phenotype does not contain exportable codes.</span>
-            </div>      
+            </div>
+
         {% else %}
             {% if not isAllowedtoViewChildren %}
                 <div class="col-md-12">                 
@@ -80,32 +84,57 @@
                 <p>
                     <br>
                     {% if is_published or not allowed_to_publish%}
-                        {% if is_published %}
+                        {% if is_published and is_approved %}
                             <br>
 <!--                            This version "{{ name }}" is already published. -->
                         {% else %}
-                            <span class="text-danger">&nbsp; Cannot publish !! </span>
+                            {% if not is_approved and is_moderator %}
+                                 Are you sure you want to approve this version of "{{ name }}"?
+                                Published phenotype cannot be undone.
+                        <br>
+
+                        {% else %}
+
+                        {% if not is_approved and not is_moderator %}
+                            Phenotype needs to be approved.
+                            Waiting for moderator to approve
+
+                           <br>
+                            {% else %}
+                             <span class="text-danger">&nbsp; Cannot publish !! </span>
                             <br>
+
                         {% endif %}
+                            {% endif %}
+                            {% endif %}
                     
                     {% else %}
                         Are you sure you want to publish this version of "{{ name }}"?
                         <br>
                         Published phenotype cannot be undone.
+
                     {% endif %}
+
                 </p>
             </div>
         </div>
     </div>
     
     <div class="modal-footer">
-        {% if is_published %}
+        {% if is_published and is_approved %}
             <span class="glyphicon glyphicon-ok" style="color:green"></span>
-            <span class="text-success">&nbsp;Published&nbsp;</span>
+            <span class="text-success">&nbsp;Published&nbsp;{{ is_approved }}</span>
         {% else %}
-            <button {% if not allowed_to_publish %} disabled="true" {% endif %} id="publishButton"
+        {% if is_published and not is_approved %}
+            <span class="glyphicon glyphicon-ok" style="color:green"></span>
+            <span class="text-warning">&nbsp;Waiting to approve&nbsp</span>
+            {% else %}
+            <button {% if not allowed_to_publish %} disabled="false"
+
+            {% endif %} id="publishButton"
                 type="submit" class="btn btn-primary">
                 Publish
+            {% endif %}
             </button>
         {% endif %}
 
@@ -136,36 +165,55 @@ $(function(){
                 $(".loader").show();
             },
             success: function(data){
+                console.log(data);
+
                 if(data.form_is_valid){
                     $('#history-table').html(data.html_history_list);
                     $('#latest-history-ID-Div').html(data.latest_history_ID);
                     $('#latest_history_id').val(data.latest_history_ID);
+                    console.log(data.is_approved)
                     form.find('input[name=latest_history_id_shown]').val(data.latest_history_ID);
                     
                     // href needs to be updated for publish phenotype to show latest status
-                    if($('#publish2').length){
+                    if(data.is_approved) {
 //                      var pub_href = $('#publish2').attr("href").split("/");
 //                      pub_href[3] = data.latest_history_ID;
 //                      pub_href = pub_href.join("/")
 //                      $('#publish2').attr("href", pub_href);
-    
-                       // $('#publish2').prop("disabled", true );
+
+                        // $('#publish2').prop("disabled", true );
                         var element = document.getElementById('publish2');
                         element.setAttribute('disabled', 'disabled');
-                        
-                        $('#publish2').attr("title", "This version is already published" );
+
+                        $('#publish2').attr("title", "This version is already published ");
                         $('#publish2').addClass("btn-success");
                         $('#publish2').removeClass("btn-primary");
                         $('#publish2').html("Published&nbsp;<span class='glyphicon glyphicon-ok' style='color:green'></span>");
-                        
+                          //alert(data.message);
+                        $('#success-message').show();
+                        $('#success-message').html(data.message);
+
+                        $('#modal-section').modal('hide');
+                        $('#modal-section .modal-content').html('');
+
+                    }else {
+                        if(!data.is_approved){
+                            var element2 = document.getElementById('publish2');
+                        element2.setAttribute('disabled', 'disabled');
+
+                        $('#publish2').attr("title", "This version needs to be approved ");
+                        $('#publish2').addClass("btn-warning");
+                        $('#publish2').removeClass("btn-primary");
+                        $('#publish2').html("Pending");
+
+                          //alert(data.message);
+                        $('#success-message').show();
+                        $('#success-message').html(data.message);
+
+                        $('#modal-section').modal('hide');
+                        $('#modal-section .modal-content').html('');
+                        }
                     }
-                    
-                    //alert(data.message);
-                    $('#success-message').show();
-                    $('#success-message').html(data.message);
-                    
-                    $('#modal-section').modal('hide');
-                    $('#modal-section .modal-content').html('');
 
                 }
                 else{
