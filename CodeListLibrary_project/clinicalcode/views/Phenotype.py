@@ -298,6 +298,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
             Phenotype.objects.get(pk=pk).history.latest().history_id)
 
     is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
+    is_approved =  checkIfapproved(Phenotype, pk, phenotype_history_id)
 
     #----------------------------------------------------------------------
 
@@ -527,6 +528,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         'live_ver_is_deleted': Phenotype.objects.get(pk=pk).is_deleted,
         'published_historical_ids': published_historical_ids,
         'is_published': is_published,
+        'is_approved': is_approved,
         'publish_date': publish_date,
         'is_latest_version': is_latest_version,
         'current_phenotype_history_id': int(phenotype_history_id),
@@ -823,13 +825,14 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
     allow_to_publish = True
     phenotype_is_deleted = False
     is_owner = True
+    is_moderator = True
     phenotype_has_codes = True
     AllnotDeleted = True
     AllarePublished = True
     isAllowedtoViewChildren = True
 
     def checkPhenotypeTobePublished(self, request, pk, phenotype_history_id):
-        global errors, allow_to_publish, phenotype_is_deleted, is_owner
+        global errors, allow_to_publish, phenotype_is_deleted, is_owner,is_moderator
         global phenotype_has_codes, AllnotDeleted, AllarePublished, isAllowedtoViewChildren
         '''
             Allow to publish if:
@@ -842,6 +845,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
         allow_to_publish = True
         phenotype_is_deleted = False
         is_owner = True
+        is_moderator = False
         phenotype_has_codes = True
         AllnotDeleted = True
         AllarePublished = True
@@ -856,6 +860,19 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
             allow_to_publish = False
             is_owner = False
 
+        if (self.request.user.groups.filter(name = "Moderators").exists()):
+            allow_to_publish = True
+            is_moderator = True
+
+
+        if(self.request.user.groups.filter(name = "Moderators").exists() and not
+        (Phenotype.objects.filter(Q(id=pk),Q(owner=self.request.user)).count() == 0)):
+            allow_to_publish = True
+            is_owner = True
+            is_moderator = True
+
+
+
         if (len(
                 db_utils.get_phenotype_conceptcodesByVersion(
                     self.request, pk, phenotype_history_id)) == 0):
@@ -868,23 +885,30 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
             allow_to_publish = False
 
     def get(self, request, pk, phenotype_history_id):
-
-        global errors, allow_to_publish, phenotype_is_deleted, is_owner
+        global errors, allow_to_publish, phenotype_is_deleted, is_owner,is_approved,is_moderator
         global phenotype_has_codes, AllnotDeleted, AllarePublished, isAllowedtoViewChildren
         errors = {}
         allow_to_publish = True
         phenotype_is_deleted = False
         is_owner = True
+        is_moderator = True
         phenotype_has_codes = True
         AllnotDeleted = True
         AllarePublished = True
+        isAllowedtoViewChildren = True
 
         phenotype_ver = Phenotype.history.get(id=pk,
                                               history_id=phenotype_history_id)
         is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
+        is_approved = checkIfapproved(Phenotype, pk, phenotype_history_id)
+        self.checkPhenotypeTobePublished(request, pk, phenotype_history_id)
+
 
         if not is_published:
             self.checkPhenotypeTobePublished(request, pk, phenotype_history_id)
+
+
+
         #--------------------------------------------
 
         return self.render_to_response({
@@ -894,6 +918,8 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
             'is_published': is_published,
             'allowed_to_publish': allow_to_publish,
             'is_owner': is_owner,
+            'is_approved': is_approved,
+            'is_moderator': is_moderator,
             'phenotype_is_deleted': phenotype_is_deleted,
             'phenotype_has_codes': phenotype_has_codes,
             'AllnotDeleted': AllnotDeleted,
@@ -903,56 +929,138 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
         })
 
     def post(self, request, pk, phenotype_history_id):
-        global errors, allow_to_publish, phenotype_is_deleted, is_owner, phenotype_has_codes
+        global errors, allow_to_publish, phenotype_is_deleted, is_owner, phenotype_has_codes,is_approved,is_moderator
         global AllnotDeleted, AllarePublished, isAllowedtoViewChildren
         errors = {}
         allow_to_publish = True
         phenotype_is_deleted = False
         is_owner = True
+        is_moderator = True
         phenotype_has_codes = True
         AllnotDeleted = True
         AllarePublished = True
         isAllowedtoViewChildren = True
 
         is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
-        if not is_published:
-            self.checkPhenotypeTobePublished(request, pk, phenotype_history_id)
+        is_approved = checkIfapproved(Phenotype, pk, phenotype_history_id)
+
+        self.checkPhenotypeTobePublished(request, pk, phenotype_history_id)
+
 
         data = dict()
 
-        if not allow_to_publish or is_published:
+        if not allow_to_publish or ( is_published and is_approved):
             data['form_is_valid'] = False
             data['message'] = render_to_string('clinicalcode/error.html', {},
                                                self.request)
             return JsonResponse(data)
 
         try:
-            if allow_to_publish and not is_published:
+            print(str(allow_to_publish) + str(is_approved) + str(is_moderator) + str(is_published))
+            if (allow_to_publish and not is_published and is_approved is None) or ( is_approved and not is_published):
+
+                # start a transaction
+                with transaction.atomic():
+                    if is_moderator:
+                        phenotype = Phenotype.objects.get(pk=pk)
+                        published_phenotype = PublishedPhenotype(
+                            phenotype=phenotype,
+                            phenotype_history_id=phenotype_history_id,
+                            is_approved=True,
+                            created_by=request.user)
+                        published_phenotype.save()
+                        data['form_is_valid'] = True
+                        data[
+                            'latest_history_ID'] = phenotype_history_id  # phenotype.history.latest().pk
+                        data['is_approved'] = True
+
+                        # update history list
+                        data['html_history_list'] = render_to_string(
+                            'clinicalcode/phenotype/partial_history_list.html',
+                            {
+                                'history':
+                                    phenotype.history.all(),
+                                'current_phenotype_history_id':
+                                    int(phenotype_history_id
+                                        ),  # phenotype.history.latest().pk,
+                                'published_historical_ids':
+                                    list(
+                                        PublishedPhenotype.objects.filter(
+                                            phenotype_id=pk).values_list(
+                                            'phenotype_history_id', flat=True)),
+                                'is_approved':True
+                            },
+                            request=self.request)
+
+                        data['message'] = render_to_string(
+                            'clinicalcode/phenotype/published.html', {
+                                'id': pk,
+                                'phenotype_history_id': phenotype_history_id
+                            }, self.request)
+
+                    else:
+                        phenotype = Phenotype.objects.get(pk=pk)
+                        published_phenotype = PublishedPhenotype(
+                            phenotype=phenotype,
+                            phenotype_history_id=phenotype_history_id,
+                            is_approved=False,
+                            created_by=request.user)
+                        published_phenotype.save()
+                        data['form_is_valid'] = True
+                        data['latest_history_ID'] = phenotype_history_id  #phenotype.history.latest().pk
+                        data['is_approved'] = False
+
+                        # update history list
+                        data['html_history_list'] = render_to_string(
+                            'clinicalcode/phenotype/partial_history_list.html',
+                            {
+                                'history':
+                                phenotype.history.all(),
+                                'is_approved':False,
+                                'current_phenotype_history_id':
+                                int(phenotype_history_id
+                                    ),  #phenotype.history.latest().pk,
+                                'published_historical_ids':
+                                list(
+                                    PublishedPhenotype.objects.filter(
+                                        phenotype_id=pk).values_list(
+                                            'phenotype_history_id', flat=True))
+                            },
+                            request=self.request)
+
+                        data['message'] = render_to_string(
+                            'clinicalcode/phenotype/published.html', {
+                                'id': pk,
+                                'phenotype_history_id': phenotype_history_id
+                            }, self.request)
+
+            elif not is_approved and is_moderator:
                 # start a transaction
                 with transaction.atomic():
                     phenotype = Phenotype.objects.get(pk=pk)
-                    published_phenotype = PublishedPhenotype(
-                        phenotype=phenotype,
-                        phenotype_history_id=phenotype_history_id,
-                        created_by=request.user)
+                    published_phenotype = PublishedPhenotype.objects.get(phenotype_id=phenotype.id)
+                    published_phenotype.is_approved = True
                     published_phenotype.save()
+
                     data['form_is_valid'] = True
+                    data['is_approved'] = True
                     data[
-                        'latest_history_ID'] = phenotype_history_id  #phenotype.history.latest().pk
+                        'latest_history_ID'] = phenotype_history_id  # phenotype.history.latest().pk
 
                     # update history list
                     data['html_history_list'] = render_to_string(
                         'clinicalcode/phenotype/partial_history_list.html',
                         {
                             'history':
-                            phenotype.history.all(),
+                                phenotype.history.all(),
+                            'is_approved':True,
                             'current_phenotype_history_id':
-                            int(phenotype_history_id
-                                ),  #phenotype.history.latest().pk,
+                                int(phenotype_history_id
+                                    ),  # phenotype.history.latest().pk,
                             'published_historical_ids':
-                            list(
-                                PublishedPhenotype.objects.filter(
-                                    phenotype_id=pk).values_list(
+                                list(
+                                    PublishedPhenotype.objects.filter(
+                                        phenotype_id=pk).values_list(
                                         'phenotype_history_id', flat=True))
                         },
                         request=self.request)
@@ -963,12 +1071,90 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                             'phenotype_history_id': phenotype_history_id
                         }, self.request)
 
+
+
+        except Exception as e:
+            print(e)
+            data['form_is_valid'] = False
+            data['message'] = render_to_string('clinicalcode/error.html', {},
+                                               self.request)
+
+        return JsonResponse(data)
+
+    def put(self, request, pk, phenotype_history_id):
+        global errors, allow_to_publish, phenotype_is_deleted, is_owner, phenotype_has_codes,is_approved,is_moderator
+        global AllnotDeleted, AllarePublished, isAllowedtoViewChildren
+        errors = {}
+        allow_to_publish = True
+        phenotype_is_deleted = False
+        is_owner = True
+        is_moderator = True
+        phenotype_has_codes = True
+        AllnotDeleted = True
+        AllarePublished = True
+        isAllowedtoViewChildren = True
+
+        is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
+        is_approved = checkIfapproved(Phenotype, pk, phenotype_history_id)
+        if is_published and not is_approved:
+            self.checkPhenotypeTobePublished(request, pk, phenotype_history_id)
+
+        data = dict()
+
+        if (is_published and is_approved):
+            data['form_is_valid'] = False
+            data['message'] = render_to_string('clinicalcode/error.html', {},
+                                               self.request)
+            return JsonResponse(data)
+
+        try:
+            if not is_approved and is_moderator:
+                # start a transaction
+                with transaction.atomic():
+                    phenotype = Phenotype.objects.get(pk=pk).id
+                    print(phenotype)
+                    published_phenotype = PublishedPhenotype.objects.get(phenotype_id=phenotype)
+                    published_phenotype.is_approved = True
+                    published_phenotype.save()
+
+                    data['form_is_valid'] = True
+                    data[
+                        'latest_history_ID'] = phenotype_history_id  # phenotype.history.latest().pk
+                    data['is_approved'] = True
+
+                    # update history list
+                    data['html_history_list'] = render_to_string(
+                        'clinicalcode/phenotype/partial_history_list.html',
+                        {
+                            'history':
+                                phenotype.history.all(),
+                            'is_approved':True,
+                            'current_phenotype_history_id':
+                                int(phenotype_history_id
+                                    ),  # phenotype.history.latest().pk,
+                            'published_historical_ids':
+                                list(
+                                    PublishedPhenotype.objects.filter(
+                                        phenotype_id=pk).values_list(
+                                        'phenotype_history_id', flat=True))
+                        },
+                        request=self.request)
+
+                    data['message'] = render_to_string(
+                        'clinicalcode/phenotype/published.html', {
+                            'id': pk,
+                            'phenotype_history_id': phenotype_history_id
+                        }, self.request)
+
+
         except Exception as e:
             data['form_is_valid'] = False
             data['message'] = render_to_string('clinicalcode/error.html', {},
                                                self.request)
 
         return JsonResponse(data)
+
+
 
 
 #---------------------------------------------------------------------------
