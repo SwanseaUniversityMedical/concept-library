@@ -279,7 +279,8 @@ def allowed_to_view(request,
                 set_class.objects.get(pk=set_id).history.latest().history_id)
 
         is_published = checkIfPublished(set_class, set_id, set_history_id)
-        if is_published:
+        is_approved = checkIfPublished(set_class, set_id, set_history_id)
+        if is_published and is_approved :
             is_allowed_to_view = True
     # ********************************************
 
