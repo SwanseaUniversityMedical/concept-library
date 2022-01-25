@@ -20,6 +20,7 @@ class PublishedPhenotype(models.Model):
         null=True,
         related_name="published_phenotype_modified"
     )  # user of the person who modified this row.
+    is_approved = models.NullBooleanField()
 
     history = HistoricalRecords()
 
