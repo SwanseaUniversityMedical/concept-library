@@ -33,7 +33,6 @@ from .permissions import *
 # pip2 install pandas
 
 
-
 def deleteConcept(pk, user):
     ''' Delete a concept based on a concept id '''
     # get selected concept

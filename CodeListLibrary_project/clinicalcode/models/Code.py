@@ -5,6 +5,7 @@ from .CodeList import CodeList
 
 
 class CodeManager(models.Manager):
+
     def search(self, search_text=None):
         return (self.filter(code__contains=search_text).order_by('code'))
 

@@ -29,6 +29,7 @@ from ..permissions import Permissions, allowed_to_permit
 
 
 class ConceptForm(forms.ModelForm):
+
     def __init__(self, *args, **kwargs):
         # To get request.user, do not use kwargs.pop('user', None) due to
         # potential security hole.

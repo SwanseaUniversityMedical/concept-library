@@ -14,7 +14,6 @@ from ..models.Concept import Concept
 # !!! from simple_history.models import HistoricalRecords
 
 
-
 class ComponentForm(forms.ModelForm):
     '''
         Components are parts of a concept. Each component may contain codes

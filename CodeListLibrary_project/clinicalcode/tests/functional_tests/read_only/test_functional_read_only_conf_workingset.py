@@ -32,6 +32,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 @skipIf('read_only' not in sys.argv[-1], "READ ONLY TEST SKIPPED")
 class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
+
     def setUp(self):
 
         location = dirname(dirname(__file__))

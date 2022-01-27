@@ -27,6 +27,7 @@ MAX_WAIT = 10
 
 
 def wait(fn):
+
     def modified_fn(*args, **kwargs):
         start_time = time.time()
         while True:
@@ -41,6 +42,7 @@ def wait(fn):
 
 
 class FunctionalTest(StaticLiveServerTestCase):
+
     def setUp(self):
         if settings.REMOTE_TEST:
             self.browser = webdriver.Remote(

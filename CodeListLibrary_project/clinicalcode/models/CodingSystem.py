@@ -3,11 +3,13 @@ from simple_history.models import HistoricalRecords
 
 
 class CodingSystemQuerySet(models.QuerySet):
+
     def lookups(self):
         return self.only("id", "name").order_by("id")
 
 
 class CodingSystemManager(models.Manager):
+
     def get_queryset(self):
         return CodingSystemQuerySet(self.model, using=self._db)
 

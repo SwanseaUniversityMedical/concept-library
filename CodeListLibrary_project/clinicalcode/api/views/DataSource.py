@@ -26,7 +26,6 @@ from .View import *
 # from numpy.distutils.fcompiler import none
 
 
-
 @api_view(['POST'])
 def api_datasource_create(request):
     if not request.user.is_superuser:

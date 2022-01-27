@@ -487,7 +487,6 @@ def api_concept_create(request):
 
         new_concept.entry_date = datetime.datetime.now()
 
-
         new_concept.created_by = request.user
         new_concept.owner_access = Permissions.EDIT  # int(request.data.get('ownerAccess'))
         new_concept.owner_id = request.user.id  # int(request.data.get('owner_id'))

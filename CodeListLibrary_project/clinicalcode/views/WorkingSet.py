@@ -48,10 +48,6 @@ from .View import *
 
 # from rest_framework.permissions import BasePermission
 
-
-
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -376,6 +372,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin,
         else:
             if workingset.group_access == 1:
                 workingset.group_id = None
+
 
 # Have a valid working set, save it and deal with tags.
 # start a transaction

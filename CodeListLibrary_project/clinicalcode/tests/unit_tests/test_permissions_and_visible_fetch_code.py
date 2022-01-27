@@ -12,6 +12,7 @@ from django.test import TestCase
 
 
 class PermissionTest(TestCase):
+
     @classmethod
     def setUpClass(cls):
         super(PermissionTest, cls).setUpClass()

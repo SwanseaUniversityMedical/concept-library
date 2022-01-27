@@ -48,9 +48,6 @@ from ...viewmodels.js_tree_model import TreeModelManager
 from ..serializers import *
 
 #from ...models.PublishedConcept import PublishedConcept
-
-
-
 '''
     ---------------------------------------------------------------------------
     View sets (see http://www.django-rest-framework.org/api-guide/viewsets).

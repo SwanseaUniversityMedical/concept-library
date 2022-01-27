@@ -21,6 +21,7 @@ from rest_framework.reverse import reverse
 
 
 class brandMiddleware(MiddlewareMixin):
+
     def process_request(self, request):
         #---------------------------------
         # if the user is a member of  'ReadOnlyUsers' group, make READ-ONLY True

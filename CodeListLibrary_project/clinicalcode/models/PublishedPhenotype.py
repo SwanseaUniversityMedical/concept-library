@@ -23,7 +23,6 @@ class PublishedPhenotype(models.Model):
     is_approved = models.NullBooleanField()
     approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
-
     history = HistoricalRecords()
 
     class Meta:

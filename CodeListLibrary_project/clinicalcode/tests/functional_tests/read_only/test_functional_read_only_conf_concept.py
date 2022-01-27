@@ -34,6 +34,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 @skipIf('read_only' not in sys.argv[-1], "READ ONLY TEST SKIPPED")
 class ReadOnlyTestConcept(StaticLiveServerTestCase):
+
     def setUp(self):
         # settings for gitlab running
         location = dirname(dirname(__file__))

@@ -20,11 +20,9 @@ from rest_framework.reverse import reverse
 # from clinicalcode.publicsites.views import published_concept_codes_to_csv
 
 
-
-
-
 # @skip("skip for now")
 class InclusionExclusionTest(TestCase):
+
     @classmethod
     def setUpClass(cls):
         super(InclusionExclusionTest, cls).setUpClass()

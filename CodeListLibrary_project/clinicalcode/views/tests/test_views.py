@@ -7,9 +7,9 @@ from ...utils import *
 #from ...models.Concept import Concept
 
 
-
 @skip("just skip")
 class ViewTest(TestCase):
+
     @classmethod
     def setUpClass(cls):
         super(ViewTest, cls).setUpClass()

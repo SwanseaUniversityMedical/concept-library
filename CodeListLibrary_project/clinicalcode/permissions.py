@@ -39,6 +39,7 @@ def checkIfPublished(set_class, set_id, set_history_id):
     else:
         return False
 
+
 def checkIfapproved(set_class, set_id, set_history_id):
     ''' Check if an entity version is published '''
 
@@ -48,13 +49,15 @@ def checkIfapproved(set_class, set_id, set_history_id):
     from .models.PublishedPhenotype import PublishedPhenotype
 
     if (set_class == Concept):
-        return PublishedConcept.objects.filter(
-            concept_id=set_id).values_list('is_approved',flat=True).first()
+        return PublishedConcept.objects.filter(concept_id=set_id).values_list(
+            'is_approved', flat=True).first()
     elif (set_class == Phenotype):
         return PublishedPhenotype.objects.filter(
-            phenotype_id=set_id).values_list("is_approved",flat=True).first()
+            phenotype_id=set_id).values_list("is_approved", flat=True).first()
     else:
         return False
+
+
 '''
     ---------------------------------------------------------------------------
     Determine access to a specified dataset (Concepts or WorkingSets).
@@ -281,7 +284,7 @@ def allowed_to_view(request,
         is_published = checkIfPublished(set_class, set_id, set_history_id)
         is_approved = checkIfapproved(set_class, set_id, set_history_id)
 
-        if is_published and is_approved :
+        if is_published and is_approved:
             is_allowed_to_view = True
     # ********************************************
 
@@ -450,6 +453,7 @@ class HasAccessToCreateCheckMixin(object):
         mixin to check if user has create access for concepts
         this mixin is used within class based views and can be overridden
     '''
+
     def has_access_to_create(self, user):
         return allowed_to_create()
 
@@ -469,6 +473,7 @@ class HasAccessToViewConceptCheckMixin(object):
         mixin to check if user has view access to a concept
         this mixin is used within class based views and can be overridden
     '''
+
     def has_access_to_view_concept(self, user, concept):
         from .models.Concept import Concept
         return allowed_to_view(self.request, Concept, concept)
@@ -490,6 +495,7 @@ class HasAccessToViewParentConceptCheckMixin(object):
         mixin to check if user has view access to a component concept
         this mixin is used within class based views and can be overridden
     '''
+
     def has_access_to_view_concept(self, user, concept):
         from .models.Concept import Concept
         return allowed_to_view(self.request, Concept, concept)
@@ -511,6 +517,7 @@ class HasAccessToEditConceptCheckMixin(object):
         mixin to check if user has edit access to a concept
         this mixin is used within class based views and can be overridden
     '''
+
     def has_access_to_edit_concept(self, user, concept):
         from .models.Concept import Concept
         return allowed_to_edit(self.request, Concept, concept)
@@ -533,6 +540,7 @@ class HasAccessToEditParentConceptCheckMixin(object):
         This differs from the Concept check only by the kwarg key used
         /concepts/<concept-id>/concepts/<pk>
     '''
+
     def has_access_to_edit_concept(self, user, concept):
         from .models.Concept import Concept
         return allowed_to_edit(self.request, Concept, concept)
@@ -554,6 +562,7 @@ class HasAccessToEditWorkingsetCheckMixin(object):
         mixin to check if user has edit access to a working set
         this mixin is used within class based views and can be overridden
     '''
+
     def has_access_to_edit_workingset(self, user, workingset_id):
         from .models.WorkingSet import WorkingSet
         return allowed_to_edit(self.request, WorkingSet, workingset_id)
@@ -575,6 +584,7 @@ class HasAccessToViewWorkingsetCheckMixin(object):
         mixin to check if user has view access to a working set
         this mixin is used within class based views and can be overridden
     '''
+
     def has_access_to_view_workingset(self, user, workingset_id):
         from .models.WorkingSet import WorkingSet
         return allowed_to_view(self.request, WorkingSet, workingset_id)
@@ -597,6 +607,7 @@ class HasAccessToEditPhenotypeCheckMixin(object):
         mixin to check if user has edit access to a phenotype
         this mixin is used within class based views and can be overridden
     """
+
     def has_access_to_edit_phenotype(self, user, phenotype_id):
         from .models.Phenotype import Phenotype
         return allowed_to_edit(self.request, Phenotype, phenotype_id)
@@ -618,6 +629,7 @@ class HasAccessToViewPhenotypeCheckMixin(object):
         mixin to check if user has view access to a working set
         this mixin is used within class based views and can be overridden
     """
+
     def has_access_to_view_phenotype(self, user, phenotype_id):
         from .models.Phenotype import Phenotype
         return allowed_to_view(self.request, Phenotype, phenotype_id)

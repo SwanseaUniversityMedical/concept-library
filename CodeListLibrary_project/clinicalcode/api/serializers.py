@@ -12,12 +12,14 @@ from ..models import (Code, CodeList, CodeRegex, Component, Concept,
 
 
 class ConceptSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Concept
         fields = '__all__'
 
 
 class CodeSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Code
         #fields = ('id', 'code', 'description', 'code_list')
@@ -25,6 +27,7 @@ class CodeSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Tag
         fields = (
@@ -35,6 +38,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class DataSourceSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = DataSource
         fields = (

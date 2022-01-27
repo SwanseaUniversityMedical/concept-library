@@ -27,6 +27,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 
 class HistoryTest(StaticLiveServerTestCase):
+
     def setUp(self):
 
         location = os.path.dirname(__file__)

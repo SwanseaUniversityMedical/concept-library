@@ -20,6 +20,7 @@ from django.test import TestCase, override_settings
 
 @skipIf('read_only' not in sys.argv[-1], "READ ONLY TEST SKIPPED")
 class ReadOnlyTest(TestCase):
+
     @classmethod
     def setUpTestData(cls):
 

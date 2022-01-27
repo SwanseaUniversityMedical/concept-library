@@ -3,6 +3,7 @@ from django.conf import settings
 
 class ClinicalCode(object):
     ''' class to store clinical code session information '''
+
     def __init__(self, request):
         self.session = request.session
         clinicalcode = self.session.get(settings.CLINICALCODE_SESSION_ID)

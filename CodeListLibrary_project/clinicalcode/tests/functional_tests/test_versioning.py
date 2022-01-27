@@ -29,6 +29,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 
 class VersioningTest(StaticLiveServerTestCase):
+
     def setUp(self):
         location = os.path.dirname(__file__)
         if settings_cll.REMOTE_TEST:

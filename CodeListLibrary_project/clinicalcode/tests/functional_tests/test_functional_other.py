@@ -32,9 +32,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 # from cll import test_settings as settings
 
 
-
-
 class OtherTest(StaticLiveServerTestCase):
+
     def setUp(self):
         #       chrome_options = webdriver.ChromeOptions()
 

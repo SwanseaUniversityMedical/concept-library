@@ -9,19 +9,17 @@ import logging
 
 from clinicalcode import db_utils
 from django.contrib.auth.decorators import login_required
-
-from django.core.exceptions import PermissionDenied
-from django.shortcuts import render, redirect
 from django.contrib.auth.models import Group
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http.response import Http404
 from django.shortcuts import redirect, render
 
+from ..forms.ContactUsForm import ContactForm
 from ..models.Component import Component
 from ..models.Concept import Concept
 from ..models.DataSource import DataSource
 from ..models.Phenotype import Phenotype
-from ..forms.ContactUsForm import ContactForm
 from ..models.PublishedConcept import PublishedConcept
 from ..models.PublishedPhenotype import PublishedPhenotype
 from ..models.Statistics import Statistics
@@ -515,10 +513,14 @@ def contact_us(request):
                 from_email = form.cleaned_data['from_email']
                 message = form.cleaned_data['message']
                 category = form.cleaned_data['categories']
-                email_subject = ('Concept Library - New Message From ' +name)
+                email_subject = ('Concept Library - New Message From ' + name)
                 try:
-                    html_content = '<strong>New Message from Concept Library Website</strong> <br><br> <strong>Name:</strong><br>' + name +  '<br><br> <strong>Email:</strong><br>' + from_email +  '<br><br> <strong>Issue Type:</strong><br>' + category +'<br><br><strong> Tell us about your Enquiry: </strong><br>' + message
-                    msg = EmailMultiAlternatives(email_subject, html_content, from_email, ['christopher.green@swansea.ac.uk'], cc=[from_email])
+                    html_content = '<strong>New Message from Concept Library Website</strong> <br><br> <strong>Name:</strong><br>' + name + '<br><br> <strong>Email:</strong><br>' + from_email + '<br><br> <strong>Issue Type:</strong><br>' + category + '<br><br><strong> Tell us about your Enquiry: </strong><br>' + message
+                    msg = EmailMultiAlternatives(
+                        email_subject,
+                        html_content,
+                        from_email, ['christopher.green@swansea.ac.uk'],
+                        cc=[from_email])
                     msg.content_subtype = "html"  # Main content is now text/html
                     msg.send()
                     status = 'Issue Reported Successfully.'
@@ -527,16 +529,14 @@ def contact_us(request):
             if captcha == False:
                 status = 'Please Fill out Captcha.'
 
-        return render(request,
-                        'cl-docs/contact-us.html',
-                        {
-                            'form': form,
-                            'message': [status],
-                        }
-                        )
+        return render(request, 'cl-docs/contact-us.html', {
+            'form': form,
+            'message': [status],
+        })
     else:
         raise PermissionDenied
- 
+
+
 def check_recaptcha(request):
     '''
         Contact Us Recaptcha code
@@ -547,8 +547,9 @@ def check_recaptcha(request):
             data = {
                 'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
                 'response': recaptcha_response
-             }
-            r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=data)
+            }
+            r = requests.post(
+                'https://www.google.com/recaptcha/api/siteverify', data=data)
             result = r.json()
             if result['success']:
                 recaptcha_is_valid = True

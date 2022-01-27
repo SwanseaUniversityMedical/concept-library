@@ -46,7 +46,9 @@ urlpatterns += [
 # (terms and conditions) and privacy/cookie policy pages
 urlpatterns += [
     url(r'^terms-and-conditions/$', View.termspage, name='terms'),
-    url(r'^privacy-and-cookie-policy/$', View.cookiespage, name='privacy_and_cookie_policy')
+    url(r'^privacy-and-cookie-policy/$',
+        View.cookiespage,
+        name='privacy_and_cookie_policy')
 ]
 
 # contact us read only
