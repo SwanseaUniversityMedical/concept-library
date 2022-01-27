@@ -5,14 +5,8 @@
 {% block description %} CONTACT-US-PAGE {% endblock description %}
 {% block head %}
 
-<style>
-.fieldWrapperHeader:after {
-    content:" *";
-    color: red;
-  }
-</style>
 
-<link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
+<link href="{% static 'css/brands/HDRUK/contactusPageStyle.css' %}" rel="stylesheet" />
 {% endblock head %}
 {% block container %}
 <div class="row">
@@ -117,14 +111,16 @@
             </form>
          </div>
     {% endblock container %}
-    <script type="text/javascript">
-       function showSelection(e) {
-            if (document.querySelector('#navList a.active') !== null) {
-                document.querySelector('#navList a.active').classList.remove('active');
-            }
-       e.target.className = "active";
-       }
-    </script>
 
-	</body>
-</html>
+{% block scripts %}
+<script type="text/javascript">
+    function showSelection(e) {
+    if (document.querySelector('#navList a.active') !== null) {
+    document.querySelector('#navList a.active').classList.remove('active');
+    }
+    e.target.className = "active";
+    }
+</script>
+{% endblock scripts %}
+
+

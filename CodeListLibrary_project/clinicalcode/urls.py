@@ -46,11 +46,15 @@ urlpatterns += [
 # (terms and conditions) and privacy/cookie policy pages
 urlpatterns += [
     url(r'^terms-and-conditions/$', View.termspage, name='terms'),
-    url(r'^privacy-and-cookie-policy/$',
-        View.cookiespage,
-        name='privacy_and_cookie_policy'),
-    #url(r'^contact-us/$', View.contact_us, name='contact_us'),
+    url(r'^privacy-and-cookie-policy/$', View.cookiespage, name='privacy_and_cookie_policy')
 ]
+
+# contact us read only
+if not settings.CLL_READ_ONLY:
+    urlpatterns += [
+        url(r'^contact-us/$', View.contact_us, name='contact_us'),
+    ]
+
 #======== Admin ===================================================================================
 # for API testing
 if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
