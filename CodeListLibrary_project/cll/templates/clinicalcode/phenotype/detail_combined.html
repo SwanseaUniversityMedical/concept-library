@@ -116,7 +116,11 @@
 
                                                     {% endif %}
                                                             id="publish2">
-                                                    Publish and approve
+                                                   {% if not is_approved and is_published %}
+                                                       Approve
+                                                       {% else %}
+                                                       Publish
+                                                       {% endif %}
 
                                                 {% else %}
                                                     <a

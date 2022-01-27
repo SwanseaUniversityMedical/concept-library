@@ -3099,6 +3099,11 @@ def get_visible_live_or_published_phenotype_versions(
                                    FROM clinicalcode_publishedphenotype 
                                    WHERE phenotype_id=t.id and phenotype_history_id=t.history_id 
                                ) is_published,
+                                (SELECT is_approved 
+                                   FROM clinicalcode_publishedphenotype 
+                                   WHERE phenotype_id=t.id and phenotype_history_id=t.history_id
+                               ) is_approved,
+                               
                                id, created, modified, title, name, layout, phenotype_uuid, type, 
                                validation, valid_event_data_range,  
                                sex, author, status, hdr_created_date, hdr_modified_date, description, implementation,
