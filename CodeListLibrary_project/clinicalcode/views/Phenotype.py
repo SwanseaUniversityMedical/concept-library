@@ -298,7 +298,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
             Phenotype.objects.get(pk=pk).history.latest().history_id)
 
     is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
-    is_approved =  checkIfapproved(Phenotype, pk, phenotype_history_id)
+    is_approved = checkIfapproved(Phenotype, pk, phenotype_history_id)
 
     #----------------------------------------------------------------------
 
@@ -956,9 +956,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
             return JsonResponse(data)
 
         try:
-            print(str(allow_to_publish) + str(is_approved) + str(is_moderator) + str(is_published))
             if (allow_to_publish and not is_published and is_approved is None) or ( is_approved and not is_published):
-
                 # start a transaction
                 with transaction.atomic():
                     if is_moderator:
@@ -967,6 +965,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                             phenotype=phenotype,
                             phenotype_history_id=phenotype_history_id,
                             is_approved=True,
+                            approved_by=request.user,
                             created_by=request.user)
                         published_phenotype.save()
                         data['form_is_valid'] = True
@@ -999,16 +998,29 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                             }, self.request)
 
                     else:
-                        phenotype = Phenotype.objects.get(pk=pk)
-                        published_phenotype = PublishedPhenotype(
-                            phenotype=phenotype,
-                            phenotype_history_id=phenotype_history_id,
-                            is_approved=False,
-                            created_by=request.user)
-                        published_phenotype.save()
+                        if is_approved:
+                            phenotype = Phenotype.objects.get(pk=pk)
+                            published_phenotype = PublishedPhenotype(
+                                phenotype=phenotype,
+                                phenotype_history_id=phenotype_history_id,
+                                is_approved=True,
+                                approved_by= PublishedPhenotype.objects.get(phenotype_id=phenotype.id).approved_by_id,
+                                created_by=request.user)
+                            published_phenotype.save()
+                            data['is_approved'] = True
+                        else:
+                            phenotype = Phenotype.objects.get(pk=pk)
+                            published_phenotype = PublishedPhenotype(
+                                phenotype=phenotype,
+                                phenotype_history_id=phenotype_history_id,
+                                is_approved=False,
+                                created_by=request.user)
+                            published_phenotype.save()
+                            data['is_approved'] = False
+
                         data['form_is_valid'] = True
                         data['latest_history_ID'] = phenotype_history_id  #phenotype.history.latest().pk
-                        data['is_approved'] = False
+
 
                         # update history list
                         data['html_history_list'] = render_to_string(
@@ -1029,7 +1041,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                             request=self.request)
 
                         data['message'] = render_to_string(
-                            'clinicalcode/phenotype/published.html', {
+                            'clinicalcode/phenotype/approved.html', {
                                 'id': pk,
                                 'phenotype_history_id': phenotype_history_id
                             }, self.request)
@@ -1040,6 +1052,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                     phenotype = Phenotype.objects.get(pk=pk)
                     published_phenotype = PublishedPhenotype.objects.get(phenotype_id=phenotype.id)
                     published_phenotype.is_approved = True
+                    published_phenotype.approved_by = request.user
                     published_phenotype.save()
 
                     data['form_is_valid'] = True

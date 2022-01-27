@@ -25,7 +25,7 @@
         {% endif %}
 
 
-        {% if not is_owner %}
+        {% if not is_owner and not is_moderator %}
             <div class="col-md-12">             
                 <span class="glyphicon glyphicon-remove" style="color:red"></span>
                 <span class="text-danger">&nbsp;You must be the owner to publish.</span>
@@ -125,7 +125,7 @@
             <span class="glyphicon glyphicon-ok" style="color:green"></span>
             <span class="text-success">&nbsp;Published&nbsp;{{ is_approved }}</span>
         {% else %}
-        {% if is_published and not is_approved %}
+        {% if is_published and not is_approved and not is_moderator %}
             <span class="glyphicon glyphicon-ok" style="color:green"></span>
             <span class="text-warning">&nbsp;Waiting to approve&nbsp</span>
             {% else %}
@@ -171,7 +171,7 @@ $(function(){
                     $('#history-table').html(data.html_history_list);
                     $('#latest-history-ID-Div').html(data.latest_history_ID);
                     $('#latest_history_id').val(data.latest_history_ID);
-                    console.log(data.is_approved)
+
                     form.find('input[name=latest_history_id_shown]').val(data.latest_history_ID);
                     
                     // href needs to be updated for publish phenotype to show latest status

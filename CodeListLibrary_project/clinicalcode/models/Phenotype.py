@@ -65,6 +65,7 @@ class Phenotype(TimeStampedModel):
                                    null=True,
                                    related_name="phenotype_updated")
     is_deleted = models.NullBooleanField()
+    #is_approved = models.NullBooleanField(default=False)
     deleted = models.DateTimeField(null=True, blank=True)
     deleted_by = models.ForeignKey(User,
                                    on_delete=models.SET_NULL,
@@ -75,6 +76,7 @@ class Phenotype(TimeStampedModel):
                               null=True,
                               related_name="phenotype_owned")
     group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True)
+
     owner_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES,
                                        default=Permissions.EDIT)
     group_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES,
