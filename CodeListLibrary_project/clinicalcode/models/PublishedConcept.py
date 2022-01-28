@@ -15,7 +15,6 @@ class PublishedConcept(models.Model):
                                    related_name="publication_owner")
     code_count = models.IntegerField(null=True)
     modified = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    is_approved = models.NullBooleanField()
     modified_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
