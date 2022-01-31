@@ -405,6 +405,7 @@ if IS_DEMO:  # Demo server
 
 ##EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # Email, contact us page
+DEFAULT_FROM_EMAIL = get_env_value('DEFAULT_FROM_EMAIL')
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = get_env_value('EMAIL_USE_TLS', cast='bool')
 EMAIL_HOST = get_env_value('EMAIL_HOST')
