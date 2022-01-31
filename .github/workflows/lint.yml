@@ -1,0 +1,72 @@
+name: Lint Code Base
+
+on: [pull_request]
+
+jobs:
+  build:
+    # Name the Job
+    name: Lint Code Base
+    # Set the agent to run on
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          
+      - name: Lint using Flake8
+        uses: github/super-linter/slim@v4
+        env:
+          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_PYTHON_FLAKE8: true
+          #VALIDATE_PYTHON_PYLINT: true
+          #VALIDATE_PYTHON_BLACK: true
+          LOG_LEVEL : ERROR
+          #VALIDATE_PYTHON_ISORT: true
+          #PYTHON_ISORT_CONFIG_FILE: .isort.cfg
+          DISABLE_ERRORS: true
+          PYTHON_FLAKE8_CONFIG_FILE: .flake8
+          SUPPRESS_POSSUM: true
+          DEFAULT_BRANCH: HDR-UK
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+        
+      - name: PEP8 autoformatter
+        id: autoyapf
+        uses: mritunjaysharma394/autoyapf@v2
+        with:
+          args: --style pep8 --recursive --in-place .
+          
+     
+      - name: Python-isort import modules
+        # You may pin to the exact commit or the version.
+        # uses: isort/isort-action@245468f11b1fda7916b9127e07af532df40286d3
+        uses: isort/isort-action@v0.1.0
+        with:
+          # Version of isort to use
+          isortVersion: ""
+          # files or directories to sort
+          sortPaths: "."
+          # isort configuration options
+          configuration: ""
+          # path(s) to requirements files that should be installed to properly configure third-party imports
+          requirementsFiles: "" 
+          
+      - name: Check for modified files
+        id: git-check
+        run: echo ::set-output name=modified::$(if git diff-index --quiet HEAD --; then echo "false"; else echo "true"; fi)
+        
+      - name: commit changes
+        if: steps.git-check.outputs.modified == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A && git diff-index --cached --quiet HEAD || git commit -m 'auto-changes'
+          git reset -- ${{ github.head_ref }}/super-linter.log
+          
+      - name: push changes
+        uses: ad-m/github-push-action@v0.5.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.head_ref }}
