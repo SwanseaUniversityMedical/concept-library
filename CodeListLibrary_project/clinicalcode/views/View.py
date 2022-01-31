@@ -384,14 +384,22 @@ def contact_us(request):
                 message = form.cleaned_data['message']
                 category = form.cleaned_data['categories']
                 email_subject = ('Concept Library - New Message From ' +name)
+                
                 try:
-                    html_content = '<strong>New Message from Concept Library Website</strong> <br><br> <strong>Name:</strong><br>' + name +  '<br><br> <strong>Email:</strong><br>' + from_email +  '<br><br> <strong>Issue Type:</strong><br>' + category +'<br><br><strong> Tell us about your Enquiry: </strong><br>' + message
-                    msg = EmailMultiAlternatives(email_subject, html_content, from_email, ['christopher.green@swansea.ac.uk'], cc=[from_email])
+                    html_content = '<strong>New Message from Concept Library Website</strong> <br><br> <strong>Name:</strong><br>' + name + '<br><br> <strong>Email:</strong><br>' + from_email +  '<br><br> <strong>Issue Type:</strong><br>' + category +'<br><br><strong> Tell us about your Enquiry: </strong><br>' + message
+                    msg = EmailMultiAlternatives(
+                        email_subject, 
+                        html_content, 
+                        from_email, 
+                        to=[settings.EMAIL_HOST_USER], 
+                        cc=[from_email]
+                    )
                     msg.content_subtype = "html"  # Main content is now text/html
                     msg.send()
                     status = 'Issue Reported Successfully.'
                 except BadHeaderError:
                     return HttpResponse('Invalid header found.')
+                
             if captcha == False:
                 status = 'Please Fill out Captcha.'
 
