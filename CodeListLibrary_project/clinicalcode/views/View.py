@@ -547,9 +547,11 @@ def check_recaptcha(request):
             data = {
                 'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
                 'response': recaptcha_response
-
-             }
-            r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=data, proxies={'https': 'http://proxy:8080/'})
+            }
+            r = requests.post(
+                'https://www.google.com/recaptcha/api/siteverify',
+                data=data,
+                proxies={'https': 'http://proxy:8080/'})
             result = r.json()
             if result['success']:
                 recaptcha_is_valid = True
