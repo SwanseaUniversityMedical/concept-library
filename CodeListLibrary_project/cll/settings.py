@@ -418,7 +418,6 @@ if IS_DEMO:  # Demo server
 # Email, contact us page
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = get_env_value('EMAIL_USE_TLS')
-EMAIL_USE_SSL = get_env_value('EMAIL_USE_SSL')
 EMAIL_HOST = get_env_value('EMAIL_HOST')
 EMAIL_PORT = get_env_value('EMAIL_PORT')
 GOOGLE_RECAPTCHA_SECRET_KEY = get_env_value('GOOGLE_RECAPTCHA_SECRET_KEY')
