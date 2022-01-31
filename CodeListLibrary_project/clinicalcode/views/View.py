@@ -390,7 +390,7 @@ def contact_us(request):
                     msg = EmailMultiAlternatives(
                         email_subject, 
                         html_content, 
-                        from_email, 
+                        settings.DEFAULT_FROM_EMAIL, 
                         to=[settings.EMAIL_HOST_USER], 
                         cc=[from_email]
                     )
