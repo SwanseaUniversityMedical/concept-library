@@ -520,7 +520,7 @@ def contact_us(request):
                     msg = EmailMultiAlternatives(email_subject,
                                                  html_content,
                                                  settings.DEFAULT_FROM_EMAIL,
-                                                 to=[settings.EMAIL_HOST_USER],
+                                                 to=[settings.HELPDESK_EMAIL],
                                                  cc=[from_email])
                     msg.content_subtype = "html"  # Main content is now text/html
                     msg.send()
