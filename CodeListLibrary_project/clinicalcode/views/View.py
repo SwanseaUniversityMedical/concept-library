@@ -519,7 +519,7 @@ def contact_us(request):
                     html_content = '<strong>New Message from Concept Library Website</strong> <br><br> <strong>Name:</strong><br>' + name + '<br><br> <strong>Email:</strong><br>' + from_email + '<br><br> <strong>Issue Type:</strong><br>' + category + '<br><br><strong> Tell us about your Enquiry: </strong><br>' + message
                     msg = EmailMultiAlternatives(email_subject,
                                                  html_content,
-                                                 'Concept Library (Do Not Reply) <%s>' % settings.DEFAULT_FROM_EMAIL,
+                                                 'Helpdesk <%s>' % settings.DEFAULT_FROM_EMAIL,
                                                  to=[settings.HELPDESK_EMAIL],
                                                  cc=[from_email])
                     msg.content_subtype = "html"  # Main content is now text/html
