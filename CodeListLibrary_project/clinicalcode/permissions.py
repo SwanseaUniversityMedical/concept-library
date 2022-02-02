@@ -35,7 +35,7 @@ def checkIfPublished(set_class, set_id, set_history_id):
             concept_id=set_id, concept_history_id=set_history_id).exists()
     elif (set_class == Phenotype):
         return PublishedPhenotype.objects.filter(
-            phenotype_id=set_id, is_approved=True, phenotype_history_id=set_history_id).exists()
+            phenotype_id=set_id, phenotype_history_id=set_history_id).exists()
     #  phenotype_id=set_id,is_approved=True, phenotype_history_id=set_history_id).exists() need to specify
     else:
         return False
