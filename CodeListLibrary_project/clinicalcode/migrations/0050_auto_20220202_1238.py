@@ -9,14 +9,21 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('clinicalcode', '0049_merge_0048_auto_20211109_1556_0048_auto_20211110_1741'),
+        ('clinicalcode',
+         '0049_merge_0048_auto_20211109_1556_0048_auto_20211110_1741'),
     ]
 
     operations = [
         migrations.AddField(
             model_name='historicalpublishedphenotype',
             name='approved_by',
-            field=models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(
+                blank=True,
+                db_constraint=False,
+                null=True,
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name='+',
+                to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='historicalpublishedphenotype',
@@ -26,7 +33,10 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='publishedphenotype',
             name='approved_by',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='publishedphenotype',
