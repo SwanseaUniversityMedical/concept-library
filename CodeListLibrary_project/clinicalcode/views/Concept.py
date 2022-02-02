@@ -892,10 +892,14 @@ def concept_upload_codes(request, pk):
                     if request.FILES.get('upload_concept_file'):
                         current_concept = Concept.objects.get(pk=pk)
                         concept_upload_file = request.FILES['upload_concept_file']
-                        
-                        #codes = list(csv.reader(concept_upload_file, delimiter=','))
-                        codes = list(csv.reader([line.decode() for line in concept_upload_file], delimiter=','))
-                        
+
+                        #Identify delimeter being used based on first line in .csv
+                        datasample = list(csv.reader([line.decode() for line in concept_upload_file]))
+                        firstrow = (str(datasample[0])[1:-1])
+                        sniffer = csv.Sniffer()
+                        delimetergather = sniffer.sniff(firstrow)
+                        codes = list(csv.reader([line.decode() for line in concept_upload_file], delimiter=delimetergather.delimiter, quotechar='"'))
+
                         # The posted variables:
                         upload_name = request.POST.get('upload_name')
                         logical_type = request.POST.get('logical_type')
@@ -1177,7 +1181,8 @@ def concept_upload_codes(request, pk):
 
                     return JsonResponse(data)
             except Exception as e:
-                errorMsg = [e.message]
+                #errorMsg = [e.message]
+                error = 'Error Encountered, Code List has not Been Uploaded'
                 data = dict()
                 # ------------------------------
                 concept = Concept.objects.get(id=pk)
@@ -1191,7 +1196,7 @@ def concept_upload_codes(request, pk):
                                                      {'pk': pk,
                                                       'form': form_class,
                                                       'latest_history_ID': latest_history_ID,
-                                                      'errorMsg': [e.message]
+                                                      'errorMsg': [error]
                                                       },
                                                      request)
 
@@ -1207,13 +1212,32 @@ def concept_upload_codes(request, pk):
             # ------------------------------
             # data['exception'] = sys.exc_info()[0]
             data['form_is_valid'] = False
+
+            #Error handling
+            #Columns that are required or can prompt error
+            upload_name = request.POST.get('upload_name')
+            col_1 = request.POST.get('col_1')
+            col_2 = request.POST.get('col_2')
+            col_3 = request.POST.get('col_3')
+            col_4 = request.POST.get('col_4')
+            col_5 = request.POST.get('col_5')
+            col_6 = request.POST.get('col_6')
+            filename = request.FILES.get('upload_concept_file')
+
+            if upload_name == '':
+                uploaderror = 'Please Include a Name for the Concept Upload'
+            elif col_1 == col_2 == col_3 == col_4 == col_5 == col_6 == '':
+                uploaderror = 'Please Assign at least one Column for the Concept Upload'
+            else:
+                uploaderror = 'Unspecified Error with Upload'
+
             data['html_form'] = render_to_string('clinicalcode/concept/upload.html',
-                                                 {'pk': pk,
-                                                  'form': form_class,
-                                                  'latest_history_ID': latest_history_ID,
-                                                  'errorMsg': ["Form is invalid"]
-                                                  },
-                                                 request)
+                                                {'pk': pk,
+                                                'form': form_class,
+                                                'latest_history_ID': latest_history_ID,
+                                                'errorMsg': [uploaderror]
+                                                },
+                                                request)
             return JsonResponse(data)
 
     concept = Concept.objects.get(id=pk)
