@@ -228,50 +228,50 @@ def phenotype_list(request):
         'clinicalcode/phenotype/index.html',
         {
             'page':
-                page,
+            page,
             'page_size':
-                str(page_size),
+            str(page_size),
             'page_obj':
-                p,
+            p,
             'search':
-                search,
+            search,
             'author':
-                author,
+            author,
             'show_my_phenotypes':
-                show_my_phenotypes,
+            show_my_phenotypes,
             'show_deleted_phenotypes':
-                show_deleted_phenotypes,
+            show_deleted_phenotypes,
             'tags':
-                tags,
+            tags,
             'tag_ids':
-                tag_ids2,
+            tag_ids2,
             'tag_ids_list':
-                tag_ids_list,
+            tag_ids_list,
             'owner':
-                owner,
+            owner,
             'show_only_validated_phenotypes':
-                show_only_validated_phenotypes,
+            show_only_validated_phenotypes,
             'allowed_to_create':
-                not settings.CLL_READ_ONLY,
+            not settings.CLL_READ_ONLY,
             'phenotype_brand':
-                phenotype_brand,
+            phenotype_brand,
             'phenotype_must_have_published_versions':
-                phenotype_must_have_published_versions,
+            phenotype_must_have_published_versions,
             'allTags':
-                Tag.objects.all().order_by('description'),
+            Tag.objects.all().order_by('description'),
             'all_CodingSystems':
-                CodingSystem.objects.all().order_by('id'),
+            CodingSystem.objects.all().order_by('id'),
             'search_form':
-                search_form,
+            search_form,
             'p_btns':
-                p_btns,
+            p_btns,
             'brand_associated_collections':
-                brand_associated_collections,
+            brand_associated_collections,
             'brand_associated_collections_ids':
-                brand_associated_collections_ids,
+            brand_associated_collections_ids,
             'all_collections_selected':
-                all(item in tag_ids_list
-                    for item in brand_associated_collections_ids)
+            all(item in tag_ids_list
+                for item in brand_associated_collections_ids)
             # 'expand_published_versions': expand_published_versions,
             # 'published_count': PublishedPhenotype.objects.all().count()
         })
@@ -341,7 +341,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         concepts = Concept.history.filter(
             id__in=concept_id_list,
             history_id__in=concept_hisoryid_list).values(
-            'id', 'history_id', 'name', 'group')
+                'id', 'history_id', 'name', 'group')
 
     concepts_id_name = json.dumps(list(concepts))
 
@@ -366,11 +366,11 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         user_can_export = (allowed_to_view_children(
             request, Phenotype, pk, set_history_id=phenotype_history_id)
                            and db_utils.chk_deleted_children(
-                    request,
-                    Phenotype,
-                    pk,
-                    returnErrors=False,
-                    set_history_id=phenotype_history_id)
+                               request,
+                               Phenotype,
+                               pk,
+                               returnErrors=False,
+                               set_history_id=phenotype_history_id)
                            and not Phenotype.objects.get(pk=pk).is_deleted)
         user_allowed_to_create = allowed_to_create()
 
@@ -500,7 +500,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
                 c['codesCount'] = len([
                     x['code'] for x in codelist
                     if x['concept_id'] == 'C' + str(c['concept_id'])
-                       and x['concept_version_id'] == c['concept_version_id']
+                    and x['concept_version_id'] == c['concept_version_id']
                 ])
 
             c['concept_friendly_id'] = 'C' + str(c['concept_id'])
@@ -517,7 +517,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         'clinicalTerminologies': clinicalTerminologies,
         'user_can_edit': False,  # for now  #can_edit,
         'allowed_to_create':
-            False,  # for now  #user_allowed_to_create,    # not settings.CLL_READ_ONLY,
+        False,  # for now  #user_allowed_to_create,    # not settings.CLL_READ_ONLY,
         'user_can_export': user_can_export,
         'history': other_historical_versions,
         'live_ver_is_deleted': Phenotype.objects.get(pk=pk).is_deleted,
@@ -637,7 +637,7 @@ def phenotype_conceptcodesByVersion(request,
                 and target_concept_history_id is not None):
             if target_concept_id != str(
                     concept_id) and target_concept_history_id != str(
-                concept_version_id):
+                        concept_version_id):
                 continue
 
         c_codes = []
@@ -659,18 +659,18 @@ def phenotype_conceptcodesByVersion(request,
             id=concept_id, history_id=concept_version_id).code_attribute_header
         concept_codes_html.append({
             'concept_id':
-                concept_id,
+            concept_id,
             'concept_version_id':
-                concept_version_id,
+            concept_version_id,
             'c_codes_count':
-                c_codes_count,
+            c_codes_count,
             'c_html':
-                render_to_string(
-                    'clinicalcode/phenotype/get_concept_codes.html', {
-                        'codes': c_codes,
-                        'code_attribute_header': c_code_attribute_header,
-                        'showConcept': False
-                    })
+            render_to_string(
+                'clinicalcode/phenotype/get_concept_codes.html', {
+                    'codes': c_codes,
+                    'code_attribute_header': c_code_attribute_header,
+                    'showConcept': False
+                })
         })
 
     data['concept_codes_html'] = concept_codes_html
@@ -759,15 +759,15 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id):
     }
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = (
-            'attachment; filename="phenotype_PH%(phenotype_id)s_ver_%(phenotype_history_id)s_concepts_%(creation_date)s.csv"'
-            % my_params)
+        'attachment; filename="phenotype_PH%(phenotype_id)s_ver_%(phenotype_history_id)s_concepts_%(creation_date)s.csv"'
+        % my_params)
 
     writer = csv.writer(response)
 
     final_titles = ([
-                        'code', 'description', 'coding_system', 'concept_id',
-                        'concept_version_id'
-                    ] + ['concept_name'] +
+        'code', 'description', 'coding_system', 'concept_id',
+        'concept_version_id'
+    ] + ['concept_name'] +
                     ['phenotype_id', 'phenotype_version_id', 'phenotype_name'])
 
     writer.writerow(final_titles)
@@ -785,28 +785,28 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id):
         for cc in codes:
             rows_no += 1
             writer.writerow([
-                                cc['code'], cc['description'].encode('ascii', 'ignore').decode(
+                cc['code'], cc['description'].encode('ascii', 'ignore').decode(
                     'ascii'), concept_coding_system, 'C' +
-                                                     str(concept_id), concept_version_id
-                            ] + [
-                                Concept.history.get(id=concept_id,
-                                                    history_id=concept_version_id).name
-                            ] + [
-                                current_ph_version.friendly_id, current_ph_version.history_id,
-                                current_ph_version.name
-                            ])
+                str(concept_id), concept_version_id
+            ] + [
+                Concept.history.get(id=concept_id,
+                                    history_id=concept_version_id).name
+            ] + [
+                current_ph_version.friendly_id, current_ph_version.history_id,
+                current_ph_version.name
+            ])
 
         if rows_no == 0:
             writer.writerow([
-                                '', '', concept_coding_system, 'C' +
-                                                               str(concept_id), concept_version_id
-                            ] + [
-                                Concept.history.get(id=concept_id,
-                                                    history_id=concept_version_id).name
-                            ] + [
-                                current_ph_version.friendly_id, current_ph_version.history_id,
-                                current_ph_version.name
-                            ])
+                '', '', concept_coding_system, 'C' +
+                str(concept_id), concept_version_id
+            ] + [
+                Concept.history.get(id=concept_id,
+                                    history_id=concept_version_id).name
+            ] + [
+                current_ph_version.friendly_id, current_ph_version.history_id,
+                current_ph_version.name
+            ])
 
     return response
 
@@ -947,8 +947,8 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
 
         try:
             if (allow_to_publish and not is_published
-                and is_approved is None) or (is_approved == 2
-                                             and not is_published):
+                    and is_approved is None) or (is_approved == 2
+                                                 and not is_published):
                 # start a transaction
                 with transaction.atomic():
                     if is_moderator:
@@ -970,18 +970,18 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                             'clinicalcode/phenotype/partial_history_list.html',
                             {
                                 'history':
-                                    phenotype.history.all(),
+                                phenotype.history.all(),
                                 'current_phenotype_history_id':
-                                    int(phenotype_history_id
-                                        ),  # phenotype.history.latest().pk,
+                                int(phenotype_history_id
+                                    ),  # phenotype.history.latest().pk,
                                 'published_historical_ids':
-                                    list(
-                                        PublishedPhenotype.objects.filter(
-                                            phenotype_id=pk).values_list(
+                                list(
+                                    PublishedPhenotype.objects.filter(
+                                        phenotype_id=pk).values_list(
                                             'phenotype_history_id',
                                             flat=True)),
                                 'is_approved':
-                                    2
+                                2
                             },
                             request=self.request)
 
@@ -999,9 +999,11 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                                 phenotype_history_id=phenotype_history_id,
                                 is_approved=2,
                                 approved_by=PublishedPhenotype.objects.filter(
-                                    phenotype_id=phenotype.id).first().approved_by,
+                                    phenotype_id=phenotype.id).first(
+                                    ).approved_by,
                                 created_by=PublishedPhenotype.objects.filter(
-                                    phenotype_id=phenotype.id).first().created_by)
+                                    phenotype_id=phenotype.id).first(
+                                    ).created_by)
                             published_phenotype.save()
                             data['is_approved'] = 2
                         else:
@@ -1023,22 +1025,23 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                             'clinicalcode/phenotype/partial_history_list.html',
                             {
                                 'history':
-                                    phenotype.history.all(),
+                                phenotype.history.all(),
                                 'is_approved':
-                                    1,
+                                1,
                                 'current_phenotype_history_id':
-                                    int(phenotype_history_id
-                                        ),  # phenotype.history.latest().pk,
+                                int(phenotype_history_id
+                                    ),  # phenotype.history.latest().pk,
                                 'published_historical_ids':
-                                    list(
-                                        PublishedPhenotype.objects.filter(
-                                            phenotype_id=pk).values_list(
+                                list(
+                                    PublishedPhenotype.objects.filter(
+                                        phenotype_id=pk).values_list(
                                             'phenotype_history_id', flat=True))
                             },
                             request=self.request)
 
-                        data['message'] = self.send_message(pk, phenotype_history_id, data, is_approved)['message']
-
+                        data['message'] = self.send_message(
+                            pk, phenotype_history_id, data,
+                            is_approved)['message']
 
             elif is_approved == 1 and is_moderator:
                 # start a transaction
@@ -1062,21 +1065,22 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                         'clinicalcode/phenotype/partial_history_list.html',
                         {
                             'history':
-                                phenotype.history.all(),
+                            phenotype.history.all(),
                             'is_approved':
-                                2,
+                            2,
                             'current_phenotype_history_id':
-                                int(phenotype_history_id
-                                    ),  # phenotype.history.latest().pk,
+                            int(phenotype_history_id
+                                ),  # phenotype.history.latest().pk,
                             'published_historical_ids':
-                                list(
-                                    PublishedPhenotype.objects.filter(
-                                        phenotype_id=pk).values_list(
+                            list(
+                                PublishedPhenotype.objects.filter(
+                                    phenotype_id=pk).values_list(
                                         'phenotype_history_id', flat=True))
                         },
                         request=self.request)
 
-                    data['message'] = self.send_message(pk, phenotype_history_id, data, is_approved)['message']
+                    data['message'] = self.send_message(
+                        pk, phenotype_history_id, data, is_approved)['message']
 
         except Exception as e:
             print(e)
@@ -1156,21 +1160,22 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                         'clinicalcode/phenotype/partial_history_list.html',
                         {
                             'history':
-                                phenotype.history.all(),
+                            phenotype.history.all(),
                             'is_approved':
-                                2,
+                            2,
                             'current_phenotype_history_id':
-                                int(phenotype_history_id
-                                    ),  # phenotype.history.latest().pk,
+                            int(phenotype_history_id
+                                ),  # phenotype.history.latest().pk,
                             'published_historical_ids':
-                                list(
-                                    PublishedPhenotype.objects.filter(
-                                        phenotype_id=pk).values_list(
+                            list(
+                                PublishedPhenotype.objects.filter(
+                                    phenotype_id=pk).values_list(
                                         'phenotype_history_id', flat=True))
                         },
                         request=self.request)
 
-                    data['message'] = self.send_message(pk, phenotype_history_id, data, is_approved)['message']
+                    data['message'] = self.send_message(
+                        pk, phenotype_history_id, data, is_approved)['message']
 
         except Exception as e:
             data['form_is_valid'] = False

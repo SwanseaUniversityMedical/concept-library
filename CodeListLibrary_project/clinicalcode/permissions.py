@@ -25,8 +25,9 @@ class Permissions:
     PENDING = 1
     APPROVED = 2
     REJECTED = 3
-    APPROVED_STATUS = (
-    (NOT_APPROVED, 'New to approve'), (PENDING, 'Waiting to approve'), (APPROVED, 'Approved'), (REJECTED, 'Rejected'))
+    APPROVED_STATUS = ((NOT_APPROVED,
+                        'New to approve'), (PENDING, 'Waiting to approve'),
+                       (APPROVED, 'Approved'), (REJECTED, 'Rejected'))
 
 
 def checkIfPublished(set_class, set_id, set_history_id):
@@ -42,7 +43,9 @@ def checkIfPublished(set_class, set_id, set_history_id):
             concept_id=set_id, concept_history_id=set_history_id).exists()
     elif (set_class == Phenotype):
         return PublishedPhenotype.objects.filter(
-            phenotype_id=set_id, is_approved=2, phenotype_history_id=set_history_id).exists()
+            phenotype_id=set_id,
+            is_approved=2,
+            phenotype_history_id=set_history_id).exists()
     #  phenotype_id=set_id,is_approved=True, phenotype_history_id=set_history_id).exists() need to specify
     else:
         return False
@@ -142,9 +145,10 @@ def allowed_to_view_children(request,
             # Need to parse the concept_informations section of the database and use
             # the concepts here to form a list of concept_ref_ids.
         if WS_concepts_json.strip() != "":
-            concepts = [(x['concept_id'], x['concept_version_id'])
-                        for x in json.loads(WS_concepts_json)
-                        ]  # getConceptsFromJSON(concepts_json=WS_concepts_json)
+            concepts = [
+                (x['concept_id'], x['concept_version_id'])
+                for x in json.loads(WS_concepts_json)
+            ]  # getConceptsFromJSON(concepts_json=WS_concepts_json)
         else:
             concepts = getGroupOfConceptsByPhenotypeId_historical(
                 set_id, set_history_id)
@@ -168,7 +172,6 @@ def allowed_to_view_children(request,
         for concept in concepts:
             unique_concepts.add(
                 (concept['concept_ref_id'], concept['concept_ref_history_id']))
-
 
     #         # Need to refer to all the components that have this id as its concept_id.
     #         # For each of these we need to create a list of concept ids from the
