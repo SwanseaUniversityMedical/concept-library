@@ -124,7 +124,7 @@
 
                                                 {% else %}
                                                     <a
-                                                            {% if not live_ver_is_deleted and is_approved is None or is_approved == 2  %}
+                                                            {% if not live_ver_is_deleted and is_approved is None or is_approved == 2 %}
                                                                 class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
                                                                 href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
                                                             {% else %}
@@ -135,8 +135,15 @@
                                                                 class="btn btn-primary"
                                                                 title="Deleted phenotypes cannot be published !!"
                                                                 {% elif  is_approved == 1 %}
+                                                                {% if phenotype.owner_id == request.user.id %}
                                                                 class="btn btn-warning"
                                                                 disabled title="This version needs to be approved "
+                                                                {% else %}
+                                                                class="btn btn-primary"
+                                                                disabled = true
+                                                                disabled title="Unavailable to publish"
+                                                                {% endif %}
+
 
                                                                 {% endif %}
 
