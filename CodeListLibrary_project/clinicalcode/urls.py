@@ -48,6 +48,7 @@ urlpatterns += [
 urlpatterns += [
     url(r'^terms-and-conditions/$', View.termspage, name='terms'),
     url(r'^privacy-and-cookie-policy/$', View.cookiespage, name='privacy_and_cookie_policy'),
+    url(r'^technical_documentation/$', View.technicalpage, name='technical_documentation' ),
 ]
 
 # contact us read only

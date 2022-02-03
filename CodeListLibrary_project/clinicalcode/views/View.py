@@ -104,7 +104,7 @@ def about_pages(request, pg_name=None):
     if pg_name.lower() == "cl_about_page".lower():
         return render(request, 'clinicalcode/index.html', {})
 
-#     elif pg_name.lower() == "cl_terms".lower():
+    #     elif pg_name.lower() == "cl_terms".lower():
 #         return render(request, 'cl-docs/terms-conditions.html', {})
 
     
@@ -348,7 +348,7 @@ def termspage(request):
         terms and conditions page
     """
     return render(request,
-                'cl-docs/terms-conditions.html',
+                'clinicalcode/brand/HDRUK/about/technical-details.html',
                 {}
                 )
 
@@ -361,7 +361,17 @@ def cookiespage(request):
                 'cl-docs/privacy-cookie-policy.html',
                 {}
                 )
-    
+
+
+def technicalpage(request):
+    """
+        HDRUK Documentation outside of HDRUK Brand
+    """
+    return render(request,
+                  'clinicalcode/brand/HDRUK/about/technical-details.html',
+                  {}
+                  )
+
 
 def cookies_settings(request):
     return render(request,'cookielaw/en.html',{})
