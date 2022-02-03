@@ -21,7 +21,7 @@ class PublishedPhenotype(models.Model):
         related_name="published_phenotype_modified"
     )  # user of the person who modified this row.
 
-    is_approved = models.NullBooleanField()
+    is_approved = models.IntegerField(default=0)
     approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     history = HistoricalRecords()

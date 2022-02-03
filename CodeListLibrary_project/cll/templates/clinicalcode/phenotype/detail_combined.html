@@ -86,7 +86,7 @@
                             {% if user.is_authenticated and not CLL_READ_ONLY %}
                                 {% if enable_publish %}
 
-                                    {% if is_published and is_approved %}
+                                    {% if is_published and is_approved == 2%}
 
                                         <a class="btn btn-success" disabled title="This version is already published">
 								    	&nbsp;Published&nbsp;
@@ -96,7 +96,7 @@
                                         <a
                                                 {% if request.user|has_group:"Moderators" %}
                                                     {% if not live_ver_is_deleted%}
-                                                        {% if not is_approved and is_published %}
+                                                        {% if  is_approved == 1 %}
                                                             class="js-load-modal btn btn-warning"
                                                             href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
                                                             title="Needs to be approved"
@@ -108,7 +108,7 @@
 
                                                     {% else %}
                                                             class="btn btn-primary"
-                                                        {% if is_published and is_approved %}
+                                                        {% if is_published and is_approved == 2 %}
                                                             title="This version is already published"
                                                         {% elif live_ver_is_deleted %}
                                                             title="Deleted phenotypes cannot be published !!"
@@ -116,7 +116,7 @@
 
                                                     {% endif %}
                                                             id="publish2">
-                                                   {% if not is_approved and is_published %}
+                                                   {% if is_approved == 1%}
                                                        Approve
                                                        {% else %}
                                                        Publish
@@ -124,17 +124,17 @@
 
                                                 {% else %}
                                                     <a
-                                                            {% if not live_ver_is_deleted and not is_published %}
+                                                            {% if not live_ver_is_deleted and is_approved is None  %}
                                                                 class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
                                                                 href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
                                                             {% else %}
-                                                                {% if is_published and is_approved %}
+                                                                {% if is_published and is_approved == 2 %}
                                                                 class="btn btn-primary"
                                                                 title="This version is already published"
                                                                 {% elif live_ver_is_deleted %}
                                                                 class="btn btn-primary"
                                                                 title="Deleted phenotypes cannot be published !!"
-                                                                {% elif not is_approved %}
+                                                                {% elif  is_approved == 1 %}
                                                                 class="btn btn-warning"
                                                                 disabled title="This version needs to be approved "
 

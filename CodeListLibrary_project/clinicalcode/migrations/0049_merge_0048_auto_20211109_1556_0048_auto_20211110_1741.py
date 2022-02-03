@@ -10,4 +10,5 @@ class Migration(migrations.Migration):
         ('clinicalcode', '0048_auto_20211110_1741'),
     ]
 
-    operations = []
+    operations = [
+    ]

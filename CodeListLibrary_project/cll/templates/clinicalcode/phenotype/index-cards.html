@@ -62,10 +62,10 @@
 	{% for phenotype in page_obj.object_list %}
 			<div class="cl-card {% if phenotype.is_deleted is True %} cl-card-deleted
 			{% else %}
-			{% if phenotype.is_approved == False%}
+			{% if phenotype.is_approved == 1%}
 			cl-card-approve
 			{% endif %}
-            {% endif %} {% cycle ' dark-div ' '' %}   " {% if phenotype.is_approved == False%} title="Waiting to approve"{% endif %}>
+            {% endif %} {% cycle ' dark-div ' '' %}   " {% if phenotype.is_approved == 1%} title="Waiting to approve"{% endif %}>
 				<div class="row form-group">
 					<div class="col-sm-12">
 						{% if user.is_authenticated and phenotype.is_published != 1 %}

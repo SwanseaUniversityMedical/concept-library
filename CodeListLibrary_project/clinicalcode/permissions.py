@@ -21,6 +21,13 @@ class Permissions:
 
     PERMISSION_CHOICES_WORLD_ACCESS = ((NONE, 'No Access'), (VIEW, 'View'))
 
+    NOT_APPROVED = 0
+    PENDING = 1
+    APPROVED = 2
+    REJECTED = 3
+    APPROVED_STATUS = (
+    (NOT_APPROVED, 'New to approve'), (PENDING, 'Waiting to approve'), (APPROVED, 'Approved'), (REJECTED, 'Rejected'))
+
 
 def checkIfPublished(set_class, set_id, set_history_id):
     ''' Check if an entity version is published '''
@@ -35,7 +42,7 @@ def checkIfPublished(set_class, set_id, set_history_id):
             concept_id=set_id, concept_history_id=set_history_id).exists()
     elif (set_class == Phenotype):
         return PublishedPhenotype.objects.filter(
-            phenotype_id=set_id, phenotype_history_id=set_history_id).exists()
+            phenotype_id=set_id, is_approved=2, phenotype_history_id=set_history_id).exists()
     #  phenotype_id=set_id,is_approved=True, phenotype_history_id=set_history_id).exists() need to specify
     else:
         return False
@@ -114,10 +121,10 @@ def allowed_to_view_children(request,
         # Need to parse the concept_informations section of the database and use
         # the concepts here to form a list of concept_ref_ids.
 
-#         if WS_concepts_json.strip() != "":
-#             concepts =  getConceptsFromJSON(concepts_json = WS_concepts_json)
-#         else:
-#             concepts = getGroupOfConceptsByWorkingsetId_historical(set_id , set_history_id)
+        #         if WS_concepts_json.strip() != "":
+        #             concepts =  getConceptsFromJSON(concepts_json = WS_concepts_json)
+        #         else:
+        #             concepts = getGroupOfConceptsByWorkingsetId_historical(set_id , set_history_id)
         if WS_concept_version is not None:
             concepts = WS_concept_version
         else:
@@ -137,7 +144,7 @@ def allowed_to_view_children(request,
         if WS_concepts_json.strip() != "":
             concepts = [(x['concept_id'], x['concept_version_id'])
                         for x in json.loads(WS_concepts_json)
-                        ]  #getConceptsFromJSON(concepts_json=WS_concepts_json)
+                        ]  # getConceptsFromJSON(concepts_json=WS_concepts_json)
         else:
             concepts = getGroupOfConceptsByPhenotypeId_historical(
                 set_id, set_history_id)
@@ -163,17 +170,17 @@ def allowed_to_view_children(request,
                 (concept['concept_ref_id'], concept['concept_ref_history_id']))
 
 
-#         # Need to refer to all the components that have this id as its concept_id.
-#         # For each of these we need to create a list of concept ids from the
-#         # concept_ref_ids.
-#         # Basically, we need the ConceptTree table from concept_unique_codes(SQL).
-#         # At the moment we need to extract both the id and ref_id values from
-#         # what is a complete list but incomplete tree.
-#         concepts = getConceptTreeByConceptId(set_id)
-#         unique_concepts = set()
-#         for concept in concepts:
-#             unique_concepts.add(concept['concept_idx'])
-#             unique_concepts.add(concept['concept_ref_id'])
+    #         # Need to refer to all the components that have this id as its concept_id.
+    #         # For each of these we need to create a list of concept ids from the
+    #         # concept_ref_ids.
+    #         # Basically, we need the ConceptTree table from concept_unique_codes(SQL).
+    #         # At the moment we need to extract both the id and ref_id values from
+    #         # what is a complete list but incomplete tree.
+    #         concepts = getConceptTreeByConceptId(set_id)
+    #         unique_concepts = set()
+    #         for concept in concepts:
+    #             unique_concepts.add(concept['concept_idx'])
+    #             unique_concepts.add(concept['concept_ref_id'])
     else:
         pass
     # In both cases, we end up with a list of concept_ref_ids to which we need
@@ -222,7 +229,7 @@ def allowed_to_view(request,
     from .models.Concept import Concept
     from .models.Phenotype import Phenotype
 
-    #from .models.WorkingSet import WorkingSet
+    # from .models.WorkingSet import WorkingSet
     # check if the entity/version exists
     if not set_class.objects.filter(id=set_id).exists():
         return False
@@ -283,9 +290,9 @@ def allowed_to_view(request,
                 set_class.objects.get(pk=set_id).history.latest().history_id)
 
         is_published = checkIfPublished(set_class, set_id, set_history_id)
-        is_approved = checkIfapproved(set_class, set_id, set_history_id)
+        # is_approved = checkIfapproved(set_class, set_id, set_history_id)
 
-        if is_published and is_approved:
+        if is_published:
             is_allowed_to_view = True
     # ********************************************
 
@@ -321,7 +328,7 @@ def allowed_to_edit(request, set_class, set_id, user=None):
     # to_restore = False
     # skip this for now
     # skip this when restoring
-    #if not to_restore:
+    # if not to_restore:
     #   if set_class.objects.get(id=set_id).is_deleted==True: return False
 
     # *** here check if the user can edit  *******
@@ -746,7 +753,7 @@ def get_visible_components(user, codeListID):
         concept AND containing concept are visible.
     '''
     query = Component.objects.none()
-    #count = 0
+    # count = 0
     for concept in concepts:
         '''
             Types 2,3 and 4 have a concept, but concept_ref is null. So add

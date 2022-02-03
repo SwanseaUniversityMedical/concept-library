@@ -11,7 +11,7 @@
         <h4 class="modal-title">  moderator is {{ is_moderator }} {{ is_approved }}Publish phenotype"<b>{{ name }}</b>"?</h4>
     </div>
     <div class="modal-body">  
-    {% if is_published and is_approved %}
+    {% if is_published and is_approved == 2 %}
         <div class="alert alert-success" role="alert">
           This version {{ is_approved }} is already published.
         </div>
@@ -83,19 +83,19 @@
             <div class="col-md-12">
                 <p>
                     <br>
-                    {% if is_published or not allowed_to_publish%}
-                        {% if is_published and is_approved %}
+                    {% if is_published or is_approved == 1%}
+                        {% if is_published and is_approved == 2 %}
                             <br>
 <!--                            This version "{{ name }}" is already published. -->
                         {% else %}
-                            {% if not is_approved and is_moderator %}
+                            {% if  is_approved == 1 and is_moderator %}
                                  Are you sure you want to approve this version of "{{ name }}"?
                                 Published phenotype cannot be undone.
                         <br>
 
                         {% else %}
 
-                        {% if not is_approved and not is_moderator %}
+                        {% if  is_approved == 1 and not is_moderator %}
                             Phenotype needs to be approved.
                             Waiting for moderator to approve
 
@@ -109,10 +109,12 @@
                             {% endif %}
                     
                     {% else %}
+                        {% if is_owner or is_moderator %}
                         Are you sure you want to publish this version of "{{ name }}"?
                         <br>
                         Published phenotype cannot be undone.
 
+                    {% endif %}
                     {% endif %}
 
                 </p>
@@ -121,11 +123,11 @@
     </div>
     
     <div class="modal-footer">
-        {% if is_published and is_approved %}
+        {% if is_published and is_approved == 2 %}
             <span class="glyphicon glyphicon-ok" style="color:green"></span>
             <span class="text-success">&nbsp;Published&nbsp;{{ is_approved }}</span>
         {% else %}
-        {% if is_published and not is_approved and not is_moderator %}
+        {% if is_approved == 1 and not is_moderator %}
             <span class="glyphicon glyphicon-ok" style="color:green"></span>
             <span class="text-warning">&nbsp;Waiting to approve&nbsp</span>
             {% else %}
@@ -175,7 +177,7 @@ $(function(){
                     form.find('input[name=latest_history_id_shown]').val(data.latest_history_ID);
                     
                     // href needs to be updated for publish phenotype to show latest status
-                    if(data.is_approved) {
+                    if(data.is_approved === 2) {
 //                      var pub_href = $('#publish2').attr("href").split("/");
 //                      pub_href[3] = data.latest_history_ID;
 //                      pub_href = pub_href.join("/")
@@ -197,7 +199,7 @@ $(function(){
                         $('#modal-section .modal-content').html('');
 
                     }else {
-                        if(!data.is_approved){
+                        if(data.is_approved === 1){
                             var element2 = document.getElementById('publish2');
                         element2.setAttribute('disabled', 'disabled');
 

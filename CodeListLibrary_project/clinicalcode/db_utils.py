@@ -3092,12 +3092,11 @@ def get_visible_live_or_published_phenotype_versions(
                                 , (SELECT name FROM auth_group WHERE id=r.group_id ) group_name
                                 , (SELECT created FROM clinicalcode_publishedphenotype WHERE phenotype_id=r.id and phenotype_history_id=r.history_id  LIMIT 1) publish_date
                             FROM
-                            (
-                            SELECT 
+                            (SELECT 
                                ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn,
                                (SELECT count(*) 
                                    FROM clinicalcode_publishedphenotype 
-                                   WHERE phenotype_id=t.id and phenotype_history_id=t.history_id
+                                   WHERE phenotype_id=t.id and phenotype_history_id=t.history_id and is_approved = 2
                                ) is_published,
                                 (SELECT is_approved 
                                    FROM clinicalcode_publishedphenotype 
