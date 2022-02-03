@@ -348,7 +348,7 @@ def termspage(request):
         terms and conditions page
     """
     return render(request,
-                'clinicalcode/brand/HDRUK/about/technical-details.html',
+                'cl-docs/terms-conditions.html',
                 {}
                 )
 
