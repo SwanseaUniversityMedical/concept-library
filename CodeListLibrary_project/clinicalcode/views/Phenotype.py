@@ -75,6 +75,13 @@ def phenotype_list(request):
     show_my_phenotypes = request.GET.get(
         'show_my_phenotypes',
         request.session.get('phenotype_show_my_phenotype', 0))
+
+    show_my_pending_phenotypes = request.GET.get('show_my_pending_phenotypes',
+                                              request.session.get('phenotype_show_my_pending_phenotype', 0))
+
+    show_mod_pending_phenotypes = request.GET.get('show_mod_pending_phenotypes',
+                                                 request.session.get('phenotype_show_mod_pending_phenotype', 0))
+
     show_deleted_phenotypes = request.GET.get(
         'show_deleted_phenotypes',
         request.session.get('phenotype_show_deleted_phenotypes', 0))
@@ -108,6 +115,10 @@ def phenotype_list(request):
         show_my_phenotypes = request.POST.get('show_my_phenotypes', 0)
         show_deleted_phenotypes = request.POST.get('show_deleted_phenotypes',
                                                    0)
+        show_my_pending_phenotypes = request.POST.get('show_my_pending_phenotypes',0)
+        show_mod_pending_phenotypes = request.POST.get('show_mod_pending_phenotypes', 0)
+
+
         author = request.POST.get('author', '')
         tag_ids = request.POST.get('tagids', '')
         owner = request.POST.get('owner', '')
@@ -125,6 +136,7 @@ def phenotype_list(request):
     request.session['phenotype_page'] = page
     request.session['phenotype_search'] = search
     request.session['phenotype_show_my_phenotype'] = show_my_phenotypes
+    request.session['phenotype_show_mod_pending_phenotype'] = show_mod_pending_phenotypes
     request.session[
         'phenotype_show_deleted_phenotypes'] = show_deleted_phenotypes
     request.session['phenotype_author'] = author
@@ -133,6 +145,7 @@ def phenotype_list(request):
     request.session[
         'show_only_validated_phenotypes'] = show_only_validated_phenotypes
     request.session['phenotype_brand'] = phenotype_brand
+    request.session['phenotype_show_pending_phenotype'] = show_my_pending_phenotypes
     # request.session['expand_published_versions'] = expand_published_versions
     request.session[
         'phenotype_must_have_published_versions'] = phenotype_must_have_published_versions
@@ -159,6 +172,17 @@ def phenotype_list(request):
         # show only phenotype created by the current user
         if show_my_phenotypes == "1":
             filter_cond += " AND owner_id=" + str(request.user.id)
+
+
+
+        if show_my_pending_phenotypes == "1":
+            filter_cond += " AND is_approved=1"
+            filter_cond += " AND owner_id=" + str(request.user.id)
+
+        if show_mod_pending_phenotypes == "1":
+            filter_cond += " AND is_approved=1"
+
+
 
         # if show deleted phenotype is 1 then show deleted phenotype
         if show_deleted_phenotypes != "1":
@@ -241,6 +265,10 @@ def phenotype_list(request):
                 show_my_phenotypes,
             'show_deleted_phenotypes':
                 show_deleted_phenotypes,
+            'show_my_pending_phenotypes':
+                show_my_pending_phenotypes,
+            'show_mod_pending_phenotypes':
+                show_mod_pending_phenotypes,
             'tags':
                 tags,
             'tag_ids':

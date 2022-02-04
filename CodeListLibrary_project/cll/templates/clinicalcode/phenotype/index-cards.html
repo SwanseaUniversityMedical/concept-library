@@ -60,12 +60,7 @@
 
 {% block content %}
 	{% for phenotype in page_obj.object_list %}
-			<div class="cl-card {% if phenotype.is_deleted is True %} cl-card-deleted
-			{% else %}
-			{% if phenotype.is_approved == 1 and phenotype.created_by_id == request.user.id or request.user|has_group:"Moderators" and  phenotype.is_approved == 1 %}
-			cl-card-approve
-			{% endif %}
-            {% endif %} {% cycle ' dark-div ' '' %}   "
+			<div class="cl-card {% if phenotype.is_deleted is True %} cl-card-deleted{% endif %} {% cycle ' dark-div ' '' %}   "
                         {% if phenotype.is_approved == 1 and phenotype.created_by_id == request.user.id or request.user|has_group:"Moderators" and phenotype.is_approved == 1 %}title="Waiting for approval"{% endif %}>
 				<div class="row form-group">
 					<div class="col-sm-12">
