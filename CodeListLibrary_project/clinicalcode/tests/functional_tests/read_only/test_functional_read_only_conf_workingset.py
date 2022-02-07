@@ -1,28 +1,27 @@
-from django.test import override_settings
-from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from clinicalcode.tests.test_base import *
-from clinicalcode.tests.unit_test_base import *
-from clinicalcode.permissions import *
-from clinicalcode.models.WorkingSet import *
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
+import sys
+import time
 from datetime import datetime
-from decouple import Config, RepositoryEnv
-from selenium.common.exceptions import NoSuchElementException
 from os.path import dirname
 from unittest import skip, skipIf
-import sys
 
+from clinicalcode.models.WorkingSet import *
+from clinicalcode.permissions import *
+from clinicalcode.tests.test_base import *
+from clinicalcode.tests.unit_test_base import *
 # from django.conf import settings
 # from cll import read_only_test_settings
 # from cll import test_settings as settings
 from cll import read_only_test_settings as settings
-
+from decouple import Config, RepositoryEnv
 from django.contrib.auth import logout
-import time
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.test import override_settings
+from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 ''' 
     If arguments does not contain read_only substring then skip the test
@@ -38,28 +37,44 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
 
         location = dirname(dirname(__file__))
         if settings.REMOTE_TEST:
-            self.browser = webdriver.Remote(command_executor=settings.REMOTE_TEST_HOST,
-                                            desired_capabilities=settings.chrome_options.to_capabilities())
+            self.browser = webdriver.Remote(
+                command_executor=settings.REMOTE_TEST_HOST,
+                desired_capabilities=settings.chrome_options.to_capabilities())
         else:
             if settings.IS_LINUX:
-                self.browser = webdriver.Chrome(os.path.join(location, "chromedriver"),
-                                                chrome_options=settings.chrome_options)
+                self.browser = webdriver.Chrome(
+                    os.path.join(location, "chromedriver"),
+                    chrome_options=settings.chrome_options)
             else:
-                self.browser = webdriver.Chrome(os.path.join(location, "chromedriver.exe"),
-                                                chrome_options=settings.chrome_options)
+                self.browser = webdriver.Chrome(
+                    os.path.join(location, "chromedriver.exe"),
+                    chrome_options=settings.chrome_options)
         super(ReadOnlyTestWorkingSet, self).setUp()
 
-        self.WEBAPP_HOST = self.live_server_url.replace('localhost', '127.0.0.1')
+        self.WEBAPP_HOST = self.live_server_url.replace(
+            'localhost', '127.0.0.1')
         if settings.REMOTE_TEST:
             self.WEBAPP_HOST = settings.WEBAPP_HOST
 
         # Users: a normal user and a super_user.
-        super_user = User.objects.create_superuser(username=su_user, password=su_password, email=None)
-        normal_user = User.objects.create_user(username=nm_user, password=nm_password, email=None)
-        owner_user = User.objects.create_user(username=ow_user, password=ow_password, email=None)
-        group_user = User.objects.create_user(username=gp_user, password=gp_password, email=None)
-        view_group_user = User.objects.create_user(username=vgp_user, password=vgp_password, email=None)
-        edit_group_user = User.objects.create_user(username=egp_user, password=egp_password, email=None)
+        super_user = User.objects.create_superuser(username=su_user,
+                                                   password=su_password,
+                                                   email=None)
+        normal_user = User.objects.create_user(username=nm_user,
+                                               password=nm_password,
+                                               email=None)
+        owner_user = User.objects.create_user(username=ow_user,
+                                              password=ow_password,
+                                              email=None)
+        group_user = User.objects.create_user(username=gp_user,
+                                              password=gp_password,
+                                              email=None)
+        view_group_user = User.objects.create_user(username=vgp_user,
+                                                   password=vgp_password,
+                                                   email=None)
+        edit_group_user = User.objects.create_user(username=egp_user,
+                                                   password=egp_password,
+                                                   email=None)
 
         # Groups: a group that is not permitted and one that is.
         permitted_group = Group.objects.create(name="permitted_group")
@@ -86,9 +101,8 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
             group=permitted_group,
             group_access=Permissions.EDIT,
             owner_access=Permissions.NONE,
-            world_access=Permissions.EDIT
-        )
-        
+            world_access=Permissions.EDIT)
+
         update_friendly_id()
         save_stat(self.WEBAPP_HOST)
 
@@ -98,16 +112,20 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
 
     def login(self, username, password):
         self.logout()
-        self.browser.find_element(By.NAME,'username').send_keys(username)
-        self.browser.find_element(By.NAME,'password').send_keys(password)
-        self.browser.find_element(By.NAME,'password').send_keys(Keys.ENTER)
+        self.browser.find_element(By.NAME, 'username').send_keys(username)
+        self.browser.find_element(By.NAME, 'password').send_keys(password)
+        self.browser.find_element(By.NAME, 'password').send_keys(Keys.ENTER)
 
     def logout(self):
-        self.browser.get('%s%s' % (self.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
+        self.browser.get(
+            '%s%s' %
+            (self.WEBAPP_HOST, '/account/logout/?next=/account/login/'))
 
     def wait_to_be_logged_in(self, username):
         wait = WebDriverWait(self.browser, 10)
-        element = wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, 'p.navbar-text'), username))
+        element = wait.until(
+            EC.text_to_be_present_in_element(
+                (By.CSS_SELECTOR, 'p.navbar-text'), username))
 
     '''
     A user cannot revert a working set.
@@ -117,15 +135,18 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
-                                      self.workingset_everybody_can_edit.id, '/version/',
-                                      self.workingset_everybody_can_edit.history.first().history_id, '/detail/'))
+        browser.get(
+            '%s%s%s%s%s%s' %
+            (self.WEBAPP_HOST, '/workingsets/WS',
+             self.workingset_everybody_can_edit.id, '/version/',
+             self.workingset_everybody_can_edit.history.first().history_id,
+             '/detail/'))
 
         time.sleep(settings.TEST_SLEEP_TIME)
 
         exist = True
         try:
-            button = self.browser.find_element(By.ID,'revert-btn')
+            button = self.browser.find_element(By.ID, 'revert-btn')
             is_disabled = button.get_attribute("disabled")
             self.assertTrue(is_disabled)
 
@@ -139,28 +160,34 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.login(nm_user, nm_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
-                                      self.workingset_everybody_can_edit.id, '/version/',
-                                      self.workingset_everybody_can_edit.history.first().history_id, '/revert/'))
+        browser.get(
+            '%s%s%s%s%s%s' %
+            (self.WEBAPP_HOST, '/workingsets/WS',
+             self.workingset_everybody_can_edit.id, '/version/',
+             self.workingset_everybody_can_edit.history.first().history_id,
+             '/revert/'))
 
         time.sleep(settings.TEST_SLEEP_TIME)
         # self.wait_to_be_logged_in(nm_user)
-        self.assertTrue("403: Permission denied" in browser.page_source or
-                        "500: Page unavailable" in browser.page_source)
+        self.assertTrue("403: Permission denied" in browser.page_source
+                        or "500: Page unavailable" in browser.page_source)
 
     def test_owner_cannot_revert(self):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
-                                      self.workingset_everybody_can_edit.id, '/version/',
-                                      self.workingset_everybody_can_edit.history.first().history_id, '/detail/'))
+        browser.get(
+            '%s%s%s%s%s%s' %
+            (self.WEBAPP_HOST, '/workingsets/WS',
+             self.workingset_everybody_can_edit.id, '/version/',
+             self.workingset_everybody_can_edit.history.first().history_id,
+             '/detail/'))
 
         time.sleep(settings.TEST_SLEEP_TIME)
 
         exist = True
         try:
-            button = self.browser.find_element(By.ID,'revert-btn')
+            button = self.browser.find_element(By.ID, 'revert-btn')
             is_disabled = button.get_attribute("disabled")
             self.assertTrue(is_disabled)
 
@@ -174,13 +201,16 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
         self.login(ow_user, ow_password)
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
-                                      self.workingset_everybody_can_edit.id, '/version/',
-                                      self.workingset_everybody_can_edit.history.first().history_id, '/revert/'))
+        browser.get(
+            '%s%s%s%s%s%s' %
+            (self.WEBAPP_HOST, '/workingsets/WS',
+             self.workingset_everybody_can_edit.id, '/version/',
+             self.workingset_everybody_can_edit.history.first().history_id,
+             '/revert/'))
         time.sleep(settings.TEST_SLEEP_TIME)
 
-        self.assertTrue("403: Permission denied" in browser.page_source or
-                        "500: Page unavailable" in browser.page_source)
+        self.assertTrue("403: Permission denied" in browser.page_source
+                        or "500: Page unavailable" in browser.page_source)
 
     '''
     A super user CANNOT create, edit, revert a working set.
@@ -193,32 +223,36 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
 
         self.login(su_user, su_password)
 
-        self.assertTrue("403: Permission denied" in browser.page_source or
-                        "500: Page unavailable" in browser.page_source)
+        self.assertTrue("403: Permission denied" in browser.page_source
+                        or "500: Page unavailable" in browser.page_source)
 
     def test_super_user_cannot_edit(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
-                                  self.workingset_everybody_can_edit.id, '/update/'))
+        browser.get('%s%s%s%s' %
+                    (self.WEBAPP_HOST, '/workingsets/WS',
+                     self.workingset_everybody_can_edit.id, '/update/'))
 
         self.login(su_user, su_password)
 
-        self.assertTrue("403: Permission denied" in browser.page_source or
-                        "500: Page unavailable" in browser.page_source)
+        self.assertTrue("403: Permission denied" in browser.page_source
+                        or "500: Page unavailable" in browser.page_source)
 
     def test_super_user_cannot_revert(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
-                                      self.workingset_everybody_can_edit.id, '/version/',
-                                      self.workingset_everybody_can_edit.history.first().history_id, '/detail/'))
+        browser.get(
+            '%s%s%s%s%s%s' %
+            (self.WEBAPP_HOST, '/workingsets/WS',
+             self.workingset_everybody_can_edit.id, '/version/',
+             self.workingset_everybody_can_edit.history.first().history_id,
+             '/detail/'))
 
         self.login(su_user, su_password)
 
         exist = True
         try:
-            button = self.browser.find_element(By.ID,'revert-btn')
+            button = self.browser.find_element(By.ID, 'revert-btn')
             is_disabled = button.get_attribute("disabled")
             self.assertTrue(is_disabled)
 
@@ -231,13 +265,16 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_super_user_cannot_revert_through_url(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
-                                      self.workingset_everybody_can_edit.id, '/version/',
-                                      self.workingset_everybody_can_edit.history.first().history_id, '/revert/'))
+        browser.get(
+            '%s%s%s%s%s%s' %
+            (self.WEBAPP_HOST, '/workingsets/WS',
+             self.workingset_everybody_can_edit.id, '/version/',
+             self.workingset_everybody_can_edit.history.first().history_id,
+             '/revert/'))
 
         self.login(su_user, su_password)
-        self.assertTrue("403: Permission denied" in browser.page_source or
-                        "500: Page unavailable" in browser.page_source)
+        self.assertTrue("403: Permission denied" in browser.page_source
+                        or "500: Page unavailable" in browser.page_source)
 
     '''
     A user cannot edit by creating their own URL string to bypass the interface.
@@ -246,21 +283,23 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
     def test_normal_user_cannot_edit_by_own_url(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
-                                  self.workingset_everybody_can_edit.id, '/update/'))
+        browser.get('%s%s%s%s' %
+                    (self.WEBAPP_HOST, '/workingsets/WS',
+                     self.workingset_everybody_can_edit.id, '/update/'))
 
         self.login(nm_user, nm_password)
 
-        self.assertTrue("403: Permission denied" in browser.page_source or
-                        "500: Page unavailable" in browser.page_source)
+        self.assertTrue("403: Permission denied" in browser.page_source
+                        or "500: Page unavailable" in browser.page_source)
 
     def test_owner_cannot_edit_by_own_url(self):
         browser = self.browser
         # get the test server url
-        browser.get('%s%s%s%s' % (self.WEBAPP_HOST, '/workingsets/WS',
-                                  self.workingset_everybody_can_edit.id, '/update/'))
+        browser.get('%s%s%s%s' %
+                    (self.WEBAPP_HOST, '/workingsets/WS',
+                     self.workingset_everybody_can_edit.id, '/update/'))
 
         self.login(ow_user, ow_password)
 
-        self.assertTrue("403: Permission denied" in browser.page_source or
-                        "500: Page unavailable" in browser.page_source)
+        self.assertTrue("403: Permission denied" in browser.page_source
+                        or "500: Page unavailable" in browser.page_source)
