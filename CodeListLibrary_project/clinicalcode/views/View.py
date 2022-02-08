@@ -108,7 +108,7 @@ def about_pages(request, pg_name=None):
     if pg_name.lower() == "cl_about_page".lower():
         return render(request, 'clinicalcode/index.html', {})
 
-#     elif pg_name.lower() == "cl_terms".lower():
+    #     elif pg_name.lower() == "cl_terms".lower():
 #         return render(request, 'cl-docs/terms-conditions.html', {})
 
 # HDR-UK about pages
@@ -493,6 +493,14 @@ def cookiespage(request):
     return render(request, 'cl-docs/privacy-cookie-policy.html', {})
 
 
+def technicalpage(request):
+    """
+        HDRUK Documentation outside of HDRUK Brand
+    """
+    return render(request,
+                  'clinicalcode/brand/HDRUK/about/technical-details.html', {})
+
+
 def cookies_settings(request):
     return render(request, 'cookielaw/en.html', {})
 
@@ -519,7 +527,8 @@ def contact_us(request):
                     html_content = '<strong>New Message from Concept Library Website</strong> <br><br> <strong>Name:</strong><br>' + name + '<br><br> <strong>Email:</strong><br>' + from_email + '<br><br> <strong>Issue Type:</strong><br>' + category + '<br><br><strong> Tell us about your Enquiry: </strong><br>' + message
                     msg = EmailMultiAlternatives(email_subject,
                                                  html_content,
-                                                 'Helpdesk <%s>' % settings.DEFAULT_FROM_EMAIL,
+                                                 'Helpdesk <%s>' %
+                                                 settings.DEFAULT_FROM_EMAIL,
                                                  to=[settings.HELPDESK_EMAIL],
                                                  cc=[from_email])
                     msg.content_subtype = "html"  # Main content is now text/html

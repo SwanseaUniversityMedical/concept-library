@@ -22,6 +22,9 @@
             <li><a href="#Issues">Issues & Future Features
                </a>
             </li>
+                <li><a href="#General-Enquiries">Contact Us & General Enquiries
+               </a>
+            </li>
          </ul>
       </div>
    </div>
@@ -33,11 +36,10 @@
       <div class="header-content-design">
          Contact Us
       </div>
-
          <div id="Submitting-Phenotypes">
             <div class="sm-header-design">
             <h2>Submitting Phenotypes</h2>
-            Please see our <a href="https://docs.hiru.swan.ac.uk/display/SATP/Concept+Library+Documentation" target=_blank>technical documentation</a> for further information on submitting phenotypes. Feel free to get in touch with us directly or via the form below if you are not sure where to start.
+            Please see our <a href="{% url 'technical_documentation' %}">technical documentation</a> for further information on submitting phenotypes. Feel free to get in touch with us directly or via the form below if you are not sure where to start.
             </div>
          </div>
          <div id="Issues">
@@ -49,6 +51,8 @@
          <div id="General-Enquiries" >
            <div class="sm-header-design">
                <h2>General Enquiries</h2>
+               Please refer to the <a href="https://docs.hiru.swan.ac.uk/display/SATP/Concept+Library+Documentation" target=_blank>support documentation</a> for user guide information.
+
                By submitting your enquiry you are consenting to your data being held by the SAIL Databank, Swansea University. Your data will be used for the purposes of dealing with your enquiry and sending you relevant information about the Concept Library.</p>
                 <br>
             </div>
@@ -57,7 +61,7 @@
              {% for msg in message %}
                 {% if msg != 'N/A' %}
                     <div class="bs-example" id="Alert">
-                        {% if msg == 'Issue Reported Successfully.' %}
+                        {% if msg == 'Message Sent Successfully.' %}
                         <div class="alert alert-success fade in">
                             <a href="#" class="close" data-dismiss="alert">&times;</a>
                             <ul>
