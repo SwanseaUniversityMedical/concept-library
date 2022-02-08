@@ -7,11 +7,13 @@
 '''
 
 from django.contrib.auth.models import User
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from simple_history.models import HistoricalRecords
+
 from .Concept import Concept
 from .TimeStampedModel import TimeStampedModel
-from django.contrib.postgres.fields import ArrayField
+
 
 class ConceptCodeAttribute(TimeStampedModel):
     '''
@@ -21,16 +23,23 @@ class ConceptCodeAttribute(TimeStampedModel):
 
     concept = models.ForeignKey(Concept, on_delete=models.CASCADE)
     code = models.CharField(max_length=100)  # A Single Code
-    attributes = ArrayField(models.CharField(max_length=250), blank=True, null=True)  # Array of attribute value /without headers
+    attributes = ArrayField(
+        models.CharField(max_length=250), blank=True,
+        null=True)  # Array of attribute value /without headers
 
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="cocept_code_attr_created")
-    modified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="cocept_code_attr_modified")
-    
+    created_by = models.ForeignKey(User,
+                                   on_delete=models.SET_NULL,
+                                   null=True,
+                                   related_name="cocept_code_attr_created")
+    modified_by = models.ForeignKey(User,
+                                    on_delete=models.SET_NULL,
+                                    null=True,
+                                    related_name="cocept_code_attr_modified")
+
     history = HistoricalRecords()
 
-
     class Meta:
-        ordering = ('created',)
+        ordering = ('created', )
 
     def __str__(self):
         return self.code
