@@ -8,58 +8,58 @@
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
-        <h4 class="modal-title">  moderator is {{ is_moderator }} {{ is_approved }}Publish phenotype"<b>{{ name }}</b>"?</h4>
+        <h4 class="modal-title"> Publish phenotype"<b>{{ name }}</b>"?</h4>
     </div>
-    <div class="modal-body">  
+    <div class="modal-body">
     {% if is_published and is_approved == 2 %}
         <div class="alert alert-success" role="alert">
-          This version {{ is_approved }} is already published.
+          This version is already published.
         </div>
     {% else %}
 
         {% if phenotype_is_deleted %}
-            <div class="col-md-12">         
+            <div class="col-md-12">
                 <span class="glyphicon glyphicon-remove" style="color:red"></span>
                 <span class="text-danger">&nbsp;This phenotype is deleted.</span>
-            </div>      
+            </div>
         {% endif %}
 
 
         {% if not is_owner and not is_moderator %}
-            <div class="col-md-12">             
+            <div class="col-md-12">
                 <span class="glyphicon glyphicon-remove" style="color:red"></span>
                 <span class="text-danger">&nbsp;You must be the owner to publish.</span>
             </div>
         {% endif %}
 
         {% if not phenotype_has_codes %}
-            <div class="col-md-12">         
+            <div class="col-md-12">
                 <span class="glyphicon glyphicon-remove" style="color:red"></span>
                 <span class="text-danger">&nbsp;The phenotype does not contain exportable codes.</span>
             </div>
 
         {% else %}
             {% if not isAllowedtoViewChildren %}
-                <div class="col-md-12">                 
+                <div class="col-md-12">
                     <span class="glyphicon glyphicon-remove" style="color:red"></span>
                     <span class="text-danger">&nbsp;You must have view access to all concepts.</span>
-                </div>  
-            {% endif %} 
-            
+                </div>
+            {% endif %}
+
             {% if not AllnotDeleted %}
-                <div class="col-md-12">             
+                <div class="col-md-12">
                     <span class="glyphicon glyphicon-remove" style="color:red"></span>
                     <span class="text-danger">&nbsp;All concepts must not be deleted.</span>
-                </div>      
+                </div>
             {% endif %}
 
             {% if not AllarePublished %}
-                <div class="col-md-12">             
+                <div class="col-md-12">
                     <span class="glyphicon glyphicon-remove" style="color:red"></span>
                     <span class="text-danger">&nbsp;All concepts must be published.</span>
-                </div>                      
+                </div>
             {% endif %}
-            
+
         {% endif %}
 
         {% if errors %}
@@ -69,16 +69,16 @@
                 <br>
                 <ul>
                     {% for key, error in errors.items %}
-                        <li><span class="text-danger">&nbsp;{{ error|safe }}</span></li> 
+                        <li><span class="text-danger">&nbsp;{{ error|safe }}</span></li>
                     {% endfor %}
                 </ul>
             </div>
         {% endif %}
 
-        
-        
+
+
     {% endif %}
-    
+
         <div class="row">
             <div class="col-md-12">
                 <p>
@@ -107,13 +107,18 @@
                         {% endif %}
                             {% endif %}
                             {% endif %}
-                    
+
                     {% else %}
                         {% if is_owner or is_moderator %}
                         Are you sure you want to publish this version of "{{ name }}"?
+
                         <br>
                         Published phenotype cannot be undone.
+                            {% if not is_moderator %}
+                            <br>
+                            This phenotype is going to be reviewed by the moderator and you will be notified when phenotype will be published
 
+                    {% endif %}
                     {% endif %}
                     {% endif %}
 
@@ -121,11 +126,11 @@
             </div>
         </div>
     </div>
-    
+
     <div class="modal-footer">
         {% if is_published and is_approved == 2 %}
             <span class="glyphicon glyphicon-ok" style="color:green"></span>
-            <span class="text-success">&nbsp;Published&nbsp;{{ is_approved }}</span>
+            <span class="text-success">&nbsp;Published&nbsp;</span>
         {% else %}
         {% if is_approved == 1 and not is_moderator %}
             <span class="glyphicon glyphicon-ok" style="color:green"></span>
@@ -133,25 +138,103 @@
             {% else %}
             <button {% if not allowed_to_publish %} disabled="false"
 
-            {% endif %} id="publishButton"
-                type="submit" class="btn btn-primary">
+            {% endif %} id="publishButton" name ="submitPublish"
+                type="submit" value = "publish" class="btn btn-primary">
+            {% if is_moderator %}
                 Publish
+                {% else %}
+                Submit
+                {% endif %}
             {% endif %}
             </button>
+            {% if is_moderator and is_approved == 1 %}
+                <button type="submit" class="btn btn-primary" id = "declineButton" value = "decline" name="declinePublish">Decline
+                </button>
+                {% endif %}
+
         {% endif %}
 
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
     </div>
-    
+
 </form>
 
 <script >
 $(function(){
-    // unattach the submit event 
-    $('#modal-section').off('submit', '#publish-form');
-    
-    $('#modal-section').on('submit', '#publish-form', function(e){
-        
+    $('#modal-section').off('submit', '#declineButton');
+
+    $('#modal-section').on('submit', '#declineButton', function(e){
+
+        e.preventDefault();
+
+        var form = $(this);
+        //=============================================
+        // post form
+        $.ajax({
+            url:  form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            beforeSend: function(xhr, opts){
+                //alert('doFormSubmit= b');
+                $(".loader").show();
+            },
+            success: function(data){
+                console.log(data);
+
+                if(data.form_is_valid){
+                    $('#history-table').html(data.html_history_list);
+                    $('#latest-history-ID-Div').html(data.latest_history_ID);
+                    $('#latest_history_id').val(data.latest_history_ID);
+
+                    form.find('input[name=latest_history_id_shown]').val(data.latest_history_ID);
+
+                    // href needs to be updated for publish phenotype to show latest status
+                    if(data.is_approved === 3) {
+//                      var pub_href = $('#publish2').attr("href").split("/");
+//                      pub_href[3] = data.latest_history_ID;
+//                      pub_href = pub_href.join("/")
+//                      $('#publish2').attr("href", pub_href);
+
+                        // $('#publish2').prop("disabled", true );
+                        var element = document.getElementById('publish2');
+                        element.setAttribute('disabled', 'disabled');
+
+                        $('#publish2').attr("title", "This version is declined ");
+                        $('#publish2').addClass("btn-danger");
+                        $('#publish2').removeClass("btn-primary");
+                        $('#publish2').html("Declined");
+                          //alert(data.message);
+                        $('#success-message').show();
+                        $('#success-message').html(data.message);
+
+                        $('#modal-section').modal('hide');
+                        $('#modal-section .modal-content').html('');
+
+                    } else{
+                    $('#error-message').show();
+                    $('#error-message').html(data.message);
+
+                    $('#modal-section').modal('hide');
+                    $('#modal-section .modal-content').html('');
+                }
+            }},
+            complete: function(){
+                //alert('doFormSubmit= cc');
+                $(".loader").hide();
+            }
+        });
+
+        //=============================================
+
+
+        return false;
+    });
+    // unattach the submit event
+    $('#modal-section').off('submit', '#publishButton');
+
+    $('#modal-section').on('submit', '#publishButton', function(e){
+
         e.preventDefault();
         
         var form = $(this);
