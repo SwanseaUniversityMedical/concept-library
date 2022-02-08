@@ -102,9 +102,9 @@
                                                             title="Needs to be approved"
                                                         {% else %}
                                                             {% if is_approved == 3 %}
-                                                            class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
+                                                            class="js-load-modal  btn btn-danger"
                                                             href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
-                                                            title="Publish declined"
+                                                            title="Approve declined phenotype"
 
                                                             {% else %}
                                                             class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
@@ -131,6 +131,7 @@
                                                        {% endif %}
 
                                                 {% else %}
+
                                                     <a
                                                             {% if not live_ver_is_deleted and is_approved is None or is_approved == 2 %}
                                                                 class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
@@ -142,6 +143,9 @@
                                                                 {% elif live_ver_is_deleted %}
                                                                 class="btn btn-primary"
                                                                 title="Deleted phenotypes cannot be published !!"
+                                                                {% elif is_approved == 3 %}
+                                                                class="btn btn-danger"
+                                                                disabled title="This version is declined"
                                                                 {% elif  is_approved == 1 %}
                                                                 {% if phenotype.owner_id == request.user.id %}
                                                                 class="btn btn-warning"
@@ -151,9 +155,8 @@
                                                                 disabled = true
                                                                 disabled title="Unavailable to publish"
                                                                 {% endif %}
-
-
                                                                 {% endif %}
+
 
                                                             {% endif %}
                                                                 id="publish2">

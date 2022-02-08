@@ -364,6 +364,7 @@ element.style {
 .btn-cl-secondary{
 	color: #475DA7;
 	border: 1px solid #475DA7;
+    margin-right: 3px;
 }
 
 .btn-cl-danger{
