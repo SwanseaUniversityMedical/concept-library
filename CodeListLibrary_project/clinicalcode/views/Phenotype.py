@@ -972,6 +972,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
 
         submitValue = self.validate_request(request)
         print(submitValue)
+        print('value' in request.POST)
 
 
         if 'decline' == submitValue or (is_approved == 3 and is_moderator):
@@ -1163,9 +1164,9 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
 
     def validate_request(self,request):
         if request.method == 'POST':
-            if 'submitPublish' in request.POST:
+            if 'publish' in request.POST['value']:
                 return 'publish'
-            elif 'declinePublish' in request.POST:
+            elif 'decline' in request.POST['value']:
                 return 'decline'
 
     def update_published(self, request, pk, phenotype_history_id,submitValue):

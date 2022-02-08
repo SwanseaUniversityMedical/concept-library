@@ -1,6 +1,6 @@
 
 
-<form method="post" action="{% url 'phenotype_publish' pk=pk phenotype_history_id=phenotype_history_id %}"
+<form
   id="publish-form"  class="form-horizontal" novalidate enctype="multipart/form-data">
     {% csrf_token %}
 
@@ -139,7 +139,7 @@
             <button {% if not allowed_to_publish %} disabled="false"
 
             {% endif %} id="publishButton" name ="submitPublish"
-                type="submit" value = "publish" class="btn btn-primary">
+                type="button" onclick = "submitForm('publish')" class="btn btn-primary">
             {% if is_moderator %}
                 Publish
                 {% else %}
@@ -148,7 +148,7 @@
             {% endif %}
             </button>
             {% if is_moderator and is_approved == 1 %}
-                <button type="submit" class="btn btn-primary" id = "declineButton" value = "decline" name="declinePublish">Decline
+                <button type="button" class="btn btn-primary" id = "declineButton" onclick = "submitForm('decline')" name="declinePublish">Decline
                 </button>
                 {% endif %}
 
@@ -160,20 +160,20 @@
 </form>
 
 <script >
-$(function(){
-    $('#modal-section').off('submit', '#declineButton');
+function submitForm(status){
 
-    $('#modal-section').on('submit', '#declineButton', function(e){
+    // unattach the submit event
 
-        e.preventDefault();
+        var form = $('#publish-form');
 
-        var form = $(this);
+
         //=============================================
         // post form
+
         $.ajax({
-            url:  form.attr("action"),
-            data: form.serialize(),
-            type: form.attr("method"),
+            url:  "{% url 'phenotype_publish' pk=pk phenotype_history_id=phenotype_history_id %}",
+            data: form.serialize() + '&value='+status,
+            type: "POST",
             dataType: 'json',
             beforeSend: function(xhr, opts){
                 //alert('doFormSubmit= b');
@@ -189,76 +189,6 @@ $(function(){
 
                     form.find('input[name=latest_history_id_shown]').val(data.latest_history_ID);
 
-                    // href needs to be updated for publish phenotype to show latest status
-                    if(data.is_approved === 3) {
-//                      var pub_href = $('#publish2').attr("href").split("/");
-//                      pub_href[3] = data.latest_history_ID;
-//                      pub_href = pub_href.join("/")
-//                      $('#publish2').attr("href", pub_href);
-
-                        // $('#publish2').prop("disabled", true );
-                        var element = document.getElementById('publish2');
-                        element.setAttribute('disabled', 'disabled');
-
-                        $('#publish2').attr("title", "This version is declined ");
-                        $('#publish2').addClass("btn-danger");
-                        $('#publish2').removeClass("btn-primary");
-                        $('#publish2').html("Declined");
-                          //alert(data.message);
-                        $('#success-message').show();
-                        $('#success-message').html(data.message);
-
-                        $('#modal-section').modal('hide');
-                        $('#modal-section .modal-content').html('');
-
-                    } else{
-                    $('#error-message').show();
-                    $('#error-message').html(data.message);
-
-                    $('#modal-section').modal('hide');
-                    $('#modal-section .modal-content').html('');
-                }
-            }},
-            complete: function(){
-                //alert('doFormSubmit= cc');
-                $(".loader").hide();
-            }
-        });
-
-        //=============================================
-
-
-        return false;
-    });
-    // unattach the submit event
-    $('#modal-section').off('submit', '#publishButton');
-
-    $('#modal-section').on('submit', '#publishButton', function(e){
-
-        e.preventDefault();
-        
-        var form = $(this);
-        //=============================================
-        // post form 
-        $.ajax({
-            url:  form.attr("action"),
-            data: form.serialize(),
-            type: form.attr("method"),
-            dataType: 'json',
-            beforeSend: function(xhr, opts){
-                //alert('doFormSubmit= b');
-                $(".loader").show();
-            },
-            success: function(data){
-                console.log(data);
-
-                if(data.form_is_valid){
-                    $('#history-table').html(data.html_history_list);
-                    $('#latest-history-ID-Div').html(data.latest_history_ID);
-                    $('#latest_history_id').val(data.latest_history_ID);
-
-                    form.find('input[name=latest_history_id_shown]').val(data.latest_history_ID);
-                    
                     // href needs to be updated for publish phenotype to show latest status
                     if(data.is_approved === 2) {
 //                      var pub_href = $('#publish2').attr("href").split("/");
@@ -298,13 +228,32 @@ $(function(){
                         $('#modal-section').modal('hide');
                         $('#modal-section .modal-content').html('');
                         }
+                        else {
+                            if (data.is_approved === 3) {
+
+                                var element3 = document.getElementById('publish2');
+                                element3.setAttribute('disabled', 'disabled');
+
+                                $('#publish2').attr("title", "This version is declined ");
+                                $('#publish2').addClass("btn-danger");
+                                $('#publish2').removeClass("btn-primary");
+                                $('#publish2').html("Declined");
+
+                                //alert(data.message);
+                                $('#success-message').show();
+                                $('#success-message').html(data.message);
+
+                                $('#modal-section').modal('hide');
+                                $('#modal-section .modal-content').html('');
+                            }
+                        }
                     }
 
                 }
                 else{
                     $('#error-message').show();
                     $('#error-message').html(data.message);
-                    
+
                     $('#modal-section').modal('hide');
                     $('#modal-section .modal-content').html('');
                 }
@@ -314,14 +263,14 @@ $(function(){
                 $(".loader").hide();
             }
         });
-            
-        //=============================================
-           
-    
-        return false;
-    });
 
-}); 
-    
+        //=============================================
+
+
+        return false;
+
+
+}
+
 
 </script>
