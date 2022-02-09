@@ -1183,12 +1183,11 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
         if approved == 1:
            db_utils.send_review_email(phenotype,"Published",
                                       "Phenotype has been successfully approved and published on the website")
+
         elif approved == 2:
+            # This line for the case when user want to get notification of same phenotype id but different version
            db_utils.send_review_email(phenotype,"Published",
                                       "Phenotype has been successfully approved and published on the website")
-        elif approved is None:
-            db_utils.send_review_email(phenotype, "Pending",
-                                       "Phenotype is going to be approved by the moderator. We will notify you of further updates")
         elif approved == 3:
             db_utils.send_review_email(phenotype, "Rejected",
                                        "Phenotype has been rejected by the moderator. Please consider update changes and try again")
