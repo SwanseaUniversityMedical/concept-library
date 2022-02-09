@@ -1026,7 +1026,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
 
 
                             data['message'] = self.send_message(
-                                pk, phenotype_history_id, data,request.user,phenotype,
+                                pk, phenotype_history_id, data,phenotype,
                                 is_approved,is_moderator)['message']
 
 
@@ -1080,7 +1080,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                                 request=self.request)
 
                             data['message'] = self.send_message(
-                                pk, phenotype_history_id, data, request.user, phenotype,
+                                pk, phenotype_history_id, data, phenotype,
                                 is_approved, is_moderator)['message']
 
                 elif is_approved == 1 and is_moderator:
@@ -1120,7 +1120,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                             request=self.request)
 
                         data['message'] = self.send_message(
-                            pk, phenotype_history_id, data, request.user, phenotype,
+                            pk, phenotype_history_id, data, phenotype,
                             is_approved, is_moderator)['message']
 
 
@@ -1133,8 +1133,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
 
             return JsonResponse(data)
 
-    def send_message(self, pk, phenotype_history_id, data, reviewer,phenotype, is_approved,is_moderator):
-        print(is_approved)
+    def send_message(self, pk, phenotype_history_id, data,phenotype, is_approved,is_moderator):
         if is_approved == 2:
             data['message'] = render_to_string(
                 'clinicalcode/phenotype/published.html', {
@@ -1257,7 +1256,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                     request=self.request)
 
                 data['message'] = self.send_message(
-                    pk, phenotype_history_id, data, request.user, phenotype,
+                    pk, phenotype_history_id, data, phenotype,
                     is_approved, is_moderator)['message']
 
 
