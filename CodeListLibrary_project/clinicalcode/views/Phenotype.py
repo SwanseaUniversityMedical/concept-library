@@ -1028,7 +1028,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
 
                             data['message'] = self.send_message(
                                 pk, phenotype_history_id, data,
-                                is_approved)['message']
+                                is_approved,is_moderator)['message']
 
                         else:
                             if is_approved == 2:
@@ -1080,7 +1080,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
 
                             data['message'] = self.send_message(
                                 pk, phenotype_history_id, data,
-                                is_approved)['message']
+                                is_approved,is_moderator)['message']
 
                 elif is_approved == 1 and is_moderator:
                     # start a transaction
@@ -1119,7 +1119,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                             request=self.request)
 
                         data['message'] = self.send_message(
-                            pk, phenotype_history_id, data, is_approved)['message']
+                            pk, phenotype_history_id, data, is_approved,is_moderator)['message']
 
             except Exception as e:
                 print(e)
@@ -1129,7 +1129,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
 
             return JsonResponse(data)
 
-    def send_message(self, pk, phenotype_history_id, data, is_approved):
+    def send_message(self, pk, phenotype_history_id, data, is_approved,is_moderator):
         if is_approved == 2:
             data['message'] = render_to_string(
                 'clinicalcode/phenotype/published.html', {
@@ -1148,6 +1148,13 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
         elif is_approved == 3:
             data['message'] = render_to_string(
                 'clinicalcode/phenotype/declined.html', {
+                    'id': pk,
+                    'phenotype_history_id': phenotype_history_id
+                }, self.request)
+            return data
+        elif is_approved is None and is_moderator:
+            data['message'] = render_to_string(
+                'clinicalcode/phenotype/published.html', {
                     'id': pk,
                     'phenotype_history_id': phenotype_history_id
                 }, self.request)
@@ -1216,7 +1223,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
 
                 data['message'] = self.send_message(
                     pk, phenotype_history_id, data,
-                    is_approved)['message']
+                    is_approved,is_moderator)['message']
 
 
         except Exception as e:
