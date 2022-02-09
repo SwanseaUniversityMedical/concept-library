@@ -1187,15 +1187,24 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                 if submitValue == "decline":
                     is_approved = 3
 
+                    phenotype = Phenotype.objects.get(pk=pk)
+                    published_phenotype = PublishedPhenotype.objects.get(
+                        phenotype_id=phenotype, phenotype_history_id=phenotype_history_id)
+
+                    published_phenotype.is_approved = is_approved
+                    published_phenotype.save()
+
                 elif submitValue == "publish":
                     is_approved = 2
 
-                phenotype = Phenotype.objects.get(pk=pk)
-                published_phenotype = PublishedPhenotype.objects.get(
-                    phenotype_id=phenotype, phenotype_history_id=phenotype_history_id)
+                    phenotype = Phenotype.objects.get(pk=pk)
+                    published_phenotype = PublishedPhenotype.objects.get(
+                        phenotype_id=phenotype, phenotype_history_id=phenotype_history_id)
+                    published_phenotype.approved_by = request.user
+                    published_phenotype.is_approved = is_approved
+                    published_phenotype.save()
 
-                published_phenotype.is_approved = is_approved
-                published_phenotype.save()
+
 
                 data['form_is_valid'] = True
                 data[
