@@ -64,7 +64,6 @@ jobs:
           git config --local user.name "GitHub Action"
           git add -A && git diff-index --cached --quiet HEAD || git commit -m 'auto-changes'
           git rm ${{ github.head_ref }}/super-linter.log
-          git reset -- ${{ github.head_ref }}/super-linter.log
           
       - name: push changes
         uses: ad-m/github-push-action@v0.5.0
