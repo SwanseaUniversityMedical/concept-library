@@ -148,10 +148,11 @@
 						<li id="about_li" class="dropdown">
 	                        <a id="about_a" href="#" class="nav-bar-title dropdown-toggle"  style="font-weight: normal !important;"
 	                          data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">About <span class="caret"></span></a>
-	                        <ul class="dropdown-menu">                                                   
-                                {% if request.BRAND_OBJECT.about_menu is not none %}					
-									{% for lnk in request.BRAND_OBJECT.about_menu %}
+	                        <ul class="dropdown-menu">
 
+                                {% if request.BRAND_OBJECT.about_menu is not none %}
+                                    <li><a href="{% url 'contact_us' %}">Contact Us</a></li>
+									{% for lnk in request.BRAND_OBJECT.about_menu %}
 											{% for header, view_pg_name in lnk.items %}
 												{% if view_pg_name|islist  %}
 													<li role="separator" class="divider"></li>
@@ -165,20 +166,23 @@
 																	</li>
 																 {% endfor %}
 															 {% endfor %}
+
 														</ul>
 												     </li>
 												{% else %} 
 												    <li>
 														<a href="{% url 'about_page' pg_name=view_pg_name %}" >{{ header }}</a>
 													</li>
-												{% endif %}	
+												{% endif %}
 											{% endfor %}
-																					
 									{% endfor %}
+
 								{% else %}		
     									<li><a href="{% url 'about_page' pg_name='cl_about_page' %}" >Concept Library</a></li>
-								    	<li><a href="{% url 'contact_us' %}" target="_blank">Contact Us</a></li>
-								{% endif %}		
+                                        <li><a href="{% url 'contact_us' %}">Contact Us</a></li>
+
+								{% endif %}
+
         				                                                                                                                                    
 	                        </ul>
                     	</li>
