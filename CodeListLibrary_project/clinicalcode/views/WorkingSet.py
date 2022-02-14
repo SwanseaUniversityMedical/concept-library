@@ -9,7 +9,7 @@ import logging
 import re
 import time
 from collections import OrderedDict
-from datetime import datetime
+import datetime
 
 from django import forms
 from django.conf import settings
@@ -378,7 +378,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin,
 # start a transaction
             with transaction.atomic():
                 workingset.updated_by = request.user
-                workingset.modified = datetime.now()
+                workingset.modified = datetime.datetime.now()
 
                 #-----------------------------------------------------
                 # get tags

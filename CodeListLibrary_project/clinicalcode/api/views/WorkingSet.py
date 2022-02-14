@@ -9,7 +9,7 @@
 import json
 from collections import OrderedDict
 from collections import OrderedDict as ordr
-from datetime import datetime
+import datetime
 
 from clinicalcode.context_processors import clinicalcode
 from clinicalcode.models.WorkingSet import WorkingSet
@@ -413,7 +413,7 @@ def api_workingset_update(request):
             'citation_requirements')
 
         update_workingset.updated_by = request.user
-        update_workingset.modified = datetime.now()
+        update_workingset.modified = datetime.datetime.now()
         #update_workingset.owner_access = Permissions.EDIT   # int(request.data.get('ownerAccess'))
         #update_workingset.owner_id = request.user.id        # int(request.data.get('owner_id'))
 

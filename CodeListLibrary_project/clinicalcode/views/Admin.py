@@ -1,5 +1,5 @@
 import time
-from datetime import datetime
+import datetime
 
 from clinicalcode.api.views.Concept import published_concepts
 from django.conf import settings
@@ -64,7 +64,7 @@ def save_statistics(request):
         HDRUK_stat.stat = stat
         HDRUK_stat.updated_by = [None,
                                  request.user][request.user.is_authenticated]
-        HDRUK_stat.modified = datetime.now()
+        HDRUK_stat.modified = datetime.datetime.now()
         HDRUK_stat.save()
 
         return [stat, HDRUK_stat.id]
@@ -268,7 +268,7 @@ def save_statistics_collections(request, concept_or_phenotype, brand):
             concept_stat_update.stat = concept_stat
             concept_stat_update.updated_by = [None, request.user
                                               ][request.user.is_authenticated]
-            concept_stat_update.modified = datetime.now()
+            concept_stat_update.modified = datetime.datetime.now()
             concept_stat_update.save()
             return [concept_stat, concept_stat_update.id]
         else:
@@ -294,7 +294,7 @@ def save_statistics_collections(request, concept_or_phenotype, brand):
                 phenotype_stat_update.updated_by = [
                     None, request.user
                 ][request.user.is_authenticated]
-                phenotype_stat_update.modified = datetime.now()
+                phenotype_stat_update.modified = datetime.datetime.now()
                 phenotype_stat_update.save()
                 return [phenotype_stat, phenotype_stat_update.id]
             else:

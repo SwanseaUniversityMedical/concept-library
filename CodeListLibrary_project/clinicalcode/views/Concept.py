@@ -9,7 +9,7 @@ import csv
 import sys
 import time
 from _ast import Or
-from datetime import datetime
+import datetime
 
 from clinicalcode.permissions import allowed_to_view
 # from django.contrib.auth.models import User
@@ -467,7 +467,7 @@ class ConceptUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin,
 
         with transaction.atomic():
             form.instance.modified_by = self.request.user
-            form.instance.modified = datetime.now()
+            form.instance.modified = datetime.datetime.now()
 
             code_attribute_headers = json.loads(
                 self.request.POST.get('code_attribute_header'))
