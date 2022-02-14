@@ -24,6 +24,7 @@ from django.db.models import Q
 from django.utils.timezone import now
 from psycopg2.errorcodes import INVALID_PARAMETER_VALUE
 from simple_history.utils import update_change_reason
+from django.core.mail import BadHeaderError, EmailMultiAlternatives
 
 from . import utils
 from .models import *
@@ -1160,6 +1161,8 @@ def saveDependentConceptsChangeReason(concept_ref_id, reason):
     # (care not to send multiple emails for a single update)
     return
     ############################################
+
+
 
 
 def saveDependentConceptsChangeReason_OLD(concept_ref_id, reason):
@@ -3800,3 +3803,36 @@ def get_brand_associated_collections_dynamic(request, concept_or_phenotype):
     unique_tags = list(set(Tag_List))
 
     return Tag.objects.filter(id__in=unique_tags, tag_type=2)
+
+def send_review_email(phenotype, review_decision, review_message):
+    phenotype_id = phenotype.id
+    phenotype_name = phenotype.title
+    phenotype_owner_id = phenotype.owner_id
+
+    owner_email = User.objects.get(id=phenotype_owner_id).email
+    if owner_email == '':
+        return False
+
+    email_subject = 'Concept Library - Phenotype %s has been %s' % (phenotype_id, review_decision)
+    email_content = '''<strong>New Message from Concept Library Website</strong><br><br>
+    <strong>Phenotype:</strong><br>PH{id} - {name}<br><br>
+    <strong>Decision:</strong><br>{decision}<br><br>
+    <strong>Reviewer message:</strong><br>{message}
+    '''.format(id=phenotype_id, name=phenotype_name, decision=review_decision, message=review_message)
+
+    if not settings.IS_DEVELOPMENT_PC:
+        try:
+            msg = EmailMultiAlternatives(email_subject,
+                email_content,
+                'Helpdesk <%s>' % settings.DEFAULT_FROM_EMAIL,
+                to=[owner_email]
+            )
+            msg.content_subtype = 'html'
+            msg.send()
+
+            return True
+        except BadHeaderError:
+            return False
+    else:
+        print(email_content)
+        return True

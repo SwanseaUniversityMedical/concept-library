@@ -143,7 +143,7 @@ div[role="tabpanel"]{
 
 
 .navbar{
-	margin-bottom: 10px;
+	padding-bottom: 10px;
 }
 
 .popover-lg{
@@ -365,6 +365,7 @@ element.style {
 	color: #475DA7;
 	border: 1px solid #475DA7;
     margin-right: 3px;
+    margin-left: 3px;
 }
 
 .btn-cl-danger{

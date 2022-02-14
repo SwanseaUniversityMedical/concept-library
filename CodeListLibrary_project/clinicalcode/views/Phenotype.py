@@ -923,7 +923,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                                               history_id=phenotype_history_id)
         is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
         is_approved = checkIfapproved(Phenotype, pk, phenotype_history_id)
-        print(is_approved)
+
         self.checkPhenotypeTobePublished(request, pk, phenotype_history_id)
 
         if not is_published:
@@ -948,6 +948,8 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
             'errors': errors
         })
 
+
+
     def post(self, request, pk, phenotype_history_id):
         global errors, allow_to_publish, phenotype_is_deleted, is_owner, phenotype_has_codes, is_approved, is_moderator
         global AllnotDeleted, AllarePublished, isAllowedtoViewChildren
@@ -969,18 +971,17 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
         data = dict()
 
         submitValue = self.validate_request(request)
-        print(submitValue)
-        print('value' in request.POST)
+
+
 
         if 'decline' == submitValue or (is_approved == 3 and is_moderator):
-            return self.update_published(request, pk, phenotype_history_id,
-                                         submitValue)
+                return self.update_published(request,pk,phenotype_history_id,submitValue)
 
         elif 'publish' == submitValue:
             if not allow_to_publish or (is_published and is_approved == 2):
                 data['form_is_valid'] = False
-                data['message'] = render_to_string('clinicalcode/error.html',
-                                                   {}, self.request)
+                data['message'] = render_to_string('clinicalcode/error.html', {},
+                                                   self.request)
                 return JsonResponse(data)
 
             try:
@@ -996,8 +997,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                                 phenotype_history_id=phenotype_history_id,
                                 is_approved=2,
                                 approved_by=request.user,
-                                created_by=Phenotype.objects.get(
-                                    pk=pk).created_by)
+                                created_by=Phenotype.objects.get(pk=pk).created_by)
                             published_phenotype.save()
                             data['form_is_valid'] = True
                             data[
@@ -1024,9 +1024,12 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                                 },
                                 request=self.request)
 
+
                             data['message'] = self.send_message(
-                                pk, phenotype_history_id, data,
-                                is_approved)['message']
+                                pk, phenotype_history_id, data,phenotype,
+                                is_approved,is_moderator)['message']
+
+
 
                         else:
                             if is_approved == 2:
@@ -1035,12 +1038,12 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                                     phenotype=phenotype,
                                     phenotype_history_id=phenotype_history_id,
                                     is_approved=2,
-                                    approved_by=PublishedPhenotype.objects.
-                                    filter(phenotype_id=phenotype.id).first(
-                                    ).approved_by,
-                                    created_by=PublishedPhenotype.objects.
-                                    filter(phenotype_id=phenotype.id).first(
-                                    ).created_by)
+                                    approved_by=PublishedPhenotype.objects.filter(
+                                        phenotype_id=phenotype.id).first(
+                                        ).approved_by,
+                                    created_by=PublishedPhenotype.objects.filter(
+                                        phenotype_id=phenotype.id).first(
+                                        ).created_by)
                                 published_phenotype.save()
                                 data['is_approved'] = 2
                             else:
@@ -1072,14 +1075,13 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                                     list(
                                         PublishedPhenotype.objects.filter(
                                             phenotype_id=pk).values_list(
-                                                'phenotype_history_id',
-                                                flat=True))
+                                                'phenotype_history_id', flat=True))
                                 },
                                 request=self.request)
 
                             data['message'] = self.send_message(
-                                pk, phenotype_history_id, data,
-                                is_approved)['message']
+                                pk, phenotype_history_id, data, phenotype,
+                                is_approved, is_moderator)['message']
 
                 elif is_approved == 1 and is_moderator:
                     # start a transaction
@@ -1118,31 +1120,36 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                             request=self.request)
 
                         data['message'] = self.send_message(
-                            pk, phenotype_history_id, data,
-                            is_approved)['message']
+                            pk, phenotype_history_id, data, phenotype,
+                            is_approved, is_moderator)['message']
+
+
 
             except Exception as e:
                 print(e)
                 data['form_is_valid'] = False
-                data['message'] = render_to_string('clinicalcode/error.html',
-                                                   {}, self.request)
+                data['message'] = render_to_string('clinicalcode/error.html', {},
+                                                   self.request)
 
             return JsonResponse(data)
 
-    def send_message(self, pk, phenotype_history_id, data, is_approved):
+    def send_message(self, pk, phenotype_history_id, data,phenotype, is_approved,is_moderator):
         if is_approved == 2:
             data['message'] = render_to_string(
                 'clinicalcode/phenotype/published.html', {
                     'id': pk,
                     'phenotype_history_id': phenotype_history_id
                 }, self.request)
+            self.send_email_decision(phenotype,is_approved)
             return data
+
         elif is_approved == 1:
             data['message'] = render_to_string(
                 'clinicalcode/phenotype/published.html', {
                     'id': pk,
                     'phenotype_history_id': phenotype_history_id
                 }, self.request)
+            self.send_email_decision(phenotype, is_approved)
             return data
 
         elif is_approved == 3:
@@ -1151,7 +1158,17 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                     'id': pk,
                     'phenotype_history_id': phenotype_history_id
                 }, self.request)
+            self.send_email_decision(phenotype, is_approved)
             return data
+
+        elif is_approved is None and is_moderator:
+            data['message'] = render_to_string(
+                'clinicalcode/phenotype/published.html', {
+                    'id': pk,
+                    'phenotype_history_id': phenotype_history_id
+                }, self.request)
+            return data
+
         elif is_approved is None:
             data['message'] = render_to_string(
                 'clinicalcode/phenotype/approve.html', {
@@ -1160,14 +1177,31 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                 }, self.request)
             return data
 
-    def validate_request(self, request):
+    def send_email_decision(self,phenotype,approved):
+
+        if approved == 1:
+           db_utils.send_review_email(phenotype,"Published",
+                                      "Phenotype has been successfully approved and published on the website")
+
+        elif approved == 2:
+            # This line for the case when user want to get notification of same phenotype id but different version
+           db_utils.send_review_email(phenotype,"Published",
+                                      "Phenotype has been successfully approved and published on the website")
+        elif approved == 3:
+            db_utils.send_review_email(phenotype, "Rejected",
+                                       "Phenotype has been rejected by the moderator. Please consider update changes and try again")
+
+
+
+
+    def validate_request(self,request):
         if request.method == 'POST':
             if 'publish' in request.POST['value']:
                 return 'publish'
             elif 'decline' in request.POST['value']:
                 return 'decline'
 
-    def update_published(self, request, pk, phenotype_history_id, submitValue):
+    def update_published(self, request, pk, phenotype_history_id,submitValue):
 
         errors = {}
         data = dict()
@@ -1178,16 +1212,24 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                 if submitValue == "decline":
                     is_approved = 3
 
+                    phenotype = Phenotype.objects.get(pk=pk)
+                    published_phenotype = PublishedPhenotype.objects.get(
+                        phenotype_id=phenotype, phenotype_history_id=phenotype_history_id)
+
+                    published_phenotype.is_approved = is_approved
+                    published_phenotype.save()
+
                 elif submitValue == "publish":
                     is_approved = 2
 
-                phenotype = Phenotype.objects.get(pk=pk)
-                published_phenotype = PublishedPhenotype.objects.get(
-                    phenotype_id=phenotype,
-                    phenotype_history_id=phenotype_history_id)
+                    phenotype = Phenotype.objects.get(pk=pk)
+                    published_phenotype = PublishedPhenotype.objects.get(
+                        phenotype_id=phenotype, phenotype_history_id=phenotype_history_id)
+                    published_phenotype.approved_by = request.user
+                    published_phenotype.is_approved = is_approved
+                    published_phenotype.save()
 
-                published_phenotype.is_approved = is_approved
-                published_phenotype.save()
+
 
                 data['form_is_valid'] = True
                 data[
@@ -1199,23 +1241,24 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                     'clinicalcode/phenotype/partial_history_list.html',
                     {
                         'history':
-                        phenotype.history.all(),
+                            phenotype.history.all(),
                         'is_approved':
-                        is_approved,
+                            is_approved,
                         'current_phenotype_history_id':
-                        int(phenotype_history_id
-                            ),  # phenotype.history.latest().pk,
+                            int(phenotype_history_id
+                                ),  # phenotype.history.latest().pk,
                         'published_historical_ids':
-                        list(
-                            PublishedPhenotype.objects.filter(
-                                phenotype_id=pk).values_list(
+                            list(
+                                PublishedPhenotype.objects.filter(
+                                    phenotype_id=pk).values_list(
                                     'phenotype_history_id', flat=True))
                     },
                     request=self.request)
 
-                data['message'] = self.send_message(pk, phenotype_history_id,
-                                                    data,
-                                                    is_approved)['message']
+                data['message'] = self.send_message(
+                    pk, phenotype_history_id, data, phenotype,
+                    is_approved, is_moderator)['message']
+
 
         except Exception as e:
             data['form_is_valid'] = False
@@ -1231,8 +1274,7 @@ def checkAllChildConcepts4Publish_Historical(request, phenotype_id,
                                              phenotype_history_id):
 
     phenotype = db_utils.getHistoryPhenotype(phenotype_history_id)
-    print(type(phenotype['concept_informations']))
-    print(phenotype['concept_informations'])
+
 
     if len(phenotype['concept_informations']) == 0:
         has_child_concepts = False
