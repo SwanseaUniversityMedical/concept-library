@@ -64,7 +64,7 @@ def save_statistics(request):
         HDRUK_stat.stat = stat
         HDRUK_stat.updated_by = [None,
                                  request.user][request.user.is_authenticated]
-        HDRUK_stat.modified = datetime.now()
+        HDRUK_stat.modified = datetime.datetime.now()
         HDRUK_stat.save()
 
         return [stat, HDRUK_stat.id]
