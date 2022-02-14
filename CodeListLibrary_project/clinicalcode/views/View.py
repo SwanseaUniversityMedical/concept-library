@@ -509,65 +509,71 @@ def contact_us(request):
     '''
         Generation of Contact us page/form and email send functionality.
     '''
-    if not settings.CLL_READ_ONLY:
-        captcha = check_recaptcha(request)
-        status = 'N/A'
-        if request.method == 'GET':
-            form = ContactForm()
-        else:
-            form = ContactForm(request.POST)
-            if form.is_valid() and captcha is True:
-                name = form.cleaned_data['name']
-                from_email = form.cleaned_data['from_email']
-                message = form.cleaned_data['message']
-                category = form.cleaned_data['categories']
-                email_subject = ('Concept Library - New Message From ' + name)
-
-                try:
-                    html_content = '<strong>New Message from Concept Library Website</strong> <br><br> <strong>Name:</strong><br>' + name + '<br><br> <strong>Email:</strong><br>' + from_email + '<br><br> <strong>Issue Type:</strong><br>' + category + '<br><br><strong> Tell us about your Enquiry: </strong><br>' + message
-                    msg = EmailMultiAlternatives(email_subject,
-                                                 html_content,
-                                                 'Helpdesk <%s>' %
-                                                 settings.DEFAULT_FROM_EMAIL,
-                                                 to=[settings.HELPDESK_EMAIL],
-                                                 cc=[from_email])
-                    msg.content_subtype = "html"  # Main content is now text/html
-                    msg.send()
-                    status = 'Issue Reported Successfully.'
-                except BadHeaderError:
-                    return HttpResponse('Invalid header found.')
-
-            if captcha == False:
-                status = 'Please Fill out Captcha.'
-
-        return render(request, 'cl-docs/contact-us.html', {
-            'form': form,
-            'message': [status],
-        })
-    else:
+    if settings.CLL_READ_ONLY:
         raise PermissionDenied
+    
+    captcha = check_recaptcha(request)
+    status = 'N/A'
+    if request.method == 'GET':
+        form = ContactForm()
+    else:
+        form = ContactForm(request.POST)
+        if form.is_valid() and captcha is True:
+            name = form.cleaned_data['name']
+            from_email = form.cleaned_data['from_email']
+            message = form.cleaned_data['message']
+            category = form.cleaned_data['categories']
+            email_subject = ('Concept Library - New Message From ' + name)
+
+            try:
+                html_content = '<strong>New Message from Concept Library Website</strong> <br><br> <strong>Name:</strong><br>' + name + '<br><br> <strong>Email:</strong><br>' + from_email + '<br><br> <strong>Issue Type:</strong><br>' + category + '<br><br><strong> Tell us about your Enquiry: </strong><br>' + message
+                msg = EmailMultiAlternatives(email_subject,
+                                             html_content,
+                                             'Helpdesk <%s>' %
+                                             settings.DEFAULT_FROM_EMAIL,
+                                             to=[settings.HELPDESK_EMAIL],
+                                             cc=[from_email])
+                msg.content_subtype = "html"  # Main content is now text/html
+                msg.send()
+                status = 'Issue Reported Successfully.'
+            except BadHeaderError:
+                return HttpResponse('Invalid header found.')
+
+        if captcha == False:
+            status = 'Please Fill out Captcha.'
+
+    return render(request, 'cl-docs/contact-us.html', {
+        'form': form,
+        'message': [status],
+    })
+        
 
 
 def check_recaptcha(request):
     '''
         Contact Us Recaptcha code
     '''
-    if not settings.CLL_READ_ONLY:
-        if request.method == 'POST':
-            recaptcha_response = request.POST.get('g-recaptcha-response')
-            data = {
-                'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
-                'response': recaptcha_response
-            }
-            r = requests.post(
-                'https://www.google.com/recaptcha/api/siteverify',
-                data=data,
-                proxies={'https': 'http://proxy:8080/'})
-            result = r.json()
-            if result['success']:
-                recaptcha_is_valid = True
-            else:
-                recaptcha_is_valid = False
-            return recaptcha_is_valid
-    else:
+    if settings.CLL_READ_ONLY:
         raise PermissionDenied
+    
+    if request.method == 'POST':
+        recaptcha_response = request.POST.get('g-recaptcha-response')
+        data = {
+            'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
+            'response': recaptcha_response
+        }
+        r = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data=data,
+            proxies={'https': 'http://proxy:8080/'})
+        result = r.json()
+        if result['success']:
+            recaptcha_is_valid = True
+        else:
+            recaptcha_is_valid = False
+        return recaptcha_is_valid
+
+
+
+
+        
