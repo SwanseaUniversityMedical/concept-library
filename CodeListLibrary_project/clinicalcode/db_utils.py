@@ -3093,7 +3093,7 @@ def get_visible_live_or_published_phenotype_versions(
                                 , (SELECT username FROM auth_user WHERE id=r.updated_by_id ) modified_by_username
                                 , (SELECT username FROM auth_user WHERE id=r.deleted_by_id ) deleted_by_username
                                 , (SELECT name FROM auth_group WHERE id=r.group_id ) group_name
-                                , (SELECT created FROM clinicalcode_publishedphenotype WHERE phenotype_id=r.id and phenotype_history_id=r.history_id  LIMIT 1) publish_date
+                                , (SELECT created FROM clinicalcode_publishedphenotype WHERE phenotype_id=r.id and phenotype_history_id=r.history_id  and is_approved = 2  LIMIT 1) publish_date
                             FROM
                             (SELECT 
                                ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn,
