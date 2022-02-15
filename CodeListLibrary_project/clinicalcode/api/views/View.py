@@ -554,7 +554,10 @@ def publish_entity(request, set_class, pk):
         published_phenotype = PublishedPhenotype(
             phenotype=phenotype,
             phenotype_history_id=latest_version_id,
-            created_by=request.user)
+            created_by=request.user,
+            is_approved=2,
+            approved_by=request.user
+            )
         published_phenotype.save()
         return True
 

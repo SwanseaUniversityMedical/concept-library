@@ -405,8 +405,8 @@ def export_published_phenotype_codes(request, pk, phenotype_history_id):
                                     history_id=phenotype_history_id).exists():
         raise PermissionDenied
 
-    is_published = PublishedPhenotype.objects.filter(
-        phenotype_id=pk, phenotype_history_id=phenotype_history_id).exists()
+    is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
+
     # check if the phenotype version is published
     if not is_published:
         raise PermissionDenied

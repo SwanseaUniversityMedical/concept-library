@@ -425,7 +425,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
 
     # published versions
     published_historical_ids = list(
-        PublishedPhenotype.objects.filter(phenotype_id=pk).values_list(
+        PublishedPhenotype.objects.filter(phenotype_id=pk, is_approved=2).values_list(
             'phenotype_history_id', flat=True))
 
     # history
@@ -444,13 +444,13 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
             ver['updated_by'] = User.objects.get(pk=ver['updated_by_id'])
 
         is_this_version_published = False
-        is_this_version_published = PublishedPhenotype.objects.filter(
-            phenotype_id=ver['id'],
-            phenotype_history_id=ver['history_id']).exists()
+        is_this_version_published = checkIfPublished(Phenotype, ver['id'], ver['history_id'])
+
         if is_this_version_published:
             ver['publish_date'] = PublishedPhenotype.objects.get(
                 phenotype_id=ver['id'],
-                phenotype_history_id=ver['history_id']).created
+                phenotype_history_id=ver['history_id'],
+                is_approved=2).created
         else:
             ver['publish_date'] = None
 
@@ -746,8 +746,7 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id):
                             pk,
                             set_history_id=phenotype_history_id)
 
-    is_published = PublishedPhenotype.objects.filter(
-        phenotype_id=pk, phenotype_history_id=phenotype_history_id).exists()
+    is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
 
     # ----------------------------------------------------------------------
 

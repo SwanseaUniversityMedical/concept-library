@@ -124,11 +124,11 @@ def get_HDRUK_statistics(request):
         'published_concept_count':
         len(
             HDRUK_published_concepts_ids
-        ),  #PublishedConcept.objects.filter(concept_id__in = HDRUK_published_concepts_ids).values('concept_id').distinct().count(),
+        ),  
         'published_phenotype_count':
         len(
             HDRUK_published_phenotypes_ids
-        ),  # PublishedPhenotype.objects.filter(phenotype_id__in = HDRUK_published_phenotypes_ids).values('phenotype_id').distinct().count(),
+        ),  
         'published_clinical_codes':
         get_published_clinical_codes(HDRUK_published_concepts_id_version),
         'datasources_component_count':
