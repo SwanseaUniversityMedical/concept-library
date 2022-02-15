@@ -308,14 +308,14 @@
 			<div class="container" id="baseFooter" >
 			<hr>
 				<p>
-					<a href="{% url 'terms' %}" target=_blank  >Terms & Conditions</a>
+					<a href="{% url 'terms' %}" >Terms & Conditions</a>
 				 	 |
-					<a href="{% url 'privacy_and_cookie_policy' %}" target=_blank  >Privacy & Cookie Policy</a>
+					<a href="{% url 'privacy_and_cookie_policy' %}" >Privacy & Cookie Policy</a>
 					 | 
 					<a href="https://docs.hiru.swan.ac.uk/display/SATP/Concept+Library+Documentation" target=_blank  >Support & Documentation</a>
 					{% if not CLL_READ_ONLY %}
 					 |
-					<a href="{% url 'contact_us' %}" target=_blank  >Contact Us</a>
+					<a href="{% url 'contact_us' %}"  >Contact Us</a>
 					{% endif %}
 				</p>
 				<p>Copyright &copy; {% now 'Y' %} - SAIL Databank - Swansea University. All rights reserved.</p>	
