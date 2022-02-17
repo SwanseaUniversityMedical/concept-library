@@ -54,7 +54,6 @@ class SearchTest(StaticLiveServerTestCase):
         if settings_cll.REMOTE_TEST:
             self.WEBAPP_HOST = settings_cll.WEBAPP_HOST
 
-        save_stat(self.WEBAPP_HOST)
         self.load_data()
 
     def load_data(self):
@@ -559,9 +558,8 @@ class SearchTest(StaticLiveServerTestCase):
             browser.find_element(
                 By.XPATH, '//button[@class = "btn btn-primary"]').click()
 
-            time.sleep(settings_cll.IMPLICTLY_WAIT)
 
-            self.assertTrue("cl-card  cl-card-deleted   dark-div    " in
+            self.assertTrue("cl-card-deleted" in
                             browser.page_source)
 
             browser.find_element(By.ID, "reset-form").click()
