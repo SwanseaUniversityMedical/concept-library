@@ -21,7 +21,8 @@ router = routers.DefaultRouter()
 router.register('concepts-live', Concept.ConceptViewSet)
 router.register('codes', Concept.CodeViewSet)
 router.register('tags', View.TagViewSet, basename='tags')
-router.register('datasources2', View.DataSourceViewSet)
+router.register('public/data-sources-list', View.DataSourceViewSet)
+router.register('public/coding-systems', View.CodingSystemViewSet)
 '''
 Paths which are available as REST API URLs. The router URLs listed above can
 be included via an include().

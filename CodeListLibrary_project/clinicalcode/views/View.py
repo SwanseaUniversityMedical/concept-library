@@ -443,36 +443,26 @@ def customRoot(request):
                     'pk': 0,
                     'phenotype_history_id': 123
                 }),
-        'get_phenotype_versions':
-        reverse('api:get_phenotype_versions', kwargs={'pk': 0}),
-        'get_phenotype_versions_public':
-        reverse('api:get_phenotype_versions_public', kwargs={'pk': 0}),
-        'tags':
-        reverse('api:tags-list'),
+        'get_phenotype_versions': reverse('api:get_phenotype_versions', kwargs={'pk': 0}),
+        'get_phenotype_versions_public':  reverse('api:get_phenotype_versions_public', kwargs={'pk': 0}),
+        'tags':  reverse('api:tags-list'),
+        'datasource-list':  reverse('api:datasource-list'),
     }
 
     if not settings.CLL_READ_ONLY:
         urls_available.update({
-            'api_concept_create':
-            reverse('api:api_concept_create', kwargs={}),
-            'api_concept_update':
-            reverse('api:api_concept_update', kwargs={}),
-            'api_workingset_create':
-            reverse('api:api_workingset_create', kwargs={}),
-            'api_workingset_update':
-            reverse('api:api_workingset_update', kwargs={}),
-            'api_phenotype_create':
-            reverse('api:api_phenotype_create', kwargs={}),
-            'api_phenotype_update':
-            reverse('api:api_phenotype_update', kwargs={}),
-            'api_datasource_create':
-            reverse('api:api_datasource_create', kwargs={})
+            'api_concept_create':       reverse('api:api_concept_create', kwargs={}),
+            'api_concept_update':       reverse('api:api_concept_update', kwargs={}),
+            'api_workingset_create':    reverse('api:api_workingset_create', kwargs={}),
+            'api_workingset_update':    reverse('api:api_workingset_update', kwargs={}),
+            'api_phenotype_create':     reverse('api:api_phenotype_create', kwargs={}),
+            'api_phenotype_update':     reverse('api:api_phenotype_update', kwargs={}),
+            'api_datasource_create':    reverse('api:api_datasource_create', kwargs={})
         })
 
     # replace 0/123 by {id}/{version_id}
     for k, v in list(urls_available.items()):
-        new_url = urls_available[k].replace('C0', '{id}').replace(
-            'PH0', '{id}').replace('WS0',
+        new_url = urls_available[k].replace('C0', '{id}').replace('PH0', '{id}').replace('WS0',
                                    '{id}').replace('123', '{version_id}')
         urls_available[k] = new_url
 

@@ -74,7 +74,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
             Get all the tags but limit if we are searching.
         '''
         queryset = Tag.objects.all()
-        keyword_search = self.request.query_params.get('keyword', None)
+        keyword_search = self.request.query_params.get('search', None)
         if keyword_search is not None:
             queryset = queryset.filter(description__icontains=keyword_search)
         return queryset
@@ -138,6 +138,46 @@ class DataSourceViewSet(viewsets.ReadOnlyModelViewSet):
 #     def perform_update(self, serializer):
 #         raise PermissionDenied
 
+#--------------------------------------------------------------------------
+class CodingSystemViewSet(viewsets.ReadOnlyModelViewSet):
+    '''
+        Get the API output for the list of Coding Systems (no permissions involved).
+    '''
+
+    # disable authentication for this class
+    authentication_classes = []
+    permission_classes = []
+
+    queryset = CodingSystem.objects.none()
+    serializer_class = CodingSystemSerializer
+
+    def get_queryset(self):
+        '''
+            Provide the Coding Systems for the view.
+            Get all the Coding Systems but limit if we are searching.
+        '''
+        queryset = CodingSystem.objects.all()
+        keyword_search = self.request.query_params.get('search', None)
+        if keyword_search is not None:
+            queryset = queryset.filter(name__icontains=keyword_search)
+        return queryset
+
+    def filter_queryset(self, queryset):
+        '''
+            Override the default filtering.
+            By default we get Coding Systems ordered by creation date even if
+            we provide sorted data from get_queryset(). We have to sort the
+            data here.
+        '''
+        queryset = super(CodingSystemViewSet, self).filter_queryset(queryset)
+        return queryset.order_by('name')
+
+
+#     def perform_create(self, serializer):
+#         raise PermissionDenied
+
+#     def perform_update(self, serializer):
+#         raise PermissionDenied
 
 #############################################################################
 #############################################################################
