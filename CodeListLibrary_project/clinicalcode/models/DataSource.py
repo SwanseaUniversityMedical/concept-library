@@ -25,6 +25,8 @@ class DataSource(TimeStampedModel):
                                    related_name="data_source_updated")
 
     #brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True, related_name="data_source_brand")
+    
+    datasource_id = models.IntegerField(unique=True, null=True)
 
     history = HistoricalRecords()
 

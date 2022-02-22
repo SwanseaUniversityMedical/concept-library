@@ -28,6 +28,8 @@ class CodingSystem(models.Model):
     desc_column_name = models.CharField(max_length=250)
     filter = models.CharField(max_length=1000, blank=True, null=True)
 
+    codingsystem_id = models.IntegerField(unique=True, null=True)
+
     history = HistoricalRecords()
 
     objects = CodingSystemManager()
