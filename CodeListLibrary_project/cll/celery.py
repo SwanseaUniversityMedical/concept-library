@@ -13,11 +13,11 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.conf.beat_schedule = {
     'send_mail': {
         'task': 'clinicalcode.tasks.send_scheduled_email',
-        'schedule': crontab(minute=60)
+        'schedule': crontab(minute=58)
     },
     'send_message_test': {
         'task': 'clinicalcode.tasks.send_message_test',
-        'schedule': crontab(minute=60)
+        'schedule': crontab(minute=58)
     }
 
 }
