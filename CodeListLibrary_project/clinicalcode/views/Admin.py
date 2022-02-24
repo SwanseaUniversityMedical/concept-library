@@ -21,7 +21,7 @@ from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import CreateView, UpdateView  # , DeleteView
 from simple_history.models import HistoricalRecords
 
-from .. import db_utils, utils
+from .. import db_utils, utils, tasks
 #from ..forms.ConceptForms import ConceptForm, ConceptUploadForm
 from ..models import *
 from ..permissions import *
@@ -36,7 +36,9 @@ from django.core.exceptions import PermissionDenied
 from django.db import connection, connections  # , transaction
 
 
+
 def run_statistics(request):
+
     """
         save HDR-UK home page statistics
     """
@@ -108,7 +110,7 @@ def get_HDRUK_statistics(request):
     HDRUK_published_phenotypes = db_utils.get_visible_live_or_published_phenotype_versions(
         request,
         get_live_and_or_published_ver=
-        2  # 1= live only, 2= published only, 3= live+published 
+        2  # 1= live only, 2= published only, 3= live+published
         ,
         exclude_deleted=True,
         show_top_version_only=False,
@@ -116,8 +118,11 @@ def get_HDRUK_statistics(request):
         force_get_live_and_or_published_ver=2  # get published data
     )
 
+
     HDRUK_published_phenotypes_ids = db_utils.get_list_of_visible_entity_ids(
         HDRUK_published_phenotypes, return_id_or_history_id="id")
+
+
 
     return {
         # ONLY PUBLISHED COUNTS HERE (count original entity, not versions)
@@ -137,8 +142,14 @@ def get_HDRUK_statistics(request):
         'clinical_terminologies':
         get_codingSystems_count(
             HDRUK_published_phenotypes
-        )  # number of coding systems used in published phenotypes 
+        )  # number of coding systems used in published phenotypes
+
     }
+
+
+
+
+
 
 
 def get_codingSystems_count(published_phenotypes):

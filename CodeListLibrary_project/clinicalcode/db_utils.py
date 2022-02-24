@@ -26,9 +26,10 @@ from psycopg2.errorcodes import INVALID_PARAMETER_VALUE
 from simple_history.utils import update_change_reason
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
 
-from . import utils
+from . import utils, tasks
 from .models import *
 from .permissions import *
+
 
 # pandas needs to be installed by "pip2"
 # pip2 install pandas
@@ -2985,6 +2986,7 @@ def get_visible_live_or_published_phenotype_versions(
         searchByName="",
         author="",
         phenotype_id_to_exclude=0,
+        approved_status = None,
         exclude_deleted=True,
         filter_cond="",
         show_top_version_only=False,
@@ -3046,6 +3048,9 @@ def get_visible_live_or_published_phenotype_versions(
     if filter_cond.strip() != "":
         where_clause += " AND " + filter_cond
 
+
+
+
     # --- second where clause  ---
     if get_live_and_or_published_ver == 1:  # 1= live only
         where_clause_2 = " AND  (rn=1 " + user_cond + " ) "
@@ -3056,10 +3061,22 @@ def get_visible_live_or_published_phenotype_versions(
     else:
         raise INVALID_PARAMETER_VALUE
 
+    # --- 4 where clause  ---
+    where_clause_4 = ""
+    if approved_status == 1:  # pending phenotype
+        where_clause_4 = " AND (is_approved=1) "
+    elif approved_status == 2:  # Approved phenotype
+        where_clause_4 = " AND (is_approved=2) "
+    elif approved_status == 3:  # Declined phenotype
+        where_clause_4 = " AND (is_approved=3) "
+
+
     # --- third where clause  ---
     where_clause_3 = ""
     if show_top_version_only:
         where_clause_3 = " WHERE rn_res = 1 "
+
+
 
     # --- when in a brand, show only this brand's data
     brand_filter_cond = " "
@@ -3118,7 +3135,7 @@ def get_visible_live_or_published_phenotype_versions(
                             FROM clinicalcode_historicalphenotype t
                                 """ + brand_filter_cond + """
                             ) r
-                            """ + where_clause + where_clause_2 + """
+                            """ + where_clause + where_clause_2 + where_clause_4 + """
                         ) rr
                         """ + where_clause_3 + """
                         ORDER BY id, history_id desc
@@ -3736,6 +3753,7 @@ def get_brand_associated_collections(request, concept_or_phenotype):
         If not, show only non-deleted/published entities related collection IDs.
     """
 
+
     brand = request.CURRENT_BRAND
     if brand == "":
         brand = 'ALL'
@@ -3826,10 +3844,71 @@ def send_review_email(phenotype, review_decision, review_message):
             )
             msg.content_subtype = 'html'
             msg.send()
-
             return True
         except BadHeaderError:
             return False
     else:
         print(email_content)
         return True
+
+def get_scheduled_email_to_send():
+
+    HDRUK_pending_phenotypes =PublishedPhenotype.objects.filter(is_approved=1
+
+    )
+    HDRUK_declined_phenotypes = PublishedPhenotype.objects.filter(is_approved=3
+
+    )
+
+    combined_list = list(HDRUK_pending_phenotypes.values()) + list(HDRUK_declined_phenotypes.values())
+    result = {'date':datetime.datetime.now(),
+            'phenotype_count': len(combined_list),'data':[]}
+
+    for i in range(len(combined_list)):
+        data = {
+            'id': i+1,
+            'phenotype_id':combined_list[i]['phenotype_id'],
+            'phenotype_history_id':combined_list[i]['phenotype_history_id'],
+            'is_approved':combined_list[i]['is_approved'],
+            'owner_id':combined_list[i]['created_by_id'],
+        }
+        result['data'].append(data)
+
+
+    email_content = []
+
+    for i in range(len(result['data'])):
+        phenotype = Phenotype.objects.get(pk=result['data'][i]['phenotype_id'],
+                                          owner_id=result['data'][i]['owner_id'])
+        phenotype_id = phenotype.id
+
+        phenotype_name = phenotype.title
+        phenotype_owner_id = phenotype.owner_id
+
+        review_decision = ''
+        review_message = ''
+        if result['data'][i]['is_approved'] == 1:
+            review_decision = 'Pending'
+            review_message = "Phenotype is waiting to be approved"
+        elif result['data'][i]['is_approved'] == 3:
+            review_decision = 'Declined'
+            review_message = 'Phenotype has been declined'
+
+        owner_email = User.objects.get(id=phenotype_owner_id).email
+        if owner_email == '':
+            return False
+
+        email_message = '''<br><br>
+                 <strong>Phenotype:</strong><br>PH{id} - {name}<br><br>
+                 <strong>Decision:</strong><br>{decision}<br><br>
+                 <strong>Reviewer message:</strong><br>{message}
+                 '''.format(id=phenotype_id, name=phenotype_name, decision=review_decision, message=review_message)
+
+        email_content.append(
+            {'owner_id': phenotype_owner_id, 'owner_email': owner_email, 'email_content': email_message})
+
+    return email_content
+
+
+
+

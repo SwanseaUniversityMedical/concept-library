@@ -19,7 +19,10 @@ RUN \
   apt-get install -y -q ssh apache2 && \
   apt-get install -y -q libapache2-mod-wsgi-py3 && \
   apt-get install -y -q wget && \
-  apt-get -y -q install sudo nano
+  apt-get -y -q install sudo nano && \
+  apt-get install -y -q redis-server
+
+
 
 
 # install this for LDAP to work
