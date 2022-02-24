@@ -34,11 +34,11 @@ import os
 
 from django.core.exceptions import PermissionDenied
 from django.db import connection, connections  # , transaction
-from celery import shared_task
+
 
 
 def run_statistics(request):
-    get_scheduled_data_to_send(request)
+
     """
         save HDR-UK home page statistics
     """
@@ -121,7 +121,6 @@ def get_HDRUK_statistics(request):
 
     HDRUK_published_phenotypes_ids = db_utils.get_list_of_visible_entity_ids(
         HDRUK_published_phenotypes, return_id_or_history_id="id")
-    get_scheduled_data_to_send(request)
 
 
 
@@ -146,46 +145,6 @@ def get_HDRUK_statistics(request):
         )  # number of coding systems used in published phenotypes
 
     }
-
-
-def get_scheduled_data_to_send(request):
-
-    HDRUK_pending_phenotypes =PublishedPhenotype.objects.get(
-        request,
-        get_live_and_or_published_ver=
-        1  # 1= live only, 2= published only, 3= live+published
-        ,
-        exclude_deleted=True,
-        show_top_version_only=False,
-        force_brand='HDRUK',
-        approved_status=1,
-        force_get_live_and_or_published_ver=1
-    )
-    HDRUK_declined_phenotypes = PublishedPhenotype.objects.get(
-        request,
-        get_live_and_or_published_ver=
-        1,
-        exclude_deleted=True,
-        show_top_version_only=False,
-        force_brand='HDRUK',
-        approved_status=3,
-        force_get_live_and_or_published_ver=1
-    )
-    combined_list = HDRUK_pending_phenotypes + HDRUK_declined_phenotypes
-    result = {'date':datetime.datetime.now(),
-            'phenotype_count': len(db_utils.get_list_of_visible_entity_ids(combined_list,'both')),'data':[]}
-
-    for i in range(len(combined_list)):
-        data = {
-            'id': i+1,
-            'phenotype_id':combined_list[i]['id'],
-            'phenotype_history_id':combined_list[i]['history_id'],
-            'is_approved':combined_list[i]['is_approved'],
-            'owner_id':combined_list[i]['owner_id'],
-        }
-        result['data'].append(data)
-    tasks.send_scheduled_email.delay(result)
-
 
 
 
