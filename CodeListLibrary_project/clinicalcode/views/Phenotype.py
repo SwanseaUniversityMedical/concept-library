@@ -490,12 +490,8 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     if phenotype['concept_informations']:
         for c in json.loads(phenotype['concept_informations']):
             c['codingsystem'] = CodingSystem.objects.get(
-                pk=Concept.history.get(
-                    id=c['concept_id'],
-                    history_id=c['concept_version_id']).coding_system_id)
-            c['code_attribute_header'] = Concept.history.get(
-                id=c['concept_id'],
-                history_id=c['concept_version_id']).code_attribute_header
+                                                        pk=Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).coding_system_id)
+            c['code_attribute_header'] = Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).code_attribute_header
 
             c['alerts'] = ''
             if not are_concepts_latest_version:

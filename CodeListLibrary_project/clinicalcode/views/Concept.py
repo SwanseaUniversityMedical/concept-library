@@ -485,8 +485,7 @@ class ConceptUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin,
 
             # save the concept with a change reason to reflect the update within the concept audit history
             self.object = form.save()
-            db_utils.modify_Entity_ChangeReason(Concept, self.kwargs['pk'],
-                                                "Updated")
+            db_utils.modify_Entity_ChangeReason(Concept, self.kwargs['pk'], "Updated")
             # Get all the 'parent' concepts i.e. those that include this one,
             # and add a history entry to those that this concept has been
             # updated.

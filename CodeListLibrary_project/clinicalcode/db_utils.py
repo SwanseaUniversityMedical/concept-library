@@ -1040,10 +1040,9 @@ def revertHistoryWorkingset(user, workingset_history_id):
                 created=wtm['created'],
                 modified=wtm['modified'])
 
-        save_Entity_With_ChangeReason(
-            WorkingSet, workingset_obj.pk,
-            "Working set reverted from version " + str(workingset_history_id))
-        #workingset_obj.save()
+        #save_Entity_With_ChangeReason(WorkingSet, workingset_obj.pk, "Working set reverted from version " + str(workingset_history_id))
+        workingset_obj.save()
+        modify_Entity_ChangeReason(WorkingSet, workingset_obj.pk, "Working set reverted from version " + str(workingset_history_id))
 
 
 def deleteWorkingset(pk, user):
@@ -3204,12 +3203,10 @@ def getGroupOfConceptsByPhenotypeId_historical(phenotype_id,
 
     '''
     if phenotype_history_id is None:
-        phenotype_history_id = Phenotype.objects.get(
-            pk=phenotype_id).history.latest('history_id').history_id
+        phenotype_history_id = Phenotype.objects.get(pk=phenotype_id).history.latest('history_id').history_id
 
     concept_id_version = []
-    concept_informations = Phenotype.history.get(
-        id=phenotype_id, history_id=phenotype_history_id).concept_informations
+    concept_informations = Phenotype.history.get(id=phenotype_id, history_id=phenotype_history_id).concept_informations
     if concept_informations:
         concept_informations = json.loads(concept_informations)
 

@@ -342,8 +342,7 @@ def api_workingset_create(request):
                         tag=Tag.objects.get(id=tag_id_to_add),
                         created_by=request.user)
 
-            save_Entity_With_ChangeReason(WorkingSet, created_WS.pk,
-                                          "Created from API")
+            save_Entity_With_ChangeReason(WorkingSet, created_WS.pk, "Created from API")
             # created_WS.changeReason = "Created from API"
             # created_WS.save()
 
@@ -378,24 +377,33 @@ def api_workingset_update(request):
         is_valid = True
 
         workingset_id = request.data.get('id')
-        if not isInt(workingset_id):
-            errors_dict['id'] = 'workingset_id must be a valid id.'
+        is_valid_id, err, ret_int_id = chk_valid_id(request, WorkingSet, workingset_id)
+        if is_valid_id:
+            workingset_id = ret_int_id
+        else:
+            errors_dict['id'] = err
             return Response(data=errors_dict,
                             content_type="json",
                             status=status.HTTP_406_NOT_ACCEPTABLE)
-
-        if WorkingSet.objects.filter(pk=workingset_id).count() == 0:
-            errors_dict['id'] = 'workingset_id not found.'
-            return Response(data=errors_dict,
-                            content_type="json",
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
-
-        if not allowed_to_edit(request, WorkingSet, workingset_id):
-            errors_dict[
-                'id'] = 'workingset_id must be a valid accessible working set id.'
-            return Response(data=errors_dict,
-                            content_type="json",
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
+            
+        # if not isInt(workingset_id):
+        #     errors_dict['id'] = 'workingset_id must be a valid id.'
+        #     return Response(data=errors_dict,
+        #                     content_type="json",
+        #                     status=status.HTTP_406_NOT_ACCEPTABLE)
+        #
+        # if WorkingSet.objects.filter(pk=workingset_id).count() == 0:
+        #     errors_dict['id'] = 'workingset_id not found.'
+        #     return Response(data=errors_dict,
+        #                     content_type="json",
+        #                     status=status.HTTP_406_NOT_ACCEPTABLE)
+        #
+        # if not allowed_to_edit(request, WorkingSet, workingset_id):
+        #     errors_dict[
+        #         'id'] = 'workingset_id must be a valid accessible working set id.'
+        #     return Response(data=errors_dict,
+        #                     content_type="json",
+        #                     status=status.HTTP_406_NOT_ACCEPTABLE)
 
         update_workingset = WorkingSet.objects.get(pk=workingset_id)
         update_workingset.name = request.data.get('name')
@@ -549,11 +557,11 @@ def api_workingset_update(request):
 
             #-----------------------------------------------------
 
-            save_Entity_With_ChangeReason(WorkingSet, update_workingset.pk,
-                                          "Updated from API")
+            #save_Entity_With_ChangeReason(WorkingSet, update_workingset.pk, "Updated from API")
             # update_workingset.changeReason = "Updated from API"
-            # update_workingset.save()
-
+            update_workingset.save()
+            modify_Entity_ChangeReason(WorkingSet, update_workingset.pk, "Updated from API")
+            
             data = {
                 'message': 'Workingset updated successfully',
                 'id': update_workingset.pk

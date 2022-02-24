@@ -416,11 +416,9 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin,
                     tag_to_remove.delete()
 
                 #-----------------------------------------------------
-                db_utils.save_Entity_With_ChangeReason(WorkingSet,
-                                                       workingset.pk,
-                                                       "Updated")
                 # workingset.changeReason = db_utils.standardiseChangeReason("Updated")
-                # workingset.save()
+                workingset.save()
+                db_utils.modify_Entity_ChangeReason(WorkingSet, workingset.pk, "Updated")
 
             #db_utils.saveWorkingsetChangeReason(pk, "Working set has been updated")
             messages.success(self.request,

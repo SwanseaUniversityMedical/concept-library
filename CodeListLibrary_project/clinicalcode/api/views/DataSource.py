@@ -56,16 +56,14 @@ def api_datasource_create(request):
         else:
             #    check if already exists
             #if not DataSource.objects.filter(name=new_datasource.name, uid=new_datasource.uid, url=new_datasource.url, description=new_datasource.description).exists():
-            if not DataSource.objects.filter(
-                    name__iexact=new_datasource.name.strip()).exists():
+            if not DataSource.objects.filter(name__iexact=new_datasource.name.strip()).exists():
                 new_datasource.save()
                 created_ds = DataSource.objects.get(pk=new_datasource.pk)
                 created_ds.history.latest().delete()
 
                 # created_ds.changeReason = "Created from API"
                 # created_ds.save()
-                save_Entity_With_ChangeReason(DataSource, created_ds.pk,
-                                              "Created from API")
+                save_Entity_With_ChangeReason(DataSource, created_ds.pk, "Created from API")
 
                 data = {
                     'message': 'DataSource created successfully',
