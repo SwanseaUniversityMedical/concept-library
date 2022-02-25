@@ -1374,19 +1374,16 @@ def concept_codes_to_csv(request, pk):
 
     # ---------
     # latest concept_history_id
-    latest_history_id = Concept.objects.get(
-        id=pk).history.latest('history_id').history_id
-    code_attribute_header = Concept.history.get(
-        id=pk, history_id=latest_history_id).code_attribute_header
-    concept_history_date = Concept.history.get(
-        id=pk, history_id=latest_history_id).history_date
+    latest_history_id = Concept.objects.get(id=pk).history.latest('history_id').history_id
+    code_attribute_header = Concept.history.get(id=pk, history_id=latest_history_id).code_attribute_header
+    concept_history_date = Concept.history.get(id=pk, history_id=latest_history_id).history_date
     codes_with_attributes = []
     if code_attribute_header:
         codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(
-            concept_id=pk,
-            concept_history_date=concept_history_date,
-            allCodes=codes,
-            code_attribute_header=code_attribute_header)
+                                                concept_id=pk,
+                                                concept_history_date=concept_history_date,
+                                                allCodes=codes,
+                                                code_attribute_header=code_attribute_header)
 
         codes = codes_with_attributes
     # ---------
@@ -1445,8 +1442,7 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
         return HttpResponseNotFound("Not found.")
         # raise permission_denied # although 404 is more relevant
 
-    if Concept.history.filter(id=pk,
-                              history_id=concept_history_id).count() == 0:
+    if Concept.history.filter(id=pk, history_id=concept_history_id).count() == 0:
         return HttpResponseNotFound("Not found.")
         # raise permission_denied # although 404 is more relevant
 
