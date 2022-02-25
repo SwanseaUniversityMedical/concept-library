@@ -82,11 +82,11 @@ class ComponentExpressionCreate(LoginRequiredMixin,
     def get_initial(self):
         initials = CreateView.get_initial(self)
         try:
-            initials['concept'] = Concept.objects.get(
-                id=self.kwargs['concept_id'])
+            initials['concept'] = Concept.objects.get(id=self.kwargs['concept_id'])
         except ObjectDoesNotExist:
             # no concept found, todo: need to log errors
-            print('does not exist')
+            err = 'does not exist'
+            #print(err)
 
         initials['component_type'] = '%s' % (
             Component.COMPONENT_TYPE_EXPRESSION)
@@ -436,7 +436,8 @@ class ComponentExpressionSelectCodeCreate(LoginRequiredMixin,
             initials['code_list'] = CodeList.objects.get(id=self.kwargs['code_list_id'])
         except ObjectDoesNotExist:
             # no code list found, todo: need to log errors
-            print('does not exist')
+            err = 'does not exist'
+            #print(err)
 
         return initials
 
@@ -580,11 +581,11 @@ class ComponentExpressionSelectCreate(LoginRequiredMixin,
     def get_initial(self):
         initials = CreateView.get_initial(self)
         try:
-            initials['concept'] = Concept.objects.get(
-                id=self.kwargs['concept_id'])
+            initials['concept'] = Concept.objects.get(id=self.kwargs['concept_id'])
         except ObjectDoesNotExist:
             # no concept found, todo: need to log errors
-            print('does not exist')
+            err = 'does not exist'
+            #print(err)
 
         initials['component_type'] = '%s' % (
             Component.COMPONENT_TYPE_EXPRESSION_SELECT)

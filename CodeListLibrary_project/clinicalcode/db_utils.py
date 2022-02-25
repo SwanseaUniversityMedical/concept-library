@@ -1860,14 +1860,12 @@ def is_valid_column_name(name):
             is_valid = False
 
         if not is_valid:
-            raise NameError('NOT is_valid_column_name() error (' +
-                            str(name).replace("'", "\'") + ').')
+            raise NameError('NOT is_valid_column_name() error (' + str(name).replace("'", "\'") + ').')
 
         return is_valid
     except Exception as e:
         is_valid = False
-        print(('NOT is_valid_column_name() error (' +
-               str(e).replace("'", "\'") + ').'))
+        #print(('NOT is_valid_column_name() error (' + str(e).replace("'", "\'") + ').'))
         raise
         return is_valid
 
@@ -3848,7 +3846,7 @@ def send_review_email(phenotype, review_decision, review_message):
         except BadHeaderError:
             return False
     else:
-        print(email_content)
+        #print(email_content)
         return True
 
 def get_scheduled_email_to_send():

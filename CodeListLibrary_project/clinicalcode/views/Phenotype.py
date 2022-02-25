@@ -1121,7 +1121,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
 
 
             except Exception as e:
-                print(e)
+                #print(e)
                 data['form_is_valid'] = False
                 data['message'] = render_to_string('clinicalcode/error.html', {},
                                                    self.request)
@@ -1257,7 +1257,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
 
         except Exception as e:
             data['form_is_valid'] = False
-            print(e)
+            #print(e)
             data['message'] = render_to_string('clinicalcode/error.html', {},
                                                self.request)
 

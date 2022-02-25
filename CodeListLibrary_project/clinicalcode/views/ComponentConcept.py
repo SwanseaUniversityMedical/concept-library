@@ -47,10 +47,11 @@ class ComponentConceptCreate(LoginRequiredMixin,
     def get_initial(self):
         initials = CreateView.get_initial(self)
         try:
-            initials['concept'] = Concept.objects.get(
-                id=self.kwargs['concept_id'])
+            initials['concept'] = Concept.objects.get(id=self.kwargs['concept_id'])
         except ObjectDoesNotExist:
-            print('Concept does not exist')
+            err = 'Concept does not exist'
+            #print(err)
+            
         initials['component_type'] = '%s' % (Component.COMPONENT_TYPE_CONCEPT)
         return initials
 
