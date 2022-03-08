@@ -407,7 +407,7 @@ if IS_DEMO:  # Demo server
 
 ##EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # Email, contact us page
-#DEFAULT_FROM_EMAIL = get_env_value('DEFAULT_FROM_EMAIL')
+DEFAULT_FROM_EMAIL = get_env_value('DEFAULT_FROM_EMAIL')
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = get_env_value('EMAIL_USE_TLS', cast='bool')
 EMAIL_HOST = get_env_value('EMAIL_HOST')
@@ -415,7 +415,7 @@ EMAIL_PORT = get_env_value('EMAIL_PORT')
 GOOGLE_RECAPTCHA_SECRET_KEY = get_env_value('GOOGLE_RECAPTCHA_SECRET_KEY')
 EMAIL_HOST_PASSWORD = get_env_value('EMAIL_HOST_PASSWORD')
 EMAIL_HOST_USER = get_env_value('EMAIL_HOST_USER')
-#HELPDESK_EMAIL = get_env_value('HELPDESK_EMAIL')
+HELPDESK_EMAIL = get_env_value('HELPDESK_EMAIL')
 
 IS_HDRUK_EXT = "0"
 SHOW_COOKIE_ALERT = True
