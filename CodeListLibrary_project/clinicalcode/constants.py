@@ -9,7 +9,5 @@ LOGICAL_TYPES = (
 REGEX_TYPE_SIMPLE = 1
 REGEX_TYPE_POSIX = 2
 
-REGEX_TYPE_CHOICES = (
-    (REGEX_TYPE_SIMPLE, 'simple (% only)'),
-    (REGEX_TYPE_POSIX, 'POSIX regex')
-)
+REGEX_TYPE_CHOICES = ((REGEX_TYPE_SIMPLE, 'simple (% only)'),
+                      (REGEX_TYPE_POSIX, 'POSIX regex'))
