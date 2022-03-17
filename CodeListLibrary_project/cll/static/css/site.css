@@ -84,6 +84,11 @@ form.example::after {
 
 
 /* Style the counter cards */
+
+.cl-card-approve{
+    background-color: #ffce78 !important;
+
+}
 .cl-card {
 /*   box-shadow: 0 6px 8px 0 rgba(0, 0, 0, 0.2); this adds the "card" effect */
   padding: 20px;

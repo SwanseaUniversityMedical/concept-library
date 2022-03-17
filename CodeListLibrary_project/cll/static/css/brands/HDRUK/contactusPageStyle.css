@@ -12,34 +12,29 @@
 	font-family: 'IBM Plex Sans';
 }
 
+.fieldWrapperHeader {
+    font-size: 18px;
+  }
 
+.fieldWrapperHeader:after {
+    content:" *";
+    color: red;
+  }
 
-.big-banner_breathe {
-	height: 112px;
-	width: 100%;
-	background-image: url("../../../img/brands/HDRUK/breathe_banner_big.png");
-	background-repeat: no-repeat;
-  	background-size: 100%;
-	margin: 0;
-}
+input {
+width: 320px;
+font-size: 16px;
+  }
 
-.header-breathe{
-	background-color: #333f48;
-	color: white;
-  	padding-bottom: 5px;
-  	padding-top: 5px;
-	padding-left: 5px;
-	display: block;
-    	font-family: 'Crimson Text',serif;
-    	font-weight: 400;
-	font-size: 24px;
-	margin: 0;
-}
+Textarea {
+width: 600px;
+font-size: 16px;
+  }
 
-.search-design {
-	font-style: normal;
-	font-weight: normal;
-}
+Select {
+width: 320px;
+font-size: 16px;
+  }
 
 
 .search_box {
@@ -160,63 +155,12 @@ align:center;
 	padding: 30px;
 }
 
+
 table.spacing {
 	padding-top: 30px;
 	border-spacing: 20px;
 }
 
-.member-photo-design {
-  background-size:cover;
-}
-
-.member-photo-design-img {
-    width: 100px;
-    height: 100px;
-    border-radius: 5px;
-    }
-
-.member-title-design {
-    font-style:normal;
-    font-weight:500;
-    font-size:20px;
-
-}
-
-.member-position-design {
-    font-style:normal;
-    font-weight:400;
-    font-size:16px;
-}
-
-.member-contact-design {
-    font-style:normal;
-    font-weight:normal;
-    font-size:16px;
-    color: #525252;
-}
-
-.member-bio-design {
-    padding-top:10px;
-   font-style: normal;
-   font-weight:400;
-   font-size:16px;
-}
-
-.collaborator-name-design {
-    padding-left:14px;
-    font-style:normal;
-    font-weight:normal;
-    font-size:16px;
-    color: #475DA7;
-}
-
-.collaborator-location-design {
-    font-style:normal;
-    font-weight:normal;
-    font-size:16px;
-    padding-left:16px;
-
-}
 
 .rubric-box{
 
@@ -256,20 +200,11 @@ ul.left-navbar a.active {
 position:fixed;
 }
 
-
+@media screen and (max-width: 768px) {
+  div.hideleft-navbar {
+    display: none;
+  }
 
 .collaborator-padding {
 padding-bottom: 30px;
 }
-
-
-input {
-    line-height: normal;
-}
-
-/* Style inputs */
-textarea {
-    width: 80%;
-    height: 200px;
-}
-

@@ -25,6 +25,7 @@
  <ul class="nav nav-tabs">
 	<li class="active"><a data-toggle="tab" href="#Phenotypes"><strong>Phenotypes</strong></a></li>
 	<li><a data-toggle="tab" href="#Concepts"><strong>Concepts</strong></a></li>
+	<li><a data-toggle="tab" href="#coding-systems"><strong>Coding Systems</strong></a></li>	
 	<li><a data-toggle="tab" href="#data-sources"><strong>Data Sources</strong></a></li>
 	{% if request.BRAND_OBJECT.allowed_tabs is none or 'workingsets' in request.BRAND_OBJECT.allowed_tabs %}
 		<li><a data-toggle="tab" href="#Working-Sets"><strong>Working Sets</strong></a></li>
@@ -456,6 +457,17 @@
  	<div id="data-sources" class="tab-pane fade">
 	  <h2>Data Sources:</h2>
 	    <ol>
+	    	<li><h3 class="pt-3">List data sources</h3></li>
+	    	<div>    
+			   <p style="padding-top: 10px;">Lists all data sources available. User can search by part of the data source name (e.g. <code>?search=hospital</code>)</p>
+			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> <a  href="{% url 'api:datasource-list' %}" target="_blank" class="alert-link">{% url 'api:datasource-list' %}</a></code></pre>
+			</div>		
+	    	<div>    
+			   <p style="padding-top: 10px;">Lists a data source by id.</p>
+			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {% url 'api:datasource-list' %}{id}</code></pre>
+			</div>		
+			
+			
 	    	<li><h3 class="pt-3">List data sources (with published phenotypes)</h3></li>
 	    	<div>
 	    		<p style="padding-top: 10px;">Only the published associated phenotypes wil be shown.</p>
@@ -498,8 +510,27 @@
 		</ol>
  	</div>
 	  	 
-<!-- ===============================================================  -->	  	  
-	<!-- tags -->
+<!-- ===============================================================  -->         
+ <!-- coding-systems -->
+    <div id="coding-systems" class="tab-pane fade">
+      <h2>coding systems:</h2>
+        <ol>
+            <li><h3 class="pt-3">List coding systems</h3></li>
+            <div>    
+               <p style="padding-top: 10px;">Lists all coding systems available. User can search by part of the coding system name (e.g. <code>?search=read</code>)</p>
+               <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> <a  href="{% url 'api:codingsystem-list' %}" target="_blank" class="alert-link">{% url 'api:codingsystem-list' %}</a></code></pre>
+            </div>      
+            <div>    
+               <p style="padding-top: 10px;">Lists a coding system by id.</p>
+               <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {% url 'api:codingsystem-list' %}{id}</code></pre>
+            </div>      
+                   
+        </ol>
+
+    </div>
+         
+<!-- ===============================================================  -->   
+<!-- tags -->
 	<div id="tags" class="tab-pane fade">
 		<h2>Tags:</h2>  
 		<ol>
@@ -508,6 +539,14 @@
 	   		<div>    
 		   		<p style="padding-top: 10px;">Lists all available tags.</p>
 				<pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> <a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code></pre>
+							   <p style="padding-top: 10px;">
+		   	  	 User can search with part of the tag name using querystring parameter: <br>
+		            <ul>
+		              <li><code>?search=breatrhe</code><br>
+		              search by part of tag name (do not put wild characters here)</li>
+		            </ul>
+		          (<code>Example: {{ tags }}?search=breathe</code>)
+		    	</p>
 			</div>
 	
 			<div>    

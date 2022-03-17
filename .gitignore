@@ -1,0 +1,4 @@
+*.pyc
+.project
+.pydevproject
+CodeListLibrary_project/.settings/org.eclipse.core.resources.prefs
