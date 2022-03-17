@@ -4,7 +4,7 @@ services:
     cl:
         image: "cll/app:v0"
         env_file:
-            - ./env_vars-FA.txt
+            - ./env_vars.txt
         ports:
         -   "80:80"
         depends_on:
@@ -14,7 +14,7 @@ services:
     celery-worker:
         image: "cll/app:v0"
         env_file:
-          - ./env_vars-FA.txt
+          - ./env_vars.txt
         command:
             sh -c "cd /var/www/concept_lib_sites/v1 &&
                     virtualenv  cllvirenv_v1 &&
@@ -28,7 +28,7 @@ services:
     celery-beat:
       image: "cll/app:v0"
       env_file:
-        - ./env_vars-FA.txt
+        - ./env_vars.txt
       command:
         sh -c "cd /var/www/concept_lib_sites/v1 &&
         virtualenv  cllvirenv_v1 &&
