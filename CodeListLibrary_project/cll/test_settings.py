@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/1.10/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
-
 """
 Django settings for cll project.
 
@@ -21,9 +20,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/
 """
 
-from .settings import *
-
 from selenium import webdriver
+
+from .settings import *
 
 WEBAPP_HOST = ''
 
@@ -37,7 +36,8 @@ if REMOTE_TEST:
     WEBAPP_HOST = 'http://webapp-test/'
 
 chrome_options = webdriver.ChromeOptions()
-chrome_options.add_experimental_option("prefs", {'profile.managed_default_content_settings.javascript': 'enable'})
+chrome_options.add_experimental_option(
+    "prefs", {'profile.managed_default_content_settings.javascript': 'enable'})
 
 chrome_options.add_argument('--headless')
 chrome_options.add_argument("--no-sandbox")
@@ -71,10 +71,11 @@ DATABASES = {
         'HOST': get_env_value('UNIT_TEST_DB_HOST'),
         'PORT': '',
         'TEST': {
-            'NAME': get_env_value('UNIT_TEST_DB_NAME')  # TODO: check this was cl_testdatabase before!
+            'NAME':
+            get_env_value('UNIT_TEST_DB_NAME'
+                          )  # TODO: check this was cl_testdatabase before!
         },
     }
 }
 
 SHOW_COOKIE_ALERT = False
-

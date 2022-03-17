@@ -16,13 +16,21 @@ class ICD10_CODES_AND_TITLES_AND_METADATA(models.Model):
     tree_description = models.CharField(max_length=255, null=True, blank=True)
     chapter_number = models.BigIntegerField(null=True, blank=True)
     chapter_code = models.CharField(max_length=5, null=True, blank=True)
-    chapter_description = models.CharField(max_length=255, null=True, blank=True)
+    chapter_description = models.CharField(max_length=255,
+                                           null=True,
+                                           blank=True)
     category_1_code = models.CharField(max_length=7, null=True, blank=True)
-    category_1_description = models.CharField(max_length=255, null=True, blank=True)
+    category_1_description = models.CharField(max_length=255,
+                                              null=True,
+                                              blank=True)
     category_2_code = models.CharField(max_length=7, null=True, blank=True)
-    category_2_description = models.CharField(max_length=255, null=True, blank=True)
+    category_2_description = models.CharField(max_length=255,
+                                              null=True,
+                                              blank=True)
     category_3_code = models.CharField(max_length=7, null=True, blank=True)
-    category_3_description = models.CharField(max_length=255, null=True, blank=True)
+    category_3_description = models.CharField(max_length=255,
+                                              null=True,
+                                              blank=True)
     icd_version = models.CharField(max_length=50, null=True, blank=True)
     import_date = models.DateTimeField(null=True, blank=True)
     created_date = models.DateTimeField(null=True, blank=True)

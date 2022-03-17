@@ -1,7 +1,8 @@
 from django.contrib.auth.models import User
 from django.db import models
-from .Component import Component
 from simple_history.models import HistoricalRecords
+
+from .Component import Component
 from .TimeStampedModel import TimeStampedModel
 
 

@@ -132,7 +132,8 @@
 										</label>
 									</div>
 								</div>
-								
+
+
 								<div class="col-md-4">
 									<div class="checkbox">
 										<label>
@@ -141,7 +142,29 @@
 										</label>
 									</div>
 								</div>
-							{% endif %}	
+
+
+                                {% if not request.user|has_group:"Moderators" %}
+								<div class="col-md-4">
+									<div class="checkbox">
+										<label>
+											<input id="show_my_pending_phenotypes" type="checkbox" name="show_my_pending_phenotypes" {% if show_my_pending_phenotypes %}checked="checked"{% endif %} value="1" >
+											Show my waiting for approval phenotypes
+										</label>
+									</div>
+								</div>
+                                {% else %}
+                                    <div class="col-md-4">
+									<div class="checkbox">
+										<label>
+											<input id="show_mod_pending_phenotypes" type="checkbox" name="show_mod_pending_phenotypes" {% if show_mod_pending_phenotypes %}checked="checked"{% endif %} value="1" >
+											Show waiting for approval phenotypes
+										</label>
+									</div>
+								</div>
+
+                        {% endif %}
+                        {% endif %}
 							
 		<!-- 					<div class = "col-md-3">    -->
 		<!-- 						<div class="checkbox"  > -->
@@ -253,7 +276,9 @@
 						
 			{% if user.is_authenticated %}
 				$('#show_deleted_phenotypes').prop("checked", false);
-				$('#show_my_phenotypes').prop("checked", false);	
+				$('#show_my_pending_phenotypes').prop("checked", false);
+				$('#show_pending_phenotypes').prop("checked", false);
+				$('#show_mod_pending_phenotypes').prop("checked", false);
 				$('#phenotype_must_have_published_versions').prop("checked", false);
 				$('#txtOwner').val('');
 			{% endif %}						

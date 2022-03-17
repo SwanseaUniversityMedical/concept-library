@@ -1,6 +1,7 @@
 from django.db import models
-from .CodeList import CodeList
 from simple_history.models import HistoricalRecords
+
+from .CodeList import CodeList
 
 
 class CodeManager(models.Manager):
@@ -10,7 +11,9 @@ class CodeManager(models.Manager):
 
 
 class Code(models.Model):
-    code_list = models.ForeignKey(CodeList, on_delete=models.CASCADE, related_name="codes")
+    code_list = models.ForeignKey(CodeList,
+                                  on_delete=models.CASCADE,
+                                  related_name="codes")
     code = models.CharField(max_length=100)  # A Single Code
     description = models.CharField(max_length=510)
 
@@ -20,8 +23,7 @@ class Code(models.Model):
 
     def __str__(self):
         return self.code
-    
+
     class Meta:
         # Specify the default ordering for the objects.
         ordering = ['code']
-

@@ -1,7 +1,8 @@
+import datetime
+import re
+
 from dateutil.parser import parse
 
-import re
-import datetime
 
 def get_column_index(col_1, col_2, col_3, col_4, col_5, col_6, value):
     # find the category column
@@ -21,7 +22,8 @@ def get_column_index(col_1, col_2, col_3, col_4, col_5, col_6, value):
         return
 
 
-def get_column_index_by_text(code_col, code_desc_col, cat_col, cat_desc_col, sub_cat_col, sub_cat_desc_col, search_column):
+def get_column_index_by_text(code_col, code_desc_col, cat_col, cat_desc_col,
+                             sub_cat_col, sub_cat_desc_col, search_column):
 
     if search_column == 'code':
         return code_col
@@ -77,12 +79,13 @@ def get_int_value(value, default_value):
 
 def detect_sql_meta_characters(value):
     # reference https://www.symantec.com/connect/articles/detection-sql-injection-and-cross-site-scripting-attacks
-    # detect either the hex equivalent of the single-quote, the single-quote itself or the presence of the double-dash. 
-    # These are SQL characters for MS SQL Server and Oracle, which denote the beginning of a comment, and everything that follows is ignored. 
-    # Additionally, if you're using MySQL, you need to check for presence of the '#' or its hex-equivalent. 
+    # detect either the hex equivalent of the single-quote, the single-quote itself or the presence of the double-dash.
+    # These are SQL characters for MS SQL Server and Oracle, which denote the beginning of a comment, and everything that follows is ignored.
+    # Additionally, if you're using MySQL, you need to check for presence of the '#' or its hex-equivalent.
     # We do not need to check for the hex-equivalent of the double-dash, because it is not an HTML meta-character and will not be encoded by the browser
 
-    match_obj = re.search(r'/(\%27)|(\')|(\-\-)|(\%23)|(#)/ix', value, re.M|re.I)
+    match_obj = re.search(r'/(\%27)|(\')|(\-\-)|(\%23)|(#)/ix', value,
+                          re.M | re.I)
 
     if match_obj:
         return True
@@ -93,10 +96,11 @@ def detect_sql_meta_characters(value):
 def detect_modified_sql_meta_characters(value):
     # reference https://www.symantec.com/connect/articles/detection-sql-injection-and-cross-site-scripting-attacks
     # This signature first looks out for the = sign or its hex equivalent (%3D).
-    # It then allows for zero or more non-newline characters, 
+    # It then allows for zero or more non-newline characters,
     # and then it checks for the single-quote, the double-dash or the semi-colon.
 
-    match_obj = re.search(r'/((\%3D)|(=))[^\n]*((\%27)|(\')|(\-\-)|(\%3B)|(;))/i', value)
+    match_obj = re.search(
+        r'/((\%3D)|(=))[^\n]*((\%27)|(\')|(\-\-)|(\%3B)|(;))/i', value)
 
     if match_obj:
         return True
@@ -110,7 +114,9 @@ def detect_typical_sql_injection_attack(value):
     # (\%27)|\' - the ubiquitous single-quote or its hex equivalent
     # (\%6F)|o|(\%4F))((\%72)|r|(\%52) - the word 'or' with various combinations of its upper and lower case hex equivalents.
 
-    match_obj = re.search(r'/\w*((\%27)|(\'))((\%6F)|o|(\%4F))((\%72)|r|(\%52))/ix', value, re.M|re.I)
+    match_obj = re.search(
+        r'/\w*((\%27)|(\'))((\%6F)|o|(\%4F))((\%72)|r|(\%52))/ix', value,
+        re.M | re.I)
 
     if match_obj:
         return True
@@ -124,7 +130,9 @@ def detect_sql_injection_with_keywords(value):
     # (\%27)|(\') - the single-quote and its hex equivalent
     # union - the keyword union
 
-    match_obj = re.search(r"('(''|[^'])*')|(;)|(\b(ALTER|CREATE|DELETE|DROP|EXEC(UTE){0,1}|INSERT( +INTO){0,1}|MERGE|SELECT|UPDATE|UNION( +ALL){0,1})\b)", value, re.M|re.I)
+    match_obj = re.search(
+        r"('(''|[^'])*')|(;)|(\b(ALTER|CREATE|DELETE|DROP|EXEC(UTE){0,1}|INSERT( +INTO){0,1}|MERGE|SELECT|UPDATE|UNION( +ALL){0,1})\b)",
+        value, re.M | re.I)
 
     if match_obj:
         return True
@@ -133,19 +141,21 @@ def detect_sql_injection_with_keywords(value):
 
 
 def has_sql_injection(value):
-    if detect_sql_injection_with_keywords(value) | detect_sql_meta_characters(value):
+    if detect_sql_injection_with_keywords(value) | detect_sql_meta_characters(
+            value):
         return True
     else:
         return False
 
 
-def get_bool_value(value , default_value):
+def get_bool_value(value, default_value):
     if value.lower() == "true":
         return True
     elif value.lower() == "false":
         return False
     else:
         return default_value
+
 
 def get_paginator_pages(paginator, page):
     # number of pages
@@ -160,41 +170,40 @@ def get_paginator_pages(paginator, page):
     rf = False
     # middle  fill '...'
     mf = False
-    for p in range(1, np+1):              
-        if np <=10:                
+    for p in range(1, np + 1):
+        if np <= 10:
             pl.append(p)
         else:
-            if (cp <= 4 and p <=5) or ((cp >= np-4) and p >= np-4) or ( p==1 or p==np):
+            if (cp <= 4 and p <= 5) or (
+                (cp >= np - 4) and p >= np - 4) or (p == 1 or p == np):
                 pl.append(p)
-            elif (cp > 4 and cp < np-4  and (p != 1 and p != np and p > 5 and p < np-4)):
+            elif (cp > 4 and cp < np - 4
+                  and (p != 1 and p != np and p > 5 and p < np - 4)):
                 if not mf:
                     mf = True
-                    pl.append(cp-1)
+                    pl.append(cp - 1)
                     pl.append(cp)
-                    pl.append(cp+1)
+                    pl.append(cp + 1)
             else:
-                if (not lf) and p<cp:
+                if (not lf) and p < cp:
                     lf = True
                     pl.append('...')
-                elif (not rf) and p>cp:
+                elif (not rf) and p > cp:
                     rf = True
                     pl.append('...')
-        
+
+
 #     print ', '.join([str(i) for i in pl])
     return pl
 
+
 def clean_str_as_db_col_name(txt):
     # clean string to be a valid column name
-    
+
     s = txt.strip()
     s = s.replace(' ', '_').replace('.', '_').replace('-', '_')
     if isInt(s[0]):
         s = '_' + s
-        
+
     s = re.sub('_+', '_', s)
     return re.sub('[^A-Za-z0-9_]+', '', s)
-
-
-    
-    
-    
