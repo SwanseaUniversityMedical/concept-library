@@ -52,7 +52,7 @@ class CodingSystemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CodingSystem
         fields = (
-            'id', 'name', 'description'
+            'id', 'name', 'description', 'codingsystem_id'
         )
         
         
