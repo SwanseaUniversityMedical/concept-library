@@ -42,7 +42,7 @@ class DataSourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = DataSource
         fields = (
-            'id', 'name', 'uid', 'url', 'description'
+            'id', 'name', 'uid', 'url', 'description', 'datasource_id'
             # ,  'created_by' , 'updated_by'
         )
 

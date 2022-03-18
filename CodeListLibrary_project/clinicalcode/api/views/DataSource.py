@@ -152,8 +152,7 @@ def get_data_sources(request,
         show_top_version_only=[False, True][get_live_phenotypes],
         force_get_live_and_or_published_ver=live_and_or_published_ver)
 
-    phenotypes_ids = get_list_of_visible_entity_ids(
-        phenotypes, return_id_or_history_id="id")
+    phenotypes_ids = get_list_of_visible_entity_ids(phenotypes, return_id_or_history_id="id")
 
     datasource_ids = list(
         set(
@@ -174,13 +173,14 @@ def get_data_sources(request,
     queryset = queryset.order_by('name')
 
     rows_to_return = []
-    titles = ['id', 'name', 'url', 'uid', 'description', 'phenotypes']
+    titles = ['id', 'name', 'url', 'uid', 'description','datasource_id' , 'phenotypes']
 
     for ds in queryset:
         ret = [
             ds.id,
             ds.name.encode('ascii', 'ignore').decode('ascii'), ds.url, ds.uid,
-            ds.description
+            ds.description,
+            ds.datasource_id
         ]
         if get_live_phenotypes:
             ret.append(
