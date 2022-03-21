@@ -74,7 +74,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
             Get all the tags but limit if we are searching.
         '''
         queryset = Tag.objects.all()
-        keyword_search = self.request.query_params.get('keyword', None)
+        keyword_search = self.request.query_params.get('search', None)
         if keyword_search is not None:
             queryset = queryset.filter(description__icontains=keyword_search)
         return queryset
@@ -138,6 +138,46 @@ class DataSourceViewSet(viewsets.ReadOnlyModelViewSet):
 #     def perform_update(self, serializer):
 #         raise PermissionDenied
 
+#--------------------------------------------------------------------------
+class CodingSystemViewSet(viewsets.ReadOnlyModelViewSet):
+    '''
+        Get the API output for the list of Coding Systems (no permissions involved).
+    '''
+
+    # disable authentication for this class
+    authentication_classes = []
+    permission_classes = []
+
+    queryset = CodingSystem.objects.none()
+    serializer_class = CodingSystemSerializer
+
+    def get_queryset(self):
+        '''
+            Provide the Coding Systems for the view.
+            Get all the Coding Systems but limit if we are searching.
+        '''
+        queryset = CodingSystem.objects.all()
+        keyword_search = self.request.query_params.get('search', None)
+        if keyword_search is not None:
+            queryset = queryset.filter(name__icontains=keyword_search)
+        return queryset
+
+    def filter_queryset(self, queryset):
+        '''
+            Override the default filtering.
+            By default we get Coding Systems ordered by creation date even if
+            we provide sorted data from get_queryset(). We have to sort the
+            data here.
+        '''
+        queryset = super(CodingSystemViewSet, self).filter_queryset(queryset)
+        return queryset.order_by('name')
+
+
+#     def perform_create(self, serializer):
+#         raise PermissionDenied
+
+#     def perform_update(self, serializer):
+#         raise PermissionDenied
 
 #############################################################################
 #############################################################################
@@ -349,25 +389,30 @@ def chk_concept_ids_list(request, concept_ids_list, item_name=''):
             is_valid_data = True  # False
             #err = item_name + ' must have a valid non-empty concept ids list'
         else:
+            # convert all ids to string
+            # and replace prefix 'C' (if any) with ''
+            concept_ids_list_str = [str(c).upper().replace('C', '') for c in concept_ids_list]            
+            concept_ids_list = concept_ids_list_str
+            
             if not chkListIsAllIntegers(concept_ids_list):
                 is_valid_data = False
                 err = item_name + ' must have a valid concept ids list'
             else:
+                concept_ids_list = [int(c) for c in concept_ids_list]
                 if len(set(concept_ids_list)) != len(concept_ids_list):
                     is_valid_data = False
                     err = item_name + ' must have a unique concept ids list'
                 else:
-                    permittedConcepts = get_list_of_visible_entity_ids(
-                        get_visible_live_or_published_concept_versions(
-                            request, exclude_deleted=True),
-                        return_id_or_history_id="id")
-                    if not (set(concept_ids_list).issubset(
-                            set(permittedConcepts))):
+                    permittedConcepts = get_list_of_visible_entity_ids(get_visible_live_or_published_concept_versions(request, exclude_deleted=True)
+                                                                     , return_id_or_history_id="id"
+                                                                        )
+                    if not (set(concept_ids_list).issubset(set(permittedConcepts))):
                         is_valid_data = False
                         err = item_name + ' invalid ids list, all concept ids must be valid and accessible by user'
                     else:
                         ret_value = concept_ids_list
 
+    #ret_value = [int(c) for c in ret_value]
     return is_valid_data, err, ret_value
 
 
@@ -543,19 +588,71 @@ def publish_entity(request, set_class, pk):
     if set_class == Concept:
         concept = Concept.objects.get(pk=pk)
         published_concept = PublishedConcept(
-            concept=concept,
-            concept_history_id=latest_version_id,
-            created_by=request.user)
+                                            concept=concept,
+                                            concept_history_id=latest_version_id,
+                                            created_by=request.user)
         published_concept.save()
         return True
 
     elif set_class == Phenotype:
         phenotype = Phenotype.objects.get(pk=pk)
         published_phenotype = PublishedPhenotype(
-            phenotype=phenotype,
-            phenotype_history_id=latest_version_id,
-            created_by=request.user)
+                                                phenotype=phenotype,
+                                                phenotype_history_id=latest_version_id,
+                                                created_by=request.user,
+                                                is_approved=2,
+                                                approved_by=request.user
+                                                )
         published_phenotype.save()
         return True
 
     return False
+
+
+def chk_valid_id(request, set_class, pk):
+    """
+        check for valid id of Concepts / Phenotypes / working sets
+        passed to the API.
+        (accepts both integers and with prefixes 'C/PH/WS')
+    """
+    pk = str(pk)
+    int_pk = -1
+    
+    is_valid_id = True
+    err = ""
+    ret_int_id = -1
+
+    if str(pk).strip()=='':
+        is_valid_id = False
+        err = 'ID must be a valid id.'
+        
+    if not isInt(pk):
+        if set_class == Concept and pk[0].upper() == 'C' and isInt(pk[1:]):
+            int_pk = int(pk[1:])
+        elif set_class == Phenotype and pk[0:2].upper() == 'PH' and isInt(pk[2:]):
+            int_pk = int(pk[2:])        
+        elif set_class == WorkingSet and pk[0:2].upper() == 'WS' and isInt(pk[2:]):
+            int_pk = int(pk[2:])
+        else:
+            is_valid_id = False
+            err = 'ID must be a valid id.'
+    else:
+        int_pk = int(pk)
+        
+        
+    if set_class.objects.filter(pk=int_pk).count() == 0:
+        is_valid_id = False
+        err = 'ID not found.'
+
+
+    if not allowed_to_edit(request, set_class, int_pk):
+        is_valid_id = False
+        err = 'ID must be of a valid accessible entity.'
+
+
+    if is_valid_id:
+        ret_int_id = set_class.objects.get(pk=int_pk).id
+
+    return is_valid_id, err, ret_int_id
+
+

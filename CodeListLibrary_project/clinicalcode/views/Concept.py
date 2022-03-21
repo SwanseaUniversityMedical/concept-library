@@ -9,7 +9,7 @@ import csv
 import sys
 import time
 from _ast import Or
-from datetime import datetime
+import datetime
 
 from clinicalcode.permissions import allowed_to_view
 # from django.contrib.auth.models import User
@@ -467,7 +467,7 @@ class ConceptUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin,
 
         with transaction.atomic():
             form.instance.modified_by = self.request.user
-            form.instance.modified = datetime.now()
+            form.instance.modified = datetime.datetime.now()
 
             code_attribute_headers = json.loads(
                 self.request.POST.get('code_attribute_header'))
@@ -485,8 +485,7 @@ class ConceptUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin,
 
             # save the concept with a change reason to reflect the update within the concept audit history
             self.object = form.save()
-            db_utils.modify_Entity_ChangeReason(Concept, self.kwargs['pk'],
-                                                "Updated")
+            db_utils.modify_Entity_ChangeReason(Concept, self.kwargs['pk'], "Updated")
             # Get all the 'parent' concepts i.e. those that include this one,
             # and add a history entry to those that this concept has been
             # updated.
@@ -905,49 +904,27 @@ def concept_list(request):
         request,
         'clinicalcode/concept/index.html',
         {
-            'page':
-            page,
-            'page_size':
-            str(page_size),
-            'page_obj':
-            p,
-            'search':
-            search,
-            'author':
-            author,
-            'show_my_concepts':
-            show_my_concepts,
-            'show_deleted_concepts':
-            show_deleted_concepts,
-            'tags':
-            tags,
-            'tag_ids':
-            tag_ids2,
-            'tag_ids_list':
-            tag_ids_list,
-            'owner':
-            owner,
-            'show_only_validated_concepts':
-            show_only_validated_concepts,
-            'allowed_to_create':
-            not settings.CLL_READ_ONLY,
-            'concept_brand':
-            concept_brand,
-            'must_have_published_versions':
-            must_have_published_versions,
-            'allTags':
-            Tag.objects.all().order_by('description'),
-            'search_form':
-            search_form,
-            'p_btns':
-            p_btns,
-            'brand_associated_collections':
-            brand_associated_collections,
-            'brand_associated_collections_ids':
-            brand_associated_collections_ids,
-            'all_collections_selected':
-            all(item in tag_ids_list
-                for item in brand_associated_collections_ids)
+            'page': page,
+            'page_size': str(page_size),
+            'page_obj': p,
+            'search': search,
+            'author': author,
+            'show_my_concepts': show_my_concepts,
+            'show_deleted_concepts': show_deleted_concepts,
+            'tags': tags,
+            'tag_ids': tag_ids2,
+            'tag_ids_list': tag_ids_list,
+            'owner': owner,
+            'show_only_validated_concepts': show_only_validated_concepts,
+            'allowed_to_create': not settings.CLL_READ_ONLY,
+            'concept_brand': concept_brand,
+            'must_have_published_versions': must_have_published_versions,
+            'allTags': Tag.objects.all().order_by('description'),
+            'search_form': search_form,
+            'p_btns': p_btns,
+            'brand_associated_collections': brand_associated_collections,
+            'brand_associated_collections_ids': brand_associated_collections_ids,
+            'all_collections_selected':all(item in tag_ids_list for item in brand_associated_collections_ids)
             # 'expand_published_versions': expand_published_versions,
             # 'published_count': PublishedConcept.objects.all().count()
         })
@@ -991,26 +968,25 @@ def concept_upload_codes(request, pk):
                     # check if a file has been uploaded
                     if request.FILES.get('upload_concept_file'):
                         current_concept = Concept.objects.get(pk=pk)
-                        concept_upload_file = request.FILES[
-                            'upload_concept_file']
+                        concept_upload_file = request.FILES['upload_concept_file']
 
-                        #codes = list(csv.reader(concept_upload_file, delimiter=','))
-                        codes = list(
-                            csv.reader([
-                                line.decode() for line in concept_upload_file
-                            ],
-                                       delimiter=','))
+                        codes = list(csv.reader([line.decode() for line in concept_upload_file ], delimiter=','))
+                        
+                        # # Identify delimiter being used based on first line in .csv
+                        # datasample = list(csv.reader([line.decode() for line in concept_upload_file]))
+                        # firstrow = (str(datasample[0])[1:-1])
+                        # sniffer = csv.Sniffer()
+                        # delimetergather = sniffer.sniff(firstrow)
+                        # delimiter=delimetergather.delimiter
+                        # codes = list(csv.reader([line.decode() for line in concept_upload_file], delimiter=delimiter, quotechar='"'))
 
                         # The posted variables:
                         upload_name = request.POST.get('upload_name')
                         logical_type = request.POST.get('logical_type')
-                        concept_level_depth = utils.get_int_value(
-                            request.POST.get('concept_level_depth'), 1)
+                        concept_level_depth = utils.get_int_value(request.POST.get('concept_level_depth'), 1)
                         category_column = request.POST.get('category_column')
-                        sub_category_column = request.POST.get(
-                            'sub_category_column')
-                        first_row_has_column_headings = request.POST.get(
-                            'first_row_has_column_headings')
+                        sub_category_column = request.POST.get('sub_category_column')
+                        first_row_has_column_headings = request.POST.get('first_row_has_column_headings')
                         col_1 = request.POST.get('col_1')
                         col_2 = request.POST.get('col_2')
                         col_3 = request.POST.get('col_3')
@@ -1018,28 +994,15 @@ def concept_upload_codes(request, pk):
                         col_5 = request.POST.get('col_5')
                         col_6 = request.POST.get('col_6')
                         # get the column number for each column category
-                        code_col = utils.get_column_index(
-                            col_1, col_2, col_3, col_4, col_5, col_6, 'code')
-                        code_desc_col = utils.get_column_index(
-                            col_1, col_2, col_3, col_4, col_5, col_6, 'desc')
-                        cat_col = utils.get_column_index(
-                            col_1, col_2, col_3, col_4, col_5, col_6, 'cat')
-                        cat_desc_col = utils.get_column_index(
-                            col_1, col_2, col_3, col_4, col_5, col_6,
-                            'cat_desc')
-                        sub_cat_col = utils.get_column_index(
-                            col_1, col_2, col_3, col_4, col_5, col_6,
-                            'sub_cat')
-                        sub_cat_desc_col = utils.get_column_index(
-                            col_1, col_2, col_3, col_4, col_5, col_6,
-                            'sub_cat_desc')
+                        code_col = utils.get_column_index(col_1, col_2, col_3, col_4, col_5, col_6, 'code')
+                        code_desc_col = utils.get_column_index(col_1, col_2, col_3, col_4, col_5, col_6, 'desc')
+                        cat_col = utils.get_column_index(col_1, col_2, col_3, col_4, col_5, col_6, 'cat')
+                        cat_desc_col = utils.get_column_index(col_1, col_2, col_3, col_4, col_5, col_6, 'cat_desc')
+                        sub_cat_col = utils.get_column_index(col_1, col_2, col_3, col_4, col_5, col_6, 'sub_cat')
+                        sub_cat_desc_col = utils.get_column_index(col_1, col_2, col_3, col_4, col_5, col_6, 'sub_cat_desc')
 
-                        category_column_index = utils.get_column_index_by_text(
-                            code_col, code_desc_col, cat_col, cat_desc_col,
-                            sub_cat_col, sub_cat_desc_col, category_column)
-                        sub_category_column_index = utils.get_column_index_by_text(
-                            code_col, code_desc_col, cat_col, cat_desc_col,
-                            sub_cat_col, sub_cat_desc_col, sub_category_column)
+                        category_column_index = utils.get_column_index_by_text(code_col, code_desc_col, cat_col, cat_desc_col, sub_cat_col, sub_cat_desc_col, category_column)
+                        sub_category_column_index = utils.get_column_index_by_text(code_col, code_desc_col, cat_col, cat_desc_col, sub_cat_col, sub_cat_desc_col, sub_category_column)
 
                         cat_lookup_field = cat_desc_col
                         sub_cat_lookup_field = sub_cat_desc_col
@@ -1058,8 +1021,7 @@ def concept_upload_codes(request, pk):
                             for row in codes:
                                 row_count += 1
                                 # ignore first row as it contains header information
-                                if (first_row_has_column_headings == 'on'
-                                        and row_count == 1):
+                                if (first_row_has_column_headings == 'on' and row_count == 1):
                                     continue
                                 # Stripped whitespace from start and end of categories.
                                 categories.add(row[cat_lookup_field].strip())
@@ -1070,35 +1032,33 @@ def concept_upload_codes(request, pk):
                         if concept_level_depth == 1 and not cat_col:
                             # Create a component, a code-list, a regex and codes.
                             component = Component.objects.create(
-                                comment=upload_name,
-                                component_type=Component.
-                                COMPONENT_TYPE_EXPRESSION_SELECT,
-                                concept=current_concept,
-                                created_by=request.user,
-                                logical_type=logical_type,
-                                name=upload_name)
-                            code_list = CodeList.objects.create(
-                                component=component, description=upload_name)
+                                                    comment=upload_name,
+                                                    component_type=Component.
+                                                    COMPONENT_TYPE_EXPRESSION_SELECT,
+                                                    concept=current_concept,
+                                                    created_by=request.user,
+                                                    logical_type=logical_type,
+                                                    name=upload_name)
+                            code_list = CodeList.objects.create(component=component, description=upload_name)
                             CodeRegex.objects.create(
-                                component=component,
-                                code_list=code_list,
-                                regex_type=CodeRegex.SIMPLE,
-                                regex_code='',
-                                column_search=CodeRegex.CODE,
-                                sql_rules='')
+                                                    component=component,
+                                                    code_list=code_list,
+                                                    regex_type=CodeRegex.SIMPLE,
+                                                    regex_code='',
+                                                    column_search=CodeRegex.CODE,
+                                                    sql_rules='')
                             row_count = 0
                             for row in codes:
                                 row_count += 1
                                 # ignore the first row as it contains header information
-                                if (first_row_has_column_headings == 'on'
-                                        and row_count == 1):
+                                if (first_row_has_column_headings == 'on' and row_count == 1):
                                     continue
                                 obj, created = Code.objects.get_or_create(
-                                    code_list=code_list,
-                                    code=row[code_col],
-                                    defaults={
-                                        'description': row[code_desc_col]
-                                    })
+                                                                        code_list=code_list,
+                                                                        code=row[code_col],
+                                                                        defaults={
+                                                                            'description': row[code_desc_col]
+                                                                        })
                             ## Now save the concept with a change reason.
                             # db_utils.save_Entity_With_ChangeReason(Concept, pk, "Created component: %s" % upload_name)
 
@@ -1109,39 +1069,37 @@ def concept_upload_codes(request, pk):
                             for cat in categories:
                                 # Create a component, a code-list, a regex and codes.
                                 component = Component.objects.create(
-                                    comment=cat,
-                                    component_type=Component.
-                                    COMPONENT_TYPE_EXPRESSION_SELECT,
-                                    concept=current_concept,
-                                    created_by=request.user,
-                                    logical_type=logical_type,
-                                    name=cat)
-                                code_list = CodeList.objects.create(
-                                    component=component, description=cat)
+                                                                    comment=cat,
+                                                                    component_type=Component.
+                                                                    COMPONENT_TYPE_EXPRESSION_SELECT,
+                                                                    concept=current_concept,
+                                                                    created_by=request.user,
+                                                                    logical_type=logical_type,
+                                                                    name=cat)
+                                code_list = CodeList.objects.create(component=component, description=cat)
                                 CodeRegex.objects.create(
-                                    component=component,
-                                    code_list=code_list,
-                                    regex_type=CodeRegex.SIMPLE,
-                                    regex_code='',
-                                    column_search=CodeRegex.CODE,
-                                    sql_rules='')
+                                                                    component=component,
+                                                                    code_list=code_list,
+                                                                    regex_type=CodeRegex.SIMPLE,
+                                                                    regex_code='',
+                                                                    column_search=CodeRegex.CODE,
+                                                                    sql_rules='')
                                 row_count = 0
                                 for row in codes:
                                     row_count += 1
-                                    if (first_row_has_column_headings == 'on'
-                                            and row_count == 1):
+                                    if (first_row_has_column_headings == 'on' and row_count == 1):
                                         continue
                                     # Check here for the category matching the stripped category,
                                     # but don't worry if the category is written to the description
                                     # with the trailing space.
                                     if row[cat_lookup_field].strip() == cat:
                                         obj, created = Code.objects.get_or_create(
-                                            code_list=code_list,
-                                            code=row[code_col],
-                                            defaults={
-                                                'description':
-                                                row[code_desc_col]
-                                            })
+                                                                                code_list=code_list,
+                                                                                code=row[code_col],
+                                                                                defaults={
+                                                                                    'description':
+                                                                                    row[code_desc_col]
+                                                                                })
 
                         # If the concept level depth is greater than 1 and it
                         # has categories and sub-categories then create child
@@ -1154,98 +1112,88 @@ def concept_upload_codes(request, pk):
                                 # Unique sub categories per category.
                                 sub_categories = set()
                                 new_concept = Concept.objects.create(
-                                    name=cat,
-                                    description=cat,
-                                    author=current_concept.author,
-                                    entry_date=current_concept.entry_date,
-                                    validation_performed=current_concept.
-                                    validation_performed,
-                                    validation_description=current_concept.
-                                    validation_description,
-                                    publication_doi=current_concept.
-                                    publication_doi,
-                                    publication_link=current_concept.
-                                    publication_link,
-                                    secondary_publication_links=current_concept
-                                    .secondary_publication_links,
-                                    paper_published=current_concept.
-                                    paper_published,
-                                    source_reference=current_concept.
-                                    source_reference,
-                                    citation_requirements=current_concept.
-                                    citation_requirements,
-                                    created_by=request.user,
-                                    modified_by=request.user,
-                                    owner=request.
-                                    user,  # current_concept.owner,
-                                    group=current_concept.group,
-                                    owner_access=current_concept.owner_access,
-                                    group_access=current_concept.group_access,
-                                    world_access=current_concept.world_access,
-                                    coding_system=current_concept.
-                                    coding_system,
-                                    is_deleted=current_concept.is_deleted)
+                                                            name=cat,
+                                                            description=cat,
+                                                            author=current_concept.author,
+                                                            entry_date=current_concept.entry_date,
+                                                            validation_performed=current_concept.
+                                                            validation_performed,
+                                                            validation_description=current_concept.
+                                                            validation_description,
+                                                            publication_doi=current_concept.
+                                                            publication_doi,
+                                                            publication_link=current_concept.
+                                                            publication_link,
+                                                            secondary_publication_links=current_concept
+                                                            .secondary_publication_links,
+                                                            paper_published=current_concept.
+                                                            paper_published,
+                                                            source_reference=current_concept.
+                                                            source_reference,
+                                                            citation_requirements=current_concept.
+                                                            citation_requirements,
+                                                            created_by=request.user,
+                                                            modified_by=request.user,
+                                                            owner=request.
+                                                            user,  # current_concept.owner,
+                                                            group=current_concept.group,
+                                                            owner_access=current_concept.owner_access,
+                                                            group_access=current_concept.group_access,
+                                                            world_access=current_concept.world_access,
+                                                            coding_system=current_concept.
+                                                            coding_system,
+                                                            is_deleted=current_concept.is_deleted)
 
                                 # to save correctly the computed friendly_id field
                                 new_concept.history.latest().delete()
                                 # new_concept.changeReason = "Created via upload"
                                 # new_concept.save()
-                                db_utils.save_Entity_With_ChangeReason(
-                                    Concept, new_concept.pk,
-                                    "Created via upload")
+                                db_utils.save_Entity_With_ChangeReason(Concept, new_concept.pk, "Created via upload")
 
                                 row_count = 0
                                 # get unique set of sub categories for the current category
                                 for row in codes:
                                     row_count += 1
-                                    if (first_row_has_column_headings == 'on'
-                                            and row_count == 1):
+                                    if (first_row_has_column_headings == 'on' and row_count == 1):
                                         continue
                                     # get a list of unique sub-category names
                                     # Need to check stripped category.
                                     if (row[cat_lookup_field].strip() == cat):
-                                        sub_categories.add(
-                                            row[sub_cat_lookup_field].strip())
+                                        sub_categories.add(row[sub_cat_lookup_field].strip())
                                 for sub_cat in sub_categories:
                                     component = Component.objects.create(
-                                        comment=sub_cat,
-                                        component_type=Component.
-                                        COMPONENT_TYPE_EXPRESSION_SELECT,
-                                        concept=new_concept,
-                                        created_by=request.user,
-                                        logical_type=1,  # include
-                                        name=sub_cat)
-                                    code_list = CodeList.objects.create(
-                                        component=component,
-                                        description=sub_cat)
+                                                                    comment=sub_cat,
+                                                                    component_type=Component.
+                                                                    COMPONENT_TYPE_EXPRESSION_SELECT,
+                                                                    concept=new_concept,
+                                                                    created_by=request.user,
+                                                                    logical_type=1,  # include
+                                                                    name=sub_cat)
+                                    code_list = CodeList.objects.create(component=component, description=sub_cat)
                                     codeRegex = CodeRegex.objects.create(
-                                        component=component,
-                                        code_list=code_list,
-                                        regex_type=CodeRegex.SIMPLE,
-                                        regex_code='',
-                                        column_search=CodeRegex.CODE,
-                                        sql_rules='')
+                                                                    component=component,
+                                                                    code_list=code_list,
+                                                                    regex_type=CodeRegex.SIMPLE,
+                                                                    regex_code='',
+                                                                    column_search=CodeRegex.CODE,
+                                                                    sql_rules='')
                                     row_count = 0
                                     # create codes
                                     for row in codes:
                                         row_count += 1
 
                                         # ignore the first row as it contains header information
-                                        if (first_row_has_column_headings
-                                                == 'on' and row_count == 1):
+                                        if (first_row_has_column_headings == 'on' and row_count == 1):
                                             continue
                                         # Need to check stripped sub-category.
-                                        if row[cat_lookup_field].strip(
-                                        ) == cat and row[
-                                                sub_cat_lookup_field].strip(
-                                                ) == sub_cat:
+                                        if row[cat_lookup_field].strip() == cat and row[sub_cat_lookup_field].strip() == sub_cat:
                                             obj, created = Code.objects.get_or_create(
-                                                code_list=code_list,
-                                                code=row[code_col],
-                                                defaults={
-                                                    'description':
-                                                    row[code_desc_col]
-                                                })
+                                                                            code_list=code_list,
+                                                                            code=row[code_col],
+                                                                            defaults={
+                                                                                'description':
+                                                                                row[code_desc_col]
+                                                                            })
                                     # Save the concept with a change reason to reflect the creation
                                     db_utils.save_Entity_With_ChangeReason(
                                         Concept,
@@ -1257,34 +1205,32 @@ def concept_upload_codes(request, pk):
                                 # Create a new concept component and attach
                                 # it to the original concept.
                                 component_main = Component.objects.create(
-                                    comment=cat,
-                                    component_type=Component.
-                                    COMPONENT_TYPE_CONCEPT,
-                                    concept=current_concept,
-                                    concept_ref=new_concept,
-                                    created_by=request.user,
-                                    logical_type=logical_type,
-                                    name="%s component" % cat,
-                                    concept_ref_history_id=new_concept.history.
-                                    latest().pk)
+                                                            comment=cat,
+                                                            component_type=Component.
+                                                            COMPONENT_TYPE_CONCEPT,
+                                                            concept=current_concept,
+                                                            concept_ref=new_concept,
+                                                            created_by=request.user,
+                                                            logical_type=logical_type,
+                                                            name="%s component" % cat,
+                                                            concept_ref_history_id=new_concept.history.
+                                                            latest().pk)
 
                                 # save child-concept codes
                                 db_utils.save_child_concept_codes(
-                                    concept_id=current_concept.pk,
-                                    component_id=component_main.pk,
-                                    referenced_concept_id=new_concept.pk,
-                                    concept_ref_history_id=new_concept.history.
-                                    latest().pk,
-                                    insert_or_update='insert')
+                                                                    concept_id=current_concept.pk,
+                                                                    component_id=component_main.pk,
+                                                                    referenced_concept_id=new_concept.pk,
+                                                                    concept_ref_history_id=new_concept.history.
+                                                                    latest().pk,
+                                                                    insert_or_update='insert')
 
                     # components = Component.objects.filter(concept_id=pk)
                     # save the concept with a change reason to reflect the restore within the concept audit history
-                    db_utils.save_Entity_With_ChangeReason(
-                        Concept, pk, "Codes uploaded: %s" % upload_name)
+                    db_utils.save_Entity_With_ChangeReason(Concept, pk, "Codes uploaded: %s" % upload_name)
 
                     # Update dependent concepts & working sets
-                    db_utils.saveDependentConceptsChangeReason(
-                        pk, "Component concept #" + str(pk) + " was updated")
+                    db_utils.saveDependentConceptsChangeReason(pk, "Component concept #" + str(pk) + " was updated")
 
                     data = dict()
                     data['form_is_valid'] = True
@@ -1322,7 +1268,11 @@ def concept_upload_codes(request, pk):
 
                     return JsonResponse(data)
             except Exception as e:
-                errorMsg = [e.message]
+                errorMsg = []
+                errorMsg.append('Error Encountered, Code List has not Been Uploaded.')
+                if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC or  request.user.is_superuser:
+                    errorMsg.append(e)
+                    
                 data = dict()
                 # ------------------------------
                 concept = Concept.objects.get(id=pk)
@@ -1337,9 +1287,9 @@ def concept_upload_codes(request, pk):
                 data['html_form'] = render_to_string(
                     'clinicalcode/concept/upload.html', {
                         'pk': pk,
-                        'form': form_class,
+                        'form': form,
                         'latest_history_ID': latest_history_ID,
-                        'errorMsg': [e.message]
+                        'errorMsg': errorMsg
                     }, request)
 
                 return JsonResponse(data)
@@ -1348,20 +1298,40 @@ def concept_upload_codes(request, pk):
             data = dict()
             # ------------------------------
             concept = Concept.objects.get(id=pk)
-            latest_history_ID = concept.history.latest(
-            ).pk if request.POST.get(
-                'latest_history_id_shown') is None else request.POST.get(
-                    'latest_history_id_shown')
+            latest_history_ID = concept.history.latest().pk if request.POST.get('latest_history_id_shown') is None else request.POST.get('latest_history_id_shown')
             data['latest_history_ID'] = latest_history_ID
             # ------------------------------
             # data['exception'] = sys.exc_info()[0]
             data['form_is_valid'] = False
+            
+            # Error handling
+            errorMsg = ['Form is invalid.']
+            # Columns that are required or can prompt error
+            upload_name = request.POST.get('upload_name')
+            col_1 = request.POST.get('col_1')
+            col_2 = request.POST.get('col_2')
+            col_3 = request.POST.get('col_3')
+            col_4 = request.POST.get('col_4')
+            col_5 = request.POST.get('col_5')
+            col_6 = request.POST.get('col_6')
+            #filename = request.FILES.get('upload_concept_file')
+
+            if upload_name.strip() == '':
+                errorMsg.append('Please Include a Name for the Concept Upload.')
+            elif col_1 == col_2 == col_3 == col_4 == col_5 == col_6 == '':
+                errorMsg.append('Please Assign at least code and description Columns for the Concept Upload.')
+            elif not request.FILES.get('upload_concept_file'):
+                # check if a file has been uploaded
+                errorMsg.append('You must upload a file to continue')
+            else:
+                errorMsg.append('Unspecified Error with Upload.')
+                
             data['html_form'] = render_to_string(
                 'clinicalcode/concept/upload.html', {
                     'pk': pk,
-                    'form': form_class,
+                    'form': form,
                     'latest_history_ID': latest_history_ID,
-                    'errorMsg': ["Form is invalid"]
+                    'errorMsg': errorMsg
                 }, request)
             return JsonResponse(data)
 
@@ -1404,19 +1374,16 @@ def concept_codes_to_csv(request, pk):
 
     # ---------
     # latest concept_history_id
-    latest_history_id = Concept.objects.get(
-        id=pk).history.latest('history_id').history_id
-    code_attribute_header = Concept.history.get(
-        id=pk, history_id=latest_history_id).code_attribute_header
-    concept_history_date = Concept.history.get(
-        id=pk, history_id=latest_history_id).history_date
+    latest_history_id = Concept.objects.get(id=pk).history.latest('history_id').history_id
+    code_attribute_header = Concept.history.get(id=pk, history_id=latest_history_id).code_attribute_header
+    concept_history_date = Concept.history.get(id=pk, history_id=latest_history_id).history_date
     codes_with_attributes = []
     if code_attribute_header:
         codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(
-            concept_id=pk,
-            concept_history_date=concept_history_date,
-            allCodes=codes,
-            code_attribute_header=code_attribute_header)
+                                                concept_id=pk,
+                                                concept_history_date=concept_history_date,
+                                                allCodes=codes,
+                                                code_attribute_header=code_attribute_header)
 
         codes = codes_with_attributes
     # ---------
@@ -1475,8 +1442,7 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
         return HttpResponseNotFound("Not found.")
         # raise permission_denied # although 404 is more relevant
 
-    if Concept.history.filter(id=pk,
-                              history_id=concept_history_id).count() == 0:
+    if Concept.history.filter(id=pk, history_id=concept_history_id).count() == 0:
         return HttpResponseNotFound("Not found.")
         # raise permission_denied # although 404 is more relevant
 

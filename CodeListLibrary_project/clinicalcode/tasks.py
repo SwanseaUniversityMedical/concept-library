@@ -39,5 +39,5 @@ def send_scheduled_email(self):
             except BadHeaderError:
                 return False
         else:
-            print(overal_result)
+            #print(overal_result)
             return True

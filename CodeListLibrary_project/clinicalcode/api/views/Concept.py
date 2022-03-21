@@ -471,8 +471,7 @@ def api_concept_create(request):
         new_concept.publication = request.data.get('publication')
         new_concept.description = request.data.get('description')
         new_concept.publication_doi = request.data.get('publication_doi')
-        new_concept.publication_link = request.data.get(
-            'publication_link')  # valid URL
+        new_concept.publication_link = request.data.get('publication_link')  # valid URL
         new_concept.secondary_publication_links = request.data.get(
             'secondary_publication_links')
         new_concept.source_reference = request.data.get('source_reference')
@@ -626,8 +625,7 @@ def api_concept_create(request):
 
             #--------------------------------------
             #--------------------------------------
-            save_Entity_With_ChangeReason(Concept, created_concept.pk,
-                                          "Created from API")
+            save_Entity_With_ChangeReason(Concept, created_concept.pk, "Created from API")
             # created_concept.changeReason = "Created from API"
             # created_concept.save()
 
@@ -666,48 +664,49 @@ def api_concept_update(request):
         is_valid = True
 
         concept_id = request.data.get('id')
-        if not isInt(concept_id):
-            errors_dict['id'] = 'concept_id must be a valid id.'
+        is_valid_id, err, ret_int_id = chk_valid_id(request, Concept, concept_id)
+        if is_valid_id:
+            concept_id = ret_int_id
+        else:
+            errors_dict['id'] = err
             return Response(data=errors_dict,
                             content_type="json",
                             status=status.HTTP_406_NOT_ACCEPTABLE)
-
-        if Concept.objects.filter(pk=concept_id).count() == 0:
-            errors_dict['id'] = 'concept_id not found.'
-            return Response(data=errors_dict,
-                            content_type="json",
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
-
-        if not allowed_to_edit(request, Concept, concept_id):
-            errors_dict[
-                'id'] = 'concept_id must be a valid accessible concept id.'
-            return Response(data=errors_dict,
-                            content_type="json",
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
+            
+        # if not isInt(concept_id):
+        #     errors_dict['id'] = 'concept_id must be a valid id.'
+        #     return Response(data=errors_dict,
+        #                     content_type="json",
+        #                     status=status.HTTP_406_NOT_ACCEPTABLE)
+        #
+        # if Concept.objects.filter(pk=concept_id).count() == 0:
+        #     errors_dict['id'] = 'concept_id not found.'
+        #     return Response(data=errors_dict,
+        #                     content_type="json",
+        #                     status=status.HTTP_406_NOT_ACCEPTABLE)
+        #
+        # if not allowed_to_edit(request, Concept, concept_id):
+        #     errors_dict['id'] = 'concept_id must be a valid accessible concept id.'
+        #     return Response(data=errors_dict,
+        #                     content_type="json",
+        #                     status=status.HTTP_406_NOT_ACCEPTABLE)
 
         update_concept = Concept.objects.get(pk=concept_id)
         update_concept.name = request.data.get('name')
         update_concept.author = request.data.get('author')
         update_concept.publication = request.data.get('publication')
         update_concept.publication_doi = request.data.get('publication_doi')
-        update_concept.publication_link = request.data.get(
-            'publication_link')  # valid URL
-        update_concept.secondary_publication_links = request.data.get(
-            'secondary_publication_links')
+        update_concept.publication_link = request.data.get('publication_link')  # valid URL
+        update_concept.secondary_publication_links = request.data.get('secondary_publication_links')
         update_concept.source_reference = request.data.get('source_reference')
-        update_concept.citation_requirements = request.data.get(
-            'citation_requirements')
+        update_concept.citation_requirements = request.data.get('citation_requirements')
 
         update_concept.paper_published = request.data.get('paper_published')
-        update_concept.validation_performed = request.data.get(
-            'validation_performed')
-        update_concept.validation_description = request.data.get(
-            'validation_description')
+        update_concept.validation_performed = request.data.get('validation_performed')
+        update_concept.validation_description = request.data.get('validation_description')
 
         if request.data.get('append_description'):
-            update_concept.description = Concept.objects.get(
-                pk=concept_id).description + "  " + request.data.get(
-                    'description')
+            update_concept.description = Concept.objects.get(pk=concept_id).description + "  " + request.data.get('description')
         else:
             update_concept.description = request.data.get('description')
 
@@ -718,24 +717,21 @@ def api_concept_update(request):
         #update_concept.owner_id = request.user.id        # int(request.data.get('owner_id'))
 
         # handle code_attribute_header
-        is_valid_data, err, ret_value = chk_code_attribute_header(
-            request.data.get('code_attribute_header'))
+        is_valid_data, err, ret_value = chk_code_attribute_header(request.data.get('code_attribute_header'))
         if is_valid_data:
             update_concept.code_attribute_header = ret_value
         else:
             errors_dict['code_attribute_header'] = err
 
         # handle coding_system
-        is_valid_data, err, ret_value = chk_coding_system(
-            request.data.get('coding_system'))
+        is_valid_data, err, ret_value = chk_coding_system(request.data.get('coding_system'))
         if is_valid_data:
             update_concept.coding_system = ret_value
         else:
             errors_dict['coding_system'] = err
 
         #  group id
-        is_valid_data, err, ret_value = chk_group(request.data.get('group'),
-                                                  user_groups)
+        is_valid_data, err, ret_value = chk_group(request.data.get('group'), user_groups)
         if is_valid_data:
             group_id = ret_value
             if group_id is None or group_id == "0":
@@ -744,8 +740,7 @@ def api_concept_update(request):
             else:
                 update_concept.group_id = group_id
                 # handle group-Access
-                is_valid_data, err, ret_value = chk_group_access(
-                    request.data.get('group_access'))
+                is_valid_data, err, ret_value = chk_group_access(request.data.get('group_access'))
                 if is_valid_data:
                     update_concept.group_access = ret_value
                 else:
@@ -775,8 +770,7 @@ def api_concept_update(request):
 
         #-----------------------------------------------------------
         is_valid_components = False
-        is_valid_data, err, ret_value = chk_components_and_codes(
-            request.data.get('components'))
+        is_valid_data, err, ret_value = chk_components_and_codes(request.data.get('components'))
         if is_valid_data:
             is_valid_components = True
             components = ret_value
@@ -790,8 +784,7 @@ def api_concept_update(request):
             is_valid = False
 
         is_valid_cp = True
-        is_valid_cp, errors_concept = isValidConcept(request,
-                                                     update_concept)  #??
+        is_valid_cp, errors_concept = isValidConcept(request, update_concept)  #??
 
         #-----------------------------------------------------------
         if not is_valid or not is_valid_cp:  # errors
@@ -865,11 +858,12 @@ def api_concept_update(request):
 
             #--------------------------------------
             #--------------------------------------
-            save_Entity_With_ChangeReason(Concept, update_concept.pk,
-                                          "Updated from API")
+            #save_Entity_With_ChangeReason(Concept, update_concept.pk, "Updated from API")
             # update_concept.changeReason = "Updated from API"
-            # update_concept.save()
-
+            update_concept.save()
+            modify_Entity_ChangeReason(Concept, update_concept.pk, "Updated from API")
+            
+            
             # Get all the 'parent' concepts i.e. those that include this one,
             # and add a history entry to those that this concept has been updated.
             saveDependentConceptsChangeReason(

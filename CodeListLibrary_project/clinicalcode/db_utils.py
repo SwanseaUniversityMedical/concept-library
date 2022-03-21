@@ -1041,10 +1041,9 @@ def revertHistoryWorkingset(user, workingset_history_id):
                 created=wtm['created'],
                 modified=wtm['modified'])
 
-        save_Entity_With_ChangeReason(
-            WorkingSet, workingset_obj.pk,
-            "Working set reverted from version " + str(workingset_history_id))
-        #workingset_obj.save()
+        #save_Entity_With_ChangeReason(WorkingSet, workingset_obj.pk, "Working set reverted from version " + str(workingset_history_id))
+        workingset_obj.save()
+        modify_Entity_ChangeReason(WorkingSet, workingset_obj.pk, "Working set reverted from version " + str(workingset_history_id))
 
 
 def deleteWorkingset(pk, user):
@@ -1861,14 +1860,12 @@ def is_valid_column_name(name):
             is_valid = False
 
         if not is_valid:
-            raise NameError('NOT is_valid_column_name() error (' +
-                            str(name).replace("'", "\'") + ').')
+            raise NameError('NOT is_valid_column_name() error (' + str(name).replace("'", "\'") + ').')
 
         return is_valid
     except Exception as e:
         is_valid = False
-        print(('NOT is_valid_column_name() error (' +
-               str(e).replace("'", "\'") + ').'))
+        #print(('NOT is_valid_column_name() error (' + str(e).replace("'", "\'") + ').'))
         raise
         return is_valid
 
@@ -3110,7 +3107,7 @@ def get_visible_live_or_published_phenotype_versions(
                                 , (SELECT username FROM auth_user WHERE id=r.updated_by_id ) modified_by_username
                                 , (SELECT username FROM auth_user WHERE id=r.deleted_by_id ) deleted_by_username
                                 , (SELECT name FROM auth_group WHERE id=r.group_id ) group_name
-                                , (SELECT created FROM clinicalcode_publishedphenotype WHERE phenotype_id=r.id and phenotype_history_id=r.history_id  LIMIT 1) publish_date
+                                , (SELECT created FROM clinicalcode_publishedphenotype WHERE phenotype_id=r.id and phenotype_history_id=r.history_id  and is_approved = 2  LIMIT 1) publish_date
                             FROM
                             (SELECT 
                                ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn,
@@ -3221,12 +3218,10 @@ def getGroupOfConceptsByPhenotypeId_historical(phenotype_id,
 
     '''
     if phenotype_history_id is None:
-        phenotype_history_id = Phenotype.objects.get(
-            pk=phenotype_id).history.latest('history_id').history_id
+        phenotype_history_id = Phenotype.objects.get(pk=phenotype_id).history.latest('history_id').history_id
 
     concept_id_version = []
-    concept_informations = Phenotype.history.get(
-        id=phenotype_id, history_id=phenotype_history_id).concept_informations
+    concept_informations = Phenotype.history.get(id=phenotype_id, history_id=phenotype_history_id).concept_informations
     if concept_informations:
         concept_informations = json.loads(concept_informations)
 
@@ -3851,7 +3846,7 @@ def send_review_email(phenotype, review_decision, review_message):
         except BadHeaderError:
             return False
     else:
-        print(email_content)
+        #print(email_content)
         return True
 
 def get_scheduled_email_to_send():

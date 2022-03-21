@@ -9,7 +9,7 @@ import logging
 import re
 import time
 from collections import OrderedDict
-from datetime import datetime
+import datetime
 
 from django import forms
 from django.conf import settings
@@ -378,7 +378,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin,
 # start a transaction
             with transaction.atomic():
                 workingset.updated_by = request.user
-                workingset.modified = datetime.now()
+                workingset.modified = datetime.datetime.now()
 
                 #-----------------------------------------------------
                 # get tags
@@ -416,11 +416,9 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin,
                     tag_to_remove.delete()
 
                 #-----------------------------------------------------
-                db_utils.save_Entity_With_ChangeReason(WorkingSet,
-                                                       workingset.pk,
-                                                       "Updated")
                 # workingset.changeReason = db_utils.standardiseChangeReason("Updated")
-                # workingset.save()
+                workingset.save()
+                db_utils.modify_Entity_ChangeReason(WorkingSet, workingset.pk, "Updated")
 
             #db_utils.saveWorkingsetChangeReason(pk, "Working set has been updated")
             messages.success(self.request,

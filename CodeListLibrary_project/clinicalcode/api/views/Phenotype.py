@@ -94,16 +94,20 @@ def api_phenotype_create(request):
         new_phenotype.owner_access = Permissions.EDIT
         new_phenotype.owner_id = request.user.id
 
+
         # concept_informations
         concept_ids_list = request.data.get('concept_informations')
-        is_valid_data, err, ret_value = chk_concept_ids_list(
-            request, concept_ids_list, item_name='concept_informations')
+        is_valid_data, err, ret_value = chk_concept_ids_list(request, concept_ids_list, item_name='concept_informations')
         if is_valid_data:
+            concept_ids_list = ret_value
             concept_informations = getPhenotypeConceptJson(concept_ids_list)
             new_phenotype.concept_informations = concept_informations
-            new_phenotype.clinical_terminologies = get_CodingSystems_from_Phenotype_concept_informations(
-                concept_informations)
-
+            new_phenotype.clinical_terminologies = get_CodingSystems_from_Phenotype_concept_informations(concept_informations)
+        else:
+            errors_dict['concept_informations'] = err
+ 
+            
+            
         # group id
         is_valid_data, err, ret_value = chk_group(request.data.get('group'),
                                                   user_groups)
@@ -178,8 +182,7 @@ def api_phenotype_create(request):
                         datasource=DataSource.objects.get(id=datasource_id),
                         created_by=request.user)
 
-            save_Entity_With_ChangeReason(Phenotype, created_pt.pk,
-                                          "Created from API")
+            save_Entity_With_ChangeReason(Phenotype, created_pt.pk, "Created from API")
             # created_pt.changeReason = "Created from API"
             # created_pt.save()
 
@@ -211,23 +214,32 @@ def api_phenotype_update(request):
         is_valid = True
 
         phenotype_id = request.data.get('id')
-        if not isInt(phenotype_id):
-            errors_dict['id'] = 'phenotype_id must be a valid id.'
+        is_valid_id, err, ret_int_id = chk_valid_id(request, Phenotype, phenotype_id)
+        if is_valid_id:
+            phenotype_id = ret_int_id
+        else:
+            errors_dict['id'] = err
             return Response(data=errors_dict,
                             content_type="json",
                             status=status.HTTP_406_NOT_ACCEPTABLE)
-
-        if Phenotype.objects.filter(pk=phenotype_id).count() == 0:
-            errors_dict['id'] = 'phenotype_id not found.'
-            return Response(data=errors_dict,
-                            content_type="json",
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
-        if not allowed_to_edit(request, Phenotype, phenotype_id):
-            errors_dict[
-                'id'] = 'phenotype_id must be a valid accessible phenotype id.'
-            return Response(data=errors_dict,
-                            content_type="json",
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
+               
+        # if not isInt(phenotype_id):
+        #     errors_dict['id'] = 'phenotype_id must be a valid id.'
+        #     return Response(data=errors_dict,
+        #                     content_type="json",
+        #                     status=status.HTTP_406_NOT_ACCEPTABLE)
+        #
+        # if Phenotype.objects.filter(pk=phenotype_id).count() == 0:
+        #     errors_dict['id'] = 'phenotype_id not found.'
+        #     return Response(data=errors_dict,
+        #                     content_type="json",
+        #                     status=status.HTTP_406_NOT_ACCEPTABLE)
+        # if not allowed_to_edit(request, Phenotype, phenotype_id):
+        #     errors_dict[
+        #         'id'] = 'phenotype_id must be a valid accessible phenotype id.'
+        #     return Response(data=errors_dict,
+        #                     content_type="json",
+        #                     status=status.HTTP_406_NOT_ACCEPTABLE)
 
         update_phenotype = Phenotype.objects.get(pk=phenotype_id)
         update_phenotype.phenotype_uuid = request.data.get('phenotype_uuid')
@@ -244,21 +256,14 @@ def api_phenotype_update(request):
         #         update_phenotype.valid_event_data_range_end = request.data.get('valid_event_data_range_end')
         update_phenotype.sex = request.data.get('sex')
         update_phenotype.status = request.data.get('status')
-        update_phenotype.hdr_created_date = request.data.get(
-            'hdr_created_date')
-        update_phenotype.hdr_modified_date = request.data.get(
-            'hdr_modified_date')
+        update_phenotype.hdr_created_date = request.data.get('hdr_created_date')
+        update_phenotype.hdr_modified_date = request.data.get('hdr_modified_date')
         update_phenotype.publications = request.data.get('publications')
         update_phenotype.publication_doi = request.data.get('publication_doi')
-        update_phenotype.publication_link = request.data.get(
-            'publication_link')
-        update_phenotype.secondary_publication_links = request.data.get(
-            'secondary_publication_links')
-        update_phenotype.source_reference = request.data.get(
-            'source_reference'
-        )  # With data_sources I don't think this is needed
-        update_phenotype.citation_requirements = request.data.get(
-            'citation_requirements')
+        update_phenotype.publication_link = request.data.get('publication_link')
+        update_phenotype.secondary_publication_links = request.data.get('secondary_publication_links')
+        update_phenotype.source_reference = request.data.get('source_reference')  # With data_sources I don't think this is needed
+        update_phenotype.citation_requirements = request.data.get('citation_requirements')
         update_phenotype.concept_informations = None  # request.data.get('concept_informations')
         update_phenotype.clinical_terminologies = None
 
@@ -268,19 +273,22 @@ def api_phenotype_update(request):
 
         update_phenotype.updated_by = request.user
         update_phenotype.modified = datetime.datetime.now()
+        
         # concept_informations
         concept_ids_list = request.data.get('concept_informations')
-        is_valid_data, err, ret_value = chk_concept_ids_list(
-            request, concept_ids_list, item_name='concept_informations')
+        is_valid_data, err, ret_value = chk_concept_ids_list(request, concept_ids_list, item_name='concept_informations')
         if is_valid_data:
+            concept_ids_list = ret_value
             concept_informations = getPhenotypeConceptJson(concept_ids_list)
             update_phenotype.concept_informations = concept_informations
-            update_phenotype.clinical_terminologies = get_CodingSystems_from_Phenotype_concept_informations(
-                concept_informations)
+            update_phenotype.clinical_terminologies = get_CodingSystems_from_Phenotype_concept_informations(concept_informations)
+        else:
+            errors_dict['concept_informations'] = err
 
+            
+            
         #  group id
-        is_valid_data, err, ret_value = chk_group(request.data.get('group'),
-                                                  user_groups)
+        is_valid_data, err, ret_value = chk_group(request.data.get('group'),user_groups)
         if is_valid_data:
             group_id = ret_value
             if group_id is None or group_id == "0":
@@ -288,8 +296,7 @@ def api_phenotype_update(request):
                 update_phenotype.group_access = 1
             else:
                 update_phenotype.group_id = group_id
-                is_valid_data, err, ret_value = chk_group_access(
-                    request.data.get('group_access'))
+                is_valid_data, err, ret_value = chk_group_access(request.data.get('group_access'))
                 if is_valid_data:
                     update_phenotype.group_access = ret_value
                 else:
@@ -298,8 +305,7 @@ def api_phenotype_update(request):
             errors_dict['group'] = err
 
         # handle world-access
-        is_valid_data, err, ret_value = chk_world_access(
-            request.data.get('world_access'))
+        is_valid_data, err, ret_value = chk_world_access(request.data.get('world_access'))
         if is_valid_data:
             update_phenotype.world_access = ret_value
         else:
@@ -319,8 +325,7 @@ def api_phenotype_update(request):
 
         # handling data-sources
         datasource_ids_list = request.data.get('data_sources')
-        is_valid_data, err, ret_value = chk_data_sources(
-            request.data.get('data_sources'))
+        is_valid_data, err, ret_value = chk_data_sources(request.data.get('data_sources'))
         if is_valid_data:
             datasource_ids_list = ret_value
         else:
@@ -367,10 +372,10 @@ def api_phenotype_update(request):
                         id=datasource_id_to_remove))
                 datasource_to_remove.delete()
 
-            save_Entity_With_ChangeReason(Phenotype, update_phenotype.pk,
-                                          "Updated from API")
+            #save_Entity_With_ChangeReason(Phenotype, update_phenotype.pk, "Updated from API")
             # update_phenotype.changeReason = "Updated from API"
-            # update_phenotype.save()
+            update_phenotype.save()
+            modify_Entity_ChangeReason(Phenotype, update_phenotype.pk, "Updated from API")
 
             # publish immediately - for HDR-UK testing
             if request.data.get('publish_immediately') == True:
@@ -405,8 +410,8 @@ def export_published_phenotype_codes(request, pk, phenotype_history_id):
                                     history_id=phenotype_history_id).exists():
         raise PermissionDenied
 
-    is_published = PublishedPhenotype.objects.filter(
-        phenotype_id=pk, phenotype_history_id=phenotype_history_id).exists()
+    is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
+
     # check if the phenotype version is published
     if not is_published:
         raise PermissionDenied

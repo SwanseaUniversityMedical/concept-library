@@ -139,7 +139,7 @@
 							
 						{% if request.BRAND_OBJECT.allowed_tabs is none or 'api' in request.BRAND_OBJECT.allowed_tabs %}					
 							<li id="api_li"  >
-								<a id="api_a" class="main_menu  nav-bar-title" href="{% url 'api:root' %}" target=_blank >API</a>
+								<a id="api_a" class="main_menu  nav-bar-title" href="{% url 'api:root' %}" >API</a>
 							</li>	
 						{% endif %}		
 						
@@ -151,7 +151,6 @@
 	                        <ul class="dropdown-menu">
 
                                 {% if request.BRAND_OBJECT.about_menu is not none %}
-                                    <li><a href="{% url 'contact_us' %}">Contact Us</a></li>
 									{% for lnk in request.BRAND_OBJECT.about_menu %}
 											{% for header, view_pg_name in lnk.items %}
 												{% if view_pg_name|islist  %}
@@ -179,10 +178,12 @@
 
 								{% else %}		
     									<li><a href="{% url 'about_page' pg_name='cl_about_page' %}" >Concept Library</a></li>
-                                        <li><a href="{% url 'contact_us' %}">Contact Us</a></li>
-
 								{% endif %}
-
+								
+								{% if not CLL_READ_ONLY %}
+	 								<li role="separator" class="divider"></li>
+	                                <li><a href="{% url 'contact_us' %}">Contact Us</a></li>
+								{% endif %}
         				                                                                                                                                    
 	                        </ul>
                     	</li>
@@ -307,12 +308,14 @@
 			<div class="container" id="baseFooter" >
 			<hr>
 				<p>
-					<a href="{% url 'terms' %}" target=_blank  >Terms & Conditions</a>
+					<a href="{% url 'terms' %}" >Terms & Conditions</a>
 				 	 |
-					<a href="{% url 'privacy_and_cookie_policy' %}" target=_blank  >Privacy & Cookie Policy</a>
+					<a href="{% url 'privacy_and_cookie_policy' %}" >Privacy & Cookie Policy</a>
+					 | 
+					<a href="https://docs.hiru.swan.ac.uk/display/SATP/Concept+Library+Documentation" target=_blank  >Support & Documentation</a>
 					{% if not CLL_READ_ONLY %}
 					 |
-					<a href="{% url 'contact_us' %}" target=_blank  >Support & Documentation</a>
+					<a href="{% url 'contact_us' %}"  >Contact Us</a>
 					{% endif %}
 				</p>
 				<p>Copyright &copy; {% now 'Y' %} - SAIL Databank - Swansea University. All rights reserved.</p>	

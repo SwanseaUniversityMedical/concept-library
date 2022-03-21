@@ -1,5 +1,5 @@
 import time
-from datetime import datetime
+import datetime
 
 from clinicalcode.api.views.Concept import published_concepts
 from django.conf import settings
@@ -129,11 +129,11 @@ def get_HDRUK_statistics(request):
         'published_concept_count':
         len(
             HDRUK_published_concepts_ids
-        ),  #PublishedConcept.objects.filter(concept_id__in = HDRUK_published_concepts_ids).values('concept_id').distinct().count(),
+        ),  
         'published_phenotype_count':
         len(
             HDRUK_published_phenotypes_ids
-        ),  # PublishedPhenotype.objects.filter(phenotype_id__in = HDRUK_published_phenotypes_ids).values('phenotype_id').distinct().count(),
+        ),  
         'published_clinical_codes':
         get_published_clinical_codes(HDRUK_published_concepts_id_version),
         'datasources_component_count':
@@ -279,7 +279,7 @@ def save_statistics_collections(request, concept_or_phenotype, brand):
             concept_stat_update.stat = concept_stat
             concept_stat_update.updated_by = [None, request.user
                                               ][request.user.is_authenticated]
-            concept_stat_update.modified = datetime.now()
+            concept_stat_update.modified = datetime.datetime.now()
             concept_stat_update.save()
             return [concept_stat, concept_stat_update.id]
         else:
@@ -305,7 +305,7 @@ def save_statistics_collections(request, concept_or_phenotype, brand):
                 phenotype_stat_update.updated_by = [
                     None, request.user
                 ][request.user.is_authenticated]
-                phenotype_stat_update.modified = datetime.now()
+                phenotype_stat_update.modified = datetime.datetime.now()
                 phenotype_stat_update.save()
                 return [phenotype_stat, phenotype_stat_update.id]
             else:

@@ -82,13 +82,12 @@ class ComponentQueryBuilderCreate(LoginRequiredMixin,
         initials = CreateView.get_initial(self)
 
         try:
-            initials['concept'] = Concept.objects.get(
-                id=self.kwargs['concept_id'])
+            initials['concept'] = Concept.objects.get(id=self.kwargs['concept_id'])
         except ObjectDoesNotExist:
-            print('Concept for the component does not exist')
+            err = 'Concept for the component does not exist'
+            #print(err)
 
-        initials['component_type'] = '%s' % (
-            Component.COMPONENT_TYPE_QUERY_BUILDER)
+        initials['component_type'] = '%s' % (Component.COMPONENT_TYPE_QUERY_BUILDER)
 
         return initials
 

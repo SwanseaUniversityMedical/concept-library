@@ -293,8 +293,7 @@ def update_concept_tags_from_phenotype_tags():
                     """
                 cursor.execute(sql2)
 
-                print(("phenotype/concept: " + p.name + "/" + c.name +
-                       ":: tags moved"))
+                print(("phenotype/concept: " + p.name + "/" + c.name + ":: tags moved"))
 
 
 @login_required

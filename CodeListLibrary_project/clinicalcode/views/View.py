@@ -443,36 +443,26 @@ def customRoot(request):
                     'pk': 0,
                     'phenotype_history_id': 123
                 }),
-        'get_phenotype_versions':
-        reverse('api:get_phenotype_versions', kwargs={'pk': 0}),
-        'get_phenotype_versions_public':
-        reverse('api:get_phenotype_versions_public', kwargs={'pk': 0}),
-        'tags':
-        reverse('api:tags-list'),
+        'get_phenotype_versions': reverse('api:get_phenotype_versions', kwargs={'pk': 0}),
+        'get_phenotype_versions_public':  reverse('api:get_phenotype_versions_public', kwargs={'pk': 0}),
+        'tags':  reverse('api:tags-list'),
+        'datasource-list':  reverse('api:datasource-list'),
     }
 
     if not settings.CLL_READ_ONLY:
         urls_available.update({
-            'api_concept_create':
-            reverse('api:api_concept_create', kwargs={}),
-            'api_concept_update':
-            reverse('api:api_concept_update', kwargs={}),
-            'api_workingset_create':
-            reverse('api:api_workingset_create', kwargs={}),
-            'api_workingset_update':
-            reverse('api:api_workingset_update', kwargs={}),
-            'api_phenotype_create':
-            reverse('api:api_phenotype_create', kwargs={}),
-            'api_phenotype_update':
-            reverse('api:api_phenotype_update', kwargs={}),
-            'api_datasource_create':
-            reverse('api:api_datasource_create', kwargs={})
+            'api_concept_create':       reverse('api:api_concept_create', kwargs={}),
+            'api_concept_update':       reverse('api:api_concept_update', kwargs={}),
+            'api_workingset_create':    reverse('api:api_workingset_create', kwargs={}),
+            'api_workingset_update':    reverse('api:api_workingset_update', kwargs={}),
+            'api_phenotype_create':     reverse('api:api_phenotype_create', kwargs={}),
+            'api_phenotype_update':     reverse('api:api_phenotype_update', kwargs={}),
+            'api_datasource_create':    reverse('api:api_datasource_create', kwargs={})
         })
 
     # replace 0/123 by {id}/{version_id}
     for k, v in list(urls_available.items()):
-        new_url = urls_available[k].replace('C0', '{id}').replace(
-            'PH0', '{id}').replace('WS0',
+        new_url = urls_available[k].replace('C0', '{id}').replace('PH0', '{id}').replace('WS0',
                                    '{id}').replace('123', '{version_id}')
         urls_available[k] = new_url
 
@@ -509,65 +499,71 @@ def contact_us(request):
     '''
         Generation of Contact us page/form and email send functionality.
     '''
-    if not settings.CLL_READ_ONLY:
-        captcha = check_recaptcha(request)
-        status = 'N/A'
-        if request.method == 'GET':
-            form = ContactForm()
-        else:
-            form = ContactForm(request.POST)
-            if form.is_valid() and captcha is True:
-                name = form.cleaned_data['name']
-                from_email = form.cleaned_data['from_email']
-                message = form.cleaned_data['message']
-                category = form.cleaned_data['categories']
-                email_subject = ('Concept Library - New Message From ' + name)
-
-                try:
-                    html_content = '<strong>New Message from Concept Library Website</strong> <br><br> <strong>Name:</strong><br>' + name + '<br><br> <strong>Email:</strong><br>' + from_email + '<br><br> <strong>Issue Type:</strong><br>' + category + '<br><br><strong> Tell us about your Enquiry: </strong><br>' + message
-                    msg = EmailMultiAlternatives(email_subject,
-                                                 html_content,
-                                                 'Helpdesk <%s>' %
-                                                 settings.DEFAULT_FROM_EMAIL,
-                                                 to=[settings.HELPDESK_EMAIL],
-                                                 cc=[from_email])
-                    msg.content_subtype = "html"  # Main content is now text/html
-                    msg.send()
-                    status = 'Issue Reported Successfully.'
-                except BadHeaderError:
-                    return HttpResponse('Invalid header found.')
-
-            if captcha == False:
-                status = 'Please Fill out Captcha.'
-
-        return render(request, 'cl-docs/contact-us.html', {
-            'form': form,
-            'message': [status],
-        })
-    else:
+    if settings.CLL_READ_ONLY:
         raise PermissionDenied
+    
+    captcha = check_recaptcha(request)
+    status = 'N/A'
+    if request.method == 'GET':
+        form = ContactForm()
+    else:
+        form = ContactForm(request.POST)
+        if form.is_valid() and captcha is True:
+            name = form.cleaned_data['name']
+            from_email = form.cleaned_data['from_email']
+            message = form.cleaned_data['message']
+            category = form.cleaned_data['categories']
+            email_subject = ('Concept Library - New Message From ' + name)
+
+            try:
+                html_content = '<strong>New Message from Concept Library Website</strong> <br><br> <strong>Name:</strong><br>' + name + '<br><br> <strong>Email:</strong><br>' + from_email + '<br><br> <strong>Issue Type:</strong><br>' + category + '<br><br><strong> Tell us about your Enquiry: </strong><br>' + message
+                msg = EmailMultiAlternatives(email_subject,
+                                             html_content,
+                                             'Helpdesk <%s>' %
+                                             settings.DEFAULT_FROM_EMAIL,
+                                             to=[settings.HELPDESK_EMAIL],
+                                             cc=[from_email])
+                msg.content_subtype = "html"  # Main content is now text/html
+                msg.send()
+                status = 'Issue Reported Successfully.'
+            except BadHeaderError:
+                return HttpResponse('Invalid header found.')
+
+        if captcha == False:
+            status = 'Please Fill out Captcha.'
+
+    return render(request, 'cl-docs/contact-us.html', {
+        'form': form,
+        'message': [status],
+    })
+        
 
 
 def check_recaptcha(request):
     '''
         Contact Us Recaptcha code
     '''
-    if not settings.CLL_READ_ONLY:
-        if request.method == 'POST':
-            recaptcha_response = request.POST.get('g-recaptcha-response')
-            data = {
-                'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
-                'response': recaptcha_response
-            }
-            r = requests.post(
-                'https://www.google.com/recaptcha/api/siteverify',
-                data=data,
-                proxies={'https': 'http://proxy:8080/'})
-            result = r.json()
-            if result['success']:
-                recaptcha_is_valid = True
-            else:
-                recaptcha_is_valid = False
-            return recaptcha_is_valid
-    else:
+    if settings.CLL_READ_ONLY:
         raise PermissionDenied
+    
+    if request.method == 'POST':
+        recaptcha_response = request.POST.get('g-recaptcha-response')
+        data = {
+            'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
+            'response': recaptcha_response
+        }
+        r = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data=data,
+            proxies={'https': 'http://proxy:8080/'})
+        result = r.json()
+        if result['success']:
+            recaptcha_is_valid = True
+        else:
+            recaptcha_is_valid = False
+        return recaptcha_is_valid
+
+
+
+
+        
