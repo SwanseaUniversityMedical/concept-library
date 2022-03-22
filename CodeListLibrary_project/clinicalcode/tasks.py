@@ -1,3 +1,5 @@
+import time
+
 from celery import shared_task
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -26,18 +28,20 @@ def send_scheduled_email(self):
 
 
     for j in range(len(overal_result)):
-        if not settings.IS_DEVELOPMENT_PC:
-            try:
-                msg = EmailMultiAlternatives(email_subject,
-                                             overal_result[j]['content'],
-                                             'Helpdesk <%s>' % settings.DEFAULT_FROM_EMAIL,
-                                             to=[overal_result[j]['owner_email']]
-                                             )
-                msg.content_subtype = 'html'
-                msg.send()
-                return True, overal_result[j]['content']
-            except BadHeaderError:
-                return False
-        else:
-            #print(overal_result)
-            return True
+
+        try:
+            time.sleep(7)
+            msg = EmailMultiAlternatives(email_subject,
+                                         overal_result[j]['content'],
+                                         'Helpdesk <%s>' % settings.DEFAULT_FROM_EMAIL,
+                                         to=[overal_result[j]['owner_email']]
+                                         )
+            msg.content_subtype = 'html'
+            msg.send()
+            #print(overal_result[j])
+        except BadHeaderError:
+            return False
+    return True, overal_result
+
+
+
