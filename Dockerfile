@@ -46,23 +46,18 @@ RUN \
 COPY deploy_script_main.sh /home/config_cll/deploy_script_main.sh
 COPY deploy_script_DB_mig.sh /home/config_cll/deploy_script_DB_mig.sh
 COPY deploy_script_DB_mig_ro.sh /home/config_cll/deploy_script_DB_mig_ro.sh
-COPY test_sh.sh /home/config_cll/test_sh.sh
 
 # Make file executable:
 RUN ["chmod" , "+x" , "/home/config_cll/deploy_script_main.sh"]
 RUN ["chmod" , "+x" , "/home/config_cll/deploy_script_DB_mig.sh"]
 RUN ["chmod" , "+x" , "/home/config_cll/deploy_script_DB_mig_ro.sh"]
-#RUN ["/home/config_cll/deploy_script_main.sh"]
+
 RUN ["chown" , "-R" , "www-data:www-data" , "/var/www/"]
-
-COPY test_sh.sh /home/config_cll/test_sh.sh
-RUN ["chmod" , "+x" , "/home/config_cll/test_sh.sh"]
-
-#RUN /home/config_cll/test_sh.sh uncomment if localhost
-#RUN /home/config_cll/deploy_script_main.sh uncomment if demo prod
+#RUN /home/config_cll/deploy_script_main.sh
 
 
 #ENTRYPOINT ["/home/config_cll/deploy_script_main.sh"]
+RUN ["/home/config_cll/deploy_script_main.sh"]
 
 #**************************************************************************************
 #CMD ["/etc/init.d/apache2" ,"restart"]
