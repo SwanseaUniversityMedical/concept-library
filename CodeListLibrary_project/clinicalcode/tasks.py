@@ -28,19 +28,19 @@ def send_scheduled_email(self):
 
 
     for j in range(len(overal_result)):
-
-        try:
-            time.sleep(7)
-            msg = EmailMultiAlternatives(email_subject,
-                                         overal_result[j]['content'],
-                                         'Helpdesk <%s>' % settings.DEFAULT_FROM_EMAIL,
-                                         to=[overal_result[j]['owner_email']]
-                                         )
-            msg.content_subtype = 'html'
-            msg.send()
-            #print(overal_result[j])
-        except BadHeaderError:
-            return False
+        if not settings.IS_DEVELOPMENT_PC:
+            try:
+                time.sleep(7)
+                msg = EmailMultiAlternatives(email_subject,
+                                             overal_result[j]['content'],
+                                             'Helpdesk <%s>' % settings.DEFAULT_FROM_EMAIL,
+                                             to=[overal_result[j]['owner_email']]
+                                             )
+                msg.content_subtype = 'html'
+                msg.send()
+                #print(overal_result[j])
+            except BadHeaderError:
+                return False
     return True, overal_result
 
 
