@@ -969,16 +969,11 @@ def concept_upload_codes(request, pk):
                     if request.FILES.get('upload_concept_file'):
                         current_concept = Concept.objects.get(pk=pk)
                         concept_upload_file = request.FILES['upload_concept_file']
-
-                        codes = list(csv.reader([line.decode() for line in concept_upload_file ], delimiter=','))
                         
-                        # # Identify delimiter being used based on first line in .csv
-                        # datasample = list(csv.reader([line.decode() for line in concept_upload_file]))
-                        # firstrow = (str(datasample[0])[1:-1])
-                        # sniffer = csv.Sniffer()
-                        # delimetergather = sniffer.sniff(firstrow)
-                        # delimiter=delimetergather.delimiter
-                        # codes = list(csv.reader([line.decode() for line in concept_upload_file], delimiter=delimiter, quotechar='"'))
+                        delimiter = request.POST.get('specify_delimiter')
+                        #codes = list(csv.reader([line.decode() for line in concept_upload_file ], delimiter=','))
+                        codes = list(csv.reader([line.decode() for line in concept_upload_file ], delimiter=delimiter))
+                        
 
                         # The posted variables:
                         upload_name = request.POST.get('upload_name')
@@ -1271,15 +1266,12 @@ def concept_upload_codes(request, pk):
                 errorMsg = []
                 errorMsg.append('Error Encountered, Code List has not Been Uploaded.')
                 if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC or  request.user.is_superuser:
-                    errorMsg.append(e)
+                    errorMsg.append(str(e))
                     
                 data = dict()
                 # ------------------------------
                 concept = Concept.objects.get(id=pk)
-                latest_history_ID = concept.history.latest(
-                ).pk if request.POST.get(
-                    'latest_history_id_shown') is None else request.POST.get(
-                        'latest_history_id_shown')
+                latest_history_ID = concept.history.latest().pk if request.POST.get('latest_history_id_shown') is None else request.POST.get('latest_history_id_shown')
                 data['latest_history_ID'] = latest_history_ID
                 # ------------------------------
                 # data['exception'] = sys.exc_info()[0]
