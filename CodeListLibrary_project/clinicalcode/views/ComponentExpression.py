@@ -35,6 +35,7 @@ from ..models.Concept import Concept
 from ..models.PublishedConcept import PublishedConcept
 from ..permissions import *
 from ..views.View import build_permitted_components_list
+from test.support import catch_threading_exception
 
 logger = logging.getLogger(__name__)
 
@@ -564,16 +565,12 @@ class ComponentExpressionSelectCreate(LoginRequiredMixin,
 
         concept = Concept.objects.get(id=self.kwargs['concept_id'])
 
-        context['coding_system_filter'] = CodingSystemFilter.objects.filter(
-            coding_system_id=concept.coding_system_id)
+        context['coding_system_filter'] = CodingSystemFilter.objects.filter(coding_system_id=concept.coding_system_id)
 
         #------------------------------
         latest_history_ID = concept.history.latest().pk
         #context['latest_history_ID'] = latest_history_ID
-        context[
-            'latest_history_ID'] = latest_history_ID if self.request.POST.get(
-                'latest_history_id_shown') is None else self.request.POST.get(
-                    'latest_history_id_shown')
+        context['latest_history_ID'] = latest_history_ID if self.request.POST.get('latest_history_id_shown') is None else self.request.POST.get('latest_history_id_shown')
         #-------------------------------
 
         return context
@@ -587,8 +584,7 @@ class ComponentExpressionSelectCreate(LoginRequiredMixin,
             err = 'does not exist'
             #print(err)
 
-        initials['component_type'] = '%s' % (
-            Component.COMPONENT_TYPE_EXPRESSION_SELECT)
+        initials['component_type'] = '%s' % (Component.COMPONENT_TYPE_EXPRESSION_SELECT)
 
         return initials
 
@@ -596,17 +592,13 @@ class ComponentExpressionSelectCreate(LoginRequiredMixin,
         data = dict()
 
         data['form_is_valid'] = False
-        data['html_form'] = render_to_string(
-            'clinicalcode/component/expressionselect/create.html',
-            context=self.get_context_data(form=form),
-            request=self.request)
+        data['html_form'] = render_to_string('clinicalcode/component/expressionselect/create.html',
+                                            context=self.get_context_data(form=form),
+                                            request=self.request)
 
         #------------------------------
         concept = Concept.objects.get(id=self.kwargs['concept_id'])
-        data['latest_history_ID'] = concept.history.latest(
-        ).pk if self.request.POST.get(
-            'latest_history_id_shown') is None else self.request.POST.get(
-                'latest_history_id_shown')
+        data['latest_history_ID'] = concept.history.latest().pk if self.request.POST.get('latest_history_id_shown') is None else self.request.POST.get('latest_history_id_shown')
         #------------------------------
 
         return JsonResponse(data)
@@ -618,109 +610,129 @@ class ComponentExpressionSelectCreate(LoginRequiredMixin,
         formset = context['coderegex_formset']
 
         if formset.is_valid():
-            form.instance.created_by = self.request.user
-            # !!! self.object appears unnecessary, as above.
-            # self.object = form.save()
-            # formset.instance = self.object
-            formset.instance = form.save()
+            try:
+                with transaction.atomic():            
+                    form.instance.created_by = self.request.user
+                    # !!! self.object appears unnecessary, as above.
+                    # self.object = form.save()
+                    # formset.instance = self.object
+                    formset.instance = form.save()
+        
+                    # save code regex
+                    code_regex = formset.save()
+        
+                    # save the code list
+                    code_list = CodeList(component=form.instance)
+                    code_list.save()
+        
+                    # apply the code list reference to the code regex
+                    code_regex[0].code_list = code_list
+                    code_regex[0].save()
+        
+                    # process any uploaded files
+                    if self.request.FILES.get('upload_file'):
+                        csv_file = self.request.FILES['upload_file']
+                        
+                        delimiter = self.request.POST.get('specify_delimiter')
+                        #file_reader = csv.reader([line.decode() for line in csv_file], delimiter=',')
+                        file_reader = csv.reader([line.decode() for line in csv_file], delimiter= delimiter)
+        
+                        row_count = 0
+                        for row in file_reader:
+                            row_count += 1
+        
+                            # check if first row contains column headings or not
+                            if (self.request.POST.get('first_row_contains_column_headings_checkbox') == '1' and row_count == 1):
+                                continue
+        
+                            # !!! Do we need to assign these: obj, created =
+                            Code.objects.get_or_create(
+                                                        code_list=code_list,
+                                                        code=row[0],
+                                                        defaults={'description': row[1]})
+        
+                    # get codes to be saved
+                    codes = json.loads(self.request.POST.get('added_codes'))
+        
+                    # create codes
+                    for val in codes:
+                        # !!! Do we need to assign this: obj =
+                        Code.objects.create(code_list=code_list,
+                                            code=val['code'],
+                                            description=val['description'])
+        
+                    # save the concept with a change reason to reflect the creation
+                    # within the concept audit history
+                    db_utils.save_Entity_With_ChangeReason(Concept,
+                                                            self.kwargs['concept_id'],
+                                                            "Created component: %s" % (form.instance.name),
+                                                            modified_by_user=self.request.user)
+                    # Update dependent concepts & working sets
+                    db_utils.saveDependentConceptsChangeReason(
+                                                            self.kwargs['concept_id'], "Component concept #" +
+                                                            str(self.kwargs['concept_id']) + " was updated")
+        
+                    #components = Component.objects.filter(concept_id=self.kwargs['concept_id'])
+                    data['form_is_valid'] = True
+        
+                    # refresh component list
+                    data['html_component_list'] = render_to_string(
+                                                            'clinicalcode/component/partial_component_list.html',
+                                                            build_permitted_components_list(self.request,
+                                                                                            self.kwargs['concept_id']))
+        
+                    concept = Concept.objects.get(id=self.kwargs['concept_id'])
+        
+                    # update history list
+                    data['html_history_list'] = render_to_string(
+                        'clinicalcode/concept/partial_history_list.html', {
+                            'history': concept.history.all(),
+                            'current_concept_history_id': concept.history.latest().pk,
+                            'published_historical_ids': list(PublishedConcept.objects.filter(concept_id=self.kwargs['concept_id']).values_list('concept_history_id', flat=True))
+                        },
+                        request=self.request)
+        
+                    data['latest_history_ID'] = concept.history.latest().pk
+        
+                    # update add_menu_items to reflect latest history id
+                    data['add_menu_items'] = render_to_string(
+                                                        'clinicalcode/concept/add_menu_items.html', {
+                                                            'pk': self.kwargs['concept_id'],
+                                                            'latest_history_id': concept.history.latest().pk
+                                                        })
 
-            # save code regex
-            code_regex = formset.save()
+            except Exception as e:
+                errorMsg = []
+                errorMsg.append('Error Encountered.')
+                if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC or  self.request.user.is_superuser:
+                    errorMsg.append(str(e))
+                    
+                data = dict()
+                #------------------------------
+                concept = Concept.objects.get(id=self.kwargs['concept_id'])
+                latest_history_ID = concept.history.latest().pk if self.request.POST.get('latest_history_id_shown') is None else self.request.POST.get('latest_history_id_shown')
+                data['latest_history_ID'] = latest_history_ID
+                #------------------------------
+                data['errorMsg'] = errorMsg
+                # ------------------------------
+                                
+                data['form_is_valid'] = False
+                context = self.get_context_data(form=form)
+                context['errorMsg'] = errorMsg
+                context['latest_history_ID'] = latest_history_ID
+                data['html_form'] = render_to_string('clinicalcode/component/expressionselect/create.html',
+                                                    context=context,
+                                                    request=self.request)       
 
-            # save the code list
-            code_list = CodeList(component=form.instance)
-            code_list.save()
-
-            # apply the code list reference to the code regex
-            code_regex[0].code_list = code_list
-            code_regex[0].save()
-
-            # process any uploaded files
-            if self.request.FILES.get('upload_file'):
-                csv_file = self.request.FILES['upload_file']
-                #file_reader = csv.reader(csv_file, delimiter=',')
-                file_reader = csv.reader([line.decode() for line in csv_file],
-                                         delimiter=',')
-
-                row_count = 0
-                for row in file_reader:
-                    row_count += 1
-
-                    # check if first row contains column headings or not
-                    if (self.request.POST.get(
-                            'first_row_contains_column_headings_checkbox')
-                            == '1' and row_count == 1):
-                        continue
-
-                    # !!! Do we need to assign these: obj, created =
-                    Code.objects.get_or_create(
-                        code_list=code_list,
-                        code=row[0],
-                        defaults={'description': row[1]})
-
-            # get codes to be saved
-            codes = json.loads(self.request.POST.get('added_codes'))
-
-            # create codes
-            for val in codes:
-                # !!! Do we need to assign this: obj =
-                Code.objects.create(code_list=code_list,
-                                    code=val['code'],
-                                    description=val['description'])
-
-            # save the concept with a change reason to reflect the creation
-            # within the concept audit history
-            db_utils.save_Entity_With_ChangeReason(
-                Concept,
-                self.kwargs['concept_id'],
-                "Created component: %s" % (form.instance.name),
-                modified_by_user=self.request.user)
-            # Update dependent concepts & working sets
-            db_utils.saveDependentConceptsChangeReason(
-                self.kwargs['concept_id'], "Component concept #" +
-                str(self.kwargs['concept_id']) + " was updated")
-
-            #components = Component.objects.filter(concept_id=self.kwargs['concept_id'])
-            data['form_is_valid'] = True
-
-            # refresh component list
-            data['html_component_list'] = render_to_string(
-                'clinicalcode/component/partial_component_list.html',
-                build_permitted_components_list(self.request,
-                                                self.kwargs['concept_id']))
-
-            concept = Concept.objects.get(id=self.kwargs['concept_id'])
-
-            # update history list
-            data['html_history_list'] = render_to_string(
-                'clinicalcode/concept/partial_history_list.html', {
-                    'history':
-                    concept.history.all(),
-                    'current_concept_history_id':
-                    concept.history.latest().pk,
-                    'published_historical_ids':
-                    list(
-                        PublishedConcept.objects.filter(
-                            concept_id=self.kwargs['concept_id']).values_list(
-                                'concept_history_id', flat=True))
-                },
-                request=self.request)
-
-            data['latest_history_ID'] = concept.history.latest().pk
-
-            # update add_menu_items to reflect latest history id
-            data['add_menu_items'] = render_to_string(
-                'clinicalcode/concept/add_menu_items.html', {
-                    'pk': self.kwargs['concept_id'],
-                    'latest_history_id': concept.history.latest().pk
-                })
+               
+                return JsonResponse(data)                       
 
         else:
             data['form_is_valid'] = False
             data['html_form'] = render_to_string(
-                'clinicalcode/component/expressionselect/create.html',
-                context=self.get_context_data(form=form),
-                request=self.request)
+                                            'clinicalcode/component/expressionselect/create.html',
+                                            context=self.get_context_data(form=form),
+                                            request=self.request)
 
         return JsonResponse(data)
 
@@ -806,23 +818,18 @@ class ComponentExpressionSelectUpdate(LoginRequiredMixin,
     def get_context_data(self, **kwargs):
         context = UpdateView.get_context_data(self, **kwargs)
         if self.request.POST:
-            context['coderegex_formset'] = CodeRegexFormSet(
-                self.request.POST, instance=self.object)
+            context['coderegex_formset'] = CodeRegexFormSet(self.request.POST, instance=self.object)
             context['coderegex_formset'].full_clean()
         else:
-            context['coderegex_formset'] = CodeRegexFormSet(
-                instance=self.object)
+            context['coderegex_formset'] = CodeRegexFormSet(instance=self.object)
+            
         concept = Concept.objects.get(id=self.kwargs['concept_id'])
-        context['coding_system_filter'] = CodingSystemFilter.objects.filter(
-            coding_system_id=concept.coding_system_id)
+        context['coding_system_filter'] = CodingSystemFilter.objects.filter(coding_system_id=concept.coding_system_id)
 
         #------------------------------
         latest_history_ID = concept.history.latest().pk
         #context['latest_history_ID'] = latest_history_ID
-        context[
-            'latest_history_ID'] = latest_history_ID if self.request.POST.get(
-                'latest_history_id_shown') is None else self.request.POST.get(
-                    'latest_history_id_shown')
+        context['latest_history_ID'] = latest_history_ID if self.request.POST.get('latest_history_id_shown') is None else self.request.POST.get('latest_history_id_shown')
         #-------------------------------
 
         return context
@@ -830,17 +837,13 @@ class ComponentExpressionSelectUpdate(LoginRequiredMixin,
     def form_invalid(self, form):
         data = dict()
         data['form_is_valid'] = False
-        data['html_form'] = render_to_string(
-            'clinicalcode/component/expressionselect/update.html',
-            context=self.get_context_data(form=form),
-            request=self.request)
+        data['html_form'] = render_to_string('clinicalcode/component/expressionselect/update.html',
+                                            context=self.get_context_data(form=form),
+                                            request=self.request)
 
         #------------------------------
         concept = Concept.objects.get(id=self.kwargs['concept_id'])
-        data['latest_history_ID'] = concept.history.latest(
-        ).pk if self.request.POST.get(
-            'latest_history_id_shown') is None else self.request.POST.get(
-                'latest_history_id_shown')
+        data['latest_history_ID'] = concept.history.latest().pk if self.request.POST.get('latest_history_id_shown') is None else self.request.POST.get('latest_history_id_shown')
         #------------------------------
 
         return JsonResponse(data)
@@ -849,123 +852,143 @@ class ComponentExpressionSelectUpdate(LoginRequiredMixin,
         data = dict()
         context = self.get_context_data()
         formset = context['coderegex_formset']
+        
         if formset.is_valid():
-            with transaction.atomic():
-                form.instance.modified_by = self.request.user
-                # !!! self.object appears unnecessary, as above.
-                # self.object = form.save()
-                # formset.instance = self.object
-                formset.instance = form.save()
+            try:
+                with transaction.atomic():
+                    form.instance.modified_by = self.request.user
+                    # !!! self.object appears unnecessary, as above.
+                    # self.object = form.save()
+                    # formset.instance = self.object
+                    formset.instance = form.save()
+    
+                    code_list_id = self.request.POST.get('coderegex-0-code_list')
+    
+                    formset.save()
+    
+                    # process any uploaded files
+                    if self.request.FILES.get('upload_file'):
+                        csv_file = self.request.FILES['upload_file']
+                    
+                        delimiter = self.request.POST.get('specify_delimiter')
+                        #file_reader = csv.reader([line.decode() for line in csv_file], delimiter=',')
+                        file_reader = csv.reader([line.decode() for line in csv_file], delimiter= delimiter)
+    
+                        row_count = 0
+                        for row in file_reader:
+                            row_count += 1
+    
+                            # check if first row contains column headings or not
+                            if (self.request.POST.get('first_row_contains_column_headings_checkbox') == '1' and row_count == 1):
+                                continue
+    
+                            # !!! Do we need to assign theses: obj, created =
+                            Code.objects.get_or_create(
+                                                        code_list_id=code_list_id,
+                                                        code=row[0],
+                                                        defaults={'description': row[1]})
+    
+                    # find the matched and non matched items
+                    added_codes = json.loads(self.request.POST.get('added_codes'))
+                    deleted_codes = json.loads(self.request.POST.get('deleted_codes'))
+    
+                    # delete old codes
+                    for code in deleted_codes:
+                        codes_to_del = Code.objects.filter(code_list_id=code_list_id, code=code['code'])
+    
+                        for code_to_del in codes_to_del:
+                            try:
+                                code_to_del.delete()
+                            except ObjectDoesNotExist:
+                                code_to_del = None
+    
+                    # add new codes
+                    for code in added_codes:
+                        codes_to_add = Code.objects.filter(code_list_id=code_list_id, code=code['code'])
+    
+                        if not codes_to_add:
+                            Code.objects.create(
+                                                code_list=CodeList.objects.get(pk=code_list_id),
+                                                code=code['code'],
+                                                description=code['description'])
+    
+                    # save the concept with a change reason to reflect the update
+                    # within the concept audit history
+                    db_utils.save_Entity_With_ChangeReason(
+                                                            Concept,
+                                                            self.kwargs['concept_id'],
+                                                            "Updated component: %s" % (form.instance.name),
+                                                            modified_by_user=self.request.user)
+                    # Update dependent concepts & working sets
+                    db_utils.saveDependentConceptsChangeReason(
+                                                                self.kwargs['concept_id'], "Component concept #" +
+                                                                str(self.kwargs['concept_id']) + " was updated")
+    
+                #components = Component.objects.filter(concept_id=self.kwargs['concept_id'])
+    
+                data['form_is_valid'] = True
+                # refresh component list
+                data['html_component_list'] = render_to_string(
+                                                    'clinicalcode/component/partial_component_list.html',
+                                                    build_permitted_components_list(self.request,
+                                                    self.kwargs['concept_id']))
+    
+                concept = Concept.objects.get(id=self.kwargs['concept_id'])
+    
+                # update history list
+                data['html_history_list'] = render_to_string(
+                    'clinicalcode/concept/partial_history_list.html', {
+                        'history': concept.history.all(),
+                        'current_concept_history_id': concept.history.latest().pk,
+                        'published_historical_ids': list(PublishedConcept.objects.filter(concept_id=self.kwargs['concept_id']).values_list('concept_history_id', flat=True))
+                    },
+                    request=self.request)
+    
+                data['latest_history_ID'] = concept.history.latest().pk
+    
+                # update add_menu_items to reflect latest history id
+                data['add_menu_items'] = render_to_string(
+                                            'clinicalcode/concept/add_menu_items.html', {
+                                                'pk': self.kwargs['concept_id'],
+                                                'latest_history_id': concept.history.latest().pk
+                                            })
 
-                code_list_id = self.request.POST.get('coderegex-0-code_list')
+                return JsonResponse(data)
+            
+            except Exception as e:
+                errorMsg = []
+                errorMsg.append('Error Encountered.')
+                if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC or  self.request.user.is_superuser:
+                    errorMsg.append(str(e))
+                    
+                data = dict()
+                #------------------------------
+                concept = Concept.objects.get(id=self.kwargs['concept_id'])
+                latest_history_ID = concept.history.latest().pk if self.request.POST.get('latest_history_id_shown') is None else self.request.POST.get('latest_history_id_shown')
+                data['latest_history_ID'] = latest_history_ID
+                #------------------------------
+                data['errorMsg'] = errorMsg
+                # ------------------------------
+                                
+                data['form_is_valid'] = False
+                context = self.get_context_data(form=form)
+                context['errorMsg'] = errorMsg
+                context['latest_history_ID'] = latest_history_ID
+                data['html_form'] = render_to_string('clinicalcode/component/expressionselect/update.html',
+                                                    context=context,
+                                                    request=self.request)       
 
-                formset.save()
-
-                # process any uploaded files
-                if self.request.FILES.get('upload_file'):
-                    csv_file = self.request.FILES['upload_file']
-                    #file_reader = csv.reader(csv_file, delimiter=',')
-                    file_reader = csv.reader(
-                        [line.decode() for line in csv_file], delimiter=',')
-
-                    row_count = 0
-                    for row in file_reader:
-                        row_count += 1
-
-                        # check if first row contains column headings or not
-                        if (self.request.POST.get(
-                                'first_row_contains_column_headings_checkbox')
-                                == '1' and row_count == 1):
-                            continue
-
-                        # !!! Do we need to assign theses: obj, created =
-                        Code.objects.get_or_create(
-                            code_list_id=code_list_id,
-                            code=row[0],
-                            defaults={'description': row[1]})
-
-                # find the matched and non matched items
-                added_codes = json.loads(self.request.POST.get('added_codes'))
-                deleted_codes = json.loads(
-                    self.request.POST.get('deleted_codes'))
-
-                # delete old codes
-                for code in deleted_codes:
-                    codes_to_del = Code.objects.filter(
-                        code_list_id=code_list_id, code=code['code'])
-
-                    for code_to_del in codes_to_del:
-                        try:
-                            code_to_del.delete()
-                        except ObjectDoesNotExist:
-                            code_to_del = None
-
-                # add new codes
-                for code in added_codes:
-                    codes_to_add = Code.objects.filter(
-                        code_list_id=code_list_id, code=code['code'])
-
-                    if not codes_to_add:
-                        Code.objects.create(
-                            code_list=CodeList.objects.get(pk=code_list_id),
-                            code=code['code'],
-                            description=code['description'])
-
-                # save the concept with a change reason to reflect the update
-                # within the concept audit history
-                db_utils.save_Entity_With_ChangeReason(
-                    Concept,
-                    self.kwargs['concept_id'],
-                    "Updated component: %s" % (form.instance.name),
-                    modified_by_user=self.request.user)
-                # Update dependent concepts & working sets
-                db_utils.saveDependentConceptsChangeReason(
-                    self.kwargs['concept_id'], "Component concept #" +
-                    str(self.kwargs['concept_id']) + " was updated")
-
-            #components = Component.objects.filter(concept_id=self.kwargs['concept_id'])
-
-            data['form_is_valid'] = True
-            # refresh component list
-            data['html_component_list'] = render_to_string(
-                'clinicalcode/component/partial_component_list.html',
-                build_permitted_components_list(self.request,
-                                                self.kwargs['concept_id']))
-
-            concept = Concept.objects.get(id=self.kwargs['concept_id'])
-
-            # update history list
-            data['html_history_list'] = render_to_string(
-                'clinicalcode/concept/partial_history_list.html', {
-                    'history':
-                    concept.history.all(),
-                    'current_concept_history_id':
-                    concept.history.latest().pk,
-                    'published_historical_ids':
-                    list(
-                        PublishedConcept.objects.filter(
-                            concept_id=self.kwargs['concept_id']).values_list(
-                                'concept_history_id', flat=True))
-                },
-                request=self.request)
-
-            data['latest_history_ID'] = concept.history.latest().pk
-
-            # update add_menu_items to reflect latest history id
-            data['add_menu_items'] = render_to_string(
-                'clinicalcode/concept/add_menu_items.html', {
-                    'pk': self.kwargs['concept_id'],
-                    'latest_history_id': concept.history.latest().pk
-                })
+               
+                return JsonResponse(data)            
 
         else:
             data['form_is_valid'] = False
             data['html_form'] = render_to_string(
-                'clinicalcode/component/expressionselect/update.html',
-                context=self.get_context_data(form=form),
-                request=self.request)
-
-        return JsonResponse(data)
+                                                'clinicalcode/component/expressionselect/update.html',
+                                                context=self.get_context_data(form=form),
+                                                request=self.request)
+            return JsonResponse(data)
+        
 
 
 def component_history_expression_detail_combined(request, pk, concept_id,
@@ -988,9 +1011,7 @@ def component_history_expression_detail_combined(request, pk, concept_id,
                             concept_id,
                             set_history_id=concept_history_id)
 
-    if not Component.history.filter(
-            Q(id=pk), Q(history_id=component_history_id),
-            Q(concept_id=concept_id), ~Q(history_type='-')).exists():
+    if not Component.history.filter(Q(id=pk), Q(history_id=component_history_id), Q(concept_id=concept_id), ~Q(history_type='-')).exists():
         raise PermissionDenied
 
     #----------------------------------------------------------------------
@@ -1021,13 +1042,19 @@ def component_history_expression_detail_combined(request, pk, concept_id,
 def component_expression_searchcodes(request, concept_id):
     '''
         Search for codes using a pattern string either %patt% or a regex.
-        !!! (1) Case-sensitivity --- seems to ignore lower-case.
-        !!! (2) Should we do %patt% by default?
-        !!! (3) How do we do whole-word only, e.g. search for PSA not xxxPSAxxx? Not quite % PSA %?
+        !!! (1) Should we do %patt% by default?
+        !!! (2) How do we do whole-word only, e.g. search for PSA not xxxPSAxxx? Not quite % PSA %?
     '''
     validate_access_to_view(request, Concept, concept_id)
     concept = Concept.objects.get(id=concept_id)
     coding_system = concept.coding_system
+    
+    case_sensitive_search = False
+    try:
+        case_sensitive_search = utils.get_bool_value(request.POST.get('case_sensitive_search'), False)
+    except Exception as e:
+        case_sensitive_search = False
+     
     codes = db_utils.search_codes(
         Component.COMPONENT_TYPE_EXPRESSION,
         coding_system.database_connection_name, coding_system.table_name,
@@ -1037,7 +1064,8 @@ def component_expression_searchcodes(request, concept_id):
         utils.get_int_value(request.POST.get('logical_type'), -1),
         utils.get_int_value(request.POST.get('regex_type'), -1),
         request.POST.get('regex_code'), coding_system.filter,
-        utils.get_bool_value(request.POST.get('case_sensitive_search'), False))
+        case_sensitive_search
+        )
     return JsonResponse(codes, safe=False)
 
 

@@ -254,6 +254,12 @@ class ConceptUploadForm(forms.Form):
         ('sub_cat', 'Sub category'),
         ('sub_cat_desc', 'Sub category description'),
     )
+    
+    delimiters = (
+        (',', ','),
+        (';', ';'),
+        ('|', '|'),
+        )
 
     upload_name = forms.CharField(
         label='Name:',
@@ -321,6 +327,11 @@ class ConceptUploadForm(forms.Form):
         label='Upload csv:',
         required=True,
     )
+    specify_delimiter = forms.ChoiceField(
+        label='csv delimiter:',
+        choices=delimiters,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        required=True)
 
 
 class Tag(forms.ModelForm):

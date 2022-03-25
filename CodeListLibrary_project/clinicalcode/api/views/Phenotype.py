@@ -498,21 +498,16 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None):
 
     tag_ids = request.query_params.get('tag_ids', '')
     owner = request.query_params.get('owner_username', '')
-    show_only_my_phenotypes = request.query_params.get(
-        'show_only_my_phenotypes', "0")
-    show_deleted_phenotypes = request.query_params.get(
-        'show_deleted_phenotypes', "0")
-    show_only_validated_phenotypes = request.query_params.get(
-        'show_only_validated_phenotypes', "0")
+    show_only_my_phenotypes = request.query_params.get('show_only_my_phenotypes', "0")
+    show_deleted_phenotypes = request.query_params.get('show_deleted_phenotypes', "0")
+    show_only_validated_phenotypes = request.query_params.get('show_only_validated_phenotypes', "0")
     phenotype_brand = request.query_params.get('brand', "")
     author = request.query_params.get('author', '')
-    do_not_show_versions = request.query_params.get('do_not_show_versions',
-                                                    "0")
+    do_not_show_versions = request.query_params.get('do_not_show_versions', "0")
     expand_published_versions = 0  # disable this option
     #expand_published_versions = request.query_params.get('expand_published_versions', "1")
     show_live_and_or_published_ver = "3"  # request.query_params.get('show_live_and_or_published_ver', "3")      # 1= live only, 2= published only, 3= live+published
-    must_have_published_versions = request.query_params.get(
-        'must_have_published_versions', "0")
+    must_have_published_versions = request.query_params.get('must_have_published_versions', "0")
 
     search_tag_list = []
     #tags = []
