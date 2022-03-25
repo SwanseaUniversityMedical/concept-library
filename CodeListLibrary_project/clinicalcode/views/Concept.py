@@ -741,76 +741,75 @@ def concept_list(request):
 
     search_tag_list = []
     tags = []
+    
+    # get page index variables from query or from session   
+    expand_published_versions = 0  # disable this option    
 
-    # get page index variables from query or from session
-    page_size = utils.get_int_value(
-        request.GET.get('page_size',
-                        request.session.get('concept_page_size', 20)), 20)
-    page = utils.get_int_value(
-        request.GET.get('page', request.session.get('concept_page', 1)), 1)
-    search = request.GET.get('search',
-                             request.session.get('concept_search', ''))
-    show_my_concepts = request.GET.get(
-        'show_my_concepts', request.session.get('concept_show_my_concept', 0))
-    show_deleted_concepts = request.GET.get(
-        'show_deleted_concepts',
-        request.session.get('concept_show_deleted_concepts', 0))
-    tag_ids = request.GET.get('tagids',
-                              request.session.get('concept_tagids', ''))
+    page_size = utils.get_int_value(request.GET.get('page_size', request.session.get('concept_page_size', 20)), 20)
+    page = utils.get_int_value(request.GET.get('page', request.session.get('concept_page', 1)), 1)
+    search = request.GET.get('search', request.session.get('concept_search', ''))
+    tag_ids = request.GET.get('tagids', request.session.get('concept_tagids', ''))
     owner = request.GET.get('owner', request.session.get('concept_owner', ''))
-    author = request.GET.get('author',
-                             request.session.get('concept_author', ''))
-    show_only_validated_concepts = request.GET.get(
-        'show_only_validated_concepts',
-        request.session.get('show_only_validated_concepts', 0))
-    concept_brand = request.GET.get(
-        'concept_brand', request.session.get('concept_brand',
-                                             ''))  # request.CURRENT_BRAND
-    expand_published_versions = 0  # disable this option
-    # expand_published_versions = request.GET.get('expand_published_versions', request.session.get('expand_published_versions', 0))
-    must_have_published_versions = request.GET.get(
-        'must_have_published_versions',
-        request.session.get('concept_must_have_published_versions', 0))
-    search_form = request.GET.get(
-        'search_form', request.session.get('concept_search_form',
-                                           'basic-form'))
+    author = request.GET.get('author', request.session.get('concept_author', ''))
+    concept_brand = request.GET.get('concept_brand', request.session.get('concept_brand', ''))  # request.CURRENT_BRAND
+     
+    show_deleted_concepts = request.GET.get('show_deleted_concepts', request.session.get('concept_show_deleted_concepts', 0))
+    show_my_concepts = request.GET.get('show_my_concepts', request.session.get('concept_show_my_concept', 0))
+    show_only_validated_concepts = request.GET.get('show_only_validated_concepts', request.session.get('show_only_validated_concepts', 0))   
+    must_have_published_versions = request.GET.get('must_have_published_versions', request.session.get('concept_must_have_published_versions', 0))
 
-    if request.method == 'POST':
+    search_form = request.GET.get('search_form', request.session.get('concept_search_form', 'basic-form'))
+    
+        
+    if bool(request.GET):
         # get posted parameters
-        search = request.POST.get('search', '')
-        page_size = request.POST.get('page_size', 20)
-        page = request.POST.get('page', page)
-        show_my_concepts = request.POST.get('show_my_concepts', 0)
-        show_deleted_concepts = request.POST.get('show_deleted_concepts', 0)
-        author = request.POST.get('author', '')
-        tag_ids = request.POST.get('tagids', '')
-        owner = request.POST.get('owner', '')
-        show_only_validated_concepts = request.POST.get(
-            'show_only_validated_concepts', 0)
-        concept_brand = request.POST.get('concept_brand',
-                                         '')  # request.CURRENT_BRAND
-        # expand_published_versions = request.POST.get('expand_published_versions', 0)
-        must_have_published_versions = request.POST.get(
-            'must_have_published_versions', 0)
-        search_form = request.POST.get('search_form', 'basic-form')
+        search = request.GET.get('search', '')
+        page_size = request.GET.get('page_size', 20)
+        page = request.GET.get('page', 1)# page)
+        concept_brand = request.GET.get('concept_brand', '')  # request.CURRENT_BRAND
+        tag_ids = request.GET.get('tagids', '')            
+        search_form = request.GET.get('search_form', 'basic-form')
+        
+        if search_form !='basic-form': 
+            author = request.GET.get('author', '')
+            owner = request.GET.get('owner', '')
+            show_my_concepts = request.GET.get('show_my_concepts', 0)
+            show_deleted_concepts = request.GET.get('show_deleted_concepts', 0)            
+            show_only_validated_concepts = request.GET.get('show_only_validated_concepts', 0)
+            must_have_published_versions = request.GET.get('must_have_published_versions', 0)
+                
+            
 
+
+        
     # store page index variables to session
     request.session['concept_page_size'] = page_size
     request.session['concept_page'] = page
-    request.session['concept_search'] = search
-    request.session['concept_show_my_concept'] = show_my_concepts
-    request.session['concept_show_deleted_concepts'] = show_deleted_concepts
-    request.session['concept_author'] = author
+    request.session['concept_search'] = search 
     request.session['concept_tagids'] = tag_ids
-    request.session['concept_owner'] = owner
-    request.session[
-        'show_only_validated_concepts'] = show_only_validated_concepts
     request.session['concept_brand'] = concept_brand
-    # request.session['expand_published_versions'] = expand_published_versions
-    request.session[
-        'concept_must_have_published_versions'] = must_have_published_versions
+     
+    #if search_form !='basic-form':     
+    request.session['concept_owner'] = owner   
+    request.session['concept_author'] = author
+    request.session['concept_show_deleted_concepts'] = show_deleted_concepts   
+    request.session['concept_show_my_concept'] = show_my_concepts
+    request.session['show_only_validated_concepts'] = show_only_validated_concepts   
+    request.session['concept_must_have_published_versions'] = must_have_published_versions
+    
     request.session['concept_search_form'] = search_form
-
+    
+            
+    if search_form == 'basic-form':     
+        owner = '' 
+        author = ''
+        show_deleted_concepts = 0    
+        show_my_concepts = 0
+        show_only_validated_concepts = 0    
+        must_have_published_versions = 0
+        
+        
+            
     filter_cond = " 1=1 "
     exclude_deleted = True
     get_live_and_or_published_ver = 3  # 1= live only, 2= published only, 3= live+published
@@ -867,17 +866,16 @@ def concept_list(request):
     if concept_brand != "":
         current_brand = Brand.objects.all().filter(name=concept_brand)
         group_list = list(current_brand.values_list('groups', flat=True))
-        filter_cond += " AND group_id IN(" + ', '.join(map(str,
-                                                           group_list)) + ") "
+        filter_cond += " AND group_id IN(" + ', '.join(map(str, group_list)) + ") "
 
     concepts_srch = db_utils.get_visible_live_or_published_concept_versions(
-        request,
-        get_live_and_or_published_ver=get_live_and_or_published_ver,
-        searchByName=search,
-        author=author,
-        exclude_deleted=exclude_deleted,
-        filter_cond=filter_cond,
-        show_top_version_only=show_top_version_only)
+                                                                            request,
+                                                                            get_live_and_or_published_ver=get_live_and_or_published_ver,
+                                                                            searchByName=search,
+                                                                            author=author,
+                                                                            exclude_deleted=exclude_deleted,
+                                                                            filter_cond=filter_cond,
+                                                                            show_top_version_only=show_top_version_only)
 
     # create pagination
     paginator = Paginator(concepts_srch,
@@ -895,11 +893,16 @@ def concept_list(request):
     if tag_ids:
         tag_ids_list = [int(t) for t in tag_ids.split(',')]
 
-    brand_associated_collections = db_utils.get_brand_associated_collections(
-        request, concept_or_phenotype='concept')
-    brand_associated_collections_ids = list(
-        brand_associated_collections.values_list('id', flat=True))
+    brand_associated_collections = db_utils.get_brand_associated_collections(request, concept_or_phenotype='concept')
+    brand_associated_collections_ids = list(brand_associated_collections.values_list('id', flat=True))
 
+    owner = request.session.get('concept_owner')    
+    author = request.session.get('concept_author') 
+    show_deleted_concepts = request.session.get('concept_show_deleted_concepts')    
+    show_my_concepts = request.session.get('concept_show_my_concept')
+    show_only_validated_concepts = request.session.get('show_only_validated_concepts')   
+    must_have_published_versions = request.session.get('concept_must_have_published_versions')
+    
     return render(
         request,
         'clinicalcode/concept/index.html',
@@ -925,8 +928,7 @@ def concept_list(request):
             'brand_associated_collections': brand_associated_collections,
             'brand_associated_collections_ids': brand_associated_collections_ids,
             'all_collections_selected':all(item in tag_ids_list for item in brand_associated_collections_ids)
-            # 'expand_published_versions': expand_published_versions,
-            # 'published_count': PublishedConcept.objects.all().count()
+
         })
 
 
@@ -969,16 +971,11 @@ def concept_upload_codes(request, pk):
                     if request.FILES.get('upload_concept_file'):
                         current_concept = Concept.objects.get(pk=pk)
                         concept_upload_file = request.FILES['upload_concept_file']
-
-                        codes = list(csv.reader([line.decode() for line in concept_upload_file ], delimiter=','))
                         
-                        # # Identify delimiter being used based on first line in .csv
-                        # datasample = list(csv.reader([line.decode() for line in concept_upload_file]))
-                        # firstrow = (str(datasample[0])[1:-1])
-                        # sniffer = csv.Sniffer()
-                        # delimetergather = sniffer.sniff(firstrow)
-                        # delimiter=delimetergather.delimiter
-                        # codes = list(csv.reader([line.decode() for line in concept_upload_file], delimiter=delimiter, quotechar='"'))
+                        delimiter = request.POST.get('specify_delimiter')
+                        #codes = list(csv.reader([line.decode() for line in concept_upload_file ], delimiter=','))
+                        codes = list(csv.reader([line.decode() for line in concept_upload_file ], delimiter=delimiter))
+                        
 
                         # The posted variables:
                         upload_name = request.POST.get('upload_name')
@@ -1271,15 +1268,12 @@ def concept_upload_codes(request, pk):
                 errorMsg = []
                 errorMsg.append('Error Encountered, Code List has not Been Uploaded.')
                 if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC or  request.user.is_superuser:
-                    errorMsg.append(e)
+                    errorMsg.append(str(e))
                     
                 data = dict()
                 # ------------------------------
                 concept = Concept.objects.get(id=pk)
-                latest_history_ID = concept.history.latest(
-                ).pk if request.POST.get(
-                    'latest_history_id_shown') is None else request.POST.get(
-                        'latest_history_id_shown')
+                latest_history_ID = concept.history.latest().pk if request.POST.get('latest_history_id_shown') is None else request.POST.get('latest_history_id_shown')
                 data['latest_history_ID'] = latest_history_ID
                 # ------------------------------
                 # data['exception'] = sys.exc_info()[0]

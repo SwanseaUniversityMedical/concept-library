@@ -14,15 +14,14 @@
  	<div class="container" >
 
 		<div id="basic-search" class="bg-search" {% if search_form == 'advanced-form' %} style="display:none;" {% endif %} >
-			<form class="container_frm container-1 example" id="basic-form" action="{% url 'concept_list' %}" method="POST"  >
-			    {% csrf_token %}
+			<form class="container_frm container-1 example" id="basic-form" action="{% url 'concept_list' %}" method="GET"  >
 				<div  class="row form-group">
 					<div>
 						<h2>Concepts</h2>
 						<input type="text" placeholder="Search Concepts" name="search" id="search1" value="{{ search|default_if_none:'' }}">
 						<input type="hidden" name="tagids" id="tagids"  value="{{ tag_ids|default_if_none:'' }}">
-						<input type="hidden" name="search_form" id="collection_search_form1"  class="collection_search_form"  value="{{ search_form }}"> 
-										
+						<input type="hidden" name="search_form" id="collection_search_form1"  class="collection_search_form"  value="{{ search_form }}"> 		
+									
 						<button name="page" value="1">
 							<i class="fa fa-search"></i>
 						</button>
@@ -30,7 +29,6 @@
 				</div>
 				<div class="row form-group">
 					<div >
-						<input type=hidden name="search_form" value='basic-form'>
 						<a  id="show-advanced-search" href="javascript:void(null);" >Advanced search</a>
 					</div>
 				</div>
@@ -41,8 +39,7 @@
 
 		<div id="advanced-search" {% if search_form == 'basic-form' %} style="display:none;" {% endif %} >
 			<h2 class="page-header">Concepts</h2>
-			<form id="advanced-form" action="{% url 'concept_list' %}" method="POST" >
-				{% csrf_token %}
+			<form id="advanced-form" action="{% url 'concept_list' %}" method="GET" >
 				<div class="panel panel-default bg-search">
 					<div class="panel-body container-2">
 					
@@ -131,7 +128,8 @@
 							<div class="col-md-3">
 								<div class="checkbox"  >
 									<label>
-										<input id="show_deleted_concepts" type="checkbox" name="show_deleted_concepts" {% if show_deleted_concepts %}checked="checked"{% endif %} value="1" >
+										<input id="show_deleted_concepts_hidden" type="hidden" name="show_deleted_concepts"  value="{{ show_deleted_concepts }}" >
+										<input class="form-checkbox" id="show_deleted_concepts" type="checkbox" nameXX="show_deleted_concepts"  {% if show_deleted_concepts == "1" %} checked="checked" {% endif %} value="1" >
 										Show deleted concepts
 									</label>
 								</div>
@@ -140,7 +138,8 @@
 							<div class="col-md-3">
 								<div class="checkbox"  >
 									<label>
-										<input id="show_my_concepts" type="checkbox" name="show_my_concepts" {% if show_my_concepts %}checked="checked"{% endif %} value="1" >
+										<input id="show_my_concepts_hidden" type="hidden" name="show_my_concepts"  value="{{ show_my_concepts }}" >
+										<input class="form-checkbox" id="show_my_concepts" type="checkbox" nameXX="show_my_concepts" {% if show_my_concepts == "1" %} checked="checked" {% endif %} value="1" >
 										Only show concepts owned by me
 									</label>
 								</div>
@@ -150,7 +149,8 @@
 							<div 	class = "col-md-3">   
 								<div class="checkbox"  >
 									<label>
-										<input id="show_only_validated_concepts" type="checkbox" name="show_only_validated_concepts" {% if show_only_validated_concepts %}checked="checked"{% endif %} value="1" >
+										<input id="show_only_validated_concepts_hidden" type="hidden" name="show_only_validated_concepts"  value="{{ show_only_validated_concepts }}" >
+										<input class="form-checkbox" id="show_only_validated_concepts" type="checkbox" nameXX="show_only_validated_concepts" {% if show_only_validated_concepts == "1" %} checked="checked" {% endif %} value="1" >
 										Only Show validated concepts
 									</label>
 								</div>
@@ -160,28 +160,18 @@
 							<div  class = "col-md-3">
 								<div class="checkbox"  >
 									<label>
-										<input id="must_have_published_versions" type="checkbox" name="must_have_published_versions" {% if must_have_published_versions %}checked="checked"{% endif %} value="1" >
+										<input id="must_have_published_versions_hidden" type="hidden" name="must_have_published_versions" value="{{ must_have_published_versions }}" >
+										<input class="form-checkbox" id="must_have_published_versions" type="checkbox" nameXX="must_have_published_versions" {% if must_have_published_versions == "1" %} checked="checked" {% endif %} value="1" >
 										Only show concepts with published version
 									</label>
 								</div>
 							</div>		
 						{% endif %}						
 							
-		<!-- 				{% if published_count %} -->
-		<!-- 					<div  class = "col-md-3"> -->
-		<!-- 						<div class="checkbox"  > -->
-		<!-- 							<label> -->
-		<!-- 								<input id="expand_published_versions" type="checkbox" name="expand_published_versions" {% if expand_published_versions %}checked="checked"{% endif %} value="1" > -->
-		<!-- 								Expand published versions -->
-		<!-- 							</label> -->
-		<!-- 						</div> -->
-		<!-- 					</div>		 -->
-		<!-- 				{% endif %}	 -->
 					</div>
 									
 					<div class="row form-group">
 							<div class="col-md-2 ">
-								<input type=hidden name="search_form" value='advanced-form'>
 								<a  id="show-basic-search" href="javascript:void(null);" >Basic search</a>
 							</div>	
 							<div class="col-md-10 text-right">				
@@ -276,19 +266,22 @@
 						
 			{% if user.is_authenticated %}
 				$('#show_deleted_concepts').prop("checked", false);
-				$('#show_my_concepts').prop("checked", false);					
+				$('#show_deleted_concepts_hidden').val("0");
+				
+				$('#show_my_concepts').prop("checked", false);	
+				$('#show_my_concepts_hidden').val("0");
+				
 				$('#must_have_published_versions').prop("checked", false);
+				$('#must_have_published_versions_hidden').val("0");
+				
 				$('#txtOwner').val('');
 			{% endif %}						
 			
 			$('#show_only_validated_concepts').prop("checked", false);
+			$('#show_only_validated_concepts_hidden').val("0");
 			
-			
-// 			{% if published_count %}
-// 				$('#expand_published_versions').prop("checked", false);
-// 			{% endif %}
-
 		});
+		
 		
 		{% if search_form == 'advanced-form' %}
 			$("#basic-search").hide();
@@ -383,7 +376,17 @@
 			
 		});	
 		
-			
+		//--------------------
+		// change checkbox's hidden value when checked/unchecked
+		$(".form-checkbox").change( function() { 
+		  if ( $(this).is(":checked") ) {
+			  $("#" + $(this).attr('id') + "_hidden").val('1');
+		  } else if ( $(this).not(":checked") ) {
+			  $("#" + $(this).attr('id') + "_hidden").val('0');
+		  }
+		});
+		
+		
 	</script>
 	
 	
