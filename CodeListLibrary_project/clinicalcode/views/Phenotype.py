@@ -65,96 +65,76 @@ def phenotype_list(request):
     tags = []
 
     # get page index variables from query or from session
-    page_size = utils.get_int_value(
-        request.GET.get('page_size',
-                        request.session.get('phenotype_page_size', 20)), 20)
-    page = utils.get_int_value(
-        request.GET.get('page', request.session.get('phenotype_page', 1)), 1)
-    search = request.GET.get('search',
-                             request.session.get('phenotype_search', ''))
-    show_my_phenotypes = request.GET.get(
-        'show_my_phenotypes',
-        request.session.get('phenotype_show_my_phenotype', 0))
-
-    show_my_pending_phenotypes = request.GET.get(
-        'show_my_pending_phenotypes',
-        request.session.get('phenotype_show_my_pending_phenotype', 0))
-
-    show_mod_pending_phenotypes = request.GET.get(
-        'show_mod_pending_phenotypes',
-        request.session.get('phenotype_show_mod_pending_phenotype', 0))
-
-    show_deleted_phenotypes = request.GET.get(
-        'show_deleted_phenotypes',
-        request.session.get('phenotype_show_deleted_phenotypes', 0))
-    tag_ids = request.GET.get('tagids',
-                              request.session.get('phenotype_tagids', ''))
-    owner = request.GET.get('owner',
-                            request.session.get('phenotype_owner', ''))
-    author = request.GET.get('author',
-                             request.session.get('phenotype_author', ''))
-    show_only_validated_phenotypes = request.GET.get(
-        'show_only_validated_phenotypes',
-        request.session.get('show_only_validated_phenotypes', 0))
-    phenotype_brand = request.GET.get('phenotype_brand',
-                                      request.session.get(
-                                          'phenotype_brand',
-                                          ''))  # request.CURRENT_BRAND
     expand_published_versions = 0  # disable this option
-    # expand_published_versions = request.GET.get('expand_published_versions', request.session.get('expand_published_versions', 0))
-    phenotype_must_have_published_versions = request.GET.get(
-        'phenotype_must_have_published_versions',
-        request.session.get('phenotype_must_have_published_versions', 0))
-    search_form = request.GET.get(
-        'search_form',
-        request.session.get('phenotype_search_form', 'basic-form'))
+        
+    page_size = utils.get_int_value(request.GET.get('page_size', request.session.get('phenotype_page_size', 20)), 20)
+    page = utils.get_int_value(request.GET.get('page', request.session.get('phenotype_page', 1)), 1)
+    search = request.GET.get('search', request.session.get('phenotype_search', ''))
+    tag_ids = request.GET.get('tagids', request.session.get('phenotype_tagids', ''))
+    owner = request.GET.get('owner', request.session.get('phenotype_owner', ''))
+    author = request.GET.get('author', request.session.get('phenotype_author', ''))
+    phenotype_brand = request.GET.get('phenotype_brand', request.session.get('phenotype_brand', ''))  # request.CURRENT_BRAND
+    
+    show_deleted_phenotypes = request.GET.get('show_deleted_phenotypes', request.session.get('phenotype_show_deleted_phenotypes', 0))
+    show_my_phenotypes = request.GET.get('show_my_phenotypes', request.session.get('phenotype_show_my_phenotype', 0))
+    show_only_validated_phenotypes = request.GET.get('show_only_validated_phenotypes', request.session.get('show_only_validated_phenotypes', 0))
+    phenotype_must_have_published_versions = request.GET.get('phenotype_must_have_published_versions', request.session.get('phenotype_must_have_published_versions', 0))
 
-    if request.method == 'POST':
+    show_my_pending_phenotypes = request.GET.get('show_my_pending_phenotypes', request.session.get('phenotype_show_my_pending_phenotype', 0))
+    show_mod_pending_phenotypes = request.GET.get('show_mod_pending_phenotypes', request.session.get('phenotype_show_mod_pending_phenotype', 0))
+   
+    search_form = request.GET.get('search_form', request.session.get('phenotype_search_form', 'basic-form'))
+
+
+    if bool(request.GET):
         # get posted parameters
-        search = request.POST.get('search', '')
-        page_size = request.POST.get('page_size', 20)
-        page = request.POST.get('page', page)
-        show_my_phenotypes = request.POST.get('show_my_phenotypes', 0)
-        show_deleted_phenotypes = request.POST.get('show_deleted_phenotypes',
-                                                   0)
-        show_my_pending_phenotypes = request.POST.get(
-            'show_my_pending_phenotypes', 0)
-        show_mod_pending_phenotypes = request.POST.get(
-            'show_mod_pending_phenotypes', 0)
-
-        author = request.POST.get('author', '')
-        tag_ids = request.POST.get('tagids', '')
-        owner = request.POST.get('owner', '')
-        show_only_validated_phenotypes = request.POST.get(
-            'show_only_validated_phenotypes', 0)
-        phenotype_brand = request.POST.get('phenotype_brand',
-                                           '')  # request.CURRENT_BRAND
-        # expand_published_versions = request.POST.get('expand_published_versions', 0)
-        phenotype_must_have_published_versions = request.POST.get(
-            'phenotype_must_have_published_versions', 0)
-        search_form = request.POST.get('search_form', 'basic-form')
-
+        search = request.GET.get('search', '')
+        page_size = request.GET.get('page_size', 20)
+        page = request.GET.get('page', page)     
+        tag_ids = request.GET.get('tagids', '')
+        phenotype_brand = request.GET.get('phenotype_brand', '')  # request.CURRENT_BRAND
+        search_form = request.GET.get('search_form', 'basic-form')
+        
+        if search_form !='basic-form': 
+            author = request.GET.get('author', '')
+            owner = request.GET.get('owner', '')
+            show_my_phenotypes = request.GET.get('show_my_phenotypes', 0)
+            show_deleted_phenotypes = request.GET.get('show_deleted_phenotypes', 0)
+            show_only_validated_phenotypes = request.GET.get('show_only_validated_phenotypes', 0)
+            phenotype_must_have_published_versions = request.GET.get('phenotype_must_have_published_versions', 0)
+            show_my_pending_phenotypes = request.GET.get('show_my_pending_phenotypes', 0)
+            show_mod_pending_phenotypes = request.GET.get('show_mod_pending_phenotypes', 0)
+        
+        
     # store page index variables to session
     request.session['phenotype_page_size'] = page_size
     request.session['phenotype_page'] = page
-    request.session['phenotype_search'] = search
-    request.session['phenotype_show_my_phenotype'] = show_my_phenotypes
-    request.session[
-        'phenotype_show_mod_pending_phenotype'] = show_mod_pending_phenotypes
-    request.session[
-        'phenotype_show_deleted_phenotypes'] = show_deleted_phenotypes
-    request.session['phenotype_author'] = author
+    request.session['phenotype_search'] = search  
     request.session['phenotype_tagids'] = tag_ids
-    request.session['phenotype_owner'] = owner
-    request.session[
-        'show_only_validated_phenotypes'] = show_only_validated_phenotypes
-    request.session['phenotype_brand'] = phenotype_brand
-    request.session[
-        'phenotype_show_pending_phenotype'] = show_my_pending_phenotypes
-    # request.session['expand_published_versions'] = expand_published_versions
-    request.session[
-        'phenotype_must_have_published_versions'] = phenotype_must_have_published_versions
+    request.session['phenotype_brand'] = phenotype_brand   
+   
+   #if search_form !='basic-form': 
+    request.session['phenotype_author'] = author  
+    request.session['phenotype_owner'] = owner     
+    request.session['phenotype_show_my_phenotype'] = show_my_phenotypes
+    request.session['phenotype_show_mod_pending_phenotype'] = show_mod_pending_phenotypes
+    request.session['phenotype_show_deleted_phenotypes'] = show_deleted_phenotypes
+    request.session['show_only_validated_phenotypes'] = show_only_validated_phenotypes
+    request.session['phenotype_show_pending_phenotype'] = show_my_pending_phenotypes
+    request.session['phenotype_must_have_published_versions'] = phenotype_must_have_published_versions
+    
     request.session['phenotype_search_form'] = search_form
+    
+    if search_form == 'basic-form':     
+        owner = '' 
+        author = ''
+        show_my_phenotypes = 0
+        show_deleted_phenotypes = 0
+        show_only_validated_phenotypes = 0
+        phenotype_must_have_published_versions = 0
+        show_my_pending_phenotypes = 0
+        show_mod_pending_phenotypes = 0
+            
 
     filter_cond = " 1=1 "
     exclude_deleted = True
@@ -216,17 +196,16 @@ def phenotype_list(request):
     if phenotype_brand != "":
         current_brand = Brand.objects.all().filter(name=phenotype_brand)
         group_list = list(current_brand.values_list('groups', flat=True))
-        filter_cond += " AND group_id IN(" + ', '.join(map(str,
-                                                           group_list)) + ") "
+        filter_cond += " AND group_id IN(" + ', '.join(map(str, group_list)) + ") "
 
     phenotype_srch = db_utils.get_visible_live_or_published_phenotype_versions(
-        request,
-        get_live_and_or_published_ver=get_live_and_or_published_ver,
-        searchByName=search,
-        author=author,
-        exclude_deleted=exclude_deleted,
-        filter_cond=filter_cond,
-        show_top_version_only=show_top_version_only)
+                                                                                request,
+                                                                                get_live_and_or_published_ver=get_live_and_or_published_ver,
+                                                                                searchByName=search,
+                                                                                author=author,
+                                                                                exclude_deleted=exclude_deleted,
+                                                                                filter_cond=filter_cond,
+                                                                                show_top_version_only=show_top_version_only)
     # create pagination
     paginator = Paginator(phenotype_srch,
                           page_size,
@@ -243,66 +222,47 @@ def phenotype_list(request):
     if tag_ids:
         tag_ids_list = [int(t) for t in tag_ids.split(',')]
 
-    brand_associated_collections = db_utils.get_brand_associated_collections(
-        request, concept_or_phenotype='phenotype')
-    brand_associated_collections_ids = list(
-        brand_associated_collections.values_list('id', flat=True))
+    brand_associated_collections = db_utils.get_brand_associated_collections(request, concept_or_phenotype='phenotype')
+    brand_associated_collections_ids = list(brand_associated_collections.values_list('id', flat=True))
 
+    author = request.session.get('phenotype_author')  
+    owner = request.session.get('phenotype_owner')       
+    show_my_phenotypes = request.session.get('phenotype_show_my_phenotype')
+    show_mod_pending_phenotypes = request.session.get('phenotype_show_mod_pending_phenotype')
+    show_deleted_phenotypes = request.session.get('phenotype_show_deleted_phenotypes')
+    show_only_validated_phenotypes = request.session.get('show_only_validated_phenotypes') 
+    show_my_pending_phenotypes = request.session.get('phenotype_show_pending_phenotype') 
+    phenotype_must_have_published_versions = request.session.get('phenotype_must_have_published_versions') 
+    
     return render(
         request,
         'clinicalcode/phenotype/index.html',
         {
-            'page':
-            page,
-            'page_size':
-            str(page_size),
-            'page_obj':
-            p,
-            'search':
-            search,
-            'author':
-            author,
-            'show_my_phenotypes':
-            show_my_phenotypes,
-            'show_deleted_phenotypes':
-            show_deleted_phenotypes,
-            'show_my_pending_phenotypes':
-            show_my_pending_phenotypes,
-            'show_mod_pending_phenotypes':
-            show_mod_pending_phenotypes,
-            'tags':
-            tags,
-            'tag_ids':
-            tag_ids2,
-            'tag_ids_list':
-            tag_ids_list,
-            'owner':
-            owner,
-            'show_only_validated_phenotypes':
-            show_only_validated_phenotypes,
-            'allowed_to_create':
-            not settings.CLL_READ_ONLY,
-            'phenotype_brand':
-            phenotype_brand,
-            'phenotype_must_have_published_versions':
-            phenotype_must_have_published_versions,
-            'allTags':
-            Tag.objects.all().order_by('description'),
-            'all_CodingSystems':
-            CodingSystem.objects.all().order_by('id'),
-            'search_form':
-            search_form,
-            'p_btns':
-            p_btns,
-            'brand_associated_collections':
-            brand_associated_collections,
-            'brand_associated_collections_ids':
-            brand_associated_collections_ids,
-            'all_collections_selected':
-            all(item in tag_ids_list
-                for item in brand_associated_collections_ids)
-            # 'expand_published_versions': expand_published_versions,
-            # 'published_count': PublishedPhenotype.objects.all().count()
+            'page': page,
+            'page_size': str(page_size),
+            'page_obj': p,
+            'search': search,
+            'author': author,
+            'show_my_phenotypes': show_my_phenotypes,
+            'show_deleted_phenotypes': show_deleted_phenotypes,
+            'show_my_pending_phenotypes': show_my_pending_phenotypes,
+            'show_mod_pending_phenotypes': show_mod_pending_phenotypes,
+            'tags': tags,
+            'tag_ids': tag_ids2,
+            'tag_ids_list': tag_ids_list,
+            'owner': owner,
+            'show_only_validated_phenotypes': show_only_validated_phenotypes,
+            'allowed_to_create': not settings.CLL_READ_ONLY,
+            'phenotype_brand': phenotype_brand,
+            'phenotype_must_have_published_versions': phenotype_must_have_published_versions,
+            'allTags': Tag.objects.all().order_by('description'),
+            'all_CodingSystems': CodingSystem.objects.all().order_by('id'),
+            'search_form': search_form,
+            'p_btns': p_btns,
+            'brand_associated_collections': brand_associated_collections,
+            'brand_associated_collections_ids': brand_associated_collections_ids,
+            'all_collections_selected': all(item in tag_ids_list for item in brand_associated_collections_ids)
+
         })
 
 
@@ -318,8 +278,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
 
     if phenotype_history_id is None:
         # get the latest version
-        phenotype_history_id = int(
-            Phenotype.objects.get(pk=pk).history.latest().history_id)
+        phenotype_history_id = int(Phenotype.objects.get(pk=pk).history.latest().history_id)
 
     is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
     is_approved = checkIfapproved(Phenotype, pk, phenotype_history_id)
@@ -355,8 +314,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     # ----------------------------------------------------------------------
     concept_id_list = []
     concept_hisoryid_list = []
-    concepts = Concept.history.filter(pk=-1).values('id', 'history_id', 'name',
-                                                    'group')
+    concepts = Concept.history.filter(pk=-1).values('id', 'history_id', 'name', 'group')
 
     if phenotype['concept_informations']:
         concept_id_list = [
@@ -380,8 +338,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         clinicalTerminologies = CodingSystem.objects.filter(
             pk__in=list(CodingSystem_ids))
 
-    is_latest_version = (int(phenotype_history_id) == Phenotype.objects.get(
-        pk=pk).history.latest().history_id)
+    is_latest_version = (int(phenotype_history_id) == Phenotype.objects.get(pk=pk).history.latest().history_id)
 
     children_permitted_and_not_deleted = True
     error_dic = {}
