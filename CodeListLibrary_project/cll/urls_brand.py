@@ -49,8 +49,7 @@ if not settings.CLL_READ_ONLY:
 
 # api
 urlpatterns += [
-    url(r'^' + current_brand + 'api/v1/',
-        include(('clinicalcode.api.urls', 'cll'), namespace='api')),
+    url(r'^' + current_brand + 'api/v1/', include(('clinicalcode.api.urls', 'cll'), namespace='api')),
 ]
 #--------------------------------------------------------------------
 
@@ -62,8 +61,7 @@ urlpatterns += [
 
 # Add django site authentication urls (for login, logout, password management)
 urlpatterns += [
-    url(r'^' + current_brand + 'account/',
-        include('django.contrib.auth.urls')),
+    url(r'^' + current_brand + 'account/', include('django.contrib.auth.urls')),
 ]
 
 #--------------------------------------------------------------------

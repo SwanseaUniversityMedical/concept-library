@@ -250,8 +250,7 @@ def api_phenotype_update(request):
         update_phenotype.type = request.data.get('type')
         update_phenotype.validation = request.data.get('validation')
 
-        update_phenotype.valid_event_data_range = request.data.get(
-            'valid_event_data_range')
+        update_phenotype.valid_event_data_range = request.data.get('valid_event_data_range')
         #         update_phenotype.valid_event_data_range_start = request.data.get('valid_event_data_range_start')
         #         update_phenotype.valid_event_data_range_end = request.data.get('valid_event_data_range_end')
         update_phenotype.sex = request.data.get('sex')
@@ -350,26 +349,20 @@ def api_phenotype_update(request):
             if datasource_ids_list:
                 new_datasource_list = [int(i) for i in datasource_ids_list]
 
-            old_datasource_list = list(
-                PhenotypeDataSourceMap.objects.filter(
-                    phenotype=update_phenotype).values_list('datasource',
-                                                            flat=True))
-            datasource_ids_to_add = list(
-                set(new_datasource_list) - set(old_datasource_list))
-            datasource_ids_to_remove = list(
-                set(old_datasource_list) - set(new_datasource_list))
+            old_datasource_list = list(PhenotypeDataSourceMap.objects.filter(phenotype=update_phenotype).values_list('datasource',  flat=True))
+            datasource_ids_to_add = list(set(new_datasource_list) - set(old_datasource_list))
+            datasource_ids_to_remove = list(set(old_datasource_list) - set(new_datasource_list))
 
             for datasource_id_to_add in datasource_ids_to_add:
                 PhenotypeDataSourceMap.objects.get_or_create(
-                    phenotype=update_phenotype,
-                    datasource=DataSource.objects.get(id=datasource_id_to_add),
-                    created_by=request.user)
+                                                            phenotype=update_phenotype,
+                                                            datasource=DataSource.objects.get(id=datasource_id_to_add),
+                                                            created_by=request.user)
 
             for datasource_id_to_remove in datasource_ids_to_remove:
                 datasource_to_remove = PhenotypeDataSourceMap.objects.filter(
-                    phenotype=update_phenotype,
-                    datasource=DataSource.objects.get(
-                        id=datasource_id_to_remove))
+                                                                            phenotype=update_phenotype,
+                                                                            datasource=DataSource.objects.get(id=datasource_id_to_remove))
                 datasource_to_remove.delete()
 
             #save_Entity_With_ChangeReason(Phenotype, update_phenotype.pk, "Updated from API")
@@ -622,16 +615,13 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None):
         #--------------
 
         data_sources = []  # DataSource.objects.filter(pk=-1)
-        data_sources_comp = getHistoryDataSource_Phenotype(
-            c['id'], c['history_date'])
+        data_sources_comp = getHistoryDataSource_Phenotype(c['id'], c['history_date'])
         if data_sources_comp:
             ds_list = [
                 i['datasource_id'] for i in data_sources_comp
                 if 'datasource_id' in i
             ]
-            data_sources = list(
-                DataSource.objects.filter(pk__in=ds_list).values(
-                    'id', 'name', 'url'))  # , 'uid', 'description'
+            data_sources = list(DataSource.objects.filter(pk__in=ds_list).values('id', 'name', 'url'))  # , 'uid', 'description'
 
         ret = [
             c['friendly_id'],
