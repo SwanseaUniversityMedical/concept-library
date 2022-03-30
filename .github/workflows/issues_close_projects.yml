@@ -17,5 +17,5 @@ jobs:
         with:
             github-token: ${{ github.token }}
             open-issue-columns: ''
-            closed-issue-columns: 'Closed, Done, Done / Deployed,Main Feature - Ready for Deployment'
+            closed-issue-columns: 'Done / Deployed,Main Feature - Ready for Deployment'
             log-output: false
