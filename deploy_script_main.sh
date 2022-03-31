@@ -24,8 +24,6 @@
 
       echo ">>>>> install requirements <<<<<<<<<<<<<<<<<<<"
       cd /var/www/concept_lib_sites/v1/requirements
-
-      #pip ${pip_proxy} install  pip-20.2-py2.py3-none-any.whl
       
       #pip ${pip_proxy} install  python_ldap-3.3.1-cp39-cp39-win_amd64.whl
 
@@ -35,6 +33,8 @@
       pip ${pip_proxy} install --upgrade pip
 
       pip ${pip_proxy} install -r base.txt
+
+      pip ${pip_proxy} install drf_yasg-1.17.1-py2.py3-none-any.whl
 
       #pip ${pip_proxy} install  psycopg2-binary==2.8.6
       #pip2 ${pip_proxy} install pandas
