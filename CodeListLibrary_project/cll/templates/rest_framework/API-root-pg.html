@@ -17,6 +17,16 @@
 			<code><a href="https://github.com/SwanseaUniversityMedical/concept-library-client-r" target=_blank  rel="noopener noreferrer" class="alert-link">
 			concept-library-R-client</a></code>	
 		</li>
+<!-- 		<li> -->
+<!-- 			<code><a href="{% url 'api:schema-swagger-ui' %}" target=_blank  rel="noopener noreferrer" class="alert-link"> -->
+<!-- 			Swagger UI</a></code> -->
+<!-- 			&nbsp;&nbsp; -->
+<!-- 			<code><a href="{% url 'api:schema-json' format='.json' %}" target=_blank  rel="noopener noreferrer" class="alert-link"> -->
+<!-- 			Swagger json</a></code>	 -->
+<!-- 			&nbsp;&nbsp; -->
+<!-- 			<code><a href="{% url 'api:schema-json' format='.yaml' %}" target=_blank  rel="noopener noreferrer" class="alert-link"> -->
+<!-- 			Swagger yaml</a></code>				 -->
+<!-- 		</li> -->
 	</ul>
 </div>
 	
@@ -31,6 +41,7 @@
 		<li><a data-toggle="tab" href="#Working-Sets"><strong>Working Sets</strong></a></li>
 	{% endif %}
 	<li><a data-toggle="tab" href="#tags"><strong>Tags</strong></a></li>
+	<li><a data-toggle="tab" href="#collections"><strong>Collections</strong></a></li>
 </ul>
 
 	
@@ -51,7 +62,10 @@
                   <li><code>?search=Alcohol</code><br>
                   search by part of concept name (do not put wild characters here)</li>
                   <li><code>?tag_ids=11,4</code><br>
-                  You can specify tags ids (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)</li>
+                  You can specify tag or collection ids <br>
+	               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
+	               (get collections from <code><a href="{{ collections }}" target="_blank" class="alert-link">{{ collections }}</a></code>)
+	               </li>
                   <li><code>?show_only_validated_concepts=1</code><br>
                   will show only validated concepts</li>
                   <li><code>?brand=HDRUK</code><br>
@@ -119,7 +133,10 @@
                   <li><code>?search=Alcohol</code><br>
                   search by part of concept name (do not put wild characters here)</li>
                   <li><code>?tag_ids=11,4</code><br>
-                  You can specify tags ids (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)</li>
+                  You can specify tag or collection ids <br>
+	               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
+	               (get collections from <code><a href="{{ collections }}" target="_blank" class="alert-link">{{ collections }}</a></code>)
+	               </li>
                   <li><code>?show_only_my_concepts=1</code><br>
                   Only show concepts owned by me</li>
                   <li><code>?show_deleted_concepts=1</code><br>
@@ -182,16 +199,18 @@
 
          
        {% if not CLL_READ_ONLY %}
-            <li><h3 class="pt-3">Create/Update a concept</h3></li>
-          <div>    
-           <p style="padding-top: 10px;"> Create a concept by passing a JSON object.</p>
-           <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">post</span> {{ api_concept_create }}</code></pre>
-        </div>
-      
-          <div>    
-           <p style="padding-top: 10px;"> Update a concept by passing a JSON object.</p>
-           <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">put</span> {{ api_concept_update }}</code></pre>         
-          </div>
+	       {% if user.is_authenticated and request.user.is_superuser %}
+	          <li><h3 class="pt-3">Create/Update a concept</h3></li>
+	          <div>    
+	           <p style="padding-top: 10px;"> Create a concept by passing a JSON object.</p>
+	           <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">post</span> {{ api_concept_create }}</code></pre>
+	        </div>
+	      
+	          <div>    
+	           <p style="padding-top: 10px;"> Update a concept by passing a JSON object.</p>
+	           <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">put</span> {{ api_concept_update }}</code></pre>         
+	          </div>
+	       {% endif %}  
        {% endif %}  
           
 
@@ -219,7 +238,10 @@
 					<li><code>?search=diab</code><br>
 					search by part of working set name (do not put wild characters here)</li>
 					<li><code>?tag_ids=11,4</code><br>
-					You can specify tags ids (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)</li>
+					You can specify tag or collection ids <br>
+	                (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
+	                (get collections from <code><a href="{{ collections }}" target="_blank" class="alert-link">{{ collections }}</a></code>)
+	                </li>
 					<li><code>?show_only_my_workingsets=1</code><br>
 					Only show working sets owned by me</li>
 					<li><code>?show_deleted_workingsets=1</code><br>
@@ -285,8 +307,8 @@
 		   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ get_workingset_versions }}</code></pre>
 		</div>
 
-		{% if not CLL_READ_ONLY %}	
-			<li><h3 class="pt-3">Create/Update a working set</h3></li>
+       {% if not CLL_READ_ONLY %}
+	       {% if user.is_authenticated and request.user.is_superuser %}			<li><h3 class="pt-3">Create/Update a working set</h3></li>
 	    	<div>    
 			   <p style="padding-top: 10px;"> Create a working set by passing a JSON object.</p>
 			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">post</span> {{ api_workingset_create }}</code></pre>
@@ -296,7 +318,8 @@
 			   <p style="padding-top: 10px;"> Update a working set by passing a JSON object.</p>
 			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">put</span> {{ api_workingset_update }}</code></pre>		    	
 		    </div>
-		{% endif %}	
+		   {% endif %}	
+	    {% endif %}	
 							
 			</ol>
 
@@ -318,7 +341,10 @@
 		              <li><code>?search=Alcohol</code><br>
 		              search by part of phenotype name (do not put wild characters here)</li>
 		              <li><code>?tag_ids=11,4</code><br>
-		              You can specify tags ids (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)</li>
+		              You can specify tag or collection ids <br>
+		               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
+		               (get collections from <code><a href="{{ collections }}" target="_blank" class="alert-link">{{ collections }}</a></code>)
+		               </li>
 		              <li><code>?show_only_validated_phenotypes=1</code><br>
 		              will show only validated phenotypes</li>
 		              <li><code>?brand=HDRUK</code><br>
@@ -386,7 +412,10 @@
 		              <li><code>?search=Alcohol</code><br>
 		              search by part of phenotype name (do not put wild characters here)</li>
 		              <li><code>?tag_ids=11,4</code><br>
-		              You can specify tags ids (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)</li>
+		              You can specify tag or collection ids <br>
+		               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
+		               (get collections from <code><a href="{{ collections }}" target="_blank" class="alert-link">{{ collections }}</a></code>)
+		               </li>
 		              <li><code>?show_only_my_phenotypes=1</code><br>
 		              Only show phenotypes owned by me</li>
 		              <li><code>?show_deleted_phenotypes=1</code><br>
@@ -436,8 +465,9 @@
 			   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ get_phenotype_versions }}</code></pre>
 			</div>
 
-			{% if not CLL_READ_ONLY %}
-	   		    <li><h3 class="pt-3">Create/Update a phenotype</h3></li>
+       {% if not CLL_READ_ONLY %}
+	       {% if user.is_authenticated and request.user.is_superuser %}
+	       	    <li><h3 class="pt-3">Create/Update a phenotype</h3></li>
 		    	<div>
 				   <p style="padding-top: 10px;"> Create a phenotype by passing a JSON object.</p>
 				   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">post</span> {{ api_phenotype_create }}</code></pre>
@@ -448,6 +478,7 @@
 				   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">put</span> {{ api_phenotype_update }}</code></pre>
 			    </div>
 		   {% endif %}
+	   {% endif %}
 		  </ol>
 	  </div>
 	  
@@ -499,13 +530,15 @@
 			</div>
 
 
-			{% if not CLL_READ_ONLY %}			                          
-		    	<li><h3 class="pt-3">Create a data source</h3></li>
+       {% if not CLL_READ_ONLY %}
+	       {% if user.is_authenticated and request.user.is_superuser %}
+	          	<li><h3 class="pt-3">Create a data source</h3></li>
 			    <div>    
 				   <p style="padding-top: 10px;">Create a data source by passing a JSON object.</p>
 				   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">post</span> {{ api_datasource_create }}</code></pre>
 				</div>
-		     {% endif %}	
+		    {% endif %}	
+	   {% endif %}	
 
 		</ol>
  	</div>
@@ -542,7 +575,7 @@
 							   <p style="padding-top: 10px;">
 		   	  	 User can search with part of the tag name using querystring parameter: <br>
 		            <ul>
-		              <li><code>?search=breatrhe</code><br>
+		              <li><code>?search=TECC</code><br>
 		              search by part of tag name (do not put wild characters here)</li>
 		            </ul>
 		          (<code>Example: {{ tags }}?search=breathe</code>)
@@ -557,7 +590,35 @@
 		</ol>
 	</div>
 		  	  
-	  	  
+<!-- ===============================================================  -->   
+<!-- collections -->
+    <div id="collections" class="tab-pane fade">
+        <h2>Collections:</h2>  
+        <ol>
+
+            <li><h3 class="pt-3">List collections</h3></li>
+            <div>    
+                <p style="padding-top: 10px;">Lists all available collections.</p>
+                <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> <a href="{{ collections }}" target="_blank" class="alert-link">{{ collections }}</a></code></pre>
+                               <p style="padding-top: 10px;">
+                 User can search with part of the collection name using querystring parameter: <br>
+                    <ul>
+                      <li><code>?search=breathe</code><br>
+                      search by part of collection name (do not put wild characters here)</li>
+                    </ul>
+                  (<code>Example: {{ collections }}?search=breathe</code>)
+                </p>
+            </div>
+    
+            <div>    
+                <p style="padding-top: 10px;">Lists collection by id.</p>
+                <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ collections }}{id}</code></pre>
+            </div>
+    
+        </ol>
+    </div>
+              
+           	  	  
 	  	  
 <!-- ===============================================================  -->	  	    
 </div> <!-- .tab-content -->

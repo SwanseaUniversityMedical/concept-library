@@ -14,7 +14,7 @@ The specific goals of this work are:
 
 Concept Library documentation is available at this URL  
 
-[https://docs.hiru.swan.ac.uk/display/SATP/Concept+Library+Documentation](https://docs.hiru.swan.ac.uk/display/SATP/Concept+Library+Documentation)
+[https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation](https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation)
 
 ## Background
 

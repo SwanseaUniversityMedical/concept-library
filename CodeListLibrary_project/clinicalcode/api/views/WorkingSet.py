@@ -42,6 +42,7 @@ from ...utils import *
 from ...viewmodels.js_tree_model import TreeModelManager
 from ..serializers import *
 from .View import *
+from drf_yasg.utils import swagger_auto_schema
 
 '''
     ---------------------------------------------------------------------------
@@ -49,7 +50,8 @@ from .View import *
     ---------------------------------------------------------------------------
 '''
 
-
+# Don't show in Swagger
+@swagger_auto_schema(method='get', auto_schema=None)
 @api_view(['GET'])
 def export_workingset_codes(request, pk):
     '''
@@ -75,6 +77,8 @@ def export_workingset_codes(request, pk):
         return get_workingset_codes_byVersionID(request, pk, latest_history_id)
 
 
+# Don't show in Swagger
+@swagger_auto_schema(method='get', auto_schema=None)
 @api_view(['GET'])
 def export_workingset_codes_byVersionID(request, pk, workingset_history_id):
     '''
@@ -193,11 +197,12 @@ def get_workingset_codes_byVersionID(request, pk, workingset_history_id):
 #############################################################################
 #############################################################################
 #############################################################################
-#@api_view(['GET', 'POST', 'PUT'])
+# Don't show in Swagger
+@swagger_auto_schema(method='post', auto_schema=None)
 @api_view(['POST'])
 def api_workingset_create(request):
 
-    # allow only super user (and nor 'ReadOnlyUsers')
+    # allow only super user (and not 'ReadOnlyUsers')
     if not request.user.is_superuser:
         raise PermissionDenied
 
@@ -357,11 +362,12 @@ def api_workingset_create(request):
 
 #############################################################################
 #############################################################################
-#@api_view(['GET', 'POST', 'PUT'])
+# Don't show in Swagger
+@swagger_auto_schema(method='put', auto_schema=None)
 @api_view(['PUT'])
 def api_workingset_update(request):
 
-    # allow only super user (and nor 'ReadOnlyUsers')
+    # allow only super user (and not 'ReadOnlyUsers')
     if not request.user.is_superuser:
         raise PermissionDenied
 
@@ -573,6 +579,8 @@ def api_workingset_update(request):
 
 ##############################################################################
 # search my Working Sets
+# Don't show in Swagger
+@swagger_auto_schema(method='get', auto_schema=None)
 @api_view(['GET'])
 def workingsets(request, pk=None):
     '''
@@ -699,6 +707,8 @@ def workingsets(request, pk=None):
 
 
 # my working set detail
+# Don't show in Swagger
+@swagger_auto_schema(method='get', auto_schema=None)
 @api_view(['GET'])
 def workingset_detail(request,
                       pk,
