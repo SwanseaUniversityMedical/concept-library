@@ -37,14 +37,6 @@ from ...viewmodels.js_tree_model import TreeModelManager
 from ..serializers import *
 
 
-# swagger
-from rest_framework_swagger.views import get_swagger_view
-#from . import urls as urls_api
-schema_view = get_swagger_view(title='Concept Library API'
-                               #, url = 'clinicalcode.api.urls'
-                               #, urlconf = 'clinicalcode.api.urls'
-                               #, patterns = urls_api.urlpatterns
-                               )
 
 '''
     ---------------------------------------------------------------------------
@@ -108,7 +100,7 @@ def getTagsOrCollections(request, tag_type=None, pk=None):
         return the list of tags or collections
     '''
     queryset = Tag.objects.all()
-    
+    #print("CURRENT_BRAND x = " + request.CURRENT_BRAND)
     # tag_type = {1: tag, 2: collection}   
     queryset = queryset.filter(tag_type=tag_type)
     

@@ -36,13 +36,19 @@ schema_view = get_schema_view(
                                 openapi.Info(
                                             title = "Concept Library API",
                                             default_version = 'v1',
-                                            description = "description  ... goes here ...",
+                                            description = ""  #"description  ... goes here ...",
                                             #terms_of_service = "https://www.google.com/policies/terms/",
                                             #contact = openapi.Contact(email = "contact@snippets.local"),
                                             #license = openapi.License(name = "BSD License"),
                                             ),
+                                #patterns = ['ggg'],
+                                validators=['flex', 'ssv'],
+                                
                                 public = True,
                                 permission_classes = (permissions.AllowAny,),
+                                
+                                #url = 'https://phenotypes.healthdatagateway.org/SAIL/',
+                                #urlconf = 'clinicalcode.api.urls',
                             )
 
 urlpatterns += [
@@ -60,9 +66,6 @@ urlpatterns += [
     url(r'^$', cc_view.customRoot, name='root'),
     url(r'^', include(router.urls)),
 
-
-    # django-swagger
-    url(r'^swagger/$', View.schema_view),
     
     #----------------------------------------------------------
     # ---  concepts  ------------------------------------------
