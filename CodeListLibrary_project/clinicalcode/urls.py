@@ -19,12 +19,10 @@ from .views import (Admin, ComponentConcept, ComponentExpression,
 urlpatterns = [
     url(r'^$', View.index, name='concept_library_home'),
     url(r'^home/$', View.index, name='concept_library_home'),
-    url(r'^cookies_settings/?$',
-        View.cookies_settings,
-        name='cookies_settings'),
     url(r'^concepts/$', Concept.concept_list, name='concept_list'),
     url(r'^workingsets/$', WorkingSet.workingset_list, name='workingset_list'),
     url(r'^phenotypes/$', Phenotype.phenotype_list, name='phenotype_list'),
+    url(r'^cookies_settings/?$', View.cookies_settings, name='cookies_settings'),
 
     #     # redirect api root '/api' to '/api/v1'
     #     #url(r'^api/$', RedirectView.as_view(url= reverse('api:root')) , name='api_root_v1'),
