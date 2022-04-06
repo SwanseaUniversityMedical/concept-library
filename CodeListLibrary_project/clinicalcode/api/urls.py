@@ -41,8 +41,11 @@ import os
 class SchemaGenerator(OpenAPISchemaGenerator):
   def get_schema(self, request=None, public=False):
     schema = super(SchemaGenerator, self).get_schema(request, public)
-    schema.basePath = request.path.replace('swagger/', '') 
-    schema.schemes = ["https"] #["http", "https"]
+    schema.basePath = request.path.replace('swagger/', '')
+    if settings.IS_DEVELOPMENT_PC or settings.IS_INSIDE_GATEWAY:
+        schema.schemes = ["http", "https"]
+    else:
+        schema.schemes = ["https"] 
     return schema
 
 
