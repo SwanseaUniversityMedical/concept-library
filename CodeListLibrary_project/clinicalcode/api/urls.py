@@ -32,24 +32,39 @@ from drf_yasg import openapi
 #from rest_framework.compat import URLPattern, URLResolver, get_original_route 
 
 
+from rest_framework import permissions
+from drf_yasg.generators import OpenAPISchemaGenerator
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+import os
+
+class SchemaGenerator(OpenAPISchemaGenerator):
+  def get_schema(self, request=None, public=False):
+    schema = super(SchemaGenerator, self).get_schema(request, public)
+    schema.basePath = request.path.replace('swagger/', '') 
+    schema.schemes = ["https"] #["http", "https"]
+    return schema
+
+
 schema_view = get_schema_view(
-                                openapi.Info(
+                              openapi.Info(
                                             title = "Concept Library API",
                                             default_version = 'v1',
-                                            description = ""  #"description  ... goes here ...",
-                                            #terms_of_service = "https://www.google.com/policies/terms/",
-                                            #contact = openapi.Contact(email = "contact@snippets.local"),
-                                            #license = openapi.License(name = "BSD License"),
+#                                           description = ""  #"description  ... goes here ...",
+#                                           terms_of_service = "https://www.google.com/policies/terms/",
+#                                           contact = openapi.Contact(email = "contact@snippets.local"),
+#                                           license = openapi.License(name = "BSD License"),                          
                                             ),
-                                #patterns = ['ggg'],
-                                validators=['flex', 'ssv'],
-                                
                                 public = True,
-                                permission_classes = (permissions.AllowAny,),
-                                
-                                #url = 'https://phenotypes.healthdatagateway.org/SAIL/',
-                                #urlconf = 'clinicalcode.api.urls',
+                                permission_classes = (permissions.AllowAny,),#(permissions.IsAuthenticated,),
+                                # urlconf = "clinicalcode.api.urls",
+                                # url =  'http://conceptlibrary.saildatabank.com/',
+                                # validators = ['flex', 'ssv'],
+                                # patterns  =  [],
+                                generator_class = SchemaGenerator,
                             )
+
+
 
 urlpatterns += [
     url(r'^swagger(?P<format>\.json|\.yaml)/$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
