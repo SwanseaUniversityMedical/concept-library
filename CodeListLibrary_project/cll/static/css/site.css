@@ -4,19 +4,21 @@
   }
 }
 
+.form-input-flex-container {
+  display: flex;
+}
 
 form.example input[type=text] {
   padding: 10px;
   font-size: 17px;
   border: 1px solid grey;
   float: left;
-  width: 60%;
+  flex-grow: 1;
 /*   background: #f1f1f1; */
 }
 
 form.example button {
   float: left;
-  width: 10%;
   padding: 10px;
   background: #2196F3;
   color: white;
@@ -24,6 +26,19 @@ form.example button {
   border: 1px solid grey;
   border-left: none;
   cursor: pointer;
+  min-width: 50px;
+  max-width: 150px;
+  flex-grow: 1;
+}
+
+@media (max-width: 767px) {
+  form.example input[type=text] {
+    min-width: 0px;
+  }
+
+  form.example button {
+    flex-grow: 0;
+  }
 }
 
 form.example button:hover {
@@ -36,34 +51,41 @@ form.example::after {
   display: table;
 }
 
+form.example h2 {
+  overflow-wrap: break-word;
+}
+
 
 .bg-search {
   /* The image used */
-  /*   background-image: url("../img/bg1.png"); */
-
-  min-height: 150px;
+  /* background-image: url("../img/bg1.png"); */
 
   /* Center and scale the image nicely */
-  background-position: center;
+  /*background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
+  background: #F7F9FC;*/
+
   position: relative;
-  background: #F7F9FC;
+  min-height: 150px;
+  background-color: #F7F9Fc;
+  padding: 15px;
+  padding-bottom: 25px;
 }
 
 
 /* Add styles to the form container */
 .container_frm {
-  position: absolute;
+  /* margin: 20px; */
+  /*position: absolute;
   top: 0px;
   left: 180px;
-/*   margin: 20px; */
-  padding: 10px;
+  padding: 10px;*/
 }
 
 .container-1 {
 /*   margin: 0 auto; */
-  width: 90%;
+  width: 100%;
 }
 
 .container_frm-2 {
