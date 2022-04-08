@@ -76,6 +76,9 @@ class brandMiddleware(MiddlewareMixin):
 
         request.BRAND_OBJECT = {}
         settings.BRAND_OBJECT = {}
+        
+        request.SWAGGER_TITLE = "Concept Library API"
+        settings.SWAGGER_TITLE = "Concept Library API"
 
         set_urlconf(None)
         request.urlconf = None
@@ -112,6 +115,9 @@ class brandMiddleware(MiddlewareMixin):
             brand_object = Brand.objects.get(name__iexact=root)
             settings.BRAND_OBJECT = brand_object
             request.BRAND_OBJECT = brand_object
+            if brand_object.site_title is not None:
+                request.SWAGGER_TITLE = brand_object.site_title + " API"
+                settings.SWAGGER_TITLE = brand_object.site_title + " API"
 
             if not current_page_url.strip().endswith('/'):
                 current_page_url = current_page_url.strip() + '/'
@@ -143,6 +149,8 @@ class brandMiddleware(MiddlewareMixin):
             clear_url_caches()
             importlib.reload(sys.modules[urlconf])
             importlib.reload(import_module(urlconf))
+            importlib.reload(sys.modules["clinicalcode.api.urls"])
+            importlib.reload(import_module("clinicalcode.api.urls"))            
 
         if settings.DEBUG:
             print(request.path_info)

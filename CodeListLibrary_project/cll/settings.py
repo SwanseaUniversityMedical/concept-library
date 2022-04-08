@@ -435,7 +435,14 @@ CELERY_RESULT_BACKEND = 'django-db'
 #CELERY BEAT
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
+# Swagger
 # SWAGGER_SETTINGS = {
 #                     'JSON_EDITOR': True,
 # }
+
+# Setup support for proxy headers
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+SWAGGER_TITLE = "Concept Library API"
 
