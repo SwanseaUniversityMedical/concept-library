@@ -13,6 +13,13 @@ from rest_framework import routers
 
 from .views import Concept, DataSource, Phenotype, View, WorkingSet
 
+from rest_framework import permissions
+from drf_yasg.generators import OpenAPISchemaGenerator
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+#import os
+
+
 '''
 Use the default REST API router to access the API details explicitly.
 These paths will appear as links on the API page.
@@ -25,31 +32,39 @@ router.register('public/data-sources-list', View.DataSourceViewSet)
 router.register('public/coding-systems', View.CodingSystemViewSet)
 
 urlpatterns = []
+
 ###########################################################################
-from rest_framework import permissions
-from drf_yasg.views import get_schema_view
-from drf_yasg import openapi
-#from rest_framework.compat import URLPattern, URLResolver, get_original_route 
+# Swagger
 
+class SchemaGenerator(OpenAPISchemaGenerator):
+    def get_schema(self, request=None, public=False):
+        schema = super(SchemaGenerator, self).get_schema(request, public)
+        schema.basePath = request.path.replace('swagger/', '')
+        if settings.IS_DEVELOPMENT_PC or settings.IS_INSIDE_GATEWAY:
+            schema.schemes = ["http", "https"]
+        else:
+            schema.schemes = ["https"] 
+        return schema
 
+            
 schema_view = get_schema_view(
-                                openapi.Info(
-                                            title = "Concept Library API",
-                                            default_version = 'v1',
-                                            description = ""  #"description  ... goes here ...",
-                                            #terms_of_service = "https://www.google.com/policies/terms/",
-                                            #contact = openapi.Contact(email = "contact@snippets.local"),
-                                            #license = openapi.License(name = "BSD License"),
+                              openapi.Info(
+                                            title = settings.SWAGGER_TITLE,
+                                            default_version = "v1",
+#                                           description = ""  #"description  ... goes here ...",
+#                                           terms_of_service = "https://www.google.com/policies/terms/",
+#                                           contact = openapi.Contact(email = "contact@snippets.local"),
+#                                           license = openapi.License(name = "BSD License"),                          
                                             ),
-                                #patterns = ['ggg'],
-                                validators=['flex', 'ssv'],
-                                
                                 public = True,
-                                permission_classes = (permissions.AllowAny,),
-                                
-                                #url = 'https://phenotypes.healthdatagateway.org/SAIL/',
-                                #urlconf = 'clinicalcode.api.urls',
+                                permission_classes = (permissions.AllowAny,),#(permissions.IsAuthenticated,),
+                                # urlconf = "clinicalcode.api.urls",
+                                # url =  "http://conceptlibrary.saildatabank.com/",
+                                # validators = ['flex', 'ssv'],
+                                # patterns  =  [],
+                                generator_class = SchemaGenerator,
                             )
+
 
 urlpatterns += [
     url(r'^swagger(?P<format>\.json|\.yaml)/$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
@@ -57,6 +72,7 @@ urlpatterns += [
     url(r'^redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
 ###########################################################################
+
 
 '''
 Paths which are available as REST API URLs. The router URLs listed above can
