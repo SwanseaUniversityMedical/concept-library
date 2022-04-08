@@ -26,8 +26,7 @@ class brandMiddleware(MiddlewareMixin):
         #---------------------------------
         # if the user is a member of  'ReadOnlyUsers' group, make READ-ONLY True
         if request.user.is_authenticated:
-            CLL_READ_ONLY_org = self.get_env_value('CLL_READ_ONLY',
-                                                   cast='bool')
+            CLL_READ_ONLY_org = self.get_env_value('CLL_READ_ONLY', cast='bool')
             if settings.DEBUG:
                 print("CLL_READ_ONLY_org = ", str(CLL_READ_ONLY_org))
             settings.CLL_READ_ONLY = CLL_READ_ONLY_org
@@ -53,9 +52,7 @@ class brandMiddleware(MiddlewareMixin):
     #print "...........start..............."
     #brands = Brand.objects.values_list('name', flat=True)
         brands = Brand.objects.all()
-        brands_list = [
-            x.upper() for x in list(brands.values_list('name', flat=True))
-        ]
+        brands_list = [x.upper() for x in list(brands.values_list('name', flat=True)) ]
         current_page_url = request.path_info.lstrip('/')
 
         #print "**** get_host= " , str(request.get_host())
@@ -64,9 +61,7 @@ class brandMiddleware(MiddlewareMixin):
         settings.IS_HDRUK_EXT = "0"
 
         root = current_page_url.split('/')[0]
-        if (request.get_host().lower().find('phenotypes.healthdatagateway') !=
-                -1 or
-                request.get_host().lower().find('web-phenotypes-hdr') != -1):
+        if (request.get_host().lower().find('web-phenotypes-hdr') != -1):
             root = 'HDRUK'
             request.IS_HDRUK_EXT = "1"
             settings.IS_HDRUK_EXT = "1"
@@ -81,6 +76,9 @@ class brandMiddleware(MiddlewareMixin):
 
         request.BRAND_OBJECT = {}
         settings.BRAND_OBJECT = {}
+        
+        request.SWAGGER_TITLE = "Concept Library API"
+        settings.SWAGGER_TITLE = "Concept Library API"
 
         set_urlconf(None)
         request.urlconf = None
@@ -96,8 +94,7 @@ class brandMiddleware(MiddlewareMixin):
         for b in brands:
             b_g = {}
             groups = b.groups.all()
-            if (any(x in request.user.groups.all() for x in groups)
-                    or b.owner == request.user):
+            if (any(x in request.user.groups.all() for x in groups) or b.owner == request.user):
                 userBrands.append(b.name.upper())
 
             b_g[b.name.upper()] = list(groups.values_list('name', flat=True))
@@ -118,19 +115,18 @@ class brandMiddleware(MiddlewareMixin):
             brand_object = Brand.objects.get(name__iexact=root)
             settings.BRAND_OBJECT = brand_object
             request.BRAND_OBJECT = brand_object
+            if brand_object.site_title is not None:
+                request.SWAGGER_TITLE = brand_object.site_title + " API"
+                settings.SWAGGER_TITLE = brand_object.site_title + " API"
 
             if not current_page_url.strip().endswith('/'):
                 current_page_url = current_page_url.strip() + '/'
 
-            if (request.get_host().lower().find('phenotypes.healthdatagateway')
-                    != -1
-                    or request.get_host().lower().find('web-phenotypes-hdr') !=
-                    -1):
+            if (request.get_host().lower().find('web-phenotypes-hdr') != -1):
                 pass
             else:
                 # # path_info does not change address bar urls
-                request.path_info = '/' + '/'.join(
-                    [root.upper()] + current_page_url.split('/')[1:])
+                request.path_info = '/' + '/'.join([root.upper()] + current_page_url.split('/')[1:])
 
 
 #                 print "-------"
@@ -145,9 +141,7 @@ class brandMiddleware(MiddlewareMixin):
             request.urlconf = urlconf  # this is the python file path to custom urls.py file
 
         # redirect /{brand}/api/  to  /{brand}/api/v1/
-        if current_page_url.strip().rstrip('/').split('/')[-1].lower() in [
-                'api'
-        ]:
+        if current_page_url.strip().rstrip('/').split('/')[-1].lower() in ['api']:
             do_redirect = True
             current_page_url = current_page_url.strip().rstrip('/') + '/v1/'
 
@@ -155,20 +149,17 @@ class brandMiddleware(MiddlewareMixin):
             clear_url_caches()
             importlib.reload(sys.modules[urlconf])
             importlib.reload(import_module(urlconf))
+            importlib.reload(sys.modules["clinicalcode.api.urls"])
+            importlib.reload(import_module("clinicalcode.api.urls"))            
 
         if settings.DEBUG:
             print(request.path_info)
             print(str(request.get_full_path()))
 
         # Do NOT allow concept create under HDRUK - for now
-        if (str(request.get_full_path()).upper().replace('/', '')
-                == "/HDRUK/concepts/create/".upper().replace('/', '') or
-            ((request.get_host().lower().find('phenotypes.healthdatagateway')
-              != -1
-              or request.get_host().lower().find('web-phenotypes-hdr') != -1)
-             and str(request.get_full_path()).upper().replace(
-                 '/', '').endswith('/concepts/create/'.upper().replace(
-                     '/', '')))):
+        if (str(request.get_full_path()).upper().replace('/', '') == "/HDRUK/concepts/create/".upper().replace('/', '') or
+            ((request.get_host().lower().find('web-phenotypes-hdr') != -1)
+             and str(request.get_full_path()).upper().replace('/', '').endswith('/concepts/create/'.upper().replace('/', '')))):
             raise PermissionDenied
 
         # redirect /{brand}/api/  to  /{brand}/api/v1/ to appear in URL address bar
@@ -187,8 +178,7 @@ class brandMiddleware(MiddlewareMixin):
 
         if not settings.CLL_READ_ONLY:
             if (request.user.groups.filter(name='ReadOnlyUsers').exists()):
-                messages.error(
-                    request,
+                messages.error(request,
                     "You are assigned as a Read-Only-User. You can access only the ReadOnly website."
                 )
                 auth.logout(request)
@@ -197,15 +187,6 @@ class brandMiddleware(MiddlewareMixin):
 
     def get_env_value(self, env_variable, cast=None):
         try:
-            # if settings.IS_DEMO: # Demo non-docker
-            #     # separate settings for different environments
-            #     DOTINI_FILE = settings.BASE_DIR  + "/cll/.ini"
-            #     env_config = Config(RepositoryEnv(DOTINI_FILE))
-            #     if cast == 'bool':
-            #         return env_config.get(env_variable, cast=bool)
-            #     else:
-            #         return env_config.get(env_variable)
-            # else:
             if cast == None:
                 return os.environ[env_variable]
             elif cast == 'int':
@@ -217,3 +198,5 @@ class brandMiddleware(MiddlewareMixin):
         except KeyError:
             error_msg = 'Set the {} environment variable'.format(env_variable)
             raise ImproperlyConfigured(error_msg)
+        
+        

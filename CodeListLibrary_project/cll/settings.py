@@ -43,36 +43,8 @@ SRV_IP = GET_SERVER_IP()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# # This is for DEMO server only since it is configured in a different way
-# IS_DEMO = False
-# def chk_IS_DEMO():
-#     try:
-#         return bool(distutils.util.strtobool(os.environ["IS_DEMO"]))
-#     except KeyError:
-#         try:
-#             DOTINI_FILE = BASE_DIR  + "/cll/.ini"
-#             env_config = Config(RepositoryEnv(DOTINI_FILE))
-#             return env_config.get("IS_DEMO", cast=bool)
-#         except KeyError:
-#             error_msg = 'Set the IS_DEMO environment variable !!'
-#             raise ImproperlyConfigured(error_msg)
-#
-#
-# IS_DEMO = chk_IS_DEMO()
-#print IS_DEMO
-
-
 def get_env_value(env_variable, cast=None):
     try:
-        # if IS_DEMO: # Demo non-docker
-        #     # separate settings for different environments
-        #     DOTINI_FILE = BASE_DIR  + "/cll/.ini"
-        #     env_config = Config(RepositoryEnv(DOTINI_FILE))
-        #     if cast == 'bool':
-        #         return env_config.get(env_variable, cast=bool)
-        #     else:
-        #         return env_config.get(env_variable)
-        # else:
         if cast == None:
             return os.environ[env_variable]
         elif cast == 'int':
@@ -100,7 +72,7 @@ if path_prj not in sys.path:
 
 #==========================================================================
 # separate settings for different environments
-#general variables
+# general variables
 IS_DEMO = get_env_value('IS_DEMO', cast='bool')
 
 CLL_READ_ONLY = get_env_value('CLL_READ_ONLY', cast='bool')
@@ -223,6 +195,8 @@ INSTALLED_APPS = INSTALLED_APPS + [
     'cookielaw',
     'django_celery_results',
     'django_celery_beat',
+    #'rest_framework_swagger',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -262,7 +236,13 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES':
-    ('rest_framework.permissions.IsAuthenticated', )
+    ('rest_framework.permissions.IsAuthenticated', ),
+    # 'DEFAULT_PARSER_CLASSES': (
+    #     'rest_framework.parsers.FileUploadParser',
+    #     'rest_framework.parsers.JSONParser',
+    #     'rest_framework.parsers.FormParser',
+    #     'rest_framework.parsers.MultiPartParser',
+    # ),
 }
 
 if not BROWSABLEAPI:
@@ -445,7 +425,7 @@ MARKDOWNIFY = {
 
 # CELERY SETTINGS
 
-CELERY_BROKER_URL = 'redis://localhost:6379'
+CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
@@ -454,3 +434,15 @@ CELERY_RESULT_BACKEND = 'django-db'
 
 #CELERY BEAT
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+# Swagger
+# SWAGGER_SETTINGS = {
+#                     'JSON_EDITOR': True,
+# }
+
+# Setup support for proxy headers
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+SWAGGER_TITLE = "Concept Library API"
+

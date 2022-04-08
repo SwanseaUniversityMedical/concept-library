@@ -28,26 +28,16 @@ from rest_framework.decorators import (api_view, authentication_classes,
 from rest_framework.response import Response
 
 from ...db_utils import *
-from ...models.Brand import Brand
-from ...models.Code import Code
-from ...models.CodeList import CodeList
-from ...models.CodeRegex import CodeRegex
-from ...models.CodingSystem import CodingSystem
-from ...models.Component import Component
-# The models imports have to be done as follows to avoid Eclipse flagging up
-# access to the objects list as ambiguous.
-from ...models.Concept import Concept
-from ...models.DataSource import DataSource
-from ...models.Tag import Tag
-from ...models.WorkingSet import WorkingSet
-from ...models.WorkingSetTagMap import WorkingSetTagMap
+from ...models import *
+
 #from django.forms.models import model_to_dict
 from ...permissions import *
 from ...utils import *
 from ...viewmodels.js_tree_model import TreeModelManager
 from ..serializers import *
 
-#from ...models.PublishedConcept import PublishedConcept
+
+
 '''
     ---------------------------------------------------------------------------
     View sets (see http://www.django-rest-framework.org/api-guide/viewsets).
@@ -61,10 +51,13 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
         Get the API output for the list of tags (no permissions involved).
     '''
 
-    #disable authentication for this class
-    authentication_classes = []
-    permission_classes = []
+    # #disable authentication for this class
+    # authentication_classes = []
+    # permission_classes = []
 
+    # Don't show in Swagger
+    swagger_schema = None
+    
     queryset = Tag.objects.none()
     serializer_class = TagSerializer
 
@@ -96,7 +89,46 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 #     def perform_update(self, serializer):
 #         raise PermissionDenied
 
+#--------------------------------------------------------------------------
+#disable authentication for this function
+@api_view(['GET'])
+@authentication_classes([])
+@permission_classes([])
+#--------------------------------------------------------------------------
+def getTagsOrCollections(request, tag_type=None, pk=None):
+    '''
+        return the list of tags or collections
+    '''
+    queryset = Tag.objects.all()
+    #print("CURRENT_BRAND x = " + request.CURRENT_BRAND)
+    # tag_type = {1: tag, 2: collection}   
+    queryset = queryset.filter(tag_type=tag_type)
+    
+    if pk is not None:
+        queryset = queryset.filter(id=pk)
+    
+    search = request.query_params.get('search', None)
+    if search is not None:
+        queryset = queryset.filter(description__icontains=search)
+     
+    rows_to_return = []
+    titles = ['id', 'name']
+    if tag_type == 2:
+        titles += ['brand']
+        
+    for t in queryset:
+        ret = [t.id, t.description]
+        if tag_type == 2:
+            ret += [t.collection_brand.name]
+            
+        rows_to_return.append(ordr(list(zip(titles, ret))))
 
+    if queryset:
+        return Response(rows_to_return, status=status.HTTP_200_OK)
+    else:
+        raise Http404
+        #return Response(rows_to_return, status=status.HTTP_404_NOT_FOUND)
+        
 #--------------------------------------------------------------------------
 class DataSourceViewSet(viewsets.ReadOnlyModelViewSet):
     '''
@@ -195,8 +227,7 @@ def isValidConcept(request, concept):
         errors['name'] = "concept name should be at least 3 characters"
         is_valid = False
 
-    if concept.author.isspace() or len(
-            concept.author) < 3 or concept.author is None:
+    if concept.author.isspace() or len(concept.author) < 3 or concept.author is None:
         errors['author'] = "Author should be at least 3 characters"
         is_valid = False
 
@@ -204,9 +235,7 @@ def isValidConcept(request, concept):
 #         errors['description'] = "concept description should be at least 10 characters"
 #         is_valid = False
 
-    if not concept.publication_link.isspace() and len(
-            concept.publication_link
-    ) > 0 and not concept.publication_link is None:
+    if not concept.publication_link.isspace() and len(concept.publication_link) > 0 and not concept.publication_link is None:
         # if publication_link is given, it must be a valid URL
         validate = URLValidator()
 
@@ -235,8 +264,7 @@ def chk_coding_system(coding_system_input):
     else:
         if isInt(coding_system):
             coding_system = int(coding_system_input)
-            if coding_system not in list(
-                    CodingSystem.objects.all().values_list('id', flat=True)):
+            if coding_system not in list(CodingSystem.objects.all().values_list('id', flat=True)):
                 is_valid_data = False
                 err = 'coding_system must be a valid coding system id'
 
@@ -263,8 +291,7 @@ def chk_group(group_input, user_groups):
     else:
         if isInt(group_id):
             group_id = int(group_input)
-            if group_id not in list(user_groups.all().values_list('id',
-                                                                  flat=True)):
+            if group_id not in list(user_groups.all().values_list('id', flat=True)):
                 is_valid_data = False
                 err = 'API user is not a member of group with id (%s) or group does not exist.' % str(
                     group_id)
@@ -336,8 +363,7 @@ def chk_tags(tags_input):
     tags = tags_input
     if tags is not None:
         if isinstance(tags, list):  # check tags is a list
-            if not (set(tags).issubset(
-                    set(Tag.objects.all().values_list('id', flat=True)))):
+            if not (set(tags).issubset(set(Tag.objects.all().values_list('id', flat=True)))):
                 is_valid_data = False
                 err = 'invalid tag ids list, all tags ids must be valid'
             else:
@@ -359,9 +385,7 @@ def chk_data_sources(data_sources):
     ds = data_sources
     if ds is not None:
         if isinstance(ds, list):  # check data_sources is a list
-            if not (set(ds).issubset(
-                    set(DataSource.objects.all().values_list('id',
-                                                             flat=True)))):
+            if not (set(ds).issubset(set(DataSource.objects.all().values_list('id', flat=True)))):
                 is_valid_data = False
                 err = 'invalid data_source ids list, all data_sources ids must be valid'
             else:
@@ -496,8 +520,7 @@ def chk_code_attribute_header(code_attribute_header):
 
 def get_versions_list(request, set_class, pk):
 
-    versions = set_class.objects.get(
-        pk=pk).history.all().order_by('-history_id')
+    versions = set_class.objects.get(pk=pk).history.all().order_by('-history_id')
 
     max_version_id = versions.aggregate(Max('history_id'))['history_id__max']
 
@@ -523,8 +546,7 @@ def get_visible_versions_list(request,
     if set_class == WorkingSet:
         return get_versions_list(request, set_class, pk)
 
-    versions = set_class.objects.get(
-        pk=pk).history.all().order_by('-history_id')
+    versions = set_class.objects.get(pk=pk).history.all().order_by('-history_id')
 
     visible_versions = []
 
@@ -535,14 +557,12 @@ def get_visible_versions_list(request,
             ver = getHistoryPhenotype(v.history_id)
 
         is_this_version_published = False
-        is_this_version_published = checkIfPublished(set_class, ver['id'],
-                                                     ver['history_id'])
+        is_this_version_published = checkIfPublished(set_class, ver['id'], ver['history_id'])
 
         ver['is_published'] = is_this_version_published
 
         if is_authenticated_user:
-            if allowed_to_edit(request, set_class, pk) or allowed_to_view(
-                    request, set_class, pk):
+            if allowed_to_edit(request, set_class, pk) or allowed_to_view(request, set_class, pk):
                 visible_versions.append(ver)
             else:
                 if is_this_version_published:
@@ -554,15 +574,11 @@ def get_visible_versions_list(request,
     max_version_id = versions.aggregate(Max('history_id'))['history_id__max']
 
     rows_to_return = []
-    titles = [
-        'version_id', 'version_name', 'version_date', 'is_published',
-        'is_latest'
-    ]
+    titles = ['version_id', 'version_name', 'version_date', 'is_published', 'is_latest']
 
     for v in visible_versions:
         ret = [
-            v['history_id'], v['name'].encode('ascii',
-                                              'ignore').decode('ascii'),
+            v['history_id'], v['name'].encode('ascii', 'ignore').decode('ascii'),
             v['history_date'], v['is_published'],
             [False, True][v['history_id'] == max_version_id]
         ]
@@ -578,8 +594,7 @@ def publish_entity(request, set_class, pk):
         (No validation done here)
     """
 
-    latest_version_id = set_class.objects.get(
-        pk=pk).history.latest().history_id
+    latest_version_id = set_class.objects.get(pk=pk).history.latest().history_id
     is_published = checkIfPublished(set_class, pk, latest_version_id)
 
     if is_published:

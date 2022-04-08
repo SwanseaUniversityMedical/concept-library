@@ -27,31 +27,23 @@ from django.http.response import Http404
 from django.views.defaults import permission_denied
 from numpy.distutils.fcompiler import none
 from rest_framework import status, viewsets
-from rest_framework.decorators import (api_view, authentication_classes,
-                                       permission_classes)
+from rest_framework.decorators import (api_view, authentication_classes, permission_classes)
 from rest_framework.response import Response
 
 from ...db_utils import *
-from ...models.Brand import Brand
-from ...models.Code import Code
-from ...models.CodeList import CodeList
-from ...models.CodeRegex import CodeRegex
-from ...models.CodingSystem import CodingSystem
-from ...models.Component import Component
-# The models imports have to be done as follows to avoid Eclipse flagging up
-# access to the objects list as ambiguous.
-from ...models.Concept import Concept
-from ...models.ConceptCodeAttribute import ConceptCodeAttribute
-from ...models.PublishedConcept import PublishedConcept
-from ...models.Tag import Tag
-from ...models.WorkingSet import WorkingSet
-from ...models.WorkingSetTagMap import WorkingSetTagMap
+from ...models import *
+
 #from django.forms.models import model_to_dict
 from ...permissions import *
 from ...utils import *
 from ...viewmodels.js_tree_model import TreeModelManager
 from ..serializers import *
 from .View import *
+
+from drf_yasg.utils import swagger_auto_schema
+# from rest_framework.parsers import MultiPartParser#, FormParser
+# from rest_framework.decorators import parser_classes
+
 
 #--------------------------------------------------------------------------
 '''
@@ -66,6 +58,9 @@ class ConceptViewSet(viewsets.ReadOnlyModelViewSet):
     '''
         Get the API output for the list of concepts.
     '''
+    # Don't show in Swagger
+    swagger_schema = None
+    
     queryset = Concept.objects.none()
     serializer_class = ConceptSerializer
 
@@ -76,11 +71,9 @@ class ConceptViewSet(viewsets.ReadOnlyModelViewSet):
         '''
         queryset = get_visible_concepts_live(self.request.user)
         search = self.request.query_params.get('search', None)
-        concept_id_to_exclude = self.request.query_params.get(
-            'concept_id_to_exclude')
+        concept_id_to_exclude = self.request.query_params.get('concept_id_to_exclude')
         if search is not None:
-            queryset = queryset.filter(name__icontains=search).exclude(
-                id=concept_id_to_exclude).exclude(is_deleted=True)
+            queryset = queryset.filter(name__icontains=search).exclude(id=concept_id_to_exclude).exclude(is_deleted=True)
         return queryset
 
     def filter_queryset(self, queryset):
@@ -96,18 +89,19 @@ class ConceptViewSet(viewsets.ReadOnlyModelViewSet):
 
 #--------------------------------------------------------------------------
 # /api/v1/concepts_live_and_published
+# Don't show in Swagger
+@swagger_auto_schema(method='get', auto_schema=None)
 @api_view(['GET'])
 def concepts_live_and_published(request):
 
     search = request.query_params.get('search', "")
-    concept_id_to_exclude = utils.get_int_value(
-        request.query_params.get('concept_id_to_exclude', 0), 0)
+    concept_id_to_exclude = utils.get_int_value(request.query_params.get('concept_id_to_exclude', 0), 0)
 
     rows_to_return = get_visible_live_or_published_concept_versions(
-        request,
-        searchByName=search,
-        concept_id_to_exclude=concept_id_to_exclude,
-        exclude_deleted=True)
+                                                                    request,
+                                                                    searchByName=search,
+                                                                    concept_id_to_exclude=concept_id_to_exclude,
+                                                                    exclude_deleted=True)
 
     return Response(rows_to_return, status=status.HTTP_200_OK)
 
@@ -120,6 +114,9 @@ class CodeViewSet(viewsets.ReadOnlyModelViewSet):
         For the specified code_list_id.
         (work only on live version since it is used in edit form)
     '''
+    # Don't show in Swagger
+    swagger_schema = None
+    
     queryset = Code.objects.none()
     serializer_class = CodeSerializer
 
@@ -155,7 +152,6 @@ class CodeViewSet(viewsets.ReadOnlyModelViewSet):
     ---------------------------------------------------------------------------
 '''
 
-
 @api_view(['GET'])
 def child_concepts(request, pk):
     '''
@@ -188,6 +184,8 @@ def child_concepts(request, pk):
 
 
 #--------------------------------------------------------------------------
+# Don't show in Swagger
+@swagger_auto_schema(method='get', auto_schema=None)
 @api_view(['GET'])
 def parent_concepts(request, pk):
     '''
@@ -210,8 +208,7 @@ def parent_concepts(request, pk):
             # get concept id by max depth
             max_depth_item = max(rows, key=lambda item: item['level_depth'])
             # build tree from the list of concepts returned
-            treeManager.build_parent_tree(tree, max_depth_item['concept_id'],
-                                          rows)
+            treeManager.build_parent_tree(tree, max_depth_item['concept_id'], rows)
 
         return Response(tree, status=status.HTTP_200_OK)
 
@@ -238,19 +235,16 @@ def export_concept_codes(request, pk):
 
         #---------
         # latest concept_history_id
-        latest_history_id = Concept.objects.get(
-            id=pk).history.latest('history_id').history_id
-        code_attribute_header = Concept.history.get(
-            id=pk, history_id=latest_history_id).code_attribute_header
-        concept_history_date = Concept.history.get(
-            id=pk, history_id=latest_history_id).history_date
+        latest_history_id = Concept.objects.get(id=pk).history.latest('history_id').history_id
+        code_attribute_header = Concept.history.get(id=pk, history_id=latest_history_id).code_attribute_header
+        concept_history_date = Concept.history.get(id=pk, history_id=latest_history_id).history_date
         codes_with_attributes = []
         if code_attribute_header:
             codes_with_attributes = getConceptCodes_withAttributes_HISTORICAL(
-                concept_id=pk,
-                concept_history_date=concept_history_date,
-                allCodes=codes,
-                code_attribute_header=code_attribute_header)
+                                                                            concept_id=pk,
+                                                                            concept_history_date=concept_history_date,
+                                                                            allCodes=codes,
+                                                                            code_attribute_header=code_attribute_header)
 
             codes = codes_with_attributes
         #---------
@@ -284,8 +278,7 @@ def export_concept_codes(request, pk):
                     list(
                         zip(titles, [
                             c['code'],
-                            c['description'].encode('ascii',
-                                                    'ignore').decode('ascii'),
+                            c['description'].encode('ascii', 'ignore').decode('ascii'),
                             concept_coding_system,
                             current_concept.friendly_id,
                             current_concept.history.latest().history_id,
@@ -311,12 +304,10 @@ def export_published_concept_codes(request, pk, concept_history_id):
         raise PermissionDenied
 
     if concept_history_id is not None:
-        if not Concept.history.filter(id=pk,
-                                      history_id=concept_history_id).exists():
+        if not Concept.history.filter(id=pk, history_id=concept_history_id).exists():
             raise PermissionDenied
 
-    is_published = PublishedConcept.objects.filter(
-        concept_id=pk, concept_history_id=concept_history_id).exists()
+    is_published = PublishedConcept.objects.filter(concept_id=pk, concept_history_id=concept_history_id).exists()
     # check if the concept version is published
     if not is_published:
         raise PermissionDenied
@@ -432,8 +423,7 @@ def get_historical_concept_codes(request, pk, concept_history_id):
                 list(
                     zip(titles, [
                         c['code'],
-                        c['description'].encode('ascii',
-                                                'ignore').decode('ascii'),
+                        c['description'].encode('ascii', 'ignore').decode('ascii'),
                         concept_coding_system,
                         history_concept['friendly_id'],
                         concept_history_id,
@@ -446,11 +436,12 @@ def get_historical_concept_codes(request, pk, concept_history_id):
 #############################################################################
 #############################################################################
 #############################################################################
-#@api_view(['GET', 'POST', 'PUT'])
+# Don't show in Swagger
+@swagger_auto_schema(method='post', auto_schema=None)
 @api_view(['POST'])
 def api_concept_create(request):
-
-    # allow only super user (and nor 'ReadOnlyUsers')
+    
+    # allow only super user (and not 'ReadOnlyUsers')
     if not request.user.is_superuser:
         raise PermissionDenied
 
@@ -472,17 +463,13 @@ def api_concept_create(request):
         new_concept.description = request.data.get('description')
         new_concept.publication_doi = request.data.get('publication_doi')
         new_concept.publication_link = request.data.get('publication_link')  # valid URL
-        new_concept.secondary_publication_links = request.data.get(
-            'secondary_publication_links')
+        new_concept.secondary_publication_links = request.data.get('secondary_publication_links')
         new_concept.source_reference = request.data.get('source_reference')
-        new_concept.citation_requirements = request.data.get(
-            'citation_requirements')
+        new_concept.citation_requirements = request.data.get('citation_requirements')
 
         new_concept.paper_published = request.data.get('paper_published')
-        new_concept.validation_performed = request.data.get(
-            'validation_performed')
-        new_concept.validation_description = request.data.get(
-            'validation_description')
+        new_concept.validation_performed = request.data.get('validation_performed')
+        new_concept.validation_description = request.data.get('validation_description')
 
         new_concept.entry_date = datetime.datetime.now()
 
@@ -491,24 +478,21 @@ def api_concept_create(request):
         new_concept.owner_id = request.user.id  # int(request.data.get('owner_id'))
 
         # handle code_attribute_header
-        is_valid_data, err, ret_value = chk_code_attribute_header(
-            request.data.get('code_attribute_header'))
+        is_valid_data, err, ret_value = chk_code_attribute_header(request.data.get('code_attribute_header'))
         if is_valid_data:
             new_concept.code_attribute_header = ret_value
         else:
             errors_dict['code_attribute_header'] = err
 
         # handle coding_system
-        is_valid_data, err, ret_value = chk_coding_system(
-            request.data.get('coding_system'))
+        is_valid_data, err, ret_value = chk_coding_system(request.data.get('coding_system'))
         if is_valid_data:
             new_concept.coding_system = ret_value
         else:
             errors_dict['coding_system'] = err
 
         #  group id
-        is_valid_data, err, ret_value = chk_group(request.data.get('group'),
-                                                  user_groups)
+        is_valid_data, err, ret_value = chk_group(request.data.get('group'), user_groups)
         if is_valid_data:
             group_id = ret_value
             if group_id is None or group_id == "0":
@@ -517,8 +501,7 @@ def api_concept_create(request):
             else:
                 new_concept.group_id = group_id
                 # handle group-Access
-                is_valid_data, err, ret_value = chk_group_access(
-                    request.data.get('group_access'))
+                is_valid_data, err, ret_value = chk_group_access(request.data.get('group_access'))
                 if is_valid_data:
                     new_concept.group_access = ret_value
                 else:
@@ -527,8 +510,7 @@ def api_concept_create(request):
             errors_dict['group'] = err
 
         # handle world-access
-        is_valid_data, err, ret_value = chk_world_access(
-            request.data.get('world_access'))
+        is_valid_data, err, ret_value = chk_world_access(request.data.get('world_access'))
         if is_valid_data:
             new_concept.world_access = ret_value
         else:
@@ -546,8 +528,7 @@ def api_concept_create(request):
 
         #-----------------------------------------------------------
         is_valid_components = False
-        is_valid_data, err, ret_value = chk_components_and_codes(
-            request.data.get('components'))
+        is_valid_data, err, ret_value = chk_components_and_codes(request.data.get('components'))
         if is_valid_data:
             is_valid_components = True
             components = ret_value
@@ -589,8 +570,7 @@ def api_concept_create(request):
                     logical_type=comp['logical_type'],
                     name=comp['name'])
 
-                code_list = CodeList.objects.create(component=component,
-                                                    description='-')
+                code_list = CodeList.objects.create(component=component, description='-')
                 codeRegex = CodeRegex.objects.create(
                     component=component,
                     code_list=code_list,
@@ -644,11 +624,12 @@ def api_concept_create(request):
 
 #############################################################################
 #############################################################################
-#@api_view(['GET', 'POST', 'PUT'])
+# Don't show in Swagger
+@swagger_auto_schema(method='put', auto_schema=None)
 @api_view(['PUT'])
 def api_concept_update(request):
 
-    # allow only super user (and nor 'ReadOnlyUsers')
+    # allow only super user (and not 'ReadOnlyUsers')
     if not request.user.is_superuser:
         raise PermissionDenied
 
@@ -886,25 +867,59 @@ def api_concept_update(request):
 ##################################################################################
 # search my concepts / published ones
 
-
 #--------------------------------------------------------------------------
 #disable authentication for this function
 @api_view(['GET'])
 @authentication_classes([])
 @permission_classes([])
 def published_concepts(request, pk=None):
-    '''
-        Get the API output for the list of published concepts.
-    '''
+    """
+    Lists the published concepts.
+    User can search with criteria using a combinations of querystring parameters: 
+    -  <code>?search=Alcohol</code>  
+      search by part of concept name (do not put wild characters here)
+    -  <code>?tag_ids=11,4</code>  
+      You can specify tag or collection ids  
+    -  <code>?show_only_validated_concepts=1</code> 
+      will show only validated concepts  
+    -  <code>?brand=HDRUK</code>  
+      will show only concepts with brand=HDRUK  
+    -  <code>?author=Kuan</code>  
+      search by part of the author name        
+    -  <code>?do_not_show_versions=1</code>  
+      do not show concepts versions (by default, all concept's version ids are shown)  
+    """
     return getConcepts(request, is_authenticated_user=False, pk=pk)
 
 
 #--------------------------------------------------------------------------
 @api_view(['GET'])
 def user_concepts(request, pk=None):
-    '''
-        Get the API output for the list of user visible (pemitted) concepts.
-    '''
+    """
+    Lists all available visible concepts <em>for the user</em>.
+    User can search with criteria using a combinations of querystring parameters:  
+    -   <code>?search=Alcohol</code>  
+    search by part of concept name (do not put wild characters here)  
+    -   <code>?tag_ids=11,4</code>  
+    You can specify tag or collection ids      
+    -   <code>?show_only_my_concepts=1</code>  
+    Only show concepts owned by me  
+    -   <code>?show_deleted_concepts=1</code>  
+    will show also deleted concepts (by default, deleted objects are not shown)  
+    -   <code>?show_only_validated_concepts=1</code>  
+    will show only validated concepts  
+    -   <code>?brand=HDRUK</code>  
+    will show only concepts with brand=HDRUK  
+    -   <code>?author=Kuan</code>  
+    search by part of the author name  
+    -   <code>?owner_username=a.john</code>  
+    search by full username of the owner  
+    -   <code>?do_not_show_versions=1</code>  
+    do not show concepts versions (by default, all concept's version ids are shown)  
+    -   <code>?must_have_published_versions=1</code>  
+    show only concepts which have a published version(by default, all concepts are shown)  
+    """
+    
     return getConcepts(request, is_authenticated_user=True, pk=pk)
 
 
@@ -919,21 +934,16 @@ def getConcepts(request, is_authenticated_user=True, pk=None):
 
     tag_ids = request.query_params.get('tag_ids', '')
     owner = request.query_params.get('owner_username', '')
-    show_only_my_concepts = request.query_params.get('show_only_my_concepts',
-                                                     "0")
-    show_deleted_concepts = request.query_params.get('show_deleted_concepts',
-                                                     "0")
-    show_only_validated_concepts = request.query_params.get(
-        'show_only_validated_concepts', "0")
+    show_only_my_concepts = request.query_params.get('show_only_my_concepts', "0")
+    show_deleted_concepts = request.query_params.get('show_deleted_concepts', "0")
+    show_only_validated_concepts = request.query_params.get('show_only_validated_concepts', "0")
     concept_brand = request.query_params.get('brand', "")
     author = request.query_params.get('author', '')
-    do_not_show_versions = request.query_params.get('do_not_show_versions',
-                                                    "0")
+    do_not_show_versions = request.query_params.get('do_not_show_versions', "0")
     expand_published_versions = 0  # disable this option
     #expand_published_versions = request.query_params.get('expand_published_versions', "1")
     show_live_and_or_published_ver = "3"  #request.query_params.get('show_live_and_or_published_ver', "3")      # 1= live only, 2= published only, 3= live+published
-    must_have_published_versions = request.query_params.get(
-        'must_have_published_versions', "0")
+    must_have_published_versions = request.query_params.get('must_have_published_versions', "0")
 
     search_tag_list = []
     tags = []
@@ -1003,27 +1013,25 @@ def getConcepts(request, is_authenticated_user=True, pk=None):
     force_brand = None
     if concept_brand != "":
         force_brand = "-xzy"  # an invalid brand name
-        if Brand.objects.all().filter(
-                name__iexact=concept_brand.strip()).exists():
-            current_brand = Brand.objects.get(
-                name__iexact=concept_brand.strip())
+        if Brand.objects.all().filter(name__iexact=concept_brand.strip()).exists():
+            current_brand = Brand.objects.get(name__iexact=concept_brand.strip())
             force_brand = current_brand.name
 
     concepts_srch = get_visible_live_or_published_concept_versions(
-        request,
-        get_live_and_or_published_ver=get_live_and_or_published_ver,
-        searchByName=search,
-        author=author,
-        exclude_deleted=exclude_deleted,
-        filter_cond=filter_cond,
-        show_top_version_only=show_top_version_only,
-        force_brand=force_brand)
+                                            request,
+                                            get_live_and_or_published_ver=get_live_and_or_published_ver,
+                                            searchByName=search,
+                                            author=author,
+                                            exclude_deleted=exclude_deleted,
+                                            filter_cond=filter_cond,
+                                            show_top_version_only=show_top_version_only,
+                                            force_brand=force_brand)
 
     rows_to_return = []
     titles = [
         'concept_id', 'concept_name', 'version_id', 'author', 'coding_system',
         'owner', 'created_by', 'created_date', 'modified_by', 'modified_date',
-        'is_deleted', 'deleted_by', 'deleted_date', 'is_published', 'tags'
+        'is_deleted', 'deleted_by', 'deleted_date', 'is_published', 'tags', 'collections'
     ]
     if do_not_show_versions != "1":
         titles += ['versions']
@@ -1058,19 +1066,21 @@ def getConcepts(request, is_authenticated_user=True, pk=None):
         ret += [c['deleted'], c['published']]
 
         c_tags = []
+        c_collections = []
         concept_tags = c['tags']
         if concept_tags:
-            c_tags = list(
-                Tag.objects.filter(pk__in=concept_tags).values(
-                    'description', 'id', 'tag_type', 'collection_brand'))
-
+            c_tags = list(Tag.objects.filter(pk__in=concept_tags, tag_type=1).values('description', 'id'))
+            c_collections = list(Tag.objects.filter(pk__in=concept_tags, tag_type=2).values('description', 'id',  'collection_brand'))
+            if c_collections:
+                for col in c_collections:
+                    col['collection_brand'] = Brand.objects.get(pk=col['collection_brand']).name
+                    
         ret += [c_tags]
-
+        ret += [c_collections]
+        
+        
         if do_not_show_versions != "1":
-            ret += [
-                get_visible_versions_list(request, Concept, c['id'],
-                                          is_authenticated_user)
-            ]
+            ret += [get_visible_versions_list(request, Concept, c['id'], is_authenticated_user)]
 
         rows_to_return.append(ordr(list(zip(titles, ret))))
 
@@ -1120,8 +1130,7 @@ def concept_detail(request,
 
     if concept_history_id is None:
         # get the latest version
-        concept_history_id = Concept.objects.get(
-            pk=pk).history.latest().history_id
+        concept_history_id = Concept.objects.get(pk=pk).history.latest().history_id
 
     return getConceptDetail(request,
                             pk,
@@ -1147,14 +1156,12 @@ def concept_detail_PUBLIC(request,
         raise Http404
 
     if concept_history_id is not None:
-        concept_ver = Concept.history.filter(id=pk,
-                                             history_id=concept_history_id)
+        concept_ver = Concept.history.filter(id=pk, history_id=concept_history_id)
         if concept_ver.count() == 0: raise Http404
 
     if concept_history_id is None:
         # get the latest version
-        concept_history_id = Concept.objects.get(
-            pk=pk).history.latest().history_id
+        concept_history_id = Concept.objects.get(pk=pk).history.latest().history_id
 
     is_published = checkIfPublished(Concept, pk, concept_history_id)
     # check if the concept version is published
@@ -1178,10 +1185,7 @@ def getConceptDetail(request,
     if get_versions_only is not None:
         if get_versions_only == '1':
             titles = ['versions']
-            ret = [
-                get_visible_versions_list(request, Concept, pk,
-                                          is_authenticated_user)
-            ]
+            ret = [get_visible_versions_list(request, Concept, pk, is_authenticated_user)]
             rows_to_return = []
             rows_to_return.append(ordr(list(zip(titles, ret))))
             return Response(rows_to_return, status=status.HTTP_200_OK)
@@ -1202,18 +1206,22 @@ def getConceptDetail(request,
     components = getHistoryComponents(pk, concept_history_date)
 
     tags = []
+    collections = []
     concept_tags = concept['tags']
     if concept_tags:
-        tags = list(
-            Tag.objects.filter(pk__in=concept_tags).values(
-                'description', 'id', 'tag_type', 'collection_brand'))
-
+        tags = list(Tag.objects.filter(pk__in=concept_tags, tag_type=1).values('description', 'id'))
+        collections = list(Tag.objects.filter(pk__in=concept_tags, tag_type=2).values('description', 'id',  'collection_brand'))
+        if collections:
+            for col in collections:
+                col['collection_brand'] = Brand.objects.get(pk=col['collection_brand']).name
+                    
     rows_to_return = []
     titles = [
         'concept_id',
         'concept_name',
         'version_id',
         'tags',
+        'collections',
         'author',
         'entry_date',
         'description',
@@ -1247,6 +1255,7 @@ def getConceptDetail(request,
         concept['name'].encode('ascii', 'ignore').decode('ascii'),
         concept['history_id'],
         tags,
+        collections,
         concept['author'],
         concept['entry_date'],
         concept['description'],
@@ -1271,8 +1280,7 @@ def getConceptDetail(request,
     ]
 
     # may come from concept live version / or history
-    if (concept['is_deleted'] == True
-            or Concept.objects.get(pk=pk).is_deleted == True):
+    if (concept['is_deleted'] == True or Concept.objects.get(pk=pk).is_deleted == True):
         ret += [True]
     else:
         ret += [None]
@@ -1303,10 +1311,10 @@ def getConceptDetail(request,
         codes_with_attributes = []
         if code_attribute_header:
             codes_with_attributes = getConceptCodes_withAttributes_HISTORICAL(
-                concept_id=pk,
-                concept_history_date=concept_history_date,
-                allCodes=ret_codes,
-                code_attribute_header=code_attribute_header)
+                                                                            concept_id=pk,
+                                                                            concept_history_date=concept_history_date,
+                                                                            allCodes=ret_codes,
+                                                                            code_attribute_header=code_attribute_header)
 
             ret_codes = codes_with_attributes
         #---------
@@ -1315,9 +1323,7 @@ def getConceptDetail(request,
         if code_attribute_header:
             if request.query_params.get('format', 'xml').lower() == 'xml':
                 # clean attr names/ remove space, etc
-                code_titles = code_titles + [
-                    clean_str_as_db_col_name(a) for a in code_attribute_header
-                ]
+                code_titles = code_titles + [clean_str_as_db_col_name(a) for a in code_attribute_header]
             else:
                 code_titles = code_titles + [a for a in code_attribute_header]
 
@@ -1338,22 +1344,23 @@ def getConceptDetail(request,
         #################################################################
 
         ret_comp_data = [
-            com['name'], com['comment'],
+            com['name'], 
+            com['comment'],
             dict(Component.COMPONENT_TYPES)[com['component_type']],
             com['get_logical_type_display'],
-            ['', 'C' + str(com['concept_ref_id'])
-             ][com['concept_ref_id'] is not None],
-            com['concept_ref_history_id'], final_ret_codes
+            ['', 'C' + str(com['concept_ref_id'])][com['concept_ref_id'] is not None],
+            com['concept_ref_history_id'], 
+            final_ret_codes
         ]
         ret_components.append(ordr(list(zip(com_titles, ret_comp_data))))
 
     #ret += [components]
     ret += [ret_components]
 
-    ret += [
-        get_visible_versions_list(request, Concept, pk, is_authenticated_user)
-    ]
+    ret += [get_visible_versions_list(request, Concept, pk, is_authenticated_user)]
 
     rows_to_return.append(ordr(list(zip(titles, ret))))
 
     return Response(rows_to_return, status=status.HTTP_200_OK)
+
+

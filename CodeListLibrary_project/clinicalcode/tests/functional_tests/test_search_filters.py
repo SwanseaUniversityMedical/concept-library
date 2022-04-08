@@ -553,7 +553,7 @@ class SearchTest(StaticLiveServerTestCase):
 
             time.sleep(settings_cll.IMPLICTLY_WAIT)
 
-            browser.find_element(By.NAME, "show_deleted_phenotypes").click()
+            browser.find_element(By.ID, "show_deleted_phenotypes").click()
 
             browser.find_element(
                 By.XPATH, '//button[@class = "btn btn-primary"]').click()
@@ -578,7 +578,7 @@ class SearchTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.IMPLICTLY_WAIT)
 
-        browser.find_element(By.NAME, "show_my_phenotypes").click()
+        browser.find_element(By.ID, "show_my_phenotypes").click()
 
         browser.find_element(By.XPATH,
                              '//button[@class = "btn btn-primary"]').click()
@@ -596,7 +596,7 @@ class SearchTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.IMPLICTLY_WAIT)
 
-        browser.find_element(By.NAME, "show_my_phenotypes").click()
+        browser.find_element(By.ID, "show_my_phenotypes").click()
 
         browser.find_element(By.XPATH,
                              '//button[@class = "btn btn-primary"]').click()
@@ -664,7 +664,7 @@ class SearchTest(StaticLiveServerTestCase):
 
         browser.find_element(By.NAME, "owner").send_keys("owneruser")
 
-        browser.find_element(By.NAME, "show_my_phenotypes").click()
+        browser.find_element(By.ID, "show_my_phenotypes").click()
 
         browser.find_element(By.XPATH,
                              '//button[@class = "btn btn-primary"]').click()

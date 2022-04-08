@@ -14,8 +14,7 @@
  	<div class="container" >
 
 		<div id="basic-search" class="bg-search" {% if search_form == 'advanced-form' %} style="display:none;" {% endif %} >
-  			<form class="container_frm container-1 example" id="basic-form" action="{% url 'phenotype_list' %}" method="POST"  >
-			    {% csrf_token %}
+  			<form class="container_frm container-1 example" id="basic-form" action="{% url 'phenotype_list' %}" method="GET"  >
 				<div  class="row form-group">
 					<div>
 						<h2>Phenotypes</h2>
@@ -41,8 +40,7 @@
 	
 		<div id="advanced-search" {% if search_form == 'basic-form' %} style="display:none;" {% endif %} > 
 			<h2 class="page-header">Phenotypes</h2>
-			<form  id="advanced-form" action="{% url 'phenotype_list' %}" method="POST" >
-				{% csrf_token %}
+			<form  id="advanced-form" action="{% url 'phenotype_list' %}" method="GET" >
 				<div class="panel panel-default bg-search">
 					<div class="panel-body container-2">
 					
@@ -129,7 +127,8 @@
 								<div class="col-md-4">
 									<div class="checkbox">
 										<label>
-											<input id="show_deleted_phenotypes" type="checkbox" name="show_deleted_phenotypes" {% if show_deleted_phenotypes %}checked="checked"{% endif %} value="1" >
+											<input id="show_deleted_phenotypes_hidden" type="hidden" name="show_deleted_phenotypes"  value="{{ show_deleted_phenotypes }}" >
+											<input class="form-checkbox" id="show_deleted_phenotypes" type="checkbox" nameXX="show_deleted_phenotypes" {% if show_deleted_phenotypes == "1" %} checked="checked" {% endif %} value="1" >
 											Show deleted phenotypes
 										</label>
 									</div>
@@ -139,7 +138,8 @@
 								<div class="col-md-4">
 									<div class="checkbox">
 										<label>
-											<input id="show_my_phenotypes" type="checkbox" name="show_my_phenotypes" {% if show_my_phenotypes %}checked="checked"{% endif %} value="1" >
+											<input id="show_my_phenotypes_hidden" type="hidden" name="show_my_phenotypes"  value="{{ show_my_phenotypes }}" >
+											<input class="form-checkbox" id="show_my_phenotypes" type="checkbox" nameXX="show_my_phenotypes" {% if show_my_phenotypes == "1" %} checked="checked" {% endif %} value="1" >
 											Only show phenotypes owned by me
 										</label>
 									</div>
@@ -150,7 +150,8 @@
 								<div class="col-md-4">
 									<div class="checkbox">
 										<label>
-											<input id="show_my_pending_phenotypes" type="checkbox" name="show_my_pending_phenotypes" {% if show_my_pending_phenotypes %}checked="checked"{% endif %} value="1" >
+											<input id="show_my_pending_phenotypes_hidden" type="hidden" name="show_my_pending_phenotypes" value="{{ show_my_pending_phenotypes }}" >
+											<input class="form-checkbox" id="show_my_pending_phenotypes" type="checkbox" nameXX="show_my_pending_phenotypes" {% if show_my_pending_phenotypes == "1" %} checked="checked" {% endif %} value="1" >
 											Show my waiting for approval phenotypes
 										</label>
 									</div>
@@ -159,19 +160,21 @@
                                     <div class="col-md-4">
 									<div class="checkbox">
 										<label>
-											<input id="show_mod_pending_phenotypes" type="checkbox" name="show_mod_pending_phenotypes" {% if show_mod_pending_phenotypes %}checked="checked"{% endif %} value="1" >
+											<input id="show_mod_pending_phenotypes_hidden" type="hidden" name="show_mod_pending_phenotypes"  value="{{ show_mod_pending_phenotypes }}" >
+											<input class="form-checkbox" id="show_mod_pending_phenotypes" type="checkbox" nameXX="show_mod_pending_phenotypes" {% if show_mod_pending_phenotypes == "1" %} checked="checked" {% endif %} value="1" >
 											Show waiting for approval phenotypes
 										</label>
 									</div>
 								</div>
 
-                        {% endif %}
+                        		{% endif %}
                         {% endif %}
 							
 		<!-- 					<div class = "col-md-3">    -->
 		<!-- 						<div class="checkbox"  > -->
 		<!-- 							<label> -->
-		<!-- 								<input id="show_only_validated_phenotypes" type="checkbox" name="show_only_validated_phenotypes" {% if show_only_validated_phenotypes %}checked="checked"{% endif %} value="1" > -->
+		<!-- 								<input id="show_only_validated_phenotypes_hidden" type="hidden" name="show_only_validated_phenotypes"  value="{{ show_only_validated_phenotypes }}" > -->
+		<!-- 								<input class="form-checkbox" id="show_only_validated_phenotypes" type="checkbox" nameXX="show_only_validated_phenotypes" {% if show_only_validated_phenotypes == "1" %} checked="checked" {% endif %} value="1" > -->
 		<!-- 								Only Show validated phenotypes -->
 		<!-- 							</label> -->
 		<!-- 						</div> -->
@@ -181,29 +184,20 @@
 							<div  class = "col-md-4">
 								<div class="checkbox"  >
 									<label>
-										<input id="phenotype_must_have_published_versions" type="checkbox" name="phenotype_must_have_published_versions" {% if phenotype_must_have_published_versions %}checked="checked"{% endif %} value="1" >
+										<input id="phenotype_must_have_published_versions_hidden" type="hidden" name="phenotype_must_have_published_versions"  value="{{ phenotype_must_have_published_versions }}" >
+										<input class="form-checkbox" id="phenotype_must_have_published_versions" type="checkbox" nameXX="phenotype_must_have_published_versions" {% if phenotype_must_have_published_versions == "1" %} checked="checked" {% endif %} value="1" >
 										Only show phenotypes with published version
 									</label>
 								</div>
 							</div>		
 						{% endif %}		
 																
-		<!-- 				{% if published_count %} -->
-		<!-- 					<div  class = "col-md-3"> -->
-		<!-- 						<div class="checkbox"  > -->
-		<!-- 							<label> -->
-		<!-- 								<input id="expand_published_versions" type="checkbox" name="expand_published_versions" {% if expand_published_versions %}checked="checked"{% endif %} value="1" > -->
-		<!-- 								expand published versions -->
-		<!-- 							</label> -->
-		<!-- 						</div> -->
-		<!-- 					</div>		 -->
-		<!-- 				{% endif %}	 -->
+
 						
 						</div>
 						
 						<div class="row form-group">
 							<div class="col-md-2 ">
-								<input type=hidden name="search_form" value='advanced-form'>
 								<a  id="show-basic-search" href="javascript:void(null);" >Basic search</a>
 							</div>				
 							<div class="col-md-10 text-right">				
@@ -278,18 +272,26 @@
 						
 			{% if user.is_authenticated %}
 				$('#show_deleted_phenotypes').prop("checked", false);
+				$('#show_deleted_phenotypes_hidden').val("0");
+				
+				$('#show_my_phenotypes').prop("checked", false);
+				$('#show_my_phenotypes_hidden').val("0");
+				
 				$('#show_my_pending_phenotypes').prop("checked", false);
-				$('#show_pending_phenotypes').prop("checked", false);
+				$('#show_my_pending_phenotypes_hidden').val("0");
+
 				$('#show_mod_pending_phenotypes').prop("checked", false);
+				$('#show_mod_pending_phenotypes_hidden').val("0");
+
 				$('#phenotype_must_have_published_versions').prop("checked", false);
+				$('#phenotype_must_have_published_versions_hidden').val("0");
+
 				$('#txtOwner').val('');
 			{% endif %}						
 			
 			$('#show_only_validated_phenotypes').prop("checked", false);
-			
-// 			{% if published_count %}
-// 				$('#expand_published_versions').prop("checked", false);
-// 			{% endif %}	
+			$('#show_only_validated_phenotypes_hidden').val("0");
+
 		});
 		
 
@@ -386,6 +388,18 @@
 				}
 			
 		});	
+		
+		//--------------------
+		// change checkbox's hidden value when checked/unchecked
+		$(".form-checkbox").change( function() { 
+		  if ( $(this).is(":checked") ) {
+			  $("#" + $(this).attr('id') + "_hidden").val('1');
+		  } else if ( $(this).not(":checked") ) {
+			  $("#" + $(this).attr('id') + "_hidden").val('0');
+		  }
+		});
+		
+				
 		
 			
 	</script>

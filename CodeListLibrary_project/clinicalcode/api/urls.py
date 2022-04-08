@@ -13,6 +13,13 @@ from rest_framework import routers
 
 from .views import Concept, DataSource, Phenotype, View, WorkingSet
 
+from rest_framework import permissions
+from drf_yasg.generators import OpenAPISchemaGenerator
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+#import os
+
+
 '''
 Use the default REST API router to access the API details explicitly.
 These paths will appear as links on the API page.
@@ -20,17 +27,62 @@ These paths will appear as links on the API page.
 router = routers.DefaultRouter()
 router.register('concepts-live', Concept.ConceptViewSet)
 router.register('codes', Concept.CodeViewSet)
-router.register('tags', View.TagViewSet, basename='tags')
+router.register('tags-and-collections', View.TagViewSet, basename='tags')
 router.register('public/data-sources-list', View.DataSourceViewSet)
 router.register('public/coding-systems', View.CodingSystemViewSet)
+
+urlpatterns = []
+
+###########################################################################
+# Swagger
+
+class SchemaGenerator(OpenAPISchemaGenerator):
+    def get_schema(self, request=None, public=False):
+        schema = super(SchemaGenerator, self).get_schema(request, public)
+        schema.basePath = request.path.replace('swagger/', '')
+        if settings.IS_DEVELOPMENT_PC or settings.IS_INSIDE_GATEWAY:
+            schema.schemes = ["http", "https"]
+        else:
+            schema.schemes = ["https"] 
+        return schema
+
+            
+schema_view = get_schema_view(
+                              openapi.Info(
+                                            title = settings.SWAGGER_TITLE,
+                                            default_version = "v1",
+#                                           description = ""  #"description  ... goes here ...",
+#                                           terms_of_service = "https://www.google.com/policies/terms/",
+#                                           contact = openapi.Contact(email = "contact@snippets.local"),
+#                                           license = openapi.License(name = "BSD License"),                          
+                                            ),
+                                public = True,
+                                permission_classes = (permissions.AllowAny,),#(permissions.IsAuthenticated,),
+                                # urlconf = "clinicalcode.api.urls",
+                                # url =  "http://conceptlibrary.saildatabank.com/",
+                                # validators = ['flex', 'ssv'],
+                                # patterns  =  [],
+                                generator_class = SchemaGenerator,
+                            )
+
+
+urlpatterns += [
+    url(r'^swagger(?P<format>\.json|\.yaml)/$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    url(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    url(r'^redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+]
+###########################################################################
+
+
 '''
 Paths which are available as REST API URLs. The router URLs listed above can
 be included via an include().
 '''
-urlpatterns = [
+urlpatterns += [
     url(r'^$', cc_view.customRoot, name='root'),
     url(r'^', include(router.urls)),
 
+    
     #----------------------------------------------------------
     # ---  concepts  ------------------------------------------
     #----------------------------------------------------------
@@ -46,7 +98,7 @@ urlpatterns = [
 
     #===============================================
     # only superuser - under testing
-    url(r'^childconcepts/C(?P<pk>\d+)/$',
+    url(r'^concepts/C(?P<pk>\d+)/childconcepts/$',
         Concept.child_concepts,
         name='api_child_concepts'),
 
@@ -221,6 +273,27 @@ urlpatterns = [
             'show_published_data_only': True
         },
         name='data_source_live_by_id_public'),
+    
+    
+    # ---------------------------------------------------------
+    # ---  tags / collections  --------------------------------------
+    #----------------------------------------------------------
+    # public tags
+    url(r'^public/tags/$',
+        View.getTagsOrCollections, {'tag_type': 1},
+        name='tag_list_public'),
+    url(r'^public/tags/(?P<pk>\d+)/$',
+        View.getTagsOrCollections, {'tag_type': 1},
+        name='tag_list_by_id_public'),
+    
+    # public collections
+    url(r'^public/collections/$',
+        View.getTagsOrCollections, {'tag_type': 2},
+        name='collection_list_public'),
+    url(r'^public/collections/(?P<pk>\d+)/$',
+        View.getTagsOrCollections, {'tag_type': 2},
+        name='collections_list_by_id_public'),
+    
 ]
 
 #======== Concept/Working set/Phenotye create/update ===================
