@@ -18,13 +18,15 @@
 				<div  class="row form-group">
 					<div>
 						<h2>Phenotypes</h2>
-						<input type="text" placeholder="Search Phenotypes" name="search" id="search1" value="{{ search|default_if_none:'' }}">
-						<input type="hidden" name="tagids" id="tagids"  value="{{ tag_ids|default_if_none:'' }}">
-						<input type="hidden" name="search_form" id="collection_search_form1"  class="collection_search_form"  value="{{ search_form }}"> 
-						
-						<button classXX="btn btn-info" name="page" value="1">
-							<i class="fa fa-search"></i>
-						</button>
+						<div class="form-input-flex-container">
+							<input type="text" placeholder="Search Phenotypes" name="search" id="search1" value="{{ search|default_if_none:'' }}">
+							<input type="hidden" name="tagids" id="tagids"  value="{{ tag_ids|default_if_none:'' }}">
+							<input type="hidden" name="search_form" id="collection_search_form1"  class="collection_search_form"  value="{{ search_form }}"> 
+							
+							<button classXX="btn btn-info" name="page" value="1">
+								<i class="fa fa-search"></i>
+							</button>
+						</div>
 					</div>
 				</div>
 				<div class="row form-group">

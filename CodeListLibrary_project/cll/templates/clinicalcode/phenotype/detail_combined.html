@@ -40,7 +40,7 @@
 			
 			<span id="topButtons">			
 					<div class="row" style="margin-left: 2px">
-						<div class="col-sm-12 text-right">
+						<div class="col-sm-12 text-right action-buttons-container">
 							
 						   <div class="dropdown btn-group">
 							  <button {% if not user_can_export %} disabled
@@ -743,7 +743,7 @@
                 <span id="api_id" phenotype_id="{{ phenotype.id }}">
 				<p> To Export Phenotype Details:</p>
 
-				<table class="table table-striped table-responsive-md" style="width: 80%">
+				<table class="table table-striped table-responsive-md table-flex-rows">
 				  <tr>
 					<th>Format</th>
 					<th>API</th>
@@ -774,8 +774,7 @@
 				  </tr>
 				</table>
 				<p> To Export Phenotype Code List:</p>
-
-					<table class="table table-striped table-responsive-md" style="width: 80%">
+					<table class="table table-striped table-responsive-md table-flex-rows">
 				  <tr>
 					<th>Format</th>
 					<th>API</th>
