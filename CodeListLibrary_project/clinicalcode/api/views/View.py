@@ -100,7 +100,7 @@ def getTagsOrCollections(request, tag_type=None, pk=None):
         return the list of tags or collections
     '''
     queryset = Tag.objects.all()
-    #print("CURRENT_BRAND x = " + request.CURRENT_BRAND)
+
     # tag_type = {1: tag, 2: collection}   
     queryset = queryset.filter(tag_type=tag_type)
     
