@@ -283,14 +283,15 @@
                         {% endfor %}
                     </div>
                 </div>
-
-                <div class="row" style="margin-top: 10px;">
-                    <div class="col-sm-2">Valid event data range</div>
-                    <div class="col-sm-10">
-                        {{ phenotype.valid_event_data_range }}
-                    </div>
-
-                </div>
+		
+				{% if phenotype.valid_event_data_range|length %}
+	                <div class="row" style="margin-top: 10px;">
+	                    <div class="col-sm-2">Valid event data range</div>
+	                    <div class="col-sm-10">
+	                        {{ phenotype.valid_event_data_range }}
+	                    </div>
+	                </div>
+                {% endif %}
 
                 <div class="row" style="margin-top: 10px;">
                     <div class="col-sm-2">Sex</div>
