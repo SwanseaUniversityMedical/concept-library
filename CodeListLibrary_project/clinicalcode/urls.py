@@ -22,7 +22,9 @@ urlpatterns = [
     url(r'^concepts/$', Concept.concept_list, name='concept_list'),
     url(r'^workingsets/$', WorkingSet.workingset_list, name='workingset_list'),
     url(r'^phenotypes/$', Phenotype.phenotype_list, name='phenotype_list'),
-    url(r'^cookies_settings/?$', View.cookies_settings, name='cookies_settings'),
+    
+    url(r'^cookies-settings/?$', View.cookies_settings, name='cookies_settings'),
+    url(r'^reference-data/?$', View.reference_data, name='reference_data'),
 
     #     # redirect api root '/api' to '/api/v1'
     #     #url(r'^api/$', RedirectView.as_view(url= reverse('api:root')) , name='api_root_v1'),
@@ -52,7 +54,7 @@ urlpatterns += [
         name='technical_documentation'),
 ]
 
-# contact us read only
+# contact us page
 if not settings.CLL_READ_ONLY:
     urlpatterns += [
         url(r'^contact-us/$', View.contact_us, name='contact_us'),

@@ -15,23 +15,18 @@ from django.db.models import Q
 from django.http.response import Http404
 from django.shortcuts import redirect, render
 
-from ..forms.ContactUsForm import ContactForm
-from ..models.Component import Component
-from ..models.Concept import Concept
-from ..models.DataSource import DataSource
-from ..models.Phenotype import Phenotype
-from ..models.PublishedConcept import PublishedConcept
-from ..models.PublishedPhenotype import PublishedPhenotype
-from ..models.Statistics import Statistics
-from ..permissions import allowed_to_edit, allowed_to_view
+from ..models import *
 
-logger = logging.getLogger(__name__)
+from ..forms.ContactUsForm import ContactForm
+from ..permissions import allowed_to_edit, allowed_to_view
 
 import requests
 from django import forms
 from django.conf import settings
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
 from django.http import HttpResponse
+
+logger = logging.getLogger(__name__)
 
 
 def index(request):
@@ -421,8 +416,7 @@ def technicalpage(request):
     """
         HDRUK Documentation outside of HDRUK Brand
     """
-    return render(request,
-                  'clinicalcode/brand/HDRUK/about/technical-details.html', {})
+    return render(request, 'clinicalcode/brand/HDRUK/about/technical-details.html', {})
 
 
 def cookies_settings(request):
@@ -430,9 +424,10 @@ def cookies_settings(request):
 
 
 def contact_us(request):
-    '''
+    """
         Generation of Contact us page/form and email send functionality.
-    '''
+    """
+    
     if settings.CLL_READ_ONLY:
         raise PermissionDenied
     
@@ -495,9 +490,10 @@ def check_recaptcha(request):
             'response': recaptcha_response
         }
         r = requests.post(
-            'https://www.google.com/recaptcha/api/siteverify',
-            data=data,
-            proxies={'https': 'http://proxy:8080/'})
+                            'https://www.google.com/recaptcha/api/siteverify',
+                            data=data,
+                            proxies={'https': 'http://proxy:8080/'}
+                        )
         result = r.json()
         if result['success']:
             recaptcha_is_valid = True
@@ -506,6 +502,18 @@ def check_recaptcha(request):
         return recaptcha_is_valid
 
 
+def reference_data(request):
+    """
+        Open page to list Data sources, Coding systems, Tags, Collections, Phenotype types, etc 
+    """
+
+    context = {}
+    context['data_sources'] = DataSource.objects.all().order_by('name')
+    context['coding_systems'] = CodingSystem.objects.all().order_by('name')
+    context['tags'] = Tag.objects.filter(tag_type=1).order_by('description')
+    context['collections'] = Tag.objects.filter(tag_type=2).order_by('description')
+    context['phenotype_types'] = Phenotype.objects.values('type').distinct().order_by('type')
+
+    return render(request, 'clinicalcode/reference-data.html', context)
 
 
-        
