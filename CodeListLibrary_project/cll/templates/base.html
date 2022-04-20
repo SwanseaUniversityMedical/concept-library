@@ -180,9 +180,10 @@
     									<li><a href="{% url 'about_page' pg_name='cl_about_page' %}" >Concept Library</a></li>
 								{% endif %}
 								
+								<li role="separator" class="divider"></li>
+								<li><a href="{% url 'reference_data' %}">Reference data</a></li>
 								{% if not CLL_READ_ONLY %}
-	 								<li role="separator" class="divider"></li>
-	                                <li><a href="{% url 'contact_us' %}">Contact Us</a></li>
+	                                <li><a href="{% url 'contact_us' %}">Contact us</a></li>
 								{% endif %}
         				                                                                                                                                    
 	                        </ul>

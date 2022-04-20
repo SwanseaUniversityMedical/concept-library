@@ -147,7 +147,15 @@ class DataSourceViewSet(viewsets.ReadOnlyModelViewSet):
             Provide the dataset for the view.
             Get all the data sources but limit if we are searching.
         '''
-        queryset = DataSource.objects.all()
+        # get DB pk from defined ID
+        if 'pk' in self.kwargs:
+            if self.kwargs['pk'] is not None:
+                try:
+                    self.kwargs['pk'] = DataSource.objects.get(datasource_id = self.kwargs['pk']).pk
+                except Exception as e:
+                    raise Http404
+
+        queryset = DataSource.objects.all().values('datasource_id', 'name', 'uid', 'url', 'description')
         keyword_search = self.request.query_params.get('search', None)
         if keyword_search is not None:
             queryset = queryset.filter(name__icontains=keyword_search)
@@ -188,7 +196,16 @@ class CodingSystemViewSet(viewsets.ReadOnlyModelViewSet):
             Provide the Coding Systems for the view.
             Get all the Coding Systems but limit if we are searching.
         '''
-        queryset = CodingSystem.objects.all()
+                
+        # get DB pk from defined ID
+        if 'pk' in self.kwargs:
+            if self.kwargs['pk'] is not None:
+                try:
+                    self.kwargs['pk'] = CodingSystem.objects.get(codingsystem_id = self.kwargs['pk']).pk
+                except Exception as e:
+                    raise Http404
+                
+        queryset = CodingSystem.objects.all().values('codingsystem_id', 'name', 'description')
         keyword_search = self.request.query_params.get('search', None)
         if keyword_search is not None:
             queryset = queryset.filter(name__icontains=keyword_search)

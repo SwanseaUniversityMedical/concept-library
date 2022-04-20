@@ -21,17 +21,17 @@
 <div class="row">
 	<div class="col-sm-2 hideleft-navbar" id="ConceptMenu" style="padding-top: 20px; position: sticky; position: -webkit-sticky; top: 60px;">
 		<ul class="left-navbar" onclick="showSelection(event)" id='navList'>
-			<li><a href="#home" id="Homelinkid">Home</a>					
-			<li><a href="#description">Description</a>
-			<!--<li><a href="#validation">Validation</a>-->
-			<li><a href="#Publications">Publications</a>
-			<li><a href="#CodeLists">Clinical Code Lists</a>
-			<li><a href="#API">API</a>
+			<li><a href="#home" id="Homelinkid">Home</a></li>					
+			<li><a href="#description">Description</a></li>
+			<!--<li><a href="#validation">Validation</a></li>-->
+			<li><a href="#Publications">Publications</a></li>
+			<li><a href="#CodeLists">Clinical Code Lists</a></li>
+			<li><a href="#API">API</a></li>
 
 			{% if user.is_authenticated  %}				
-				<li><a href="#permissions">Permissions</a>	
+				<li><a href="#permissions">Permissions</a></li>	
 			{% endif %}	
-			<li><a href="#conceptVersions">Version History</a>
+			<li><a href="#conceptVersions">Version History</a></li>
 		</ul>
 	</div>
 			
@@ -394,7 +394,7 @@
 									<th>Version</th>
 									<th>Type</th>
 									<th>Logical type</th>
-									<th></th>
+									<th>&nbsp;</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -882,8 +882,7 @@
 
 						 var table = $('#codelist-tab-table').DataTable({
                          "initComplete":function () {
-                             $('#codelist-tab-table').addClass(
-                                 "specific_tablist")
+                             $('#codelist-tab-table').addClass("specific_tablist")
                          },
                              "scrollX":true,
                              "scrollY":"700px",
@@ -985,18 +984,15 @@
 
 	<script type="text/javascript">	
 		function showSelection(e) {
-  		if (document.querySelector('#navList a.active') !== null) {
-    		document.querySelector('#navList a.active').classList.remove('active');
-  		}
-		e.target.className = "active";
+	  		if (document.querySelector('#navList a.active') !== null) {
+	    		document.querySelector('#navList a.active').classList.remove('active');
+	  		}
+			e.target.className = "active";
 		}
-	</script>
-	
 
-	<script type="text/javascript">
-	 	window.onload=function(){
-  			document.getElementById("Homelinkid").click();
-	 	};
+        $(document).ready(function() {
+            document.getElementById("Homelinkid").click();
+        });
 	</script>
 	
 	<script type="text/javascript">
