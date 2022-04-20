@@ -20,17 +20,17 @@
         <div class="col-sm-2 hideleft-navbar" id="PhenotypeMenu"
              style="padding-top: 20px; position: sticky; position: -webkit-sticky; top: 60px;">
             <ul class="left-navbar active" onclick="showSelection(event)" id='navList'>
-                <li><a href="#home" id="Homelinkid">Home</a>
-                <li><a href="#definition">Definition</a>
-                <li><a href="#implementation">Implementation</a>
-                    <!--<li><a href="#validation">Validation</a>-->
-                <li><a href="#Publications">Publications</a>
-                <li><a href="#CodeLists">Clinical Code Lists</a>
-                <li><a href="#API">API</a>
+                <li><a href="#home" id="Homelinkid">Home</a></li>
+                <li><a href="#definition">Definition</a></li>
+                <li><a href="#implementation">Implementation</a></li>
+                    <!--<li><a href="#validation">Validation</a></li>-->
+                <li><a href="#Publications">Publications</a></li>
+                <li><a href="#CodeLists">Clinical Code Lists</a></li>
+                <li><a href="#API">API</a></li>
                     {% if user.is_authenticated %}
-                        <li><a href="#permissions">Permissions</a>
+                        <li><a href="#permissions">Permissions</a></li>
                     {% endif %}
-                <li><a href="#CodeListsVersions">Version History</a>
+                <li><a href="#CodeListsVersions">Version History</a></li>
             </ul>
         </div>
 
@@ -126,9 +126,9 @@
                                                             id="publish2">
                                                    {% if is_approved == 1%}
                                                        Approve
-                                                       {% else %}
+                                                   {% else %}
                                                        Publish
-                                                       {% endif %}
+                                                   {% endif %}
 
                                                 {% else %}
 
@@ -138,23 +138,23 @@
                                                                 href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
                                                             {% else %}
                                                                 {% if is_published and is_approved == 2 %}
-                                                                class="btn btn-primary"
-                                                                title="This version is already published"
+	                                                                class="btn btn-primary"
+	                                                                title="This version is already published"
                                                                 {% elif live_ver_is_deleted %}
-                                                                class="btn btn-primary"
-                                                                title="Deleted phenotypes cannot be published !!"
+	                                                                class="btn btn-primary"
+	                                                                title="Deleted phenotypes cannot be published !!"
                                                                 {% elif is_approved == 3 %}
-                                                                class="btn btn-danger"
-                                                                disabled title="This version is declined"
+	                                                                class="btn btn-danger"
+	                                                                disabled title="This version is declined"
                                                                 {% elif  is_approved == 1 %}
-                                                                {% if phenotype.owner_id == request.user.id %}
-                                                                class="btn btn-primary btn-warning"
-                                                                disabled title="This version needs to be approved "
-                                                                {% else %}
-                                                                class="btn btn-primary"
-                                                                disabled = true
-                                                                disabled title="Unavailable to publish"
-                                                                {% endif %}
+	                                                                {% if phenotype.owner_id == request.user.id %}
+		                                                                class="btn btn-primary btn-warning"
+		                                                                disabled title="This version needs to be approved "
+	                                                                {% else %}
+		                                                                class="btn btn-primary"
+		                                                                disabled = true
+		                                                                disabled title="Unavailable to publish"
+	                                                                {% endif %}
                                                                 {% endif %}
 
 
@@ -283,14 +283,15 @@
                         {% endfor %}
                     </div>
                 </div>
-
-                <div class="row" style="margin-top: 10px;">
-                    <div class="col-sm-2">Valid event data range</div>
-                    <div class="col-sm-10">
-                        {{ phenotype.valid_event_data_range }}
-                    </div>
-
-                </div>
+		
+				{% if phenotype.valid_event_data_range|length %}
+	                <div class="row" style="margin-top: 10px;">
+	                    <div class="col-sm-2">Valid event data range</div>
+	                    <div class="col-sm-10">
+	                        {{ phenotype.valid_event_data_range }}
+	                    </div>
+	                </div>
+                {% endif %}
 
                 <div class="row" style="margin-top: 10px;">
                     <div class="col-sm-2">Sex</div>
@@ -844,7 +845,7 @@
                 {% endif %}
                     <div class="pre-scrollable">
 					{% include '../phenotype/partial_history_list.html' %}
-			    </div>	
+			   	    </div>	
 			</span>
 
             </div>
@@ -984,32 +985,6 @@
 
         }
 
-        function showConceptsCodes_XX(concept_codes_html_list, target_concept_id, target_concept_history_id) {
-            $.each(concept_codes_html_list, function (i, v) {
-                $('#codelist-tab-table-c' + v.concept_version_id + ' tbody').html(v.c_html);
-                $('#codesCount_c' + v.concept_version_id).text('Rows: ' + v.c_codes_count);
-                var table = $('#codelist-tab-table-c' + v.concept_version_id).DataTable({
-                    "initComplete": function () {
-                        $('#codelist-tab-table-c' + v.concept_version_id).addClass(
-                            "specific_tablist")
-                    },
-                    "scrollX": true,
-                    "scrollY": "700px",
-                    "scrollCollapse": true,
-                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-                    "colReorder": true,
-                    "rowReorder": true,
-                    //"fixedHeader": true
-
-
-                });
-
-
-            });
-
-
-        }
-
 
         $("#printBtn").click(function () {
             //window.print();
@@ -1118,14 +1093,11 @@
             }
             e.target.className = "active";
         }
-    </script>
 
-
-    <script type="text/javascript">
-        window.onload = function () {
+        $(document).ready(function() {
             document.getElementById("Homelinkid").click();
-        };
-    </script>
+        });
+	</script>
 
     <script type="text/javascript">
         $(function () {

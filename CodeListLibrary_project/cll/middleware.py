@@ -61,7 +61,6 @@ class brandMiddleware(MiddlewareMixin):
         settings.IS_HDRUK_EXT = "0"
 
         root = current_page_url.split('/')[0]
-        #if (request.get_host().lower().find('web-phenotypes-hdr') != -1):
         if (request.get_host().lower().find('phenotypes.healthdatagateway') != -1 or
             request.get_host().lower().find('web-phenotypes-hdr') != -1):
             root = 'HDRUK'
@@ -124,7 +123,6 @@ class brandMiddleware(MiddlewareMixin):
             if not current_page_url.strip().endswith('/'):
                 current_page_url = current_page_url.strip() + '/'
 
-            #if (request.get_host().lower().find('web-phenotypes-hdr') != -1):
             if (request.get_host().lower().find('phenotypes.healthdatagateway') != -1 or
                 request.get_host().lower().find('web-phenotypes-hdr') != -1):
 
@@ -162,9 +160,6 @@ class brandMiddleware(MiddlewareMixin):
             print(str(request.get_full_path()))
 
         # Do NOT allow concept create under HDRUK - for now
-        # if (str(request.get_full_path()).upper().replace('/', '') == "/HDRUK/concepts/create/".upper().replace('/', '') or
-        #     ((request.get_host().lower().find('web-phenotypes-hdr') != -1)
-        #      and str(request.get_full_path()).upper().replace('/', '').endswith('/concepts/create/'.upper().replace('/', '')))):
         if (str(request.get_full_path()).upper().replace('/', '') == "/HDRUK/concepts/create/".upper().replace('/', '') or
             ((request.get_host().lower().find('phenotypes.healthdatagateway') != -1 or request.get_host().lower().find('web-phenotypes-hdr') != -1)
              and str(request.get_full_path()).upper().replace('/', '').endswith('/concepts/create/'.upper().replace('/', '')))):

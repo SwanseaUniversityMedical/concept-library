@@ -1,16 +1,13 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group, User
 
-from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource,
-                     Operator, Tag)
+from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource, Operator, Tag)
 
 # from forms import GroupAdminForm
 # from django import forms
 # from django.forms.models import inlineformset_factory, ModelChoiceField
 
 # Register your models here.
-admin.site.register(CodingSystem)
-
 
 @admin.register(CodingSystemFilter)
 class CodingSystemFilterAdmin(admin.ModelAdmin):
@@ -56,12 +53,20 @@ class BrandAdmin(admin.ModelAdmin):
 
 @admin.register(DataSource)
 class DataSourceAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'uid', 'url', 'created_by',
-                    'updated_by']  #, 'description'
-    list_filter = ['description']
-    search_fields = ['name', 'url', 'uid', 'description']
+    list_display = ['id', 'datasource_id', 'name', 'uid', 'url', 'created_by', 'updated_by']  #, 'description'
+    list_filter = ['name']
+    search_fields = ['name', 'url', 'uid', 'datasource_id', 'description']
     exclude = []
 
+@admin.register(CodingSystem)
+class CodingSystemAdmin(admin.ModelAdmin):
+    list_display = ['id', 'codingsystem_id', 'name', 'description'] 
+    list_filter = ['name']
+    search_fields = ['name', 'codingsystem_id', 'description']
+    exclude = []
+
+
+#admin.site.register(CodingSystem)
 
 # ############################################
 # # Unregister the original Group admin.
