@@ -18,7 +18,7 @@
     	<meta http-equiv="X-UA-Compatible" content="IE=edge">
     	<meta name="viewport" content="width=device-width, initial-scale=1.0">
     	<meta name="description" content="{% block description %}{% endblock description %}">
-    	<meta name="keywords" content="Concept Library, 8T5x3E9y1S00zTBpdQaRY{% if request.CURRENT_BRAND|length and request.BRAND_OBJECT.site_title is not none %}, {{ request.BRAND_OBJECT.site_title }}{% endif %}{% block keywords %}{% endblock keywords %}">
+    	<meta name="keywords" content="Concept Library{% if request.CURRENT_BRAND|length and request.BRAND_OBJECT.site_title is not none %}, {{ request.BRAND_OBJECT.site_title }}{% endif %}{% block keywords %}{% endblock keywords %}">
  
 <!--     	<link rel="shortcut icon" href="{% static 'img/favicon.ico' %}"> -->
 <!--     	<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo="> -->
@@ -36,7 +36,7 @@
 			{% else %}
 				Concept Library
 			{% endif %} 
-    		 {% block title %}{% endblock title %}
+    		{% block title %}{% endblock title %}
     	</title>    	
     	
 
