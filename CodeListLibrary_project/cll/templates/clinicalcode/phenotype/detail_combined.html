@@ -325,7 +325,7 @@
                 </div>
 
                 <div class="row" style="margin-top: 10px;">
-                    <div class="col-sm-2">Tags/Collections</div>
+                    <div class="col-sm-2">Tags /Collections</div>
                     <div class="col-sm-10">
                         {% for tag in tags %}
                             <span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
@@ -568,7 +568,6 @@
                                                     <tr>
                                                         <th>Code</th>
                                                         <th>Description</th>
-                                                        <!-- 		                     <th>Coding System</th> -->
                                                         {% for attr_hdr in c.code_attribute_header %}
                                                             <th>{{ attr_hdr }}</th>
                                                         {% endfor %}
@@ -591,7 +590,6 @@
                                                                     {% endfor %}
 
                                                                 {% endif %}
-                                                                <!-- 		                     <td>{{ code.coding_system }}</td> -->
                                                             </tr>
                                                         {% endif %}
                                                     {% empty %}
@@ -948,10 +946,16 @@
                 $('#collapse_c' + target_concept_history_id).attr("codelist_loaded", "1");
 
             } else {
-                // Generate standard type of table in code list if not login
-                {% if not user.is_authenticated %}
-                    var table = $('.display-table').DataTable();
-                {% endif %}
+//                 // Generate standard type of table in code list if not login
+//                 {% if not user.is_authenticated %}
+//                 	var table = $('.display-table');
+//                 	table.DataTable().destroy();
+//                     table.DataTable({
+// 			                        "searching": false,
+// 			                        "paging": false
+			
+// 			                    });
+//                 {% endif %}
 
             }
 
@@ -963,10 +967,10 @@
             $.each(concept_codes_html_list, function (i, v) {
                 $('#codelist-tab-table-c' + v.concept_version_id + ' tbody').html(v.c_html);
                 $('#codesCount_c' + v.concept_version_id).text('Rows: ' + v.c_codes_count);
+                
                 var table = $('#codelist-tab-table-c' + v.concept_version_id).DataTable({
                     "initComplete": function () {
-                        $('#codelist-tab-table-c' + v.concept_version_id).addClass(
-                            "specific_tablist")
+                        $('#codelist-tab-table-c' + v.concept_version_id).addClass("specific_tablist")
                     },
                     "scrollX": true,
                     "scrollY": "700px",
@@ -975,10 +979,7 @@
                     "colReorder": true,
                     "rowReorder": true,
                     //"fixedHeader": true
-
-
                 });
-
 
             });
 
@@ -1000,13 +1001,13 @@
             $('footer').hide();
             $('.popovers').hide();
 
-            // Hide elements of table for printing
+			// Hide elements of table for printing
             {% if not user.is_authenticated %}
                 var table = $('.display-table');
                 table.DataTable().destroy();
                 table.DataTable({
-                    "searching": false,
-                    "paging": false
+                    "searching":false,
+                    "paging":false
 
                 });
             {% endif %}
@@ -1017,6 +1018,23 @@
             {% if user.is_authenticated %}
                 $('#codelist-div-container').removeClass('pre-scrollable');
             {% endif%}
+			
+            // change paper orientation to landscape
+            var css = '@page { size: landscape; }',
+            head = document.head || document.getElementsByTagName('head')[0],
+            style = document.createElement('style');
+
+	        style.type = 'text/css';
+	        style.media = 'print';
+	
+	        if (style.styleSheet){
+	          style.styleSheet.cssText = css;
+	        } else {
+	          style.appendChild(document.createTextNode(css));
+	        }
+	
+	        head.appendChild(style);
+        
 
             window.print();
 
@@ -1033,13 +1051,12 @@
             $('.btn').show();
             $('.popovers').show();
 
-            // restore the table if user not login when printing finished
-            {% if not user.is_authenticated %}
-                var table = $('.display-table');
+			// restore the table if user not login when printing finished
+			{% if not user.is_authenticated %}
+                 var table = $('.display-table');
                 table.DataTable().destroy();
                 table.DataTable();
             {% endif %}
-
 
 
             {% if user.is_authenticated %}
@@ -1064,7 +1081,6 @@
 
             function toggleIcon(e) {
                 getConceptsCodes($(e.target).attr("target_concept_id"), $(e.target).attr("target_concept_history_id"));
-                //alert($(e.target).attr("target_concept_id") +'/'+ $(e.target).attr("target_concept_history_id"));
 
                 $(e.target)
                     .prev('.panel-heading')
@@ -1080,6 +1096,11 @@
 
             {% if not user.is_authenticated %}
                 $('#accordion .panel-collapse:not(".in")').collapse('show');
+                
+                // Generate standard type of table in code list if not login
+                var table = $('.display-table');
+                table.DataTable().destroy();
+                table.DataTable();
             {% endif%}
 
 
@@ -1100,6 +1121,7 @@
 	</script>
 
     <script type="text/javascript">
+    // make api urls with site name
         $(function () {
             var v = $('#api_id').html();
             v = v.replace(/site_root/g, 'http://' + document.location.host);

@@ -302,13 +302,9 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         tags = Tag.objects.filter(pk__in=phenotype_tags)
 
     data_sources = DataSource.objects.filter(pk=-1)
-    data_sources_comp = db_utils.getHistoryDataSource_Phenotype(
-        pk, phenotype_history_date)
+    data_sources_comp = db_utils.getHistoryDataSource_Phenotype(pk, phenotype_history_date)
     if data_sources_comp:
-        ds_list = [
-            i['datasource_id'] for i in data_sources_comp
-            if 'datasource_id' in i
-        ]
+        ds_list = [i['datasource_id'] for i in data_sources_comp if 'datasource_id' in i]
         data_sources = DataSource.objects.filter(pk__in=ds_list)
 
     # ----------------------------------------------------------------------
@@ -317,26 +313,16 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     concepts = Concept.history.filter(pk=-1).values('id', 'history_id', 'name', 'group')
 
     if phenotype['concept_informations']:
-        concept_id_list = [
-            x['concept_id']
-            for x in json.loads(phenotype['concept_informations'])
-        ]
-        concept_hisoryid_list = [
-            x['concept_version_id']
-            for x in json.loads(phenotype['concept_informations'])
-        ]
-        concepts = Concept.history.filter(
-            id__in=concept_id_list,
-            history_id__in=concept_hisoryid_list).values(
-                'id', 'history_id', 'name', 'group')
+        concept_id_list = [x['concept_id'] for x in json.loads(phenotype['concept_informations']) ]
+        concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(phenotype['concept_informations']) ]
+        concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).values('id', 'history_id', 'name', 'group')
 
     concepts_id_name = json.dumps(list(concepts))
 
     clinicalTerminologies = CodingSystem.objects.filter(pk=-1)
     CodingSystem_ids = phenotype['clinical_terminologies']
     if CodingSystem_ids:
-        clinicalTerminologies = CodingSystem.objects.filter(
-            pk__in=list(CodingSystem_ids))
+        clinicalTerminologies = CodingSystem.objects.filter(pk__in=list(CodingSystem_ids))
 
     is_latest_version = (int(phenotype_history_id) == Phenotype.objects.get(pk=pk).history.latest().history_id)
 
@@ -346,26 +332,22 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     version_alerts = {}
 
     if request.user.is_authenticated:
-        can_edit = (not Phenotype.objects.get(
-            pk=pk).is_deleted) and allowed_to_edit(request, Phenotype, pk)
+        can_edit = (not Phenotype.objects.get(pk=pk).is_deleted) and allowed_to_edit(request, Phenotype, pk)
 
-        user_can_export = (allowed_to_view_children(
-            request, Phenotype, pk, set_history_id=phenotype_history_id)
+        user_can_export = (allowed_to_view_children(request, Phenotype, pk, set_history_id=phenotype_history_id)
                            and db_utils.chk_deleted_children(
-                               request,
-                               Phenotype,
-                               pk,
-                               returnErrors=False,
-                               set_history_id=phenotype_history_id)
+                                                               request,
+                                                               Phenotype,
+                                                               pk,
+                                                               returnErrors=False,
+                                                               set_history_id=phenotype_history_id)
                            and not Phenotype.objects.get(pk=pk).is_deleted)
         user_allowed_to_create = allowed_to_create()
 
-        children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(
-            request, Phenotype, pk)
+        children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(request, Phenotype, pk)
 
         if is_latest_version:
-            are_concepts_latest_version, version_alerts = checkConceptVersionIsTheLatest(
-                pk)
+            are_concepts_latest_version, version_alerts = checkConceptVersionIsTheLatest(pk)
 
     else:
         can_edit = False
@@ -374,8 +356,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
 
     publish_date = None
     if is_published:
-        publish_date = PublishedPhenotype.objects.get(
-            phenotype_id=pk, phenotype_history_id=phenotype_history_id).created
+        publish_date = PublishedPhenotype.objects.get(phenotype_id=pk, phenotype_history_id=phenotype_history_id).created
 
     if Phenotype.objects.get(pk=pk).is_deleted == True:
         messages.info(request, "This phenotype has been deleted.")
@@ -402,16 +383,12 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         is_this_version_published = checkIfPublished(Phenotype, ver['id'], ver['history_id'])
 
         if is_this_version_published:
-            ver['publish_date'] = PublishedPhenotype.objects.get(
-                phenotype_id=ver['id'],
-                phenotype_history_id=ver['history_id'],
-                is_approved=2).created
+            ver['publish_date'] = PublishedPhenotype.objects.get(phenotype_id=ver['id'], phenotype_history_id=ver['history_id'], is_approved=2).created
         else:
             ver['publish_date'] = None
 
         if request.user.is_authenticated:
-            if allowed_to_edit(request, Phenotype, pk) or allowed_to_view(
-                    request, Phenotype, pk):
+            if allowed_to_edit(request, Phenotype, pk) or allowed_to_view(request, Phenotype, pk):
                 other_historical_versions.append(ver)
             else:
                 if is_this_version_published:
@@ -430,9 +407,11 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         # published
         component_tab_active = "active"  # ""
         codelist_tab_active = ""  # "active"
-        codelist = db_utils.get_phenotype_conceptcodesByVersion(
-            request, pk, phenotype_history_id)
+        codelist = db_utils.get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id)
         codelist_loaded = 1
+        
+    # codelist = db_utils.get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id)
+    # codelist_loaded = 1        
 
     # rmd
     if phenotype['implementation'] is None:
@@ -444,8 +423,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     concept_data = []
     if phenotype['concept_informations']:
         for c in json.loads(phenotype['concept_informations']):
-            c['codingsystem'] = CodingSystem.objects.get(
-                                                        pk=Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).coding_system_id)
+            c['codingsystem'] = CodingSystem.objects.get(pk=Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).coding_system_id)
             c['code_attribute_header'] = Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).code_attribute_header
 
             c['alerts'] = ''
@@ -455,33 +433,21 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
 
             if not children_permitted_and_not_deleted:
                 if c['concept_id'] in error_dic:
-                    c['alerts'] += "<BR>- " + "<BR>- ".join(
-                        error_dic[c['concept_id']])
+                    c['alerts'] += "<BR>- " + "<BR>- ".join(error_dic[c['concept_id']])
 
-            c['alerts'] = re.sub("Child ",
-                                 "",
-                                 c['alerts'],
-                                 flags=re.IGNORECASE)
+            c['alerts'] = re.sub("Child ", "", c['alerts'], flags=re.IGNORECASE)
 
             c['brands'] = ''
             if c['concept_id'] in conceptBrands:
                 for brand in conceptBrands[c['concept_id']]:
-                    c['brands'] += "<img src='" + static(
-                        'img/brands/' + brand + '/logo.png'
-                    ) + "' height='10px' title='" + brand + "' alt='" + brand + "' /> "
+                    c['brands'] += "<img src='" + static('img/brands/' + brand + '/logo.png') + "' height='10px' title='" + brand + "' alt='" + brand + "' /> "
 
-            c['is_published'] = checkIfPublished(Concept, c['concept_id'],
-                                                 c['concept_version_id'])
-            c['name'] = concepts.get(
-                id=c['concept_id'], history_id=c['concept_version_id'])['name']
+            c['is_published'] = checkIfPublished(Concept, c['concept_id'], c['concept_version_id'])
+            c['name'] = concepts.get(id=c['concept_id'], history_id=c['concept_version_id'])['name']
 
             c['codesCount'] = 0
             if codelist:
-                c['codesCount'] = len([
-                    x['code'] for x in codelist
-                    if x['concept_id'] == 'C' + str(c['concept_id'])
-                    and x['concept_version_id'] == c['concept_version_id']
-                ])
+                c['codesCount'] = len([x['code'] for x in codelist if x['concept_id'] == 'C' + str(c['concept_id']) and x['concept_version_id'] == c['concept_version_id'] ])
 
             c['concept_friendly_id'] = 'C' + str(c['concept_id'])
             concept_data.append(c)
@@ -515,7 +481,8 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         'concept_data': concept_data
     }
 
-    return render(request, 'clinicalcode/phenotype/detail_combined.html',
+    return render(request, 
+                  'clinicalcode/phenotype/detail_combined.html',
                   context)
 
 
@@ -536,8 +503,7 @@ def checkConceptVersionIsTheLatest(phenotypeID):
     for c in concepts_id_versionID:
         c_id = c['concept_id']
         c_ver_id = c['concept_version_id']
-        latest_history_id = Concept.objects.get(
-            pk=c_id).history.latest('history_id').history_id
+        latest_history_id = Concept.objects.get(pk=c_id).history.latest('history_id').history_id
         if latest_history_id != c_ver_id:
             version_alerts[c_ver_id] = "newer version available"
             is_ok = False
@@ -583,9 +549,7 @@ def phenotype_conceptcodesByVersion(request,
 
     # --------------------------------------------------
 
-    codes = db_utils.get_phenotype_conceptcodesByVersion(
-        request, pk, phenotype_history_id, target_concept_id,
-        target_concept_history_id)
+    codes = db_utils.get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id, target_concept_id, target_concept_history_id)
 
     data = dict()
     data['form_is_valid'] = True
@@ -604,8 +568,7 @@ def phenotype_conceptcodesByVersion(request,
     #                                                 )
 
     # Get the list of concepts in the phenotype data
-    concept_ids_historyIDs = db_utils.getGroupOfConceptsByPhenotypeId_historical(
-        pk, phenotype_history_id)
+    concept_ids_historyIDs = db_utils.getGroupOfConceptsByPhenotypeId_historical(pk, phenotype_history_id)
 
     concept_codes_html = []
     for concept in concept_ids_historyIDs:
@@ -613,17 +576,11 @@ def phenotype_conceptcodesByVersion(request,
         concept_version_id = concept[1]
 
         # check if the sent concept id/ver are valid
-        if (target_concept_id is not None
-                and target_concept_history_id is not None):
-            if target_concept_id != str(
-                    concept_id) and target_concept_history_id != str(
-                        concept_version_id):
+        if (target_concept_id is not None and target_concept_history_id is not None):
+            if target_concept_id != str(concept_id) and target_concept_history_id != str(concept_version_id):
                 continue
 
         c_codes = []
-        # for c in c:
-        #     if c['concept_id'] == 'C'+str(concept_id) and c['concept_version_id'] == concept_version_id:
-        #         c_codes.append(c)
 
         c_codes = codes
 
@@ -635,22 +592,17 @@ def phenotype_conceptcodesByVersion(request,
 
         # c_codes_count_2 = len([c['code'] for c in codes if c['concept_id'] == concept_id and c['concept_version_id'] == concept_version_id ])
 
-        c_code_attribute_header = Concept.history.get(
-            id=concept_id, history_id=concept_version_id).code_attribute_header
+        c_code_attribute_header = Concept.history.get(id=concept_id, history_id=concept_version_id).code_attribute_header
         concept_codes_html.append({
-            'concept_id':
-            concept_id,
-            'concept_version_id':
-            concept_version_id,
-            'c_codes_count':
-            c_codes_count,
-            'c_html':
-            render_to_string(
-                'clinicalcode/phenotype/get_concept_codes.html', {
-                    'codes': c_codes,
-                    'code_attribute_header': c_code_attribute_header,
-                    'showConcept': False
-                })
+            'concept_id': concept_id,
+            'concept_version_id': concept_version_id,
+            'c_codes_count': c_codes_count,
+            'c_html': render_to_string(
+                                        'clinicalcode/phenotype/get_concept_codes.html', {
+                                            'codes': c_codes,
+                                            'code_attribute_header': c_code_attribute_header,
+                                            'showConcept': False
+                                        })
         })
 
     data['concept_codes_html'] = concept_codes_html
@@ -733,9 +685,7 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id):
         'creation_date': time.strftime("%Y%m%dT%H%M%S")
     }
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = (
-        'attachment; filename="phenotype_PH%(phenotype_id)s_ver_%(phenotype_history_id)s_concepts_%(creation_date)s.csv"'
-        % my_params)
+    response['Content-Disposition'] = ('attachment; filename="phenotype_PH%(phenotype_id)s_ver_%(phenotype_history_id)s_concepts_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
 
@@ -759,8 +709,7 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id):
         for cc in codes:
             rows_no += 1
             writer.writerow([
-                cc['code'], cc['description'].encode('ascii', 'ignore').decode(
-                    'ascii'), concept_coding_system, 'C' +
+                cc['code'], cc['description'].encode('ascii', 'ignore').decode('ascii'), concept_coding_system, 'C' +
                 str(concept_id), concept_version_id
             ] + [
                 Concept.history.get(id=concept_id,
