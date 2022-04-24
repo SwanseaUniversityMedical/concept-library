@@ -217,7 +217,7 @@
 				</div>	
 												
 				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-2">Tags/Collections</div>
+					<div class="col-sm-2">Tags /Collections</div>
 					<div class="col-sm-10">
 						{% for tag in tags %}
 							<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
@@ -952,6 +952,24 @@
 				$('#codelist-div-container').removeClass('pre-scrollable');
 			{% endif%}
 			
+			
+            // change paper orientation to landscape
+            var css = '@page { size: landscape; }',
+            head = document.head || document.getElementsByTagName('head')[0],
+            style = document.createElement('style');
+
+	        style.type = 'text/css';
+	        style.media = 'print';
+	
+	        if (style.styleSheet){
+	          style.styleSheet.cssText = css;
+	        } else {
+	          style.appendChild(document.createTextNode(css));
+	        }
+	
+	        head.appendChild(style);
+	        
+	        
 			window.print();
 
 			// call printCallback function which shows back hidden elements
@@ -996,6 +1014,7 @@
 	</script>
 	
 	<script type="text/javascript">
+	// make api urls with site name
 		$(function() {
 			var v = $('#api_id').html();
 			v = v.replace(/site_root/g,  'http://' + document.location.host);
