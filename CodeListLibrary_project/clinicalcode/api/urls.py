@@ -18,6 +18,7 @@ from drf_yasg.generators import OpenAPISchemaGenerator
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 #import os
+from django.utils.decorators import method_decorator
 
 
 '''
@@ -37,6 +38,7 @@ urlpatterns = []
 # Swagger
 
 class SchemaGenerator(OpenAPISchemaGenerator):
+    #@method_decorator(View.robots())  
     def get_schema(self, request=None, public=False):
         schema = super(SchemaGenerator, self).get_schema(request, public)
         schema.basePath = request.path.replace('swagger/', '')

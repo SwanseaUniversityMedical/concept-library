@@ -4,7 +4,6 @@ from collections import OrderedDict as ordr
 from datetime import datetime
 
 from clinicalcode.context_processors import clinicalcode
-from clinicalcode.models.PhenotypeDataSourceMap import PhenotypeDataSourceMap
 from django.contrib.auth.models import User
 from django.core import serializers
 from django.core.exceptions import PermissionDenied
@@ -14,17 +13,11 @@ from django.db.models.aggregates import Max
 from django.http.response import Http404
 from numpy.distutils.fcompiler import none
 from rest_framework import status, viewsets
-from rest_framework.decorators import (api_view, authentication_classes,
-                                       permission_classes)
+from rest_framework.decorators import (api_view, authentication_classes, permission_classes)
 from rest_framework.response import Response
 
 from ...db_utils import *
-from ...models.Brand import Brand
-from ...models.Concept import Concept
-from ...models.DataSource import DataSource
-from ...models.Phenotype import Phenotype
-from ...models.PublishedPhenotype import PublishedPhenotype
-from ...models.Tag import Tag
+from ...models import *
 from ...permissions import *
 from ...utils import *
 from ...viewmodels.js_tree_model import TreeModelManager
@@ -395,6 +388,7 @@ def api_phenotype_update(request):
 @api_view(['GET'])
 @authentication_classes([])
 @permission_classes([])
+@robots()
 def export_published_phenotype_codes(request, pk, phenotype_history_id):
     '''
         Return the unique set of codes and descriptions for the specified
@@ -416,8 +410,7 @@ def export_published_phenotype_codes(request, pk, phenotype_history_id):
 
     #----------------------------------------------------------------------
     if request.method == 'GET':
-        rows_to_return = get_phenotype_conceptcodesByVersion(
-            request, pk, phenotype_history_id)
+        rows_to_return = get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id)
         return Response(rows_to_return, status=status.HTTP_200_OK)
 
 
@@ -455,8 +448,7 @@ def export_phenotype_codes_byVersionID(request, pk, phenotype_history_id):
     #----------------------------------------------------------------------
 
     if request.method == 'GET':
-        rows_to_return = get_phenotype_conceptcodesByVersion(
-            request, pk, phenotype_history_id)
+        rows_to_return = get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id)
         return Response(rows_to_return, status=status.HTTP_200_OK)
 
 
@@ -520,6 +512,7 @@ def phenotypes(request, pk=None):
 
 
 #--------------------------------------------------------------------------
+@robots()
 def getPhenotypes(request, is_authenticated_user=True, pk=None):
     search = request.query_params.get('search', '')
 
@@ -785,6 +778,7 @@ def phenotype_detail_PUBLIC(request,
 
 
 #--------------------------------------------------------------------------
+@robots()
 def getPhenotypeDetail(request,
                        pk,
                        phenotype_history_id=None,

@@ -35,6 +35,33 @@ from ...permissions import *
 from ...utils import *
 from ...viewmodels.js_tree_model import TreeModelManager
 from ..serializers import *
+from django.conf import settings
+from functools import wraps
+from django.utils.decorators import method_decorator
+
+
+
+
+def robots(content="all"):
+    """
+        not to index demo site API
+    """
+    def _method_wrapper(func):
+        
+        @wraps(func)
+        def wrap(request, *args, **kwargs):
+            response = func(request, *args, **kwargs)
+            
+            if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
+                content="noindex, nofollow"
+                
+            response['X-Robots-Tag'] = content
+            return response
+
+        return wrap
+        
+    return _method_wrapper
+
 
 
 
@@ -94,7 +121,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 @api_view(['GET'])
 @authentication_classes([])
 @permission_classes([])
-#--------------------------------------------------------------------------
+@robots()
 def getTagsOrCollections(request, tag_type=None, pk=None):
     '''
         return the list of tags or collections
@@ -142,6 +169,7 @@ class DataSourceViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = DataSource.objects.none()
     serializer_class = DataSourceSerializer
 
+    @method_decorator(robots())
     def get_queryset(self):
         '''
             Provide the dataset for the view.
@@ -161,6 +189,7 @@ class DataSourceViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(name__icontains=keyword_search)
         return queryset
 
+    @method_decorator(robots())
     def filter_queryset(self, queryset):
         '''
             Override the default filtering.
@@ -191,6 +220,7 @@ class CodingSystemViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CodingSystem.objects.none()
     serializer_class = CodingSystemSerializer
 
+    @method_decorator(robots())
     def get_queryset(self):
         '''
             Provide the Coding Systems for the view.
@@ -211,6 +241,7 @@ class CodingSystemViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(name__icontains=keyword_search)
         return queryset
 
+    @method_decorator(robots())
     def filter_queryset(self, queryset):
         '''
             Override the default filtering.
@@ -686,5 +717,6 @@ def chk_valid_id(request, set_class, pk):
         ret_int_id = set_class.objects.get(pk=int_pk).id
 
     return is_valid_id, err, ret_int_id
+
 
 
