@@ -617,12 +617,19 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None):
                                                             force_brand=force_brand)
 
     rows_to_return = []
-    titles = [
-        'phenotype_id', 'version_id', 'UUID', 'phenotype_name', 'type',
-        'author', 'owner', 'tags', 'collections', 'clinical_terminologies', 'data_sources',
-        'created_by', 'created_date', 'modified_by', 'modified_date',
-        'is_deleted', 'deleted_by', 'deleted_date', 'is_published'
-    ]
+    titles = ['phenotype_id', 'version_id']
+    if is_authenticated_user:
+        titles += ['UUID']
+        
+    titles +=['phenotype_name', 'type', 'author', 'owner', 'tags', 'collections', 
+              'clinical_terminologies', 'data_sources']
+    
+    if is_authenticated_user:
+        titles +=['created_by', 'created_date',
+              'modified_by', 'modified_date', 'is_deleted', 'deleted_by', 'deleted_date',
+              'is_published']
+    
+    
     if do_not_show_versions != "1":
         titles += ['versions']
 
@@ -652,8 +659,12 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None):
 
         ret = [
             c['friendly_id'],
-            c['history_id'],
-            c['phenotype_uuid'],  #UUID
+            c['history_id']
+        ]
+        if is_authenticated_user:
+            ret += [c['phenotype_uuid']]  #UUID
+            
+        ret += [
             c['name'].encode('ascii', 'ignore').decode('ascii'),
             c['type'],
             c['author'],
@@ -661,27 +672,31 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None):
             c_tags,
             c_collections,
             c_clinical_terminologies,
-            data_sources,
-            c['created_by_username'],
-            c['created'],
+            data_sources
         ]
+        
+        if is_authenticated_user:
+            ret += [
+                    c['created_by_username'],
+                    c['created'],
+                ]
 
-        if (c['updated_by_id']):
-            ret += [c['modified_by_username']]
-        else:
-            ret += [None]
-
-        ret += [
-            c['modified'],
-            c['is_deleted'],
-        ]
-
-        if (c['is_deleted'] == True):
-            ret += [c['deleted_by_username']]
-        else:
-            ret += [None]
-
-        ret += [c['deleted'], c['published']]
+            if (c['updated_by_id']):
+                ret += [c['modified_by_username'],
+                        c['modified']
+                    ]
+            else:
+                ret += [None, None]
+    
+            ret += [c['is_deleted']]
+    
+            if (c['is_deleted'] == True):
+                ret += [c['deleted_by_username']]
+            else:
+                ret += [None]
+    
+            ret += [c['deleted'], c['published']]
+                    
 
         if do_not_show_versions != "1":
             ret += [get_visible_versions_list(request, Phenotype, c['id'], is_authenticated_user)]
@@ -846,50 +861,70 @@ def getPhenotypeDetail(request,
     rows_to_return = []
     titles = [
         'phenotype_id',
-        'version_id',
-        'UUID',
+        'version_id'
+    ]
+    
+    if is_authenticated_user:
+        titles += ['UUID']
+        
+    titles +=[
         'phenotype_name',
         'type',
         'tags',
         'collections',
-        'author'
-        #, 'entry_date'
-        ,
+        'author',
+        # 'entry_date',
         'clinical_terminologies',
-        'data_sources'
-        #, 'description'
-        ,
-        'created_by',
-        'created_date',
-        'modified_by',
-        'modified_date',
-        'validation_performed'
-        #, 'validation_description'
-        ,
+        'data_sources',
+        # 'description',
+    ]
+    
+    if is_authenticated_user:
+        titles += [
+            'created_by',
+            'created_date',
+            'modified_by',
+            'modified_date'
+            ]
+    
+    titles += [
+        'validation_performed',
+        #, 'validation_description',
         'publication_doi',
-        'publication_link'
-        #, 'secondary_publication_links'
-        ,
+        'publication_link',
+        # 'secondary_publication_links,
         'source_reference',
         'citation_requirements',
         'implementation',
-        'publications',
-        'owner',
-        'owner_access',
-        'group',
-        'group_access',
-        'world_access',
-        'is_deleted'  # may come from phenotype live version / or history
-        # , 'deleted_by', 'deleted_date' # no need here
-        ,
+        'publications'
+    ]
+    
+    if is_authenticated_user:
+        titles +=[
+            'owner',
+            'owner_access',
+            'group',
+            'group_access',
+            'world_access',
+            'is_deleted',  # may come from phenotype live version / or history
+            # 'deleted_by', 'deleted_date' # no need here
+        ]
+    
+    titles +=[
         'concepts',
         'versions'
     ]
+    
+    
 
     ret = [
         phenotype['friendly_id'],
-        phenotype['history_id'],
-        phenotype['phenotype_uuid'],  #UUID
+        phenotype['history_id']
+        ]
+    if is_authenticated_user:
+        ret += [phenotype['phenotype_uuid']]  #UUID
+        
+    ret += [
         phenotype['name'].encode('ascii', 'ignore').decode('ascii'),
         phenotype['type'],
         tags,
@@ -899,10 +934,22 @@ def getPhenotypeDetail(request,
         clinicalTerminologies,
         data_sources,
         #phenotype['description'],
-        phenotype['created_by_username'],
-        phenotype['created'],
-        phenotype['modified_by_username'],
-        phenotype['modified'],
+    ]
+    
+    if is_authenticated_user:
+        ret += [
+            phenotype['created_by_username'],
+            phenotype['created']
+            ]
+        if phenotype['modified_by_username']:
+            ret += [
+                phenotype['modified_by_username'],
+                phenotype['modified']
+                ]
+        else:
+            ret += [None, None]
+    
+    ret += [
         phenotype['validation_performed'],
         #phenotype['validation_description'],
         phenotype['publication_doi'],
@@ -911,19 +958,23 @@ def getPhenotypeDetail(request,
         phenotype['source_reference'],
         phenotype['citation_requirements'],
         phenotype['implementation'],
-        phenotype['publications'],
-        phenotype['owner'],
-        dict(Permissions.PERMISSION_CHOICES)[phenotype['owner_access']],
-        phenotype['group'],
-        dict(Permissions.PERMISSION_CHOICES)[phenotype['group_access']],
-        dict(Permissions.PERMISSION_CHOICES)[phenotype['world_access']],
+        phenotype['publications']
     ]
-
-    # may come from phenotype live version / or history
-    if (phenotype['is_deleted'] == True or Phenotype.objects.get(pk=pk).is_deleted == True):
-        ret += [True]
-    else:
-        ret += [None]
+    
+    if is_authenticated_user:    
+        ret +=[
+            phenotype['owner'],
+            dict(Permissions.PERMISSION_CHOICES)[phenotype['owner_access']],
+            phenotype['group'],
+            dict(Permissions.PERMISSION_CHOICES)[phenotype['group_access']],
+            dict(Permissions.PERMISSION_CHOICES)[phenotype['world_access']],
+        ]
+    
+        # may come from phenotype live version / or history
+        if (phenotype['is_deleted'] == True or Phenotype.objects.get(pk=pk).is_deleted == True):
+            ret += [True]
+        else:
+            ret += [None]
 
     # concepts
     com_titles = ['name', 'concept_id', 'concept_version_id', 'coding_system', 'codes']
