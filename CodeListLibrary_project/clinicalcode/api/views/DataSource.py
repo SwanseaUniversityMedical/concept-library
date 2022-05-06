@@ -122,6 +122,7 @@ def data_sources(request,
 
 
 #--------------------------------------------------------------------------
+@robots()
 def get_data_sources(request,
                     pk=None,
                     get_live_phenotypes=False,
