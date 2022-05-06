@@ -14,7 +14,7 @@ class CodeList(TimeStampedModel):
                                      blank=True,
                                      null=True)
 
-    description = models.CharField(max_length=250)
+    description = models.CharField(max_length=1000)
     sql_rules = models.CharField(max_length=1000, blank=True, null=True)
 
     history = HistoricalRecords()

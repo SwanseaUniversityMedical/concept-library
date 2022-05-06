@@ -1,3 +1,11 @@
+{% if IS_DEMO or IS_DEVELOPMENT_PC %}	
+	<head>
+		<!-- Stop indexing the modals popups on the demo site -->
+		<meta name="robots" content="noindex, nofollow">
+		<meta name="googlebot" content="noindex, nofollow">
+	</head>
+{% endif %}
+
 <div class="modal-header">
 	<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 		<span aria-hidden="true">&times;</span>

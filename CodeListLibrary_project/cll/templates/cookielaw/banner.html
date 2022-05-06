@@ -1,4 +1,13 @@
 {% load i18n static %}
+
+{% if IS_DEMO or IS_DEVELOPMENT_PC %}	
+	<head>
+		<!-- Stop indexing the modals popups on the demo site -->
+		<meta name="robots" content="noindex, nofollow">
+		<meta name="googlebot" content="noindex, nofollow">
+	</head>
+{% endif %}
+
 <div class="text-center cookiealert" role="alert">
 
     <div class='cookies_text' style="display:inline-flex">

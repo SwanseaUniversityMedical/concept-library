@@ -1,3 +1,11 @@
+{% if IS_DEMO or IS_DEVELOPMENT_PC %}	
+	<head>
+		<!-- Stop indexing the modals popups on the demo site -->
+		<meta name="robots" content="noindex, nofollow">
+		<meta name="googlebot" content="noindex, nofollow">
+	</head>
+{% endif %}
+
 <div class="modal-dialog modal-lg shadow" role="document">
     <div class="modal-content">
         <div class="modal-header">

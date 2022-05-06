@@ -358,13 +358,13 @@ def export_concept_codes_byVersionID(request, pk, concept_history_id):
 
 
 #--------------------------------------------------------------------------
+@robots()
 def get_historical_concept_codes(request, pk, concept_history_id):
 
     #     concept = Concept.objects.filter(id=pk).exclude(is_deleted=True)
     #     if concept.count() == 0: raise Http404
 
-    concept_ver = Concept.history.filter(
-        id=pk, history_id=concept_history_id)  #.exclude(is_deleted=True)
+    concept_ver = Concept.history.filter(id=pk, history_id=concept_history_id)  #.exclude(is_deleted=True)
     if concept_ver.count() == 0: raise Http404
 
     rows_to_return = []
@@ -378,23 +378,20 @@ def get_historical_concept_codes(request, pk, concept_history_id):
     # Use db_util function to extract this data.
     history_concept = getHistoryConcept(concept_history_id)
 
-    concept_coding_system = Concept.history.get(
-        id=pk, history_id=concept_history_id).coding_system.name
+    concept_coding_system = Concept.history.get(id=pk, history_id=concept_history_id).coding_system.name
 
     codes = getGroupOfCodesByConceptId_HISTORICAL(pk, concept_history_id)
 
     #---------
-    code_attribute_header = Concept.history.get(
-        id=pk, history_id=concept_history_id).code_attribute_header
-    concept_history_date = history_concept[
-        'history_date']  # Concept.history.get(id=pk, history_id=concept_history_id).history_date
+    code_attribute_header = Concept.history.get(id=pk, history_id=concept_history_id).code_attribute_header
+    concept_history_date = history_concept['history_date']  # Concept.history.get(id=pk, history_id=concept_history_id).history_date
     codes_with_attributes = []
     if code_attribute_header:
         codes_with_attributes = getConceptCodes_withAttributes_HISTORICAL(
-            concept_id=pk,
-            concept_history_date=concept_history_date,
-            allCodes=codes,
-            code_attribute_header=code_attribute_header)
+                                                                        concept_id=pk,
+                                                                        concept_history_date=concept_history_date,
+                                                                        allCodes=codes,
+                                                                        code_attribute_header=code_attribute_header)
 
         codes = codes_with_attributes
     #---------
@@ -406,9 +403,7 @@ def get_historical_concept_codes(request, pk, concept_history_id):
     if code_attribute_header:
         if request.query_params.get('format', 'xml').lower() == 'xml':
             # clean attr names/ remove space, etc
-            titles = titles + [
-                clean_str_as_db_col_name(a) for a in code_attribute_header
-            ]
+            titles = titles + [clean_str_as_db_col_name(a) for a in code_attribute_header]
         else:
             titles = titles + [a for a in code_attribute_header]
 
@@ -924,6 +919,7 @@ def user_concepts(request, pk=None):
 
 
 #--------------------------------------------------------------------------
+@robots()
 def getConcepts(request, is_authenticated_user=True, pk=None):
     search = request.query_params.get('search', '')
 
@@ -1176,6 +1172,7 @@ def concept_detail_PUBLIC(request,
 
 
 #--------------------------------------------------------------------------
+@robots()
 def getConceptDetail(request,
                      pk,
                      concept_history_id=None,
