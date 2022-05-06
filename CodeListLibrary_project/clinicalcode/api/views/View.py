@@ -57,6 +57,7 @@ def get_CANONICAL_PATH(request):
 def robots(content="all"):
     """
         not to index demo site API
+        and add the canonical link
     """
     def _method_wrapper(func):
         
@@ -170,6 +171,7 @@ def getTagsOrCollections(request, tag_type=None, pk=None):
         #return Response(rows_to_return, status=status.HTTP_404_NOT_FOUND)
         
 #--------------------------------------------------------------------------
+@method_decorator(robots() , name='dispatch')
 class DataSourceViewSet(viewsets.ReadOnlyModelViewSet):
     '''
         Get the API output for the list of data sources (no permissions involved).
@@ -182,7 +184,6 @@ class DataSourceViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = DataSource.objects.none()
     serializer_class = DataSourceSerializer
 
-    @method_decorator(robots())
     def get_queryset(self):
         '''
             Provide the dataset for the view.
@@ -202,7 +203,6 @@ class DataSourceViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(name__icontains=keyword_search)
         return queryset
 
-    @method_decorator(robots())
     def filter_queryset(self, queryset):
         '''
             Override the default filtering.
@@ -221,6 +221,7 @@ class DataSourceViewSet(viewsets.ReadOnlyModelViewSet):
 #         raise PermissionDenied
 
 #--------------------------------------------------------------------------
+@method_decorator(robots() , name='dispatch')
 class CodingSystemViewSet(viewsets.ReadOnlyModelViewSet):
     '''
         Get the API output for the list of Coding Systems (no permissions involved).
@@ -233,7 +234,6 @@ class CodingSystemViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CodingSystem.objects.none()
     serializer_class = CodingSystemSerializer
 
-    @method_decorator(robots())
     def get_queryset(self):
         '''
             Provide the Coding Systems for the view.
@@ -254,7 +254,6 @@ class CodingSystemViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(name__icontains=keyword_search)
         return queryset
 
-    @method_decorator(robots())
     def filter_queryset(self, queryset):
         '''
             Override the default filtering.
