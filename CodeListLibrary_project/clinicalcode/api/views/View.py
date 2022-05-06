@@ -40,7 +40,19 @@ from functools import wraps
 from django.utils.decorators import method_decorator
 
 
-
+def get_CANONICAL_PATH(request):
+    CANONICAL_PATH = request.build_absolute_uri(request.path)
+    
+    # refer HDRUK branded pages to phenotypes.healthdatagateway.org 
+    cp = CANONICAL_PATH
+    if settings.IS_HDRUK_EXT == '0' and settings.CURRENT_BRAND == 'HDRUK':
+        url_list = CANONICAL_PATH.split('/')
+        if len(url_list) > 4:
+            cp = 'https://phenotypes.healthdatagateway.org/' + '/'.join(url_list[4:])
+        else:
+            cp = 'https://phenotypes.healthdatagateway.org' 
+ 
+    return cp
 
 def robots(content="all"):
     """
@@ -54,8 +66,9 @@ def robots(content="all"):
             
             if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
                 content="noindex, nofollow"
+                response['X-Robots-Tag'] = content
                 
-            response['X-Robots-Tag'] = content
+            response['Link'] = get_CANONICAL_PATH(request) + '; rel="canonical"'
             return response
 
         return wrap

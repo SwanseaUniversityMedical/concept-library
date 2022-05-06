@@ -1,6 +1,7 @@
 #from cll import settings
 from clinicalcode.constants import *
 from django.conf import settings
+from clinicalcode.api.views.View import get_CANONICAL_PATH
 
 
 def general_var(request):
@@ -17,5 +18,9 @@ def general_var(request):
         'IS_PRODUCTION_SERVER': (not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC and not settings.IS_INSIDE_GATEWAY),  #  and not settings.DEBUG
         'IS_DEMO': settings.IS_DEMO,
         'IS_DEVELOPMENT_PC': settings.IS_DEVELOPMENT_PC,
-        'SHOW_COOKIE_ALERT': settings.SHOW_COOKIE_ALERT
+        'SHOW_COOKIE_ALERT': settings.SHOW_COOKIE_ALERT,
+        'IS_HDRUK_EXT': settings.IS_HDRUK_EXT,
+        'CANONICAL_PATH': get_CANONICAL_PATH(request)
     }
+    
+  
