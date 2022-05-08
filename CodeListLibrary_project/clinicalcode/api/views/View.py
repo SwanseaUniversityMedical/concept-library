@@ -40,12 +40,12 @@ from functools import wraps
 from django.utils.decorators import method_decorator
 
 
-def get_CANONICAL_PATH(request):
+def get_canonical_path(request, force_HDRUK_rel=False):
     CANONICAL_PATH = request.build_absolute_uri(request.path)
     
     # refer HDRUK branded pages to phenotypes.healthdatagateway.org 
     cp = CANONICAL_PATH
-    if settings.IS_HDRUK_EXT == '0' and settings.CURRENT_BRAND == 'HDRUK':
+    if (settings.IS_HDRUK_EXT == '0' and settings.CURRENT_BRAND == 'HDRUK') or force_HDRUK_rel:
         url_list = CANONICAL_PATH.split('/')
         if len(url_list) > 4:
             cp = 'https://phenotypes.healthdatagateway.org/' + '/'.join(url_list[4:])
@@ -53,6 +53,40 @@ def get_CANONICAL_PATH(request):
             cp = 'https://phenotypes.healthdatagateway.org' 
  
     return cp
+
+
+def get_canonical_path_by_brand(request,
+                              set_class,
+                              pk,
+                              history_id):
+
+    """
+        if a concept/phenotype belongs to HDRUK and opened in default site
+        set canonical link to phenotypes.healthdatagateway.org
+    """
+    if set_class == Concept:
+        ver = getHistoryConcept(history_id)
+    elif set_class == Phenotype:
+        ver = getHistoryPhenotype(history_id)
+    else:
+        return get_canonical_path(request)
+
+    if ver['tags'] is None:
+        return get_canonical_path(request)
+        
+    set_collections = Tag.objects.filter(id__in=ver['tags'], tag_type=2)
+    
+    # check if any collection is related to HDRUK
+    HDRUK_collections =  get_brand_associated_collections(request
+                                                        , concept_or_phenotype = ['phenotype', 'concept'][set_class == Concept]
+                                                        , brand = 'HDRUK'
+                                                        )
+    
+    if any(c in set_collections for c in HDRUK_collections):
+        return get_canonical_path(request, force_HDRUK_rel=True)
+    else:
+        return get_canonical_path(request)
+    
 
 def robots(content="all"):
     """
@@ -65,11 +99,53 @@ def robots(content="all"):
         def wrap(request, *args, **kwargs):
             response = func(request, *args, **kwargs)
             
-            if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
+            if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC or settings.IS_HDRUK_EXT == "0":
                 content="noindex, nofollow"
                 response['X-Robots-Tag'] = content
                 
-            response['Link'] = get_CANONICAL_PATH(request) + '; rel="canonical"'
+            response['Link'] = get_canonical_path(request) + '; rel="canonical"'
+            return response
+
+        return wrap
+        
+    return _method_wrapper
+
+
+def robots2(content="all"):
+    """
+        not to index demo site API
+        and add the canonical link
+    """     
+
+    def _method_wrapper(func):
+        
+        @wraps(func)
+        def wrap(request, *args, **kwargs):
+            response = func(request, *args, **kwargs)
+            
+            if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC or settings.IS_HDRUK_EXT == "0":
+                content="noindex, nofollow"
+                response['X-Robots-Tag'] = content
+                
+            response['Link'] = get_canonical_path(request) + '; rel="canonical"'
+            if 'pk' in kwargs and 'set_class' in kwargs and 'is_authenticated_user' in kwargs:  
+                if not kwargs['is_authenticated_user']:
+                    if kwargs['pk'] is not None:
+                        history_id = None
+                        if 'history_id' in kwargs:
+                            history_id = kwargs['history_id']
+                            
+                        if history_id is None:
+                            # get the latest version
+                            history_id = kwargs['set_class'].objects.get(pk=kwargs['pk']).history.latest().history_id
+                            
+                        response['Link'] = get_canonical_path_by_brand(request,
+                                                                      set_class = kwargs['set_class'],
+                                                                      pk = kwargs['pk'],
+                                                                      history_id = history_id
+                                                                      )
+                  
+                
             return response
 
         return wrap

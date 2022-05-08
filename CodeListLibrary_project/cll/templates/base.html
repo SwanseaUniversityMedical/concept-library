@@ -24,14 +24,15 @@
 <!--     	<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo="> -->
 		<link rel="icon" href="data:,">
 
-			{% if IS_DEMO or IS_DEVELOPMENT_PC %}
+			{% if IS_DEMO or IS_DEVELOPMENT_PC or IS_HDRUK_EXT == '0' %}
 				<!-- Stop indexing the demo site -->
 				<meta name="robots" content="noindex, nofollow">
 				<meta name="googlebot" content="noindex, nofollow">
-
 			{% endif %} 
     	
-		<link rel="canonical" href="{{ CANONICAL_PATH }}" />
+    	{% block canonical_path %}
+    		<link rel="canonical" href="{{ CANONICAL_PATH }}" />
+    	{% endblock canonical_path %}
 
 	
     	<title>
