@@ -23,7 +23,7 @@ from ...utils import *
 from ...viewmodels.js_tree_model import TreeModelManager
 from ..serializers import *
 from .View import *
-from .View import chk_group, chk_group_access, chk_tags, chk_world_access
+#from .View import chk_group, chk_group_access, chk_tags, chk_world_access
 
 from drf_yasg.utils import swagger_auto_schema
 
@@ -478,7 +478,7 @@ def published_phenotypes(request, pk=None):
     -  <code>?do_not_show_versions=1</code>  
     do not show phenotypes versions (by default, all phenotype's version ids are shown)  
     """
-    return getPhenotypes(request, is_authenticated_user=False, pk=pk)
+    return getPhenotypes(request, is_authenticated_user=False, pk=pk, set_class=Phenotype)
 
 
 #--------------------------------------------------------------------------
@@ -508,12 +508,12 @@ def phenotypes(request, pk=None):
     -  <code>?must_have_published_versions=1</code>  
     show only phenotypes which have a published version(by default, all phenotypes are shown)  
     """
-    return getPhenotypes(request, is_authenticated_user=True, pk=pk)
+    return getPhenotypes(request, is_authenticated_user=True, pk=pk, set_class=Phenotype)
 
 
 #--------------------------------------------------------------------------
-@robots()
-def getPhenotypes(request, is_authenticated_user=True, pk=None):
+@robots2()
+def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenotype):
     search = request.query_params.get('search', '')
 
     if pk is not None:
@@ -753,7 +753,8 @@ def phenotype_detail(request,
                               pk,
                               phenotype_history_id,
                               is_authenticated_user=True,
-                              get_versions_only=get_versions_only)
+                              get_versions_only=get_versions_only,
+                              set_class=Phenotype)
 
 
 #--------------------------------------------------------------------------
@@ -789,16 +790,18 @@ def phenotype_detail_PUBLIC(request,
                               pk,
                               phenotype_history_id,
                               is_authenticated_user=False,
-                              get_versions_only=get_versions_only)
+                              get_versions_only=get_versions_only,
+                              set_class=Phenotype)
 
 
 #--------------------------------------------------------------------------
-@robots()
+@robots2()
 def getPhenotypeDetail(request,
                        pk,
-                       phenotype_history_id=None,
+                       history_id=None,
                        is_authenticated_user=True,
-                       get_versions_only=None):
+                       get_versions_only=None,
+                       set_class=Phenotype):
 
     if get_versions_only is not None:
         if get_versions_only == '1':
@@ -809,7 +812,7 @@ def getPhenotypeDetail(request,
             return Response(rows_to_return, status=status.HTTP_200_OK)
     #--------------------------
 
-    phenotype = getHistoryPhenotype(phenotype_history_id)
+    phenotype = getHistoryPhenotype(history_id)
     # The history phenotype contains the owner_id, to provide the owner name, we
     # need to access the user object with that ID and add that to the phenotype.
     phenotype['owner'] = None

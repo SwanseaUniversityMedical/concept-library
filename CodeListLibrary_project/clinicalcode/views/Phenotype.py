@@ -17,8 +17,7 @@ from django import forms
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import \
-    LoginRequiredMixin  # , UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin  # , UserPassesTestMixin
 from django.contrib.auth.models import Group, User
 # from django.contrib.messages import constants
 from django.core import serializers
@@ -27,8 +26,7 @@ from django.core.paginator import EmptyPage, Paginator
 # from django.db.models import Q
 from django.db import transaction  # , models, IntegrityError
 # from django.forms.models import model_to_dict
-from django.http import \
-    HttpResponseRedirect  # , StreamingHttpResponse, HttpResponseForbidden
+from django.http import HttpResponseRedirect  # , StreamingHttpResponse, HttpResponseForbidden
 from django.http import HttpResponseNotFound
 from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -50,6 +48,7 @@ from ..models.PublishedPhenotype import PublishedPhenotype
 from ..models.Tag import Tag
 from ..permissions import *
 from .View import *
+from clinicalcode.api.views.View import get_canonical_path_by_brand
 
 # from rest_framework.permissions import BasePermission
 
@@ -462,8 +461,7 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         'data_sources': data_sources,
         'clinicalTerminologies': clinicalTerminologies,
         'user_can_edit': False,  # for now  #can_edit,
-        'allowed_to_create':
-        False,  # for now  #user_allowed_to_create,    # not settings.CLL_READ_ONLY,
+        'allowed_to_create': False,  # for now  #user_allowed_to_create,    # not settings.CLL_READ_ONLY,
         'user_can_export': user_can_export,
         'history': other_historical_versions,
         'live_ver_is_deleted': Phenotype.objects.get(pk=pk).is_deleted,
@@ -478,7 +476,8 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         'codelist': codelist,  # json.dumps(codelist)
         'codelist_loaded': codelist_loaded,
         'concepts_id_name': concepts_id_name,
-        'concept_data': concept_data
+        'concept_data': concept_data,
+        'page_canonical_path': get_canonical_path_by_brand(request, Phenotype, pk, phenotype_history_id)                              
     }
 
     return render(request, 

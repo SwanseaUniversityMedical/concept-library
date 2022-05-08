@@ -8,6 +8,9 @@
 {% block description %}{{ concept.name }}{% endblock description %}
 {% block keywords %}, {{ concept.name }}{% endblock keywords %}
 
+{% block canonical_path %}
+	<link rel="canonical" href="{{ page_canonical_path }}" />
+{% endblock canonical_path %}
 
 
 {% block crumbs %}

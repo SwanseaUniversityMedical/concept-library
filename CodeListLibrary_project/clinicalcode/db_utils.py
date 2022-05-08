@@ -3360,12 +3360,10 @@ def get_phenotype_conceptcodesByVersion(request,
         raise PermissionDenied
     #--------------------------------------------------
 
-    current_ph_version = Phenotype.history.get(id=pk,
-                                               history_id=phenotype_history_id)
+    current_ph_version = Phenotype.history.get(id=pk, history_id=phenotype_history_id)
 
     # Get the list of concepts in the phenotype data
-    concept_ids_historyIDs = getGroupOfConceptsByPhenotypeId_historical(
-        pk, phenotype_history_id)
+    concept_ids_historyIDs = getGroupOfConceptsByPhenotypeId_historical(pk, phenotype_history_id)
 
     titles = ([
         'code', 'description', 'code_attributes', 'coding_system',
@@ -3378,34 +3376,27 @@ def get_phenotype_conceptcodesByVersion(request,
     for concept in concept_ids_historyIDs:
         concept_id = concept[0]
         concept_version_id = concept[1]
-
-        if (target_concept_id is not None
-                and target_concept_history_id is not None):
-            if target_concept_id != str(
-                    concept_id) and target_concept_history_id != str(
-                        concept_version_id):
+        concept_ver_name = Concept.history.get(id=concept_id, history_id=concept_version_id).name
+        
+        if (target_concept_id is not None and target_concept_history_id is not None):
+            if target_concept_id != str(concept_id) and target_concept_history_id != str(concept_version_id):
                 continue
 
-        concept_coding_system = Concept.history.get(
-            id=concept_id, history_id=concept_version_id).coding_system.name
+        concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version_id).coding_system.name
 
         rows_no = 0
-        concept_codes = getGroupOfCodesByConceptId_HISTORICAL(
-            concept_id, concept_version_id)
+        concept_codes = getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
         if concept_codes:
             #---------
-            code_attribute_header = Concept.history.get(
-                id=concept_id,
-                history_id=concept_version_id).code_attribute_header
-            concept_history_date = Concept.history.get(
-                id=concept_id, history_id=concept_version_id).history_date
+            code_attribute_header = Concept.history.get(id=concept_id, history_id=concept_version_id).code_attribute_header
+            concept_history_date = Concept.history.get(id=concept_id, history_id=concept_version_id).history_date
             codes_with_attributes = []
             if code_attribute_header:
-                codes_with_attributes = getConceptCodes_withAttributes_HISTORICAL(
-                    concept_id=concept_id,
-                    concept_history_date=concept_history_date,
-                    allCodes=concept_codes,
-                    code_attribute_header=code_attribute_header)
+                codes_with_attributes = getConceptCodes_withAttributes_HISTORICAL(concept_id=concept_id,
+                                                                                concept_history_date=concept_history_date,
+                                                                                allCodes=concept_codes,
+                                                                                code_attribute_header=code_attribute_header
+                                                                                )
 
                 concept_codes = codes_with_attributes
             #---------
@@ -3426,14 +3417,12 @@ def get_phenotype_conceptcodesByVersion(request,
                     ordr(
                         list(
                             zip(titles, [
-                                cc['code'], cc['description'].encode(
-                                    'ascii', 'ignore').decode('ascii')
+                                cc['code'], cc['description'].encode('ascii', 'ignore').decode('ascii')
                             ] + [attributes_dict] + [
-                                concept_coding_system, 'C' + str(concept_id),
+                                concept_coding_system, 
+                                'C' + str(concept_id),
                                 concept_version_id,
-                                Concept.history.get(
-                                    id=concept_id,
-                                    history_id=concept_version_id).name,
+                                concept_ver_name,
                                 current_ph_version.friendly_id,
                                 current_ph_version.history_id,
                                 current_ph_version.name
@@ -3444,11 +3433,10 @@ def get_phenotype_conceptcodesByVersion(request,
                     ordr(
                         list(
                             zip(titles, ['', ''] + [attributes_dict] + [
-                                concept_coding_system, 'C' + str(concept_id),
+                                concept_coding_system, 
+                                'C' + str(concept_id),
                                 concept_version_id,
-                                Concept.history.get(
-                                    id=concept_id,
-                                    history_id=concept_version_id).name,
+                                concept_ver_name,
                                 current_ph_version.friendly_id,
                                 current_ph_version.history_id,
                                 current_ph_version.name
@@ -3745,21 +3733,18 @@ def get_brand_collection_ids(brand_name):
         return [-1]
 
 
-def get_brand_associated_collections(request, concept_or_phenotype):
+def get_brand_associated_collections(request, concept_or_phenotype, brand=None):
     """
         If user is authenticated show all collection IDs, including those that are deleted, as filters.
         If not, show only non-deleted/published entities related collection IDs.
     """
 
+    if brand is None:
+        brand = request.CURRENT_BRAND
+        if brand == "":
+            brand = 'ALL'
 
-    brand = request.CURRENT_BRAND
-    if brand == "":
-        brand = 'ALL'
-
-    collection_ids = Statistics.objects.get(
-        org__iexact=brand,
-        type__iexact=['phenotype_collections', 'concept_collections'
-                      ][concept_or_phenotype == 'concept'])
+    collection_ids = Statistics.objects.get(org__iexact=brand, type__iexact=['phenotype_collections', 'concept_collections'][concept_or_phenotype == 'concept'])
     stats = collection_ids.stat
 
     collections_ids = []
@@ -3783,30 +3768,18 @@ def get_brand_associated_collections_dynamic(request, concept_or_phenotype):
     """
 
     if concept_or_phenotype == 'concept':
-        data = get_visible_live_or_published_concept_versions(
-            request,
-            get_live_and_or_published_ver=[
-                2, 3
-            ][request.user.
-              is_authenticated]  # 1= live only, 2= published only, 3= live+published 
-            ,
-            exclude_deleted=[True, False][request.user.is_authenticated],
-            force_get_live_and_or_published_ver=[
-                2, 3
-            ][request.user.is_authenticated])
+        data = get_visible_live_or_published_concept_versions(request
+                                                            , get_live_and_or_published_ver=[2, 3][request.user.is_authenticated]  # 1= live only, 2= published only, 3= live+published
+                                                            , exclude_deleted=[True, False][request.user.is_authenticated]
+                                                            , force_get_live_and_or_published_ver=[2, 3][request.user.is_authenticated]
+                                                            )
 
     elif concept_or_phenotype == 'phenotype':
-        data = get_visible_live_or_published_phenotype_versions(
-            request,
-            get_live_and_or_published_ver=[
-                2, 3
-            ][request.user.
-              is_authenticated]  # 1= live only, 2= published only, 3= live+published 
-            ,
-            exclude_deleted=[True, False][request.user.is_authenticated],
-            force_get_live_and_or_published_ver=[
-                2, 3
-            ][request.user.is_authenticated])
+        data = get_visible_live_or_published_phenotype_versions(request
+                                                                , get_live_and_or_published_ver=[2, 3][request.user.is_authenticated]  # 1= live only, 2= published only, 3= live+published 
+                                                                , exclude_deleted=[True, False][request.user.is_authenticated]
+                                                                , force_get_live_and_or_published_ver=[2, 3][request.user.is_authenticated]
+                                                                )
 
     Tag_List = []
     for i in data:

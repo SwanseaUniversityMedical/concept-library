@@ -8,6 +8,9 @@
 {% block description %}{{ phenotype.phenotype_uuid }} {{ phenotype.name }}{% endblock description %}
 {% block keywords %}, {{ phenotype.phenotype_uuid }}, {{ phenotype.name }}{% endblock keywords %}
 
+{% block canonical_path %}
+	<link rel="canonical" href="{{ page_canonical_path }}" />
+{% endblock canonical_path %}
 
 {% block crumbs %}
     <a class="nav-bar-title underline" href="{% url 'phenotype_list' %}">Phenotypes</a>

@@ -47,6 +47,7 @@ from ..models.PublishedConcept import PublishedConcept
 from ..models.Tag import Tag
 from ..permissions import *
 from .View import *
+from clinicalcode.api.views.View import get_canonical_path_by_brand
 
 logger = logging.getLogger(__name__)
 
@@ -187,8 +188,7 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
 
     if concept_history_id is None:
         # get the latest version
-        concept_history_id = int(
-            Concept.objects.get(pk=pk).history.latest().history_id)
+        concept_history_id = int(Concept.objects.get(pk=pk).history.latest().history_id)
 
     is_published = checkIfPublished(Concept, pk, concept_history_id)
 
@@ -204,8 +204,7 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
         concept['group'] = Group.objects.get(id=int(concept['group_id']))
 
     concept_history_date = concept['history_date']
-    components = db_utils.getHistoryComponents(
-        pk, concept_history_date, check_published_child_concept=True)
+    components = db_utils.getHistoryComponents(pk, concept_history_date, check_published_child_concept=True)
 
     code_attribute_header = concept['code_attribute_header']
 
@@ -222,20 +221,17 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
     # ----------------------------------------------------------------------
 
     if request.user.is_authenticated:
-        components_permissions = build_permitted_components_list(
-            request, pk, concept_history_id=concept_history_id)
+        components_permissions = build_permitted_components_list(request, pk, concept_history_id=concept_history_id)
 
-        can_edit = (not Concept.objects.get(
-            pk=pk).is_deleted) and allowed_to_edit(request, Concept, pk)
+        can_edit = (not Concept.objects.get(pk=pk).is_deleted) and allowed_to_edit(request, Concept, pk)
 
-        user_can_export = (allowed_to_view_children(
-            request, Concept, pk, set_history_id=concept_history_id)
-                           and db_utils.chk_deleted_children(
-                               request,
-                               Concept,
-                               pk,
-                               returnErrors=False,
-                               set_history_id=concept_history_id)
+        user_can_export = (allowed_to_view_children(request, Concept, pk, set_history_id=concept_history_id)
+                           and db_utils.chk_deleted_children(request,
+                                                           Concept,
+                                                           pk,
+                                                           returnErrors=False,
+                                                           set_history_id=concept_history_id
+                                                           )
                            and not Concept.objects.get(pk=pk).is_deleted)
         user_allowed_to_create = allowed_to_create()
     else:
@@ -245,19 +241,15 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
 
     publish_date = None
     if is_published:
-        publish_date = PublishedConcept.objects.get(
-            concept_id=pk, concept_history_id=concept_history_id).created
+        publish_date = PublishedConcept.objects.get(concept_id=pk, concept_history_id=concept_history_id).created
 
     if Concept.objects.get(pk=pk).is_deleted == True:
         messages.info(request, "This concept has been deleted.")
 
-    is_latest_version = (int(concept_history_id) == Concept.objects.get(
-        pk=pk).history.latest().history_id)
+    is_latest_version = (int(concept_history_id) == Concept.objects.get(pk=pk).history.latest().history_id)
 
     # published versions
-    published_historical_ids = list(
-        PublishedConcept.objects.filter(concept_id=pk).values_list(
-            'concept_history_id', flat=True))
+    published_historical_ids = list(PublishedConcept.objects.filter(concept_id=pk).values_list('concept_history_id', flat=True))
 
     # history
     other_versions = Concept.objects.get(pk=pk).history.all()
@@ -275,19 +267,14 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
             ver['modified_by'] = User.objects.get(pk=ver['modified_by_id'])
 
         is_this_version_published = False
-        is_this_version_published = PublishedConcept.objects.filter(
-            concept_id=ver['id'],
-            concept_history_id=ver['history_id']).exists()
+        is_this_version_published = PublishedConcept.objects.filter(concept_id=ver['id'], concept_history_id=ver['history_id']).exists()
         if is_this_version_published:
-            ver['publish_date'] = PublishedConcept.objects.get(
-                concept_id=ver['id'],
-                concept_history_id=ver['history_id']).created
+            ver['publish_date'] = PublishedConcept.objects.get(concept_id=ver['id'], concept_history_id=ver['history_id']).created
         else:
             ver['publish_date'] = None
 
         if request.user.is_authenticated:
-            if allowed_to_edit(request, Concept, pk) or allowed_to_view(
-                    request, Concept, pk):
+            if allowed_to_edit(request, Concept, pk) or allowed_to_view(request, Concept, pk):
                 other_historical_versions.append(ver)
             else:
                 if is_this_version_published:
@@ -305,15 +292,13 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
     else:
         # published
         # ---------
-        concept_codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(
-            pk, concept_history_id)
+        concept_codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(pk, concept_history_id)
         codes_with_attributes = []
         if code_attribute_header:
-            codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(
-                concept_id=pk,
-                concept_history_date=concept_history_date,
-                allCodes=concept_codes,
-                code_attribute_header=code_attribute_header)
+            codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(concept_id=pk,
+                                                                                        concept_history_date=concept_history_date,
+                                                                                        allCodes=concept_codes,
+                                                                                        code_attribute_header=code_attribute_header)
 
             concept_codes = codes_with_attributes
         # ---------
@@ -340,7 +325,8 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
         'codelist_tab_active': codelist_tab_active,
         'codelist': codelist,  # json.dumps(codelist)
         'codelist_loaded': codelist_loaded,
-        'code_attribute_header': code_attribute_header
+        'code_attribute_header': code_attribute_header,
+        'page_canonical_path': get_canonical_path_by_brand(request, Concept, pk, concept_history_id) 
     }
     if request.user.is_authenticated:
         if is_latest_version and (can_edit):
@@ -1426,8 +1412,7 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
     #         # get the latest version
     #         concept_history_id = int(Concept.objects.get(pk=pk).history.latest().history_id)
 
-    is_published = PublishedConcept.objects.filter(
-        concept_id=pk, concept_history_id=concept_history_id).exists()
+    is_published = PublishedConcept.objects.filter(concept_id=pk, concept_history_id=concept_history_id).exists()
 
     # ----------------------------------------------------------------------
 
@@ -1443,14 +1428,13 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
     current_concept = Concept.objects.get(pk=pk)
 
     if request.user.is_authenticated:
-        user_can_export = (allowed_to_view_children(
-            request, Concept, pk, set_history_id=concept_history_id)
-                           and db_utils.chk_deleted_children(
-                               request,
-                               Concept,
-                               pk,
-                               returnErrors=False,
-                               set_history_id=concept_history_id)
+        user_can_export = (allowed_to_view_children(request, Concept, pk, set_history_id=concept_history_id)
+                           and db_utils.chk_deleted_children(request,
+                                                           Concept,
+                                                           pk,
+                                                           returnErrors=False,
+                                                           set_history_id=concept_history_id
+                                                           )
                            and not current_concept.is_deleted)
     else:
         user_can_export = is_published
@@ -1461,8 +1445,7 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
 
     history_concept = db_utils.getHistoryConcept(concept_history_id)
 
-    codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(
-        pk, concept_history_id)
+    codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(pk, concept_history_id)
 
     my_params = {
         'id': pk,
@@ -1470,24 +1453,19 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
         'creation_date': time.strftime("%Y%m%dT%H%M%S")
     }
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = (
-        'attachment; filename="concept_C%(id)s_ver_%(concept_history_id)s_group_codes_%(creation_date)s.csv"'
-        % my_params)
+    response['Content-Disposition'] = ('attachment; filename="concept_C%(id)s_ver_%(concept_history_id)s_group_codes_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
 
     # ---------
-    code_attribute_header = Concept.history.get(
-        id=pk, history_id=concept_history_id).code_attribute_header
-    concept_history_date = history_concept[
-        'history_date']  # Concept.history.get(id=pk, history_id=concept_history_id).history_date
+    code_attribute_header = Concept.history.get(id=pk, history_id=concept_history_id).code_attribute_header
+    concept_history_date = history_concept['history_date']  # Concept.history.get(id=pk, history_id=concept_history_id).history_date
     codes_with_attributes = []
     if code_attribute_header:
-        codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(
-            concept_id=pk,
-            concept_history_date=concept_history_date,
-            allCodes=codes,
-            code_attribute_header=code_attribute_header)
+        codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(concept_id=pk,
+                                                                                    concept_history_date=concept_history_date,
+                                                                                    allCodes=codes,
+                                                                                    code_attribute_header=code_attribute_header)
 
         codes = codes_with_attributes
     # ---------
@@ -1501,8 +1479,7 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
 
     writer.writerow(titles)
 
-    concept_coding_system = Concept.history.get(
-        id=pk, history_id=concept_history_id).coding_system.name
+    concept_coding_system = Concept.history.get(id=pk, history_id=concept_history_id).coding_system.name
 
     for c in codes:
         code_attributes = []
@@ -1525,8 +1502,7 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
 def check_concurrent_concept_update(request, pk):
     # Alert user when concurrent editing of concept (components)
 
-    latest_history_id_shown = request.GET.get('latest_history_id_shown',
-                                              "").strip()
+    latest_history_id_shown = request.GET.get('latest_history_id_shown', "").strip()
     component_id = request.GET.get('component_id', "").strip()
 
     noConflict = True
@@ -1535,9 +1511,7 @@ def check_concurrent_concept_update(request, pk):
 
     # Check if the concept is not deleted
     if (pk.strip() != ""):
-        if (not Concept.objects.filter(pk=pk).exists()
-                or not Concept.objects.filter(pk=pk).exclude(
-                    is_deleted=True).exists()):
+        if (not Concept.objects.filter(pk=pk).exists() or not Concept.objects.filter(pk=pk).exclude(is_deleted=True).exists()):
             confirm_overrideVersion = -1
             noConflict = False
             context['errorMsg'] = [
@@ -1602,8 +1576,7 @@ def conceptversions(request, pk, concept_history_id, indx):
 
     concept = Concept.objects.get(pk=pk)
     # versions = concept.history.order_by('-history_id')
-    versions = db_utils.get_visible_live_or_published_concept_versions(
-        request, exclude_deleted=True, filter_cond=" id= " + str(pk))
+    versions = db_utils.get_visible_live_or_published_concept_versions(request, exclude_deleted=True, filter_cond=" id= " + str(pk))
 
     data = dict()
     data['form_is_valid'] = True
@@ -1704,8 +1677,7 @@ def compare_concepts_codes(request, concept_id, version_id, concept_ref_id,
                                   how="outer",
                                   indicator=True)
 
-    full_outer_join_df = full_outer_join_df.sort_values(by=['_merge'],
-                                                        ascending=False)
+    full_outer_join_df = full_outer_join_df.sort_values(by=['_merge'], ascending=False)
     # replace NaN with '-'
     # full_outer_join_df['description_x'].fillna('-')
     # full_outer_join_df['description_y'].fillna('-')
