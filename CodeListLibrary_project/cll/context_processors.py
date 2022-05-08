@@ -1,7 +1,7 @@
 #from cll import settings
 from clinicalcode.constants import *
 from django.conf import settings
-from clinicalcode.api.views.View import get_CANONICAL_PATH
+from clinicalcode.api.views.View import get_canonical_path
 
 
 def general_var(request):
@@ -20,7 +20,7 @@ def general_var(request):
         'IS_DEVELOPMENT_PC': settings.IS_DEVELOPMENT_PC,
         'SHOW_COOKIE_ALERT': settings.SHOW_COOKIE_ALERT,
         'IS_HDRUK_EXT': settings.IS_HDRUK_EXT,
-        'CANONICAL_PATH': get_CANONICAL_PATH(request)
+        'CANONICAL_PATH': get_canonical_path(request)
     }
     
   

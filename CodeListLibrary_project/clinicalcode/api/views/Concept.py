@@ -919,8 +919,8 @@ def user_concepts(request, pk=None):
 
 
 #--------------------------------------------------------------------------
-@robots()
-def getConcepts(request, is_authenticated_user=True, pk=None):
+@robots2()
+def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept):
     search = request.query_params.get('search', '')
 
     if pk is not None:
@@ -1172,12 +1172,13 @@ def concept_detail_PUBLIC(request,
 
 
 #--------------------------------------------------------------------------
-@robots()
+@robots2()
 def getConceptDetail(request,
                      pk,
-                     concept_history_id=None,
+                     history_id=None,
                      is_authenticated_user=True,
-                     get_versions_only=None):
+                     get_versions_only=None,
+                     set_class=Concept):
 
     if get_versions_only is not None:
         if get_versions_only == '1':
@@ -1188,7 +1189,7 @@ def getConceptDetail(request,
             return Response(rows_to_return, status=status.HTTP_200_OK)
     #--------------------------
 
-    concept = getHistoryConcept(concept_history_id)
+    concept = getHistoryConcept(history_id)
     # The history concept contains the owner_id, to provide the owner name, we
     # need to access the user object with that ID and add that to the concept.
     concept['owner'] = None
