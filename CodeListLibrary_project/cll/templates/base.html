@@ -24,11 +24,16 @@
 <!--     	<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo="> -->
 		<link rel="icon" href="data:,">
 
-			{% if IS_DEMO or IS_DEVELOPMENT_PC or IS_HDRUK_EXT == '0' %}
-				<!-- Stop indexing the demo/all except .org site -->
-				<meta name="robots" content="noindex, nofollow">
-				<meta name="googlebot" content="noindex, nofollow">
-			{% endif %} 
+		{% if IS_DEMO or IS_DEVELOPMENT_PC or IS_HDRUK_EXT == '0' %}
+			<!-- Stop indexing the demo/all except .org site -->
+			<meta name="robots" content="noindex, nofollow">
+			<meta name="googlebot" content="noindex, nofollow">
+		{% endif %} 
+		
+		{% if IS_HDRUK_EXT == '0' %}
+			<meta name="google-site-verification" content="biC6kLWuhP7ueREgE_hr5cRrNySiBakPwmHvEe0L2Xs" />
+    	{% endif %} 
+    	
     	
     	{% block canonical_path %}
     		<link rel="canonical" href="{{ CANONICAL_PATH }}" />
