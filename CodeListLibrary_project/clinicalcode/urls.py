@@ -61,13 +61,6 @@ if not settings.CLL_READ_ONLY:
 if settings.IS_HDRUK_EXT == "1" or settings.IS_DEVELOPMENT_PC:
     urlpatterns += [
         url(r'^robots.txt/$', site.robots_txt, name='robots.txt'),
-        # url(r'^robots.txt/$',
-        #     TemplateView.as_view(template_name="site/HDRUK/robots.txt", content_type="text/plain"),
-        #     ),
-        # url(r'^sitemap.xml/$',
-            # TemplateView.as_view(template_name="site/HDRUK/sitemap.xml", content_type="xml"),
-            # name='django.contrib.sitemaps.views.sitemap'),
-                
         url(r'^sitemap.xml/$', site.get_sitemap, name='sitemap.xml'),
         
     ]

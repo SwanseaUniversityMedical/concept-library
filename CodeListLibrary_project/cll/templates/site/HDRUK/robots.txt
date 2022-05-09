@@ -1,6 +1,0 @@
-User-Agent: *
-
-Allow: /
-
-Sitemap: https://phenotypes.healthdatagateway.org/sitemap.xml
-
