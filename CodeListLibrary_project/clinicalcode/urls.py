@@ -11,7 +11,7 @@ from django.contrib.auth import views as auth_views
 
 from .views import (Admin, ComponentConcept, ComponentExpression,
                     ComponentQueryBuilder, Concept, Phenotype, View,
-                    WorkingSet, adminTemp)
+                    WorkingSet, adminTemp, site)
 
 from django.urls import path
 from django.views.generic.base import TemplateView
@@ -21,13 +21,13 @@ from django.views.generic.base import TemplateView
 
 urlpatterns = [
     url(r'^$', View.index, name='concept_library_home'),
-    url(r'^home/$', View.index, name='concept_library_home'),
+    url(r'^home/$', View.index, name='concept_library_home2'),
     url(r'^concepts/$', Concept.concept_list, name='concept_list'),
     url(r'^workingsets/$', WorkingSet.workingset_list, name='workingset_list'),
     url(r'^phenotypes/$', Phenotype.phenotype_list, name='phenotype_list'),
     
-    url(r'^cookies-settings/?$', View.cookies_settings, name='cookies_settings'),
-    url(r'^reference-data/?$', View.reference_data, name='reference_data'),
+    url(r'^cookies-settings/$', View.cookies_settings, name='cookies_settings'),
+    url(r'^reference-data/$', View.reference_data, name='reference_data'),
 
     #     # redirect api root '/api' to '/api/v1'
     #     #url(r'^api/$', RedirectView.as_view(url= reverse('api:root')) , name='api_root_v1'),
@@ -41,20 +41,14 @@ urlpatterns += [
 
 # HDR-UK portal redirect to CL
 urlpatterns += [
-    url(r'^old/phenotypes/(?P<unique_url>.+)/$',
-        View.HDRUK_portal_redirect,
-        name='HDRUK_portal_redirect'),
+    url(r'^old/phenotypes/(?P<unique_url>.+)/$', View.HDRUK_portal_redirect, name='HDRUK_portal_redirect'),
 ]
 
 # (terms and conditions) and privacy/cookie policy pages
 urlpatterns += [
     url(r'^terms-and-conditions/$', View.termspage, name='terms'),
-    url(r'^privacy-and-cookie-policy/$',
-        View.cookiespage,
-        name='privacy_and_cookie_policy'),
-    url(r'^technical_documentation/$',
-        View.technicalpage,
-        name='technical_documentation'),
+    url(r'^privacy-and-cookie-policy/$', View.cookiespage, name='privacy_and_cookie_policy'),
+    url(r'^technical_documentation/$', View.technicalpage, name='technical_documentation'),
 ]
 
 # contact us page
@@ -66,36 +60,32 @@ if not settings.CLL_READ_ONLY:
 #======== robots.txt / sitemap ====================================================================
 if settings.IS_HDRUK_EXT == "1" or settings.IS_DEVELOPMENT_PC:
     urlpatterns += [
-        url(r'^robots.txt/$',
-            TemplateView.as_view(template_name="site/HDRUK/robots.txt", content_type="text/plain"),
-            ),
-        url(r'^sitemap.xml/$',
-            TemplateView.as_view(template_name="site/HDRUK/sitemap.xml", content_type="xml"),
-            name='django.contrib.sitemaps.views.sitemap'),        
+        url(r'^robots.txt/$', site.robots_txt, name='robots.txt'),
+        # url(r'^robots.txt/$',
+        #     TemplateView.as_view(template_name="site/HDRUK/robots.txt", content_type="text/plain"),
+        #     ),
+        # url(r'^sitemap.xml/$',
+            # TemplateView.as_view(template_name="site/HDRUK/sitemap.xml", content_type="xml"),
+            # name='django.contrib.sitemaps.views.sitemap'),
+                
+        url(r'^sitemap.xml/$', site.get_sitemap, name='sitemap.xml'),
+        
     ]
     
     
 
 #======== Admin ===================================================================================
 # for API testing
-if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
+if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
     urlpatterns += [
-        url(r'^adminTemp/api_remove_data/$',
-            adminTemp.api_remove_data,
-            name='api_remove_data'),
+        url(r'^adminTemp/api_remove_data/$', adminTemp.api_remove_data, name='api_remove_data'),
     ]
 
 # saving statistics
 if not settings.CLL_READ_ONLY:
     urlpatterns += [
-        url(
-            r'^admin/run-stat/$',  # HDRUK stat
-            Admin.run_statistics,
-            name='HDRUK_run_statistics'),
-        url(
-            r'^admin/run-stat-collections/$',  # collections filter stat
-            Admin.run_statistics_collections,
-            name='collections_run_statistics'),
+        url(r'^admin/run-stat/$',  Admin.run_statistics, name='HDRUK_run_statistics'),# HDRUK stat
+        url(r'^admin/run-stat-collections/$', Admin.run_statistics_collections, name='collections_run_statistics'),# collections filter stat
     ]
 
 # check concepts not associated with phenotypes
