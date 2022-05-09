@@ -13,6 +13,9 @@ from .views import (Admin, ComponentConcept, ComponentExpression,
                     ComponentQueryBuilder, Concept, Phenotype, View,
                     WorkingSet, adminTemp)
 
+from django.urls import path
+from django.views.generic.base import TemplateView
+
 #from django.views.generic import RedirectView
 #from django.urls import reverse_lazy, reverse
 
@@ -59,6 +62,19 @@ if not settings.CLL_READ_ONLY:
     urlpatterns += [
         url(r'^contact-us/$', View.contact_us, name='contact_us'),
     ]
+
+#======== robots.txt / sitemap ====================================================================
+if settings.IS_HDRUK_EXT == "1" or settings.IS_DEVELOPMENT_PC:
+    urlpatterns += [
+        url(r'^robots.txt/$',
+            TemplateView.as_view(template_name="site/HDRUK/robots.txt", content_type="text/plain"),
+            ),
+        url(r'^sitemap.xml/$',
+            TemplateView.as_view(template_name="site/HDRUK/sitemap.xml", content_type="xml"),
+            name='django.contrib.sitemaps.views.sitemap'),        
+    ]
+    
+    
 
 #======== Admin ===================================================================================
 # for API testing

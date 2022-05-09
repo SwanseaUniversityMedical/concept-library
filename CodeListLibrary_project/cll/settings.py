@@ -197,6 +197,7 @@ INSTALLED_APPS = INSTALLED_APPS + [
     'django_celery_beat',
     #'rest_framework_swagger',
     'drf_yasg',
+    'django.contrib.sitemaps',
 ]
 
 MIDDLEWARE = [
