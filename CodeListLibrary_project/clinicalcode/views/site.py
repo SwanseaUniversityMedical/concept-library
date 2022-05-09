@@ -19,7 +19,7 @@ def robots_txt(request):
         
     lines += ["Sitemap22: " + site + "/sitemap.xml"]
 
-    lines += ["Sitemap: " + request.build_absolute_uri(reverse('concept_library_home')) + "sitemap.xml"]
+    lines += ["Sitemap: " + request.build_absolute_uri(reverse('concept_library_home')).replace('http://' , 'https://') + "sitemap.xml"]
 
 
     return HttpResponse("\n".join(lines), content_type="text/plain")
@@ -78,7 +78,7 @@ def get_sitemap(request):
     links_str = "<urlset>"
     for t in links:
         links_str += "<url>"
-        links_str += "<loc>" + t[0] + "</loc>"
+        links_str += "<loc>" + t[0].replace('http://' , 'https://') + "</loc>"
         links_str += "<lastmod>" + t[1] + "</lastmod>"
         links_str += "<priority>" + t[2] + "</priority>"        
         links_str += "</url>"
