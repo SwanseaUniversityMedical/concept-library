@@ -48,7 +48,12 @@ def get_canonical_path(request, force_HDRUK_rel=False):
     if (settings.IS_HDRUK_EXT == '0' and settings.CURRENT_BRAND == 'HDRUK') or force_HDRUK_rel:
         url_list = CANONICAL_PATH.split('/')
         if len(url_list) > 4:
-            cp = 'https://phenotypes.healthdatagateway.org/' + '/'.join(url_list[4:])
+            start_index = 4
+            if url_list[3].upper() == 'HDRUK':
+                start_index = 4
+            else:
+                start_index = 3
+            cp = 'https://phenotypes.healthdatagateway.org/' + '/'.join(url_list[start_index:])
         else:
             cp = 'https://phenotypes.healthdatagateway.org' 
  
