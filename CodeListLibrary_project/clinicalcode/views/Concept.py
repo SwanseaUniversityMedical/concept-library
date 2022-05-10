@@ -391,10 +391,8 @@ class ConceptRestore(LoginRequiredMixin, HasAccessToEditConceptCheckMixin,
     def post(self, request, pk):
         with transaction.atomic():
             db_utils.restoreConcept(pk, request.user)
-            db_utils.modify_Entity_ChangeReason(Concept, pk,
-                                                "Concept has been restored")
-        messages.success(self.request,
-                         "Concept has been successfully restored.")
+            db_utils.modify_Entity_ChangeReason(Concept, pk, "Concept has been restored")
+        messages.success(self.request, "Concept has been successfully restored.")
         return HttpResponseRedirect(self.get_success_url())
 
 
@@ -431,20 +429,14 @@ class ConceptUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin,
         # ----------------------------------------------------------
         # alert user when concurrent editing of concept
         latest_history_id = str(self.object.history.latest().history_id)
-        latest_history_id_shown = str(
-            self.request.POST.get('latest_history_id'))
+        latest_history_id_shown = str(self.request.POST.get('latest_history_id'))
         overrideVersion = self.request.POST.get('overrideVersion')
 
         self.confirm_overrideVersion = 0
-        if latest_history_id_shown != latest_history_id and str(
-                overrideVersion) == "0":
+        if latest_history_id_shown != latest_history_id and str(overrideVersion) == "0":
             self.confirm_overrideVersion = -1
             self.is_valid1 = False
-            form.add_error(
-                None,
-                mark_safe(
-                    "This concept has an updated version,<br/> Do you want to continue and override it?!<br/> To override click 'Save' again."
-                ))
+            form.add_error(None, mark_safe("This concept has an updated version,<br/> Do you want to continue and override it?!<br/> To override click 'Save' again."))
             # form.non_field_errors("This concept has an updated version, Do you want to continue and override it? 11")
             form.is_valid = self.is_valid1
             return self.form_invalid(form)
@@ -475,11 +467,8 @@ class ConceptUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin,
             # Get all the 'parent' concepts i.e. those that include this one,
             # and add a history entry to those that this concept has been
             # updated.
-            db_utils.saveDependentConceptsChangeReason(
-                self.kwargs['pk'], "Component concept #" +
-                str(self.kwargs['pk']) + " was updated")
-            messages.success(self.request,
-                             "Concept has been successfully updated.")
+            db_utils.saveDependentConceptsChangeReason(self.kwargs['pk'], "Component concept #" + str(self.kwargs['pk']) + " was updated")
+            messages.success(self.request, "Concept has been successfully updated.")
 
         return HttpResponseRedirect(self.get_success_url())
 
@@ -490,55 +479,39 @@ class ConceptUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin,
         if concept_tags:
             tags = Tag.objects.filter(pk__in=concept_tags)
 
-        context.update(
-            build_permitted_components_list(
-                self.request,
-                self.get_object().pk,
-                check_published_child_concept=True))
+        context.update(build_permitted_components_list(self.request, self.get_object().pk, check_published_child_concept=True))
 
         if self.get_object().is_deleted == True:
             messages.info(self.request, "This concept has been deleted.")
 
         context['tags'] = tags
-        context['code_attribute_header'] = json.dumps(
-            self.get_object().code_attribute_header)
+        context['code_attribute_header'] = json.dumps(self.get_object().code_attribute_header)
         context['history'] = self.get_object().history.all()
         # user_can_export is intended to control the Export CSV button. It might
         # be better described as user can view all children, but that currently
         # seems more obscure.
-        context['user_can_export'] = (
-            allowed_to_view_children(self.request, Concept,
-                                     self.get_object().id)
-            and db_utils.chk_deleted_children(self.request,
-                                              Concept,
-                                              self.get_object().id,
-                                              returnErrors=False))
-        context['allowed_to_permit'] = allowed_to_permit(
-            self.request.user, Concept,
-            self.get_object().id)
+        context['user_can_export'] = (allowed_to_view_children(self.request, Concept, self.get_object().id)
+                                      and db_utils.chk_deleted_children(self.request,
+                                                                      Concept,
+                                                                      self.get_object().id,
+                                                                      returnErrors=False)
+                                    )
+        context['allowed_to_permit'] = allowed_to_permit(self.request.user, Concept, self.get_object().id)
         # context['enable_publish'] = settings.ENABLE_PUBLISH
 
         # published versions
-        published_historical_ids = list(
-            PublishedConcept.objects.filter(
-                concept_id=self.get_object().id).values_list(
-                    'concept_history_id', flat=True))
+        published_historical_ids = list(PublishedConcept.objects.filter(concept_id=self.get_object().id).values_list('concept_history_id', flat=True))
         context['published_historical_ids'] = published_historical_ids
 
         # ------------------------------
         latest_history_id = context['concept'].history.first().history_id
-        context[
-            'latest_history_id'] = latest_history_id if self.request.POST.get(
-                'latest_history_id') is None else self.request.POST.get(
-                    'latest_history_id')
+        context['latest_history_id'] = latest_history_id if self.request.POST.get('latest_history_id') is None else self.request.POST.get('latest_history_id')
         context['overrideVersion'] = self.confirm_overrideVersion
         # -------------------------------
 
         context['current_concept_history_id'] = int(latest_history_id)
 
-        context['is_published'] = PublishedConcept.objects.filter(
-            concept_id=self.get_object().id,
-            concept_history_id=context['latest_history_id']).exists()
+        context['is_published'] = PublishedConcept.objects.filter(concept_id=self.get_object().id, concept_history_id=context['latest_history_id']).exists()
 
         return context
 
@@ -795,7 +768,12 @@ def concept_list(request):
         must_have_published_versions = 0
         
         
-            
+    # remove leading and trailing spaces from text search params
+    search = search.strip()
+    owner = owner.strip()
+    author = author.strip()
+    
+    
     filter_cond = " 1=1 "
     exclude_deleted = True
     get_live_and_or_published_ver = 3  # 1= live only, 2= published only, 3= live+published
@@ -1603,8 +1581,7 @@ def conceptversions(request, pk, concept_history_id, indx):
 
 
 @login_required
-def compare_concepts_codes(request, concept_id, version_id, concept_ref_id,
-                           version_ref_id):
+def compare_concepts_codes(request, concept_id, version_id, concept_ref_id, version_ref_id):
     validate_access_to_view(request,
                             Concept,
                             concept_id,
@@ -1625,23 +1602,16 @@ def compare_concepts_codes(request, concept_id, version_id, concept_ref_id,
         return render(request, 'custom-msg.html',
                       {'msg_title': 'Data Not found.'})
 
-    if (main_concept.history.filter(id=concept_id,
-                                    history_id=version_id).count() ==
-            0  # .exclude(is_deleted=True)
-            or ref_concept.history.filter(
-                id=concept_ref_id, history_id=version_ref_id).count() == 0
-            # .exclude(is_deleted=True)
+    if (main_concept.history.filter(id=concept_id, history_id=version_id).count() == 0  
+            or ref_concept.history.filter(id=concept_ref_id, history_id=version_ref_id).count() == 0
         ):
         return render(request, 'custom-msg.html',
                       {'msg_title': 'Data Not found.'})
 
-    main_concept_history_version = main_concept.history.get(
-        id=concept_id, history_id=version_id)
-    ref_concept_history_version = ref_concept.history.get(
-        id=concept_ref_id, history_id=version_ref_id)
+    main_concept_history_version = main_concept.history.get(id=concept_id, history_id=version_id)
+    ref_concept_history_version = ref_concept.history.get(id=concept_ref_id, history_id=version_ref_id)
 
-    main_codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(
-        concept_id=concept_id, concept_history_id=version_id)
+    main_codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id=concept_id, concept_history_id=version_id)
 
     if not main_codes:
         main_codes = [{'code': 'No CODES !!', 'description': ''}]
@@ -1649,14 +1619,13 @@ def compare_concepts_codes(request, concept_id, version_id, concept_ref_id,
     # main_name = main_concept.name + " - (" + str(concept_id) + "/" + str(version_id) + ") - " + main_concept.author
     # get data from version history
     main_name = (main_concept_history_version.name + "<BR><strong>(" +
-                 str(main_concept_history_version.friendly_id) + "/" +
-                 str(version_id) + ")</strong> " +
-                 "<BR><strong>author:</strong> " +
-                 main_concept_history_version.author)
+                str(main_concept_history_version.friendly_id) + "/" +
+                str(version_id) + ")</strong> " +
+                "<BR><strong>author:</strong> " +
+                main_concept_history_version.author)
 
     # ----------------------------------
-    ref_codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(
-        concept_id=concept_ref_id, concept_history_id=version_ref_id)
+    ref_codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id=concept_ref_id, concept_history_id=version_ref_id)
     if not ref_codes:
         ref_codes = [{'code': 'No CODES !!', 'description': ''}]
 
@@ -1693,18 +1662,19 @@ def compare_concepts_codes(request, concept_id, version_id, concept_ref_id,
     rows = [tuple(r) for r in full_outer_join_df.to_numpy()]
     net_comparison = [dict(list(zip(columns, row))) for row in rows]
 
-    return render(
-        request, 'clinicalcode/concept/compare_cocepts_codes.html', {
-            'concept_id': concept_id,
-            'version_id': version_id,
-            'concept_ref_id': concept_ref_id,
-            'version_ref_id': version_ref_id,
-            'main_name': main_name,
-            'ref_name': ref_name,
-            'is_identical': is_identical,
-            'msg': msg,
-            'net_comparison': net_comparison
-        })
+    return render(request, 'clinicalcode/concept/compare_cocepts_codes.html', 
+                    {
+                        'concept_id': concept_id,
+                        'version_id': version_id,
+                        'concept_ref_id': concept_ref_id,
+                        'version_ref_id': version_ref_id,
+                        'main_name': main_name,
+                        'ref_name': ref_name,
+                        'is_identical': is_identical,
+                        'msg': msg,
+                        'net_comparison': net_comparison
+                    }
+                )
 
 
 class ConceptPublish(LoginRequiredMixin, HasAccessToViewConceptCheckMixin,
@@ -1749,15 +1719,11 @@ class ConceptPublish(LoginRequiredMixin, HasAccessToViewConceptCheckMixin,
             allow_to_publish = False
             concept_is_deleted = True
 
-        if (Concept.objects.filter(Q(id=pk),
-                                   Q(owner=self.request.user)).count() == 0):
+        if (Concept.objects.filter(Q(id=pk), Q(owner=self.request.user)).count() == 0):
             allow_to_publish = False
             is_owner = False
 
-        if (len(
-                db_utils.getGroupOfCodesByConceptId_HISTORICAL(
-                    concept_id=pk,
-                    concept_history_id=concept_history_id)) == 0):
+        if (len(db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id=pk, concept_history_id=concept_history_id)) == 0):
             allow_to_publish = False
             concept_has_codes = False
 
@@ -1789,21 +1755,21 @@ class ConceptPublish(LoginRequiredMixin, HasAccessToViewConceptCheckMixin,
         # --------------------------------------------
 
         return self.render_to_response({
-            'pk': pk,
-            'name': concept_ver.name,
-            'concept_history_id': concept_history_id,
-            'is_published': is_published,
-            'allowed_to_publish': allow_to_publish,
-            'is_owner': is_owner,
-            'concept_is_deleted': concept_is_deleted,
-            'concept_has_codes': concept_has_codes,
-            'has_child_concepts': has_child_concepts,
-            'child_concepts_OK': child_concepts_OK,
-            'AllnotDeleted': AllnotDeleted,
-            'AllarePublished': AllarePublished,
-            'isAllowedtoViewChildren': isAllowedtoViewChildren,
-            'errors': errors
-        })
+                                        'pk': pk,
+                                        'name': concept_ver.name,
+                                        'concept_history_id': concept_history_id,
+                                        'is_published': is_published,
+                                        'allowed_to_publish': allow_to_publish,
+                                        'is_owner': is_owner,
+                                        'concept_is_deleted': concept_is_deleted,
+                                        'concept_has_codes': concept_has_codes,
+                                        'has_child_concepts': has_child_concepts,
+                                        'child_concepts_OK': child_concepts_OK,
+                                        'AllnotDeleted': AllnotDeleted,
+                                        'AllarePublished': AllarePublished,
+                                        'isAllowedtoViewChildren': isAllowedtoViewChildren,
+                                        'errors': errors
+                                    })
 
     def post(self, request, pk, concept_history_id):
         global errors, allow_to_publish, concept_is_deleted, is_owner, concept_has_codes
@@ -1836,14 +1802,10 @@ class ConceptPublish(LoginRequiredMixin, HasAccessToViewConceptCheckMixin,
                 # start a transaction
                 with transaction.atomic():
                     concept = Concept.objects.get(pk=pk)
-                    published_concept = PublishedConcept(
-                        concept=concept,
-                        concept_history_id=concept_history_id,
-                        created_by=request.user)
+                    published_concept = PublishedConcept(concept=concept, concept_history_id=concept_history_id, created_by=request.user)
                     published_concept.save()
                     data['form_is_valid'] = True
-                    data[
-                        'latest_history_ID'] = concept_history_id  # concept.history.latest().pk
+                    data['latest_history_ID'] = concept_history_id  # concept.history.latest().pk
 
                     #                     # refresh component list
                     #                     data['html_component_list'] = render_to_string(
@@ -1854,20 +1816,13 @@ class ConceptPublish(LoginRequiredMixin, HasAccessToViewConceptCheckMixin,
                     # update history list
 
                     data['html_history_list'] = render_to_string(
-                        'clinicalcode/concept/partial_history_list.html',
-                        {
-                            'history':
-                            concept.history.all(),
-                            'current_concept_history_id':
-                            int(concept_history_id
-                                ),  # concept.history.latest().pk,
-                            'published_historical_ids':
-                            list(
-                                PublishedConcept.objects.filter(
-                                    concept_id=pk).values_list(
-                                        'concept_history_id', flat=True))
-                        },
-                        request=self.request)
+                                                                'clinicalcode/concept/partial_history_list.html',
+                                                                {
+                                                                    'history': concept.history.all(),
+                                                                    'current_concept_history_id': int(concept_history_id),  # concept.history.latest().pk,
+                                                                    'published_historical_ids':list(PublishedConcept.objects.filter(concept_id=pk).values_list('concept_history_id', flat=True))
+                                                                },
+                                                                request=self.request)
 
                     #                     # update add_menu_items to reflect latest history id
                     #                     data['add_menu_items'] = render_to_string(
@@ -1878,25 +1833,24 @@ class ConceptPublish(LoginRequiredMixin, HasAccessToViewConceptCheckMixin,
                     #                         )
 
                     data['message'] = render_to_string(
-                        'clinicalcode/concept/published.html', {
-                            'id': pk,
-                            'concept_history_id': concept_history_id
-                        }, self.request)
+                                                        'clinicalcode/concept/published.html', {
+                                                            'id': pk,
+                                                            'concept_history_id': concept_history_id
+                                                        }, self.request)
 
         except Exception as e:
             data['form_is_valid'] = False
-            data['message'] = render_to_string('clinicalcode/error.html', {},
+            data['message'] = render_to_string('clinicalcode/error.html', 
+                                               {},
                                                self.request)
 
         return JsonResponse(data)
 
 
 # ---------------------------------------------------------------------------
-def checkAllChildConcepts4Publish_Historical(request, concept_id,
-                                             concept_history_id):
+def checkAllChildConcepts4Publish_Historical(request, concept_id, concept_history_id):
     # get historic tree
-    child_concepts_versions = getChildConceptsTree_Historical(
-        concept_id, concept_history_id)
+    child_concepts_versions = getChildConceptsTree_Historical(concept_id, concept_history_id)
 
     # Now check all the child Concepts for deletion(from live version) and Publish(from historical version)
     # we check access(from live version) here.
@@ -1909,11 +1863,9 @@ def checkAllChildConcepts4Publish_Historical(request, concept_id,
     AllnotDeleted = True
     for concept in child_concepts_versions:
         isDeleted = False
-        isDeleted = (Concept.objects.filter(
-            Q(id=concept[0])).exclude(is_deleted=True).count() == 0)
+        isDeleted = (Concept.objects.filter(Q(id=concept[0])).exclude(is_deleted=True).count() == 0)
         if (isDeleted):
-            errors[concept[0]] = 'Child concept (' + str(
-                concept[0]) + ') is deleted'
+            errors[concept[0]] = 'Child concept (' + str(concept[0]) + ') is deleted'
             AllnotDeleted = False
 
     AllarePublished = True
@@ -1921,9 +1873,7 @@ def checkAllChildConcepts4Publish_Historical(request, concept_id,
         is_published = False
         is_published = checkIfPublished(Concept, concept[0], concept[1])
         if (not is_published):
-            errors[str(concept[0]) + '/' + str(
-                concept[1])] = 'Child concept (' + str(concept[0]) + '/' + str(
-                    concept[1]) + ') is not published'
+            errors[str(concept[0]) + '/' + str(concept[1])] = 'Child concept (' + str(concept[0]) + '/' + str(concept[1]) + ') is not published'
             AllarePublished = False
 
     # Now check all for access.
@@ -1931,12 +1881,10 @@ def checkAllChildConcepts4Publish_Historical(request, concept_id,
     #     # to check view on all tree
     #     chk_view_concepts = child_concepts_versions
     # Now, with no sync propagation, we check only one level for permissions
-    child_concepts_level1 = db_utils.get_history_child_concept_components(
-        concept_id, concept_history_id=concept_history_id)
+    child_concepts_level1 = db_utils.get_history_child_concept_components(concept_id, concept_history_id=concept_history_id)
     chk_view_concepts = set()
     for concept in child_concepts_level1:
-        chk_view_concepts.add(
-            (concept['concept_ref_id'], concept['concept_ref_history_id']))
+        chk_view_concepts.add((concept['concept_ref_id'], concept['concept_ref_history_id']))
 
     for concept in chk_view_concepts:
         permitted = False
@@ -1946,8 +1894,7 @@ def checkAllChildConcepts4Publish_Historical(request, concept_id,
                                     set_history_id=concept[1])
 
         if (not permitted):
-            errors[str(concept[0]) + '_view'] = 'Child concept (' + str(
-                concept[0]) + ') is not permitted.'
+            errors[str(concept[0]) + '_view'] = 'Child concept (' + str(concept[0]) + ') is not permitted.'
             isAllowedtoViewChildren = False
 
     isOK = (AllnotDeleted and AllarePublished and isAllowedtoViewChildren)
@@ -1961,8 +1908,7 @@ def getChildConceptsTree_Historical(concept_id, concept_history_id):
     '''
 
     # get historical concept components
-    childConcepts = db_utils.get_history_child_concept_components(
-        str(concept_id), str(concept_history_id))
+    childConcepts = db_utils.get_history_child_concept_components(str(concept_id), str(concept_history_id))
     # returns ('concept_ref_id' , 'concept_ref_history_id')
 
     child_concepts_versions = set()
@@ -1970,10 +1916,9 @@ def getChildConceptsTree_Historical(concept_id, concept_history_id):
         return child_concepts_versions
 
     for c in childConcepts:
-        child_concepts_versions.add(
-            (c['concept_ref_id'], c['concept_ref_history_id']))
-        child_concepts_versions.update(
-            getChildConceptsTree_Historical(c['concept_ref_id'],
-                                            c['concept_ref_history_id']))
+        child_concepts_versions.add((c['concept_ref_id'], c['concept_ref_history_id']))
+        child_concepts_versions.update(getChildConceptsTree_Historical(c['concept_ref_id'], c['concept_ref_history_id']))
 
     return child_concepts_versions
+
+

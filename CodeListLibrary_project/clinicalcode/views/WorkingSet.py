@@ -815,28 +815,15 @@ def workingset_list(request):
     tags = []
 
     # get page index variables from query or from session
-    page_size = utils.get_int_value(
-        request.GET.get('page_size',
-                        request.session.get('workingset_page_size', 20)), 20)
-    page = utils.get_int_value(
-        request.GET.get('page', request.session.get('workingset_page', 1)), 1)
-    search = request.GET.get('search',
-                             request.session.get('workingset_search', ''))
-    show_my_workingsets = request.GET.get(
-        'show_my_workingsets',
-        request.session.get('workingset_show_my_workingset', 0))
-    show_deleted_workingsets = request.GET.get(
-        'show_deleted_workingsets',
-        request.session.get('workingset_show_deleted_workingsets', 0))
-    tag_ids = request.GET.get('tagids',
-                              request.session.get('workingset_tagids', ''))
-    owner = request.GET.get('owner',
-                            request.session.get('workingset_owner', ''))
-    author = request.GET.get('author',
-                             request.session.get('workingset_author', ''))
-    ws_brand = request.GET.get(
-        'ws_brand', request.session.get('workingset_brand',
-                                        ''))  # request.CURRENT_BRAND
+    page_size = utils.get_int_value(request.GET.get('page_size', request.session.get('workingset_page_size', 20)), 20)
+    page = utils.get_int_value(request.GET.get('page', request.session.get('workingset_page', 1)), 1)
+    search = request.GET.get('search', request.session.get('workingset_search', ''))
+    show_my_workingsets = request.GET.get('show_my_workingsets', request.session.get('workingset_show_my_workingset', 0))
+    show_deleted_workingsets = request.GET.get('show_deleted_workingsets', request.session.get('workingset_show_deleted_workingsets', 0))
+    tag_ids = request.GET.get('tagids', request.session.get('workingset_tagids', ''))
+    owner = request.GET.get('owner', request.session.get('workingset_owner', ''))
+    author = request.GET.get('author', request.session.get('workingset_author', ''))
+    ws_brand = request.GET.get('ws_brand', request.session.get('workingset_brand', ''))  # request.CURRENT_BRAND
 
     if request.method == 'POST':
         # get posted parameters
@@ -844,8 +831,7 @@ def workingset_list(request):
         page_size = request.POST.get('page_size')
         page = request.POST.get('page', page)
         show_my_workingsets = request.POST.get('show_my_workingsets', 0)
-        show_deleted_workingsets = request.POST.get('show_deleted_workingsets',
-                                                    0)
+        show_deleted_workingsets = request.POST.get('show_deleted_workingsets', 0)
         author = request.POST.get('author', '')
         tag_ids = request.POST.get('tagids', '')
         owner = request.POST.get('owner', '')
@@ -856,8 +842,7 @@ def workingset_list(request):
     request.session['workingset_page'] = page
     request.session['workingset_search'] = search
     request.session['workingset_show_my_workingset'] = show_my_workingsets
-    request.session[
-        'workingset_show_deleted_workingsets'] = show_deleted_workingsets
+    request.session['workingset_show_deleted_workingsets'] = show_deleted_workingsets
     request.session['workingset_author'] = author
     request.session['workingset_tagids'] = tag_ids
     request.session['workingset_owner'] = owner
@@ -871,20 +856,18 @@ def workingset_list(request):
     if brand != "":
         brand_collection_ids = db_utils.get_brand_collection_ids(brand)
         if brand_collection_ids:
-            workingsets = workingsets.filter(
-                workingsettagmap__tag__id__in=brand_collection_ids)
+            workingsets = workingsets.filter(workingsettagmap__tag__id__in=brand_collection_ids)
     #--------------------------------------------------------------
 
     # check if there is any search criteria supplied
     if search is not None:
         if search != '':
-            workingsets = workingsets.filter(name__icontains=search)
+            workingsets = workingsets.filter(name__icontains=search.strip())
 
     if tag_ids:
         # split tag ids into list
         new_tag_list = [int(i) for i in tag_ids.split(",")]
-        workingsets = workingsets.filter(
-            workingsettagmap__tag__id__in=new_tag_list)
+        workingsets = workingsets.filter(workingsettagmap__tag__id__in=new_tag_list)
         tags = Tag.objects.filter(id__in=new_tag_list)
 
     if owner is not None:
@@ -897,7 +880,7 @@ def workingset_list(request):
 
     if author is not None:
         if author != '':
-            workingsets = workingsets.filter(author__icontains=author)
+            workingsets = workingsets.filter(author__icontains=author.strip())
 
     # show only workingsets created by the current user
     if show_my_workingsets == "1":
@@ -918,10 +901,8 @@ def workingset_list(request):
 
     # Run through the workingsets and add a 'can edit this workingset' field, etc.
     for workingset in workingsets:
-        workingset.can_edit = allowed_to_edit(request, WorkingSet,
-                                              workingset.id)
-        workingset.history_id = WorkingSet.objects.get(
-            pk=workingset.id).history.latest().history_id
+        workingset.can_edit = allowed_to_edit(request, WorkingSet, workingset.id)
+        workingset.history_id = WorkingSet.objects.get(pk=workingset.id).history.latest().history_id
 
     # create pagination
     paginator = Paginator(workingsets, page_size, allow_empty_first_page=True)

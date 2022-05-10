@@ -12,7 +12,6 @@ from collections import OrderedDict
 from collections import OrderedDict as ordr
 from datetime import datetime
 
-from clinicalcode.models.Phenotype import Phenotype
 from django import forms
 from django.conf import settings
 from django.contrib import messages
@@ -135,6 +134,12 @@ def phenotype_list(request):
         show_mod_pending_phenotypes = 0
             
 
+    # remove leading and trailing spaces from text search params
+    search = search.strip()
+    owner = owner.strip()
+    author = author.strip()
+    
+        
     filter_cond = " 1=1 "
     exclude_deleted = True
     get_live_and_or_published_ver = 3  # 1= live only, 2= published only, 3= live+published
