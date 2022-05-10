@@ -755,11 +755,11 @@ def phenotype_detail(request,
         phenotype_history_id = Phenotype.objects.get(pk=pk).history.latest().history_id
 
     return getPhenotypeDetail(request,
-                              pk,
-                              phenotype_history_id,
-                              is_authenticated_user=True,
-                              get_versions_only=get_versions_only,
-                              set_class=Phenotype)
+                              pk = pk,
+                              history_id = phenotype_history_id,
+                              is_authenticated_user = True,
+                              get_versions_only = get_versions_only,
+                              set_class = Phenotype)
 
 
 #--------------------------------------------------------------------------
@@ -792,11 +792,11 @@ def phenotype_detail_PUBLIC(request,
         raise PermissionDenied
 
     return getPhenotypeDetail(request,
-                              pk,
-                              phenotype_history_id,
-                              is_authenticated_user=False,
-                              get_versions_only=get_versions_only,
-                              set_class=Phenotype)
+                              pk = pk,
+                              history_id = phenotype_history_id,
+                              is_authenticated_user = False,
+                              get_versions_only = get_versions_only,
+                              set_class = Phenotype)
 
 
 #--------------------------------------------------------------------------

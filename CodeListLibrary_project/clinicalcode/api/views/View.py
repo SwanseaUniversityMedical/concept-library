@@ -114,7 +114,7 @@ def robots(content="all"):
 def robots2(content="all"):
     """
         not to index demo site API
-        and add the canonical link
+        and add the canonical link after checking the brand
     """     
 
     def _method_wrapper(func):

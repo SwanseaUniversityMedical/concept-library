@@ -884,7 +884,7 @@ def published_concepts(request, pk=None):
     -  <code>?do_not_show_versions=1</code>  
       do not show concepts versions (by default, all concept's version ids are shown)  
     """
-    return getConcepts(request, is_authenticated_user=False, pk=pk)
+    return getConcepts(request, is_authenticated_user=False, pk=pk, set_class=Concept)
 
 
 #--------------------------------------------------------------------------
@@ -915,7 +915,7 @@ def user_concepts(request, pk=None):
     show only concepts which have a published version(by default, all concepts are shown)  
     """
     
-    return getConcepts(request, is_authenticated_user=True, pk=pk)
+    return getConcepts(request, is_authenticated_user=True, pk=pk, set_class=Concept)
 
 
 #--------------------------------------------------------------------------
@@ -1134,10 +1134,11 @@ def concept_detail(request,
         concept_history_id = Concept.objects.get(pk=pk).history.latest().history_id
 
     return getConceptDetail(request,
-                            pk,
-                            concept_history_id,
-                            is_authenticated_user=True,
-                            get_versions_only=get_versions_only)
+                            pk = pk,
+                            history_id = concept_history_id,
+                            is_authenticated_user = True,
+                            get_versions_only = get_versions_only,
+                            set_class = Concept)
 
 
 #--------------------------------------------------------------------------
@@ -1170,10 +1171,11 @@ def concept_detail_PUBLIC(request,
         raise PermissionDenied
 
     return getConceptDetail(request,
-                            pk,
-                            concept_history_id,
-                            is_authenticated_user=False,
-                            get_versions_only=get_versions_only)
+                            pk = pk,
+                            history_id = concept_history_id,
+                            is_authenticated_user = False,
+                            get_versions_only = get_versions_only,
+                            set_class = Concept)
 
 
 #--------------------------------------------------------------------------
