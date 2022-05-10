@@ -944,6 +944,11 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
     search_tag_list = []
     tags = []
 
+    # remove leading and trailing spaces from text search params
+    search = search.strip()
+    owner = owner.strip()
+    author = author.strip()
+    
     filter_cond = " 1=1 "
     exclude_deleted = True
     get_live_and_or_published_ver = 3  # 1= live only, 2= published only, 3= live+published

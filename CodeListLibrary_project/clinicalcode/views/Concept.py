@@ -795,7 +795,12 @@ def concept_list(request):
         must_have_published_versions = 0
         
         
-            
+    # remove leading and trailing spaces from text search params
+    search = search.strip()
+    owner = owner.strip()
+    author = author.strip()
+    
+    
     filter_cond = " 1=1 "
     exclude_deleted = True
     get_live_and_or_published_ver = 3  # 1= live only, 2= published only, 3= live+published
