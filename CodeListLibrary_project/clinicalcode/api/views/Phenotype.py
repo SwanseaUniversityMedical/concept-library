@@ -537,6 +537,11 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
     search_tag_list = []
     #tags = []
 
+    # remove leading and trailing spaces from text search params
+    search = search.strip()
+    owner = owner.strip()
+    author = author.strip()
+    
     filter_cond = " 1=1 "
     exclude_deleted = True
     get_live_and_or_published_ver = 3  # 1= live only, 2= published only, 3= live+published
@@ -750,11 +755,11 @@ def phenotype_detail(request,
         phenotype_history_id = Phenotype.objects.get(pk=pk).history.latest().history_id
 
     return getPhenotypeDetail(request,
-                              pk,
-                              phenotype_history_id,
-                              is_authenticated_user=True,
-                              get_versions_only=get_versions_only,
-                              set_class=Phenotype)
+                              pk = pk,
+                              history_id = phenotype_history_id,
+                              is_authenticated_user = True,
+                              get_versions_only = get_versions_only,
+                              set_class = Phenotype)
 
 
 #--------------------------------------------------------------------------
@@ -787,11 +792,11 @@ def phenotype_detail_PUBLIC(request,
         raise PermissionDenied
 
     return getPhenotypeDetail(request,
-                              pk,
-                              phenotype_history_id,
-                              is_authenticated_user=False,
-                              get_versions_only=get_versions_only,
-                              set_class=Phenotype)
+                              pk = pk,
+                              history_id = phenotype_history_id,
+                              is_authenticated_user = False,
+                              get_versions_only = get_versions_only,
+                              set_class = Phenotype)
 
 
 #--------------------------------------------------------------------------

@@ -2977,20 +2977,18 @@ def get_list_of_visible_entity_ids(data, return_id_or_history_id="both"):
 
 
 #=============================================================================
-def get_visible_live_or_published_phenotype_versions(
-        request,
-        get_live_and_or_published_ver=3  # 1= live only, 2= published only, 3= live+published
-    ,
-        searchByName="",
-        author="",
-        phenotype_id_to_exclude=0,
-        approved_status = None,
-        exclude_deleted=True,
-        filter_cond="",
-        show_top_version_only=False,
-        force_brand=None,
-        force_get_live_and_or_published_ver=None  # used only with no login
-):
+def get_visible_live_or_published_phenotype_versions(request,
+                                                    get_live_and_or_published_ver = 3,  # 1= live only, 2= published only, 3= live+published
+                                                    searchByName = "",
+                                                    author = "",
+                                                    phenotype_id_to_exclude = 0,
+                                                    approved_status = None,
+                                                    exclude_deleted = True,
+                                                    filter_cond = "",
+                                                    show_top_version_only = False,
+                                                    force_brand = None,
+                                                    force_get_live_and_or_published_ver = None  # used only with no login
+                                                    ):
     ''' Get all visible live or published phenotype versions 
     - return all columns
     '''
@@ -3008,12 +3006,10 @@ def get_visible_live_or_published_phenotype_versions(
         if request.user.is_superuser:
             user_cond = ""
         else:
-            user_groups = list(request.user.groups.all().values_list(
-                'id', flat=True))
+            user_groups = list(request.user.groups.all().values_list('id', flat=True))
             group_access_cond = ""
             if user_groups:
-                group_access_cond = " OR (group_id IN(" + ', '.join(
-                    map(str, user_groups)) + ") AND group_access IN(2,3)) "
+                group_access_cond = " OR (group_id IN(" + ', '.join(map(str, user_groups)) + ") AND group_access IN(2,3)) "
 
             # since all params here are derived from user object, no need for parameterising here.
             user_cond = ''' AND (
@@ -3087,8 +3083,7 @@ def get_visible_live_or_published_phenotype_versions(
         brand_collection_ids = [str(i) for i in brand_collection_ids]
 
         if brand_collection_ids:
-            brand_filter_cond = " WHERE tags && '{" + ','.join(
-                brand_collection_ids) + "}' "
+            brand_filter_cond = " WHERE tags && '{" + ','.join(brand_collection_ids) + "}' "
 
     with connection.cursor() as cursor:
         cursor.execute(
@@ -3240,20 +3235,17 @@ def getPhenotypeConceptJson(concept_ids_list):
     concept_json = []
     for concept_id in concept_ids_list:
         concept_json.append({
-            "concept_id":
-            concept_id,
-            "concept_version_id":
-            concept_history_ids[concept_id],
-            "attributes": []
-        })
+                                "concept_id": concept_id,
+                                "concept_version_id": concept_history_ids[concept_id],
+                                "attributes": []
+                            })
     return json.dumps(concept_json)
 
 
 def getPhenotypeConceptHistoryIDs(concept_ids_list):
     concept_history_ids = {}
     for concept_id in concept_ids_list:
-        latest_history_id = Concept.objects.get(
-            pk=concept_id).history.latest('history_id').history_id
+        latest_history_id = Concept.objects.get(pk=concept_id).history.latest('history_id').history_id
         concept_history_ids[concept_id] = latest_history_id
     return concept_history_ids
 
@@ -3263,16 +3255,9 @@ def get_CodingSystems_from_Phenotype_concept_informations(
     if not concept_informations:
         return []
 
-    concept_id_list = [
-        x['concept_id'] for x in json.loads(concept_informations)
-    ]
-    concept_hisoryid_list = [
-        x['concept_version_id'] for x in json.loads(concept_informations)
-    ]
-    CodingSystem_ids = Concept.history.filter(
-        id__in=concept_id_list,
-        history_id__in=concept_hisoryid_list).order_by().values(
-            'coding_system_id').distinct()
+    concept_id_list = [x['concept_id'] for x in json.loads(concept_informations)]
+    concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(concept_informations)]
+    CodingSystem_ids = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).order_by().values('coding_system_id').distinct()
 
     return list(CodingSystem_ids.values_list('coding_system_id', flat=True))
 

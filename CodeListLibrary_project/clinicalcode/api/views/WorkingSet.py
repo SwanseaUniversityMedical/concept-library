@@ -595,14 +595,11 @@ def workingsets(request, pk=None):
 
     tag_ids = request.query_params.get('tag_ids', '')
     owner = request.query_params.get('owner_username', '')
-    show_only_my_workingsets = request.query_params.get(
-        'show_only_my_workingsets', "0")
-    show_deleted_workingsets = request.query_params.get(
-        'show_deleted_workingsets', "0")
+    show_only_my_workingsets = request.query_params.get('show_only_my_workingsets', "0")
+    show_deleted_workingsets = request.query_params.get('show_deleted_workingsets', "0")
     ws_brand = request.query_params.get('brand', "")
     author = request.query_params.get('author', None)
-    do_not_show_versions = request.query_params.get('do_not_show_versions',
-                                                    "0")
+    do_not_show_versions = request.query_params.get('do_not_show_versions', "0")
 
     # ensure that user is only allowed to view/edit the relevant workingsets
     workingsets = get_visible_workingsets(request.user)
@@ -614,11 +611,11 @@ def workingsets(request, pk=None):
     # check if there is any search criteria supplied
     if search is not None:
         if search != '':
-            workingsets = workingsets.filter(name__icontains=search)
+            workingsets = workingsets.filter(name__icontains=search.strip())
 
     if author is not None:
         if author != '':
-            workingsets = workingsets.filter(author__icontains=author)
+            workingsets = workingsets.filter(author__icontains=author.strip())
 
     if tag_ids.strip() != '':
         # split tag ids into list

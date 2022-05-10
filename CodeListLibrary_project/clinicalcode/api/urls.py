@@ -201,8 +201,9 @@ urlpatterns += [
         name='api_export_published_phenotype_codes'),
 
     #==== search concepts/published phenotypes =====
-    url(r'^phenotypes/$', Phenotype.phenotypes
-        , name='phenotypes'),
+    url(r'^phenotypes/$', 
+        Phenotype.phenotypes,
+        name='phenotypes'),
     url(r'^phenotypes/PH(?P<pk>\d+)/$',
         Phenotype.phenotypes,
         name='phenotype_by_id'),
