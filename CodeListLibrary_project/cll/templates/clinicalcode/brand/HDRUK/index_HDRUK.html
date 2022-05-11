@@ -22,8 +22,7 @@
             </p>
          </div>
          <div style="display: flex; flex-wrap:nowrap; ">
-            <form class= "row" style="padding-top:15px; padding-left:30px;" id="basic-form" action="{% url 'phenotype_list' %}" method="POST" >
-               {% csrf_token %}
+            <form class= "row" style="padding-top:15px; padding-left:30px;" id="basic-form" action="{% url 'phenotype_list' %}" method="GET" >
                <div class="search_box">
                   <div class="search_field" style="padding-left:10px; display: flex; flex-wrap: nowrap;">
                      <input type="text" class="input" placeholder="Search our Phenotype library" name="search" id="search1" value="{{ search|default_if_none:'' }}">
