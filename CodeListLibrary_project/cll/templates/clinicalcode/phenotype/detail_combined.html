@@ -99,12 +99,12 @@
                                         <a
                                                 {% if request.user|has_group:"Moderators" %}
                                                     {% if not live_ver_is_deleted%}
-                                                        {% if is_approved == 1 %}
+                                                        {% if is_approved == 1 and is_latest_pending_version %}
                                                             class="js-load-modal btn btn-warning"
                                                             href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
                                                             title="Needs to be approved"
                                                         {% else %}
-                                                            {% if is_approved == 3 %}
+                                                            {% if is_approved == 3 and is_latest_pending_version %}
                                                             class="js-load-modal  btn btn-danger"
                                                             href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
                                                             title="Approve declined phenotype"
@@ -127,7 +127,7 @@
 
                                                     {% endif %}
                                                             id="publish2">
-                                                   {% if is_approved == 1%}
+                                                   {% if is_approved == 1 and is_latest_pending_version%}
                                                        Approve
                                                    {% else %}
                                                        Publish
@@ -136,7 +136,7 @@
                                                 {% else %}
 
                                                     <a
-                                                            {% if not live_ver_is_deleted and is_approved is None or is_approved == 2 %}
+                                                            {% if not live_ver_is_deleted and is_approved is None or not is_latest_pending_version or is_approved == 2 %}
                                                                 class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
                                                                 href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
                                                             {% else %}
@@ -149,7 +149,7 @@
                                                                 {% elif is_approved == 3 %}
 	                                                                class="btn btn-danger"
 	                                                                disabled title="This version is declined"
-                                                                {% elif  is_approved == 1 %}
+                                                                {% elif  is_approved == 1 and is_latest_pending_version%}
 	                                                                {% if phenotype.owner_id == request.user.id %}
 		                                                                class="btn btn-primary btn-warning"
 		                                                                disabled title="This version needs to be approved "

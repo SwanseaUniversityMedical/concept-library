@@ -132,7 +132,7 @@
             <span class="glyphicon glyphicon-ok" style="color:green"></span>
             <span class="text-success">&nbsp;Published&nbsp;</span>
         {% else %}
-        {% if is_approved == 1 and not is_moderator %}
+        {% if is_approved == 1 and not is_moderator and is_latest_pending_version%}
             <span class="glyphicon glyphicon-ok" style="color:green"></span>
             <span class="text-warning">&nbsp;Waiting to approve&nbsp</span>
             {% else %}
@@ -147,7 +147,7 @@
                 {% endif %}
             {% endif %}
             </button>
-            {% if is_moderator and is_approved == 1 %}
+            {% if is_moderator and is_approved == 1 and is_latest_pending_version %}
                 <button type="button" class="btn btn-primary" id = "declineButton" onclick = "submitForm('decline')" name="declinePublish">Decline
                 </button>
                 {% endif %}
