@@ -61,8 +61,7 @@
                This is not an exhaustive list of codes or mandatory, but a guide to aid researchers in starting to make code lists appropriate for their study. We will continue to update existing lists and add more over time, so do keep checking back!
             </p>
             <div style="display: flex; flex-wrap:nowrap; ">
-               <form class= "row" style="padding-left:12px;" action="{% url 'phenotype_list' %}" method="POST" >
-                  {% csrf_token %}
+               <form class= "row" style="padding-left:12px;" action="{% url 'phenotype_list' %}" method="GET" >
                   <div style="height:0;width:0;overflow:hidden;">
                      <input class="form-control" type="hidden" name="tagids" data-role="tagsinput" value="19">
                   </div>
