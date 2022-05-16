@@ -6,6 +6,9 @@ from django.urls import reverse
 from .. import db_utils
 from datetime import datetime
 
+cur_time = str(datetime.now().date())
+
+
 @require_GET
 def robots_txt(request):
     lines = [
@@ -27,8 +30,7 @@ def robots_txt(request):
 
 @require_GET
 def get_sitemap(request):
-    cur_time = str(datetime.now())
-    
+
     links = [
         (request.build_absolute_uri(reverse('concept_library_home')), cur_time, "1.00"), 
         (request.build_absolute_uri(reverse('concept_library_home2')), cur_time, "1.00"),  
@@ -78,7 +80,13 @@ def get_sitemap(request):
     if settings.CURRENT_BRAND != "":
         links += get_published_phenotypes_and_concepts(request)
     
-    links_str = "<urlset>"
+    links_str = """
+                <urlset
+                      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+                            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+                """
     for t in links:
         links_str += """
                     <url>
@@ -100,7 +108,6 @@ def get_published_phenotypes_and_concepts(request):
         add links of the published concepts/phenotypes to the sitemap
     """
     
-    cur_time = str(datetime.now())
     links = []
     
     # published concepts
