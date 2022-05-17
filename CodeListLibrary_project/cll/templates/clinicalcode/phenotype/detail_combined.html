@@ -135,6 +135,7 @@
 
                                                 {% else %}
 
+
                                                     <a
                                                             {% if not live_ver_is_deleted and is_approved is None or not is_latest_pending_version or is_approved == 2 %}
                                                                 class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
@@ -163,7 +164,7 @@
 
                                                             {% endif %}
                                                                 id="publish2">
-                                                    Publish
+                                                    Publish{{ is_approved }}
                                                 {% endif %}
 
 

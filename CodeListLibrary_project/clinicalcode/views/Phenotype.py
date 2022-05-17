@@ -953,12 +953,13 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                 elif not is_latest_pending_version and not is_moderator:
                     with transaction.atomic():
                         print("is latest")
+                        print(phenotype_history_id)
                         phenotype = Phenotype.objects.get(pk=pk)
-                        published_phenotype = PublishedPhenotype.objects.get(phenotype_id=phenotype.id)
-                        published_phenotype.phenotype_history_id = phenotype_history_id
-                        published_phenotype.is_approved = 1
-                        published_phenotype.created_by = PublishedPhenotype.objects.get(
-                            phenotype_id=phenotype.id).created_by
+                        published_phenotype = PublishedPhenotype(
+                            phenotype=phenotype,
+                            phenotype_history_id=phenotype_history_id,
+                            is_approved=1,
+                            created_by=request.user)
                         published_phenotype.save()
 
                         data['is_approved'] = 1
@@ -977,6 +978,8 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
     def form_validation(self,data,phenotype_history_id,pk,phenotype):
         data['form_is_valid'] = True
         data['latest_history_ID'] = phenotype_history_id  # phenotype.history.latest().pk
+
+
 
         # update history list
         data['html_history_list'] = render_to_string(
@@ -1074,7 +1077,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
             # start a transaction
             with transaction.atomic():
                 if submitValue == "decline":
-
+                    print('publish decline')
                     is_approved = 3
                     phenotype = Phenotype.objects.get(pk=pk)
                     published_phenotype = PublishedPhenotype.objects.get(phenotype_id=phenotype, phenotype_history_id=phenotype_history_id)
@@ -1083,19 +1086,17 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
 
 
                 elif submitValue == "publish" and not is_latest_pending_version:
-
+                    print('publish mder latest')
                     is_approved = 2
                     phenotype = Phenotype.objects.get(pk=pk)
-                    published_phenotype = PublishedPhenotype.objects.filter(phenotype_id=phenotype.id).first()
-                    published_phenotype.phenotype = phenotype
-                    published_phenotype.phenotype_history_id = phenotype_history_id
-                    published_phenotype.is_approved = 2
-                    published_phenotype.approved_by = request.user
-                    published_phenotype.created_by = Phenotype.objects.get(pk=pk).created_by
+                    published_phenotype = PublishedPhenotype(
+                        phenotype_id=phenotype.id,
+                        phenotype_history_id=phenotype_history_id, is_approved=2,
+                        approved_by=request.user, created_by=Phenotype.objects.get(pk=pk).created_by)
                     published_phenotype.save()
 
                 elif submitValue == "publish":
-
+                    print('publish second')
                     is_approved = 2
                     phenotype = Phenotype.objects.get(pk=pk)
                     published_phenotype = PublishedPhenotype.objects.get(phenotype_id=phenotype, phenotype_history_id=phenotype_history_id)
@@ -1111,6 +1112,11 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                     'latest_history_ID'] = phenotype_history_id  # phenotype.history.latest().pk
                 data['is_approved'] = is_approved
 
+                list_published_id = []
+                if data['is_approved'] == 2:
+                  list_published_id =list(PublishedPhenotype.objects.filter(phenotype_id=pk, is_approved=2).values_list(
+                        'phenotype_history_id', flat=True))
+
 
                 # update history list
                 data['html_history_list'] = render_to_string(
@@ -1118,7 +1124,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                     {
                         'history': phenotype.history.all(),
                         'current_phenotype_history_id':int(phenotype_history_id),  # phenotype.history.latest().pk,
-                        'published_historical_ids': list(PublishedPhenotype.objects.filter(phenotype_id=pk,is_approved=is_approved).values_list('phenotype_history_id', flat=True))
+                        'published_historical_ids': list_published_id
                     },
                     request=self.request)
 
