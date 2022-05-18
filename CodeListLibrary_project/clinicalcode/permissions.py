@@ -25,9 +25,10 @@ class Permissions:
     PENDING = 1
     APPROVED = 2
     REJECTED = 3
-    APPROVED_STATUS = ((NOT_APPROVED,
-                        'New to approve'), (PENDING, 'Waiting to approve'),
-                       (APPROVED, 'Approved'), (REJECTED, 'Rejected'))
+    APPROVED_STATUS = ((NOT_APPROVED, 'New to approve'), 
+                       (PENDING, 'Waiting to approve'),
+                       (APPROVED, 'Approved'), 
+                       (REJECTED, 'Rejected'))
 
 
 def checkIfPublished(set_class, set_id, set_history_id):
@@ -39,13 +40,9 @@ def checkIfPublished(set_class, set_id, set_history_id):
     from .models.PublishedPhenotype import PublishedPhenotype
 
     if (set_class == Concept):
-        return PublishedConcept.objects.filter(
-            concept_id=set_id, concept_history_id=set_history_id).exists()
+        return PublishedConcept.objects.filter(concept_id=set_id, concept_history_id=set_history_id).exists()
     elif (set_class == Phenotype):
-        return PublishedPhenotype.objects.filter(
-            phenotype_id=set_id,
-            phenotype_history_id=set_history_id,
-            is_approved=2).exists()
+        return PublishedPhenotype.objects.filter(phenotype_id=set_id, phenotype_history_id=set_history_id, is_approved=2).exists()
     #  phenotype_id=set_id,is_approved=True, phenotype_history_id=set_history_id).exists() need to specify
     else:
         return False
@@ -60,11 +57,9 @@ def checkIfapproved(set_class, set_id, set_history_id):
     from .models.PublishedPhenotype import PublishedPhenotype
 
     if (set_class == Concept):
-        return PublishedConcept.objects.filter(concept_id=set_id).values_list(
-            'is_approved', flat=True).first()
+        return PublishedConcept.objects.filter(concept_id=set_id).values_list('is_approved', flat=True).first()
     elif (set_class == Phenotype):
-        return PublishedPhenotype.objects.filter(
-            phenotype_id=set_id).values_list("is_approved", flat=True).first()
+        return PublishedPhenotype.objects.filter(phenotype_id=set_id).values_list("is_approved", flat=True).first()
     else:
         return False
 
@@ -80,12 +75,12 @@ def checkIfapproved(set_class, set_id, set_history_id):
 
 
 def allowed_to_view_children(request,
-                             set_class,
-                             set_id,
-                             returnErrors=False,
-                             WS_concepts_json="",
-                             WS_concept_version=None,
-                             set_history_id=None):
+                            set_class,
+                            set_id,
+                            returnErrors=False,
+                            WS_concepts_json="",
+                            WS_concept_version=None,
+                            set_history_id=None):
     '''
         Permit viewing access if:
         user is a super-user
@@ -131,8 +126,7 @@ def allowed_to_view_children(request,
         if WS_concept_version is not None:
             concepts = WS_concept_version
         else:
-            concepts = get_concept_versions_in_workingset(
-                set_id, set_history_id)
+            concepts = get_concept_versions_in_workingset(set_id, set_history_id)
 
         unique_concepts = set()
         for concept in concepts:
@@ -145,13 +139,9 @@ def allowed_to_view_children(request,
             # Need to parse the concept_informations section of the database and use
             # the concepts here to form a list of concept_ref_ids.
         if WS_concepts_json.strip() != "":
-            concepts = [
-                (x['concept_id'], x['concept_version_id'])
-                for x in json.loads(WS_concepts_json)
-            ]  # getConceptsFromJSON(concepts_json=WS_concepts_json)
+            concepts = [(x['concept_id'], x['concept_version_id']) for x in json.loads(WS_concepts_json)]  # getConceptsFromJSON(concepts_json=WS_concepts_json)
         else:
-            concepts = getGroupOfConceptsByPhenotypeId_historical(
-                set_id, set_history_id)
+            concepts = getGroupOfConceptsByPhenotypeId_historical(set_id, set_history_id)
 
         unique_concepts = set()
         for concept in concepts:
@@ -166,12 +156,10 @@ def allowed_to_view_children(request,
             errors[set_id] = 'Concept not permitted.'
 
         # Now, with no sync propagation, we check only one level for permissions
-        concepts = get_history_child_concept_components(
-            set_id, concept_history_id=set_history_id)
+        concepts = get_history_child_concept_components(set_id, concept_history_id=set_history_id)
         unique_concepts = set()
         for concept in concepts:
-            unique_concepts.add(
-                (concept['concept_ref_id'], concept['concept_ref_history_id']))
+            unique_concepts.add((concept['concept_ref_id'], concept['concept_ref_history_id']))
 
     #         # Need to refer to all the components that have this id as its concept_id.
     #         # For each of these we need to create a list of concept ids from the
@@ -238,8 +226,7 @@ def allowed_to_view(request,
         return False
 
     if set_history_id is not None:
-        if not set_class.history.filter(id=set_id,
-                                        history_id=set_history_id).exists():
+        if not set_class.history.filter(id=set_id, history_id=set_history_id).exists():
             return False
 
     # Check if the user is permitted to view the entity
@@ -257,40 +244,29 @@ def allowed_to_view(request,
             is_allowed_to_view = True
         else:
             # if a specific version is published
-            if set_history_id is not None and set_class in (Concept,
-                                                            Phenotype):
+            if set_history_id is not None and set_class in (Concept, Phenotype):
                 if checkIfPublished(set_class, set_id, set_history_id):
                     is_allowed_to_view = True
 
             # Owner is always allowed to view
-            if set_class.objects.filter(Q(id=set_id),
-                                        Q(owner=user)).count() > 0:
+            if set_class.objects.filter(Q(id=set_id), Q(owner=user)).count() > 0:
                 is_allowed_to_view = True
-            if set_class.objects.filter(Q(
-                    id=set_id), Q(world_access=Permissions.VIEW)).count() > 0:
+            if set_class.objects.filter(Q(id=set_id), Q(world_access=Permissions.VIEW)).count() > 0:
                 is_allowed_to_view = True
             # this condition is not active now (from the interface), since not logical to give Edit permission to all users
-            if set_class.objects.filter(Q(
-                    id=set_id), Q(world_access=Permissions.EDIT)).count() > 0:
+            if set_class.objects.filter(Q(id=set_id), Q(world_access=Permissions.EDIT)).count() > 0:
                 is_allowed_to_view = True
             for group in user.groups.all():
-                if set_class.objects.filter(
-                        Q(id=set_id),
-                        Q(group_access=Permissions.VIEW,
-                          group_id=group)).count() > 0:
+                if set_class.objects.filter(Q(id=set_id), Q(group_access=Permissions.VIEW, group_id=group)).count() > 0:
                     is_allowed_to_view = True
-                if set_class.objects.filter(
-                        Q(id=set_id),
-                        Q(group_access=Permissions.EDIT,
-                          group_id=group)).count() > 0:
+                if set_class.objects.filter(Q(id=set_id), Q(group_access=Permissions.EDIT, group_id=group)).count() > 0:
                     is_allowed_to_view = True
 
     else:  # public content
         # check if the version is published
         if set_history_id is None:
             # get the latest version
-            set_history_id = int(
-                set_class.objects.get(pk=set_id).history.latest().history_id)
+            set_history_id = int(set_class.objects.get(pk=set_id).history.latest().history_id)
 
         is_published = checkIfPublished(set_class, set_id, set_history_id)
         # is_approved = checkIfapproved(set_class, set_id, set_history_id)
@@ -344,15 +320,11 @@ def allowed_to_edit(request, set_class, set_id, user=None):
             is_allowed_to_edit = True
 
         # this condition is not active now (from the interface), since not logical to give Edit permission to all users
-        if set_class.objects.filter(
-                Q(id=set_id), Q(world_access=Permissions.EDIT)).count() > 0:
+        if set_class.objects.filter(Q(id=set_id), Q(world_access=Permissions.EDIT)).count() > 0:
             is_allowed_to_edit = True
 
         for group in user.groups.all():
-            if set_class.objects.filter(
-                    Q(id=set_id),
-                    Q(group_access=Permissions.EDIT,
-                      group_id=group)).count() > 0:
+            if set_class.objects.filter(Q(id=set_id), Q(group_access=Permissions.EDIT, group_id=group)).count() > 0:
                 is_allowed_to_edit = True
     # ********************************************
 
@@ -399,9 +371,7 @@ def allowed_to_publish(user, set_class, set_id, historical_id):
     if (set_class.objects.get(id=set_id).is_deleted == True): return False
 
     if (set_class.objects.filter(Q(id=set_id), Q(owner=user)).count() > 0):
-        return len(
-            getGroupOfCodesByConceptId_HISTORICAL(
-                concept_id=set_id, concept_history_id=historical_id)) > 0
+        return len(getGroupOfCodesByConceptId_HISTORICAL(concept_id=set_id, concept_history_id=historical_id)) > 0
     else:
         return False
 
@@ -422,10 +392,7 @@ def validate_access_to_view(request, set_class, set_id, set_history_id=None):
         Raises an exception if access is not allowed which causes the 403.html
         page to be displayed.
     '''
-    if allowed_to_view(request,
-                       set_class,
-                       set_id,
-                       set_history_id=set_history_id) == False:
+    if allowed_to_view(request, set_class, set_id, set_history_id=set_history_id) == False:
         raise PermissionDenied
 
 
@@ -475,8 +442,7 @@ class HasAccessToCreateCheckMixin(object):
         if not self.has_access_to_create(request.user):
             return self.access_to_create_failed(request, *args, **kwargs)
 
-        return super(HasAccessToCreateCheckMixin,
-                     self).dispatch(request, *args, **kwargs)
+        return super(HasAccessToCreateCheckMixin, self).dispatch(request, *args, **kwargs)
 
 
 class HasAccessToViewConceptCheckMixin(object):
@@ -493,12 +459,10 @@ class HasAccessToViewConceptCheckMixin(object):
         raise PermissionDenied
 
     def dispatch(self, request, *args, **kwargs):
-        if not self.has_access_to_view_concept(request.user,
-                                               self.kwargs['pk']):
+        if not self.has_access_to_view_concept(request.user, self.kwargs['pk']):
             return self.access_to_view_concept_failed(request, *args, **kwargs)
 
-        return super(HasAccessToViewConceptCheckMixin,
-                     self).dispatch(request, *args, **kwargs)
+        return super(HasAccessToViewConceptCheckMixin, self).dispatch(request, *args, **kwargs)
 
 
 class HasAccessToViewParentConceptCheckMixin(object):
@@ -515,12 +479,10 @@ class HasAccessToViewParentConceptCheckMixin(object):
         raise PermissionDenied
 
     def dispatch(self, request, *args, **kwargs):
-        if not self.has_access_to_view_concept(request.user,
-                                               self.kwargs['concept_id']):
+        if not self.has_access_to_view_concept(request.user, self.kwargs['concept_id']):
             return self.access_to_view_concept_failed(request, *args, **kwargs)
 
-        return super(HasAccessToViewParentConceptCheckMixin,
-                     self).dispatch(request, *args, **kwargs)
+        return super(HasAccessToViewParentConceptCheckMixin, self).dispatch(request, *args, **kwargs)
 
 
 class HasAccessToEditConceptCheckMixin(object):
@@ -537,12 +499,10 @@ class HasAccessToEditConceptCheckMixin(object):
         raise PermissionDenied
 
     def dispatch(self, request, *args, **kwargs):
-        if not self.has_access_to_edit_concept(request.user,
-                                               self.kwargs['pk']):
+        if not self.has_access_to_edit_concept(request.user, self.kwargs['pk']):
             return self.access_to_edit_concept_failed(request, *args, **kwargs)
 
-        return super(HasAccessToEditConceptCheckMixin,
-                     self).dispatch(request, *args, **kwargs)
+        return super(HasAccessToEditConceptCheckMixin, self).dispatch(request, *args, **kwargs)
 
 
 class HasAccessToEditParentConceptCheckMixin(object):
@@ -560,12 +520,10 @@ class HasAccessToEditParentConceptCheckMixin(object):
         raise PermissionDenied
 
     def dispatch(self, request, *args, **kwargs):
-        if not self.has_access_to_edit_concept(request.user,
-                                               self.kwargs['concept_id']):
+        if not self.has_access_to_edit_concept(request.user, self.kwargs['concept_id']):
             return self.access_to_edit_concept_failed(request, *args, **kwargs)
 
-        return super(HasAccessToEditParentConceptCheckMixin,
-                     self).dispatch(request, *args, **kwargs)
+        return super(HasAccessToEditParentConceptCheckMixin, self).dispatch(request, *args, **kwargs)
 
 
 class HasAccessToEditWorkingsetCheckMixin(object):
@@ -583,11 +541,9 @@ class HasAccessToEditWorkingsetCheckMixin(object):
 
     def dispatch(self, request, *args, **kwargs):
         if not self.has_access_to_edit_workingset(request.user):
-            return self.access_to_edit_workingset_failed(
-                request, *args, **kwargs)
+            return self.access_to_edit_workingset_failed(request, *args, **kwargs)
 
-        return super(HasAccessToEditWorkingsetCheckMixin,
-                     self).dispatch(request, *args, **kwargs)
+        return super(HasAccessToEditWorkingsetCheckMixin, self).dispatch(request, *args, **kwargs)
 
 
 class HasAccessToViewWorkingsetCheckMixin(object):
@@ -604,13 +560,10 @@ class HasAccessToViewWorkingsetCheckMixin(object):
         raise PermissionDenied
 
     def dispatch(self, request, *args, **kwargs):
-        if not self.has_access_to_view_workingset(request.user,
-                                                  self.kwargs['pk']):
-            return self.access_to_view_workingset_failed(
-                request, *args, **kwargs)
+        if not self.has_access_to_view_workingset(request.user, self.kwargs['pk']):
+            return self.access_to_view_workingset_failed(request, *args, **kwargs)
 
-        return super(HasAccessToViewWorkingsetCheckMixin,
-                     self).dispatch(request, *args, **kwargs)
+        return super(HasAccessToViewWorkingsetCheckMixin, self).dispatch(request, *args, **kwargs)
 
 
 class HasAccessToEditPhenotypeCheckMixin(object):
@@ -628,11 +581,9 @@ class HasAccessToEditPhenotypeCheckMixin(object):
 
     def dispatch(self, request, *args, **kwargs):
         if not self.has_access_to_edit_phenotype(request.user):
-            return self.access_to_edit_phenotype_failed(
-                request, *args, **kwargs)
+            return self.access_to_edit_phenotype_failed(request, *args, **kwargs)
 
-        return super(HasAccessToEditPhenotypeCheckMixin,
-                     self).dispatch(request, *args, **kwargs)
+        return super(HasAccessToEditPhenotypeCheckMixin, self).dispatch(request, *args, **kwargs)
 
 
 class HasAccessToViewPhenotypeCheckMixin(object):
@@ -649,13 +600,10 @@ class HasAccessToViewPhenotypeCheckMixin(object):
         raise PermissionDenied
 
     def dispatch(self, request, *args, **kwargs):
-        if not self.has_access_to_view_phenotype(request.user,
-                                                 self.kwargs['pk']):
-            return self.access_to_view_phenotype_failed(
-                request, *args, **kwargs)
+        if not self.has_access_to_view_phenotype(request.user, self.kwargs['pk']):
+            return self.access_to_view_phenotype_failed(request, *args, **kwargs)
 
-        return super(HasAccessToViewPhenotypeCheckMixin,
-                     self).dispatch(request, *args, **kwargs)
+        return super(HasAccessToViewPhenotypeCheckMixin, self).dispatch(request, *args, **kwargs)
 
 
 '''
@@ -744,8 +692,7 @@ def get_visible_components(user, codeListID):
         # Get the component ID for the codelist.
         codelist = CodeList.objects.get(id=codeListID)
         components = Component.objects.filter(id=codelist.component_id)
-        concepts = get_visible_concepts_live(user).filter(
-            id=components[0].concept_id)
+        concepts = get_visible_concepts_live(user).filter(id=components[0].concept_id)
     else:
         # Start with them all! (not enabled now - no use)
         components = Component.objects.distinct()
@@ -770,16 +717,10 @@ def get_visible_components(user, codeListID):
             of copying that happens. Empirically this has become unacceptable
             with a component list of 70 items.
         '''
-        queryBuilders = Q(
-            component_type=Component.COMPONENT_TYPE_QUERY_BUILDER,
-            concept=concept.id)
-        expressions = Q(component_type=Component.COMPONENT_TYPE_EXPRESSION,
-                        concept=concept.id)
-        expressionSelects = Q(
-            component_type=Component.COMPONENT_TYPE_EXPRESSION_SELECT,
-            concept=concept.id)
-        newQuery = components.filter(queryBuilders | expressions
-                                     | expressionSelects)
+        queryBuilders = Q(component_type=Component.COMPONENT_TYPE_QUERY_BUILDER, concept=concept.id)
+        expressions = Q(component_type=Component.COMPONENT_TYPE_EXPRESSION, concept=concept.id)
+        expressionSelects = Q(component_type=Component.COMPONENT_TYPE_EXPRESSION_SELECT, concept=concept.id)
+        newQuery = components.filter(queryBuilders | expressions | expressionSelects)
         # Only add the query if it will add new components, otherwise we
         # needlessly quickly end up with a huge query.
         if newQuery.count() > 0:
@@ -788,10 +729,7 @@ def get_visible_components(user, codeListID):
         # visible.
         for conceptRef in concepts:
             if concept.id != conceptRef.id:
-                otherConcepts = components.filter(
-                    Q(component_type=Component.COMPONENT_TYPE_CONCEPT,
-                      concept=concept.id,
-                      concept_ref=conceptRef.id))
+                otherConcepts = components.filter(Q(component_type=Component.COMPONENT_TYPE_CONCEPT, concept=concept.id, concept_ref=conceptRef.id))
                 # Only add the query if it will add new components, otherwise we
                 # needlessly quickly end up with a huge query.
                 if otherConcepts.count() > 0:
@@ -828,27 +766,23 @@ def get_visible_concepts_org(user,
     query |= concepts.filter(Q(world_access=Permissions.EDIT))
     query |= concepts.filter(Q(owner=user))
     for group in user.groups.all():
-        query |= concepts.filter(
-            Q(group_access=Permissions.VIEW, group_id=group))
-        query |= concepts.filter(
-            Q(group_access=Permissions.EDIT, group_id=group))
+        query |= concepts.filter(Q(group_access=Permissions.VIEW, group_id=group))
+        query |= concepts.filter(Q(group_access=Permissions.EDIT, group_id=group))
 
     return query
 
 
 def get_visible_concepts(request,
-                         get_Published_concepts=True,
-                         show_concept_versions=False):
+                        get_Published_concepts=True,
+                        show_concept_versions=False):
     # This does NOT excludes deleted ones
-    from .db_utils import (get_list_of_visible_entity_ids,
-                           get_visible_live_or_published_concept_versions)
+    from .db_utils import (get_list_of_visible_entity_ids, get_visible_live_or_published_concept_versions)
     from .models.Concept import Concept
     from .models.PublishedConcept import PublishedConcept
 
     user = request.user
 
-    if not get_Published_concepts or PublishedConcept.objects.all().count(
-    ) == 0:
+    if not get_Published_concepts or PublishedConcept.objects.all().count() == 0:
         concepts = Concept.objects.distinct()
 
         if user.is_superuser:
@@ -858,18 +792,14 @@ def get_visible_concepts(request,
         query |= concepts.filter(Q(world_access=Permissions.EDIT))
         query |= concepts.filter(Q(owner=user))
         for group in user.groups.all():
-            query |= concepts.filter(
-                Q(group_access=Permissions.VIEW, group_id=group))
-            query |= concepts.filter(
-                Q(group_access=Permissions.EDIT, group_id=group))
+            query |= concepts.filter(Q(group_access=Permissions.VIEW, group_id=group))
+            query |= concepts.filter(Q(group_access=Permissions.EDIT, group_id=group))
 
         return query
 
     else:
-        history_ids_list = get_list_of_visible_entity_ids(
-            get_visible_live_or_published_concept_versions(
-                request, exclude_deleted=True),
-            return_id_or_history_id="history_id")
+        history_ids_list = get_list_of_visible_entity_ids(get_visible_live_or_published_concept_versions(request, exclude_deleted=True),
+                                                          return_id_or_history_id="history_id")
         return Concept.history.filter(history_id__in=history_ids_list)
 
 
@@ -884,10 +814,8 @@ def get_visible_workingsets(user):
     query |= workingsets.filter(Q(world_access=Permissions.EDIT))
     query |= workingsets.filter(Q(owner=user))
     for group in user.groups.all():
-        query |= workingsets.filter(
-            Q(group_access=Permissions.VIEW, group_id=group))
-        query |= workingsets.filter(
-            Q(group_access=Permissions.EDIT, group_id=group))
+        query |= workingsets.filter(Q(group_access=Permissions.VIEW, group_id=group))
+        query |= workingsets.filter(Q(group_access=Permissions.EDIT, group_id=group))
 
     return query
 
@@ -905,10 +833,8 @@ def get_visible_phenotypes(user):
     query |= phenotypes.filter(Q(owner=user))
 
     for group in user.groups.all():
-        query |= phenotypes.filter(
-            Q(group_access=Permissions.VIEW, group_id=group))
-        query |= phenotypes.filter(
-            Q(group_access=Permissions.EDIT, group_id=group))
+        query |= phenotypes.filter(Q(group_access=Permissions.VIEW, group_id=group))
+        query |= phenotypes.filter(Q(group_access=Permissions.EDIT, group_id=group))
 
     return query
 
@@ -926,10 +852,8 @@ def get_visible_data_sources(user):
     query |= datasources.filter(Q(owner=user))
 
     for group in user.groups.all():
-        query |= datasources.filter(
-            Q(group_access=Permissions.VIEW, group_id=group))
-        query |= datasources.filter(
-            Q(group_access=Permissions.EDIT, group_id=group))
+        query |= datasources.filter(Q(group_access=Permissions.VIEW, group_id=group))
+        query |= datasources.filter(Q(group_access=Permissions.EDIT, group_id=group))
 
     return query
 
@@ -963,18 +887,14 @@ def is_brand_accessible(request, set_class, set_id, set_history_id=None):
         if brand_collection_ids:
             history_id = set_history_id
             if set_history_id is None:
-                history_id = set_class.objects.get(
-                    pk=set_id).history.latest().history_id
+                history_id = set_class.objects.get(pk=set_id).history.latest().history_id
 
             set_tags = []
             if set_class in (Concept, Phenotype):
-                set_tags = set_class.history.get(id=set_id,
-                                                 history_id=history_id).tags
+                set_tags = set_class.history.get(id=set_id, history_id=history_id).tags
             elif set_class == WorkingSet:
-                workingset_history_date = set_class.history.get(
-                    id=set_id, history_id=history_id).history_date
-                ws_tags = getHistoryTags_Workingset(set_id,
-                                                    workingset_history_date)
+                workingset_history_date = set_class.history.get(id=set_id, history_id=history_id).history_date
+                ws_tags = getHistoryTags_Workingset(set_id, workingset_history_date)
                 if ws_tags:
                     set_tags = [i['tag_id'] for i in ws_tags if 'tag_id' in i]
 
@@ -983,3 +903,5 @@ def is_brand_accessible(request, set_class, set_id, set_history_id=None):
             else:
                 # check if the set tags has any of the brand's collection tags
                 return any(c in set_tags for c in brand_collection_ids)
+            
+            
