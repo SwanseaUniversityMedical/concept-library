@@ -90,7 +90,7 @@ def get_sitemap(request):
     for t in links:
         links_str += """
                     <url>
-                        <loc>""" + t[0].replace('http://' , 'https://') + """"</loc>
+                        <loc>""" + t[0].replace('http://' , 'https://') + """</loc>
                         <lastmod>""" + t[1] + """</lastmod>
                         <priority>""" + t[2] + """</priority>        
                     </url>
