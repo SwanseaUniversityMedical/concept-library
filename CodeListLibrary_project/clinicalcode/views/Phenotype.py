@@ -329,11 +329,12 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         clinicalTerminologies = CodingSystem.objects.filter(pk__in=list(CodingSystem_ids))
 
     is_latest_version = (int(phenotype_history_id) == Phenotype.objects.get(pk=pk).history.latest().history_id)
-    is_latest_pending_version = None
+    is_latest_pending_version = False
 
-    if len(PublishedPhenotype.objects.filter(phenotype_id=pk)) > 0:
-        is_latest_pending_version = (int(phenotype_history_id) == PublishedPhenotype.objects.filter(phenotype_id=pk).first().phenotype_history_id)
-        print(is_latest_pending_version)
+    if len(PublishedPhenotype.objects.filter(phenotype_id=pk, phenotype_history_id=phenotype_history_id,
+                                             is_approved=1)) > 0:
+        is_latest_pending_version = True
+    print(is_latest_pending_version)
 
 
     children_permitted_and_not_deleted = True
@@ -799,9 +800,9 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
             is_owner = True
             is_moderator = True
 
-        if len(PublishedPhenotype.objects.filter(phenotype_id=pk)) > 0:
-            is_latest_pending_version = (int(phenotype_history_id) == PublishedPhenotype.objects.filter(
-                phenotype_id=pk).first().phenotype_history_id)
+        if len(PublishedPhenotype.objects.filter(phenotype_id=pk,phenotype_history_id = phenotype_history_id,is_approved=1)) > 0:
+            is_latest_pending_version = True
+        print(is_latest_pending_version)
 
         if (len(db_utils.get_phenotype_conceptcodesByVersion(self.request, pk, phenotype_history_id)) == 0):
             allow_to_publish = False
@@ -873,6 +874,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
         is_approved = checkIfapproved(Phenotype, pk, phenotype_history_id)
 
         self.checkPhenotypeTobePublished(request, pk, phenotype_history_id)
+        print(is_latest_pending_version)
 
         data = dict()
 
@@ -910,7 +912,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                             data = self.form_validation(data,phenotype_history_id,pk,phenotype)
 
                         else:
-                            if is_approved == 2:
+                            if len(PublishedPhenotype.objects.filter(phenotype = Phenotype.objects.get(pk=pk).id,is_approved=2))>0:
                                 print("user hui publ")
                                 phenotype = Phenotype.objects.get(pk=pk)
                                 published_phenotype = PublishedPhenotype.objects.filter(phenotype_id=phenotype.id).first()
@@ -940,30 +942,17 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                     with transaction.atomic():
                         print('moder hui to publ')
                         phenotype = Phenotype.objects.get(pk=pk)
-                        published_phenotype = PublishedPhenotype.objects.get(phenotype_id=phenotype.id)
+                        published_phenotype = PublishedPhenotype.objects.get(phenotype_id=phenotype.id,phenotype_history_id = phenotype_history_id,is_approved=1)
                         published_phenotype.phenotype_history_id = phenotype_history_id
                         published_phenotype.is_approved = 2
                         published_phenotype.approved_by = request.user
-                        published_phenotype.created_by = PublishedPhenotype.objects.get(phenotype_id=phenotype.id).created_by
+                        published_phenotype.created_by = PublishedPhenotype.objects.get(phenotype_id=phenotype.id,phenotype_history_id = phenotype_history_id ,is_approved=1).created_by
                         published_phenotype.save()
 
                         data['is_approved'] = 2
                         data = self.form_validation(data,phenotype_history_id,pk,phenotype)
 
-                elif not is_latest_pending_version and not is_moderator:
-                    with transaction.atomic():
-                        print("is latest")
-                        print(phenotype_history_id)
-                        phenotype = Phenotype.objects.get(pk=pk)
-                        published_phenotype = PublishedPhenotype(
-                            phenotype=phenotype,
-                            phenotype_history_id=phenotype_history_id,
-                            is_approved=1,
-                            created_by=request.user)
-                        published_phenotype.save()
 
-                        data['is_approved'] = 1
-                        data = self.form_validation(data, phenotype_history_id, pk, phenotype)
 
 
 
@@ -1085,15 +1074,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                     published_phenotype.save()
 
 
-                elif submitValue == "publish" and not is_latest_pending_version:
-                    print('publish mder latest')
-                    is_approved = 2
-                    phenotype = Phenotype.objects.get(pk=pk)
-                    published_phenotype = PublishedPhenotype(
-                        phenotype_id=phenotype.id,
-                        phenotype_history_id=phenotype_history_id, is_approved=2,
-                        approved_by=request.user, created_by=Phenotype.objects.get(pk=pk).created_by)
-                    published_phenotype.save()
+
 
                 elif submitValue == "publish":
                     print('publish second')
