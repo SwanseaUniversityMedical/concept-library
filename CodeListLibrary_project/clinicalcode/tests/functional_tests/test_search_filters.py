@@ -417,7 +417,8 @@ class SearchTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.IMPLICTLY_WAIT)
 
-        self.assertTrue("No phenotypes" in browser.page_source)
+
+        self.assertTrue("No phenotypes" not in browser.page_source)
 
         # Reset and create phenotype
         browser.find_element(By.ID, "reset-form").click()
@@ -433,6 +434,7 @@ class SearchTest(StaticLiveServerTestCase):
 
         browser.find_element(By.XPATH,
                              '//button[@class = "btn btn-primary"]').click()
+
 
         self.assertTrue("No phenotypes" not in browser.page_source)
 

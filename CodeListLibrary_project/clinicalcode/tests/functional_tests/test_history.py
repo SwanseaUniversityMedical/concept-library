@@ -260,6 +260,7 @@ class HistoryTest(StaticLiveServerTestCase):
                              'id_description').send_keys("concept2222222")
         browser.find_element(By.ID, 'id_coding_system').send_keys(Keys.DOWN)
 
+        
         browser.find_element(By.ID, 'save-changes').click()
 
         concept = Concept.objects.all().order_by('-id')[0]
@@ -268,6 +269,7 @@ class HistoryTest(StaticLiveServerTestCase):
         href = "/concepts/C" + str(concept.id) + "/version/" + str(
             concept.history.first().history_id) + "/detail/"
         browser.find_element(By.XPATH, '//a[@href="' + href + '"]').click()
+
 
         # TO-DO assertTrue or equal that tag exist
         self.assertTrue("tagTest" in browser.page_source)

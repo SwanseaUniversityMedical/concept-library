@@ -6,6 +6,9 @@ from django.urls import reverse
 from .. import db_utils
 from datetime import datetime
 
+cur_time = str(datetime.now().date())
+
+
 @require_GET
 def robots_txt(request):
     lines = [
@@ -27,8 +30,7 @@ def robots_txt(request):
 
 @require_GET
 def get_sitemap(request):
-    cur_time = str(datetime.now())
-    
+
     links = [
         (request.build_absolute_uri(reverse('concept_library_home')), cur_time, "1.00"), 
         (request.build_absolute_uri(reverse('concept_library_home2')), cur_time, "1.00"),  
@@ -78,11 +80,17 @@ def get_sitemap(request):
     if settings.CURRENT_BRAND != "":
         links += get_published_phenotypes_and_concepts(request)
     
-    links_str = "<urlset>"
+    links_str = """
+                <urlset
+                      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+                            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+                """
     for t in links:
         links_str += """
                     <url>
-                        <loc>""" + t[0].replace('http://' , 'https://') + """"</loc>
+                        <loc>""" + url_http_replace(t[0]) + """</loc>
                         <lastmod>""" + t[1] + """</lastmod>
                         <priority>""" + t[2] + """</priority>        
                     </url>
@@ -100,20 +108,7 @@ def get_published_phenotypes_and_concepts(request):
         add links of the published concepts/phenotypes to the sitemap
     """
     
-    cur_time = str(datetime.now())
     links = []
-    
-    # published concepts
-    
-    published_concepts = db_utils.get_visible_live_or_published_concept_versions(request,
-                                                                                get_live_and_or_published_ver= 2,  # 1= live only, 2= published only, 3= live+published 
-                                                                                exclude_deleted=True,
-                                                                                show_top_version_only=False,
-                                                                                )
-
-    published_concepts_ids = db_utils.get_list_of_visible_entity_ids(published_concepts, return_id_or_history_id="id")
-    for pk in published_concepts_ids:
-        links +=[(request.build_absolute_uri(reverse('api:api_concept_detail_public', kwargs={'pk': pk})), cur_time, "0.80")]
 
 
     #--------------------------
@@ -128,8 +123,36 @@ def get_published_phenotypes_and_concepts(request):
 
     published_phenotypes_ids = db_utils.get_list_of_visible_entity_ids(published_phenotypes, return_id_or_history_id="id")
     for pk in published_phenotypes_ids:
+        links +=[(request.build_absolute_uri(reverse('phenotype_detail', kwargs={'pk': pk})), cur_time, "0.80")]
         links +=[(request.build_absolute_uri(reverse('api:api_phenotype_detail_public', kwargs={'pk': pk})), cur_time, "0.80")]
+
+    
+    #--------------------------    
+    # published concepts
+    
+    published_concepts = db_utils.get_visible_live_or_published_concept_versions(request,
+                                                                                get_live_and_or_published_ver= 2,  # 1= live only, 2= published only, 3= live+published 
+                                                                                exclude_deleted=True,
+                                                                                show_top_version_only=False,
+                                                                                )
+
+    published_concepts_ids = db_utils.get_list_of_visible_entity_ids(published_concepts, return_id_or_history_id="id")
+    for pk in published_concepts_ids:
+        links +=[(request.build_absolute_uri(reverse('concept_detail', kwargs={'pk': pk})), cur_time, "0.80")]
+        links +=[(request.build_absolute_uri(reverse('api:api_concept_detail_public', kwargs={'pk': pk})), cur_time, "0.80")]
+
 
     return links
 
 
+def url_http_replace(url1):
+    url = url1
+    if settings.IS_DEVELOPMENT_PC or settings.IS_INSIDE_GATEWAY:
+        url = url1.replace('https://' , 'http://')
+    else:
+        url = url1.replace('http://' , 'https://')
+        
+    return url
+
+    
+    
