@@ -114,9 +114,11 @@
 
                         <br>
                         Published phenotype cannot be undone.
-                            {% if not is_moderator %}
+                            {% if not is_moderator and not is_lastapproved %}
                             <br>
                             This phenotype is going to be reviewed by the moderator and you will be notified when phenotype will be published
+
+
 
                     {% endif %}
                     {% endif %}
@@ -132,7 +134,7 @@
             <span class="glyphicon glyphicon-ok" style="color:green"></span>
             <span class="text-success">&nbsp;Published&nbsp;</span>
         {% else %}
-        {% if is_approved == 1 and not is_moderator %}
+        {% if is_approved == 1 and not is_moderator and is_latest_pending_version%}
             <span class="glyphicon glyphicon-ok" style="color:green"></span>
             <span class="text-warning">&nbsp;Waiting to approve&nbsp</span>
             {% else %}
@@ -143,11 +145,15 @@
             {% if is_moderator %}
                 Publish
                 {% else %}
+                {% if not is_lastapproved  %}
                 Submit
+                    {% else %}
+                    Publish
+                {% endif %}
                 {% endif %}
             {% endif %}
             </button>
-            {% if is_moderator and is_approved == 1 %}
+            {% if is_moderator and is_approved == 1 and is_latest_pending_version %}
                 <button type="button" class="btn btn-primary" id = "declineButton" onclick = "submitForm('decline')" name="declinePublish">Decline
                 </button>
                 {% endif %}
@@ -180,7 +186,7 @@ function submitForm(status){
                 $(".loader").show();
             },
             success: function(data){
-                console.log(data);
+
 
                 if(data.form_is_valid){
                     $('#history-table').html(data.html_history_list);
