@@ -141,6 +141,7 @@ def phenotype_list(request):
     
         
     filter_cond = " 1=1 "
+    approved_status = ''
     exclude_deleted = True
     get_live_and_or_published_ver = 3  # 1= live only, 2= published only, 3= live+published
 
@@ -163,11 +164,11 @@ def phenotype_list(request):
             filter_cond += " AND owner_id=" + str(request.user.id)
 
         if show_my_pending_phenotypes == "1":
-            filter_cond += " AND is_approved=1"
+            approved_status = 1
             filter_cond += " AND owner_id=" + str(request.user.id)
 
         if show_mod_pending_phenotypes == "1":
-            filter_cond += " AND is_approved=1"
+            approved_status = 1
 
         # if show deleted phenotype is 1 then show deleted phenotype
         if show_deleted_phenotypes != "1":
@@ -209,6 +210,7 @@ def phenotype_list(request):
                                                                                 author=author,
                                                                                 exclude_deleted=exclude_deleted,
                                                                                 filter_cond=filter_cond,
+        approved_status=approved_status,
                                                                                 show_top_version_only=show_top_version_only)
     # create pagination
     paginator = Paginator(phenotype_srch,
@@ -950,7 +952,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                                 data['is_approved'] = 1
 
                             data = self.form_validation(data,phenotype_history_id,pk,phenotype)
-                #Publish pending phenotype if mod wants it 
+                #Publish pending phenotype if mod wants it
                 elif is_approved == 1 and is_moderator:
                     # start a transaction
                     with transaction.atomic():

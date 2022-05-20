@@ -3058,7 +3058,7 @@ def get_visible_live_or_published_phenotype_versions(request,
     # --- 4 where clause  ---
     where_clause_4 = ""
     if approved_status == 1:  # pending phenotype
-        where_clause_4 = " AND (is_approved=1) "
+        where_clause_4 = " AND (is_pending=1)"
     elif approved_status == 2:  # Approved phenotype
         where_clause_4 = " AND (is_approved=2) "
     elif approved_status == 3:  # Declined phenotype
@@ -3112,8 +3112,11 @@ def get_visible_live_or_published_phenotype_versions(request,
                                ) is_published,
                                 (SELECT is_approved 
                                    FROM clinicalcode_publishedphenotype 
-                                   WHERE phenotype_id=t.id and phenotype_history_id=t.history_id
+                                   WHERE phenotype_id=t.id and phenotype_history_id=t.history_id 
                                ) is_approved,
+                               (SELECT is_approved 
+                                   FROM clinicalcode_publishedphenotype 
+                                   WHERE phenotype_id=t.id and  is_approved = 1 LIMIT 1) is_pending,
                                
                                id, created, modified, title, name, layout, phenotype_uuid, type, 
                                validation, valid_event_data_range,  
