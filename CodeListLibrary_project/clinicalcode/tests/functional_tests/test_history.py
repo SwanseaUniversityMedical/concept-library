@@ -279,7 +279,6 @@ class HistoryTest(StaticLiveServerTestCase):
 
         
         browser.find_element(By.ID, 'save-changes').click()
-        time.sleep(1000)
         concept = Concept.objects.all().order_by('-id')[0]
 
         # go to the latest historical version of the concept
