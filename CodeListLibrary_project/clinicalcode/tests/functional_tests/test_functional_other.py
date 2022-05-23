@@ -1,6 +1,8 @@
+import random
 import time
 from datetime import datetime
 
+from clinicalcode.models import Tag, Brand
 from clinicalcode.models.Code import Code
 from clinicalcode.models.CodeList import CodeList
 from clinicalcode.models.Component import Component
@@ -89,6 +91,7 @@ class OtherTest(StaticLiveServerTestCase):
         # Add the group to the group-user's groups.
         group_user.groups.add(permitted_group)
 
+
         coding_system = CodingSystem.objects.create(
             name="Lookup table",
             description="Lookup Codes for testing purposes",
@@ -98,6 +101,18 @@ class OtherTest(StaticLiveServerTestCase):
             code_column_name="code",
             desc_column_name="description")
         coding_system.save()
+
+        self.brand = self.create_brand("HDRUK", "cll/static/img/brands/HDRUK")
+
+        self.nameTags = [
+            "Phenotype_library", "ADP", "BREATHE", "CALIBER", "PIONEER",
+            "SAIL", "BHF DSC"
+        ]
+        self.collectionOftags = []
+
+        for i in range(len(self.nameTags)):
+            self.collectionOftags.append(
+                self.creat_tag(self.nameTags[i], self.brand))
 
         self.concept_everybody_can_view = Concept.objects.create(
             name="concept everybody can view",
@@ -115,11 +130,14 @@ class OtherTest(StaticLiveServerTestCase):
             modified_by=super_user,
             coding_system=coding_system,
             is_deleted=False,
+            tags=[1],
+            code_attribute_header=[],
             owner=self.owner_user,
             group=permitted_group,
             group_access=Permissions.NONE,
             owner_access=Permissions.NONE,
             world_access=Permissions.VIEW)
+        self.concept_everybody_can_view.save()
 
         self.concept_everybody_can_edit = Concept.objects.create(
             name="concept everybody can edit",
@@ -133,6 +151,7 @@ class OtherTest(StaticLiveServerTestCase):
             paper_published=False,
             source_reference="",
             citation_requirements="",
+            tags=[1],
             created_by=super_user,
             modified_by=super_user,
             coding_system=coding_system,
@@ -159,6 +178,7 @@ class OtherTest(StaticLiveServerTestCase):
             modified_by=super_user,
             coding_system=coding_system,
             is_deleted=False,
+            tags=[1],
             owner=self.owner_user,
             group=permitted_group,
             group_access=Permissions.EDIT,
@@ -182,6 +202,7 @@ class OtherTest(StaticLiveServerTestCase):
             coding_system=coding_system,
             is_deleted=False,
             owner=self.owner_user,
+            tags=[1],
             group=permitted_group,
             group_access=Permissions.NONE,
             owner_access=Permissions.NONE,
@@ -203,6 +224,7 @@ class OtherTest(StaticLiveServerTestCase):
             modified_by=super_user,
             coding_system=coding_system,
             is_deleted=False,
+            tags=[1],
             owner=self.owner_user,
             group=permitted_group,
             group_access=Permissions.NONE,
@@ -252,6 +274,7 @@ class OtherTest(StaticLiveServerTestCase):
             validation_description="",
             publication_doi="",
             publication_link=Google_website,
+            tags=[1],
             paper_published=False,
             source_reference="",
             citation_requirements="",
@@ -416,6 +439,22 @@ class OtherTest(StaticLiveServerTestCase):
 
         update_friendly_id()
         save_stat(self.WEBAPP_HOST)
+
+    def creat_tag(self, nametag, brand):
+        tag = Tag.objects.create(collection_brand=brand,
+                                 description=nametag,
+                                 created_by=self.owner_user,
+                                 tag_type=2,
+                                 display=random.randint(1, 6)).save()
+        return tag
+
+    def create_brand(self, nameBrand, pathBrand):
+        brand = Brand.objects.create(name=nameBrand,
+                                     description='',
+                                     logo_path=pathBrand,
+                                     css_path=pathBrand,
+                                     owner=self.owner_user).save()
+        return brand
 
     def tearDown(self):
         # self.browser.refresh()
