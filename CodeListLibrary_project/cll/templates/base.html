@@ -457,7 +457,13 @@
 			        
 			        var path2 = path;
 			        if ($.trim(href) != ''){
-			        	path2 = path.substring(0, href.length);
+			        	{% if request.CURRENT_BRAND|length %}
+			        		if(href != '/{{ request.CURRENT_BRAND }}'){
+			        			path2 = path.substring(0, href.length);
+			        		}
+			        	{% else %}
+			        		path2 = path.substring(0, href.length);
+			        	{% endif %}
 			        }
 
 			        if (path2 === href) {
