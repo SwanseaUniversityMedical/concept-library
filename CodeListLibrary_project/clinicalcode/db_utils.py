@@ -3721,7 +3721,7 @@ def get_brand_collection_ids(brand_name):
         return [-1]
 
 
-def get_brand_associated_collections(request, concept_or_phenotype, brand=None):
+def get_brand_associated_collections(request, concept_or_phenotype, brand=None, excluded_collections=None):
     """
         If user is authenticated show all collection IDs, including those that are deleted, as filters.
         If not, show only non-deleted/published entities related collection IDs.
@@ -3746,10 +3746,13 @@ def get_brand_associated_collections(request, concept_or_phenotype, brand=None):
             if s['Data_Scope'] == 'published_data':
                 collections_ids = s['Collection_IDs']
 
+    if excluded_collections:
+        collections_ids = list(set(collections_ids) - set(excluded_collections))
+        
     return Tag.objects.filter(id__in=collections_ids, tag_type=2)
 
 
-def get_brand_associated_collections_dynamic(request, concept_or_phenotype):
+def get_brand_associated_collections_dynamic(request, concept_or_phenotype, excluded_collections=None):
     """
         get associated collections of the current brand (or all if using default site)
         dynamically, Not from statistics.
@@ -3776,6 +3779,9 @@ def get_brand_associated_collections_dynamic(request, concept_or_phenotype):
     unique_tags = []
     unique_tags = list(set(Tag_List))
 
+    if excluded_collections:
+        unique_tags = list(set(unique_tags) - set(excluded_collections))
+        
     return Tag.objects.filter(id__in=unique_tags, tag_type=2)
 
 def send_review_email(phenotype, review_decision, review_message):

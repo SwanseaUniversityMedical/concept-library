@@ -857,7 +857,16 @@ def concept_list(request):
     if tag_ids:
         tag_ids_list = [int(t) for t in tag_ids.split(',')]
 
-    brand_associated_collections = db_utils.get_brand_associated_collections(request, concept_or_phenotype='concept')
+    collections_excluded_from_filters = []
+    if request.CURRENT_BRAND != "":
+        collections_excluded_from_filters = request.BRAND_OBJECT.collections_excluded_from_filters
+               
+    brand_associated_collections = db_utils.get_brand_associated_collections(request, 
+                                                                            concept_or_phenotype='concept',
+                                                                            brand=None,
+                                                                            excluded_collections=collections_excluded_from_filters
+                                                                            )
+    
     brand_associated_collections_ids = list(brand_associated_collections.values_list('id', flat=True))
 
     owner = request.session.get('concept_owner')    

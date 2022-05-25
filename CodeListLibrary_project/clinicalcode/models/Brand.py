@@ -2,6 +2,7 @@ from django.contrib.auth.models import Group, User
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from simple_history.models import HistoricalRecords
+from django.contrib.postgres.fields import ArrayField
 
 from .TimeStampedModel import TimeStampedModel
 
@@ -12,8 +13,7 @@ class Brand(TimeStampedModel):
     description = models.TextField(blank=True, null=True)
     logo_path = models.CharField(max_length=250)
     css_path = models.CharField(max_length=250, blank=True, null=True)
-    website = models.URLField(max_length=1000, blank=True,
-                              null=True)  # http website url
+    website = models.URLField(max_length=1000, blank=True, null=True)  # http website url
     owner = models.ForeignKey(User,
                               on_delete=models.SET_NULL,
                               null=True,
@@ -23,6 +23,7 @@ class Brand(TimeStampedModel):
     site_title = models.CharField(max_length=50, blank=True, null=True)
     about_menu = JSONField(blank=True, null=True)
     allowed_tabs = JSONField(blank=True, null=True)
+    collections_excluded_from_filters = ArrayField(models.IntegerField(), blank=True, null=True)
 
     history = HistoricalRecords()
 
