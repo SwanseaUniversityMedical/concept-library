@@ -3058,7 +3058,7 @@ def get_visible_live_or_published_phenotype_versions(request,
     # --- 4 where clause  ---
     where_clause_4 = ""
     if approved_status == 1:  # pending phenotype
-        where_clause_4 = " AND (is_approved=1) "
+        where_clause_4 = " AND (is_pending=1)"
     elif approved_status == 2:  # Approved phenotype
         where_clause_4 = " AND (is_approved=2) "
     elif approved_status == 3:  # Declined phenotype
@@ -3112,8 +3112,11 @@ def get_visible_live_or_published_phenotype_versions(request,
                                ) is_published,
                                 (SELECT is_approved 
                                    FROM clinicalcode_publishedphenotype 
-                                   WHERE phenotype_id=t.id and phenotype_history_id=t.history_id
+                                   WHERE phenotype_id=t.id and phenotype_history_id=t.history_id 
                                ) is_approved,
+                               (SELECT is_approved 
+                                   FROM clinicalcode_publishedphenotype 
+                                   WHERE phenotype_id=t.id and  is_approved = 1 LIMIT 1) is_pending,
                                
                                id, created, modified, title, name, layout, phenotype_uuid, type, 
                                validation, valid_event_data_range,  
@@ -3718,7 +3721,7 @@ def get_brand_collection_ids(brand_name):
         return [-1]
 
 
-def get_brand_associated_collections(request, concept_or_phenotype, brand=None):
+def get_brand_associated_collections(request, concept_or_phenotype, brand=None, excluded_collections=None):
     """
         If user is authenticated show all collection IDs, including those that are deleted, as filters.
         If not, show only non-deleted/published entities related collection IDs.
@@ -3743,10 +3746,13 @@ def get_brand_associated_collections(request, concept_or_phenotype, brand=None):
             if s['Data_Scope'] == 'published_data':
                 collections_ids = s['Collection_IDs']
 
+    if excluded_collections:
+        collections_ids = list(set(collections_ids) - set(excluded_collections))
+        
     return Tag.objects.filter(id__in=collections_ids, tag_type=2)
 
 
-def get_brand_associated_collections_dynamic(request, concept_or_phenotype):
+def get_brand_associated_collections_dynamic(request, concept_or_phenotype, excluded_collections=None):
     """
         get associated collections of the current brand (or all if using default site)
         dynamically, Not from statistics.
@@ -3773,6 +3779,9 @@ def get_brand_associated_collections_dynamic(request, concept_or_phenotype):
     unique_tags = []
     unique_tags = list(set(Tag_List))
 
+    if excluded_collections:
+        unique_tags = list(set(unique_tags) - set(excluded_collections))
+        
     return Tag.objects.filter(id__in=unique_tags, tag_type=2)
 
 def send_review_email(phenotype, review_decision, review_message):

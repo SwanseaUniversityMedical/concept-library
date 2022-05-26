@@ -45,7 +45,8 @@
 				</td>
 				{% if enable_publish %}
 				<td class="text-center">
-					{% if history.history_id in published_historical_ids and is_approved == 2%}
+
+					{% if history.history_id in published_historical_ids%}
 						<span>&#10004;</span>
 					{% endif %}
 				</td>

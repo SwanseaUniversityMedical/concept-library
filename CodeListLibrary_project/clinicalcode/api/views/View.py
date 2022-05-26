@@ -57,6 +57,11 @@ def get_canonical_path(request, force_HDRUK_rel=False):
         else:
             cp = 'https://phenotypes.healthdatagateway.org' 
  
+    # manage protocol
+    if settings.IS_DEVELOPMENT_PC or settings.IS_INSIDE_GATEWAY:
+        cp = cp.replace("https://", "http://" , 1)
+    else:
+        cp = cp.replace("http://", "https://" , 1)
     return cp
 
 

@@ -427,9 +427,6 @@
 
 
 
- 		
-		
-		
 		<script>
 			$(function(){
 				if ($(".input-group.date")[0]){
@@ -440,10 +437,7 @@
 						todayHighlight: true,
 					});
 				}
-			});
-			
-			
-			
+			});			
 		</script>
 		
 		<script type="text/javascript">
@@ -460,7 +454,19 @@
 			    $("#prjnavtabs a").each(function () {
 			        var href = $(this).attr('href');
 			        href = href.replace(/\/$/, "");
-			        if (path.substring(0, href.length) === href) {
+			        
+			        var path2 = path;
+			        if ($.trim(href) != ''){
+			        	{% if request.CURRENT_BRAND|length %}
+			        		if(href != '/{{ request.CURRENT_BRAND }}'){
+			        			path2 = path.substring(0, href.length);
+			        		}
+			        	{% else %}
+			        		path2 = path.substring(0, href.length);
+			        	{% endif %}
+			        }
+
+			        if (path2 === href) {
 			            $(this).closest('li').addClass('active');
 			        }
 			    });
