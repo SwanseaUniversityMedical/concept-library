@@ -218,6 +218,7 @@ class SearchTest(StaticLiveServerTestCase):
 
         checkboxes = browser.find_elements(By.ID, "collection_id")
 
+
         # Iterate through checkboxes and make sure they are available
         for i in range(len(checkboxes)):
             browser.find_elements(By.NAME, "collection_id")[i].click()

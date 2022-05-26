@@ -3,6 +3,9 @@ import unittest
 from datetime import datetime
 from urllib.parse import urlparse
 
+import self as self
+
+from clinicalcode.models import Brand
 from clinicalcode.models.Code import Code
 from clinicalcode.models.CodeList import CodeList
 from clinicalcode.models.CodeRegex import CodeRegex
@@ -68,7 +71,12 @@ class HistoryTest(StaticLiveServerTestCase):
             desc_column_name="DESCRIPTION")
         coding_system.save()
 
+        self.brand = self.create_brand("HDRUK", "cll/static/img/brands/HDRUK")
+
         self.tag = Tag.objects.create(description="tagTest",
+                                      tag_type=2,
+                                      display =1,
+                                      collection_brand=self.brand,
                                       created_by=self.owner_user)
         self.tag.save()
 
@@ -109,6 +117,14 @@ class HistoryTest(StaticLiveServerTestCase):
 
         update_friendly_id()
         save_stat(self.WEBAPP_HOST)
+
+    def create_brand(self, nameBrand, pathBrand):
+        brand = Brand.objects.create(name=nameBrand,
+                                     description='',
+                                     logo_path=pathBrand,
+                                     css_path=pathBrand,
+                                     owner=self.owner_user).save()
+        return brand
 
     def tearDown(self):
         self.browser.quit()
@@ -244,6 +260,7 @@ class HistoryTest(StaticLiveServerTestCase):
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
+
         # create a concept
         browser.find_element(By.ID, 'id_name').send_keys("concept2")
         tagField = browser.find_element_by_class_name('tt-input')
@@ -262,7 +279,6 @@ class HistoryTest(StaticLiveServerTestCase):
 
         
         browser.find_element(By.ID, 'save-changes').click()
-
         concept = Concept.objects.all().order_by('-id')[0]
 
         # go to the latest historical version of the concept

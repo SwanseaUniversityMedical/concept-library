@@ -49,7 +49,7 @@ def checkIfPublished(set_class, set_id, set_history_id):
 
 
 def checkIfapproved(set_class, set_id, set_history_id):
-    ''' Check if an entity version is published '''
+    ''' Check if an entity version is approved '''
 
     from .models.Concept import Concept
     from .models.Phenotype import Phenotype
@@ -59,7 +59,10 @@ def checkIfapproved(set_class, set_id, set_history_id):
     if (set_class == Concept):
         return PublishedConcept.objects.filter(concept_id=set_id).values_list('is_approved', flat=True).first()
     elif (set_class == Phenotype):
-        return PublishedPhenotype.objects.filter(phenotype_id=set_id).values_list("is_approved", flat=True).first()
+
+        return PublishedPhenotype.objects.filter(
+            phenotype_id=set_id,phenotype_history_id = set_history_id).values_list("is_approved", flat=True).first()
+
     else:
         return False
 
