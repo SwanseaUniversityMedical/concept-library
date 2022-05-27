@@ -2792,12 +2792,10 @@ def get_can_edit_subquery(request):
                                         ) can_edit ,
                                     '''
             else:
-                user_groups = list(request.user.groups.all().values_list(
-                    'id', flat=True))
+                user_groups = list(request.user.groups.all().values_list('id', flat=True))
                 group_access_cond = ""
                 if user_groups:
-                    group_access_cond = " OR (group_id IN(" + ', '.join(
-                        map(str, user_groups)) + ") AND group_access = 3) "
+                    group_access_cond = " OR (group_id IN(" + ', '.join(map(str, user_groups)) + ") AND group_access = 3) "
 
                 # since all params here are derived from user object, no need for parameterising here.
                 can_edit_subquery = ''' (CASE WHEN rn=1 AND
@@ -2815,19 +2813,17 @@ def get_can_edit_subquery(request):
     return can_edit_subquery
 
 
-def get_visible_live_or_published_concept_versions(
-        request,
-        get_live_and_or_published_ver=3  # 1= live only, 2= published only, 3= live+published
-    ,
-        searchByName="",
-        author="",
-        concept_id_to_exclude=0,
-        exclude_deleted=True,
-        filter_cond="",
-        show_top_version_only=False,
-        force_brand=None,
-        force_get_live_and_or_published_ver=None  # used only with no login
-):
+def get_visible_live_or_published_concept_versions(request,
+                                                    get_live_and_or_published_ver=3,  # 1= live only, 2= published only, 3= live+published
+                                                    searchByName="",
+                                                    author="",
+                                                    concept_id_to_exclude=0,
+                                                    exclude_deleted=True,
+                                                    filter_cond="",
+                                                    show_top_version_only=False,
+                                                    force_brand=None,
+                                                    force_get_live_and_or_published_ver=None  # used only with no login
+                                                ):
     # type: (object, object, object, object, object, object, object, object) -> object
     ''' Get all visible live or published concept versions 
     - return all columns
@@ -2846,12 +2842,10 @@ def get_visible_live_or_published_concept_versions(
         if request.user.is_superuser:
             user_cond = ""
         else:
-            user_groups = list(request.user.groups.all().values_list(
-                'id', flat=True))
+            user_groups = list(request.user.groups.all().values_list('id', flat=True))
             group_access_cond = ""
             if user_groups:
-                group_access_cond = " OR (group_id IN(" + ', '.join(
-                    map(str, user_groups)) + ") AND group_access IN(2,3)) "
+                group_access_cond = " OR (group_id IN(" + ', '.join(map(str, user_groups)) + ") AND group_access IN(2,3)) "
 
             # since all params here are derived from user object, no need for parameterising here.
             user_cond = ''' AND (
@@ -2911,8 +2905,7 @@ def get_visible_live_or_published_concept_versions(
         brand_collection_ids = [str(i) for i in brand_collection_ids]
 
         if brand_collection_ids:
-            brand_filter_cond = " WHERE tags && '{" + ','.join(
-                brand_collection_ids) + "}' "
+            brand_filter_cond = " WHERE tags && '{" + ','.join(brand_collection_ids) + "}' "
 
     with connection.cursor() as cursor:
         cursor.execute(
@@ -2932,7 +2925,7 @@ def get_visible_live_or_published_concept_versions(
                                 , (SELECT username FROM auth_user WHERE id=r.modified_by_id ) modified_by_username
                                 , (SELECT username FROM auth_user WHERE id=r.deleted_by_id ) deleted_by_username
                                 , (SELECT name FROM auth_group WHERE id=r.group_id ) group_name
-                                , (SELECT created FROM clinicalcode_publishedconcept WHERE concept_id=r.id and concept_history_id=r.history_id  LIMIT 1) publish_date
+                                , (SELECT created FROM clinicalcode_publishedconcept WHERE concept_id=r.id and concept_history_id=r.history_id ) publish_date
                             FROM
                             (
                             SELECT 
@@ -3055,21 +3048,18 @@ def get_visible_live_or_published_phenotype_versions(request,
     else:
         raise INVALID_PARAMETER_VALUE
 
-    # --- 4 where clause  ---
-    where_clause_4 = ""
-    if approved_status == 1:  # pending phenotype
-        where_clause_4 = " AND (is_pending=1)"
-    elif approved_status == 2:  # Approved phenotype
-        where_clause_4 = " AND (is_approved=2) "
-    elif approved_status == 3:  # Declined phenotype
-        where_clause_4 = " AND (is_approved=3) "
-
 
     # --- third where clause  ---
-    where_clause_3 = ""
+    where_clause_3 = " WHERE 1=1 "
     if show_top_version_only:
-        where_clause_3 = " WHERE rn_res = 1 "
+        where_clause_3 += " AND rn_res = 1 "
 
+
+    # --- where clause (publish approval)  ---
+    approval_where_clause = " "
+    if approved_status:
+        approval_where_clause = " AND (approval_status IN(" + ', '.join(map(str, approved_status)) + ")) "  
+        
 
 
     # --- when in a brand, show only this brand's data
@@ -3102,21 +3092,18 @@ def get_visible_live_or_published_phenotype_versions(request,
                                 , (SELECT username FROM auth_user WHERE id=r.updated_by_id ) modified_by_username
                                 , (SELECT username FROM auth_user WHERE id=r.deleted_by_id ) deleted_by_username
                                 , (SELECT name FROM auth_group WHERE id=r.group_id ) group_name
-                                , (SELECT created FROM clinicalcode_publishedphenotype WHERE phenotype_id=r.id and phenotype_history_id=r.history_id  and is_approved = 2  LIMIT 1) publish_date
+                                , (SELECT created FROM clinicalcode_publishedphenotype WHERE phenotype_id=r.id and phenotype_history_id=r.history_id  and approval_status = 2 ) publish_date
                             FROM
                             (SELECT 
                                ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn,
                                (SELECT count(*) 
                                    FROM clinicalcode_publishedphenotype 
-                                   WHERE phenotype_id=t.id and phenotype_history_id=t.history_id and is_approved = 2
+                                   WHERE phenotype_id=t.id and phenotype_history_id=t.history_id and approval_status = 2
                                ) is_published,
-                                (SELECT is_approved 
+                                (SELECT approval_status 
                                    FROM clinicalcode_publishedphenotype 
                                    WHERE phenotype_id=t.id and phenotype_history_id=t.history_id 
-                               ) is_approved,
-                               (SELECT is_approved 
-                                   FROM clinicalcode_publishedphenotype 
-                                   WHERE phenotype_id=t.id and  is_approved = 1 LIMIT 1) is_pending,
+                               ) approval_status,
                                
                                id, created, modified, title, name, layout, phenotype_uuid, type, 
                                validation, valid_event_data_range,  
@@ -3131,11 +3118,12 @@ def get_visible_live_or_published_phenotype_versions(request,
                             FROM clinicalcode_historicalphenotype t
                                 """ + brand_filter_cond + """
                             ) r
-                            """ + where_clause + where_clause_2 + where_clause_4 + """
+                            """ + where_clause + [where_clause_2 , approval_where_clause][approval_where_clause.strip() !=""] + """
                         ) rr
                         """ + where_clause_3 + """
                         ORDER BY id, history_id desc
                         """, my_params)
+        
         col_names = [col[0] for col in cursor.description]
 
         return [dict(list(zip(col_names, row))) for row in cursor.fetchall()]
@@ -3818,23 +3806,21 @@ def send_review_email(phenotype, review_decision, review_message):
 
 def get_scheduled_email_to_send():
 
-    HDRUK_pending_phenotypes =PublishedPhenotype.objects.filter(is_approved=1
-
-    )
-    HDRUK_declined_phenotypes = PublishedPhenotype.objects.filter(is_approved=3
-
-    )
+    HDRUK_pending_phenotypes =PublishedPhenotype.objects.filter(approval_status=1)
+    HDRUK_declined_phenotypes = PublishedPhenotype.objects.filter(approval_status=3)
 
     combined_list = list(HDRUK_pending_phenotypes.values()) + list(HDRUK_declined_phenotypes.values())
     result = {'date':datetime.datetime.now(),
-            'phenotype_count': len(combined_list),'data':[]}
+            'phenotype_count': len(combined_list),
+            'data':[]
+            }
 
     for i in range(len(combined_list)):
         data = {
             'id': i+1,
             'phenotype_id':combined_list[i]['phenotype_id'],
             'phenotype_history_id':combined_list[i]['phenotype_history_id'],
-            'is_approved':combined_list[i]['is_approved'],
+            'approval_status':combined_list[i]['approval_status'],
             'owner_id':combined_list[i]['created_by_id'],
         }
         result['data'].append(data)
@@ -3843,8 +3829,7 @@ def get_scheduled_email_to_send():
     email_content = []
 
     for i in range(len(result['data'])):
-        phenotype = Phenotype.objects.get(pk=result['data'][i]['phenotype_id'],
-                                          owner_id=result['data'][i]['owner_id'])
+        phenotype = Phenotype.objects.get(pk=result['data'][i]['phenotype_id'], owner_id=result['data'][i]['owner_id'])
         phenotype_id = phenotype.id
 
         phenotype_name = phenotype.title
@@ -3852,10 +3837,10 @@ def get_scheduled_email_to_send():
 
         review_decision = ''
         review_message = ''
-        if result['data'][i]['is_approved'] == 1:
+        if result['data'][i]['approval_status'] == 1:
             review_decision = 'Pending'
             review_message = "Phenotype is waiting to be approved"
-        elif result['data'][i]['is_approved'] == 3:
+        elif result['data'][i]['approval_status'] == 3:
             review_decision = 'Declined'
             review_message = 'Phenotype has been declined'
 
@@ -3869,8 +3854,7 @@ def get_scheduled_email_to_send():
                  <strong>Reviewer message:</strong><br>{message}
                  '''.format(id=phenotype_id, name=phenotype_name, decision=review_decision, message=review_message)
 
-        email_content.append(
-            {'owner_id': phenotype_owner_id, 'owner_email': owner_email, 'email_content': email_message})
+        email_content.append({'owner_id': phenotype_owner_id, 'owner_email': owner_email, 'email_content': email_message})
 
     return email_content
 

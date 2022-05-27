@@ -383,7 +383,7 @@ def api_workingset_update(request):
         is_valid = True
 
         workingset_id = request.data.get('id')
-        is_valid_id, err, ret_int_id = chk_valid_id(request, WorkingSet, workingset_id)
+        is_valid_id, err, ret_int_id = chk_valid_id(request, WorkingSet, workingset_id, chk_permission=True)
         if is_valid_id:
             workingset_id = ret_int_id
         else:
