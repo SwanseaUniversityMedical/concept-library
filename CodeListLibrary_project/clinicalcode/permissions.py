@@ -21,14 +21,6 @@ class Permissions:
 
     PERMISSION_CHOICES_WORLD_ACCESS = ((NONE, 'No Access'), (VIEW, 'View'))
 
-    NOT_APPROVED = 0
-    PENDING = 1
-    APPROVED = 2
-    REJECTED = 3
-    APPROVED_STATUS = ((NOT_APPROVED, 'New to approve'), 
-                       (PENDING, 'Waiting to approve'),
-                       (APPROVED, 'Approved'), 
-                       (REJECTED, 'Rejected'))
 
 
 def checkIfPublished(set_class, set_id, set_history_id):
@@ -42,27 +34,25 @@ def checkIfPublished(set_class, set_id, set_history_id):
     if (set_class == Concept):
         return PublishedConcept.objects.filter(concept_id=set_id, concept_history_id=set_history_id).exists()
     elif (set_class == Phenotype):
-        return PublishedPhenotype.objects.filter(phenotype_id=set_id, phenotype_history_id=set_history_id, is_approved=2).exists()
-    #  phenotype_id=set_id,is_approved=True, phenotype_history_id=set_history_id).exists() need to specify
+        return PublishedPhenotype.objects.filter(phenotype_id=set_id, phenotype_history_id=set_history_id, approval_status=2).exists()
     else:
         return False
 
 
-def checkIfapproved(set_class, set_id, set_history_id):
-    ''' Check if an entity version is approved '''
+def get_publish_approval_status(set_class, set_id, set_history_id):
+    ''' Get the puublish approval status '''
 
     from .models.Concept import Concept
     from .models.Phenotype import Phenotype
     from .models.PublishedConcept import PublishedConcept
     from .models.PublishedPhenotype import PublishedPhenotype
 
-    if (set_class == Concept):
-        return PublishedConcept.objects.filter(concept_id=set_id).values_list('is_approved', flat=True).first()
-    elif (set_class == Phenotype):
+    if (set_class == Phenotype):
+        return PublishedPhenotype.objects.filter(phenotype_id = set_id, phenotype_history_id = set_history_id).values_list("approval_status", flat=True).first()
 
-        return PublishedPhenotype.objects.filter(
-            phenotype_id=set_id,phenotype_history_id = set_history_id).values_list("is_approved", flat=True).first()
-
+    # elif (set_class == Concept):
+    #     return PublishedConcept.objects.filter(concept_id = set_id).values_list('approval_status', flat=True).first()
+    
     else:
         return False
 
@@ -254,15 +244,24 @@ def allowed_to_view(request,
             # Owner is always allowed to view
             if set_class.objects.filter(Q(id=set_id), Q(owner=user)).count() > 0:
                 is_allowed_to_view = True
+                
             if set_class.objects.filter(Q(id=set_id), Q(world_access=Permissions.VIEW)).count() > 0:
                 is_allowed_to_view = True
+                
             # this condition is not active now (from the interface), since not logical to give Edit permission to all users
             if set_class.objects.filter(Q(id=set_id), Q(world_access=Permissions.EDIT)).count() > 0:
                 is_allowed_to_view = True
+                
             for group in user.groups.all():
                 if set_class.objects.filter(Q(id=set_id), Q(group_access=Permissions.VIEW, group_id=group)).count() > 0:
                     is_allowed_to_view = True
                 if set_class.objects.filter(Q(id=set_id), Q(group_access=Permissions.EDIT, group_id=group)).count() > 0:
+                    is_allowed_to_view = True
+                
+            # allow moderator to see pending/rejected phenotypes/concepts
+            if is_member(user, "Moderators") and set_history_id is not None:
+                approval_status = get_publish_approval_status(set_class, set_id, set_history_id)
+                if approval_status in [1, 3]: # pending or rejected
                     is_allowed_to_view = True
 
     else:  # public content
@@ -272,7 +271,6 @@ def allowed_to_view(request,
             set_history_id = int(set_class.objects.get(pk=set_id).history.latest().history_id)
 
         is_published = checkIfPublished(set_class, set_id, set_history_id)
-        # is_approved = checkIfapproved(set_class, set_id, set_history_id)
 
         if is_published:
             is_allowed_to_view = True
@@ -591,19 +589,19 @@ class HasAccessToEditPhenotypeCheckMixin(object):
 
 class HasAccessToViewPhenotypeCheckMixin(object):
     """
-        mixin to check if user has view access to a working set
+        mixin to check if user has view access to a phenotype
         this mixin is used within class based views and can be overridden
     """
 
-    def has_access_to_view_phenotype(self, user, phenotype_id):
+    def has_access_to_view_phenotype(self, user, phenotype_id, phenotype_history_id):
         from .models.Phenotype import Phenotype
-        return allowed_to_view(self.request, Phenotype, phenotype_id)
+        return allowed_to_view(self.request, Phenotype, phenotype_id, set_history_id=phenotype_history_id)
 
     def access_to_view_phenotype_failed(self, request, *args, **kwargs):
         raise PermissionDenied
 
     def dispatch(self, request, *args, **kwargs):
-        if not self.has_access_to_view_phenotype(request.user, self.kwargs['pk']):
+        if not self.has_access_to_view_phenotype(request.user, self.kwargs['pk'], self.kwargs['phenotype_history_id']):
             return self.access_to_view_phenotype_failed(request, *args, **kwargs)
 
         return super(HasAccessToViewPhenotypeCheckMixin, self).dispatch(request, *args, **kwargs)

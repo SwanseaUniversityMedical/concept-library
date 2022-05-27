@@ -3,7 +3,6 @@ from clinicalcode.constants import *
 from django.conf import settings
 from clinicalcode.api.views.View import get_canonical_path
 
-
 def general_var(request):
     return {
         'MEDIA_URL': settings.MEDIA_URL,
@@ -20,7 +19,8 @@ def general_var(request):
         'IS_DEVELOPMENT_PC': settings.IS_DEVELOPMENT_PC,
         'SHOW_COOKIE_ALERT': settings.SHOW_COOKIE_ALERT,
         'IS_HDRUK_EXT': settings.IS_HDRUK_EXT,
-        'CANONICAL_PATH': get_canonical_path(request)
+        'CANONICAL_PATH': get_canonical_path(request),
+        'APPROVED_STATUS': APPROVED_STATUS
     }
     
   

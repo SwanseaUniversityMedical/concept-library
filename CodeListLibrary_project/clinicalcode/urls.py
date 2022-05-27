@@ -91,6 +91,14 @@ urlpatterns += [
         name='check_concepts_not_associated_with_phenotypes'),
 ]
 
+# get_caliberresearch_url_source
+urlpatterns += [
+    url(r'^admin/caliber-urls/$',
+        Admin.get_caliberresearch_url_source,
+        name='get_caliberresearch_url_source'),
+]
+
+
 # ======== Phenotypes ==============================================================================
 # add URLConf to create, update, and delete Phenotypes
 urlpatterns += [

@@ -11,7 +11,7 @@
         <h4 class="modal-title"> Publish phenotype"<b>{{ name }}</b>"?</h4>
     </div>
     <div class="modal-body">
-    {% if is_published and is_approved == 2 %}
+    {% if is_published and approval_status == 2 %}
         <div class="alert alert-success" role="alert">
           This version is already published.
         </div>
@@ -83,19 +83,20 @@
             <div class="col-md-12">
                 <p>
                     <br>
-                    {% if is_published or is_approved == 1%}
-                        {% if is_published and is_approved == 2 %}
+                    {% if is_published or approval_status == 1%}
+                        {% if is_published and approval_status == 2 %}
                             <br>
 <!--                            This version "{{ name }}" is already published. -->
                         {% else %}
-                            {% if  is_approved == 1 and is_moderator %}
+                            {% if  approval_status == 1 and is_moderator %}
                                  Are you sure you want to approve this version of "{{ name }}"?
-                                Published phenotype cannot be undone.
+                                 <br>
+                                 Published phenotype cannot be undone.
                         <br>
 
                         {% else %}
 
-                        {% if  is_approved == 1 and not is_moderator %}
+                        {% if  approval_status == 1 and not is_moderator %}
                             Phenotype needs to be approved.
                             Waiting for moderator to approve
 
@@ -130,11 +131,11 @@
     </div>
 
     <div class="modal-footer">
-        {% if is_published and is_approved == 2 %}
+        {% if is_published and approval_status == 2 %}
             <span class="glyphicon glyphicon-ok" style="color:green"></span>
             <span class="text-success">&nbsp;Published&nbsp;</span>
         {% else %}
-        {% if is_approved == 1 and not is_moderator and is_latest_pending_version%}
+        {% if approval_status == 1 and not is_moderator and is_latest_pending_version%}
             <span class="glyphicon glyphicon-ok" style="color:green"></span>
             <span class="text-warning">&nbsp;Waiting to approve&nbsp</span>
             {% else %}
@@ -153,7 +154,7 @@
                 {% endif %}
             {% endif %}
             </button>
-            {% if is_moderator and is_approved == 1 and is_latest_pending_version %}
+            {% if is_moderator and approval_status == 1 and is_latest_pending_version %}
                 <button type="button" class="btn btn-primary" id = "declineButton" onclick = "submitForm('decline')" name="declinePublish">Decline
                 </button>
                 {% endif %}
@@ -196,7 +197,7 @@ function submitForm(status){
                     form.find('input[name=latest_history_id_shown]').val(data.latest_history_ID);
 
                     // href needs to be updated for publish phenotype to show latest status
-                    if(data.is_approved === 2) {
+                    if(data.approval_status === 2) {
 //                      var pub_href = $('#publish2').attr("href").split("/");
 //                      pub_href[3] = data.latest_history_ID;
 //                      pub_href = pub_href.join("/")
@@ -218,7 +219,7 @@ function submitForm(status){
                         $('#modal-section .modal-content').html('');
 
                     }else {
-                        if(data.is_approved === 1){
+                        if(data.approval_status === 1){
                             var element2 = document.getElementById('publish2');
                         element2.setAttribute('disabled', 'disabled');
 
@@ -235,7 +236,7 @@ function submitForm(status){
                         $('#modal-section .modal-content').html('');
                         }
                         else {
-                            if (data.is_approved === 3) {
+                            if (data.approval_status === 3) {
 
                                 var element3 = document.getElementById('publish2');
                                 element3.setAttribute('disabled', 'disabled');

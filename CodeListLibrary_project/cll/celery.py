@@ -14,11 +14,19 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.conf.beat_schedule = {
     'send_mail': {
         'task': 'clinicalcode.tasks.send_scheduled_email',
-        'schedule': crontab(minute=58) if settings.IS_DEVELOPMENT_PC else crontab(minute=58,hour=12)
+        'schedule': crontab(minute=5) if settings.IS_DEVELOPMENT_PC else crontab(minute=58,hour=12)
     },
     'send_message_test': {
         'task': 'clinicalcode.tasks.send_message_test',
-        'schedule': crontab(minute=58) if settings.IS_DEVELOPMENT_PC else crontab(minute=58,hour=12)
+        'schedule':crontab(minute=5) if settings.IS_DEVELOPMENT_PC else crontab(minute=58,hour=12)
+
+    }, 'celery_run_statistics': {
+        'task': 'clinicalcode.views.Admin.run_celery_statistics',
+        'schedule': crontab(minute=5) if settings.IS_DEVELOPMENT_PC else crontab(minute=58,hour=12)
+    },
+    'celery_run_collections': {
+        'task': 'clinicalcode.views.Admin.run_celery_collections',
+        'schedule': crontab(minute=5) if settings.IS_DEVELOPMENT_PC else crontab(minute=58,hour=12)
     }
 
 }
