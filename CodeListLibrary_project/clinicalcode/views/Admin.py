@@ -427,7 +427,7 @@ def run_celery_statistics(self):
     request.CURRENT_BRAND = ''
     if request.method == 'GET':
         stat = save_statistics(request)
-        print("Celery_statistics finished" + str(stat))
+        # print("Celery_statistics finished" + str(stat))
         return True, stat
 
 @shared_task(bind=True)
@@ -449,5 +449,5 @@ def run_celery_collections(self):
         # save for all data
         stat1 = save_statistics_collections(request, 'concept', brand='ALL')
         stat2 = save_statistics_collections(request, 'phenotype', brand='ALL')
-        print("Celery_collections finished")
+        # print("Celery_collections finished")
         return True, stat1+stat2
