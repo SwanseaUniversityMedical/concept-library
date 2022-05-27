@@ -406,22 +406,45 @@ def get_caliberresearch_url_source(request):
     
     HDRUK_phenotypes = Phenotype.objects.filter(id__in = phenotypes_ids)
     HDRUK_phenotypes.exclude(source_reference__isnull=True).exclude(source_reference__exact='')
-    caliber_urls = list(HDRUK_phenotypes.values_list('source_reference', flat=True))
+    
+    # collections
+    # 18    Phenotype Library    
+    # 25    ClinicalCodes Repository
+    #HDRUK_phenotypes.exclude(tags__contains = [18, 25] , tags__contained_by = [18, 25])
     
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="HDRUK_caliberresearch_url_source.csv"'
     writer = csv.writer(response)
 
-    titles = ['portal.caliberresearch.org', 'phenotypes.healthdatagateway.org']
+    titles = ['Phenotype_id', 'collections_tags', 'portal.caliberresearch.org', 'is_Caliber' , 'phenotypes.healthdatagateway.org']
     writer.writerow(titles)
 
 
-    for url in caliber_urls:
+    HDRUK_phenotypes = HDRUK_phenotypes.order_by('id')
+    
+    tags = Tag.objects.all()
+    
+    for p in HDRUK_phenotypes:
         #CL_url_base = "https://conceptlibrary.saildatabank.com/HDRUK/old/phenotypes/"
         CL_url_base = "https://phenotypes.healthdatagateway.org/old/phenotypes/"
-        redirect_url = CL_url_base + url.split('/')[-1]
+        redirect_url = CL_url_base + p.source_reference.split('/')[-1]
     
-        writer.writerow([url, redirect_url])
+        is_Caliber = 'Y'
+        #if set(p.tags) == set([18, 25]):
+        if (p.source_reference.lower().startswith('https://portal.caliberresearch.org/phenotypes/') 
+            and len(p.source_reference) > len('https://portal.caliberresearch.org/phenotypes/')):
+            is_Caliber = 'Y'
+        else:
+            is_Caliber = 'N'
+            
+        writer.writerow([
+                        'PH' + str(p.id),
+                        list(tags.filter(id__in=p.tags).values_list('description', flat=True)),
+                        p.source_reference, 
+                        is_Caliber,
+                        redirect_url
+                        ]
+                    )
 
     return response
 
