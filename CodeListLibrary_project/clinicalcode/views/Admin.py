@@ -1,12 +1,14 @@
 import time
 import datetime
 
+from celery import shared_task
+
 from clinicalcode.api.views.Concept import published_concepts
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import \
     LoginRequiredMixin  # , UserPassesTestMixin
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group, User, AnonymousUser
 from django.core.paginator import EmptyPage, Paginator
 from django.db import transaction  # , models, IntegrityError
 from django.http import \
@@ -34,6 +36,7 @@ import os
 
 from django.core.exceptions import PermissionDenied
 from django.db import connection, connections  # , transaction
+from django.test import RequestFactory
 
 
 
@@ -91,7 +94,7 @@ def get_HDRUK_statistics(request):
     HDRUK_published_concepts = db_utils.get_visible_live_or_published_concept_versions(
         request,
         get_live_and_or_published_ver=
-        2  # 1= live only, 2= published only, 3= live+published 
+        2  # 1= live only, 2= published only, 3= live+published
         ,
         exclude_deleted=True,
         show_top_version_only=False,
@@ -129,11 +132,11 @@ def get_HDRUK_statistics(request):
         'published_concept_count':
         len(
             HDRUK_published_concepts_ids
-        ),  
+        ),
         'published_phenotype_count':
         len(
             HDRUK_published_phenotypes_ids
-        ),  
+        ),
         'published_clinical_codes':
         get_published_clinical_codes(HDRUK_published_concepts_id_version),
         'datasources_component_count':
@@ -193,7 +196,7 @@ def get_dataSources_count(published_phenotypes_ids):
 
 def get_published_clinical_codes(published_concepts_id_version):
     """
-        count (none distinct) the clinical codes 
+        count (none distinct) the clinical codes
         in published concepts and phenotypes
         (using directly published concepts of HDRUK
     """
@@ -411,3 +414,40 @@ def get_brand_collections(request, concept_or_phenotype, force_brand=None):
     StatsDictFinal.append(StatsDict_Published.copy())
 
     return StatsDictFinal
+
+
+@shared_task(bind=True)
+def run_celery_statistics(self):
+    request_factory = RequestFactory()
+    my_url = r'^admin/run-stat/$'
+    request = request_factory.get(my_url)
+    request.user = AnonymousUser()
+
+
+    request.CURRENT_BRAND = ''
+    if request.method == 'GET':
+        stat = save_statistics(request)
+        print("Celery_statistics finished" + str(stat))
+        return True, stat
+
+@shared_task(bind=True)
+def run_celery_collections(self):
+    request_factory = RequestFactory()
+    my_url = r'^admin/run-collections/$'
+    request = request_factory.get(my_url)
+    request.user = AnonymousUser()
+    request.CURRENT_BRAND = ''
+
+    brands = Brand.objects.all()
+    brand_list = list(brands.values_list('name', flat=True))
+
+    if request.method == 'GET':
+        for brand in brand_list:
+            save_statistics_collections(request, 'concept', brand)
+            save_statistics_collections(request, 'phenotype', brand)
+
+        # save for all data
+        stat1 = save_statistics_collections(request, 'concept', brand='ALL')
+        stat2 = save_statistics_collections(request, 'phenotype', brand='ALL')
+        print("Celery_collections finished")
+        return True, stat1+stat2
