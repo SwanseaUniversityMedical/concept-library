@@ -35,6 +35,7 @@ import os
 from django.core.exceptions import PermissionDenied
 from django.db import connection, connections  # , transaction
 from django.test import RequestFactory
+import csv
 
 
 
@@ -384,3 +385,47 @@ def run_celery_collections(self):
         return True, stat1+stat2
 
 
+
+@login_required
+def get_caliberresearch_url_source(request):
+    """
+        Return a csv file of HDRUK caliberresearch portal url source
+    """
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+
+    phenotypes = db_utils.get_visible_live_or_published_phenotype_versions(request,
+                                                                            get_live_and_or_published_ver=2,  # 1= live only, 2= published only, 3= live+published 
+                                                                            exclude_deleted=True,
+                                                                            force_brand='HDRUK',
+                                                                            force_get_live_and_or_published_ver=2  # get published data
+                                                                        )
+
+    phenotypes_ids = db_utils.get_list_of_visible_entity_ids(phenotypes, return_id_or_history_id="id")
+    
+    HDRUK_phenotypes = Phenotype.objects.filter(id__in = phenotypes_ids)
+    HDRUK_phenotypes.exclude(source_reference__isnull=True).exclude(source_reference__exact='')
+    caliber_urls = list(HDRUK_phenotypes.values_list('source_reference', flat=True))
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="HDRUK_caliberresearch_url_source.csv"'
+    writer = csv.writer(response)
+
+    titles = ['portal.caliberresearch.org', 'phenotypes.healthdatagateway.org']
+    writer.writerow(titles)
+
+
+    for url in caliber_urls:
+        #CL_url_base = "https://conceptlibrary.saildatabank.com/HDRUK/old/phenotypes/"
+        CL_url_base = "https://phenotypes.healthdatagateway.org/old/phenotypes/"
+        redirect_url = CL_url_base + url.split('/')[-1]
+    
+        writer.writerow([url, redirect_url])
+
+    return response
+
+    
+    
+    
+    
