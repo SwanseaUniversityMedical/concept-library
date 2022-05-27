@@ -145,29 +145,6 @@
 									</div>
 								</div>
 
-
-                                {% if not request.user|has_group:"Moderators" %}
-								<div class="col-md-4">
-									<div class="checkbox">
-										<label>
-											<input id="show_my_pending_phenotypes_hidden" type="hidden" name="show_my_pending_phenotypes" value="{{ show_my_pending_phenotypes }}" >
-											<input class="form-checkbox" id="show_my_pending_phenotypes" type="checkbox" nameXX="show_my_pending_phenotypes" {% if show_my_pending_phenotypes == "1" %} checked="checked" {% endif %} value="1" >
-											Show my waiting for approval phenotypes
-										</label>
-									</div>
-								</div>
-                                {% else %}
-                                    <div class="col-md-4">
-									<div class="checkbox">
-										<label>
-											<input id="show_mod_pending_phenotypes_hidden" type="hidden" name="show_mod_pending_phenotypes"  value="{{ show_mod_pending_phenotypes }}" >
-											<input class="form-checkbox" id="show_mod_pending_phenotypes" type="checkbox" nameXX="show_mod_pending_phenotypes" {% if show_mod_pending_phenotypes == "1" %} checked="checked" {% endif %} value="1" >
-											Show waiting for approval phenotypes
-										</label>
-									</div>
-								</div>
-
-                        		{% endif %}
                         {% endif %}
 							
 		<!-- 					<div class = "col-md-3">    -->
@@ -190,11 +167,47 @@
 									</label>
 								</div>
 							</div>		
-						{% endif %}		
-																
-
-						
+						{% endif %}								
 						</div>
+						
+					{% if user.is_authenticated %}
+					<fieldset class="approval-border">
+						 <legend class="approval-border">&nbsp;Publish approval&nbsp;</legend>
+						<div class="row form-group" id="approval_div">
+						 {% if request.user|has_group:"Moderators" %}
+						 	<div class="col-md-4">
+								<div class="checkbox">
+									<label>
+										<input id="show_mod_pending_phenotypes_hidden" type="hidden" name="show_mod_pending_phenotypes"  value="{{ show_mod_pending_phenotypes }}" >
+										<input class="form-checkbox" id="show_mod_pending_phenotypes" type="checkbox" nameXX="show_mod_pending_phenotypes" {% if show_mod_pending_phenotypes == "1" %} checked="checked" {% endif %} value="1" >
+										Only show phenotypes waiting for approval 
+									</label>
+								</div>
+							</div>						
+	                    {% else %}
+							<div class="col-md-4">
+								<div class="checkbox">
+									<label>
+										<input id="show_my_pending_phenotypes_hidden" type="hidden" name="show_my_pending_phenotypes" value="{{ show_my_pending_phenotypes }}" >
+										<input class="form-checkbox" id="show_my_pending_phenotypes" type="checkbox" nameXX="show_my_pending_phenotypes" {% if show_my_pending_phenotypes == "1" %} checked="checked" {% endif %} value="1" >
+										Only show my phenotypes pending for approval 
+									</label>
+								</div>
+							</div>
+                      	{% endif %}
+                      		<div class="col-md-4">
+								<div class="checkbox">
+									<label>
+										<input id="show_rejected_phenotypes_hidden" type="hidden" name="show_rejected_phenotypes"  value="{{ show_rejected_phenotypes }}" >
+										<input class="form-checkbox" id="show_rejected_phenotypes" type="checkbox" nameXX="show_rejected_phenotypes" {% if show_rejected_phenotypes == "1" %} checked="checked" {% endif %} value="1" >
+										Include rejected phenotypes
+									</label>
+								</div>
+							</div>	
+						</div>	
+					</fieldset>	
+					{% endif %}	
+						
 						
 						<div class="row form-group">
 							<div class="col-md-2 ">
@@ -282,6 +295,9 @@
 
 				$('#show_mod_pending_phenotypes').prop("checked", false);
 				$('#show_mod_pending_phenotypes_hidden').val("0");
+				
+				$('#show_rejected_phenotypes').prop("checked", false);
+				$('#show_rejected_phenotypes_hidden').val("0");				
 
 				$('#phenotype_must_have_published_versions').prop("checked", false);
 				$('#phenotype_must_have_published_versions_hidden').val("0");

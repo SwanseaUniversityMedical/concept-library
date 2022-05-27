@@ -1,16 +1,16 @@
 import time
 import datetime
 
+from celery import shared_task
+
 from clinicalcode.api.views.Concept import published_concepts
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.mixins import \
-    LoginRequiredMixin  # , UserPassesTestMixin
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.mixins import LoginRequiredMixin  # , UserPassesTestMixin
+from django.contrib.auth.models import Group, User, AnonymousUser
 from django.core.paginator import EmptyPage, Paginator
 from django.db import transaction  # , models, IntegrityError
-from django.http import \
-    HttpResponseRedirect  # , StreamingHttpResponse, HttpResponseForbidden
+from django.http import HttpResponseRedirect  # , StreamingHttpResponse, HttpResponseForbidden
 from django.http.response import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
 #from django.core.urlresolvers import reverse_lazy, reverse
@@ -34,6 +34,8 @@ import os
 
 from django.core.exceptions import PermissionDenied
 from django.db import connection, connections  # , transaction
+from django.test import RequestFactory
+import csv
 
 
 
@@ -50,32 +52,30 @@ def run_statistics(request):
 
     if request.method == 'GET':
         stat = save_statistics(request)
-        return render(request, 'clinicalcode/admin/run_statistics.html', {
-            'successMsg': ['HDR-UK statistics saved'],
-            'stat': stat
-        })
+        return render(request, 'clinicalcode/admin/run_statistics.html', 
+                    {
+                        'successMsg': ['HDR-UK statistics saved'],
+                        'stat': stat
+                    })
 
 
 def save_statistics(request):
     stat = get_HDRUK_statistics(request)
 
-    if Statistics.objects.all().filter(org__iexact='HDRUK',
-                                       type__iexact='landing-page').exists():
-        HDRUK_stat = Statistics.objects.get(org__iexact='HDRUK',
-                                            type__iexact='landing-page')
+    if Statistics.objects.all().filter(org__iexact='HDRUK', type__iexact='landing-page').exists():
+        HDRUK_stat = Statistics.objects.get(org__iexact='HDRUK', type__iexact='landing-page')
         HDRUK_stat.stat = stat
-        HDRUK_stat.updated_by = [None,
-                                 request.user][request.user.is_authenticated]
+        HDRUK_stat.updated_by = [None, request.user][request.user.is_authenticated]
         HDRUK_stat.modified = datetime.datetime.now()
         HDRUK_stat.save()
 
         return [stat, HDRUK_stat.id]
     else:
-        obj, created = Statistics.objects.get_or_create(
-            org='HDRUK',
-            type='landing-page',
-            stat=stat,
-            created_by=[None, request.user][request.user.is_authenticated])
+        obj, created = Statistics.objects.get_or_create(org='HDRUK',
+                                                        type='landing-page',
+                                                        stat=stat,
+                                                        created_by=[None, request.user][request.user.is_authenticated]
+                                                        )
 
         return [stat, obj.id]
 
@@ -88,67 +88,42 @@ def get_HDRUK_statistics(request):
     HDRUK_brand_collection_ids = db_utils.get_brand_collection_ids('HDRUK')
     HDRUK_brand_collection_ids = [str(i) for i in HDRUK_brand_collection_ids]
 
-    HDRUK_published_concepts = db_utils.get_visible_live_or_published_concept_versions(
-        request,
-        get_live_and_or_published_ver=
-        2  # 1= live only, 2= published only, 3= live+published 
-        ,
-        exclude_deleted=True,
-        show_top_version_only=False,
-        force_brand='HDRUK',
-        force_get_live_and_or_published_ver=2  # get published data
-    )
+    HDRUK_published_concepts = db_utils.get_visible_live_or_published_concept_versions(request,
+                                                                                        get_live_and_or_published_ver=2,  # 1= live only, 2= published only, 3= live+published
+                                                                                        exclude_deleted=True,
+                                                                                        show_top_version_only=False,
+                                                                                        force_brand='HDRUK',
+                                                                                        force_get_live_and_or_published_ver=2  # get published data
+                                                                                    )
 
-    HDRUK_published_concepts_ids = db_utils.get_list_of_visible_entity_ids(
-        HDRUK_published_concepts, return_id_or_history_id="id")
+    HDRUK_published_concepts_ids = db_utils.get_list_of_visible_entity_ids(HDRUK_published_concepts, return_id_or_history_id="id")
 
-    HDRUK_published_concepts_id_version = db_utils.get_list_of_visible_entity_ids(
-        HDRUK_published_concepts, return_id_or_history_id="both")
+    HDRUK_published_concepts_id_version = db_utils.get_list_of_visible_entity_ids(HDRUK_published_concepts, return_id_or_history_id="both")
 
     #--------------------------
 
-    HDRUK_published_phenotypes = db_utils.get_visible_live_or_published_phenotype_versions(
-        request,
-        get_live_and_or_published_ver=
-        2  # 1= live only, 2= published only, 3= live+published
-        ,
-        exclude_deleted=True,
-        show_top_version_only=False,
-        force_brand='HDRUK',
-        force_get_live_and_or_published_ver=2  # get published data
-    )
+    HDRUK_published_phenotypes = db_utils.get_visible_live_or_published_phenotype_versions(request,
+                                                                                            get_live_and_or_published_ver=
+                                                                                            2,  # 1= live only, 2= published only, 3= live+published
+                                                                                            exclude_deleted=True,
+                                                                                            show_top_version_only=False,
+                                                                                            force_brand='HDRUK',
+                                                                                            force_get_live_and_or_published_ver=2  # get published data
+                                                                                        )
 
 
-    HDRUK_published_phenotypes_ids = db_utils.get_list_of_visible_entity_ids(
-        HDRUK_published_phenotypes, return_id_or_history_id="id")
+    HDRUK_published_phenotypes_ids = db_utils.get_list_of_visible_entity_ids(HDRUK_published_phenotypes, return_id_or_history_id="id")
 
 
 
     return {
         # ONLY PUBLISHED COUNTS HERE (count original entity, not versions)
-        'published_concept_count':
-        len(
-            HDRUK_published_concepts_ids
-        ),  
-        'published_phenotype_count':
-        len(
-            HDRUK_published_phenotypes_ids
-        ),  
-        'published_clinical_codes':
-        get_published_clinical_codes(HDRUK_published_concepts_id_version),
-        'datasources_component_count':
-        get_dataSources_count(HDRUK_published_phenotypes_ids
-                              ),  #    DataSource.objects.all().count(),
-        'clinical_terminologies':
-        get_codingSystems_count(
-            HDRUK_published_phenotypes
-        )  # number of coding systems used in published phenotypes
-
+        'published_concept_count': len(HDRUK_published_concepts_ids),
+        'published_phenotype_count': len(HDRUK_published_phenotypes_ids),
+        'published_clinical_codes': get_published_clinical_codes(HDRUK_published_concepts_id_version),
+        'datasources_component_count': get_dataSources_count(HDRUK_published_phenotypes_ids),  
+        'clinical_terminologies': get_codingSystems_count(HDRUK_published_phenotypes)  # number of coding systems used in published phenotypes
     }
-
-
-
-
 
 
 
@@ -161,14 +136,11 @@ def get_codingSystems_count(published_phenotypes):
 
     for p in published_phenotypes:
         if p['clinical_terminologies'] is not None:
-            coding_systems_ids = list(
-                set(coding_systems_ids + p['clinical_terminologies']))
+            coding_systems_ids = list(set(coding_systems_ids + p['clinical_terminologies']))
 
     unique_coding_systems_ids = list(set(coding_systems_ids))
     # make sure coding system exists
-    unique_coding_systems_ids_list = list(
-        CodingSystem.objects.filter(
-            id__in=unique_coding_systems_ids).values_list('id', flat=True))
+    unique_coding_systems_ids_list = list(CodingSystem.objects.filter(id__in=unique_coding_systems_ids).values_list('id', flat=True))
 
     return len(unique_coding_systems_ids_list)
 
@@ -178,22 +150,18 @@ def get_dataSources_count(published_phenotypes_ids):
         get only data-sources count used in (published) phenotypes
     """
 
-    ds_ids = PhenotypeDataSourceMap.objects.filter(
-        phenotype_id__in=published_phenotypes_ids).values(
-            'datasource_id').distinct()
+    ds_ids = PhenotypeDataSourceMap.objects.filter(phenotype_id__in=published_phenotypes_ids).values('datasource_id').distinct()
 
     unique_ds_ids = list(set([i['datasource_id'] for i in ds_ids]))
     # make sure data-source exists
-    unique_ds_ids_list = list(
-        DataSource.objects.filter(id__in=unique_ds_ids).values_list('id',
-                                                                    flat=True))
+    unique_ds_ids_list = list(DataSource.objects.filter(id__in=unique_ds_ids).values_list('id', flat=True))
 
     return len(unique_ds_ids_list)
 
 
 def get_published_clinical_codes(published_concepts_id_version):
     """
-        count (none distinct) the clinical codes 
+        count (none distinct) the clinical codes
         in published concepts and phenotypes
         (using directly published concepts of HDRUK
     """
@@ -207,8 +175,7 @@ def get_published_clinical_codes(published_concepts_id_version):
     #published_concepts_id_version = PublishedConcept.objects.values_list('concept_id' , 'concept_history_id')
     for c in published_concepts_id_version:
         #codecount = len(db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id = c[0], concept_history_id = c[1]))
-        codecount = get_published_concept_codecount(concept_id=c[0],
-                                                    concept_history_id=c[1])
+        codecount = get_published_concept_codecount(concept_id=c[0], concept_history_id=c[1])
         count = count + codecount
 
     return count
@@ -222,13 +189,10 @@ def get_published_concept_codecount(concept_id, concept_history_id):
 
     codecount = 0
 
-    published_concept = PublishedConcept.objects.get(
-        concept_id=concept_id, concept_history_id=concept_history_id)
+    published_concept = PublishedConcept.objects.get(concept_id=concept_id, concept_history_id=concept_history_id)
     saved_codecount = published_concept.code_count
     if saved_codecount is None or saved_codecount == '':
-        codecount = len(
-            db_utils.getGroupOfCodesByConceptId_HISTORICAL(
-                concept_id=concept_id, concept_history_id=concept_history_id))
+        codecount = len(db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id=concept_id, concept_history_id=concept_history_id))
         published_concept.code_count = codecount
         published_concept.save()
         return codecount
@@ -255,9 +219,10 @@ def run_statistics_collections(request):
         save_statistics_collections(request, 'concept', brand='ALL')
         save_statistics_collections(request, 'phenotype', brand='ALL')
 
-    return render(request, 'clinicalcode/admin/run_statistics.html', {
-        'successMsg': ['Collections for concepts/Phenotypes statistics saved'],
-    })
+    return render(request, 'clinicalcode/admin/run_statistics.html',
+                {
+                    'successMsg': ['Collections for concepts/Phenotypes statistics saved'],
+                })
 
 
 def save_statistics_collections(request, concept_or_phenotype, brand):
@@ -267,54 +232,40 @@ def save_statistics_collections(request, concept_or_phenotype, brand):
     """
 
     if concept_or_phenotype == 'concept':
-        concept_stat = get_brand_collections(request,
-                                             'concept',
-                                             force_brand=brand)
+        concept_stat = get_brand_collections(request, 'concept', force_brand=brand)
 
-        if Statistics.objects.all().filter(
-                org__iexact=brand,
-                type__iexact='concept_collections').exists():
-            concept_stat_update = Statistics.objects.get(
-                org__iexact=brand, type__iexact='concept_collections')
+        if Statistics.objects.all().filter(org__iexact=brand, type__iexact='concept_collections').exists():
+            concept_stat_update = Statistics.objects.get(org__iexact=brand, type__iexact='concept_collections')
             concept_stat_update.stat = concept_stat
-            concept_stat_update.updated_by = [None, request.user
-                                              ][request.user.is_authenticated]
+            concept_stat_update.updated_by = [None, request.user][request.user.is_authenticated]
             concept_stat_update.modified = datetime.datetime.now()
             concept_stat_update.save()
             return [concept_stat, concept_stat_update.id]
         else:
-            obj, created = Statistics.objects.get_or_create(
-                org=brand,
-                type='concept_collections',
-                stat=concept_stat,
-                created_by=[None, request.user][request.user.is_authenticated])
+            obj, created = Statistics.objects.get_or_create(org=brand,
+                                                            type='concept_collections',
+                                                            stat=concept_stat,
+                                                            created_by=[None, request.user][request.user.is_authenticated]
+                                                            )
             return [concept_stat, obj.id]
 
     else:
         if concept_or_phenotype == 'phenotype':
-            phenotype_stat = get_brand_collections(request,
-                                                   'phenotype',
-                                                   force_brand=brand)
+            phenotype_stat = get_brand_collections(request, 'phenotype', force_brand=brand)
 
-            if Statistics.objects.all().filter(
-                    org__iexact=brand,
-                    type__iexact='phenotype_collections').exists():
-                phenotype_stat_update = Statistics.objects.get(
-                    org__iexact=brand, type__iexact='phenotype_collections')
+            if Statistics.objects.all().filter(org__iexact=brand, type__iexact='phenotype_collections').exists():
+                phenotype_stat_update = Statistics.objects.get(org__iexact=brand, type__iexact='phenotype_collections')
                 phenotype_stat_update.stat = phenotype_stat
-                phenotype_stat_update.updated_by = [
-                    None, request.user
-                ][request.user.is_authenticated]
+                phenotype_stat_update.updated_by = [None, request.user][request.user.is_authenticated]
                 phenotype_stat_update.modified = datetime.datetime.now()
                 phenotype_stat_update.save()
                 return [phenotype_stat, phenotype_stat_update.id]
             else:
-                obj, created = Statistics.objects.get_or_create(
-                    org=brand,
-                    type='phenotype_collections',
-                    stat=phenotype_stat,
-                    created_by=[None,
-                                request.user][request.user.is_authenticated])
+                obj, created = Statistics.objects.get_or_create(org=brand,
+                                                                type='phenotype_collections',
+                                                                stat=phenotype_stat,
+                                                                created_by=[None, request.user][request.user.is_authenticated]
+                                                                )
                 return [phenotype_stat, obj.id]
 
 
@@ -329,48 +280,36 @@ def get_brand_collections(request, concept_or_phenotype, force_brand=None):
 
     if concept_or_phenotype == 'concept':
         # to be shown with login
-        data = db_utils.get_visible_live_or_published_concept_versions(
-            request,
-            get_live_and_or_published_ver=
-            3  # 1= live only, 2= published only, 3= live+published 
-            ,
-            exclude_deleted=False,
-            force_brand=force_brand,
-            force_get_live_and_or_published_ver=3  # get live + published data
-        )
+        data = db_utils.get_visible_live_or_published_concept_versions(request,
+                                                                        get_live_and_or_published_ver=3,  # 1= live only, 2= published only, 3= live+published 
+                                                                        exclude_deleted=False,
+                                                                        force_brand=force_brand,
+                                                                        force_get_live_and_or_published_ver=3  # get live + published data
+                                                                    )
 
         # to be shown without login - publish data only
-        data_published = db_utils.get_visible_live_or_published_concept_versions(
-            request,
-            get_live_and_or_published_ver=
-            2  # 1= live only, 2= published only, 3= live+published 
-            ,
-            exclude_deleted=True,
-            force_brand=force_brand,
-            force_get_live_and_or_published_ver=2  # get published data
-        )
+        data_published = db_utils.get_visible_live_or_published_concept_versions(request,
+                                                                                get_live_and_or_published_ver=2,  # 1= live only, 2= published only, 3= live+published 
+                                                                                exclude_deleted=True,
+                                                                                force_brand=force_brand,
+                                                                                force_get_live_and_or_published_ver=2  # get published data
+                                                                            )
     elif concept_or_phenotype == 'phenotype':
         # to be shown with login
-        data = db_utils.get_visible_live_or_published_phenotype_versions(
-            request,
-            get_live_and_or_published_ver=
-            3  # 1= live only, 2= published only, 3= live+published 
-            ,
-            exclude_deleted=False,
-            force_brand=force_brand,
-            force_get_live_and_or_published_ver=3  # get live + published data
-        )
+        data = db_utils.get_visible_live_or_published_phenotype_versions(request,
+                                                                        get_live_and_or_published_ver=3,  # 1= live only, 2= published only, 3= live+published 
+                                                                        exclude_deleted=False,
+                                                                        force_brand=force_brand,
+                                                                        force_get_live_and_or_published_ver=3  # get live + published data
+                                                                    )
 
         # to be shown without login - publish data only
-        data_published = db_utils.get_visible_live_or_published_phenotype_versions(
-            request,
-            get_live_and_or_published_ver=
-            2  # 1= live only, 2= published only, 3= live+published 
-            ,
-            exclude_deleted=True,
-            force_brand=force_brand,
-            force_get_live_and_or_published_ver=2  # get published data
-        )
+        data_published = db_utils.get_visible_live_or_published_phenotype_versions(request,
+                                                                                    get_live_and_or_published_ver=2,  # 1= live only, 2= published only, 3= live+published 
+                                                                                    exclude_deleted=True,
+                                                                                    force_brand=force_brand,
+                                                                                    force_get_live_and_or_published_ver=2  # get published data
+                                                                                )
 
     # Creation of two lists, one for all data and the other for published data
     Tag_List = []
@@ -386,14 +325,10 @@ def get_brand_collections(request, concept_or_phenotype, force_brand=None):
 
     # Create a list for both allData and published.
     unique_tags_ids = list(set(Tag_List))
-    unique_tags_ids_list = list(
-        Tag.objects.filter(id__in=unique_tags_ids,
-                           tag_type=2).values_list('id', flat=True))
+    unique_tags_ids_list = list(Tag.objects.filter(id__in=unique_tags_ids, tag_type=2).values_list('id', flat=True))
 
     unique_tags_ids_published = list(set(Tag_List_Published))
-    unique_tags_ids_published_list = list(
-        Tag.objects.filter(id__in=unique_tags_ids_published,
-                           tag_type=2).values_list('id', flat=True))
+    unique_tags_ids_published_list = list(Tag.objects.filter(id__in=unique_tags_ids_published, tag_type=2).values_list('id', flat=True))
 
     # Create two distinct dictionaries for both allData and published
     StatsDict_Published = {}
@@ -411,3 +346,86 @@ def get_brand_collections(request, concept_or_phenotype, force_brand=None):
     StatsDictFinal.append(StatsDict_Published.copy())
 
     return StatsDictFinal
+
+
+@shared_task(bind=True)
+def run_celery_statistics(self):
+    request_factory = RequestFactory()
+    my_url = r'^admin/run-stat/$'
+    request = request_factory.get(my_url)
+    request.user = AnonymousUser()
+
+
+    request.CURRENT_BRAND = ''
+    if request.method == 'GET':
+        stat = save_statistics(request)
+        # print("Celery_statistics finished" + str(stat))
+        return True, stat
+
+@shared_task(bind=True)
+def run_celery_collections(self):
+    request_factory = RequestFactory()
+    my_url = r'^admin/run-collections/$'
+    request = request_factory.get(my_url)
+    request.user = AnonymousUser()
+    request.CURRENT_BRAND = ''
+
+    brands = Brand.objects.all()
+    brand_list = list(brands.values_list('name', flat=True))
+
+    if request.method == 'GET':
+        for brand in brand_list:
+            save_statistics_collections(request, 'concept', brand)
+            save_statistics_collections(request, 'phenotype', brand)
+
+        # save for all data
+        stat1 = save_statistics_collections(request, 'concept', brand='ALL')
+        stat2 = save_statistics_collections(request, 'phenotype', brand='ALL')
+        # print("Celery_collections finished")
+        return True, stat1+stat2
+
+
+
+@login_required
+def get_caliberresearch_url_source(request):
+    """
+        Return a csv file of HDRUK caliberresearch portal url source
+    """
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+
+    phenotypes = db_utils.get_visible_live_or_published_phenotype_versions(request,
+                                                                            get_live_and_or_published_ver=2,  # 1= live only, 2= published only, 3= live+published 
+                                                                            exclude_deleted=True,
+                                                                            force_brand='HDRUK',
+                                                                            force_get_live_and_or_published_ver=2  # get published data
+                                                                        )
+
+    phenotypes_ids = db_utils.get_list_of_visible_entity_ids(phenotypes, return_id_or_history_id="id")
+    
+    HDRUK_phenotypes = Phenotype.objects.filter(id__in = phenotypes_ids)
+    HDRUK_phenotypes.exclude(source_reference__isnull=True).exclude(source_reference__exact='')
+    caliber_urls = list(HDRUK_phenotypes.values_list('source_reference', flat=True))
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="HDRUK_caliberresearch_url_source.csv"'
+    writer = csv.writer(response)
+
+    titles = ['portal.caliberresearch.org', 'phenotypes.healthdatagateway.org']
+    writer.writerow(titles)
+
+
+    for url in caliber_urls:
+        #CL_url_base = "https://conceptlibrary.saildatabank.com/HDRUK/old/phenotypes/"
+        CL_url_base = "https://phenotypes.healthdatagateway.org/old/phenotypes/"
+        redirect_url = CL_url_base + url.split('/')[-1]
+    
+        writer.writerow([url, redirect_url])
+
+    return response
+
+    
+    
+    
+    

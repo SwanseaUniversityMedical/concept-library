@@ -61,11 +61,12 @@
 {% block content %}
 	{% for phenotype in page_obj.object_list %}
 			<div class="cl-card {% if phenotype.is_deleted is True %} cl-card-deleted{% endif %} {% cycle ' dark-div ' '' %}   "
-                        {% if phenotype.is_approved == 1 and phenotype.created_by_id == request.user.id or request.user|has_group:"Moderators" and phenotype.is_approved == 1 %}title="Waiting for approval"{% endif %}>
+                        {% if phenotype.approval_status == 1 and phenotype.owner_id == request.user.id or request.user|has_group:"Moderators" and phenotype.approval_status == 1 %}title="Waiting for approval"{% endif %}>
 				<div class="row form-group">
 					<div class="col-sm-12">
 						{% if user.is_authenticated and phenotype.is_published != 1 %}
-							<a class="" href="{% url 'phenotype_detail' phenotype.id %}">
+<!-- 							<a class="" href="{% url 'phenotype_detail' phenotype.id %}"> -->
+							<a class="" href="{% url 'phenotype_history_detail' phenotype.id phenotype.history_id %}">
 						{% else %}
 							<a class="" href="{% url 'phenotype_history_detail' phenotype.id phenotype.history_id %}">
 						{% endif %}

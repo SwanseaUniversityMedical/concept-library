@@ -640,7 +640,7 @@ def api_concept_update(request):
         is_valid = True
 
         concept_id = request.data.get('id')
-        is_valid_id, err, ret_int_id = chk_valid_id(request, Concept, concept_id)
+        is_valid_id, err, ret_int_id = chk_valid_id(request, Concept, concept_id, chk_permission=True)
         if is_valid_id:
             concept_id = ret_int_id
         else:

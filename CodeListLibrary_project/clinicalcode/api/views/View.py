@@ -761,8 +761,8 @@ def publish_entity(request, set_class, pk):
                                                 phenotype=phenotype,
                                                 phenotype_history_id=latest_version_id,
                                                 created_by=request.user,
-                                                is_approved=2,
-                                                approved_by=request.user
+                                                approval_status=2,
+                                                moderator=request.user
                                                 )
         published_phenotype.save()
         return True
@@ -770,7 +770,7 @@ def publish_entity(request, set_class, pk):
     return False
 
 
-def chk_valid_id(request, set_class, pk):
+def chk_valid_id(request, set_class, pk, chk_permission=False):
     """
         check for valid id of Concepts / Phenotypes / working sets
         passed to the API.
@@ -805,10 +805,10 @@ def chk_valid_id(request, set_class, pk):
         is_valid_id = False
         err = 'ID not found.'
 
-
-    if not allowed_to_edit(request, set_class, int_pk):
-        is_valid_id = False
-        err = 'ID must be of a valid accessible entity.'
+    if chk_permission:
+        if not allowed_to_edit(request, set_class, int_pk):
+            is_valid_id = False
+            err = 'ID must be of a valid accessible entity.'
 
 
     if is_valid_id:

@@ -49,7 +49,7 @@ class Phenotype(TimeStampedModel):
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="phenotype_created")
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="phenotype_updated")
     is_deleted = models.NullBooleanField()
-    #is_approved = models.NullBooleanField(default=False)
+
     deleted = models.DateTimeField(null=True, blank=True)
     deleted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="phenotype_deleted")
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="phenotype_owned")

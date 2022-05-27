@@ -213,7 +213,7 @@ def api_phenotype_update(request):
         is_valid = True
 
         phenotype_id = request.data.get('id')
-        is_valid_id, err, ret_int_id = chk_valid_id(request, Phenotype, phenotype_id)
+        is_valid_id, err, ret_int_id = chk_valid_id(request, Phenotype, phenotype_id, chk_permission=True)
         if is_valid_id:
             phenotype_id = ret_int_id
         else:
