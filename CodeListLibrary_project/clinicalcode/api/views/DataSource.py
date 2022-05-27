@@ -30,6 +30,7 @@ from drf_yasg.utils import swagger_auto_schema
 def api_datasource_create(request):
     if not request.user.is_superuser:
         raise PermissionDenied
+    
     if is_member(request.user, group_name='ReadOnlyUsers'):
         raise PermissionDenied
 
@@ -143,23 +144,16 @@ def get_data_sources(request,
 
     # --- when in a brand, show only this brand's data
     # get only brands used inside the phenotypes of the current brand (or all, if no brand)
-    phenotypes = get_visible_live_or_published_phenotype_versions(
-                                                    request,
-                                                    get_live_and_or_published_ver=
-                                                    live_and_or_published_ver  # 1= live only, 2= published only, 3= live+published 
-                                                    ,
-                                                    exclude_deleted=True,
-                                                    show_top_version_only=[False, True][get_live_phenotypes],
-                                                    force_get_live_and_or_published_ver=live_and_or_published_ver)
+    phenotypes = get_visible_live_or_published_phenotype_versions(request,
+                                                                get_live_and_or_published_ver=live_and_or_published_ver,  # 1= live only, 2= published only, 3= live+published 
+                                                                exclude_deleted=True,
+                                                                show_top_version_only=[False, True][get_live_phenotypes],
+                                                                force_get_live_and_or_published_ver=live_and_or_published_ver
+                                                                )
 
     phenotypes_ids = get_list_of_visible_entity_ids(phenotypes, return_id_or_history_id="id")
 
-    datasource_ids = list(
-        set(
-            list(
-                PhenotypeDataSourceMap.history.filter(
-                    phenotype_id__in=phenotypes_ids).values_list(
-                        'datasource_id', flat=True))))
+    datasource_ids = list(set(list(PhenotypeDataSourceMap.history.filter(phenotype_id__in=phenotypes_ids).values_list('datasource_id', flat=True))))
 
     queryset = DataSource.objects.filter(id__in=datasource_ids)
 
@@ -184,16 +178,16 @@ def get_data_sources(request,
         ]
         if get_live_phenotypes:
             ret.append(
-                get_LIVE_phenotypes_associated_with_data_source(
-                                                                ds.id,
+                get_LIVE_phenotypes_associated_with_data_source(ds.id,
                                                                 phenotypes_ids,
-                                                                show_published_data_only=show_published_data_only))
+                                                                show_published_data_only=show_published_data_only)
+                                                                )
         else:
             ret.append(
-                get_HISTORICAl_phenotypes_associated_with_data_source(
-                                                                ds.id,
-                                                                phenotypes_ids,
-                                                                show_published_data_only=show_published_data_only))
+                get_HISTORICAl_phenotypes_associated_with_data_source(ds.id,
+                                                                      phenotypes_ids,
+                                                                      show_published_data_only=show_published_data_only)
+                                                                    )
 
         rows_to_return.append(ordr(list(zip(titles, ret))))
 
@@ -208,13 +202,7 @@ def get_LIVE_phenotypes_associated_with_data_source(
         data_source_id, brand_phenotypes_ids, show_published_data_only=False):
 
     # return LIVE phenotypes associated with data_source
-    phenotype_ids = list(
-        set(
-            list(
-                PhenotypeDataSourceMap.objects.filter(
-                    datasource_id=data_source_id,
-                    phenotype_id__in=brand_phenotypes_ids).values_list(
-                        'phenotype_id', flat=True))))
+    phenotype_ids = list(set(list(PhenotypeDataSourceMap.objects.filter(datasource_id=data_source_id, phenotype_id__in=brand_phenotypes_ids).values_list('phenotype_id', flat=True))))
     phenotypes = Phenotype.objects.filter(id__in=phenotype_ids).order_by('name')
 
     rows_to_return = []
@@ -244,13 +232,7 @@ def get_HISTORICAl_phenotypes_associated_with_data_source(
         data_source_id, brand_phenotypes_ids, show_published_data_only=False):
 
     # return HISTORICAl phenotypes associated with data_source
-    associated_phenotype_ids = list(
-        set(
-            list(
-                PhenotypeDataSourceMap.history.filter(
-                    datasource_id=data_source_id,
-                    phenotype_id__in=brand_phenotypes_ids).values_list(
-                        'phenotype_id', flat=True))))
+    associated_phenotype_ids = list(set(list(PhenotypeDataSourceMap.history.filter(datasource_id=data_source_id, phenotype_id__in=brand_phenotypes_ids).values_list('phenotype_id', flat=True))))
 
     ver_to_return = []
     rows_to_return = []
