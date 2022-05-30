@@ -3666,11 +3666,10 @@ def getConceptCodes_withAttributes_HISTORICAL(concept_id, concept_history_date,
 
     code_attributes = []
     if code_attribute_header:
-        code_attributes = getHistory_ConceptCodeAttribute(
-            concept_id,
-            concept_history_date,
-            code_attribute_header,
-            expand_attrs_into_cols=True)
+        code_attributes = getHistory_ConceptCodeAttribute(  concept_id,
+                                                            concept_history_date,
+                                                            code_attribute_header,
+                                                            expand_attrs_into_cols=True)
 
     if not code_attributes:
         return allCodes
@@ -3700,9 +3699,7 @@ def get_brand_collection_ids(brand_name):
 
     if Brand.objects.all().filter(name__iexact=brand_name).exists():
         brand = Brand.objects.get(name__iexact=brand_name)
-        brand_collection_ids = list(
-            Tag.objects.filter(collection_brand=brand.id).values_list(
-                'id', flat=True))
+        brand_collection_ids = list(Tag.objects.filter(collection_brand=brand.id).values_list('id', flat=True))
 
         return brand_collection_ids
     else:
