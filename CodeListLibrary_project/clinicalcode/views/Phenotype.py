@@ -1049,7 +1049,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
             self.send_email_decision(phenotype,approval_status)
             return data
 
-        elif len(PublishedPhenotype.objects.filter(phenotype = Phenotype.objects.get(pk=pk).id,approval_status=2))>0:
+        elif len(PublishedPhenotype.objects.filter(phenotype = Phenotype.objects.get(pk=pk).id,approval_status=2))>0 and not approval_status == 3:
             data['message'] = render_to_string('clinicalcode/phenotype/published.html', 
                                                {
                                                 'id': pk,
@@ -1141,6 +1141,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                     approval_status = 3
                     phenotype = Phenotype.objects.get(pk=pk)
                     published_phenotype = PublishedPhenotype.objects.get(phenotype_id=phenotype, phenotype_history_id=phenotype_history_id)
+                    published_phenotype.moderator = request.user
                     published_phenotype.approval_status = approval_status
                     published_phenotype.save()
 
@@ -1164,6 +1165,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                     'latest_history_ID'] = phenotype_history_id  # phenotype.history.latest().pk
                 data['approval_status'] = approval_status
 
+
                 list_published_id = []
                 if data['approval_status'] == 2:
                   list_published_id =list(PublishedPhenotype.objects.filter(phenotype_id=pk, approval_status=2).values_list('phenotype_history_id', flat=True))
@@ -1180,6 +1182,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                     request=self.request)
 
                 data['message'] = self.send_message(pk, phenotype_history_id, data, phenotype, approval_status, is_moderator)['message']
+                print(data['message'])
 
 
         except Exception as e:
