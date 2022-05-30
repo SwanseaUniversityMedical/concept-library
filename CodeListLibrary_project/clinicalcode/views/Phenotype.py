@@ -1182,7 +1182,7 @@ class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
                     request=self.request)
 
                 data['message'] = self.send_message(pk, phenotype_history_id, data, phenotype, approval_status, is_moderator)['message']
-                print(data['message'])
+
 
 
         except Exception as e:
