@@ -3,8 +3,6 @@ import unittest
 from datetime import datetime
 from urllib.parse import urlparse
 
-
-
 from clinicalcode.models import Brand
 from clinicalcode.models.Code import Code
 from clinicalcode.models.CodeList import CodeList
