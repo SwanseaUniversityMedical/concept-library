@@ -78,33 +78,39 @@ def create_or_update_internal_datasources():
     }
     for uid, datasource in hdruk_datasources.items():
         try:
-            internal_datasource = DataSource.objects.get(Q(uid__iexact=uid))
+            internal_datasource = DataSource.objects.filter(Q(uid__iexact=uid) | Q(name__iexact=datasource['name']))
         except DataSource.DoesNotExist:
             internal_datasource = False
+        
+        if internal_datasource:
+            for internal in internal_datasource:
+                if internal.source == 'HDRUK':
+                    update_uid = internal.uid != uid
+                    update_name = internal.name != datasource['name']
+                    update_url = internal.url != datasource['url']
+                    update_description = internal.description != datasource['description'][:500]
 
-        if internal_datasource and internal_datasource.source == 'HDRUK':
-            update_name = internal_datasource.name != datasource['name']
-            update_url = internal_datasource.url != datasource['url']
-            update_description = internal_datasource.description != datasource['description'][:500]
+                    if update_uid or update_name or update_url or update_description:
+                        internal.uid = uid
+                        internal.name = datasource['name']
+                        internal.url = datasource['url']
+                        internal.description = datasource['description']
+                        internal.save()
 
-            if update_name or update_url or update_description:
-                internal_datasource.uid = uid
-                internal_datasource.name = datasource['name']
-                internal_datasource.url = datasource['url']
-                internal_datasource.description = datasource['description'][:500]
-                internal_datasource.save()
-
-                results['updated'].append({
-                    'uid': uid,
-                    'name': datasource['name']
-                })
+                        results['updated'].append({
+                            'uid': uid,
+                            'name': datasource['name']
+                        })
         else:
             new_datasource = DataSource()
             new_datasource.uid = uid
             new_datasource.name = datasource['name']
             new_datasource.url = datasource['url']
-            new_datasource.description = datasource['description'][:500]
+            new_datasource.description = datasource['description']
             new_datasource.source = 'HDRUK'
+            new_datasource.save()
+
+            new_datasource.datasource_id = new_datasource.id
             new_datasource.save()
 
             results['created'].append({
