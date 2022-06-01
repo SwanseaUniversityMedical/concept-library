@@ -1,3 +1,4 @@
+from sqlalchemy import true
 from clinicalcode.models.Brand import Brand
 from clinicalcode.models.TimeStampedModel import TimeStampedModel
 from django.contrib.auth.models import User
@@ -14,7 +15,7 @@ class DataSource(TimeStampedModel):
     name = models.CharField(max_length=500)
     uid = models.CharField(max_length=250, null=True, blank=True)
     url = models.CharField(max_length=500, null=True, blank=True)
-    description = models.CharField(max_length=500, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
     created_by = models.ForeignKey(User,
                                    on_delete=models.SET_NULL,
                                    null=True,
