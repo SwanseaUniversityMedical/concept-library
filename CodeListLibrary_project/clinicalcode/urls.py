@@ -77,6 +77,7 @@ if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_P
 # saving statistics
 if not settings.CLL_READ_ONLY:
     urlpatterns += [
+        url(r'^admin/run-datasource-sync/$', Admin.run_datasource_sync, name='datasource_sync'),# Datasource sync
         url(r'^admin/run-stat/$',  Admin.run_statistics, name='HDRUK_run_statistics'),# HDRUK stat
         url(r'^admin/run-stat-collections/$', Admin.run_statistics_collections, name='collections_run_statistics'),# collections filter stat
     ]

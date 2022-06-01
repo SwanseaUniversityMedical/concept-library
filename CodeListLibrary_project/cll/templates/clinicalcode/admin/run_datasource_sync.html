@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+	Run Datasource Sync - Admin Only
+{% endblock title %}
+
+{% block container %}
+
+{% if request.user.is_superuser %}
+	<h2><i class="fa fa-file-text-o" aria-hidden="true"></i> Run Datasource Sync</h2>
+	{% if errorMsg %}
+		<div class="bs-example">
+		    <div class="alert alert-danger fade in">
+		        <a href="#" class="close" data-dismiss="alert">&times;</a>
+		        <strong>Errors!</strong>
+				<br>
+		        <ul>
+		            {% for error in errorMsg %}
+	                	<li>{{ error|safe }}</li> 			                		            	                 
+		            {% endfor %}
+		        </ul>
+		    </div>
+		</div>
+	{% endif %}
+	
+	{% if successMsg %}
+		<div class="bs-example">
+		    <div class="alert alert-success fade in">
+		        <a href="#" class="close" data-dismiss="alert">&times;</a>
+		        <strong>Success!</strong>
+		        <br>
+		        <ul>
+		            {% for msg in successMsg %}
+		            <li>{{ msg|safe }}</li>
+		            {% endfor %}
+		        </ul>
+		    </div>
+		</div>
+	{% endif %}	
+	
+	<div class="panel panel-default">
+		<div class="panel-body">
+			<div class="row">
+				<div class="col-md-12">	
+				
+					{% if results and results.created %}
+					<div class="bs-example"> 
+					    <div class="alert alert-success fade in">
+					        <a href="#" class="close" data-dismiss="alert">&times;</a>
+					        <strong>Created:</strong>
+					        <br>
+					        <ul>
+					            {% for created in result.created %}
+					            	<li>{{ created|safe }}</li>            
+					            {% endfor %}
+					        </ul>
+					    </div>
+					</div>
+					{% endif %}	
+				
+					{% if results and results.updated %}
+					<div class="bs-example"> 
+					    <div class="alert alert-success fade in">
+					        <a href="#" class="close" data-dismiss="alert">&times;</a>
+					        <strong>Updated:</strong>
+					        <br>
+					        <ul>
+					            {% for updated in result.updated %}
+					            	<li>{{ updated|safe }}</li>            
+					            {% endfor %}
+					        </ul>
+					    </div>
+					</div>
+					{% endif %}	
+
+				</div>
+			</div>
+		</div>
+	</div>
+{% endif %}				
+
+
+{% endblock container %}
+
+
+{% block scripts %}
+
+{% endblock scripts %}

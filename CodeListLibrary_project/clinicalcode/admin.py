@@ -52,10 +52,11 @@ class BrandAdmin(admin.ModelAdmin):
 
 
 @admin.register(DataSource)
-class DataSourceAdmin(admin.ModelAdmin):
-    list_display = ['id', 'datasource_id', 'name', 'uid', 'url', 'created_by', 'updated_by']  #, 'description'
-    list_filter = ['name']
-    search_fields = ['name', 'url', 'uid', 'datasource_id', 'description']
+class DataSourceAdmin(admin.ModelAdmin):    
+    list_display = ['id', 'name', 'uid', 'url', 'created_by',
+                    'updated_by', 'source']
+    list_filter = ['source']
+    search_fields = ['name', 'url', 'uid']
     exclude = []
 
 @admin.register(CodingSystem)
