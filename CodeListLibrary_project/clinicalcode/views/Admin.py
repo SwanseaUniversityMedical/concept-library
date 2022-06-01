@@ -37,7 +37,103 @@ from django.db import connection, connections  # , transaction
 from django.test import RequestFactory
 import csv
 
+##### Datasources
+def get_hdruk_datasources():
+    try:
+        result = requests.get(
+            'https://api.www.healthdatagateway.org/api/v2/datasets?activeflag=active',
+            proxies={
+                'http': '' if settings.IS_DEVELOPMENT_PC else 'http://proxy:8080/',
+                'https': '' if settings.IS_DEVELOPMENT_PC else 'http://proxy:8080/'
+            }
+        )
+    except Exception as e:
+        return {}, 'Unable to sync HDRUK datasources, failed to reach api'
 
+    datasources = {}
+    if result.status_code == 200:
+        datasets = json.loads(result.content)['datasets']
+
+        for dataset in datasets:
+            dataset_name = dataset['datasetv2']['summary']['title'].strip()
+            dataset_uid = dataset['pid'].strip()
+            dataset_url = 'https://web.www.healthdatagateway.org/dataset/%s' % dataset_uid
+            dataset_description = dataset['datasetv2']['summary']['abstract'].strip()
+
+            datasources[dataset_uid] = {
+                'name': dataset_name if dataset_name != '' else dataset['datasetfields']['metadataquality']['title'].strip(),
+                'url': dataset_url,
+                'description': dataset_description
+            }
+    return datasources, None
+
+def create_or_update_internal_datasources():
+    hdruk_datasources, error_message = get_hdruk_datasources()
+    if error_message:
+        return error_message
+
+    results = {
+        'created': [],
+        'updated': []
+    }
+    for uid, datasource in hdruk_datasources.items():
+        try:
+            internal_datasource = DataSource.objects.get(Q(uid__iexact=uid))
+        except DataSource.DoesNotExist:
+            internal_datasource = False
+
+        if internal_datasource and internal_datasource.source == 'HDRUK':
+            update_name = internal_datasource.name != datasource['name']
+            update_url = internal_datasource.url != datasource['url']
+            update_description = internal_datasource.description != datasource['description'][:500]
+
+            if update_name or update_url or update_description:
+                internal_datasource.uid = uid
+                internal_datasource.name = datasource['name']
+                internal_datasource.url = datasource['url']
+                internal_datasource.description = datasource['description'][:500]
+                internal_datasource.save()
+
+                results['updated'].append({
+                    'uid': uid,
+                    'name': datasource['name']
+                })
+        else:
+            new_datasource = DataSource()
+            new_datasource.uid = uid
+            new_datasource.name = datasource['name']
+            new_datasource.url = datasource['url']
+            new_datasource.description = datasource['description'][:500]
+            new_datasource.source = 'HDRUK'
+            new_datasource.save()
+
+            results['created'].append({
+                'uid': uid,
+                'name': datasource['name']
+            })
+    return results
+
+def run_datasource_sync(request):
+    if settings.CLL_READ_ONLY:
+        raise PermissionDenied
+    
+    if request.method == 'GET':
+        results = create_or_update_internal_datasources()
+        
+        message = {
+            'successMsg': ['HDR-UK datasources synced'],
+            'result': results
+        }
+        if isinstance(results, str):
+            message = {
+                'errorMsg': [results]
+            }
+
+        return render(
+            request, 
+            'clinicalcode/admin/run_datasource_sync.html', 
+            message
+        )
 
 def run_statistics(request):
 
