@@ -1,4 +1,3 @@
-from sqlalchemy import true
 from clinicalcode.models.Brand import Brand
 from clinicalcode.models.TimeStampedModel import TimeStampedModel
 from django.contrib.auth.models import User
