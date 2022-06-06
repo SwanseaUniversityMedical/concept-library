@@ -293,7 +293,7 @@ def export_concept_codes(request, pk):
 @api_view(['GET'])
 @authentication_classes([])
 @permission_classes([])
-def export_published_concept_codes(request, pk, concept_history_id):
+def export_published_concept_codes(request, pk, concept_history_id=None):
     '''
         Return the unique set of codes and descriptions for the specified
         concept (pk),
@@ -307,6 +307,11 @@ def export_published_concept_codes(request, pk, concept_history_id):
         if not Concept.history.filter(id=pk, history_id=concept_history_id).exists():
             raise PermissionDenied
 
+    if concept_history_id is None:
+        latest_published_version = PublishedConcept.objects.filter(concept_id=pk).order_by('-concept_history_id').first()
+        if latest_published_version:
+            concept_history_id = latest_published_version.concept_history_id
+        
     is_published = PublishedConcept.objects.filter(concept_id=pk, concept_history_id=concept_history_id).exists()
     # check if the concept version is published
     if not is_published:

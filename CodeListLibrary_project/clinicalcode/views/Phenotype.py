@@ -692,10 +692,14 @@ class PhenotypeDelete(LoginRequiredMixin, HasAccessToEditPhenotypeCheckMixin,
     pass
 
 
-def history_phenotype_codes_to_csv(request, pk, phenotype_history_id):
+def history_phenotype_codes_to_csv(request, pk, phenotype_history_id=None):
     """
         Return a csv file of codes for a phenotype for a specific historical version.
     """
+    if phenotype_history_id is None:
+        # get the latest version
+        phenotype_history_id = Phenotype.objects.get(pk=pk).history.latest().history_id
+        
     # validate access for login and public site
     validate_access_to_view(request,
                             Phenotype,

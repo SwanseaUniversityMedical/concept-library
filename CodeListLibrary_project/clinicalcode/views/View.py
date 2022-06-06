@@ -55,13 +55,6 @@ def index_HDRUK(request):
         stat = Statistics.objects.get(org__iexact='HDRUK', type__iexact='landing-page')
         HDRUK_stat = stat.stat
 
-
-#         last_updated = stat.modified.date()
-#         current_date = datetime.datetime.now().date()
-#         if current_date > last_updated:
-#             # update stat
-#             stat_obj = save_statistics(request)
-#             HDRUK_stat = stat_obj[0]
     else:
         # update stat
         stat_obj = save_statistics(request)
@@ -102,43 +95,28 @@ def about_pages(request, pg_name=None):
 # HDR-UK about pages
     if request.CURRENT_BRAND == "HDRUK":
         if pg_name.lower() == "hdruk_about_the_project".lower():
-            return render(
-                request,
-                'clinicalcode/brand/HDRUK/about/about-the-project.html', {})
+            return render(request, 'clinicalcode/brand/HDRUK/about/about-the-project.html', {})
 
         elif pg_name.lower() == "hdruk_about_team".lower():
-            return render(request, 'clinicalcode/brand/HDRUK/about/team.html',
-                          {})
+            return render(request, 'clinicalcode/brand/HDRUK/about/team.html', {})
 
         elif pg_name.lower() == "hdruk_about_technical_details".lower():
-            return render(
-                request,
-                'clinicalcode/brand/HDRUK/about/technical-details.html', {})
+            return render(request, 'clinicalcode/brand/HDRUK/about/technical-details.html', {})
 
         elif pg_name.lower() == "hdruk_about_covid_19_response".lower():
-            return render(
-                request,
-                'clinicalcode/brand/HDRUK/about/covid-19-response.html', {})
+            return render(request, 'clinicalcode/brand/HDRUK/about/covid-19-response.html', {})
 
         elif pg_name.lower() == "hdruk_about_publications".lower():
-            return render(request,
-                          'clinicalcode/brand/HDRUK/about/publications.html',
-                          {})
+            return render(request, 'clinicalcode/brand/HDRUK/about/publications.html', {})
 
 #         elif pg_name.lower() == "hdruk_terms".lower():
 #             return render(request, 'cl-docs/terms-conditions.html', {})
 
         elif pg_name.lower() == "breathe".lower():
-            return render(request,
-                          'clinicalcode/brand/HDRUK/collections/breathe.html',
-                          {})
+            return render(request, 'clinicalcode/brand/HDRUK/collections/breathe.html', {})
 
         elif pg_name.lower() == "bhf_data_science_centre".lower():
-            return render(
-                request,
-                'clinicalcode/brand/HDRUK/collections/bhf-data-science-centre.html',
-                {})
-
+            return render(request, 'clinicalcode/brand/HDRUK/collections/bhf-data-science-centre.html', {})
 
 #     else:
 #         return render(request, 'clinicalcode/index.html', {})
@@ -275,102 +253,50 @@ def customRoot(request):
 
     urls_available = {
         'export_concept_codes': reverse('api:api_export_concept_codes', kwargs={'pk': 0}),
-        'export_concept_codes_byVersionID': reverse('api:api_export_concept_codes_byVersionID',
-                kwargs={
-                    'pk': 0,
-                    'concept_history_id': 123
-                }),
-        'api_export_published_concept_codes': reverse('api:api_export_published_concept_codes',
-                kwargs={
-                    'pk': 0,
-                    'concept_history_id': 123
-                }),
+        'export_concept_codes_byVersionID': reverse('api:api_export_concept_codes_byVersionID', kwargs={'pk': 0, 'concept_history_id': 123}),
+        'api_export_published_concept_codes_latestVersion': reverse('api:api_export_published_concept_codes_latestVersion', kwargs={'pk': 0}),
+        'api_export_published_concept_codes': reverse('api:api_export_published_concept_codes', kwargs={'pk': 0, 'concept_history_id': 123}),
         'concepts': reverse('api:concepts', kwargs={}),
         'api_concept_detail': reverse('api:api_concept_detail', kwargs={'pk': 0}),
-        'api_concept_detail_version': reverse('api:api_concept_detail_version',
-                kwargs={
-                    'pk': 0,
-                    'concept_history_id': 123
-                }),
+        'api_concept_detail_version': reverse('api:api_concept_detail_version', kwargs={'pk': 0, 'concept_history_id': 123}),
         'api_published_concepts': reverse('api:api_published_concepts', kwargs={}),
         'api_concept_detail_public': reverse('api:api_concept_detail_public', kwargs={'pk': 0}),
-        'api_concept_detail_version_public': reverse('api:api_concept_detail_version_public',
-                kwargs={
-                    'pk': 0,
-                    'concept_history_id': 123
-                }),
+        'api_concept_detail_version_public': reverse('api:api_concept_detail_version_public', kwargs={'pk': 0, 'concept_history_id': 123}),
         'get_concept_versions': reverse('api:get_concept_versions', kwargs={'pk': 0}),
         'get_concept_versions_public': reverse('api:get_concept_versions_public', kwargs={'pk': 0}),
         'concept_by_id': reverse('api:concept_by_id', kwargs={'pk': 0}),
         'api_published_concept_by_id': reverse('api:api_published_concept_by_id', kwargs={'pk': 0}),
         'export_workingset_codes': reverse('api:api_export_workingset_codes', kwargs={'pk': 0}),
-        'export_workingset_codes_byVersionID': reverse('api:api_export_workingset_codes_byVersionID',
-                kwargs={
-                    'pk': 0,
-                    'workingset_history_id': 123
-                }),
+        'export_workingset_codes_byVersionID': reverse('api:api_export_workingset_codes_byVersionID', kwargs={'pk': 0, 'workingset_history_id': 123}),
         'workingsets': reverse('api:workingsets', kwargs={}),
         'api_workingset_detail': reverse('api:api_workingset_detail', kwargs={'pk': 0}),
-        'api_workingset_detail_version': reverse('api:api_workingset_detail_version',
-                kwargs={
-                    'pk': 0,
-                    'workingset_history_id': 123
-                }),
+        'api_workingset_detail_version': reverse('api:api_workingset_detail_version', kwargs={'pk': 0, 'workingset_history_id': 123}),
         'get_workingset_versions': reverse('api:get_workingset_versions', kwargs={'pk': 0}),
         'workingset_by_id': reverse('api:workingset_by_id', kwargs={'pk': 0}),
 
         # not implemented yet, will be done when creating/updating phenotype
         #'export_phenotype_codes': reverse('api:api_export_phenotype_codes', kwargs={'pk': 0}),
-        'api_export_phenotype_codes_byVersionID': reverse('api:api_export_phenotype_codes_byVersionID',
-                kwargs={
-                    'pk': 0,
-                    'phenotype_history_id': 123
-                }),
+        'api_export_phenotype_codes_byVersionID': reverse('api:api_export_phenotype_codes_byVersionID', kwargs={'pk': 0, 'phenotype_history_id': 123}),
         'phenotypes': reverse('api:phenotypes', kwargs={}),
         'api_phenotype_detail': reverse('api:api_phenotype_detail', kwargs={'pk': 0}),
-        'api_phenotype_detail_version': reverse('api:api_phenotype_detail_version',
-                kwargs={
-                    'pk': 0,
-                    'phenotype_history_id': 123
-                }),
+        'api_phenotype_detail_version': reverse('api:api_phenotype_detail_version', kwargs={'pk': 0, 'phenotype_history_id': 123}),
         'api_published_phenotypes': reverse('api:api_published_phenotypes', kwargs={}),
         # not needed to be public
         #'api_phenotype_detail_public': reverse('api:api_phenotype_detail_public', kwargs={'pk': 0}),
-        'api_phenotype_detail_version_public': reverse('api:api_phenotype_detail_version_public',
-                kwargs={
-                    'pk': 0,
-                    'phenotype_history_id': 123
-                }),
-        'api_export_published_phenotype_codes': reverse('api:api_export_published_phenotype_codes',
-                kwargs={
-                    'pk': 0,
-                    'phenotype_history_id': 123
-                }),
+        'api_phenotype_detail_version_public': reverse('api:api_phenotype_detail_version_public', kwargs={'pk': 0, 'phenotype_history_id': 123}),
+        'api_export_published_phenotype_codes_latestVersion': reverse('api:api_export_published_phenotype_codes_latestVersion', kwargs={'pk': 0}),
+        'api_export_published_phenotype_codes': reverse('api:api_export_published_phenotype_codes', kwargs={'pk': 0, 'phenotype_history_id': 123}),
         'get_phenotype_versions': reverse('api:get_phenotype_versions', kwargs={'pk': 0}),
         'get_phenotype_versions_public': reverse('api:get_phenotype_versions_public', kwargs={'pk': 0}),
         'phenotype_by_id': reverse('api:phenotype_by_id', kwargs={'pk': 0}),
         'api_published_phenotype_by_id': reverse('api:api_published_phenotype_by_id', kwargs={'pk': 0}),
         'api_phenotype_detail_public': reverse('api:api_phenotype_detail_public', kwargs={'pk': 0}),
-        'api_phenotype_detail_version': reverse('api:api_phenotype_detail_version',
-                                                kwargs={
-                                                    'pk': 0,
-                                                    'phenotype_history_id': 123
-                                                }),
-        'api_phenotype_detail_version_public': reverse('api:api_phenotype_detail_version_public',
-                                                        kwargs={
-                                                            'pk': 0,
-                                                            'phenotype_history_id': 123
-                                                        }),
-        'api_export_phenotype_codes_byVersionID': reverse('api:api_export_phenotype_codes_byVersionID',
-                                                        kwargs={
-                                                            'pk': 0,
-                                                            'phenotype_history_id': 123
-                                                        }),
-        'api_export_published_phenotype_codes': reverse('api:api_export_published_phenotype_codes',
-                                                        kwargs={
-                                                            'pk': 0,
-                                                            'phenotype_history_id': 123
-                                                        }),
+        'api_phenotype_detail_version': reverse('api:api_phenotype_detail_version', kwargs={'pk': 0, 'phenotype_history_id': 123}),
+        'api_phenotype_detail_version_public': reverse('api:api_phenotype_detail_version_public', kwargs={'pk': 0, 'phenotype_history_id': 123}),
+        'api_export_phenotype_codes_byVersionID': reverse('api:api_export_phenotype_codes_byVersionID', kwargs={'pk': 0, 'phenotype_history_id': 123}),
+        'api_export_phenotype_codes_latestVersion': reverse('api:api_export_phenotype_codes_latestVersion', kwargs={'pk': 0}),
+        'api_export_published_phenotype_codes': reverse('api:api_export_published_phenotype_codes', kwargs={'pk': 0, 'phenotype_history_id': 123}),
+                
         'get_phenotype_versions': reverse('api:get_phenotype_versions', kwargs={'pk': 0}),
         'get_phenotype_versions_public':  reverse('api:get_phenotype_versions_public', kwargs={'pk': 0}),
         'tags':  reverse('api:tag_list_public'),
@@ -391,8 +317,7 @@ def customRoot(request):
 
     # replace 0/123 by {id}/{version_id}
     for k, v in list(urls_available.items()):
-        new_url = urls_available[k].replace('C0', '{id}').replace('PH0', '{id}').replace('WS0',
-                                   '{id}').replace('123', '{version_id}')
+        new_url = urls_available[k].replace('C0', '{id}').replace('PH0', '{id}').replace('WS0', '{id}').replace('123', '{version_id}')
         urls_available[k] = new_url
 
     return render(request, 'rest_framework/API-root-pg.html', urls_available)
@@ -469,10 +394,13 @@ def contact_us(request):
         if captcha == False:
             status = 'Please Fill out Captcha.'
 
-    return render(request, 'cl-docs/contact-us.html', {
-        'form': form,
-        'message': [status],
-    })
+    return render(request, 
+                  'cl-docs/contact-us.html', 
+                  {
+                    'form': form,
+                    'message': [status],
+                  }
+                )
         
 
 
