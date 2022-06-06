@@ -14,7 +14,7 @@ class DataSource(TimeStampedModel):
     name = models.CharField(max_length=500)
     uid = models.CharField(max_length=250, null=True, blank=True)
     url = models.CharField(max_length=500, null=True, blank=True)
-    description = models.CharField(max_length=500, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
     created_by = models.ForeignKey(User,
                                    on_delete=models.SET_NULL,
                                    null=True,
@@ -29,6 +29,8 @@ class DataSource(TimeStampedModel):
     datasource_id = models.IntegerField(unique=True, null=True)
 
     history = HistoricalRecords()
+
+    source = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         return self.name
