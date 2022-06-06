@@ -353,14 +353,12 @@ def api_phenotype_update(request):
             datasource_ids_to_remove = list(set(old_datasource_list) - set(new_datasource_list))
 
             for datasource_id_to_add in datasource_ids_to_add:
-                PhenotypeDataSourceMap.objects.get_or_create(
-                                                            phenotype=update_phenotype,
+                PhenotypeDataSourceMap.objects.get_or_create(phenotype=update_phenotype,
                                                             datasource=DataSource.objects.get(id=datasource_id_to_add),
                                                             created_by=request.user)
 
             for datasource_id_to_remove in datasource_ids_to_remove:
-                datasource_to_remove = PhenotypeDataSourceMap.objects.filter(
-                                                                            phenotype=update_phenotype,
+                datasource_to_remove = PhenotypeDataSourceMap.objects.filter(phenotype=update_phenotype,
                                                                             datasource=DataSource.objects.get(id=datasource_id_to_remove))
                 datasource_to_remove.delete()
 
@@ -389,7 +387,7 @@ def api_phenotype_update(request):
 @authentication_classes([])
 @permission_classes([])
 @robots()
-def export_published_phenotype_codes(request, pk, phenotype_history_id):
+def export_published_phenotype_codes(request, pk, phenotype_history_id=None):
     '''
         Return the unique set of codes and descriptions for the specified
         phenotype (pk),
@@ -398,6 +396,12 @@ def export_published_phenotype_codes(request, pk, phenotype_history_id):
 
     if not Phenotype.objects.filter(id=pk).exists():
         raise PermissionDenied
+    
+    if phenotype_history_id is None:
+        # get the latest published version
+        latest_published_version = PublishedPhenotype.objects.filter(phenotype_id=pk, approval_status=2).order_by('-phenotype_history_id').first()
+        if latest_published_version:
+            phenotype_history_id = latest_published_version.phenotype_history_id
 
     if not Phenotype.history.filter(id=pk, history_id=phenotype_history_id).exists():
         raise PermissionDenied
@@ -416,12 +420,17 @@ def export_published_phenotype_codes(request, pk, phenotype_history_id):
 
 #--------------------------------------------------------------------------
 @api_view(['GET'])
-def export_phenotype_codes_byVersionID(request, pk, phenotype_history_id):
+def export_phenotype_codes_byVersionID(request, pk, phenotype_history_id=None):
     '''
         Return the unique set of codes and descriptions for the specified
         phenotype (pk),
         for a specific historical phenotype version (phenotype_history_id).
     '''
+        
+    if phenotype_history_id is None:
+        # get the latest version
+        phenotype_history_id = Phenotype.objects.get(pk=pk).history.latest().history_id
+        
     # Require that the user has access to the base phenotype.
     # validate access for login site
     validate_access_to_view(request,

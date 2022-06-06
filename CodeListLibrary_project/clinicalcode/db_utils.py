@@ -3857,4 +3857,50 @@ def get_scheduled_email_to_send():
 
 
 
+def chk_valid_id(request, set_class, pk, chk_permission=False):
+    """
+        check for valid id of Concepts / Phenotypes / working sets
+        (accepts both integers and with prefixes 'C/PH/WS')
+    """
+    pk = str(pk)
+    int_pk = -1
+    
+    is_valid_id = True
+    err = ""
+    ret_int_id = -1
+
+    if str(pk).strip()=='':
+        is_valid_id = False
+        err = 'ID must be a valid id.'
+        
+    if not utils.isInt(pk):
+        if set_class == Concept and pk[0].upper() == 'C' and utils.isInt(pk[1:]):
+            int_pk = int(pk[1:])
+        elif set_class == Phenotype and pk[0:2].upper() == 'PH' and utils.isInt(pk[2:]):
+            int_pk = int(pk[2:])        
+        elif set_class == WorkingSet and pk[0:2].upper() == 'WS' and utils.isInt(pk[2:]):
+            int_pk = int(pk[2:])
+        else:
+            is_valid_id = False
+            err = 'ID must be a valid id.'
+    else:
+        int_pk = int(pk)
+        
+        
+    if set_class.objects.filter(pk=int_pk).count() == 0:
+        is_valid_id = False
+        err = 'ID not found.'
+
+    if chk_permission:
+        if not allowed_to_edit(request, set_class, int_pk):
+            is_valid_id = False
+            err = 'ID must be of a valid accessible entity.'
+
+
+    if is_valid_id:
+        ret_int_id = set_class.objects.get(pk=int_pk).id
+
+    return is_valid_id, err, ret_int_id
+
+
 
