@@ -117,6 +117,7 @@ def create_or_update_internal_datasources():
                 'uid': uid,
                 'name': datasource['name']
             })
+
     return results
 
 def run_datasource_sync(request):
@@ -451,6 +452,19 @@ def get_brand_collections(request, concept_or_phenotype, force_brand=None):
 
 
 @shared_task(bind=True)
+def run_celery_datasource(self):
+    request_factory = RequestFactory()
+    my_url = r'^admin/run-datasource-sync/$'
+    request = request_factory.get(my_url)
+    request.user = AnonymousUser()
+
+    request.CURRENT_BRAND = ''
+    if request.method == 'GET':
+        results = create_or_update_internal_datasources()
+
+        return True,results
+
+@shared_task(bind=True)
 def run_celery_statistics(self):
     request_factory = RequestFactory()
     my_url = r'^admin/run-stat/$'
@@ -463,6 +477,7 @@ def run_celery_statistics(self):
         stat = save_statistics(request)
         # print("Celery_statistics finished" + str(stat))
         return True, stat
+
 
 @shared_task(bind=True)
 def run_celery_collections(self):
