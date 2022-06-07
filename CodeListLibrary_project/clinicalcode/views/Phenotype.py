@@ -174,7 +174,11 @@ def phenotype_list(request):
     if tag_ids:
         # split tag ids into list
         search_tag_list = [str(i) for i in tag_ids.split(",")]
+        # chk if these tags are valid, to prevent injection
+        # use only those found in the DB
         tags = Tag.objects.filter(id__in=search_tag_list)
+        search_tag_list = list(tags.values_list('id',  flat=True))
+        search_tag_list = [str(i) for i in search_tag_list]          
         filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
 
     if selected_phenotype_types:

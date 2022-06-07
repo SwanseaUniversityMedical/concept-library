@@ -552,7 +552,6 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
     selected_phenotype_types = selected_phenotype_types.strip().lower()
 
     search_tag_list = []
-    #tags = []
     selected_phenotype_types_list = []
 
     # remove leading and trailing spaces from text search params
@@ -572,8 +571,12 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
     
     if tag_ids:
         # split tag ids into list
-        search_tag_list = [str(i) for i in tag_ids.split(",")]
-        #tags = Tag.objects.filter(id__in=search_tag_list)
+        search_tag_list = [str(i).strip() for i in tag_ids.split(",")]
+        # chk if these tags are valid, to prevent injection
+        # use only those found in the DB
+        tags = Tag.objects.filter(id__in=search_tag_list)
+        search_tag_list = list(tags.values_list('id',  flat=True))
+        search_tag_list = [str(i) for i in search_tag_list]
         filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
 
     if selected_phenotype_types:
