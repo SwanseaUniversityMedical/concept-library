@@ -70,14 +70,10 @@ def legacy():
     """
 
     # Bleach settings
-    whitelist_tags = getattr(settings, 'MARKDOWNIFY_WHITELIST_TAGS',
-                             bleach.sanitizer.ALLOWED_TAGS)
-    whitelist_attrs = getattr(settings, 'MARKDOWNIFY_WHITELIST_ATTRS',
-                              bleach.sanitizer.ALLOWED_ATTRIBUTES)
-    whitelist_styles = getattr(settings, 'MARKDOWNIFY_WHITELIST_STYLES',
-                               bleach.sanitizer.ALLOWED_STYLES)
-    whitelist_protocols = getattr(settings, 'MARKDOWNIFY_WHITELIST_PROTOCOLS',
-                                  bleach.sanitizer.ALLOWED_PROTOCOLS)
+    whitelist_tags = getattr(settings, 'MARKDOWNIFY_WHITELIST_TAGS', bleach.sanitizer.ALLOWED_TAGS)
+    whitelist_attrs = getattr(settings, 'MARKDOWNIFY_WHITELIST_ATTRS', bleach.sanitizer.ALLOWED_ATTRIBUTES)
+    whitelist_styles = getattr(settings, 'MARKDOWNIFY_WHITELIST_STYLES', bleach.sanitizer.ALLOWED_STYLES)
+    whitelist_protocols = getattr(settings, 'MARKDOWNIFY_WHITELIST_PROTOCOLS', bleach.sanitizer.ALLOWED_PROTOCOLS)
 
     # Markdown settings
     strip = getattr(settings, 'MARKDOWNIFY_STRIP', True)
@@ -89,14 +85,10 @@ def legacy():
 
     if linkify_text:
         values = {
-            "PARSE_URLS":
-            True,
-            "PARSE_EMAIL":
-            getattr(settings, 'MARKDOWNIFY_LINKIFY_PARSE_EMAIL', False),
-            "CALLBACKS":
-            getattr(settings, 'MARKDOWNIFY_LINKIFY_CALLBACKS', None),
-            "SKIP_TAGS":
-            getattr(settings, 'MARKDOWNIFY_LINKIFY_SKIP_TAGS', None)
+            "PARSE_URLS": True,
+            "PARSE_EMAIL": getattr(settings, 'MARKDOWNIFY_LINKIFY_PARSE_EMAIL', False),
+            "CALLBACKS": getattr(settings, 'MARKDOWNIFY_LINKIFY_CALLBACKS', None),
+            "SKIP_TAGS": getattr(settings, 'MARKDOWNIFY_LINKIFY_SKIP_TAGS', None)
         }
 
     return {
@@ -141,14 +133,10 @@ def markdownify(text, custom_settings="default"):
             markdownify_settings = {}
 
     # Bleach settings
-    whitelist_tags = markdownify_settings.get('WHITELIST_TAGS',
-                                              bleach.sanitizer.ALLOWED_TAGS)
-    whitelist_attrs = markdownify_settings.get(
-        'WHITELIST_ATTRS', bleach.sanitizer.ALLOWED_ATTRIBUTES)
-    whitelist_styles = markdownify_settings.get(
-        'WHITELIST_STYLES', bleach.sanitizer.ALLOWED_STYLES)
-    whitelist_protocols = markdownify_settings.get(
-        'WHITELIST_PROTOCOLS', bleach.sanitizer.ALLOWED_PROTOCOLS)
+    whitelist_tags = markdownify_settings.get('WHITELIST_TAGS', bleach.sanitizer.ALLOWED_TAGS)
+    whitelist_attrs = markdownify_settings.get('WHITELIST_ATTRS', bleach.sanitizer.ALLOWED_ATTRIBUTES)
+    whitelist_styles = markdownify_settings.get('WHITELIST_STYLES', bleach.sanitizer.ALLOWED_STYLES)
+    whitelist_protocols = markdownify_settings.get('WHITELIST_PROTOCOLS', bleach.sanitizer.ALLOWED_PROTOCOLS)
 
     # Markdown settings
     strip = markdownify_settings.get('STRIP', True)
@@ -156,8 +144,7 @@ def markdownify(text, custom_settings="default"):
 
     # Bleach Linkify
     linkify = None
-    linkify_text = markdownify_settings.get('LINKIFY_TEXT',
-                                            {"PARSE_URLS": True})
+    linkify_text = markdownify_settings.get('LINKIFY_TEXT', {"PARSE_URLS": True})
     if linkify_text.get("PARSE_URLS"):
         linkify_parse_email = linkify_text.get('PARSE_EMAIL', False)
         linkify_callbacks = linkify_text.get('CALLBACKS', [])

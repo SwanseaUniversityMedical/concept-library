@@ -131,7 +131,7 @@
                   You can specify tag or collection ids <br>
 	               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
 	               (get collections from <code><a href="{{ collections }}" target="_blank" class="alert-link">{{ collections }}</a></code>)
-	               </li>
+	              </li>
                   <li><code>?show_only_my_concepts=1</code><br>
                   Only show concepts owned by me</li>
                   <li><code>?show_deleted_concepts=1</code><br>
@@ -335,7 +335,11 @@
 		              You can specify tag or collection ids <br>
 		               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
 		               (get collections from <code><a href="{{ collections }}" target="_blank" class="alert-link">{{ collections }}</a></code>)
-		               </li>
+		              </li>
+		              <li><code>?selected_phenotype_types=drug,lifestyle risk factor</code><br>
+		              Specify types of the phenotypes<br>
+                      You can get all available types from the <code><a href="{% url 'reference_data' %}" target="_blank" class="alert-link">reference data page</a></code>
+	                  </li>
 		              <li><code>?show_only_validated_phenotypes=1</code><br>
 		              will show only validated phenotypes</li>
 		              <li><code>?brand=HDRUK</code><br>
@@ -405,7 +409,11 @@
 		              You can specify tag or collection ids <br>
 		               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
 		               (get collections from <code><a href="{{ collections }}" target="_blank" class="alert-link">{{ collections }}</a></code>)
-		               </li>
+		              </li>
+		              <li><code>?selected_phenotype_types=drug,lifestyle risk factor</code><br>
+		              Specify types of the phenotypes<br>
+                      You can get all available types from the <code><a href="{% url 'reference_data' %}" target="_blank" class="alert-link">reference data page</a></code>
+	                  </li>		              
 		              <li><code>?show_only_my_phenotypes=1</code><br>
 		              Only show phenotypes owned by me</li>
 		              <li><code>?show_deleted_phenotypes=1</code><br>

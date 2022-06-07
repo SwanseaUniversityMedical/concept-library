@@ -25,6 +25,7 @@ from django import forms
 from django.conf import settings
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
 from django.http import HttpResponse
+from django.db.models.functions import Lower
 
 logger = logging.getLogger(__name__)
 
@@ -440,7 +441,12 @@ def reference_data(request):
     context['coding_systems'] = CodingSystem.objects.all().order_by('name')
     context['tags'] = Tag.objects.filter(tag_type=1).order_by('description')
     context['collections'] = Tag.objects.filter(tag_type=2).order_by('description')
-    context['phenotype_types'] = Phenotype.objects.values('type').distinct().order_by('type')
+    
+    #context['phenotype_types'] = Phenotype.objects.values('type').distinct().order_by('type')
+    # available phenotype_types in the DB
+    phenotype_types = Phenotype.history.annotate(type_lower=Lower('type')).values('type_lower').distinct().order_by('type_lower')
+    phenotype_types_list = list(phenotype_types.values_list('type_lower',  flat=True))
+    context['phenotype_types'] = phenotype_types_list 
 
     return render(request, 'clinicalcode/reference-data.html', context)
 
