@@ -10,23 +10,27 @@
 	<div class="panel panel-default" style="border: 0px;" >
 		<form id="filter_form" action="{% url 'phenotype_list' %}" method="POST"  >
 			{% csrf_token %}
-			<div class="panel-footer text-left"><strong>Collections</strong></div>
+			<!-- Collection -->
+			<div class="panel-footer text-left"><strong>Collection</strong></div>
 			
 			<div class="filter-content">
 				<div class="panel-body" style="padding: 0;" id="filter_by_collection">
 	
-					<div class="checkbox">
-					  <label>
-					    <input type="checkbox" class="collection_tag" id="checkAll" name="collection_id" value="-1" {% if all_collections_selected  %} checked {% endif %}  > All
-					  </label>
+					<div class="checkbox" >
+						<div style="display:none;" >
+						  <label >
+						    <input type="checkbox" class="filter_option collections" id="checkAll_collections" name="collection_id" value="-1" {% if all_collections_selected  %} checked {% endif %}  > All
+						  </label>
+						</div>
 					</div>
-					<hr  style="padding: 0; margin: 0;">
+				<!-- <hr  style="padding: 0; margin: 0;">  -->
+
 					<!-- collections tags -->
 					{% for tag in brand_associated_collections %}
 						{% if tag.tag_type == 2 %}
 								<div class="checkbox"  {% if not request.CURRENT_BRAND|length %} title="{{ tag.collection_brand }}" {% endif %}>
 									<label>
-									<input class="form-check-input collection_tag" type="checkbox" name="collection_id" value="{{ tag.id }}"
+									<input class="form-check-input filter_option collections" type="checkbox" name="collection_id" value="{{ tag.id }}"
 									 {% if tag.id in tag_ids_list  %} checked {% endif %}
 									>
 									<span class="form-check-label">
@@ -40,6 +44,35 @@
 
 				</div> <!-- card-body.// -->
 			</div>
+			
+            <!-- Type -->
+            <div class="panel-footer text-left"><strong>Type</strong></div>
+            
+            <div class="filter-content">
+                <div class="panel-body" style="padding: 0;" id="filter_by_type">
+    
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" class="filter_option types" id="checkAll_types" name="type_name" value="-1" {% if all_types_selected  %} checked {% endif %}  > All
+                      </label>
+                    </div>
+                    <hr  style="padding: 0; margin: 0;">
+                    <!-- types tags -->
+                    {% for type in phenotype_types %}
+	                     <div class="checkbox" >
+	                         <label>
+	                         <input class="form-check-input filter_option types" type="checkbox" name="type_name" value="{{ type }}"
+	                          {% if type in selected_phenotype_types  %} checked {% endif %}
+	                         >
+	                         <span class="form-check-label">
+	                             {{ type }}
+	                         </span>
+	                         </label>
+	                     </div>
+                    {% endfor %}
+
+                </div> <!-- card-body.// -->
+            </div>
 				
 	<!-- 			  <div class="panel-footer">....</div> -->			
 		</form>

@@ -19,8 +19,9 @@
 					<div>
 						<h2>Phenotypes</h2>
 						<div class="form-input-flex-container">
-							<input type="text" placeholder="Search Phenotypes" name="search" id="search1" value="{{ search|default_if_none:'' }}">
+							<input type="text" placeholder="Search Phenotypes - name or ID" name="search" id="search1" value="{{ search|default_if_none:'' }}">
 							<input type="hidden" name="tagids" id="tagids"  value="{{ tag_ids|default_if_none:'' }}">
+							<input type="hidden" name="selected_phenotype_types" id="selected_phenotype_types"  value="{{ selected_phenotype_types_str|default_if_none:'' }}">
 							<input type="hidden" name="search_form" id="collection_search_form1"  class="collection_search_form"  value="{{ search_form }}"> 
 							
 							<button classXX="btn btn-info" name="page" value="1">
@@ -49,7 +50,7 @@
 								<label for="search">Search:</label>
 							</div>
 							<div class="col-sm-6">
-								<input class="form-control" type="text" placeholder="Phenotype name" name="search" id="search" value="{{ search|default_if_none:'' }}">
+								<input class="form-control" type="text" placeholder="Phenotype name or ID" name="search" id="search" value="{{ search|default_if_none:'' }}">
 							</div>
 							<div class="col-md-2">
 								<label for="page_size">Results per page:</label>
@@ -62,6 +63,7 @@
 								</select>
 								
 								<input type="hidden" name="search_form" id="collection_search_form"  class="collection_search_form"  value="{{ search_form }}"> 
+								<input type="hidden" name="selected_phenotype_types" id="selected_phenotype_types"  value="{{ selected_phenotype_types_str|default_if_none:'' }}">
 								
 							</div>
 						</div>
@@ -343,14 +345,24 @@
 		}
 
 		//------------------------------------------
-		$(".collection_tag").change(function() {
+		$(".filter_option").change(function() {
 
-				if($(this).prop('id') == 'checkAll'){
-				    $(".collection_tag").prop('checked', $(this).prop('checked'));
-				}else{
-					if(!$(this).prop('checked')){
-						if($("#checkAll").prop('checked')){
-							$("#checkAll").prop('checked', false);
+				if($(this).prop('id') == 'checkAll_collections'){
+				    $(".filter_option.collections").prop('checked', $(this).prop('checked'));
+				}else if($(this).prop('id') == 'checkAll_types'){
+				    $(".filter_option.types").prop('checked', $(this).prop('checked'));
+				}else{				
+					if($(this).prop('name') == 'collection_id'){//alert('col');
+						if(!$(this).prop('checked')){
+							if($("#checkAll_collections").prop('checked')){
+								$("#checkAll_collections").prop('checked', false);
+							}
+						}
+					}else if($(this).prop('name') == 'type_name'){//alert('type');
+						if(!$(this).prop('checked')){
+							if($("#checkAll_types").prop('checked')){
+								$("#checkAll_types").prop('checked', false);
+							}
 						}
 					}
 				}
@@ -360,8 +372,15 @@
 		         $("input:checkbox[name=collection_id]:checked").each(function(){
 		        	 selected_collections.push(parseInt($(this).val()));
 		         });
+
+		         var selected_phenotype_types_2 = []
+		         $("input:checkbox[name=type_name]:checked").each(function(){
+		        	 selected_phenotype_types_2.push($(this).val());
+		         });
 		         
-		         $("#filter_form input[id=tagids]").val(selected_collections);
+		        // alert(selected_phenotype_types_2);
+		         
+		         //$("#filter_form input[id=tagids]").val(selected_collections);
 		         
 		         
 		        var all_tags = [];
@@ -387,19 +406,34 @@
 						}
 
 						if(isSubset({{ brand_associated_collections_ids|safe }}, selected_collections)){
-							$("#checkAll").prop('checked', true);
+							$("#checkAll_collections").prop('checked', true);
 						}
+//alert('srv='+{{ selected_phenotype_types|safe }});
 
+						if(isSubset({{ phenotype_types|safe }}, selected_phenotype_types_2)){
+							$("#checkAll_types").prop('checked', true);
+						}
 						
+						$("#advanced-form input[id=selected_phenotype_types]").val(selected_phenotype_types_2.join());
+						
+						//alert('adv');
 						$("#advanced-form").submit();
 						
 				}else{
 						$("#basic-form input[id=tagids]").val(selected_collections);
 	
 						if(isSubset({{ brand_associated_collections_ids|safe }}, selected_collections)){
-							$("#checkAll").prop('checked', true);
+							$("#checkAll_collections").prop('checked', true);
+						}
+
+						
+						if(isSubset({{ phenotype_types|safe }}, selected_phenotype_types_2)){
+							$("#checkAll_types").prop('checked', true);
 						}
 						
+						$("#basic-form input[id=selected_phenotype_types]").val(selected_phenotype_types_2.join());
+
+						//alert('basic');
 						$("#basic-form").submit();
 				}
 			
