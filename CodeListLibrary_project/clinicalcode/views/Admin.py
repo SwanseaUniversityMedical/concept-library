@@ -172,6 +172,7 @@ def save_statistics(request):
         HDRUK_stat.modified = datetime.datetime.now()
         HDRUK_stat.save()
 
+        clear_statistics_history()
         return [stat, HDRUK_stat.id]
     else:
         obj, created = Statistics.objects.get_or_create(org='HDRUK',
@@ -180,6 +181,7 @@ def save_statistics(request):
                                                         created_by=[None, request.user][request.user.is_authenticated]
                                                         )
 
+        clear_statistics_history()
         return [stat, obj.id]
 
 
@@ -216,7 +218,6 @@ def get_HDRUK_statistics(request):
 
 
     HDRUK_published_phenotypes_ids = db_utils.get_list_of_visible_entity_ids(HDRUK_published_phenotypes, return_id_or_history_id="id")
-
 
 
     return {
@@ -322,6 +323,8 @@ def run_statistics_collections(request):
         save_statistics_collections(request, 'concept', brand='ALL')
         save_statistics_collections(request, 'phenotype', brand='ALL')
 
+    clear_statistics_history()
+    
     return render(request, 'clinicalcode/admin/run_statistics.html',
                 {
                     'successMsg': ['Collections for concepts/Phenotypes statistics saved'],
@@ -451,6 +454,28 @@ def get_brand_collections(request, concept_or_phenotype, force_brand=None):
     return StatsDictFinal
 
 
+def clear_statistics_history():
+    """
+        leave only the last record per day for each statistics category
+    """
+    with connection.cursor() as cursor:
+        sql = """ 
+                WITH tbl AS (
+                            SELECT *
+                            FROM
+                            (
+                                SELECT 
+                                    ROW_NUMBER () OVER (PARTITION BY org, type, date(history_date) ORDER BY history_date DESC) rn
+                                    , *
+                                FROM clinicalcode_historicalstatistics 
+                            )t
+                )
+                DELETE FROM clinicalcode_historicalstatistics WHERE history_id NOT IN(SELECT history_id FROM tbl WHERE rn = 1) ;
+             """
+        cursor.execute(sql)
+
+ 
+
 @shared_task(bind=True)
 def run_celery_datasource(self):
     request_factory = RequestFactory()
@@ -498,6 +523,9 @@ def run_celery_collections(self):
         # save for all data
         stat1 = save_statistics_collections(request, 'concept', brand='ALL')
         stat2 = save_statistics_collections(request, 'phenotype', brand='ALL')
+        
+        clear_statistics_history()
+        
         # print("Celery_collections finished")
         return True, stat1+stat2
 
