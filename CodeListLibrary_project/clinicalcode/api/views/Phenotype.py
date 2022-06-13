@@ -15,6 +15,7 @@ from numpy.distutils.fcompiler import none
 from rest_framework import status, viewsets
 from rest_framework.decorators import (api_view, authentication_classes, permission_classes)
 from rest_framework.response import Response
+from django.db.models.functions import Lower
 
 from ...db_utils import *
 from ...models import *
@@ -353,14 +354,12 @@ def api_phenotype_update(request):
             datasource_ids_to_remove = list(set(old_datasource_list) - set(new_datasource_list))
 
             for datasource_id_to_add in datasource_ids_to_add:
-                PhenotypeDataSourceMap.objects.get_or_create(
-                                                            phenotype=update_phenotype,
+                PhenotypeDataSourceMap.objects.get_or_create(phenotype=update_phenotype,
                                                             datasource=DataSource.objects.get(id=datasource_id_to_add),
                                                             created_by=request.user)
 
             for datasource_id_to_remove in datasource_ids_to_remove:
-                datasource_to_remove = PhenotypeDataSourceMap.objects.filter(
-                                                                            phenotype=update_phenotype,
+                datasource_to_remove = PhenotypeDataSourceMap.objects.filter(phenotype=update_phenotype,
                                                                             datasource=DataSource.objects.get(id=datasource_id_to_remove))
                 datasource_to_remove.delete()
 
@@ -389,7 +388,7 @@ def api_phenotype_update(request):
 @authentication_classes([])
 @permission_classes([])
 @robots()
-def export_published_phenotype_codes(request, pk, phenotype_history_id):
+def export_published_phenotype_codes(request, pk, phenotype_history_id=None):
     '''
         Return the unique set of codes and descriptions for the specified
         phenotype (pk),
@@ -398,6 +397,12 @@ def export_published_phenotype_codes(request, pk, phenotype_history_id):
 
     if not Phenotype.objects.filter(id=pk).exists():
         raise PermissionDenied
+    
+    if phenotype_history_id is None:
+        # get the latest published version
+        latest_published_version = PublishedPhenotype.objects.filter(phenotype_id=pk, approval_status=2).order_by('-phenotype_history_id').first()
+        if latest_published_version:
+            phenotype_history_id = latest_published_version.phenotype_history_id
 
     if not Phenotype.history.filter(id=pk, history_id=phenotype_history_id).exists():
         raise PermissionDenied
@@ -416,12 +421,17 @@ def export_published_phenotype_codes(request, pk, phenotype_history_id):
 
 #--------------------------------------------------------------------------
 @api_view(['GET'])
-def export_phenotype_codes_byVersionID(request, pk, phenotype_history_id):
+def export_phenotype_codes_byVersionID(request, pk, phenotype_history_id=None):
     '''
         Return the unique set of codes and descriptions for the specified
         phenotype (pk),
         for a specific historical phenotype version (phenotype_history_id).
     '''
+        
+    if phenotype_history_id is None:
+        # get the latest version
+        phenotype_history_id = Phenotype.objects.get(pk=pk).history.latest().history_id
+        
     # Require that the user has access to the base phenotype.
     # validate access for login site
     validate_access_to_view(request,
@@ -469,6 +479,8 @@ def published_phenotypes(request, pk=None):
     search by part of phenotype name (do not put wild characters here)  
     -  <code>?tag_ids=11,4</code>  
     You can specify tag or collection ids   
+    -  <code>?selected_phenotype_types=drug,lifestyle risk factor</code>
+    Specify types of the phenotypes  
     -  <code>?show_only_validated_phenotypes=1</code>  
     will show only validated phenotypes  
     -  <code>?brand=HDRUK</code>  
@@ -490,7 +502,9 @@ def phenotypes(request, pk=None):
     -  <code>?search=Alcohol</code>  
     search by part of phenotype name (do not put wild characters here)  
     -  <code>?tag_ids=11,4</code>  
-    You can specify tag or collection ids        
+    You can specify tag or collection ids   
+    -  <code>?selected_phenotype_types=drug,lifestyle risk factor</code>
+    Specify types of the phenotypes         
     -  <code>?show_only_my_phenotypes=1</code>  
     Only show phenotypes owned by me  
     -  <code>?show_deleted_phenotypes=1</code>  
@@ -533,9 +547,12 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
     #expand_published_versions = request.query_params.get('expand_published_versions', "1")
     show_live_and_or_published_ver = "3"  # request.query_params.get('show_live_and_or_published_ver', "3")      # 1= live only, 2= published only, 3= live+published
     must_have_published_versions = request.query_params.get('must_have_published_versions', "0")
+    selected_phenotype_types = request.query_params.get('selected_phenotype_types', '')
+    
+    selected_phenotype_types = selected_phenotype_types.strip().lower()
 
     search_tag_list = []
-    #tags = []
+    selected_phenotype_types_list = []
 
     # remove leading and trailing spaces from text search params
     search = search.strip()
@@ -547,12 +564,30 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
     get_live_and_or_published_ver = 3  # 1= live only, 2= published only, 3= live+published
     show_top_version_only = True
 
+    # available phenotype_types in the DB
+    phenotype_types = Phenotype.history.annotate(type_lower=Lower('type')).values('type_lower').distinct().order_by('type_lower')
+    phenotype_types_list = list(phenotype_types.values_list('type_lower',  flat=True))
+    
+    
     if tag_ids:
         # split tag ids into list
-        search_tag_list = [str(i) for i in tag_ids.split(",")]
-        #tags = Tag.objects.filter(id__in=search_tag_list)
+        search_tag_list = [str(i).strip() for i in tag_ids.split(",")]
+        # chk if these tags are valid, to prevent injection
+        # use only those found in the DB
+        tags = Tag.objects.filter(id__in=search_tag_list)
+        search_tag_list = list(tags.values_list('id',  flat=True))
+        search_tag_list = [str(i) for i in search_tag_list]
         filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
 
+    if selected_phenotype_types:
+        selected_phenotype_types_list = [str(t).strip() for t in selected_phenotype_types.split(',')]
+        # chk if these types are valid, to prevent injection
+        # use only those found in the DB
+        selected_phenotype_types_list = list(set(phenotype_types_list).intersection(set(selected_phenotype_types_list)))
+        filter_cond += " AND lower(type) IN('" + "', '".join(selected_phenotype_types_list) + "') "
+   
+    
+    
     # check if it is the public site or not
     if is_authenticated_user:
         # ensure that user is only allowed to view/edit the relevant phenotypes

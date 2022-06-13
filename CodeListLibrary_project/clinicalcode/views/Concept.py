@@ -10,6 +10,7 @@ import sys
 import time
 from _ast import Or
 import datetime
+import re
 
 from clinicalcode.permissions import allowed_to_view
 # from django.contrib.auth.models import User
@@ -778,10 +779,26 @@ def concept_list(request):
     exclude_deleted = True
     get_live_and_or_published_ver = 3  # 1= live only, 2= published only, 3= live+published
 
+    # search by ID (only with prefix)
+    # chk if the search word is valid ID (with  prefix 'C' case insensitive)
+    search_by_id = False
+    id_match = re.search(r"(?i)^C\d+$", search)
+    if id_match:
+        if id_match.group() == id_match.string: # full match
+            is_valid_id, err, ret_int_id = db_utils.chk_valid_id(request, set_class=Concept, pk=search, chk_permission=False)
+            if is_valid_id:
+                search_by_id = True
+                filter_cond += " AND (id =" + str(ret_int_id) + " ) "
+            
+            
     if tag_ids:
         # split tag ids into list
         search_tag_list = [str(i) for i in tag_ids.split(",")]
+        # chk if these tags are valid, to prevent injection
+        # use only those found in the DB
         tags = Tag.objects.filter(id__in=search_tag_list)
+        search_tag_list = list(tags.values_list('id',  flat=True))
+        search_tag_list = [str(i) for i in search_tag_list]           
         filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
 
     # check if it is the public site or not
@@ -835,7 +852,7 @@ def concept_list(request):
     concepts_srch = db_utils.get_visible_live_or_published_concept_versions(
                                                                             request,
                                                                             get_live_and_or_published_ver=get_live_and_or_published_ver,
-                                                                            searchByName=search,
+                                                                            searchByName=[search, ''][search_by_id],
                                                                             author=author,
                                                                             exclude_deleted=exclude_deleted,
                                                                             filter_cond=filter_cond,

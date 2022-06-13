@@ -98,9 +98,12 @@ urlpatterns += [
     url(r'^concepts/C(?P<pk>\d+)/version/(?P<concept_history_id>\d+)/export/codes/$',
         Concept.export_concept_codes_byVersionID,
         name='api_export_concept_codes_byVersionID'),
+    url(r'^public/concepts/C(?P<pk>\d+)/export/codes/$',
+        Concept.export_published_concept_codes,
+        name='api_export_published_concept_codes_latestVersion'),
     url(r'^public/concepts/C(?P<pk>\d+)/version/(?P<concept_history_id>\d+)/export/codes/$',
         Concept.export_published_concept_codes,
-        name='api_export_published_concept_codes'),
+        name='api_export_published_concept_codes'),    
 
     #===============================================
     # only superuser - under testing
@@ -193,9 +196,16 @@ urlpatterns += [
     #----------------------------------------------------------
     # --- phenotypes   ----------------------------------------
     #----------------------------------------------------------
+    url(r'^phenotypes/PH(?P<pk>\d+)/export/codes/$',
+        Phenotype.export_phenotype_codes_byVersionID,
+        name='api_export_phenotype_codes_latestVersion'),
     url(r'^phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/export/codes/$',
         Phenotype.export_phenotype_codes_byVersionID,
         name='api_export_phenotype_codes_byVersionID'),
+        
+    url(r'^public/phenotypes/PH(?P<pk>\d+)/export/codes/$',
+        Phenotype.export_published_phenotype_codes,
+        name='api_export_published_phenotype_codes_latestVersion'),
     url(r'^public/phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/export/codes/$',
         Phenotype.export_published_phenotype_codes,
         name='api_export_published_phenotype_codes'),

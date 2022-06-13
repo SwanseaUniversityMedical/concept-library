@@ -49,6 +49,7 @@ from ..permissions import *
 from .View import *
 from clinicalcode.api.views.View import get_canonical_path_by_brand
 from clinicalcode.constants import *
+from django.db.models.functions import Lower
 
 # from rest_framework.permissions import BasePermission
 
@@ -62,7 +63,7 @@ def phenotype_list(request):
 
     search_tag_list = []
     tags = []
-
+    selected_phenotype_types_list = []
     # get page index variables from query or from session
     expand_published_versions = 0  # disable this option
         
@@ -83,6 +84,7 @@ def phenotype_list(request):
     show_mod_pending_phenotypes = request.GET.get('show_mod_pending_phenotypes', request.session.get('phenotype_show_mod_pending_phenotypes', 0))
     show_rejected_phenotypes = request.GET.get('show_rejected_phenotypes', request.session.get('phenotype_show_rejected_phenotypes', 0))
     
+    selected_phenotype_types = request.GET.get('selected_phenotype_types', request.session.get('selected_phenotype_types', ''))
    
     search_form = request.GET.get('search_form', request.session.get('phenotype_search_form', 'basic-form'))
 
@@ -95,6 +97,7 @@ def phenotype_list(request):
         tag_ids = request.GET.get('tagids', '')
         phenotype_brand = request.GET.get('phenotype_brand', '')  # request.CURRENT_BRAND
         search_form = request.GET.get('search_form', 'basic-form')
+        selected_phenotype_types = request.GET.get('selected_phenotype_types', '')
         
         if search_form !='basic-form': 
             author = request.GET.get('author', '')
@@ -114,6 +117,7 @@ def phenotype_list(request):
     request.session['phenotype_search'] = search  
     request.session['phenotype_tagids'] = tag_ids
     request.session['phenotype_brand'] = phenotype_brand   
+    request.session['selected_phenotype_types'] = selected_phenotype_types
    
    #if search_form !='basic-form': 
     request.session['phenotype_author'] = author  
@@ -150,12 +154,41 @@ def phenotype_list(request):
     exclude_deleted = True
     get_live_and_or_published_ver = 3  # 1= live only, 2= published only, 3= live+published
 
+    # available phenotype_types in the DB
+    phenotype_types = Phenotype.history.annotate(type_lower=Lower('type')).values('type_lower').distinct().order_by('type_lower')
+    phenotype_types_list = list(phenotype_types.values_list('type_lower',  flat=True))
+    
+    
+    # search by ID (only with prefix)
+    # chk if the search word is valid ID (with  prefix 'PH' case insensitive)
+    search_by_id = False
+    id_match = re.search(r"(?i)^PH\d+$", search)
+    if id_match:
+        if id_match.group() == id_match.string: # full match
+            is_valid_id, err, ret_int_id = db_utils.chk_valid_id(request, set_class=Phenotype, pk=search, chk_permission=False)
+            if is_valid_id:
+                search_by_id = True
+                filter_cond += " AND (id =" + str(ret_int_id) + " ) "
+            
+            
     if tag_ids:
         # split tag ids into list
         search_tag_list = [str(i) for i in tag_ids.split(",")]
+        # chk if these tags are valid, to prevent injection
+        # use only those found in the DB
         tags = Tag.objects.filter(id__in=search_tag_list)
+        search_tag_list = list(tags.values_list('id',  flat=True))
+        search_tag_list = [str(i) for i in search_tag_list]          
         filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
 
+    if selected_phenotype_types:
+        selected_phenotype_types_list = [str(t) for t in selected_phenotype_types.split(',')]
+        # chk if these types are valid, to prevent injection
+        # use only those found in the DB
+        selected_phenotype_types_list = list(set(phenotype_types_list).intersection(set(selected_phenotype_types_list)))
+        filter_cond += " AND lower(type) IN('" + "', '".join(selected_phenotype_types_list) + "') "
+   
+    
     # check if it is the public site or not
     if request.user.is_authenticated:
         # ensure that user is only allowed to view/edit the relevant phenotype
@@ -218,7 +251,7 @@ def phenotype_list(request):
 
     phenotype_srch = db_utils.get_visible_live_or_published_phenotype_versions(request,
                                                                                 get_live_and_or_published_ver=get_live_and_or_published_ver,
-                                                                                searchByName=search,
+                                                                                searchByName=[search, ''][search_by_id],
                                                                                 author=author,
                                                                                 exclude_deleted=exclude_deleted,
                                                                                 filter_cond=filter_cond,
@@ -261,7 +294,8 @@ def phenotype_list(request):
     show_my_pending_phenotypes = request.session.get('phenotype_show_my_pending_phenotypes') 
     show_mod_pending_phenotypes = request.session.get('phenotype_show_mod_pending_phenotypes')
     show_rejected_phenotypes = request.session.get('phenotype_show_rejected_phenotypes') 
-       
+         
+    
     return render(
         request,
         'clinicalcode/phenotype/index.html',
@@ -290,7 +324,11 @@ def phenotype_list(request):
             'p_btns': p_btns,
             'brand_associated_collections': brand_associated_collections,
             'brand_associated_collections_ids': brand_associated_collections_ids,
-            'all_collections_selected': all(item in tag_ids_list for item in brand_associated_collections_ids)
+            'all_collections_selected': all(item in tag_ids_list for item in brand_associated_collections_ids),
+            'phenotype_types':phenotype_types_list,
+            'selected_phenotype_types': [t for t in selected_phenotype_types.split(',') ],
+            'selected_phenotype_types_str': selected_phenotype_types, # ','.join([t for t in selected_phenotype_types.split(',') ]),
+            'all_types_selected': all(item in selected_phenotype_types_list for item in phenotype_types_list),
 
         })
 
@@ -692,10 +730,14 @@ class PhenotypeDelete(LoginRequiredMixin, HasAccessToEditPhenotypeCheckMixin,
     pass
 
 
-def history_phenotype_codes_to_csv(request, pk, phenotype_history_id):
+def history_phenotype_codes_to_csv(request, pk, phenotype_history_id=None):
     """
         Return a csv file of codes for a phenotype for a specific historical version.
     """
+    if phenotype_history_id is None:
+        # get the latest version
+        phenotype_history_id = Phenotype.objects.get(pk=pk).history.latest().history_id
+        
     # validate access for login and public site
     validate_access_to_view(request,
                             Phenotype,

@@ -140,18 +140,17 @@ AUTH_LDAP_BIND_DN = get_env_value('AUTH_LDAP_BIND_DN')
 
 AUTH_LDAP_BIND_PASSWORD = get_env_value('AUTH_LDAP_BIND_PASSWORD')
 
-AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(
-    LDAPSearch(get_env_value('AUTH_LDAP_USER_SEARCH'), ldap.SCOPE_SUBTREE,
-               "(sAMAccountName=%(user)s)"), )
+AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(LDAPSearch(get_env_value('AUTH_LDAP_USER_SEARCH'), ldap.SCOPE_SUBTREE, "(sAMAccountName=%(user)s)"), )
 
 # Set up the basic group parameters.
-AUTH_LDAP_GROUP_SEARCH = LDAPSearch(get_env_value('AUTH_LDAP_GROUP_SEARCH'),
-                                    ldap.SCOPE_SUBTREE,
-                                    "(objectClass=groupOfNames)")
-AUTH_LDAP_GROUP_TYPE = GroupOfNamesType(name_attr="cn")
+AUTH_LDAP_GROUP_SEARCH = LDAPSearch(get_env_value('AUTH_LDAP_GROUP_SEARCH'), ldap.SCOPE_SUBTREE, "(objectClass=group)")
+
+AUTH_LDAP_GROUP_TYPE = NestedActiveDirectoryGroupType()
+
 
 # Simple group restrictions
 AUTH_LDAP_REQUIRE_GROUP = get_env_value('AUTH_LDAP_REQUIRE_GROUP')
+
 
 # Populate the django user from the LDAP directory.
 AUTH_LDAP_USER_ATTR_MAP = {
@@ -216,7 +215,7 @@ MIDDLEWARE = [
 # Don't check AD on development PCs due to network connection
 if IS_DEVELOPMENT_PC or (not ENABLE_LDAP_AUTH):
     AUTHENTICATION_BACKENDS = [
-        #         'django_auth_ldap.backend.LDAPBackend',
+        #'django_auth_ldap.backend.LDAPBackend',
         'django.contrib.auth.backends.ModelBackend',
     ]
 else:

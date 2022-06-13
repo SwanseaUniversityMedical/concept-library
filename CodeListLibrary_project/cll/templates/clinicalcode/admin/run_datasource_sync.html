@@ -2,6 +2,12 @@
 
 {% load static %}
 
+{% block idexing_robots %}
+<!-- Stop indexing this page at all times -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="googlebot" content="noindex, nofollow">
+{% endblock idexing_robots %}
+		
 {% block title %}
 	Run Datasource Sync - Admin Only
 {% endblock title %}
