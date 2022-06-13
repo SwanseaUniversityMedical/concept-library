@@ -185,7 +185,7 @@ ul.left-navbar a {
         outline: none;
 }
 
-ul.left-navbar a.active {
+ul.left-navbar li.active {
   	color: #000000;
         background: #fff;
         position: relative;
