@@ -15,7 +15,7 @@ ul.left-navbar a {
         outline: none;
 }
 
-ul.left-navbar a.active {
+ul.left-navbar li.active {
   	color: #000000;
         background: #fff;
         position: relative;        
@@ -63,12 +63,10 @@ ul.left-navbar a.active {
   color: #fff;
 }
 
-div.hideleft-navbar {
-  padding: 20px;
-}
+
 
 @media screen and (max-width: 768px) {
-  div.hideleft-navbar {
+  nav.hideleft-navbar {
     display: none;
   }
 

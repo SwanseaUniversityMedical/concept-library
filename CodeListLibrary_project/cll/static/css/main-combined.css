@@ -212,12 +212,12 @@ ul.left-navbar a.active {
   color: #fff;
 }
 
-div.hideleft-navbar {
+nav.hideleft-navbar {
   padding: 20px;
 }
 
 @media screen and (max-width: 768px) {
-  div.hideleft-navbar {
+  nav.hideleft-navbar {
     display: none;
   }
 

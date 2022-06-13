@@ -201,7 +201,7 @@ position:fixed;
 }
 
 @media screen and (max-width: 768px) {
-  div.hideleft-navbar {
+  nav.hideleft-navbar {
     display: none;
   }
 
