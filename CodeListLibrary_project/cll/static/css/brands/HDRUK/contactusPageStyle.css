@@ -185,7 +185,7 @@ ul.left-navbar a {
         outline: none;
 }
 
-ul.left-navbar a.active {
+ul.left-navbar li.active {
   	color: #000000;
         background: #fff;
         position: relative;
@@ -201,7 +201,7 @@ position:fixed;
 }
 
 @media screen and (max-width: 768px) {
-  div.hideleft-navbar {
+  nav.hideleft-navbar {
     display: none;
   }
 

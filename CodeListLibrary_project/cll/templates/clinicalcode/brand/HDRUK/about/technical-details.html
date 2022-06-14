@@ -6,11 +6,17 @@
 {% block head %}
 <link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
 {% endblock head %}
+{% block scrollNav %}
+data-spy="scroll" data-target="#TechnicalMenu" data-offset = "220"
+{% endblock scrollNav %}
 {% block container %}
+
+
+
 <div class="row">
-   <div class="rubric-box col-sm-2 hideleft-navbar " >
-      <div class="leftnavbar-position">
-         <ul class="left-navbar text-rubric-design pointer" onclick="showSelection(event)" id='navList'>
+   <nav class="col-sm-2 hideleft-navbar " id="TechnicalMenu"  style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;">
+
+         <ul class="nav left-navbar " id='navList'>
             <li><a href="#technicaldoc" id="technicalHeader">Technical Documentation
                </a>
             </li>
@@ -33,8 +39,8 @@
                </a>
             </li>
          </ul>
-      </div>
-   </div>
+
+   </nav>
     <h3><span id="technicaldoc"></span></h3>
    <div style="width:70%;" class="column" >
       <div class="header-content-design" style="padding-bottom:30px;">
@@ -252,19 +258,5 @@ J47,Bronchiectasis
    </div>
 </div>
 {% endblock container %}
-{% block scripts  %}
-<script type="text/javascript">
-   function showSelection(e) {
-   		if (document.querySelector('#navList a.active') !== null) {
-     		document.querySelector('#navList a.active').classList.remove('active');
-   		}
-   e.target.className = "active";
-   }
-</script>
-<script type="text/javascript">
-   window.onload=function(){
-   		document.getElementById("technicalHeader").click();
-   };
-</script>
-{% endblock scripts %}
+
 

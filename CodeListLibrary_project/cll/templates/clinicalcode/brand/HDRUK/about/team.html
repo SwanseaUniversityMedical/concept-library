@@ -7,11 +7,14 @@ Dr Andreas Karwath, Dr Arturo Gonzalez-Izquierdo, Dr Harriet Forbes, Kristiina R
 {% block head %}
 <link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
 {% endblock head %}
+{% block scrollNav %}
+data-spy="scroll" data-target="#TeamMenu" data-offset = "120"
+{% endblock scrollNav %}
+
 {% block container %}
 <div class="row">
-   <div class="rubric-box col-sm-2 hideleft-navbar " >
-      <div class="leftnavbar-position">
-         <ul class="left-navbar" onclick="showSelection(event)" id='navList'>
+   <nav class=" col-sm-2 hideleft-navbar " id = "TeamMenu" style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;">
+         <ul class="nav left-navbar"  id='navList'>
             <li> <a href="#teamandcollab" id="teamSection">
                Team and Collaborators
                </a>
@@ -25,8 +28,8 @@ Dr Andreas Karwath, Dr Arturo Gonzalez-Izquierdo, Dr Harriet Forbes, Kristiina R
                </a>
             </li>
          </ul>
-      </div>
-   </div>
+
+   </nav>
 
 
       <!--<div class="col-sm-2 hideleft-navbar" style="padding-top: 40px; position: sticky; position: -webkit-sticky; top: 60px;">
@@ -384,19 +387,4 @@ Dr Andreas Karwath, Dr Arturo Gonzalez-Izquierdo, Dr Harriet Forbes, Kristiina R
    </div>
 </div>
 {% endblock container %}
-{% block scripts  %}
-<script type="text/javascript">
-   function showSelection(e) {
-   		if (document.querySelector('#navList a.active') !== null) {
-     		document.querySelector('#navList a.active').classList.remove('active');
-   		}
-   e.target.className = "active";
-   }
-</script>
-<script type="text/javascript">
-   window.onload=function(){
-   		document.getElementById("teamSection").click();
-   };
-</script>
-{% endblock scripts %}
 
