@@ -18,8 +18,8 @@
 {% endblock crumbs %}
 
 {% block scrollNav %}
-data-spy="scroll" data-target="#PhenotypeMenu" data-offset="0"
-{% endblock %}
+data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "120"
+{% endblock scrollNav %}
 
 {% block container %}
     <div class="row">
@@ -1125,27 +1125,12 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset="0"
 
         });
     </script>
-    <script type="text/javascript">
-   $('#PhenotypeMenu').on('activate.bs.scrollspy', function () {
 
 
-});
-    </script>
+
 
     <script type="text/javascript">
-        function showSelection(e) {
-            if (document.querySelector('#navList a.active') !== null) {
-                document.querySelector('#navList a.active').classList.remove('active');
-            }
-            e.target.className = "active";
-        }
 
-        $(document).ready(function() {
-            document.getElementById("Homelinkid").click();
-        });
-	</script>
-
-    <script type="text/javascript">
     // make api urls with site name
         $(function () {
             var v = $('#api_id').html();
