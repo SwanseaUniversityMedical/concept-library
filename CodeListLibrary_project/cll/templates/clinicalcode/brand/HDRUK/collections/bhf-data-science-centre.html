@@ -6,11 +6,12 @@
 {% block head %}
 <link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
 {% endblock head %}
+
 {% block container %}
 <div class="row">
-   <div class="col-sm-2 hideleft-navbar" id = "BHFMenu"  style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;">
-      <div class="leftnavbar-position">
-         <ul class="left-navbar text-rubric-design pointer" onclick="showSelection(event)" id='navList'>
+   <nav class="col-sm-2 hideleft-navbar" id = "BHFMenu"  style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;">
+
+         <ul class="nav left-navbar" onclick="showSelection(event)" id='navList'>
             <li> <a href="#bhf" id="bhf-data-science"> BHF Data Science Centre
                </a>
             </li>
@@ -19,8 +20,8 @@
                </a>
             </li>
          </ul>
-      </div>
-   </div>
+
+   </nav>
    <h3><span id="bhf"></span></h3>
    <div style="width:70%;" class="column" >
       <div class="header-content-design" style="padding-bottom:30px;">
