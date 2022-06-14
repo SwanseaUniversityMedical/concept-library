@@ -18,25 +18,29 @@
     > <strong>{{ concept.name }}</strong> 
 {% endblock crumbs %}
 
+{% block scrollNav %}
+data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
+{% endblock scrollNav %}
 
 {% block container %}
 
 <div class="row">
-	<div class="col-sm-2 hideleft-navbar" id="ConceptMenu" style="padding-top: 20px; position: sticky; position: -webkit-sticky; top: 60px;">
-		<ul class="left-navbar" onclick="showSelection(event)" id='navList'>
+	<nav class="col-sm-2 hideleft-navbar" id="ConceptMenu"  style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;">
+		<ul class=" nav left-navbar"  id='navList'>
 			<li><a href="#home" id="Homelinkid">Home</a></li>					
 			<li><a href="#description">Description</a></li>
 			<!--<li><a href="#validation">Validation</a></li>-->
 			<li><a href="#Publications">Publications</a></li>
 			<li><a href="#CodeLists">Clinical Code Lists</a></li>
+            {% if user.is_authenticated  %}
+				<li><a href="#permissions">Permissions</a></li>
+			{% endif %}
 			<li><a href="#API">API</a></li>
 
-			{% if user.is_authenticated  %}				
-				<li><a href="#permissions">Permissions</a></li>	
-			{% endif %}	
+
 			<li><a href="#conceptVersions">Version History</a></li>
 		</ul>
-	</div>
+	</nav>
 			
 
 
@@ -1003,18 +1007,7 @@
 
 	</script>
 
-	<script type="text/javascript">	
-		function showSelection(e) {
-	  		if (document.querySelector('#navList a.active') !== null) {
-	    		document.querySelector('#navList a.active').classList.remove('active');
-	  		}
-			e.target.className = "active";
-		}
 
-        $(document).ready(function() {
-            document.getElementById("Homelinkid").click();
-        });
-	</script>
 	
 	<script type="text/javascript">
 	// make api urls with site name

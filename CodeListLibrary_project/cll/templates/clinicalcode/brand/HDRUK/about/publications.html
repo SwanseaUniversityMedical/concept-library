@@ -6,11 +6,16 @@
 {% block head %}
 <link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
 {% endblock head %}
+{% block scrollNav %}
+data-spy="scroll" data-target="#PublicationsMenu" data-offset = "120"
+{% endblock scrollNav %}
+
 {% block container %}
 <div class="row">
-   <div class="rubric-box col-sm-2 hideleft-navbar" >
-      <div class="leftnavbar-position">
-         <ul class="left-navbar text-rubric-design pointer" onclick="showSelection(event)" id='navList'>
+   <nav class="col-sm-2 hideleft-navbar" id = "PublicationsMenu" style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;">
+
+
+         <ul class="nav left-navbar"  id='navList'>
             <li> <a href="#publications" id="publicationsHeader">Publications
                </a>
             </li>
@@ -25,8 +30,8 @@
                </a>
             </li>
          </ul>
-      </div>
-   </div>
+
+   </nav>
    <h3><span id="publications"></span></h3>
    <div style="width:70%;" class="column" >
       <div class="header-content-design" style="padding-bottom:30px;">
@@ -86,18 +91,7 @@
 </div>
 {% endblock container %}
 {% block scripts  %}
-<script type="text/javascript">
-   function showSelection(e) {
-   		if (document.querySelector('#navList a.active') !== null) {
-     		document.querySelector('#navList a.active').classList.remove('active');
-   		}
-   e.target.className = "active";
-   }
-</script>
-<script type="text/javascript">
-   window.onload=function(){
-   		document.getElementById("publicationsHeader").click();
-   };
-</script>
+
+
 {% endblock scripts %}
 
