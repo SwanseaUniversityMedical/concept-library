@@ -8,19 +8,21 @@
 {% block description %}To list Data sources, Coding systems, Tags, Collections, Phenotype types, etc. {% endblock description %}
 {% block keywords %}, Data sources, Coding systems, Tags, Collections, Phenotype types{% endblock keywords %}
 
-
+{% block scrollNav %}
+data-spy="scroll" data-target="#public-data-menu" data-offset = "120"
+{% endblock scrollNav %}
 {% block container %}
     <div class="row">
-        <div class="col-sm-2 hideleft-navbar" id="public-data-menu"
-             style="padding-top: 20px; position: sticky; position: -webkit-sticky; top: 40px;">
-            <ul class="left-navbar active" onclick="showSelection(event)" id='navList'>
+        <nav class="col-sm-2 hideleft-navbar" id="public-data-menu"
+             style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;">
+            <ul class=" nav left-navbar active"  id='navList'>
                 <li><a href="#DataSources" id="DataSources_link">Data Sources</a></li>
                 <li><a href="#CodingSystems">Coding Systems</a></li>
                 <li><a href="#Tags">Tags</a></li>
                 <li><a href="#Collections">Collections</a></li>
                 <li><a href="#PhenotypeTypes">Phenotype Types</a></li>
             </ul>
-        </div>
+        </nav>
 
 
         <div class="col-sm-10" style="padding-top: 0px; top: 0px;">
@@ -198,22 +200,4 @@
 
 
 
-
-
-{% block scripts %}
-
-    <script type="text/javascript">
-        function showSelection(e) {
-            if (document.querySelector('#navList a.active') !== null) {
-                document.querySelector('#navList a.active').classList.remove('active');
-            }
-            e.target.className = "active";
-        }
-
-        $(document).ready(function() {
-            document.getElementById("DataSources_link").click();
-        });
-    </script>
-
-{% endblock scripts %}
 
