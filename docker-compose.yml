@@ -1,45 +1,67 @@
 version: "3.8"
-   
+
 services:
-    cl:
-        image: "cll/app:v0"
-        env_file:
-            - ./env_vars.txt
-        ports:
-        -   "80:80"
-        depends_on:
-            - redis
-        container_name: cl
+  os:
+    build: OS/.
+    container_name: os
 
-    celery-worker:
-        image: "cll/app:v0"
-        env_file:
-          - ./env_vars.txt
-        command:
-            sh -c "cd /var/www/concept_lib_sites/v1 &&
-                    virtualenv  cllvirenv_v1 &&
-                    . cllvirenv_v1/bin/activate &&
-                    cd /var/www/concept_lib_sites/v1/CodeListLibrary_project &&
-                    celery -A cll worker -l INFO"
-        depends_on:
-            - cl
-        container_name: celery-worker
+  database:
+    build: database_deploy/.
+    volumes:
+      - ./docker_data/postgres-data:/var/lib/postgresql
+      - ./docker_data/postgres-logs:/var/log/postgresql
+      - ./docker_data/postgres-etc:/etc/postgresql
+      - .:/docker_settings
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    env_file:
+      - database_deploy/database.env
 
-    celery-beat:
-      image: "cll/app:v0"
-      env_file:
-        - ./env_vars.txt
-      command:
-        sh -c "cd /var/www/concept_lib_sites/v1 &&
-        virtualenv  cllvirenv_v1 &&
-        . cllvirenv_v1/bin/activate &&
-        cd /var/www/concept_lib_sites/v1/CodeListLibrary_project &&
-        celery -A cll beat -l INFO"
-      depends_on:
-        - cl
-      container_name: celery-beat
+  cl:
+    build: .
+    env_file:
+      - ./env_vars.txt
+    ports:
+      - "80:80"
+    links:
+      - "database:database"
+    depends_on:
+      - redis
+      - database
+    container_name: cl
 
-    redis:
-        image: "redis:alpine"
-        container_name: redis
+  celery-worker:
+    image: "concept-library_cl"
+    env_file:
+      - ./env_vars.txt
+    command:
+      sh -c "cd /var/www/concept_lib_sites/v1 &&
+      virtualenv  cllvirenv_v1 &&
+      . cllvirenv_v1/bin/activate &&
+      cd /var/www/concept_lib_sites/v1/CodeListLibrary_project &&
+      celery -A cll worker -l INFO"
+    depends_on:
+      - cl
+      - database
+    container_name: celery-worker
+
+  celery-beat:
+    image: "concept-library_cl"
+    env_file:
+      - ./env_vars.txt
+    command:
+      sh -c "cd /var/www/concept_lib_sites/v1 &&
+      virtualenv  cllvirenv_v1 &&
+      . cllvirenv_v1/bin/activate &&
+      cd /var/www/concept_lib_sites/v1/CodeListLibrary_project &&
+      celery -A cll beat -l INFO"
+    depends_on:
+      - cl
+      - database
+    container_name: celery-beat
+
+  redis:
+    image: "redis:alpine"
+    container_name: redis
 
