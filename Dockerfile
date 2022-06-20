@@ -1,4 +1,4 @@
-FROM concept-library_os AS base
+FROM cll/os AS base
 
 #ENV http_proxy=http://192.168.10.15:8080
 #ENV https_proxy=http://192.168.10.15:8080
