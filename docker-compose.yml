@@ -1,9 +1,6 @@
 version: "3.8"
 
 services:
-  os:
-    build: OS/.
-    container_name: os
 
   #database: unless needed dokerized put backup to database_deploy folder
     #build: database_deploy/.
@@ -19,7 +16,7 @@ services:
   #    - database_deploy/database.env
 
   cl:
-    build: .
+    image: "cll/app:v0"
     env_file:
       - ./env_vars.txt
     ports:
