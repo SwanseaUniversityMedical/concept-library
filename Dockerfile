@@ -46,11 +46,15 @@ RUN \
 COPY deploy_script_main.sh /home/config_cll/deploy_script_main.sh
 COPY deploy_script_DB_mig.sh /home/config_cll/deploy_script_DB_mig.sh
 COPY deploy_script_DB_mig_ro.sh /home/config_cll/deploy_script_DB_mig_ro.sh
+COPY worker_start.sh /home/config_cll/worker_start.sh
+COPY beat_start.sh /home/config_cll/beat_start.sh
 
 # Make file executable:
 RUN ["chmod" , "+x" , "/home/config_cll/deploy_script_main.sh"]
 RUN ["chmod" , "+x" , "/home/config_cll/deploy_script_DB_mig.sh"]
 RUN ["chmod" , "+x" , "/home/config_cll/deploy_script_DB_mig_ro.sh"]
+RUN ["chmod" , "+x" , "/home/config_cll/beat_start.sh"]
+RUN ["chmod" , "+x" , "/home/config_cll/worker_start.sh"]
 
 RUN ["chown" , "-R" , "www-data:www-data" , "/var/www/"]
 #RUN /home/config_cll/deploy_script_main.sh
