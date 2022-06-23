@@ -102,7 +102,7 @@ def about_pages(request, pg_name=None):
             return render(request, 'clinicalcode/brand/HDRUK/about/team.html', {})
 
         elif pg_name.lower() == "hdruk_about_technical_details".lower():
-            return render(request, 'clinicalcode/brand/HDRUK/about/technical-details.html', {})
+            return technicalpage(request)
 
         elif pg_name.lower() == "hdruk_about_covid_19_response".lower():
             return render(request, 'clinicalcode/brand/HDRUK/about/covid-19-response.html', {})
@@ -341,8 +341,17 @@ def cookiespage(request):
 def technicalpage(request):
     """
         HDRUK Documentation outside of HDRUK Brand
+
     """
-    return render(request, 'clinicalcode/brand/HDRUK/about/technical-details.html', {})
+
+    phenotype_bronheostasis = db_utils.get_visible_live_or_published_phenotype_versions(request,show_top_version_only = True,
+                                                                                           filter_cond="(phenotype_uuid='ZckoXfUWNXn8Jn7fdLQuxj')")
+    bron_id = phenotype_bronheostasis[0]['id']
+    bron_version = phenotype_bronheostasis[0]['history_id']
+
+
+
+    return render(request, 'clinicalcode/brand/HDRUK/about/technical-details.html', {'bron_id':bron_id,'bron_version':bron_version})
 
 
 def cookies_settings(request):
