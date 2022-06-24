@@ -166,7 +166,7 @@ data-spy="scroll" data-target="#TechnicalMenu" data-offset = "220"
          Phenotype definition file
       </div>
       <p>The phenotype definition file is a markdown file with a YAML header. The YAML header is used to record metadata fields capturing information about the algorithm, the data sources, controlled clinical terminologies and other information.</p>
-      <p>For example, the code snippet below displays the metadata associated with the <a href="https://portal.caliberresearch.org/phenotypes/axson-bronchiestasis-zckoxfuwnxn8jn7fdlquxj" target=_blank   rel="noopener noreferrer">bronchiestasis</a> phenotyping algorithm submitted by the HDR UK BREATHE Hub (you can view the <a href="https://raw.githubusercontent.com/spiros/hdr-caliber-phenome-portal/master/_phenotypes/axson_bronchiestasis_ZckoXfUWNXn8Jn7fdLQuxj.md" target=_blank   rel="noopener noreferrer">raw file</a> directly on the repository.)</p>
+      <p>For example, the code snippet below displays the metadata associated with the <a href={% url 'phenotype_history_detail' bron_id bron_version %}  target=_blank   rel="noopener noreferrer">bronchiestasis</a> phenotyping algorithm submitted by the HDR UK BREATHE Hub (you can view the <a href="https://raw.githubusercontent.com/spiros/hdr-caliber-phenome-portal/master/_phenotypes/axson_bronchiestasis_ZckoXfUWNXn8Jn7fdLQuxj.md" target=_blank   rel="noopener noreferrer">raw file</a> directly on the repository.)</p>
       <pre class="highlight"><code><span class="na">title</span><span class="pi">:</span> <span class="s">Bronchiestasis</span>
 <span class="na">name</span><span class="pi">:</span> <span class="s">Bronchiestasis</span>
 <span class="na">phenotype_id</span><span class="pi">:</span> <span class="s">ZckoXfUWNXn8Jn7fdLQuxj</span>
