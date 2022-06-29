@@ -41,7 +41,7 @@ import csv
 def get_hdruk_datasources():
     try:
         result = requests.get(
-            'https://api.www.healthdatagateway.org/api/v2/datasets?activeflag=active',
+            'https://api.www.healthdatagateway.org/api/v2/datasets',
             proxies={
                 'http': '' if settings.IS_DEVELOPMENT_PC else 'http://proxy:8080/',
                 'https': '' if settings.IS_DEVELOPMENT_PC else 'http://proxy:8080/'
@@ -55,16 +55,17 @@ def get_hdruk_datasources():
         datasets = json.loads(result.content)['datasets']
 
         for dataset in datasets:
-            dataset_name = dataset['datasetv2']['summary']['title'].strip()
-            dataset_uid = dataset['pid'].strip()
-            dataset_url = 'https://web.www.healthdatagateway.org/dataset/%s' % dataset_uid
-            dataset_description = dataset['datasetv2']['summary']['abstract'].strip()
+            if 'pid' in dataset and 'datasetv2' in dataset:
+                dataset_name = dataset['datasetv2']['summary']['title'].strip()
+                dataset_uid = dataset['pid'].strip()
+                dataset_url = 'https://web.www.healthdatagateway.org/dataset/%s' % dataset_uid
+                dataset_description = dataset['datasetv2']['summary']['abstract'].strip()
 
-            datasources[dataset_uid] = {
-                'name': dataset_name if dataset_name != '' else dataset['datasetfields']['metadataquality']['title'].strip(),
-                'url': dataset_url,
-                'description': dataset_description
-            }
+                datasources[dataset_uid] = {
+                    'name': dataset_name if dataset_name != '' else dataset['datasetfields']['metadataquality']['title'].strip(),
+                    'url': dataset_url,
+                    'description': dataset_description
+                }
     return datasources, None
 
 def create_or_update_internal_datasources():
