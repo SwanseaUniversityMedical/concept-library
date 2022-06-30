@@ -29,6 +29,8 @@ urlpatterns = [
     url(r'^cookies-settings/$', View.cookies_settings, name='cookies_settings'),
     url(r'^reference-data/$', View.reference_data, name='reference_data'),
 
+    url(r'^adminTemp/google_programmable_search/$', adminTemp.google_programmable_search, name='google_programmable_search'),
+
     #     # redirect api root '/api' to '/api/v1'
     #     #url(r'^api/$', RedirectView.as_view(url= reverse('api:root')) , name='api_root_v1'),
 ]

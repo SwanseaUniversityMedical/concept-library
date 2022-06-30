@@ -35,6 +35,11 @@ from django.core.exceptions import PermissionDenied
 from django.db import connection, connections  # , transaction
 
 
+def google_programmable_search(request):
+    if request.method == 'GET':
+        return render(request, 'clinicalcode/adminTemp/google_programmable_search.html', {})
+        
+        
 @login_required
 def api_remove_data(request):
     if not request.user.is_superuser:
