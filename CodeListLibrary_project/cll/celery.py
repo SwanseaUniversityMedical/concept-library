@@ -36,7 +36,7 @@ app.conf.beat_schedule = {
 }
 
 app.autodiscover_tasks()
-app.control.purge()
+
 
 @app.task(bind=True)
 def debug_task(self):
