@@ -10,9 +10,11 @@
 	<div class="panel panel-default" style="border: 0px;" >
 		<form id="filter_form" action="{% url 'concept_list' %}" method="POST"  >
 			{% csrf_token %}
-			<div class="panel-footer text-left"><strong>Collections</strong></div>
-
-			<div class="filter-content">
+			<a data-toggle="collapse" href="#collapse-collection" aria-expanded="true" aria-controls="collapse-collection" style="color: inherit; text-decoration: inherit;">
+				<div class="panel-footer text-left"><strong>Collection</strong></div>
+			</a>
+			
+			<div class="filter-content collapse in" id="collapse-collection">
 				<div class="panel-body" style="padding: 0;" id="filter_by_collection">
 			
 					<div class="checkbox">

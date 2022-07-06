@@ -11,9 +11,11 @@
 		<form id="filter_form" action="{% url 'phenotype_list' %}" method="POST"  >
 			{% csrf_token %}
 			<!-- Collection -->
-			<div class="panel-footer text-left"><strong>Collection</strong></div>
-			
-			<div class="filter-content">
+			<a data-toggle="collapse" href="#collapse-collection" aria-expanded="true" aria-controls="collapse-collection" style="color: inherit; text-decoration: inherit;">
+				<div class="panel-footer text-left"><strong>Collection</strong></div>
+			</a>
+						
+			<div class="filter-content collapse in" id="collapse-collection">
 				<div class="panel-body" style="padding: 0;" id="filter_by_collection">
 	
 					<div class="checkbox" >
@@ -46,9 +48,11 @@
 			</div>
 			
             <!-- Type -->
-            <div class="panel-footer text-left"><strong>Type</strong></div>
-            
-            <div class="filter-content">
+			<a data-toggle="collapse" href="#collapse-type" aria-expanded="true" aria-controls="collapse-type" style="color: inherit; text-decoration: inherit;">
+            	<div class="panel-footer text-left"><strong>Type</strong></div>
+			</a>
+						            
+             <div class="filter-content collapse in" id="collapse-type">
                 <div class="panel-body" style="padding: 0;" id="filter_by_type">
     
                     <div class="checkbox">
@@ -97,22 +101,16 @@
                         {% if phenotype.approval_status == 1 and phenotype.owner_id == request.user.id or request.user|has_group:"Moderators" and phenotype.approval_status == 1 %}title="Waiting for approval"{% endif %}>
 				<div class="row form-group">
 					<div class="col-sm-12">
-						{% if user.is_authenticated and phenotype.is_published != 1 %}
-<!-- 							<a class="" href="{% url 'phenotype_detail' phenotype.id %}"> -->
-							<a class="" href="{% url 'phenotype_history_detail' phenotype.id phenotype.history_id %}">
-						{% else %}
-							<a class="" href="{% url 'phenotype_history_detail' phenotype.id phenotype.history_id %}">
-						{% endif %}
-							<span style='font-size: 22px;margin-top:0;'>{{ phenotype.friendly_id }} - {{ phenotype.name }}</span>
-							</a>
-				
+						<a class="" href="{% url 'phenotype_history_detail' phenotype.id phenotype.history_id %}">
+						<span style='font-size: 22px;margin-top:0;'>{{ phenotype.friendly_id }} - {{ phenotype.name|highlight:search }}</span>
+						</a>				
 					</div>
 				</div>
 				
 				<div class="row form-group">
 					<div class="col-sm-12">
 <!-- 						<span {%if phenotype.author|length > 120 %}title="{{ phenotype.author }}" {% endif %} >{{ phenotype.author|truncatechars:120 }}</span> -->
-						{{ phenotype.author }}
+						{{ phenotype.author|highlight:search }}
 					</div>
 
 				</div>

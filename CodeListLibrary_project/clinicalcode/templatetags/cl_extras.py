@@ -3,6 +3,7 @@ import markdown
 from django import template
 from django.conf import settings
 from django.utils.safestring import mark_safe
+from re import IGNORECASE, compile, escape as rescape
 
 register = template.Library()
 
@@ -175,3 +176,16 @@ def markdownify(text, custom_settings="default"):
         html = cleaner.clean(html)
 
     return mark_safe(html)
+
+
+
+
+@register.filter(name='highlight')
+def highlight(text, q):
+    rgx = compile(rescape(q), IGNORECASE)
+    return mark_safe(
+        rgx.sub(
+            lambda m: '<b style="background-color:yellow;">{}</b>'.format(m.group()),
+            text
+        )
+    )

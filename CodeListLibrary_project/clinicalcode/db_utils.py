@@ -3022,8 +3022,17 @@ def get_visible_live_or_published_phenotype_versions(request,
         where_clause += " AND id NOT IN (%s) "
 
     if searchByName != '':
-        my_params.append("%" + str(searchByName) + "%")
-        where_clause += " AND upper(name) like upper(%s) "
+        #my_params.append("%" + str(searchByName) + "%")
+        #where_clause += " AND upper(name) like upper(%s) "
+        # note: we use iLike here for case-insensitive
+        my_params += ["%" + str(searchByName) + "%"] * 5
+        where_clause += """ AND (name ILIKE %s OR 
+                                author ILIKE %s OR 
+                                description ILIKE %s OR 
+                                implementation ILIKE %s OR
+                                array_to_string(publications , ',') ILIKE %s                                 
+                                )  
+                        """
 
     if author != '':
         my_params.append("%" + str(author) + "%")
@@ -3075,6 +3084,19 @@ def get_visible_live_or_published_phenotype_versions(request,
         if brand_collection_ids:
             brand_filter_cond = " WHERE tags && '{" + ','.join(brand_collection_ids) + "}' "
 
+
+    # order by clause
+    order_by = " ORDER BY id, history_id desc "
+    if searchByName != '':
+        my_params += ["%" + str(searchByName) + "%"] * 4
+        order_by = """
+                        ORDER  BY name ILIKE %s OR NULL
+                                , author ILIKE %s OR NULL
+                                , description ILIKE %s OR NULL
+                                , implementation ILIKE %s OR NULL
+                                , id, history_id desc  
+                    """
+        
     with connection.cursor() as cursor:
         cursor.execute(
             """
@@ -3121,8 +3143,8 @@ def get_visible_live_or_published_phenotype_versions(request,
                             """ + where_clause + [where_clause_2 , approval_where_clause][approval_where_clause.strip() !=""] + """
                         ) rr
                         """ + where_clause_3 + """
-                        ORDER BY id, history_id desc
-                        """, my_params)
+                        """ + order_by
+                        , my_params)
         
         col_names = [col[0] for col in cursor.description]
 

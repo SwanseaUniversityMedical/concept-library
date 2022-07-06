@@ -913,7 +913,9 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 			}else{
 			    // Generate standard type of table in code list if not login
                 {% if not user.is_authenticated %}
-                    var table = $('.display-table').DataTable();
+                    var table = $('.display-table').DataTable({
+                    	"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]]
+                    });
                 {% endif %}
 
             }
@@ -924,7 +926,9 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 		});
             //if current tab is active on external user 
 		    {% if codelist_tab_active %}
-                var table = $('.display-table').DataTable();
+                var table = $('.display-table').DataTable({
+                	"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]]
+                });
             {% endif %}
 		
 		
@@ -949,8 +953,8 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
                 table.DataTable().destroy();
                 table.DataTable({
                     "searching":false,
-                    "paging":false
-
+                    "paging":false,
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]]
                 });
             {% endif %}
 
@@ -996,7 +1000,9 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 			{% if not user.is_authenticated %}
                  var table = $('.display-table');
                 table.DataTable().destroy();
-                table.DataTable();
+                table.DataTable({
+                	"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]]
+                });
             {% endif %}
 			
 			{% if user.is_authenticated %}
