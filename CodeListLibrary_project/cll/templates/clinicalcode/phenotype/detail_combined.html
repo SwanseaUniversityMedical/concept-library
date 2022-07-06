@@ -390,13 +390,9 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                 {% if phenotype.phenoflowid|length %}
                 <label class="col-sm-3" style="margin-left: -15px">PhenoFlow Implementation:</label>
                 <div class="col-sm-9" style="margin-left: -15px">
-                    {% if phenotype.phenoflowid|length %}
-                        <a href="https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}"
-                           target=_blank>https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}</a>
-                        <!-- 							<a  href="{{ phenotype.phenoflowid }}" target=_blank >{{ phenotype.phenoflowid }}</a>  -->
-                    {% else %}
-                        &nbsp;
-                    {% endif %}
+                    <a href="https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}"
+                        target=_blank>https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}</a>
+                    <!-- 							<a  href="{{ phenotype.phenoflowid }}" target=_blank >{{ phenotype.phenoflowid }}</a>  -->
                 </div>
                 {% endif %}
 
