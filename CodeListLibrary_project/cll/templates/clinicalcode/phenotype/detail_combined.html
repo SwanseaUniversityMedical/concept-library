@@ -28,7 +28,11 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
             <ul class=" nav left-navbar "  id='navList'>
                 <li class=" active"><a href="#home" id="Homelinkid">Home</a></li>
                 <li><a href="#definition">Definition</a></li>
+
+                {% if phenotype.implementation|markdownify or phenotype.phenoflowid|length %}
                 <li><a href="#implementation">Implementation</a></li>
+                {% endif %}
+
                     <!--<li><a href="#validation">Validation</a></li>-->
                 <li><a href="#Publications">Publications</a></li>
                 <li><a href="#CodeLists">Clinical Code Lists</a></li>
@@ -372,6 +376,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                     IMPLEMENTATION
                     -------------------------------------------------------------------
               -->
+            {% if phenotype.implementation|markdownify or phenotype.phenoflowid|length %}
             <div class="col-sm-12 shadow-frame">
                 <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
                         id="implementation"></span><strong>Implementation</strong></h3>
@@ -395,6 +400,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                 </div>
 
             </div>
+            {% endif %}
 
 
             <!--	-------------------------------------------------------------------
