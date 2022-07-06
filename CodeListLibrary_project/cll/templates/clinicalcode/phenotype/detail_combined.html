@@ -29,7 +29,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                 <li class=" active"><a href="#home" id="Homelinkid">Home</a></li>
                 <li><a href="#definition">Definition</a></li>
 
-                {% if phenotype.implementation|markdownify or phenotype.phenoflowid|length %}
+                {% if phenotype.implementation|length > 0 or phenotype.phenoflowid|length %}
                 <li><a href="#implementation">Implementation</a></li>
                 {% endif %}
 
@@ -376,7 +376,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                     IMPLEMENTATION
                     -------------------------------------------------------------------
               -->
-            {% if phenotype.implementation|markdownify or phenotype.phenoflowid|length %}
+            {% if phenotype.implementation|length > 0 or phenotype.phenoflowid|length %}
             <div class="col-sm-12 shadow-frame">
                 <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
                         id="implementation"></span><strong>Implementation</strong></h3>
