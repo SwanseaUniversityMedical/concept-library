@@ -11,9 +11,11 @@
 		<form id="filter_form" action="{% url 'phenotype_list' %}" method="POST"  >
 			{% csrf_token %}
 			<!-- Collection -->
-			<div class="panel-footer text-left"><strong>Collection</strong></div>
+			<a data-toggle="collapse" href="#collapse-collection" aria-expanded="true" aria-controls="collapse-collection" style="color: inherit; text-decoration: inherit;">
+				<div class="panel-footer text-left"><strong>Collection</strong></div>
+			</a>
 			
-			<div class="filter-content">
+			<div class="filter-content collapse in" id="collapse-collection">
 				<div class="panel-body" style="padding: 0;" id="filter_by_collection">
 	
 					<div class="checkbox" >
@@ -46,9 +48,11 @@
 			</div>
 			
             <!-- Type -->
-            <div class="panel-footer text-left"><strong>Type</strong></div>
+						<a data-toggle="collapse" href="#collapse-type" aria-expanded="true" aria-controls="collapse-type" style="color: inherit; text-decoration: inherit;">
+            	<div class="panel-footer text-left"><strong>Type</strong></div>
+						</a>
             
-            <div class="filter-content">
+            <div class="filter-content collapse in" id="collapse-type">
                 <div class="panel-body" style="padding: 0;" id="filter_by_type">
     
                     <div class="checkbox">
