@@ -387,8 +387,8 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                 </div>
 
                 <br/>
+                {% if phenotype.phenoflowid|length %}
                 <label class="col-sm-3" style="margin-left: -15px">PhenoFlow Implementation:</label>
-
                 <div class="col-sm-9" style="margin-left: -15px">
                     {% if phenotype.phenoflowid|length %}
                         <a href="https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}"
@@ -398,6 +398,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                         &nbsp;
                     {% endif %}
                 </div>
+                {% endif %}
 
             </div>
             {% endif %}
