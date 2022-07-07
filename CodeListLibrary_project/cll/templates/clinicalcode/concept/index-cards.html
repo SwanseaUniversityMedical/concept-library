@@ -11,7 +11,14 @@
 		<form id="filter_form" action="{% url 'concept_list' %}" method="POST"  >
 			{% csrf_token %}
 			<a data-toggle="collapse" href="#collapse-collection" aria-expanded="true" aria-controls="collapse-collection" style="color: inherit; text-decoration: inherit;">
-				<div class="panel-footer text-left"><strong>Collection</strong></div>
+				<div class="panel-footer text-left">
+					<strong>Collection</strong>
+				
+					<div class="morphing-filter-targets" id="filter-icon-group">
+						<i class="fa fa-expand"></i>
+						<i class="fa fa-compress"></i>
+					</div>
+				</div>
 			</a>
 			
 			<div class="filter-content collapse in" id="collapse-collection">

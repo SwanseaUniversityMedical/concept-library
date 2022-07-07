@@ -627,3 +627,38 @@ p > a {
      font-family: 'IBM Plex Sans';
      src: url('../fonts/IBMPlexSans.woff2') format('woff2');
 }
+
+/* Morphable icon set for filters */
+.morphing-filter-targets {
+  position: relative;
+  cursor: pointer;
+  float: right;
+  display: block;
+  margin-right: 5px;
+  margin-top: 2px;
+}
+
+@media screen and (max-width: 1005px) {
+  .morphing-filter-targets {
+    display: none !important;
+  }
+}
+
+.morphing-filter-targets i {
+  top: 0;
+  left: 0;
+  position: absolute;
+  user-select: none;
+  transition: all 0.3s cubic-bezier(0.6, 0, 0.2, 1);
+}
+.morphing-filter-targets i:last-of-type {
+    opacity: 0;
+    transform: scale(0.5);
+}
+.morphing-filter-targets.morphed i:first-of-type {
+    opacity: 0;
+}
+.morphing-filter-targets.morphed i:last-of-type {
+    opacity: 1;
+    transform: scale(1);
+}
