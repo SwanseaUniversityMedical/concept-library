@@ -33,8 +33,8 @@ import os
 
 from django.core.exceptions import PermissionDenied
 from django.db import connection, connections  # , transaction
-
-
+        
+        
 @login_required
 def api_remove_data(request):
     if not request.user.is_superuser:

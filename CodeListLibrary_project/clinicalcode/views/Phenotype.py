@@ -523,7 +523,8 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         'codelist_loaded': codelist_loaded,
         'concepts_id_name': concepts_id_name,
         'concept_data': concept_data,
-        'page_canonical_path': get_canonical_path_by_brand(request, Phenotype, pk, phenotype_history_id)                              
+        'page_canonical_path': get_canonical_path_by_brand(request, Phenotype, pk, phenotype_history_id),
+        'q': request.session.get('phenotype_search', '')                              
     }
 
     return render(request, 
@@ -645,18 +646,6 @@ def phenotype_conceptcodesByVersion(request,
     data = dict()
     data['form_is_valid'] = True
 
-    # codes_count = "0"
-    # try:
-    #     codes_count = str(len(codes))
-    # except:
-    #     codes_count = "0"
-    # data['codes_count'] = codes_count
-    # data['html_uniquecodes_list'] = render_to_string(
-    #                                                 'clinicalcode/phenotype/get_concept_codes.html',
-    #                                                 {'codes': codes,
-    #                                                 'showConcept': True
-    #                                                 }
-    #                                                 )
 
     # Get the list of concepts in the phenotype data
     concept_ids_historyIDs = db_utils.getGroupOfConceptsByPhenotypeId_historical(pk, phenotype_history_id)
@@ -692,7 +681,8 @@ def phenotype_conceptcodesByVersion(request,
                                         'clinicalcode/phenotype/get_concept_codes.html', {
                                             'codes': c_codes,
                                             'code_attribute_header': c_code_attribute_header,
-                                            'showConcept': False
+                                            'showConcept': False,
+                                            'q': request.session.get('phenotype_search', '')
                                         })
         })
 

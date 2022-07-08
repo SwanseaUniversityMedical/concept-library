@@ -28,8 +28,12 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
             <ul class=" nav left-navbar "  id='navList'>
                 <li class=" active"><a href="#home" id="Homelinkid">Home</a></li>
                 <li><a href="#definition">Definition</a></li>
+
+                {% if phenotype.implementation|length or phenotype.phenoflowid|length %}
                 <li><a href="#implementation">Implementation</a></li>
-                    <!--<li><a href="#validation">Validation</a></li>-->
+                {% endif %}
+                
+ 				<!--<li><a href="#validation">Validation</a></li>-->
                 <li><a href="#Publications">Publications</a></li>
                 <li><a href="#CodeLists">Clinical Code Lists</a></li>
                  {% if user.is_authenticated %}
@@ -171,16 +175,16 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                                                             {% endif %}
                                                                 id="publish2">
                                                              {% if approval_status == 3 %}
-                                                       Declined
-                                                   {% else %}
-                                                            {% if approval_status == 1 %}
-                                                                Pending
-                                                                {% else %}
-
-                                                    Publish
-                                                {% endif %}
-                                                            {% endif %}
-                                                            {% endif %}
+			                                                       Declined
+			                                                 {% else %}
+	                                                            {% if approval_status == 1 %}
+	                                                                Pending
+	                                                            {% else %}
+				
+				                                                    Publish
+				                                                {% endif %}
+                                                             {% endif %}
+                                                        {% endif %}
 
 
                                     {% endif %}
@@ -210,12 +214,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
             <div class="col-md-12">
                 <div classXX="col-md-6" styleXX="margin-left: -10px">
                     <h2>
-                        {% if user.is_authenticated and not is_latest_version %}
-                            <strong>{{ phenotype.name }}</strong>
-                        {% else %}
-
-                            <strong>{{ phenotype.name }}</strong>
-                        {% endif %}
+                        <strong>{{ phenotype.name|highlight:q }}</strong>
                         {% for item in request.BRAND_GROUPS %}
                             {% for brand, groups in item.iteritems %}
                                 {% if phenotype.group.name in groups %}
@@ -225,7 +224,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                             {% endfor %}
                         {% endfor %}
                     </h2>
-                    <span>{{ phenotype.author }}</span>
+                    <span>{{ phenotype.author|highlight:q }}</span>
                     <br>
                     <br>
                 </div>
@@ -364,7 +363,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                 <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
                         id="definition"></span><strong>Definition</strong></h3>
 
-                {{ phenotype.description|markdownify }}
+                {{ phenotype.description|markdownify|highlight:q }}
             </div>
 
 
@@ -372,31 +371,28 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                     IMPLEMENTATION
                     -------------------------------------------------------------------
               -->
+         {% if phenotype.implementation|length or phenotype.phenoflowid|length %}
             <div class="col-sm-12 shadow-frame">
                 <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
                         id="implementation"></span><strong>Implementation</strong></h3>
 
 
                 <div class="markdown-holder">
-                    {{ phenotype.implementation|markdownify }}
+                    {{ phenotype.implementation|markdownify|highlight:q }}
                 </div>
 
                 <br/>
+                {% if phenotype.phenoflowid|length %}
                 <label class="col-sm-3" style="margin-left: -15px">PhenoFlow Implementation:</label>
-
                 <div class="col-sm-9" style="margin-left: -15px">
-                    {% if phenotype.phenoflowid|length %}
-                        <a href="https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}"
-                           target=_blank>https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}</a>
-                        <!-- 							<a  href="{{ phenotype.phenoflowid }}" target=_blank >{{ phenotype.phenoflowid }}</a>  -->
-                    {% else %}
-                        &nbsp;
-                    {% endif %}
+                    <a href="https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}"
+                        target=_blank>https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}</a>
                 </div>
+                {% endif %}
 
             </div>
-
-
+         {% endif %}
+            
             <!--	-------------------------------------------------------------------
                     VALIDATION
                     -------------------------------------------------------------------
@@ -439,7 +435,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                     {% if phenotype.publications|length %}
                         <ul>
                             {% for p in phenotype.publications %}
-                                <li>{{ p|markdownify }}</li>
+                                <li>{{ p|markdownify|highlight:q }}</li>
                             {% endfor %}
                         </ul>
                     {% endif %}
@@ -597,7 +593,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                                                         {% if code.concept_id == c.concept_friendly_id and code.concept_version_id == c.concept_version_id %}
                                                             <tr>
                                                                 <td>{{ code.code }}</td>
-                                                                <td>{{ code.description }}</td>
+                                                                <td>{{ code.description|highlight:q }}</td>
                                                                 {% if c.code_attribute_header %}
 
                                                                     {% for attr_hdr in c.code_attribute_header %}
@@ -971,8 +967,8 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
 //                 	table.DataTable().destroy();
 //                     table.DataTable({
 // 			                        "searching": false,
-// 			                        "paging": false
-			
+// 			                        "paging": false,
+//									"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]]
 // 			                    });
 //                 {% endif %}
 
@@ -1026,8 +1022,8 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                 table.DataTable().destroy();
                 table.DataTable({
                     "searching":false,
-                    "paging":false
-
+                    "paging":false,
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]]
                 });
             {% endif %}
 
@@ -1074,7 +1070,9 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
 			{% if not user.is_authenticated %}
                  var table = $('.display-table');
                 table.DataTable().destroy();
-                table.DataTable();
+                table.DataTable({
+                	"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]]
+                });
             {% endif %}
 
 
@@ -1119,7 +1117,9 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                 // Generate standard type of table in code list if not login
                 var table = $('.display-table');
                 table.DataTable().destroy();
-                table.DataTable();
+                table.DataTable({
+                	"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]]
+                });
             {% endif%}
 
 

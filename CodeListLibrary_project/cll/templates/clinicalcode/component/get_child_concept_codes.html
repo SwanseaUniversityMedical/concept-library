@@ -1,7 +1,8 @@
+{% load cl_extras %}
 {% for code in codes %}
 	<tr>
 		<td>{{ code.code }}</td>
-		<td>{{ code.description }}</td>	
+		<td>{{ code.description|highlight:q }}</td>	
 		{% for attr_hdr in code_attribute_header %}
 		   {% for key, value in code.items %}
 		   		{% if key == attr_hdr %}
