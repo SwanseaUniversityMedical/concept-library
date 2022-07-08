@@ -2866,8 +2866,18 @@ def get_visible_live_or_published_concept_versions(request,
         where_clause += " AND id NOT IN (%s) "
 
     if searchByName != '':
-        my_params.append("%" + str(searchByName) + "%")
-        where_clause += " AND upper(name) like upper(%s) "
+        # my_params.append("%" + str(searchByName) + "%")
+        # where_clause += " AND upper(name) like upper(%s) "
+        # note: we use iLike here for case-insensitive
+        my_params += ["%" + str(searchByName) + "%"] * 6
+        where_clause += """ AND (name ILIKE %s OR 
+                                author ILIKE %s OR 
+                                description ILIKE %s OR 
+                                publication_doi ILIKE %s OR
+                                publication_link ILIKE %s OR
+                                secondary_publication_links ILIKE %s                                 
+                                )  
+                        """
 
     if author != '':
         my_params.append("%" + str(author) + "%")
@@ -2907,6 +2917,18 @@ def get_visible_live_or_published_concept_versions(request,
         if brand_collection_ids:
             brand_filter_cond = " WHERE tags && '{" + ','.join(brand_collection_ids) + "}' "
 
+
+    # order by clause
+    order_by = " ORDER BY id, history_id desc "
+    if searchByName != '':
+        my_params += ["%" + str(searchByName) + "%"] * 3
+        order_by = """
+                        ORDER  BY name ILIKE %s OR NULL
+                                , author ILIKE %s OR NULL
+                                , description ILIKE %s OR NULL
+                                , id, history_id desc  
+                    """
+                    
     with connection.cursor() as cursor:
         cursor.execute(
             """
@@ -2948,8 +2970,8 @@ def get_visible_live_or_published_concept_versions(request,
                             """ + where_clause + where_clause_2 + """
                         ) rr
                         """ + where_clause_3 + """
-                        ORDER BY id, history_id desc
-                        """, my_params)
+                        """ + order_by 
+                        , my_params)
         col_names = [col[0] for col in cursor.description]
 
         return [dict(list(zip(col_names, row))) for row in cursor.fetchall()]

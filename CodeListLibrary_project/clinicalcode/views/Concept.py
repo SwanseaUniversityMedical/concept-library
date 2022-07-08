@@ -327,7 +327,8 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
         'codelist': codelist,  # json.dumps(codelist)
         'codelist_loaded': codelist_loaded,
         'code_attribute_header': code_attribute_header,
-        'page_canonical_path': get_canonical_path_by_brand(request, Concept, pk, concept_history_id) 
+        'page_canonical_path': get_canonical_path_by_brand(request, Concept, pk, concept_history_id),
+        'q': request.session.get('concept_search', '')
     }
     if request.user.is_authenticated:
         if is_latest_version and (can_edit):
@@ -558,9 +559,10 @@ def concept_uniquecodes(request, pk):
     except:
         codes_count = "0"
     data['codes_count'] = codes_count
-    data['html_uniquecodes_list'] = render_to_string(
-        'clinicalcode/component/get_child_concept_codes.html',
-        {'codes': codes})
+    data['html_uniquecodes_list'] = render_to_string('clinicalcode/component/get_child_concept_codes.html',
+                                                    {'codes': codes,
+                                                     'q': request.session.get('concept_search', '')
+                                                     })
 
     return JsonResponse(data)
 
@@ -581,20 +583,17 @@ def concept_uniquecodesByVersion(request, pk, concept_history_id):
                             pk,
                             set_history_id=concept_history_id)
 
-    codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(
-        pk, concept_history_id)
+    codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(pk, concept_history_id)
 
-    code_attribute_header = Concept.history.get(
-        id=pk, history_id=concept_history_id).code_attribute_header
-    concept_history_date = Concept.history.get(
-        id=pk, history_id=concept_history_id).history_date
+    code_attribute_header = Concept.history.get(id=pk, history_id=concept_history_id).code_attribute_header
+    concept_history_date = Concept.history.get(id=pk, history_id=concept_history_id).history_date
     codes_with_attributes = []
     if code_attribute_header:
-        codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(
-            concept_id=pk,
-            concept_history_date=concept_history_date,
-            allCodes=codes,
-            code_attribute_header=code_attribute_header)
+        codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(concept_id=pk,
+                                                                                    concept_history_date=concept_history_date,
+                                                                                    allCodes=codes,
+                                                                                    code_attribute_header=code_attribute_header
+                                                                                   )
 
         codes = codes_with_attributes
 
@@ -606,11 +605,11 @@ def concept_uniquecodesByVersion(request, pk, concept_history_id):
     except:
         codes_count = "0"
     data['codes_count'] = codes_count
-    data['html_uniquecodes_list'] = render_to_string(
-        'clinicalcode/component/get_child_concept_codes.html', {
-            'codes': codes,
-            'code_attribute_header': code_attribute_header
-        })
+    data['html_uniquecodes_list'] = render_to_string('clinicalcode/component/get_child_concept_codes.html', {
+                                                            'codes': codes,
+                                                            'code_attribute_header': code_attribute_header,
+                                                            'q': request.session.get('concept_search', '')
+                                                        })
 
     return JsonResponse(data)
 
@@ -629,21 +628,17 @@ def concept_history_fork(request, pk, concept_history_id):
         try:
             with transaction.atomic():
                 # fork selected concept, returning a newly created concept id
-                new_concept_id, changeReason1 = db_utils.forkHistoryConcept(
-                    request.user, concept_history_id)
+                new_concept_id, changeReason1 = db_utils.forkHistoryConcept(request.user, concept_history_id)
                 # save the concept with a change reason to reflect the fork from history within the concept audit history
-                db_utils.save_Entity_With_ChangeReason(Concept, new_concept_id,
-                                                       changeReason1)
+                db_utils.save_Entity_With_ChangeReason(Concept, new_concept_id, changeReason1)
                 data['form_is_valid'] = True
-                data['message'] = render_to_string(
-                    'clinicalcode/concept/history/forked.html',
-                    {'id': new_concept_id}, request)
+                data['message'] = render_to_string('clinicalcode/concept/history/forked.html',
+                                                   {'id': new_concept_id}, request)
                 return JsonResponse(data)
         except Exception as e:
             # need to log error
             data['form_is_valid'] = False
-            data['message'] = render_to_string(
-                'clinicalcode/concept/history/fork.html', {}, request)
+            data['message'] = render_to_string('clinicalcode/concept/history/fork.html', {}, request)
             return JsonResponse(data)
     concept = db_utils.getHistoryConcept(concept_history_id)
     return render(request, 'clinicalcode/concept/history/fork.html',

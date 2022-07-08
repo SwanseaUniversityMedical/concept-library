@@ -182,6 +182,7 @@ def markdownify(text, custom_settings="default"):
 
 @register.filter(name='highlight')
 def highlight(text, q):
+    q = q.strip()
     rgx = compile(rescape(q), IGNORECASE)
     return mark_safe(
         rgx.sub(

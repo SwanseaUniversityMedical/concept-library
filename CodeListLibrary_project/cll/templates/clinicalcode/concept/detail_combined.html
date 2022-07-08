@@ -153,11 +153,7 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 			<div class="col-md-12">
 				<div classXX="col-md-6" styleXX="margin-left: -10px">
 					<h2>			
-						{% if user.is_authenticated and not is_latest_version  %}
-							<strong>{{ concept.name }}</strong>
-						{% else %}
-							<strong>{{ concept.name }}</strong>	
-						{% endif %}	
+						<strong>{{ concept.name|highlight:q }}</strong>	
 						
 						{% for item in request.BRAND_GROUPS %}
 							{% for brand, groups in item.iteritems %}
@@ -167,7 +163,7 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 							{% endfor %}
 						{% endfor %}
 					</h2>
-					<span>{{ concept.author }}</span>					
+					<span>{{ concept.author|highlight:q }}</span>					
 					<br>
 					<br>
 				</div>
@@ -263,7 +259,7 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 				<div class="col-sm-12 shadow-frame">
 					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px"><span id="description"></span><strong>Description</strong></h3>
 					<div class="markdown-holder">
-						{{ concept.description | markdownify }}
+						{{ concept.description|markdownify|highlight:q }}
 					</div>
 				</div>
 		
@@ -277,17 +273,17 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 					
 				    <div class="row" style="margin-top: 10px;">
 						<div  class="col-sm-3">Primary publication DOI</div>
-						<div class="col-sm-9">{{ concept.publication_doi }}</div>
+						<div class="col-sm-9">{{ concept.publication_doi|highlight:q }}</div>
 					</div>
 	
 					<div class="row" style="margin-top: 10px;">
 						<div  class="col-sm-3">Primary publication link</div>
-						<div class="col-sm-9">{{ concept.publication_link }}</div>
+						<div class="col-sm-9">{{ concept.publication_link|highlight:q }}</div>
 					</div>						
 							
 					<div class="row" style="margin-top: 10px;">
 						<div  class="col-sm-3">Secondary  publication link</div>
-						<div class="col-sm-9">{{ concept.secondary_publication_links }}</div>
+						<div class="col-sm-9">{{ concept.secondary_publication_links|highlight:q }}</div>
 					</div>
 
 					<div class="row" style="margin-top: 10px;">
@@ -310,14 +306,14 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 					<div class="row" style="margin-top: 10px;">
 						<div  class="col-sm-3">Source reference</div>
 						<div class="col-sm-9">
-							{{ concept.source_reference }}
+							{{ concept.source_reference|highlight:q }}
 						</div>
 					</div>
 					
 					<div class="row" style="margin-top: 10px;">
 						<div  class="col-sm-3">Citation requirements</div>
 						<div class="col-sm-9">
-							{{ concept.citation_requirements }}
+							{{ concept.citation_requirements|highlight:q }}
 						</div>
 					</div>
 
@@ -499,7 +495,7 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 														{% for code in component.codes|slice:":10" %}
 															<tr>
 																<td>{{ code.code }}</td>
-																<td>{{ code.description }}</td>
+																<td>{{ code.description|highlight:q }}</td>
 															</tr>
 														{% empty %}
 															<tr>
@@ -549,7 +545,7 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 								{% for code in codelist %}
 									<tr>
 										<td>{{ code.code }}</td>
-										<td>{{ code.description }}</td>
+										<td>{{ code.description|highlight:q }}</td>
 										{% for attr_hdr in code_attribute_header %}
 										   {% for key, value in code.items %}
 										   		{% if key == attr_hdr %}
