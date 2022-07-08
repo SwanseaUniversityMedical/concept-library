@@ -62,12 +62,10 @@ def api_phenotype_create(request):
         new_phenotype.author = request.data.get('author')
         new_phenotype.layout = request.data.get('layout')
         new_phenotype.type = request.data.get('type')
-        new_phenotype.validation_performed = request.data.get(
-            'validation_performed')
+        new_phenotype.validation_performed = request.data.get('validation_performed')
         new_phenotype.validation = request.data.get('validation')
 
-        new_phenotype.valid_event_data_range = request.data.get(
-            'valid_event_data_range')
+        new_phenotype.valid_event_data_range = request.data.get('valid_event_data_range')
         #         new_phenotype.valid_event_data_range_start = request.data.get('valid_event_data_range_start')
         #         new_phenotype.valid_event_data_range_end = request.data.get('valid_event_data_range_end')
         new_phenotype.sex = request.data.get('sex')
@@ -77,8 +75,7 @@ def api_phenotype_create(request):
         new_phenotype.publications = request.data.get('publications')
         new_phenotype.publication_doi = request.data.get('publication_doi')
         new_phenotype.publication_link = request.data.get('publication_link')
-        new_phenotype.secondary_publication_links = request.data.get(
-            'secondary_publication_links')
+        new_phenotype.secondary_publication_links = request.data.get('secondary_publication_links')
         new_phenotype.source_reference = request.data.get('source_reference')
         new_phenotype.citation_requirements = request.data.get(
             'citation_requirements')
@@ -107,8 +104,7 @@ def api_phenotype_create(request):
             
             
         # group id
-        is_valid_data, err, ret_value = chk_group(request.data.get('group'),
-                                                  user_groups)
+        is_valid_data, err, ret_value = chk_group(request.data.get('group'), user_groups)
         if is_valid_data:
             group_id = ret_value
             if group_id is None or group_id == "0":
@@ -117,8 +113,7 @@ def api_phenotype_create(request):
             else:
                 new_phenotype.group_id = group_id
 
-                is_valid_data, err, ret_value = chk_group_access(
-                    request.data.get('group_access'))
+                is_valid_data, err, ret_value = chk_group_access(request.data.get('group_access'))
                 if is_valid_data:
                     new_phenotype.group_access = ret_value
                 else:
@@ -175,10 +170,10 @@ def api_phenotype_create(request):
             if datasource_ids_list:
                 new_datasource_list = [int(i) for i in datasource_ids_list]
                 for datasource_id in new_datasource_list:
-                    PhenotypeDataSourceMap.objects.get_or_create(
-                        phenotype=new_phenotype,
-                        datasource=DataSource.objects.get(id=datasource_id), 
-                        created_by=request.user)
+                    PhenotypeDataSourceMap.objects.get_or_create(phenotype=new_phenotype,
+                                                                datasource=DataSource.objects.get(id=datasource_id), 
+                                                                created_by=request.user
+                                                                )
 
             save_Entity_With_ChangeReason(Phenotype, created_pt.pk, "Created from API")
             # created_pt.changeReason = "Created from API"
@@ -919,7 +914,7 @@ def getPhenotypeDetail(request,
         # 'entry_date',
         'clinical_terminologies',
         'data_sources',
-        # 'description',
+        'definition',
     ]
     
     if is_authenticated_user:
@@ -976,7 +971,7 @@ def getPhenotypeDetail(request,
         #phenotype['entry_date'],
         clinicalTerminologies,
         data_sources,
-        #phenotype['description'],
+        phenotype['description'],
     ]
     
     if is_authenticated_user:
@@ -999,10 +994,17 @@ def getPhenotypeDetail(request,
         phenotype['publication_link'],
         #phenotype['secondary_publication_links'],
         phenotype['source_reference'],
-        phenotype['citation_requirements'],
-        phenotype['implementation'],
+        phenotype['citation_requirements']
+        ]
+    
+    implementation = phenotype['implementation'] 
+    if len(str(phenotype['phenoflowid'])) >0 :
+        implementation += "   " + "PhenoFlow Implementation: https://kclhi.org/phenoflow/phenotype/download/" + str(phenotype['phenoflowid'])
+        
+    ret += [
+        implementation,
         phenotype['publications']
-    ]
+        ]
     
     if is_authenticated_user:    
         ret +=[

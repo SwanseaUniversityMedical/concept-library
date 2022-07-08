@@ -19,7 +19,7 @@
 					<div>
 						<h2>Concepts</h2>
 						<div class="form-input-flex-container">
-							<input type="text" placeholder="Search Concepts - name or ID" name="search" id="search1" value="{{ search|default_if_none:'' }}">
+							<input type="text" placeholder="Search Concepts" name="search" id="search1" value="{{ search|default_if_none:'' }}">
 							<input type="hidden" name="tagids" id="tagids"  value="{{ tag_ids|default_if_none:'' }}">
 							<input type="hidden" name="search_form" id="collection_search_form1"  class="collection_search_form"  value="{{ search_form }}"> 
 											
@@ -51,7 +51,7 @@
 								<label for="search">Search: <i class="help-block-no-break" style="font-size: 10px;">(concept name)</i></label>
 							</div>
 							<div class="col-sm-6">
-								<input class="form-control" type="text" placeholder="Concept name or ID" name="search" id="search" value="{{ search|default_if_none:'' }}">
+								<input class="form-control" type="text" placeholder="Search Concepts" name="search" id="search" value="{{ search|default_if_none:'' }}">
 							</div>
 							<div class="col-md-2">
 								<label for="page_size">Results per page:</label>
@@ -232,6 +232,29 @@
 	<script src="{% static 'js/clinicalcode/component.js' %}"></script>
 	<script src="{% static 'js/clinicalcode/tags.js' %}"></script>
 	
+	<script type="text/javascript">
+		$('.collapse').each(function (i, obj) {
+			var anchor = $(document).find('a[href^="#' + this.id + '"]')[0];
+			if (typeof anchor !== 'undefined') {
+				var icons = $(anchor).find('.morphing-filter-targets')[0];
+				if (typeof icons !== 'undefined') {
+					// Resolve initial state
+					if ($(obj).hasClass('in')) {
+						$(icons).toggleClass('morphed');
+					}
+
+					// Toggle animation
+					$(obj).on('show.bs.collapse', function () {
+						$(icons).toggleClass('morphed');
+					});
+					$(obj).on('hide.bs.collapse', function () {
+						$(icons).toggleClass('morphed');
+					});
+				}
+			}
+		});
+	</script>
+
 	<script type="text/javascript">
 		tagService.initialize();
 		
