@@ -14,7 +14,7 @@ WORKDIR /var/www/
 RUN mkdir -p /var/www/concept_lib_sites/v1
 
 
-COPY requirements /var/www/concept_lib_sites/v1/requirements 
+COPY requirements /var/www/concept_lib_sites/v1/requirements
 #COPY CodeListLibrary_project /var/www/concept_lib_sites/v1/CodeListLibrary_project
 
 COPY CodeListLibrary_project/clinicalcode /var/www/concept_lib_sites/v1/CodeListLibrary_project/clinicalcode
@@ -46,11 +46,15 @@ RUN \
 COPY deploy_script_main.sh /home/config_cll/deploy_script_main.sh
 COPY deploy_script_DB_mig.sh /home/config_cll/deploy_script_DB_mig.sh
 COPY deploy_script_DB_mig_ro.sh /home/config_cll/deploy_script_DB_mig_ro.sh
+COPY worker_start.sh /home/config_cll/worker_start.sh
+COPY beat_start.sh /home/config_cll/beat_start.sh
 
 # Make file executable:
 RUN ["chmod" , "+x" , "/home/config_cll/deploy_script_main.sh"]
 RUN ["chmod" , "+x" , "/home/config_cll/deploy_script_DB_mig.sh"]
 RUN ["chmod" , "+x" , "/home/config_cll/deploy_script_DB_mig_ro.sh"]
+RUN ["chmod" , "+x" , "/home/config_cll/beat_start.sh"]
+RUN ["chmod" , "+x" , "/home/config_cll/worker_start.sh"]
 
 RUN ["chown" , "-R" , "www-data:www-data" , "/var/www/"]
 #RUN /home/config_cll/deploy_script_main.sh
