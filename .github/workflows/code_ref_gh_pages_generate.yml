@@ -1,0 +1,58 @@
+name: Codebase Sphinx Documentation
+
+on:
+  push:
+    branches: [ ghpages-update ]
+    # change to on merge when completed
+jobs:
+  build_docs_job:
+    name: Code Reference Generator
+    runs-on: windows-latest
+    env: 
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout 
+        uses: actions/checkout@v2
+        with:
+              token: ${{ secrets.GITHUB_TOKEN }}
+              
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with: 
+              python-version: 3.9.0
+
+      - name: Install dependencies
+        run: |
+              python -m pip install -U sphinx
+              python -m pip install furo
+              python -m pip install django
+              python -m pip install mock
+              pip install sphinxjp.themes.basicstrap
+              cd requirements
+              pip install python_ldap-3.3.1-cp39-cp39-win_amd64.whl
+              pip install sphinxjp
+              pip install -r base.txt
+
+      - name: Make the Codebase Reference sphinx docs
+        run: |
+              cd docs/codebase_docs/
+              sphinx-build -b html source ..
+
+      - name: Init new codebase docs repo
+        run: |
+              touch .nojekyll
+              git add -A
+              git config --local user.email "action@github.com"
+              git config --local user.name "GitHub Action"
+              git commit -m "deployed documentation"
+
+
+      - name: Push to destination branch
+        uses: ad-m/github-push-action@master
+        with: 
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+            branch: gh-pages
+            force: true
+
+
