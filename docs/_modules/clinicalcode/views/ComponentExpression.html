@@ -1,0 +1,1382 @@
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
+
+    <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+        <title>clinicalcode.views.ComponentExpression - Library Code Reference Data</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">Library Code Reference Data</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand centered" href="../../../index.html">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="../../../_static/header_logo.png" alt="Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">Library Code Reference Data</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <h1>Source code for clinicalcode.views.ComponentExpression</h1><div class="highlight"><pre>
+<span></span><span class="sd">'''</span>
+<span class="sd">    ---------------------------------------------------------------------------</span>
+<span class="sd">    COMPONENT EXPRESSION VIEW</span>
+
+<span class="sd">    View-handling for the Expression Component pop-ups.</span>
+<span class="sd">    ---------------------------------------------------------------------------</span>
+<span class="sd">'''</span>
+
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">django.contrib.auth.decorators</span> <span class="kn">import</span> <span class="n">login_required</span>
+<span class="kn">from</span> <span class="nn">django.contrib.auth.mixins</span> <span class="kn">import</span> <span class="n">LoginRequiredMixin</span>
+<span class="kn">from</span> <span class="nn">django.core</span> <span class="kn">import</span> <span class="n">serializers</span>
+<span class="kn">from</span> <span class="nn">django.core.exceptions</span> <span class="kn">import</span> <span class="n">ObjectDoesNotExist</span><span class="p">,</span> <span class="n">PermissionDenied</span>
+<span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">transaction</span>
+<span class="kn">from</span> <span class="nn">django.db.models</span> <span class="kn">import</span> <span class="n">Q</span>
+<span class="kn">from</span> <span class="nn">django.http.response</span> <span class="kn">import</span> <span class="n">JsonResponse</span>
+<span class="kn">from</span> <span class="nn">django.shortcuts</span> <span class="kn">import</span> <span class="n">get_object_or_404</span><span class="p">,</span> <span class="n">render</span>
+<span class="kn">from</span> <span class="nn">django.template.loader</span> <span class="kn">import</span> <span class="n">render_to_string</span>
+<span class="kn">from</span> <span class="nn">django.utils.safestring</span> <span class="kn">import</span> <span class="n">mark_safe</span>
+<span class="kn">from</span> <span class="nn">django.views.generic</span> <span class="kn">import</span> <span class="n">DetailView</span>
+<span class="kn">from</span> <span class="nn">django.views.generic.edit</span> <span class="kn">import</span> <span class="n">CreateView</span><span class="p">,</span> <span class="n">DeleteView</span><span class="p">,</span> <span class="n">UpdateView</span>
+
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">db_utils</span><span class="p">,</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">..forms.CodeForms</span> <span class="kn">import</span> <span class="n">CodeRegexFormSet</span>
+<span class="kn">from</span> <span class="nn">..forms.ComponentForms</span> <span class="kn">import</span> <span class="n">ComponentForm</span>
+<span class="kn">from</span> <span class="nn">..models.Code</span> <span class="kn">import</span> <span class="n">Code</span>
+<span class="kn">from</span> <span class="nn">..models.CodeList</span> <span class="kn">import</span> <span class="n">CodeList</span>
+<span class="kn">from</span> <span class="nn">..models.CodeRegex</span> <span class="kn">import</span> <span class="n">CodeRegex</span>
+<span class="kn">from</span> <span class="nn">..models.CodingSystemFilter</span> <span class="kn">import</span> <span class="n">CodingSystemFilter</span>
+<span class="kn">from</span> <span class="nn">..models.Component</span> <span class="kn">import</span> <span class="n">Component</span>
+<span class="kn">from</span> <span class="nn">..models.Concept</span> <span class="kn">import</span> <span class="n">Concept</span>
+<span class="kn">from</span> <span class="nn">..models.PublishedConcept</span> <span class="kn">import</span> <span class="n">PublishedConcept</span>
+<span class="kn">from</span> <span class="nn">..permissions</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..views.View</span> <span class="kn">import</span> <span class="n">build_permitted_components_list</span>
+<span class="kn">from</span> <span class="nn">test.support</span> <span class="kn">import</span> <span class="n">catch_threading_exception</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ComponentExpressionCreate"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionCreate">[docs]</a><span class="k">class</span> <span class="nc">ComponentExpressionCreate</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span>
+                                <span class="n">HasAccessToEditParentConceptCheckMixin</span><span class="p">,</span>
+                                <span class="n">CreateView</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        Create a expression component.</span>
+<span class="sd">    '''</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Component</span>
+    <span class="n">form_class</span> <span class="o">=</span> <span class="n">ComponentForm</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s1">'clinicalcode/component/expression/create.html'</span>
+
+<div class="viewcode-block" id="ComponentExpressionCreate.dispatch"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionCreate.dispatch">[docs]</a>    <span class="k">def</span> <span class="nf">dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">'''</span>
+<span class="sd">            kwargs - a dict with {'concept_id': value}.</span>
+<span class="sd">        '''</span>
+        <span class="k">return</span> <span class="n">CreateView</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="ComponentExpressionCreate.get_context_data"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionCreate.get_context_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="n">CreateView</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">:</span>
+            <span class="n">context</span><span class="p">[</span><span class="s1">'coderegex_formset'</span><span class="p">]</span> <span class="o">=</span> <span class="n">CodeRegexFormSet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">context</span><span class="p">[</span><span class="s1">'coderegex_formset'</span><span class="p">]</span> <span class="o">=</span> <span class="n">CodeRegexFormSet</span><span class="p">()</span>
+
+        <span class="n">concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span>
+
+        <span class="n">context</span><span class="p">[</span><span class="s1">'coding_system_filter'</span><span class="p">]</span> <span class="o">=</span> <span class="n">CodingSystemFilter</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">coding_system_id</span><span class="o">=</span><span class="n">concept</span><span class="o">.</span><span class="n">coding_system_id</span><span class="p">)</span>
+
+        <span class="c1">#------------------------------</span>
+        <span class="n">latest_history_ID</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span>
+        <span class="c1">#context['latest_history_ID'] = latest_history_ID</span>
+        <span class="n">context</span><span class="p">[</span>
+            <span class="s1">'latest_history_ID'</span><span class="p">]</span> <span class="o">=</span> <span class="n">latest_history_ID</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s1">'latest_history_id_shown'</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                    <span class="s1">'latest_history_id_shown'</span><span class="p">)</span>
+        <span class="c1">#-------------------------------</span>
+
+        <span class="k">return</span> <span class="n">context</span></div>
+
+<div class="viewcode-block" id="ComponentExpressionCreate.get_initial"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionCreate.get_initial">[docs]</a>    <span class="k">def</span> <span class="nf">get_initial</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">initials</span> <span class="o">=</span> <span class="n">CreateView</span><span class="o">.</span><span class="n">get_initial</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">initials</span><span class="p">[</span><span class="s1">'concept'</span><span class="p">]</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span>
+        <span class="k">except</span> <span class="n">ObjectDoesNotExist</span><span class="p">:</span>
+            <span class="c1"># no concept found, todo: need to log errors</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="s1">'does not exist'</span>
+            <span class="c1">#print(err)</span>
+
+        <span class="n">initials</span><span class="p">[</span><span class="s1">'component_type'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'</span><span class="si">%s</span><span class="s1">'</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">Component</span><span class="o">.</span><span class="n">COMPONENT_TYPE_EXPRESSION</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">initials</span></div>
+
+<div class="viewcode-block" id="ComponentExpressionCreate.form_invalid"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionCreate.form_invalid">[docs]</a>    <span class="k">def</span> <span class="nf">form_invalid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="n">data</span><span class="p">[</span><span class="s1">'form_is_valid'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'html_form'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+            <span class="s1">'clinicalcode/component/expression/create.html'</span><span class="p">,</span>
+            <span class="n">context</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="n">form</span><span class="o">=</span><span class="n">form</span><span class="p">),</span>
+            <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+
+        <span class="c1">#------------------------------</span>
+        <span class="n">concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'latest_history_ID'</span><span class="p">]</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">(</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">pk</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s1">'latest_history_id_shown'</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s1">'latest_history_id_shown'</span><span class="p">)</span>
+        <span class="c1">#------------------------------</span>
+
+        <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ComponentExpressionCreate.form_valid"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionCreate.form_valid">[docs]</a>    <span class="nd">@transaction</span><span class="o">.</span><span class="n">atomic</span>
+    <span class="k">def</span> <span class="nf">form_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">()</span>
+        <span class="n">formset</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s1">'coderegex_formset'</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">formset</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
+            <span class="n">form</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">created_by</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span>
+            <span class="c1"># !!! Can we do this in one step?</span>
+            <span class="c1"># !!! self.object = form.save()</span>
+            <span class="c1"># !!! formset.instance = self.object</span>
+            <span class="n">formset</span><span class="o">.</span><span class="n">instance</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+            <span class="n">concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span>
+            <span class="n">coding_system</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">coding_system</span>
+
+            <span class="c1"># save code regex</span>
+            <span class="n">code_regex</span> <span class="o">=</span> <span class="n">formset</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+            <span class="c1"># save the code list</span>
+            <span class="n">code_list</span> <span class="o">=</span> <span class="n">CodeList</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="n">form</span><span class="o">.</span><span class="n">instance</span><span class="p">)</span>
+            <span class="n">code_list</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+            <span class="c1"># apply the code list reference to the code regex</span>
+            <span class="n">code_regex</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">code_list</span> <span class="o">=</span> <span class="n">code_list</span>
+            <span class="n">code_regex</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+            <span class="c1"># get where query</span>
+            <span class="n">db_utils</span><span class="o">.</span><span class="n">create_expression_codes</span><span class="p">(</span>
+                <span class="n">Component</span><span class="o">.</span><span class="n">COMPONENT_TYPE_EXPRESSION</span><span class="p">,</span>
+                <span class="n">coding_system</span><span class="o">.</span><span class="n">database_connection_name</span><span class="p">,</span>
+                <span class="n">coding_system</span><span class="o">.</span><span class="n">table_name</span><span class="p">,</span> <span class="n">coding_system</span><span class="o">.</span><span class="n">code_column_name</span><span class="p">,</span>
+                <span class="n">coding_system</span><span class="o">.</span><span class="n">desc_column_name</span><span class="p">,</span> <span class="s1">''</span><span class="p">,</span> <span class="s1">''</span><span class="p">,</span>
+                <span class="n">formset</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">coderegex</span><span class="o">.</span><span class="n">column_search</span><span class="p">,</span>
+                <span class="n">formset</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">coderegex</span><span class="o">.</span><span class="n">regex_type</span><span class="p">,</span>
+                <span class="n">formset</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">coderegex</span><span class="o">.</span><span class="n">regex_code</span><span class="p">,</span> <span class="n">code_list</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">coding_system</span><span class="o">.</span><span class="n">filter</span><span class="p">,</span>
+                <span class="n">formset</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">coderegex</span><span class="o">.</span><span class="n">case_sensitive_search</span><span class="p">)</span>
+
+            <span class="c1"># Save the concept with a change reason to reflect the creation</span>
+            <span class="c1"># within the concept audit history.</span>
+            <span class="n">db_utils</span><span class="o">.</span><span class="n">save_Entity_With_ChangeReason</span><span class="p">(</span>
+                <span class="n">Concept</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">],</span>
+                <span class="s2">"Created component: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                <span class="n">modified_by_user</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
+            <span class="c1"># Update dependent concepts &amp; working sets</span>
+            <span class="n">db_utils</span><span class="o">.</span><span class="n">saveDependentConceptsChangeReason</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">],</span> <span class="s2">"Component concept #"</span> <span class="o">+</span>
+                <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span> <span class="o">+</span> <span class="s2">" was updated"</span><span class="p">)</span>
+
+            <span class="c1">#components = Component.objects.filter(concept_id=self.kwargs['concept_id'])</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">'form_is_valid'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="n">concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span>
+
+            <span class="c1"># refresh component list</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">'html_component_list'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+                <span class="s1">'clinicalcode/component/partial_component_list.html'</span><span class="p">,</span>
+                <span class="n">build_permitted_components_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                                                <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">]))</span>
+
+            <span class="c1"># update history list</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">'html_history_list'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+                <span class="s1">'clinicalcode/concept/partial_history_list.html'</span><span class="p">,</span> <span class="p">{</span>
+                    <span class="s1">'history'</span><span class="p">:</span>
+                    <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span>
+                    <span class="s1">'current_concept_history_id'</span><span class="p">:</span>
+                    <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span>
+                    <span class="s1">'published_historical_ids'</span><span class="p">:</span>
+                    <span class="nb">list</span><span class="p">(</span>
+                        <span class="n">PublishedConcept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                            <span class="n">concept_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span>
+                                <span class="s1">'concept_history_id'</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+                <span class="p">},</span>
+                <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+
+            <span class="n">data</span><span class="p">[</span><span class="s1">'latest_history_ID'</span><span class="p">]</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span>
+
+            <span class="c1"># update add_menu_items to reflect latest history id</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">'add_menu_items'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+                <span class="s1">'clinicalcode/concept/add_menu_items.html'</span><span class="p">,</span> <span class="p">{</span>
+                    <span class="s1">'pk'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">],</span>
+                    <span class="s1">'latest_history_id'</span><span class="p">:</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span>
+                <span class="p">})</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">'form_is_valid'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">'html_form'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+                <span class="s1">'clinicalcode/component/expression/create.html'</span><span class="p">,</span>
+                <span class="n">context</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="n">form</span><span class="o">=</span><span class="n">form</span><span class="p">),</span>
+                <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ComponentExpressionDelete"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionDelete">[docs]</a><span class="k">class</span> <span class="nc">ComponentExpressionDelete</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span>
+                                <span class="n">HasAccessToEditParentConceptCheckMixin</span><span class="p">,</span>
+                                <span class="n">DeleteView</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        Delete an expression component.</span>
+<span class="sd">    '''</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Component</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s1">'clinicalcode/component/expression/delete.html'</span>
+
+<div class="viewcode-block" id="ComponentExpressionDelete.post"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionDelete.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">'''</span>
+<span class="sd">            kwargs - a dict with {'pk': value, 'concept_id': value}.</span>
+<span class="sd">        '''</span>
+        <span class="k">with</span> <span class="n">transaction</span><span class="o">.</span><span class="n">atomic</span><span class="p">():</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="n">component</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Component</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'pk'</span><span class="p">])</span>
+            <span class="n">component_name</span> <span class="o">=</span> <span class="n">component</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">component</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+        <span class="c1">#components = Component.objects.filter(concept_id=component.concept_id)</span>
+        <span class="c1"># Save the *concept* with a change reason to note the component</span>
+        <span class="c1"># deletion in its history.</span>
+        <span class="n">db_utils</span><span class="o">.</span><span class="n">save_Entity_With_ChangeReason</span><span class="p">(</span>
+            <span class="n">Concept</span><span class="p">,</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">],</span>
+            <span class="s2">"Deleted component: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">component_name</span><span class="p">),</span>
+            <span class="n">modified_by_user</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
+        <span class="c1"># Update dependent concepts &amp; working sets</span>
+        <span class="n">db_utils</span><span class="o">.</span><span class="n">saveDependentConceptsChangeReason</span><span class="p">(</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">],</span>
+            <span class="s2">"Component concept #"</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span> <span class="o">+</span> <span class="s2">" was updated"</span><span class="p">)</span>
+
+        <span class="n">data</span><span class="p">[</span><span class="s1">'form_is_valid'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># refresh component list</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'html_component_list'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+            <span class="s1">'clinicalcode/component/partial_component_list.html'</span><span class="p">,</span>
+            <span class="n">build_permitted_components_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                                            <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">]))</span>
+
+        <span class="n">concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span>
+
+        <span class="c1"># update history list</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'html_history_list'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+            <span class="s1">'clinicalcode/concept/partial_history_list.html'</span><span class="p">,</span> <span class="p">{</span>
+                <span class="s1">'history'</span><span class="p">:</span>
+                <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span>
+                <span class="s1">'current_concept_history_id'</span><span class="p">:</span>
+                <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span>
+                <span class="s1">'published_historical_ids'</span><span class="p">:</span>
+                <span class="nb">list</span><span class="p">(</span>
+                    <span class="n">PublishedConcept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                        <span class="n">concept_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span>
+                            <span class="s1">'concept_history_id'</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+            <span class="p">},</span>
+            <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+
+        <span class="n">data</span><span class="p">[</span><span class="s1">'latest_history_ID'</span><span class="p">]</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span>
+
+        <span class="c1"># update add_menu_items to reflect latest history id</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'add_menu_items'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+            <span class="s1">'clinicalcode/concept/add_menu_items.html'</span><span class="p">,</span> <span class="p">{</span>
+                <span class="s1">'pk'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">],</span>
+                <span class="s1">'latest_history_id'</span><span class="p">:</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span>
+            <span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ComponentExpressionUpdate"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionUpdate">[docs]</a><span class="k">class</span> <span class="nc">ComponentExpressionUpdate</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span>
+                                <span class="n">HasAccessToEditParentConceptCheckMixin</span><span class="p">,</span>
+                                <span class="n">UpdateView</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        Update match code with expression component.</span>
+<span class="sd">    '''</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Component</span>
+    <span class="n">form_class</span> <span class="o">=</span> <span class="n">ComponentForm</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s1">'clinicalcode/component/expression/update.html'</span>
+
+<div class="viewcode-block" id="ComponentExpressionUpdate.get_context_data"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionUpdate.get_context_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="n">UpdateView</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">:</span>
+            <span class="n">context</span><span class="p">[</span><span class="s1">'coderegex_formset'</span><span class="p">]</span> <span class="o">=</span> <span class="n">CodeRegexFormSet</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">,</span> <span class="n">instance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">object</span><span class="p">)</span>
+            <span class="n">context</span><span class="p">[</span><span class="s1">'coderegex_formset'</span><span class="p">]</span><span class="o">.</span><span class="n">full_clean</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">context</span><span class="p">[</span><span class="s1">'coderegex_formset'</span><span class="p">]</span> <span class="o">=</span> <span class="n">CodeRegexFormSet</span><span class="p">(</span>
+                <span class="n">instance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">object</span><span class="p">)</span>
+
+        <span class="n">concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">'coding_system_filter'</span><span class="p">]</span> <span class="o">=</span> <span class="n">CodingSystemFilter</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">coding_system_id</span><span class="o">=</span><span class="n">concept</span><span class="o">.</span><span class="n">coding_system_id</span><span class="p">)</span>
+
+        <span class="c1">#------------------------------</span>
+        <span class="n">latest_history_ID</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span>
+        <span class="c1">#context['latest_history_ID'] = latest_history_ID</span>
+        <span class="n">context</span><span class="p">[</span>
+            <span class="s1">'latest_history_ID'</span><span class="p">]</span> <span class="o">=</span> <span class="n">latest_history_ID</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s1">'latest_history_id_shown'</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                    <span class="s1">'latest_history_id_shown'</span><span class="p">)</span>
+        <span class="c1">#-------------------------------</span>
+
+        <span class="k">return</span> <span class="n">context</span></div>
+
+<div class="viewcode-block" id="ComponentExpressionUpdate.form_invalid"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionUpdate.form_invalid">[docs]</a>    <span class="k">def</span> <span class="nf">form_invalid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'form_is_valid'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'html_form'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+            <span class="s1">'clinicalcode/component/expression/update.html'</span><span class="p">,</span>
+            <span class="n">context</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="n">form</span><span class="o">=</span><span class="n">form</span><span class="p">),</span>
+            <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+
+        <span class="c1">#------------------------------</span>
+        <span class="n">concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'latest_history_ID'</span><span class="p">]</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">(</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">pk</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s1">'latest_history_id_shown'</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s1">'latest_history_id_shown'</span><span class="p">)</span>
+        <span class="c1">#------------------------------</span>
+
+        <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ComponentExpressionUpdate.form_valid"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionUpdate.form_valid">[docs]</a>    <span class="k">def</span> <span class="nf">form_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">()</span>
+        <span class="n">formset</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s1">'coderegex_formset'</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">formset</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
+            <span class="k">with</span> <span class="n">transaction</span><span class="o">.</span><span class="n">atomic</span><span class="p">():</span>
+                <span class="n">form</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">modified_by</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span>
+                <span class="c1"># !!! See asame code above.</span>
+                <span class="c1">#     self.object = form.save()</span>
+                <span class="c1">#     formset.instance = self.object</span>
+                <span class="n">formset</span><span class="o">.</span><span class="n">instance</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                <span class="n">code_list_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'coderegex-0-code_list'</span><span class="p">)</span>
+
+                <span class="n">concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span>
+                <span class="n">coding_system</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">coding_system</span>
+
+                <span class="n">formset</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+                <span class="n">db_utils</span><span class="o">.</span><span class="n">update_expression_codes</span><span class="p">(</span>
+                    <span class="n">Component</span><span class="o">.</span><span class="n">COMPONENT_TYPE_EXPRESSION</span><span class="p">,</span>
+                    <span class="n">coding_system</span><span class="o">.</span><span class="n">database_connection_name</span><span class="p">,</span>
+                    <span class="n">coding_system</span><span class="o">.</span><span class="n">table_name</span><span class="p">,</span> <span class="n">coding_system</span><span class="o">.</span><span class="n">code_column_name</span><span class="p">,</span>
+                    <span class="n">coding_system</span><span class="o">.</span><span class="n">desc_column_name</span><span class="p">,</span> <span class="s1">''</span><span class="p">,</span> <span class="s1">''</span><span class="p">,</span>
+                    <span class="n">formset</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">coderegex</span><span class="o">.</span><span class="n">column_search</span><span class="p">,</span>
+                    <span class="n">formset</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">coderegex</span><span class="o">.</span><span class="n">regex_type</span><span class="p">,</span>
+                    <span class="n">formset</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">coderegex</span><span class="o">.</span><span class="n">regex_code</span><span class="p">,</span> <span class="n">code_list_id</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">coding_system</span><span class="o">.</span><span class="n">filter</span><span class="p">,</span>
+                    <span class="n">formset</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">coderegex</span><span class="o">.</span><span class="n">case_sensitive_search</span><span class="p">)</span>
+
+                <span class="c1"># Save the concept with a change reason to reflect the update</span>
+                <span class="c1"># within the concept audit history.</span>
+                <span class="n">db_utils</span><span class="o">.</span><span class="n">save_Entity_With_ChangeReason</span><span class="p">(</span>
+                    <span class="n">Concept</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">],</span>
+                    <span class="s2">"Updated component: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                    <span class="n">modified_by_user</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
+                <span class="c1"># Update dependent concepts &amp; working sets</span>
+                <span class="n">db_utils</span><span class="o">.</span><span class="n">saveDependentConceptsChangeReason</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">],</span> <span class="s2">"Component concept #"</span> <span class="o">+</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span> <span class="o">+</span> <span class="s2">" was updated"</span><span class="p">)</span>
+
+            <span class="c1">#components = Component.objects.filter(concept_id=self.kwargs['concept_id'])</span>
+
+            <span class="n">data</span><span class="p">[</span><span class="s1">'form_is_valid'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="n">concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span>
+
+            <span class="c1"># refresh component list</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">'html_component_list'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+                <span class="s1">'clinicalcode/component/partial_component_list.html'</span><span class="p">,</span>
+                <span class="n">build_permitted_components_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                                                <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">]))</span>
+
+            <span class="c1"># update history list</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">'html_history_list'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+                <span class="s1">'clinicalcode/concept/partial_history_list.html'</span><span class="p">,</span> <span class="p">{</span>
+                    <span class="s1">'history'</span><span class="p">:</span>
+                    <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span>
+                    <span class="s1">'current_concept_history_id'</span><span class="p">:</span>
+                    <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span>
+                    <span class="s1">'published_historical_ids'</span><span class="p">:</span>
+                    <span class="nb">list</span><span class="p">(</span>
+                        <span class="n">PublishedConcept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                            <span class="n">concept_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span>
+                                <span class="s1">'concept_history_id'</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+                <span class="p">},</span>
+                <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+
+            <span class="n">data</span><span class="p">[</span><span class="s1">'latest_history_ID'</span><span class="p">]</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span>
+
+            <span class="c1"># update add_menu_items to reflect latest history id</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">'add_menu_items'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+                <span class="s1">'clinicalcode/concept/add_menu_items.html'</span><span class="p">,</span> <span class="p">{</span>
+                    <span class="s1">'pk'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">],</span>
+                    <span class="s1">'latest_history_id'</span><span class="p">:</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span>
+                <span class="p">})</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">'form_is_valid'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">'html_form'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+                <span class="s1">'clinicalcode/component/expression/update.html'</span><span class="p">,</span>
+                <span class="n">context</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="n">form</span><span class="o">=</span><span class="n">form</span><span class="p">),</span>
+                <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div></div>
+
+
+<span class="sd">"""</span>
+<span class="sd">    !!! Not currently used.</span>
+<span class="sd">        -------------------</span>
+<span class="sd">class ComponentExpressionSelectCodeCreate(LoginRequiredMixin,</span>
+<span class="sd">                                          HasAccessToEditParentConceptCheckMixin,</span>
+<span class="sd">                                          CreateView):</span>
+<span class="sd">    '''</span>
+<span class="sd">        Create an expression-select code component.</span>
+<span class="sd">    '''</span>
+<span class="sd">    model = Code</span>
+<span class="sd">    form_class = CodeForm</span>
+<span class="sd">    template_name = 'clinicalcode/component/expressionselect/code/create.html'</span>
+
+<span class="sd">    def get_initial(self):</span>
+<span class="sd">        initials = CreateView.get_initial(self)</span>
+<span class="sd">        try:</span>
+<span class="sd">            initials['code_list'] = CodeList.objects.get(id=self.kwargs['code_list_id'])</span>
+<span class="sd">        except ObjectDoesNotExist:</span>
+<span class="sd">            # no code list found, todo: need to log errors</span>
+<span class="sd">            err = 'does not exist'</span>
+<span class="sd">            #print(err)</span>
+
+<span class="sd">        return initials</span>
+
+<span class="sd">    def get_context_data(self, **kwargs):</span>
+<span class="sd">        context = CreateView.get_context_data(self, **kwargs)</span>
+
+<span class="sd">        context['concept_id'] = self.kwargs.get('concept_id')</span>
+<span class="sd">        context['code_list_id'] = self.kwargs.get('code_list_id')</span>
+
+<span class="sd">        return context</span>
+
+<span class="sd">    def form_invalid(self, form):</span>
+<span class="sd">        data = dict()</span>
+<span class="sd">        # check if code has already been used</span>
+<span class="sd">        if Code.objects.filter(</span>
+<span class="sd">            Q(code=form.cleaned_data['code'],</span>
+<span class="sd">              code_list_id=self.kwargs['code_list_id'])).count() &gt; 0:</span>
+<span class="sd">            form.add_error(None, forms.ValidationError('Code is already used'))</span>
+
+<span class="sd">        data['form_is_valid'] = False</span>
+<span class="sd">        data['html_form'] = render_to_string(</span>
+<span class="sd">            'clinicalcode/component/expressionselect/code/create.html',</span>
+<span class="sd">            context=self.get_context_data(form=form),</span>
+<span class="sd">            request=self.request)</span>
+<span class="sd">        return JsonResponse(data)</span>
+
+<span class="sd">    def form_valid(self, form):</span>
+<span class="sd">        data = dict()</span>
+
+<span class="sd">        # check if code has already been used</span>
+<span class="sd">        if Code.objects.filter(</span>
+<span class="sd">            Q(code=form.cleaned_data['code'],</span>
+<span class="sd">              code_list_id=self.kwargs['code_list_id'])).count() &gt; 0:</span>
+<span class="sd">            form.add_error(None, forms.ValidationError('Code is already used'))</span>
+
+<span class="sd">            data['form_is_valid'] = False</span>
+<span class="sd">            data['html_form'] = render_to_string(</span>
+<span class="sd">                'clinicalcode/component/expressionselect/code/create.html',</span>
+<span class="sd">                context=self.get_context_data(form=form),</span>
+<span class="sd">                request=self.request)</span>
+<span class="sd">            return JsonResponse(data)</span>
+
+<span class="sd">        with transaction.atomic():</span>
+<span class="sd">            form.save()</span>
+
+<span class="sd">            code_list = CodeList.objects.get(id=self.kwargs['code_list_id'])</span>
+
+<span class="sd">            # get and process any uploaded files</span>
+<span class="sd">            if self.request.FILES.get('upload_file'):</span>
+<span class="sd">                csv_file = self.request.FILES['upload_file']</span>
+<span class="sd">                #file_reader = csv.reader(csv_file, delimiter=',')</span>
+<span class="sd">                file_reader = csv.reader([line.decode() for line in csv_file], delimiter=',')</span>
+
+<span class="sd">                row_count = 0</span>
+
+<span class="sd">                for row in file_reader:</span>
+<span class="sd">                    row_count += 1</span>
+
+<span class="sd">                    # check if first row contains column headings or not</span>
+<span class="sd">                    if (self.request.POST.get('first_row_contains_column_headings_checkbox') == '1'</span>
+<span class="sd">                        and row_count == 1):</span>
+<span class="sd">                        continue</span>
+<span class="sd">                    # !!! obj is not used?</span>
+<span class="sd">                    obj = Code.objects.create(code_list=code_list,</span>
+<span class="sd">                                              code=row[0],</span>
+<span class="sd">                                              description=row[1])</span>
+
+<span class="sd">            # save the concept with a change reason to reflect the creation</span>
+<span class="sd">            # within the concept audit history</span>
+<span class="sd">            db_utils.save_Entity_With_ChangeReason(Concept, self.kwargs['concept_id'],</span>
+<span class="sd">                "Created code %s for component: %s" %</span>
+<span class="sd">                (form.instance.code, code_list.component.name) , modified_by_user=self.request.user)</span>
+<span class="sd">                </span>
+<span class="sd">            # Update dependent concepts &amp; working sets</span>
+<span class="sd">            db_utils.saveDependentConceptsChangeReason(self.kwargs['concept_id'], "Component concept #" + str(self.kwargs['concept_id']) + " was updated")</span>
+
+<span class="sd">        #components = Component.objects.filter(concept_id=self.kwargs['concept_id'])</span>
+<span class="sd">        data['form_is_valid'] = True</span>
+<span class="sd">        data['html_component_list'] = render_to_string(</span>
+<span class="sd">            'clinicalcode/component/partial_component_list.html',</span>
+<span class="sd">            build_permitted_components_list(self.request, self.kwargs['concept_id'])</span>
+<span class="sd">            )</span>
+
+<span class="sd">        concept = Concept.objects.get(id=self.kwargs['concept_id'])</span>
+
+<span class="sd">        # update history list</span>
+<span class="sd">        data['html_history_list'] = render_to_string(</span>
+<span class="sd">            'clinicalcode/concept/partial_history_list.html',</span>
+<span class="sd">            {'history': concept.history.all(),</span>
+<span class="sd">             'current_concept_history_id': concept.history.latest().pk,</span>
+<span class="sd">             'published_historical_ids': list(PublishedConcept.objects.filter(concept_id=self.kwargs['concept_id']).values_list('concept_history_id', flat=True))             </span>
+<span class="sd">            },</span>
+<span class="sd">            request=self.request</span>
+<span class="sd">            )</span>
+<span class="sd">        data['latest_history_ID'] = concept.history.latest().pk</span>
+
+<span class="sd">        return JsonResponse(data)</span>
+<span class="sd">"""</span>
+
+
+<div class="viewcode-block" id="ComponentExpressionSelectCreate"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionSelectCreate">[docs]</a><span class="k">class</span> <span class="nc">ComponentExpressionSelectCreate</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span>
+                                      <span class="n">HasAccessToEditParentConceptCheckMixin</span><span class="p">,</span>
+                                      <span class="n">CreateView</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        Create a expression select component.</span>
+<span class="sd">    '''</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Component</span>
+    <span class="n">form_class</span> <span class="o">=</span> <span class="n">ComponentForm</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s1">'clinicalcode/component/expressionselect/create.html'</span>
+
+<div class="viewcode-block" id="ComponentExpressionSelectCreate.dispatch"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionSelectCreate.dispatch">[docs]</a>    <span class="k">def</span> <span class="nf">dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">'''</span>
+<span class="sd">            kwargs - a dict with {'concept_id': value}.</span>
+<span class="sd">        '''</span>
+        <span class="k">return</span> <span class="n">CreateView</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="ComponentExpressionSelectCreate.get_context_data"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionSelectCreate.get_context_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="n">CreateView</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">:</span>
+            <span class="n">context</span><span class="p">[</span><span class="s1">'coderegex_formset'</span><span class="p">]</span> <span class="o">=</span> <span class="n">CodeRegexFormSet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">context</span><span class="p">[</span><span class="s1">'coderegex_formset'</span><span class="p">]</span> <span class="o">=</span> <span class="n">CodeRegexFormSet</span><span class="p">()</span>
+
+        <span class="n">concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span>
+
+        <span class="n">context</span><span class="p">[</span><span class="s1">'coding_system_filter'</span><span class="p">]</span> <span class="o">=</span> <span class="n">CodingSystemFilter</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">coding_system_id</span><span class="o">=</span><span class="n">concept</span><span class="o">.</span><span class="n">coding_system_id</span><span class="p">)</span>
+
+        <span class="c1">#------------------------------</span>
+        <span class="n">latest_history_ID</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span>
+        <span class="c1">#context['latest_history_ID'] = latest_history_ID</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">'latest_history_ID'</span><span class="p">]</span> <span class="o">=</span> <span class="n">latest_history_ID</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'latest_history_id_shown'</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'latest_history_id_shown'</span><span class="p">)</span>
+        <span class="c1">#-------------------------------</span>
+
+        <span class="k">return</span> <span class="n">context</span></div>
+
+<div class="viewcode-block" id="ComponentExpressionSelectCreate.get_initial"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionSelectCreate.get_initial">[docs]</a>    <span class="k">def</span> <span class="nf">get_initial</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">initials</span> <span class="o">=</span> <span class="n">CreateView</span><span class="o">.</span><span class="n">get_initial</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">initials</span><span class="p">[</span><span class="s1">'concept'</span><span class="p">]</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span>
+        <span class="k">except</span> <span class="n">ObjectDoesNotExist</span><span class="p">:</span>
+            <span class="c1"># no concept found, todo: need to log errors</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="s1">'does not exist'</span>
+            <span class="c1">#print(err)</span>
+
+        <span class="n">initials</span><span class="p">[</span><span class="s1">'component_type'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'</span><span class="si">%s</span><span class="s1">'</span> <span class="o">%</span> <span class="p">(</span><span class="n">Component</span><span class="o">.</span><span class="n">COMPONENT_TYPE_EXPRESSION_SELECT</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">initials</span></div>
+
+<div class="viewcode-block" id="ComponentExpressionSelectCreate.form_invalid"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionSelectCreate.form_invalid">[docs]</a>    <span class="k">def</span> <span class="nf">form_invalid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="n">data</span><span class="p">[</span><span class="s1">'form_is_valid'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'html_form'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span><span class="s1">'clinicalcode/component/expressionselect/create.html'</span><span class="p">,</span>
+                                            <span class="n">context</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="n">form</span><span class="o">=</span><span class="n">form</span><span class="p">),</span>
+                                            <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+
+        <span class="c1">#------------------------------</span>
+        <span class="n">concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'latest_history_ID'</span><span class="p">]</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'latest_history_id_shown'</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'latest_history_id_shown'</span><span class="p">)</span>
+        <span class="c1">#------------------------------</span>
+
+        <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ComponentExpressionSelectCreate.form_valid"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionSelectCreate.form_valid">[docs]</a>    <span class="nd">@transaction</span><span class="o">.</span><span class="n">atomic</span>
+    <span class="k">def</span> <span class="nf">form_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">()</span>
+        <span class="n">formset</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s1">'coderegex_formset'</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">formset</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">transaction</span><span class="o">.</span><span class="n">atomic</span><span class="p">():</span>            
+                    <span class="n">form</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">created_by</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span>
+                    <span class="c1"># !!! self.object appears unnecessary, as above.</span>
+                    <span class="c1"># self.object = form.save()</span>
+                    <span class="c1"># formset.instance = self.object</span>
+                    <span class="n">formset</span><span class="o">.</span><span class="n">instance</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+        
+                    <span class="c1"># save code regex</span>
+                    <span class="n">code_regex</span> <span class="o">=</span> <span class="n">formset</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+        
+                    <span class="c1"># save the code list</span>
+                    <span class="n">code_list</span> <span class="o">=</span> <span class="n">CodeList</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="n">form</span><span class="o">.</span><span class="n">instance</span><span class="p">)</span>
+                    <span class="n">code_list</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+        
+                    <span class="c1"># apply the code list reference to the code regex</span>
+                    <span class="n">code_regex</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">code_list</span> <span class="o">=</span> <span class="n">code_list</span>
+                    <span class="n">code_regex</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+        
+                    <span class="c1"># process any uploaded files</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">FILES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'upload_file'</span><span class="p">):</span>
+                        <span class="n">csv_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">FILES</span><span class="p">[</span><span class="s1">'upload_file'</span><span class="p">]</span>
+                        
+                        <span class="n">delimiter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'specify_delimiter'</span><span class="p">)</span>
+                        <span class="c1">#file_reader = csv.reader([line.decode() for line in csv_file], delimiter=',')</span>
+                        <span class="n">file_reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">([</span><span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">csv_file</span><span class="p">],</span> <span class="n">delimiter</span><span class="o">=</span> <span class="n">delimiter</span><span class="p">)</span>
+        
+                        <span class="n">row_count</span> <span class="o">=</span> <span class="mi">0</span>
+                        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">file_reader</span><span class="p">:</span>
+                            <span class="n">row_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+                            <span class="c1"># check if first row contains column headings or not</span>
+                            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'first_row_contains_column_headings_checkbox'</span><span class="p">)</span> <span class="o">==</span> <span class="s1">'1'</span> <span class="ow">and</span> <span class="n">row_count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                                <span class="k">continue</span>
+        
+                            <span class="c1"># !!! Do we need to assign these: obj, created =</span>
+                            <span class="n">Code</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span>
+                                                        <span class="n">code_list</span><span class="o">=</span><span class="n">code_list</span><span class="p">,</span>
+                                                        <span class="n">code</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                                        <span class="n">defaults</span><span class="o">=</span><span class="p">{</span><span class="s1">'description'</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
+        
+                    <span class="c1"># get codes to be saved</span>
+                    <span class="n">codes</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'added_codes'</span><span class="p">))</span>
+        
+                    <span class="c1"># create codes</span>
+                    <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">codes</span><span class="p">:</span>
+                        <span class="c1"># !!! Do we need to assign this: obj =</span>
+                        <span class="n">Code</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">code_list</span><span class="o">=</span><span class="n">code_list</span><span class="p">,</span>
+                                            <span class="n">code</span><span class="o">=</span><span class="n">val</span><span class="p">[</span><span class="s1">'code'</span><span class="p">],</span>
+                                            <span class="n">description</span><span class="o">=</span><span class="n">val</span><span class="p">[</span><span class="s1">'description'</span><span class="p">])</span>
+        
+                    <span class="c1"># save the concept with a change reason to reflect the creation</span>
+                    <span class="c1"># within the concept audit history</span>
+                    <span class="n">db_utils</span><span class="o">.</span><span class="n">save_Entity_With_ChangeReason</span><span class="p">(</span><span class="n">Concept</span><span class="p">,</span>
+                                                            <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">],</span>
+                                                            <span class="s2">"Created component: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                                                            <span class="n">modified_by_user</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
+                    <span class="c1"># Update dependent concepts &amp; working sets</span>
+                    <span class="n">db_utils</span><span class="o">.</span><span class="n">saveDependentConceptsChangeReason</span><span class="p">(</span>
+                                                            <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">],</span> <span class="s2">"Component concept #"</span> <span class="o">+</span>
+                                                            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span> <span class="o">+</span> <span class="s2">" was updated"</span><span class="p">)</span>
+        
+                    <span class="c1">#components = Component.objects.filter(concept_id=self.kwargs['concept_id'])</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s1">'form_is_valid'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        
+                    <span class="c1"># refresh component list</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s1">'html_component_list'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+                                                            <span class="s1">'clinicalcode/component/partial_component_list.html'</span><span class="p">,</span>
+                                                            <span class="n">build_permitted_components_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                                                                                            <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">]))</span>
+        
+                    <span class="n">concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span>
+        
+                    <span class="c1"># update history list</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s1">'html_history_list'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+                        <span class="s1">'clinicalcode/concept/partial_history_list.html'</span><span class="p">,</span> <span class="p">{</span>
+                            <span class="s1">'history'</span><span class="p">:</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span>
+                            <span class="s1">'current_concept_history_id'</span><span class="p">:</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span>
+                            <span class="s1">'published_historical_ids'</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">PublishedConcept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">concept_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">'concept_history_id'</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+                        <span class="p">},</span>
+                        <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        
+                    <span class="n">data</span><span class="p">[</span><span class="s1">'latest_history_ID'</span><span class="p">]</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span>
+        
+                    <span class="c1"># update add_menu_items to reflect latest history id</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s1">'add_menu_items'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+                                                        <span class="s1">'clinicalcode/concept/add_menu_items.html'</span><span class="p">,</span> <span class="p">{</span>
+                                                            <span class="s1">'pk'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">],</span>
+                                                            <span class="s1">'latest_history_id'</span><span class="p">:</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span>
+                                                        <span class="p">})</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">errorMsg</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">errorMsg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">'Error Encountered.'</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">IS_DEMO</span> <span class="ow">or</span> <span class="n">settings</span><span class="o">.</span><span class="n">IS_DEVELOPMENT_PC</span> <span class="ow">or</span>  <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span>
+                    <span class="n">errorMsg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+                    
+                <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+                <span class="c1">#------------------------------</span>
+                <span class="n">concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span>
+                <span class="n">latest_history_ID</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'latest_history_id_shown'</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'latest_history_id_shown'</span><span class="p">)</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">'latest_history_ID'</span><span class="p">]</span> <span class="o">=</span> <span class="n">latest_history_ID</span>
+                <span class="c1">#------------------------------</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">'errorMsg'</span><span class="p">]</span> <span class="o">=</span> <span class="n">errorMsg</span>
+                <span class="c1"># ------------------------------</span>
+                                
+                <span class="n">data</span><span class="p">[</span><span class="s1">'form_is_valid'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="n">form</span><span class="o">=</span><span class="n">form</span><span class="p">)</span>
+                <span class="n">context</span><span class="p">[</span><span class="s1">'errorMsg'</span><span class="p">]</span> <span class="o">=</span> <span class="n">errorMsg</span>
+                <span class="n">context</span><span class="p">[</span><span class="s1">'latest_history_ID'</span><span class="p">]</span> <span class="o">=</span> <span class="n">latest_history_ID</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">'html_form'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span><span class="s1">'clinicalcode/component/expressionselect/create.html'</span><span class="p">,</span>
+                                                    <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
+                                                    <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>       
+
+               
+                <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>                       
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">'form_is_valid'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">'html_form'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+                                            <span class="s1">'clinicalcode/component/expressionselect/create.html'</span><span class="p">,</span>
+                                            <span class="n">context</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="n">form</span><span class="o">=</span><span class="n">form</span><span class="p">),</span>
+                                            <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ComponentExpressionSelectDelete"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionSelectDelete">[docs]</a><span class="k">class</span> <span class="nc">ComponentExpressionSelectDelete</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span>
+                                      <span class="n">HasAccessToEditParentConceptCheckMixin</span><span class="p">,</span>
+                                      <span class="n">DeleteView</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        Delete an expression select component.</span>
+<span class="sd">    '''</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Component</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s1">'clinicalcode/component/expressionselect/delete.html'</span>
+
+<div class="viewcode-block" id="ComponentExpressionSelectDelete.post"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionSelectDelete.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">'''</span>
+<span class="sd">            kwargs - a dict with {'pk': value, 'concept_id': value}.</span>
+<span class="sd">        '''</span>
+        <span class="k">with</span> <span class="n">transaction</span><span class="o">.</span><span class="n">atomic</span><span class="p">():</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="n">component</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Component</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'pk'</span><span class="p">])</span>
+            <span class="n">component_name</span> <span class="o">=</span> <span class="n">component</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">component</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+        <span class="c1">#components = Component.objects.filter(concept_id=component.concept_id)</span>
+        <span class="c1"># Save the *concept* with a change reason to note the component</span>
+        <span class="c1"># deletion in its history.</span>
+        <span class="n">db_utils</span><span class="o">.</span><span class="n">save_Entity_With_ChangeReason</span><span class="p">(</span>
+            <span class="n">Concept</span><span class="p">,</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">],</span>
+            <span class="s2">"Deleted component: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">component_name</span><span class="p">),</span>
+            <span class="n">modified_by_user</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
+        <span class="c1"># Update dependent concepts &amp; working sets</span>
+        <span class="n">db_utils</span><span class="o">.</span><span class="n">saveDependentConceptsChangeReason</span><span class="p">(</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">],</span>
+            <span class="s2">"Component concept #"</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span> <span class="o">+</span> <span class="s2">" was updated"</span><span class="p">)</span>
+
+        <span class="n">data</span><span class="p">[</span><span class="s1">'form_is_valid'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># refresh component list</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'html_component_list'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+            <span class="s1">'clinicalcode/component/partial_component_list.html'</span><span class="p">,</span>
+            <span class="n">build_permitted_components_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                                            <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">]))</span>
+
+        <span class="n">concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">component</span><span class="o">.</span><span class="n">concept_id</span><span class="p">)</span>
+
+        <span class="c1"># update history list</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'html_history_list'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+            <span class="s1">'clinicalcode/concept/partial_history_list.html'</span><span class="p">,</span> <span class="p">{</span>
+                <span class="s1">'history'</span><span class="p">:</span>
+                <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span>
+                <span class="s1">'current_concept_history_id'</span><span class="p">:</span>
+                <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span>
+                <span class="s1">'published_historical_ids'</span><span class="p">:</span>
+                <span class="nb">list</span><span class="p">(</span>
+                    <span class="n">PublishedConcept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                        <span class="n">concept_id</span><span class="o">=</span><span class="n">component</span><span class="o">.</span><span class="n">concept_id</span><span class="p">)</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span>
+                            <span class="s1">'concept_history_id'</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+            <span class="p">},</span>
+            <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+
+        <span class="n">data</span><span class="p">[</span><span class="s1">'latest_history_ID'</span><span class="p">]</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span>
+
+        <span class="c1"># update add_menu_items to reflect latest history id</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'add_menu_items'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+            <span class="s1">'clinicalcode/concept/add_menu_items.html'</span><span class="p">,</span> <span class="p">{</span>
+                <span class="s1">'pk'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">],</span>
+                <span class="s1">'latest_history_id'</span><span class="p">:</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span>
+            <span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ComponentExpressionSelectUpdate"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionSelectUpdate">[docs]</a><span class="k">class</span> <span class="nc">ComponentExpressionSelectUpdate</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span>
+                                      <span class="n">HasAccessToEditParentConceptCheckMixin</span><span class="p">,</span>
+                                      <span class="n">UpdateView</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        Update a expression select component</span>
+<span class="sd">    '''</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Component</span>
+    <span class="n">form_class</span> <span class="o">=</span> <span class="n">ComponentForm</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s1">'clinicalcode/component/expressionselect/update.html'</span>
+
+<div class="viewcode-block" id="ComponentExpressionSelectUpdate.get_context_data"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionSelectUpdate.get_context_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="n">UpdateView</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">:</span>
+            <span class="n">context</span><span class="p">[</span><span class="s1">'coderegex_formset'</span><span class="p">]</span> <span class="o">=</span> <span class="n">CodeRegexFormSet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">,</span> <span class="n">instance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">object</span><span class="p">)</span>
+            <span class="n">context</span><span class="p">[</span><span class="s1">'coderegex_formset'</span><span class="p">]</span><span class="o">.</span><span class="n">full_clean</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">context</span><span class="p">[</span><span class="s1">'coderegex_formset'</span><span class="p">]</span> <span class="o">=</span> <span class="n">CodeRegexFormSet</span><span class="p">(</span><span class="n">instance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">object</span><span class="p">)</span>
+            
+        <span class="n">concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">'coding_system_filter'</span><span class="p">]</span> <span class="o">=</span> <span class="n">CodingSystemFilter</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">coding_system_id</span><span class="o">=</span><span class="n">concept</span><span class="o">.</span><span class="n">coding_system_id</span><span class="p">)</span>
+
+        <span class="c1">#------------------------------</span>
+        <span class="n">latest_history_ID</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span>
+        <span class="c1">#context['latest_history_ID'] = latest_history_ID</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">'latest_history_ID'</span><span class="p">]</span> <span class="o">=</span> <span class="n">latest_history_ID</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'latest_history_id_shown'</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'latest_history_id_shown'</span><span class="p">)</span>
+        <span class="c1">#-------------------------------</span>
+
+        <span class="k">return</span> <span class="n">context</span></div>
+
+<div class="viewcode-block" id="ComponentExpressionSelectUpdate.form_invalid"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionSelectUpdate.form_invalid">[docs]</a>    <span class="k">def</span> <span class="nf">form_invalid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'form_is_valid'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'html_form'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span><span class="s1">'clinicalcode/component/expressionselect/update.html'</span><span class="p">,</span>
+                                            <span class="n">context</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="n">form</span><span class="o">=</span><span class="n">form</span><span class="p">),</span>
+                                            <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+
+        <span class="c1">#------------------------------</span>
+        <span class="n">concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'latest_history_ID'</span><span class="p">]</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'latest_history_id_shown'</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'latest_history_id_shown'</span><span class="p">)</span>
+        <span class="c1">#------------------------------</span>
+
+        <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ComponentExpressionSelectUpdate.form_valid"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.ComponentExpressionSelectUpdate.form_valid">[docs]</a>    <span class="k">def</span> <span class="nf">form_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">()</span>
+        <span class="n">formset</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s1">'coderegex_formset'</span><span class="p">]</span>
+        
+        <span class="k">if</span> <span class="n">formset</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">transaction</span><span class="o">.</span><span class="n">atomic</span><span class="p">():</span>
+                    <span class="n">form</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">modified_by</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span>
+                    <span class="c1"># !!! self.object appears unnecessary, as above.</span>
+                    <span class="c1"># self.object = form.save()</span>
+                    <span class="c1"># formset.instance = self.object</span>
+                    <span class="n">formset</span><span class="o">.</span><span class="n">instance</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+    
+                    <span class="n">code_list_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'coderegex-0-code_list'</span><span class="p">)</span>
+    
+                    <span class="n">formset</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+    
+                    <span class="c1"># process any uploaded files</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">FILES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'upload_file'</span><span class="p">):</span>
+                        <span class="n">csv_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">FILES</span><span class="p">[</span><span class="s1">'upload_file'</span><span class="p">]</span>
+                    
+                        <span class="n">delimiter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'specify_delimiter'</span><span class="p">)</span>
+                        <span class="c1">#file_reader = csv.reader([line.decode() for line in csv_file], delimiter=',')</span>
+                        <span class="n">file_reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">([</span><span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">csv_file</span><span class="p">],</span> <span class="n">delimiter</span><span class="o">=</span> <span class="n">delimiter</span><span class="p">)</span>
+    
+                        <span class="n">row_count</span> <span class="o">=</span> <span class="mi">0</span>
+                        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">file_reader</span><span class="p">:</span>
+                            <span class="n">row_count</span> <span class="o">+=</span> <span class="mi">1</span>
+    
+                            <span class="c1"># check if first row contains column headings or not</span>
+                            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'first_row_contains_column_headings_checkbox'</span><span class="p">)</span> <span class="o">==</span> <span class="s1">'1'</span> <span class="ow">and</span> <span class="n">row_count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                                <span class="k">continue</span>
+    
+                            <span class="c1"># !!! Do we need to assign theses: obj, created =</span>
+                            <span class="n">Code</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span>
+                                                        <span class="n">code_list_id</span><span class="o">=</span><span class="n">code_list_id</span><span class="p">,</span>
+                                                        <span class="n">code</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                                        <span class="n">defaults</span><span class="o">=</span><span class="p">{</span><span class="s1">'description'</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
+    
+                    <span class="c1"># find the matched and non matched items</span>
+                    <span class="n">added_codes</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'added_codes'</span><span class="p">))</span>
+                    <span class="n">deleted_codes</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'deleted_codes'</span><span class="p">))</span>
+    
+                    <span class="c1"># delete old codes</span>
+                    <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">deleted_codes</span><span class="p">:</span>
+                        <span class="n">codes_to_del</span> <span class="o">=</span> <span class="n">Code</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">code_list_id</span><span class="o">=</span><span class="n">code_list_id</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="n">code</span><span class="p">[</span><span class="s1">'code'</span><span class="p">])</span>
+    
+                        <span class="k">for</span> <span class="n">code_to_del</span> <span class="ow">in</span> <span class="n">codes_to_del</span><span class="p">:</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">code_to_del</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+                            <span class="k">except</span> <span class="n">ObjectDoesNotExist</span><span class="p">:</span>
+                                <span class="n">code_to_del</span> <span class="o">=</span> <span class="kc">None</span>
+    
+                    <span class="c1"># add new codes</span>
+                    <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">added_codes</span><span class="p">:</span>
+                        <span class="n">codes_to_add</span> <span class="o">=</span> <span class="n">Code</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">code_list_id</span><span class="o">=</span><span class="n">code_list_id</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="n">code</span><span class="p">[</span><span class="s1">'code'</span><span class="p">])</span>
+    
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">codes_to_add</span><span class="p">:</span>
+                            <span class="n">Code</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+                                                <span class="n">code_list</span><span class="o">=</span><span class="n">CodeList</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">code_list_id</span><span class="p">),</span>
+                                                <span class="n">code</span><span class="o">=</span><span class="n">code</span><span class="p">[</span><span class="s1">'code'</span><span class="p">],</span>
+                                                <span class="n">description</span><span class="o">=</span><span class="n">code</span><span class="p">[</span><span class="s1">'description'</span><span class="p">])</span>
+    
+                    <span class="c1"># save the concept with a change reason to reflect the update</span>
+                    <span class="c1"># within the concept audit history</span>
+                    <span class="n">db_utils</span><span class="o">.</span><span class="n">save_Entity_With_ChangeReason</span><span class="p">(</span>
+                                                            <span class="n">Concept</span><span class="p">,</span>
+                                                            <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">],</span>
+                                                            <span class="s2">"Updated component: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                                                            <span class="n">modified_by_user</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
+                    <span class="c1"># Update dependent concepts &amp; working sets</span>
+                    <span class="n">db_utils</span><span class="o">.</span><span class="n">saveDependentConceptsChangeReason</span><span class="p">(</span>
+                                                                <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">],</span> <span class="s2">"Component concept #"</span> <span class="o">+</span>
+                                                                <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span> <span class="o">+</span> <span class="s2">" was updated"</span><span class="p">)</span>
+    
+                <span class="c1">#components = Component.objects.filter(concept_id=self.kwargs['concept_id'])</span>
+    
+                <span class="n">data</span><span class="p">[</span><span class="s1">'form_is_valid'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="c1"># refresh component list</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">'html_component_list'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+                                                    <span class="s1">'clinicalcode/component/partial_component_list.html'</span><span class="p">,</span>
+                                                    <span class="n">build_permitted_components_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+                                                    <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">]))</span>
+    
+                <span class="n">concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span>
+    
+                <span class="c1"># update history list</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">'html_history_list'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+                    <span class="s1">'clinicalcode/concept/partial_history_list.html'</span><span class="p">,</span> <span class="p">{</span>
+                        <span class="s1">'history'</span><span class="p">:</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span>
+                        <span class="s1">'current_concept_history_id'</span><span class="p">:</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span>
+                        <span class="s1">'published_historical_ids'</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">PublishedConcept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">concept_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">'concept_history_id'</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+                    <span class="p">},</span>
+                    <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+    
+                <span class="n">data</span><span class="p">[</span><span class="s1">'latest_history_ID'</span><span class="p">]</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span>
+    
+                <span class="c1"># update add_menu_items to reflect latest history id</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">'add_menu_items'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+                                            <span class="s1">'clinicalcode/concept/add_menu_items.html'</span><span class="p">,</span> <span class="p">{</span>
+                                                <span class="s1">'pk'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">],</span>
+                                                <span class="s1">'latest_history_id'</span><span class="p">:</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span>
+                                            <span class="p">})</span>
+
+                <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">errorMsg</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">errorMsg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">'Error Encountered.'</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">IS_DEMO</span> <span class="ow">or</span> <span class="n">settings</span><span class="o">.</span><span class="n">IS_DEVELOPMENT_PC</span> <span class="ow">or</span>  <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span>
+                    <span class="n">errorMsg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+                    
+                <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+                <span class="c1">#------------------------------</span>
+                <span class="n">concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">])</span>
+                <span class="n">latest_history_ID</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">pk</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'latest_history_id_shown'</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'latest_history_id_shown'</span><span class="p">)</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">'latest_history_ID'</span><span class="p">]</span> <span class="o">=</span> <span class="n">latest_history_ID</span>
+                <span class="c1">#------------------------------</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">'errorMsg'</span><span class="p">]</span> <span class="o">=</span> <span class="n">errorMsg</span>
+                <span class="c1"># ------------------------------</span>
+                                
+                <span class="n">data</span><span class="p">[</span><span class="s1">'form_is_valid'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="n">form</span><span class="o">=</span><span class="n">form</span><span class="p">)</span>
+                <span class="n">context</span><span class="p">[</span><span class="s1">'errorMsg'</span><span class="p">]</span> <span class="o">=</span> <span class="n">errorMsg</span>
+                <span class="n">context</span><span class="p">[</span><span class="s1">'latest_history_ID'</span><span class="p">]</span> <span class="o">=</span> <span class="n">latest_history_ID</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">'html_form'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span><span class="s1">'clinicalcode/component/expressionselect/update.html'</span><span class="p">,</span>
+                                                    <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
+                                                    <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>       
+
+               
+                <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>            
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">'form_is_valid'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">'html_form'</span><span class="p">]</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+                                                <span class="s1">'clinicalcode/component/expressionselect/update.html'</span><span class="p">,</span>
+                                                <span class="n">context</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="n">form</span><span class="o">=</span><span class="n">form</span><span class="p">),</span>
+                                                <span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div></div>
+        
+
+
+<div class="viewcode-block" id="component_history_expression_detail_combined"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.component_history_expression_detail_combined">[docs]</a><span class="k">def</span> <span class="nf">component_history_expression_detail_combined</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">concept_id</span><span class="p">,</span>
+                                                 <span class="n">concept_history_id</span><span class="p">,</span>
+                                                 <span class="n">component_history_id</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        Display the detail of a code regex component at a point in time.</span>
+<span class="sd">        (both for public and app pages)</span>
+
+<span class="sd">        The parameters are returned from the URL.</span>
+<span class="sd">        pk - The id of the component to be detailed.</span>
+<span class="sd">        concept_id - The concept.</span>
+<span class="sd">        concept_history_id - The historical version of the concept.</span>
+<span class="sd">        component_history_id - The historical version of the component.</span>
+<span class="sd">    '''</span>
+
+    <span class="c1"># validate access for login and public site</span>
+    <span class="n">validate_access_to_view</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                            <span class="n">Concept</span><span class="p">,</span>
+                            <span class="n">concept_id</span><span class="p">,</span>
+                            <span class="n">set_history_id</span><span class="o">=</span><span class="n">concept_history_id</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">Component</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">pk</span><span class="p">),</span> <span class="n">Q</span><span class="p">(</span><span class="n">history_id</span><span class="o">=</span><span class="n">component_history_id</span><span class="p">),</span> <span class="n">Q</span><span class="p">(</span><span class="n">concept_id</span><span class="o">=</span><span class="n">concept_id</span><span class="p">),</span> <span class="o">~</span><span class="n">Q</span><span class="p">(</span><span class="n">history_type</span><span class="o">=</span><span class="s1">'-'</span><span class="p">))</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">PermissionDenied</span>
+
+    <span class="c1">#----------------------------------------------------------------------</span>
+
+    <span class="n">concept</span> <span class="o">=</span> <span class="n">db_utils</span><span class="o">.</span><span class="n">getHistoryConcept</span><span class="p">(</span><span class="n">concept_history_id</span><span class="p">)</span>
+    <span class="n">concept_history_date</span> <span class="o">=</span> <span class="n">concept</span><span class="p">[</span><span class="s1">'history_date'</span><span class="p">]</span>
+
+    <span class="n">component</span> <span class="o">=</span> <span class="n">db_utils</span><span class="o">.</span><span class="n">getHistoryComponentByHistoryId</span><span class="p">(</span><span class="n">component_history_id</span><span class="p">)</span>
+    <span class="n">coderegex</span> <span class="o">=</span> <span class="n">db_utils</span><span class="o">.</span><span class="n">getHistoryCodeRegex</span><span class="p">(</span><span class="n">component</span><span class="p">[</span><span class="s1">'id'</span><span class="p">],</span>
+                                             <span class="n">concept_history_date</span><span class="p">)</span>
+    <span class="n">codelist</span> <span class="o">=</span> <span class="n">db_utils</span><span class="o">.</span><span class="n">getHistoryCodeListById</span><span class="p">(</span><span class="n">coderegex</span><span class="p">[</span><span class="s1">'code_list_id'</span><span class="p">],</span>
+                                               <span class="n">concept_history_date</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">codelist</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">codes</span> <span class="o">=</span> <span class="n">db_utils</span><span class="o">.</span><span class="n">getHistoryCodes</span><span class="p">(</span><span class="n">codelist</span><span class="p">[</span><span class="s1">'id'</span><span class="p">],</span> <span class="n">concept_history_date</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">codes</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span>
+        <span class="n">request</span><span class="p">,</span> <span class="s1">'clinicalcode/component/expression/detail_combined.html'</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s1">'component'</span><span class="p">:</span> <span class="n">component</span><span class="p">,</span>
+            <span class="s1">'coderegex'</span><span class="p">:</span> <span class="n">coderegex</span><span class="p">,</span>
+            <span class="s1">'codelist'</span><span class="p">:</span> <span class="n">codelist</span><span class="p">,</span>
+            <span class="s1">'codes'</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">codes</span><span class="p">)</span>
+        <span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="component_expression_searchcodes"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.component_expression_searchcodes">[docs]</a><span class="nd">@login_required</span>
+<span class="k">def</span> <span class="nf">component_expression_searchcodes</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">concept_id</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        Search for codes using a pattern string either %patt% or a regex.</span>
+<span class="sd">        !!! (1) Should we do %patt% by default?</span>
+<span class="sd">        !!! (2) How do we do whole-word only, e.g. search for PSA not xxxPSAxxx? Not quite % PSA %?</span>
+<span class="sd">    '''</span>
+    <span class="n">validate_access_to_view</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">Concept</span><span class="p">,</span> <span class="n">concept_id</span><span class="p">)</span>
+    <span class="n">concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">concept_id</span><span class="p">)</span>
+    <span class="n">coding_system</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">coding_system</span>
+    
+    <span class="n">case_sensitive_search</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">case_sensitive_search</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_bool_value</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'case_sensitive_search'</span><span class="p">),</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">case_sensitive_search</span> <span class="o">=</span> <span class="kc">False</span>
+     
+    <span class="n">codes</span> <span class="o">=</span> <span class="n">db_utils</span><span class="o">.</span><span class="n">search_codes</span><span class="p">(</span>
+        <span class="n">Component</span><span class="o">.</span><span class="n">COMPONENT_TYPE_EXPRESSION</span><span class="p">,</span>
+        <span class="n">coding_system</span><span class="o">.</span><span class="n">database_connection_name</span><span class="p">,</span> <span class="n">coding_system</span><span class="o">.</span><span class="n">table_name</span><span class="p">,</span>
+        <span class="n">coding_system</span><span class="o">.</span><span class="n">code_column_name</span><span class="p">,</span> <span class="n">coding_system</span><span class="o">.</span><span class="n">desc_column_name</span><span class="p">,</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'search_text'</span><span class="p">),</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'search_params'</span><span class="p">),</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">get_int_value</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'column_search'</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">get_int_value</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'logical_type'</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">get_int_value</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'regex_type'</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'regex_code'</span><span class="p">),</span> <span class="n">coding_system</span><span class="o">.</span><span class="n">filter</span><span class="p">,</span>
+        <span class="n">case_sensitive_search</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">codes</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="component_expressionselect_codes"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.component_expressionselect_codes">[docs]</a><span class="nd">@login_required</span>
+<span class="k">def</span> <span class="nf">component_expressionselect_codes</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">concept_id</span><span class="p">,</span> <span class="n">code_list_id</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        Return a list of codes based on code list id.</span>
+<span class="sd">    '''</span>
+
+    <span class="n">codes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">Code</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">code_list_id</span><span class="o">=</span><span class="n">code_list_id</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">serializers</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="s1">'json'</span><span class="p">,</span> <span class="n">codes</span><span class="p">),</span> <span class="n">safe</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="component_expressionselect_search_codes"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.component_expressionselect_search_codes">[docs]</a><span class="nd">@login_required</span>
+<span class="k">def</span> <span class="nf">component_expressionselect_search_codes</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">concept_id</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        Search code select regex codes by regex_code.</span>
+<span class="sd">    '''</span>
+
+    <span class="n">validate_access_to_view</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">Concept</span><span class="p">,</span> <span class="n">concept_id</span><span class="p">)</span>
+
+    <span class="c1"># logical_type, regex_type</span>
+    <span class="c1"># get coding system for the current concept</span>
+    <span class="n">concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">concept_id</span><span class="p">)</span>
+
+    <span class="n">coding_system</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">coding_system</span>
+
+    <span class="n">codes</span> <span class="o">=</span> <span class="n">db_utils</span><span class="o">.</span><span class="n">search_codes</span><span class="p">(</span>
+        <span class="n">Component</span><span class="o">.</span><span class="n">COMPONENT_TYPE_EXPRESSION_SELECT</span><span class="p">,</span>
+        <span class="n">coding_system</span><span class="o">.</span><span class="n">database_connection_name</span><span class="p">,</span> <span class="n">coding_system</span><span class="o">.</span><span class="n">table_name</span><span class="p">,</span>
+        <span class="n">coding_system</span><span class="o">.</span><span class="n">code_column_name</span><span class="p">,</span> <span class="n">coding_system</span><span class="o">.</span><span class="n">desc_column_name</span><span class="p">,</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'search_text'</span><span class="p">),</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'search_params'</span><span class="p">),</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">get_int_value</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'column_search'</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">get_int_value</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'logical_type'</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">get_int_value</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'regex_type'</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'regex_code'</span><span class="p">),</span> <span class="n">coding_system</span><span class="o">.</span><span class="n">filter</span><span class="p">,</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">get_bool_value</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'case_sensitive_search'</span><span class="p">),</span> <span class="kc">False</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">codes</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="component_history_expressionselect_detail_combined"><a class="viewcode-back" href="../../../clinicalcode.views.html#clinicalcode.views.ComponentExpression.component_history_expressionselect_detail_combined">[docs]</a><span class="k">def</span> <span class="nf">component_history_expressionselect_detail_combined</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">concept_id</span><span class="p">,</span>
+                                                       <span class="n">concept_history_id</span><span class="p">,</span>
+                                                       <span class="n">component_history_id</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        Display the detail of a expression select at a point in time.</span>
+<span class="sd">    '''</span>
+
+    <span class="c1"># validate access for login and public site</span>
+    <span class="n">validate_access_to_view</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                            <span class="n">Concept</span><span class="p">,</span>
+                            <span class="n">concept_id</span><span class="p">,</span>
+                            <span class="n">set_history_id</span><span class="o">=</span><span class="n">concept_history_id</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">Component</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">Q</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">pk</span><span class="p">),</span> <span class="n">Q</span><span class="p">(</span><span class="n">history_id</span><span class="o">=</span><span class="n">component_history_id</span><span class="p">),</span>
+            <span class="n">Q</span><span class="p">(</span><span class="n">concept_id</span><span class="o">=</span><span class="n">concept_id</span><span class="p">),</span> <span class="o">~</span><span class="n">Q</span><span class="p">(</span><span class="n">history_type</span><span class="o">=</span><span class="s1">'-'</span><span class="p">))</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">PermissionDenied</span>
+
+    <span class="c1">#----------------------------------------------------------------------</span>
+    <span class="n">concept</span> <span class="o">=</span> <span class="n">db_utils</span><span class="o">.</span><span class="n">getHistoryConcept</span><span class="p">(</span><span class="n">concept_history_id</span><span class="p">)</span>
+    <span class="n">concept_history_date</span> <span class="o">=</span> <span class="n">concept</span><span class="p">[</span><span class="s1">'history_date'</span><span class="p">]</span>
+
+    <span class="n">component</span> <span class="o">=</span> <span class="n">db_utils</span><span class="o">.</span><span class="n">getHistoryComponentByHistoryId</span><span class="p">(</span><span class="n">component_history_id</span><span class="p">)</span>
+    <span class="n">coderegex</span> <span class="o">=</span> <span class="n">db_utils</span><span class="o">.</span><span class="n">getHistoryCodeRegex</span><span class="p">(</span><span class="n">component</span><span class="p">[</span><span class="s1">'id'</span><span class="p">],</span>
+                                             <span class="n">concept_history_date</span><span class="p">)</span>
+    <span class="n">codelist</span> <span class="o">=</span> <span class="n">db_utils</span><span class="o">.</span><span class="n">getHistoryCodeListByComponentId</span><span class="p">(</span>
+        <span class="n">component</span><span class="p">[</span><span class="s1">'id'</span><span class="p">],</span> <span class="n">concept_history_date</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">codelist</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">codes</span> <span class="o">=</span> <span class="n">db_utils</span><span class="o">.</span><span class="n">getHistoryCodes</span><span class="p">(</span><span class="n">codelist</span><span class="p">[</span><span class="s1">'id'</span><span class="p">],</span> <span class="n">concept_history_date</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">codes</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span>
+        <span class="n">request</span><span class="p">,</span>
+        <span class="s1">'clinicalcode/component/expressionselect/detail_combined.html'</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s1">'component'</span><span class="p">:</span> <span class="n">component</span><span class="p">,</span>
+            <span class="s1">'coderegex'</span><span class="p">:</span> <span class="n">coderegex</span><span class="p">,</span>
+            <span class="s1">'codelist'</span><span class="p">:</span> <span class="n">codelist</span><span class="p">,</span>
+            <span class="s1">'codes'</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">codes</span><span class="p">)</span>
+        <span class="p">})</span></div>
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022, alex
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/scripts/furo.js"></script>
+    </body>
+</html>
