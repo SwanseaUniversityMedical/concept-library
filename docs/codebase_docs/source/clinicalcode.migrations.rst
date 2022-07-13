@@ -468,6 +468,46 @@ clinicalcode.migrations.0057\_auto\_20220506\_1703 module
    :undoc-members:
    :show-inheritance:
 
+clinicalcode.migrations.0058\_auto\_20220525\_2108 module
+---------------------------------------------------------
+
+.. automodule:: clinicalcode.migrations.0058_auto_20220525_2108
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+clinicalcode.migrations.0059\_auto\_20220525\_2136 module
+---------------------------------------------------------
+
+.. automodule:: clinicalcode.migrations.0059_auto_20220525_2136
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+clinicalcode.migrations.0060\_auto\_20220526\_1529 module
+---------------------------------------------------------
+
+.. automodule:: clinicalcode.migrations.0060_auto_20220526_1529
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+clinicalcode.migrations.0061\_auto\_20220601\_0917 module
+---------------------------------------------------------
+
+.. automodule:: clinicalcode.migrations.0061_auto_20220601_0917
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+clinicalcode.migrations.0062\_auto\_20220601\_1824 module
+---------------------------------------------------------
+
+.. automodule:: clinicalcode.migrations.0062_auto_20220601_1824
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

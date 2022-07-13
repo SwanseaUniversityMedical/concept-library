@@ -20,6 +20,8 @@ MOCK_MODULES = ['functional_test_base', 'test_functional_other', 'test_hierarchi
 'test_versioning', 'test_functional_read_only_conf_concept', 'clinicalcode.tests.functional_tests.read_only', 'read_only_test_settings',
 ]
 
+DEBUG = False
+
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
 
@@ -55,7 +57,7 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['**/clinicalcode/migrations', 'clinicalcode/migrations', 'clinicalcode/migrations*', 'clinicalcode/migrations/*','_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['**/clinicalcode/migrations', 'clinicalcode/migrations', 'clinicalcode/migrations*', 'clinicalcode/migrations/*', 'migrations','_build', 'Thumbs.db', '.DS_Store']
 
 
 # -- Options for HTML output -------------------------------------------------
