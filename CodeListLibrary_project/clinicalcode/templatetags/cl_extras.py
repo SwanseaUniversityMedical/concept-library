@@ -4,6 +4,7 @@ from django import template
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from re import IGNORECASE, compile, escape as rescape
+import re 
 
 register = template.Library()
 
@@ -182,6 +183,20 @@ def markdownify(text, custom_settings="default"):
 
 @register.filter(name='highlight')
 def highlight(text, q):
+    q = re.sub(' +', ' ', q.strip())
+    return_text = text
+    for w in q.split(' '):
+        if w.strip() == '':
+            continue
+        rgx = compile(rescape(w), IGNORECASE)
+        return_text = rgx.sub(
+                            lambda m: "<b stylexyz001>{}</b>".format(m.group()),
+                            return_text
+                        )
+
+    return mark_safe(return_text.replace("stylexyz001", " style='background-color:yellow' "))
+    
+def highlight000(text, q):
     q = q.strip()
     rgx = compile(rescape(q), IGNORECASE)
     return mark_safe(
@@ -189,4 +204,4 @@ def highlight(text, q):
             lambda m: '<b style="background-color:yellow;">{}</b>'.format(m.group()),
             text
         )
-    )
+    )    
