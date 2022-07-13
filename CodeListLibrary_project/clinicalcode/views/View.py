@@ -367,7 +367,7 @@ def contact_us(request):
         raise PermissionDenied
     
     captcha = check_recaptcha(request)
-    status = 'N/A'
+    status = []
     if request.method == 'GET':
         form = ContactForm()
     else:
@@ -397,22 +397,22 @@ def contact_us(request):
                                              cc=[from_email])
                 msg.content_subtype = "html"  # Main content is now text/html
                 msg.send()
-                status = 'Issue Reported Successfully.'
+
+                form = ContactForm()
+                status.append({'SUCCESS': 'Issue Reported Successfully.'})
             except BadHeaderError:
                 return HttpResponse('Invalid header found.')
 
         if captcha == False:
-            status = 'Please Fill out Captcha.'
+            status.append({'FAIL': 'Please verify using the Captcha'})
 
     return render(request, 
                   'cl-docs/contact-us.html', 
                   {
                     'form': form,
-                    'message': [status],
+                    'message': status,
                   }
                 )
-        
-
 
 def check_recaptcha(request):
     '''
