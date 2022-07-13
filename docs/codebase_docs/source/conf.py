@@ -15,12 +15,12 @@ import sys
 
 import mock
 
+from CodeListLibrary_project.cll.settings import IS_DEMO
+
 MOCK_MODULES = ['functional_test_base', 'test_functional_other', 'test_hierarchical_code_lists', 
 'test_history', 'test_inclusion_exclusion', 'test_regular_expressions', 'test_settings',  'test_search_filters',
 'test_versioning', 'test_functional_read_only_conf_concept', 'clinicalcode.tests.functional_tests.read_only', 'read_only_test_settings',
 ]
-
-DEBUG = False
 
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
@@ -29,6 +29,7 @@ from django.conf import settings
 #settings.configure()
 import django
 sys.path.insert(0, os.path.abspath('../../../CodeListLibrary_project'))
+IS_DEMO = False
 os.environ['DJANGO_SETTINGS_MODULE'] = 'cll.settings'
 django.setup()
 
