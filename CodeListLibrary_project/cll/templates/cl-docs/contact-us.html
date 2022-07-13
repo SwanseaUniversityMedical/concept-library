@@ -55,52 +55,51 @@ data-spy="scroll" data-target="#ContactUsMenu" data-offset = "150"
             </div>
           </div>
 
-             {% for msg in message %}
-                {% if msg != 'N/A' %}
-                    <div class="bs-example" id="Alert">
-                        {% if msg == 'Message Sent Successfully.' %}
-                        <div class="alert alert-success fade in">
-                            <a href="#" class="close" data-dismiss="alert">&times;</a>
-                            <ul>
-                                <li>{{ msg }}</li>
-                            </ul>
-                        </div>
-                        {% elif msg == 'Please Fill out Captcha.' %}
-                        <div class="alert alert-warning fade in">
-                            <a href="#" class="close" data-dismiss="alert">&times;</a>
-                            <ul>
-                                <li>{{ msg }}</li>
-                            </ul>
-                        </div>
-                        {% endif %}
-                        {% endif %}
-                  </div>
-             {% endfor %}
+            {% for msg in message %}
+               <div class="bs-example" id="Alert">
+                  {% if msg.SUCCESS %}
+                     <div class="alert alert-success fade in">
+                        <a href="#" class="close" data-dismiss="alert">&times;</a>
+                        <ul>
+                           <li>{{ msg.SUCCESS }}</li>
+                        </ul>
+                     </div>
+                  {% elif msg.FAIL %}
+                     <div class="alert alert-warning fade in">
+                        <a href="#" class="close" data-dismiss="alert">&times;</a>
+                        <ul>
+                           <li>{{ msg.FAIL }}</li>
+                        </ul>
+                     </div>
+                  {% endif %}   
+               </div>
+            {% endfor %}
 
             <form method="post">
                <div class="fieldWrapperHeader">
                   <b>Name:</b>
                </div>
                <div class="fieldWrapper">
-                        {{ form.name }}<br><br>
+                  {{ form.name }}
+                  <br><br>
                </div>
                <div class="fieldWrapperHeader">
                   <b>Email Address:</b>
                </div>
                <div class="fieldWrapper">
-                    {{ form.from_email }}<br><br>
+                  {{ form.from_email }}<br><br>
                </div>
                <div class="fieldWrapperHeader">
                   <b>Category:</b>
                </div>
                <div class="fieldWrapper">
-                    {{ form.categories }}<br><br>
+                  {{ form.categories }}<br><br>
                </div>
                <div class="fieldWrapperHeader">
                   <b>Message:</b>
                </div>
                <div class="fieldWrapper">
-                    {{ form.message }}<br><br>
+                  {{ form.message }}<br><br>
                </div>
                <script src='https://www.google.com/recaptcha/api.js'></script>
                <div class="g-recaptcha" data-sitekey="6LfQjUseAAAAAKGjXOJkicSOY0cvoyq_IUY28_KR"></div>
