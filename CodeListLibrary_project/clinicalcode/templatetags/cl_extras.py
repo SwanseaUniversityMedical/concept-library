@@ -182,7 +182,7 @@ def markdownify(text, custom_settings="default"):
 
 
 @register.filter(name='highlight')
-def highlight(text, q):
+def highlight000(text, q):
     q = re.sub(' +', ' ', q.strip())
     return_text = text
     for w in q.split(' '):
@@ -196,8 +196,11 @@ def highlight(text, q):
 
     return mark_safe(return_text.replace("stylexyz001", " style='background-color:yellow' "))
     
-def highlight000(text, q):
+def highlight(text, q):
     q = q.strip()
+    if q == '':
+        return text
+    
     rgx = compile(rescape(q), IGNORECASE)
     return mark_safe(
         rgx.sub(
