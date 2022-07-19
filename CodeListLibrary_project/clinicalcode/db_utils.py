@@ -4076,11 +4076,14 @@ def get_q_highlight(request, q):
     
 def is_referred_from_search_page(request):   
     # check if the page is referred from the search page
+    
     HTTP_REFERER = request.META.get('HTTP_REFERER')
     if HTTP_REFERER is None:
         return False
     
-    if HTTP_REFERER.lower().endswith('/phenotypes/') or HTTP_REFERER.lower().endswith('/concepts/'):
+    url = HTTP_REFERER.split('?')[0]
+    url = url.lower()
+    if url.endswith('/phenotypes/') or url.endswith('/concepts/'):
         return True
     else:
         return False
