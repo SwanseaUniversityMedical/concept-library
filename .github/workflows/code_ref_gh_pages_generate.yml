@@ -37,7 +37,7 @@ jobs:
       - name: Make the Codebase Reference sphinx docs
         run: |
               cd docs/codebase_docs/
-              sphinx-build -b html source ../CodeListLibrary_project/clinicalcode
+              sphinx-build -b html source ..
 
       - name: Init new codebase docs repo
         run: |
