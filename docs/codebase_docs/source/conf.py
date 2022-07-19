@@ -59,25 +59,6 @@ os.environ['GOOGLE_RECAPTCHA_SECRET_KEY'] = ''
 os.environ['EMAIL_HOST_PASSWORD'] = ''
 os.environ['EMAIL_HOST_USER'] = ''
 os.environ['HELPDESK_EMAIL'] = ''
-
-
-
-
-# CLL_READ_ONLY = False
-# ENABLE_PUBLISH = False
-# SHOWADMIN = False
-# BROWSABLEAPI = False
-
-# IS_INSIDE_GATEWAY = False
-# IS_DEVELOPMENT_PC = False
-
-# SECRET_KEY = 'xyz'
-
-# DEBUG = False
-
-# ALLOWED_HOSTS = 'xyz'
-
-
 os.environ['DJANGO_SETTINGS_MODULE'] = 'cll.settings'
 django.setup()
 
