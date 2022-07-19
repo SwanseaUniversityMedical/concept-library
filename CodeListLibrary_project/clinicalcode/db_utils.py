@@ -3003,7 +3003,8 @@ def get_visible_live_or_published_phenotype_versions(request,
                                                     show_top_version_only = False,
                                                     force_brand = None,
                                                     force_get_live_and_or_published_ver = None,  # used only with no login
-                                                    search_name_only = True                                                    
+                                                    search_name_only = True,
+                                                    highlight_result = False                                                
                                                     ):
     ''' Get all visible live or published phenotype versions 
     - return all columns
@@ -3070,6 +3071,7 @@ def get_visible_live_or_published_phenotype_versions(request,
         my_params.append(str(phenotype_id_to_exclude))
         where_clause += " AND id NOT IN (%s) "
 
+    highlight_columns = ""
     if searchByName != '':
         # #my_params.append("%" + str(searchByName) + "%")
         # #where_clause += " AND upper(name) like upper(%s) "
@@ -3090,7 +3092,7 @@ def get_visible_live_or_published_phenotype_versions(request,
                                                 coalesce(name, '') 
                                                ) @@ plainto_tsquery('english', %s)                              
                                     )  
-                            """
+                            """                            
         else:
             # search all related fields
             my_params += [str(searchByName)]#.replace(' ', ' & '))] 
@@ -3103,6 +3105,17 @@ def get_visible_live_or_published_phenotype_versions(request,
                                                ) @@ plainto_tsquery('english', %s)                              
                                     )  
                             """
+            if highlight_result:
+                # for highlighting
+                my_params += [str(searchByName)] * 2
+                highlight_columns += """ ts_headline('english', coalesce(name, '')
+                                                , plainto_tsquery('english', %s)
+                                                , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as name_highlighted,  
+                    
+                                        ts_headline('english', coalesce(author, '')
+                                                , plainto_tsquery('english', %s)
+                                                , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as author_highlighted,                                              
+                                    """ 
 
     if author != '':
         my_params.append("%" + str(author) + "%")
@@ -3183,13 +3196,14 @@ def get_visible_live_or_published_phenotype_versions(request,
     with connection.cursor() as cursor:
         cursor.execute(
             """
-                        SELECT 
+                        SELECT
+                        """ + highlight_columns + """ 
+                        """ + rank_select + """                        
                         *
                         FROM
                         (
                             SELECT 
                                 """ + can_edit_subquery + """
-                                """ + rank_select + """
                                 *
                                 , ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn_res
                                 , (CASE WHEN is_published=1 THEN 'published' ELSE 'not published' END) published
@@ -3235,12 +3249,44 @@ def get_visible_live_or_published_phenotype_versions(request,
         return [dict(list(zip(col_names, row))) for row in cursor.fetchall()]
 
 
-def getHistoryPhenotype(phenotype_history_id):
+def getHistoryPhenotype(phenotype_history_id, highlight_result=False, q_highlight=None):
     ''' Get historic phenotype based on a phenotype history id '''
 
+    sql_params = []
+
+    highlight_columns = ""
+    if highlight_result and q_highlight is not None:
+        # for highlighting
+        if str(q_highlight).strip() != '':
+            sql_params += [str(q_highlight)] * 5
+            highlight_columns += """ 
+                ts_headline('english', coalesce(hph.name, '')
+                        , plainto_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as name_highlighted,  
+
+                ts_headline('english', coalesce(hph.author, '')
+                        , plainto_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as author_highlighted,                                              
+               
+                ts_headline('english', coalesce(hph.description, '')
+                        , plainto_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=hightlight-txt > ", StopSel="</b>"') as description_highlighted,                                              
+                               
+                ts_headline('english', coalesce(hph.implementation, '')
+                        , plainto_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as implementation_highlighted,                                              
+                                                              
+                ts_headline('english', coalesce(array_to_string(hph.publications, '^$^'), '')
+                        , plainto_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publications_highlighted,                                              
+             """
+                     
+    sql_params.append(phenotype_history_id)
+                        
     with connection.cursor() as cursor:
-        cursor.execute(
-            '''SELECT 
+        cursor.execute("""
+        SELECT 
+        """ + highlight_columns + """
         hph.id,
         hph.created,
         hph.modified,
@@ -3293,12 +3339,22 @@ def getHistoryPhenotype(phenotype_history_id):
         LEFT OUTER JOIN auth_user AS ucb on ucb.id = hph.created_by_id
         LEFT OUTER JOIN auth_user AS umb on umb.id = hph.updated_by_id
         LEFT OUTER JOIN auth_user AS uhu on uhu.id = hph.history_user_id
-        WHERE (hph.history_id = %s)''', [phenotype_history_id])
+        WHERE (hph.history_id = %s)
+        """, sql_params)
 
         col_names = [col[0] for col in cursor.description]
         row = cursor.fetchone()
         row_dict = dict(zip(col_names, row))
 
+        if highlight_columns != '':
+            row_dict['publications_highlighted'] = row_dict['publications_highlighted'].split('^$^')
+        else:
+            row_dict['name_highlighted'] = row_dict['name']
+            row_dict['author_highlighted'] = row_dict['author']
+            row_dict['description_highlighted'] = row_dict['description']
+            row_dict['implementation_highlighted'] = row_dict['implementation']
+            row_dict['publications_highlighted'] = row_dict['publications']
+            
         return row_dict
 
 
@@ -4010,3 +4066,25 @@ def chk_valid_id(request, set_class, pk, chk_permission=False):
 
 
 
+def get_q_highlight(request, q):
+    # highlight detail page if only referred from the search page
+    
+    if is_referred_from_search_page(request):
+        return q
+    else:
+        return ''
+    
+def is_referred_from_search_page(request):   
+    # check if the page is referred from the search page
+    HTTP_REFERER = request.META.get('HTTP_REFERER')
+    if HTTP_REFERER is None:
+        return False
+    
+    if HTTP_REFERER.lower().endswith('/phenotypes/') or HTTP_REFERER.lower().endswith('/concepts/'):
+        return True
+    else:
+        return False
+    
+    
+    
+    

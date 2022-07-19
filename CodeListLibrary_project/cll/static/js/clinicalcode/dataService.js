@@ -48,8 +48,8 @@ var dataService = new function(){
 		});
 	};
 	
-	getPhenotypeUniqueCodesByVersion = function(phenotype, version, target_concept_id, target_concept_history_id, callback){		
-		$.getJSON('/phenotypes/PH' + phenotype + '/uniquecodesbyversion/'+ version + '/concept/C' + target_concept_id + '/' + target_concept_history_id +'/', function(data){
+	getPhenotypeUniqueCodesByVersion = function(phenotype, version, target_concept_id, target_concept_history_id, force_highlight_result, callback){		
+		$.getJSON('/phenotypes/PH' + phenotype + '/uniquecodesbyversion/'+ version + '/concept/C' + target_concept_id + '/' + target_concept_history_id +'/?highlight=' + force_highlight_result, function(data){
 			callback(data);
 		});
 	};

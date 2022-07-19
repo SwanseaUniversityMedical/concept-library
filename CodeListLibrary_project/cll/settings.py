@@ -406,12 +406,22 @@ MARKDOWNIFY = {
         "WHITELIST_TAGS": [
             'a', 'abbr', 'acronym', 'b', 'blockquote', 'em', 'i', 'li', 'ol',
             'p', 'strong', 'ul', 'img'
+            'h1', 'h2', 'h3','h4', 'h5', 'h6', 'h7'
+            #, 'span', 'div',  'code'
         ],
         "WHITELIST_ATTRS": [
             'href',
             'src',
             'alt',
+            'style',
+            'class',
         ],
+        "WHITELIST_STYLES": [
+            'color',
+            'font-weight',
+            'background-color',
+        ],
+
         "MARKDOWN_EXTENSIONS": [
             'markdown.extensions.fenced_code',
             'markdown.extensions.extra',

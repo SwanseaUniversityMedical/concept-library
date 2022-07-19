@@ -176,6 +176,9 @@ def markdownify(text, custom_settings="default"):
 
         html = cleaner.clean(html)
 
+    # this weird step is to reverse the effect of code tag although it is blacklisted 
+    html = html.replace('&lt;','<').replace('&gt;', '>')
+    
     return mark_safe(html)
 
 
@@ -198,7 +201,7 @@ def highlight(text, q):
                             return_text
                         )
 
-    return mark_safe(return_text.replace("stylexyz001", " style='background-color:yellow' "))
+    return mark_safe(return_text.replace("stylexyz001", " class='hightlight-txt' "))
   
   
 def highlight_all_search_text(text, q):
@@ -213,7 +216,7 @@ def highlight_all_search_text(text, q):
     #rgx = compile(rescape(q), IGNORECASE)
     return mark_safe(
         rgx.sub(
-            lambda m: '<b style="background-color:yellow;">{}</b>'.format(m.group()),
+            lambda m: '<b class="hightlight-txt">{}</b>'.format(m.group()),
             text
         )
     )  

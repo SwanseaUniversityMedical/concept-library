@@ -257,7 +257,8 @@ def phenotype_list(request):
                                                                             filter_cond=filter_cond,
                                                                             approved_status=approved_status,
                                                                             show_top_version_only=show_top_version_only,
-                                                                            search_name_only = False
+                                                                            search_name_only = False,
+                                                                            highlight_result = True
                                                                             )
     # create pagination
     paginator = Paginator(phenotype_srch,
@@ -354,7 +355,10 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
 
     # ----------------------------------------------------------------------
 
-    phenotype = db_utils.getHistoryPhenotype(phenotype_history_id)
+    phenotype = db_utils.getHistoryPhenotype(phenotype_history_id
+                                            , highlight_result = [False, True][db_utils.is_referred_from_search_page(request)]
+                                            , q_highlight = db_utils.get_q_highlight(request, request.session.get('phenotype_search', ''))  
+                                            )
     # The history phenotype contains the owner_id, to provide the owner name, we
     # need to access the user object with that ID and add that to the phenotype.
     if phenotype['owner_id'] is not None:
@@ -527,7 +531,8 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         'concepts_id_name': concepts_id_name,
         'concept_data': concept_data,
         'page_canonical_path': get_canonical_path_by_brand(request, Phenotype, pk, phenotype_history_id),
-        'q': request.session.get('phenotype_search', '')                              
+        'q': db_utils.get_q_highlight(request, request.session.get('phenotype_search', '')),
+        'force_highlight_result':  ['0', '1'][db_utils.is_referred_from_search_page(request)]                              
     }
 
     return render(request, 
@@ -686,7 +691,7 @@ def phenotype_conceptcodesByVersion(request,
                                             'codes': c_codes,
                                             'code_attribute_header': c_code_attribute_header,
                                             'showConcept': False,
-                                            'q': request.session.get('phenotype_search', '')
+                                            'q': ['', request.session.get('phenotype_search', '')][request.GET.get('highlight','0')=='1']
                                         })
         })
 
