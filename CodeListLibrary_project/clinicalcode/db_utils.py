@@ -3039,6 +3039,26 @@ def get_visible_live_or_published_phenotype_versions(request,
         #my_params.append(user_cond)
     can_edit_subquery = get_can_edit_subquery(request)
 
+    highlight_columns = ""
+    if highlight_result:
+        # for highlighting
+        if searchByName != '':
+            my_params += [str(searchByName)] * 2
+            highlight_columns += """ ts_headline('english', coalesce(name, '')
+                                            , plainto_tsquery('english', %s)
+                                            , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as name_highlighted,  
+                
+                                    ts_headline('english', coalesce(author, '')
+                                            , plainto_tsquery('english', %s)
+                                            , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as author_highlighted,                                              
+                                """ 
+        else:
+            my_params += [str(searchByName)] * 2
+            highlight_columns += """ name as name_highlighted,              
+                                    author as author_highlighted,                                              
+                                """ 
+                                
+                                
     rank_select = " "
     if searchByName != '':               
         if search_name_only:
@@ -3071,7 +3091,6 @@ def get_visible_live_or_published_phenotype_versions(request,
         my_params.append(str(phenotype_id_to_exclude))
         where_clause += " AND id NOT IN (%s) "
 
-    highlight_columns = ""
     if searchByName != '':
         # #my_params.append("%" + str(searchByName) + "%")
         # #where_clause += " AND upper(name) like upper(%s) "
@@ -3105,17 +3124,7 @@ def get_visible_live_or_published_phenotype_versions(request,
                                                ) @@ plainto_tsquery('english', %s)                              
                                     )  
                             """
-            if highlight_result:
-                # for highlighting
-                my_params += [str(searchByName)] * 2
-                highlight_columns += """ ts_headline('english', coalesce(name, '')
-                                                , plainto_tsquery('english', %s)
-                                                , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as name_highlighted,  
-                    
-                                        ts_headline('english', coalesce(author, '')
-                                                , plainto_tsquery('english', %s)
-                                                , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as author_highlighted,                                              
-                                    """ 
+
 
     if author != '':
         my_params.append("%" + str(author) + "%")
