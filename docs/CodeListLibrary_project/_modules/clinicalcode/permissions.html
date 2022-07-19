@@ -1,0 +1,1177 @@
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" />
+
+    <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+        <title>clinicalcode.permissions - Library Code Reference Data</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../index.html"><div class="brand">Library Code Reference Data</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand centered" href="../../index.html">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="../../_static/header_logo.png" alt="Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">Library Code Reference Data</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
+  <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../modules.html">CodeListLibrary_project</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../clinicalcode.html">clinicalcode package</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../clinicalcode.api.html">clinicalcode.api package</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../clinicalcode.api.views.html">clinicalcode.api.views package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../clinicalcode.forms.html">clinicalcode.forms package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../clinicalcode.migrations.html">clinicalcode.migrations package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../clinicalcode.models.html">clinicalcode.models package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../clinicalcode.models.tests.html">clinicalcode.models.tests package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../clinicalcode.templatetags.html">clinicalcode.templatetags package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../clinicalcode.tests.html">clinicalcode.tests package</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../clinicalcode.tests.functional_tests.html">clinicalcode.tests.functional_tests package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../clinicalcode.tests.functional_tests.read_only.html">clinicalcode.tests.functional_tests.read_only package</a></li>
+</ul>
+</li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../clinicalcode.tests.unit_tests.html">clinicalcode.tests.unit_tests package</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../clinicalcode.tests.unit_tests.read_only.html">clinicalcode.tests.unit_tests.read_only package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../clinicalcode.viewmodels.html">clinicalcode.viewmodels package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../clinicalcode.views.html">clinicalcode.views package</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../clinicalcode.views.tests.html">clinicalcode.views.tests package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../cll.html">cll package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../manage.html">manage module</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <h1>Source code for clinicalcode.permissions</h1><div class="highlight"><pre>
+<span></span><span class="sd">'''</span>
+<span class="sd">    ---------------------------------------------------------------------------</span>
+<span class="sd">    Permissions</span>
+
+<span class="sd">    For deciding who gets to access what.</span>
+<span class="sd">    ---------------------------------------------------------------------------</span>
+<span class="sd">'''</span>
+<span class="kn">import</span> <span class="nn">json</span>
+
+<span class="kn">from</span> <span class="nn">django.conf</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">django.contrib.auth.models</span> <span class="kn">import</span> <span class="n">Group</span><span class="p">,</span> <span class="n">User</span>
+<span class="kn">from</span> <span class="nn">django.core.exceptions</span> <span class="kn">import</span> <span class="n">PermissionDenied</span>
+<span class="kn">from</span> <span class="nn">django.db.models</span> <span class="kn">import</span> <span class="n">Q</span>
+
+
+<div class="viewcode-block" id="Permissions"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.Permissions">[docs]</a><span class="k">class</span> <span class="nc">Permissions</span><span class="p">:</span>
+    <span class="n">NONE</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">VIEW</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">EDIT</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">PERMISSION_CHOICES</span> <span class="o">=</span> <span class="p">((</span><span class="n">NONE</span><span class="p">,</span> <span class="s1">'No Access'</span><span class="p">),</span> <span class="p">(</span><span class="n">VIEW</span><span class="p">,</span> <span class="s1">'View'</span><span class="p">),</span> <span class="p">(</span><span class="n">EDIT</span><span class="p">,</span> <span class="s1">'Edit'</span><span class="p">))</span>
+
+    <span class="n">PERMISSION_CHOICES_WORLD_ACCESS</span> <span class="o">=</span> <span class="p">((</span><span class="n">NONE</span><span class="p">,</span> <span class="s1">'No Access'</span><span class="p">),</span> <span class="p">(</span><span class="n">VIEW</span><span class="p">,</span> <span class="s1">'View'</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="checkIfPublished"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.checkIfPublished">[docs]</a><span class="k">def</span> <span class="nf">checkIfPublished</span><span class="p">(</span><span class="n">set_class</span><span class="p">,</span> <span class="n">set_id</span><span class="p">,</span> <span class="n">set_history_id</span><span class="p">):</span>
+    <span class="sd">''' Check if an entity version is published '''</span>
+
+    <span class="kn">from</span> <span class="nn">.models.Concept</span> <span class="kn">import</span> <span class="n">Concept</span>
+    <span class="kn">from</span> <span class="nn">.models.Phenotype</span> <span class="kn">import</span> <span class="n">Phenotype</span>
+    <span class="kn">from</span> <span class="nn">.models.PublishedConcept</span> <span class="kn">import</span> <span class="n">PublishedConcept</span>
+    <span class="kn">from</span> <span class="nn">.models.PublishedPhenotype</span> <span class="kn">import</span> <span class="n">PublishedPhenotype</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">set_class</span> <span class="o">==</span> <span class="n">Concept</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">PublishedConcept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">concept_id</span><span class="o">=</span><span class="n">set_id</span><span class="p">,</span> <span class="n">concept_history_id</span><span class="o">=</span><span class="n">set_history_id</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">set_class</span> <span class="o">==</span> <span class="n">Phenotype</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">PublishedPhenotype</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">phenotype_id</span><span class="o">=</span><span class="n">set_id</span><span class="p">,</span> <span class="n">phenotype_history_id</span><span class="o">=</span><span class="n">set_history_id</span><span class="p">,</span> <span class="n">approval_status</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="get_publish_approval_status"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.get_publish_approval_status">[docs]</a><span class="k">def</span> <span class="nf">get_publish_approval_status</span><span class="p">(</span><span class="n">set_class</span><span class="p">,</span> <span class="n">set_id</span><span class="p">,</span> <span class="n">set_history_id</span><span class="p">):</span>
+    <span class="sd">''' Get the puublish approval status '''</span>
+
+    <span class="kn">from</span> <span class="nn">.models.Concept</span> <span class="kn">import</span> <span class="n">Concept</span>
+    <span class="kn">from</span> <span class="nn">.models.Phenotype</span> <span class="kn">import</span> <span class="n">Phenotype</span>
+    <span class="kn">from</span> <span class="nn">.models.PublishedConcept</span> <span class="kn">import</span> <span class="n">PublishedConcept</span>
+    <span class="kn">from</span> <span class="nn">.models.PublishedPhenotype</span> <span class="kn">import</span> <span class="n">PublishedPhenotype</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">set_class</span> <span class="o">==</span> <span class="n">Phenotype</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">PublishedPhenotype</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">phenotype_id</span> <span class="o">=</span> <span class="n">set_id</span><span class="p">,</span> <span class="n">phenotype_history_id</span> <span class="o">=</span> <span class="n">set_history_id</span><span class="p">)</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s2">"approval_status"</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+    <span class="c1"># elif (set_class == Concept):</span>
+    <span class="c1">#     return PublishedConcept.objects.filter(concept_id = set_id).values_list('approval_status', flat=True).first()</span>
+    
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<span class="sd">'''</span>
+<span class="sd">    ---------------------------------------------------------------------------</span>
+<span class="sd">    Determine access to a specified dataset (Concepts or WorkingSets).</span>
+<span class="sd">    The allowed_to functions return a True/False result.</span>
+<span class="sd">    The validate functions raise a PermissionDenied exception based on the</span>
+<span class="sd">    allowed_to test.</span>
+<span class="sd">    ---------------------------------------------------------------------------</span>
+<span class="sd">'''</span>
+
+
+<div class="viewcode-block" id="allowed_to_view_children"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.allowed_to_view_children">[docs]</a><span class="k">def</span> <span class="nf">allowed_to_view_children</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                            <span class="n">set_class</span><span class="p">,</span>
+                            <span class="n">set_id</span><span class="p">,</span>
+                            <span class="n">returnErrors</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="n">WS_concepts_json</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
+                            <span class="n">WS_concept_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                            <span class="n">set_history_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        Permit viewing access if:</span>
+<span class="sd">        user is a super-user</span>
+<span class="sd">        OR</span>
+<span class="sd">        object is permitted to view </span>
+<span class="sd">            AND ALL children concepts are permitted to be viewed</span>
+<span class="sd">    '''</span>
+    <span class="kn">from</span> <span class="nn">.db_utils</span> <span class="kn">import</span> <span class="p">(</span><span class="n">get_concept_versions_in_workingset</span><span class="p">,</span>
+                           <span class="n">get_history_child_concept_components</span><span class="p">,</span>
+                           <span class="n">getConceptsFromJSON</span><span class="p">,</span> <span class="n">getConceptTreeByConceptId</span><span class="p">,</span>
+                           <span class="n">getGroupOfConceptsByPhenotypeId_historical</span><span class="p">,</span>
+                           <span class="n">getGroupOfConceptsByWorkingsetId_historical</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">.models.Component</span> <span class="kn">import</span> <span class="n">Component</span>
+    <span class="kn">from</span> <span class="nn">.models.Concept</span> <span class="kn">import</span> <span class="n">Concept</span>
+    <span class="kn">from</span> <span class="nn">.models.Phenotype</span> <span class="kn">import</span> <span class="n">Phenotype</span>
+    <span class="kn">from</span> <span class="nn">.models.WorkingSet</span> <span class="kn">import</span> <span class="n">WorkingSet</span>
+
+    <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">returnErrors</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">errors</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+    <span class="n">concepts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">permitted</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="c1"># The Working Set and Concept systems are fundamentally different, so we</span>
+    <span class="c1"># need to check that here. Why?</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">set_class</span> <span class="o">==</span> <span class="n">WorkingSet</span><span class="p">):</span>
+        <span class="n">permitted</span> <span class="o">=</span> <span class="n">allowed_to_view</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                    <span class="n">WorkingSet</span><span class="p">,</span>
+                                    <span class="n">set_id</span><span class="p">,</span>
+                                    <span class="n">set_history_id</span><span class="o">=</span><span class="n">set_history_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">permitted</span><span class="p">):</span>
+            <span class="n">errors</span><span class="p">[</span><span class="n">set_id</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'Working set not permitted.'</span>
+        <span class="c1"># Need to parse the concept_informations section of the database and use</span>
+        <span class="c1"># the concepts here to form a list of concept_ref_ids.</span>
+
+        <span class="c1">#         if WS_concepts_json.strip() != "":</span>
+        <span class="c1">#             concepts =  getConceptsFromJSON(concepts_json = WS_concepts_json)</span>
+        <span class="c1">#         else:</span>
+        <span class="c1">#             concepts = getGroupOfConceptsByWorkingsetId_historical(set_id , set_history_id)</span>
+        <span class="k">if</span> <span class="n">WS_concept_version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">concepts</span> <span class="o">=</span> <span class="n">WS_concept_version</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">concepts</span> <span class="o">=</span> <span class="n">get_concept_versions_in_workingset</span><span class="p">(</span><span class="n">set_id</span><span class="p">,</span> <span class="n">set_history_id</span><span class="p">)</span>
+
+        <span class="n">unique_concepts</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">concept</span> <span class="ow">in</span> <span class="n">concepts</span><span class="p">:</span>
+            <span class="n">unique_concepts</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="nb">int</span><span class="p">(</span><span class="n">concept</span><span class="p">),</span> <span class="n">concepts</span><span class="p">[</span><span class="n">concept</span><span class="p">]))</span>
+        <span class="k">pass</span>
+    <span class="k">elif</span> <span class="n">set_class</span> <span class="o">==</span> <span class="n">Phenotype</span><span class="p">:</span>
+        <span class="n">permitted</span> <span class="o">=</span> <span class="n">allowed_to_view</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">Phenotype</span><span class="p">,</span> <span class="n">set_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">permitted</span><span class="p">):</span>
+            <span class="n">errors</span><span class="p">[</span><span class="n">set_id</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'Phenotype not permitted.'</span>
+            <span class="c1"># Need to parse the concept_informations section of the database and use</span>
+            <span class="c1"># the concepts here to form a list of concept_ref_ids.</span>
+        <span class="k">if</span> <span class="n">WS_concepts_json</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">""</span><span class="p">:</span>
+            <span class="n">concepts</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">'concept_version_id'</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">WS_concepts_json</span><span class="p">)]</span>  <span class="c1"># getConceptsFromJSON(concepts_json=WS_concepts_json)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">concepts</span> <span class="o">=</span> <span class="n">getGroupOfConceptsByPhenotypeId_historical</span><span class="p">(</span><span class="n">set_id</span><span class="p">,</span> <span class="n">set_history_id</span><span class="p">)</span>
+
+        <span class="n">unique_concepts</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">concept</span> <span class="ow">in</span> <span class="n">concepts</span><span class="p">:</span>
+            <span class="n">unique_concepts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">concept</span><span class="p">)</span>
+        <span class="k">pass</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">set_class</span> <span class="o">==</span> <span class="n">Concept</span><span class="p">):</span>
+        <span class="n">permitted</span> <span class="o">=</span> <span class="n">allowed_to_view</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                    <span class="n">Concept</span><span class="p">,</span>
+                                    <span class="n">set_id</span><span class="p">,</span>
+                                    <span class="n">set_history_id</span><span class="o">=</span><span class="n">set_history_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">permitted</span><span class="p">):</span>
+            <span class="n">errors</span><span class="p">[</span><span class="n">set_id</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'Concept not permitted.'</span>
+
+        <span class="c1"># Now, with no sync propagation, we check only one level for permissions</span>
+        <span class="n">concepts</span> <span class="o">=</span> <span class="n">get_history_child_concept_components</span><span class="p">(</span><span class="n">set_id</span><span class="p">,</span> <span class="n">concept_history_id</span><span class="o">=</span><span class="n">set_history_id</span><span class="p">)</span>
+        <span class="n">unique_concepts</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">concept</span> <span class="ow">in</span> <span class="n">concepts</span><span class="p">:</span>
+            <span class="n">unique_concepts</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">concept</span><span class="p">[</span><span class="s1">'concept_ref_id'</span><span class="p">],</span> <span class="n">concept</span><span class="p">[</span><span class="s1">'concept_ref_history_id'</span><span class="p">]))</span>
+
+    <span class="c1">#         # Need to refer to all the components that have this id as its concept_id.</span>
+    <span class="c1">#         # For each of these we need to create a list of concept ids from the</span>
+    <span class="c1">#         # concept_ref_ids.</span>
+    <span class="c1">#         # Basically, we need the ConceptTree table from concept_unique_codes(SQL).</span>
+    <span class="c1">#         # At the moment we need to extract both the id and ref_id values from</span>
+    <span class="c1">#         # what is a complete list but incomplete tree.</span>
+    <span class="c1">#         concepts = getConceptTreeByConceptId(set_id)</span>
+    <span class="c1">#         unique_concepts = set()</span>
+    <span class="c1">#         for concept in concepts:</span>
+    <span class="c1">#             unique_concepts.add(concept['concept_idx'])</span>
+    <span class="c1">#             unique_concepts.add(concept['concept_ref_id'])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="c1"># In both cases, we end up with a list of concept_ref_ids to which we need</span>
+    <span class="c1"># view permission to all in order to grant permission.</span>
+
+    <span class="c1"># Now check all the unique Concepts for access.</span>
+    <span class="n">permittedToAll</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">for</span> <span class="n">concept</span> <span class="ow">in</span> <span class="n">unique_concepts</span><span class="p">:</span>
+        <span class="n">permitted</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">permitted</span> <span class="o">=</span> <span class="n">allowed_to_view</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                    <span class="n">Concept</span><span class="p">,</span>
+                                    <span class="n">set_id</span><span class="o">=</span><span class="n">concept</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                    <span class="n">set_history_id</span><span class="o">=</span><span class="n">concept</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">permitted</span><span class="p">):</span>
+            <span class="n">errors</span><span class="p">[</span><span class="n">concept</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="s1">'Child concept not permitted.'</span>
+            <span class="n">permittedToAll</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">returnErrors</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">permittedToAll</span><span class="p">,</span> <span class="n">errors</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">permittedToAll</span></div>
+
+
+<div class="viewcode-block" id="allowed_to_view"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.allowed_to_view">[docs]</a><span class="k">def</span> <span class="nf">allowed_to_view</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                    <span class="n">set_class</span><span class="p">,</span>
+                    <span class="n">set_id</span><span class="p">,</span>
+                    <span class="n">set_history_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">user</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        Permit viewing access if:</span>
+<span class="sd">        user is a super-user or the OWNER</span>
+<span class="sd">        OR</span>
+<span class="sd">        viewing is permitted to EVERYONE</span>
+<span class="sd">        OR</span>
+<span class="sd">        viewing is permitted to a GROUP that contains the user</span>
+<span class="sd">        </span>
+<span class="sd">        if login_required is False this means it can be a published content</span>
+<span class="sd">        --</span>
+<span class="sd">        user will be read from request.user unless given directly via param: user</span>
+<span class="sd">    '''</span>
+
+    <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">request</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span>
+
+    <span class="kn">from</span> <span class="nn">.models.Concept</span> <span class="kn">import</span> <span class="n">Concept</span>
+    <span class="kn">from</span> <span class="nn">.models.Phenotype</span> <span class="kn">import</span> <span class="n">Phenotype</span>
+
+    <span class="c1"># from .models.WorkingSet import WorkingSet</span>
+    <span class="c1"># check if the entity/version exists</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">set_class</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">set_id</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">set_history_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">set_class</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">set_id</span><span class="p">,</span> <span class="n">history_id</span><span class="o">=</span><span class="n">set_history_id</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># Check if the user is permitted to view the entity</span>
+    <span class="c1"># *** here check if the user can view  *******</span>
+    <span class="n">is_allowed_to_view</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">is_authenticated</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">request</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># from unit-testing only</span>
+        <span class="n">is_authenticated</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">is_authenticated</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_authenticated</span>
+
+    <span class="k">if</span> <span class="n">is_authenticated</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span>
+            <span class="n">is_allowed_to_view</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># if a specific version is published</span>
+            <span class="k">if</span> <span class="n">set_history_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">set_class</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Concept</span><span class="p">,</span> <span class="n">Phenotype</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">checkIfPublished</span><span class="p">(</span><span class="n">set_class</span><span class="p">,</span> <span class="n">set_id</span><span class="p">,</span> <span class="n">set_history_id</span><span class="p">):</span>
+                    <span class="n">is_allowed_to_view</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="c1"># Owner is always allowed to view</span>
+            <span class="k">if</span> <span class="n">set_class</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">set_id</span><span class="p">),</span> <span class="n">Q</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">user</span><span class="p">))</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">is_allowed_to_view</span> <span class="o">=</span> <span class="kc">True</span>
+                
+            <span class="k">if</span> <span class="n">set_class</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">set_id</span><span class="p">),</span> <span class="n">Q</span><span class="p">(</span><span class="n">world_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">VIEW</span><span class="p">))</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">is_allowed_to_view</span> <span class="o">=</span> <span class="kc">True</span>
+                
+            <span class="c1"># this condition is not active now (from the interface), since not logical to give Edit permission to all users</span>
+            <span class="k">if</span> <span class="n">set_class</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">set_id</span><span class="p">),</span> <span class="n">Q</span><span class="p">(</span><span class="n">world_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">EDIT</span><span class="p">))</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">is_allowed_to_view</span> <span class="o">=</span> <span class="kc">True</span>
+                
+            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">user</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">set_class</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">set_id</span><span class="p">),</span> <span class="n">Q</span><span class="p">(</span><span class="n">group_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">VIEW</span><span class="p">,</span> <span class="n">group_id</span><span class="o">=</span><span class="n">group</span><span class="p">))</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">is_allowed_to_view</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">set_class</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">set_id</span><span class="p">),</span> <span class="n">Q</span><span class="p">(</span><span class="n">group_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">EDIT</span><span class="p">,</span> <span class="n">group_id</span><span class="o">=</span><span class="n">group</span><span class="p">))</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">is_allowed_to_view</span> <span class="o">=</span> <span class="kc">True</span>
+                
+            <span class="c1"># allow moderator to see pending/rejected phenotypes/concepts</span>
+            <span class="k">if</span> <span class="n">is_member</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="s2">"Moderators"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">set_history_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">approval_status</span> <span class="o">=</span> <span class="n">get_publish_approval_status</span><span class="p">(</span><span class="n">set_class</span><span class="p">,</span> <span class="n">set_id</span><span class="p">,</span> <span class="n">set_history_id</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">approval_status</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]:</span> <span class="c1"># pending or rejected</span>
+                    <span class="n">is_allowed_to_view</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">else</span><span class="p">:</span>  <span class="c1"># public content</span>
+        <span class="c1"># check if the version is published</span>
+        <span class="k">if</span> <span class="n">set_history_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># get the latest version</span>
+            <span class="n">set_history_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">set_class</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">set_id</span><span class="p">)</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">history_id</span><span class="p">)</span>
+
+        <span class="n">is_published</span> <span class="o">=</span> <span class="n">checkIfPublished</span><span class="p">(</span><span class="n">set_class</span><span class="p">,</span> <span class="n">set_id</span><span class="p">,</span> <span class="n">set_history_id</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">is_published</span><span class="p">:</span>
+            <span class="n">is_allowed_to_view</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="c1"># ********************************************</span>
+
+    <span class="c1"># check brand access</span>
+    <span class="k">if</span> <span class="n">is_allowed_to_view</span> <span class="ow">and</span> <span class="n">request</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_brand_accessible</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">set_class</span><span class="p">,</span> <span class="n">set_id</span><span class="p">,</span> <span class="n">set_history_id</span><span class="p">):</span>
+            <span class="n">is_allowed_to_view</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">return</span> <span class="n">is_allowed_to_view</span></div>
+
+
+<div class="viewcode-block" id="allowed_to_edit"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.allowed_to_edit">[docs]</a><span class="k">def</span> <span class="nf">allowed_to_edit</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">set_class</span><span class="p">,</span> <span class="n">set_id</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        Permit editing access if:</span>
+<span class="sd">        user is a super-user or the OWNER</span>
+<span class="sd">        OR</span>
+<span class="sd">        editing is permitted to EVERYONE</span>
+<span class="sd">        OR</span>
+<span class="sd">        editing is permitted to a GROUP that the user belongs to</span>
+<span class="sd">        but NOT if</span>
+<span class="sd">        the application is configured as READ-ONLY.</span>
+<span class="sd">        </span>
+<span class="sd">        (skip this for now)(The object must not be marked as deleted - even for superuser)</span>
+<span class="sd">        --</span>
+<span class="sd">        user will be read from request.user unless given directly via param: user</span>
+<span class="sd">    '''</span>
+
+    <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">request</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span>
+
+    <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">CLL_READ_ONLY</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># to_restore = False</span>
+    <span class="c1"># skip this for now</span>
+    <span class="c1"># skip this when restoring</span>
+    <span class="c1"># if not to_restore:</span>
+    <span class="c1">#   if set_class.objects.get(id=set_id).is_deleted==True: return False</span>
+
+    <span class="c1"># *** here check if the user can edit  *******</span>
+    <span class="n">is_allowed_to_edit</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span>
+        <span class="n">is_allowed_to_edit</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">set_class</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">set_id</span><span class="p">),</span> <span class="n">Q</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">user</span><span class="p">))</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">is_allowed_to_edit</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># this condition is not active now (from the interface), since not logical to give Edit permission to all users</span>
+        <span class="k">if</span> <span class="n">set_class</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">set_id</span><span class="p">),</span> <span class="n">Q</span><span class="p">(</span><span class="n">world_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">EDIT</span><span class="p">))</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">is_allowed_to_edit</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">user</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">set_class</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">set_id</span><span class="p">),</span> <span class="n">Q</span><span class="p">(</span><span class="n">group_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">EDIT</span><span class="p">,</span> <span class="n">group_id</span><span class="o">=</span><span class="n">group</span><span class="p">))</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">is_allowed_to_edit</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="c1"># ********************************************</span>
+
+    <span class="c1"># check brand access</span>
+    <span class="k">if</span> <span class="n">is_allowed_to_edit</span> <span class="ow">and</span> <span class="n">request</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_brand_accessible</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">set_class</span><span class="p">,</span> <span class="n">set_id</span><span class="p">):</span>
+            <span class="n">is_allowed_to_edit</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">return</span> <span class="n">is_allowed_to_edit</span></div>
+
+
+<div class="viewcode-block" id="allowed_to_create"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.allowed_to_create">[docs]</a><span class="k">def</span> <span class="nf">allowed_to_create</span><span class="p">():</span>
+    <span class="sd">'''</span>
+<span class="sd">        Permit creation unless we have a READ-ONLY application.</span>
+<span class="sd">    '''</span>
+    <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">CLL_READ_ONLY</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="allowed_to_permit"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.allowed_to_permit">[docs]</a><span class="k">def</span> <span class="nf">allowed_to_permit</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">set_class</span><span class="p">,</span> <span class="n">set_id</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        The ability to change the owner of a concept remains with the owner and</span>
+<span class="sd">        not with those granted editing permission. And with superusers to get</span>
+<span class="sd">        us out of trouble, when necessary.</span>
+
+<span class="sd">        Allow user to change permissions if:</span>
+<span class="sd">        user is a super-user</span>
+<span class="sd">        OR</span>
+<span class="sd">        user owns the object.</span>
+<span class="sd">    '''</span>
+    <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span> <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="n">set_class</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">set_id</span><span class="p">),</span> <span class="n">Q</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">user</span><span class="p">))</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="allowed_to_publish"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.allowed_to_publish">[docs]</a><span class="k">def</span> <span class="nf">allowed_to_publish</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">set_class</span><span class="p">,</span> <span class="n">set_id</span><span class="p">,</span> <span class="n">historical_id</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        Allow to publish if:</span>
+<span class="sd">        - Concept is not deleted</span>
+<span class="sd">        - user is an owner</span>
+<span class="sd">        - Concept contains codes</span>
+<span class="sd">    '''</span>
+    <span class="kn">from</span> <span class="nn">.db_utils</span> <span class="kn">import</span> <span class="n">getGroupOfCodesByConceptId_HISTORICAL</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">set_class</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">set_id</span><span class="p">)</span><span class="o">.</span><span class="n">is_deleted</span> <span class="o">==</span> <span class="kc">True</span><span class="p">):</span> <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">set_class</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">set_id</span><span class="p">),</span> <span class="n">Q</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">user</span><span class="p">))</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">getGroupOfCodesByConceptId_HISTORICAL</span><span class="p">(</span><span class="n">concept_id</span><span class="o">=</span><span class="n">set_id</span><span class="p">,</span> <span class="n">concept_history_id</span><span class="o">=</span><span class="n">historical_id</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="getGroups"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.getGroups">[docs]</a><span class="k">def</span> <span class="nf">getGroups</span><span class="p">(</span><span class="n">user</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        if superuser, return all groups.</span>
+<span class="sd">        else return groups where user is a member.</span>
+<span class="sd">    '''</span>
+    <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'ReadOnlyUsers'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">user</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'ReadOnlyUsers'</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="validate_access_to_view"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.validate_access_to_view">[docs]</a><span class="k">def</span> <span class="nf">validate_access_to_view</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">set_class</span><span class="p">,</span> <span class="n">set_id</span><span class="p">,</span> <span class="n">set_history_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        Validate if user has access to view the entity.</span>
+<span class="sd">        Raises an exception if access is not allowed which causes the 403.html</span>
+<span class="sd">        page to be displayed.</span>
+<span class="sd">    '''</span>
+    <span class="k">if</span> <span class="n">allowed_to_view</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">set_class</span><span class="p">,</span> <span class="n">set_id</span><span class="p">,</span> <span class="n">set_history_id</span><span class="o">=</span><span class="n">set_history_id</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">PermissionDenied</span></div>
+
+
+<div class="viewcode-block" id="validate_access_to_edit"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.validate_access_to_edit">[docs]</a><span class="k">def</span> <span class="nf">validate_access_to_edit</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">set_class</span><span class="p">,</span> <span class="n">set_id</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        Validate if user has access to edit a dataset.</span>
+<span class="sd">        Raises an exception if access is not allowed which causes the 403.html</span>
+<span class="sd">        page to be displayed.</span>
+<span class="sd">    '''</span>
+
+    <span class="k">if</span> <span class="n">allowed_to_edit</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">set_class</span><span class="p">,</span> <span class="n">set_id</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">PermissionDenied</span></div>
+
+
+<div class="viewcode-block" id="validate_access_to_create"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.validate_access_to_create">[docs]</a><span class="k">def</span> <span class="nf">validate_access_to_create</span><span class="p">():</span>
+    <span class="sd">'''</span>
+<span class="sd">        Validate if user has create permission.</span>
+<span class="sd">        Raises an exception if access is not allowed which causes the 403.html</span>
+<span class="sd">        page to be displayed.</span>
+<span class="sd">    '''</span>
+    <span class="k">if</span> <span class="n">allowed_to_create</span><span class="p">()</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">PermissionDenied</span></div>
+
+
+<span class="sd">'''</span>
+<span class="sd">    ---------------------------------------------------------------------------</span>
+<span class="sd">    Mixin classes.</span>
+<span class="sd">    ---------------------------------------------------------------------------</span>
+<span class="sd">    !!! The Concept and Component Check Mixins are identical except for the</span>
+<span class="sd">        ident of the selecting parameter. Fix this :)</span>
+<span class="sd">'''</span>
+
+
+<div class="viewcode-block" id="HasAccessToCreateCheckMixin"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToCreateCheckMixin">[docs]</a><span class="k">class</span> <span class="nc">HasAccessToCreateCheckMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        mixin to check if user has create access for concepts</span>
+<span class="sd">        this mixin is used within class based views and can be overridden</span>
+<span class="sd">    '''</span>
+
+<div class="viewcode-block" id="HasAccessToCreateCheckMixin.has_access_to_create"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToCreateCheckMixin.has_access_to_create">[docs]</a>    <span class="k">def</span> <span class="nf">has_access_to_create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">allowed_to_create</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="HasAccessToCreateCheckMixin.access_to_create_failed"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToCreateCheckMixin.access_to_create_failed">[docs]</a>    <span class="k">def</span> <span class="nf">access_to_create_failed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">PermissionDenied</span></div>
+
+<div class="viewcode-block" id="HasAccessToCreateCheckMixin.dispatch"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToCreateCheckMixin.dispatch">[docs]</a>    <span class="k">def</span> <span class="nf">dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_access_to_create</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">access_to_create_failed</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">HasAccessToCreateCheckMixin</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="HasAccessToViewConceptCheckMixin"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToViewConceptCheckMixin">[docs]</a><span class="k">class</span> <span class="nc">HasAccessToViewConceptCheckMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        mixin to check if user has view access to a concept</span>
+<span class="sd">        this mixin is used within class based views and can be overridden</span>
+<span class="sd">    '''</span>
+
+<div class="viewcode-block" id="HasAccessToViewConceptCheckMixin.has_access_to_view_concept"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToViewConceptCheckMixin.has_access_to_view_concept">[docs]</a>    <span class="k">def</span> <span class="nf">has_access_to_view_concept</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">concept</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.models.Concept</span> <span class="kn">import</span> <span class="n">Concept</span>
+        <span class="k">return</span> <span class="n">allowed_to_view</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">Concept</span><span class="p">,</span> <span class="n">concept</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HasAccessToViewConceptCheckMixin.access_to_view_concept_failed"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToViewConceptCheckMixin.access_to_view_concept_failed">[docs]</a>    <span class="k">def</span> <span class="nf">access_to_view_concept_failed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">PermissionDenied</span></div>
+
+<div class="viewcode-block" id="HasAccessToViewConceptCheckMixin.dispatch"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToViewConceptCheckMixin.dispatch">[docs]</a>    <span class="k">def</span> <span class="nf">dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_access_to_view_concept</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'pk'</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">access_to_view_concept_failed</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">HasAccessToViewConceptCheckMixin</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="HasAccessToViewParentConceptCheckMixin"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToViewParentConceptCheckMixin">[docs]</a><span class="k">class</span> <span class="nc">HasAccessToViewParentConceptCheckMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        mixin to check if user has view access to a component concept</span>
+<span class="sd">        this mixin is used within class based views and can be overridden</span>
+<span class="sd">    '''</span>
+
+<div class="viewcode-block" id="HasAccessToViewParentConceptCheckMixin.has_access_to_view_concept"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToViewParentConceptCheckMixin.has_access_to_view_concept">[docs]</a>    <span class="k">def</span> <span class="nf">has_access_to_view_concept</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">concept</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.models.Concept</span> <span class="kn">import</span> <span class="n">Concept</span>
+        <span class="k">return</span> <span class="n">allowed_to_view</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">Concept</span><span class="p">,</span> <span class="n">concept</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HasAccessToViewParentConceptCheckMixin.access_to_view_concept_failed"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToViewParentConceptCheckMixin.access_to_view_concept_failed">[docs]</a>    <span class="k">def</span> <span class="nf">access_to_view_concept_failed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">PermissionDenied</span></div>
+
+<div class="viewcode-block" id="HasAccessToViewParentConceptCheckMixin.dispatch"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToViewParentConceptCheckMixin.dispatch">[docs]</a>    <span class="k">def</span> <span class="nf">dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_access_to_view_concept</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">access_to_view_concept_failed</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">HasAccessToViewParentConceptCheckMixin</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="HasAccessToEditConceptCheckMixin"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToEditConceptCheckMixin">[docs]</a><span class="k">class</span> <span class="nc">HasAccessToEditConceptCheckMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        mixin to check if user has edit access to a concept</span>
+<span class="sd">        this mixin is used within class based views and can be overridden</span>
+<span class="sd">    '''</span>
+
+<div class="viewcode-block" id="HasAccessToEditConceptCheckMixin.has_access_to_edit_concept"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToEditConceptCheckMixin.has_access_to_edit_concept">[docs]</a>    <span class="k">def</span> <span class="nf">has_access_to_edit_concept</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">concept</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.models.Concept</span> <span class="kn">import</span> <span class="n">Concept</span>
+        <span class="k">return</span> <span class="n">allowed_to_edit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">Concept</span><span class="p">,</span> <span class="n">concept</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HasAccessToEditConceptCheckMixin.access_to_edit_concept_failed"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToEditConceptCheckMixin.access_to_edit_concept_failed">[docs]</a>    <span class="k">def</span> <span class="nf">access_to_edit_concept_failed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">PermissionDenied</span></div>
+
+<div class="viewcode-block" id="HasAccessToEditConceptCheckMixin.dispatch"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToEditConceptCheckMixin.dispatch">[docs]</a>    <span class="k">def</span> <span class="nf">dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_access_to_edit_concept</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'pk'</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">access_to_edit_concept_failed</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">HasAccessToEditConceptCheckMixin</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="HasAccessToEditParentConceptCheckMixin"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToEditParentConceptCheckMixin">[docs]</a><span class="k">class</span> <span class="nc">HasAccessToEditParentConceptCheckMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        Mixin to check if user has edit access to a concept's parent concept.</span>
+<span class="sd">        This differs from the Concept check only by the kwarg key used</span>
+<span class="sd">        /concepts/&lt;concept-id&gt;/concepts/&lt;pk&gt;</span>
+<span class="sd">    '''</span>
+
+<div class="viewcode-block" id="HasAccessToEditParentConceptCheckMixin.has_access_to_edit_concept"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToEditParentConceptCheckMixin.has_access_to_edit_concept">[docs]</a>    <span class="k">def</span> <span class="nf">has_access_to_edit_concept</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">concept</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.models.Concept</span> <span class="kn">import</span> <span class="n">Concept</span>
+        <span class="k">return</span> <span class="n">allowed_to_edit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">Concept</span><span class="p">,</span> <span class="n">concept</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HasAccessToEditParentConceptCheckMixin.access_to_edit_concept_failed"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToEditParentConceptCheckMixin.access_to_edit_concept_failed">[docs]</a>    <span class="k">def</span> <span class="nf">access_to_edit_concept_failed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">PermissionDenied</span></div>
+
+<div class="viewcode-block" id="HasAccessToEditParentConceptCheckMixin.dispatch"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToEditParentConceptCheckMixin.dispatch">[docs]</a>    <span class="k">def</span> <span class="nf">dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_access_to_edit_concept</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'concept_id'</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">access_to_edit_concept_failed</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">HasAccessToEditParentConceptCheckMixin</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="HasAccessToEditWorkingsetCheckMixin"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToEditWorkingsetCheckMixin">[docs]</a><span class="k">class</span> <span class="nc">HasAccessToEditWorkingsetCheckMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        mixin to check if user has edit access to a working set</span>
+<span class="sd">        this mixin is used within class based views and can be overridden</span>
+<span class="sd">    '''</span>
+
+<div class="viewcode-block" id="HasAccessToEditWorkingsetCheckMixin.has_access_to_edit_workingset"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToEditWorkingsetCheckMixin.has_access_to_edit_workingset">[docs]</a>    <span class="k">def</span> <span class="nf">has_access_to_edit_workingset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">workingset_id</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.models.WorkingSet</span> <span class="kn">import</span> <span class="n">WorkingSet</span>
+        <span class="k">return</span> <span class="n">allowed_to_edit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">WorkingSet</span><span class="p">,</span> <span class="n">workingset_id</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HasAccessToEditWorkingsetCheckMixin.access_to_edit_workingset_failed"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToEditWorkingsetCheckMixin.access_to_edit_workingset_failed">[docs]</a>    <span class="k">def</span> <span class="nf">access_to_edit_workingset_failed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">PermissionDenied</span></div>
+
+<div class="viewcode-block" id="HasAccessToEditWorkingsetCheckMixin.dispatch"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToEditWorkingsetCheckMixin.dispatch">[docs]</a>    <span class="k">def</span> <span class="nf">dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_access_to_edit_workingset</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">access_to_edit_workingset_failed</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">HasAccessToEditWorkingsetCheckMixin</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="HasAccessToViewWorkingsetCheckMixin"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToViewWorkingsetCheckMixin">[docs]</a><span class="k">class</span> <span class="nc">HasAccessToViewWorkingsetCheckMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        mixin to check if user has view access to a working set</span>
+<span class="sd">        this mixin is used within class based views and can be overridden</span>
+<span class="sd">    '''</span>
+
+<div class="viewcode-block" id="HasAccessToViewWorkingsetCheckMixin.has_access_to_view_workingset"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToViewWorkingsetCheckMixin.has_access_to_view_workingset">[docs]</a>    <span class="k">def</span> <span class="nf">has_access_to_view_workingset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">workingset_id</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.models.WorkingSet</span> <span class="kn">import</span> <span class="n">WorkingSet</span>
+        <span class="k">return</span> <span class="n">allowed_to_view</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">WorkingSet</span><span class="p">,</span> <span class="n">workingset_id</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HasAccessToViewWorkingsetCheckMixin.access_to_view_workingset_failed"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToViewWorkingsetCheckMixin.access_to_view_workingset_failed">[docs]</a>    <span class="k">def</span> <span class="nf">access_to_view_workingset_failed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">PermissionDenied</span></div>
+
+<div class="viewcode-block" id="HasAccessToViewWorkingsetCheckMixin.dispatch"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToViewWorkingsetCheckMixin.dispatch">[docs]</a>    <span class="k">def</span> <span class="nf">dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_access_to_view_workingset</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'pk'</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">access_to_view_workingset_failed</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">HasAccessToViewWorkingsetCheckMixin</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="HasAccessToEditPhenotypeCheckMixin"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToEditPhenotypeCheckMixin">[docs]</a><span class="k">class</span> <span class="nc">HasAccessToEditPhenotypeCheckMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">"""</span>
+<span class="sd">        mixin to check if user has edit access to a phenotype</span>
+<span class="sd">        this mixin is used within class based views and can be overridden</span>
+<span class="sd">    """</span>
+
+<div class="viewcode-block" id="HasAccessToEditPhenotypeCheckMixin.has_access_to_edit_phenotype"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToEditPhenotypeCheckMixin.has_access_to_edit_phenotype">[docs]</a>    <span class="k">def</span> <span class="nf">has_access_to_edit_phenotype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">phenotype_id</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.models.Phenotype</span> <span class="kn">import</span> <span class="n">Phenotype</span>
+        <span class="k">return</span> <span class="n">allowed_to_edit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">Phenotype</span><span class="p">,</span> <span class="n">phenotype_id</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HasAccessToEditPhenotypeCheckMixin.access_to_edit_phenotype_failed"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToEditPhenotypeCheckMixin.access_to_edit_phenotype_failed">[docs]</a>    <span class="k">def</span> <span class="nf">access_to_edit_phenotype_failed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">PermissionDenied</span></div>
+
+<div class="viewcode-block" id="HasAccessToEditPhenotypeCheckMixin.dispatch"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToEditPhenotypeCheckMixin.dispatch">[docs]</a>    <span class="k">def</span> <span class="nf">dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_access_to_edit_phenotype</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">access_to_edit_phenotype_failed</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">HasAccessToEditPhenotypeCheckMixin</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="HasAccessToViewPhenotypeCheckMixin"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToViewPhenotypeCheckMixin">[docs]</a><span class="k">class</span> <span class="nc">HasAccessToViewPhenotypeCheckMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">"""</span>
+<span class="sd">        mixin to check if user has view access to a phenotype</span>
+<span class="sd">        this mixin is used within class based views and can be overridden</span>
+<span class="sd">    """</span>
+
+<div class="viewcode-block" id="HasAccessToViewPhenotypeCheckMixin.has_access_to_view_phenotype"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToViewPhenotypeCheckMixin.has_access_to_view_phenotype">[docs]</a>    <span class="k">def</span> <span class="nf">has_access_to_view_phenotype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">phenotype_id</span><span class="p">,</span> <span class="n">phenotype_history_id</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.models.Phenotype</span> <span class="kn">import</span> <span class="n">Phenotype</span>
+        <span class="k">return</span> <span class="n">allowed_to_view</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">Phenotype</span><span class="p">,</span> <span class="n">phenotype_id</span><span class="p">,</span> <span class="n">set_history_id</span><span class="o">=</span><span class="n">phenotype_history_id</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HasAccessToViewPhenotypeCheckMixin.access_to_view_phenotype_failed"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToViewPhenotypeCheckMixin.access_to_view_phenotype_failed">[docs]</a>    <span class="k">def</span> <span class="nf">access_to_view_phenotype_failed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">PermissionDenied</span></div>
+
+<div class="viewcode-block" id="HasAccessToViewPhenotypeCheckMixin.dispatch"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.HasAccessToViewPhenotypeCheckMixin.dispatch">[docs]</a>    <span class="k">def</span> <span class="nf">dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_access_to_view_phenotype</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'pk'</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'phenotype_history_id'</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">access_to_view_phenotype_failed</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">HasAccessToViewPhenotypeCheckMixin</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<span class="sd">'''</span>
+<span class="sd">    ---------------------------------------------------------------------------</span>
+<span class="sd">    Produce permitted data-sets.</span>
+<span class="sd">    ---------------------------------------------------------------------------</span>
+<span class="sd">'''</span>
+
+
+<div class="viewcode-block" id="get_visible_codes"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.get_visible_codes">[docs]</a><span class="k">def</span> <span class="nf">get_visible_codes</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">codeListID</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        Get the permitted codes.</span>
+<span class="sd">        If no code list is specified, look through them all, adding codes that</span>
+<span class="sd">        are contained in permitted code lists.</span>
+<span class="sd">        If a code list is specified, just return the codes in that code list</span>
+<span class="sd">        if it is permitted.</span>
+<span class="sd">        (work only on live version since it is used in edit form)</span>
+<span class="sd">    '''</span>
+    <span class="kn">from</span> <span class="nn">.models.Code</span> <span class="kn">import</span> <span class="n">Code</span>
+    <span class="n">codes</span> <span class="o">=</span> <span class="n">Code</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span>
+    <span class="n">codelists</span> <span class="o">=</span> <span class="n">get_visible_codelists</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">codeListID</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">codeListID</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">codes</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">code_list</span><span class="o">=</span><span class="n">codeListID</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">codes</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">Code</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">none</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">codelist</span> <span class="ow">in</span> <span class="n">codelists</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">|=</span> <span class="n">codes</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">code_list</span><span class="o">=</span><span class="n">codelist</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">query</span></div>
+
+
+<div class="viewcode-block" id="get_visible_codelists"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.get_visible_codelists">[docs]</a><span class="k">def</span> <span class="nf">get_visible_codelists</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">codeListID</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        Get the permitted codelists.</span>
+<span class="sd">        Codelists do not carry permissions. Components are permitted by virtue</span>
+<span class="sd">        of being part of a permitted concept. There is a one-to-one relation-</span>
+<span class="sd">        ship between codelists and components.</span>
+<span class="sd">        If we want all the permitted codelists, we need to find all the</span>
+<span class="sd">        permitted components and add each component's codelist to the list.</span>
+<span class="sd">        If we want to determine if codeListID is permitted, we just need to</span>
+<span class="sd">        find the component that contains it.</span>
+<span class="sd">        (work only on live version since it is used in edit form)</span>
+<span class="sd">    '''</span>
+    <span class="kn">from</span> <span class="nn">.models.CodeList</span> <span class="kn">import</span> <span class="n">CodeList</span>
+    <span class="n">codelists</span> <span class="o">=</span> <span class="n">CodeList</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span>
+    <span class="n">components</span> <span class="o">=</span> <span class="n">get_visible_components</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">codeListID</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">codeListID</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">codelists</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">codeListID</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">codelists</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">CodeList</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">none</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">components</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">codeListID</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">query</span> <span class="o">=</span> <span class="n">codelists</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">codeListID</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="n">component</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">query</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">query</span> <span class="o">|=</span> <span class="n">codelists</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="n">component</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">query</span></div>
+
+
+<div class="viewcode-block" id="get_visible_components"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.get_visible_components">[docs]</a><span class="k">def</span> <span class="nf">get_visible_components</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">codeListID</span><span class="p">):</span>
+    <span class="sd">'''</span>
+<span class="sd">        A component may be a Concept, CodeList or CodeRegex generated by a query-builder,</span>
+<span class="sd">        expression or expression select.</span>
+<span class="sd">        COMPONENT_TYPE_CONCEPT = 1</span>
+<span class="sd">        COMPONENT_TYPE_QUERY_BUILDER = 2</span>
+<span class="sd">        COMPONENT_TYPE_EXPRESSION = 3</span>
+<span class="sd">        COMPONENT_TYPE_EXPRESSION_SELECT = 4</span>
+<span class="sd">        (work only on live version since it is used in edit form)</span>
+<span class="sd">    '''</span>
+    <span class="kn">from</span> <span class="nn">.models.CodeList</span> <span class="kn">import</span> <span class="n">CodeList</span>
+    <span class="kn">from</span> <span class="nn">.models.Component</span> <span class="kn">import</span> <span class="n">Component</span>
+
+    <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">codeListID</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Get the component ID for the codelist.</span>
+            <span class="n">codelist</span> <span class="o">=</span> <span class="n">CodeList</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">codeListID</span><span class="p">)</span>
+            <span class="n">components</span> <span class="o">=</span> <span class="n">Component</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">codelist</span><span class="o">.</span><span class="n">component_id</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">components</span> <span class="o">=</span> <span class="n">Component</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">components</span>
+
+    <span class="k">if</span> <span class="n">codeListID</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Get the component ID for the codelist.</span>
+        <span class="n">codelist</span> <span class="o">=</span> <span class="n">CodeList</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">codeListID</span><span class="p">)</span>
+        <span class="n">components</span> <span class="o">=</span> <span class="n">Component</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">codelist</span><span class="o">.</span><span class="n">component_id</span><span class="p">)</span>
+        <span class="n">concepts</span> <span class="o">=</span> <span class="n">get_visible_concepts_live</span><span class="p">(</span><span class="n">user</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">components</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">concept_id</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Start with them all! (not enabled now - no use)</span>
+        <span class="n">components</span> <span class="o">=</span> <span class="n">Component</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span>
+        <span class="n">concepts</span> <span class="o">=</span> <span class="n">get_visible_concepts_live</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+    <span class="sd">'''</span>
+<span class="sd">        Not sure that the following is the right way to do it as it is not very</span>
+<span class="sd">        scalable: trying to achieve visibility of a component only if the</span>
+<span class="sd">        concept AND containing concept are visible.</span>
+<span class="sd">    '''</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">Component</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">none</span><span class="p">()</span>
+    <span class="c1"># count = 0</span>
+    <span class="k">for</span> <span class="n">concept</span> <span class="ow">in</span> <span class="n">concepts</span><span class="p">:</span>
+        <span class="sd">'''</span>
+<span class="sd">            Types 2,3 and 4 have a concept, but concept_ref is null. So add</span>
+<span class="sd">            these only if the concept is in the list of visible concepts.</span>
+<span class="sd">            Type 1 has a concept and concept_ref, so add this only if both</span>
+<span class="sd">            concepts are visible.</span>
+<span class="sd">        '''</span>
+        <span class="sd">'''</span>
+<span class="sd">            Use a union() rather than |= to combine the results so that we can</span>
+<span class="sd">            remove duplicates with a distinct() call and thus reduce the amount</span>
+<span class="sd">            of copying that happens. Empirically this has become unacceptable</span>
+<span class="sd">            with a component list of 70 items.</span>
+<span class="sd">        '''</span>
+        <span class="n">queryBuilders</span> <span class="o">=</span> <span class="n">Q</span><span class="p">(</span><span class="n">component_type</span><span class="o">=</span><span class="n">Component</span><span class="o">.</span><span class="n">COMPONENT_TYPE_QUERY_BUILDER</span><span class="p">,</span> <span class="n">concept</span><span class="o">=</span><span class="n">concept</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="n">expressions</span> <span class="o">=</span> <span class="n">Q</span><span class="p">(</span><span class="n">component_type</span><span class="o">=</span><span class="n">Component</span><span class="o">.</span><span class="n">COMPONENT_TYPE_EXPRESSION</span><span class="p">,</span> <span class="n">concept</span><span class="o">=</span><span class="n">concept</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="n">expressionSelects</span> <span class="o">=</span> <span class="n">Q</span><span class="p">(</span><span class="n">component_type</span><span class="o">=</span><span class="n">Component</span><span class="o">.</span><span class="n">COMPONENT_TYPE_EXPRESSION_SELECT</span><span class="p">,</span> <span class="n">concept</span><span class="o">=</span><span class="n">concept</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="n">newQuery</span> <span class="o">=</span> <span class="n">components</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">queryBuilders</span> <span class="o">|</span> <span class="n">expressions</span> <span class="o">|</span> <span class="n">expressionSelects</span><span class="p">)</span>
+        <span class="c1"># Only add the query if it will add new components, otherwise we</span>
+        <span class="c1"># needlessly quickly end up with a huge query.</span>
+        <span class="k">if</span> <span class="n">newQuery</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">query</span> <span class="o">=</span> <span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">newQuery</span><span class="p">))</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span>
+        <span class="c1"># For this concept, include all referenced concepts which are also</span>
+        <span class="c1"># visible.</span>
+        <span class="k">for</span> <span class="n">conceptRef</span> <span class="ow">in</span> <span class="n">concepts</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">concept</span><span class="o">.</span><span class="n">id</span> <span class="o">!=</span> <span class="n">conceptRef</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+                <span class="n">otherConcepts</span> <span class="o">=</span> <span class="n">components</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">component_type</span><span class="o">=</span><span class="n">Component</span><span class="o">.</span><span class="n">COMPONENT_TYPE_CONCEPT</span><span class="p">,</span> <span class="n">concept</span><span class="o">=</span><span class="n">concept</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">concept_ref</span><span class="o">=</span><span class="n">conceptRef</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+                <span class="c1"># Only add the query if it will add new components, otherwise we</span>
+                <span class="c1"># needlessly quickly end up with a huge query.</span>
+                <span class="k">if</span> <span class="n">otherConcepts</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">query</span> <span class="o">=</span> <span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">otherConcepts</span><span class="p">))</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">query</span></div>
+
+
+<div class="viewcode-block" id="get_visible_concepts_live"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.get_visible_concepts_live">[docs]</a><span class="k">def</span> <span class="nf">get_visible_concepts_live</span><span class="p">(</span><span class="n">user</span><span class="p">):</span>
+    <span class="sd">''' return visible live concepts'''</span>
+    <span class="c1"># This does NOT excludes deleted ones</span>
+    <span class="kn">from</span> <span class="nn">.models.Concept</span> <span class="kn">import</span> <span class="n">Concept</span>
+    <span class="n">concepts</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span> <span class="k">return</span> <span class="n">concepts</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">concepts</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">world_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">VIEW</span><span class="p">))</span>
+    <span class="n">query</span> <span class="o">|=</span> <span class="n">concepts</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">world_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">EDIT</span><span class="p">))</span>
+    <span class="n">query</span> <span class="o">|=</span> <span class="n">concepts</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">user</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">user</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+        <span class="n">query</span> <span class="o">|=</span> <span class="n">concepts</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">Q</span><span class="p">(</span><span class="n">group_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">VIEW</span><span class="p">,</span> <span class="n">group_id</span><span class="o">=</span><span class="n">group</span><span class="p">))</span>
+        <span class="n">query</span> <span class="o">|=</span> <span class="n">concepts</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">Q</span><span class="p">(</span><span class="n">group_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">EDIT</span><span class="p">,</span> <span class="n">group_id</span><span class="o">=</span><span class="n">group</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">query</span></div>
+
+
+<div class="viewcode-block" id="get_visible_concepts_org"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.get_visible_concepts_org">[docs]</a><span class="k">def</span> <span class="nf">get_visible_concepts_org</span><span class="p">(</span><span class="n">user</span><span class="p">,</span>
+                             <span class="n">get_Published_concepts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                             <span class="n">show_concept_versions</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="c1"># This does NOT excludes deleted ones</span>
+    <span class="kn">from</span> <span class="nn">.models.Concept</span> <span class="kn">import</span> <span class="n">Concept</span>
+    <span class="n">concepts</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span> <span class="k">return</span> <span class="n">concepts</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">concepts</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">world_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">VIEW</span><span class="p">))</span>
+    <span class="n">query</span> <span class="o">|=</span> <span class="n">concepts</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">world_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">EDIT</span><span class="p">))</span>
+    <span class="n">query</span> <span class="o">|=</span> <span class="n">concepts</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">user</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">user</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+        <span class="n">query</span> <span class="o">|=</span> <span class="n">concepts</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">group_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">VIEW</span><span class="p">,</span> <span class="n">group_id</span><span class="o">=</span><span class="n">group</span><span class="p">))</span>
+        <span class="n">query</span> <span class="o">|=</span> <span class="n">concepts</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">group_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">EDIT</span><span class="p">,</span> <span class="n">group_id</span><span class="o">=</span><span class="n">group</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">query</span></div>
+
+
+<div class="viewcode-block" id="get_visible_concepts"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.get_visible_concepts">[docs]</a><span class="k">def</span> <span class="nf">get_visible_concepts</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                        <span class="n">get_Published_concepts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">show_concept_versions</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="c1"># This does NOT excludes deleted ones</span>
+    <span class="kn">from</span> <span class="nn">.db_utils</span> <span class="kn">import</span> <span class="p">(</span><span class="n">get_list_of_visible_entity_ids</span><span class="p">,</span> <span class="n">get_visible_live_or_published_concept_versions</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">.models.Concept</span> <span class="kn">import</span> <span class="n">Concept</span>
+    <span class="kn">from</span> <span class="nn">.models.PublishedConcept</span> <span class="kn">import</span> <span class="n">PublishedConcept</span>
+
+    <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">get_Published_concepts</span> <span class="ow">or</span> <span class="n">PublishedConcept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">concepts</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">concepts</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="n">concepts</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">world_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">VIEW</span><span class="p">))</span>
+        <span class="n">query</span> <span class="o">|=</span> <span class="n">concepts</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">world_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">EDIT</span><span class="p">))</span>
+        <span class="n">query</span> <span class="o">|=</span> <span class="n">concepts</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">user</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">user</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="n">query</span> <span class="o">|=</span> <span class="n">concepts</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">group_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">VIEW</span><span class="p">,</span> <span class="n">group_id</span><span class="o">=</span><span class="n">group</span><span class="p">))</span>
+            <span class="n">query</span> <span class="o">|=</span> <span class="n">concepts</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">group_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">EDIT</span><span class="p">,</span> <span class="n">group_id</span><span class="o">=</span><span class="n">group</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">query</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">history_ids_list</span> <span class="o">=</span> <span class="n">get_list_of_visible_entity_ids</span><span class="p">(</span><span class="n">get_visible_live_or_published_concept_versions</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">exclude_deleted</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                                                          <span class="n">return_id_or_history_id</span><span class="o">=</span><span class="s2">"history_id"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Concept</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">history_id__in</span><span class="o">=</span><span class="n">history_ids_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_visible_workingsets"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.get_visible_workingsets">[docs]</a><span class="k">def</span> <span class="nf">get_visible_workingsets</span><span class="p">(</span><span class="n">user</span><span class="p">):</span>
+    <span class="c1"># This does NOT excludes deleted ones</span>
+    <span class="kn">from</span> <span class="nn">.models.WorkingSet</span> <span class="kn">import</span> <span class="n">WorkingSet</span>
+    <span class="n">workingsets</span> <span class="o">=</span> <span class="n">WorkingSet</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">workingsets</span>
+
+    <span class="n">query</span> <span class="o">=</span> <span class="n">workingsets</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">world_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">VIEW</span><span class="p">))</span>
+    <span class="n">query</span> <span class="o">|=</span> <span class="n">workingsets</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">world_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">EDIT</span><span class="p">))</span>
+    <span class="n">query</span> <span class="o">|=</span> <span class="n">workingsets</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">user</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">user</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+        <span class="n">query</span> <span class="o">|=</span> <span class="n">workingsets</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">group_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">VIEW</span><span class="p">,</span> <span class="n">group_id</span><span class="o">=</span><span class="n">group</span><span class="p">))</span>
+        <span class="n">query</span> <span class="o">|=</span> <span class="n">workingsets</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">group_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">EDIT</span><span class="p">,</span> <span class="n">group_id</span><span class="o">=</span><span class="n">group</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">query</span></div>
+
+
+<div class="viewcode-block" id="get_visible_phenotypes"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.get_visible_phenotypes">[docs]</a><span class="k">def</span> <span class="nf">get_visible_phenotypes</span><span class="p">(</span><span class="n">user</span><span class="p">):</span>
+    <span class="c1"># This does NOT excludes deleted ones</span>
+    <span class="kn">from</span> <span class="nn">.models.Phenotype</span> <span class="kn">import</span> <span class="n">Phenotype</span>
+    <span class="n">phenotypes</span> <span class="o">=</span> <span class="n">Phenotype</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">phenotypes</span>
+
+    <span class="n">query</span> <span class="o">=</span> <span class="n">phenotypes</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">world_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">VIEW</span><span class="p">))</span>
+    <span class="n">query</span> <span class="o">|=</span> <span class="n">phenotypes</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">world_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">EDIT</span><span class="p">))</span>
+    <span class="n">query</span> <span class="o">|=</span> <span class="n">phenotypes</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">user</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">user</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+        <span class="n">query</span> <span class="o">|=</span> <span class="n">phenotypes</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">group_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">VIEW</span><span class="p">,</span> <span class="n">group_id</span><span class="o">=</span><span class="n">group</span><span class="p">))</span>
+        <span class="n">query</span> <span class="o">|=</span> <span class="n">phenotypes</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">group_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">EDIT</span><span class="p">,</span> <span class="n">group_id</span><span class="o">=</span><span class="n">group</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">query</span></div>
+
+
+<div class="viewcode-block" id="get_visible_data_sources"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.get_visible_data_sources">[docs]</a><span class="k">def</span> <span class="nf">get_visible_data_sources</span><span class="p">(</span><span class="n">user</span><span class="p">):</span>
+    <span class="c1"># This does NOT excludes deleted ones</span>
+    <span class="kn">from</span> <span class="nn">.models.DataSource</span> <span class="kn">import</span> <span class="n">DataSource</span>
+    <span class="n">datasources</span> <span class="o">=</span> <span class="n">DataSource</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">datasources</span>
+
+    <span class="n">query</span> <span class="o">=</span> <span class="n">datasources</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">world_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">VIEW</span><span class="p">))</span>
+    <span class="n">query</span> <span class="o">|=</span> <span class="n">datasources</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">world_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">EDIT</span><span class="p">))</span>
+    <span class="n">query</span> <span class="o">|=</span> <span class="n">datasources</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">user</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">user</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+        <span class="n">query</span> <span class="o">|=</span> <span class="n">datasources</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">group_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">VIEW</span><span class="p">,</span> <span class="n">group_id</span><span class="o">=</span><span class="n">group</span><span class="p">))</span>
+        <span class="n">query</span> <span class="o">|=</span> <span class="n">datasources</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">group_access</span><span class="o">=</span><span class="n">Permissions</span><span class="o">.</span><span class="n">EDIT</span><span class="p">,</span> <span class="n">group_id</span><span class="o">=</span><span class="n">group</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">query</span></div>
+
+
+<div class="viewcode-block" id="is_member"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.is_member">[docs]</a><span class="k">def</span> <span class="nf">is_member</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">group_name</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">user</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">name__iexact</span><span class="o">=</span><span class="n">group_name</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="is_brand_accessible"><a class="viewcode-back" href="../../clinicalcode.html#clinicalcode.permissions.is_brand_accessible">[docs]</a><span class="k">def</span> <span class="nf">is_brand_accessible</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">set_class</span><span class="p">,</span> <span class="n">set_id</span><span class="p">,</span> <span class="n">set_history_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">"""</span>
+<span class="sd">        When in a brand, show only this brand's data</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span> <span class="nn">.db_utils</span> <span class="kn">import</span> <span class="n">get_brand_collection_ids</span><span class="p">,</span> <span class="n">getHistoryTags_Workingset</span>
+    <span class="kn">from</span> <span class="nn">.models.Concept</span> <span class="kn">import</span> <span class="n">Concept</span>
+    <span class="kn">from</span> <span class="nn">.models.Phenotype</span> <span class="kn">import</span> <span class="n">Phenotype</span>
+    <span class="kn">from</span> <span class="nn">.models.WorkingSet</span> <span class="kn">import</span> <span class="n">WorkingSet</span>
+
+    <span class="c1"># setting set_history_id = None,</span>
+    <span class="c1"># so this permission is always checked from the live obj like other permissions</span>
+    <span class="n">set_history_id</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">brand</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">CURRENT_BRAND</span>
+    <span class="k">if</span> <span class="n">brand</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">brand_collection_ids</span> <span class="o">=</span> <span class="n">get_brand_collection_ids</span><span class="p">(</span><span class="n">brand</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">brand_collection_ids</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="k">if</span> <span class="n">brand_collection_ids</span><span class="p">:</span>
+            <span class="n">history_id</span> <span class="o">=</span> <span class="n">set_history_id</span>
+            <span class="k">if</span> <span class="n">set_history_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">history_id</span> <span class="o">=</span> <span class="n">set_class</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">set_id</span><span class="p">)</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span><span class="o">.</span><span class="n">history_id</span>
+
+            <span class="n">set_tags</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">set_class</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Concept</span><span class="p">,</span> <span class="n">Phenotype</span><span class="p">):</span>
+                <span class="n">set_tags</span> <span class="o">=</span> <span class="n">set_class</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">set_id</span><span class="p">,</span> <span class="n">history_id</span><span class="o">=</span><span class="n">history_id</span><span class="p">)</span><span class="o">.</span><span class="n">tags</span>
+            <span class="k">elif</span> <span class="n">set_class</span> <span class="o">==</span> <span class="n">WorkingSet</span><span class="p">:</span>
+                <span class="n">workingset_history_date</span> <span class="o">=</span> <span class="n">set_class</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">set_id</span><span class="p">,</span> <span class="n">history_id</span><span class="o">=</span><span class="n">history_id</span><span class="p">)</span><span class="o">.</span><span class="n">history_date</span>
+                <span class="n">ws_tags</span> <span class="o">=</span> <span class="n">getHistoryTags_Workingset</span><span class="p">(</span><span class="n">set_id</span><span class="p">,</span> <span class="n">workingset_history_date</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ws_tags</span><span class="p">:</span>
+                    <span class="n">set_tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="s1">'tag_id'</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ws_tags</span> <span class="k">if</span> <span class="s1">'tag_id'</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">set_tags</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># check if the set tags has any of the brand's collection tags</span>
+                <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">c</span> <span class="ow">in</span> <span class="n">set_tags</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">brand_collection_ids</span><span class="p">)</span></div>
+            
+            
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022, alex
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/scripts/furo.js"></script>
+    </body>
+</html>

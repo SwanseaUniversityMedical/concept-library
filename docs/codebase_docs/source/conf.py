@@ -15,8 +15,6 @@ import sys
 
 import mock
 
-from CodeListLibrary_project.cll.settings import IS_DEMO
-
 MOCK_MODULES = ['functional_test_base', 'test_functional_other', 'test_hierarchical_code_lists', 
 'test_history', 'test_inclusion_exclusion', 'test_regular_expressions', 'test_settings',  'test_search_filters',
 'test_versioning', 'test_functional_read_only_conf_concept', 'clinicalcode.tests.functional_tests.read_only', 'read_only_test_settings',
@@ -29,7 +27,56 @@ from django.conf import settings
 #settings.configure()
 import django
 sys.path.insert(0, os.path.abspath('../../../CodeListLibrary_project'))
-IS_DEMO = False
+
+os.environ['IS_DEMO'] = 'False'
+os.environ['DEBUG'] = 'False'
+os.environ['CLL_READ_ONLY'] = 'False'
+os.environ['ENABLE_PUBLISH'] = 'False'
+os.environ['SHOWADMIN'] = 'False'
+os.environ['BROWSABLEAPI'] = 'False'
+os.environ['IS_INSIDE_GATEWAY'] = 'False'
+os.environ['IS_DEVELOPMENT_PC'] = 'False'
+os.environ['SECRET_KEY'] = ' '
+os.environ['DEBUG'] = 'False'
+os.environ['ALLOWED_HOSTS'] = ''
+os.environ['ENABLE_LDAP_AUTH'] = 'False'
+os.environ['AUTH_LDAP_SERVER_URI'] = ''
+os.environ['AUTH_LDAP_BIND_DN'] = ''
+os.environ['AUTH_LDAP_BIND_PASSWORD'] = ''
+os.environ['AUTH_LDAP_USER_SEARCH'] = ''
+os.environ['AUTH_LDAP_REQUIRE_GROUP'] = ''
+os.environ['DB_NAME'] = ''
+os.environ['DB_USER'] = ''
+os.environ['DB_PASSWORD'] = ''
+os.environ['DB_HOST'] = ''
+os.environ['DEFAULT_FROM_EMAIL'] = ''
+os.environ['EMAIL_BACKEND'] = ''
+os.environ['EMAIL_USE_TLS'] = 'False'
+os.environ['EMAIL_HOST'] = ''
+os.environ['EMAIL_PORT'] = ''
+os.environ['GOOGLE_RECAPTCHA_SECRET_KEY'] = ''
+os.environ['EMAIL_HOST_PASSWORD'] = ''
+os.environ['EMAIL_HOST_USER'] = ''
+os.environ['HELPDESK_EMAIL'] = ''
+
+
+
+
+# CLL_READ_ONLY = False
+# ENABLE_PUBLISH = False
+# SHOWADMIN = False
+# BROWSABLEAPI = False
+
+# IS_INSIDE_GATEWAY = False
+# IS_DEVELOPMENT_PC = False
+
+# SECRET_KEY = 'xyz'
+
+# DEBUG = False
+
+# ALLOWED_HOSTS = 'xyz'
+
+
 os.environ['DJANGO_SETTINGS_MODULE'] = 'cll.settings'
 django.setup()
 
