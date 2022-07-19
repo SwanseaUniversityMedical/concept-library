@@ -3002,13 +3002,14 @@ def get_visible_live_or_published_phenotype_versions(request,
                                                     filter_cond = "",
                                                     show_top_version_only = False,
                                                     force_brand = None,
-                                                    force_get_live_and_or_published_ver = None  # used only with no login
+                                                    force_get_live_and_or_published_ver = None,  # used only with no login
+                                                    search_name_only = True                                                    
                                                     ):
     ''' Get all visible live or published phenotype versions 
     - return all columns
     '''
 
-    #from psycopg2.extensions import AsIs, quote_ident
+    searchByName = re.sub(' +', ' ', searchByName.strip()) 
 
     my_params = []
 
@@ -3037,6 +3038,32 @@ def get_visible_live_or_published_phenotype_versions(request,
         #my_params.append(user_cond)
     can_edit_subquery = get_can_edit_subquery(request)
 
+    rank_select = " "
+    if searchByName != '':               
+        if search_name_only:
+            # search name field only
+            my_params += [str(searchByName)]
+            rank_select += """ 
+                        ts_rank(to_tsvector(coalesce(name, '')), plainto_tsquery('english', %s)) AS rank_name,
+                        """
+        else:
+            # search all related fields
+            my_params += [str(searchByName)] * 3
+            rank_select += """  
+                        ts_rank(to_tsvector('english', coalesce(name, '')), plainto_tsquery('english', %s)) AS rank_name,            
+                        ts_rank(to_tsvector('english', coalesce(author, '')), plainto_tsquery('english', %s)) AS rank_author,
+                        ts_rank(to_tsvector('english', coalesce(name, '') 
+                                            || ' ' || coalesce(author, '') 
+                                            || ' ' || coalesce(description, '') 
+                                            || ' ' || coalesce(implementation, '') 
+                                            || ' ' || coalesce(array_to_string(publications, ','), '') 
+                                            )
+                                     , plainto_tsquery('english', %s)
+                                     ) AS rank_all,
+                            """
+
+
+
     where_clause = " WHERE 1=1 "
 
     if phenotype_id_to_exclude > 0:
@@ -3044,17 +3071,38 @@ def get_visible_live_or_published_phenotype_versions(request,
         where_clause += " AND id NOT IN (%s) "
 
     if searchByName != '':
-        #my_params.append("%" + str(searchByName) + "%")
-        #where_clause += " AND upper(name) like upper(%s) "
+        # #my_params.append("%" + str(searchByName) + "%")
+        # #where_clause += " AND upper(name) like upper(%s) "
         # note: we use iLike here for case-insensitive
-        my_params += ["%" + str(searchByName) + "%"] * 5
-        where_clause += """ AND (name ILIKE %s OR 
-                                author ILIKE %s OR 
-                                description ILIKE %s OR 
-                                implementation ILIKE %s OR
-                                array_to_string(publications , ',') ILIKE %s                                 
-                                )  
-                        """
+        # my_params += ["%" + str(searchByName) + "%"] * 5
+        # where_clause += """ AND (name ILIKE %s OR 
+        #                         author ILIKE %s OR 
+        #                         description ILIKE %s OR 
+        #                         implementation ILIKE %s OR
+        #                         array_to_string(publications , ',') ILIKE %s                                 
+        #                         )  
+        #                 """
+               
+        if search_name_only:
+            # search name field only
+            my_params += [str(searchByName)]#.replace(' ', ' & '))] 
+            where_clause += """ AND (to_tsvector('english',
+                                                coalesce(name, '') 
+                                               ) @@ plainto_tsquery('english', %s)                              
+                                    )  
+                            """
+        else:
+            # search all related fields
+            my_params += [str(searchByName)]#.replace(' ', ' & '))] 
+            where_clause += """ AND (to_tsvector('english',
+                                                coalesce(name, '') 
+                                                || ' ' || coalesce(author, '') 
+                                                || ' ' || coalesce(description, '') 
+                                                || ' ' || coalesce(implementation, '') 
+                                                || ' ' || coalesce(array_to_string(publications, ','), '') 
+                                               ) @@ plainto_tsquery('english', %s)                              
+                                    )  
+                            """
 
     if author != '':
         my_params.append("%" + str(author) + "%")
@@ -3108,16 +3156,29 @@ def get_visible_live_or_published_phenotype_versions(request,
 
 
     # order by clause
-    order_by = " ORDER BY id, history_id desc "
+    order_by = " ORDER BY id, history_id DESC "
     if searchByName != '':
-        my_params += ["%" + str(searchByName) + "%"] * 4
-        order_by = """
-                        ORDER  BY name ILIKE %s OR NULL
-                                , author ILIKE %s OR NULL
-                                , description ILIKE %s OR NULL
-                                , implementation ILIKE %s OR NULL
-                                , id, history_id desc  
-                    """
+        # my_params += ["%" + str(searchByName) + "%"] * 4
+        # order_by = """
+        #                 ORDER  BY name ILIKE %s OR NULL
+        #                         , author ILIKE %s OR NULL
+        #                         , description ILIKE %s OR NULL
+        #                         , implementation ILIKE %s OR NULL
+        #                         , id, history_id DESC  
+        #             """
+        if search_name_only:
+            # search name field only
+            order_by =  """ 
+                            ORDER BY rank_name DESC
+                                    , id, history_id DESC  
+                        """
+        else:
+            # search all related fields
+            order_by =  """                          
+                            /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
+                            ORDER BY rank_name DESC, rank_author DESC , rank_all DESC
+                        """
+                            
         
     with connection.cursor() as cursor:
         cursor.execute(
@@ -3128,6 +3189,7 @@ def get_visible_live_or_published_phenotype_versions(request,
                         (
                             SELECT 
                                 """ + can_edit_subquery + """
+                                """ + rank_select + """
                                 *
                                 , ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn_res
                                 , (CASE WHEN is_published=1 THEN 'published' ELSE 'not published' END) published

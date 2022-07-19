@@ -144,9 +144,9 @@ def phenotype_list(request):
             
 
     # remove leading and trailing spaces from text search params
-    search = search.strip()
-    owner = owner.strip()
-    author = author.strip()
+    search = re.sub(' +', ' ', search.strip())
+    owner = re.sub(' +', ' ', owner.strip())
+    author = re.sub(' +', ' ', author.strip())
     
         
     filter_cond = " 1=1 "
@@ -250,13 +250,15 @@ def phenotype_list(request):
         filter_cond += " AND group_id IN(" + ', '.join(map(str, group_list)) + ") "
 
     phenotype_srch = db_utils.get_visible_live_or_published_phenotype_versions(request,
-                                                                                get_live_and_or_published_ver=get_live_and_or_published_ver,
-                                                                                searchByName=[search, ''][search_by_id],
-                                                                                author=author,
-                                                                                exclude_deleted=exclude_deleted,
-                                                                                filter_cond=filter_cond,
-                                                                                approved_status=approved_status,
-                                                                                show_top_version_only=show_top_version_only)
+                                                                            get_live_and_or_published_ver=get_live_and_or_published_ver,
+                                                                            searchByName=[search, ''][search_by_id],
+                                                                            author=author,
+                                                                            exclude_deleted=exclude_deleted,
+                                                                            filter_cond=filter_cond,
+                                                                            approved_status=approved_status,
+                                                                            show_top_version_only=show_top_version_only,
+                                                                            search_name_only = False
+                                                                            )
     # create pagination
     paginator = Paginator(phenotype_srch,
                           page_size,
@@ -357,7 +359,8 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     # need to access the user object with that ID and add that to the phenotype.
     if phenotype['owner_id'] is not None:
         phenotype['owner'] = User.objects.get(id=int(phenotype['owner_id']))
-
+        
+    phenotype['group'] = None
     if phenotype['group_id'] is not None:
         phenotype['group'] = Group.objects.get(id=int(phenotype['group_id']))
 
@@ -547,6 +550,7 @@ def get_history_table_data(request, pk):
         if ver['created_by_id'] is not None:
             ver['created_by'] = User.objects.get(id=int(ver['created_by_id']))
 
+        ver['updated_by'] = None
         if ver['updated_by_id'] is not None:
             ver['updated_by'] = User.objects.get(pk=ver['updated_by_id'])
 
