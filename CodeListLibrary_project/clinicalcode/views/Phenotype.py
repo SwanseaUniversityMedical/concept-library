@@ -143,7 +143,7 @@ def phenotype_list(request):
         show_rejected_phenotypes = 0
             
 
-    # remove leading and trailing spaces from text search params
+    # remove leading, trailing and multiple spaces from text search params
     search = re.sub(' +', ' ', search.strip())
     owner = re.sub(' +', ' ', owner.strip())
     author = re.sub(' +', ' ', author.strip())
@@ -251,7 +251,7 @@ def phenotype_list(request):
 
     phenotype_srch = db_utils.get_visible_live_or_published_phenotype_versions(request,
                                                                             get_live_and_or_published_ver=get_live_and_or_published_ver,
-                                                                            searchByName=[search, ''][search_by_id],
+                                                                            search=[search, ''][search_by_id],
                                                                             author=author,
                                                                             exclude_deleted=exclude_deleted,
                                                                             filter_cond=filter_cond,
@@ -548,7 +548,11 @@ def get_history_table_data(request, pk):
     historical_versions = []
 
     for v in versions:
-        ver = db_utils.getHistoryPhenotype(v.history_id)
+        ver = db_utils.getHistoryPhenotype(v.history_id
+                                        , highlight_result = [False, True][db_utils.is_referred_from_search_page(request)]
+                                        , q_highlight = db_utils.get_q_highlight(request, request.session.get('phenotype_search', ''))  
+                                        )
+        
         if ver['owner_id'] is not None:
             ver['owner'] = User.objects.get(id=int(ver['owner_id']))
 

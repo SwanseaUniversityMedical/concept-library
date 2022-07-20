@@ -1,3 +1,5 @@
+{% load cl_extras %}
+
 <!-- ----------------------------------------------------------------------
 	 The table of history entries.
 	 This is the content of the history table. It is included statically when
@@ -31,7 +33,7 @@
 			<td>{{ history.history_id }}</td>
 			<td>
 				<a class="" href="{% url 'concept_history_detail' pk=history.id concept_history_id=history.history_id %}">
-				{{ history.name }}
+				{{ history.name_highlighted|safe }}
 				</a>
 			</td>
 			<td title="{{ history.description }}">{{ history.description|truncatechars:50| markdownify}}</td>

@@ -42,8 +42,8 @@ var dataService = new function(){
 		});
 	};
 	
-	getConceptUniqueCodesByVersion = function(concept, version, callback){		
-		$.getJSON('/concepts/C' + concept + '/uniquecodesbyversion/'+ version +'/', function(data){
+	getConceptUniqueCodesByVersion = function(concept, version, force_highlight_result, callback){		
+		$.getJSON('/concepts/C' + concept + '/uniquecodesbyversion/'+ version +'/?highlight=' + force_highlight_result, function(data){
 			callback(data);
 		});
 	};
