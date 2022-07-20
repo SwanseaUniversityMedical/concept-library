@@ -214,7 +214,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
             <div class="col-md-12">
                 <div classXX="col-md-6" styleXX="margin-left: -10px">
                     <h2>
-                        <strong>{{ phenotype.name|highlight:q }}</strong>
+                        <strong>{{ phenotype.name_highlighted|safe }}</strong>
                         {% for item in request.BRAND_GROUPS %}
                             {% for brand, groups in item.iteritems %}
                                 {% if phenotype.group.name in groups %}
@@ -224,7 +224,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                             {% endfor %}
                         {% endfor %}
                     </h2>
-                    <span>{{ phenotype.author|highlight:q }}</span>
+                    <span>{{ phenotype.author_highlighted|safe }}</span>
                     <br>
                     <br>
                 </div>
@@ -362,8 +362,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
             <div class="col-sm-12 shadow-frame">
                 <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
                         id="definition"></span><strong>Definition</strong></h3>
-
-                {{ phenotype.description|markdownify|highlight:q }}
+                {{ phenotype.description_highlighted|markdownify }}
             </div>
 
 
@@ -378,7 +377,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
 
 
                 <div class="markdown-holder">
-                    {{ phenotype.implementation|markdownify|highlight:q }}
+                    {{ phenotype.implementation_highlighted|markdownify }}
                 </div>
 
                 <br/>
@@ -434,8 +433,8 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                 <div class="markdown-holder">
                     {% if phenotype.publications|length %}
                         <ul>
-                            {% for p in phenotype.publications %}
-                                <li>{{ p|markdownify|highlight:q }}</li>
+                            {% for p in phenotype.publications_highlighted %}
+                                <li>{{ p|markdownify }}</li>
                             {% endfor %}
                         </ul>
                     {% endif %}
@@ -953,7 +952,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                 phenotype_id = $('#phenotype_id_div').attr("phenotype_id");
                 phenotype_history_id = $('#phenotype_history_id_div').attr("phenotype_history_id");
 
-                dataService.getPhenotypeUniqueCodesByVersion(phenotype_id, phenotype_history_id, target_concept_id, target_concept_history_id, function (data) {
+                dataService.getPhenotypeUniqueCodesByVersion(phenotype_id, phenotype_history_id, target_concept_id, target_concept_history_id, {{ force_highlight_result }}, function (data) {
                     showConceptsCodes(data.concept_codes_html, target_concept_id, target_concept_history_id);
                 });
 

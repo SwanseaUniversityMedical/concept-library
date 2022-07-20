@@ -143,10 +143,10 @@ def phenotype_list(request):
         show_rejected_phenotypes = 0
             
 
-    # remove leading and trailing spaces from text search params
-    search = search.strip()
-    owner = owner.strip()
-    author = author.strip()
+    # remove leading, trailing and multiple spaces from text search params
+    search = re.sub(' +', ' ', search.strip())
+    owner = re.sub(' +', ' ', owner.strip())
+    author = re.sub(' +', ' ', author.strip())
     
         
     filter_cond = " 1=1 "
@@ -250,13 +250,16 @@ def phenotype_list(request):
         filter_cond += " AND group_id IN(" + ', '.join(map(str, group_list)) + ") "
 
     phenotype_srch = db_utils.get_visible_live_or_published_phenotype_versions(request,
-                                                                                get_live_and_or_published_ver=get_live_and_or_published_ver,
-                                                                                searchByName=[search, ''][search_by_id],
-                                                                                author=author,
-                                                                                exclude_deleted=exclude_deleted,
-                                                                                filter_cond=filter_cond,
-                                                                                approved_status=approved_status,
-                                                                                show_top_version_only=show_top_version_only)
+                                                                            get_live_and_or_published_ver=get_live_and_or_published_ver,
+                                                                            search=[search, ''][search_by_id],
+                                                                            author=author,
+                                                                            exclude_deleted=exclude_deleted,
+                                                                            filter_cond=filter_cond,
+                                                                            approved_status=approved_status,
+                                                                            show_top_version_only=show_top_version_only,
+                                                                            search_name_only = False,
+                                                                            highlight_result = True
+                                                                            )
     # create pagination
     paginator = Paginator(phenotype_srch,
                           page_size,
@@ -352,12 +355,16 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
 
     # ----------------------------------------------------------------------
 
-    phenotype = db_utils.getHistoryPhenotype(phenotype_history_id)
+    phenotype = db_utils.getHistoryPhenotype(phenotype_history_id
+                                            , highlight_result = [False, True][db_utils.is_referred_from_search_page(request)]
+                                            , q_highlight = db_utils.get_q_highlight(request, request.session.get('phenotype_search', ''))  
+                                            )
     # The history phenotype contains the owner_id, to provide the owner name, we
     # need to access the user object with that ID and add that to the phenotype.
     if phenotype['owner_id'] is not None:
         phenotype['owner'] = User.objects.get(id=int(phenotype['owner_id']))
-
+        
+    phenotype['group'] = None
     if phenotype['group_id'] is not None:
         phenotype['group'] = Group.objects.get(id=int(phenotype['group_id']))
 
@@ -524,7 +531,8 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         'concepts_id_name': concepts_id_name,
         'concept_data': concept_data,
         'page_canonical_path': get_canonical_path_by_brand(request, Phenotype, pk, phenotype_history_id),
-        'q': request.session.get('phenotype_search', '')                              
+        'q': db_utils.get_q_highlight(request, request.session.get('phenotype_search', '')),
+        'force_highlight_result':  ['0', '1'][db_utils.is_referred_from_search_page(request)]                              
     }
 
     return render(request, 
@@ -540,13 +548,18 @@ def get_history_table_data(request, pk):
     historical_versions = []
 
     for v in versions:
-        ver = db_utils.getHistoryPhenotype(v.history_id)
+        ver = db_utils.getHistoryPhenotype(v.history_id
+                                        , highlight_result = [False, True][db_utils.is_referred_from_search_page(request)]
+                                        , q_highlight = db_utils.get_q_highlight(request, request.session.get('phenotype_search', ''))  
+                                        )
+        
         if ver['owner_id'] is not None:
             ver['owner'] = User.objects.get(id=int(ver['owner_id']))
 
         if ver['created_by_id'] is not None:
             ver['created_by'] = User.objects.get(id=int(ver['created_by_id']))
 
+        ver['updated_by'] = None
         if ver['updated_by_id'] is not None:
             ver['updated_by'] = User.objects.get(pk=ver['updated_by_id'])
 
@@ -682,7 +695,7 @@ def phenotype_conceptcodesByVersion(request,
                                             'codes': c_codes,
                                             'code_attribute_header': c_code_attribute_header,
                                             'showConcept': False,
-                                            'q': request.session.get('phenotype_search', '')
+                                            'q': ['', request.session.get('phenotype_search', '')][request.GET.get('highlight','0')=='1']
                                         })
         })
 

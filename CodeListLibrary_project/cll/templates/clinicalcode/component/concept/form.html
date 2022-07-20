@@ -297,7 +297,7 @@ $(function(){
 		        $('#help_id_name').html('');
 		        		     
 				// get the unique codes for the concept
-				dataService.getConceptUniqueCodesByVersion(suggestion.data, suggestion.concept_history_id, function(data){
+				dataService.getConceptUniqueCodesByVersion(suggestion.data, suggestion.concept_history_id, '0',  function(data){
 					if(data.form_is_valid){
 						$('#concept-component-table tbody').html(data.html_uniquecodes_list);
 						$('.childConceptAmount').text('Rows: ' + data.codes_count);

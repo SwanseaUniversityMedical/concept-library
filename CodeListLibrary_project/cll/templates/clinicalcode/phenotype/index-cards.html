@@ -116,7 +116,7 @@
 				<div class="row form-group">
 					<div class="col-sm-12">
 						<a class="" href="{% url 'phenotype_history_detail' phenotype.id phenotype.history_id %}">
-						<span style='font-size: 22px;margin-top:0;'>{{ phenotype.friendly_id }} - {{ phenotype.name|highlight:search }}</span>
+						<span style='font-size: 22px;margin-top:0;'>{{ phenotype.friendly_id }} - {{ phenotype.name_highlighted|safe }}</span>
 						</a>				
 					</div>
 				</div>
@@ -124,7 +124,7 @@
 				<div class="row form-group">
 					<div class="col-sm-12">
 <!-- 						<span {%if phenotype.author|length > 120 %}title="{{ phenotype.author }}" {% endif %} >{{ phenotype.author|truncatechars:120 }}</span> -->
-						{{ phenotype.author|highlight:search }}
+						{{ phenotype.author_highlighted|safe }}
 					</div>
 
 				</div>

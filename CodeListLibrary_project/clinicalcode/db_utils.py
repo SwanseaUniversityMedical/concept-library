@@ -758,12 +758,50 @@ def getHistoryComponentByHistoryId(component_history_id):
         return component
 
 
-def getHistoryConcept(concept_history_id):
+def getHistoryConcept(concept_history_id, highlight_result=False, q_highlight=None):
     ''' Get historic concept based on a concept history id '''
 
+    sql_params = []
+  
+    highlight_columns = ""
+    if highlight_result and q_highlight is not None:
+        # for highlighting
+        if str(q_highlight).strip() != '':
+            sql_params += [str(q_highlight)] * 6
+            highlight_columns += """ 
+                ts_headline('english', coalesce(hc.name, '')
+                        , plainto_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as name_highlighted,  
+
+                ts_headline('english', coalesce(hc.author, '')
+                        , plainto_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as author_highlighted,                                              
+               
+                ts_headline('english', coalesce(hc.description, '')
+                        , plainto_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=hightlight-txt > ", StopSel="</b>"') as description_highlighted,                                              
+                               
+                ts_headline('english', coalesce(hc.publication_doi, '')
+                        , plainto_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publication_doi_highlighted,                                              
+                                                              
+                ts_headline('english', coalesce(hc.publication_link, '')
+                        , plainto_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publication_link_highlighted,                                              
+                    
+                ts_headline('english', coalesce(hc.secondary_publication_links, '')
+                        , plainto_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as secondary_publication_links_highlighted,                                              
+                    
+                """
+                     
+    sql_params.append(concept_history_id)
+    
     with connection.cursor() as cursor:
-        cursor.execute(
-            '''SELECT hc.created,
+        cursor.execute("""
+        SELECT
+        """ + highlight_columns + """
+        hc.created,
         hc.modified,
         hc.id,
         hc.name,
@@ -806,12 +844,21 @@ def getHistoryConcept(concept_history_id):
         LEFT OUTER JOIN auth_user AS ucb on ucb.id = hc.created_by_id
         LEFT OUTER JOIN auth_user AS umb on umb.id = hc.modified_by_id
         LEFT OUTER JOIN auth_user AS uhu on uhu.id = hc.history_user_id
-        WHERE (hc.history_id = %s)''', [concept_history_id])
+        WHERE (hc.history_id = %s)
+        """, sql_params)
 
         col_names = [col[0] for col in cursor.description]
         row = cursor.fetchone()
         row_dict = dict(zip(col_names, row))
 
+        if highlight_columns == '':
+            row_dict['name_highlighted'] = row_dict['name']
+            row_dict['author_highlighted'] = row_dict['author']
+            row_dict['description_highlighted'] = row_dict['description']
+            row_dict['publication_doi_highlighted'] = row_dict['publication_doi']
+            row_dict['publication_link_highlighted'] = row_dict['publication_link']
+            row_dict['secondary_publication_links_highlighted'] = row_dict['secondary_publication_links']
+            
         return row_dict
 
 
@@ -2815,23 +2862,25 @@ def get_can_edit_subquery(request):
 
 def get_visible_live_or_published_concept_versions(request,
                                                     get_live_and_or_published_ver=3,  # 1= live only, 2= published only, 3= live+published
-                                                    searchByName="",
+                                                    search="",
                                                     author="",
                                                     concept_id_to_exclude=0,
                                                     exclude_deleted=True,
                                                     filter_cond="",
                                                     show_top_version_only=False,
                                                     force_brand=None,
-                                                    force_get_live_and_or_published_ver=None  # used only with no login
+                                                    force_get_live_and_or_published_ver=None,  # used only with no login
+                                                    search_name_only = True,
+                                                    highlight_result = False,
+                                                    do_not_use_FTS = False
                                                 ):
-    # type: (object, object, object, object, object, object, object, object) -> object
     ''' Get all visible live or published concept versions 
     - return all columns
     '''
 
-    #from psycopg2.extensions import AsIs, quote_ident
-
-    my_params = []
+    search = re.sub(' +', ' ', search.strip()) 
+    
+    sql_params = []
 
     user_cond = ""
     if not request.user.is_authenticated:
@@ -2855,32 +2904,106 @@ def get_visible_live_or_published_concept_versions(request,
                                 )
                     ''' % (str(request.user.id), group_access_cond)
 
-        #my_params.append(user_cond)
+        #sql_params.append(user_cond)
 
     can_edit_subquery = get_can_edit_subquery(request)
+    
+    
+    
+    highlight_columns = ""
+    if highlight_result:
+        # for highlighting
+        if search != '':
+            sql_params += [str(search)] * 2
+            highlight_columns += """ ts_headline('english', coalesce(name, '')
+                                            , plainto_tsquery('english', %s)
+                                            , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as name_highlighted,  
+                
+                                    ts_headline('english', coalesce(author, '')
+                                            , plainto_tsquery('english', %s)
+                                            , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as author_highlighted,                                              
+                                """ 
+        else:
+            highlight_columns += """ name as name_highlighted,              
+                                    author as author_highlighted,                                              
+                                """ 
+                                
+    
+        
+    rank_select = " "
+    if search != '':                    
+        if search_name_only:
+            # search name field only
+            sql_params += [str(search)]
+            rank_select += """ 
+                        ts_rank(to_tsvector(coalesce(name, '')), plainto_tsquery('english', %s)) AS rank_name,
+                        """
+        else:
+            # search all related fields
+            sql_params += [str(search)] * 3
+            rank_select += """  
+                        ts_rank(to_tsvector('english', coalesce(name, '')), plainto_tsquery('english', %s)) AS rank_name,            
+                        ts_rank(to_tsvector('english', coalesce(author, '')), plainto_tsquery('english', %s)) AS rank_author,
+                        ts_rank(to_tsvector('english', coalesce(name, '') 
+                                            || ' ' || coalesce(author, '') 
+                                            || ' ' || coalesce(description, '') 
+                                            || ' ' || coalesce(publication_doi, '') 
+                                            || ' ' || coalesce(publication_link, '') 
+                                            || ' ' || coalesce(secondary_publication_links, '') 
+                                            )
+                                     , plainto_tsquery('english', %s)
+                                     ) AS rank_all,
+        
+                            """
+                            
+
 
     where_clause = " WHERE 1=1 "
 
     if concept_id_to_exclude > 0:
-        my_params.append(str(concept_id_to_exclude))
+        sql_params.append(str(concept_id_to_exclude))
         where_clause += " AND id NOT IN (%s) "
 
-    if searchByName != '':
-        # my_params.append("%" + str(searchByName) + "%")
-        # where_clause += " AND upper(name) like upper(%s) "
-        # note: we use iLike here for case-insensitive
-        my_params += ["%" + str(searchByName) + "%"] * 6
-        where_clause += """ AND (name ILIKE %s OR 
-                                author ILIKE %s OR 
-                                description ILIKE %s OR 
-                                publication_doi ILIKE %s OR
-                                publication_link ILIKE %s OR
-                                secondary_publication_links ILIKE %s                                 
-                                )  
-                        """
-
+    if search != '':
+        if do_not_use_FTS:  # normal search  
+            #note: we use iLike here for case-insensitive 
+            if search_name_only: 
+                sql_params.append("%" + str(search) + "%")
+                where_clause += " AND name ILIKE %s "
+            else:
+                sql_params += ["%" + str(search) + "%"] * 6
+                where_clause += """ AND (name ILIKE %s OR 
+                                        author ILIKE %s OR 
+                                        description ILIKE %s OR 
+                                        publication_doi ILIKE %s OR
+                                        publication_link ILIKE %s OR
+                                        secondary_publication_links ILIKE %s                                 
+                                        )  
+                                """
+        else:       # Full-Text-Search (FTS)
+            if search_name_only:
+                # search name field only
+                sql_params += [str(search)]
+                where_clause += """ AND (to_tsvector('english',
+                                                    coalesce(name, '') 
+                                                   ) @@ plainto_tsquery('english', %s)                              
+                                        )  
+                                """                            
+            else:
+                # search all related fields
+                sql_params += [str(search)]
+                where_clause += """ AND (to_tsvector('english', coalesce(name, '') 
+                                                    || ' ' || coalesce(author, '') 
+                                                    || ' ' || coalesce(description, '') 
+                                                    || ' ' || coalesce(publication_doi, '') 
+                                                    || ' ' || coalesce(publication_link, '') 
+                                                    || ' ' || coalesce(secondary_publication_links, '') 
+                                                   ) @@ plainto_tsquery('english', %s)                              
+                                        )  
+                                """
+                            
     if author != '':
-        my_params.append("%" + str(author) + "%")
+        sql_params.append("%" + str(author) + "%")
         where_clause += " AND upper(author) like upper(%s) "
 
     if exclude_deleted:
@@ -2919,20 +3042,28 @@ def get_visible_live_or_published_concept_versions(request,
 
 
     # order by clause
-    order_by = " ORDER BY id, history_id desc "
-    if searchByName != '':
-        my_params += ["%" + str(searchByName) + "%"] * 3
-        order_by = """
-                        ORDER  BY name ILIKE %s OR NULL
-                                , author ILIKE %s OR NULL
-                                , description ILIKE %s OR NULL
-                                , id, history_id desc  
-                    """
+    order_by = " ORDER BY id, history_id DESC "
+    if search != '':
+        if search_name_only:
+            # search name field only
+            order_by =  """ 
+                            ORDER BY rank_name DESC
+                                    , id, history_id DESC  
+                        """
+        else:
+            # search all related fields
+            order_by =  """                          
+                            /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
+                            ORDER BY rank_name DESC, rank_author DESC , rank_all DESC
+                        """
+                            
                     
     with connection.cursor() as cursor:
         cursor.execute(
             """
                         SELECT 
+                        """ + highlight_columns + """ 
+                        """ + rank_select + """   
                         *
                         FROM
                         (
@@ -2971,7 +3102,7 @@ def get_visible_live_or_published_concept_versions(request,
                         ) rr
                         """ + where_clause_3 + """
                         """ + order_by 
-                        , my_params)
+                        , sql_params)
         col_names = [col[0] for col in cursor.description]
 
         return [dict(list(zip(col_names, row))) for row in cursor.fetchall()]
@@ -2994,7 +3125,7 @@ def get_list_of_visible_entity_ids(data, return_id_or_history_id="both"):
 #=============================================================================
 def get_visible_live_or_published_phenotype_versions(request,
                                                     get_live_and_or_published_ver = 3,  # 1= live only, 2= published only, 3= live+published
-                                                    searchByName = "",
+                                                    search = "",
                                                     author = "",
                                                     phenotype_id_to_exclude = 0,
                                                     approved_status = None,
@@ -3002,15 +3133,18 @@ def get_visible_live_or_published_phenotype_versions(request,
                                                     filter_cond = "",
                                                     show_top_version_only = False,
                                                     force_brand = None,
-                                                    force_get_live_and_or_published_ver = None  # used only with no login
+                                                    force_get_live_and_or_published_ver = None,  # used only with no login
+                                                    search_name_only = True,
+                                                    highlight_result = False,
+                                                    do_not_use_FTS = False                                               
                                                     ):
     ''' Get all visible live or published phenotype versions 
     - return all columns
     '''
 
-    #from psycopg2.extensions import AsIs, quote_ident
+    search = re.sub(' +', ' ', search.strip()) 
 
-    my_params = []
+    sql_params = []
 
     user_cond = ""
     if not request.user.is_authenticated:
@@ -3034,30 +3168,102 @@ def get_visible_live_or_published_phenotype_versions(request,
                                 )
                     ''' % (str(request.user.id), group_access_cond)
 
-        #my_params.append(user_cond)
+        #sql_params.append(user_cond)
     can_edit_subquery = get_can_edit_subquery(request)
+
+
+    highlight_columns = ""
+    if highlight_result:
+        # for highlighting
+        if search != '':
+            sql_params += [str(search)] * 2
+            highlight_columns += """ ts_headline('english', coalesce(name, '')
+                                            , plainto_tsquery('english', %s)
+                                            , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as name_highlighted,  
+                
+                                    ts_headline('english', coalesce(author, '')
+                                            , plainto_tsquery('english', %s)
+                                            , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as author_highlighted,                                              
+                                """ 
+        else:
+            highlight_columns += """ name as name_highlighted,              
+                                    author as author_highlighted,                                              
+                                """ 
+                                
+                                
+                                
+    rank_select = " "
+    if search != '':               
+        if search_name_only:
+            # search name field only
+            sql_params += [str(search)]
+            rank_select += """ 
+                        ts_rank(to_tsvector(coalesce(name, '')), plainto_tsquery('english', %s)) AS rank_name,
+                        """
+        else:
+            # search all related fields
+            sql_params += [str(search)] * 3
+            rank_select += """  
+                        ts_rank(to_tsvector('english', coalesce(name, '')), plainto_tsquery('english', %s)) AS rank_name,            
+                        ts_rank(to_tsvector('english', coalesce(author, '')), plainto_tsquery('english', %s)) AS rank_author,
+                        ts_rank(to_tsvector('english', coalesce(name, '') 
+                                            || ' ' || coalesce(author, '') 
+                                            || ' ' || coalesce(description, '') 
+                                            || ' ' || coalesce(implementation, '') 
+                                            || ' ' || coalesce(array_to_string(publications, ','), '') 
+                                            )
+                                     , plainto_tsquery('english', %s)
+                                     ) AS rank_all,
+                            """
+
+
 
     where_clause = " WHERE 1=1 "
 
     if phenotype_id_to_exclude > 0:
-        my_params.append(str(phenotype_id_to_exclude))
+        sql_params.append(str(phenotype_id_to_exclude))
         where_clause += " AND id NOT IN (%s) "
 
-    if searchByName != '':
-        #my_params.append("%" + str(searchByName) + "%")
-        #where_clause += " AND upper(name) like upper(%s) "
-        # note: we use iLike here for case-insensitive
-        my_params += ["%" + str(searchByName) + "%"] * 5
-        where_clause += """ AND (name ILIKE %s OR 
-                                author ILIKE %s OR 
-                                description ILIKE %s OR 
-                                implementation ILIKE %s OR
-                                array_to_string(publications , ',') ILIKE %s                                 
-                                )  
-                        """
+    if search != '':
+        if do_not_use_FTS:  # normal search   
+            #note: we use iLike here for case-insensitive
+            if search_name_only: 
+                sql_params.append("%" + str(search) + "%")
+                where_clause += " AND name ILIKE %s "
+            else:
+                sql_params += ["%" + str(search) + "%"] * 5
+                where_clause += """ AND (name ILIKE %s OR 
+                                        author ILIKE %s OR 
+                                        description ILIKE %s OR 
+                                        implementation ILIKE %s OR
+                                        array_to_string(publications , ',') ILIKE %s                                 
+                                        )  
+                                """
+            
+        else:       # Full-Text-Search (FTS)
+            if search_name_only:
+                # search name field only
+                sql_params += [str(search)] 
+                where_clause += """ AND (to_tsvector('english',
+                                                    coalesce(name, '') 
+                                                   ) @@ plainto_tsquery('english', %s)                              
+                                        )  
+                                """                            
+            else:
+                # search all related fields
+                sql_params += [str(search)] 
+                where_clause += """ AND (to_tsvector('english', coalesce(name, '') 
+                                                    || ' ' || coalesce(author, '') 
+                                                    || ' ' || coalesce(description, '') 
+                                                    || ' ' || coalesce(implementation, '') 
+                                                    || ' ' || coalesce(array_to_string(publications, ','), '') 
+                                                   ) @@ plainto_tsquery('english', %s)                              
+                                        )  
+                                """
+
 
     if author != '':
-        my_params.append("%" + str(author) + "%")
+        sql_params.append("%" + str(author) + "%")
         where_clause += " AND upper(author) like upper(%s) "
 
     if exclude_deleted:
@@ -3108,21 +3314,28 @@ def get_visible_live_or_published_phenotype_versions(request,
 
 
     # order by clause
-    order_by = " ORDER BY id, history_id desc "
-    if searchByName != '':
-        my_params += ["%" + str(searchByName) + "%"] * 4
-        order_by = """
-                        ORDER  BY name ILIKE %s OR NULL
-                                , author ILIKE %s OR NULL
-                                , description ILIKE %s OR NULL
-                                , implementation ILIKE %s OR NULL
-                                , id, history_id desc  
-                    """
+    order_by = " ORDER BY id, history_id DESC "
+    if search != '':
+        if search_name_only:
+            # search name field only
+            order_by =  """ 
+                            ORDER BY rank_name DESC
+                                    , id, history_id DESC  
+                        """
+        else:
+            # search all related fields
+            order_by =  """                          
+                            /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
+                            ORDER BY rank_name DESC, rank_author DESC , rank_all DESC
+                        """
+                            
         
     with connection.cursor() as cursor:
         cursor.execute(
             """
-                        SELECT 
+                        SELECT
+                        """ + highlight_columns + """ 
+                        """ + rank_select + """                        
                         *
                         FROM
                         (
@@ -3166,19 +3379,51 @@ def get_visible_live_or_published_phenotype_versions(request,
                         ) rr
                         """ + where_clause_3 + """
                         """ + order_by
-                        , my_params)
+                        , sql_params)
         
         col_names = [col[0] for col in cursor.description]
 
         return [dict(list(zip(col_names, row))) for row in cursor.fetchall()]
 
 
-def getHistoryPhenotype(phenotype_history_id):
+def getHistoryPhenotype(phenotype_history_id, highlight_result=False, q_highlight=None):
     ''' Get historic phenotype based on a phenotype history id '''
 
+    sql_params = []
+
+    highlight_columns = ""
+    if highlight_result and q_highlight is not None:
+        # for highlighting
+        if str(q_highlight).strip() != '':
+            sql_params += [str(q_highlight)] * 5
+            highlight_columns += """ 
+                ts_headline('english', coalesce(hph.name, '')
+                        , plainto_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as name_highlighted,  
+
+                ts_headline('english', coalesce(hph.author, '')
+                        , plainto_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as author_highlighted,                                              
+               
+                ts_headline('english', coalesce(hph.description, '')
+                        , plainto_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=hightlight-txt > ", StopSel="</b>"') as description_highlighted,                                              
+                               
+                ts_headline('english', coalesce(hph.implementation, '')
+                        , plainto_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as implementation_highlighted,                                              
+                                                              
+                ts_headline('english', coalesce(array_to_string(hph.publications, '^$^'), '')
+                        , plainto_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publications_highlighted,                                              
+             """
+                     
+    sql_params.append(phenotype_history_id)
+                        
     with connection.cursor() as cursor:
-        cursor.execute(
-            '''SELECT 
+        cursor.execute("""
+        SELECT 
+        """ + highlight_columns + """
         hph.id,
         hph.created,
         hph.modified,
@@ -3231,12 +3476,22 @@ def getHistoryPhenotype(phenotype_history_id):
         LEFT OUTER JOIN auth_user AS ucb on ucb.id = hph.created_by_id
         LEFT OUTER JOIN auth_user AS umb on umb.id = hph.updated_by_id
         LEFT OUTER JOIN auth_user AS uhu on uhu.id = hph.history_user_id
-        WHERE (hph.history_id = %s)''', [phenotype_history_id])
+        WHERE (hph.history_id = %s)
+        """, sql_params)
 
         col_names = [col[0] for col in cursor.description]
         row = cursor.fetchone()
         row_dict = dict(zip(col_names, row))
 
+        if highlight_columns != '':
+            row_dict['publications_highlighted'] = row_dict['publications_highlighted'].split('^$^')
+        else:
+            row_dict['name_highlighted'] = row_dict['name']
+            row_dict['author_highlighted'] = row_dict['author']
+            row_dict['description_highlighted'] = row_dict['description']
+            row_dict['implementation_highlighted'] = row_dict['implementation']
+            row_dict['publications_highlighted'] = row_dict['publications']
+            
         return row_dict
 
 
@@ -3948,3 +4203,28 @@ def chk_valid_id(request, set_class, pk, chk_permission=False):
 
 
 
+def get_q_highlight(request, q):
+    # highlight detail page if only referred from the search page
+    
+    if is_referred_from_search_page(request):
+        return q
+    else:
+        return ''
+    
+def is_referred_from_search_page(request):   
+    # check if the page is referred from the search page
+    
+    HTTP_REFERER = request.META.get('HTTP_REFERER')
+    if HTTP_REFERER is None:
+        return False
+    
+    url = HTTP_REFERER.split('?')[0]
+    url = url.lower()
+    if url.endswith('/phenotypes/') or url.endswith('/concepts/'):
+        return True
+    else:
+        return False
+    
+    
+    
+    

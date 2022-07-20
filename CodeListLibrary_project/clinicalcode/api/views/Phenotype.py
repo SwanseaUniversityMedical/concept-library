@@ -549,10 +549,11 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
     search_tag_list = []
     selected_phenotype_types_list = []
 
-    # remove leading and trailing spaces from text search params
-    search = search.strip()
-    owner = owner.strip()
-    author = author.strip()
+    # remove leading, trailing and multiple spaces from text search params
+    search = re.sub(' +', ' ', search.strip())
+    owner = re.sub(' +', ' ', owner.strip())
+    author = re.sub(' +', ' ', author.strip())
+    
     
     filter_cond = " 1=1 "
     exclude_deleted = True
@@ -563,6 +564,16 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
     phenotype_types = Phenotype.history.annotate(type_lower=Lower('type')).values('type_lower').distinct().order_by('type_lower')
     phenotype_types_list = list(phenotype_types.values_list('type_lower',  flat=True))
     
+    # search by ID (only with prefix)
+    # chk if the search word is valid ID (with  prefix 'PH' case insensitive)
+    search_by_id = False
+    id_match = re.search(r"(?i)^PH\d+$", search)
+    if id_match:
+        if id_match.group() == id_match.string: # full match
+            is_valid_id, err, ret_int_id = chk_valid_id(request, set_class=Phenotype, pk=search, chk_permission=False)
+            if is_valid_id:
+                search_by_id = True
+                filter_cond += " AND (id =" + str(ret_int_id) + " ) "    
     
     if tag_ids:
         # split tag ids into list
@@ -644,12 +655,14 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
     phenotypes_srch = get_visible_live_or_published_phenotype_versions(
                                                             request,
                                                             get_live_and_or_published_ver=get_live_and_or_published_ver,
-                                                            searchByName=search,
+                                                            search=[search, ''][search_by_id],
                                                             author=author,
                                                             exclude_deleted=exclude_deleted,
                                                             filter_cond=filter_cond,
                                                             show_top_version_only=show_top_version_only,
-                                                            force_brand=force_brand)
+                                                            force_brand=force_brand,
+                                                            search_name_only = False
+                                                            )
 
     rows_to_return = []
     titles = ['phenotype_id', 'version_id']

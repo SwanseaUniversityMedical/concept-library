@@ -176,35 +176,49 @@ def markdownify(text, custom_settings="default"):
 
         html = cleaner.clean(html)
 
+    # this weird step is to reverse the effect of code tag although it is blacklisted 
+    html = html.replace('&lt;','<').replace('&gt;', '>')
+    
     return mark_safe(html)
 
 
 
 
-@register.filter(name='highlight')
-def highlight000(text, q):
+@register.filter   
+def highlight(text, q):
     q = re.sub(' +', ' ', q.strip())
     return_text = text
     for w in q.split(' '):
         if w.strip() == '':
             continue
-        rgx = compile(rescape(w), IGNORECASE)
+        
+        rw = r'\b{}\b'.format(rescape(w)) 
+        rgx = compile(rw, IGNORECASE)
+        
+        #rgx = compile(rescape(w), IGNORECASE)
         return_text = rgx.sub(
                             lambda m: "<b stylexyz001>{}</b>".format(m.group()),
                             return_text
                         )
 
-    return mark_safe(return_text.replace("stylexyz001", " style='background-color:yellow' "))
-    
-def highlight(text, q):
+    return mark_safe(return_text.replace("stylexyz001", " class='hightlight-txt' "))
+  
+  
+def highlight_all_search_text(text, q):
+    # highlight all phrase as a unit
     q = q.strip()
     if q == '':
         return text
     
-    rgx = compile(rescape(q), IGNORECASE)
+    rw = r'\b{}\b'.format(rescape(q)) 
+    rgx = compile(rw, IGNORECASE)
+        
+    #rgx = compile(rescape(q), IGNORECASE)
     return mark_safe(
         rgx.sub(
-            lambda m: '<b style="background-color:yellow;">{}</b>'.format(m.group()),
+            lambda m: '<b class="hightlight-txt">{}</b>'.format(m.group()),
             text
         )
-    )    
+    )  
+
+

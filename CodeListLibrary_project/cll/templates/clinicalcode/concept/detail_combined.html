@@ -153,7 +153,7 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 			<div class="col-md-12">
 				<div classXX="col-md-6" styleXX="margin-left: -10px">
 					<h2>			
-						<strong>{{ concept.name|highlight:q }}</strong>	
+						<strong>{{ concept.name_highlighted|safe }}</strong>	
 						
 						{% for item in request.BRAND_GROUPS %}
 							{% for brand, groups in item.iteritems %}
@@ -163,7 +163,7 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 							{% endfor %}
 						{% endfor %}
 					</h2>
-					<span>{{ concept.author|highlight:q }}</span>					
+					<span>{{ concept.author_highlighted|safe }}</span>					
 					<br>
 					<br>
 				</div>
@@ -259,7 +259,7 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 				<div class="col-sm-12 shadow-frame">
 					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px"><span id="description"></span><strong>Description</strong></h3>
 					<div class="markdown-holder">
-						{{ concept.description|markdownify|highlight:q }}
+						{{ concept.description_highlighted|markdownify }}
 					</div>
 				</div>
 		
@@ -273,17 +273,17 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 					
 				    <div class="row" style="margin-top: 10px;">
 						<div  class="col-sm-3">Primary publication DOI</div>
-						<div class="col-sm-9">{{ concept.publication_doi|highlight:q }}</div>
+						<div class="col-sm-9">{{ concept.publication_doi_highlighted|safe }}</div>
 					</div>
 	
 					<div class="row" style="margin-top: 10px;">
 						<div  class="col-sm-3">Primary publication link</div>
-						<div class="col-sm-9">{{ concept.publication_link|highlight:q }}</div>
+						<div class="col-sm-9">{{ concept.publication_link_highlighted|safe }}</div>
 					</div>						
 							
 					<div class="row" style="margin-top: 10px;">
 						<div  class="col-sm-3">Secondary  publication link</div>
-						<div class="col-sm-9">{{ concept.secondary_publication_links|highlight:q }}</div>
+						<div class="col-sm-9">{{ concept.secondary_publication_links_highlighted|safe }}</div>
 					</div>
 
 					<div class="row" style="margin-top: 10px;">
@@ -879,7 +879,7 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 				//$('#no-codes-td').addClass('spinner');				
 				//$('#no-codes-td').html('<div class="loader" ></div>');
 				
-				dataService.getConceptUniqueCodesByVersion(concept_id, concept_history_id, function(data){
+				dataService.getConceptUniqueCodesByVersion(concept_id, concept_history_id, {{ force_highlight_result }}, function(data){
 						$('#codelist-tab-table tbody').html(data.html_uniquecodes_list);
 						$('.codesAmount').text('Rows: ' + data.codes_count);
 
