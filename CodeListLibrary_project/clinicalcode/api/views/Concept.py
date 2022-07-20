@@ -99,9 +99,10 @@ def concepts_live_and_published(request):
 
     rows_to_return = get_visible_live_or_published_concept_versions(
                                                                     request,
-                                                                    searchByName=search,
+                                                                    search=search,
                                                                     concept_id_to_exclude=concept_id_to_exclude,
-                                                                    exclude_deleted=True)
+                                                                    exclude_deleted=True,
+                                                                    do_not_use_FTS = True)
 
     return Response(rows_to_return, status=status.HTTP_200_OK)
 
@@ -949,16 +950,28 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
     search_tag_list = []
     tags = []
 
-    # remove leading and trailing spaces from text search params
-    search = search.strip()
-    owner = owner.strip()
-    author = author.strip()
+    # remove leading, trailing and multiple spaces from text search params
+    search = re.sub(' +', ' ', search.strip())
+    owner = re.sub(' +', ' ', owner.strip())
+    author = re.sub(' +', ' ', author.strip())
     
     filter_cond = " 1=1 "
     exclude_deleted = True
     get_live_and_or_published_ver = 3  # 1= live only, 2= published only, 3= live+published
     show_top_version_only = True
 
+    # search by ID (only with prefix)
+    # chk if the search word is valid ID (with  prefix 'C' case insensitive)
+    search_by_id = False
+    id_match = re.search(r"(?i)^C\d+$", search)
+    if id_match:
+        if id_match.group() == id_match.string: # full match
+            is_valid_id, err, ret_int_id = chk_valid_id(request, set_class=Concept, pk=search, chk_permission=False)
+            if is_valid_id:
+                search_by_id = True
+                filter_cond += " AND (id =" + str(ret_int_id) + " ) "
+            
+            
     if tag_ids:
         # split tag ids into list
         search_tag_list = [str(i) for i in tag_ids.split(",")]               
@@ -1030,12 +1043,13 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
     concepts_srch = get_visible_live_or_published_concept_versions(
                                             request,
                                             get_live_and_or_published_ver=get_live_and_or_published_ver,
-                                            searchByName=search,
+                                            search=[search, ''][search_by_id],
                                             author=author,
                                             exclude_deleted=exclude_deleted,
                                             filter_cond=filter_cond,
                                             show_top_version_only=show_top_version_only,
-                                            force_brand=force_brand)
+                                            force_brand=force_brand,
+                                            search_name_only = False)
 
     rows_to_return = []
     titles = [
@@ -1116,20 +1130,17 @@ def concept_detail(request,
         raise Http404
 
     if concept_history_id is not None:
-        concept_ver = Concept.history.filter(id=pk,
-                                             history_id=concept_history_id)
+        concept_ver = Concept.history.filter(id=pk, history_id=concept_history_id)
         if concept_ver.count() == 0: raise Http404
 
     # validate access concept
-    if not allowed_to_view(
-            request, Concept, pk, set_history_id=concept_history_id):
+    if not allowed_to_view(request, Concept, pk, set_history_id=concept_history_id):
         raise PermissionDenied
 
     # we can remove this check as in concept-detail
     #---------------------------------------------------------
     # validate access to child concepts
-    if not (allowed_to_view_children(
-            request, Concept, pk, set_history_id=concept_history_id)
+    if not (allowed_to_view_children(request, Concept, pk, set_history_id=concept_history_id)
             and chk_deleted_children(request,
                                      Concept,
                                      pk,

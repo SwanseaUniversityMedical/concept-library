@@ -16,14 +16,12 @@ from clinicalcode.permissions import allowed_to_view
 # from django.contrib.auth.models import User
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.mixins import \
-    LoginRequiredMixin  # , UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin  # , UserPassesTestMixin
 from django.contrib.auth.models import Group, User
 from django.core.paginator import EmptyPage, Paginator
 from django.db import transaction  # , models, IntegrityError
 from django.db.models.aggregates import Max
-from django.http import \
-    HttpResponseRedirect  # , StreamingHttpResponse, HttpResponseForbidden
+from django.http import HttpResponseRedirect  # , StreamingHttpResponse, HttpResponseForbidden
 from django.http import HttpResponseNotFound, response
 from django.http.response import Http404, HttpResponse, JsonResponse
 from django.template.context_processors import request
@@ -195,7 +193,10 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
 
     # ----------------------------------------------------------------------
 
-    concept = db_utils.getHistoryConcept(concept_history_id)
+    concept = db_utils.getHistoryConcept(concept_history_id
+                                        , highlight_result = [False, True][db_utils.is_referred_from_search_page(request)]
+                                        , q_highlight = db_utils.get_q_highlight(request, request.session.get('concept_search', ''))  
+                                        )
     # The history concept contains the owner_id, to provide the owner name, we
     # need to access the user object with that ID and add that to the concept.
     if concept['owner_id'] is not None:
@@ -257,7 +258,10 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
     other_historical_versions = []
 
     for ov in other_versions:
-        ver = db_utils.getHistoryConcept(ov.history_id)
+        ver = db_utils.getHistoryConcept(ov.history_id
+                                        , highlight_result = [False, True][db_utils.is_referred_from_search_page(request)]
+                                        , q_highlight = db_utils.get_q_highlight(request, request.session.get('concept_search', ''))  
+                                        )
         if ver['owner_id'] is not None:
             ver['owner'] = User.objects.get(id=int(ver['owner_id']))
 
@@ -328,7 +332,8 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
         'codelist_loaded': codelist_loaded,
         'code_attribute_header': code_attribute_header,
         'page_canonical_path': get_canonical_path_by_brand(request, Concept, pk, concept_history_id),
-        'q': request.session.get('concept_search', '')
+        'q': db_utils.get_q_highlight(request, request.session.get('concept_search', '')),
+        'force_highlight_result':  ['0', '1'][db_utils.is_referred_from_search_page(request)]       
     }
     if request.user.is_authenticated:
         if is_latest_version and (can_edit):
@@ -608,7 +613,7 @@ def concept_uniquecodesByVersion(request, pk, concept_history_id):
     data['html_uniquecodes_list'] = render_to_string('clinicalcode/component/get_child_concept_codes.html', {
                                                             'codes': codes,
                                                             'code_attribute_header': code_attribute_header,
-                                                            'q': request.session.get('concept_search', '')
+                                                            'q': ['', request.session.get('concept_search', '')][request.GET.get('highlight','0')=='1']
                                                         })
 
     return JsonResponse(data)
@@ -764,10 +769,10 @@ def concept_list(request):
         must_have_published_versions = 0
         
         
-    # remove leading and trailing spaces from text search params
-    search = search.strip()
-    owner = owner.strip()
-    author = author.strip()
+    # remove leading, trailing and multiple spaces from text search params
+    search = re.sub(' +', ' ', search.strip())
+    owner = re.sub(' +', ' ', owner.strip())
+    author = re.sub(' +', ' ', author.strip())
     
     
     filter_cond = " 1=1 "
@@ -847,11 +852,14 @@ def concept_list(request):
     concepts_srch = db_utils.get_visible_live_or_published_concept_versions(
                                                                             request,
                                                                             get_live_and_or_published_ver=get_live_and_or_published_ver,
-                                                                            searchByName=[search, ''][search_by_id],
+                                                                            search=[search, ''][search_by_id],
                                                                             author=author,
                                                                             exclude_deleted=exclude_deleted,
                                                                             filter_cond=filter_cond,
-                                                                            show_top_version_only=show_top_version_only)
+                                                                            show_top_version_only=show_top_version_only,
+                                                                            search_name_only = False,
+                                                                            highlight_result = True
+                                                                            )
 
     # create pagination
     paginator = Paginator(concepts_srch,

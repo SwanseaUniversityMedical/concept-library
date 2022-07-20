@@ -77,7 +77,7 @@
 						{% else %}
 							<a class="" href="{% url 'concept_history_detail' concept.id concept.history_id %}">
 						{% endif %}
-							<span style='font-size: 22px;margin-top:0;'>{{ concept.friendly_id }} - {{ concept.name|highlight:search }}</span> 
+							<span style='font-size: 22px;margin-top:0;'>{{ concept.friendly_id }} - {{ concept.name_highlighted|safe }}</span> 
 							</a>
 				
 					</div>
@@ -94,7 +94,7 @@
 				<div class="row form-group">
 					<div class="col-sm-12">
 <!-- 						<span {%if concept.author|length > 120 %}title="{{ concept.author }}" {% endif %} >{{ concept.author|truncatechars:120 }}</span> -->
-						{{ concept.author|highlight:search }} 
+						{{ concept.author_highlighted|safe  }} 
 					</div>
 				</div>				
 				
