@@ -2,8 +2,7 @@ name: Codebase Sphinx Documentation
 
 on:
   push:
-    branches: [ ghpages-update ]
-    # change to on merge when completed
+    branches: [ master ]
 jobs:
   build_docs_job:
     name: Code Reference Generator
