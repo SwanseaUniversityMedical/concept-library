@@ -30,6 +30,23 @@ from . import utils, tasks
 from .models import *
 from .permissions import *
 
+#--------- Order queries ---------------
+concept_order_queries = {
+    'Concept ID (Desc)': ' ORDER BY id, history_id DESC',
+    'Concept ID (Asc)': ' ORDER BY id, history_id ASC',
+    'Created (Desc)': ' ORDER BY created DESC',
+    'Created (Asc)': ' ORDER BY created ASC',
+    'Last Updated (Desc)': ' ORDER BY modified DESC',
+    'Last Updated (Asc)': ' ORDER BY modified ASC'
+}
+concept_order_default = list(concept_order_queries.values())[0]
+
+def get_order_from_parameter(parameter):
+    if parameter in concept_order_queries:
+        return concept_order_queries[parameter]
+    return concept_order_default
+
+#---------------------------------------
 
 # pandas needs to be installed by "pip2"
 # pip2 install pandas
@@ -2872,7 +2889,8 @@ def get_visible_live_or_published_concept_versions(request,
                                                     force_get_live_and_or_published_ver=None,  # used only with no login
                                                     search_name_only = True,
                                                     highlight_result = False,
-                                                    do_not_use_FTS = False
+                                                    do_not_use_FTS = False,
+                                                    order_by=None
                                                 ):
     ''' Get all visible live or published concept versions 
     - return all columns
@@ -3042,7 +3060,7 @@ def get_visible_live_or_published_concept_versions(request,
 
 
     # order by clause
-    order_by = " ORDER BY id, history_id DESC "
+    order_by = " ORDER BY id, history_id desc " if order_by is None else order_by
     if search != '':
         if search_name_only:
             # search name field only
@@ -3988,9 +4006,42 @@ def getConceptCodes_withAttributes_HISTORICAL(concept_id, concept_history_date,
     codes_with_attr_df = codes_with_attr_df.replace(['None'], '', regex=True)
 
     return codes_with_attr_df.to_dict('records')
+#---------------------------------------------------------------------------
 
+
+#-------------------- Coding system reference data ------------------------#
+def get_coding_system_reference(request):
+    return CodingSystem.objects.all().order_by('name')
+
+#----------------------------- Tag reference ------------------------------#
+def get_brand_associated_tags(request, brand=None, excluded_tags=None):
+    """
+        Return all tags assoc. with each brand, and exclude those in our list
+    """
+    if brand is None:
+        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else None
+    
+    tags = None
+    if Brand.objects.all().filter(name__iexact=brand).exists():
+        brand_id = Brand.objects.get(name__iexact=brand).id
+        tags = Tag.objects.filter(Q(tag_type__exact=1) & (Q(collection_brand__isnull=True) | Q(collection_brand__exact=brand_id)))
+    else:
+        tags = Tag.objects.filter(Q(tag_type__exact=1))
+    
+    if tags is not None and excluded_tags is not None:
+        tags = tags.filter(~Q(id__in=excluded_tags))
+    
+    if tags is not None:
+        result = {}
+        for tag in tags:
+            result[tag.description] = tag.id
+
+        return result
+    
+    return {}
 
 #---------------------------------------------------------------------------
+
 def get_brand_collection_ids(brand_name):
     """
         returns list of collections (tags) ids associated with the brand

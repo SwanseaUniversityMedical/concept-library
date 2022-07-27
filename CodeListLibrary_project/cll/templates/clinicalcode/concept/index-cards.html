@@ -3,156 +3,217 @@
 
 <div class="row">
 	<nav class="col-sm-2 hideleft-navbar" id="FilterMenu"
-	 	  style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;"
-	 >
-		
-		
-	<div class="panel panel-default" style="border: 0px;" >
-		<form id="filter_form" action="{% url 'concept_list' %}" method="POST"  >
-			{% csrf_token %}
-			<a data-toggle="collapse" href="#collapse-collection" aria-expanded="true" aria-controls="collapse-collection" style="color: inherit; text-decoration: inherit;">
-				<div class="panel-footer text-left">
-					<strong>Collection</strong>
-				
-					<div class="morphing-filter-targets" id="filter-icon-group">
-						<i class="fa fa-expand"></i>
-						<i class="fa fa-compress"></i>
+	 	  style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;">
+		<div class="panel panel-default panel_border" id="filter_panel_group">
+			<h4 class="panel-title filter_header">Filters<i class="help-block-no-break" style="font-size: 10px; display: inline; text-align: right; float: right;" id="result_count">{{ page_obj.paginator.count }} Record(s)</i></h4>
+			
+			<form id="filter_form" action="{% url 'concept_list' %}" method="GET">
+				{% csrf_token %}
+				<!-- Date tags -->
+				<a data-toggle="collapse" href="#collapse-date" aria-expanded="true" aria-controls="collapse-date" style="color: inherit; text-decoration: inherit;">
+					<div class="panel-footer panel_transparent">
+						<div class="filter_title_content filter_overflow">
+							<div class="filter_title">Publication Date</div>
+							<span class="fa fa-angle-up morphing_caret" aria-hidden="true"></span>
+						</div>
+					</div>
+				</a>
+				<div class="filter-content collapse in" id="collapse-date">
+					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_date">
+						<div id="filter_date" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; border-radius: 5px; width: 100%; text-decoration: inherit !important;">
+							<i class="fa fa-calendar"></i>&nbsp;
+							<span></span>
+							<i class="fa fa-caret-down" style="display: inline; float: right; margin-top: 2px;"></i>
+						</div>
 					</div>
 				</div>
-			</a>
-			
-			<div class="filter-content collapse in" id="collapse-collection">
-				<div class="panel-body" style="padding: 0;" id="filter_by_collection">
-			
-					<div class="checkbox">
-					  <label>
-					    <input type="checkbox" class="collection_tag" id="checkAll" name="collection_id" value="-1" {% if all_collections_selected  %} checked {% endif %}  > All
-					  </label>
+
+				<!-- Authorship tags -->
+				<a data-toggle="collapse" href="#collapse-authorship" aria-expanded="true" aria-controls="collapse-authorship" style="color: inherit; text-decoration: inherit;">
+					<div class="panel-footer panel_transparent">
+						<div class="filter_title_content filter_overflow">
+							<div class="filter_title">Authorship</div>
+							<span class="fa fa-angle-up morphing_caret closed" aria-hidden="true"></span>
+						</div>
 					</div>
-					<hr  style="padding: 0; margin: 0;">
-					<!-- collections tags -->
-					{% for tag in brand_associated_collections %}
-						{% if tag.tag_type == 2 %}
-								<div class="checkbox"  {% if not request.CURRENT_BRAND|length %} title="{{ tag.collection_brand }}" {% endif %}>
+				</a>
+				
+				<div class="filter-content collapse" id="collapse-authorship">
+					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_authorship">
+						<label for="author" style="font-weight: normal;">Authored by: <i class="help-block-no-break" style="font-size: 10px;">(free text)</i></label>
+						<input class="form-control" type="text" name="author" id="author_text" value="{{ author|default_if_none:'' }}">
+					
+						{% if user.is_authenticated %}
+							<label for="owner" style="font-weight: normal;">Owned by: <i class="help-block-no-break" style="font-size: 10px;">(full user name)</i></label>
+							<input class="form-control" type="text" name="owner" id="owner_text" value="{{ owner|default_if_none:'' }}">
+						{% endif %}
+					</div>
+				</div>
+
+				<!-- Tags -->
+				<a data-toggle="collapse" href="#collapse-tags" aria-expanded="true" aria-controls="collapse-tags" style="color: inherit; text-decoration: inherit;">
+					<div class="panel-footer panel_transparent">
+						<div class="filter_title_content filter_overflow">
+							<div class="filter_title">Tags</div>
+							<span class="fa fa-angle-up morphing_caret closed" aria-hidden="true"></span>
+						</div>
+					</div>
+				</a>
+				
+				<div class="filter-content collapse" id="collapse-tags">
+					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_tags">
+						<div class="checkbox">
+							<input type="text" class="form-control" id="tag_searchbar" placeholder="Search...">
+						</div>
+						<hr style="padding: 0; margin: 0;">
+						<ul class="scrollable_filter_list">
+							<p class="hide" id="filter_no_result" style="text-align: center;">No results found.</p>
+						{% for tag, tagid in brand_associated_tags.items %}
+							<li class="checkbox">
+								<label>
+								<input class="form-check-input filter_option tags" type="checkbox" name="tag_id" value="{{ tagid }}" 
+								{% if tagid in tag_ids_list  %} checked {% endif %}>
+								<span class="form-check-label">
+									{{ tag }}
+								</span>
+								</label>
+							</li> 
+						{% endfor %}	
+						</ul>
+					</div>
+				</div>
+
+				<!-- Collections tags -->
+				<a data-toggle="collapse" href="#collapse-collection" aria-expanded="true" aria-controls="collapse-collection" style="color: inherit; text-decoration: inherit;">
+					<div class="panel-footer panel_transparent">
+						<div class="filter_title_content filter_overflow">
+							<div class="filter_title">Collection</div>
+							<span class="fa fa-angle-up morphing_caret closed" aria-hidden="true"></span>
+						</div>
+					</div>
+				</a>
+				
+				<div class="filter-content collapse" id="collapse-collection">
+					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_collection">
+						<div class="checkbox">
+							<input type="text" class="form-control" id="collection_searchbar" placeholder="Search...">
+						</div>
+						<hr  style="padding: 0; margin: 0;">
+						<ul class="scrollable_filter_list">
+							<p class="hide" id="filter_no_result" style="text-align: center;">No results found.</p>
+						{% for tag in brand_associated_collections %}
+								<li class="checkbox"  {% if not request.CURRENT_BRAND|length %} title="{{ tag.collection_brand }}" {% endif %}>
 									<label>
-									<input class="form-check-input collection_tag" type="checkbox" name="collection_id" value="{{ tag.id }}" 
-									 {% if tag.id in tag_ids_list  %} checked {% endif %}  
-									>  
+									<input class="form-check-input filter_option collection" type="checkbox" name="collection_id" value="{{ tag.id }}" 
+									{% if tag.id in tag_ids_list  %} checked {% endif %}  
+									>
 									<span class="form-check-label">
 										{{ tag.description }}
 									<!--  <span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>	 -->
 									</span>
 									</label>
-								</div> 
-						{% endif %}
-					{% endfor %}	
+								</li> 
+						{% endfor %}	
+						</ul>
+					</div>
+				</div>
+					
+				<!-- Coding system -->
+				<a data-toggle="collapse" href="#collapse-coding" aria-expanded="true" aria-controls="collapse-type" style="color: inherit; text-decoration: inherit;">
+					<div class="panel-footer text-left panel_transparent">
+						<div class="filter_title_content filter_overflow">
+							<div class="filter_title">Coding System</div>
+							<span class="fa fa-angle-up morphing_caret closed" aria-hidden="true"></span>
+						</div>
+					</div>
+				</a>
+				<div class="filter-content collapse" id="collapse-coding">
+					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_coding">
+						<div class="checkbox">
+							<input type="text" class="form-control" id="coding_searchbar" placeholder="Search...">
+						</div>
+						<hr  style="padding: 0; margin: 0;">
+						<ul class="scrollable_filter_list">
+							<p class="hide" id="filter_no_result" style="text-align: center;">No results found.</p>
+							<!-- types tags -->
+							{% for coding in coding_system_reference %}
+									<li class="checkbox" >
+											<label>
+											<input class="form-check-input filter_option coding" type="checkbox" name="coding_id" value="{{ coding.id }}"
+											{% if coding.id in coding_id_list  %} checked {% endif %}  
+											>
+											<span class="form-check-label">
+													{{ coding.description }}
+											</span>
+											</label>
+									</li>
+							{% endfor %}
+						</ul>
+					</div>
+				</div>
+				
+				<!-- Display -->
+				{% if user.is_authenticated %}
+				<a data-toggle="collapse" href="#collapse-display" aria-expanded="true" aria-controls="collapse-display" style="color: inherit; text-decoration: inherit;">
+					<div class="panel-footer panel_transparent">
+						<div class="filter_title_content filter_overflow">
+							<div class="filter_title">Display</div>
+							<span class="fa fa-angle-up morphing_caret closed" aria-hidden="true"></span>
+						</div>
+					</div>
+				</a>
+				
+				<div class="filter-content collapse" id="collapse-display">
+					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_display">
+						<div class="checkbox"  >
+							<label>
+								<input class="form-checkbox" id="show_deleted_concepts" type="checkbox" {% if show_deleted_concepts == "1" %} checked="checked" {% endif %} value="1" >
+								Deleted concepts
+							</label>
+						</div>
+					
+						<div class="checkbox"  >
+							<label>
+								<input class="form-checkbox" id="show_my_concepts" type="checkbox" {% if show_my_concepts == "1" %} checked="checked" {% endif %} value="1" >
+								Only concepts I own
+							</label>
+						</div>			
+					
+						<div class="checkbox"  >
+							<label>
+								<input class="form-checkbox" id="show_only_validated_concepts" type="checkbox" {% if show_only_validated_concepts == "1" %} checked="checked" {% endif %} value="1" >
+								Only validated concepts
+							</label>
+						</div>
 						
-				</div> <!-- card-body.// -->
-			</div>
-				
-	<!-- 			  <div class="panel-footer">....</div> -->			
-		</form>
-	</div> <!-- card.// -->
-		
-	
+						<div class="checkbox"  >
+							<label>
+								<input class="form-checkbox" id="must_have_published_versions" type="checkbox" {% if must_have_published_versions == "1" %} checked="checked" {% endif %} value="1" >
+								Only published concepts
+							</label>
+						</div>	
+					</div>
+				</div>
+				{% endif %}
+			</form>
 
+			<ul class="filter_buttons">
+				<li><a type="button" class="btn btn-primary" id="refresh_filters">Refresh</a></li>
+				<li><a type="button" class="btn btn-outline-primary btn-cl btn-cl-secondary" id="clear_filters">Clear</a></li>
+			</ul>
+		</div> <!-- panel.// -->
 	</nav>
-			
+		
+	<!-- Loading icon on result timeout -->
+	<div id='loading_res_spinner' class='col-sm-10 text-center hidden' style='min-height: 25%; display: flex; justify-content: center; flex-direction: column; vertical-align: middle;'>
+		<p>Loading</p>
+		<i class="fa fa-spinner fa-spin fa-2x"/></i>
+	</div>
+
+
+	<!-- Concept results -->
 	<div class="col-sm-10" id="result-div">
-		
-<!-- ******************** -->
-		
-<div class="page-control-container">
-	{% include 'pagination.html' with form_target=search_form %}	
-	
-</div>
-
-{% block content %}
-	{% for concept in page_obj.object_list %}  
-			<div class="cl-card {% if concept.is_deleted is True %} cl-card-deleted {% endif %} {% cycle ' dark-div ' '' %}   ">
-				<div class="row form-group">
-					<div {% if concept.is_deleted is not True and concept.can_edit %} class="col-sm-10" {% else %}  class="col-sm-12" {% endif %} >
-						{% if user.is_authenticated and concept.is_published != 1 %}
-							<a class="" href="{% url 'concept_detail' concept.id %}">
-						{% else %}
-							<a class="" href="{% url 'concept_history_detail' concept.id concept.history_id %}">
-						{% endif %}
-							<span style='font-size: 22px;margin-top:0;'>{{ concept.friendly_id }} - {{ concept.name_highlighted|safe }}</span> 
-							</a>
-				
-					</div>
-				{% if concept.is_deleted is not True and concept.can_edit %}
-					<div class="col-sm-2 text-right">					
-							<span>&nbsp;&nbsp;</span>
-							<a  class="btn btn-outline-primary btn-cl btn-cl-secondary" href="{% url 'concept_update' concept.id %}" title="Edit concept">
-								Edit
-							</a> 						
-					</div>
-				{% endif %}					
-				</div>
-				
-				<div class="row form-group">
-					<div class="col-sm-12">
-<!-- 						<span {%if concept.author|length > 120 %}title="{{ concept.author }}" {% endif %} >{{ concept.author|truncatechars:120 }}</span> -->
-						{{ concept.author_highlighted|safe  }} 
-					</div>
-				</div>				
-				
-				<div class="row form-group">
-					<div class="col-sm-2">
-						<!-- CodingSystems -->
-				   		<span class="badge">{{ concept.coding_system_name }}</span>
-					</div>
-					<div class="col-sm-10">
-						{% if user.is_authenticated %}
-							<i>{{ concept.modified|date:"Y-m-d" }}</i>
-						{% else %}	
-							<i>{{ concept.publish_date|date:"Y-m-d" }}</i>
-						{% endif %}	
-					</div>		
-<!-- 					<div class="col-sm-4 text-right"> -->
-<!-- 						{% if user.is_authenticated and concept.is_published == 1 %} -->
-<!--  							<span title="{{ concept.published }} on {{ concept.publish_date|date:"Y-m-d" }}" style="text-align: right;" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span> --> 
-<!-- 						{% endif %}	 -->
-<!-- 					</div>	 -->
-				</div>				
-
-			{% if concept.tags %}
-				<div class="row form-group">
-					<div class="col-sm-12">
-						<!-- tags -->
-						{% for tag in allTags %}
-							{% for tag_id in concept.tags %}
-								{% if tag.id == tag_id %}
-							   		<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
-							   	{% endif %}
-							{% endfor %}						
-						{% endfor %}			
-
-					</div>
-				</div>
-			{% endif %}
-			  	
-	</div>				  
-	<br> 
-	{% empty %}
-		<div class="row form-group">
-			<div class="col-sm-12 text-center bg-warning">
-				No concepts
-			</div>	
-		</div>				
-			
-	{% endfor %}
-{% endblock %}
-
-
-<div class="page-control-container">
-	{% include 'pagination.html' with form_target=search_form %}	
-</div>
-
-
-<!-- ******************** -->
-
+		{% include './concept_results.html' %}
 	</div>
 </div>
 
