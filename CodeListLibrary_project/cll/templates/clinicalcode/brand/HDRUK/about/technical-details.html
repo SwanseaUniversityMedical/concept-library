@@ -255,7 +255,11 @@ J47,Bronchiectasis
       <ul>
 
         <li style="list-style-type:circle; margin-left:20px;">by <strong>pull request (PR)</strong> on the <a href="https://github.com/spiros/hdr-caliber-phenome-portal">GitHub repository</a></li>
+        {% if not CLL_READ_ONLY %}
           <li style="list-style-type:circle; margin-left:20px;">by <strong><a href={% url 'contact_us' %}>contacting us</a></strong> </li>
+        {% else %}
+          <li style="list-style-type:circle; margin-left:20px;">by <strong>contacting us</strong> </li>
+        {% endif %}
         <li style="list-style-type:circle; margin-left:20px;">by <a href="https://forms.gle/J5dm94jeT6MG1StP9"><strong>Google form</strong></a></li>
       </ul>
    </div>

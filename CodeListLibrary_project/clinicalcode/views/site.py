@@ -63,10 +63,11 @@ def get_sitemap(request):
     # ]
 
     # contact us page
-    links += [
-        (request.build_absolute_uri(reverse('contact_us')), cur_time, "1.00"), 
-    ]
-    
+    if not settings.CLL_READ_ONLY:
+        links += [
+            (request.build_absolute_uri(reverse('contact_us')), cur_time, "1.00"), 
+        ]
+        
     # API
     links += [
         (request.build_absolute_uri(reverse('api:root')), cur_time, "1.00"), 
