@@ -944,3 +944,7 @@ ul.filter_buttons li {
     visibility: visible;
   }
 }
+
+.hightlight-txt{
+	background-color: yellow
+}
