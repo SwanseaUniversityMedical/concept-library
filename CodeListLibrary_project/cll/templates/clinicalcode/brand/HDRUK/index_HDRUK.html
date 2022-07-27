@@ -140,6 +140,7 @@
          </a>
       </div>
       <div class="column">
+      	{% if not CLL_READ_ONLY %}							
          <a style="text-decoration: none; color:black;" href="{% url 'contact_us' %}">
             <div class="card pointer" >
                <i class="fa fa-plus" style="position:relative;  right: 47.5%; font-size: 32px;"></i>
@@ -148,6 +149,7 @@
             </div>
          </a>
       </div>
+      {% endif %}
    </div>
    
    <div class="text-bottom-header text-style-center text-padding-top">Key Principles</div>
