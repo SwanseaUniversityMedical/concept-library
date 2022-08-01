@@ -2,7 +2,7 @@ name: Codebase Sphinx Documentation
 
 on:
   push:
-    branches: [ master ]
+    branches: [ Development ]
 jobs:
   build_docs_job:
     name: Code Reference Generator
@@ -36,6 +36,10 @@ jobs:
       - name: Make the Codebase Reference sphinx docs
         run: |
               cd docs/codebase_docs/
+              sphinx-apidoc -o source ../../CodeListLibrary_project  
+              cd source
+              del "clinicalcode.migrations.rst"
+              cd ..
               sphinx-build -b html source ..
 
       - name: Init new codebase docs repo
