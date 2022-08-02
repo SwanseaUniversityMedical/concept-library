@@ -512,7 +512,7 @@ var initFilters = () => {
           return;
         }
 
-        pushToastNotification('error', 'An error has occurred when filtering results.');
+        pushToastNotification('error', 'An error has occurred. Please try again.');
       })
       .finally(() => {
         fetchFilterParameters();
