@@ -629,6 +629,12 @@ p > a {
 }
 
 /* Filter panel */
+@media screen and (max-width: 1050px) {
+  #FilterMenu {
+    display: none;
+  }
+}
+
 .panel_border {
   border: 1px solid #c9c9c9;
   border-radius: 5px;
@@ -939,7 +945,7 @@ ul.filter_buttons li {
   visibility: hidden;
 }
 
-@media screen and (max-width: 1000px) {
+@media screen and (max-width: 1050px) {
   .filter_modal_button>a {
     visibility: visible;
   }

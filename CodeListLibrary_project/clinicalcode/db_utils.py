@@ -48,6 +48,11 @@ def get_order_from_parameter(parameter):
 
 #---------------------------------------
 
+#------------ pagination lims ----------
+page_size_limits = [20, 50, 100]
+#---------------------------------------
+
+
 # pandas needs to be installed by "pip2"
 # pip2 install pandas
 
@@ -3154,7 +3159,8 @@ def get_visible_live_or_published_phenotype_versions(request,
                                                     force_get_live_and_or_published_ver = None,  # used only with no login
                                                     search_name_only = True,
                                                     highlight_result = False,
-                                                    do_not_use_FTS = False                                               
+                                                    do_not_use_FTS = False,
+                                                    order_by=None                                           
                                                     ):
     ''' Get all visible live or published phenotype versions 
     - return all columns
@@ -3332,7 +3338,7 @@ def get_visible_live_or_published_phenotype_versions(request,
 
 
     # order by clause
-    order_by = " ORDER BY id, history_id DESC "
+    order_by = " ORDER BY id, history_id desc " if order_by is None else order_by
     if search != '':
         if search_name_only:
             # search name field only

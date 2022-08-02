@@ -9,6 +9,10 @@ import re
 register = template.Library()
 
 
+@register.filter(name='title')
+def title(value):
+    return str(value).title()
+
 @register.filter
 def cut(value, arg):
     """Removes all occurrences of arg from the given string"""

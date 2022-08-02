@@ -65,10 +65,6 @@ COM_TYPE_EXPRESSION_DESC = 'Match code with expression'
 COM_TYPE_EXPRESSION_SELECT_DESC = 'Select codes individually + import codes'
 '''
 
-#----------- Predefs ----------------#
-page_size_limits = [20, 50, 100]
-#------------------------------------#
-
 class MessageMixin(object):
     '''
         Make it easy to display notification messages when using Class Based Views.
@@ -711,7 +707,7 @@ def concept_list(request):
     method = request.GET.get('filtermethod', '')
 
     page_size = utils.get_int_value(request.GET.get('page_size', 20), 20)
-    page_size = page_size if page_size in page_size_limits else 20
+    page_size = page_size if page_size in db_utils.page_size_limits else 20
     page = utils.get_int_value(request.GET.get('page', 1), 1)
     search = request.GET.get('search', '') #request.session.get('concept_search', ''))
     tag_ids = request.GET.get('tagids', '')
@@ -739,9 +735,6 @@ def concept_list(request):
         start_date_query = False
         end_date_query = False
                 
-            
-
-
         
     # store page index variables to session
     request.session['concept_page_size'] = page_size

@@ -526,7 +526,7 @@ form.example input:focus-visible {
 	margin-right:20px;
 }
 .panel-body {
-	padding: 10px 15px !important;
+	padding: 10px 15px;
 }
 
 .cl-card {
