@@ -154,14 +154,16 @@ def phenotype_list(request):
                 filter_cond += " AND (id =" + str(ret_int_id) + " ) "
             
     if tag_ids:
+        sanitised_tags = utils.expect_integer_list(tag_ids)
         # split tag ids into list
-        search_tag_list = [str(i) for i in tag_ids.split(",")]
+        search_tag_list = [str(i) for i in sanitised_tags]
         # chk if these tags are valid, to prevent injection
         # use only those found in the DB
         tags = Tag.objects.filter(id__in=search_tag_list)
         search_tag_list = list(tags.values_list('id',  flat=True))
         search_tag_list = [str(i) for i in search_tag_list]          
-        filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
+        if len(search_tag_list) > 0:
+            filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
 
     if selected_phenotype_types:
         selected_phenotype_types_list = [str(t) for t in selected_phenotype_types.split(',')]
@@ -171,11 +173,13 @@ def phenotype_list(request):
         filter_cond += " AND lower(type) IN('" + "', '".join(selected_phenotype_types_list) + "') "
    
     if coding_ids:
-        search_coding_list = [str(i) for i in coding_ids.split(',')]
+        sanitised_codes = utils.expect_integer_list(coding_ids)
+        search_coding_list = [str(i) for i in sanitised_codes]
         coding = CodingSystem.objects.filter(id__in=search_coding_list)
         search_coding_list = list(coding.values_list('id', flat=True))
         search_coding_list = [str(i) for i in search_coding_list]
-        filter_cond += ' '.join([" AND %s=ANY(clinical_terminologies) " % x for x in search_coding_list])
+        if len(search_coding_list) > 0:
+            filter_cond += ' '.join([" AND %s=ANY(clinical_terminologies) " % x for x in search_coding_list])
 
     if isinstance(start_date_query, datetime.datetime) and isinstance(end_date_query, datetime.datetime):
         filter_cond += " AND (created >= '" + start_date_range + "' AND created <= '" + end_date_range + "') "
@@ -270,7 +274,7 @@ def phenotype_list(request):
     tag_ids2 = tag_ids
     tag_ids_list = []
     if tag_ids:
-        tag_ids_list = [int(t) for t in tag_ids.split(',')]
+        tag_ids_list = utils.expect_integer_list(tag_ids)
 
     collections_excluded_from_filters = []
     if request.CURRENT_BRAND != "":
@@ -295,7 +299,7 @@ def phenotype_list(request):
     coding_system_reference_ids = list(coding_system_reference.values_list('id', flat=True))
     coding_id_list = []
     if coding_ids:
-        coding_id_list = [int(id) for id in coding_ids.split(',')]
+        coding_id_list = utils.expect_integer_list(coding_ids)
 
     author = request.session.get('phenotype_author')  
     owner = request.session.get('phenotype_owner')       
