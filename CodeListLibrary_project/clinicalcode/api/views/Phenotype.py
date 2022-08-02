@@ -472,7 +472,7 @@ def published_phenotypes(request, pk=None):
     User can search with criteria using a combinations of querystring parameters:   
     -  <code>?search=Alcohol</code>  
     search by part of phenotype name (do not put wild characters here)  
-    -  <code>?tag_concept_ids=11,4</code>  
+    -  <code>?tag_collection_ids=11,4</code>  
     You can specify tag or collection ids   
     -  <code>?selected_phenotype_types=drug,lifestyle risk factor</code>
     Specify types of the phenotypes  
@@ -496,7 +496,7 @@ def phenotypes(request, pk=None):
     User can search with criteria using a combinations of querystring parameters:   
     -  <code>?search=Alcohol</code>  
     search by part of phenotype name (do not put wild characters here)  
-    -  <code>?tag_concept_ids=11,4</code>  
+    -  <code>?tag_collection_ids=11,4</code>  
     You can specify tag or collection ids   
     -  <code>?selected_phenotype_types=drug,lifestyle risk factor</code>
     Specify types of the phenotypes         
@@ -530,7 +530,7 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
     else:
         phenotype_id = request.query_params.get('id', None)
 
-    tag_ids = request.query_params.get('tag_concept_ids', '')
+    tag_ids = request.query_params.get('tag_collection_ids', '')
     owner = request.query_params.get('owner_username', '')
     show_only_my_phenotypes = request.query_params.get('show_only_my_phenotypes', "0")
     show_deleted_phenotypes = request.query_params.get('show_deleted_phenotypes', "0")

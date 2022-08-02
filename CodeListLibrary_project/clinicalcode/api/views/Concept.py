@@ -879,7 +879,7 @@ def published_concepts(request, pk=None):
     User can search with criteria using a combinations of querystring parameters: 
     -  <code>?search=Alcohol</code>  
       search by part of concept name (do not put wild characters here)
-    -  <code>?tag_concept_ids=11,4</code>  
+    -  <code>?tag_collection_ids=11,4</code>  
       You can specify tag or collection ids  
     -  <code>?show_only_validated_concepts=1</code> 
       will show only validated concepts  
@@ -901,7 +901,7 @@ def user_concepts(request, pk=None):
     User can search with criteria using a combinations of querystring parameters:  
     -   <code>?search=Alcohol</code>  
     search by part of concept name (do not put wild characters here)  
-    -   <code>?tag_concept_ids=11,4</code>  
+    -   <code>?tag_collection_ids=11,4</code>  
     You can specify tag or collection ids      
     -   <code>?show_only_my_concepts=1</code>  
     Only show concepts owned by me  
@@ -934,7 +934,7 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
     else:
         concept_id = request.query_params.get('id', None)
 
-    tag_ids = request.query_params.get('tag_concept_ids', '')
+    tag_ids = request.query_params.get('tag_collection_ids', '')
     owner = request.query_params.get('owner_username', '')
     show_only_my_concepts = request.query_params.get('show_only_my_concepts', "0")
     show_deleted_concepts = request.query_params.get('show_deleted_concepts', "0")
