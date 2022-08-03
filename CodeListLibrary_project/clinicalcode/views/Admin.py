@@ -833,7 +833,6 @@ def get_brand_filter_stat(request, entity_class, force_brand=None):
                                         ]
     
     
-    ss= Statistics.objects.get(id=16)
     return stats_dict
 
 
