@@ -32,12 +32,11 @@ from .permissions import *
 
 #--------- Order queries ---------------
 concept_order_queries = {
-    'Concept ID (Desc)': ' ORDER BY id, history_id DESC',
-    'Concept ID (Asc)': ' ORDER BY id, history_id ASC',
-    'Created (Desc)': ' ORDER BY created DESC',
-    'Created (Asc)': ' ORDER BY created ASC',
-    'Last Updated (Desc)': ' ORDER BY modified DESC',
-    'Last Updated (Asc)': ' ORDER BY modified ASC'
+    'Relevance': ' ORDER BY id, history_id DESC ',
+    'Created (Desc)': ' ORDER BY created DESC ',
+    'Created (Asc)': ' ORDER BY created ASC ',
+    'Last Updated (Desc)': ' ORDER BY modified DESC ',
+    'Last Updated (Asc)': ' ORDER BY modified ASC '
 }
 concept_order_default = list(concept_order_queries.values())[0]
 
@@ -3071,15 +3070,20 @@ def get_visible_live_or_published_concept_versions(request,
             # search name field only
             order_by =  """ 
                             ORDER BY rank_name DESC
-                                    , id, history_id DESC  
-                        """
+                                    , """ + order_by.replace(' ORDER BY ', '')
         else:
             # search all related fields
-            order_by =  """                          
-                            /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
-                            ORDER BY rank_name DESC, rank_author DESC , rank_all DESC
-                        """
-                            
+            if order_by != concept_order_default:
+                order_by =  """
+                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
+                                ORDER BY rank_name DESC, rank_author DESC , rank_all DESC, """ + order_by.replace(' ORDER BY ', '')
+            else:
+                order_by =  """
+                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
+                                ORDER BY rank_name DESC, rank_author DESC , rank_all DESC
+                            """
+
+    print(order_by)
                     
     with connection.cursor() as cursor:
         cursor.execute(

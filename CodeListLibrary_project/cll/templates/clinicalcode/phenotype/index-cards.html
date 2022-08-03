@@ -9,47 +9,7 @@
 			
 			<form id="filter_form" action="{% url 'phenotype_list' %}" method="GET">
 				{% csrf_token %}
-				<!-- Date tags -->
-				<a data-toggle="collapse" href="#collapse-date" aria-expanded="true" aria-controls="collapse-date" style="color: inherit; text-decoration: inherit;">
-					<div class="panel-footer panel_transparent">
-						<div class="filter_title_content filter_overflow">
-							<div class="filter_title">Publication Date</div>
-							<span class="fa fa-angle-up morphing_caret" aria-hidden="true"></span>
-						</div>
-					</div>
-				</a>
-				<div class="filter-content collapse in" id="collapse-date">
-					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_date">
-						<div id="filter_date" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; border-radius: 5px; width: 100%; text-decoration: inherit !important;">
-							<i class="fa fa-calendar"></i>&nbsp;
-							<span></span>
-							<i class="fa fa-caret-down" style="display: inline; float: right; margin-top: 2px;"></i>
-						</div>
-					</div>
-				</div>
-
-				<!-- Authorship tags -->
-				<a data-toggle="collapse" href="#collapse-authorship" aria-expanded="true" aria-controls="collapse-authorship" style="color: inherit; text-decoration: inherit;">
-					<div class="panel-footer panel_transparent">
-						<div class="filter_title_content filter_overflow">
-							<div class="filter_title">Authorship</div>
-							<span class="fa fa-angle-up morphing_caret closed" aria-hidden="true"></span>
-						</div>
-					</div>
-				</a>
 				
-				<div class="filter-content collapse" id="collapse-authorship">
-					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_authorship">
-						<label for="author" style="font-weight: normal;">Authored by: <i class="help-block-no-break" style="font-size: 10px;">(free text)</i></label>
-						<input class="form-control" type="text" name="author" id="author_text" value="{{ author|default_if_none:'' }}">
-					
-						{% if user.is_authenticated %}
-							<label for="owner" style="font-weight: normal;">Owned by: <i class="help-block-no-break" style="font-size: 10px;">(full user name)</i></label>
-							<input class="form-control" type="text" name="owner" id="owner_text" value="{{ owner|default_if_none:'' }}">
-						{% endif %}
-					</div>
-				</div>
-
 				<!-- Type -->
 				<a data-toggle="collapse" href="#collapse-type" aria-expanded="true" aria-controls="collapse-type" style="color: inherit; text-decoration: inherit;">
 					<div class="panel-footer panel_transparent">
@@ -60,7 +20,7 @@
 					</div>
 				</a>
 				
-				<div class="filter-content collapse" id="collapse-type">
+				<div class="filter-content collapse in" id="collapse-type">
 					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_types">
 						<div class="checkbox">
 							<input type="text" class="form-control" id="type_searchbar" placeholder="Search...">
@@ -79,39 +39,6 @@
 								</label>
 							</li>
 							{% endfor %}
-						</ul>
-					</div>
-				</div>
-
-				<!-- Tags -->
-				<a data-toggle="collapse" href="#collapse-tags" aria-expanded="true" aria-controls="collapse-tags" style="color: inherit; text-decoration: inherit;">
-					<div class="panel-footer panel_transparent">
-						<div class="filter_title_content filter_overflow">
-							<div class="filter_title">Tags</div>
-							<span class="fa fa-angle-up morphing_caret closed" aria-hidden="true"></span>
-						</div>
-					</div>
-				</a>
-				
-				<div class="filter-content collapse" id="collapse-tags">
-					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_tags">
-						<div class="checkbox">
-							<input type="text" class="form-control" id="tag_searchbar" placeholder="Search...">
-						</div>
-						<hr style="padding: 0; margin: 0;">
-						<ul class="scrollable_filter_list">
-							<p class="hide" id="filter_no_result" style="text-align: center;">No results found.</p>
-						{% for tag, tagid in brand_associated_tags.items %}
-							<li class="checkbox">
-								<label>
-								<input class="form-check-input filter_option tags" type="checkbox" name="tag_id" value="{{ tagid }}" 
-								{% if tagid in tag_ids_list  %} checked {% endif %}>
-								<span class="form-check-label">
-									{{ tag }}
-								</span>
-								</label>
-							</li> 
-						{% endfor %}	
 						</ul>
 					</div>
 				</div>
@@ -151,6 +78,39 @@
 					</div>
 				</div>
 					
+				<!-- Tags -->
+				<a data-toggle="collapse" href="#collapse-tags" aria-expanded="true" aria-controls="collapse-tags" style="color: inherit; text-decoration: inherit;">
+					<div class="panel-footer panel_transparent">
+						<div class="filter_title_content filter_overflow">
+							<div class="filter_title">Tags</div>
+							<span class="fa fa-angle-up morphing_caret closed" aria-hidden="true"></span>
+						</div>
+					</div>
+				</a>
+				
+				<div class="filter-content collapse" id="collapse-tags">
+					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_tags">
+						<div class="checkbox">
+							<input type="text" class="form-control" id="tag_searchbar" placeholder="Search...">
+						</div>
+						<hr style="padding: 0; margin: 0;">
+						<ul class="scrollable_filter_list">
+							<p class="hide" id="filter_no_result" style="text-align: center;">No results found.</p>
+						{% for tag, tagid in brand_associated_tags.items %}
+							<li class="checkbox">
+								<label>
+								<input class="form-check-input filter_option tags" type="checkbox" name="tag_id" value="{{ tagid }}" 
+								{% if tagid in tag_ids_list  %} checked {% endif %}>
+								<span class="form-check-label">
+									{{ tag }}
+								</span>
+								</label>
+							</li> 
+						{% endfor %}	
+						</ul>
+					</div>
+				</div>
+
 				<!-- Coding system -->
 				<a data-toggle="collapse" href="#collapse-coding" aria-expanded="true" aria-controls="collapse-type" style="color: inherit; text-decoration: inherit;">
 					<div class="panel-footer text-left panel_transparent">
@@ -182,6 +142,47 @@
 									</li>
 							{% endfor %}
 						</ul>
+					</div>
+				</div>
+
+				<!-- Date tags -->
+				<a data-toggle="collapse" href="#collapse-date" aria-expanded="true" aria-controls="collapse-date" style="color: inherit; text-decoration: inherit;">
+					<div class="panel-footer panel_transparent">
+						<div class="filter_title_content filter_overflow">
+							<div class="filter_title">Publication Date</div>
+							<span class="fa fa-angle-up morphing_caret" aria-hidden="true"></span>
+						</div>
+					</div>
+				</a>
+				<div class="filter-content collapse" id="collapse-date">
+					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_date">
+						<div id="filter_date" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; border-radius: 5px; width: 100%; text-decoration: inherit !important;">
+							<i class="fa fa-calendar"></i>&nbsp;
+							<span></span>
+							<i class="fa fa-caret-down" style="display: inline; float: right; margin-top: 2px;"></i>
+						</div>
+					</div>
+				</div>
+
+				<!-- Authorship tags -->
+				<a data-toggle="collapse" href="#collapse-authorship" aria-expanded="true" aria-controls="collapse-authorship" style="color: inherit; text-decoration: inherit;">
+					<div class="panel-footer panel_transparent">
+						<div class="filter_title_content filter_overflow">
+							<div class="filter_title">Authorship</div>
+							<span class="fa fa-angle-up morphing_caret closed" aria-hidden="true"></span>
+						</div>
+					</div>
+				</a>
+				
+				<div class="filter-content collapse" id="collapse-authorship">
+					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_authorship">
+						<label for="author" style="font-weight: normal;">Authored by: <i class="help-block-no-break" style="font-size: 10px;">(free text)</i></label>
+						<input class="form-control" type="text" name="author" id="author_text" value="{{ author|default_if_none:'' }}">
+					
+						{% if user.is_authenticated %}
+							<label for="owner" style="font-weight: normal;">Owned by: <i class="help-block-no-break" style="font-size: 10px;">(full user name)</i></label>
+							<input class="form-control" type="text" name="owner" id="owner_text" value="{{ owner|default_if_none:'' }}">
+						{% endif %}
 					</div>
 				</div>
 				

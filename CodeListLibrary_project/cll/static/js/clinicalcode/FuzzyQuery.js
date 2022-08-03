@@ -44,10 +44,10 @@ var FuzzyQuery = new function () {
   var distance = (haystack, needle) => {
     var hlen = haystack.length;
     var nlen = needle.length;
-    if (!(haystack && needle))  {
-      return (haystack || needle).length;
-    } else if (haystack === needle) {
+    if (haystack === needle) {
       return 0;
+    } else if (!(haystack && needle))  {
+      return (haystack || needle).length;
     }
 
     var i, j;
@@ -91,9 +91,7 @@ var FuzzyQuery = new function () {
       if (match(item, query)) {
         if (sort) {
           var score = distance(item, query);
-          if (score) {
-            results.push({item: item, score: score});
-          }
+          results.push({item: item, score: score});
         } else {
           results.push({item: item});
         }

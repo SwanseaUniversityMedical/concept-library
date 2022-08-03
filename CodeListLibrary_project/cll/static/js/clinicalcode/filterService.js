@@ -19,6 +19,26 @@ var DISPLAY_QUERIES = {
                     'show_only_validated_concepts', 'must_have_published_versions']
 };
 
+var subheaderMap = {
+  tagids: 'tags',
+  codingids: 'coding',
+  enddate: 'date',
+  startdate: 'date',
+  selected_phenotype_types: 'type',
+  owner: 'authorship',
+  author: 'authorship',
+  show_deleted_phenotypes: 'display',
+  show_my_phenotypes: 'display',
+  phenotype_must_have_published_versions: 'display',
+  show_mod_pending_phenotypes: 'publication',
+  show_my_pending_phenotypes: 'publication',
+  show_rejected_phenotypes: 'publication',
+  show_deleted_concepts: 'display',
+  show_my_concepts: 'display',
+  show_only_validated_concepts: 'display',
+  must_have_published_versions: 'display'
+}
+
 var baseFilters = {
   tags: {
     name: 'tags',
@@ -103,6 +123,26 @@ for (var i = 0; i < dependencies.length; i++) {
     default:
       break;
   }
+}
+
+/* jQuery utilities */
+var scrollableMap = {
+  scroll: true,
+  auto: true
+};
+
+$.isScrollable = ($elem) => {
+  $elem = $($elem);
+  return $elem[0] 
+          ? (scrollableMap[$elem.css('overflow')]
+            || scrollableMap[$elem.css('overflow-x')]
+            || scrollableMap[$elem.css('overflow-y')])
+          : false;
+}
+
+$.isScrollbarVisible = ($elem) => {
+  $elem = $($elem);
+  return $elem[0] ? $elem[0].scrollHeight > $elem.innerHeight() : false;
 }
 
 /* Utilities */
@@ -355,27 +395,65 @@ var initFilters = () => {
 
   fetchFilterParameters();
 
+  // Open any header with current any selected parameters
+  {
+    var url = new URL(window.location.href);
+    var params = [];
+
+    // Object.keys(dict).length doesn't work in this case so we need to create an array to check len of params
+    url.searchParams.forEach((value, key) => {
+      params.push([key, value]);
+    });
+
+    if (params.length > 0) {
+      $('#filter_form .collapse').each((_, elem) => {
+        $(elem).removeClass('in');
+      });
+
+      for (var i = 0; i < params.length; i++) {
+        var param = params[i][0];
+        var value = params[i][1];
+        if (param == 'tagids') {
+          // Split tags into collection + tags then resolve collapsed state
+          var selected = value.split(',');
+          var hasTags = false;
+          var hasCollections = false;
+          for (var j = 0; j < selected.length; j++) {
+            if (!hasCollections) {
+              hasCollections = all_collections.map((o) => o.id).indexOf(parseInt(selected[j])) >= 0;
+            }
+
+            if (!hasTags) {
+              hasTags = all_tag_ref.map((o) => o.id).indexOf(parseInt(selected[j])) >= 0;
+              console.log(selected[j], hasTags, all_tag_ref);
+            }
+
+            if (hasCollections === true && hasTags === true) {
+              break;
+            }
+          }
+          
+          if (hasCollections) {
+            $('#collapse-collection').addClass('in');
+          }
+
+          if (hasTags) {
+            $('#collapse-tags').addClass('in');
+          }
+          
+          continue;
+        }
+
+        var header = subheaderMap[param];
+        $('#collapse-' + header).addClass('in');
+      }
+    }
+  }
+
   // Handle scroll to top button(s)
   $(document).on('click', '#scroll_up', (e) => {
     e.preventDefault();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
-
-  // Handle collapsible state of filter option(s)
-  $('.collapse').each(function (i, obj) {
-    var anchor = $(document).find('a[href^="#' + this.id + '"]')[0];
-    if (typeof anchor !== 'undefined') {
-      var icons = $(anchor).find('.morphing_caret')[0];
-      if (typeof icons !== 'undefined') {
-        // Toggle animation
-        $(obj).on('show.bs.collapse', function () {
-          $(icons).toggleClass('closed');
-        });
-        $(obj).on('hide.bs.collapse', function () {
-          $(icons).toggleClass('closed');
-        });
-      }
-    }
   });
 
   // Animate loading icon on ajax timeout after 0.5s
@@ -451,6 +529,7 @@ var initFilters = () => {
     var values = { };
     if (method.element == 'search') {
       $("#basic-form input[id=page]").val(1);
+      $("#basic-form input[id=order_by]").val($('.order_filter li').first().text());
     }
     
     $('#basic-form :input').each(function() {
@@ -590,6 +669,7 @@ var initFilters = () => {
     endDate: end,
     drops: 'auto',
     showDropdowns: true,
+    alwaysShowCalendars: true,
     maxYear: dateValue.year(),
     ranges: dateRanges,
   }, setDateRange);
@@ -656,43 +736,74 @@ var initFilters = () => {
   });
 
   // Initialise searchbars for long list filter(s)
+  var scrollableLists = [];
+
+  var mutateSearchbars = () => {
+    for (var i = 0; i < scrollableLists.length; i++) {
+      var typeahead = scrollableLists[i];
+      var $element = typeahead.object;
+      var parent = $element.parent().parent().find('.scrollable_filter_list')[0];
+      
+      if (!$.isScrollable(parent))
+        continue;
+      
+      if ($.isScrollbarVisible(parent)) {
+        $element.removeClass('hide');
+      } else {
+        $element.addClass('hide');
+        $element.val('');
+        $element.trigger('keyup.' + typeahead.namespace);
+      }
+    }
+  }
+
+  var resortChildren = ($holder, $children) => {
+    $children.detach().sort(function (a, b) {
+      var v1 = $(a).find('input').first();
+      var v2 = $(b).find('input').first();
+      if (v1.prop('checked') && !v2.prop('checked')) {
+        return -1;
+      } else if (v2.prop('checked') && !v1.prop('checked')) {
+        return 1;
+      } else {
+        var n1 = $(a).find('.form-check-label').first().text().trim().toLocaleLowerCase();
+        var n2 = $(b).find('.form-check-label').first().text().trim().toLocaleLowerCase();
+        if (n1 < n2) {
+          return -1;
+        } else if (n1 > n2) {
+          return 1;
+        }
+      }
+
+      return 0;
+    });
+    $holder.append($children);
+  }
+
   $.each(SEARCHBARS[library], (key, group) => {
-    typeaheadSearchbar(group.searchbar, ($input, query) => {
-      var $tags = $('#filter_by_' + group.name + ' .' + group.name);
-      var $holder = $tags.first().parent().parent().parent();
-      var $children = $holder.children('li');
+    var $tags = $('#filter_by_' + group.name + ' .' + group.name);
+    var $holder = $tags.first().parent().parent().parent();
+    var $children = $holder.children('li');
+
+    // Resort on startup for initialising params
+    resortChildren($holder, $children);
+
+    // Init typeahead
+    var typeahead = typeaheadSearchbar(group.searchbar, ($input, query) => {
+      $children = $holder.children('li');
 
       if (query === '') {
         // Show all, with checked appearing at top of list (else alphabetical order)
         $holder.find('#filter_no_result').first().addClass('hide');
 
         $tags.each((key, element) => {
-          $(element).parent().parent().removeClass('hide');
+          $(element).parent().parent().removeClass('filter_overlay');
         });
 
-        $children.detach().sort(function (a, b) {
-          var v1 = $(a).find('input').first();
-          var v2 = $(b).find('input').first();
-          if (v1.prop('checked') && !v2.prop('checked')) {
-            return -1;
-          } else if (v2.prop('checked') && !v1.prop('checked')) {
-            return 1;
-          } else {
-            var n1 = $(a).find('.form-check-label').first().text().trim().toLocaleLowerCase();
-            var n2 = $(b).find('.form-check-label').first().text().trim().toLocaleLowerCase();
-            if (n1 < n2) {
-              return -1;
-            } else if (n1 > n2) {
-              return 1;
-            }
-          }
-
-          return 0;
-        });
-        $holder.append($children);
+        resortChildren($holder, $children);
       } else {
         var results = FuzzyQuery.Search(group.haystack, query, FuzzyQuery.Results.SORT, FuzzyQuery.Transformers.IgnoreCase);
-        if (results.length <= 0) {
+        if (results.length < 0) {
           // Display 'no results' banner
           $holder.find('#filter_no_result').first().removeClass('hide');
         } else {
@@ -712,18 +823,18 @@ var initFilters = () => {
           var $element = $(element);
           var value = $element.val();
           if (selected[value] !== undefined) {
-            $element.parent().parent().removeClass('hide');
+            $element.parent().parent().addClass('filter_overlay');
           } else {
-            $element.parent().parent().addClass('hide');
+            $element.parent().parent().removeClass('filter_overlay');
           }
         });
 
         $children.detach().sort(function (a, b) {
-          if ($(a).hasClass('hide') && $(b).hasClass('hide')) {
+          if (!$(a).hasClass('filter_overlay') && !$(b).hasClass('filter_overlay')) {
             return 0;
-          } else if ($(a).hasClass('hide')) {
+          } else if (!$(a).hasClass('filter_overlay')) {
             return 1;
-          } else if ($(b).hasClass('hide')) {
+          } else if (!$(b).hasClass('filter_overlay')) {
             return -1;
           }
           
@@ -743,6 +854,26 @@ var initFilters = () => {
         $holder.append($children);
       }
     }, 300);
+    
+    scrollableLists.push(typeahead);
+  });
+
+  // Handle collapsible state of filter option(s)
+  $('.collapse').each(function (i, obj) {
+    var anchor = $(document).find('a[href^="#' + this.id + '"]')[0];
+    if (typeof anchor !== 'undefined') {
+      var icons = $(anchor).find('.morphing_caret')[0];
+      if (typeof icons !== 'undefined') {
+        // Toggle animation
+        $(obj).on('show.bs.collapse', function () {
+          $(icons).toggleClass('closed');
+          setTimeout(mutateSearchbars, 100);
+        });
+        $(obj).on('hide.bs.collapse', function () {
+          $(icons).toggleClass('closed');
+        });
+      }
+    }
   });
 
   // Handles filtering options for types, collection, tags & coding systems
@@ -867,8 +998,11 @@ var initFilters = () => {
   $(window).on('resize', function() {
     var win = $(this);
     resizeResultPage(win);
+    mutateSearchbars();
   });
   resizeResultPage($(window));
+
+  // Need to handle whether collapsed or not from URL then mutateScrollbar()
 }
 
 /* Initialise filters */
