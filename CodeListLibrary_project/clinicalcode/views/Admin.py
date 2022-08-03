@@ -26,7 +26,6 @@ from .. import db_utils, utils, tasks
 from ..models import *
 from ..permissions import *
 from .View import *
-from clinicalcode.models.CodingSystem import CodingSystem
 
 logger = logging.getLogger(__name__)
 
