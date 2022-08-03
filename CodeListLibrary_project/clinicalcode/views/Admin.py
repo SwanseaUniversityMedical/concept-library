@@ -26,6 +26,7 @@ from .. import db_utils, utils, tasks
 from ..models import *
 from ..permissions import *
 from .View import *
+from clinicalcode.models.CodingSystem import CodingSystem
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,7 @@ from django.db import connection, connections  # , transaction
 from django.test import RequestFactory
 import csv
 from django.db.models import Min, Max
+from collections import Counter
 
 
 ##### Datasources
@@ -670,7 +672,10 @@ def save_filter_statistics(request, entity_class, brand):
                                                                 )
                 return [phenotype_stat, obj.id]
 
+def get_date_from_datetime(datetime):
+    return datetime.date() if datetime is not None else datetime
 
+    
 def get_brand_filter_stat(request, entity_class, force_brand=None):
     """
         save filter stat for the brand in both cases of published content or not.
@@ -722,8 +727,8 @@ def get_brand_filter_stat(request, entity_class, force_brand=None):
     collection_list = []
     collection_list_published = []
     
-    codingSytem_list = []
-    codingSytem_list_published = []
+    codingSystem_list = []
+    codingSystem_list_published = []
     
     
     phenotype_types_list = []
@@ -733,17 +738,17 @@ def get_brand_filter_stat(request, entity_class, force_brand=None):
         entity_id_list = list(set(entity_id_list + [i['id']]))
         
         if i['tags'] is not None:
-            tag_list = list(set(tag_list + i['tags']))
-            collection_list = list(set(collection_list + i['tags']))
+            tag_list = tag_list + i['tags']
+            collection_list = collection_list + i['tags']
             
         if entity_class == Concept:
             if i['coding_system_id'] is not None:
-                codingSytem_list = list(set(codingSytem_list + [i['coding_system_id']]))
+                codingSystem_list = codingSystem_list + [i['coding_system_id']]
         elif entity_class == Phenotype:
             if i['clinical_terminologies'] is not None:
-                codingSytem_list = list(set(codingSytem_list + i['clinical_terminologies']))
+                codingSystem_list = codingSystem_list + i['clinical_terminologies']
             if i['type'] is not None:
-                phenotype_types_list = list(set(phenotype_types_list + [i['type'].lower()]))
+                phenotype_types_list = phenotype_types_list + [i['type'].lower()]
 
 
 
@@ -751,34 +756,31 @@ def get_brand_filter_stat(request, entity_class, force_brand=None):
         entity_id_list_published = list(set(entity_id_list_published + [i['id']]))
 
         if i['tags'] is not None:
-            tag_list_published = list(set(tag_list_published + i['tags']))
-            collection_list_published = list(set(collection_list_published + i['tags']))
+            tag_list_published = tag_list_published + i['tags']
+            collection_list_published = collection_list_published + i['tags']
             
         if entity_class == Concept:
             if i['coding_system_id'] is not None:
-                codingSytem_list_published = list(set(codingSytem_list_published + [i['coding_system_id']]))
+                codingSystem_list_published = codingSystem_list_published + [i['coding_system_id']]
         elif entity_class == Phenotype:
             if i['clinical_terminologies'] is not None:
-                codingSytem_list_published = list(set(codingSytem_list_published + i['clinical_terminologies']))
+                codingSystem_list_published = codingSystem_list_published + i['clinical_terminologies']
             if i['type'] is not None:
-                phenotype_types_list_published = list(set(phenotype_types_list_published + [i['type'].lower()]))
+                phenotype_types_list_published = phenotype_types_list_published + [i['type'].lower()]
                 
     # Create a list for both allData and published.
     # tags
-    unique_tags_ids_list = list(Tag.objects.filter(id__in=tag_list, tag_type=1).values_list('id', flat=True))
-    unique_tags_ids_published_list = list(Tag.objects.filter(id__in=tag_list_published, tag_type=1).values_list('id', flat=True))
+    unique_tags_ids_list = list(Tag.objects.filter(id__in=list(set(tag_list)), tag_type=1).values_list('id', flat=True))
+    unique_tags_ids_published_list = list(Tag.objects.filter(id__in=list(set(tag_list_published)), tag_type=1).values_list('id', flat=True))
 
     # collections
-    unique_collections_ids_list = list(Tag.objects.filter(id__in=collection_list, tag_type=2).values_list('id', flat=True))
-    unique_collections_ids_published_list = list(Tag.objects.filter(id__in=collection_list_published, tag_type=2).values_list('id', flat=True))
+    unique_collections_ids_list = list(Tag.objects.filter(id__in=list(set(collection_list)), tag_type=2).values_list('id', flat=True))
+    unique_collections_ids_published_list = list(Tag.objects.filter(id__in=list(set(collection_list_published)), tag_type=2).values_list('id', flat=True))
 
     # data sources
     if entity_class == Phenotype:
-        unique_datasources_ids = PhenotypeDataSourceMap.objects.filter(phenotype_id__in=entity_id_list).values('datasource_id').distinct()
-        unique_datasources_ids_list = list(unique_datasources_ids.values_list('datasource_id', flat=True))
-        
-        unique_datasources_ids_published = PhenotypeDataSourceMap.objects.filter(phenotype_id__in=entity_id_list_published).values('datasource_id').distinct()
-        unique_datasources_ids_published_list = list(unique_datasources_ids_published.values_list('datasource_id', flat=True))
+        datasources_ids_list = list(PhenotypeDataSourceMap.history.filter(phenotype_id__in=entity_id_list).values_list('datasource_id', flat=True))        
+        datasources_ids_published_list = list(PhenotypeDataSourceMap.history.filter(phenotype_id__in=entity_id_list_published).values_list('datasource_id', flat=True))
 
 
     # publish_date
@@ -788,8 +790,8 @@ def get_brand_filter_stat(request, entity_class, force_brand=None):
         publish_date_dict = PublishedPhenotype.objects.filter(phenotype_id__in=entity_id_list).aggregate(Max('created'),Min('created'))
 
             
-    min_publish_date = str(publish_date_dict['created__min'])
-    max_publish_date = str(publish_date_dict['created__max'])
+    min_publish_date = str(get_date_from_datetime(publish_date_dict['created__min']))
+    max_publish_date = str(get_date_from_datetime(publish_date_dict['created__max']))
 
     # create_update_date
     create_update_date_dict = entity_class.objects.filter(id__in=entity_id_list).aggregate(Min('created')
@@ -797,24 +799,24 @@ def get_brand_filter_stat(request, entity_class, force_brand=None):
                                                                                         ,Min('modified')
                                                                                         ,Max('modified')
                                                                                         )
-    min_create_date = str(create_update_date_dict['created__min'])
-    max_create_date = str(create_update_date_dict['created__max'])
-    min_update_date = str(create_update_date_dict['modified__min'])
-    max_update_date = str(create_update_date_dict['modified__max'])
+    min_create_date = str(get_date_from_datetime(create_update_date_dict['created__min']))
+    max_create_date = str(get_date_from_datetime(create_update_date_dict['created__max']))
+    min_update_date = str(get_date_from_datetime(create_update_date_dict['modified__min']))
+    max_update_date = str(get_date_from_datetime(create_update_date_dict['modified__max']))
     
 
     # Create two distinct dictionaries for both allData and published
     stats_dict = {}
-    stats_dict['collections'] = [{"data_scope": "all_data", "collection_ids": unique_collections_ids_list}
-                                ,{"data_scope": "published_data", "collection_ids": unique_collections_ids_published_list}
+    stats_dict['collections'] = [{"data_scope": "all_data", "collection_ids": [x for x in Counter(collection_list).most_common() if x[0] in unique_collections_ids_list]} 
+                                ,{"data_scope": "published_data", "collection_ids": [x for x in Counter(collection_list_published).most_common() if x[0] in unique_collections_ids_published_list]}
                                 ]
     
-    stats_dict['tags'] = [{"data_scope": "all_data", "tag_ids": unique_tags_ids_list}
-                         ,{"data_scope": "published_data", "tag_ids": unique_tags_ids_published_list}
+    stats_dict['tags'] = [{"data_scope": "all_data", "tag_ids": [x for x in Counter(tag_list).most_common() if x[0] in unique_tags_ids_list]} 
+                         ,{"data_scope": "published_data", "tag_ids": [x for x in Counter(tag_list_published).most_common() if x[0] in unique_tags_ids_published_list]} 
                          ]
         
-    stats_dict['coding_systems'] = [{"data_scope": "all_data", "coding_system_ids": codingSytem_list}
-                                   ,{"data_scope": "published_data", "coding_system_IDs": codingSytem_list_published}
+    stats_dict['coding_systems'] = [{"data_scope": "all_data", "coding_system_ids": Counter(codingSystem_list).most_common()}
+                                   ,{"data_scope": "published_data", "coding_system_IDs": Counter(codingSystem_list_published).most_common()} 
                                    ]
     
         
@@ -823,16 +825,16 @@ def get_brand_filter_stat(request, entity_class, force_brand=None):
     stats_dict['update_date'] = {"min_update_date": min_update_date, "max_update_date": max_update_date}
     
     if entity_class == Phenotype:
-        stats_dict['data_sources'] = [{"data_scope": "all_data", "data_source_ids": unique_datasources_ids_list}
-                                     ,{"data_scope": "published_data", "data_source_ids": unique_datasources_ids_published_list}
+        stats_dict['data_sources'] = [{"data_scope": "all_data", "data_source_ids": Counter(datasources_ids_list).most_common()}
+                                     ,{"data_scope": "published_data", "data_source_ids": Counter(datasources_ids_published_list).most_common()}
                                    ]
             
-        stats_dict['phenotype_types'] = [{"data_scope": "all_data", "types": phenotype_types_list}
-                                        ,{"data_scope": "published_data", "types": phenotype_types_list_published}
+        stats_dict['phenotype_types'] = [{"data_scope": "all_data", "types": Counter(phenotype_types_list).most_common()}
+                                        ,{"data_scope": "published_data", "types": Counter(phenotype_types_list_published).most_common()}
                                         ]
     
     
-    
+    ss= Statistics.objects.get(id=16)
     return stats_dict
 
 
