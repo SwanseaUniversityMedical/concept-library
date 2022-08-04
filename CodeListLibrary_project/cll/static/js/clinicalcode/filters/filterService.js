@@ -20,7 +20,7 @@ var DISPLAY_QUERIES = {
 };
 
 var subheaderMap = {
-  tagids: 'tags',
+  tag_collection_ids: 'tags',
   codingids: 'coding',
   enddate: 'date',
   startdate: 'date',
@@ -125,37 +125,6 @@ for (var i = 0; i < dependencies.length; i++) {
   }
 }
 
-/* jQuery utilities */
-var scrollableMap = {
-  scroll: true,
-  auto: true
-};
-
-$.isScrollable = ($elem) => {
-  $elem = $($elem);
-  return $elem[0] 
-          ? (scrollableMap[$elem.css('overflow')]
-            || scrollableMap[$elem.css('overflow-x')]
-            || scrollableMap[$elem.css('overflow-y')])
-          : false;
-}
-
-$.isScrollbarVisible = ($elem) => {
-  $elem = $($elem);
-  return $elem[0] ? $elem[0].scrollHeight > $elem.innerHeight() : false;
-}
-
-/* Utilities */
-var isSubset = (arr1, arr2) => {
-  return arr1.every(i => arr2.includes(i));
-}
-
-var generateUUID = () => {
-  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
-  );
-}
-
 /* Filter Service */
 var initFilters = () => {
   var library = PAGE[$(environment).attr('env')];
@@ -164,67 +133,8 @@ var initFilters = () => {
     return console.warn('FilterService unable to initialise in current environment');
   }
 
-  // Toast notifications for errors or info post-AJAX
+  // Toast notifications for errors / info post-AJAX
   var notifications = []
-  var pushToastNotification = (style, desc) => {
-    for (var i = 0; i < notifications.length; i++) {
-      var $notifcation = $(notifications[i]);
-      $notifcation.css('bottom', ((i + 1) * 90 - (i * 30)).toString() + 'px');
-    }
-
-    var uuid = generateUUID();
-    var $toast = $('<div class="filter_toast push" type=' + style + ' style="bottom: 30px" name=' + uuid + '><span id="icon"></span><div id="desc">' + desc + '</div></div>');
-    $('.toast_holder').append($toast);
-    notifications.push($toast[0]);
-
-    setTimeout(function () {
-      var prev = notifications.length;
-      notifications = notifications.filter((item) => {
-        return $(item).attr('name') !== uuid;
-      });
-
-      for (var i = 0; i < notifications.length; i++) {
-        var $notifcation = $(notifications[i]);
-        $notifcation.css('bottom', ((i + 1) * 30 + (i * 30)).toString() + 'px');
-      }
-
-      $toast.remove();
-    }, 6400);
-  }
-
-  // Typeahead searchbar to minify lists
-  var typeaheadSearchbar = (input, query, typingDelay = 500) => {
-    var namespace = '.' + generateUUID();
-
-    var $input = $(input);
-    var runQuery = () => {
-      query($input, $input.val());
-    }
-
-    var timer;
-    $input.bind('keyup' + namespace, (e) => {
-      clearTimeout(timer);
-      if (e.keyCode == 13) {
-        e.preventDefault();
-        runQuery();
-      } else {
-        timer = setTimeout(runQuery, typingDelay)
-      }
-    });
-
-    $input.bind('keydown' + namespace, (e) => {
-      clearTimeout(timer);
-    });
-
-    return {
-      object: $input,
-      namespace: namespace.replace('.', ''),
-      unbind: () => {
-        $input.unbind('keyup' + namespace);
-        $input.unbind('keydown' + namespace);
-      }
-    }
-  }
 
   // Date defs & utilities datepicker
   var base_start_date = moment('2018/01/01').startOf('day');
@@ -253,6 +163,35 @@ var initFilters = () => {
     return (startdate == base_start_date.format('YYYY-MM-DD') && enddate == dateValue.format('YYYY-MM-DD'));
   }
   
+  var applyParametersToURL = (values) => {
+    var url = new URL(window.location.href);
+    $.each(values, function (key, value) {
+      var is_defined = (typeof value !== 'undefined' && value !== '' && value !== '-1' && value !== '0' && value !== 'basic-form');
+      var is_not_base = (
+        !(key == 'page' && value == '1')
+          && !(key == 'order_by' && value == $('.order_filter li').first().text())
+          && !((key == 'startdate' || key == 'enddate') && isBaseDateRange(values))
+          && !(key == 'page_size' && (value.toString() == $('.number_filter li').first().text().toString() || !RESULT_QUERIES.includes(value.toString())))
+      );
+      
+      if (is_defined && is_not_base) {
+        url.searchParams.set(key, value);
+      } else {
+        url.searchParams.delete(key);
+      }
+    });
+
+    return url;
+  }
+
+  // Applies parameters from session variables to URL
+  {
+    if (typeof filterSession !== 'undefined') {
+      var url = applyParametersToURL(filterSession);
+      window.history.replaceState({}, document.title, '?' + url.searchParams);
+    }
+  }
+  
   // Parse current parameters from URL
   var order_by = '';
   var searchString = null;
@@ -267,7 +206,7 @@ var initFilters = () => {
     var params = new URL(location == undefined ? window.location.href : location);
     params.searchParams.forEach(function (value, key) {
       switch (key) {
-        case "tagids":
+        case "tag_collection_ids":
           selected_collections = value.split(',');
           break;
         case "codingids":
@@ -291,6 +230,8 @@ var initFilters = () => {
         case "order_by":
           order_by = order_by;
           break;
+        case "page_size":
+          $('#filter_number_option span').text(value);
         default:
           break;
       }
@@ -358,9 +299,9 @@ var initFilters = () => {
       $(".filter_option.coding").prop('checked', false);
     }
 
-    if (params.searchParams.get('tagids') == null) {
+    if (params.searchParams.get('tag_collection_ids') == null) {
       selected_collections = [];
-      $("#basic-form input[id=tagids]").val('');
+      $("#basic-form input[id=tag_collection_ids]").val('');
       $(".filter_option.collection").prop('checked', false);
       $(".filter_option.tags").prop('checked', false);
     }
@@ -413,7 +354,7 @@ var initFilters = () => {
       for (var i = 0; i < params.length; i++) {
         var param = params[i][0];
         var value = params[i][1];
-        if (param == 'tagids') {
+        if (param == 'tag_collection_ids') {
           // Split tags into collection + tags then resolve collapsed state
           var selected = value.split(',');
           var hasTags = false;
@@ -425,7 +366,6 @@ var initFilters = () => {
 
             if (!hasTags) {
               hasTags = all_tag_ref.map((o) => o.id).indexOf(parseInt(selected[j])) >= 0;
-              console.log(selected[j], hasTags, all_tag_ref);
             }
 
             if (hasCollections === true && hasTags === true) {
@@ -451,24 +391,22 @@ var initFilters = () => {
   }
 
   // Handle scroll to top button(s)
-  $(document).on('click', '#scroll_up', (e) => {
+  $(document).on('click.filterService', '#scroll_up', (e) => {
     e.preventDefault();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
   // Animate loading icon on ajax timeout after 0.5s
   var loadingTimeout;
-  $(document).on({
-    ajaxStart: function () {
-      loadingTimeout = setTimeout(function () {
-        $('#loading_res_spinner').removeClass('hidden');
-        $('#result-div').html('');
-      }, 500);
-    },
-    ajaxStop: function () {
-      $('#loading_res_spinner').addClass('hidden');
-      clearTimeout(loadingTimeout);
-    }
+  $(document).on('ajaxStart.filterService', function () {
+    loadingTimeout = setTimeout(function () {
+      $('#loading_res_spinner').removeClass('hidden');
+      $('#result-div').html('');
+    }, 500);
+  });
+  $(document).on('ajaxStop.filterService', function () {
+    $('#loading_res_spinner').addClass('hidden');
+    clearTimeout(loadingTimeout);
   });
 
   // Handle ajax req. for updating concept & phenotype results
@@ -560,23 +498,8 @@ var initFilters = () => {
         // Update result counter
         $('#result_count').text($('#result-div #paginator_count').text() + ' Record(s)');
 
-        // Update URL parameters --> Only update url parameter if url is defined & if parameter is not the base value
-        var url = new URL(window.location.href);
-        $.each(values, function (key, value) {
-          var is_defined = (typeof value !== 'undefined' && value !== '' && value !== '-1' && value !== '0' && value !== 'basic-form');
-          var is_not_base = (
-            !(key == 'page' && value == '1')
-              && !(key == 'order_by' && value == $('.order_filter li').first().text())
-              && !((key == 'startdate' || key == 'enddate') && isBaseDateRange(values))
-              && !(key == 'page_size' && (value == $('.number_filter li').first().text() || !RESULT_QUERIES.includes(value)))
-          );
-          
-          if (is_defined && is_not_base) {
-            url.searchParams.set(key, value);
-          } else {
-            url.searchParams.delete(key);
-          }
-        });
+        // Update URL parameters
+        var url = applyParametersToURL(values)
 
         // Apply history to window if page, search query or date is changed, otherwise replace state to avoid unnecessary window hx upd
         if (method.element == 'page' || method.element == 'search' || method.element == 'date') {
@@ -591,7 +514,10 @@ var initFilters = () => {
           return;
         }
 
-        pushToastNotification('error', 'An error has occurred. Please try again.');
+        $('.toast_holder').pushToastNotification({
+          style: 'error',
+          desc: 'An error has occurred. Please try again.'
+        });
       })
       .finally(() => {
         fetchFilterParameters();
@@ -615,7 +541,7 @@ var initFilters = () => {
   });
 
   // Handle results per page option
-  $(document).on('click', '.number_filter a', (e) => {
+  $(document).on('click.filterService', '.number_filter a', (e) => {
     e.preventDefault();
 
     var $results = $(e.target).text();
@@ -625,7 +551,7 @@ var initFilters = () => {
   });
 
   // Handle ordering option
-  $(document).on('click', '.order_filter a', (e) => {
+  $(document).on('click.filterService', '.order_filter a', (e) => {
     e.preventDefault();
 
     var $order = $(e.target).text();
@@ -694,15 +620,15 @@ var initFilters = () => {
     });
   });
   
-  $(document).on('keypress', function (e) {
+  $(document).on('keypress.filterService', function (e) {
     if (e.keyCode == 13) {
-      e.preventDefault();
-
       var $target = $(e.target)
       var $name = $target.attr('name');
       if (!TEXT_QUERIES.includes($target.attr('id'))) {
         return;
       }
+
+      e.preventDefault();
 
       switch ($name) {
         case "author":
@@ -726,7 +652,7 @@ var initFilters = () => {
   });
 
   // Reroute pagination to ajax submission form
-  $(document).on('click', '.btn-paginate', function (e) {
+  $(document).on('click.filterService', '.btn-paginate', function (e) {
     e.preventDefault();
 
     var dest = parseInt($(this).attr('value'));
@@ -737,11 +663,9 @@ var initFilters = () => {
 
   // Initialise searchbars for long list filter(s)
   var scrollableLists = [];
-
   var mutateSearchbars = () => {
     for (var i = 0; i < scrollableLists.length; i++) {
-      var typeahead = scrollableLists[i];
-      var $element = typeahead.object;
+      var $element = scrollableLists[i];
       var parent = $element.parent().parent().find('.scrollable_filter_list')[0];
       
       if (!$.isScrollable(parent))
@@ -752,7 +676,6 @@ var initFilters = () => {
       } else {
         $element.addClass('hide');
         $element.val('');
-        $element.trigger('keyup.' + typeahead.namespace);
       }
     }
   }
@@ -780,6 +703,13 @@ var initFilters = () => {
     $holder.append($children);
   }
 
+  var pulsateSelected = (item) => {
+    $(item).css({opacity: 0});
+    $(item).animate({opacity: 1}, 200);
+    $(item).animate({opacity: 0}, 200);
+    $(item).animate({opacity: 1}, 200);
+  }
+
   $.each(SEARCHBARS[library], (key, group) => {
     var $tags = $('#filter_by_' + group.name + ' .' + group.name);
     var $holder = $tags.first().parent().parent().parent();
@@ -789,73 +719,56 @@ var initFilters = () => {
     resortChildren($holder, $children);
 
     // Init typeahead
-    var typeahead = typeaheadSearchbar(group.searchbar, ($input, query) => {
-      $children = $holder.children('li');
-
-      if (query === '') {
-        // Show all, with checked appearing at top of list (else alphabetical order)
-        $holder.find('#filter_no_result').first().addClass('hide');
-
-        $tags.each((key, element) => {
-          $(element).parent().parent().removeClass('filter_overlay');
-        });
-
-        resortChildren($holder, $children);
-      } else {
-        var results = FuzzyQuery.Search(group.haystack, query, FuzzyQuery.Results.SORT, FuzzyQuery.Transformers.IgnoreCase);
-        if (results.length < 0) {
-          // Display 'no results' banner
-          $holder.find('#filter_no_result').first().removeClass('hide');
-        } else {
-          $holder.find('#filter_no_result').first().addClass('hide');
+    $(group.searchbar).autocompleteSearch({
+      onQuery: (needle) => {
+        if (needle === '') {
+          return [];
         }
 
-        // Display results in order of proximity
-        var selected = { };
-        results.map((e, i) => {
-          var item = group.reference.find(x => x.name.toLocaleLowerCase() === e.item.toLocaleLowerCase());
-          if (item !== undefined && item !== null) {
-            selected[item.id] = e.score;
-          }
-        });
-
-        $tags.each((key, element) => {
-          var $element = $(element);
-          var value = $element.val();
-          if (selected[value] !== undefined) {
-            $element.parent().parent().addClass('filter_overlay');
-          } else {
-            $element.parent().parent().removeClass('filter_overlay');
-          }
-        });
-
-        $children.detach().sort(function (a, b) {
-          if (!$(a).hasClass('filter_overlay') && !$(b).hasClass('filter_overlay')) {
+        var results = FuzzyQuery.Search(group.haystack, needle, FuzzyQuery.Results.SORT, FuzzyQuery.Transformers.IgnoreCase);
+        results.sort((a, b) => {
+          if (a.score === b.score) {
             return 0;
-          } else if (!$(a).hasClass('filter_overlay')) {
-            return 1;
-          } else if (!$(b).hasClass('filter_overlay')) {
+          } else if (a.score > b.score) {
             return -1;
-          }
-          
-          var v1 = $(a).find('input').first().val();
-          var v2 = $(b).find('input').first().val();
-          var s1 = selected[v1];
-          var s2 = selected[v2];
-          if (s1 < s2) {
-            return -1;
-          }
-          if (s1 > s2) {
+          } else if (a.score < b.score) {
             return 1;
           }
-
-          return 0;
         });
-        $holder.append($children);
+        results = results.map((e) => {
+          var item = group.reference.find(x => x.name.toLocaleLowerCase() === e.item.toLocaleLowerCase());
+          return item.name;
+        });
+
+        return results;
+      },
+      onFocusLost: () => {
+        resortChildren($holder, $children);
+      },
+      onSelected: (val) => {
+        resortChildren($holder, $children);
+        
+        var child = $holder.children('li').find('.form-check-label').filter(function () {
+          return $(this).text().trim().toLocaleLowerCase() == val.toLocaleLowerCase();
+        })[0];
+
+        if (child) {
+          var item = child.parentNode.parentNode;
+          $holder.animate(
+            {
+              scrollTop: $holder.scrollTop() - $holder.offset().top + $(item).offset().top 
+            },
+            {
+              duration: 500,
+              complete: () => {
+                pulsateSelected(item);
+              }
+            }
+          );
+        }
       }
-    }, 300);
-    
-    scrollableLists.push(typeahead);
+    });
+    scrollableLists.push($(group.searchbar));
   });
 
   // Handle collapsible state of filter option(s)
@@ -955,7 +868,7 @@ var initFilters = () => {
       $("#checkAll_coding").prop('checked', true);
     }
 
-    $("#basic-form input[id=tagids]").val(selected_collections);
+    $("#basic-form input[id=tag_collection_ids]").val(selected_collections);
     $("#basic-form input[id=codingids]").val(selected_codes);
     $("#basic-form").trigger('submit', [{'element': $(this).attr('name')}]);
   });
@@ -1001,8 +914,7 @@ var initFilters = () => {
     mutateSearchbars();
   });
   resizeResultPage($(window));
-
-  // Need to handle whether collapsed or not from URL then mutateScrollbar()
+  mutateSearchbars();
 }
 
 /* Initialise filters */

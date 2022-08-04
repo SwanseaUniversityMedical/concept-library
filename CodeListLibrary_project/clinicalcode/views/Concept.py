@@ -706,26 +706,26 @@ def concept_list(request):
 
     method = request.GET.get('filtermethod', '')
 
-    page_size = utils.get_int_value(request.GET.get('page_size', 20), 20)
+    page_size = utils.get_int_value(request.GET.get('page_size', request.session.get('concept_page_size', 20)), request.session.get('concept_page_size', 20))
     page_size = page_size if page_size in db_utils.page_size_limits else 20
-    page = utils.get_int_value(request.GET.get('page', 1), 1)
-    search = request.GET.get('search', '') #request.session.get('concept_search', ''))
-    tag_ids = request.GET.get('tagids', '')
-    owner = request.GET.get('owner', '')
-    author = request.GET.get('author', '')
-    coding_ids = request.GET.get('codingids', '')
-    des_order = request.GET.get('order_by', '')
+    page = utils.get_int_value(request.GET.get('page', request.session.get('concept_page', 1)), request.session.get('concept_page', 1))
+    search = request.GET.get('search', request.session.get('concept_search', ''))
+    tag_ids = request.GET.get('tag_collection_ids', request.session.get('concept_tag_collection_ids', ''))
+    owner = request.GET.get('owner', request.session.get('concept_owner', ''))
+    author = request.GET.get('author', request.session.get('concept_author', ''))
+    coding_ids = request.GET.get('codingids', request.session.get('concept_codingids', ''))
+    des_order = request.GET.get('order_by', request.session.get('concept_order_by', ''))
     concept_brand = request.GET.get('concept_brand', request.session.get('concept_brand', ''))  # request.CURRENT_BRAND
      
-    show_deleted_concepts = request.GET.get('show_deleted_concepts', 0)
-    show_my_concepts = request.GET.get('show_my_concepts', 0)
-    show_only_validated_concepts = request.GET.get('show_only_validated_concepts', 0)   
-    must_have_published_versions = request.GET.get('must_have_published_versions', 0)
+    show_deleted_concepts = request.GET.get('show_deleted_concepts', request.session.get('concept_show_deleted_concepts', 0))
+    show_my_concepts = request.GET.get('show_my_concepts', request.session.get('concept_show_my_concept', 0))
+    show_only_validated_concepts = request.GET.get('show_only_validated_concepts', request.session.get('show_only_validated_concepts', 0))
+    must_have_published_versions = request.GET.get('must_have_published_versions', request.session.get('concept_must_have_published_versions', 0))
 
     search_form = request.GET.get('search_form', 'basic-form')
 
-    start_date_range = request.GET.get('startdate', '')
-    end_date_range = request.GET.get('enddate', '')
+    start_date_range = request.GET.get('startdate', request.session.get('concept_date_start', ''))
+    end_date_range = request.GET.get('enddate', request.session.get('concept_date_end', ''))
     
     start_date_query, end_date_query = False, False
     try:
@@ -740,15 +740,14 @@ def concept_list(request):
     request.session['concept_page_size'] = page_size
     request.session['concept_page'] = page
     request.session['concept_search'] = search 
-    request.session['concept_tagids'] = tag_ids
+    request.session['concept_tag_collection_ids'] = tag_ids
     request.session['concept_brand'] = concept_brand
     request.session['concept_codingids'] = coding_ids
     request.session['concept_date_start'] = start_date_range
     request.session['concept_date_end'] = end_date_range
-     
-    #if search_form !='basic-form':     
     request.session['concept_owner'] = owner   
     request.session['concept_author'] = author
+    request.session['concept_order_by'] = des_order
     request.session['concept_show_deleted_concepts'] = show_deleted_concepts   
     request.session['concept_show_my_concept'] = show_my_concepts
     request.session['show_only_validated_concepts'] = show_only_validated_concepts   
@@ -904,14 +903,7 @@ def concept_list(request):
     coding_system_reference_ids = list(coding_system_reference.values_list('id', flat=True))
     coding_id_list = []
     if coding_ids:
-        coding_id_list = utils.expect_integer_list(coding_id_list)
-
-    owner = request.session.get('concept_owner')    
-    author = request.session.get('concept_author') 
-    show_deleted_concepts = request.session.get('concept_show_deleted_concepts')    
-    show_my_concepts = request.session.get('concept_show_my_concept')
-    show_only_validated_concepts = request.session.get('show_only_validated_concepts')   
-    must_have_published_versions = request.session.get('concept_must_have_published_versions')
+        coding_id_list = utils.expect_integer_list(coding_ids)
     
     context = {
         'page': page,
@@ -941,6 +933,7 @@ def concept_list(request):
         'brand_associated_tags_ids': list(brand_associated_tags.values()),
         'all_tags_selected': all(item in tag_ids_list for item in brand_associated_tags.values()),
         'coding_id_list': coding_id_list,
+        'coding_ids': coding_ids,
         'all_coding_selected':all(item in coding_id_list for item in coding_system_reference_ids),
         'ordered_by': des_order,
         'filter_start_date': start_date_range,

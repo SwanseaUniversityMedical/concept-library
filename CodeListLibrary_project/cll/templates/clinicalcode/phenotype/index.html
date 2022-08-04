@@ -21,7 +21,7 @@
 						<div class="form-input-flex-container">
 							<!-- Basic form queries -->
 							<input type="text" placeholder="Search Phenotypes" name="search" id="search1" value="{{ search|default_if_none:'' }}">
-							<input type="hidden" name="tagids" id="tagids"  value="{{ tag_ids|default_if_none:'' }}">
+							<input type="hidden" name="tag_collection_ids" id="tag_collection_ids"  value="{{ tag_ids|default_if_none:'' }}">
 							<input type="hidden" name="selected_phenotype_types" id="selected_phenotype_types"  value="{{ selected_phenotype_types_str|default_if_none:'' }}">
 							<input type="hidden" name="search_form" id="collection_search_form1"  class="collection_search_form"  value="{{ search_form }}"> 
 							<input type="hidden" name="codingids" id="codingids"  value="{{ codingids|default_if_none:'' }}">
@@ -182,10 +182,33 @@
 		var brand_associated_collections_ids = {{ brand_associated_collections_ids|safe }};
 		var brand_associated_tags_ids = {{ brand_associated_tags_ids|safe }};
 		var coding_system_reference_ids = {{ coding_system_reference_ids|safe }};
+		
+		var filterSession = {
+			'page_size': {{ page_size }},
+			'page': {{ page }},
+			'search': "{{ search }}",
+			'author': "{{ author }}",
+			'owner': "{{ owner }}",
+			'tag_collection_ids': "{{ tag_ids }}",
+			'codingids': "{{ coding_ids }}",
+			'startdate': "{{ filter_start_date }}",
+			'enddate': "{{ filter_end_date }}",
+			'show_deleted_phenotypes': "{{ show_deleted_phenotypes }}",
+			'show_my_phenotypes': "{{ show_my_phenotypes }}",
+			'show_only_validated_phenotypes': "{{ show_only_validated_phenotypes }}",
+			'phenotype_must_have_published_versions': "{{ phenotype_must_have_published_versions }}",
+			'order_by': "{{ ordered_by }}",
+			'selected_phenotype_types': "{{ selected_phenotype_types_str }}",
+			'show_my_pending_phenotypes': "{{ show_my_pending_phenotypes }}",
+			'show_mod_pending_phenotypes': "{{ show_mod_pending_phenotypes }}",
+			'show_rejected_phenotypes': "{{ show_rejected_phenotypes }}",
+		};
+		console.log(filterSession);
 	</script>
 
-	<script src="{% static 'js/clinicalcode/filterService.js' %}" 
-		req-scripts="{% static 'js/clinicalcode/FuzzyQuery.js' %},{% static 'js/lib/daterangepicker/daterangepicker.js' %},{% static 'js/lib/daterangepicker/moment.min.js' %}"
+
+	<script src="{% static 'js/clinicalcode/filters/filterService.js' %}" 
+		req-scripts="{% static 'js/clinicalcode/filters/utils.js' %},{% static 'js/clinicalcode/filters/toastNotifications.js' %},{% static 'js/clinicalcode/filters/autocompleteSearch.js' %},{% static 'js/clinicalcode/filters/FuzzyQuery.js' %},{% static 'js/lib/daterangepicker/daterangepicker.js' %},{% static 'js/lib/daterangepicker/moment.min.js' %}"
 		req-styles="{% static 'lib/daterangepicker/daterangepicker.css' %}"
 		env="PHENOTYPE"
 	></script>

@@ -71,17 +71,16 @@ def phenotype_list(request):
 
     method = request.GET.get('filtermethod', '')
     
-    page_size = utils.get_int_value(request.GET.get('page_size', 20), 20)
+    page_size = utils.get_int_value(request.GET.get('page_size', request.session.get('phenotype_page_size', 20)), request.session.get('phenotype_page_size', 20))
     page_size = page_size if page_size in db_utils.page_size_limits else 20
-    page = utils.get_int_value(request.GET.get('page', 1), 1)
-    search = request.GET.get('search', '')
-    tag_ids = request.GET.get('tagids', '')
-    owner = request.GET.get('owner', '')
-    author = request.GET.get('author', '')
-    coding_ids = request.GET.get('codingids', '')
-    datasources = request.GET.get('datasources', '')
-    des_order = request.GET.get('order_by', '')
-    selected_phenotype_types = request.GET.get('selected_phenotype_types', '')
+    page = utils.get_int_value(request.GET.get('page', request.session.get('phenotype_page', 1)), request.session.get('phenotype_page', 1))
+    search = request.GET.get('search', request.session.get('phenotype_search', ''))
+    tag_ids = request.GET.get('tag_collection_ids', request.session.get('phenotype_tag_collection_ids', ''))
+    owner = request.GET.get('owner', request.session.get('phenotype_owner', ''))
+    author = request.GET.get('author', request.session.get('phenotype_author', ''))
+    coding_ids = request.GET.get('codingids', request.session.get('phenotype_codingids', ''))
+    des_order = request.GET.get('order_by', request.session.get('phenotype_order_by', ''))
+    selected_phenotype_types = request.GET.get('selected_phenotype_types', request.session.get('selected_phenotype_types', ''))
     phenotype_brand = request.GET.get('phenotype_brand', request.session.get('phenotype_brand', ''))  # request.CURRENT_BRAND
     
     show_deleted_phenotypes = request.GET.get('show_deleted_phenotypes', request.session.get('phenotype_show_deleted_phenotypes', 0))
@@ -95,8 +94,8 @@ def phenotype_list(request):
    
     search_form = request.GET.get('search_form', request.session.get('phenotype_search_form', 'basic-form'))
 
-    start_date_range = request.GET.get('startdate', '')
-    end_date_range = request.GET.get('enddate', '')
+    start_date_range = request.GET.get('startdate', request.session.get('phenotype_date_start', ''))
+    end_date_range = request.GET.get('enddate', request.session.get('phenotype_date_end', ''))
     
     start_date_query, end_date_query = False, False
     try:
@@ -109,14 +108,16 @@ def phenotype_list(request):
     # store page index variables to session
     request.session['phenotype_page_size'] = page_size
     request.session['phenotype_page'] = page
-    request.session['phenotype_search'] = search  
-    request.session['phenotype_tagids'] = tag_ids
+    request.session['phenotype_search'] = search
+    request.session['phenotype_tag_collection_ids'] = tag_ids
     request.session['phenotype_brand'] = phenotype_brand   
     request.session['selected_phenotype_types'] = selected_phenotype_types
-   
-   #if search_form !='basic-form': 
-    request.session['phenotype_author'] = author  
-    request.session['phenotype_owner'] = owner     
+    request.session['phenotype_codingids'] = coding_ids
+    request.session['phenotype_date_start'] = start_date_range
+    request.session['phenotype_date_end'] = end_date_range
+    request.session['phenotype_owner'] = owner   
+    request.session['phenotype_author'] = author
+    request.session['phenotype_order_by'] = des_order  
     request.session['phenotype_show_my_phenotype'] = show_my_phenotypes
     request.session['phenotype_show_deleted_phenotypes'] = show_deleted_phenotypes
     request.session['show_only_validated_phenotypes'] = show_only_validated_phenotypes
@@ -183,9 +184,6 @@ def phenotype_list(request):
 
     if isinstance(start_date_query, datetime.datetime) and isinstance(end_date_query, datetime.datetime):
         filter_cond += " AND (created >= '" + start_date_range + "' AND created <= '" + end_date_range + "') "
-
-    if datasources:
-        sources = DataSource.objects.all().order_by('name')
     
     # check if it is the public site or not
     if request.user.is_authenticated:
@@ -301,17 +299,6 @@ def phenotype_list(request):
     if coding_ids:
         coding_id_list = utils.expect_integer_list(coding_ids)
 
-    author = request.session.get('phenotype_author')  
-    owner = request.session.get('phenotype_owner')       
-    show_my_phenotypes = request.session.get('phenotype_show_my_phenotype')
-    show_deleted_phenotypes = request.session.get('phenotype_show_deleted_phenotypes')
-    show_only_validated_phenotypes = request.session.get('show_only_validated_phenotypes') 
-    phenotype_must_have_published_versions = request.session.get('phenotype_must_have_published_versions') 
-    show_my_pending_phenotypes = request.session.get('phenotype_show_my_pending_phenotypes') 
-    show_mod_pending_phenotypes = request.session.get('phenotype_show_mod_pending_phenotypes')
-    show_rejected_phenotypes = request.session.get('phenotype_show_rejected_phenotypes') 
-         
-
     context = {
         'page': page,
         'page_size': str(page_size),
@@ -348,6 +335,7 @@ def phenotype_list(request):
         'brand_associated_tags_ids': list(brand_associated_tags.values()),
         'all_tags_selected': all(item in tag_ids_list for item in brand_associated_tags.values()),
         'coding_id_list': coding_id_list,
+        'coding_ids': coding_ids,
         'all_coding_selected':all(item in coding_id_list for item in coding_system_reference_ids),
         'ordered_by': des_order,
         'filter_start_date': start_date_range,
