@@ -28,4 +28,6 @@ $.fn.pushToastNotification = function (notif) {
 
     $toast.remove();
   }, 6400);
+  
+  return this;
 }

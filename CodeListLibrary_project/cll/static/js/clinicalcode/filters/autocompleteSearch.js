@@ -122,4 +122,6 @@ $.fn.autocompleteSearch = function (methods) {
       $(document).unbind('click.' + namespace);
     }
   });
+  
+  return this;
 }

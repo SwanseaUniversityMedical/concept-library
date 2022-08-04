@@ -48,6 +48,10 @@
 					</div>
 				</div>
 			</form>
+			<div class="row applied_filter_group hide">
+				 <h4>Applied Filters</h4>
+				 <ul class="applied_filter_tags"></ul>
+			</div>
 		</div>
 	</div>	
 </div>	
@@ -203,12 +207,10 @@
 			'show_mod_pending_phenotypes': "{{ show_mod_pending_phenotypes }}",
 			'show_rejected_phenotypes': "{{ show_rejected_phenotypes }}",
 		};
-		console.log(filterSession);
 	</script>
 
-
 	<script src="{% static 'js/clinicalcode/filters/filterService.js' %}" 
-		req-scripts="{% static 'js/clinicalcode/filters/utils.js' %},{% static 'js/clinicalcode/filters/toastNotifications.js' %},{% static 'js/clinicalcode/filters/autocompleteSearch.js' %},{% static 'js/clinicalcode/filters/FuzzyQuery.js' %},{% static 'js/lib/daterangepicker/daterangepicker.js' %},{% static 'js/lib/daterangepicker/moment.min.js' %}"
+		req-scripts="{% static 'js/clinicalcode/filters/utils.js' %},{% static 'js/clinicalcode/filters/filterTags.js' %},{% static 'js/clinicalcode/filters/toastNotifications.js' %},{% static 'js/clinicalcode/filters/autocompleteSearch.js' %},{% static 'js/clinicalcode/filters/FuzzyQuery.js' %},{% static 'js/lib/daterangepicker/daterangepicker.js' %},{% static 'js/lib/daterangepicker/moment.min.js' %}"
 		req-styles="{% static 'lib/daterangepicker/daterangepicker.css' %}"
 		env="PHENOTYPE"
 	></script>

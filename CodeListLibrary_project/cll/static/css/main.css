@@ -746,6 +746,54 @@ p > a {
   color: #ffffff;
 }
 
+/* Filter tags */
+.row.applied_filter_group {
+  padding-top: 15px;
+}
+
+ul.applied_filter_tags {
+	list-style: none;
+  list-style-type: none;
+  padding: 5px 0px 5px 0px;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+ul.applied_filter_tags li {
+  display: inline-block;
+  height: 25px;
+  font-size: 16px;
+  line-height: 20px;
+  border-radius: 5px;
+  background-color: #0088ff;
+  padding: 2px 10px 5px 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 5px;
+	box-shadow: 0 2px 5px 0 rgb(0 0 0 / 16%), 0 2px 10px 0 rgb(0 0 0 / 12%);
+}
+
+ul.applied_filter_tags li span.close_btn {
+  padding-left: 10px;
+  color: rgb(170, 170, 170);
+  font-weight: bold;
+  float: right;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+ul.applied_filter_tags li span.close_btn.close_btn:hover {
+  color: rgb(216, 79, 79);
+}
+
+/* bg-search */
+.bg-search {
+  padding-bottom: 10px;
+}
+
 /* Scroll style for filters */
 .scrollable_filter_list {
 	list-style: none;
@@ -785,12 +833,6 @@ p > a {
   right: 10px;
   top: 12px;
 }
-
-/* @media screen and (max-width: 1050px) {
-  .morphing_caret {
-    display: none !important;
-  }
-} */
 
 .morphing_caret {
   transform: rotate(0deg);

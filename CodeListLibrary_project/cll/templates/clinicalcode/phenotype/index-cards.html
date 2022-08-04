@@ -7,7 +7,7 @@
 		<div class="panel panel-default panel_border" id="filter_panel_group">
 			<h4 class="panel-title filter_header">Filters<i class="help-block-no-break" style="font-size: 10px; display: inline; text-align: right; float: right;" id="result_count">{{ page_obj.paginator.count }} Record(s)</i></h4>
 			
-			<form id="filter_form" action="{% url 'phenotype_list' %}" method="GET">
+			<form id="filter_form" action="{% url 'phenotype_list' %}" method="GET" autocomplete="OFF">
 				{% csrf_token %}
 				
 				<!-- Type -->
@@ -23,7 +23,7 @@
 				<div class="filter-content collapse in" id="collapse-type">
 					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_types">
 						<div class="query_filter">
-							<input type="text" class="form-control" id="type_searchbar" placeholder="Search...">
+							<input type="text" autocomplete="false"  class="form-control" id="type_searchbar" placeholder="Search...">
 						</div>
 						<hr style="padding: 0; margin: 0;">
 						<ul class="scrollable_filter_list">
@@ -56,7 +56,7 @@
 				<div class="filter-content collapse" id="collapse-collection">
 					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_collection">
 						<div class="query_filter">
-							<input type="text" class="form-control" id="collection_searchbar" placeholder="Search...">
+							<input type="text" autocomplete="false"  class="form-control" id="collection_searchbar" placeholder="Search...">
 						</div>
 						<hr  style="padding: 0; margin: 0;">
 						<ul class="scrollable_filter_list">
@@ -91,7 +91,7 @@
 				<div class="filter-content collapse" id="collapse-tags">
 					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_tags">
 						<div class="query_filter">
-							<input type="text" class="form-control" id="tag_searchbar" placeholder="Search...">
+							<input type="text" autocomplete="false"  class="form-control" id="tag_searchbar" placeholder="Search...">
 						</div>
 						<hr style="padding: 0; margin: 0;">
 						<ul class="scrollable_filter_list">
@@ -123,7 +123,7 @@
 				<div class="filter-content collapse" id="collapse-coding">
 					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_coding">
 						<div class="query_filter">
-							<input type="text" class="form-control" id="coding_searchbar" placeholder="Search...">
+							<input type="text" autocomplete="false"  class="form-control" id="coding_searchbar" placeholder="Search...">
 						</div>
 						<hr  style="padding: 0; margin: 0;">
 						<ul class="scrollable_filter_list">

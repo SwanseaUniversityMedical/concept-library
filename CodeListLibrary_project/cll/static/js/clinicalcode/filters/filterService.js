@@ -1,8 +1,53 @@
+/* Behaviour defs */
+var SHOULD_TOGGLE_SEARCH = true; // Det. whether we should toggle filter search elements upon selection
+var TAG_DECORATION       = {     // Det. decoration for 'Applied Filters' tag(s) for each type
+  'author': {
+    textColor: '#333',
+    tagColor: '#FAF0D7',
+    prefix: 'Author:',
+  },
+  'owner': {
+    textColor: '#333',
+    tagColor: '#FFD9C0',
+    prefix: 'Owner:',
+  },
+  'search': {
+    textColor: '#333',
+    tagColor: '#E6D7F0',
+    prefix: 'Search:',
+  },
+  'date': {
+    textColor: '#333',
+    tagColor: '#BAC1EC',
+    prefix: 'Date:',
+  },
+  'selected_phenotype_types': {
+    textColor: '#333',
+    tagColor: '#FCDDAF',
+    prefix: 'Type:',
+  },
+  'codingids': {
+    textColor: '#333',
+    tagColor: '#B5EAD7',
+    prefix: 'Coding:',
+  },
+  'collections': {
+    textColor: '#333',
+    tagColor: '#FEE8E2',
+    prefix: 'Collection:',
+  },
+  'tags': {
+    textColor: '#333',
+    tagColor: '#D0E5B9',
+    prefix: 'Tag:',
+  },
+};
+
+/* Global defs */
 var phenotype_types = typeof phenotype_types === 'undefined' ? [] : phenotype_types;
 var type_names = typeof type_names === 'undefined' ? [] : type_names;
 var all_phenotypes = typeof all_phenotypes === 'undefined' ? [] : all_phenotypes;
 
-/* Global defs */
 var PAGE = {
   PHENOTYPE: 0,
   CONCEPT: 1
@@ -21,6 +66,8 @@ var DISPLAY_QUERIES = {
 
 var subheaderMap = {
   tag_collection_ids: 'tags',
+  tags: 'tags',
+  collections: 'collection',
   codingids: 'coding',
   enddate: 'date',
   startdate: 'date',
@@ -133,9 +180,6 @@ var initFilters = () => {
     return console.warn('FilterService unable to initialise in current environment');
   }
 
-  // Toast notifications for errors / info post-AJAX
-  var notifications = []
-
   // Date defs & utilities datepicker
   var base_start_date = moment('2018/01/01').startOf('day');
   var dateTime = moment();
@@ -162,7 +206,123 @@ var initFilters = () => {
     var enddate = params['enddate'];
     return (startdate == base_start_date.format('YYYY-MM-DD') && enddate == dateValue.format('YYYY-MM-DD'));
   }
-  
+
+  // Filter Tag Service
+  $('.applied_filter_tags').filterTags(
+    TAG_DECORATION,
+    {
+      onHide: (element) => {
+        $(element).parent().addClass('hide');
+      },
+      onShow: (element) => {
+        $(element).parent().removeClass('hide');
+      },
+      onRemove: (element, filterType, filterValue) => {
+        switch (filterType) {
+          case 'tags':
+          case 'collections':
+            var selected = $("#basic-form input[id=tag_collection_ids]").val().split(',').filter((x) => x != filterValue.value);
+            $("#basic-form input[id=tag_collection_ids]").val(selected.join(','));
+            break;
+          case 'date':
+            start = moment(base_start_date);
+            end = moment(dateValue);
+            $("#basic-form input[id=startdate]").val(start.format('YYYY-MM-DD'));
+            $("#basic-form input[id=enddate]").val(end.format('YYYY-MM-DD'));
+            break;
+          case 'codingids':
+          case 'selected_phenotype_types':
+            var selected = $("#basic-form input[id=" + filterType + "]").val().split(',').filter((x) => x != filterValue.value);
+            $("#basic-form input[id=" + filterType + "]").val(selected.join(','));
+            break;
+          case 'owner':
+          case 'author':
+          case 'search':
+            if (filterType === 'search') {
+              searchString = '';
+            }
+            $("#basic-form input[name=" + filterType + "]").val('');
+            break;
+          default:
+            var selected = $("#basic-form input[id=" + filterType + "]").val().replace(filterValue.value, '');
+            $("#basic-form input[id=" + filterType + "]").val(selected);
+            break;
+        }
+        $("#basic-form").trigger('submit', [{'element': 'refresh'}]);
+      },
+    }
+  );
+
+  var filterDisplay = $('.applied_filter_tags').data('TagService');
+  var parseTagsAndCollections = (value) => {
+    var selected = value.split(',');
+    var collections = all_collections.map((o) => o.id.toString()).filter(item => selected.includes(item));
+    var tags = all_tag_ref.map((o) => o.id.toString()).filter(item => selected.includes(item));
+
+    collections = collections.length > 0 ? collections : false;
+    tags = tags.length > 0 ? tags : false;
+
+    return {'collections': collections, 'tags': tags};
+  }
+
+  var parseReadableTag = (key, value) => {
+    if (!isNaN(parseInt(value))) {
+      var header = subheaderMap[key];
+      var elements = $('#collapse-' + header).find('li input');
+      for (var i = 0; i < elements.length; i++) {
+        var $elem = $(elements[i]);
+        if ($elem.val() === value) {
+          var text = $elem.parent().find('span').text().trim();
+          return {value: value, display: text};
+        }
+      }
+
+      return {value: value, display: String(value)};
+    }
+
+    return {value: value};
+  }
+
+  var parseParameterAsTag = (filters, key, obj) => {
+    if (obj.value.includes(',')) {
+      filters[key] = obj.value.split(',').map(x => parseReadableTag(key, x));
+    } else {
+      filters[key] = parseReadableTag(key, obj.value);
+    }
+  }
+
+  var displayFiltersFromURL = (url) => {
+    var filters = { };
+    url.searchParams.forEach(function (value, key) {
+      if (TAG_DECORATION[key]) {
+        parseParameterAsTag(filters, key, {value: value});
+      } else if (key === 'tag_collection_ids') {
+        var selected = parseTagsAndCollections(value);
+        if (selected.collections) {
+          parseParameterAsTag(filters, 'collections', {value: selected.collections.join(',')});
+        }
+        if (selected.tags) {
+          parseParameterAsTag(filters, 'tags', {value: selected.tags.join(',')});
+        }
+      }
+    });
+
+    var startRange = url.searchParams.get('startdate'),
+        endRange = url.searchParams.get('enddate');
+    if (startRange !== null && endRange !== null) {
+      // Reformat date as dd/mm/yyyy and replace chars '-' with '/' before applying for human readability
+      startRange = startRange.replace(/(\d{4})-(\d\d)-(\d\d)/, "$3/$2/$1");
+      endRange = endRange.replace(/(\d{4})-(\d\d)-(\d\d)/, "$3/$2/$1");
+
+      filters['date'] = {
+        display: startRange + '<strong> \u2192 </strong>' + endRange,
+        value: [startRange, endRange]
+      };
+    }
+    filterDisplay.applyFilters(filters);
+  }
+
+  // Applies current parameters to URL
   var applyParametersToURL = (values) => {
     var url = new URL(window.location.href);
     $.each(values, function (key, value) {
@@ -180,6 +340,8 @@ var initFilters = () => {
         url.searchParams.delete(key);
       }
     });
+
+    displayFiltersFromURL(url);
 
     return url;
   }
@@ -356,28 +518,12 @@ var initFilters = () => {
         var value = params[i][1];
         if (param == 'tag_collection_ids') {
           // Split tags into collection + tags then resolve collapsed state
-          var selected = value.split(',');
-          var hasTags = false;
-          var hasCollections = false;
-          for (var j = 0; j < selected.length; j++) {
-            if (!hasCollections) {
-              hasCollections = all_collections.map((o) => o.id).indexOf(parseInt(selected[j])) >= 0;
-            }
-
-            if (!hasTags) {
-              hasTags = all_tag_ref.map((o) => o.id).indexOf(parseInt(selected[j])) >= 0;
-            }
-
-            if (hasCollections === true && hasTags === true) {
-              break;
-            }
-          }
-          
-          if (hasCollections) {
+          var groups = parseTagsAndCollections(value);
+          if (Array.isArray(groups.collections)) {
             $('#collapse-collection').addClass('in');
           }
 
-          if (hasTags) {
+          if (Array.isArray(groups.tags)) {
             $('#collapse-tags').addClass('in');
           }
           
@@ -754,10 +900,16 @@ var initFilters = () => {
 
         if (child) {
           var item = child.parentNode.parentNode;
+          var checkbox = $(child.parentNode).find('input');
+          var scrollHeight = SHOULD_TOGGLE_SEARCH ? $holder.scrollTop() - $holder.offset().top : $holder.scrollTop() - $holder.offset().top + $(item).offset().top;
+
+          if (SHOULD_TOGGLE_SEARCH) {
+            checkbox.prop('checked', !(checkbox.prop('checked')));
+            checkbox.trigger('change');
+          }
+
           $holder.animate(
-            {
-              scrollTop: $holder.scrollTop() - $holder.offset().top + $(item).offset().top 
-            },
+            { scrollTop: scrollHeight },
             {
               duration: 500,
               complete: () => {
