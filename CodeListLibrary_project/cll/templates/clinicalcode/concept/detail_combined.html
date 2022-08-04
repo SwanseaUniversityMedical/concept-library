@@ -707,6 +707,35 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 							{% endif %}
 						</td>
 				  </tr>
+					<tr>
+							<td>R Package</td>
+							<td>
+								<code class="api-codeblock">
+										<p class="code-comment-highlight">
+												# <a href="https://github.com/SwanseaUniversityMedical/ConceptLibraryClient">Download here</a>
+										</p>
+										<p class="code-general-highlight">
+												library(ConceptLibraryClient)
+										</p>
+										<br>
+										<p class="code-comment-highlight">
+												# Connect to API
+										</p>
+										<p class="code-general-highlight">
+												client = connect_to_API(public=<span class="code-value-highlight">{% if user.is_authenticated %}FALSE{% else %}TRUE{% endif %}</span>)
+										</p>
+										<br>
+										<p class="code-comment-highlight">
+												# Get details of concept
+										</p>
+										<p class="code-general-highlight">
+												details = get_concept_detail_by_version(<span class="code-text-highlight">'C{{ concept.id }}'</span>, 
+												<span class="code-text-highlight">'{{ concept.history_id }}'</span>, 
+												api_client=client)
+										</p>
+								</code>
+							</td>
+					</tr>
 				</table>
 				<p> To Export Concept Code List:</p>
 
@@ -745,7 +774,35 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 					<a href="{% url 'history_concept_codes_to_csv' pk=concept.id concept_history_id=concept.history_id %}"target=_blank>site_root{% url 'history_concept_codes_to_csv' concept.id concept.history_id %}</a>
 					{% endif %}
 					</tr>
-
+					<tr>
+							<td>R Package</td>
+							<td>
+									<code class="api-codeblock">
+											<p class="code-comment-highlight">
+													# <a href="https://github.com/SwanseaUniversityMedical/ConceptLibraryClient">Download here</a>
+											</p>
+											<p class="code-general-highlight">
+													library(ConceptLibraryClient)
+											</p>
+											<br>
+											<p class="code-comment-highlight">
+													# Connect to API
+											</p>
+											<p class="code-general-highlight">
+													client = connect_to_API(public=<span class="code-value-highlight">{% if user.is_authenticated %}FALSE{% else %}TRUE{% endif %}</span>)
+											</p>
+											<br>
+											<p class="code-comment-highlight">
+													# Get codelist of concept
+											</p>
+											<p class="code-general-highlight">
+													codelist = get_concept_code_list_by_version(<span class="code-text-highlight">'C{{ concept.id }}'</span>, 
+													<span class="code-text-highlight">'{{ concept.history_id }}'</span>, 
+													api_client=client)
+											</p>
+									</code>
+							</td>
+					</tr>
 				</table>			
 			</span>
 		</div>

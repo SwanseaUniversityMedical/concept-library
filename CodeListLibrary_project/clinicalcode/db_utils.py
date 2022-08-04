@@ -770,27 +770,27 @@ def getHistoryConcept(concept_history_id, highlight_result=False, q_highlight=No
             sql_params += [str(q_highlight)] * 6
             highlight_columns += """ 
                 ts_headline('english', coalesce(hc.name, '')
-                        , plainto_tsquery('english', %s)
+                        , websearch_to_tsquery('english', %s)
                         , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as name_highlighted,  
 
                 ts_headline('english', coalesce(hc.author, '')
-                        , plainto_tsquery('english', %s)
+                        , websearch_to_tsquery('english', %s)
                         , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as author_highlighted,                                              
                
                 ts_headline('english', coalesce(hc.description, '')
-                        , plainto_tsquery('english', %s)
+                        , websearch_to_tsquery('english', %s)
                         , 'HighlightAll=TRUE, StartSel="<b class=hightlight-txt > ", StopSel="</b>"') as description_highlighted,                                              
                                
                 ts_headline('english', coalesce(hc.publication_doi, '')
-                        , plainto_tsquery('english', %s)
+                        , websearch_to_tsquery('english', %s)
                         , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publication_doi_highlighted,                                              
                                                               
                 ts_headline('english', coalesce(hc.publication_link, '')
-                        , plainto_tsquery('english', %s)
+                        , websearch_to_tsquery('english', %s)
                         , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publication_link_highlighted,                                              
                     
                 ts_headline('english', coalesce(hc.secondary_publication_links, '')
-                        , plainto_tsquery('english', %s)
+                        , websearch_to_tsquery('english', %s)
                         , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as secondary_publication_links_highlighted,                                              
                     
                 """
@@ -2916,11 +2916,11 @@ def get_visible_live_or_published_concept_versions(request,
         if search != '':
             sql_params += [str(search)] * 2
             highlight_columns += """ ts_headline('english', coalesce(name, '')
-                                            , plainto_tsquery('english', %s)
+                                            , websearch_to_tsquery('english', %s)
                                             , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as name_highlighted,  
                 
                                     ts_headline('english', coalesce(author, '')
-                                            , plainto_tsquery('english', %s)
+                                            , websearch_to_tsquery('english', %s)
                                             , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as author_highlighted,                                              
                                 """ 
         else:
@@ -2936,14 +2936,14 @@ def get_visible_live_or_published_concept_versions(request,
             # search name field only
             sql_params += [str(search)]
             rank_select += """ 
-                        ts_rank(to_tsvector(coalesce(name, '')), plainto_tsquery('english', %s)) AS rank_name,
+                        ts_rank(to_tsvector(coalesce(name, '')), websearch_to_tsquery('english', %s)) AS rank_name,
                         """
         else:
             # search all related fields
             sql_params += [str(search)] * 3
             rank_select += """  
-                        ts_rank(to_tsvector('english', coalesce(name, '')), plainto_tsquery('english', %s)) AS rank_name,            
-                        ts_rank(to_tsvector('english', coalesce(author, '')), plainto_tsquery('english', %s)) AS rank_author,
+                        ts_rank(to_tsvector('english', coalesce(name, '')), websearch_to_tsquery('english', %s)) AS rank_name,            
+                        ts_rank(to_tsvector('english', coalesce(author, '')), websearch_to_tsquery('english', %s)) AS rank_author,
                         ts_rank(to_tsvector('english', coalesce(name, '') 
                                             || ' ' || coalesce(author, '') 
                                             || ' ' || coalesce(description, '') 
@@ -2951,7 +2951,7 @@ def get_visible_live_or_published_concept_versions(request,
                                             || ' ' || coalesce(publication_link, '') 
                                             || ' ' || coalesce(secondary_publication_links, '') 
                                             )
-                                     , plainto_tsquery('english', %s)
+                                     , websearch_to_tsquery('english', %s)
                                      ) AS rank_all,
         
                             """
@@ -2986,7 +2986,7 @@ def get_visible_live_or_published_concept_versions(request,
                 sql_params += [str(search)]
                 where_clause += """ AND (to_tsvector('english',
                                                     coalesce(name, '') 
-                                                   ) @@ plainto_tsquery('english', %s)                              
+                                                   ) @@ websearch_to_tsquery('english', %s)                              
                                         )  
                                 """                            
             else:
@@ -2998,7 +2998,7 @@ def get_visible_live_or_published_concept_versions(request,
                                                     || ' ' || coalesce(publication_doi, '') 
                                                     || ' ' || coalesce(publication_link, '') 
                                                     || ' ' || coalesce(secondary_publication_links, '') 
-                                                   ) @@ plainto_tsquery('english', %s)                              
+                                                   ) @@ websearch_to_tsquery('english', %s)                              
                                         )  
                                 """
                             
@@ -3178,11 +3178,11 @@ def get_visible_live_or_published_phenotype_versions(request,
         if search != '':
             sql_params += [str(search)] * 2
             highlight_columns += """ ts_headline('english', coalesce(name, '')
-                                            , plainto_tsquery('english', %s)
+                                            , websearch_to_tsquery('english', %s)
                                             , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as name_highlighted,  
                 
                                     ts_headline('english', coalesce(author, '')
-                                            , plainto_tsquery('english', %s)
+                                            , websearch_to_tsquery('english', %s)
                                             , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as author_highlighted,                                              
                                 """ 
         else:
@@ -3198,21 +3198,21 @@ def get_visible_live_or_published_phenotype_versions(request,
             # search name field only
             sql_params += [str(search)]
             rank_select += """ 
-                        ts_rank(to_tsvector(coalesce(name, '')), plainto_tsquery('english', %s)) AS rank_name,
+                        ts_rank(to_tsvector(coalesce(name, '')), websearch_to_tsquery('english', %s)) AS rank_name,
                         """
         else:
             # search all related fields
             sql_params += [str(search)] * 3
             rank_select += """  
-                        ts_rank(to_tsvector('english', coalesce(name, '')), plainto_tsquery('english', %s)) AS rank_name,            
-                        ts_rank(to_tsvector('english', coalesce(author, '')), plainto_tsquery('english', %s)) AS rank_author,
+                        ts_rank(to_tsvector('english', coalesce(name, '')), websearch_to_tsquery('english', %s)) AS rank_name,            
+                        ts_rank(to_tsvector('english', coalesce(author, '')), websearch_to_tsquery('english', %s)) AS rank_author,
                         ts_rank(to_tsvector('english', coalesce(name, '') 
                                             || ' ' || coalesce(author, '') 
                                             || ' ' || coalesce(description, '') 
                                             || ' ' || coalesce(implementation, '') 
                                             || ' ' || coalesce(array_to_string(publications, ','), '') 
                                             )
-                                     , plainto_tsquery('english', %s)
+                                     , websearch_to_tsquery('english', %s)
                                      ) AS rank_all,
                             """
 
@@ -3246,7 +3246,7 @@ def get_visible_live_or_published_phenotype_versions(request,
                 sql_params += [str(search)] 
                 where_clause += """ AND (to_tsvector('english',
                                                     coalesce(name, '') 
-                                                   ) @@ plainto_tsquery('english', %s)                              
+                                                   ) @@ websearch_to_tsquery('english', %s)                              
                                         )  
                                 """                            
             else:
@@ -3257,7 +3257,7 @@ def get_visible_live_or_published_phenotype_versions(request,
                                                     || ' ' || coalesce(description, '') 
                                                     || ' ' || coalesce(implementation, '') 
                                                     || ' ' || coalesce(array_to_string(publications, ','), '') 
-                                                   ) @@ plainto_tsquery('english', %s)                              
+                                                   ) @@ websearch_to_tsquery('english', %s)                              
                                         )  
                                 """
 
@@ -3398,23 +3398,23 @@ def getHistoryPhenotype(phenotype_history_id, highlight_result=False, q_highligh
             sql_params += [str(q_highlight)] * 5
             highlight_columns += """ 
                 ts_headline('english', coalesce(hph.name, '')
-                        , plainto_tsquery('english', %s)
+                        , websearch_to_tsquery('english', %s)
                         , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as name_highlighted,  
 
                 ts_headline('english', coalesce(hph.author, '')
-                        , plainto_tsquery('english', %s)
+                        , websearch_to_tsquery('english', %s)
                         , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as author_highlighted,                                              
                
                 ts_headline('english', coalesce(hph.description, '')
-                        , plainto_tsquery('english', %s)
+                        , websearch_to_tsquery('english', %s)
                         , 'HighlightAll=TRUE, StartSel="<b class=hightlight-txt > ", StopSel="</b>"') as description_highlighted,                                              
                                
                 ts_headline('english', coalesce(hph.implementation, '')
-                        , plainto_tsquery('english', %s)
+                        , websearch_to_tsquery('english', %s)
                         , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as implementation_highlighted,                                              
                                                               
                 ts_headline('english', coalesce(array_to_string(hph.publications, '^$^'), '')
-                        , plainto_tsquery('english', %s)
+                        , websearch_to_tsquery('english', %s)
                         , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publications_highlighted,                                              
              """
                      

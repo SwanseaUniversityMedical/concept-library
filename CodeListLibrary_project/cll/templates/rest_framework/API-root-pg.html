@@ -61,7 +61,7 @@
                 <ul>
                   <li><code>?search=Alcohol</code><br>
                   search by part of concept name (do not put wild characters here)</li>
-                  <li><code>?tag_ids=11,4</code><br>
+                  <li><code>?tag_collection_ids=11,4</code><br>
                   You can specify tag or collection ids <br>
 	               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
 	               (get collections from <code><a href="{{ collections }}" target="_blank" class="alert-link">{{ collections }}</a></code>)
@@ -75,7 +75,7 @@
                   <li><code>?do_not_show_versions=1</code><br>
                   do not show concepts versions (by default, all concept's version ids are shown)</li>
                 </ul>
-              (<code>Example: {% url 'api:api_published_concepts' %}?author=m&brand=adp&tag_ids=11</code>)
+              (<code>Example: {% url 'api:api_published_concepts' %}?author=m&brand=adp&tag_collection_ids=11</code>)
           </p>
           
         </div>
@@ -127,7 +127,7 @@
                 <ul>
                   <li><code>?search=Alcohol</code><br>
                   search by part of concept name (do not put wild characters here)</li>
-                  <li><code>?tag_ids=11,4</code><br>
+                  <li><code>?tag_collection_ids=11,4</code><br>
                   You can specify tag or collection ids <br>
 	               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
 	               (get collections from <code><a href="{{ collections }}" target="_blank" class="alert-link">{{ collections }}</a></code>)
@@ -149,7 +149,7 @@
                   <li><code>?must_have_published_versions=1</code><br>
             show only concepts which have a published version(by default, all concepts are shown)</li>
                 </ul>
-              (<code>Example: {% url 'api:concepts' %}?author=m&brand=adp&tag_ids=11</code>)
+              (<code>Example: {% url 'api:concepts' %}?author=m&brand=adp&tag_collection_ids=11</code>)
           </p>
       </div>
 
@@ -331,7 +331,7 @@
 		            <ul>
 		              <li><code>?search=Alcohol</code><br>
 		              search by part of phenotype name (do not put wild characters here)</li>
-		              <li><code>?tag_ids=11,4</code><br>
+		              <li><code>?tag_collection_ids=11,4</code><br>
 		              You can specify tag or collection ids <br>
 		               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
 		               (get collections from <code><a href="{{ collections }}" target="_blank" class="alert-link">{{ collections }}</a></code>)
@@ -349,7 +349,7 @@
 		              <li><code>?do_not_show_versions=1</code><br>
 		              do not show phenotypes versions (by default, all phenotype's version ids are shown)</li>
 		            </ul>
-		          (<code>Example: {% url 'api:api_published_phenotypes' %}?author=m&brand=adp&tag_ids=11</code>)
+		          (<code>Example: {% url 'api:api_published_phenotypes' %}?author=m&brand=adp&tag_collection_ids=11</code>)
 		    	</p>
 		    	
 		    </div>
@@ -405,7 +405,7 @@
 		            <ul>
 		              <li><code>?search=Alcohol</code><br>
 		              search by part of phenotype name (do not put wild characters here)</li>
-		              <li><code>?tag_ids=11,4</code><br>
+		              <li><code>?tag_collection_ids=11,4</code><br>
 		              You can specify tag or collection ids <br>
 		               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
 		               (get collections from <code><a href="{{ collections }}" target="_blank" class="alert-link">{{ collections }}</a></code>)
@@ -431,7 +431,7 @@
 		              <li><code>?must_have_published_versions=1</code><br>
 					  show only phenotypes which have a published version(by default, all phenotypes are shown)</li>
 		            </ul>
-		          (<code>Example: {% url 'api:phenotypes' %}?author=m&brand=adp&tag_ids=11</code>)
+		          (<code>Example: {% url 'api:phenotypes' %}?author=m&brand=adp&tag_collection_ids=11</code>)
 		    	</p>
 			</div>
 
