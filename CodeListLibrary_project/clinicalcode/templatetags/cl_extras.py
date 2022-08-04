@@ -186,6 +186,10 @@ def markdownify(text, custom_settings="default"):
 
 @register.filter   
 def highlight(text, q):
+    q = q.lower()
+    q = q.replace('"', '').replace(' -', ' ').replace(' - ', ' ')
+    q = q.replace(' or ', ' ')
+
     q = re.sub(' +', ' ', q.strip())
     return_text = text
     for w in q.split(' '):
