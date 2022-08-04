@@ -519,11 +519,11 @@ var initFilters = () => {
         if (param == 'tag_collection_ids') {
           // Split tags into collection + tags then resolve collapsed state
           var groups = parseTagsAndCollections(value);
-          if (Array.isArray(groups.collections)) {
+          if (groups.collections) {
             $('#collapse-collection').addClass('in');
           }
 
-          if (Array.isArray(groups.tags)) {
+          if (groups.tags) {
             $('#collapse-tags').addClass('in');
           }
           
