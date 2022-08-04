@@ -704,3 +704,13 @@ footer img {
   border-radius: 0.25em !important;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 15%), 0 1px 1px rgb(0 0 0 / 8%);
 }
+
+/* Filter tag group consistent styling */
+.row.applied_filter_group {
+  padding-top: 15px;
+	margin-left: 5px;
+}
+
+.row.applied_filter_group h4 {
+	color: white;
+}
