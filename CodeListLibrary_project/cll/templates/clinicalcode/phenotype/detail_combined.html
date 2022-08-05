@@ -785,6 +785,35 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                     {% endif %}
 					</td>
 				  </tr>
+                  <tr>
+                    <td>R Package</td>
+                    <td>
+                        <code class="api-codeblock">
+                            <p class="code-comment-highlight">
+                                # <a href="https://github.com/SwanseaUniversityMedical/ConceptLibraryClient">Download here</a>
+                            </p>
+                            <p class="code-general-highlight">
+                                library(ConceptLibraryClient)
+                            </p>
+                            <br>
+                            <p class="code-comment-highlight">
+                                # Connect to API
+                            </p>
+                            <p class="code-general-highlight">
+                                client = connect_to_API(public=<span class="code-value-highlight">{% if user.is_authenticated %}FALSE{% else %}TRUE{% endif %}</span>)
+                            </p>
+                            <br>
+                            <p class="code-comment-highlight">
+                                # Get details of phenotype
+                            </p>
+                            <p class="code-general-highlight">
+                                details = get_phenotype_detail_by_version(<span class="code-text-highlight">'PH{{ phenotype.id }}'</span>, 
+                                    <span class="code-text-highlight">'{{ phenotype.history_id }}'</span>, 
+                                    api_client=client)
+                            </p>
+                        </code>
+                    </td>
+                  </tr>
 				</table>
 				<p> To Export Phenotype Code List:</p>
 					<table class="table table-striped table-responsive-md table-flex-rows">
@@ -827,7 +856,35 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                            target=_blank>site_root{% url 'history_phenotype_codes_to_csv' phenotype.id phenotype.history_id %}</a>
                     {% endif %}
                             </tr>
-
+                  <tr>
+                    <td>R Package</td>
+                    <td>
+                        <code class="api-codeblock">
+                            <p class="code-comment-highlight">
+                                # <a href="https://github.com/SwanseaUniversityMedical/ConceptLibraryClient">Download here</a>
+                            </p>
+                            <p class="code-general-highlight">
+                                library(ConceptLibraryClient)
+                            </p>
+                            <br>
+                            <p class="code-comment-highlight">
+                                # Connect to API
+                            </p>
+                            <p class="code-general-highlight">
+                                client = connect_to_API(public=<span class="code-value-highlight">{% if user.is_authenticated %}FALSE{% else %}TRUE{% endif %}</span>)
+                            </p>
+                            <br>
+                            <p class="code-comment-highlight">
+                                # Get codelists of phenotype
+                            </p>
+                            <p class="code-general-highlight">
+                                codelists = get_phenotype_code_list(<span class="code-text-highlight">'PH{{ phenotype.id }}'</span>, 
+                                <span class="code-text-highlight">'{{ phenotype.history_id }}'</span>, 
+                                api_client=client)
+                            </p>
+                        </code>
+                    </td>
+                  </tr>
 				</table>
 			</span>
             </div>

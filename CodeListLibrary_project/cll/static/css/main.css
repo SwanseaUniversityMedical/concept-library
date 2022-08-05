@@ -1046,3 +1046,28 @@ ul.filter_buttons li {
 .hightlight-txt{
 	background-color: yellow
 }
+
+/* Code blocks */
+code.api-codeblock {
+  background: #f4f4f4;
+  border: 1px solid #dfdfdf;
+  color: #6a6a6a;
+  display: block;
+  word-wrap: break-word;
+}
+
+code.api-codeblock .code-general-highlight {
+  color: #6a6a6a;
+}
+
+code.api-codeblock .code-syntax-highlight {
+  color: #005780;
+}
+
+code.api-codeblock .code-value-highlight {
+  color: #800080;
+}
+
+code.api-codeblock .code-text-highlight, .code-comment-highlight {
+  color: #009700;
+}
