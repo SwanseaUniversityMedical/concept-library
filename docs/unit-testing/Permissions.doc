@@ -1,0 +1,376 @@
+Date: Wed, 10 Feb 2021 15:32:36 +0000 (GMT)
+Message-ID: <861335994.38746.1612971156109@JIRA.chi.swan.ac.uk>
+Subject: Exported From Confluence
+MIME-Version: 1.0
+Content-Type: multipart/related; 
+	boundary="----=_Part_38745_1470571879.1612971156108"
+
+------=_Part_38745_1470571879.1612971156108
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Content-Location: file:///C:/exported.html
+
+<html xmlns:o=3D'urn:schemas-microsoft-com:office:office'
+      xmlns:w=3D'urn:schemas-microsoft-com:office:word'
+      xmlns:v=3D'urn:schemas-microsoft-com:vml'
+      xmlns=3D'urn:w3-org-ns:HTML'>
+<head>
+    <meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dutf-8=
+">
+    <title>Permissions</title>
+    <!--[if gte mso 9]>
+    <xml>
+        <o:OfficeDocumentSettings>
+            <o:TargetScreenSize>1024x640</o:TargetScreenSize>
+            <o:PixelsPerInch>72</o:PixelsPerInch>
+            <o:AllowPNG/>
+        </o:OfficeDocumentSettings>
+        <w:WordDocument>
+            <w:View>Print</w:View>
+            <w:Zoom>90</w:Zoom>
+            <w:DoNotOptimizeForBrowser/>
+        </w:WordDocument>
+    </xml>
+    <![endif]-->
+    <style>
+                <!--
+        @page Section1 {
+            size: 8.5in 11.0in;
+            margin: 1.0in;
+            mso-header-margin: .5in;
+            mso-footer-margin: .5in;
+            mso-paper-source: 0;
+        }
+
+        table {
+            border: solid 1px;
+            border-collapse: collapse;
+        }
+
+        table td, table th {
+            border: solid 1px;
+            padding: 5px;
+        }
+
+        td {
+            page-break-inside: avoid;
+        }
+
+        tr {
+            page-break-after: avoid;
+        }
+
+        div.Section1 {
+            page: Section1;
+        }
+
+        /* Confluence print stylesheet. Common to all themes for print medi=
+a */
+/* Full of !important until we improve batching for print CSS */
+
+@media print {
+    #main {
+        padding-bottom: 1em !important; /* The default padding of 6em is to=
+o much for printouts */
+    }
+
+    body {
+        font-family: Arial, Helvetica, FreeSans, sans-serif;
+        font-size: 10pt;
+        line-height: 1.2;
+    }
+
+    body, #full-height-container, #main, #page, #content, .has-personal-sid=
+ebar #content {
+        background: #fff !important;
+        color: #000 !important;
+        border: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+    }
+
+    a, a:link, a:visited, a:focus, a:hover, a:active {
+        color: #000;
+    }
+
+    #content h1,
+    #content h2,
+    #content h3,
+    #content h4,
+    #content h5,
+    #content h6 {
+        font-family: Arial, Helvetica, FreeSans, sans-serif;
+        page-break-after: avoid;
+    }
+
+    pre {
+        font-family: Monaco, "Courier New", monospace;
+    }
+
+    #header,
+    .aui-header-inner,
+    #navigation,
+    #sidebar,
+    .sidebar,
+    #personal-info-sidebar,
+    .ia-fixed-sidebar,
+    .page-actions,
+    .navmenu,
+    .ajs-menu-bar,
+    .noprint,
+    .inline-control-link,
+    .inline-control-link a,
+    a.show-labels-editor,
+    .global-comment-actions,
+    .comment-actions,
+    .quick-comment-container,
+    #addcomment {
+        display: none !important;
+    }
+
+    /* CONF-28544 cannot print multiple pages in IE */
+    #splitter-content {
+        position: relative !important;
+    }
+
+    .comment .date::before {
+        content: none !important; /* remove middot for print view */
+    }
+
+    h1.pagetitle img {
+        height: auto;
+        width: auto;
+    }
+
+    .print-only {
+        display: block;
+    }
+
+    #footer {
+        position: relative !important; /* CONF-17506 Place the footer at en=
+d of the content */
+        margin: 0;
+        padding: 0;
+        background: none;
+        clear: both;
+    }
+
+    #poweredby {
+        border-top: none;
+        background: none;
+    }
+
+    #poweredby li.print-only {
+        display: list-item;
+        font-style: italic;
+    }
+
+    #poweredby li.noprint {
+        display: none;
+    }
+
+    /* no width controls in print */
+    .wiki-content .table-wrap,
+    .wiki-content p,
+    .panel .codeContent,
+    .panel .codeContent pre,
+    .image-wrap {
+        overflow: visible !important;
+    }
+
+    /* TODO - should this work? */
+    #children-section,
+    #comments-section .comment,
+    #comments-section .comment .comment-body,
+    #comments-section .comment .comment-content,
+    #comments-section .comment p {
+        page-break-inside: avoid;
+    }
+
+    #page-children a {
+        text-decoration: none;
+    }
+
+    /**
+     hide twixies
+
+     the specificity here is a hack because print styles
+     are getting loaded before the base styles. */
+    #comments-section.pageSection .section-header,
+    #comments-section.pageSection .section-title,
+    #children-section.pageSection .section-header,
+    #children-section.pageSection .section-title,
+    .children-show-hide {
+        padding-left: 0;
+        margin-left: 0;
+    }
+
+    .children-show-hide.icon {
+        display: none;
+    }
+
+    /* personal sidebar */
+    .has-personal-sidebar #content {
+        margin-right: 0px;
+    }
+
+    .has-personal-sidebar #content .pageSection {
+        margin-right: 0px;
+    }
+
+    .no-print, .no-print * {
+        display: none !important;
+    }
+}
+-->
+    </style>
+</head>
+<body>
+    <h1>Permissions</h1>
+    <div class=3D"Section1">
+        <h2 id=3D"Permissions-Summary">Summary</h2>
+<p>Permissions apply only to the Concept-level items, currently Code Lists =
+or Working Sets.</p>
+<p>There are 3 levels of permission: none, view and edit.</p>
+<p>Permission can be granted to 3 =E2=80=98actors=E2=80=99: one user (the o=
+wner), one group or all users.</p>
+<p>Owner can always edit. This can't be changed, but the fact that the owne=
+r can edit is displayed.</p>
+<p>Only the owner can edit permissions.</p>
+<p>The owner can assign ownership to a different user. All user names are d=
+isplayed to select from, but this might need to change in the future for se=
+curity reasons. Not necessary for version 1.</p>
+<p><span style=3D"letter-spacing: 0.0px;">Default access (when creating a n=
+ew Concept-level item) is edit permission for the owner and no access for a=
+ group or for everyone.</span></p>
+<p>A super-user (admin user) has (edit) permission to everything and can se=
+e all elements.</p>
+<p>In addition, there are functions (<strong>allowed_to_create</strong> and=
+ <strong>allowed_to_permit</strong>) which control access to certain applic=
+ation functionality: the ability to create and the ability to change the pe=
+rmissions. These are not determined by the permissions settings, but by the=
+ application settings and whether the user is the owner of the item.</p>
+<p>If permissions to a concept are revoked, anything that refers to that co=
+ncept becomes unusable (no export/API access), and the fact that the concep=
+t is no longer available is highlighted with an error message.</p>
+<p>Groups and group membership are set manually by super users using Django=
+ functionality.&nbsp;</p>
+<p><br></p>
+<p><br></p>
+<p><br></p>
+<p>Notes</p>
+<p><s>It is possible to deny permission to everyone (owner included) but no=
+t super-users. This apparently odd option has been left as it allows a user=
+ to shutdown their concept if their user ID has been compromised. This acti=
+on can be reversed by a super-user.</s></p>
+<p><s>It is possible for an owner to deny themselves permission whilst prov=
+iding it to a group or to everyone. This makes it possible to effectively p=
+rovide group ownership to the Concept. However, at present it may only be p=
+ossible to change ownership if you are the owner, so once done, this may on=
+ly be undone by a super-user.</s></p>
+<p><br></p>
+<p><span style=3D"font-size: 20.0px;letter-spacing: -0.008em;">Implementati=
+on</span></p>
+<pre>The permission code is implemented in clinicalcode/permissions.py.</pr=
+e>
+<p>Permissions are checked using one of four checks, two of which have asso=
+ciated validation functions. There are six Mixin classes which are used to =
+prevent the dispatch of the page response if permission is withheld. In add=
+ition, permissions are used to produce lists of visible elements. These fun=
+ctions are intended only to implement access according to the permission se=
+ttings. They are not intended to describe (in)visibility for other reasons,=
+ for example, if the concept is deleted, where it is expected that the perm=
+itted list will later be reduced by excluding deleted items where appropria=
+te.</p>
+<h3 id=3D"Permissions-Checks&amp;Validation">Checks &amp; Validation</h3>
+<p>In all cases, a super-user, is allowed without further checks.</p>
+<p>'<strong>allowed_to_create</strong>', will return FALSE if:</p>
+<p style=3D"margin-left: 30.0px;">(i) the&nbsp;settings.CLL_READ_ONLY is se=
+t to TRUE.</p>
+<p>=E2=80=98<strong>allowed_to_view</strong>=E2=80=99, for a single item wh=
+ich returns TRUE if:</p>
+<p style=3D"margin-left: 30.0px;">(i) there is view or edit permission to e=
+veryone, or</p>
+<p style=3D"margin-left: 30.0px;">(ii) there is view or edit permission to =
+the owner and the current user is the owner, or</p>
+<p style=3D"margin-left: 30.0px;">(iii) there is view or edit permission to=
+ any group which contains the current user.</p>
+<p style=3D"margin-left: 30.0px;">The function =E2=80=98<strong>validate_ac=
+cess_to_view</strong>=E2=80=99, will raise an exception if not allowed to v=
+iew.</p>
+<p>=E2=80=98<strong>allowed_to_edit</strong>=E2=80=99, for a single item wh=
+ich returns TRUE if:</p>
+<p style=3D"margin-left: 30.0px;">(i) there is edit permission to everyone,=
+ or</p>
+<p style=3D"margin-left: 30.0px;">(ii) there is edit permission to the owne=
+r and the current user is the owner, or</p>
+<p style=3D"margin-left: 30.0px;">(iii) there is edit permission to any gro=
+up which contains the current user.</p>
+<p style=3D"margin-left: 30.0px;">This function will always return FALSE if=
+ the settings.CLL_READ_ONLY is set to TRUE.</p>
+<p style=3D"margin-left: 30.0px;">The function =E2=80=98<strong>validate_ac=
+cess_to_edit</strong>=E2=80=99, will raise an exception if not allowed to e=
+dit.</p>
+<p>=E2=80=98<strong>allowed_to_permit</strong>=E2=80=99, for a single item =
+which returns TRUE if:</p>
+<p style=3D"margin-left: 30.0px;">(i) the user is the owner of the item.</p=
+>
+<p>=E2=80=98<strong>allowed_to_view_children</strong>=E2=80=99, which creat=
+es a list of all the child code lists of a code list or working set and ret=
+urns TRUE if:</p>
+<p style=3D"margin-left: 30.0px;">(i) permission to view or edit is granted=
+ to all of the child code lists.</p>
+<p style=3D"margin-left: 30.0px;"><br></p>
+<p><span style=3D"font-size: 16.0px;font-weight: bold;letter-spacing: -0.00=
+6em;">Mixin Classes</span></p>
+<p>There are Mixin classes for view and edit access to both code lists and =
+working sets and parent code lists and working sets. There is also a Mixin =
+for creation of anything (including forks which also have the edit Mixin). =
+These classes block the dispatch function of the containing class.</p>
+<h3 id=3D"Permissions-ListsofVisibleElements">Lists of Visible Elements</h3=
+>
+<p>There is a set of functions that produces lists of visible elements. Sin=
+ce only Concept-level elements have permission attributes, only concepts (o=
+ld term) and working sets can be accessed directly by checking their attrib=
+ute. Other elements are deemed visible if they are contained in an element =
+which has permission:</p>
+<p>(i) codes (old term)</p>
+<ol>
+<li>All the codes associated with the visible code lists (old term, see (ii=
+)), or</li>
+<li>All the codes associated with a specified code list (old term, see (ii)=
+).</li>
+</ol>
+<p>(ii) code lists (old term)</p>
+<ol>
+<li>All the code lists contained in the visible components (see (iii)), or<=
+/li>
+<li>The specified code list if it is contained in the visible components (s=
+ee (iii)).</li>
+</ol>
+<p>(iii) components (old term)</p>
+<ol>
+<li>All components which are contained in concepts which the user is allowe=
+d to view (see (iv)), or</li>
+<li>The component associated with a specified code list (old term) if conta=
+ined in a concept which the user is allowed to view (see (iv)).</li>
+</ol>
+<p>(iv) concepts (old term)</p>
+<ol>
+<li>All concepts which have view or edit permission to everyone, view or ed=
+it permission to the user and the user is the owner, or view or edit permis=
+sion to any group which contains the user.</li>
+</ol>
+<p>(v) working sets</p>
+<ol>
+<li>(as for concepts).</li>
+</ol>
+<p>&nbsp;</p>
+    </div>
+</body>
+</html>
+------=_Part_38745_1470571879.1612971156108--

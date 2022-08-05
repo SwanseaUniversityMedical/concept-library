@@ -1,0 +1,370 @@
+Date: Wed, 10 Feb 2021 14:53:06 +0000 (GMT)
+Message-ID: <2126206807.38519.1612968786004@JIRA.chi.swan.ac.uk>
+Subject: Exported From Confluence
+MIME-Version: 1.0
+Content-Type: multipart/related; 
+	boundary="----=_Part_38518_1722767460.1612968786002"
+
+------=_Part_38518_1722767460.1612968786002
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Content-Location: file:///C:/exported.html
+
+<html xmlns:o=3D'urn:schemas-microsoft-com:office:office'
+      xmlns:w=3D'urn:schemas-microsoft-com:office:word'
+      xmlns:v=3D'urn:schemas-microsoft-com:vml'
+      xmlns=3D'urn:w3-org-ns:HTML'>
+<head>
+    <meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dutf-8=
+">
+    <title>Concept Library Test Specification</title>
+    <!--[if gte mso 9]>
+    <xml>
+        <o:OfficeDocumentSettings>
+            <o:TargetScreenSize>1024x640</o:TargetScreenSize>
+            <o:PixelsPerInch>72</o:PixelsPerInch>
+            <o:AllowPNG/>
+        </o:OfficeDocumentSettings>
+        <w:WordDocument>
+            <w:View>Print</w:View>
+            <w:Zoom>90</w:Zoom>
+            <w:DoNotOptimizeForBrowser/>
+        </w:WordDocument>
+    </xml>
+    <![endif]-->
+    <style>
+                <!--
+        @page Section1 {
+            size: 8.5in 11.0in;
+            margin: 1.0in;
+            mso-header-margin: .5in;
+            mso-footer-margin: .5in;
+            mso-paper-source: 0;
+        }
+
+        table {
+            border: solid 1px;
+            border-collapse: collapse;
+        }
+
+        table td, table th {
+            border: solid 1px;
+            padding: 5px;
+        }
+
+        td {
+            page-break-inside: avoid;
+        }
+
+        tr {
+            page-break-after: avoid;
+        }
+
+        div.Section1 {
+            page: Section1;
+        }
+
+        /* Confluence print stylesheet. Common to all themes for print medi=
+a */
+/* Full of !important until we improve batching for print CSS */
+
+@media print {
+    #main {
+        padding-bottom: 1em !important; /* The default padding of 6em is to=
+o much for printouts */
+    }
+
+    body {
+        font-family: Arial, Helvetica, FreeSans, sans-serif;
+        font-size: 10pt;
+        line-height: 1.2;
+    }
+
+    body, #full-height-container, #main, #page, #content, .has-personal-sid=
+ebar #content {
+        background: #fff !important;
+        color: #000 !important;
+        border: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+    }
+
+    a, a:link, a:visited, a:focus, a:hover, a:active {
+        color: #000;
+    }
+
+    #content h1,
+    #content h2,
+    #content h3,
+    #content h4,
+    #content h5,
+    #content h6 {
+        font-family: Arial, Helvetica, FreeSans, sans-serif;
+        page-break-after: avoid;
+    }
+
+    pre {
+        font-family: Monaco, "Courier New", monospace;
+    }
+
+    #header,
+    .aui-header-inner,
+    #navigation,
+    #sidebar,
+    .sidebar,
+    #personal-info-sidebar,
+    .ia-fixed-sidebar,
+    .page-actions,
+    .navmenu,
+    .ajs-menu-bar,
+    .noprint,
+    .inline-control-link,
+    .inline-control-link a,
+    a.show-labels-editor,
+    .global-comment-actions,
+    .comment-actions,
+    .quick-comment-container,
+    #addcomment {
+        display: none !important;
+    }
+
+    /* CONF-28544 cannot print multiple pages in IE */
+    #splitter-content {
+        position: relative !important;
+    }
+
+    .comment .date::before {
+        content: none !important; /* remove middot for print view */
+    }
+
+    h1.pagetitle img {
+        height: auto;
+        width: auto;
+    }
+
+    .print-only {
+        display: block;
+    }
+
+    #footer {
+        position: relative !important; /* CONF-17506 Place the footer at en=
+d of the content */
+        margin: 0;
+        padding: 0;
+        background: none;
+        clear: both;
+    }
+
+    #poweredby {
+        border-top: none;
+        background: none;
+    }
+
+    #poweredby li.print-only {
+        display: list-item;
+        font-style: italic;
+    }
+
+    #poweredby li.noprint {
+        display: none;
+    }
+
+    /* no width controls in print */
+    .wiki-content .table-wrap,
+    .wiki-content p,
+    .panel .codeContent,
+    .panel .codeContent pre,
+    .image-wrap {
+        overflow: visible !important;
+    }
+
+    /* TODO - should this work? */
+    #children-section,
+    #comments-section .comment,
+    #comments-section .comment .comment-body,
+    #comments-section .comment .comment-content,
+    #comments-section .comment p {
+        page-break-inside: avoid;
+    }
+
+    #page-children a {
+        text-decoration: none;
+    }
+
+    /**
+     hide twixies
+
+     the specificity here is a hack because print styles
+     are getting loaded before the base styles. */
+    #comments-section.pageSection .section-header,
+    #comments-section.pageSection .section-title,
+    #children-section.pageSection .section-header,
+    #children-section.pageSection .section-title,
+    .children-show-hide {
+        padding-left: 0;
+        margin-left: 0;
+    }
+
+    .children-show-hide.icon {
+        display: none;
+    }
+
+    /* personal sidebar */
+    .has-personal-sidebar #content {
+        margin-right: 0px;
+    }
+
+    .has-personal-sidebar #content .pageSection {
+        margin-right: 0px;
+    }
+
+    .no-print, .no-print * {
+        display: none !important;
+    }
+}
+-->
+    </style>
+</head>
+<body>
+    <h1>Concept Library Test Specification</h1>
+    <div class=3D"Section1">
+        <h2 id=3D"ConceptLibraryTestSpecification-Permissions(allofthebelow=
+forconceptsandworkingsets)">Permissions (all of the below for concepts and =
+working sets)</h2>
+<ul>
+<li>Verify that a user with edit rights who is not an owner cannot change t=
+he permissions.</li>
+<li>Verify that a user can transfer ownership to a different user
+<ul>
+<li>The new user is displayed as the owner in the concept.</li>
+<li>The new user can edit the concept and edit permissions.</li>
+<li>The old user can no longer edit permissions</li>
+<li>The old user no longer has view/edit if they don't have this via a grou=
+p etc.</li>
+</ul></li>
+<li>Verify that when a new concept is created and no changes are made to th=
+e permissions, only the owner can view and edit the concept.</li>
+<li>Verify that if everyone is set to "view", a different user can view the=
+ concept but not edit it.</li>
+<li>Verify that if everyone is set to "edit" a different user can view and =
+edit the concept.</li>
+<li>Verify that if group is set to "view", a different group member can vie=
+w the concept but not edit it.</li>
+<li>Verify that if group is set to "edit" a different group member can view=
+ and edit the concept.</li>
+<li>Verify that if group is set to "edit" and everyone "none", a non-group =
+member cannot view or edit.</li>
+<li>Verify that a super user can do everything, regardless of permission se=
+ttings.</li>
+<li>Verify that if permission to a concept is revoked, a concept/working se=
+t referring to it cannot export codes via the UI or the API, and there is a=
+n error message displayed.</li>
+</ul>
+<h2 id=3D"ConceptLibraryTestSpecification-Readonlyapplicationconfiguration"=
+>Read only application configuration</h2>
+<ul>
+<li>A concept owner cannot edit.</li>
+<li>A user cannot create a new concept.</li>
+<li>A user cannot revert a concept.</li>
+<li>A user cannot fork a concept.</li>
+<li>A super user CANNOT create, edit, revert, or fork a concept.</li>
+<li>A user cannot edit by creating their own URL string to bypass the inter=
+face.</li>
+<li>The database user in this application configuration cannot edit any tab=
+le that stores concept information.</li>
+</ul>
+<h2 id=3D"ConceptLibraryTestSpecification-Versioning">Versioning</h2>
+<ul>
+<li>Every version of a code list has a version ID (formerly the history ID)=
+</li>
+<li>The version ID is displayed along with the title.</li>
+<li>There is a URL to refer to a specific version of a code list</li>
+<li>There is a URL that always refers to the latest version of a code list<=
+/li>
+<li>The API can get a specific version of a code list</li>
+<li>The API can get the latest version of a code list</li>
+<li>When a child concept is added to a parent concept, it adds the latest v=
+ersion by default (but the version number can be changed).</li>
+<li>When a child concept is updated, the parent concept does not change</li=
+>
+</ul>
+<p><br></p>
+<p><br></p>
+<p>Repeat all of the above for working sets.</p>
+<p><br></p>
+<h2 id=3D"ConceptLibraryTestSpecification-WorkingSets">Working Sets</h2>
+<p><br></p>
+<h2 id=3D"ConceptLibraryTestSpecification-HierarchicalCodeLists">Hierarchic=
+al Code Lists</h2>
+<p><em>Key requirements: a code list with a particular version never change=
+s or becomes inaccessible due to changes in other code lists.</em></p>
+<ul>
+<li>When a child concept is added to a concept or working set, the latest v=
+ersion is always added.</li>
+<li>When a child concept is updated, any concept or working set that contai=
+ns it automatically generates a new version. The update happens recursively=
+.</li>
+<li>The version history shows this update as "Concept blah blah changed, au=
+tomatic update" or something, and the user field makes it clear that this w=
+as a system update, not a user update.</li>
+<li>When a user clicks "revert" or "fork" on a historical version of a conc=
+ept or working set that has a child, there is a warning message "the new ve=
+rsion will refer to the latest version of child concepts. Continue? Yes/no"=
+</li>
+</ul>
+<p><em><br></em></p>
+<p><em><br></em></p>
+<ul>
+<ul>
+<ul>
+<li>When one code list includes another code list as a component, the paren=
+t code list takes a copy of the codes, and it doesn't change when the child=
+ changes.</li>
+<li>The parent code list stores and displays the version of the child code =
+list that was used.</li>
+<li>If the child code list is no longer the latest version (and there is ac=
+cess), then there is an "update" functionality to click a button and update=
+ the child to the latest.</li>
+<li>If the user no longer has access to view the child code list, this is h=
+ighlighted with a warning.</li>
+<li>A concept cannot be added as a child if you don't have permission to us=
+e that concept (i.e. view permission on all descendants).</li>
+<li>A concept cannot be added as a child if it would create a circular situ=
+ation (the current concept would be its own descendant). Test this with 4 l=
+evels of inheritance.</li>
+</ul>
+</ul>
+</ul>
+<h2 id=3D"ConceptLibraryTestSpecification-Exclusions">Exclusions</h2>
+<ul>
+<ul>
+<ul>
+<li>If a code is included within one component and excluded within another =
+component, it will not be included in the output.</li>
+<li>If a code is included multiple times within different components, it wi=
+ll only be included once in the output.</li>
+<li>If a code is included multiple times and excluded, it will be excluded.=
+</li>
+</ul>
+</ul>
+</ul>
+<p><br></p>
+<h2 id=3D"ConceptLibraryTestSpecification-RegularExpressions">Regular Expre=
+ssions</h2>
+<ul>
+<ul>
+<ul>
+<li>The match with expression functionality makes a copy of the codes, and =
+the code list does not change if the lookup table changes.</li>
+</ul>
+</ul>
+</ul>
+<p><br></p>
+    </div>
+</body>
+</html>
+------=_Part_38518_1722767460.1612968786002--
