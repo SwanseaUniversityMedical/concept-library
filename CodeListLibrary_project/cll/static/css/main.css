@@ -164,7 +164,7 @@ div[role="tabpanel"]{
 
 
 .navbar{
-	padding-bottom: 10px;
+	padding-bottom: 0px;
 }
 
 .popover-lg{
@@ -362,7 +362,7 @@ element.style {
 }
 
 .breadcrumbs-padding {
-    padding-top: 20px;
+    padding-top: 10px;
     padding-right: 5px;
     padding-bottom: 10px;
     padding-left:0px;
@@ -668,6 +668,7 @@ p > a {
   margin: 0 auto;
   line-height: 20px;
   width: 100%;
+  font-weight: bold;
   position: relative;
   padding-block: 10px;
   padding-right: 10px;
@@ -677,7 +678,7 @@ p > a {
 
 .filter_title {
   margin-right: 10px;
-  float: left;
+  display: inline-block;
 }
 
 .order_filter_caret {
@@ -712,11 +713,16 @@ p > a {
 }
 
 /* Autocomplete */
+.hr_filter {
+  padding: 5px 5px 0px 5px;
+  margin: 5px 0px 2px 0px;
+}
+
 .query_filter {
   position: relative;
   display: inline-block;
-  margin: 10px;
-  padding: 0px;
+  margin-top: 5px;
+  width: 98%;
 }
 
 .autocomplete_items {
@@ -727,6 +733,7 @@ p > a {
   z-index: 99;
   top: 100%;
   left: 0;
+  margin: 0px;
   right: 0;
 }
 
@@ -751,28 +758,31 @@ p > a {
   padding-top: 15px;
 }
 
+.row.applied_filter_group h4 {
+  display: inline;
+}
+
 ul.applied_filter_tags {
 	list-style: none;
   list-style-type: none;
   padding: 5px 0px 5px 0px;
-  display: flex;
+  display: inline-flex;
   flex-direction: row;
   justify-content: flex-start;
   flex-wrap: wrap;
 }
 
 ul.applied_filter_tags li {
-  display: inline-block;
+  display: flex;
+  justify-content:space-evenly;
   height: 25px;
   font-size: 16px;
   line-height: 20px;
   border-radius: 5px;
   background-color: #0088ff;
   padding: 2px 10px 5px 10px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   margin: 5px;
+  overflow: hidden;
 	box-shadow: 0 2px 5px 0 rgb(0 0 0 / 16%), 0 2px 10px 0 rgb(0 0 0 / 12%);
 }
 
@@ -780,7 +790,6 @@ ul.applied_filter_tags li span.close_btn {
   padding-left: 10px;
   color: rgb(170, 170, 170);
   font-weight: bold;
-  float: right;
   font-size: 20px;
   cursor: pointer;
 }
@@ -791,6 +800,7 @@ ul.applied_filter_tags li span.close_btn.close_btn:hover {
 
 /* bg-search */
 .bg-search {
+  padding-top: 0px;
   padding-bottom: 10px;
 }
 
@@ -1017,6 +1027,34 @@ ul.filter_buttons li {
   border: 1px solid #337AB7;
   border-radius: 0.25em;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 15%), 0 1px 1px rgb(0 0 0 / 8%);
+}
+
+/* Filter container */
+nav.filter_container {
+  padding-top: 10px;
+  /* position: sticky;
+  height: min-content;
+  position: -webkit-sticky;
+  top: 60px; */
+}
+
+/* Filter reset button(s) */
+
+/* <span class="filter_reset_btn">
+<i class="fa fa-filter"></i>
+<span class="filter_badge"></span>
+</span> */
+
+.filter_reset_btn {
+  color:rgb(80, 179, 245);
+  margin-right: 5px;
+  position: relative;
+  display: inline-block;
+  z-index: 0;
+}
+
+.filter_reset_btn:hover {
+  color: #337AB7;
 }
 
 

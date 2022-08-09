@@ -1,4 +1,7 @@
 /* Behaviour defs */
+var STICKY_OFFSET        = 10;   // Offset, in px, to determine when the sticky component should activate (relative to bottom of container) 
+var STICKY_SPEED         = 20;   // How many pixels we move per frame until the container is within the viewport
+var STICKY_INTERVAL      = 10;   // How many ms we wait per frame until moving the container
 var SHOULD_TOGGLE_SEARCH = true; // Det. whether we should toggle filter search elements upon selection
 var TAG_DECORATION       = {     // Det. decoration for 'Applied Filters' tag(s) for each type
   'author': {
@@ -63,6 +66,18 @@ var DISPLAY_QUERIES = {
   [PAGE.CONCEPT]: ['show_deleted_concepts', 'show_my_concepts', 
                     'show_only_validated_concepts', 'must_have_published_versions']
 };
+
+var elementMap = {
+  type: ['selected_phenotype_types'],
+  collection: ['tag_collection_ids'],
+  tags: ['tag_collection_ids'],
+  coding: ['codingids'],
+  date: ['startdate', 'enddate'],
+  authorship: ['author', 'owner'],
+  publication: ['show_rejected_phenotypes', 'show_my_pending_phenotypes', 'show_mod_pending_phenotypes'],
+  display: ['must_have_published_versions', 'show_only_validated_concepts', 'show_my_concepts', 
+            'show_deleted_concepts', 'phenotype_must_have_published_versions', 'show_my_phenotypes', 'show_deleted_phenotypes'],
+}
 
 var subheaderMap = {
   tag_collection_ids: 'tags',
@@ -208,6 +223,13 @@ var initFilters = () => {
   }
 
   // Filter Tag Service
+  var toggleCheckState = (filterType, selected) => {
+    $('.filter_option.' + subheaderMap[filterType]).each((i, elem) => {
+      var isSelected = selected.includes($(elem).val());
+      $(elem).prop('checked', isSelected);
+    });
+  }
+
   $('.applied_filter_tags').filterTags(
     TAG_DECORATION,
     {
@@ -223,6 +245,7 @@ var initFilters = () => {
           case 'collections':
             var selected = $("#basic-form input[id=tag_collection_ids]").val().split(',').filter((x) => x != filterValue.value);
             $("#basic-form input[id=tag_collection_ids]").val(selected.join(','));
+            toggleCheckState(filterType, selected);
             break;
           case 'date':
             start = moment(base_start_date);
@@ -234,6 +257,7 @@ var initFilters = () => {
           case 'selected_phenotype_types':
             var selected = $("#basic-form input[id=" + filterType + "]").val().split(',').filter((x) => x != filterValue.value);
             $("#basic-form input[id=" + filterType + "]").val(selected.join(','));
+            toggleCheckState(filterType, selected);
             break;
           case 'owner':
           case 'author':
@@ -246,6 +270,7 @@ var initFilters = () => {
           default:
             var selected = $("#basic-form input[id=" + filterType + "]").val().replace(filterValue.value, '');
             $("#basic-form input[id=" + filterType + "]").val(selected);
+            toggleCheckState(filterType, selected);
             break;
         }
         $("#basic-form").trigger('submit', [{'element': 'refresh'}]);
@@ -291,6 +316,23 @@ var initFilters = () => {
     }
   }
 
+  var selectActiveFilter = (url, mapped, cls) => {
+    var active = 0
+    for (var i = 0; i < mapped.length; i++) {
+      var item = mapped[i];
+      if (url.searchParams.get(item) !== null) {
+        active++;
+        break;
+      }
+    }
+
+    if (active > 0) {
+      $('a[href="#collapse-' + cls + '"] .filter_reset_btn').removeClass("hide");
+    } else {
+      $('a[href="#collapse-' + cls + '"] .filter_reset_btn').addClass("hide");
+    }
+  }
+
   var displayFiltersFromURL = (url) => {
     var filters = { };
     url.searchParams.forEach(function (value, key) {
@@ -318,7 +360,61 @@ var initFilters = () => {
         display: startRange + '<strong> \u2192 </strong>' + endRange,
         value: [startRange, endRange]
       };
+
+      $('a[href="#collapse-date"] .filter_reset_btn').removeClass("hide");
+    } else {
+      $('a[href="#collapse-date"] .filter_reset_btn').addClass("hide");
     }
+
+    // Handle individual filter reset
+    if (url.searchParams.get('owner') == null && url.searchParams.get('author') == null) {
+      $('a[href="#collapse-authorship"] .filter_reset_btn').addClass("hide");
+    } else {
+      $('a[href="#collapse-authorship"] .filter_reset_btn').removeClass("hide");
+    }
+
+    var _ignore = {
+      startdate: true,
+      enddate: true,
+      owner: true,
+      author: true,
+      tags: true,
+      collections: true,
+    }
+
+    $.each(subheaderMap, (i, v) => {
+      if (typeof _ignore[i] === 'undefined' && v !== 'publication' && v !== 'display') {
+        if (url.searchParams.get(i) !== null) {
+          if (i === 'tag_collection_ids') {
+            var selected = parseTagsAndCollections(url.searchParams.get(i));
+            if (selected.collections) {
+              $('a[href="#collapse-collection"] .filter_reset_btn').removeClass("hide");
+            } else {
+              $('a[href="#collapse-collection"] .filter_reset_btn').addClass("hide");
+            }
+
+            if (selected.tags) {
+              $('a[href="#collapse-tags"] .filter_reset_btn').removeClass("hide");
+            } else {
+              $('a[href="#collapse-tags"] .filter_reset_btn').addClass("hide");
+            }
+          } else {
+            $('a[href="#collapse-' + v + '"] .filter_reset_btn').removeClass("hide");
+          }
+        } else {
+          if (i === 'tag_collection_ids') {
+            $('a[href="#collapse-collection"] .filter_reset_btn').addClass("hide");
+            $('a[href="#collapse-tags"] .filter_reset_btn').addClass("hide");
+          } else {
+            $('a[href="#collapse-' + v + '"] .filter_reset_btn').addClass("hide");
+          }
+        }
+      }
+    });
+
+    selectActiveFilter(url, elementMap.display, 'display');
+    selectActiveFilter(url, elementMap.publication, 'publication');
+
     filterDisplay.applyFilters(filters);
   }
 
@@ -455,6 +551,10 @@ var initFilters = () => {
       $('#author_text').val('');
     }
 
+    if (params.searchParams.get('owner') == null && params.searchParams.get('author') == null) {
+      $("a[href='#collapse-authorship'] .filter_reset_btn").addClass('hide');
+    }
+
     if (params.searchParams.get('codingids') == null) {
       selected_codes = [];
       $("#basic-form input[id=codingids]").val('');
@@ -521,10 +621,12 @@ var initFilters = () => {
           var groups = parseTagsAndCollections(value);
           if (groups.collections) {
             $('#collapse-collection').addClass('in');
+            $("a[href='#collapse-collection'] .filter_reset_btn").removeClass('hide');
           }
 
           if (groups.tags) {
             $('#collapse-tags').addClass('in');
+            $("a[href='#collapse-tags'] .filter_reset_btn").removeClass('hide');
           }
           
           continue;
@@ -532,6 +634,7 @@ var initFilters = () => {
 
         var header = subheaderMap[param];
         $('#collapse-' + header).addClass('in');
+        $("a[href='#collapse-" + header + "'] .filter_reset_btn").removeClass('hide');
       }
     }
   }
@@ -818,15 +921,16 @@ var initFilters = () => {
         continue;
       
       if ($.isScrollbarVisible(parent)) {
-        $element.removeClass('hide');
+        $element.parent().removeClass('hide');
       } else {
-        $element.addClass('hide');
+        $element.parent().addClass('hide');
         $element.val('');
       }
     }
   }
 
   var resortChildren = ($holder, $children) => {
+    // i.e. checked first, then alphabetical
     $children.detach().sort(function (a, b) {
       var v1 = $(a).find('input').first();
       var v2 = $(b).find('input').first();
@@ -849,6 +953,7 @@ var initFilters = () => {
     $holder.append($children);
   }
 
+  // Pulsation animation to highlight newly toggled checkbox after autocomplete
   var pulsateSelected = (item) => {
     $(item).css({opacity: 0});
     $(item).animate({opacity: 1}, 200);
@@ -1036,21 +1141,21 @@ var initFilters = () => {
     $("#basic-form").trigger('submit', [{'element': 'display'}]);
   });
 
-  // Filter modal button for mobile devices
-  var $filter_panel = $('#filter_panel_group');
-  var $filter_modal = $('#filter-modal');
-  $filter_modal.on('shown.bs.modal', (e) => {
-    $filter_panel.find('#filter_form').first().appendTo($filter_modal.find('.modal-body').first());
-    $filter_panel.find('.filter_buttons').first().appendTo($filter_modal.find('.modal-footer').first());
-  });
-  $filter_modal.on('hide.bs.modal', (e) => {
-    $filter_modal.find('#filter_form').first().appendTo($filter_panel);
-    $filter_modal.find('.filter_buttons').first().appendTo($filter_panel);
-  });
-
   // Apply responsive style @ media query
   var $result_page = $('#result-div');
+  var conditionallyHidePadding = (win) => {
+    if (win.width() >= 1050) {
+      $(".filter_modal_button").parent().addClass("hide");
+    } else {
+      $(".filter_modal_button").parent().removeClass("hide");
+    }
+  }
+
   var resizeResultPage = (win) => {
+    // Mutate the visibility of searchbars by scrollable size
+    mutateSearchbars();
+
+    // Resize the result div
     if (win.width() < 1050) {
       $result_page.removeClass('col-sm-10');
       $result_page.addClass('col-sm-12');
@@ -1058,15 +1163,171 @@ var initFilters = () => {
       $result_page.addClass('col-sm-10');
       $result_page.removeClass('col-sm-12');
     }
+    
+    // Hide extra padding that's only visible for authenticated and/or mobile user(s)
+    if (library == PAGE.PHENOTYPE) {
+      conditionallyHidePadding(win);
+    } else if (library == PAGE.CONCEPT) {
+      if ($(".filter_modal_button").parent().children().length <= 1) {
+        conditionallyHidePadding(win);
+      }
+    }
+
+    // Pad navbar
+    var $nav = $("#nav_bar_main .container");
+    var offset = ($nav.height() / 2) - 25;
+    $(".bg-search").css("padding-top", offset);
   }
 
   $(window).on('resize', function() {
     var win = $(this);
     resizeResultPage(win);
-    mutateSearchbars();
   });
   resizeResultPage($(window));
-  mutateSearchbars();
+
+  // Filter modal button for mobile devices
+  var $filter_panel = $('#filter_panel_group');
+  var $filter_modal = $('#filter-modal');
+  $filter_modal.on('shown.bs.modal', (e) => {
+    $filter_panel.find('#filter_form').first().appendTo($filter_modal.find('.modal-body').first());
+    $filter_panel.find('.filter_buttons').first().appendTo($filter_modal.find('.modal-footer').first());
+
+    mutateSearchbars();
+  });
+  $filter_modal.on('hide.bs.modal', (e) => {
+    $filter_modal.find('#filter_form').first().appendTo($filter_panel);
+    $filter_modal.find('.filter_buttons').first().appendTo($filter_panel);
+  });
+
+  // Conditional sticky filter component
+  var $container = $('.filter_container');
+  var resetComponent = () => {
+    if (!$container.data("isSticky"))
+      return;
+
+    $container.data("isSticky", false);
+    $container.css({
+      "position": "relative",
+      "height": "",
+      "top": "",
+    });
+  }
+
+  var animateIntoFrame = (offset, resolve, reject) => {
+    if (!$container.data("isSticky")) {
+      reject();
+      return;
+    }
+
+    var height = $(window).scrollTop();
+    var position = $container.position().top;
+    var extents = $container.offset().top;
+    var pageSize = $("#page_extents").position().top + $("#page_extents").height();
+    if ((position >= height) || ((position + extents) >= pageSize)) {
+      resolve();
+      return;
+    }
+    
+    offset += STICKY_SPEED;
+    $container.css("top", offset);
+
+    setTimeout(function () {
+      animateIntoFrame(offset, resolve, reject);
+    }, STICKY_INTERVAL);
+  }
+
+  var stickifyComponent = () => {
+    $container.data("isSticky", true);
+    
+    return new Promise((resolve, reject) => {
+      var start = $container.position().top + $container.height() / 2;
+      animateIntoFrame(start, resolve, reject);
+    })
+    .then(() => {
+      $container.css({
+        "position": "sticky",
+        "height": "min-content",
+        "top": "60px",
+      });
+    })
+    .catch((ex) => {
+      console.log("[Stickify]", ex);
+    });
+  }
+  
+  var mutateStickyComponent = () => {
+    if ($(".filter_modal_button a").css("visibility") !== "visible") {
+      var extent = $container.parent().position().top + $container.height() - STICKY_OFFSET;
+      var scroll = $(window).scrollTop();
+
+      if (scroll >= extent) {
+        if ($container.data("isSticky"))
+          return;
+        
+        // Animate the component into position until we can make it sticky (avoids jarring jump)
+        stickifyComponent();
+      } else {
+        // Reset since we're back to the normal filter component position
+        resetComponent();
+      }
+    } else {
+      // Small size resolution e.g. mobile, so we reset the component
+      resetComponent();
+    }
+  }
+
+  // Mutate the sticky component on element resize & window scrolling
+  var resizeObserver = new ResizeObserver(mutateStickyComponent).observe($container[0]);
+  $(document).scroll(function (e) {
+    mutateStickyComponent();
+  });
+
+  // Individual filter resets
+  $('.filter_reset_btn').on('click', function (e) {
+    // Stops clickthrough propagation to parent element
+    e.stopImmediatePropagation();
+    e.preventDefault();
+    
+    // Update a fake URl then pass to submission handler
+    var $header = $(this).parent().parent().parent();
+    var type = $header.attr('href').replace('#collapse-', '');
+    var mapped = elementMap[type];
+    if (mapped !== 'undefined') {
+      var url = new URL(window.location.href);
+      if (type === 'tags' || type === 'collection') {
+        var selected = url.searchParams.get(mapped[0]);
+        if (selected != null) {
+          selected = parseTagsAndCollections(selected);
+          selected = type == "tags" ? selected.collections : selected.tags;
+
+          if (type == "tags") {
+            $(".filter_option.tags").each((i, v) => {
+              $(v).prop("checked", false);
+            });
+          } else {
+            $(".filter_option.collection").each((i, v) => {
+              $(v).prop("checked", false);
+            });
+          }
+
+          if (selected) {
+            url.searchParams.set('tag_collection_ids', selected.join(','));
+          } else {
+            url.searchParams.delete('tag_collection_ids');
+          }
+        } else {
+          url.searchParams.delete('tag_collection_ids');
+        }
+      } else {
+        for (var i = 0; i < mapped.length; i++) {
+          url.searchParams.delete(mapped[i]);
+        }
+      }
+
+      fetchFilterParameters(url);
+      $("#basic-form").trigger('submit', [{'element': 'search'}]);
+    }
+  });
 }
 
 /* Initialise filters */

@@ -17,14 +17,14 @@ TagService.prototype = {
   constructor: TagService,
   appendTag: function (group, obj, properties) {
     var disp = String(obj.display || obj.value);
-    var $tag = $('<li>' + disp + '</li>');
+    var $tag = $('<li><p>' + disp + '</p></li>');
     $tag.data('filter_data', obj.value);
     
     var $btn = $('<span class="close_btn">&times;</span>');
     $btn.appendTo($tag);
 
     if (properties.prefix) {
-      $('<i style="margin-right: 5px; line-height: 20px; letter-spacing: 1px; font-size: 12px">' + properties.prefix + '</i>').prependTo($tag);
+      $('<i style="margin-right: 5px; line-height: 20px; letter-spacing: 1px; font-size: 12px;">' + properties.prefix + '</i>').prependTo($tag);
     }
     if (properties.textColor) {
       $tag.css('color', properties.textColor);
