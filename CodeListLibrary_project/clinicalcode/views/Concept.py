@@ -894,12 +894,12 @@ def concept_list(request):
 
     # Tags
     brand_associated_tags = db_utils.get_brand_associated_tags(request, 
-                                                                brand=None,
-                                                                excluded_tags=collections_excluded_from_filters
+                                                                excluded_tags=collections_excluded_from_filters,
+                                                                concept_or_phenotype='concept',
                                                                 )
 
     # Coding id 
-    coding_system_reference = db_utils.get_coding_system_reference(request)
+    coding_system_reference = db_utils.get_coding_system_reference(request, brand=None, concept_or_phenotype="concept")
     coding_system_reference_ids = list(coding_system_reference.values_list('id', flat=True))
     coding_id_list = []
     if coding_ids:

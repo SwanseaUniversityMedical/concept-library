@@ -4021,30 +4021,37 @@ def getConceptCodes_withAttributes_HISTORICAL(concept_id, concept_history_date,
 
 
 #-------------------- Coding system reference data ------------------------#
-def get_coding_system_reference(request):
-    return CodingSystem.objects.all().order_by('name')
+def get_coding_system_reference(request, brand=None, concept_or_phenotype="concept"):
+    if brand is None:
+        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
+    
+    source = 'all_data' if request.user.is_authenticated else 'published_data'
+    stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact=f"{concept_or_phenotype}_filters")).stat['coding_systems']
+    stats = [entry for entry in stats if entry['data_scope'] == source][0]['coding_system_ids']
+    coding = [entry[0] for entry in stats]
+    
+    return CodingSystem.objects.filter(Q(id__in=coding))
 
 #----------------------------- Tag reference ------------------------------#
-def get_brand_associated_tags(request, brand=None, excluded_tags=None):
+def get_brand_associated_tags(request, excluded_tags=None, brand=None, concept_or_phenotype="concept"):
     """
         Return all tags assoc. with each brand, and exclude those in our list
     """
     if brand is None:
-        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else None
+        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
     
-    tags = None
-    if Brand.objects.all().filter(name__iexact=brand).exists():
-        brand_id = Brand.objects.get(name__iexact=brand).id
-        tags = Tag.objects.filter(Q(tag_type__exact=1) & (Q(collection_brand__isnull=True) | Q(collection_brand__exact=brand_id)))
-    else:
-        tags = Tag.objects.filter(Q(tag_type__exact=1))
+    source = 'all_data' if request.user.is_authenticated else 'published_data'
+    stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact=f"{concept_or_phenotype}_filters")).stat['tags']
+    stats = [entry for entry in stats if entry['data_scope'] == source][0]['tag_ids']
+    tags = [entry[0] for entry in stats]
     
     if tags is not None and excluded_tags is not None:
-        tags = tags.filter(~Q(id__in=excluded_tags))
+        tags = [x for x in tags if x not in excluded_tags]
     
-    if tags is not None:
+    descriptors = Tag.objects.filter(Q(tag_type__exact=1) & Q(id__in=tags))
+    if descriptors is not None:
         result = {}
-        for tag in tags:
+        for tag in descriptors:
             result[tag.description] = tag.id
 
         return result
@@ -4067,35 +4074,23 @@ def get_brand_collection_ids(brand_name):
         return [-1]
 
 
-def get_brand_associated_collections(request, concept_or_phenotype, brand=None, excluded_collections=None):
+def get_brand_associated_collections(request, concept_or_phenotype="concept", brand=None, excluded_collections=None):
     """
         If user is authenticated show all collection IDs, including those that are deleted, as filters.
         If not, show only non-deleted/published entities related collection IDs.
     """
-
     if brand is None:
-        brand = request.CURRENT_BRAND
-        if brand == "":
-            brand = 'ALL'
-
-    collection_ids = Statistics.objects.get(org__iexact=brand, type__iexact=['phenotype_collections', 'concept_collections'][concept_or_phenotype == 'concept'])
-    stats = collection_ids.stat
-
-    collections_ids = []
-    for s in stats:
-        if request.user.is_authenticated:
-            # If user is authenticated, bring back all collections IDs
-            if s['Data_Scope'] == 'all_data':
-                collections_ids = s['Collection_IDs']
-        else:
-            # If user is not authenticated, bring back published data related collections IDs
-            if s['Data_Scope'] == 'published_data':
-                collections_ids = s['Collection_IDs']
-
-    if excluded_collections:
-        collections_ids = list(set(collections_ids) - set(excluded_collections))
-        
-    return Tag.objects.filter(id__in=collections_ids, tag_type=2)
+        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
+    
+    source = 'all_data' if request.user.is_authenticated else 'published_data'
+    stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact=f"{concept_or_phenotype}_filters")).stat['collections']
+    stats = [entry for entry in stats if entry['data_scope'] == source][0]['collection_ids']
+    collections = [entry[0] for entry in stats]
+    
+    if collections is not None and excluded_collections is not None:
+        collections = [x for x in collections if x not in excluded_collections]
+    
+    return Tag.objects.filter(Q(tag_type__exact=2) & Q(id__in=collections))
 
 
 def get_brand_associated_collections_dynamic(request, concept_or_phenotype, excluded_collections=None):

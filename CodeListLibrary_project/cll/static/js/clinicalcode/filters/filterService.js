@@ -609,6 +609,10 @@ var initFilters = () => {
     });
 
     if (params.length > 0) {
+      $('.morphing_caret').each(function () {
+        console.log(this);
+        $(this).addClass('closed');
+      });
       $('#filter_form .collapse').each((_, elem) => {
         $(elem).removeClass('in');
       });
@@ -622,11 +626,13 @@ var initFilters = () => {
           if (groups.collections) {
             $('#collapse-collection').addClass('in');
             $("a[href='#collapse-collection'] .filter_reset_btn").removeClass('hide');
+            $("a[href='#collapse-collection'] .morphing_caret").removeClass('closed');
           }
 
           if (groups.tags) {
             $('#collapse-tags').addClass('in');
             $("a[href='#collapse-tags'] .filter_reset_btn").removeClass('hide');
+            $("a[href='#collapse-tags'] .morphing_caret").removeClass('closed');
           }
           
           continue;
@@ -635,6 +641,7 @@ var initFilters = () => {
         var header = subheaderMap[param];
         $('#collapse-' + header).addClass('in');
         $("a[href='#collapse-" + header + "'] .filter_reset_btn").removeClass('hide');
+        $("a[href='#collapse-" + header + "'] .morphing_caret").removeClass('closed');
       }
     }
   }
