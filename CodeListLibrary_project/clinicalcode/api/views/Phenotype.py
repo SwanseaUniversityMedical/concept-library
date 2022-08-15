@@ -77,8 +77,7 @@ def api_phenotype_create(request):
         new_phenotype.publication_link = request.data.get('publication_link')
         new_phenotype.secondary_publication_links = request.data.get('secondary_publication_links')
         new_phenotype.source_reference = request.data.get('source_reference')
-        new_phenotype.citation_requirements = request.data.get(
-            'citation_requirements')
+        new_phenotype.citation_requirements = request.data.get('citation_requirements')
         #new_phenotype.concept_informations = request.data.get('concept_informations')
 
         new_phenotype.description = request.data.get('description')
@@ -122,8 +121,7 @@ def api_phenotype_create(request):
             errors_dict['group'] = err
 
         # handle world-access
-        is_valid_data, err, ret_value = chk_world_access(
-            request.data.get('world_access'))
+        is_valid_data, err, ret_value = chk_world_access(request.data.get('world_access'))
         if is_valid_data:
             new_phenotype.world_access = ret_value
         else:
@@ -141,10 +139,11 @@ def api_phenotype_create(request):
 
         # handling data-sources
         datasource_ids_list = request.data.get('data_sources')
-        is_valid_data, err, ret_value = chk_data_sources(
-            request.data.get('data_sources'))
+        is_valid_data, err, ret_value = chk_data_sources(request.data.get('data_sources'))
         if is_valid_data:
             datasource_ids_list = ret_value
+            if datasource_ids_list:
+                new_phenotype.data_sources = [int(i) for i in datasource_ids_list]
         else:
             errors_dict['data_sources'] = err
 
@@ -164,20 +163,9 @@ def api_phenotype_create(request):
         else:
             new_phenotype.save()
             created_pt = Phenotype.objects.get(pk=new_phenotype.pk)
-            created_pt.history.latest().delete()
-
-            # - datasource -----
-            if datasource_ids_list:
-                new_datasource_list = [int(i) for i in datasource_ids_list]
-                for datasource_id in new_datasource_list:
-                    PhenotypeDataSourceMap.objects.get_or_create(phenotype=new_phenotype,
-                                                                datasource=DataSource.objects.get(id=datasource_id), 
-                                                                created_by=request.user
-                                                                )
+            created_pt.history.latest().delete()            
 
             save_Entity_With_ChangeReason(Phenotype, created_pt.pk, "Created from API")
-            # created_pt.changeReason = "Created from API"
-            # created_pt.save()
 
             # publish immediately - for HDR-UK testing
             if request.data.get('publish_immediately') == True:
@@ -218,23 +206,6 @@ def api_phenotype_update(request):
                             content_type="json",
                             status=status.HTTP_406_NOT_ACCEPTABLE)
                
-        # if not isInt(phenotype_id):
-        #     errors_dict['id'] = 'phenotype_id must be a valid id.'
-        #     return Response(data=errors_dict,
-        #                     content_type="json",
-        #                     status=status.HTTP_406_NOT_ACCEPTABLE)
-        #
-        # if Phenotype.objects.filter(pk=phenotype_id).count() == 0:
-        #     errors_dict['id'] = 'phenotype_id not found.'
-        #     return Response(data=errors_dict,
-        #                     content_type="json",
-        #                     status=status.HTTP_406_NOT_ACCEPTABLE)
-        # if not allowed_to_edit(request, Phenotype, phenotype_id):
-        #     errors_dict[
-        #         'id'] = 'phenotype_id must be a valid accessible phenotype id.'
-        #     return Response(data=errors_dict,
-        #                     content_type="json",
-        #                     status=status.HTTP_406_NOT_ACCEPTABLE)
 
         update_phenotype = Phenotype.objects.get(pk=phenotype_id)
         update_phenotype.phenotype_uuid = request.data.get('phenotype_uuid')
@@ -322,6 +293,10 @@ def api_phenotype_update(request):
         is_valid_data, err, ret_value = chk_data_sources(request.data.get('data_sources'))
         if is_valid_data:
             datasource_ids_list = ret_value
+            if datasource_ids_list:
+                update_phenotype.data_sources = [int(i) for i in datasource_ids_list]
+            else:
+                update_phenotype.data_sources = None
         else:
             errors_dict['data_sources'] = err
 
@@ -338,28 +313,7 @@ def api_phenotype_update(request):
                             content_type="json",
                             status=status.HTTP_406_NOT_ACCEPTABLE)
         else:
-            # update data-sources
-            new_datasource_list = []
 
-            if datasource_ids_list:
-                new_datasource_list = [int(i) for i in datasource_ids_list]
-
-            old_datasource_list = list(PhenotypeDataSourceMap.objects.filter(phenotype=update_phenotype).values_list('datasource',  flat=True))
-            datasource_ids_to_add = list(set(new_datasource_list) - set(old_datasource_list))
-            datasource_ids_to_remove = list(set(old_datasource_list) - set(new_datasource_list))
-
-            for datasource_id_to_add in datasource_ids_to_add:
-                PhenotypeDataSourceMap.objects.get_or_create(phenotype=update_phenotype,
-                                                            datasource=DataSource.objects.get(id=datasource_id_to_add),
-                                                            created_by=request.user)
-
-            for datasource_id_to_remove in datasource_ids_to_remove:
-                datasource_to_remove = PhenotypeDataSourceMap.objects.filter(phenotype=update_phenotype,
-                                                                            datasource=DataSource.objects.get(id=datasource_id_to_remove))
-                datasource_to_remove.delete()
-
-            #save_Entity_With_ChangeReason(Phenotype, update_phenotype.pk, "Updated from API")
-            # update_phenotype.changeReason = "Updated from API"
             update_phenotype.save()
             modify_Entity_ChangeReason(Phenotype, update_phenotype.pk, "Updated from API")
 
@@ -699,11 +653,11 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
 
         #--------------
 
-        data_sources = []  # DataSource.objects.filter(pk=-1)
-        data_sources_comp = getHistoryDataSource_Phenotype(c['id'], c['history_date'])
+        data_sources = [] 
+        data_sources_comp = c['data_sources']   
         if data_sources_comp:
-            ds_list = [i['datasource_id'] for i in data_sources_comp if 'datasource_id' in i ]
-            data_sources = list(DataSource.objects.filter(pk__in=ds_list).values('id', 'name', 'url'))  # , 'uid', 'description'
+            ds_list = data_sources_comp 
+            data_sources = list(DataSource.objects.filter(pk__in=ds_list).values('id', 'name', 'url', 'datasource_id'))  # , 'uid', 'description'
 
         ret = [
             c['friendly_id'],
@@ -891,12 +845,11 @@ def getPhenotypeDetail(request,
 
     #--------------
 
-    data_sources = []  #DataSource.objects.filter(pk=-1)
-    data_sources_comp = getHistoryDataSource_Phenotype(pk, phenotype_history_date)
+    data_sources = [] 
+    data_sources_comp = phenotype['data_sources']  
     if data_sources_comp:
-        ds_list = [i['datasource_id'] for i in data_sources_comp if 'datasource_id' in i ]
-        data_sources = list(
-            DataSource.objects.filter(pk__in=ds_list).values('id', 'name', 'url'))  # , 'uid', 'description'
+        ds_list = data_sources_comp 
+        data_sources = list(DataSource.objects.filter(pk__in=ds_list).values('id', 'name', 'url', 'datasource_id'))  # , 'uid', 'description'
 
     tags = []
     collections = []

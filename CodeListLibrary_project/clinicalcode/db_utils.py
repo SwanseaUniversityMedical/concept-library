@@ -3371,7 +3371,7 @@ def get_visible_live_or_published_phenotype_versions(request,
                                history_change_reason, history_type, created_by_id, deleted_by_id, 
                                group_id, history_user_id, owner_id, updated_by_id, validation_performed, 
                                phenoflowid, tags, clinical_terminologies, publications,
-                               friendly_id
+                               friendly_id, data_sources
                             FROM clinicalcode_historicalphenotype t
                                 """ + brand_filter_cond + """
                             ) r
@@ -3468,6 +3468,7 @@ def getHistoryPhenotype(phenotype_history_id, highlight_result=False, q_highligh
         hph.clinical_terminologies,
         hph.publications,
         hph.friendly_id,
+        hph.data_sources,
         ucb.username as created_by_username,
         umb.username as modified_by_username,
         uhu.username as history_user
@@ -3540,8 +3541,7 @@ def getPhenotypeConceptHistoryIDs(concept_ids_list):
     return concept_history_ids
 
 
-def get_CodingSystems_from_Phenotype_concept_informations(
-        concept_informations):
+def get_CodingSystems_from_Phenotype_concept_informations(concept_informations):
     if not concept_informations:
         return []
 
@@ -3553,7 +3553,9 @@ def get_CodingSystems_from_Phenotype_concept_informations(
 
 
 def getHistoryDataSource_Phenotype(phenotype_id, phenotype_history_date):
-    ''' Get historic DataSources attached to a phenotype that were effective from a point in time '''
+    ''' Get historic DataSources attached to a phenotype that were effective from a point in time 
+    ( THIS FUNCTION IS NO LONGER USED)
+    '''
 
     my_params = {
         'phenotype_id': phenotype_id,
