@@ -11,10 +11,7 @@ from .TimeStampedModel import TimeStampedModel
 class Phenotype(TimeStampedModel):
     """
         Phenotype Model
-
         Representation of a Phenotype imported from the HDR UK Gateway.
-        Has the following additional relationships:
-        - DataSource: One to Many. A phenotype can have a number of data sources.
     """
 
     # Metadata (imported from HDR UK):
@@ -44,8 +41,6 @@ class Phenotype(TimeStampedModel):
 
     phenoflowid = models.CharField(max_length=100, null=True, blank=True)  # ID to link to PhenoFlow
 
-    #data_sources = models.ManyToManyField(DataSource)
-
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="phenotype_created")
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="phenotype_updated")
     is_deleted = models.NullBooleanField()
@@ -64,6 +59,7 @@ class Phenotype(TimeStampedModel):
     publications = ArrayField(models.CharField(max_length=500), blank=True, null=True)
 
     friendly_id = models.CharField(max_length=50, default='', editable=False)
+    data_sources = ArrayField(models.IntegerField(), blank=True, null=True)  #default=list
 
     history = HistoricalRecords()
 

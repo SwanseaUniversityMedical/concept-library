@@ -66,6 +66,12 @@ if settings.IS_HDRUK_EXT == "1" or settings.IS_DEVELOPMENT_PC:
     ]
     
     
+# moveDataSources
+if not settings.CLL_READ_ONLY:# and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
+    urlpatterns += [
+        url(r'^adminTemp/move-data-sources/$', adminTemp.moveDataSources, name='moveDataSources'),
+    ]
+
 
 #======== Admin ===================================================================================
 # for API testing

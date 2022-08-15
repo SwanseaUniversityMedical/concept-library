@@ -388,10 +388,9 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         tags = Tag.objects.filter(pk__in=phenotype_tags)
 
     data_sources = DataSource.objects.filter(pk=-1)
-    data_sources_comp = db_utils.getHistoryDataSource_Phenotype(pk, phenotype_history_date)
-    if data_sources_comp:
-        ds_list = [i['datasource_id'] for i in data_sources_comp if 'datasource_id' in i]
-        data_sources = DataSource.objects.filter(pk__in=ds_list)
+    phenotype_data_sources = phenotype['data_sources']  
+    if phenotype_data_sources:
+        data_sources = DataSource.objects.filter(pk__in=phenotype_data_sources)
 
     # ----------------------------------------------------------------------
     concept_id_list = []
