@@ -2,7 +2,7 @@ name: Codebase Sphinx Documentation
 
 on:
   push:
-    branches: [ Development ]
+    branches: [ gh-pages]
 jobs:
   build_docs_job:
     name: Code Reference Generator
