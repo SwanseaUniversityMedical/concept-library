@@ -229,7 +229,7 @@ def get_HDRUK_statistics(request):
         'published_concept_count': len(HDRUK_published_concepts_ids),
         'published_phenotype_count': len(HDRUK_published_phenotypes_ids),
         'published_clinical_codes': get_published_clinical_codes(HDRUK_published_concepts_id_version),
-        'datasources_component_count': get_dataSources_count(HDRUK_published_phenotypes_ids),  
+        'datasources_component_count': get_dataSources_count(HDRUK_published_phenotypes),  
         'clinical_terminologies': get_codingSystems_count(HDRUK_published_phenotypes)  # number of coding systems used in published phenotypes
     }
 
@@ -253,14 +253,18 @@ def get_codingSystems_count(published_phenotypes):
     return len(unique_coding_systems_ids_list)
 
 
-def get_dataSources_count(published_phenotypes_ids):
+def get_dataSources_count(published_phenotypes):
     """
         get only data-sources count used in (published) phenotypes
     """
 
-    ds_ids = PhenotypeDataSourceMap.objects.filter(phenotype_id__in=published_phenotypes_ids).values('datasource_id').distinct()
-
-    unique_ds_ids = list(set([i['datasource_id'] for i in ds_ids]))
+    ds_ids = [] 
+    
+    for p in published_phenotypes:
+        if p['data_sources'] is not None:
+            ds_ids = list(set(ds_ids + p['data_sources']))
+            
+    unique_ds_ids = list(set(ds_ids))
     # make sure data-source exists
     unique_ds_ids_list = list(DataSource.objects.filter(id__in=unique_ds_ids).values_list('id', flat=True))
 
@@ -727,11 +731,13 @@ def get_brand_filter_stat(request, entity_class, force_brand=None):
     collection_list_published = []
     
     codingSystem_list = []
-    codingSystem_list_published = []
-    
+    codingSystem_list_published = []    
     
     phenotype_types_list = []
     phenotype_types_list_published = []
+    
+    datasources_ids_list = []
+    datasources_ids_published_list = []
 
     for i in data:
         entity_id_list = list(set(entity_id_list + [i['id']]))
@@ -748,6 +754,8 @@ def get_brand_filter_stat(request, entity_class, force_brand=None):
                 codingSystem_list = codingSystem_list + i['clinical_terminologies']
             if i['type'] is not None:
                 phenotype_types_list = phenotype_types_list + [i['type'].lower()]
+            if i['data_sources'] is not None:
+                datasources_ids_list = datasources_ids_list + i['data_sources']
 
 
 
@@ -766,6 +774,8 @@ def get_brand_filter_stat(request, entity_class, force_brand=None):
                 codingSystem_list_published = codingSystem_list_published + i['clinical_terminologies']
             if i['type'] is not None:
                 phenotype_types_list_published = phenotype_types_list_published + [i['type'].lower()]
+            if i['data_sources'] is not None:
+                datasources_ids_published_list = datasources_ids_published_list + i['data_sources']
                 
     # Create a list for both allData and published.
     # tags
@@ -775,11 +785,6 @@ def get_brand_filter_stat(request, entity_class, force_brand=None):
     # collections
     unique_collections_ids_list = list(Tag.objects.filter(id__in=list(set(collection_list)), tag_type=2).values_list('id', flat=True))
     unique_collections_ids_published_list = list(Tag.objects.filter(id__in=list(set(collection_list_published)), tag_type=2).values_list('id', flat=True))
-
-    # data sources
-    if entity_class == Phenotype:
-        datasources_ids_list = list(PhenotypeDataSourceMap.history.filter(phenotype_id__in=entity_id_list).values_list('datasource_id', flat=True))        
-        datasources_ids_published_list = list(PhenotypeDataSourceMap.history.filter(phenotype_id__in=entity_id_list_published).values_list('datasource_id', flat=True))
 
 
     # publish_date
