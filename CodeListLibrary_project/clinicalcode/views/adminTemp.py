@@ -105,6 +105,8 @@ def api_remove_data(request):
 
 @login_required
 def moveDataSources(request):
+    # not needed anymore
+    raise PermissionDenied
 
     if not request.user.is_superuser:
         raise PermissionDenied
@@ -126,46 +128,46 @@ def moveDataSources(request):
 
 
             ######################################################################
-            # move phenotype data-sources as an attribute
-            distinct_phenotypes_with_ds = PhenotypeDataSourceMap.objects.all().distinct('phenotype_id')
-            for dp in distinct_phenotypes_with_ds:
-                #print "*************"
-                #print dp.phenotype_id
-                hisp = Phenotype.history.filter(id=dp.phenotype_id)
-                for hp in hisp:
-                    #print hp.id, "...", hp.history_id
-                    ph_DataSources_history = db_utils.getHistoryDataSource_Phenotype(hp.id, hp.history_date)
-                    if ph_DataSources_history:
-                        ph_DataSources_list = [i['datasource_id'] for i in ph_DataSources_history if 'datasource_id' in i]
-                    else:
-                        ph_DataSources_list = []
-                    #print ph_DataSources_list
-                    with connection.cursor() as cursor:
-                        sql = """ UPDATE clinicalcode_historicalphenotype
-                                    SET data_sources = '{""" + ','.join([str(i) for i in ph_DataSources_list]) + """}'
-                                    WHERE id="""+str(hp.id)+""" and history_id="""+str(hp.history_id)+""";
-                             """
-                        cursor.execute(sql)
-                        if hp.history_id == int(Phenotype.objects.get(pk=hp.id).history.latest().history_id):
-                            sql2 = """ UPDATE clinicalcode_phenotype
-                                    SET data_sources = '{""" + ','.join([str(i) for i in ph_DataSources_list]) + """}'
-                                    WHERE id="""+str(hp.id)+"""  ;
-                             """
-                            cursor.execute(sql2)
-
-                            rowsAffected[hp.id] = "phenotype: " + hp.name + ":: data_sources moved"
-
-
-
-
-
-            return render(request,
-                        'clinicalcode/adminTemp/moveDataSources.html',
-                        {   'pk': -10,
-                            'strSQL': {},
-                            'rowsAffected' : rowsAffected
-                        }
-                        )
+            # # move phenotype data-sources as an attribute
+            # distinct_phenotypes_with_ds = PhenotypeDataSourceMap.objects.all().distinct('phenotype_id')
+            # for dp in distinct_phenotypes_with_ds:
+            #     #print "*************"
+            #     #print dp.phenotype_id
+            #     hisp = Phenotype.history.filter(id=dp.phenotype_id)
+            #     for hp in hisp:
+            #         #print hp.id, "...", hp.history_id
+            #         ph_DataSources_history = db_utils.getHistoryDataSource_Phenotype(hp.id, hp.history_date)
+            #         if ph_DataSources_history:
+            #             ph_DataSources_list = [i['datasource_id'] for i in ph_DataSources_history if 'datasource_id' in i]
+            #         else:
+            #             ph_DataSources_list = []
+            #         #print ph_DataSources_list
+            #         with connection.cursor() as cursor:
+            #             sql = """ UPDATE clinicalcode_historicalphenotype
+            #                         SET data_sources = '{""" + ','.join([str(i) for i in ph_DataSources_list]) + """}'
+            #                         WHERE id="""+str(hp.id)+""" and history_id="""+str(hp.history_id)+""";
+            #                  """
+            #             cursor.execute(sql)
+            #             if hp.history_id == int(Phenotype.objects.get(pk=hp.id).history.latest().history_id):
+            #                 sql2 = """ UPDATE clinicalcode_phenotype
+            #                         SET data_sources = '{""" + ','.join([str(i) for i in ph_DataSources_list]) + """}'
+            #                         WHERE id="""+str(hp.id)+"""  ;
+            #                  """
+            #                 cursor.execute(sql2)
+            #
+            #                 rowsAffected[hp.id] = "phenotype: " + hp.name + ":: data_sources moved"
+            #
+            #
+            #
+            #
+            #
+            # return render(request,
+            #             'clinicalcode/adminTemp/moveDataSources.html',
+            #             {   'pk': -10,
+            #                 'strSQL': {},
+            #                 'rowsAffected' : rowsAffected
+            #             }
+            #             )
 
 # @login_required
 # def api_remove_longIDfromName(request):
