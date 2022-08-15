@@ -15,7 +15,6 @@ from .NON_STANDARD_CODES import NON_STANDARD_CODES
 from .OPCS4_CODES_AND_TITLES import OPCS4_CODES_AND_TITLES
 from .Operator import Operator
 from .Phenotype import Phenotype
-from .PhenotypeDataSourceMap import PhenotypeDataSourceMap
 from .PROD_CODES import PROD_CODES
 from .PublishedConcept import PublishedConcept
 from .PublishedPhenotype import PublishedPhenotype
