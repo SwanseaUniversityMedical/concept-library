@@ -9,7 +9,7 @@
 {% block container %}
 
 {% if request.user.is_superuser %}
-	<h2><i class="fa fa-file-text-o" aria-hidden="true"></i> Move Tags</h2>
+	<h2><i class="fa fa-file-text-o" aria-hidden="true"></i> Move Data-Sources</h2>
 	{% if errorMsg %}
 		<div class="bs-example">
 		    <div class="alert alert-danger fade in">
@@ -54,7 +54,7 @@
 			<div class="row">
 				<div class="col-md-12">	
 	{% if pk is None %}
-	    <form name='workingset-form' id='workingset-form' class="form-horizontal" action="{% url "moveTags" %}" method="POST" autocomplete="off" >
+	    <form name='workingset-form' id='workingset-form' class="form-horizontal" action="{% url "moveDataSources" %}" method="POST" autocomplete="off" >
 	    	{% csrf_token %}
 	    	<div class="form-group">
 				<label class="col-sm-3 required">Auth-Code</label>
@@ -67,7 +67,7 @@
 				<div class="col-md-6">								
 					<div><br>
 						<button class="btn btn-danger" id="save-changes">
-							<i class="fa fa-remove" aria-hidden="true"></i> moveTags
+							<i class="fa fa-remove" aria-hidden="true"></i> moveDataSources
 						</button>
 					</div> 
 			
