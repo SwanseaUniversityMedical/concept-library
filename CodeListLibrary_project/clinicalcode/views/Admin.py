@@ -820,7 +820,7 @@ def get_brand_filter_stat(request, entity_class, force_brand=None):
                          ]
         
     stats_dict['coding_systems'] = [{"data_scope": "all_data", "coding_system_ids": Counter(codingSystem_list).most_common()}
-                                   ,{"data_scope": "published_data", "coding_system_IDs": Counter(codingSystem_list_published).most_common()} 
+                                   ,{"data_scope": "published_data", "coding_system_ids": Counter(codingSystem_list_published).most_common()} 
                                    ]
     
         
