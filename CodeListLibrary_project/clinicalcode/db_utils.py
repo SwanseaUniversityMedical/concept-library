@@ -4027,8 +4027,12 @@ def get_coding_system_reference(request, brand=None, concept_or_phenotype="conce
     
     source = 'all_data' if request.user.is_authenticated else 'published_data'
     stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact=f"{concept_or_phenotype}_filters")).stat['coding_systems']
-    stats = [entry for entry in stats if entry['data_scope'] == source][0]['coding_system_ids']
-    coding = [entry[0] for entry in stats]
+    stats = [entry for entry in stats if entry['data_scope'] == source]
+
+    coding = []
+    if len(stats) > 0:
+        stats = stats[0]['coding_system_IDs' if source == 'published_data' else 'coding_system_ids']
+        coding = [entry[0] for entry in stats]
     
     return CodingSystem.objects.filter(Q(id__in=coding))
 

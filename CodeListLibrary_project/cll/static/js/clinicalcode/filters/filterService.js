@@ -610,7 +610,6 @@ var initFilters = () => {
 
     if (params.length > 0) {
       $('.morphing_caret').each(function () {
-        console.log(this);
         $(this).addClass('closed');
       });
       $('#filter_form .collapse').each((_, elem) => {
@@ -765,7 +764,7 @@ var initFilters = () => {
         }
       })
       .catch((error) => {
-        console.log(error);
+        console.log("[FilterResults]", error);
         if (typeof error === 'object' && typeof error['canceled'] !== 'undefined') {
           return;
         }
