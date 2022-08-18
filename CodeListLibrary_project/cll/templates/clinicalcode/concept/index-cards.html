@@ -9,6 +9,7 @@
 			<form id="filter_form" action="{% url 'concept_list' %}" method="GET" autocomplete="off">
 				{% csrf_token %}
 				<!-- Collections tags -->
+				{% if brand_associated_collections|size > 0 %}
 				<a data-toggle="collapse" href="#collapse-collection" aria-expanded="true" aria-controls="collapse-collection" style="color: inherit; text-decoration: inherit;">
 					<div class="panel-footer panel_transparent">
 						<div class="filter_title_content filter_overflow">
@@ -47,8 +48,10 @@
 						</ul>
 					</div>
 				</div>
+				{% endif %}
 
 				<!-- Tags -->
+				{% if brand_associated_tags|size > 0 %}
 				<a data-toggle="collapse" href="#collapse-tags" aria-expanded="true" aria-controls="collapse-tags" style="color: inherit; text-decoration: inherit;">
 					<div class="panel-footer panel_transparent">
 						<div class="filter_title_content filter_overflow">
@@ -85,6 +88,7 @@
 						</ul>
 					</div>
 				</div>
+				{% endif %}
 
 				<!-- Coding system -->
 				<a data-toggle="collapse" href="#collapse-coding" aria-expanded="true" aria-controls="collapse-type" style="color: inherit; text-decoration: inherit;">

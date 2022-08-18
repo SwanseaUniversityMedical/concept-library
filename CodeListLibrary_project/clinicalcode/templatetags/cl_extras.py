@@ -8,6 +8,9 @@ import re
 
 register = template.Library()
 
+@register.filter(name='size')
+def size(value):
+    return len(value)
 
 @register.filter(name='title')
 def title(value):
