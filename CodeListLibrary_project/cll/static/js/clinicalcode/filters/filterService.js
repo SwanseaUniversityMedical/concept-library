@@ -36,7 +36,7 @@ var TAG_DECORATION       = {     // Det. decoration for 'Applied Filters' tag(s)
   },
   'data_source_ids': {
     textColor: '#333',
-    tagColor: '#B5EAD7',
+    tagColor: '#8FCACA',
     prefix: 'Source:',
   },
   'collections': {
