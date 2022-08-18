@@ -34,6 +34,11 @@ var TAG_DECORATION       = {     // Det. decoration for 'Applied Filters' tag(s)
     tagColor: '#B5EAD7',
     prefix: 'Coding:',
   },
+  'data_source_ids': {
+    textColor: '#333',
+    tagColor: '#B5EAD7',
+    prefix: 'Source:',
+  },
   'collections': {
     textColor: '#333',
     tagColor: '#FEE8E2',
@@ -50,6 +55,9 @@ var TAG_DECORATION       = {     // Det. decoration for 'Applied Filters' tag(s)
 var phenotype_types = typeof phenotype_types === 'undefined' ? [] : phenotype_types;
 var type_names = typeof type_names === 'undefined' ? [] : type_names;
 var all_phenotypes = typeof all_phenotypes === 'undefined' ? [] : all_phenotypes;
+var data_source_reference = typeof data_source_reference === 'undefined' ? [] : data_source_reference;
+var data_source_reference_ids = typeof data_source_reference_ids === 'undefined' ? [] : data_source_reference_ids;
+var source_names = typeof source_names === 'undefined' ? [] : source_names;
 
 var PAGE = {
   PHENOTYPE: 0,
@@ -68,6 +76,7 @@ var DISPLAY_QUERIES = {
 };
 
 var elementMap = {
+  datasources: ['data_source_ids'],
   type: ['selected_phenotype_types'],
   collection: ['tag_collection_ids'],
   tags: ['tag_collection_ids'],
@@ -80,6 +89,7 @@ var elementMap = {
 }
 
 var subheaderMap = {
+  data_source_ids: 'datasources',
   tag_collection_ids: 'tags',
   tags: 'tags',
   collections: 'collection',
@@ -130,6 +140,12 @@ var SEARCHBARS = {
       searchbar: '#type_searchbar',
       haystack: type_names,
       reference: all_phenotypes
+    },
+    datasources: {
+      name: 'datasources',
+      searchbar: '#datasources_searchbar',
+      haystack: source_names,
+      reference: data_source_reference
     },
   }, baseFilters)
 };
@@ -253,6 +269,7 @@ var initFilters = () => {
             $("#basic-form input[id=startdate]").val(start.format('YYYY-MM-DD'));
             $("#basic-form input[id=enddate]").val(end.format('YYYY-MM-DD'));
             break;
+          case 'datasources':
           case 'codingids':
           case 'selected_phenotype_types':
             var selected = $("#basic-form input[id=" + filterType + "]").val().split(',').filter((x) => x != filterValue.value);
@@ -456,6 +473,7 @@ var initFilters = () => {
   var selected_codes = [];
   var selected_phenotype_types = [];
   var selected_collections = [];
+  var selected_data_sources = [];
   var start = moment(base_start_date);
   var end = moment(dateValue);
   var rangeName = 'Custom Range';
@@ -464,6 +482,8 @@ var initFilters = () => {
     var params = new URL(location == undefined ? window.location.href : location);
     params.searchParams.forEach(function (value, key) {
       switch (key) {
+        case "data_source_ids":
+          selected_data_sources = value.split(',');
         case "tag_collection_ids":
           selected_collections = value.split(',');
           break;
@@ -498,6 +518,7 @@ var initFilters = () => {
       selected_collections.filter(e => e !== '');
       selected_codes.filter(e => e !== '');
       selected_phenotype_types.filter(e => e !== '');
+      selected_data_sources.filter(e => e !== '');
 
       // Set current input
       $("#basic-form input[name=" + key + "]").val(value);
@@ -508,6 +529,12 @@ var initFilters = () => {
         selected_phenotype_types = [];
         $("#basic-form input[id=selected_phenotype_types]").val('');
         $(".filter_option.types").prop('checked', false);
+      }
+
+      if (params.searchParams.get('data_source_ids') == null) {
+        selected_data_sources = [];
+        $("#basic-form input[id=data_source_ids]").val('');
+        $(".filter_option.datasources").prop('checked', false);
       }
     }
 
@@ -1107,7 +1134,12 @@ var initFilters = () => {
     $("#basic-form input[id=page]").val(1);
 
     if (library == PAGE.PHENOTYPE) {
-      selected_phenotype_types = []
+      selected_data_sources = [];
+      $("input:checkbox[name=source_id]:checked").each(function() {
+        selected_data_sources.push(parseInt($(this).val()));
+      });
+
+      selected_phenotype_types = [];
       $("input:checkbox[name=type_name]:checked").each(function(){
         selected_phenotype_types.push($(this).val());
       });
@@ -1117,6 +1149,7 @@ var initFilters = () => {
       }
 
       $("#basic-form input[id=selected_phenotype_types]").val(selected_phenotype_types.join(','));
+      $("#basic-form input[id=data_source_ids]").val(selected_data_sources.join(','));
     }
 
     if(isSubset(brand_associated_collections_ids, selected_collections)){

@@ -4021,6 +4021,17 @@ def getConceptCodes_withAttributes_HISTORICAL(concept_id, concept_history_date,
     return codes_with_attr_df.to_dict('records')
 #---------------------------------------------------------------------------
 
+#-------------------- Data sources reference data ------------------------#
+def get_data_source_reference(request, brand=None):
+    if brand is None:
+        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
+    
+    source = 'all_data' if request.user.is_authenticated else 'published_data'
+    stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact='phenotype_filters')).stat['data_sources']
+    stats = [entry for entry in stats if entry['data_scope'] == source][0]['data_source_ids']
+    data_source_ids = [entry[0] for entry in stats]
+
+    return DataSource.objects.filter(Q(id__in=data_source_ids))
 
 #-------------------- Coding system reference data ------------------------#
 def get_coding_system_reference(request, brand=None, concept_or_phenotype="concept"):
@@ -4033,7 +4044,7 @@ def get_coding_system_reference(request, brand=None, concept_or_phenotype="conce
 
     coding = []
     if len(stats) > 0:
-        stats = stats[0]['coding_system_IDs' if source == 'published_data' else 'coding_system_ids']
+        stats = stats[0]['coding_system_ids']
         coding = [entry[0] for entry in stats]
     
     return CodingSystem.objects.filter(Q(id__in=coding))

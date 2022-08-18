@@ -22,6 +22,7 @@
 							<!-- Basic form queries -->
 							<input type="text" placeholder="Search Phenotypes" name="search" id="search1" value="{{ search|default_if_none:'' }}">
 							<input type="hidden" name="tag_collection_ids" id="tag_collection_ids"  value="{{ tag_ids|default_if_none:'' }}">
+							<input type="hidden" name="data_source_ids" id="data_source_ids"  value="{{ data_source_ids|default_if_none:'' }}">
 							<input type="hidden" name="selected_phenotype_types" id="selected_phenotype_types"  value="{{ selected_phenotype_types_str|default_if_none:'' }}">
 							<input type="hidden" name="search_form" id="collection_search_form1"  class="collection_search_form"  value="{{ search_form }}"> 
 							<input type="hidden" name="codingids" id="codingids"  value="{{ codingids|default_if_none:'' }}">
@@ -178,10 +179,19 @@
 			all_tags.push(tg);
 		{% endfor %}
 
+		var data_source_reference = [];
+		var data_source_reference_ids = [];
+		{% for src in data_sources_reference %}
+			tg = {"id": {{ src.id }}, "name": "{{ src.name }}"};
+			data_source_reference.push(tg)
+			data_source_reference_ids.push({{ src.id }})
+		{% endfor %}
+
 		var coding_names = all_coding.map(e => e.name),
 				collection_names = all_collections.map(e => e.name),
 				tag_names = all_tag_ref.map(e => e.name),
-				type_names = all_phenotypes.map(e => e.name);
+				type_names = all_phenotypes.map(e => e.name),
+				source_names = data_source_reference.map(e => e.name);
 		
 		var brand_associated_collections_ids = {{ brand_associated_collections_ids|safe }};
 		var brand_associated_tags_ids = {{ brand_associated_tags_ids|safe }};
@@ -193,6 +203,7 @@
 			'search': "{{ search }}",
 			'author': "{{ author }}",
 			'owner': "{{ owner }}",
+			'data_source_ids': "{{ data_source_ids }}",
 			'tag_collection_ids': "{{ tag_ids }}",
 			'codingids': "{{ coding_ids }}",
 			'startdate': "{{ filter_start_date }}",

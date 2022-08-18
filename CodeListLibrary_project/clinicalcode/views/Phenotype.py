@@ -82,6 +82,7 @@ def phenotype_list(request):
     des_order = request.GET.get('order_by', request.session.get('phenotype_order_by', ''))
     selected_phenotype_types = request.GET.get('selected_phenotype_types', request.session.get('selected_phenotype_types', ''))
     phenotype_brand = request.GET.get('phenotype_brand', request.session.get('phenotype_brand', ''))  # request.CURRENT_BRAND
+    data_sources = request.GET.get('data_source_ids', request.session.get('phenotype_data_source_ids', ''))
     
     show_deleted_phenotypes = request.GET.get('show_deleted_phenotypes', request.session.get('phenotype_show_deleted_phenotypes', 0))
     show_my_phenotypes = request.GET.get('show_my_phenotypes', request.session.get('phenotype_show_my_phenotype', 0))
@@ -126,6 +127,7 @@ def phenotype_list(request):
     request.session['phenotype_show_my_pending_phenotypes'] = show_my_pending_phenotypes    
     request.session['phenotype_show_mod_pending_phenotypes'] = show_mod_pending_phenotypes
     request.session['phenotype_show_rejected_phenotypes'] = show_rejected_phenotypes
+    request.session['phenotype_data_source_ids'] = data_sources
 
     # remove leading, trailing and multiple spaces from text search params
     search = re.sub(' +', ' ', search.strip())
@@ -184,6 +186,16 @@ def phenotype_list(request):
 
     if isinstance(start_date_query, datetime.datetime) and isinstance(end_date_query, datetime.datetime):
         filter_cond += " AND (created >= '" + start_date_range + "' AND created <= '" + end_date_range + "') "
+    
+    if data_sources:
+        sanitised_sources = utils.expect_integer_list(data_sources)
+        search_source_list = [str(i) for i in sanitised_sources]
+        sources = DataSource.objects.filter(id__in=search_source_list)
+        search_source_list = list(sources.values_list('id',  flat=True))
+        search_source_list = [str(i) for i in search_source_list]          
+        if len(search_source_list) > 0:
+            filter_cond += " AND data_sources && '{" + ','.join(search_source_list) + "}' "
+
     
     # check if it is the public site or not
     if request.user.is_authenticated:
@@ -277,7 +289,8 @@ def phenotype_list(request):
     collections_excluded_from_filters = []
     if request.CURRENT_BRAND != "":
         collections_excluded_from_filters = request.BRAND_OBJECT.collections_excluded_from_filters
-            
+
+    # Collections
     brand_associated_collections = db_utils.get_brand_associated_collections(request, 
                                                                             concept_or_phenotype='phenotype',
                                                                             brand=None,
@@ -298,6 +311,12 @@ def phenotype_list(request):
     coding_id_list = []
     if coding_ids:
         coding_id_list = utils.expect_integer_list(coding_ids)
+    
+    # Data sources
+    data_source_reference = db_utils.get_data_source_reference(request, brand=None)
+    data_sources_list = []
+    if data_sources:
+        data_sources_list = utils.expect_integer_list(data_sources)
 
     context = {
         'page': page,
@@ -331,6 +350,9 @@ def phenotype_list(request):
         'all_types_selected': all(item in selected_phenotype_types_list for item in phenotype_types_list),
         'coding_system_reference': coding_system_reference,
         'coding_system_reference_ids': coding_system_reference_ids,
+        'data_source_ids': data_sources,
+        'data_source_list': data_sources_list,
+        'data_sources_reference': data_source_reference,
         'brand_associated_tags': brand_associated_tags,
         'brand_associated_tags_ids': list(brand_associated_tags.values()),
         'all_tags_selected': all(item in tag_ids_list for item in brand_associated_tags.values()),

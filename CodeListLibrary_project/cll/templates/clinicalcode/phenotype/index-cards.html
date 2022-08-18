@@ -164,6 +164,45 @@
 					</div>
 				</div>
 
+				<!-- Data sources -->
+				<a data-toggle="collapse" href="#collapse-datasources" aria-expanded="true" aria-controls="collapse-datasources" style="color: inherit; text-decoration: inherit;">
+					<div class="panel-footer panel_transparent">
+						<div class="filter_title_content filter_overflow">
+							<span class="filter_reset_btn hide">
+								<i class="fa fa-window-close"></i>
+							</span>
+							<div class="filter_title">
+								Data Source
+							</div>
+							<span class="fa fa-angle-up morphing_caret closed" aria-hidden="true"></span>
+						</div>
+					</div>
+				</a>
+				
+				<div class="filter-content collapse" id="collapse-datasources">
+					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_datasources">
+						<div class="query_filter">
+							<input type="text" autocomplete="false"  class="form-control" id="datasources_searchbar" placeholder="Search...">
+						</div>
+						<hr class="hr_filter">
+						<ul class="scrollable_filter_list">
+							<p class="hide" id="filter_no_result" style="text-align: center;">No results found.</p>
+						{% for tag in data_sources_reference %}
+								<li class="checkbox">
+									<label>
+									<input class="form-check-input filter_option datasources" type="checkbox" name="source_id" value="{{ tag.id }}" 
+									{% if tag.id in data_source_list  %} checked {% endif %}  
+									>
+									<span class="form-check-label">
+										{{ tag.name }}
+									</span>
+									</label>
+								</li> 
+						{% endfor %}	
+						</ul>
+					</div>
+				</div>
+
 				<!-- Date tags -->
 				<a data-toggle="collapse" href="#collapse-date" aria-expanded="true" aria-controls="collapse-date" style="color: inherit; text-decoration: inherit;">
 					<div class="panel-footer panel_transparent">
