@@ -27,6 +27,8 @@ from .TimeStampedModel import TimeStampedModel
 from .UKBIOBANK_CODES import UKBIOBANK_CODES
 from .WorkingSet import WorkingSet
 from .WorkingSetTagMap import WorkingSetTagMap
+from .PhenotypeWorkingset import PhenotypeWorkingset
+from .PublishedWorkingset import PublishedWorkingset
 from .ICPC_2_CODES import ICPC_2_CODES
 from .CTV3_CODES import CTV3_CODES
 from .ICD_11_CODES import ICD_11_CODES
