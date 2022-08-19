@@ -32,25 +32,12 @@ class PhenotypeWorkingset(TimeStampedModel):
     phenotypes_concepts_data = JSONField()
 
     # Permissions section for updating/creating phenotype_workingset
-    created_by = models.ForeignKey(User,
-                                   on_delete=models.SET_NULL,
-                                   null=True,
-                                   related_name="phenotype_workingset_created")
-    updated_by = models.ForeignKey(User,
-                                   on_delete=models.SET_NULL,
-                                   null=True,
-                                   related_name="phenotype_workingset_updated")
+    created_by = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,related_name="phenotype_workingset_created")
+    updated_by = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,related_name="phenotype_workingset_updated")
     is_deleted = models.NullBooleanField(default=False)
-
     deleted = models.DateTimeField(null=True, blank=True)
-    deleted_by = models.ForeignKey(User,
-                                   on_delete=models.SET_NULL,
-                                   null=True,
-                                   related_name="phenotype_workingset_deleted")
-    owner = models.ForeignKey(User,
-                              on_delete=models.SET_NULL,
-                              null=True,
-                              related_name="phenotype_workingset_owned")
+    deleted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,related_name="phenotype_workingset_deleted")
+    owner = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,related_name="phenotype_workingset_owned")
     group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True)
     owner_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.EDIT)
     group_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.NONE)
