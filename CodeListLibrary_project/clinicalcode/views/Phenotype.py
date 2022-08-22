@@ -182,7 +182,7 @@ def phenotype_list(request):
         search_coding_list = list(coding.values_list('id', flat=True))
         search_coding_list = [str(i) for i in search_coding_list]
         if len(search_coding_list) > 0:
-            filter_cond += ' '.join([" AND %s=ANY(clinical_terminologies) " % x for x in search_coding_list])
+            filter_cond += " AND clinical_terminologies && '{" + ','.join(search_coding_list) + "}' "
 
     if isinstance(start_date_query, datetime.datetime) and isinstance(end_date_query, datetime.datetime):
         filter_cond += " AND (created >= '" + start_date_range + "' AND created <= '" + end_date_range + "') "
