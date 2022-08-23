@@ -836,6 +836,7 @@ def get_brand_filter_stat(request, entity_class, force_brand=None):
         stats_dict['phenotype_types'] = [{"data_scope": "all_data", "types": Counter(phenotype_types_list).most_common()}
                                         ,{"data_scope": "published_data", "types": Counter(phenotype_types_list_published).most_common()}
                                         ]
+
     
     
     return stats_dict

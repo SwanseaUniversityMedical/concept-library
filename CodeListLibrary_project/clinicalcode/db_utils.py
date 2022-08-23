@@ -25,10 +25,32 @@ from django.utils.timezone import now
 from psycopg2.errorcodes import INVALID_PARAMETER_VALUE
 from simple_history.utils import update_change_reason
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
+from django.db.models.functions import Lower
 
 from . import utils, tasks
 from .models import *
 from .permissions import *
+
+#--------- Order queries ---------------
+concept_order_queries = {
+    'Relevance': ' ORDER BY id, history_id DESC ',
+    'Created (Desc)': ' ORDER BY created DESC ',
+    'Created (Asc)': ' ORDER BY created ASC ',
+    'Last Updated (Desc)': ' ORDER BY modified DESC ',
+    'Last Updated (Asc)': ' ORDER BY modified ASC '
+}
+concept_order_default = list(concept_order_queries.values())[0]
+
+def get_order_from_parameter(parameter):
+    if parameter in concept_order_queries:
+        return concept_order_queries[parameter]
+    return concept_order_default
+
+#---------------------------------------
+
+#------------ pagination lims ----------
+page_size_limits = [20, 50, 100]
+#---------------------------------------
 
 
 # pandas needs to be installed by "pip2"
@@ -2872,7 +2894,8 @@ def get_visible_live_or_published_concept_versions(request,
                                                     force_get_live_and_or_published_ver=None,  # used only with no login
                                                     search_name_only = True,
                                                     highlight_result = False,
-                                                    do_not_use_FTS = False
+                                                    do_not_use_FTS = False,
+                                                    order_by=None
                                                 ):
     ''' Get all visible live or published concept versions 
     - return all columns
@@ -3042,21 +3065,24 @@ def get_visible_live_or_published_concept_versions(request,
 
 
     # order by clause
-    order_by = " ORDER BY id, history_id DESC "
+    order_by = " ORDER BY id, history_id desc " if order_by is None else order_by
     if search != '':
         if search_name_only:
             # search name field only
             order_by =  """ 
                             ORDER BY rank_name DESC
-                                    , id, history_id DESC  
-                        """
+                                    , """ + order_by.replace(' ORDER BY ', '')
         else:
             # search all related fields
-            order_by =  """                          
-                            /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
-                            ORDER BY rank_name DESC, rank_author DESC , rank_all DESC
-                        """
-                            
+            if order_by != concept_order_default:
+                order_by =  """
+                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
+                                ORDER BY rank_name DESC, rank_author DESC , rank_all DESC, """ + order_by.replace(' ORDER BY ', '')
+            else:
+                order_by =  """
+                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
+                                ORDER BY rank_name DESC, rank_author DESC , rank_all DESC
+                            """
                     
     with connection.cursor() as cursor:
         cursor.execute(
@@ -3136,7 +3162,8 @@ def get_visible_live_or_published_phenotype_versions(request,
                                                     force_get_live_and_or_published_ver = None,  # used only with no login
                                                     search_name_only = True,
                                                     highlight_result = False,
-                                                    do_not_use_FTS = False                                               
+                                                    do_not_use_FTS = False,
+                                                    order_by=None                                           
                                                     ):
     ''' Get all visible live or published phenotype versions 
     - return all columns
@@ -3314,21 +3341,24 @@ def get_visible_live_or_published_phenotype_versions(request,
 
 
     # order by clause
-    order_by = " ORDER BY id, history_id DESC "
+    order_by = " ORDER BY id, history_id desc " if order_by is None else order_by
     if search != '':
         if search_name_only:
             # search name field only
             order_by =  """ 
                             ORDER BY rank_name DESC
-                                    , id, history_id DESC  
-                        """
+                                    , """ + order_by.replace(' ORDER BY ', '')
         else:
             # search all related fields
-            order_by =  """                          
-                            /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
-                            ORDER BY rank_name DESC, rank_author DESC , rank_all DESC
-                        """
-                            
+            if order_by != concept_order_default:
+                order_by =  """
+                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
+                                ORDER BY rank_name DESC, rank_author DESC , rank_all DESC, """ + order_by.replace(' ORDER BY ', '')
+            else:
+                order_by =  """
+                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
+                                ORDER BY rank_name DESC, rank_author DESC , rank_all DESC
+                            """                            
         
     with connection.cursor() as cursor:
         cursor.execute(
@@ -3990,9 +4020,96 @@ def getConceptCodes_withAttributes_HISTORICAL(concept_id, concept_history_date,
     codes_with_attr_df = codes_with_attr_df.replace(['None'], '', regex=True)
 
     return codes_with_attr_df.to_dict('records')
+#---------------------------------------------------------------------------
 
+#-------------------- Data sources reference data ------------------------#
+def get_brand_associated_phenotype_types(request, brand=None):
+    """
+        Return all phenotype types assoc. with each brand from the filter statistics model
+    """
+    if brand is None:
+        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
+    
+    source = 'all_data' if request.user.is_authenticated else 'published_data'
+    stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact='phenotype_filters')).stat['phenotype_types']
+    stats = [entry for entry in stats if entry['data_scope'] == source][0]['types']
+
+    available_types = Phenotype.history.annotate(type_lower=Lower('type')).values('type_lower').distinct().order_by('type_lower')    
+    phenotype_types = [entry[0] for entry in stats]
+    phenotype_types = [x for x in phenotype_types if available_types.filter(type_lower=x).exists()]
+    sorted_order = {str(entry[0]): entry[1] for entry in stats}
+
+    return phenotype_types, sorted_order
 
 #---------------------------------------------------------------------------
+
+#-------------------- Data sources reference data ------------------------#
+def get_data_source_reference(request, brand=None):
+    """
+        Return all data sources assoc. with each brand from the filter statistics model
+    """
+    if brand is None:
+        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
+    
+    source = 'all_data' if request.user.is_authenticated else 'published_data'
+    stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact='phenotype_filters')).stat['data_sources']
+    stats = [entry for entry in stats if entry['data_scope'] == source][0]['data_source_ids']
+    data_source_ids = [entry[0] for entry in stats]
+
+    data_sources = [DataSource.objects.get(id=x) for x in data_source_ids if DataSource.objects.filter(id=x).exists()]
+    sorted_order = {str(entry[0]): entry[1] for entry in stats}
+    
+    return data_sources, sorted_order
+
+#-------------------- Coding system reference data ------------------------#
+def get_coding_system_reference(request, brand=None, concept_or_phenotype="concept"):
+    """
+        Return all coding systems assoc. with each brand from the filter statistics model
+    """
+    if brand is None:
+        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
+    
+    source = 'all_data' if request.user.is_authenticated else 'published_data'
+    stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact=f"{concept_or_phenotype}_filters")).stat['coding_systems']
+    stats = [entry for entry in stats if entry['data_scope'] == source]
+
+    stats = stats[0]['coding_system_ids']
+    coding = [entry[0] for entry in stats]
+    coding = [CodingSystem.objects.get(id=x) for x in coding if CodingSystem.objects.filter(id=x).exists()]
+    sorted_order = {str(entry[0]): entry[1] for entry in stats}
+    
+    return coding, sorted_order
+
+#----------------------------- Tag reference ------------------------------#
+def get_brand_associated_tags(request, excluded_tags=None, brand=None, concept_or_phenotype="concept"):
+    """
+        Return all tags assoc. with each brand, and exclude those in our list
+    """
+    if brand is None:
+        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
+    
+    source = 'all_data' if request.user.is_authenticated else 'published_data'
+    stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact=f"{concept_or_phenotype}_filters")).stat['tags']
+    stats = [entry for entry in stats if entry['data_scope'] == source][0]['tag_ids']
+    tags = [entry[0] for entry in stats]
+    
+    if tags is not None and excluded_tags is not None:
+        tags = [x for x in tags if x not in excluded_tags]
+    
+    descriptors = [Tag.objects.get(id=x) for x in tags if Tag.objects.filter(id=x).exists()]
+    sorted_order = {str(entry[0]): entry[1] for entry in stats}
+    
+    if descriptors is not None:
+        result = {}
+        for tag in descriptors:
+            result[tag.description] = tag.id
+
+        return result, sorted_order
+    
+    return {}, sorted_order
+
+#---------------------------------------------------------------------------
+
 def get_brand_collection_ids(brand_name):
     """
         returns list of collections (tags) ids associated with the brand
@@ -4007,35 +4124,26 @@ def get_brand_collection_ids(brand_name):
         return [-1]
 
 
-def get_brand_associated_collections(request, concept_or_phenotype, brand=None, excluded_collections=None):
+def get_brand_associated_collections(request, concept_or_phenotype="concept", brand=None, excluded_collections=None):
     """
         If user is authenticated show all collection IDs, including those that are deleted, as filters.
         If not, show only non-deleted/published entities related collection IDs.
     """
-
     if brand is None:
-        brand = request.CURRENT_BRAND
-        if brand == "":
-            brand = 'ALL'
-
-    collection_ids = Statistics.objects.get(org__iexact=brand, type__iexact=['phenotype_collections', 'concept_collections'][concept_or_phenotype == 'concept'])
-    stats = collection_ids.stat
-
-    collections_ids = []
-    for s in stats:
-        if request.user.is_authenticated:
-            # If user is authenticated, bring back all collections IDs
-            if s['Data_Scope'] == 'all_data':
-                collections_ids = s['Collection_IDs']
-        else:
-            # If user is not authenticated, bring back published data related collections IDs
-            if s['Data_Scope'] == 'published_data':
-                collections_ids = s['Collection_IDs']
-
-    if excluded_collections:
-        collections_ids = list(set(collections_ids) - set(excluded_collections))
-        
-    return Tag.objects.filter(id__in=collections_ids, tag_type=2)
+        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
+    
+    source = 'all_data' if request.user.is_authenticated else 'published_data'
+    stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact=f"{concept_or_phenotype}_filters")).stat['collections']
+    stats = [entry for entry in stats if entry['data_scope'] == source][0]['collection_ids']
+    collections = [entry[0] for entry in stats]
+    
+    if collections is not None and excluded_collections is not None:
+        collections = [x for x in collections if x not in excluded_collections]
+    
+    collections = [Tag.objects.get(id=x) for x in collections if Tag.objects.filter(id=x).exists()]
+    sorted_order = {str(entry[0]): entry[1] for entry in stats}
+    
+    return collections, sorted_order
 
 
 def get_brand_associated_collections_dynamic(request, concept_or_phenotype, excluded_collections=None):

@@ -11,260 +11,104 @@
 {% block container_fluid %}
 
 <div class="bg-search">
- 	<div class="container" >
+	<div class="container" >
 
-		<div id="basic-search" class="bg-search" {% if search_form == 'advanced-form' %} style="display:none;" {% endif %} >
-			<form class="container_frm container-1 example" id="basic-form" action="{% url 'concept_list' %}" method="GET"  >
-				<div  class="row form-group">
-					<div>
-						<h2>Concepts</h2>
-						<div class="form-input-flex-container">
-							<input type="text" placeholder="Search Concepts" name="search" id="search1" value="{{ search|default_if_none:'' }}">
-							<input type="hidden" name="tagids" id="tagids"  value="{{ tag_ids|default_if_none:'' }}">
-							<input type="hidden" name="search_form" id="collection_search_form1"  class="collection_search_form"  value="{{ search_form }}"> 
-											
-							<button name="page" value="1">
-								<i class="fa fa-search"></i>
-							</button>
-						</div>
+	 <div id="basic-search" class="bg-search">
+		 <form class="container_frm container-1 example" id="basic-form" action="{% url 'concept_list' %}" method="GET"  >
+			 <div  class="row form-group">
+				 <div>
+					 <h2>Concepts</h2>
+					 <div class="form-input-flex-container">
+						 <!-- Basic form queries -->
+						 <input type="text" placeholder="Search Concepts" name="search" id="search1" value="{{ search|default_if_none:'' }}">
+						 <input type="hidden" name="tag_collection_ids" id="tag_collection_ids" value="{{ tag_ids|default_if_none:'' }}">
+						 <input type="hidden" name="codingids" id="codingids"  value="{{ codingids|default_if_none:'' }}">
+						 <input type="hidden" name="page" id="page"  value="{{ page|default_if_none:1 }}">
+						 <input type="hidden" name="search_form" id="collection_search_form1"  class="collection_search_form"  value="{{ search_form }}">
+						 <input type="hidden" name="startdate" id="startdate" value="{{ filter_start_date }}" />
+						 <input type="hidden" name="enddate" id="enddate" value="{{ filter_end_date }}" />
+						 <input type="hidden" name="order_by" id="order_by" value="{{ ordered_by }}" />
+						 <input type="hidden" name="page_size" id="page_size" value="{{ page_size }}" />
 
-					</div>
-				</div>
-				<div class="row form-group">
-					<div >
-						<a  id="show-advanced-search" href="javascript:void(null);" >Advanced search</a>
-					</div>
-				</div>
-			</form>
-			<br/>
-		</div>
-
-
-		<div id="advanced-search" {% if search_form == 'basic-form' %} style="display:none;" {% endif %} >
-			<h2 class="page-header">Concepts</h2>
-			<form id="advanced-form" action="{% url 'concept_list' %}" method="GET" >
-				<div class="panel panel-default bg-search">
-					<div class="panel-body container-2">
-					
-						<div class="row form-group">
-							<div class="col-md-2">
-								<label for="search">Search: <i class="help-block-no-break" style="font-size: 10px;">(concept name)</i></label>
-							</div>
-							<div class="col-sm-6">
-								<input class="form-control" type="text" placeholder="Search Concepts" name="search" id="search" value="{{ search|default_if_none:'' }}">
-							</div>
-							<div class="col-md-2">
-								<label for="page_size">Results per page:</label>
-							</div>
-							<div class="col-md-2"> 
-								<select class="form-control" id="page_size" name="page_size">
-									<option value="20" {% if page_size == "20" %}selected="selected" {% endif %}>20</option>
-									<option value="50" {% if page_size == "50" %}selected="selected" {% endif %}>50</option>
-									<option value="100" {% if page_size == "100" %}selected="selected" {% endif %}>100</option>
-								</select>
-								
-								<input type="hidden" name="search_form" id="collection_search_form"  class="collection_search_form"  value="{{ search_form }}"> 
-								
-							</div>
-						</div>
-						<div class="row form-group">
-							<div class="col-sm-2">
-								<label for="tag">Tag/Collection:</label>
-							</div>
-							<div class="col-sm-10">
-								<input class="form-control" type="text" name="tagids" id="txtTags" data-role="tagsinput" value="{{ tag|default_if_none:'' }}">
-							</div>					
-						</div>
-		
-						<div class="row form-group">
-							<div class="col-sm-2">
-								<label for="author">Author: <i class="help-block-no-break" style="font-size: 10px;">(free text)</i></label>
-							</div>
-							<div class="col-sm-6">
-								<input class="form-control" type="text" name="author" id="txtAuthor" data-role="authorinput" value="{{ author|default_if_none:'' }}">
-							</div>	
-						
-						{% if user.is_authenticated %}
-							<div class="col-md-2">
-								<label for="owner">Owner: <i class="help-block-no-break" style="font-size: 10px;">(full user name)</i></label>
-							</div>
-							<div class="col-md-2"> 
-								<input class="form-control" type="text" name="owner" id="txtOwner" data-role="ownerinput" value="{{ owner|default_if_none:'' }}">
-							</div>	
-						{% endif %}			
-						</div>	
-										
-<!-- 						<div class="row form-group"> -->
-<!-- 							<div class="col-md-2"> -->
-<!-- 								<label for="brand">Brand:</label> -->
-<!-- 							</div> -->
-<!-- 							<div class="col-md-10">  -->
-<!-- 							   {% if request.session.all_brands %} -->
-<!-- 								   <ul class="nav navbar-nav"> -->
-<!-- 									     <select class="form-control" name="concept_brand" id="concept_brand"  >   -->
-<!-- 										    <option value=""  style='background-color: lightgreen;' >Any</option> -->
-<!-- 											{% for brand in request.session.all_brands %} -->
-<!-- 												<option value="{{ brand|upper }}"  -->
-<!-- 												       {% if brand|upper == concept_brand|upper %} selected="selected" {% endif %} -->
-<!-- 												       > -->
-<!-- 													{{ brand|upper }} -->
-<!-- 													{% if brand|upper in request.session.user_brands %} (*) {% endif %} -->
-<!-- 											</option> -->
-<!-- 											{% empty %} -->
-<!-- 												<option value="-1" >No Brands !!!</option> -->
-<!-- 											{% endfor %} -->
-<!-- 										  </select> -->
-<!-- 									</ul> -->
-<!-- 								{% endif %} -->
-<!-- 								<span id="concept_brand_img"> -->
-<!-- 								{% if concept_brand|length %}  -->
-<!-- 									&nbsp; <img height="29px" src="{% static 'img/brands/' %}{{concept_brand|upper}}/logo.png" title="{{concept_brand|upper}}" alt="{{concept_brand|upper}}" />  -->
-<!-- 								{% endif %} -->
-<!-- 								</span> -->
-<!-- 							</div>			 -->
-		
-<!-- 						</div>				 -->
-						
-		
-					<div class="row form-group">
-						{% if user.is_authenticated %}
-							<div class="col-md-3">
-								<div class="checkbox"  >
-									<label>
-										<input id="show_deleted_concepts_hidden" type="hidden" name="show_deleted_concepts"  value="{{ show_deleted_concepts }}" >
-										<input class="form-checkbox" id="show_deleted_concepts" type="checkbox" nameXX="show_deleted_concepts"  {% if show_deleted_concepts == "1" %} checked="checked" {% endif %} value="1" >
-										Show deleted concepts
-									</label>
-								</div>
-							</div>
-							
-							<div class="col-md-3">
-								<div class="checkbox"  >
-									<label>
-										<input id="show_my_concepts_hidden" type="hidden" name="show_my_concepts"  value="{{ show_my_concepts }}" >
-										<input class="form-checkbox" id="show_my_concepts" type="checkbox" nameXX="show_my_concepts" {% if show_my_concepts == "1" %} checked="checked" {% endif %} value="1" >
-										Only show concepts owned by me
-									</label>
-								</div>
-							</div>										
-						{% endif %}						
-							
-							<div 	class = "col-md-3">   
-								<div class="checkbox"  >
-									<label>
-										<input id="show_only_validated_concepts_hidden" type="hidden" name="show_only_validated_concepts"  value="{{ show_only_validated_concepts }}" >
-										<input class="form-checkbox" id="show_only_validated_concepts" type="checkbox" nameXX="show_only_validated_concepts" {% if show_only_validated_concepts == "1" %} checked="checked" {% endif %} value="1" >
-										Only Show validated concepts
-									</label>
-								</div>
-							</div>					
-		
-						{% if user.is_authenticated %}
-							<div  class = "col-md-3">
-								<div class="checkbox"  >
-									<label>
-										<input id="must_have_published_versions_hidden" type="hidden" name="must_have_published_versions" value="{{ must_have_published_versions }}" >
-										<input class="form-checkbox" id="must_have_published_versions" type="checkbox" nameXX="must_have_published_versions" {% if must_have_published_versions == "1" %} checked="checked" {% endif %} value="1" >
-										Only show concepts with published version
-									</label>
-								</div>
-							</div>		
-						{% endif %}						
-							
-					</div>
-									
-					<div class="row form-group">
-							<div class="col-md-2 ">
-								<a  id="show-basic-search" href="javascript:void(null);" >Basic search</a>
-							</div>	
-							<div class="col-md-10 text-right">				
-								<a class="btn btn-info" name="reset-form" id="reset-form" >
-									<i class="glyphicon glyphicon-repeat"></i> Reset							
-								</a>
-								
-								<button class="btn btn-primary" name="page" value="1">
-									<i class="fa fa-search"></i> Search Concepts
-								</button>
-							</div>
-							
-					</div>		
-						
-							
-					</div>
-				</div>
-			</form>			
-		</div>	
-
-
-	</div>	
+						 <!-- Reimplemented 'Advanced' queries -->
+						 <input class="form-control" type="hidden" name="owner" id="txtOwner" value="{{ owner|default_if_none:'' }}">
+						 <input class="form-control" type="hidden" name="author" id="txtAuthor" value="{{ author|default_if_none:'' }}">
+						 <input id="show_deleted_concepts_hidden" type="hidden" name="show_deleted_concepts" value="{{ show_deleted_concepts }}" >
+						 <input id="show_my_concepts_hidden" type="hidden" name="show_my_concepts" value="{{ show_my_concepts }}" >
+						 <input id="show_only_validated_concepts_hidden" type="hidden" name="show_only_validated_concepts" value="{{ show_only_validated_concepts }}" >
+						 <input id="must_have_published_versions_hidden" type="hidden" name="must_have_published_versions" value="{{ must_have_published_versions }}" >
+						 
+						 <!-- Search button -->
+						 <button classXX="btn btn-info btn-paginate" name="search_button" value="1" id="search_btn">
+							 <i class="fa fa-search"></i>
+						 </button>
+					 </div>
+				 </div>
+			 </div>
+			 <div class="row applied_filter_group hide">
+					<h4>Applied Filters:</h4>
+					<ul class="applied_filter_tags"></ul>
+			 </div>
+		 </form>
+	 </div>
+ </div>	
 </div>	
 {% endblock container_fluid %}
 
 {% block container %}
-		
-	{% if user.is_authenticated %}		
-		<div>
-			{% if not CLL_READ_ONLY %}
-				{% if request.CURRENT_BRAND != 'HDRUK' %}
-					<a class="btn btn-primary" {% if allowed_to_create %} href="{% url 'concept_create' %}" {% else %} disabled {% endif %}>
-						Add new concept
-					</a>
-					<span style="width: 10px;">&nbsp;</span>
-				{% endif %}
-			{% endif %}
-			
-				<a class="btn btn-outline-primary btn-cl btn-cl-secondary"  href="{% url 'choose_concepts_to_compare' %}" >
-					Compare concepts
-				</a>
-			     			
-		</div>
-	{% endif %}	
-		
-	<br/>
+<div class="row">
+{% if user.is_authenticated %}		
+	<div class="col col-xs-8 btn_group">
+	{% if not CLL_READ_ONLY %}
+		{% if request.CURRENT_BRAND != 'HDRUK' %}
+			<a class="btn btn-primary" {% if allowed_to_create %} href="{% url 'concept_create' %}" {% else %} disabled {% endif %}>
+				Add new concept
+			</a>
+		{% endif %}
+	{% endif %}
+	
+		<a class="btn btn-outline-primary btn-cl btn-cl-secondary"  href="{% url 'choose_concepts_to_compare' %}" >
+			Compare concepts
+		</a>   			
+	</div>
+{% endif %}
+	{% if user.is_authenticated %}	
+	<div class="col col-xs-4 text-right filter_modal_button">
+	{% else %}
+	<div class="col col-xs-12 text-right filter_modal_button">
+	{% endif %}
+		<a href="#" class="btn btn-outline-primary btn-cl btn-cl-secondary" data-toggle="modal" data-target="#filter-modal" id="filter_modal_btn">
+			<i class="fa fa-sort" style="padding: 2px;"></i>
+			Filters
+		</a>
+	</div>
+</div>
+<br/>
 
 {% include './index-cards.html' %}
 
+<div class="modal fade" id="filter-modal" tabindex="-1" role="dialog" aria-labelledby="filter-modal" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Filters</h4>
+      </div>
+      <div class="modal-body"></div>
+      <div class="modal-footer"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast_holder"></div>
 
 {% endblock container %}
 
-
 {% block scripts %}
 	<script src="{% static 'js/clinicalcode/component.js' %}"></script>
-	<script src="{% static 'js/clinicalcode/tags.js' %}"></script>
+	<!-- <script src="{% static 'js/clinicalcode/tags.js' %}"></script> -->
 	
 	<script type="text/javascript">
-		$('.collapse').each(function (i, obj) {
-			var anchor = $(document).find('a[href^="#' + this.id + '"]')[0];
-			if (typeof anchor !== 'undefined') {
-				var icons = $(anchor).find('.morphing-filter-targets')[0];
-				if (typeof icons !== 'undefined') {
-					// Resolve initial state
-					if ($(obj).hasClass('in')) {
-						$(icons).toggleClass('morphed');
-					}
-
-					// Toggle animation
-					$(obj).on('show.bs.collapse', function () {
-						$(icons).toggleClass('morphed');
-					});
-					$(obj).on('hide.bs.collapse', function () {
-						$(icons).toggleClass('morphed');
-					});
-				}
-			}
-		});
-	</script>
-
-	<script type="text/javascript">
-		tagService.initialize();
-		
-		$(function(){
-			{% for tag in tags %}
-				$('#txtTags').tagsinput('add', {'id': {{ tag.id }}, 'description': '{{ tag.description }}', 'display': '{{ tag.get_display_display }}'});
-			{% endfor %}
-		});
-		//--------------------------------
-
 		var imgPath = '&nbsp; <img height="29px" src="{% static 'img/brands/' %}BRANDT1/logo.png"  title="BRANDT1" alt="BRANDT1" /> ';
 		$('#concept_brand').on('change', function(e){
 			if(this.value==''){
@@ -273,7 +117,6 @@
 				 $('#concept_brand_img').html(imgPath.replace(/BRANDT1/ig, this.value ) );
 			 }
 		});
-
 	</script>
 	
 	<script type="text/javascript">
@@ -306,114 +149,67 @@
 			$('#show_only_validated_concepts').prop("checked", false);
 			$('#show_only_validated_concepts_hidden').val("0");
 			
-		});
-		
-		
-		{% if search_form == 'advanced-form' %}
-			$("#basic-search").hide();
-		{% else %}
-			$("#advanced-search").hide();
-		{% endif %}
-			
-		$(document).ready(function() {
-			$("#show-advanced-search").click(function(){
-				  $("#advanced-search").toggle();
-				  $("#basic-search").toggle();
-				  $(".collection_search_form").val('advanced-form');
-			});
-			
-			$("#show-basic-search").click(function(){
-				  $("#advanced-search").toggle();
-				  $("#basic-search").toggle();
-				  $(".collection_search_form").val('basic-form');				  
-			});
 		});		
-		
 	</script>
 	
-	
-	
-	<script type="text/javascript">
-		// check if all elements in array 'arr1' are included in array 'arr2'
-		function isSubset(arr1, arr2){
-		  return arr1.every(i => arr2.includes(i));
-		}
+	<script>
+		// Import references
+		var filter_statistics_ordering = {{ filter_statistics_ordering|safe }};
+		var all_coding = [];
+		{% for tag in coding_system_reference %}
+			tg = {"name": "{{ tag.description }}", "id": {{ tag.id }}};
+			all_coding.push(tg);
+		{% endfor %}
 
-		//------------------------------------------
-		$(".collection_tag").change(function() {
+		var all_tag_ref = [];
+		{% for tag, tagid in brand_associated_tags.items %}
+			tg = {"name": "{{ tag }}", "id": {{ tagid }}};
+			all_tag_ref.push(tg);
+		{% endfor %}
 
-				if($(this).prop('id') == 'checkAll'){
-				    $(".collection_tag").prop('checked', $(this).prop('checked'));
-				}else{
-					if(!$(this).prop('checked')){
-						if($("#checkAll").prop('checked')){
-							$("#checkAll").prop('checked', false);
-						}
-					}
-				}
-						
-				
-		         var selected_collections = []
-		         $("input:checkbox[name=collection_id]:checked").each(function(){
-		        	 selected_collections.push(parseInt($(this).val()));
-		         });
-		         
-		         //$("#filter_form input[id=tagids]").val(selected_collections);
-		         
-		         
-		        var all_tags = [];
-				{% for tag in allTags %}
-					tg = {"id": {{ tag.id }}, "description": "{{ tag.description }}", "display": "{{ tag.get_display_display }}" };
-					all_tags.push(tg);
-				{% endfor %}	   
-				
-				if($("#collection_search_form1").val() == 'advanced-form'){
-						
-						//first - remove all associated collections
-						{% for tag in brand_associated_collections %}
-							$('#txtTags').tagsinput('remove', {'id': {{ tag.id }}, 'description': '{{ tag.description }}'});
-						{% endfor %}
-						
-						
-						for (let t = 0; t < all_tags.length; t++) { 
-							for( let c = 0; c < selected_collections.length; c++) { 
-								if(selected_collections[c] == all_tags[t].id){
-									$('#txtTags').tagsinput('add', {'id': all_tags[t].id , 'description': all_tags[t].description, 'display': all_tags[t].display} );
-								}
-							}
-						}
-
-						if(isSubset({{ brand_associated_collections_ids|safe }}, selected_collections)){
-							$("#checkAll").prop('checked', true);
-						}
-
-						
-						$("#advanced-form").submit();
-						
-				}else{
-						$("#basic-form input[id=tagids]").val(selected_collections);
-	
-						if(isSubset({{ brand_associated_collections_ids|safe }}, selected_collections)){
-							$("#checkAll").prop('checked', true);
-						}
-						
-						$("#basic-form").submit();
-				}
-			
-		});	
+		var all_collections = [];
+		{% for tag in brand_associated_collections %}
+			tg = {"name": "{{ tag.description }}", "id": {{ tag.id }}};
+			all_collections.push(tg);
+		{% endfor %}
 		
-		//--------------------
-		// change checkbox's hidden value when checked/unchecked
-		$(".form-checkbox").change( function() { 
-		  if ( $(this).is(":checked") ) {
-			  $("#" + $(this).attr('id') + "_hidden").val('1');
-		  } else if ( $(this).not(":checked") ) {
-			  $("#" + $(this).attr('id') + "_hidden").val('0');
-		  }
-		});
+		var all_tags = [];
+		{% for tag in allTags %}
+			tg = {"id": {{ tag.id }}, "description": "{{ tag.description }}", "display": "{{ tag.get_display_display }}", "name": "{{ tag.description }}"};
+			all_tags.push(tg);
+		{% endfor %}
+
+		var coding_names = all_coding.map(e => e.name),
+				collection_names = all_collections.map(e => e.name),
+				tag_names = all_tag_ref.map(e => e.name);
 		
-		
+		var brand_associated_collections_ids = {{ brand_associated_collections_ids|safe }};
+    var brand_associated_tags_ids = {{ brand_associated_tags_ids|safe }};
+    var coding_system_reference_ids = {{ coding_system_reference_ids|safe }};
+
+		var filterSession = {
+			'page_size': {{ page_size }},
+			'page': {{ page }},
+			'search': "{{ search }}",
+			'author': "{{ author }}",
+			'owner': "{{ owner }}",
+			'tag_collection_ids': "{{ tag_ids }}",
+			'codingids': "{{ coding_ids }}",
+			'startdate': "{{ filter_start_date }}",
+			'enddate': "{{ filter_end_date }}",
+			'show_deleted_concepts': "{{ show_deleted_concepts }}",
+			'show_my_concepts': "{{ show_my_concepts }}",
+			'show_only_validated_concepts': "{{ show_only_validated_concepts }}",
+			'must_have_published_versions': "{{ must_have_published_versions }}",
+			'order_by': "{{ ordered_by }}"
+		};
 	</script>
+
+	<script src="{% static 'js/clinicalcode/filters/filterService.js' %}" 
+		req-scripts="{% static 'js/clinicalcode/filters/utils.js' %},{% static 'js/clinicalcode/filters/filterTags.js' %},{% static 'js/clinicalcode/filters/toastNotifications.js' %},{% static 'js/clinicalcode/filters/autocompleteSearch.js' %},{% static 'js/clinicalcode/filters/FuzzyQuery.js' %},{% static 'js/lib/daterangepicker/daterangepicker.js' %},{% static 'js/lib/daterangepicker/moment.min.js' %}"
+		req-styles="{% static 'lib/daterangepicker/daterangepicker.css' %}"
+		env="CONCEPT"
+	></script>
 	
 	
 	{% endblock scripts %}
