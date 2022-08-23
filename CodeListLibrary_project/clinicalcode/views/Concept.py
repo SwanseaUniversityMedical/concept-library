@@ -884,27 +884,34 @@ def concept_list(request):
     if request.CURRENT_BRAND != "":
         collections_excluded_from_filters = request.BRAND_OBJECT.collections_excluded_from_filters
                
-    brand_associated_collections = db_utils.get_brand_associated_collections(request, 
+    brand_associated_collections, collections_order = db_utils.get_brand_associated_collections(request, 
                                                                             concept_or_phenotype='concept',
                                                                             brand=None,
                                                                             excluded_collections=collections_excluded_from_filters
                                                                             )
     
-    brand_associated_collections_ids = list(brand_associated_collections.values_list('id', flat=True))
+    brand_associated_collections_ids = [x.id for x in brand_associated_collections]
 
     # Tags
-    brand_associated_tags = db_utils.get_brand_associated_tags(request, 
+    brand_associated_tags, tags_order = db_utils.get_brand_associated_tags(request, 
                                                                 excluded_tags=collections_excluded_from_filters,
                                                                 concept_or_phenotype='concept',
                                                                 )
 
     # Coding id 
-    coding_system_reference = db_utils.get_coding_system_reference(request, brand=None, concept_or_phenotype="concept")
-    coding_system_reference_ids = list(coding_system_reference.values_list('id', flat=True))
+    coding_system_reference, coding_order = db_utils.get_coding_system_reference(request, brand=None, concept_or_phenotype="concept")
+    coding_system_reference_ids = [x.id for x in coding_system_reference]
     coding_id_list = []
     if coding_ids:
         coding_id_list = utils.expect_integer_list(coding_ids)
     
+    # Sorted order of each field
+    filter_statistics_ordering = {
+        'tags': tags_order,
+        'collection': collections_order,
+        'coding': coding_order,
+    }
+
     context = {
         'page': page,
         'page_size': str(page_size),
@@ -937,7 +944,8 @@ def concept_list(request):
         'all_coding_selected':all(item in coding_id_list for item in coding_system_reference_ids),
         'ordered_by': des_order,
         'filter_start_date': start_date_range,
-        'filter_end_date': end_date_range
+        'filter_end_date': end_date_range,
+        'filter_statistics_ordering': filter_statistics_ordering,
     }
 
     if method == 'basic-form':

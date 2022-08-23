@@ -962,8 +962,8 @@ var initFilters = () => {
     }
   }
 
-  var resortChildren = ($holder, $children) => {
-    // i.e. checked first, then alphabetical
+  var resortChildren = (groupName, $holder, $children) => {
+    // i.e. checked first, then either sort by asc. order of frequency or desc. order alphabetical
     $children.detach().sort(function (a, b) {
       var v1 = $(a).find('input').first();
       var v2 = $(b).find('input').first();
@@ -972,12 +972,25 @@ var initFilters = () => {
       } else if (v2.prop('checked') && !v1.prop('checked')) {
         return 1;
       } else {
-        var n1 = $(a).find('.form-check-label').first().text().trim().toLocaleLowerCase();
-        var n2 = $(b).find('.form-check-label').first().text().trim().toLocaleLowerCase();
-        if (n1 < n2) {
-          return -1;
-        } else if (n1 > n2) {
-          return 1;
+        var ordering = filter_statistics_ordering[groupName];
+        if (ordering) {
+          // Sort by frequency of occurrence (descending)
+          var n1 = ordering[v1.val()];
+          var n2 = ordering[v2.val()];
+          if (n1 > n2) {
+            return -1;
+          } else if (n1 < n2) {
+            return 1;
+          }
+        } else {
+          // Default to alphabetical order (ascending)
+          var n1 = $(a).find('.form-check-label').first().text().trim().toLocaleLowerCase();
+          var n2 = $(b).find('.form-check-label').first().text().trim().toLocaleLowerCase();
+          if (n1 < n2) {
+            return -1;
+          } else if (n1 > n2) {
+            return 1;
+          }
         }
       }
 
@@ -1000,7 +1013,7 @@ var initFilters = () => {
     var $children = $holder.children('li');
 
     // Resort on startup for initialising params
-    resortChildren($holder, $children);
+    resortChildren(group.name, $holder, $children);
 
     // Init typeahead
     $(group.searchbar).autocompleteSearch({
@@ -1027,10 +1040,10 @@ var initFilters = () => {
         return results;
       },
       onFocusLost: () => {
-        resortChildren($holder, $children);
+        resortChildren(group.name, $holder, $children);
       },
       onSelected: (val) => {
-        resortChildren($holder, $children);
+        resortChildren(group.name, $holder, $children);
         
         var child = $holder.children('li').find('.form-check-label').filter(function () {
           return $(this).text().trim().toLocaleLowerCase() == val.toLocaleLowerCase();

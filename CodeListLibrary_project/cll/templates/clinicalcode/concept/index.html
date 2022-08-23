@@ -154,6 +154,7 @@
 	
 	<script>
 		// Import references
+		var filter_statistics_ordering = {{ filter_statistics_ordering|safe }};
 		var all_coding = [];
 		{% for tag in coding_system_reference %}
 			tg = {"name": "{{ tag.description }}", "id": {{ tag.id }}};

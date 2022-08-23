@@ -141,9 +141,7 @@ def phenotype_list(request):
     get_live_and_or_published_ver = 3  # 1= live only, 2= published only, 3= live+published
 
     # available phenotype_types in the DB
-    phenotype_types = Phenotype.history.annotate(type_lower=Lower('type')).values('type_lower').distinct().order_by('type_lower')
-    phenotype_types_list = list(phenotype_types.values_list('type_lower',  flat=True))
-    
+    phenotype_types_list, phenotypes_types_order = db_utils.get_brand_associated_phenotype_types(request, brand=None) #Phenotype.history.annotate(type_lower=Lower('type')).values('type_lower').distinct().order_by('type_lower')
     
     # search by ID (only with prefix)
     # chk if the search word is valid ID (with  prefix 'PH' case insensitive)
@@ -291,32 +289,41 @@ def phenotype_list(request):
         collections_excluded_from_filters = request.BRAND_OBJECT.collections_excluded_from_filters
 
     # Collections
-    brand_associated_collections = db_utils.get_brand_associated_collections(request, 
+    brand_associated_collections, collections_order = db_utils.get_brand_associated_collections(request, 
                                                                             concept_or_phenotype='phenotype',
                                                                             brand=None,
                                                                             excluded_collections=collections_excluded_from_filters
                                                                             )
-            
-    brand_associated_collections_ids = list(brand_associated_collections.values_list('id', flat=True))
+    
+    brand_associated_collections_ids = [x.id for x in brand_associated_collections]
 
     # Tags
-    brand_associated_tags = db_utils.get_brand_associated_tags(request, 
+    brand_associated_tags, tags_order = db_utils.get_brand_associated_tags(request, 
                                                                 excluded_tags=collections_excluded_from_filters,
                                                                 concept_or_phenotype='phenotype'
                                                                 )
 
     # Coding id 
-    coding_system_reference = db_utils.get_coding_system_reference(request, brand=None, concept_or_phenotype="phenotype")
-    coding_system_reference_ids = list(coding_system_reference.values_list('id', flat=True))
+    coding_system_reference, coding_order = db_utils.get_coding_system_reference(request, brand=None, concept_or_phenotype="phenotype")
+    coding_system_reference_ids = [x.id for x in coding_system_reference]
     coding_id_list = []
     if coding_ids:
         coding_id_list = utils.expect_integer_list(coding_ids)
     
     # Data sources
-    data_source_reference = db_utils.get_data_source_reference(request, brand=None)
+    data_source_reference, datasource_order = db_utils.get_data_source_reference(request, brand=None)
     data_sources_list = []
     if data_sources:
         data_sources_list = utils.expect_integer_list(data_sources)
+
+    # Sorted order of each field
+    filter_statistics_ordering = {
+        'tags': tags_order,
+        'collection': collections_order,
+        'coding': coding_order,
+        'types': phenotypes_types_order,
+        'datasources': datasource_order,
+    }
 
     context = {
         'page': page,
@@ -344,7 +351,7 @@ def phenotype_list(request):
         'brand_associated_collections': brand_associated_collections,
         'brand_associated_collections_ids': brand_associated_collections_ids,
         'all_collections_selected': all(item in tag_ids_list for item in brand_associated_collections_ids),
-        'phenotype_types':phenotype_types_list,
+        'phenotype_types': phenotype_types_list,
         'selected_phenotype_types': [t for t in selected_phenotype_types.split(',') ],
         'selected_phenotype_types_str': selected_phenotype_types, # ','.join([t for t in selected_phenotype_types.split(',') ]),
         'all_types_selected': all(item in selected_phenotype_types_list for item in phenotype_types_list),
@@ -358,10 +365,11 @@ def phenotype_list(request):
         'all_tags_selected': all(item in tag_ids_list for item in brand_associated_tags.values()),
         'coding_id_list': coding_id_list,
         'coding_ids': coding_ids,
-        'all_coding_selected':all(item in coding_id_list for item in coding_system_reference_ids),
+        'all_coding_selected': all(item in coding_id_list for item in coding_system_reference_ids),
         'ordered_by': des_order,
         'filter_start_date': start_date_range,
-        'filter_end_date': end_date_range
+        'filter_end_date': end_date_range,
+        'filter_statistics_ordering': filter_statistics_ordering,
     }
 
     if method == 'basic-form':

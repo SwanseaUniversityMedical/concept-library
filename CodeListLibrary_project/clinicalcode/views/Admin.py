@@ -39,6 +39,26 @@ import csv
 from django.db.models import Min, Max
 from collections import Counter
 
+#-------------------- Sort method for filter statistics ------------------------#
+from functools import cmp_to_key
+
+@cmp_to_key
+def descending_sort(a, b):
+    """
+        Sorts the array so that the frequency (i.e. commonality) of the item is sorted in descending order,
+        and the ID itself is sorted in ascending order - used for filter statistics
+    """
+    if a[1] > b[1]:
+        return -1
+    elif a[1] == b[1]:
+        if a[0] > b[0]:
+            return 1
+        else:
+            return -1
+    else:
+        return 1
+#---------------------------------------------------------------------------
+
 
 ##### Datasources
 def get_hdruk_datasources():
@@ -827,6 +847,14 @@ def get_brand_filter_stat(request, entity_class, force_brand=None):
     stats_dict['publish_date'] = {"min_publish_date": min_publish_date, "max_publish_date": max_publish_date}
     stats_dict['create_date'] = {"min_create_date": min_create_date, "max_create_date": max_create_date}
     stats_dict['update_date'] = {"min_update_date": min_update_date, "max_update_date": max_update_date}
+
+    # Sort in ascending order of frequency
+    stats_dict['collections'][0]['collection_ids'].sort(key=descending_sort)
+    stats_dict['collections'][1]['collection_ids'].sort(key=descending_sort)
+    stats_dict['tags'][0]['tag_ids'].sort(key=descending_sort)
+    stats_dict['tags'][1]['tag_ids'].sort(key=descending_sort)
+    stats_dict['coding_systems'][0]['coding_system_ids'].sort(key=descending_sort)
+    stats_dict['coding_systems'][1]['coding_system_ids'].sort(key=descending_sort)
     
     if entity_class == Phenotype:
         stats_dict['data_sources'] = [{"data_scope": "all_data", "data_source_ids": Counter(datasources_ids_list).most_common()}
@@ -836,6 +864,12 @@ def get_brand_filter_stat(request, entity_class, force_brand=None):
         stats_dict['phenotype_types'] = [{"data_scope": "all_data", "types": Counter(phenotype_types_list).most_common()}
                                         ,{"data_scope": "published_data", "types": Counter(phenotype_types_list_published).most_common()}
                                         ]
+    
+        stats_dict['data_sources'][0]['data_source_ids'].sort(key=descending_sort)
+        stats_dict['data_sources'][1]['data_source_ids'].sort(key=descending_sort)
+        stats_dict['phenotype_types'][0]['types'].sort(key=descending_sort)
+        stats_dict['phenotype_types'][1]['types'].sort(key=descending_sort)
+
     
     
     return stats_dict
