@@ -1,5 +1,5 @@
 /* Behaviour defs */
-var FILTER_HIDE_WIDTH    = 1070; // Screen width, in px, to decide when to hide filter UI and replace with modal
+var FILTER_HIDE_WIDTH    = 1050; // Screen width, in px, to decide when to hide filter UI and replace with modal
 var STICKY_OFFSET        = 10;   // Offset, in px, to determine when the sticky component should activate (relative to bottom of container) 
 var STICKY_SPEED         = 20;   // How many pixels we move per frame until the container is within the viewport
 var STICKY_INTERVAL      = 10;   // How many ms we wait per frame until moving the container
@@ -1197,7 +1197,8 @@ var initFilters = () => {
   // Apply responsive style @ media query
   var $result_page = $('#result-div');
   var conditionallyHidePadding = (win) => {
-    if (win.width() >= FILTER_HIDE_WIDTH) {
+    console.log(win.width())
+    if (win.width() > FILTER_HIDE_WIDTH) {
       $(".filter_modal_button").parent().addClass("hide");
     } else {
       $(".filter_modal_button").parent().removeClass("hide");
