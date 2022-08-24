@@ -629,7 +629,7 @@ p > a {
 }
 
 /* Filter panel */
-@media screen and (max-width: 1050px) {
+@media screen and (max-width: 1070px) {
   #FilterMenu {
     display: none;
   }
@@ -1075,7 +1075,7 @@ nav.filter_container {
   visibility: hidden;
 }
 
-@media screen and (max-width: 1050px) {
+@media screen and (max-width: 1070px) {
   .filter_modal_button>a {
     visibility: visible;
   }
