@@ -1197,7 +1197,6 @@ var initFilters = () => {
   // Apply responsive style @ media query
   var $result_page = $('#result-div');
   var conditionallyHidePadding = (win) => {
-    console.log(win.width())
     if (win.width() > FILTER_HIDE_WIDTH) {
       $(".filter_modal_button").parent().addClass("hide");
     } else {
