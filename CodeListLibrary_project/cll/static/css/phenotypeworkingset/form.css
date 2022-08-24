@@ -1,0 +1,79 @@
+
+.form-workingset{
+	margin-bottom: 5px;
+    padding-top: 7px;
+}
+
+.form-control-workingset{
+	height: 26px;
+	padding: 2px 12px;
+}
+.modal-body{
+	padding: 5px 15px;
+}
+
+.panel-body{
+    padding:  15px;
+	margin-left:3em;
+    margin-right:3em;
+    margin-top: 15px;
+}
+
+.panel{
+	margin-bottom: 10px;
+}
+
+.input-test{
+    margin-top: 3px;
+    padding: 15px;
+    font-size: 16px;
+    width: 100%;
+    border-radius: 3px;
+    border: 1px solid #dcdcdc;
+  background-color: #ece9e9
+}
+
+
+
+.material-textfield {
+  position: relative;
+}
+
+.label-material {
+  position: absolute;
+  font-size: 13px;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: white;
+  color: #333;
+  padding: 0 0.3rem;
+  margin: 0 0.5rem;
+  transition: .1s ease-out;
+  transform-origin: left top;
+  pointer-events: none;
+}
+.input-material {
+  font-size: 14px;
+  outline: none;
+  border: 1px solid gray;
+  border-radius: 5px;
+  padding: 6px 12px;
+  color: gray;
+  transition: 0.1s ease-out;
+}
+
+.input-material:focus {
+  border-color:  #4285f4;
+}
+.input-material:focus + .label-material {
+  color: #4285f4;
+  top: 0;
+  transform: translateY(-50%) scale(.9);
+}
+.input-material:not(:placeholder-shown) + .label-material {
+  top: 0;
+  transform: translateY(-50%) scale(.9);
+}
+
+

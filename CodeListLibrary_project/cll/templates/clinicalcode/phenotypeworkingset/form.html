@@ -19,739 +19,1116 @@
 
 {% if pk is None %}
 	<h2>Create a new working set</h2>
+    <div class="row">
+			<div class="col-md-12">
+				<i class="help-block"><span class="required">*</span> denotes a required field</i>
+			</div>
+		</div>
 {% else %}
 	<h2>Edit working set</h2>
+    <div class="row">
+			<div class="col-md-12">
+				<i class="help-block"><span class="required">*</span> denotes a required field</i>
+			</div>
+		</div>
 {% endif %}
+
+    <link href="{% static 'css/phenotypeworkingset/form.css' %}" rel="stylesheet" />
 
 <!-- This is used for the forking message. -->
 <div class="alert alert-success alert-dismissable" id="success-message" style="display: none;"
 	role="alert"></div>
 <div class="alert alert-danger alert-dismissable" id="error-message" style="display: none;"
 	role="alert"></div>
-						
-						
-<!-- main form panel -->						
+
+
 <div class="panel panel-default">
 	<div class="panel-body">
+
 		<div class="row">
-			<div class="col-sm-11" id="concept-form-container">
-				<i class="help-block"><span class="required">*</span> denotes a required field</i>
-			</div>
-			<div class="col-sm-1 text-right">
-				<a href="#" role="button" class="popovers" id="concept-form" data-container="#concept-form-container"
-					data-toggle="popover" data-trigger="hover" title="" data-original-title="Concept overview"
-					data-placement="left">
-					<i class="fa fa-question-circle" aria-hidden="true"></i>
-				</a>
-			</div>
-		</div>
-		<div class="row no-padding">
 			<div class="col-md-12">
-				<form action="" method="POST" class="form-horizontal" novalidate>
+				{% if pk is None %}
+					<form name='workingset-form' id='workingset-form' class="form-horizontal" action="{% url "workingset_create" %}" method="POST" autocomplete="off" >
+				{% else %}
+					<form name='workingset-form' id='workingset-form' class="form-horizontal" action="{% url "workingset_update" pk %}" method="POST" autocomplete="off" >
+				{% endif %}
 					{% csrf_token %}
-
-					<div>
-						{# include hidden fields #}
-						{% for hidden in form.hidden_fields %}
-							{{ hidden }}
-						{% endfor %}
-						<input type="hidden" name="code_attribute_header" value="{{ code_attribute_header }}" id="code_attribute_header_val">
-					</div>
-					<div class="form-group {% if form.name.errors %}has-error{% endif %}">
-						<label for="{{ form.name.id_for_label }}"
-							class="col-sm-3 required">{{ form.name.label }}</label>
-						<div class="col-sm-7">
-							{{ form.name }}
-							{% if form.name.errors %}
-							<span class="help-block">
-								{% for error in form.name.errors %}{{ error }}{% endfor %}
-							</span>
-							{% endif %}
-						</div>
-						{% for item in request.BRAND_GROUPS %}
-						{% for brand, groups in item.items %}
-						{% if concept.group.name in groups %}
-						<img src="{% static 'img/brands/' %}{{brand}}/logo.png" height="20px" title="{{brand}}"
-							alt="{{brand}}" />
-						{% endif %}
-						{% endfor %}
-						{% endfor %}
-					</div>
-
-					<hr />
-
-					{% if form.instance.pk is not None %}
-					<div class="form-group {% if form.author.errors %}has-error{% endif %}">
-						<label class="col-sm-3" for="{{ form.author.id_for_label }}">ID:</label>
-						<div class="col-sm-7">
-							{{ form.instance.friendly_id }}
-						</div>
-					</div>
 					<div class="form-group">
-						<label class="col-sm-3">Latest history ID:</label>
-						<div class="col-sm-7" id="latest-history-ID-Div">
-							{{ history.0.history_id }}
-						</div>
-						
-						<input type="hidden" id="latest_history_id" name="latest_history_id"  value="{{ latest_history_id }}">
-						<input type="hidden" id="overrideVersion" name="overrideVersion"  value="{{ overrideVersion|default_if_none:'0' }}">
-						
-					</div>
-					{% endif %}
+						<div class="col-sm-11">
+                             <div class="material-textfield">
+                                  <input class="input-material col-sm-11 form-control " placeholder=" " type="text">
+                                  <label class = "label-material">Workingset name</label>
+                             </div>
 
-					<div class="form-group">
-						<label class="col-sm-3" for="txtTags">Tags/Collections:</label>
-						<div class="col-sm-7" id="concept-tag-form-container">
-							<input type="text" id="txtTags" class="form-control" name="tagids" data-role="tagsinput" />
-						</div>
-						<div class="col-sm-1 form-help-popover">
-							<a href="#" role="button" class="btn popovers" id="concept-tag-form" data-toggle="popover"
-								data-trigger="hover" data-container="#concept-tag-form-container" title=""
-								data-original-title="Tags" data-placement="left">
-								<i class="fa fa-question-circle" aria-hidden="true"></i>
-							</a>
 						</div>
 					</div>
 
 
 
-					<div class="form-group {% if form.author.errors %}has-error{% endif %}">
-						<label class="required col-sm-3"
-							for="{{ form.author.id_for_label }}">{{ form.author.label }}</label>
-						<div class="col-sm-7">
-							{{ form.author }}
-							{% if form.author.errors %}
-							<span class="help-block">
-								{% for error in form.author.errors %}{{ error }}{% endfor %}
-							</span>
-							{% endif %}
-						</div>
-					</div>
 
-					<div class="form-group {% if form.entry_date.errors %}has-error{% endif %}">
-						<label class="required col-sm-3"
-							for="{{ form.entry_date.id_for_label }}">{{ form.entry_date.label }}</label>
-						<div class="col-sm-3">
-							<div class="input-group date" data-date-format="dd.mm.yyyy">
-								{{ form.entry_date }}
-								<div class="input-group-addon">
-									<span class="glyphicon glyphicon-th"></span>
-								</div>
+					{% if pk is not None %}
+						 <div class="form-group">
+							<div class="col-sm-11">
+                                <label>Latest version ID</label>
+								<input type="hidden" id="latest_history_id" name="latest_history_id"  value="{{ latest_history_id }}">
+								<input type="hidden" id="overrideVersion" name="overrideVersion"  value="{{ overrideVersion|default_if_none:'0' }}">
+								{{ latest_history_id }}
 							</div>
-
-							{% if form.entry_date.errors %}
-							<span class="help-block">
-								{% for error in form.entry_date.errors %}{{ error }}{% endfor %}
-							</span>
-							{% endif %}
 						</div>
+					{% endif %}
+            <div class="form-group">
+						<div class="col-sm-11">
+                            <div class="material-textfield">
+                                    <input class="input-material col-sm-11 form-control" type="text" name="type" id="type" placeholder=" " value="{{ workingset.type|default_if_none:'' }}">
+                                  <label class = "label-material">Type</label>
+
+						</div>
+
+						</div>
+
+
 					</div>
 
-					<div class="form-group {% if form.description.errors %}has-error{% endif %}">
-						<label class="col-sm-3"
-							for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
-						<div class="col-sm-7">
-							{{ form.description }}
-							{% if form.description.errors %}
-							<span class="help-block">
-								{% for error in form.description.errors %}{{ error }}{% endfor %}
-							</span>
-							{% endif %}
-						</div>
-					</div>
+					<div class="form-group">
 
-					<div class="form-group {% if form.coding_system.errors %}has-error{% endif %}">
-						<label class="required col-sm-3"
-							for="{{ form.coding_system.id_for_label }}">{{ form.coding_system.label }}</label>
-						<div class="col-sm-7" id="concept-coding-system-form-container">
-							{{ form.coding_system }}
-							{% if form.coding_system.errors %}
-							<span class="help-block">
-								{% for error in form.coding_system.errors %}{{ error }}{% endfor %}
-							</span>
-							{% endif %}
-							{% if form.instance.pk is not None %}
-							<span class="alert-warning" id="coding_system_note"></span>
-							{% endif %}
+						<div class="col-sm-11" id="concept-tag-form-container">
+                             <div class="material-textfield">
+                                    <input class="input-material col-sm-11 form-control" type="text" id="txtTags" name="tagids" data-role="tagsinput" placeholder=" " >
+                                  <label class = "label-material" for="txtTags">Tags</label>
+
 						</div>
+						</div>
+
+
+
 						<div class="col-sm-1 form-help-popover">
-							<a href="#" role="button" class="btn popovers" id="concept-coding-system-form"
-								data-toggle="popover" data-trigger="hover"
-								data-container="#concept-coding-system-form-container" title=""
-								data-original-title="Coding system" data-placement="left">
+							<a href="#" role="button" class="btn popovers" id="concept-tag-form" data-toggle="popover" data-trigger="hover" data-container="#concept-tag-form-container" title="" data-original-title="Tags" data-placement="left">
 								<i class="fa fa-question-circle" aria-hidden="true"></i>
 							</a>
-
 						</div>
 					</div>
+            <div class="form-group">
+						<div class="col-sm-11">
+                              <div class="material-textfield">
+                                    <input class="input-material col-sm-11 form-control" type="text" name="datasources" id="datasources"  placeholder=" " value="{{ workingset.data_sources|default_if_none:'' }}">
+                                  <label class = "label-material" >Data Sources</label>
+
+						</div>
+
+						</div>
+
+
+					</div>
+            <div class="form-group">
+
+						<div class="col-sm-11">
+                            <div class="material-textfield">
+
+							<input class="input-material col-sm-11 form-control" type="text" name="collections" id="collections" placeholder=" " value="{{ workingset.collections|default_if_none:'' }}">
+                                <label class = "label-material">Collections</label>
+						</div>
+                        </div>
+					</div>
+
+
 					<div class="form-group">
-						<label class="col-sm-3" for="">Created by:</label>
-						<div class="col-sm-7">
+
+						<div class="col-sm-11">
+                            <div class="material-textfield">
+							<input class="input-material col-sm-11 form-control" type="text" placeholder=" " value="{{ workingset.author|default_if_none:' ' }}">
+                             <label class="label-material required">Author</label>
+						</div>
+                        </div>
+					</div>
+
+					<div class="form-group">
+
+						<div class="col-sm-11">
+                            <label class="required">Description</label>
+							<textarea id="description" name="description" rows="4" cols="50" class="form-control">{{ workingset.description }}</textarea>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<div class="col-sm-11">
+                            <label>Publication</label>
+							<textarea id="publication" name="publication" rows="4" cols="50" class="form-control">{{ workingset.publication }}</textarea>
+						</div>
+					</div>
+
+
+
+					<div class="form-group">
+
+						<div class="col-sm-11">
+                            <label>Citation requirements</label>
+							<input class="col-sm-11 form-control" type="text" name="citation_requirements" id="citation_requirements" value="{{ workingset.citation_requirements }}">
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label class="col-sm-3" for="">Created by</label>
+						<div class="col-sm-11">
 							<p class="form-control-static">
-								{% if form.instance.pk is None %}
-								{{ user.username }}
+								{% if pk is None %}
+									{{ user.username }}
 								{% else %}
-								{{ form.instance.created_by.username }}
+									{{ workingset.created_by.username }}
 								{% endif %}
 							</p>
 						</div>
 					</div>
 
-					{% if form.instance.pk is not None %}
-					<div class="form-group">
-						<label class="col-sm-3" for="">Modified by:</label>
-						<div class="col-sm-7">
-							<p class="form-control-static">{{ form.instance.modified_by.username}}</p>
+					{% if pk is not None %}
+						<div class="form-group">
+							<div class="col-sm-11">
+                                <label for="">Modified by</label>
+								<p class="form-control-static">{{ workingset.updated_by.username}}</p>
+							</div>
 						</div>
-					</div>
 					{% endif %}
 
-					<div class="form-group {% if form.validation_performed.errors %}has-error{% endif %}">
-						<label class="col-sm-3"
-							for="{{ form.validation_performed.id_for_label }}">{{ form.validation_performed.label }}</label>
-						<div class="col-sm-7">
-							{{ form.validation_performed }}
-							{% if form.validation_performed.errors %}
-							<span class="help-block">
-								{% for error in form.validation_performed.errors %}{{ error }}{% endfor %}
-							</span>
-							{% endif %}
-						</div>
-					</div>
-
-					<div class="form-group {% if form.validation_description.errors %}has-error{% endif %}">
-						<label class="col-sm-3"
-							for="{{ form.validation_description.id_for_label }}">{{ form.validation_description.label }}</label>
-						<div class="col-sm-7">
-							{{ form.validation_description }}
-							{% if form.validation_description.errors %}
-							<span class="help-block">
-								{% for error in form.validation_description.errors %}{{ error }}{% endfor %}
-							</span>
-							{% endif %}
-						</div>
-					</div>
-
-					<div class="form-group {% if form.publication_doi.errors %}has-error{% endif %}">
-						<label class="col-sm-3"
-							for="{{ form.publication_doi.id_for_label }}">{{ form.publication_doi.label }}</label>
-						<div class="col-sm-7">
-							{{ form.publication_doi }}
-							{% if form.publication_doi.errors %}
-							<span class="help-block">
-								{% for error in form.publication_doi.errors %}{{ error }}{% endfor %}
-							</span>
-							{% endif %}
-						</div>
-					</div>
-
-					<div class="form-group {% if form.publication_link.errors %}has-error{% endif %}">
-						<label class="col-sm-3"
-							for="{{ form.publication_link.id_for_label }}">{{ form.publication_link.label }}</label>
-						<div class="col-sm-7">
-							{{ form.publication_link }}
-							{% if form.publication_link.errors %}
-							<span class="help-block">
-								{% for error in form.publication_link.errors %}{{ error }}{% endfor %}
-							</span>
-							{% endif %}
-						</div>
-					</div>
-
-					<div class="form-group {% if form.secondary_publication_links.errors %}has-error{% endif %}">
-						<label class="col-sm-3"
-							for="{{ form.secondary_publication_links.id_for_label }}">{{ form.secondary_publication_links.label }}</label>
-						<div class="col-sm-7">
-							{{ form.secondary_publication_links }}
-							{% if form.secondary_publication_links.errors %}
-							<span class="help-block">
-								{% for error in form.secondary_publication_links.errors %}{{ error }}{% endfor %}
-							</span>
-							{% endif %}
-						</div>
-					</div>
-
-					<div class="form-group {% if form.paper_published.errors %}has-error{% endif %}">
-						<label class="col-sm-3"
-							for="{{ form.paper_published.id_for_label }}">{{ form.paper_published.label }}</label>
-						<div class="col-sm-7">
-							{{ form.paper_published }}
-							{% if form.paper_published.errors %}
-							<span class="help-block">
-								{% for error in form.paper_published.errors %}{{ error }}{% endfor %}
-							</span>
-							{% endif %}
-						</div>
-					</div>
-
-					<div class="form-group {% if form.source_reference.errors %}has-error{% endif %}">
-						<label class="col-sm-3"
-							for="{{ form.source_reference.id_for_label }}">{{ form.source_reference.label }}</label>
-						<div class="col-sm-7">
-							{{ form.source_reference }}
-							{% if form.source_reference.errors %}
-							<span class="help-block">
-								{% for error in form.source_reference.errors %}{{ error }}{% endfor %}
-							</span>
-							{% endif %}
-						</div>
-					</div>
-
-					<div class="form-group {% if form.citation_requirements.errors %}has-error{% endif %}">
-						<label class="col-sm-3"
-							for="{{ form.citation_requirements.id_for_label }}">{{ form.citation_requirements.label }}</label>
-						<div class="col-sm-7">
-							{{ form.citation_requirements }}
-							{% if form.citation_requirements.errors %}
-							<span class="help-block">
-								{% for error in form.citation_requirements.errors %}{{ error }}{% endfor %}
-							</span>
-							{% endif %}
-						</div>
-					</div>
-
-					<hr />
-					<fieldset {% if not allowed_to_permit and form.instance.pk is not None%}disabled{% endif %}>
-						<!-- div class="form-group">
+	<!-- ----------------------------------------------------------------------
+			PERMISSIONS
+		 ----------------------------------------------------------------------
+	 -->
+					<hr/>
+					<fieldset {% if not allowed_to_permit %}disabled{% endif %}>
+					<!-- div class="form-group">
 						<label class="col-sm-3" for="">Owned by:</label>
-						<div class="col-sm-7">
-							<p class="form-control-static">{{ form.instance.owner.username}}</p>
+						<div class="col-sm-11">
+							<p class="form-control-static">{{ workingset.instance.owner.username}}</p>
 						</div>
 					</div-->
 
-						<!-- Allow the user to select a user from the list of known users. -->
-						<div class="form-group {% if form.owner.errors %}has-error{% endif %}">
-							<label class="required col-sm-3"
-								for="{{ form.owner.id_for_label }}">{{ form.owner.label }}</label>
-							<div class="col-sm-7" id="concept-owner-form-container">
-								{{ form.owner }}
-								{% if form.owner.errors %}
-								<span class="help-block">
-									{% for error in form.owner.errors %}{{ error }}{% endfor %}
-								</span>
-								{% endif %}
-								{% if form.instance.pk is not None %}
-								<span class="alert-warning" id="owner_note"></span>
-								{% endif %}
-							</div>
-							<div class="col-sm-1 form-help-popover">
-								<a href="#" role="button" class="btn popovers" id="concept-owned-form"
-									data-toggle="popover" data-trigger="hover"
-									data-container="#concept-owner-form-container" title=""
-									data-original-title="{{ form.owner.label }}" data-placement="left">
-									<i class="fa fa-question-circle" aria-hidden="true"></i>
-								</a>
-							</div>
-							<div id="popover-content-concept-group-form" class="hide popover-lg">
-								<p>This field defines which group has permission to modify access to the concept if
-									group
-									permissions are selected. You can only select a group in which you are a member.
-								</p>
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="col-sm-3" for="{{ form.group.id_for_label }}">{{ form.group.label }}</label>
-							<div class="col-sm-7" id="concept-group-form-container">
-								{{ form.group }}
-								{% if form.instance.pk is not None %}
-								<span class="alert-warning" id="group_note"></span>
-								{% endif %}
-							</div>
-							<div class="col-sm-1 form-help-popover">
-								<a href="#" role="button" class="btn popovers" id="concept-group-form"
-									data-toggle="popover" data-trigger="hover"
-									data-container="#concept-group-form-container" title=""
-									data-original-title="{{ form.group.label }}" data-placement="left">
-									<i class="fa fa-question-circle" aria-hidden="true"></i>
-								</a>
-							</div>
-							<div id="popover-content-concept-owned-form" class="hide popover-lg">
-								<p>This field defines the user who has permission to modify access to the concept.
-									Please be aware that you will not be able to modify this if you give ownership to
-									someone else and do not have editing permission.
-								</p>
-							</div>
-						</div>
-						<div id="permissions" class="form-group">
-							<label class="col-sm-3">{{ form.owner_access.label }}</label>
-							<div class="col-sm-7">
-								<table>
-									<tr>
-										{% for choice in form.owner_access %}
-										<td class="col-sm-2">
-											<div class="radio">
-												<label>
-													{{ choice.tag }}
-													{{ choice.choice_label }}
-												</label>
-											</div>
-										</td>
-										{% endfor %}
-									</tr>
-								</table>
-							</div>
-						</div>
+					<!-- Allow the user to select a user from the list of known users. -->
+					<div class="form-group">
 
-						<div id="permissions" class="form-group">
-							<label class="col-sm-3">{{ form.group_access.label }}</label>
-							<div class="col-sm-7">
-								<table>
-									<tr>
-										{% for choice in form.group_access %}
-										<td class="col-sm-2">
-											<div class="radio">
-												<label>
-													{{ choice.tag }}
-													{{ choice.choice_label }}
-													{% if choice.choice_label.strip == "View" or choice.choice_label.strip == "Edit" %}
-													{% if form.instance.pk is not None %}
-													<span class="alert-warning" id="group_access_note"></span>
-													{% endif %}
-													{% endif %}
-												</label>
-											</div>
-										</td>
-										{% endfor %}
-									</tr>
-								</table>
-							</div>
+						<div class="col-sm-11"  id="workingset-owned-form-container">
+                            <label class="required">Owned by</label>
+							<select class="col-sm-11 form-control" type="text" name="owner_id" id="owner_id">
+							{% for user in users %}
+								<option value="{{ user.id }}" {% if user.id == workingset.owner_id %}selected{% endif %}>{{ user.username }}</option>
+							{% endfor %}
+							</select>
 						</div>
-
-						<div id="permissions" class="form-group">
-							<label class="col-sm-3">{{ form.world_access.label }}</label>
-							<div class="col-sm-7">
-								<table>
-									<tr>
-										{% for choice in form.world_access %}
-										<td class="col-sm-2">
-											<div class="radio">
-												<label>
-													{{ choice.tag }}
-													{{ choice.choice_label }}
-												</label>
-											</div>
-										</td>
-										{% endfor %}
-										<td class="col-sm-2">
-											<div>&nbsp;</div>
-										</td>
-									</tr>
-								</table>
-							</div>
-						</div>
-					</fieldset>
-
-					<!--	-------------------------------------------------------------------
-				CONCEPT COMPONENT TABLE
-			-------------------------------------------------------------------
-	  -->
-					<hr />
-					{% if form.instance.pk is None %}
-					<div id="concept-components" class="form-group">
-						<h3 class="col-sm-3" style="margin:0px;">Components</h3>
-						<div class="col-sm-7">
-							<div class="alert alert-danger" role="alert">
-								<span>Initial concept details must be saved before adding components</span>
-							</div>
-						</div>
-					</div>
-					{% else %}
-					<div id="concept-components" class="form-group">
-						<h3 class="col-sm-3" style="margin:0px;">Components</h3>
-						<div class="col-sm-8" id="concept-component-form-container">
-							{% with pk=form.instance.pk %}
-								{% include './add_menu_items.html' %}
-							{% endwith %}
-						</div>
-						<div class="col-sm-1 text-right">
-							<a href="#" role="button" class="popovers" id="concept-component-form"
-								data-container="#concept-component-form-container" data-toggle="popover"
-								data-trigger="hover" title="" data-original-title="Component overview"
-								data-placement="left">
+						<div class="col-sm-1 form-help-popover">
+							<a href="#" role="button" class="btn popovers" id="workingset-owned-form" data-toggle="popover"
+							   data-trigger="hover" data-container="#workingset-owned-form-container" title=""
+							   data-original-title="Owned by:" data-placement="left">
 								<i class="fa fa-question-circle" aria-hidden="true"></i>
 							</a>
 						</div>
-					</div>
-
-					<div class="w-50 p-3 bs-example" style="width:60%;">
-						<div class="alert-info fade in" style="height:20px;">
-							New added concept components will refer to the latest version unless published version is selected.
+						<div id="popover-content-workingset-owned-form" class="hide popover-lg">
+							<p>This field defines the user who has permission to modify access to the concept.
+							   Please be aware that you will not be able to modify this if you give ownership to
+							   someone else and do not have editing permission.
+							</p>
 						</div>
 					</div>
-
-					<table class="table table-striped small-table table-hover" id="component-table" border=0>
-						<thead>
-							<tr>
-								<th>Name</th>
-								<th>Version</th>
-								<th>Type</th>
-								<th>Logical type</th>
-								<th></th>
-							</tr>
-						</thead>
-						<tbody>
-							{% include '../component/partial_component_list.html' %}
-						</tbody>
-					</table>
-					
-					{% endif %}
-
-					<hr />
-					{% if form.errors %}
-					<div id="form-error" class="alert alert-danger col-sm-offset-3 col-sm-9">
-						<p>The operation could not be performed because one or more error(s) occurred.<br />
-							Please resubmit the form after making the following changes:</p>
-						<ul>
-							{% for field,error in form.errors.items %}
-							<li>{{field}} - {{ error|striptags }}</li>
-							{% endfor %}
-						</ul>
-					</div>
-					{% endif %}
-					{% if form.non_field_errors %}
-					<div class="alert alert-danger">{{ form.non_field_errors|join:"<br />" }}</div>
-					{% endif %}
-
 					<div class="form-group">
-						<div class="col-xs-offset-3 col-xs-9">
-							<button class="btn btn-primary" id="save-changes">
-								Save Concept
-							</button>
-							<a href="{% url 'concept_list' %}" class="btn btn-outline-primary btn-cl btn-cl-secondary">
-								Return to list
+
+						<div class="col-sm-11" id="workingset-group-form-container">
+                        <label>Permitted group</label>
+							<select class="col-sm-11 form-control" type="text" name="group_id" id="group_id">
+							<option value="0">----------</option>
+							{% for group in groups %}
+								<option value="{{ group.id }}" {% if group.id == workingset.group_id %}selected{% endif %}>{{ group.name }}</option>
+							{% endfor %}
+							</select>
+						</div>
+						<div class="col-sm-1 form-help-popover">
+							<a href="#" role="button" class="btn popovers" id="workingset-group-form" data-toggle="popover"
+							   data-trigger="hover" data-container="#workingset-group-form-container" title=""
+							   data-original-title="Permitted group:" data-placement="left">
+								<i class="fa fa-question-circle" aria-hidden="true"></i>
 							</a>
 						</div>
+						<div id="popover-content-workingset-group-form" class="hide popover-lg">
+							<p>This field defines which group has permission to modify access to the concept if group
+							   permissions are selected. You can only select a group in which you are a member.
+							</p>
+						</div>
 					</div>
-				</form>
-	<!--	-------------------------------------------------------------------
-			Version History
-			-------------------------------------------------------------------
-	  -->
-				<hr />
-				<div class="row">
-					<div class="col-sm-11" id="help-concept-history-container">
-						<h3>Version History</h3>
+
+					<div id="permissions" class="form-group">
+                        <label class="col-sm-3">Owner access</label>
+						<div class="col-sm-7">
+							<table><tr>
+								<td class="col-sm-2"><div class="radio">
+								<input type="radio" name="ownerAccess" value="1"
+									{% if pk is not none and  workingset.owner_access == 1 %}
+										checked="checked"
+									{% endif %}
+									 disabled="disabled"
+								 > No Access
+								</div></td><td class="col-sm-2"><div class="radio">
+								<input type="radio" name="ownerAccess" value="2"
+									{% if pk is not none and  workingset.owner_access == 2 %}
+										checked="checked"
+									{% endif %}
+									disabled="disabled"
+								> View
+								</div></td><td class="col-sm-2"><div class="radio">
+								<input type="radio" name="ownerAccess" value="3"
+									{% if pk is none %}
+										checked="checked"
+									{% endif %}
+
+									{% if pk is not none and  workingset.owner_access == 3 %}
+										checked="checked"
+									{% endif %}
+									disabled="disabled"
+								> Edit
+								</div></td>
+							</tr></table>
+						</div>
 					</div>
-					<div class="col-sm-1 text-right">
-						<a href="#" role="button" class="popovers" id="help-concept-history"
-							data-container="#help-concept-history-container" data-toggle="popover" data-trigger="hover"
-							title="" data-original-title="Change history" data-placement="left">
-							<i class="fa fa-question-circle" aria-hidden="true"></i>
-						</a>
+
+
+					<div id="permissions" class="form-group">
+						<label class="col-sm-3">Group access</label>
+						<div class="col-sm-7">
+							<table><tr>
+								<td class="col-sm-2"><div class="radio">
+								<input type="radio" name="groupAccess" value="1"
+									{% if pk is none %}
+										checked="checked"
+									{% endif %}
+
+									{% if pk is not none and  workingset.group_access == 1 %}
+										checked="checked"
+									{% endif %}
+								> No Access
+								</div></td><td class="col-sm-2"><div class="radio">
+								<input type="radio" name="groupAccess" value="2"
+									{% if pk is not none and  workingset.group_access == 2 %}
+										checked="checked"
+									{% endif %}
+								> View
+								</div></td><td class="col-sm-2"><div class="radio">
+								<input type="radio" name="groupAccess" value="3"
+									{% if pk is not none and  workingset.group_access == 3 %}
+										checked="checked"
+									{% endif %}
+								> Edit
+								</div></td>
+							</tr>
+							<tr>
+							<td colspan=3>
+							     <span  class="alert-warning" id="group_access_note">
+							     	Please make sure you have selected the required group above.
+							      </span>
+					        </td>
+							</tr></table>
+						</div>
 					</div>
+					<div id="permissions" class="form-group">
+						<label class="col-sm-3">Everyone else access:</label>
+						<div class="col-sm-7">
+							<table><tr>
+								<td class="col-sm-2"><div class="radio">
+								<input type="radio" name="worldAccess" value="1"
+								{% if pk is none %}
+									checked="checked"
+								{% endif %}
+
+								{% if pk is not none and workingset.world_access == 1 %}
+									checked="checked"
+								{% endif %}
+								> No Access
+								</div></td>
+								<td class="col-sm-2"><div class="radio">
+								<input type="radio" name="worldAccess" value="2"
+								{% if pk is not none and workingset.world_access == 2 %}
+									checked="checked"
+								{% endif %}
+								> View
+								</div></td>
+								<td class="col-sm-2"><div>&nbsp;</div></td>
+							</tr></table>
+						</div>
+					</div>
+				</fieldset>
+			<hr/>
+
+	<!-- ----------------------------------------------------------------------
+			CONCEPTS LIST
+		 ----------------------------------------------------------------------
+	 -->
+
+
+			<div class="w-50 p-3 bs-example" style="width:50%;">
+			    <div class="alert-info fade in" style="height:20px;">
+			       	New added concepts will refer to the latest version unless published version is selected.
+			    </div>
+			</div>
+
+			{% if not are_concepts_latest_version %}
+				<div class="bs-example">
+				    <div class="alert alert-warning fade in">
+				        <a href="#" class="close" data-dismiss="alert">&times;</a>
+				        <strong>Warning!</strong><br>
+				        <strong>To update to latest version click <i class="glyphicon glyphicon-repeat text-danger"></i> and re-select the concept</strong>
+						<br>
+				        <ul>
+				            {% for key, error in version_alerts.items %}
+				                <li>Concept({{ key|safe }}): {{ error|safe }}</li>
+				            {% endfor %}
+				        </ul>
+				    </div>
 				</div>
+			{% endif %}
+
+		     <div id=conceptsErrorsDiv style='display:none;'></div>
+
+					<div class="form-group">
+						<div class="col-sm-11">
+							<table id="concepts" name="concepts" border="0" class="table table-striped">
+								<thead>
+									<tr>
+										<th>Phenotypes/Concepts</th>
+									</tr>
+								</thead>
+								<tbody>
+									{% if concepts is none %}
+									<tr>
+										<td style="width:60%;" >
+											<div style="width:100%;" >
+ 												<button id="remove-input_1" class="btn btn-danger" type="button" style="width:14px; float:left; padding: 0px;">X</button>
+ 												<span id="just_a_space_1" style="width:14px; float:left; padding: 0px;background-color: #f9f9f9; font-color: #f9f9f9;">&nbsp;</span>
+												<span id="reset-input_1" class="glyphicon glyphicon-repeat text-danger" style="cursor:pointer; float:left; padding: 0px;" aria-hidden="true"></span>
+										    	<input type="text" id="concept_1" name="concept_1" class="concept form-control" placeholder="Search" style="width:80%;">
+										    	<input type="hidden" id="conceptpheno_1" name="conceptpheno_1"  class="hconcept">
+											</div>
+										</td>
+									</tr>
+									{% endif %}
+								</tbody>
+							</table>
+
+							<span id="concept_error"  class="bs-example alert" ></span>
+
+
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-md-6">
+							<button id="add-phenotype" class="btn btn-default" type="button">Add a phenotype</button>
+							<button id="add-column" class="btn btn-default" type="button">Add an attribute</button>
+						</div>
+					</div>
+
+
+
+
+					<div class="row">
+						<div class="col-md-6">
+							<div><br>
+								<button class="btn btn-primary" id="save-changes">
+									Save
+								</button>
+								<a href="{% url 'workingset_list' %}" class="btn btn-outline-primary btn-cl btn-cl-secondary">
+									Return to list
+								</a>
+							</div>
+
+						</div>
+					</div>
+
+
+					<input type="hidden" id="phenotypes_concepts_json" name="phenotypes_concepts_json">
+					<input type="hidden" id="get_concepts_json" name="get_concepts_json" value="{{ workingset.concept_informations|default_if_none:'' }}">
+					<input type="hidden" id="concept_model" value="{{ concepts }}">
+					<input type="hidden" id="concepts_id_versionID"  name="concepts_id_versionID" size=100 value="{{ concepts_id_versionID }}">
+
+
+				</form>
+
+<!--	-------------------------------------------------------------------
+  Version History
+-------------------------------------------------------------------	-->
+{% if pk is not none %}
+	<div class="panel-body">
+		<div class="row">
+
+				<hr/>
+				<h3>Version History</h3>
 				<div class="pre-scrollable">
-					{% include '../concept/partial_history_list.html' %}
+					<table class="table table-striped small-table table-hover">
+					  <thead>
+						<tr>
+							<th>ID</th>
+							<th>Name</th>
+							<th>Description</th>
+							<th>Date</th>
+<!-- 							<th>Type</th> -->
+							<th>Change reason</th>
+							<th>User</th>
+							<th></th>
+						</tr>
+					 </thead>
+					 <tbody>
+						{% include './partial_history_list.html' %}
+					 </tbody>
+					</table>
 				</div>
 			</div>
-		</div>
-		<!--	-------------------------------------------------------------------
-			HELP POP-UP TEXTS
-			!!! Some of these should possibly be included.
-			-------------------------------------------------------------------
-	  -->
-		<div id="popover-content-concept-form" class="hide popover-lg">
-			<p>
-				The basic entity in this system is a "concept", a group of clinical codes that defines a single
-				meaningful event, condition, etc. within the data.
-			</p>
-			<p>
-				Each concept is made up of one or more components. There are several types of components. A component
-				can be simply a list of clinical codes. It can also be defined as a regex that matches a certain set of
-				codes (for example, a regex could match a certain range of ICD10 chapters). Another concept can also be
-				a component. This allows defining a broad concept that is made up of several more specific concepts (for
-				example, a concept for heart disease could consist of concepts for coronary artery disease, heart
-				attack, cardiomyopathy...).
-			</p>
-			<p>
-				Components can be defined as inclusion(add-codes) or exclusion(remove-codes). This decides whether to include or exclude a set of
-				codes within the concept. Excluded codes will take precedence over the same code being included in
-				another component.
-			</p>
-			<p>
-				You specify the coding system to use at the Concept level. For example you can query ICD10 or Read codes
-				based on the coding system selected.
-			</p>
-			<img src="{% static 'img/code-list-library-erd.png' %}" width="600px" alt="Entity relationship diagram" />
-		</div>
+	</div>
+{% endif %}
 
-		<div id="popover-content-concept-button-list" class="hide popover-lg" >
+			<div id="popover-content-concept-tag-form" class="hide popover-lg">
+				<p>Tags are added within the administration section. Once a tag has been stored then you can assign it here so that you can search this working set based on tag name(s). Simply start typing the tag name you are looking for and it will appear within a dropdown just beneath the textbox.</p>
+			</div>
 
-			{% if form.instance.pk is not None %}
-				<p>
-					<strong>Export</strong> - export all codes into a csv file/JSON/XML for the current concept. 
-					<ul>
-						<li>This will also take into account any code lists within related concepts.</li>
-						<li>The exported codes will only contain inclusion code lists and exclude any code lists that have the logical type marked as exclusion(remove-codes).</li>
-						<li>The button will be disabled unless you have permission to view <b>all</b> of the component concepts.</li>
-					</ul>
-				</p>
-				<p>
-					<strong>Fork</strong> - This will take a copy of the current concept and create a new concept with all
-					the relevant components.
-				</p>
-				<p>
-					<strong>Publish</strong> - This will publish the chosen version of the concept to the public.
-						<br>Conditions to publish: 
-						<ul>
-							<li>The concept is not deleted.</li>
-							<li>You must be the owner.</li>
-							<li>The concept contains exportable codes.</li>
-							<li>You hav view access to all components of type=concept.</li>
-							<li>All components of type=concept refer to concepts which are not deleted (and their dependencies).</li>
-							<li>All components of type=concept refer to concepts which are published (and their dependencies).</li>
-						</ul>
-				</p>
-				
-				<p>
-					<strong>Delete</strong> - Mark the concept as deleted. You can still see it and restore it back.
-				</p>
-
-			{% endif %}
-		</div>
-
-		<div id="popover-content-concept-component-form" class="hide popover-lg">
-			<p>
-				Components are individual rules matching a set of codes. One or more components are used to define the codes contained within a concept.
-				Each concept is made up of one or more components. The different components are explained below:
-			</p>
-			<ul>
-				<li>
-					You can select codes individually using a simple query or regular expression. This will query either
-					the code or description field. 
-					<!-- span>For this component you can also manually add code and descriptions to a code list by clicking the + button in the component list.</span -->
-				</li>
-				<li>Match codes or descriptions with a simple query or regular expression.</li>
-				<li>A component can contain a list of clinical codes created by using the SQL query builder.</li>
-				<li>It can also be defined as a regular expression (regex) that matches a certain set of codes (for
-					example, a regex could match a certain range of ICD10 chapters).</li>
-				<li>Another concept can also be a component. This allows defining a broad concept that is made up of
-					several more specific concepts (for example, a concept for heart disease could consist of concepts
-					for coronary artery disease, heart attack, cardiomyopathy...).</li>
-			</ul>
-
-			<p>
-				Components can be defined as inclusion(add-codes) or exclusion(remove-codes) components and this will determine if codes within a
-				component will appear when querying this concept using the api or when downloading the concept csv to
-				access the codes for a specific concept.
-			</p>
-		</div>
-
-		<div id="popover-content-help-concept-history" class="hide popover-lg">
-			<p>
-				Every time you make a change to a concept whether it is saving concept information or
-				adding/editing/deleting components it is audited.
-			</p>
-			<p>
-				You can view a concept from a specific point in time by clicking the View link at the required save
-				point.
-			</p>
-			<p>
-				Within the view you can revert changes and restore a concept back to a specific point in time.
-			</p>
-			<p>
-				You can fork and create a new concept from a specific point in time.
-			</p>
-		</div>
-
-		<div id="popover-content-concept-tag-form" class="hide popover-lg">
-			<p>Tags are added within the administration section. Once a tag has been stored then you can assign it here
-				so that you can search this concept based on tag name(s). Simply start typing the tag name you are
-				looking for and it will appear within a dropdown just beneath the textbox.</p>
-		</div>
-
-		<div id="popover-content-concept-coding-system-form" class="hide popover-lg">
-			<p>This field identifies the coding system to use when querying codes for a code list or code regex
-				component. For example you can query ICD10 or Read codes depending on the coding system selected.
-			</p>
+			</div>
 		</div>
 	</div>
 </div>
+
+
 {% endblock container %}
 
 {% block scripts %}
-<script src="{% static 'js/clinicalcode/component.js' %}"></script>
-<script src="{% static 'js/clinicalcode/concept.js' %}"></script>
-<script src="{% static 'js/clinicalcode/tags.js' %}"></script>
-
-<script type="text/javascript">
-	// call the tag service initialize function in tags.js
-	tagService.initialize();
-
-	$(function () {
-		{% for tag in tags %}
-			$('#txtTags').tagsinput('add', { 'id': {{ tag.id }}, 'description': '{{ tag.description }}', 'display': '{{ tag.get_display_display }}'});
-		{% endfor %}		
-	});
-
-</script>
+	<script src="{% static 'js/clinicalcode/dataService.js' %}"></script>
+	<script src="{% static 'js/clinicalcode/component.js' %}"></script>
+	<script src="{% static 'js/clinicalcode/concept.js' %}"></script>
+	<script src="{% static 'js/clinicalcode/tags.js' %}"></script>
+    <script src="{% static 'js/clinicalcode/tagAutocomplete.js' %}"></script>
 
 
 
-{% if form.instance.pk is not None %}
-<script type="text/javascript">
-	$(function () {
-		var saved_coding_system = $('#id_coding_system').find("option:selected").val();
-		//alert(saved_coding_system);
-		$('#id_coding_system').on('change', function (e) {
-			$('#coding_system_note').html('Please make sure you are specifying the correct Coding System since it shouldn\'t be changed.');
+	<script type="text/javascript">
+		// call the tag service initialize function in tags.js
+		tagService.initialize();
 
-			if (this.value == saved_coding_system && saved_coding_system != '') { $('#coding_system_note').html(''); }
-
+		$(function(){
+			{% for tag in tags %}
+				{% if form.instance.pk is None %}
+					$('#txtTags').tagsinput('add', {'id': "{{tag.id}}" , 'description': '{{ tag.description }}', 'display': '{{ tag.get_display_display }}'});
+				{% else %}
+					$('#txtTags').tagsinput('add', {'id': "{{ tag.tag.id }}", 'description': '{{ tag.tag.description }}', 'display': '{{ tag.tag.get_display_display }}'});
+				{% endif %}
+			{% endfor %}
 		});
-	});
-</script>
-{% endif %}
+		$("#author").tagsinput('items')
+        tagAutocomplete('/api/v1/public/data-sources-list/','datasources','datasource_id','name').initialize()
+        tagAutocomplete('/api/v1/public/collections/','collections','id','name').initialize()
 
-{% if form.instance.pk is not None %}
-<script type="text/javascript">
-	// Enable the permitted group selection if any of the group items is selected.
-	$(function () {
-		var saved_shared_permission = $('input[name="shared"]:checked').val();
-		//alert(saved_shared_permission);
-		$('input[name="shared"]').on('change', function (e) {
-			$('#shared_group_note').html('Please make sure you have selected the required group above.');
+	</script>
 
-			if (this.value != '3') { $('#shared_group_note').html(''); }
+	<script type="text/javascript">
 
+		autocompleteHandler = function(){
+			$("input.concept").on("focus", function(event){
+				var id = $(this).attr('id').split('_')[1];
+				$(this).autocomplete({
+					serviceUrl:  "{% url 'api:api_published_phenotypes' %}",
+					paramName: 'search',
+					transformResult: function(response){
+						// clear the selected field
+						//$('#concepthidden_' + id).val('');
+						return {
+							suggestions: $.map($.parseJSON(response), function(item){
+                                console.log(item);
+								return {data: String(item.id), value: item.phenotype_id + "/" +item.version_id + " - " + "(" + (item.is_published?'published: ':'')  +")" + " - " + item.phenotype_name + ", author: " + item.author};
+							})
+						};
+					},
+					onSelect : function(suggestion){
+						//event.preventDefault();
+						// set the id of the selected concept
+						$('#conceptpheno_' + id).val(suggestion.data);
+						$(this).prop("readonly", true);
+						$(this).css("background-color", '#DEDEDE');
+					}
+				}).on('input', function(event){
+					if($(this).val() == ""){
+						$('#conceptpheno_' + id).val('');
+					}
+				});
+			});
+		}
+
+	//----------------------------------------------------------------------------------------------------------------------
+		$(document).ready(function() {
+			autocompleteHandler();
+
+			//----------------------------------------------------------------------------------------------------------------------
+			give_id = function(){ //gives id for new inputs created by add-column and add-concept buttons
+				var column_names = []; //array with headers
+				$('#concepts thead>tr>th>div>input').each(function(){
+					//change id and name of the dropdown select to the value of column name
+					$(this).prev().attr('id', $(this).val());
+					$(this).prev().attr('name', $(this).val());
+					column_names.push($(this).val());
+				});
+
+				$('#concepts tbody>tr').each(function() {
+					children = ($(this).children().children()).toArray(); //get only inputs for concept data
+
+					for(i = 1; i < children.length; i++){
+						concept_input_id = $(children[0].children[1]).attr('id');
+
+						name = concept_input_id + '_' + (column_names[i-1].replace(/ /g,"_"));
+						$(children[i]).attr('id', name);
+						$(children[i]).attr('name', name);
+					}
+				});
+			}
+
+			//----------------------------------------------------------------------------------------------------------------------
+			//Event handler for remove-input buttons
+			removeInputHandler = function(button_id){
+				reset_id = button_id.replace("remove" , "reset");
+
+				//reset concept
+				$('#' + reset_id).unbind('click').click(function(e) {
+					    $(this).next('.concept').val('');
+						$(this).next('.concept').prop('readonly', false);
+						$(this).next('.concept').css("background-color", '#FFFFFF');
+						$(this).next().next('.hconcept').val('');
+
+				});
+
+				//remove concept
+				$('#' + button_id).unbind('click').click(function(e) {
+					   if (confirm("Remove this concept?")) {
+					   		$(this).parents('tr').remove();
+					   }
+
+
+				});
+			}
+
+			//----------------------------------------------------------------------------------------------------------------------
+			//Event handler for remove_col buttons
+			remove_col_func = function(id){
+				//remove column
+				$('button[id^="remove_col_"]').unbind('click').click(function(e) {
+					   if (confirm("Remove this attribute?")) {
+						    var iIndex = $(this).closest("th").prevAll("th").length;
+						    $(this).parents("#concepts").find("tr").each(function() {
+							    $(this).find("td:eq(" + iIndex + ")").remove();
+							    $(this).find("th:eq(" + iIndex + ")").remove();
+						    });
+					   }
+
+
+				});
+			}
+
+			//----------------------------------------------------------------------------------------------------------------------
+			$('#add-phenotype').click(function() {
+		   		$("#remove-input_1").show();
+		   		$("#just_a_space_1").hide();
+
+				var name = $('#concepts tbody>tr:last>td>div>input').attr('name');  //get name of last concept input
+				name2 = name.split('_')[0];
+				id = parseInt(name.split('_')[1]) + 1;
+				//new names for concept and hidden concept inputs
+				concept_name = name2 + '_' + id;
+				hidden_name = name2 + 'hidden_' + id;
+				button_id = 'remove-input_' + id;
+
+				$('#concepts tbody>tr:last').clone(true).insertAfter('#concepts tbody>tr:last');  //add new input field for another concept
+				$('#concepts tbody>tr:last>td>div>input').attr('name', concept_name); // replace name of new concept input
+				$('#concepts tbody>tr:last>td>div>input').attr('id', concept_name); // replace id of new concept input
+				//add rule for new concept input
+// 				$('#concepts tbody>tr:last>td>div>input').rules( "add", {
+// 					  required: true,
+// 					  messages: {
+// 					    required: "Each concept field is required"
+// 					  }
+// 					});
+
+				$('#concepts tbody>tr:last>td>div>input').next().attr('name', hidden_name); // replace name of new hidden concept input
+				$('#concepts tbody>tr:last>td>div>input').next().attr('id', hidden_name); // replace id of new hidden concept input
+				$('#concepts tbody>tr:last>td>div>input').val('');  //empty new fields
+				$('#concepts tbody>tr:last>td>div>input').next().val('');  //hidden
+				$('#concepts tbody>tr:last>td>div>input').prop("readonly", false);  //make it editable again
+				$('#concepts tbody>tr:last>td>div>input').css("background-color", '#FFFFFF');
+				$('#concepts tbody>tr:last>td>div>button').attr('id', button_id);
+
+				removeInputHandler(button_id);
+
+				give_id();
+
+	   			$("#remove-input_1").hide();
+	   			$("#just_a_space_1").show();
+			});
+
+			//----------------------------------------------------------------------------------------------------------------------
+			$('#remove-input_1').click(function() {
+				$(this).next('.concept').val('');
+				$(this).next('.concept').prop('readonly', false);
+				$(this).next('.concept').css("background-color", '#FFFFFF');
+				$(this).next().next('.hconcept').val('');
+			});
+
+			//----------------------------------------------------------------------------------------------------------------------
+			$('#reset-input_1').click(function() {
+				$(this).next('.concept').val('');
+				$(this).next('.concept').prop('readonly', false);
+				$(this).next('.concept').css("background-color", '#FFFFFF');
+				$(this).next().next('.hconcept').val('');
+			});
+
+			//----------------------------------------------------------------------------------------------------------------------
+			//handler for concept data headers
+			changeNameHandler = function() {
+				$('.col-header').focusout(function(){
+					give_id();
+				});
+			};
+
+			//----------------------------------------------------------------------------------------------------------------------
+			$('#add-column').click(function() {
+				//$('#concepts thead>tr>th:last').after('<th class="col-header">' + column_name + '</th>'); //add new header
+
+				$('#concepts thead>tr>th:last').after('<th><div style="width:100%; class="input-group mb-3">'
+						  +'<button id="remove_col_' + 'column_type' + '" class="btn btn-danger" type="button" style="width:14px; float:left; padding: 0px;">X</button>&nbsp;'
+						  +'<select style="width:50%; float:left;" class="custom-select" id="column_type">'
+						    +'<option selected >Type</option>'
+						    +'<option value="1">INT</option>'
+						    +'<option value="2">FLOAT</option>'
+						    +'<option value="3">STRING</option>'
+						  +'</select><BR>'
+				  +'<input style="width:100%;" type="text" class="form-control col-header">'
+				+'</div></th>'); //add new header
+
+				remove_col_func('column_type');
+
+				//for each row add new input field
+				$('#concepts tbody>tr').each(function() {
+					concept_input_id =  $(this).find('.concept').attr('id');
+					name = concept_input_id + '_X';
+					$(this).find('td:last').after('<td><input class="col-sm-11 form-control concept_data" type="text" name=' + name + ' id=' + name + '></td>');
+				});
+
+				changeNameHandler();
+
+				jQuery.validator.addClassRules("col-header", {
+	 	 			  required: true,
+	 	 			  minlength: 2
+	 	 			});
+
+				//give_id();
+			});
+
+			//================================================================================================================
+			//------------------------before submission-----------------------------------------------------------------------
+			//converts table data to JSON before submission
+			$('#workingset-form').submit(function(e) {
+				$("#workingset-form").validate();
+
+				//debugger;
+				var retVal = true;
+
+
+				var column_names = []; //array with headers
+				var errorsList =[];
+				var column_names_chk_duplicates = {};
+				var re0 = /^[a-zA-Z]/;
+				var re = /^[a-zA-Z0-9_]+$/; // or /^\w+$/ as mentioned
+
+				$('#concepts thead>tr>th>div>input').each(function(){
+					//alert('attr='+$(this).val() + '|' + $(this).prevAll(".custom-select").val());
+					if($(this).val() == '' || $(this).prevAll(".custom-select").val() == 'Type' ){
+						//alert('You need to specify both attribute name and type');
+						errorsList.push('You need to specify both attribute name and type');
+						retVal = false;
+					}
+					//column_names.push($(this).val() + "|" + $(this).prev().val());
+					column_names.push($(this).val() + "|" + $(this).prevAll(".custom-select").val());
+					//alert($(this).prevAll(".custom-select").val())
+
+					if(!($(this).val().toLowerCase() in column_names_chk_duplicates)){
+						column_names_chk_duplicates[$(this).val().toLowerCase()] = $(this).val().toLowerCase();
+					}else{
+						// duplicated attriute name
+						errorsList.push('Attributes name must not repeat');
+						retVal = false;
+					}
+
+					if (!re0.test($(this).val())) {
+						//alert($(this).val());
+						errorsList.push('Attribute name must start with a character');
+						retVal = false;
+					}
+
+					if (!re.test($(this).val())) {
+						//alert($(this).val());
+						errorsList.push('Attribute name must conatin only alphabet/numbers and underscores');
+						retVal = false;
+					}
+				});
+
+
+				var json = [];
+				var phenotype_versions = {};
+
+				$('#concepts tbody>tr').each(function() {
+					var data = [];
+					var phenotypes = {};
+
+					//debugger;
+					phenotype_concept_data =  ($(this).children().children()).toArray(); //get only inputs for concept data
+					//alert($(concept_data[0]).html());
+					//console.log($(concept_data[0]).html());
+
+					phenotype_id = $.trim($(phenotype_concept_data[0].children[3]).val().split('-')[0]).split('/')[0];		// phenotype id
+
+					phenotype_version = $.trim($(phenotype_concept_data[0].children[3]).val().split('-')[0]).split('/')[1];
+
+					//alert('concept_concept_ver='+concept_ver);
+
+					//concept_id = $("#concepthidden_" + kk1).val();		// concept id
+					//alert('concept_id='+concept_id);
+
+					if(phenotype_id == ''){
+						//alert('You must choose a concept from the search dropdown list');
+						errorsList.push('You must choose a concept from the search dropdown list');
+						retVal = false;
+					}
+
+					//Attributes (children.length>1)
+					children = ($(this).children().children()).toArray(); //get only inputs for concept data
+					//alert('children='+children.length);
+					if(children.length>1){
+						for(i = 1; i < children.length; i++){
+							column_name = column_names[i-1].replace(/ /g,"_");
+							string_name = ''
+							switch (column_name.split('|')[1]) {
+							    case "1":
+							        string_name = 'INT'
+                                    break;
+                                case "2":
+                                    string_name = 'STRING'
+                                    break;
+                                case "3":
+                                    string_name = 'FLOAT'
+                                    break;
+                            }
+							data.push({"name": column_name.split('|')[0],"type":string_name,"value":$(phenotype_concept_data[i]).val()})
+
+
+						}
+						 //alert(JSON.stringify(data))
+
+						json.push({"phenotype_id":phenotype_id,"phenotype_version":phenotype_version,"Attributes":data});
+					}else{
+						//alert('you need to specify at least one attribute');
+						//errorsList.push('You need to add at least one attribute');
+						//retVal = false;
+						//Allow Working sets with zero attributes
+						data[''] = '';
+						phenotypes[phenotype_id] = data;
+
+						json.push({"phenotype_id":phenotype_id,"phenotype_version":phenotype_version,"Attributes":data});
+					}
+				});
+
+				//alert(JSON.stringify(json));
+				$('#phenotypes_concepts_json').val(JSON.stringify(json));
+				//alert(JSON.stringify(concepts_versions));
+				$('#concepts_id_versionID').val(JSON.stringify(phenotype_versions));
+
+
+				//alert('json.length=' + json.length);
+				if(json.length==0){
+					//alert('you need to specify at least one concept');
+					errorsList.push('you need to specify at least one data');
+					retVal = false;
+				}
+
+				//---------------------------------
+		    	if ($('input[name=groupAccess]:checked').val() == '2' || $('input[name=groupAccess]:checked').val() == '3' ) {
+					    if ($('#group_id').val() == '0') {
+					    	errorsList.push('You must choose a group from the dropdown list to grant access to');
+					    	retVal = false;
+					    }
+		    	}
+				//---------------------------------
+
+				$("#conceptsErrorsDiv").html('');
+				$( '#conceptsErrorsDiv' ).hide();
+
+				if(!retVal){
+				    $("#conceptsErrorsDiv").html('<div class="alert alert-danger fade in">'
+									        +'<a href="#" class="close" data-dismiss="alert">&times;</a>'
+									        +'<strong>Errors!</strong>'
+									        +'</br>'
+									        + ('<ul><li>' + (Array.from(new Set(errorsList))+"").split(',').join('</li><li>') + '</li></ul>')
+									        +'</div>')
+
+				    $( '#conceptsErrorsDiv' ).show();
+				}
+
+			   //alert('retVal='+retVal);
+			   return  retVal ;		// false; //
+			});
+
+
+			//===========================================================================================
+			/*------------------------------------Update---------------------------------------------*/
+			//===================================================
+            // ========================================
+			update_json = $('#get_concepts_json').val();
+
+			//alert(update_json);
+			if(update_json !=  null && update_json != ""){
+				update_json = JSON.parse(update_json);
+				counter = 1;
+				full_name = "";
+
+				var concepts_id_version = $('#concepts_id_versionID').val();
+				concepts_id_version = JSON.parse(concepts_id_version);
+
+	 			$.each( update_json, function( key, value ) {
+	 				$.each( value, function( key, value ) {  // go thorugh concept ids
+
+	 					//goes through all concepts in db
+	 	  				{% for concept in concepts %}
+ 	  						id = "{{concept.id}}";
+
+ 	  						if(id == key) {
+ 	  							name = "{{concept.name}}";
+ 	  							author = "{{concept.author}}";
+ 	  							full_name = "C"+ "{{concept.id}}" + "/" + concepts_id_version[key] + " - " + name + ", author: " + author;
+
+ 	  						}
+ 	  					{% endfor %}
+
+ 	  					just_a_space  = '<span id="just_a_space_' + counter + '" style="display:'+((counter==1)?'':'none')+';width:14px; float:left; padding: 0px;background-color: #f9f9f9; font-color: #f9f9f9;">&nbsp;</span>';
+
+
+	 	  				$('#concepts tbody').append('<tr><td style="width:60%;" ><div style="width:100%;"><input readonly="true" background-color="#DEDEDE" class="concept form-control" style="width:80%;" name="concept_' + counter + '" id="concept_' + counter + '" value="' + full_name + '"></div></td></tr>');
+	 	  				$('#concepts tbody>tr:last>td:last>div').prepend('<button id="remove-input_' + counter + '" class="btn btn-danger" type="button" style="width:14px; float:left; padding: 0px;">X</button>'+just_a_space+'<span id="reset-input_' + counter + '" class="glyphicon glyphicon-repeat text-danger" style="cursor:pointer; float:left; padding: 0px;" aria-hidden="true"></span>');
+	 	  				$('#concepts tbody>tr:last>td:last>div').append('<input type="hidden" id="conceptpheno_' + counter + '" name="conceptpheno_' + counter + '"class="hconcept" value="' + key +'">');
+
+	 	  				autocompleteHandler();
+	 	  				removeInputHandler("remove-input_" + counter);
+
+	 	  				$.each( value, function( key, value ) {  // go through concept data
+	 	  					//Allow Working sets with zero attributes
+	 	  					if(key == '' && value == ''){
+	 	 						return; //this is equivalent of 'continue' for jQuery loop
+	 	 					}
+
+	 	  					inHeaders = false;
+	 	  					header_type = key.split("|");
+	 	 					header = header_type[0];
+	 	 					type = header_type[1];
+
+	 	 					if(type == '-1'){
+	 	 						return; //this is equivalent of 'continue' for jQuery loop
+	 	 					}
+
+	 	  	  				headers = $('#concepts thead>tr>th>div>input').each(function(index, input){
+
+	 	  	  					if (input.value == header) {
+	 	  	  						inHeaders = true;
+	 	  	  					}
+	 	  	  				});
+
+	 	  	  				if(!inHeaders){
+	 	  	  					$('#concepts thead>tr>th:last').after('<th><div style="width:100%; class="input-group mb-3">'
+	 	  	  					          +'<button id="remove_col_' + header + '" class="btn btn-danger" type="button" style="width:14px; float:left; padding: 0px;">X</button>&nbsp;'
+	 		 							  +'<select id="' + header + '" style="width:50%; float:left;" class="custom-select" id="column_type">'
+	 		 							    +'<option selected >Type</option>'
+	 		 							    +'<option value="1">INT</option>'
+	 		 							    +'<option value="2">FLOAT</option>'
+	 		 							    +'<option value="3">STRING</option>'
+	 		 							  +'</select><BR>'
+	 		 					  +'<input style="width:100%;" type="text" class="form-control col-header" value="'  + header + '">'
+	 		 					+'</div></th>');  //insert concept headers
+
+	 		 					remove_col_func(header);
+
+	 		 					$('#' + header).val(type); //set the type of column
+	 	  	  					changeNameHandler();
+	 	  	  				}
+
+	 	  	  				$('#concepts tbody>tr:last>td:last').after('<td><input class="col-sm-11 form-control concept_data" value="' + value + '"></td>');  //isnert concept data
+	 	  				});
+
+
+	 				});
+	 				counter++;
+	 			});
+	 			give_id();
+			}
 		});
-	});
-	$(function () {
-		var saved_group_permission = $('input[name="group_access"]:checked').val();
-		//alert(saved_group_permission);
-		$('input[name="group_access"]').on('change', function (e) {
-			$('#group_access_note').html('Please make sure you have selected the required group above.');
 
-			if (this.value != '2' && this.value != '3') { $('#group_access_note').html(''); }
+		//----------------------------------------------------------------------------------------------------------------------
+		//----------------------------Validation------------------------------------------
+		// just for the demos, avoids form submit
+// 		jQuery.validator.setDefaults({
+// 		  debug: true,
+// 		  success: "valid"
+// 		});
 
-		});
-	});
+	 	 		(function ($) {
 
-	//---------------------------------------------------------------------------------------------------------------------
-	$(function () {
-        chk_overrideVersion();
 
-	 	// alert user when concurrent editing of ws
-		function chk_overrideVersion(){
-		   overrideVersion = $("#overrideVersion").val();
-		 //alert('overrideVersion='+overrideVersion);
-		 
-		   if (overrideVersion == '-1'){   
-			   ret = false;
-			   ret = confirm("This concept has an updated version,\n Do you want to continue and override it?!\n To override click OK and 'Save' again.");
-			   if(ret){
-				   $("#overrideVersion").val('1');
-			   }else{
-				   $("#overrideVersion").val('0');
+	 	 		        jQuery.validator.setDefaults({
+	 	 		            highlight: function (element, errorClass, validClass) {
+	 	 		                if (element.type === "radio") {
+	 	 		                    this.findByName(element.name).addClass(errorClass).removeClass(validClass);
+	 	 		                } else {
+	 	 		                    $(element).closest('.form-group').removeClass('has-success has-feedback').addClass('has-error has-feedback');
+	 	 		                    $(element).closest('.form-group').find('i.fa').remove();
+	 	 		                    $(element).closest('.form-group').append('<i class="fa fa-exclamation fa-lg form-control-feedback"></i>');
+	 	 		                }
+
+	 	 		                $(element).closest('.form-group').removeClass('has-success').addClass('has-error');
+
+	 	 		            },
+	 	 		            unhighlight: function (element, errorClass, validClass) {
+	 	 		                if (element.type === "radio") {
+	 	 		                    this.findByName(element.name).removeClass(errorClass).addClass(validClass);
+	 	 		                } else {
+	 	 		                    $(element).closest('.form-group').removeClass('has-error has-feedback').addClass('has-success has-feedback');
+	 	 		                    $(element).closest('.form-group').find('i.fa').remove();
+	 	 		                    $(element).closest('.form-group').append('<i class="fa fa-check fa-lg form-control-feedback"></i>');
+	 	 		                }
+
+	 	 		                $(element).closest('.form-group').removeClass('has-error').addClass('has-success');
+
+	 	 		            }
+	 	 		        });
+
+
+	 	 		      $( "#workingset-form" ).validate({
+	 		 		   	rules: {
+	 		 		   	    name: {
+	 					      required: true,
+	 					      minlength: 3
+	 					    },
+	 						author: {
+	 					      required: true,
+	 					      minlength: 3
+	 					    },
+// 	 					    publication: {
+// 	 					    	required: true,
+// 	 					    	minlength: 10
+// 	 					    },
+	 					    description: {
+	 					    	required: true,
+	 					    	minlength: 10
+	 					    },
+	 					    concept_1: {
+	 					    	required: true,
+	 					    	//require_from_group: [1, ".concept_data"],
+
+	 					    }
+	 					  },
+	 				    messages: {
+// 	 				    	concept_1: {
+// 	 				    		require_from_group: "You need to add at least one attribute",
+// 	 				    	 }
+					      },
+				        errorPlacement: function(error, element) {
+				    	    if (element.attr("id") == "concept_1" )
+				    	        $("#concept_error").append(error);
+				    	    else if  (element.attr("class") == "concept_data" )
+				    	    	$("#concept_error").append(error);
+				    	    else
+				    	        error.insertAfter(element);
+				    	 }
+
+	 		 		 	});
+
+
+	 	 		})(jQuery)
+
+
+  //----------------------------------------------------------------------------------------------------------------------
+   $(function() {
+	   		$("#remove-input_1").hide();
+
+	   	//$('button[id^="remove_col_"]').hide();
+
+	   		$(document).on("keypress", ":input:not(textarea):not([type=submit])", function(event) {
+	   			return event.keyCode != 13;
+	   		});
+
+
+
+	     	{% if pk is none %}
+	     		$("#group_access_note").hide();
+			{% endif %}
+
+			{% if pk is not none %}
+				{% if workingset.group_id is none %}
+						{% if workingset.group_access == 2 or workingset.group_access == 3 %}
+						$("#group_access_note").show();
+						{% else %}
+							$("#group_access_note").hide();
+						{% endif %}
+				{% else %}
+					$("#group_access_note").hide();
+				{% endif %}
+			{% endif %}
+
+
+			{% if pk is not none %}
+				chk_overrideVersion();
+			{% endif %}
+
+		 	//---------------------------------------------------------------------------------------------------------------------
+		 	// alert user when concurrent editing of ws
+			function chk_overrideVersion(){
+			   overrideVersion = $("#overrideVersion").val();
+
+			   if (overrideVersion == '-1'){   //alert('overrideVersion='+overrideVersion);
+				   ret = false;
+				   ret = confirm("This working set has an updated version, Do you want to continue and override it?!");
+				   if(ret){
+					   $("#overrideVersion").val('1');
+					   $( "#workingset-form" ).submit();
+				   }else{
+					   $("#overrideVersion").val('0');
+				   }
 			   }
-		   }
-	 	}
+		 	}
+          //----------------------------------------------------------------------------------------------------------------------
 
 	});
-   //----------------------------------------------------------------------------------------------------------------------
 
-</script>
-{% endif %}
+	//======================================================================================================================
+   </script>
 
+   <script type="text/javascript">
+
+   $('input[type=radio][name=groupAccess]').change(function() {
+	    if (this.value == '1') {
+	        $("#group_access_note").hide();
+	    }
+	    else if ((this.value == '2' || this.value == '3') && $('#group_id').val() =='0' ) {
+	    	$("#group_access_note").show();
+	    }
+	});
+
+   $('#group_id').change(function() {
+	    if (this.value != '0') {
+	        $("#group_access_note").hide();
+	    }
+	    else {
+	    	if ($('input[name=groupAccess]:checked').val() == '2' || $('input[name=groupAccess]:checked').val() == '3' ) {
+	    		$("#group_access_note").show();
+	    	}
+	    }
+	});
+
+
+
+
+
+
+
+  </script>
 
 {% endblock scripts %}
