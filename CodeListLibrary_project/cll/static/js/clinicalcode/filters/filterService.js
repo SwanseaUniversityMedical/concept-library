@@ -79,8 +79,8 @@ var DISPLAY_QUERIES = {
 var elementMap = {
   datasources: ['data_source_ids'],
   type: ['selected_phenotype_types'],
-  collection: ['tag_collection_ids'],
-  tags: ['tag_collection_ids'],
+  collection: ['collection_ids'],
+  tags: ['tag_ids'],
   coding: ['codingids'],
   date: ['startdate', 'enddate'],
   authorship: ['author', 'owner'],
@@ -91,7 +91,8 @@ var elementMap = {
 
 var subheaderMap = {
   data_source_ids: 'datasources',
-  tag_collection_ids: 'tags',
+  tag_ids: 'tags',
+  collection_ids: 'collection',
   tags: 'tags',
   collections: 'collection',
   codingids: 'coding',
@@ -259,9 +260,13 @@ var initFilters = () => {
       onRemove: (element, filterType, filterValue) => {
         switch (filterType) {
           case 'tags':
+            var selected = $("#basic-form input[id=tag_ids]").val().split(',').filter((x) => x != filterValue.value);
+            $("#basic-form input[id=tag_ids]").val(selected.join(','));
+            toggleCheckState(filterType, selected);
+            break;
           case 'collections':
-            var selected = $("#basic-form input[id=tag_collection_ids]").val().split(',').filter((x) => x != filterValue.value);
-            $("#basic-form input[id=tag_collection_ids]").val(selected.join(','));
+            var selected = $("#basic-form input[id=collection_ids]").val().split(',').filter((x) => x != filterValue.value);
+            $("#basic-form input[id=collection_ids]").val(selected.join(','));
             toggleCheckState(filterType, selected);
             break;
           case 'date':
@@ -356,7 +361,7 @@ var initFilters = () => {
     url.searchParams.forEach(function (value, key) {
       if (TAG_DECORATION[key]) {
         parseParameterAsTag(filters, key, {value: value});
-      } else if (key === 'tag_collection_ids') {
+      } else if (key === 'tag_ids' || key == 'collection_ids' || key == 'tag_collection_ids') {
         var selected = parseTagsAndCollections(value);
         if (selected.collections) {
           parseParameterAsTag(filters, 'collections', {value: selected.collections.join(',')});
@@ -474,6 +479,7 @@ var initFilters = () => {
   var selected_codes = [];
   var selected_phenotype_types = [];
   var selected_collections = [];
+  var selected_tags = [];
   var selected_data_sources = [];
   var start = moment(base_start_date);
   var end = moment(dateValue);
@@ -485,7 +491,11 @@ var initFilters = () => {
       switch (key) {
         case "data_source_ids":
           selected_data_sources = value.split(',');
-        case "tag_collection_ids":
+          break;
+        case "tag_ids":
+          selected_tags = value.split(',');
+          break;
+        case "collection_ids":
           selected_collections = value.split(',');
           break;
         case "codingids":
@@ -517,6 +527,7 @@ var initFilters = () => {
 
       // Filter null cases
       selected_collections.filter(e => e !== '');
+      selected_tags.filter(e => e !== '');
       selected_codes.filter(e => e !== '');
       selected_phenotype_types.filter(e => e !== '');
       selected_data_sources.filter(e => e !== '');
@@ -589,11 +600,16 @@ var initFilters = () => {
       $(".filter_option.coding").prop('checked', false);
     }
 
-    if (params.searchParams.get('tag_collection_ids') == null) {
-      selected_collections = [];
-      $("#basic-form input[id=tag_collection_ids]").val('');
-      $(".filter_option.collection").prop('checked', false);
+    if (params.searchParams.get('tag_ids') == null) {
+      selected_tags = [];
+      $("#basic-form input[id=tag_ids]").val('');
       $(".filter_option.tags").prop('checked', false);
+    }
+
+    if (params.searchParams.get('collection_ids') == null) {
+      selected_collections = [];
+      $("#basic-form input[id=collection_ids]").val('');
+      $(".filter_option.collection").prop('checked', false);
     }
 
     if (params.searchParams.get('startdate') == null || params.searchParams.get('enddate') == null) {
@@ -1140,8 +1156,10 @@ var initFilters = () => {
     $("input:checkbox[name=collection_id]:checked").each(function(){
       selected_collections.push(parseInt($(this).val()));
     });
+
+    selected_tags = []
     $("input:checkbox[name=tag_id]:checked").each(function(){
-      selected_collections.push(parseInt($(this).val()));
+      selected_tags.push(parseInt($(this).val()));
     });
     
     
@@ -1170,7 +1188,7 @@ var initFilters = () => {
       $("#checkAll_collection").prop('checked', true);
     }
 
-    if(isSubset(brand_associated_tags_ids, selected_collections)){
+    if(isSubset(brand_associated_tags_ids, selected_tags)){
       $("#checkAll_tags").prop('checked', true);
     }
 
@@ -1178,7 +1196,8 @@ var initFilters = () => {
       $("#checkAll_coding").prop('checked', true);
     }
 
-    $("#basic-form input[id=tag_collection_ids]").val(selected_collections);
+    $("#basic-form input[id=collection_ids]").val(selected_collections);
+    $("#basic-form input[id=tag_ids]").val(selected_tags);
     $("#basic-form input[id=codingids]").val(selected_codes);
     $("#basic-form").trigger('submit', [{'element': $(this).attr('name')}]);
   });
@@ -1363,13 +1382,14 @@ var initFilters = () => {
             });
           }
 
+          var q = type == 'tags' ? 'tag_ids' : 'collection_ids';
           if (selected) {
-            url.searchParams.set('tag_collection_ids', selected.join(','));
+            url.searchParams.set(q, selected.join(','));
           } else {
-            url.searchParams.delete('tag_collection_ids');
+            url.searchParams.delete(q);
           }
         } else {
-          url.searchParams.delete('tag_collection_ids');
+          url.searchParams.delete(mapped[0]);
         }
       } else {
         for (var i = 0; i < mapped.length; i++) {
