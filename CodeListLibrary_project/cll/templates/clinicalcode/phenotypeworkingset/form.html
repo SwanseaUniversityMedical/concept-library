@@ -54,21 +54,21 @@
 				{% endif %}
 					{% csrf_token %}
 					<div class="form-group">
-						<div class="col-sm-11">
+						<div class="col-sm-12">
                              <div class="material-textfield">
-                                  <input class="input-material col-sm-11 form-control " placeholder=" " type="text">
+                                  <input class="input-material col-sm-12 form-control " placeholder=" " type="text">
                                   <label class = "label-material required">Workingset name</label>
                              </div>
 
 						</div>
 					</div>
 
-
+            <hr/>
 
 
 					{% if pk is not None %}
 						 <div class="form-group">
-							<div class="col-sm-11">
+							<div class="col-sm-12">
                                 <label>Latest version ID</label>
 								<input type="hidden" id="latest_history_id" name="latest_history_id"  value="{{ latest_history_id }}">
 								<input type="hidden" id="overrideVersion" name="overrideVersion"  value="{{ overrideVersion|default_if_none:'0' }}">
@@ -77,9 +77,9 @@
 						</div>
 					{% endif %}
             <div class="form-group">
-						<div class="col-sm-11">
+						<div class="col-sm-12">
                             <div class="material-textfield">
-                                    <input class="input-material col-sm-11 form-control" type="text" name="type" id="type" placeholder=" " value="{{ workingset.type|default_if_none:'' }}">
+                                    <input class="input-material col-sm-12 form-control" type="text" name="type" id="type" placeholder=" " value="{{ workingset.type|default_if_none:'' }}">
                                   <label class = "label-material">Type</label>
 
 						</div>
@@ -91,9 +91,9 @@
 
 					<div class="form-group">
 
-						<div class="col-sm-11" id="concept-tag-form-container">
+						<div class="col-sm-12" id="concept-tag-form-container">
                              <div class="material-textfield">
-                                    <input class="input-material col-sm-11 form-control" type="text" placeholder=" " >
+                                    <input class="input-material col-sm-12 form-control" type="text" placeholder=" " >
                                   <label class = "label-material" for="txtTags">Tags</label>
 
 						</div>
@@ -108,9 +108,9 @@
 						</div>
 					</div>
             <div class="form-group">
-						<div class="col-sm-11">
+						<div class="col-sm-12">
                               <div class="material-textfield">
-                                    <input class="input-material col-sm-11 form-control" type="text" name="datasources" id="datasources"  placeholder=" " value="{{ workingset.data_sources|default_if_none:'' }}">
+                                    <input class="input-material col-sm-12 form-control" type="text" name="datasources" id="datasources"  placeholder=" " value="{{ workingset.data_sources|default_if_none:'' }}">
                                   <label class = "label-material" >Data Sources</label>
 
 						</div>
@@ -121,10 +121,10 @@
 					</div>
             <div class="form-group">
 
-						<div class="col-sm-11">
+						<div class="col-sm-12">
                             <div class="material-textfield">
 
-							<input class="input-material col-sm-11 form-control" type="text" name="collections" id="collections" placeholder=" " value="{{ workingset.collections|default_if_none:'' }}">
+							<input class="input-material col-sm-12 form-control" type="text" name="collections" id="collections" placeholder=" " value="{{ workingset.collections|default_if_none:'' }}">
                                 <label class = "label-material">Collections</label>
 						</div>
                         </div>
@@ -133,9 +133,9 @@
 
 					<div class="form-group">
 
-						<div class="col-sm-11">
+						<div class="col-sm-12">
                             <div class="material-textfield">
-							<input class="input-material col-sm-11 form-control" type="text" placeholder=" " value="{{ workingset.author|default_if_none:' ' }}">
+							<input class="input-material col-sm-12 form-control" type="text" placeholder=" " value="{{ workingset.author|default_if_none:' ' }}">
                              <label class="label-material required">Author</label>
 						</div>
                         </div>
@@ -143,19 +143,19 @@
 
 					<div class="form-group">
 
-						<div class="col-sm-11">
+						<div class="col-sm-12">
                             <div class="material-textfield">
-							<textarea id="description" name="description" placeholder=" " rows="4" cols="50" class="input-material col-sm-11 form-control">{{ workingset.description }}</textarea>
+							<textarea id="description" name="description" placeholder=" " rows="4" cols="50" class="input-material col-sm-12 form-control">{{ workingset.description }}</textarea>
                                 <label class="label-material required">Description</label>
 						</div>
                         </div>
 					</div>
 
 					<div class="form-group">
-						<div class="col-sm-11">
+						<div class="col-sm-12">
                              <div class="material-textfield">
 
-							<textarea id="publication" name="publication" rows="4" cols="50" placeholder=" "  class="input-material col-sm-11 form-control">{{ workingset.publication }}</textarea>
+							<textarea id="publication" name="publication" rows="4" cols="50" placeholder=" "  class="input-material col-sm-12 form-control">{{ workingset.publication }}</textarea>
                                  <label class="label-material">Publication</label>
 						</div>
                         </div>
@@ -165,10 +165,10 @@
 
 					<div class="form-group">
 
-						<div class="col-sm-11">
+						<div class="col-sm-12">
                                <div class="material-textfield">
 
-							<input  class="input-material col-sm-11 form-control"  type="text" name="citation_requirements" placeholder=" " id="citation_requirements" value="{{ workingset.citation_requirements }}">
+							<input  class="input-material col-sm-12 form-control"  type="text" name="citation_requirements" placeholder=" " id="citation_requirements" value="{{ workingset.citation_requirements }}">
                                    <label class="label-material">Citation requirements</label>
 						</div>
 					</div>
@@ -176,7 +176,7 @@
 
 					<div class="form-group">
 						<label class="col-sm-3" for="">Created by</label>
-						<div class="col-sm-11">
+						<div class="col-sm-12">
 							<p class="form-control-static">
 								{% if pk is None %}
 									{{ user.username }}
@@ -189,7 +189,7 @@
 
 					{% if pk is not None %}
 						<div class="form-group">
-							<div class="col-sm-11">
+							<div class="col-sm-12">
                                 <label for="">Modified by</label>
 								<p class="form-control-static">{{ workingset.updated_by.username}}</p>
 							</div>
@@ -204,7 +204,7 @@
 					<fieldset {% if not allowed_to_permit %}disabled{% endif %}>
 					<!-- div class="form-group">
 						<label class="col-sm-3" for="">Owned by:</label>
-						<div class="col-sm-11">
+						<div class="col-sm-12">
 							<p class="form-control-static">{{ workingset.instance.owner.username}}</p>
 						</div>
 					</div-->
@@ -212,10 +212,10 @@
 					<!-- Allow the user to select a user from the list of known users. -->
 					<div class="form-group">
 
-						<div class="col-sm-11"  id="workingset-owned-form-container">
+						<div class="col-sm-12"  id="workingset-owned-form-container">
                             <div class="material-textfield">
 
-							<select class="input-material col-sm-11 form-control"  type="text" name="owner_id" id="owner_id">
+							<select class="input-material col-sm-12 form-control"  type="text" name="owner_id" id="owner_id">
 							{% for user in users %}
 								<option value="{{ user.id }}" {% if user.id == workingset.owner_id %}selected{% endif %}>{{ user.username }}</option>
 							{% endfor %}
@@ -239,10 +239,10 @@
 					</div>
 					<div class="form-group">
 
-						<div class="col-sm-11" id="workingset-group-form-container">
+						<div class="col-sm-12" id="workingset-group-form-container">
                          <div class="material-textfield">
 
-							<select class=" input-material col-sm-11 form-control" type="text" name="group_id" id="group_id">
+							<select class=" input-material col-sm-12 form-control" type="text" name="group_id" id="group_id">
 							<option value="0">----------</option>
 							{% for group in groups %}
 								<option value="{{ group.id }}" {% if group.id == workingset.group_id %}selected{% endif %}>{{ group.name }}</option>
@@ -397,7 +397,7 @@
 		     <div id=conceptsErrorsDiv style='display:none;'></div>
 
 					<div class="form-group">
-						<div class="col-sm-11">
+						<div class="col-sm-12">
 							<table id="concepts" name="concepts" border="0" class="table table-striped">
 								<thead>
 									<tr>
@@ -718,7 +718,7 @@
 				$('#concepts tbody>tr').each(function() {
 					concept_input_id =  $(this).find('.concept').attr('id');
 					name = concept_input_id + '_X';
-					$(this).find('td:last').after('<td><input class="col-sm-11 form-control concept_data" type="text" name=' + name + ' id=' + name + '></td>');
+					$(this).find('td:last').after('<td><input class="col-sm-12 form-control concept_data" type="text" name=' + name + ' id=' + name + '></td>');
 				});
 
 				changeNameHandler();
@@ -965,7 +965,7 @@
 	 	  	  					changeNameHandler();
 	 	  	  				}
 
-	 	  	  				$('#concepts tbody>tr:last>td:last').after('<td><input class="col-sm-11 form-control concept_data" value="' + value + '"></td>');  //isnert concept data
+	 	  	  				$('#concepts tbody>tr:last>td:last').after('<td><input class="col-sm-12 form-control concept_data" value="' + value + '"></td>');  //isnert concept data
 	 	  				});
 
 

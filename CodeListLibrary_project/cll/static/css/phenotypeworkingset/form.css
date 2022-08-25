@@ -1,6 +1,6 @@
 
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 
@@ -9,7 +9,7 @@
 }
 
 .panel-body {
-    padding: 15px;
+    padding: 3em 6em;
     margin-left: 3em;
     margin-right: 3em;
     margin-top: 15px;
@@ -50,8 +50,8 @@
 }
 
 .form-control {
-    margin-bottom: 20px;
-    height: 40px;
+    margin-bottom: 8px;
+    height: 35px;
 }
 
 .input-material:focus {
@@ -83,10 +83,10 @@
     transform-origin: left top;
     pointer-events: none;
 
-    -webkit-transform: translate(-2px, -71px) scale(1);
-    -moz-transform: translate(2px, -71px) scale(1);
-    -o-transform: translate(2px, -71px) scale(1);
-    -ms-transform: translate(2px, -71px) scale(1);
+    -webkit-transform: translate(-2px, -54px) scale(1);
+    -moz-transform: translate(2px, -54px) scale(1);
+    -o-transform: translate(2px, -54px) scale(1);
+    -ms-transform: translate(2px, -54px) scale(1);
 }
 
 .form-control[disabled], .form-control[readonly], fieldset[disabled] .label-select {
