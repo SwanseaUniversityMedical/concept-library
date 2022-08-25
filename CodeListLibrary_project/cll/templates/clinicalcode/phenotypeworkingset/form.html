@@ -57,7 +57,7 @@
 						<div class="col-sm-11">
                              <div class="material-textfield">
                                   <input class="input-material col-sm-11 form-control " placeholder=" " type="text">
-                                  <label class = "label-material">Workingset name</label>
+                                  <label class = "label-material required">Workingset name</label>
                              </div>
 
 						</div>
@@ -93,7 +93,7 @@
 
 						<div class="col-sm-11" id="concept-tag-form-container">
                              <div class="material-textfield">
-                                    <input class="input-material col-sm-11 form-control" type="text" id="txtTags" name="tagids" data-role="tagsinput" placeholder=" " >
+                                    <input class="input-material col-sm-11 form-control" type="text" placeholder=" " >
                                   <label class = "label-material" for="txtTags">Tags</label>
 
 						</div>
@@ -144,16 +144,21 @@
 					<div class="form-group">
 
 						<div class="col-sm-11">
-                            <label class="required">Description</label>
-							<textarea id="description" name="description" rows="4" cols="50" class="form-control">{{ workingset.description }}</textarea>
+                            <div class="material-textfield">
+							<textarea id="description" name="description" placeholder=" " rows="4" cols="50" class="input-material col-sm-11 form-control">{{ workingset.description }}</textarea>
+                                <label class="label-material required">Description</label>
 						</div>
+                        </div>
 					</div>
 
 					<div class="form-group">
 						<div class="col-sm-11">
-                            <label>Publication</label>
-							<textarea id="publication" name="publication" rows="4" cols="50" class="form-control">{{ workingset.publication }}</textarea>
+                             <div class="material-textfield">
+
+							<textarea id="publication" name="publication" rows="4" cols="50" placeholder=" "  class="input-material col-sm-11 form-control">{{ workingset.publication }}</textarea>
+                                 <label class="label-material">Publication</label>
 						</div>
+                        </div>
 					</div>
 
 
@@ -161,10 +166,13 @@
 					<div class="form-group">
 
 						<div class="col-sm-11">
-                            <label>Citation requirements</label>
-							<input class="col-sm-11 form-control" type="text" name="citation_requirements" id="citation_requirements" value="{{ workingset.citation_requirements }}">
+                               <div class="material-textfield">
+
+							<input  class="input-material col-sm-11 form-control"  type="text" name="citation_requirements" placeholder=" " id="citation_requirements" value="{{ workingset.citation_requirements }}">
+                                   <label class="label-material">Citation requirements</label>
 						</div>
 					</div>
+                    </div>
 
 					<div class="form-group">
 						<label class="col-sm-3" for="">Created by</label>
@@ -205,13 +213,16 @@
 					<div class="form-group">
 
 						<div class="col-sm-11"  id="workingset-owned-form-container">
-                            <label class="required">Owned by</label>
-							<select class="col-sm-11 form-control" type="text" name="owner_id" id="owner_id">
+                            <div class="material-textfield">
+
+							<select class="input-material col-sm-11 form-control"  type="text" name="owner_id" id="owner_id">
 							{% for user in users %}
 								<option value="{{ user.id }}" {% if user.id == workingset.owner_id %}selected{% endif %}>{{ user.username }}</option>
 							{% endfor %}
 							</select>
+                            <label class="label-select required">Owned by</label>
 						</div>
+                        </div>
 						<div class="col-sm-1 form-help-popover">
 							<a href="#" role="button" class="btn popovers" id="workingset-owned-form" data-toggle="popover"
 							   data-trigger="hover" data-container="#workingset-owned-form-container" title=""
@@ -229,14 +240,17 @@
 					<div class="form-group">
 
 						<div class="col-sm-11" id="workingset-group-form-container">
-                        <label>Permitted group</label>
-							<select class="col-sm-11 form-control" type="text" name="group_id" id="group_id">
+                         <div class="material-textfield">
+
+							<select class=" input-material col-sm-11 form-control" type="text" name="group_id" id="group_id">
 							<option value="0">----------</option>
 							{% for group in groups %}
 								<option value="{{ group.id }}" {% if group.id == workingset.group_id %}selected{% endif %}>{{ group.name }}</option>
 							{% endfor %}
 							</select>
+                         <label class="label-select">Permitted group</label>
 						</div>
+                        </div>
 						<div class="col-sm-1 form-help-popover">
 							<a href="#" role="button" class="btn popovers" id="workingset-group-form" data-toggle="popover"
 							   data-trigger="hover" data-container="#workingset-group-form-container" title=""
