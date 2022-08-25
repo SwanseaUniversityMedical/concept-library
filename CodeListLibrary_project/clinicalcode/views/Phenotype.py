@@ -75,7 +75,8 @@ def phenotype_list(request):
     page_size = page_size if page_size in db_utils.page_size_limits else 20
     page = utils.get_int_value(request.GET.get('page', request.session.get('phenotype_page', 1)), request.session.get('phenotype_page', 1))
     search = request.GET.get('search', request.session.get('phenotype_search', ''))
-    tag_ids = request.GET.get('tag_collection_ids', request.session.get('phenotype_tag_collection_ids', ''))
+    tag_ids = request.GET.get('tag_ids', request.session.get('phenotype_tag_ids', ''))
+    collection_ids = request.GET.get('collection_ids', request.session.get('phenotype_collection_ids', ''))
     owner = request.GET.get('owner', request.session.get('phenotype_owner', ''))
     author = request.GET.get('author', request.session.get('phenotype_author', ''))
     coding_ids = request.GET.get('codingids', request.session.get('phenotype_codingids', ''))
@@ -110,7 +111,8 @@ def phenotype_list(request):
     request.session['phenotype_page_size'] = page_size
     request.session['phenotype_page'] = page
     request.session['phenotype_search'] = search
-    request.session['phenotype_tag_collection_ids'] = tag_ids
+    request.session['phenotype_tag_ids'] = tag_ids
+    request.session['phenotype_collection_ids'] = collection_ids
     request.session['phenotype_brand'] = phenotype_brand   
     request.session['selected_phenotype_types'] = selected_phenotype_types
     request.session['phenotype_codingids'] = coding_ids
@@ -153,47 +155,15 @@ def phenotype_list(request):
             if is_valid_id:
                 search_by_id = True
                 filter_cond += " AND (id =" + str(ret_int_id) + " ) "
-            
-    if tag_ids:
-        sanitised_tags = utils.expect_integer_list(tag_ids)
-        # split tag ids into list
-        search_tag_list = [str(i) for i in sanitised_tags]
-        # chk if these tags are valid, to prevent injection
-        # use only those found in the DB
-        tags = Tag.objects.filter(id__in=search_tag_list)
-        search_tag_list = list(tags.values_list('id',  flat=True))
-        search_tag_list = [str(i) for i in search_tag_list]          
-        if len(search_tag_list) > 0:
-            filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
-
-    if selected_phenotype_types:
-        selected_phenotype_types_list = [str(t) for t in selected_phenotype_types.split(',')]
-        # chk if these types are valid, to prevent injection
-        # use only those found in the DB
-        selected_phenotype_types_list = list(set(phenotype_types_list).intersection(set(selected_phenotype_types_list)))
-        filter_cond += " AND lower(type) IN('" + "', '".join(selected_phenotype_types_list) + "') "
-   
-    if coding_ids:
-        sanitised_codes = utils.expect_integer_list(coding_ids)
-        search_coding_list = [str(i) for i in sanitised_codes]
-        coding = CodingSystem.objects.filter(id__in=search_coding_list)
-        search_coding_list = list(coding.values_list('id', flat=True))
-        search_coding_list = [str(i) for i in search_coding_list]
-        if len(search_coding_list) > 0:
-            filter_cond += " AND clinical_terminologies && '{" + ','.join(search_coding_list) + "}' "
-
-    if isinstance(start_date_query, datetime.datetime) and isinstance(end_date_query, datetime.datetime):
-        filter_cond += " AND (created >= '" + start_date_range + "' AND created <= '" + end_date_range + "') "
     
-    if data_sources:
-        sanitised_sources = utils.expect_integer_list(data_sources)
-        search_source_list = [str(i) for i in sanitised_sources]
-        sources = DataSource.objects.filter(id__in=search_source_list)
-        search_source_list = list(sources.values_list('id',  flat=True))
-        search_source_list = [str(i) for i in search_source_list]          
-        if len(search_source_list) > 0:
-            filter_cond += " AND data_sources && '{" + ','.join(search_source_list) + "}' "
+    # Change to collections once model + data represents parameter
+    collections, filter_cond = db_utils.apply_filter_condition(query='tags', selected=collection_ids, conditions=filter_cond)
 
+    tags, filter_cond = db_utils.apply_filter_condition(query='tags', selected=tag_ids, conditions=filter_cond)
+    coding, filter_cond = db_utils.apply_filter_condition(query='clinical_terminologies', selected=coding_ids, conditions=filter_cond)
+    sources, filter_cond = db_utils.apply_filter_condition(query='data_sources', selected=data_sources, conditions=filter_cond)
+    selected_phenotype_types_list, filter_cond = db_utils.apply_filter_condition(query='phenotype_type', selected=selected_phenotype_types, conditions=filter_cond, data=phenotype_types_list)
+    daterange, filter_cond = db_utils.apply_filter_condition(query='daterange', selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, conditions=filter_cond)
     
     # check if it is the public site or not
     if request.user.is_authenticated:
@@ -316,6 +286,11 @@ def phenotype_list(request):
     if data_sources:
         data_sources_list = utils.expect_integer_list(data_sources)
 
+    # Collections
+    collection_ids_list = []
+    if collection_ids:
+        collection_ids_list = utils.expect_integer_list(collection_ids)
+
     # Sorted order of each field
     filter_statistics_ordering = {
         'tags': tags_order,
@@ -339,6 +314,9 @@ def phenotype_list(request):
         'tags': tags,
         'tag_ids': tag_ids2,
         'tag_ids_list': tag_ids_list,
+        'collections': collections,
+        'collection_ids': collection_ids,
+        'collection_ids_list': collection_ids_list,
         'owner': owner,
         'show_only_validated_phenotypes': show_only_validated_phenotypes,
         'allowed_to_create': not settings.CLL_READ_ONLY,

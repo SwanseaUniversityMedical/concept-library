@@ -31,6 +31,23 @@ from . import utils, tasks
 from .models import *
 from .permissions import *
 
+#--------- Filter queries --------------
+filter_queries = {
+    'tags': 0,
+    'clinical_terminologies': 0,
+    'data_sources': 0,
+    'phenotype_type': 1,
+    'daterange': 2
+}
+
+filter_query_model = {
+    'tags': Tag,
+    'clinical_terminologies': CodingSystem,
+    'data_sources': DataSource
+}
+
+#---------------------------------------
+
 #--------- Order queries ---------------
 concept_order_queries = {
     'Relevance': ' ORDER BY id, history_id DESC ',
@@ -4020,6 +4037,46 @@ def getConceptCodes_withAttributes_HISTORICAL(concept_id, concept_history_date,
     codes_with_attr_df = codes_with_attr_df.replace(['None'], '', regex=True)
 
     return codes_with_attr_df.to_dict('records')
+#---------------------------------------------------------------------------
+
+#-------------------- Data sources reference data ------------------------#
+def apply_filter_condition(query, selected=None, conditions='', data=None):
+    if query not in filter_queries:
+        return None, conditions
+    
+    qcase = filter_queries[query]
+    if qcase == 0:
+        # Tags, Collections, Datasource, Coding system
+        if query not in filter_query_model:
+            return None, conditions
+
+        sanitised_list = utils.expect_integer_list(selected)
+        search_list = [str(i) for i in sanitised_list]
+        items = filter_query_model[query].objects.filter(id__in=search_list)
+        search_list = list(items.values_list('id', flat=True))
+        search_list = [str(i) for i in search_list]
+
+        if len(search_list) > 0:
+            conditions += " AND " + query + " && '{" + ','.join(search_list) + "}' "
+        return items, conditions
+    elif qcase == 1:
+        # Phenotype type
+        if data is None:
+            return [], conditions
+
+        selected_list = [str(t) for t in selected.split(',')]
+        selected_list = list(set(data).intersection(set(selected_list)))
+        if len(selected_list) > 0:
+            conditions += " AND lower(type) IN('" + "', '".join(selected_list) + "') "
+        return selected_list, conditions
+    elif qcase == 2:
+        # Daterange
+        if isinstance(selected['start'][0], datetime.datetime) and isinstance(selected['end'][0], datetime.datetime):
+            conditions += " AND (created >= '" + selected['start'][1] + "' AND created <= '" + selected['end'][1] + "') "
+        return selected, conditions
+    
+    return None, conditions
+
 #---------------------------------------------------------------------------
 
 #-------------------- Data sources reference data ------------------------#

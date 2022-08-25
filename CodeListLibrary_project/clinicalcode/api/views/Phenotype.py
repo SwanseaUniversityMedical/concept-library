@@ -427,7 +427,9 @@ def published_phenotypes(request, pk=None):
     -  <code>?search=Alcohol</code>  
     search by part of phenotype name (do not put wild characters here)  
     -  <code>?tag_collection_ids=11,4</code>  
-    You can specify tag or collection ids   
+    You can specify tag and collection ids   
+    -  <code>?collection_ids=18&tag_ids=1</code>  
+    Or you can query tags and/or collections individually   
     -  <code>?selected_phenotype_types=drug,lifestyle risk factor</code>
     Specify types of the phenotypes  
     -  <code>?show_only_validated_phenotypes=1</code>  
@@ -451,7 +453,9 @@ def phenotypes(request, pk=None):
     -  <code>?search=Alcohol</code>  
     search by part of phenotype name (do not put wild characters here)  
     -  <code>?tag_collection_ids=11,4</code>  
-    You can specify tag or collection ids   
+    You can specify tag and collection ids   
+    -  <code>?collection_ids=18&tag_ids=1</code>  
+    Or you can query tags and/or collections individually   
     -  <code>?selected_phenotype_types=drug,lifestyle risk factor</code>
     Specify types of the phenotypes         
     -  <code>?show_only_my_phenotypes=1</code>  
@@ -484,7 +488,11 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
     else:
         phenotype_id = request.query_params.get('id', None)
 
-    tag_ids = request.query_params.get('tag_collection_ids', '')
+    # Once data & models reflect tag/collection split, remove the following:
+    tag_collection_ids = request.query_params.get('tag_collection_ids', '')
+
+    tag_ids = request.query_params.get('tag_ids', '')
+    collection_ids = request.query_params.get('collection_ids', '')
     owner = request.query_params.get('owner_username', '')
     show_only_my_phenotypes = request.query_params.get('show_only_my_phenotypes', "0")
     show_deleted_phenotypes = request.query_params.get('show_deleted_phenotypes', "0")
@@ -529,22 +537,14 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
                 search_by_id = True
                 filter_cond += " AND (id =" + str(ret_int_id) + " ) "    
     
-    if tag_ids:
-        # split tag ids into list
-        search_tag_list = [str(i).strip() for i in tag_ids.split(",")]
-        # chk if these tags are valid, to prevent injection
-        # use only those found in the DB
-        tags = Tag.objects.filter(id__in=search_tag_list)
-        search_tag_list = list(tags.values_list('id',  flat=True))
-        search_tag_list = [str(i) for i in search_tag_list]
-        filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
-
-    if selected_phenotype_types:
-        selected_phenotype_types_list = [str(t).strip() for t in selected_phenotype_types.split(',')]
-        # chk if these types are valid, to prevent injection
-        # use only those found in the DB
-        selected_phenotype_types_list = list(set(phenotype_types_list).intersection(set(selected_phenotype_types_list)))
-        filter_cond += " AND lower(type) IN('" + "', '".join(selected_phenotype_types_list) + "') "
+    
+    if tag_collection_ids != '':
+        tags, filter_cond = apply_filter_condition(query='tags', selected=tag_collection_ids, conditions=filter_cond)
+    else:
+        tags, filter_cond = apply_filter_condition(query='tags', selected=tag_ids, conditions=filter_cond)
+        collections, filter_cond = apply_filter_condition(query='tags', selected=collection_ids, conditions=filter_cond)
+    
+    selected_phenotype_types_list, filter_cond = apply_filter_condition(query='phenotype_type', selected=selected_phenotype_types, conditions=filter_cond, data=phenotype_types_list)
    
     
     

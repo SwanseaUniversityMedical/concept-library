@@ -710,7 +710,8 @@ def concept_list(request):
     page_size = page_size if page_size in db_utils.page_size_limits else 20
     page = utils.get_int_value(request.GET.get('page', request.session.get('concept_page', 1)), request.session.get('concept_page', 1))
     search = request.GET.get('search', request.session.get('concept_search', ''))
-    tag_ids = request.GET.get('tag_collection_ids', request.session.get('concept_tag_collection_ids', ''))
+    tag_ids = request.GET.get('tag_ids', request.session.get('concept_tag_ids', ''))
+    collection_ids = request.GET.get('collection_ids', request.session.get('concept_collection_ids', ''))
     owner = request.GET.get('owner', request.session.get('concept_owner', ''))
     author = request.GET.get('author', request.session.get('concept_author', ''))
     coding_ids = request.GET.get('codingids', request.session.get('concept_codingids', ''))
@@ -740,7 +741,8 @@ def concept_list(request):
     request.session['concept_page_size'] = page_size
     request.session['concept_page'] = page
     request.session['concept_search'] = search 
-    request.session['concept_tag_collection_ids'] = tag_ids
+    request.session['concept_tag_ids'] = tag_ids
+    request.session['concept_collection_ids'] = collection_ids
     request.session['concept_brand'] = concept_brand
     request.session['concept_codingids'] = coding_ids
     request.session['concept_date_start'] = start_date_range
@@ -776,31 +778,13 @@ def concept_list(request):
             if is_valid_id:
                 search_by_id = True
                 filter_cond += " AND (id =" + str(ret_int_id) + " ) "
-            
-            
-    if tag_ids:
-        sanitised_tags = utils.expect_integer_list(tag_ids)
-        # split tag ids into list
-        search_tag_list = [str(i) for i in sanitised_tags]
-        # chk if these tags are valid, to prevent injection
-        # use only those found in the DB
-        tags = Tag.objects.filter(id__in=search_tag_list)
-        search_tag_list = list(tags.values_list('id',  flat=True))
-        search_tag_list = [str(i) for i in search_tag_list]       
-        if len(search_tag_list) > 0:    
-            filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
 
-    if coding_ids:
-        sanitised_codes = utils.expect_integer_list(coding_ids)
-        search_coding_list = [str(i) for i in sanitised_codes]
-        coding = CodingSystem.objects.filter(id__in=search_coding_list)
-        search_coding_list = list(coding.values_list('id', flat=True))
-        search_coding_list = [str(i) for i in search_coding_list]
-        if len(search_coding_list) > 0:
-            filter_cond += " AND coding_system_id IN (" + ','.join(search_coding_list) + ") "
+    # Change to collections once model + data represents parameter
+    collections, filter_cond = db_utils.apply_filter_condition(query='tags', selected=collection_ids, conditions=filter_cond)
 
-    if isinstance(start_date_query, datetime.datetime) and isinstance(end_date_query, datetime.datetime):
-        filter_cond += " AND (created >= '" + start_date_range + "' AND created <= '" + end_date_range + "') "
+    tags, filter_cond = db_utils.apply_filter_condition(query='tags', selected=tag_ids, conditions=filter_cond)
+    coding, filter_cond = db_utils.apply_filter_condition(query='clinical_terminologies', selected=coding_ids, conditions=filter_cond)
+    daterange, filter_cond = db_utils.apply_filter_condition(query='daterange', selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, conditions=filter_cond)
     
     # check if it is the public site or not
     if request.user.is_authenticated:
@@ -905,6 +889,11 @@ def concept_list(request):
     if coding_ids:
         coding_id_list = utils.expect_integer_list(coding_ids)
     
+    # Collections
+    collection_ids_list = []
+    if collection_ids:
+        collection_ids_list = utils.expect_integer_list(collection_ids)
+
     # Sorted order of each field
     filter_statistics_ordering = {
         'tags': tags_order,
@@ -923,6 +912,9 @@ def concept_list(request):
         'tags': tags,
         'tag_ids': tag_ids2,
         'tag_ids_list': tag_ids_list,
+        'collections': collections,
+        'collection_ids': collection_ids,
+        'collection_ids_list': collection_ids_list,
         'owner': owner,
         'show_only_validated_concepts': show_only_validated_concepts,
         'allowed_to_create': not settings.CLL_READ_ONLY,

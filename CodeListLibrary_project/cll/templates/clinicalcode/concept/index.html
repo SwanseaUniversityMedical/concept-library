@@ -21,7 +21,8 @@
 					 <div class="form-input-flex-container">
 						 <!-- Basic form queries -->
 						 <input type="text" placeholder="Search Concepts" name="search" id="search1" value="{{ search|default_if_none:'' }}">
-						 <input type="hidden" name="tag_collection_ids" id="tag_collection_ids" value="{{ tag_ids|default_if_none:'' }}">
+						 <input type="hidden" name="tag_ids" id="tag_ids"  value="{{ tag_ids|default_if_none:'' }}">
+						 <input type="hidden" name="collection_ids" id="collection_ids"  value="{{ collection_ids|default_if_none:'' }}">
 						 <input type="hidden" name="codingids" id="codingids"  value="{{ codingids|default_if_none:'' }}">
 						 <input type="hidden" name="page" id="page"  value="{{ page|default_if_none:1 }}">
 						 <input type="hidden" name="search_form" id="collection_search_form1"  class="collection_search_form"  value="{{ search_form }}">
@@ -193,7 +194,8 @@
 			'search': "{{ search }}",
 			'author': "{{ author }}",
 			'owner': "{{ owner }}",
-			'tag_collection_ids': "{{ tag_ids }}",
+			'tag_ids': "{{ tag_ids }}",
+			'collection_ids': "{{ collection_ids }}",
 			'codingids': "{{ coding_ids }}",
 			'startdate': "{{ filter_start_date }}",
 			'enddate': "{{ filter_end_date }}",

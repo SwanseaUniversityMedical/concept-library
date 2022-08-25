@@ -36,7 +36,7 @@
 								<li class="checkbox"  {% if not request.CURRENT_BRAND|length %} title="{{ tag.collection_brand }}" {% endif %}>
 									<label>
 									<input class="form-check-input filter_option collection" type="checkbox" name="collection_id" value="{{ tag.id }}" 
-									{% if tag.id in tag_ids_list  %} checked {% endif %}  
+									{% if tag.id in collection_ids_list  %} checked {% endif %}  
 									>
 									<span class="form-check-label">
 										{{ tag.description }}

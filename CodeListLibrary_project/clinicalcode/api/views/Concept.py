@@ -880,7 +880,9 @@ def published_concepts(request, pk=None):
     -  <code>?search=Alcohol</code>  
       search by part of concept name (do not put wild characters here)
     -  <code>?tag_collection_ids=11,4</code>  
-      You can specify tag or collection ids  
+    You can specify tag and collection ids   
+    -  <code>?collection_ids=18&tag_ids=1</code>  
+    Or you can query tags and/or collections individually   
     -  <code>?show_only_validated_concepts=1</code> 
       will show only validated concepts  
     -  <code>?brand=HDRUK</code>  
@@ -901,8 +903,10 @@ def user_concepts(request, pk=None):
     User can search with criteria using a combinations of querystring parameters:  
     -   <code>?search=Alcohol</code>  
     search by part of concept name (do not put wild characters here)  
-    -   <code>?tag_collection_ids=11,4</code>  
-    You can specify tag or collection ids      
+    -  <code>?tag_collection_ids=11,4</code>  
+    You can specify tag and collection ids   
+    -  <code>?collection_ids=18&tag_ids=1</code>  
+    Or you can query tags and/or collections individually   
     -   <code>?show_only_my_concepts=1</code>  
     Only show concepts owned by me  
     -   <code>?show_deleted_concepts=1</code>  
@@ -934,7 +938,11 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
     else:
         concept_id = request.query_params.get('id', None)
 
-    tag_ids = request.query_params.get('tag_collection_ids', '')
+    # Once data & models reflect tag/collection split, remove the following:
+    tag_collection_ids = request.query_params.get('tag_collection_ids', '')
+
+    tag_ids = request.query_params.get('tag_ids', '')
+    collection_ids = request.query_params.get('collection_ids', '')
     owner = request.query_params.get('owner_username', '')
     show_only_my_concepts = request.query_params.get('show_only_my_concepts', "0")
     show_deleted_concepts = request.query_params.get('show_deleted_concepts', "0")
@@ -972,15 +980,12 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
                 filter_cond += " AND (id =" + str(ret_int_id) + " ) "
             
             
-    if tag_ids:
-        # split tag ids into list
-        search_tag_list = [str(i) for i in tag_ids.split(",")]               
-        # chk if these tags are valid, to prevent injection
-        # use only those found in the DB
-        tags = Tag.objects.filter(id__in=search_tag_list)
-        search_tag_list = list(tags.values_list('id',  flat=True))
-        search_tag_list = [str(i) for i in search_tag_list]        
-        filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
+    if tag_collection_ids != '':
+        tags, filter_cond = apply_filter_condition(query='tags', selected=tag_collection_ids, conditions=filter_cond)
+    else:
+        tags, filter_cond = apply_filter_condition(query='tags', selected=tag_ids, conditions=filter_cond)
+        collections, filter_cond = apply_filter_condition(query='tags', selected=collection_ids, conditions=filter_cond)
+        
 
     # check if it is the public site or not
     if is_authenticated_user:
