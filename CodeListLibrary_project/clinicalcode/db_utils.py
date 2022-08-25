@@ -4229,4 +4229,262 @@ def is_referred_from_search_page(request):
     
     
     
+
+#=============================================================================
+def get_visible_live_or_published_phenotype_workingset_versions(request,
+                                                    get_live_and_or_published_ver = 3,  # 1= live only, 2= published only, 3= live+published
+                                                    search = "",
+                                                    author = "",
+                                                    workingset_id_to_exclude = 0,
+                                                    approved_status = None,
+                                                    exclude_deleted = True,
+                                                    filter_cond = "",
+                                                    show_top_version_only = False,
+                                                    force_brand = None,
+                                                    force_get_live_and_or_published_ver = None,  # used only with no login
+                                                    search_name_only = True,
+                                                    highlight_result = False,
+                                                    do_not_use_FTS = False                                               
+                                                    ):
+    ''' Get all visible live or published workingset versions 
+    - return all columns
+    '''
+
+    search = re.sub(' +', ' ', search.strip()) 
+
+    sql_params = []
+
+    user_cond = ""
+    if not request.user.is_authenticated:
+        get_live_and_or_published_ver = 2  #    2= published only
+        if force_get_live_and_or_published_ver is not None:
+            get_live_and_or_published_ver = force_get_live_and_or_published_ver
+    else:
+        if request.user.is_superuser:
+            user_cond = ""
+        else:
+            user_groups = list(request.user.groups.all().values_list('id', flat=True))
+            group_access_cond = ""
+            if user_groups:
+                group_access_cond = " OR (group_id IN(" + ', '.join(map(str, user_groups)) + ") AND group_access IN(2,3)) "
+
+            # since all params here are derived from user object, no need for parameterising here.
+            user_cond = ''' AND (
+                                    owner_id=%s 
+                                    OR world_access IN(2,3)
+                                    %s
+                                )
+                    ''' % (str(request.user.id), group_access_cond)
+
+        #sql_params.append(user_cond)
+    can_edit_subquery = get_can_edit_subquery(request)
+
+
+    highlight_columns = ""
+    if highlight_result:
+        # for highlighting
+        if search != '':
+            sql_params += [str(search)] * 2
+            highlight_columns += """ ts_headline('english', coalesce(name, '')
+                                            , websearch_to_tsquery('english', %s)
+                                            , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as name_highlighted,  
+                
+                                    ts_headline('english', coalesce(author, '')
+                                            , websearch_to_tsquery('english', %s)
+                                            , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as author_highlighted,                                              
+                                """ 
+        else:
+            highlight_columns += """ name as name_highlighted,              
+                                    author as author_highlighted,                                              
+                                """ 
+                                
+                                
+                                
+    rank_select = " "
+    if search != '':               
+        if search_name_only:
+            # search name field only
+            sql_params += [str(search)]
+            rank_select += """ 
+                        ts_rank(to_tsvector(coalesce(name, '')), websearch_to_tsquery('english', %s)) AS rank_name,
+                        """
+        else:
+            # search all related fields
+            sql_params += [str(search)] * 3
+            rank_select += """  
+                        ts_rank(to_tsvector('english', coalesce(name, '')), websearch_to_tsquery('english', %s)) AS rank_name,            
+                        ts_rank(to_tsvector('english', coalesce(author, '')), websearch_to_tsquery('english', %s)) AS rank_author,
+                        ts_rank(to_tsvector('english', coalesce(name, '') 
+                                            || ' ' || coalesce(author, '') 
+                                            || ' ' || coalesce(description, '') 
+                                            || ' ' || coalesce(array_to_string(publications, ','), '') 
+                                            )
+                                     , websearch_to_tsquery('english', %s)
+                                     ) AS rank_all,
+                            """
+
+
+
+    where_clause = " WHERE 1=1 "
+
+    if workingset_id_to_exclude > 0:
+        sql_params.append(str(workingset_id_to_exclude))
+        where_clause += " AND id NOT IN (%s) "
+
+    if search != '':
+        if do_not_use_FTS:  # normal search   
+            #note: we use iLike here for case-insensitive
+            if search_name_only: 
+                sql_params.append("%" + str(search) + "%")
+                where_clause += " AND name ILIKE %s "
+            else:
+                sql_params += ["%" + str(search) + "%"] * 5
+                where_clause += """ AND (name ILIKE %s OR 
+                                        author ILIKE %s OR 
+                                        description ILIKE %s OR 
+                                        array_to_string(publications , ',') ILIKE %s                                 
+                                        )  
+                                """
+            
+        else:       # Full-Text-Search (FTS)
+            if search_name_only:
+                # search name field only
+                sql_params += [str(search)] 
+                where_clause += """ AND (to_tsvector('english',
+                                                    coalesce(name, '') 
+                                                   ) @@ websearch_to_tsquery('english', %s)                              
+                                        )  
+                                """                            
+            else:
+                # search all related fields
+                sql_params += [str(search)] 
+                where_clause += """ AND (to_tsvector('english', coalesce(name, '') 
+                                                    || ' ' || coalesce(author, '') 
+                                                    || ' ' || coalesce(description, '') 
+                                                    || ' ' || coalesce(array_to_string(publications, ','), '') 
+                                                   ) @@ websearch_to_tsquery('english', %s)                              
+                                        )  
+                                """
+
+
+    if author != '':
+        sql_params.append("%" + str(author) + "%")
+        where_clause += " AND upper(author) like upper(%s) "
+
+    if exclude_deleted:
+        where_clause += " AND COALESCE(is_deleted, FALSE) IS NOT TRUE "
+
+    if filter_cond.strip() != "":
+        where_clause += " AND " + filter_cond
+
+
+
+
+    # --- second where clause  ---
+    if get_live_and_or_published_ver == 1:  # 1= live only
+        where_clause_2 = " AND  (rn=1 " + user_cond + " ) "
+    elif get_live_and_or_published_ver == 2:  # 2= published only
+        where_clause_2 = " AND (is_published=1) "
+    elif get_live_and_or_published_ver == 3:  # 3= live+published
+        where_clause_2 = " AND (is_published=1 OR  (rn=1 " + user_cond + " )) "
+    else:
+        raise INVALID_PARAMETER_VALUE
+
+
+    # --- third where clause  ---
+    where_clause_3 = " WHERE 1=1 "
+    if show_top_version_only:
+        where_clause_3 += " AND rn_res = 1 "
+
+
+    # --- where clause (publish approval)  ---
+    approval_where_clause = " "
+    if approved_status:
+        approval_where_clause = " AND (approval_status IN(" + ', '.join(map(str, approved_status)) + ")) "  
+        
+
+
+    # --- when in a brand, show only this brand's data
+    brand_filter_cond = " "
+    brand = request.CURRENT_BRAND
+    if force_brand is not None:
+        brand = force_brand
+
+    if brand != "":
+        brand_collection_ids = get_brand_collection_ids(brand)
+        brand_collection_ids = [str(i) for i in brand_collection_ids]
+
+        if brand_collection_ids:
+            brand_filter_cond = " WHERE tags && '{" + ','.join(brand_collection_ids) + "}' "
+
+
+    # order by clause
+    order_by = " ORDER BY id, history_id DESC "
+    if search != '':
+        if search_name_only:
+            # search name field only
+            order_by =  """ 
+                            ORDER BY rank_name DESC
+                                    , id, history_id DESC  
+                        """
+        else:
+            # search all related fields
+            order_by =  """                          
+                            /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
+                            ORDER BY rank_name DESC, rank_author DESC , rank_all DESC
+                        """
+                            
+        
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+                        SELECT
+                        """ + highlight_columns + """ 
+                        """ + rank_select + """                        
+                        *
+                        FROM
+                        (
+                            SELECT 
+                                """ + can_edit_subquery + """
+                                *
+                                , ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn_res
+                                , (CASE WHEN is_published=1 THEN 'published' ELSE 'not published' END) published
+                                , (SELECT username FROM auth_user WHERE id=r.owner_id ) owner_name
+                                , (SELECT username FROM auth_user WHERE id=r.created_by_id ) created_by_username
+                                , (SELECT username FROM auth_user WHERE id=r.updated_by_id ) modified_by_username
+                                , (SELECT username FROM auth_user WHERE id=r.deleted_by_id ) deleted_by_username
+                                , (SELECT name FROM auth_group WHERE id=r.group_id ) group_name
+                                , (SELECT created FROM clinicalcode_publishedworkingset WHERE workingset_id=r.id and workingset_history_id=r.history_id  and approval_status = 2 ) publish_date
+                            FROM
+                            (SELECT 
+                               ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn,
+                               (SELECT count(*) 
+                                   FROM clinicalcode_publishedworkingset 
+                                   WHERE workingset_id=t.id and workingset_history_id=t.history_id and approval_status = 2
+                               ) is_published,
+                                (SELECT approval_status 
+                                   FROM clinicalcode_publishedworkingset 
+                                   WHERE workingset_id=t.id and workingset_history_id=t.history_id 
+                               ) approval_status,
+                               
+                               id, name, type, tags, collections, publications, author, citation_requirements, description, 
+                               data_sources, phenotypes_concepts_data, 
+                               is_deleted, deleted, owner_access, group_access, world_access, 
+                               created, modified, 
+                               history_id, history_date, history_change_reason, history_type, 
+                               created_by_id, deleted_by_id, group_id, history_user_id, owner_id, updated_by_id
+ 
+                            FROM clinicalcode_historicalphenotypeworkingset t
+                                """ + brand_filter_cond + """
+                            ) r
+                            """ + where_clause + [where_clause_2 , approval_where_clause][approval_where_clause.strip() !=""] + """
+                        ) rr
+                        """ + where_clause_3 + """
+                        """ + order_by
+                        , sql_params)
+        
+        col_names = [col[0] for col in cursor.description]
+
+        return [dict(list(zip(col_names, row))) for row in cursor.fetchall()]
+
     

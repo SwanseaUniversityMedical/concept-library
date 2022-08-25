@@ -1,0 +1,31 @@
+{% load cl_extras %}
+{% for code in codes %}
+	<tr>
+		<td>{{ code.code }}</td>
+		<td>{{ code.description|highlight:q }}</td>				
+
+		{% if code_attribute_header %}
+
+			{% for attr_hdr in code_attribute_header %}
+			   {% for key, value in code.code_attributes.items %}
+			   		{% if key == attr_hdr %}
+			      		<td>{{ value }}</td>
+			   		{% endif %}				
+			   {% endfor %}			
+			{% endfor %}
+		
+		{% endif%}
+
+
+		{% if showConcept %}
+			<td>{{ code.concept_id }}/{{ code.concept_version_id }}</td>
+		{% endif%}
+							
+	</tr>
+{% empty %}
+	<tr>
+		<td colspan="10" class="text-center bg-warning">
+			No codes
+		</td>
+	</tr>
+{% endfor %}

@@ -1,0 +1,209 @@
+{% load static %}
+{% load cl_extras %}
+
+<div class="row">
+	<nav class="col-sm-2 hideleft-navbar" id="FilterMenu"
+	 	 style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;"
+	 >
+		
+		
+	<div class="panel panel-default" style="border: 0px;" >
+		<form id="filter_form" action="{% url 'phenotypeworkingsets_list' %}" method="POST"  >
+			{% csrf_token %}
+			<!-- Collection -->
+			<a data-toggle="collapse" href="#collapse-collection" aria-expanded="true" aria-controls="collapse-collection" style="color: inherit; text-decoration: inherit;">
+				<div class="panel-footer text-left">
+					<strong>Collection</strong>
+					
+					<div class="morphing-filter-targets" id="filter-icon-group">
+						<i class="fa fa-expand"></i>
+						<i class="fa fa-compress"></i>
+					</div>
+				</div>
+			</a>
+						
+			<div class="filter-content collapse in" id="collapse-collection">
+				<div class="panel-body" style="padding: 0;" id="filter_by_collection">
+	
+					<div class="checkbox" >
+						<div style="display:none;" >
+						  <label >
+						    <input type="checkbox" class="filter_option collections" id="checkAll_collections" name="collection_id" value="-1" {% if all_collections_selected  %} checked {% endif %}  > All
+						  </label>
+						</div>
+					</div>
+				<!-- <hr  style="padding: 0; margin: 0;">  -->
+
+					<!-- collections tags -->
+					{% for tag in brand_associated_collections %}
+						{% if tag.tag_type == 2 %}
+								<div class="checkbox"  {% if not request.CURRENT_BRAND|length %} title="{{ tag.collection_brand }}" {% endif %}>
+									<label>
+									<input class="form-check-input filter_option collections" type="checkbox" name="collection_id" value="{{ tag.id }}"
+									 {% if tag.id in tag_ids_list  %} checked {% endif %}
+									>
+									<span class="form-check-label">
+										{{ tag.description }}
+									<!--  <span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>	 -->
+									</span>
+									</label>
+								</div>
+						{% endif %}
+					{% endfor %}
+
+				</div> <!-- card-body.// -->
+			</div>
+			
+            <!-- Type -->
+			<a data-toggle="collapse" href="#collapse-type" aria-expanded="true" aria-controls="collapse-type" style="color: inherit; text-decoration: inherit;">
+				<div class="panel-footer text-left">
+					<strong>Type</strong>
+				
+					<div class="morphing-filter-targets" id="filter-icon-group">
+						<i class="fa fa-expand"></i>
+						<i class="fa fa-compress"></i>
+					</div>
+				</div>
+			</a>
+						            
+             <div class="filter-content collapse in" id="collapse-type">
+                <div class="panel-body" style="padding: 0;" id="filter_by_type">
+    
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" class="filter_option types" id="checkAll_types" name="type_name" value="-1" {% if all_types_selected  %} checked {% endif %}  > All
+                      </label>
+                    </div>
+                    <hr  style="padding: 0; margin: 0;">
+                    <!-- types tags -->
+                    {% for type in ph_workingset_types %}
+	                     <div class="checkbox" >
+	                         <label>
+	                         <input class="form-check-input filter_option types" type="checkbox" name="type_name" value="{{ type }}"
+	                          {% if type in ph_workingset_selected_types  %} checked {% endif %}
+	                         >
+	                         <span class="form-check-label">
+	                             {{ type }}
+	                         </span>
+	                         </label>
+	                     </div>
+                    {% endfor %}
+
+                </div> <!-- card-body.// -->
+            </div>
+				
+	<!-- 			  <div class="panel-footer">....</div> -->			
+		</form>
+	</div> <!-- card.// -->
+		
+	
+
+	</nav>
+			
+	<div class="col-sm-10" id="result-div">
+		
+<!-- ******************** -->
+
+<div class="page-control-container">
+	{% include 'pagination.html' with form_target=search_form %}	
+	
+</div>
+
+{% block content %}
+	{% for workingset in page_obj.object_list %}
+			<div class="cl-card {% if workingset.is_deleted is True %} cl-card-deleted{% endif %} {% cycle ' dark-div ' '' %}   "
+                        {% if workingset.approval_status == 1 and workingset.owner_id == request.user.id or request.user|has_group:"Moderators" and workingset.approval_status == 1 %}title="Waiting for approval"{% endif %}>
+				<div class="row form-group">
+					<div class="col-sm-12">
+						<a class="" href="{% url 'phenotypeworkingset_history_detail' workingset.id workingset.history_id %}">
+						<span style='font-size: 22px;margin-top:0;'>{{ workingset.id }} - {{ workingset.name_highlighted|safe }}</span>
+						</a>				
+					</div>
+				</div>
+				
+				<div class="row form-group">
+					<div class="col-sm-12">
+<!-- 						<span {%if workingset.author|length > 120 %}title="{{ workingset.author }}" {% endif %} >{{ workingset.author|truncatechars:120 }}</span> -->
+						{{ workingset.author_highlighted|safe }}
+					</div>
+
+				</div>
+				
+				<div class="row form-group">
+					<div class="col-sm-4">
+						<!-- CodingSystems -->
+<!-- 						{% for cs in all_CodingSystems %} -->
+<!-- 							{% for cs_id in phenotype.clinical_terminologies %} -->
+<!-- 								{% if cs.id == cs_id %} -->
+<!-- 							   		<span class="badge">{{ cs.name }}</span> -->
+<!-- 							   	{% endif %} -->
+<!-- 							{% endfor %}						 -->
+<!-- 						{% endfor %}	 -->
+					</div>
+					<div class="col-sm-4">
+						<i><strong>{{ workingset.type|get_ws_type_name }}</i></strong>
+					</div>	
+					<div class="col-sm-4">
+						{% if user.is_authenticated %}
+							<i>{{ workingset.modified|date:"Y-m-d" }}</i>
+						{% else %}	
+							<i>{{ workingset.publish_date|date:"Y-m-d" }}</i>
+						{% endif %}
+					</div>
+
+<!-- 					<div class="col-sm-2 text-right">
+						{% if user.is_authenticated and workingset.is_published == 1 %}
+							<span title="{{ workingset.published }} on {{ workingset.publish_date|date:"Y-m-d" }}" style="text-align: right;" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
+						{% endif %}	
+					</div>	 -->
+				</div>
+				
+			{% if workingset.collections or workingset.tags %}
+				<div class="row form-group">
+					<div class="col-sm-12">
+						<!-- collections -->
+						{% for tag in allTags %}
+							{% for tag_id in workingset.collections %}
+								{% if tag.id == tag_id %}
+							   		<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
+							   	{% endif %}
+							{% endfor %}						
+						{% endfor %}			
+						
+						<!-- tags -->
+						{% for tag in allTags %}
+							{% for tag_id in workingset.tags %}
+								{% if tag.id == tag_id %}
+							   		<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
+							   	{% endif %}
+							{% endfor %}						
+						{% endfor %}			
+										
+					</div>	
+				</div>						
+			{% endif %}								
+					
+				
+	</div>				  
+	<br> 
+	{% empty %}
+		<div class="row form-group">
+			<div class="col-sm-12 text-center bg-warning">
+				No Working Sets
+			</div>	
+		</div>				
+			
+	{% endfor %}
+{% endblock %}
+
+
+<div class="page-control-container">
+	{% include 'pagination.html' with form_target=search_form %}	
+</div>
+
+
+<!-- ******************** -->
+
+	</div>
+</div>
+

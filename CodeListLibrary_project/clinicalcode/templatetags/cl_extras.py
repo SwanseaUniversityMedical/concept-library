@@ -5,6 +5,8 @@ from django.conf import settings
 from django.utils.safestring import mark_safe
 from re import IGNORECASE, compile, escape as rescape
 import re 
+from clinicalcode.constants import Type_status
+
 
 register = template.Library()
 
@@ -225,4 +227,12 @@ def highlight_all_search_text(text, q):
         )
     )  
 
-
+@register.filter   
+def get_ws_type_name(type_int):
+    '''
+        get working set type name
+    '''
+    
+    return str([t[1] for t in Type_status if t[0]==type_int][0])
+    
+    
