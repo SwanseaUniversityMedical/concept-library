@@ -16,6 +16,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import (api_view, authentication_classes, permission_classes)
 from rest_framework.response import Response
 from django.db.models.functions import Lower
+from django.utils.timezone import make_aware
 
 from ...db_utils import *
 from ...models import *
@@ -506,6 +507,19 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
     must_have_published_versions = request.query_params.get('must_have_published_versions', "0")
     selected_phenotype_types = request.query_params.get('selected_phenotype_types', '')
     
+    coding_ids = request.query_params.get('coding_ids', '')
+    data_sources = request.query_params.get('data_source_ids', '')
+    start_date_range = request.query_params.get('start_date', '')
+    end_date_range = request.query_params.get('end_date', '')
+    
+    start_date_query, end_date_query = False, False
+    try:
+        start_date_query = make_aware(datetime.datetime.strptime(start_date_range, '%Y-%m-%d'))
+        end_date_query = make_aware(datetime.datetime.strptime(end_date_range, '%Y-%m-%d'))
+    except ValueError:
+        start_date_query = False
+        end_date_query = False
+    
     selected_phenotype_types = selected_phenotype_types.strip().lower()
 
     search_tag_list = []
@@ -544,6 +558,9 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
         tags, filter_cond = apply_filter_condition(query='tags', selected=tag_ids, conditions=filter_cond)
         collections, filter_cond = apply_filter_condition(query='tags', selected=collection_ids, conditions=filter_cond)
     
+    coding, filter_cond = apply_filter_condition(query='clinical_terminologies', selected=coding_ids, conditions=filter_cond)
+    sources, filter_cond = apply_filter_condition(query='data_sources', selected=data_sources, conditions=filter_cond)
+    daterange, filter_cond = apply_filter_condition(query='daterange', selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, conditions=filter_cond)
     selected_phenotype_types_list, filter_cond = apply_filter_condition(query='phenotype_type', selected=selected_phenotype_types, conditions=filter_cond, data=phenotype_types_list)
    
     
