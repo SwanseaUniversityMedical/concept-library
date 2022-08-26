@@ -91,15 +91,14 @@
 
 					<div class="form-group">
 
-						<div class="col-sm-12" id="concept-tag-form-container">
+						<div class="col-sm-11" id="concept-tag-form-container">
+
                              <div class="material-textfield">
                                     <input class="input-material col-sm-12 form-control" type="text" placeholder=" " >
                                   <label class = "label-material" for="txtTags">Tags</label>
 
 						</div>
 						</div>
-
-
 
 						<div class="col-sm-1 form-help-popover">
 							<a href="#" role="button" class="btn popovers" id="concept-tag-form" data-toggle="popover" data-trigger="hover" data-container="#concept-tag-form-container" title="" data-original-title="Tags" data-placement="left">
@@ -212,7 +211,7 @@
 					<!-- Allow the user to select a user from the list of known users. -->
 					<div class="form-group">
 
-						<div class="col-sm-12"  id="workingset-owned-form-container">
+						<div class="col-sm-11"  id="workingset-owned-form-container">
                             <div class="material-textfield">
 
 							<select class="input-material col-sm-12 form-control"  type="text" name="owner_id" id="owner_id">
@@ -239,7 +238,7 @@
 					</div>
 					<div class="form-group">
 
-						<div class="col-sm-12" id="workingset-group-form-container">
+						<div class="col-sm-11" id="workingset-group-form-container">
                          <div class="material-textfield">
 
 							<select class=" input-material col-sm-12 form-control" type="text" name="group_id" id="group_id">
@@ -372,84 +371,42 @@
 	 -->
 
 
-			<div class="w-50 p-3 bs-example" style="width:50%;">
-			    <div class="alert-info fade in" style="height:20px;">
-			       	New added concepts will refer to the latest version unless published version is selected.
-			    </div>
-			</div>
-
-			{% if not are_concepts_latest_version %}
-				<div class="bs-example">
-				    <div class="alert alert-warning fade in">
-				        <a href="#" class="close" data-dismiss="alert">&times;</a>
-				        <strong>Warning!</strong><br>
-				        <strong>To update to latest version click <i class="glyphicon glyphicon-repeat text-danger"></i> and re-select the concept</strong>
-						<br>
-				        <ul>
-				            {% for key, error in version_alerts.items %}
-				                <li>Concept({{ key|safe }}): {{ error|safe }}</li>
-				            {% endfor %}
-				        </ul>
-				    </div>
-				</div>
-			{% endif %}
-
 		     <div id=conceptsErrorsDiv style='display:none;'></div>
 
 					<div class="form-group">
 						<div class="col-sm-12">
-							<table id="concepts" name="concepts" border="0" class="table table-striped">
-								<thead>
-									<tr>
-										<th>Phenotypes/Concepts</th>
-									</tr>
-								</thead>
-								<tbody>
-									{% if concepts is none %}
-									<tr>
-										<td style="width:60%;" >
-											<div style="width:100%;" >
- 												<button id="remove-input_1" class="btn btn-danger" type="button" style="width:14px; float:left; padding: 0px;">X</button>
- 												<span id="just_a_space_1" style="width:14px; float:left; padding: 0px;background-color: #f9f9f9; font-color: #f9f9f9;">&nbsp;</span>
-												<span id="reset-input_1" class="glyphicon glyphicon-repeat text-danger" style="cursor:pointer; float:left; padding: 0px;" aria-hidden="true"></span>
-										    	<input type="text" id="concept_1" name="concept_1" class="concept form-control" placeholder="Search" style="width:80%;">
-										    	<input type="hidden" id="conceptpheno_1" name="conceptpheno_1"  class="hconcept">
-											</div>
-										</td>
-									</tr>
-									{% endif %}
-								</tbody>
-							</table>
-
-							<span id="concept_error"  class="bs-example alert" ></span>
-
+							<label>Phenotype/Concepts</label>
 
 						</div>
-					</div>
 
-					<div class="row">
-						<div class="col-md-6">
-							<button id="add-phenotype" class="btn btn-default" type="button">Add a phenotype</button>
-							<button id="add-column" class="btn btn-default" type="button">Add an attribute</button>
-						</div>
-					</div>
-
-
-
-
-					<div class="row">
-						<div class="col-md-6">
-							<div><br>
-								<button class="btn btn-primary" id="save-changes">
-									Save
+                        <div class="row-form-flex row">
+                            <button class="upload-button" id="save-changes">
+									Upload
 								</button>
-								<a href="{% url 'workingset_list' %}" class="btn btn-outline-primary btn-cl btn-cl-secondary">
+                        </div>
+
+					</div>
+
+
+<hr/>
+                    <div class="form-group">
+                        <div class="col-sm-12">
+					<div class="row-form-flex row">
+
+							<div><br>
+                                <a href="{% url 'workingset_list' %}" class="btn">
 									Return to list
 								</a>
+								<button class="btn btn-primary save-button" id="save-changes">
+									Save
+								</button>
+
 							</div>
 
 						</div>
-					</div>
+                        </div>
+
+                    </div>
 
 
 					<input type="hidden" id="phenotypes_concepts_json" name="phenotypes_concepts_json">
@@ -1136,10 +1093,6 @@
 	    	}
 	    }
 	});
-
-
-
-
 
 
 

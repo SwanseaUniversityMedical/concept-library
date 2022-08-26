@@ -54,6 +54,7 @@
     height: 35px;
 }
 
+
 .input-material:focus {
     border-color: #4285f4;
 }
@@ -97,13 +98,78 @@
 }
 
 
-.form-control[disabled], .form-control[readonly], fieldset[disabled] .label-select::before{
+.form-control[disabled], .form-control[readonly], fieldset[disabled] .label-select::before {
     border-top: 3px;
-        content:"";
-        margin: 0 auto; /* this centers the line to the full width specified */
-        position: absolute; /* positioning must be absolute here, and relative positioning must be applied to the parent */
-        top: 50%; left: 0; right: 0; bottom: 0;
-        width: 95%;
-        background-color: #eee;
-        z-index: -1;
+    content: "";
+    margin: 0 auto; /* this centers the line to the full width specified */
+    position: absolute; /* positioning must be absolute here, and relative positioning must be applied to the parent */
+    top: 50%;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 95%;
+    background-color: #eee;
+    z-index: -1;
 }
+
+.row-form-flex {
+    margin-right: -15px;
+    margin-left: -15px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+}
+
+.upload-button {
+
+    padding: 2px 85px;
+
+    color: #ffffff;
+    margin: 0 2rem;
+    background: #4285f4;
+    position: relative;
+    text-align: center;
+    text-decoration: none;
+    transition: color 100ms;
+    vertical-align: baseline;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    border-radius: 8px;
+    border-style: none;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: inline-block;
+    height:30px
+}
+
+
+.upload-button:hover {
+    background: #2b6cb0;
+}
+
+.save-button {
+    padding: 2px 37px;
+    color: #ffffff;
+    margin: 0 2rem;
+    background: #4285f4;
+    position: relative;
+    text-align: center;
+    text-decoration: none;
+    transition: color 100ms;
+    vertical-align: baseline;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    border-radius: 8px;
+    border-style: none;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: inline-block;
+    height:30px
+}
+
+
+
+
