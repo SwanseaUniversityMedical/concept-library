@@ -2,9 +2,9 @@ from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 
-
 from clinicalcode.models import PhenotypeWorkingset
 from clinicalcode.permissions import allowed_to_permit, Permissions
+from clinicalcode.constants import Type_status
 
 
 class WorkingsetForms(forms.ModelForm):
@@ -39,6 +39,8 @@ class WorkingsetForms(forms.ModelForm):
         # Check that the user generating the request matches the user which
         # owns the concept for permission to edit permissions.
         instance = getattr(self, 'instance', None)
+
+
         # if self.user.id != instance.owner.id:
         if instance.owner is not None:
             if not allowed_to_permit(self.user, PhenotypeWorkingset, instance.id):
@@ -51,30 +53,50 @@ class WorkingsetForms(forms.ModelForm):
             # Note that we are setting self.initial NOT self.fields[].initial.
             self.initial['owner'] = self.user.id
 
+
         ## If the user does not belong to a certain group, remove the field
         # if not self.user.groups.filter(name__iexact='mygroup').exists():
         #    del self.fields['confidential']
-    name = forms.CharField(label = 'Name:',help_text='250 max characters',required=True,error_messages={'required':'Please enter a valid name'},
-                           max_length=250, widget= forms.TextInput(attrs={
+
+    name = forms.CharField(label='Name:', help_text='250 max characters', required=True,
+                           error_messages={'required': 'Please enter a valid name'},
+                           max_length=250, widget=forms.TextInput(attrs={
             'class': 'form-control',
             'data-required': 'Please enter a valid name',
-            'autofocus':'autofocus'
+            'autofocus': 'autofocus'
         }))
 
     author = forms.CharField(
-        label = 'Author:',
+        label='Author:',
         required=True,
-        error_messages={'required':'Please enter an author'},
+        error_messages={'required': 'Please enter an author'},
         max_length=250,
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
 
+    type = forms.ChoiceField(
+
+        label='Type',
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        choices=Type_status,
+        required=True
+    )
+
     description = forms.CharField(
-        label = 'Description',
-        required  = True,
-        error_messages= {'required': 'Please enter a description'},
-        widget = forms.Textarea(attrs = {
-            'class':'form-control',
+        label='Description',
+        required=True,
+        error_messages={'required': 'Please enter a description'},
+        widget=forms.Textarea(attrs={
+            'class': 'input-material col-sm-12 form-control',
+            'rows': 5
+        }),
+        max_length=3000)
+
+    publication = forms.CharField(
+        label='Publication',
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'input-material col-sm-12 form-control',
             'rows': 5
         }),
         max_length=3000)
@@ -84,7 +106,7 @@ class WorkingsetForms(forms.ModelForm):
         help_text='250 max characters',
         max_length=250,
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control'}))
+        widget=forms.TextInput(attrs={'class': 'input-material col-sm-12 form-control'}))
 
     owner_access = forms.ChoiceField(
         label='Owner access:',
@@ -108,7 +130,7 @@ class WorkingsetForms(forms.ModelForm):
     owner = forms.ChoiceField(
         label='Owned by:',
         required=True,
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.Select(attrs={'class': 'input-material col-sm-12 form-control'})
         # No choices or initial value as these are assigned dynamically.
     )
     group = forms.ChoiceField(
@@ -116,7 +138,7 @@ class WorkingsetForms(forms.ModelForm):
         # Not required unless one of the GROUP options is selected. Handle
         # this case separately in the cleaning code.
         required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.Select(attrs={'class': 'input-material col-sm-12 form-control'})
         # No choices or initial value as these are assigned dynamically.
     )
 
@@ -154,8 +176,6 @@ class WorkingsetForms(forms.ModelForm):
             # No group found, so get Django to put up the required error.
             self._errors['group'] = self.error_class(['required'])
 
-
-
     class Meta:
         '''
             Class metadata (anything that's not a field).
@@ -164,6 +184,3 @@ class WorkingsetForms(forms.ModelForm):
         exclude = [
             'created_by', 'modified_by', 'deleted', 'is_deleted', 'deleted_by'
         ]
-
-
-
