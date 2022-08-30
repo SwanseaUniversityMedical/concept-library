@@ -272,8 +272,8 @@ var initFilters = () => {
           case 'date':
             start = moment(base_start_date);
             end = moment(dateValue);
-            $("#basic-form input[id=startdate]").val(start.format('YYYY-MM-DD'));
-            $("#basic-form input[id=enddate]").val(end.format('YYYY-MM-DD'));
+            $("#basic-form input[id=startdate]").val('');
+            $("#basic-form input[id=enddate]").val('');
             break;
           case 'datasources':
           case 'codingids':
@@ -615,8 +615,8 @@ var initFilters = () => {
     if (params.searchParams.get('startdate') == null || params.searchParams.get('enddate') == null) {
       start = moment(base_start_date);
       end = moment(dateValue);
-      $("#basic-form input[id=startdate]").val(start.format('YYYY-MM-DD'));
-      $("#basic-form input[id=enddate]").val(end.format('YYYY-MM-DD'));
+      $("#basic-form input[id=startdate]").val('');
+      $("#basic-form input[id=enddate]").val('');
     }
 
     for (var range in dateRanges) {
