@@ -807,11 +807,10 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id=None):
     writer = csv.writer(response)
 
     final_titles = ([
-        'code', 'description', 'coding_system', 'concept_id',
-        'concept_version_id'
-        ] 
-        + ['concept_name'] +
-        ['phenotype_id', 'phenotype_version_id', 'phenotype_name'])
+        'code', 'description', 'coding_system', 
+        'concept_id', 'concept_version_id', 'concept_name',
+        'phenotype_id', 'phenotype_version_id', 'phenotype_name'
+        ])
 
     writer.writerow(final_titles)
 
@@ -819,32 +818,35 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id=None):
         concept_id = concept[0]
         concept_version_id = concept[1]
         concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version_id).coding_system.name
-
+        concept_name = Concept.history.get(id=concept_id, history_id=concept_version_id).name
+        
         rows_no = 0
         codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
 
         for cc in codes:
             rows_no += 1
             writer.writerow([
-                cc['code'], cc['description'].encode('ascii', 'ignore').decode('ascii'), concept_coding_system, 'C' +
-                str(concept_id), concept_version_id
-            ] + [
-                Concept.history.get(id=concept_id,
-                                    history_id=concept_version_id).name
-            ] + [
-                current_ph_version.friendly_id, current_ph_version.history_id,
+                cc['code'], 
+                cc['description'].encode('ascii', 'ignore').decode('ascii'), 
+                concept_coding_system, 
+                'C' + str(concept_id), 
+                concept_version_id,
+                concept_name,
+                current_ph_version.friendly_id, 
+                current_ph_version.history_id,
                 current_ph_version.name
             ])
 
         if rows_no == 0:
             writer.writerow([
-                '', '', concept_coding_system, 'C' +
-                str(concept_id), concept_version_id
-            ] + [
-                Concept.history.get(id=concept_id,
-                                    history_id=concept_version_id).name
-            ] + [
-                current_ph_version.friendly_id, current_ph_version.history_id,
+                '', 
+                '', 
+                concept_coding_system, 
+                'C' + str(concept_id), 
+                concept_version_id,
+                concept_name,
+                current_ph_version.friendly_id, 
+                current_ph_version.history_id,
                 current_ph_version.name
             ])
 
