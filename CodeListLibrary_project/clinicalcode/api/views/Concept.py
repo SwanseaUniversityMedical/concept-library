@@ -1000,8 +1000,7 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
         tags, filter_cond = apply_filter_condition(query='tags', selected=tag_ids, conditions=filter_cond)
         collections, filter_cond = apply_filter_condition(query='tags', selected=collection_ids, conditions=filter_cond)
         
-    coding, filter_cond = apply_filter_condition(query='coding_system', selected=coding_ids, conditions=filter_cond)
-    sources, filter_cond = apply_filter_condition(query='coding_system_id', selected=data_sources, conditions=filter_cond)
+    coding, filter_cond = apply_filter_condition(query='coding_system_id', selected=coding_ids, conditions=filter_cond)
     daterange, filter_cond = apply_filter_condition(query='daterange', selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, conditions=filter_cond)
    
 
