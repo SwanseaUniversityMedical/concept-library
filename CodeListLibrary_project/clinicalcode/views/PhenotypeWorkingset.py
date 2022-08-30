@@ -49,6 +49,7 @@ class PhenotypeWorkingsetCreate(LoginRequiredMixin,HasAccessToCreateCheckMixin,C
             form.instance.collections = self.commaSeparate('collections')
             form.instance.data_sources = self.commaSeparate('datasources')
 
+
             self.object = form.save()
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset,self.object.pk,"Created")
             workingset = PhenotypeWorkingset.objects.get(pk=self.object.pk)

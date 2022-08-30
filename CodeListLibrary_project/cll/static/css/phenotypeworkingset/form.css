@@ -77,21 +77,18 @@
     top: 50%;
     transform: translateY(-50%);
     background-color: #fff;
-    color: #9b9191;
+    color: #333;
     padding: 0 0.3rem;
     margin: 0 0.5rem;
     transition: .1s ease-out;
     transform-origin: left top;
     pointer-events: none;
 
-    -webkit-transform: translate(-2px, -54px) scale(1);
-    -moz-transform: translate(2px, -54px) scale(1);
-    -o-transform: translate(2px, -54px) scale(1);
-    -ms-transform: translate(2px, -54px) scale(1);
+
 }
 
 .form-control[disabled], .form-control[readonly], fieldset[disabled] .label-select {
-    position: relative;
+    color: #9b9191;
     z-index: 1;
     background-color: transparent;
 
