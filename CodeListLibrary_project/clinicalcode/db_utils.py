@@ -36,13 +36,15 @@ filter_queries = {
     'tags': 0,
     'clinical_terminologies': 0,
     'data_sources': 0,
-    'phenotype_type': 1,
-    'daterange': 2
+    'coding_system_id': 1,
+    'phenotype_type': 2,
+    'daterange': 3
 }
 
 filter_query_model = {
     'tags': Tag,
     'clinical_terminologies': CodingSystem,
+    'coding_system_id': CodingSystem,
     'data_sources': DataSource
 }
 
@@ -4046,7 +4048,7 @@ def apply_filter_condition(query, selected=None, conditions='', data=None):
     
     qcase = filter_queries[query]
     if qcase == 0:
-        # Tags, Collections, Datasource, Coding system
+        # Tags, Collections, Datasource, Clin. Terms (CodingSystem for Pheno)
         if query not in filter_query_model:
             return None, conditions
 
@@ -4060,6 +4062,20 @@ def apply_filter_condition(query, selected=None, conditions='', data=None):
             conditions += " AND " + query + " && '{" + ','.join(search_list) + "}' "
         return items, conditions
     elif qcase == 1:
+        # CodingSystem
+        if query not in filter_query_model:
+            return None, conditions
+
+        sanitised_list = utils.expect_integer_list(selected)
+        search_list = [str(i) for i in sanitised_list]
+        items = filter_query_model[query].objects.filter(id__in=search_list)
+        search_list = list(items.values_list('id', flat=True))
+        search_list = [str(i) for i in search_list]
+
+        if len(search_list) > 0:
+            conditions += " AND " + query + " in (" + ','.join(search_list) + ") "
+        return items, conditions
+    elif qcase == 2:
         # Phenotype type
         if data is None:
             return [], conditions
@@ -4069,7 +4085,7 @@ def apply_filter_condition(query, selected=None, conditions='', data=None):
         if len(selected_list) > 0:
             conditions += " AND lower(type) IN('" + "', '".join(selected_list) + "') "
         return selected_list, conditions
-    elif qcase == 2:
+    elif qcase == 3:
         # Daterange
         if isinstance(selected['start'][0], datetime.datetime) and isinstance(selected['end'][0], datetime.datetime):
             conditions += " AND (created >= '" + selected['start'][1] + "' AND created <= '" + selected['end'][1] + "') "

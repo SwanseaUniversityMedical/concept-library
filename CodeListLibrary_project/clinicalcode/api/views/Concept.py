@@ -29,6 +29,7 @@ from numpy.distutils.fcompiler import none
 from rest_framework import status, viewsets
 from rest_framework.decorators import (api_view, authentication_classes, permission_classes)
 from rest_framework.response import Response
+from django.utils.timezone import make_aware
 
 from ...db_utils import *
 from ...models import *
@@ -955,6 +956,19 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
     show_live_and_or_published_ver = "3"  #request.query_params.get('show_live_and_or_published_ver', "3")      # 1= live only, 2= published only, 3= live+published
     must_have_published_versions = request.query_params.get('must_have_published_versions', "0")
 
+    coding_ids = request.query_params.get('coding_ids', '')
+    data_sources = request.query_params.get('data_source_ids', '')
+    start_date_range = request.query_params.get('start_date', '')
+    end_date_range = request.query_params.get('end_date', '')
+    
+    start_date_query, end_date_query = False, False
+    try:
+        start_date_query = make_aware(datetime.datetime.strptime(start_date_range, '%Y-%m-%d'))
+        end_date_query = make_aware(datetime.datetime.strptime(end_date_range, '%Y-%m-%d'))
+    except ValueError:
+        start_date_query = False
+        end_date_query = False
+    
     search_tag_list = []
     tags = []
 
@@ -986,6 +1000,9 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
         tags, filter_cond = apply_filter_condition(query='tags', selected=tag_ids, conditions=filter_cond)
         collections, filter_cond = apply_filter_condition(query='tags', selected=collection_ids, conditions=filter_cond)
         
+    coding, filter_cond = apply_filter_condition(query='coding_system_id', selected=coding_ids, conditions=filter_cond)
+    daterange, filter_cond = apply_filter_condition(query='daterange', selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, conditions=filter_cond)
+   
 
     # check if it is the public site or not
     if is_authenticated_user:
