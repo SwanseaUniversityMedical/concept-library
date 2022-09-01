@@ -543,8 +543,7 @@ def history_workingset_codes_to_csv(request, pk, workingset_history_id=None):
 
     current_ws_version = PhenotypeWorkingset.history.get(id=pk, history_id=workingset_history_id)
 
-    # Get the list of phenotypes_concepts_data
-    phenotypes_concepts_data = db_utils.get_concept_data_of_historical_phenotypeWorkingset(pk, workingset_history_id)
+    phenotypes_concepts_data = current_ws_version.phenotypes_concepts_data
 
     my_params = {
         'workingset_id': pk,
@@ -555,25 +554,37 @@ def history_workingset_codes_to_csv(request, pk, workingset_history_id=None):
     response['Content-Disposition'] = ('attachment; filename="workingset_%(workingset_id)s_ver_%(workingset_history_id)s_codes_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
+    
+    
+    attributes_titles = []
+    if phenotypes_concepts_data:
+        attr_sample = phenotypes_concepts_data[0]["Attributes"]
+        attributes_titles = [x["name"] for x in attr_sample]
 
     titles = (    ['code', 'description', 'coding_system']
                 + ['concept_id', 'concept_version_id' , 'concept_name']
                 + ['phenotype_id', 'phenotype_version_id', 'phenotype_name']
                 + ['workingset_id', 'workingset_version_id', 'workingset_name']
+                + attributes_titles
             )
 
     writer.writerow(titles)
 
     for concept in phenotypes_concepts_data:
-        concept_id = concept[0]
-        concept_version_id = concept[1]
+        concept_id = int(concept["concept_id"].replace("C", ""))
+        concept_version_id = concept["concept_version_id"]
         concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version_id).coding_system.name
         concept_name = Concept.history.get(id=concept_id, history_id=concept_version_id).name
               
-        phenotype_id = concept[2]
-        phenotype_version_id = concept[3]
+        phenotype_id = int(concept["phenotype_id"].replace("PH", ""))
+        phenotype_version_id = concept["phenotype_version_id"]
         phenotype_name = Phenotype.history.get(id=phenotype_id, history_id=phenotype_version_id).name
-                                  
+                        
+        attributes_values = []
+        if attributes_titles:
+            attributes_values = [x["value"] for x in concept["Attributes"]]
+            
+               
         rows_no = 0
         codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
 
@@ -586,13 +597,15 @@ def history_workingset_codes_to_csv(request, pk, workingset_history_id=None):
                 , 'C' + str(concept_id)
                 , concept_version_id
                 , concept_name
-                , phenotype_id
+                , 'PH' + str(phenotype_id)
                 , phenotype_version_id
                 , phenotype_name                
                 , current_ws_version.id
                 , current_ws_version.history_id
                 , current_ws_version.name
-                ])
+                ]
+                + attributes_values
+            )
 
         if rows_no == 0:
             writer.writerow([
@@ -602,13 +615,15 @@ def history_workingset_codes_to_csv(request, pk, workingset_history_id=None):
                 , 'C' + str(concept_id)
                 , concept_version_id
                 , concept_name
-                , phenotype_id
+                , 'PH' + str(phenotype_id)
                 , phenotype_version_id
                 , phenotype_name                
                 , current_ws_version.id
                 , current_ws_version.history_id
                 , current_ws_version.name
-            ])
+                ]
+                + attributes_values
+            )
 
     return response
 
