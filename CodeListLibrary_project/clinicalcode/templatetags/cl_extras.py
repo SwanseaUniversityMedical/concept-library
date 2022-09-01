@@ -10,6 +10,13 @@ from clinicalcode.constants import Type_status
 
 register = template.Library()
 
+@register.filter(name='size')
+def size(value):
+    return len(value)
+
+@register.filter(name='title')
+def title(value):
+    return str(value).title()
 
 @register.filter
 def cut(value, arg):

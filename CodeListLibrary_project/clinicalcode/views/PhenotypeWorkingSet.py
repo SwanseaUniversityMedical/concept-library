@@ -286,13 +286,13 @@ def workingset_list(request):
     if request.CURRENT_BRAND != "":
         collections_excluded_from_filters = request.BRAND_OBJECT.collections_excluded_from_filters
             
-    brand_associated_collections = db_utils.get_brand_associated_collections(request, 
+    brand_associated_collections, collections_order = db_utils.get_brand_associated_collections(request, 
                                                                             concept_or_phenotype='phenotype',
                                                                             brand=None,
                                                                             excluded_collections=collections_excluded_from_filters
                                                                             )
-            
-    brand_associated_collections_ids = list(brand_associated_collections.values_list('id', flat=True))
+    
+    brand_associated_collections_ids = [x.id for x in brand_associated_collections]
 
     author = request.session.get('ph_workingset_author')  
     owner = request.session.get('ph_workingset_owner')       

@@ -1,200 +1,366 @@
 {% load static %}
 {% load cl_extras %}
 
-<div class="row">
-	<nav class="col-sm-2 hideleft-navbar" id="FilterMenu"
-	 	 style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;"
-	 >
-		
-		
-	<div class="panel panel-default" style="border: 0px;" >
-		<form id="filter_form" action="{% url 'phenotype_list' %}" method="POST"  >
-			{% csrf_token %}
-			<!-- Collection -->
-			<a data-toggle="collapse" href="#collapse-collection" aria-expanded="true" aria-controls="collapse-collection" style="color: inherit; text-decoration: inherit;">
-				<div class="panel-footer text-left">
-					<strong>Collection</strong>
-					
-					<div class="morphing-filter-targets" id="filter-icon-group">
-						<i class="fa fa-expand"></i>
-						<i class="fa fa-compress"></i>
-					</div>
-				</div>
-			</a>
-						
-			<div class="filter-content collapse in" id="collapse-collection">
-				<div class="panel-body" style="padding: 0;" id="filter_by_collection">
-	
-					<div class="checkbox" >
-						<div style="display:none;" >
-						  <label >
-						    <input type="checkbox" class="filter_option collections" id="checkAll_collections" name="collection_id" value="-1" {% if all_collections_selected  %} checked {% endif %}  > All
-						  </label>
+<div class="row" id="page_extents">
+	<nav class="col-sm-2 hideleft-navbar filter_container" id="FilterMenu">
+		<div class="panel panel-default panel_border" id="filter_panel_group">
+			<h4 class="panel-title filter_header">Filters<i class="help-block-no-break" style="font-size: 10px; display: inline; text-align: right; float: right;" id="result_count">{{ page_obj.paginator.count }} Record(s)</i></h4>
+			
+			<form id="filter_form" action="{% url 'phenotype_list' %}" method="GET" autocomplete="OFF">
+				{% csrf_token %}
+				
+				<!-- Type -->
+				<a data-toggle="collapse" href="#collapse-type" aria-expanded="true" aria-controls="collapse-type" style="color: inherit; text-decoration: inherit;">
+					<div class="panel-footer panel_transparent">
+						<div class="filter_title_content filter_overflow">
+							<span class="filter_reset_btn hide">
+								<i class="fa fa-window-close"></i>
+							</span>
+							<div class="filter_title">
+								Type
+							</div>
+							<span class="fa fa-angle-up morphing_caret" aria-hidden="true"></span>
 						</div>
 					</div>
-				<!-- <hr  style="padding: 0; margin: 0;">  -->
+				</a>
+				
+				<div class="filter-content collapse in" id="collapse-type">
+					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_types">
+						<div class="query_filter">
+							<input type="text" autocomplete="false"  class="form-control" id="type_searchbar" placeholder="Search...">
+						</div>
+						<hr class="hr_filter">
+						<ul class="scrollable_filter_list">
+							<p class="hide" id="filter_no_result" style="text-align: center;">No results found.</p>
+							{% for type in phenotype_types %}
+							<li class="checkbox">
+								<label>
+								<input class="form-check-input filter_option types" type="checkbox" name="type_name" value="{{ type }}" 
+								{% if type in selected_phenotype_types  %} checked {% endif %}>
+								<span class="form-check-label">
+									{{ type|title }}
+								</span>
+								</label>
+							</li>
+							{% endfor %}
+						</ul>
+					</div>
+				</div>
 
-					<!-- collections tags -->
-					{% for tag in brand_associated_collections %}
-						{% if tag.tag_type == 2 %}
-								<div class="checkbox"  {% if not request.CURRENT_BRAND|length %} title="{{ tag.collection_brand }}" {% endif %}>
+				<!-- Collections tags -->
+				{% if brand_associated_collections|size > 0 %}
+				<a data-toggle="collapse" href="#collapse-collection" aria-expanded="true" aria-controls="collapse-collection" style="color: inherit; text-decoration: inherit;">
+					<div class="panel-footer panel_transparent">
+						<div class="filter_title_content filter_overflow">
+							<span class="filter_reset_btn hide">
+								<i class="fa fa-window-close"></i>
+							</span>
+							<div class="filter_title">
+								Collection
+							</div>
+							<span class="fa fa-angle-up morphing_caret closed" aria-hidden="true"></span>
+						</div>
+					</div>
+				</a>
+				
+				<div class="filter-content collapse" id="collapse-collection">
+					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_collection">
+						<div class="query_filter">
+							<input type="text" autocomplete="false"  class="form-control" id="collection_searchbar" placeholder="Search...">
+						</div>
+						<hr class="hr_filter">
+						<ul class="scrollable_filter_list">
+							<p class="hide" id="filter_no_result" style="text-align: center;">No results found.</p>
+						{% for tag in brand_associated_collections %}
+								<li class="checkbox"  {% if not request.CURRENT_BRAND|length %} title="{{ tag.collection_brand }}" {% endif %}>
 									<label>
-									<input class="form-check-input filter_option collections" type="checkbox" name="collection_id" value="{{ tag.id }}"
-									 {% if tag.id in tag_ids_list  %} checked {% endif %}
+									<input class="form-check-input filter_option collection" type="checkbox" name="collection_id" value="{{ tag.id }}" 
+									{% if tag.id in collection_ids_list  %} checked {% endif %}  
 									>
 									<span class="form-check-label">
 										{{ tag.description }}
 									<!--  <span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>	 -->
 									</span>
 									</label>
-								</div>
-						{% endif %}
-					{% endfor %}
-
-				</div> <!-- card-body.// -->
-			</div>
-			
-            <!-- Type -->
-			<a data-toggle="collapse" href="#collapse-type" aria-expanded="true" aria-controls="collapse-type" style="color: inherit; text-decoration: inherit;">
-				<div class="panel-footer text-left">
-					<strong>Type</strong>
-				
-					<div class="morphing-filter-targets" id="filter-icon-group">
-						<i class="fa fa-expand"></i>
-						<i class="fa fa-compress"></i>
-					</div>
-				</div>
-			</a>
-						            
-             <div class="filter-content collapse in" id="collapse-type">
-                <div class="panel-body" style="padding: 0;" id="filter_by_type">
-    
-                    <div class="checkbox">
-                      <label>
-                        <input type="checkbox" class="filter_option types" id="checkAll_types" name="type_name" value="-1" {% if all_types_selected  %} checked {% endif %}  > All
-                      </label>
-                    </div>
-                    <hr  style="padding: 0; margin: 0;">
-                    <!-- types tags -->
-                    {% for type in phenotype_types %}
-	                     <div class="checkbox" >
-	                         <label>
-	                         <input class="form-check-input filter_option types" type="checkbox" name="type_name" value="{{ type }}"
-	                          {% if type in selected_phenotype_types  %} checked {% endif %}
-	                         >
-	                         <span class="form-check-label">
-	                             {{ type }}
-	                         </span>
-	                         </label>
-	                     </div>
-                    {% endfor %}
-
-                </div> <!-- card-body.// -->
-            </div>
-				
-	<!-- 			  <div class="panel-footer">....</div> -->			
-		</form>
-	</div> <!-- card.// -->
-		
-	
-
-	</nav>
-			
-	<div class="col-sm-10" id="result-div">
-		
-<!-- ******************** -->
-
-<div class="page-control-container">
-	{% include 'pagination.html' with form_target=search_form %}	
-	
-</div>
-
-{% block content %}
-	{% for phenotype in page_obj.object_list %}
-			<div class="cl-card {% if phenotype.is_deleted is True %} cl-card-deleted{% endif %} {% cycle ' dark-div ' '' %}   "
-                        {% if phenotype.approval_status == 1 and phenotype.owner_id == request.user.id or request.user|has_group:"Moderators" and phenotype.approval_status == 1 %}title="Waiting for approval"{% endif %}>
-				<div class="row form-group">
-					<div class="col-sm-12">
-						<a class="" href="{% url 'phenotype_history_detail' phenotype.id phenotype.history_id %}">
-						<span style='font-size: 22px;margin-top:0;'>{{ phenotype.friendly_id }} - {{ phenotype.name_highlighted|safe }}</span>
-						</a>				
-					</div>
-				</div>
-				
-				<div class="row form-group">
-					<div class="col-sm-12">
-<!-- 						<span {%if phenotype.author|length > 120 %}title="{{ phenotype.author }}" {% endif %} >{{ phenotype.author|truncatechars:120 }}</span> -->
-						{{ phenotype.author_highlighted|safe }}
-					</div>
-
-				</div>
-				
-				<div class="row form-group">
-					<div class="col-sm-4">
-						<!-- CodingSystems -->
-						{% for cs in all_CodingSystems %}
-							{% for cs_id in phenotype.clinical_terminologies %}
-								{% if cs.id == cs_id %}
-							   		<span class="badge">{{ cs.name }}</span>
-							   	{% endif %}
-							{% endfor %}						
+								</li> 
 						{% endfor %}	
+						</ul>
 					</div>
-					<div class="col-sm-4">
-						<i><strong>{{ phenotype.type }}</i></strong>
-					</div>	
-					<div class="col-sm-4">
+				</div>
+				{% endif %}
+					
+				<!-- Tags -->
+				{% if brand_associated_tags|size > 0 %}
+				<a data-toggle="collapse" href="#collapse-tags" aria-expanded="true" aria-controls="collapse-tags" style="color: inherit; text-decoration: inherit;">
+					<div class="panel-footer panel_transparent">
+						<div class="filter_title_content filter_overflow">
+							<span class="filter_reset_btn hide">
+								<i class="fa fa-window-close"></i>
+							</span>
+							<div class="filter_title">
+								Tags
+							</div>
+							<span class="fa fa-angle-up morphing_caret closed" aria-hidden="true"></span>
+						</div>
+					</div>
+				</a>
+				
+				<div class="filter-content collapse" id="collapse-tags">
+					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_tags">
+						<div class="query_filter">
+							<input type="text" autocomplete="false"  class="form-control" id="tag_searchbar" placeholder="Search...">
+						</div>
+						<hr class="hr_filter">
+						<ul class="scrollable_filter_list">
+							<p class="hide" id="filter_no_result" style="text-align: center;">No results found.</p>
+						{% for tag, tagid in brand_associated_tags.items %}
+							<li class="checkbox">
+								<label>
+								<input class="form-check-input filter_option tags" type="checkbox" name="tag_id" value="{{ tagid }}" 
+								{% if tagid in tag_ids_list  %} checked {% endif %}>
+								<span class="form-check-label">
+									{{ tag }}
+								</span>
+								</label>
+							</li> 
+						{% endfor %}	
+						</ul>
+					</div>
+				</div>
+				{% endif %}
+
+				<!-- Coding system -->
+				<a data-toggle="collapse" href="#collapse-coding" aria-expanded="true" aria-controls="collapse-type" style="color: inherit; text-decoration: inherit;">
+					<div class="panel-footer text-left panel_transparent">
+						<div class="filter_title_content filter_overflow">
+							<span class="filter_reset_btn hide">
+								<i class="fa fa-window-close"></i>
+							</span>
+							<div class="filter_title">
+								Coding System
+							</div>
+							<span class="fa fa-angle-up morphing_caret closed" aria-hidden="true"></span>
+						</div>
+					</div>
+				</a>
+				<div class="filter-content collapse" id="collapse-coding">
+					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_coding">
+						<div class="query_filter">
+							<input type="text" autocomplete="false"  class="form-control" id="coding_searchbar" placeholder="Search...">
+						</div>
+						<hr class="hr_filter">
+						<ul class="scrollable_filter_list">
+							<p class="hide" id="filter_no_result" style="text-align: center;">No results found.</p>
+							<!-- types tags -->
+							{% for coding in coding_system_reference %}
+									<li class="checkbox" >
+											<label>
+											<input class="form-check-input filter_option coding" type="checkbox" name="coding_id" value="{{ coding.id }}"
+											{% if coding.id in coding_id_list  %} checked {% endif %}  
+											>
+											<span class="form-check-label">
+													{{ coding.description }}
+											</span>
+											</label>
+									</li>
+							{% endfor %}
+						</ul>
+					</div>
+				</div>
+
+				<!-- Data sources -->
+				<a data-toggle="collapse" href="#collapse-datasources" aria-expanded="true" aria-controls="collapse-datasources" style="color: inherit; text-decoration: inherit;">
+					<div class="panel-footer panel_transparent">
+						<div class="filter_title_content filter_overflow">
+							<span class="filter_reset_btn hide">
+								<i class="fa fa-window-close"></i>
+							</span>
+							<div class="filter_title">
+								Data Source
+							</div>
+							<span class="fa fa-angle-up morphing_caret closed" aria-hidden="true"></span>
+						</div>
+					</div>
+				</a>
+				
+				<div class="filter-content collapse" id="collapse-datasources">
+					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_datasources">
+						<div class="query_filter">
+							<input type="text" autocomplete="false"  class="form-control" id="datasources_searchbar" placeholder="Search...">
+						</div>
+						<hr class="hr_filter">
+						<ul class="scrollable_filter_list">
+							<p class="hide" id="filter_no_result" style="text-align: center;">No results found.</p>
+						{% for tag in data_sources_reference %}
+								<li class="checkbox">
+									<label>
+									<input class="form-check-input filter_option datasources" type="checkbox" name="source_id" value="{{ tag.id }}" 
+									{% if tag.id in data_source_list  %} checked {% endif %}  
+									>
+									<span class="form-check-label">
+										{{ tag.name }}
+									</span>
+									</label>
+								</li> 
+						{% endfor %}	
+						</ul>
+					</div>
+				</div>
+
+				<!-- Date tags -->
+				<a data-toggle="collapse" href="#collapse-date" aria-expanded="true" aria-controls="collapse-date" style="color: inherit; text-decoration: inherit;">
+					<div class="panel-footer panel_transparent">
+						<div class="filter_title_content filter_overflow">
+							<span class="filter_reset_btn hide">
+								<i class="fa fa-window-close"></i>
+							</span>
+							<div class="filter_title">
+								Date
+							</div>
+							<span class="fa fa-angle-up morphing_caret closed" aria-hidden="true"></span>
+						</div>
+					</div>
+				</a>
+				<div class="filter-content collapse" id="collapse-date">
+					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_date">
+						<div id="filter_date" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; border-radius: 5px; width: 100%; text-decoration: inherit !important;">
+							<i class="fa fa-calendar"></i>&nbsp;
+							<span></span>
+							<i class="fa fa-caret-down" style="display: inline; float: right; margin-top: 2px;"></i>
+						</div>
+					</div>
+				</div>
+
+				<!-- Authorship tags -->
+				<a data-toggle="collapse" href="#collapse-authorship" aria-expanded="true" aria-controls="collapse-authorship" style="color: inherit; text-decoration: inherit;">
+					<div class="panel-footer panel_transparent">
+						<div class="filter_title_content filter_overflow">
+							<span class="filter_reset_btn hide">
+								<i class="fa fa-window-close"></i>
+							</span>
+							<div class="filter_title">
+								Authorship
+							</div>
+							<span class="fa fa-angle-up morphing_caret closed" aria-hidden="true"></span>
+						</div>
+					</div>
+				</a>
+				
+				<div class="filter-content collapse" id="collapse-authorship">
+					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_authorship">
+						<label for="author" style="font-weight: normal;">Authored by: <i class="help-block-no-break" style="font-size: 10px;">(free text)</i></label>
+						<input class="form-control" type="text" name="author" id="author_text" value="{{ author|default_if_none:'' }}">
+					
 						{% if user.is_authenticated %}
-							<i>{{ phenotype.modified|date:"Y-m-d" }}</i>
-						{% else %}	
-							<i>{{ phenotype.publish_date|date:"Y-m-d" }}</i>
+							<label for="owner" style="font-weight: normal;">Owned by: <i class="help-block-no-break" style="font-size: 10px;">(full user name)</i></label>
+							<input class="form-control" type="text" name="owner" id="owner_text" value="{{ owner|default_if_none:'' }}">
 						{% endif %}
 					</div>
-
-<!-- 					<div class="col-sm-2 text-right">
-						{% if user.is_authenticated and phenotype.is_published == 1 %}
-							<span title="{{ phenotype.published }} on {{ phenotype.publish_date|date:"Y-m-d" }}" style="text-align: right;" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
-						{% endif %}	
-					</div>	 -->
 				</div>
 				
-			{% if phenotype.tags %}
-				<div class="row form-group">
-					<div class="col-sm-12">
-						<!-- tags -->
-						{% for tag in allTags %}
-							{% for tag_id in phenotype.tags %}
-								{% if tag.id == tag_id %}
-							   		<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
-							   	{% endif %}
-							{% endfor %}						
-						{% endfor %}			
-										
-					</div>	
-				</div>						
-			{% endif %}								
-					
+				<!-- Publication -->
+				{% if user.is_authenticated %}
+				<a data-toggle="collapse" href="#collapse-publication" aria-expanded="true" aria-controls="collapse-publication" style="color: inherit; text-decoration: inherit;">
+					<div class="panel-footer panel_transparent">
+						<div class="filter_title_content filter_overflow">
+							<span class="filter_reset_btn hide">
+								<i class="fa fa-window-close"></i>
+							</span>
+							<div class="filter_title">
+								Publication
+							</div>
+							<span class="fa fa-angle-up morphing_caret closed" aria-hidden="true"></span>
+						</div>
+					</div>
+				</a>
 				
-	</div>				  
-	<br> 
-	{% empty %}
-		<div class="row form-group">
-			<div class="col-sm-12 text-center bg-warning">
-				No phenotypes
-			</div>	
-		</div>				
-			
-	{% endfor %}
-{% endblock %}
+				<div class="filter-content collapse" id="collapse-publication">
+					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_publication">
+						{% if request.user|has_group:"Moderators" %}
+						<div class="checkbox">
+							<label>
+								<input class="form-checkbox" id="show_mod_pending_phenotypes" type="checkbox" {% if show_mod_pending_phenotypes == "1" %} checked="checked" {% endif %} value="1" >
+								Phenotypes awaiting approval
+							</label>
+						</div>
+						<div class="checkbox">
+							<label>
+								<input class="form-checkbox" id="show_rejected_phenotypes" type="checkbox" {% if show_rejected_phenotypes == "1" %} checked="checked" {% endif %} value="1" >
+								Show rejected phenotypes
+							</label>
+						</div>
+						{% else %}
+						<div class="checkbox">
+							<label>
+								<input class="form-checkbox" id="show_my_pending_phenotypes" type="checkbox" {% if show_my_pending_phenotypes == "1" %} checked="checked" {% endif %} value="1" >
+								Show my pending phenotypes
+							</label>
+						</div>			
+						{% endif %}
+					</div>
+				</div>
+				{% endif %}
+				
+				<!-- Display -->
+				{% if user.is_authenticated %}
+				<a data-toggle="collapse" href="#collapse-display" aria-expanded="true" aria-controls="collapse-display" style="color: inherit; text-decoration: inherit;">
+					<div class="panel-footer panel_transparent">
+						<div class="filter_title_content filter_overflow">
+							<span class="filter_reset_btn hide">
+								<i class="fa fa-window-close"></i>
+							</span>
+							<div class="filter_title">
+								Display
+							</div>
+							<span class="fa fa-angle-up morphing_caret closed" aria-hidden="true"></span>
+						</div>
+					</div>
+				</a>
+				
+				<div class="filter-content collapse" id="collapse-display">
+					<div class="panel-body filter_checkbox" style="padding: 0;" id="filter_by_display">
+						<div class="checkbox">
+							<label>
+								<input class="form-checkbox" id="show_deleted_phenotypes" type="checkbox" {% if show_deleted_phenotypes == "1" %} checked="checked" {% endif %} value="1" >
+								Deleted phenotypes
+							</label>
+						</div>
+					
+						<div class="checkbox">
+							<label>
+								<input class="form-checkbox" id="show_my_phenotypes" type="checkbox" {% if show_my_phenotypes == "1" %} checked="checked" {% endif %} value="1" >
+								Only phenotypes I own
+							</label>
+						</div>			
+					
+						<div class="checkbox">
+							<label>
+								<input class="form-checkbox" id="phenotype_must_have_published_versions" type="checkbox" {% if phenotype_must_have_published_versions == "1" %} checked="checked" {% endif %} value="1" >
+								Only published phenotypes
+							</label>
+						</div>	
+					</div>
+				</div>
+				{% endif %}
+			</form>
+
+			<ul class="filter_buttons">
+				<li><a type="button" class="btn btn-primary" id="refresh_filters">Refresh</a></li>
+				<li><a type="button" class="btn btn-outline-primary btn-cl btn-cl-secondary" id="clear_filters">Clear</a></li>
+			</ul>
+		</div> <!-- panel.// -->
+	</nav>
+	
+	<!-- Loading icon on result timeout -->
+	<div id='loading_res_spinner' class='col-sm-10 text-center hidden' style='min-height: 25%; display: flex; justify-content: center; flex-direction: column; vertical-align: middle;'>
+		<p>Loading</p>
+		<i class="fa fa-spinner fa-spin fa-2x"/></i>
+	</div>
 
 
-<div class="page-control-container">
-	{% include 'pagination.html' with form_target=search_form %}	
-</div>
-
-
-<!-- ******************** -->
-
+	<!-- Phenotype results -->
+	<div class="col-sm-10" id="result-div">
+		{% include './phenotype_results.html' %}
 	</div>
 </div>
 
