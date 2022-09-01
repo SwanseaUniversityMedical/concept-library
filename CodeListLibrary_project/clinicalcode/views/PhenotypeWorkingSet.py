@@ -502,8 +502,115 @@ def history_workingset_codes_to_csv(request, pk, workingset_history_id=None):
     '''
         Return a csv file of codes for a working set for a specific historical version.
     '''
-    pass
-    # look at phenotype equivalent
+
+    if workingset_history_id is None:
+        # get the latest version
+        workingset_history_id = PhenotypeWorkingset.objects.get(pk=pk).history.latest().history_id
+        
+    # validate access for login and public site
+    validate_access_to_view(request,
+                            PhenotypeWorkingset,
+                            pk,
+                            set_history_id=workingset_history_id)
+
+    is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
+
+    # ----------------------------------------------------------------------
+
+    # exclude(is_deleted=True)
+    if PhenotypeWorkingset.objects.filter(id=pk).count() == 0:
+        return HttpResponseNotFound("Not found.")
+        # raise permission_denied # although 404 is more relevant
+
+    # exclude(is_deleted=True)
+    if PhenotypeWorkingset.history.filter(id=pk, history_id=workingset_history_id).count() == 0:
+        return HttpResponseNotFound("Not found.")
+        # raise permission_denied # although 404 is more relevant
+
+    # here, check live version
+    current_ws = PhenotypeWorkingset.objects.get(pk=pk)
+
+    if not is_published:
+        children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(request, 
+                                                                                                      PhenotypeWorkingset, 
+                                                                                                      pk, 
+                                                                                                      set_history_id=workingset_history_id)
+        if not children_permitted_and_not_deleted:
+            raise PermissionDenied
+
+    if current_ws.is_deleted == True:
+        raise PermissionDenied
+
+    current_ws_version = PhenotypeWorkingset.history.get(id=pk, history_id=workingset_history_id)
+
+    # Get the list of phenotypes_concepts_data
+    phenotypes_concepts_data = db_utils.get_concept_data_of_historical_phenotypeWorkingset(pk, workingset_history_id)
+
+    my_params = {
+        'workingset_id': pk,
+        'workingset_history_id': workingset_history_id,
+        'creation_date': time.strftime("%Y%m%dT%H%M%S")
+    }
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = ('attachment; filename="workingset_%(workingset_id)s_ver_%(workingset_history_id)s_codes_%(creation_date)s.csv"' % my_params)
+
+    writer = csv.writer(response)
+
+    titles = (    ['code', 'description', 'coding_system']
+                + ['concept_id', 'concept_version_id' , 'concept_name']
+                + ['phenotype_id', 'phenotype_version_id', 'phenotype_name']
+                + ['workingset_id', 'workingset_version_id', 'workingset_name']
+            )
+
+    writer.writerow(titles)
+
+    for concept in phenotypes_concepts_data:
+        concept_id = concept[0]
+        concept_version_id = concept[1]
+        concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version_id).coding_system.name
+        concept_name = Concept.history.get(id=concept_id, history_id=concept_version_id).name
+              
+        phenotype_id = concept[2]
+        phenotype_version_id = concept[3]
+        phenotype_name = Phenotype.history.get(id=phenotype_id, history_id=phenotype_version_id).name
+                                  
+        rows_no = 0
+        codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
+
+        for cc in codes:
+            rows_no += 1
+            writer.writerow([
+                  cc['code']
+                , cc['description'].encode('ascii', 'ignore').decode('ascii')
+                , concept_coding_system
+                , 'C' + str(concept_id)
+                , concept_version_id
+                , concept_name
+                , phenotype_id
+                , phenotype_version_id
+                , phenotype_name                
+                , current_ws_version.id
+                , current_ws_version.history_id
+                , current_ws_version.name
+                ])
+
+        if rows_no == 0:
+            writer.writerow([
+                  '' 
+                , '' 
+                , concept_coding_system 
+                , 'C' + str(concept_id)
+                , concept_version_id
+                , concept_name
+                , phenotype_id
+                , phenotype_version_id
+                , phenotype_name                
+                , current_ws_version.id
+                , current_ws_version.history_id
+                , current_ws_version.name
+            ])
+
+    return response
 
 
 

@@ -2280,13 +2280,12 @@ def chk_deleted_children(request,
         if WS_concepts_json.strip() != "":
             concepts = getConceptsFromJSON(concepts_json=WS_concepts_json)
         else:
-            concepts = getGroupOfConceptsByWorkingsetId_historical(
-                set_id, set_history_id)
+            concepts = getGroupOfConceptsByWorkingsetId_historical(set_id, set_history_id)
 
         unique_concepts = set()
         for concept in concepts:
             unique_concepts.add(int(concept))
-        pass
+        
     elif set_class == Phenotype:
         permitted = allowed_to_view(request, Phenotype, set_id)
         if (not permitted):
@@ -2294,16 +2293,30 @@ def chk_deleted_children(request,
             # Need to parse the concept_informations section of the database and use
             # the concepts here to form a list of concept_ref_ids.
         if WS_concepts_json.strip() != "":
-            concepts = [x['concept_id'] for x in json.loads(WS_concepts_json)
-                        ]  #getConceptsFromJSON(concepts_json=WS_concepts_json)
+            concepts = [x['concept_id'] for x in json.loads(WS_concepts_json)]
         else:
-            concepts = getGroupOfConceptsByPhenotypeId_historical(
-                set_id, set_history_id)
+            concepts = getGroupOfConceptsByPhenotypeId_historical(set_id, set_history_id)
 
         unique_concepts = set()
         for concept in concepts:
             unique_concepts.add(concept[0])
-        pass
+        
+    elif set_class == PhenotypeWorkingset:
+        permitted = allowed_to_view(request, PhenotypeWorkingset, set_id)
+        if (not permitted):
+            errors[set_id] = 'working set not permitted.'
+
+        if WS_concepts_json:
+            concepts = [(int(x['concept_id'].replace('C', '')), x['concept_version_id'], int(x['phenotype_id'].replace('PH', '')), x['phenotype_version_id']) for x in WS_concepts_json]  
+        else:
+            concepts = get_concept_data_of_historical_phenotypeWorkingset(set_id, set_history_id)
+
+        unique_concepts = set()
+        for concept in concepts:
+            # add all data
+            unique_concepts.add(concept)
+        
+                
     elif (set_class == Concept):
         permitted = allowed_to_view(request,
                                     Concept,
@@ -2313,8 +2326,7 @@ def chk_deleted_children(request,
             errors[set_id] = 'Concept not permitted.'
 
         # Now, with no sync propagation, we check only one level for permissions
-        concepts = get_history_child_concept_components(
-            set_id, concept_history_id=set_history_id)
+        concepts = get_history_child_concept_components(set_id, concept_history_id=set_history_id)
         unique_concepts = set()
         for concept in concepts:
             unique_concepts.add(concept['concept_ref_id'])
@@ -2340,12 +2352,17 @@ def chk_deleted_children(request,
     AllnotDeleted = True
     for concept in unique_concepts:
         isDeleted = False
-
-        isDeleted = (Concept.objects.filter(
-            Q(id=concept)).exclude(is_deleted=True).count() == 0)
-        if (isDeleted):
-            errors[concept] = 'Child concept deleted.'
-            AllnotDeleted = False
+        
+        if set_class == PhenotypeWorkingset:
+            isDeleted = (Phenotype.objects.filter(Q(id=concept[2])).exclude(is_deleted=True).count() == 0)
+            if (isDeleted):
+                errors[concept[2]] = 'Child phenotype deleted.'
+                AllnotDeleted = False
+        else:
+            isDeleted = (Concept.objects.filter(Q(id=concept)).exclude(is_deleted=True).count() == 0)   
+            if (isDeleted):
+                errors[concept] = 'Child concept deleted.'
+                AllnotDeleted = False
 
     if returnErrors:
         return AllnotDeleted, errors
@@ -3579,7 +3596,8 @@ def getPhenotypeConceptJson(concept_ids_list):
                                 "concept_version_id": concept_history_ids[concept_id],
                                 "attributes": []
                             })
-    return json.dumps(concept_json)
+    return concept_json
+    #return json.dumps(concept_json)
 
 
 def getPhenotypeConceptHistoryIDs(concept_ids_list):
@@ -4667,5 +4685,29 @@ def get_visible_live_or_published_phenotype_workingset_versions(request,
         col_names = [col[0] for col in cursor.description]
 
         return [dict(list(zip(col_names, row))) for row in cursor.fetchall()]
+
+
+
+def get_concept_data_of_historical_phenotypeWorkingset(pk, history_id=None):
+    '''
+        get concept informations of the specified phenotype working set
+        - from a specific version (or live version if history_id is None) 
+
+    '''
+    if history_id is None:
+        history_id = PhenotypeWorkingset.objects.get(pk=pk).history.latest('history_id').history_id
+
+    concept_id_version = []
+    phenotypes_concepts_data = PhenotypeWorkingset.history.get(id=pk, history_id=history_id).phenotypes_concepts_data
+    if phenotypes_concepts_data:
+        for c in phenotypes_concepts_data:
+            concept_id_version.append(
+                (int(c['concept_id'].replace('C', '')), c['concept_version_id'], 
+                 int(c['phenotype_id'].replace('PH', '')), c['phenotype_version_id'])
+                )
+
+    return concept_id_version
+
+
 
     
