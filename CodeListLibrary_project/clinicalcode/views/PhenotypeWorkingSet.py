@@ -543,7 +543,6 @@ def history_workingset_codes_to_csv(request, pk, workingset_history_id=None):
 
     current_ws_version = PhenotypeWorkingset.history.get(id=pk, history_id=workingset_history_id)
 
-    # Get the list of phenotypes_concepts_ids
     phenotypes_concepts_data = current_ws_version.phenotypes_concepts_data
 
     my_params = {
@@ -598,7 +597,7 @@ def history_workingset_codes_to_csv(request, pk, workingset_history_id=None):
                 , 'C' + str(concept_id)
                 , concept_version_id
                 , concept_name
-                , phenotype_id
+                , 'PH' + str(phenotype_id)
                 , phenotype_version_id
                 , phenotype_name                
                 , current_ws_version.id
@@ -616,7 +615,7 @@ def history_workingset_codes_to_csv(request, pk, workingset_history_id=None):
                 , 'C' + str(concept_id)
                 , concept_version_id
                 , concept_name
-                , phenotype_id
+                , 'PH' + str(phenotype_id)
                 , phenotype_version_id
                 , phenotype_name                
                 , current_ws_version.id
