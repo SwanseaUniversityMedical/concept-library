@@ -560,7 +560,12 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
     
     coding, filter_cond = apply_filter_condition(query='clinical_terminologies', selected=coding_ids, conditions=filter_cond)
     sources, filter_cond = apply_filter_condition(query='data_sources', selected=data_sources, conditions=filter_cond)
-    daterange, filter_cond = apply_filter_condition(query='daterange', selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, conditions=filter_cond)
+    
+    daterange, date_range_cond = apply_filter_condition(query='daterange', 
+                                                    selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]},
+                                                    conditions='',
+                                                    is_authenticated_user=is_authenticated_user)
+    
     selected_phenotype_types_list, filter_cond = apply_filter_condition(query='phenotype_type', selected=selected_phenotype_types, conditions=filter_cond, data=phenotype_types_list)
    
     
@@ -632,7 +637,8 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
                                                             filter_cond=filter_cond,
                                                             show_top_version_only=show_top_version_only,
                                                             force_brand=force_brand,
-                                                            search_name_only = False
+                                                            search_name_only = False,
+                                                            date_range_cond = date_range_cond
                                                             )
 
     rows_to_return = []

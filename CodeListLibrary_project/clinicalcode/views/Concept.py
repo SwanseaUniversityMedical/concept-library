@@ -784,7 +784,12 @@ def concept_list(request):
 
     tags, filter_cond = db_utils.apply_filter_condition(query='tags', selected=tag_ids, conditions=filter_cond)
     coding, filter_cond = db_utils.apply_filter_condition(query='coding_system_id', selected=coding_ids, conditions=filter_cond)
-    daterange, filter_cond = db_utils.apply_filter_condition(query='daterange', selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, conditions=filter_cond)
+    
+    is_authenticated_user = request.user.is_authenticated
+    daterange, date_range_cond = db_utils.apply_filter_condition(query='daterange', 
+                                                             selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, 
+                                                             conditions='',
+                                                             is_authenticated_user = is_authenticated_user)
     
     # check if it is the public site or not
     if request.user.is_authenticated:
@@ -845,7 +850,8 @@ def concept_list(request):
                                                                             show_top_version_only=show_top_version_only,
                                                                             search_name_only = False,
                                                                             highlight_result = True,
-                                                                            order_by=order_param
+                                                                            order_by = order_param,
+                                                                            date_range_cond = date_range_cond
                                                                             )
 
     # create pagination

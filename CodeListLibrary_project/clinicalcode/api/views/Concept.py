@@ -1001,7 +1001,11 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
         collections, filter_cond = apply_filter_condition(query='tags', selected=collection_ids, conditions=filter_cond)
         
     coding, filter_cond = apply_filter_condition(query='coding_system_id', selected=coding_ids, conditions=filter_cond)
-    daterange, filter_cond = apply_filter_condition(query='daterange', selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, conditions=filter_cond)
+    
+    daterange, date_range_cond = apply_filter_condition(query='daterange', 
+                                                    selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, 
+                                                    conditions='',
+                                                    is_authenticated_use =is_authenticated_user)
    
 
     # check if it is the public site or not
@@ -1071,7 +1075,8 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
                                             filter_cond=filter_cond,
                                             show_top_version_only=show_top_version_only,
                                             force_brand=force_brand,
-                                            search_name_only = False)
+                                            search_name_only = False,
+                                            date_range_cond = date_range_cond)
 
     rows_to_return = []
     titles = [

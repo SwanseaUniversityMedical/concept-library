@@ -2914,8 +2914,10 @@ def get_visible_live_or_published_concept_versions(request,
                                                     search_name_only = True,
                                                     highlight_result = False,
                                                     do_not_use_FTS = False,
-                                                    order_by=None
+                                                    order_by = None,
+                                                    date_range_cond = ""
                                                 ):
+
     ''' Get all visible live or published concept versions 
     - return all columns
     '''
@@ -3068,6 +3070,8 @@ def get_visible_live_or_published_concept_versions(request,
     where_clause_3 = ""
     if show_top_version_only:
         where_clause_3 = " WHERE rn_res = 1 "
+    if date_range_cond.strip() != "":
+        where_clause_3 += date_range_cond
 
     # --- when in a brand, show only this brand's data
     brand_filter_cond = " "
@@ -3182,7 +3186,8 @@ def get_visible_live_or_published_phenotype_versions(request,
                                                     search_name_only = True,
                                                     highlight_result = False,
                                                     do_not_use_FTS = False,
-                                                    order_by=None                                           
+                                                    order_by = None,
+                                                    date_range_cond = ""                                           
                                                     ):
     ''' Get all visible live or published phenotype versions 
     - return all columns
@@ -3336,6 +3341,8 @@ def get_visible_live_or_published_phenotype_versions(request,
     where_clause_3 = " WHERE 1=1 "
     if show_top_version_only:
         where_clause_3 += " AND rn_res = 1 "
+    if date_range_cond.strip() != "":
+        where_clause_3 += date_range_cond
 
 
     # --- where clause (publish approval)  ---
@@ -4042,7 +4049,7 @@ def getConceptCodes_withAttributes_HISTORICAL(concept_id, concept_history_date,
 #---------------------------------------------------------------------------
 
 #-------------------- Data sources reference data ------------------------#
-def apply_filter_condition(query, selected=None, conditions='', data=None):
+def apply_filter_condition(query, selected=None, conditions='', data=None, is_authenticated_user=True):
     if query not in filter_queries:
         return None, conditions
     
@@ -4088,7 +4095,12 @@ def apply_filter_condition(query, selected=None, conditions='', data=None):
     elif qcase == 3:
         # Daterange
         if isinstance(selected['start'][0], datetime.datetime) and isinstance(selected['end'][0], datetime.datetime):
-            conditions += " AND (created >= '" + selected['start'][1] + "' AND created <= '" + selected['end'][1] + "') "
+            if is_authenticated_user:
+                date_field = "modified"
+            else:  
+                date_field = "publish_date"
+
+            conditions += " AND (" + date_field + " >= '" + selected['start'][1] + "' AND " + date_field + " <= '" + selected['end'][1] + "') "
         return selected, conditions
     
     return None, conditions

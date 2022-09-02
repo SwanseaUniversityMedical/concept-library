@@ -163,7 +163,12 @@ def phenotype_list(request):
     coding, filter_cond = db_utils.apply_filter_condition(query='clinical_terminologies', selected=coding_ids, conditions=filter_cond)
     sources, filter_cond = db_utils.apply_filter_condition(query='data_sources', selected=data_sources, conditions=filter_cond)
     selected_phenotype_types_list, filter_cond = db_utils.apply_filter_condition(query='phenotype_type', selected=selected_phenotype_types, conditions=filter_cond, data=phenotype_types_list)
-    daterange, filter_cond = db_utils.apply_filter_condition(query='daterange', selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, conditions=filter_cond)
+    
+    is_authenticated_user = request.user.is_authenticated
+    daterange, date_range_cond = db_utils.apply_filter_condition(query='daterange', 
+                                                             selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, 
+                                                             conditions='',
+                                                             is_authenticated_user=is_authenticated_user)
     
     # check if it is the public site or not
     if request.user.is_authenticated:
@@ -236,7 +241,8 @@ def phenotype_list(request):
                                                                             show_top_version_only=show_top_version_only,
                                                                             search_name_only = False,
                                                                             highlight_result = True,
-                                                                            order_by=order_param
+                                                                            order_by = order_param,
+                                                                            date_range_cond = date_range_cond
                                                                             )
     # create pagination
     paginator = Paginator(phenotype_srch,
