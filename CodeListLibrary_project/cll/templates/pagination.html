@@ -1,10 +1,37 @@
 				
 <div class="row">
-	<div class="col col-xs-4" style="line-height: 34px;">
-		 	Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} |  {{ page_obj.paginator.count }} Record(s)
+	{% if is_header %}
+	<!-- Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} |  {{ page_obj.paginator.count }} Record(s) -->
+	<div class="col col-xs-6" style="line-height: 34px">
+		<span style="color: inherit; text-decoration: inherit; display: inline;">Order By: </span>
+		<div class="dropdown" style="display: inline; margin-right: 10px">
+			<button style="background: none;" class="btn btn-default dropdown-toggle filter_overflow" type="button" id="filter_order_option" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+				<span style="text-align: left; padding-right: 10px">{{ ordered_by }}</span>
+				<i class="fa fa-caret-down order_filter_caret" style="display: inline; float: right; top: 25%;"></i>
+			</button>
+			<ul class="dropdown-menu order_filter" aria-labelledby="dropdownMenu1">
+				<li><a href="#">Relevance</a></li>
+				<li><a href="#">Created (Desc)</a></li>
+				<li><a href="#">Created (Asc)</a></li>
+				<li><a href="#">Last Updated (Desc)</a></li>
+				<li><a href="#">Last Updated (Asc)</a></li>
+			</ul>
+		</div>
+		<span style="color: inherit; text-decoration: inherit;">Results Per Page: </span>
+		<div class="dropdown" style="display: inline;">
+			<button style="background: none;" class="btn btn-default dropdown-toggle filter_overflow" type="button" id="filter_number_option" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+				<span style="text-align: left; padding-right: 10px">{{ page_size }}</span>
+				<i class="fa fa-caret-down order_filter_caret"></i>
+			</button>
+			<ul class="dropdown-menu number_filter" aria-labelledby="dropdownMenu2">
+				<li><a href="#">20</a></li>
+				<li><a href="#">50</a></li>
+				<li><a href="#">100</a></li>
+			</ul>
+		</div>
 	</div>
-	<div class="col col-xs-8 text-right">
-		<div class="btn-group" role="group" aria-label="...">
+	<div class="col col-xs-6 text-right">
+		<div class="btn-group pagination_panel" role="group" aria-label="...">
 			<button 
 				class="btn btn-default btn-paginate"
 				aria-label="previous"
@@ -66,4 +93,75 @@
 			</button>
 		</div>
 	</div>
+	{% else %}
+	<div class="col col-xs-4" style="line-height: 34px;">
+		Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} |  <span id="paginator_count">{{ page_obj.paginator.count }}</span> Record(s)
+	</div>
+	<div class="col col-xs-8 text-right">
+		<div class="btn-group pagination_panel" role="group" aria-label="...">
+			<button 
+				class="btn btn-default btn-paginate"
+				aria-label="previous"
+				form="{{ form_target }}"				
+				{% if page_obj.has_previous %}
+					name="page"
+					value="{{ page_obj.previous_page_number }}"
+					type="submit"
+				{% else %}
+					disabled="disabled"
+				{% endif %}>
+				<span aria-hidden="true">&laquo;</span>
+			</button>
+		
+			{% if p_btns|length %}
+				{% for page_number in p_btns %}
+						<button
+							class="btn btn-default btn-paginate {% if page_number == page_obj.number %}active{% endif %}"
+							name="page"
+							value="{{ page_number }}"
+							type="submit"
+							form="{{ form_target }}"					
+							{% if page_number == page_obj.number or page_number == '...'  %}
+								disabled="disabled"
+							{% endif %}>
+							{{ page_number }}
+						</button>
+				{% endfor %}
+			{% else %}			
+				{% for page_number in page_obj.paginator.page_range %}
+						<button
+							class="btn btn-default btn-paginate {% if page_number == page_obj.number %}active{% endif %}"
+								name="page"
+								value="{{ page_number }}"
+								type="submit"
+								form="{{ form_target }}"					
+							
+							{% if page_number == page_obj.number %}
+								disabled="disabled"
+							{% endif %}>
+							{{ page_number }}
+						</button>
+				{% endfor %}
+			{% endif %}
+				
+			
+			<button
+				class="btn btn-default btn-paginate"
+				aria-label="next"
+				form="{{ form_target }}"				
+				{% if page_obj.has_next %}
+					name="page"
+					value="{{ page_obj.next_page_number }}"
+					type="submit"
+				{% else %}
+					disabled="disabled"
+				{% endif %}>
+				<span aria-hidden="true">&raquo;</span>
+			</button>
+		</div>
+		<br/>
+		<br/>
+		<a id="scroll_up">Scroll To Top</a>
+	</div>
+	{% endif %}
 </div>
