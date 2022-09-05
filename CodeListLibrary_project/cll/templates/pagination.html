@@ -13,8 +13,13 @@
 				<li><a href="#">Relevance</a></li>
 				<li><a href="#">Created (Desc)</a></li>
 				<li><a href="#">Created (Asc)</a></li>
+				{% if request.user.is_authenticated %}
 				<li><a href="#">Last Updated (Desc)</a></li>
 				<li><a href="#">Last Updated (Asc)</a></li>
+				{% else %}
+				<li><a href="#">Published Date (Desc)</a></li>
+				<li><a href="#">Published Date (Asc)</a></li>
+				{% endif %}
 			</ul>
 		</div>
 		<span style="color: inherit; text-decoration: inherit;">Results Per Page: </span>
