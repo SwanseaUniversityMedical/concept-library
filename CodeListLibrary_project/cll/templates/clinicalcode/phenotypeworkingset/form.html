@@ -104,7 +104,7 @@
                         <div class="col-sm-11" id="concept-tag-form-container">
 
                             <div class="material-textfield">
-                                <input class="input-material col-sm-12 form-control" type="text" placeholder=" ">
+                                <input class="input-material col-sm-12 form-control" type="text"  id="txtTags" name="tagids" data-role="tagsinput">
                                 <label class="label-material" for="txtTags">Tags</label>
 
                             </div>
@@ -122,7 +122,7 @@
                         <div class="col-sm-12">
                             <div class="material-textfield">
                                 <input class="input-material col-sm-12 form-control" type="text" name="datasources"
-                                       id="datasources" placeholder=" "
+                                       id="datasources"
                                        value="{{ form.instance.data_sources|default_if_none:'' }}">
                                 <label class="label-material">Data Sources</label>
 
@@ -138,7 +138,7 @@
                             <div class="material-textfield">
 
                                 <input class="input-material col-sm-12 form-control" type="text" name="collections"
-                                       id="collections" placeholder=" "
+                                       id="collections"
                                        value="{{ form.instance.collections|default_if_none:'' }}">
                                 <label class="label-material">Collections</label>
                             </div>
