@@ -60,7 +60,7 @@ class WorkingsetForms(forms.ModelForm):
         # if not self.user.groups.filter(name__iexact='mygroup').exists():
         #    del self.fields['confidential']
 
-    name = forms.CharField(label='Name:', help_text='250 max characters', required=True,
+    name = forms.CharField(label='Workingset name', help_text='250 max characters', required=True,
                            error_messages={'required': 'Please enter a valid name'},
                            max_length=250, widget=forms.TextInput(attrs={
             'class': 'input-material col-sm-12 form-control ',
@@ -70,7 +70,7 @@ class WorkingsetForms(forms.ModelForm):
         }))
 
     author = forms.CharField(
-        label='Author:',
+        label='Author',
         required=True,
         error_messages={'required': 'Please enter an author'},
         max_length=250,
