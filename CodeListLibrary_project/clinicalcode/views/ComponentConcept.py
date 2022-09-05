@@ -60,40 +60,31 @@ class ComponentConceptCreate(LoginRequiredMixin,
         if form.cleaned_data['concept_ref'] is None:
             form.add_error(None, forms.ValidationError('Concept is required'))
 
-        if db_utils.hasCircularReference(
-                child_concept_id=form.cleaned_data['concept_ref'].pk,
-                parent_concept_id=form.instance.concept_id):
-            form.add_error(
-                None,
-                forms.ValidationError(
-                    'Circular Reference: this concept is a parent of the main concept(id='
-                    + str(form.instance.concept_id) + ')'))
+        if db_utils.hasCircularReference(child_concept_id=form.cleaned_data['concept_ref'].pk, parent_concept_id=form.instance.concept_id):
+            form.add_error(None, 
+                           forms.ValidationError('Circular Reference: this concept is a parent of the main concept(id=' + str(form.instance.concept_id) + ')')
+                        )
 
-        if db_utils.hasConcurrentUdates(concept_id=form.instance.concept_id,
-                                        shown_version_id=0):
-            form.add_error(
-                None,
-                forms.ValidationError(
-                    'This concept  (id=' + str(form.instance.concept_id) +
-                    ') has an updated version, Do you want to continue and override it?!'
-                ))
+        if db_utils.hasConcurrentUdates(concept_id=form.instance.concept_id, shown_version_id=0):
+            form.add_error(None,
+                            forms.ValidationError(
+                                'This concept  (id=' + str(form.instance.concept_id) +
+                                ') has an updated version, Do you want to continue and override it?!'
+                            )
+                        )
 
         #------------------------------
         concept = Concept.objects.get(pk=form.instance.concept_id)
         context = self.get_context_data(form=form)
         latest_history_ID = concept.history.latest().pk
         #context['latest_history_ID'] = latest_history_ID
-        context[
-            'latest_history_ID'] = latest_history_ID if self.request.POST.get(
-                'latest_history_id_shown') is None else self.request.POST.get(
-                    'latest_history_id_shown')
+        context['latest_history_ID'] = latest_history_ID if self.request.POST.get('latest_history_id_shown') is None else self.request.POST.get('latest_history_id_shown')
         #-------------------------------
 
         data['form_is_valid'] = False
-        data['html_form'] = render_to_string(
-            'clinicalcode/component/concept/create.html',
-            context=context,  #self.get_context_data(form=form),
-            request=self.request)
+        data['html_form'] = render_to_string('clinicalcode/component/concept/create.html',
+                                            context=context,  #self.get_context_data(form=form),
+                                            request=self.request)
         return JsonResponse(data)
 
     def form_valid(self, form):
@@ -104,24 +95,20 @@ class ComponentConceptCreate(LoginRequiredMixin,
             form.add_error(None, forms.ValidationError('Concept is required'))
             isValidForm = False
 
-        if db_utils.hasCircularReference(
-                child_concept_id=form.cleaned_data['concept_ref'].pk,
-                parent_concept_id=form.instance.concept_id):
-            form.add_error(
-                None,
-                forms.ValidationError(
-                    'Circular Reference: this concept is a parent of the main concept(id='
-                    + str(form.instance.concept_id) + ')'))
+        if db_utils.hasCircularReference(child_concept_id=form.cleaned_data['concept_ref'].pk, parent_concept_id=form.instance.concept_id):
+            form.add_error(None,
+                            forms.ValidationError(
+                                'Circular Reference: this concept is a parent of the main concept(id=' + str(form.instance.concept_id) + ')')
+                        )
             isValidForm = False
 
-        if db_utils.hasConcurrentUdates(concept_id=form.instance.concept_id,
-                                        shown_version_id=0):
-            form.add_error(
-                None,
-                forms.ValidationError(
-                    'This concept  (id=' + str(form.instance.concept_id) +
-                    ') has an updated version, Do you want to continue and override it?!'
-                ))
+        if db_utils.hasConcurrentUdates(concept_id=form.instance.concept_id, shown_version_id=0):
+            form.add_error(None,
+                            forms.ValidationError(
+                                'This concept  (id=' + str(form.instance.concept_id) +
+                                ') has an updated version, Do you want to continue and override it?!'
+                            )
+                        )
             isValidForm = False
 
         #------------------------------
@@ -130,81 +117,66 @@ class ComponentConceptCreate(LoginRequiredMixin,
         latest_history_ID = concept.history.latest().pk
         #context['latest_history_ID'] = latest_history_ID
         context[
-            'latest_history_ID'] = latest_history_ID if self.request.POST.get(
-                'latest_history_id_shown') is None else self.request.POST.get(
-                    'latest_history_id_shown')
+            'latest_history_ID'] = latest_history_ID if self.request.POST.get('latest_history_id_shown') is None else self.request.POST.get('latest_history_id_shown')
         #-------------------------------
 
         if not isValidForm:
             data['form_is_valid'] = False
-            data['html_form'] = render_to_string(
-                'clinicalcode/component/concept/create.html',
-                context=context,  #self.get_context_data(form=form),
-                request=self.request)
+            data['html_form'] = render_to_string('clinicalcode/component/concept/create.html',
+                                                context=context,  #self.get_context_data(form=form),
+                                                request=self.request)
             return JsonResponse(data)
 
         referenced_concept = form.cleaned_data['concept_ref']
         #form.instance.concept_ref_history = referenced_concept.history.latest() #?? need to be feeded
-        form.instance.concept_ref_history = Concept.history.get(
-            id=referenced_concept.pk,
-            history_id=self.request.POST.get('child_history_id'))
+        form.instance.concept_ref_history = Concept.history.get(id=referenced_concept.pk, history_id=self.request.POST.get('child_history_id'))
         with transaction.atomic():
             form.instance.created_by = self.request.user
             # Save the component.
             #form.save()
             self.object = form.save()
             # save codelist/codes under the child concept component directly
-            db_utils.save_child_concept_codes(
-                concept_id=self.kwargs['concept_id'],
-                component_id=self.object.pk,
-                referenced_concept_id=referenced_concept.pk,
-                concept_ref_history_id=form.instance.concept_ref_history.pk,
-                insert_or_update='insert')
+            db_utils.save_child_concept_codes(concept_id=self.kwargs['concept_id'],
+                                            component_id=self.object.pk,
+                                            referenced_concept_id=referenced_concept.pk,
+                                            concept_ref_history_id=form.instance.concept_ref_history.pk,
+                                            insert_or_update='insert'
+                                            )
 
             # Save the concept containing this component with new history.
-            db_utils.save_Entity_With_ChangeReason(
-                Concept,
-                self.kwargs['concept_id'],
-                "Created component %s" % (form.instance.name),
-                modified_by_user=self.request.user)
+            db_utils.save_Entity_With_ChangeReason(Concept, 
+                                                   self.kwargs['concept_id'],
+                                                   "Created component %s" % (form.instance.name),
+                                                   modified_by_user=self.request.user)
             # Update dependent concepts & working sets
-            db_utils.saveDependentConceptsChangeReason(
-                form.instance.concept_id, "Component concept #" +
-                str(form.instance.concept_id) + " was updated")
+            db_utils.saveDependentConceptsChangeReason(form.instance.concept_id, "Component concept #" + str(form.instance.concept_id) + " was updated")
 
         data['form_is_valid'] = True
 
         # refresh component list
-        data['html_component_list'] = render_to_string(
-            'clinicalcode/component/partial_component_list.html',
-            build_permitted_components_list(self.request,
-                                            self.kwargs['concept_id']))
+        data['html_component_list'] = render_to_string('clinicalcode/component/partial_component_list.html',
+                                                       build_permitted_components_list(self.request, self.kwargs['concept_id'])
+                                                    )
 
         concept = Concept.objects.get(id=self.kwargs['concept_id'])
 
         # update history list
-        data['html_history_list'] = render_to_string(
-            'clinicalcode/concept/partial_history_list.html', {
-                'history':
-                concept.history.all(),
-                'current_concept_history_id':
-                concept.history.latest().pk,
-                'published_historical_ids':
-                list(
-                    PublishedConcept.objects.filter(
-                        concept_id=self.kwargs['concept_id']).values_list(
-                            'concept_history_id', flat=True))
+        data['html_history_list'] = render_to_string('clinicalcode/concept/partial_history_list.html', 
+                                                    {
+                'history': concept.history.all(),
+                'current_concept_history_id': concept.history.latest().pk,
+                'published_historical_ids': list(PublishedConcept.objects.filter(concept_id=self.kwargs['concept_id']).values_list('concept_history_id', flat=True))
             },
             request=self.request)
 
         data['latest_history_ID'] = concept.history.latest().pk
 
         # update add_menu_items to reflect latest history id
-        data['add_menu_items'] = render_to_string(
-            'clinicalcode/concept/add_menu_items.html', {
-                'pk': self.kwargs['concept_id'],
-                'latest_history_id': concept.history.latest().pk
-            })
+        data['add_menu_items'] = render_to_string('clinicalcode/concept/add_menu_items.html', 
+                                                {
+                                                    'pk': self.kwargs['concept_id'],
+                                                    'latest_history_id': concept.history.latest().pk
+                                                })
 
         return JsonResponse(data)
 
@@ -229,48 +201,37 @@ class ComponentConceptDelete(LoginRequiredMixin,
             component.delete()
             # Save the *concept* with a change reason to note the component
             # deletion in its history.
-            db_utils.save_Entity_With_ChangeReason(
-                Concept,
-                kwargs['concept_id'],
-                "Deleted component: %s" % (component_name),
-                modified_by_user=self.request.user)
+            db_utils.save_Entity_With_ChangeReason(Concept, kwargs['concept_id'], "Deleted component: %s" % (component_name), modified_by_user=self.request.user)
             # Update dependent concepts & working sets
-            db_utils.saveDependentConceptsChangeReason(
-                kwargs['concept_id'], "Component concept #" +
-                str(kwargs['concept_id']) + " was updated")
+            db_utils.saveDependentConceptsChangeReason(kwargs['concept_id'], 
+                                                       "Component concept #" + str(kwargs['concept_id']) + " was updated"
+                                                    )
 
         data['form_is_valid'] = True
 
         # refresh component list
-        data['html_component_list'] = render_to_string(
-            'clinicalcode/component/partial_component_list.html',
-            build_permitted_components_list(request, kwargs['concept_id']))
+        data['html_component_list'] = render_to_string('clinicalcode/component/partial_component_list.html',
+                                                       build_permitted_components_list(request, kwargs['concept_id'])
+                                                       )
 
         concept = Concept.objects.get(id=kwargs['concept_id'])
 
         # update history list
-        data['html_history_list'] = render_to_string(
-            'clinicalcode/concept/partial_history_list.html', {
-                'history':
-                concept.history.all(),
-                'current_concept_history_id':
-                concept.history.latest().pk,
-                'published_historical_ids':
-                list(
-                    PublishedConcept.objects.filter(
-                        concept_id=self.kwargs['concept_id']).values_list(
-                            'concept_history_id', flat=True))
+        data['html_history_list'] = render_to_string('clinicalcode/concept/partial_history_list.html', {
+                'history': concept.history.all(),
+                'current_concept_history_id': concept.history.latest().pk,
+                'published_historical_ids': list(
+                    PublishedConcept.objects.filter(concept_id=self.kwargs['concept_id']).values_list('concept_history_id', flat=True))
             },
             request=self.request)
 
         data['latest_history_ID'] = concept.history.latest().pk
 
         # update add_menu_items to reflect latest history id
-        data['add_menu_items'] = render_to_string(
-            'clinicalcode/concept/add_menu_items.html', {
-                'pk': self.kwargs['concept_id'],
-                'latest_history_id': concept.history.latest().pk
-            })
+        data['add_menu_items'] = render_to_string('clinicalcode/concept/add_menu_items.html', {
+                                                'pk': self.kwargs['concept_id'],
+                                                'latest_history_id': concept.history.latest().pk
+                                            })
 
         return JsonResponse(data)
 
@@ -289,8 +250,7 @@ class ComponentConceptUpdate(LoginRequiredMixin,
         context = UpdateView.get_context_data(self, **kwargs)
         component = Component.objects.get(pk=self.kwargs['pk'])
         context.update(
-            build_permitted_components_list(self.request,
-                                            component.concept_id))
+            build_permitted_components_list(self.request, component.concept_id))
         #         # Set up the components element again (already done in buildPermittedComponentList)
         #         # as we want the components not for this concept but for the referenced concept.
         #         context['components'] = list(Component.objects.filter(concept=component.concept_ref_id))
@@ -311,26 +271,19 @@ class ComponentConceptUpdate(LoginRequiredMixin,
         context['codes'] = codes
 
         # show latest version of the child concept for comparison
-        context['concept_ref_lates_version_id'] = Concept.objects.get(
-            pk=component.concept_ref_id).history.latest().pk
-        context['concept_ref_deleted'] = Concept.objects.get(
-            pk=component.concept_ref_id).is_deleted
-        context['concept_ref_is_accessible'] = allowed_to_view(
-            self.request,
-            Concept,
-            component.concept_ref_id,
-            set_history_id=component.concept_ref_history.pk)
+        context['concept_ref_lates_version_id'] = Concept.objects.get(pk=component.concept_ref_id).history.latest().pk
+        context['concept_ref_deleted'] = Concept.objects.get(pk=component.concept_ref_id).is_deleted
+        context['concept_ref_is_accessible'] = allowed_to_view(self.request,
+                                                                Concept,
+                                                                component.concept_ref_id,
+                                                                set_history_id=component.concept_ref_history.pk)
 
         context['child_history_id'] = component.concept_ref_history.pk
         #------------------------------
-        concept = Concept.objects.get(
-            id=component.concept_id)  # id=self.kwargs['concept_id']
+        concept = Concept.objects.get(id=component.concept_id)  # id=self.kwargs['concept_id']
         latest_history_ID = concept.history.latest().pk
         #context['latest_history_ID'] = latest_history_ID
-        context[
-            'latest_history_ID'] = latest_history_ID if self.request.POST.get(
-                'latest_history_id_shown') is None else self.request.POST.get(
-                    'latest_history_id_shown')
+        context['latest_history_ID'] = latest_history_ID if self.request.POST.get('latest_history_id_shown') is None else self.request.POST.get('latest_history_id_shown')
         #-------------------------------
 
         return context
@@ -340,17 +293,13 @@ class ComponentConceptUpdate(LoginRequiredMixin,
         if form.cleaned_data['concept_ref'] is None:
             form.add_error(None, forms.ValidationError('Concept is required'))
         data['form_is_valid'] = False
-        data['html_form'] = render_to_string(
-            'clinicalcode/component/concept/update.html',
-            context=self.get_context_data(form=form),
-            request=self.request)
+        data['html_form'] = render_to_string('clinicalcode/component/concept/update.html',
+                                            context=self.get_context_data(form=form),
+                                            request=self.request)
 
         #------------------------------ ???
         concept = Concept.objects.get(id=self.kwargs['concept_id'])
-        data['latest_history_ID'] = concept.history.latest(
-        ).pk if self.request.POST.get(
-            'latest_history_id_shown') is None else self.request.POST.get(
-                'latest_history_id_shown')
+        data['latest_history_ID'] = concept.history.latest().pk if self.request.POST.get('latest_history_id_shown') is None else self.request.POST.get('latest_history_id_shown')
         #------------------------------
 
         return JsonResponse(data)
@@ -362,20 +311,17 @@ class ComponentConceptUpdate(LoginRequiredMixin,
             form.add_error(None, forms.ValidationError('Concept is required'))
 
             data['form_is_valid'] = False
-            data['html_form'] = render_to_string(
-                'clinicalcode/component/concept/update.html',
-                context=self.get_context_data(form=form),
-                request=self.request)
+            data['html_form'] = render_to_string('clinicalcode/component/concept/update.html',
+                                                context=self.get_context_data(form=form),
+                                                request=self.request)
             return JsonResponse(data)
 
-        update_to_latest_version = utils.get_int_value(
-            self.kwargs.get('update_to_latest_version', 0), 0)
+        update_to_latest_version = utils.get_int_value(self.kwargs.get('update_to_latest_version', 0), 0)
 
         referenced_concept = form.cleaned_data['concept_ref']
 
         if update_to_latest_version == 1:
-            form.instance.concept_ref_history = referenced_concept.history.latest(
-            )
+            form.instance.concept_ref_history = referenced_concept.history.latest()
 
         with transaction.atomic():
             form.instance.modified_by = self.request.user
@@ -385,61 +331,56 @@ class ComponentConceptUpdate(LoginRequiredMixin,
             #---------------------kwargs.get----------------
             if update_to_latest_version == 1:
                 # save codelist/codes under the child concept component directly
-                db_utils.save_child_concept_codes(
-                    concept_id=self.kwargs['concept_id'],
-                    component_id=self.object.pk,
-                    referenced_concept_id=referenced_concept.pk,
-                    concept_ref_history_id=form.instance.concept_ref_history.
-                    pk,
-                    insert_or_update='update')
+                db_utils.save_child_concept_codes(concept_id=self.kwargs['concept_id'],
+                                                component_id=self.object.pk,
+                                                referenced_concept_id=referenced_concept.pk,
+                                                concept_ref_history_id=form.instance.concept_ref_history.
+                                                pk,
+                                                insert_or_update='update'
+                                                )
             #-------------------------------------
 
             # Save the concept that contains this component with new history.
-            db_utils.save_Entity_With_ChangeReason(
-                Concept,
-                self.kwargs['concept_id'],
-                "Updated component %s" % (form.instance.name),
-                modified_by_user=self.request.user)
+            db_utils.save_Entity_With_ChangeReason(Concept,
+                                                    self.kwargs['concept_id'],
+                                                    "Updated component %s" % (form.instance.name),
+                                                    modified_by_user=self.request.user
+                                                )
 
             # Update dependent concepts & working sets
-            db_utils.saveDependentConceptsChangeReason(
-                form.instance.concept_id, "Component concept #" +
-                str(form.instance.concept_id) + " was updated")
+            db_utils.saveDependentConceptsChangeReason(form.instance.concept_id, 
+                                                       "Component concept #" + str(form.instance.concept_id) + " was updated"
+                                                    )
         #components = Component.objects.filter(concept_id=self.kwargs['concept_id'])
 
         data['form_is_valid'] = True
 
         # refresh component list
-        data['html_component_list'] = render_to_string(
-            'clinicalcode/component/partial_component_list.html',
-            build_permitted_components_list(self.request,
-                                            self.kwargs['concept_id']))
+        data['html_component_list'] = render_to_string('clinicalcode/component/partial_component_list.html',
+                                                        build_permitted_components_list(self.request, self.kwargs['concept_id'])
+                                                    )
 
         concept = Concept.objects.get(id=self.kwargs['concept_id'])
 
         # update history list
-        data['html_history_list'] = render_to_string(
-            'clinicalcode/concept/partial_history_list.html', {
-                'history':
-                concept.history.all(),
-                'current_concept_history_id':
-                concept.history.latest().pk,
-                'published_historical_ids':
-                list(
-                    PublishedConcept.objects.filter(
-                        concept_id=self.kwargs['concept_id']).values_list(
-                            'concept_history_id', flat=True))
-            },
-            request=self.request)
+        data['html_history_list'] = render_to_string('clinicalcode/concept/partial_history_list.html', 
+                                                     {
+                                                        'history': concept.history.all(),
+                                                        'current_concept_history_id': concept.history.latest().pk,
+                                                        'published_historical_ids': list(
+                                                            PublishedConcept.objects.filter(
+                                                                concept_id=self.kwargs['concept_id']).values_list('concept_history_id', flat=True))
+                                                    },
+                                                    request=self.request)
 
         data['latest_history_ID'] = concept.history.latest().pk
 
         # update add_menu_items to reflect latest history id
-        data['add_menu_items'] = render_to_string(
-            'clinicalcode/concept/add_menu_items.html', {
-                'pk': self.kwargs['concept_id'],
-                'latest_history_id': concept.history.latest().pk
-            })
+        data['add_menu_items'] = render_to_string('clinicalcode/concept/add_menu_items.html', 
+                                                  {
+                                                    'pk': self.kwargs['concept_id'],
+                                                    'latest_history_id': concept.history.latest().pk
+                                                })
 
         return JsonResponse(data)
 
@@ -463,20 +404,15 @@ def component_history_concept_detail_combined(request, pk, concept_id,
                             concept_id,
                             set_history_id=concept_history_id)
 
-    if not Component.history.filter(
-            Q(id=pk), Q(history_id=component_history_id),
-            Q(concept_id=concept_id), ~Q(history_type='-')).exists():
+    if not Component.history.filter(Q(id=pk), Q(history_id=component_history_id), Q(concept_id=concept_id), ~Q(history_type='-')).exists():
         raise PermissionDenied
 
     #----------------------------------------------------------------------
-    is_latest_version = (int(concept_history_id) == Concept.objects.get(
-        pk=concept_id).history.latest().history_id)
+    is_latest_version = (int(concept_history_id) == Concept.objects.get(pk=concept_id).history.latest().history_id)
 
     if request.user.is_authenticated:
-        components_permissions = build_permitted_components_list(
-            request, concept_id)
-        can_edit = (not Concept.objects.get(pk=concept_id).is_deleted
-                    ) and allowed_to_edit(request, Concept, concept_id)
+        components_permissions = build_permitted_components_list(request, concept_id)
+        can_edit = (not Concept.objects.get(pk=concept_id).is_deleted) and allowed_to_edit(request, Concept, concept_id)
 
     else:
         can_edit = False
@@ -486,8 +422,7 @@ def component_history_concept_detail_combined(request, pk, concept_id,
 
     component = db_utils.getHistoryComponentByHistoryId(component_history_id)
 
-    codelist = db_utils.getHistoryCodeListByComponentId(
-        component['id'], concept_history_date)
+    codelist = db_utils.getHistoryCodeListByComponentId(component['id'], concept_history_date)
 
     if codelist is not None:
         codes = db_utils.getHistoryCodes(codelist['id'], concept_history_date)

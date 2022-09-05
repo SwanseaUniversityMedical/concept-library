@@ -3,13 +3,11 @@ from datetime import datetime
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.mixins import \
-    LoginRequiredMixin  # , UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin  # , UserPassesTestMixin
 from django.contrib.auth.models import Group, User
 from django.core.paginator import EmptyPage, Paginator
 from django.db import transaction  # , models, IntegrityError
-from django.http import \
-    HttpResponseRedirect  # , StreamingHttpResponse, HttpResponseForbidden
+from django.http import HttpResponseRedirect  # , StreamingHttpResponse, HttpResponseForbidden
 from django.http.response import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
 #from django.core.urlresolvers import reverse_lazy, reverse

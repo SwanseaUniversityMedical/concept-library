@@ -22,9 +22,12 @@ def send_scheduled_email(self):
     owner_email = list(set([c['owner_email'] for c in email_content]))
     overal_result = []
     for i in range(len(owner_ids)):
-        overal_result.append({'owner_id': owner_ids[i], 'owner_email': owner_email[i], 'content': ''.join(
-            [str(email_content[n]['email_content']) for n in range(len(email_content)) if
-             email_content[n]['owner_id'] == owner_ids[i]])})
+        overal_result.append({'owner_id': owner_ids[i], 
+                              'owner_email': owner_email[i], 
+                              'content': ''.join(
+                                                [str(email_content[n]['email_content']) for n in range(len(email_content)) if
+                                                 email_content[n]['owner_id'] == owner_ids[i]])
+                              })
 
 
     for j in range(len(overal_result)):
