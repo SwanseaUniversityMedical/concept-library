@@ -48,16 +48,17 @@ class PhenotypeWorkingsetCreate(LoginRequiredMixin,HasAccessToCreateCheckMixin,C
             form.instance.tags = self.commaSeparate('tagids')
             form.instance.collections = self.commaSeparate('collections')
             form.instance.data_sources = self.commaSeparate('datasources')
+            form.instance.phenotypes_concepts_data = "[{phenotype_id: PH3,phenotype_version_id: 6,concept_id: C717,concept_version_id:2573,Attributes:[{name: Attribute name,type:int/float/string,value: 234}]}]"
 
 
             self.object = form.save()
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset,self.object.pk,"Created")
-            workingset = PhenotypeWorkingset.objects.get(pk=self.object.pk)
-            workingset.history.latest().delete()
 
+            print(self.object.pk)
             messages.success(self.request,"Workingset has been successfully created.")
 
-        return HttpResponseRedirect(reverse('workingset_update'),args=(self.object.pk))
+        return HttpResponseRedirect(reverse('workingset_create'))
+        # return HttpResponseRedirect(reverse('workingset_update'),args=(self.object.pk)) when update is done
 
 
 

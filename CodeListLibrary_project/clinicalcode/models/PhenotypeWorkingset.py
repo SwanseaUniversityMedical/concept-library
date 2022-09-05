@@ -29,7 +29,7 @@ class PhenotypeWorkingset(TimeStampedModel):
     data_sources = ArrayField(models.IntegerField(), blank=True, null=True)  # Easy access to data sources
 
     # Contains all data related to Phenotypes/Concepts
-    phenotypes_concepts_data = JSONField(default=dict)
+    phenotypes_concepts_data = JSONField()
 
     # Permissions section for updating/creating phenotype_workingset
     created_by = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,related_name="phenotype_workingset_created")
