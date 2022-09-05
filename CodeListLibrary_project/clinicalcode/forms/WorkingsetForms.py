@@ -7,6 +7,7 @@ from clinicalcode.permissions import allowed_to_permit, Permissions
 from clinicalcode.constants import Type_status
 
 
+
 class WorkingsetForms(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
@@ -29,6 +30,7 @@ class WorkingsetForms(forms.ModelForm):
         # Populate the list of possible groups from the group list
         # maintained by Django.
         self.group_list = []  # Clear list or it will just accumulate.
+        self.phenotypes_concepts_data = [] # intial list of data to put
         self.group_list.append((0, '----------'))
         for group in self.groups.all():
             # Use user.id (stored in the database) to refer to a User object;
@@ -61,8 +63,9 @@ class WorkingsetForms(forms.ModelForm):
     name = forms.CharField(label='Name:', help_text='250 max characters', required=True,
                            error_messages={'required': 'Please enter a valid name'},
                            max_length=250, widget=forms.TextInput(attrs={
-            'class': 'form-control',
+            'class': 'input-material col-sm-12 form-control ',
             'data-required': 'Please enter a valid name',
+            'placeholder': " ",
             'autofocus': 'autofocus'
         }))
 
@@ -71,7 +74,8 @@ class WorkingsetForms(forms.ModelForm):
         required=True,
         error_messages={'required': 'Please enter an author'},
         max_length=250,
-        widget=forms.TextInput(attrs={'class': 'form-control'})
+
+        widget=forms.TextInput(attrs={'class': 'input-material col-sm-12 form-control','placeholder':" "})
     )
 
     type = forms.ChoiceField(
@@ -88,7 +92,7 @@ class WorkingsetForms(forms.ModelForm):
         error_messages={'required': 'Please enter a description'},
         widget=forms.Textarea(attrs={
             'class': 'input-material col-sm-12 form-control',
-            'rows': 5
+            'rows': 5,'placeholder':" "
         }),
         max_length=3000)
 
@@ -97,19 +101,20 @@ class WorkingsetForms(forms.ModelForm):
         required=False,
         widget=forms.Textarea(attrs={
             'class': 'input-material col-sm-12 form-control',
-            'rows': 5
+            'rows': 5,
+             'placeholder':" "
         }),
         max_length=3000)
 
     citation_requirements = forms.CharField(
-        label='Citation requirements:',
+        label='Citation requirements',
         help_text='250 max characters',
         max_length=250,
         required=False,
-        widget=forms.TextInput(attrs={'class': 'input-material col-sm-12 form-control'}))
+        widget=forms.TextInput(attrs={'class': 'input-material col-sm-12 form-control','placeholder':" "}))
 
     owner_access = forms.ChoiceField(
-        label='Owner access:',
+        label='Owner access',
         widget=forms.RadioSelect(attrs={
             'class': 'radio-inline',
             'disabled': 'disabled'
@@ -118,23 +123,23 @@ class WorkingsetForms(forms.ModelForm):
         initial=Permissions.EDIT,
         required=False)
     group_access = forms.ChoiceField(
-        label='Group access:',
+        label='Group access',
         widget=forms.RadioSelect(attrs={'class': 'radio-inline'}),
         choices=Permissions.PERMISSION_CHOICES,
         initial=Permissions.NONE)
     world_access = forms.ChoiceField(
-        label='Everyone else access:',
+        label='Everyone else access',
         widget=forms.RadioSelect(attrs={'class': 'radio-inline'}),
         choices=Permissions.PERMISSION_CHOICES_WORLD_ACCESS,
         initial=Permissions.NONE)
     owner = forms.ChoiceField(
-        label='Owned by:',
+        label='Owned by',
         required=True,
-        widget=forms.Select(attrs={'class': 'input-material col-sm-12 form-control'})
+        widget=forms.Select(attrs={'class': 'input-material col-sm-12 form-control','placeholder':" "})
         # No choices or initial value as these are assigned dynamically.
     )
     group = forms.ChoiceField(
-        label='Permitted group:',
+        label='Permitted group',
         # Not required unless one of the GROUP options is selected. Handle
         # this case separately in the cleaning code.
         required=False,
@@ -181,6 +186,8 @@ class WorkingsetForms(forms.ModelForm):
             Class metadata (anything that's not a field).
         '''
         model = PhenotypeWorkingset
+
+
         exclude = [
-            'created_by', 'modified_by', 'deleted', 'is_deleted', 'deleted_by'
-        ]
+            'created_by', 'modified_by', 'deleted', 'is_deleted', 'deleted_by','phenotypes_concepts_data'
+        ] #Exciding jsonfileobject because will be separate validation from client
