@@ -49,6 +49,20 @@
     transition: 0.1s ease-out;
 }
 
+.bootstrap-tagsinput {
+     font-size: 14px;
+    outline: none;
+    border: 1px solid #8499d6;
+    border-radius: 5px;
+    padding: 6px 12px;
+    color: gray;
+    transition: 0.1s ease-out;
+
+}
+
+
+
+
 .form-control {
     margin-bottom: 8px;
     height: 35px;
@@ -64,6 +78,9 @@
     top: 0;
     transform: translateY(-50%) scale(.9);
 }
+
+
+
 
 .input-material:not(:placeholder-shown) + .label-material {
     top: 0;

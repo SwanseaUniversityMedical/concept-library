@@ -52,7 +52,7 @@
 
                     {% else %}
                         <form name='workingset-form' id='workingset-form' class="form-horizontal"
-                              action="{% url "workingset_update" form.instance.pk  %}" method="POST" autocomplete="off">
+                              action="{% url "workingset_update" form.pk  %}" method="POST" autocomplete="off">
                     {% endif %}
                     {% csrf_token %}
                     <div class="form-group">
@@ -366,6 +366,17 @@
 
 
                     <hr/>
+                    {% if form.errors %}
+					<div id="form-error" class="alert alert-danger  col-sm-12">
+						<p>The operation could not be performed because one or more error(s) occurred.<br />
+							Please resubmit the form after making the following changes:</p>
+						<ul>
+							{% for field,error in form.errors.items %}
+							<li>{{field}} - {{ error|striptags }}</li>
+							{% endfor %}
+						</ul>
+					</div>
+					{% endif %}
                     <div class="form-group">
                         <div class="col-sm-12">
                             <div class="row-form-flex row">
