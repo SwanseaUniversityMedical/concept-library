@@ -1,0 +1,98 @@
+{% load static %}
+{% load cl_extras %}
+
+<div class="page-control-container">
+	{% include 'pagination.html' with form_target=search_form is_header=True %}	
+</div>
+
+{% block content %}
+  {% for workingset in page_obj.object_list %}
+  <div class="cl-card {% if workingset.is_deleted is True %} cl-card-deleted{% endif %} {% cycle ' dark-div ' '' %}   "
+                    {% if workingset.approval_status == 1 and workingset.owner_id == request.user.id or request.user|has_group:"Moderators" and workingset.approval_status == 1 %}title="Waiting for approval"{% endif %}>
+    <div class="row form-group">
+      <div class="col-sm-12">
+        <a class="" href="{% url 'phenotypeworkingset_history_detail' workingset.id workingset.history_id %}">
+        <span style='font-size: 22px;margin-top:0;'>{{ workingset.id }} - {{ workingset.name_highlighted|safe }}</span>
+        </a>				
+      </div>
+    </div>
+    
+    <div class="row form-group">
+      <div class="col-sm-12">
+  <!-- 						<span {%if workingset.author|length > 120 %}title="{{ workingset.author }}" {% endif %} >{{ workingset.author|truncatechars:120 }}</span> -->
+        {{ workingset.author_highlighted|safe }}
+      </div>
+
+    </div>
+    
+    <div class="row form-group">
+      <div class="col-sm-4">
+        <!-- CodingSystems -->
+  <!-- 						{% for cs in all_CodingSystems %} -->
+  <!-- 							{% for cs_id in phenotype.clinical_terminologies %} -->
+  <!-- 								{% if cs.id == cs_id %} -->
+  <!-- 							   		<span class="badge">{{ cs.name }}</span> -->
+  <!-- 							   	{% endif %} -->
+  <!-- 							{% endfor %}						 -->
+  <!-- 						{% endfor %}	 -->
+      </div>
+      <div class="col-sm-4">
+        <i><strong>{{ workingset.type|get_ws_type_name }}</i></strong>
+      </div>	
+      <div class="col-sm-4">
+        {% if user.is_authenticated %}
+          <i>{{ workingset.modified|date:"Y-m-d" }}</i>
+        {% else %}	
+          <i>{{ workingset.publish_date|date:"Y-m-d" }}</i>
+        {% endif %}
+      </div>
+
+  <!-- 					<div class="col-sm-2 text-right">
+        {% if user.is_authenticated and workingset.is_published == 1 %}
+          <span title="{{ workingset.published }} on {{ workingset.publish_date|date:"Y-m-d" }}" style="text-align: right;" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
+        {% endif %}	
+      </div>	 -->
+    </div>
+    
+  {% if workingset.collections or workingset.tags %}
+    <div class="row form-group">
+      <div class="col-sm-12">
+        <!-- collections -->
+        {% for tag in allTags %}
+          {% for tag_id in workingset.collections %}
+            {% if tag.id == tag_id %}
+                <span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
+              {% endif %}
+          {% endfor %}						
+        {% endfor %}			
+        
+        <!-- tags -->
+        {% for tag in allTags %}
+          {% for tag_id in workingset.tags %}
+            {% if tag.id == tag_id %}
+                <span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
+              {% endif %}
+          {% endfor %}						
+        {% endfor %}			
+                
+      </div>	
+    </div>						
+  {% endif %}								
+      
+    
+  </div>				  
+  <br> 
+  {% empty %}
+  <div class="row form-group">
+  <div class="col-sm-12 text-center bg-warning">
+    No Working Sets
+  </div>	
+  </div>				
+
+  {% endfor %}
+{% endblock %}
+
+
+<div class="page-control-container">
+	{% include 'pagination.html' with form_target=search_form is_header=False %}	
+</div>

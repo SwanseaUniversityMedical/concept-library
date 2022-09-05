@@ -105,47 +105,6 @@
 			 }
 		});
 	</script>
-	
-	<script type="text/javascript">
-		$('#reset-form').click(function() {
-			 
-			$("input[id^='search']").val('');		
-			$('#page_size').val('20');
-						
-			$('#txtTags').tagsinput('removeAll');
-			
-			$('#txtAuthor').val('');
-			
-			$('#phenotype_brand').val('');
-			$('#phenotype_brand_img').html('');
-						
-			{% if user.is_authenticated %}
-				$('#show_deleted_phenotypes').prop("checked", false);
-				$('#show_deleted_phenotypes_hidden').val("0");
-				
-				$('#show_my_phenotypes').prop("checked", false);
-				$('#show_my_phenotypes_hidden').val("0");
-				
-				$('#show_my_pending_phenotypes').prop("checked", false);
-				$('#show_my_pending_phenotypes_hidden').val("0");
-
-				$('#show_mod_pending_phenotypes').prop("checked", false);
-				$('#show_mod_pending_phenotypes_hidden').val("0");
-				
-				$('#show_rejected_phenotypes').prop("checked", false);
-				$('#show_rejected_phenotypes_hidden').val("0");				
-
-				$('#phenotype_must_have_published_versions').prop("checked", false);
-				$('#phenotype_must_have_published_versions_hidden').val("0");
-
-				$('#txtOwner').val('');
-			{% endif %}						
-			
-			$('#show_only_validated_phenotypes').prop("checked", false);
-			$('#show_only_validated_phenotypes_hidden').val("0");
-
-		});
-	</script>
 
 	<script>
 		// Import references

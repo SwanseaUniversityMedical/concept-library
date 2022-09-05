@@ -34,15 +34,18 @@ from .permissions import *
 #--------- Filter queries --------------
 filter_queries = {
     'tags': 0,
+    'collections': 0,
     'clinical_terminologies': 0,
     'data_sources': 0,
     'coding_system_id': 1,
     'phenotype_type': 2,
-    'daterange': 3
+    'workingset_type': 3,
+    'daterange': 4
 }
 
 filter_query_model = {
     'tags': Tag,
+    'collections': Tag,
     'clinical_terminologies': CodingSystem,
     'coding_system_id': CodingSystem,
     'data_sources': DataSource
@@ -4094,7 +4097,7 @@ def apply_filter_condition(query, selected=None, conditions='', data=None):
             conditions += " AND " + query + " in (" + ','.join(search_list) + ") "
         return items, conditions
     elif qcase == 2:
-        # Phenotype type
+        # Phenotype type (string field?)
         if data is None:
             return [], conditions
 
@@ -4104,16 +4107,53 @@ def apply_filter_condition(query, selected=None, conditions='', data=None):
             conditions += " AND lower(type) IN('" + "', '".join(selected_list) + "') "
         return selected_list, conditions
     elif qcase == 3:
+        # Workingset type (enum, as int field?)
+        if data is None:
+            return [], conditions
+        
+        selected_list = utils.expect_integer_list(selected)
+        selected_list = [str(i) for i, v in enumerate(data) if v in selected_list]
+        if len(selected_list) > 0:
+            conditions += " AND type in (" + ','.join(selected_list) + ") "
+        return selected_list, conditions
+    elif qcase == 4:
         # Daterange
         if isinstance(selected['start'][0], datetime.datetime) and isinstance(selected['end'][0], datetime.datetime):
-            conditions += " AND (created >= '" + selected['start'][1] + "' AND created <= '" + selected['end'][1] + "') "
+            if selected['start'][0] < selected['end'][0]:
+                conditions += " AND (created >= '" + selected['start'][1] + "' AND created <= '" + selected['end'][1] + "') "
         return selected, conditions
     
     return None, conditions
 
 #---------------------------------------------------------------------------
 
-#-------------------- Data sources reference data ------------------------#
+#-------------------- Working set types reference data ------------------------#
+def get_brand_associated_workingset_types(request, brand=None):
+    """
+        Return all workingset types assoc. with each brand from the filter statistics model
+    """
+    from clinicalcode.constants import Type_status
+    ph_workingset_types_list_ids = list(PhenotypeWorkingset.history.values('type').distinct().order_by('type').values_list('type',  flat=True))
+    ph_workingset_types_list = [t[1] for t in Type_status if t[0] in ph_workingset_types_list_ids]
+
+    return ph_workingset_types_list_ids, ph_workingset_types_list
+
+    """ Once we finalise field type of types for both pheno and concept & incl. statistics """
+    # if brand is None:
+    #     brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
+    
+    # source = 'all_data' if request.user.is_authenticated else 'published_data'
+    # stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact='phenotype_filters')).stat['workingset_types']
+    # stats = [entry for entry in stats if entry['data_scope'] == source][0]['types']
+
+    # available_types = PhenotypeWorkingset.history.annotate(type_lower=Lower('type')).values('type_lower').distinct().order_by('type_lower')    
+    # workingset_types = [entry[0] for entry in stats]
+    # workingset_types = [x for x in workingset_types if available_types.filter(type_lower=x).exists()]
+    # sorted_order = {str(entry[0]): entry[1] for entry in stats}
+
+    # return workingset_types, sorted_order
+
+#-------------------- Pheno types reference data ------------------------#
 def get_brand_associated_phenotype_types(request, brand=None):
     """
         Return all phenotype types assoc. with each brand from the filter statistics model

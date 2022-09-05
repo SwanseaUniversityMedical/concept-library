@@ -30,6 +30,11 @@ var TAG_DECORATION       = {     // Det. decoration for 'Applied Filters' tag(s)
     tagColor: '#FCDDAF',
     prefix: 'Type:',
   },
+  'selected_workingset_types': {
+    textColor: '#333',
+    tagColor: '#FCDDAF',
+    prefix: 'Type:',
+  },
   'codingids': {
     textColor: '#333',
     tagColor: '#B5EAD7',
@@ -59,10 +64,13 @@ var all_phenotypes = typeof all_phenotypes === 'undefined' ? [] : all_phenotypes
 var data_source_reference = typeof data_source_reference === 'undefined' ? [] : data_source_reference;
 var data_source_reference_ids = typeof data_source_reference_ids === 'undefined' ? [] : data_source_reference_ids;
 var source_names = typeof source_names === 'undefined' ? [] : source_names;
+var coding_names = typeof coding_names === 'undefined' ? [] : coding_names;
+var all_coding = typeof all_coding === 'undefined' ? [] : all_coding;
 
 var PAGE = {
   PHENOTYPE: 0,
-  CONCEPT: 1
+  CONCEPT: 1,
+  WORKINGSET: 2,
 }
 
 var RESULT_QUERIES = ['20', '50', '100'];
@@ -73,20 +81,35 @@ var DISPLAY_QUERIES = {
                       'show_my_pending_phenotypes', 'show_rejected_phenotypes'
                     ],
   [PAGE.CONCEPT]: ['show_deleted_concepts', 'show_my_concepts', 
-                    'show_only_validated_concepts', 'must_have_published_versions']
+                    'show_only_validated_concepts', 'must_have_published_versions'],
+  [PAGE.WORKINGSET]: ['show_my_ph_workingsets', 'show_deleted_ph_workingsets',
+                      'show_my_pending_workingsets', 'show_mod_pending_workingsets', 
+                      'show_rejected_workingsets', 'show_only_validated_workingsets', 'workingset_must_have_published_versions'
+                    ],
 };
 
 var elementMap = {
   datasources: ['data_source_ids'],
-  type: ['selected_phenotype_types'],
+  type: ['selected_phenotype_types', 'selected_workingset_types'],
   collection: ['collection_ids'],
   tags: ['tag_ids'],
   coding: ['codingids'],
   date: ['startdate', 'enddate'],
   authorship: ['author', 'owner'],
-  publication: ['show_rejected_phenotypes', 'show_my_pending_phenotypes', 'show_mod_pending_phenotypes'],
-  display: ['must_have_published_versions', 'show_only_validated_concepts', 'show_my_concepts', 
-            'show_deleted_concepts', 'phenotype_must_have_published_versions', 'show_my_phenotypes', 'show_deleted_phenotypes'],
+  publication: [
+    // Pheno
+    'show_rejected_phenotypes', 'show_my_pending_phenotypes', 'show_mod_pending_phenotypes',
+    // Workingset
+    'show_rejected_workingsets', 'show_my_pending_workingsets', 'show_mod_pending_workingsets'
+  ],
+  display: [
+    // Concept
+    'must_have_published_versions', 'show_only_validated_concepts', 'show_my_concepts', 'show_deleted_concepts', 
+    // Phenotype
+    'phenotype_must_have_published_versions', 'show_my_phenotypes', 'show_deleted_phenotypes',
+    // Workingset
+    'show_my_ph_workingsets', 'show_deleted_ph_workingsets', 'workingset_must_have_published_versions', 'show_only_validated_workingsets'
+  ],
 }
 
 var subheaderMap = {
@@ -99,6 +122,7 @@ var subheaderMap = {
   enddate: 'date',
   startdate: 'date',
   selected_phenotype_types: 'type',
+  selected_workingset_types: 'type',
   owner: 'authorship',
   author: 'authorship',
   show_deleted_phenotypes: 'display',
@@ -126,16 +150,17 @@ var baseFilters = {
     haystack: collection_names,
     reference: all_collections
   },
-  coding: {
-    name: 'coding',
-    searchbar: '#coding_searchbar',
-    haystack: coding_names,
-    reference: all_coding
-  },
 };
 
 var SEARCHBARS = {
-  [PAGE.CONCEPT]: baseFilters,
+  [PAGE.CONCEPT]: Object.assign({
+    coding: {
+      name: 'coding',
+      searchbar: '#coding_searchbar',
+      haystack: coding_names,
+      reference: all_coding
+    },
+  }, baseFilters),
   [PAGE.PHENOTYPE]: Object.assign({
     types: {
       name: 'types',
@@ -149,7 +174,27 @@ var SEARCHBARS = {
       haystack: source_names,
       reference: data_source_reference
     },
-  }, baseFilters)
+    coding: {
+      name: 'coding',
+      searchbar: '#coding_searchbar',
+      haystack: coding_names,
+      reference: all_coding
+    },
+  }, baseFilters),
+  [PAGE.WORKINGSET]: Object.assign({
+    types: {
+      name: 'types',
+      searchbar: '#type_searchbar',
+      haystack: type_names,
+      reference: all_phenotypes
+    },
+    datasources: {
+      name: 'datasources',
+      searchbar: '#datasources_searchbar',
+      haystack: source_names,
+      reference: data_source_reference
+    },
+  }, baseFilters),
 };
 
 /* Inject dependencies */
@@ -278,6 +323,7 @@ var initFilters = () => {
           case 'datasources':
           case 'codingids':
           case 'selected_phenotype_types':
+          case 'selected_workingset_types':
             var selected = $("#basic-form input[id=" + filterType + "]").val().split(',').filter((x) => x != filterValue.value);
             $("#basic-form input[id=" + filterType + "]").val(selected.join(','));
             toggleCheckState(filterType, selected);
@@ -445,7 +491,7 @@ var initFilters = () => {
   var applyParametersToURL = (values) => {
     var url = new URL(window.location.href);
     $.each(values, function (key, value) {
-      var is_defined = (typeof value !== 'undefined' && value !== '' && value !== '-1' && value !== '0' && value !== 'basic-form');
+      var is_defined = (typeof value !== 'undefined' && value !== '' && value !== '-1' && (key == 'selected_workingset_types' || value !== '0') && value !== 'basic-form');
       var is_not_base = (
         !(key == 'page' && value == '1')
           && !(key == 'order_by' && value == $('.order_filter li').first().text())
@@ -478,6 +524,7 @@ var initFilters = () => {
   var searchString = null;
   var selected_codes = [];
   var selected_phenotype_types = [];
+  var selected_workingset_types = [];
   var selected_collections = [];
   var selected_tags = [];
   var selected_data_sources = [];
@@ -500,6 +547,9 @@ var initFilters = () => {
           break;
         case "codingids":
           selected_codes = value.split(',');
+          break;
+        case "selected_workingset_types":
+          selected_workingset_types = value.split(',')
           break;
         case "selected_phenotype_types":
           selected_phenotype_types = value.split(',')
@@ -530,11 +580,20 @@ var initFilters = () => {
       selected_tags.filter(e => e !== '');
       selected_codes.filter(e => e !== '');
       selected_phenotype_types.filter(e => e !== '');
+      selected_workingset_types.filter(e => e !== '');
       selected_data_sources.filter(e => e !== '');
 
       // Set current input
       $("#basic-form input[name=" + key + "]").val(value);
     });
+
+    if (library == PAGE.WORKINGSET) {
+      if (params.searchParams.get('selected_workingset_types') == null) {
+        selected_workingset_types = [];
+        $("#basic-form input[id=selected_workingset_types]").val('');
+        $(".filter_option.types").prop('checked', false);
+      }
+    }
 
     if (library == PAGE.PHENOTYPE) {
       if (params.searchParams.get('selected_phenotype_types') == null) {
@@ -542,7 +601,9 @@ var initFilters = () => {
         $("#basic-form input[id=selected_phenotype_types]").val('');
         $(".filter_option.types").prop('checked', false);
       }
+    }
 
+    if (library == PAGE.PHENOTYPE || library == PAGE.WORKINGSET) {
       if (params.searchParams.get('data_source_ids') == null) {
         selected_data_sources = [];
         $("#basic-form input[id=data_source_ids]").val('');
@@ -877,8 +938,13 @@ var initFilters = () => {
 
     if (initialisedDate) {
       $("#basic-form input[id=page]").val(1);
-      $("#basic-form input[id=startdate]").val(start.format('YYYY-MM-DD'));
-      $("#basic-form input[id=enddate]").val(end.format('YYYY-MM-DD'));
+      if (!isBaseDateRange({"startdate": start, "enddate": end})) {
+        $("#basic-form input[id=startdate]").val(start.format('YYYY-MM-DD'));
+        $("#basic-form input[id=enddate]").val(end.format('YYYY-MM-DD'));
+      } else {
+        $("#basic-form input[id=startdate]").val('');
+        $("#basic-form input[id=enddate]").val('');
+      }
       $("#basic-form").trigger('submit', [{'element': 'date'}]);
     } else {
       initialisedDate = true;
@@ -1165,35 +1231,30 @@ var initFilters = () => {
     
     $("#basic-form input[id=page]").val(1);
 
-    if (library == PAGE.PHENOTYPE) {
-      selected_data_sources = [];
-      $("input:checkbox[name=source_id]:checked").each(function() {
-        selected_data_sources.push(parseInt($(this).val()));
+    if (library == PAGE.WORKINGSET) {
+      selected_workingset_types = [];
+      $("input:checkbox[name=type_name]:checked").each(function(){
+        selected_workingset_types.push($(this).val());
       });
 
+      $("#basic-form input[id=selected_workingset_types]").val(selected_workingset_types.join(','));
+    }
+
+    if (library == PAGE.PHENOTYPE) {
       selected_phenotype_types = [];
       $("input:checkbox[name=type_name]:checked").each(function(){
         selected_phenotype_types.push($(this).val());
       });
 
-      if(isSubset(phenotype_types, selected_phenotype_types)){
-        $("#checkAll_types").prop('checked', true);
-      }
-
       $("#basic-form input[id=selected_phenotype_types]").val(selected_phenotype_types.join(','));
+    }
+
+    if (library == PAGE.PHENOTYPE || library == PAGE.WORKINGSET) {
+      selected_data_sources = [];
+      $("input:checkbox[name=source_id]:checked").each(function() {
+        selected_data_sources.push(parseInt($(this).val()));
+      });
       $("#basic-form input[id=data_source_ids]").val(selected_data_sources.join(','));
-    }
-
-    if(isSubset(brand_associated_collections_ids, selected_collections)){
-      $("#checkAll_collection").prop('checked', true);
-    }
-
-    if(isSubset(brand_associated_tags_ids, selected_tags)){
-      $("#checkAll_tags").prop('checked', true);
-    }
-
-    if(isSubset(coding_system_reference_ids, selected_codes)) {
-      $("#checkAll_coding").prop('checked', true);
     }
 
     $("#basic-form input[id=collection_ids]").val(selected_collections);
