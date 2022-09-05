@@ -29,11 +29,11 @@ class PhenotypeWorkingset(TimeStampedModel):
     data_sources = ArrayField(models.IntegerField(), blank=True, null=True)  # Easy access to data sources
 
     # Contains all data related to Phenotypes/Concepts
-    phenotypes_concepts_data = JSONField()
+    phenotypes_concepts_data = JSONField(default=dict)
 
     # Permissions section for updating/creating phenotype_workingset
     created_by = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,related_name="phenotype_workingset_created")
-    updated_by = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,related_name="phenotype_workingset_updated")
+    modified_by = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,related_name="phenotype_workingset_updated")
     is_deleted = models.NullBooleanField(default=False)
     deleted = models.DateTimeField(null=True, blank=True)
     deleted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,related_name="phenotype_workingset_deleted")
