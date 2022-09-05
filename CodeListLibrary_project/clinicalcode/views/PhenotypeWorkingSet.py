@@ -7,7 +7,7 @@ from django.views.generic.edit import CreateView
 
 from clinicalcode import db_utils
 from clinicalcode.forms.WorkingsetForms import WorkingsetForms
-from clinicalcode.models import PhenotypeWorkingset
+from clinicalcode.models import PhenotypeWorkingset, Tag
 from ..permissions import *
 from clinicalcode.views.Concept import MessageMixin
 
@@ -37,7 +37,20 @@ class PhenotypeWorkingsetCreate(LoginRequiredMixin,HasAccessToCreateCheckMixin,C
 
     def form_invalid(self, form):
         print('test form invalid ')
+        tag_ids = self.request.POST.get('tagids')
+        collections = self.commaSeparate('collections')
+        datasources = self.commaSeparate('datasources')
+
         context = self.get_context_data()
+
+        if tag_ids:
+            new_tag_list = [int(i) for i in tag_ids.split(",")]
+            context['tags'] = Tag.objects.filter(pk__in=new_tag_list)
+
+        context['collections'] = collections #next time need to make sure to itarate like tags
+        context['datasources'] = datasources #itarate datasources
+        print(context)
+
         return self.render_to_response(context)
 
     def form_valid(self, form):
@@ -53,7 +66,6 @@ class PhenotypeWorkingsetCreate(LoginRequiredMixin,HasAccessToCreateCheckMixin,C
 
             self.object = form.save()
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset,self.object.pk,"Created")
-
             print(self.object.pk)
             messages.success(self.request,"Workingset has been successfully created.")
 
