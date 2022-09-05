@@ -43,8 +43,7 @@ class brandMiddleware(MiddlewareMixin):
 
                     settings.CLL_READ_ONLY = True
                     if settings.DEBUG:
-                        print("settings.CLL_READ_ONLY = ",
-                              str(settings.CLL_READ_ONLY))
+                        print("settings.CLL_READ_ONLY = ", str(settings.CLL_READ_ONLY))
 
     #---------------------------------
 
@@ -182,9 +181,7 @@ class brandMiddleware(MiddlewareMixin):
 
         if not settings.CLL_READ_ONLY:
             if (request.user.groups.filter(name='ReadOnlyUsers').exists()):
-                messages.error(request,
-                    "You are assigned as a Read-Only-User. You can access only the ReadOnly website."
-                )
+                messages.error(request, "You are assigned as a Read-Only-User. You can access only the ReadOnly website.")
                 auth.logout(request)
 
         return None

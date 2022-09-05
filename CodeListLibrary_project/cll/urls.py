@@ -26,9 +26,7 @@ from django.views.generic import RedirectView
 
 
 def db_table_exists(table_name):
-    return table_name.lower() in [
-        x.lower() for x in connection.introspection.table_names()
-    ]
+    return table_name.lower() in [x.lower() for x in connection.introspection.table_names()]
 
 
 if settings.DEBUG:
