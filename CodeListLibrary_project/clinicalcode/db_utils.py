@@ -290,8 +290,7 @@ def forkHistoryConcept(user, concept_history_id):
         paper_published=concept['paper_published'],
         source_reference=concept['source_reference'],
         citation_requirements=concept['citation_requirements'],
-        coding_system=CodingSystem.objects.filter(
-            pk=concept['coding_system_id']).first(),
+        coding_system=CodingSystem.objects.filter(pk=concept['coding_system_id']).first(),
         created=concept['created'],
         modified=concept['modified'],
         owner_id=user.id,
@@ -301,8 +300,7 @@ def forkHistoryConcept(user, concept_history_id):
         world_access=concept['world_access'],
         tags=concept['tags'],
         code_attribute_header=concept['code_attribute_header'])
-    concept_obj.changeReason = "Forked root from concept %s/%s/%s" % (
-        concept['id'], concept_history_id, concept['entry_date'])
+    concept_obj.changeReason = "Forked root from concept %s/%s/%s" % (concept['id'], concept_history_id, concept['entry_date'])
     concept_obj.save()
     concept_obj.history.latest().delete()
 
@@ -323,10 +321,8 @@ def forkHistoryConcept(user, concept_history_id):
                 concept=concept_obj,
                 code=cca['code'],
                 attributes=cca['attributes'],
-                created_by=User.objects.filter(
-                    pk=cca['created_by_id']).first(),
-                created=cca['created'],
-                modified=cca['modified'])
+                created_by=User.objects.filter(pk=cca['created_by_id']).first(), created=cca['created'], modified=cca['modified']
+                )
 
         # get components that were active from the time of the concepts effective date
         components = getHistoryComponents(concept['id'],
@@ -337,8 +333,7 @@ def forkHistoryConcept(user, concept_history_id):
             has_components = True
 
             # recreate the historical component
-            concept_ref = Concept.objects.filter(
-                pk=com['concept_ref_id']).first()
+            concept_ref = Concept.objects.filter(pk=com['concept_ref_id']).first()
             concept_ref_history_id = com['concept_ref_history_id']
             # stop FORK from automatically referring to the latest version of child concepts
             #if(concept_ref is not None):
@@ -349,11 +344,9 @@ def forkHistoryConcept(user, concept_history_id):
                 component_type=com['component_type'],
                 concept=concept_obj,
                 concept_ref=concept_ref,
-                created_by=User.objects.filter(
-                    pk=com['created_by_id']).first(),
+                created_by=User.objects.filter(pk=com['created_by_id']).first(),
                 logical_type=com['logical_type'],
-                modified_by=User.objects.filter(
-                    pk=com['modified_by_id']).first(),
+                modified_by=User.objects.filter(pk=com['modified_by_id']).first(),
                 name=com['name'],
                 created=com['created'],
                 modified=com['modified'],
@@ -364,8 +357,7 @@ def forkHistoryConcept(user, concept_history_id):
                 # check if it is a code list component
                 if com['component_type'] == 1 or com['component_type'] == 2:
                     # get historical code list that was active from the time of the concepts effective date
-                    codelist = getHistoryCodeListByComponentId(
-                        com['id'], concept_history_date)
+                    codelist = getHistoryCodeListByComponentId(com['id'], concept_history_date)
 
                     # recreate historical code list
                     codelist_obj = CodeList.objects.create(
@@ -378,8 +370,7 @@ def forkHistoryConcept(user, concept_history_id):
                     # check if the historical code list was created
                     if codelist_obj:
                         # get historical codes that were active from the time of the concepts effective date
-                        codes = getHistoryCodes(codelist['id'],
-                                                concept_history_date)
+                        codes = getHistoryCodes(codelist['id'], concept_history_date)
 
                         for code in codes:
                             # recreate historical code
@@ -393,13 +384,11 @@ def forkHistoryConcept(user, concept_history_id):
                     codelist_obj = None
 
                     # get historical code regex that was active from the time of the concepts effective date
-                    coderegex = getHistoryCodeRegex(com['id'],
-                                                    concept_history_date)
+                    coderegex = getHistoryCodeRegex(com['id'], concept_history_date)
 
                     if coderegex['code_list_id'] is not None:
                         # get historical code list that was active from the time of the concepts effective date
-                        codelist = getHistoryCodeListById(
-                            coderegex['code_list_id'], concept_history_date)
+                        codelist = getHistoryCodeListById(coderegex['code_list_id'], concept_history_date)
 
                         # recreate historical code list
                         codelist_obj = CodeList.objects.create(
@@ -411,8 +400,7 @@ def forkHistoryConcept(user, concept_history_id):
 
                         if codelist_obj:
                             # get historical codes that were active from the time of the concepts effective date
-                            codes = getHistoryCodes(codelist['id'],
-                                                    concept_history_date)
+                            codes = getHistoryCodes(codelist['id'], concept_history_date)
 
                             for code in codes:
                                 # recreate historical code
@@ -437,23 +425,8 @@ def forkHistoryConcept(user, concept_history_id):
         concept_obj.save_without_historical_record()
 
     # Return the new concept primary key.
-    return concept_obj.pk, "Forked from concept %s/%s/%s" % (
-        concept['id'], concept_history_id, concept['entry_date'])
+    return concept_obj.pk, "Forked from concept %s/%s/%s" % (concept['id'], concept_history_id, concept['entry_date'])
 
-
-""" ---------------------------------------------------------------------------
-    Appears to be unused.
-    ---------------------------------------------------------------------------
-def getConceptAsOf(concept_id, history_date):
-    ''' get a historical concept from a point in time '''
-
-    concept = Concept.objects.get(concept_id=concept_id)
-
-    concept_history = concept.history.as_of(history_date)
-
-    return ""
-    ---------------------------------------------------------------------------
-"""
 
 
 def getConceptTreeByConceptId(concept_id):
@@ -462,8 +435,7 @@ def getConceptTreeByConceptId(concept_id):
     '''
     with connection.cursor() as cursor:
 
-        cursor.execute("SELECT * FROM get_concept_tree_by_concept_id(%s);",
-                       [concept_id])
+        cursor.execute("SELECT * FROM get_concept_tree_by_concept_id(%s);", [concept_id])
 
         columns = [col[0] for col in cursor.description]
 
@@ -476,9 +448,7 @@ def getParentConceptTreeByConceptId(concept_id):
     '''
     with connection.cursor() as cursor:
 
-        cursor.execute(
-            "SELECT * FROM get_parent_concept_tree_by_concept_id(%s);",
-            [concept_id])
+        cursor.execute("SELECT * FROM get_parent_concept_tree_by_concept_id(%s);", [concept_id])
 
         columns = [col[0] for col in cursor.description]
 
@@ -495,8 +465,7 @@ def getGroupOfCodesByConceptId(concept_id):
 
         # The codes export must have only one row per unique code.
         # That is a hard requirement. Event with different descriptions
-        cursor.execute(
-            '''SELECT 
+        cursor.execute('''SELECT 
                             DISTINCT c.code code, MAX(c.description) description
                         FROM get_concept_unique_codes_live_v2(%s) c
                         GROUP BY c.code
@@ -526,14 +495,12 @@ def getGroupOfConceptsByWorkingsetId_historical(workingset_id,
     '''
 
     if workingset_history_id is None:
-        workingset_history_id = WorkingSet.objects.get(
-            pk=workingset_id).history.latest('history_id').history_id
+        workingset_history_id = WorkingSet.objects.get(pk=workingset_id).history.latest('history_id').history_id
 
     concepts = OrderedDict([])
-    concept_informations = json.loads(WorkingSet.history.get(
-        id=workingset_id,
-        history_id=workingset_history_id).concept_informations,
-                                      object_pairs_hook=OrderedDict)
+    concept_informations = json.loads(WorkingSet.history.get(id=workingset_id, history_id=workingset_history_id).concept_informations
+                                      , object_pairs_hook=OrderedDict
+                                      )
 
     c = OrderedDict([])
     for c in concept_informations:
@@ -551,12 +518,9 @@ def get_concept_versions_in_workingset(workingset_id,
 
     with connection.cursor() as cursor:
         if workingset_history_id is None:
-            concept_version = WorkingSet.objects.get(
-                id=workingset_id).concept_version
+            concept_version = WorkingSet.objects.get(id=workingset_id).concept_version
         else:
-            concept_version = WorkingSet.history.get(
-                id=workingset_id,
-                history_id=workingset_history_id).concept_version
+            concept_version = WorkingSet.history.get(id=workingset_id, history_id=workingset_history_id).concept_version
 
         return concept_version
 
@@ -1010,11 +974,10 @@ def getConceptBrands(request, concept_list):
         return concept brands 
     '''
     conceptBrands = {}
-    concepts = Concept.objects.filter(id__in=concept_list).values(
-        'id', 'name', 'group')
+    concepts = Concept.objects.filter(id__in=concept_list).values('id', 'name', 'group')
 
     for c in concepts:
-        conceptBrands[c['id']] = []  # ''
+        conceptBrands[c['id']] = []  
         if c['group'] != None:
             g = Group.objects.get(pk=c['group'])
             for item in request.BRAND_GROUPS:
@@ -1053,21 +1016,17 @@ def revertHistoryWorkingset(user, workingset_history_id):
     workingset_obj.description = workingset['description']
     workingset_obj.publication = workingset['publication']
 
-    workingset_obj.created_by = User.objects.filter(
-        pk=workingset['created_by_id']).first()
+    workingset_obj.created_by = User.objects.filter(pk=workingset['created_by_id']).first()
 
     workingset_obj.updated_by = User.objects.filter(pk=user.id).first()
 
     workingset_obj.publication_doi = workingset['publication_doi']
     workingset_obj.publication_link = workingset['publication_link']
-    workingset_obj.secondary_publication_links = workingset[
-        'secondary_publication_links']
+    workingset_obj.secondary_publication_links = workingset['secondary_publication_links']
     workingset_obj.source_reference = workingset['source_reference']
     workingset_obj.citation_requirements = workingset['citation_requirements']
-    workingset_obj.owner = User.objects.filter(
-        pk=workingset['owner_id']).first()
-    workingset_obj.group = Group.objects.filter(
-        pk=workingset['group_id']).first()
+    workingset_obj.owner = User.objects.filter(pk=workingset['owner_id']).first()
+    workingset_obj.group = Group.objects.filter(pk=workingset['group_id']).first()
     workingset_obj.owner_access = workingset['owner_access']
     workingset_obj.group_access = workingset['group_access']
     workingset_obj.world_access = workingset['world_access']
@@ -1079,8 +1038,7 @@ def revertHistoryWorkingset(user, workingset_history_id):
     ##The concepts will automatically refer to the latest version.
     #workingset_obj.concept_version = getWSConceptsHistoryIDs(str(workingset['concept_informations']))
 
-    workingset_obj.changeReason = "Working set reverted from version " + str(
-        workingset_history_id) + ""
+    workingset_obj.changeReason = "Working set reverted from version " + str(workingset_history_id) + ""
 
     if workingset_obj:
         # get the historic date this was effective from
@@ -1088,8 +1046,7 @@ def revertHistoryWorkingset(user, workingset_history_id):
         #workingset_obj.save()
 
         # get tags that were active from the time of the working set effective date
-        workingset_tag_maps = getHistoryWorkingsetTagMaps(
-            workingset['id'], workingset_history_date)
+        workingset_tag_maps = getHistoryWorkingsetTagMaps(workingset['id'], workingset_history_date)
 
         for wtm in workingset_tag_maps:
             has_tags = True
@@ -1097,8 +1054,7 @@ def revertHistoryWorkingset(user, workingset_history_id):
             wtm_obj = WorkingSetTagMap.objects.create(
                 workingset=workingset_obj,
                 tag=Tag.objects.filter(pk=wtm['tag_id']).first(),
-                created_by=User.objects.filter(
-                    pk=wtm['created_by_id']).first(),
+                created_by=User.objects.filter(pk=wtm['created_by_id']).first(),
                 created=wtm['created'],
                 modified=wtm['modified'])
 
@@ -1241,8 +1197,7 @@ def saveDependentConceptsChangeReason_OLD(concept_ref_id, reason):
         if concept_id['concept_id'] != int(concept_ref_id):
             concept = Concept.objects.get(id=concept_id['concept_id'])
             try:
-                concept.modified_by = User.objects.get(
-                    username__iexact='system')
+                concept.modified_by = User.objects.get(username__iexact='system')
             except:
                 concept.modified_by = None
             concept.changeReason = standardiseChangeReason(reason)
@@ -1253,11 +1208,9 @@ def saveDependentConceptsChangeReason_OLD(concept_ref_id, reason):
         # Now need to get all components which have this concept with the new
         # version number; concepts only.
 
-        version = Concept.objects.get(
-            id=concept_id['concept_id']).history.latest()
+        version = Concept.objects.get(id=concept_id['concept_id']).history.latest()
         # concept-components only
-        components = Component.objects.filter(
-            concept_ref=concept_id['concept_id']).filter(component_type=1)
+        components = Component.objects.filter(concept_ref=concept_id['concept_id']).filter(component_type=1)
         for component in components:
             component.concept_ref_history_id = version.pk
             component.save()
@@ -1307,21 +1260,18 @@ def saveDependentWorkingsetChangeReason(id, parent_concepts, reason):
     # Save a history entry for each workingset.
     workingsets_ids = []
     for workingset in workingsets:
-        ws_conceptIDs = getConceptsFromJSON(
-            concepts_json=workingset.concept_informations)
+        ws_conceptIDs = getConceptsFromJSON(concepts_json=workingset.concept_informations)
         ws_conceptIDs = [int(x) for x in ws_conceptIDs]
         if any((True for x in parent_concepts_ids if x in ws_conceptIDs)):
             workingsets_ids.append(workingset.pk)
             try:
-                workingset.updated_by = User.objects.get(
-                    username__iexact='system')
+                workingset.updated_by = User.objects.get(username__iexact='system')
             except:
                 workingset.updated_by = None
-            workingset.concept_version = getWSConceptsHistoryIDs(
-                workingset.concept_informations,
-                saved_concept_version=workingset.concept_version,
-                concepts_to_update=list(
-                    set(ws_conceptIDs) & set(parent_concepts_ids)))
+            workingset.concept_version = getWSConceptsHistoryIDs(workingset.concept_informations,
+                                                                saved_concept_version=workingset.concept_version,
+                                                                concepts_to_update=list(set(ws_conceptIDs) & set(parent_concepts_ids))
+                                                                )
             workingset.changeReason = standardiseChangeReason(reason)
             workingset.save()
 
@@ -1348,8 +1298,7 @@ def hasConcurrentUdates(concept_id, shown_version_id):
     return False
     #############################
 
-    latest_history_id = Concept.objects.get(
-        pk=concept_id).history.latest('history_id').history_id
+    latest_history_id = Concept.objects.get(pk=concept_id).history.latest('history_id').history_id
 
     if shown_version_id != latest_history_id:
         return True
@@ -1376,16 +1325,14 @@ def getWSConceptsHistoryIDs(concept_informations,
     else:
         concepIDs = concept_ids_list
 
-    stored_concepts = json.loads(concept_informations,
-                                 object_pairs_hook=OrderedDict)
+    stored_concepts = json.loads(concept_informations, object_pairs_hook=OrderedDict)
 
     new_concept_version = OrderedDict([])
 
     # loop for concept info
     for concept_info in stored_concepts:
         for key, value in concept_info.items():
-            latest_history_id = Concept.objects.get(
-                pk=key).history.latest('history_id').history_id
+            latest_history_id = Concept.objects.get(pk=key).history.latest('history_id').history_id
             if (len(concepts_to_update) > 0 and saved_concept_version):
                 if (int(key) in concepts_to_update):
                     new_concept_version[key] = latest_history_id
@@ -1408,8 +1355,7 @@ def getWSConceptsVersionsData(concept_informations, submitted_concept_version):
     if len(concepIDs) == 0:
         return {}
 
-    stored_concepts = json.loads(concept_informations,
-                                 object_pairs_hook=OrderedDict)
+    stored_concepts = json.loads(concept_informations, object_pairs_hook=OrderedDict)
 
     new_concept_version = OrderedDict([])
 
@@ -1417,8 +1363,7 @@ def getWSConceptsVersionsData(concept_informations, submitted_concept_version):
     for concept_info in stored_concepts:
         for key, value in concept_info.items():
             if (submitted_concept_version[key] == "latest"):
-                latest_history_id = Concept.objects.get(
-                    pk=key).history.latest('history_id').history_id
+                latest_history_id = Concept.objects.get(pk=key).history.latest('history_id').history_id
                 new_concept_version[key] = latest_history_id
             else:
                 new_concept_version[key] = int(submitted_concept_version[key])
@@ -1496,24 +1441,19 @@ def getHistoryComponents(concept_id,
         types = list(t[0] for t in Component.LOGICAL_TYPES)
         for component in components:
             if component['component_type'] in [3, 4]:
-                coderegex = getHistoryCodeRegex(component['id'],
-                                                concept_history_date)
+                coderegex = getHistoryCodeRegex(component['id'], concept_history_date)
                 component['regex_code'] = coderegex['regex_code']
 
             if component['component_type'] == 1:  # concept
                 # Adding extra data here to indicate which group the component
                 # belongs to (only for concepts).
-                component_group_id = Concept.objects.get(
-                    id=component['concept_ref_id']).group_id
+                component_group_id = Concept.objects.get(id=component['concept_ref_id']).group_id
                 if component_group_id is not None:
-                    component['group'] = Group.objects.get(
-                        id=component_group_id).name
+                    component['group'] = Group.objects.get(id=component_group_id).name
 
                 # if child concept, check if this version is published
                 if check_published_child_concept:
-                    component['is_published'] = checkIfPublished(
-                        Concept, component['concept_ref_id'],
-                        component['concept_ref_history_id'])
+                    component['is_published'] = checkIfPublished(Concept, component['concept_ref_id'], component['concept_ref_history_id'])
 
             logical_type = int(component['logical_type'])
             if logical_type in types:
@@ -1527,11 +1467,9 @@ def getHistoryComponents(concept_id,
             # If we wish to include the popover display of codes available, we will
             # need to add the codelist.codes.all data here for each component.
             if not skip_codes:
-                codelist = getHistoryCodeListByComponentId(
-                    component['id'], concept_history_date)
+                codelist = getHistoryCodeListByComponentId(component['id'], concept_history_date)
                 if codelist is not None:
-                    codes = getHistoryCodes(codelist['id'],
-                                            concept_history_date)
+                    codes = getHistoryCodes(codelist['id'], concept_history_date)
                 else:
                     codes = []
 
@@ -1679,8 +1617,7 @@ def revertHistoryConcept(user, concept_history_id):
     # update concept with historical information
     concept_obj.name = concept['name']
     concept_obj.description = concept['description']
-    concept_obj.created_by = User.objects.filter(
-        pk=concept['created_by_id']).first()
+    concept_obj.created_by = User.objects.filter(pk=concept['created_by_id']).first()
     concept_obj.author = concept['author']
     concept_obj.entry_date = concept['entry_date']
     concept_obj.modified_by = User.objects.filter(pk=user.id).first()
@@ -1688,13 +1625,11 @@ def revertHistoryConcept(user, concept_history_id):
     concept_obj.validation_description = concept['validation_description']
     concept_obj.publication_doi = concept['publication_doi']
     concept_obj.publication_link = concept['publication_link']
-    concept_obj.secondary_publication_links = concept[
-        'secondary_publication_links']
+    concept_obj.secondary_publication_links = concept['secondary_publication_links']
     concept_obj.paper_published = concept['paper_published']
     concept_obj.source_reference = concept['source_reference']
     concept_obj.citation_requirements = concept['citation_requirements']
-    concept_obj.coding_system = CodingSystem.objects.filter(
-        pk=concept['coding_system_id']).first()
+    concept_obj.coding_system = CodingSystem.objects.filter(pk=concept['coding_system_id']).first()
     concept_obj.created = concept['created']
     concept_obj.modified = concept['modified']
     concept_obj.owner = User.objects.filter(pk=concept['owner_id']).first()
@@ -1712,23 +1647,20 @@ def revertHistoryConcept(user, concept_history_id):
         concept_history_date = concept['history_date']
 
         # get ConceptCodeAttributes that were active from the time of the concepts effective date
-        concept_ConceptCodeAttributes = getHistory_ConceptCodeAttribute(
-            concept_id=concept['id'],
-            concept_history_date=concept_history_date,
-            code_attribute_header=concept['code_attribute_header'],
-            expand_attrs_into_cols=False)
+        concept_ConceptCodeAttributes = getHistory_ConceptCodeAttribute(concept_id=concept['id'],
+                                                                        concept_history_date=concept_history_date,
+                                                                        code_attribute_header=concept['code_attribute_header'],
+                                                                        expand_attrs_into_cols=False)
 
         for cca in concept_ConceptCodeAttributes:
             has_ConceptCodeAttributes = True
 
-            cca_obj = ConceptCodeAttribute.objects.create(
-                concept=concept_obj,
-                code=cca['code'],
-                attributes=cca['attributes'],
-                created_by=User.objects.filter(
-                    pk=cca['created_by_id']).first(),
-                created=cca['created'],
-                modified=cca['modified'])
+            cca_obj = ConceptCodeAttribute.objects.create(concept=concept_obj,
+                                                        code=cca['code'],
+                                                        attributes=cca['attributes'],
+                                                        created_by=User.objects.filter(pk=cca['created_by_id']).first(),
+                                                        created=cca['created'],
+                                                        modified=cca['modified'])
 
         # get components that were active from the time of the concepts effective date
         components = getHistoryComponents(concept['id'],
@@ -1739,8 +1671,7 @@ def revertHistoryConcept(user, concept_history_id):
             has_components = True
 
             # recreate the historical component
-            concept_ref = Concept.objects.filter(
-                pk=com['concept_ref_id']).first()
+            concept_ref = Concept.objects.filter(pk=com['concept_ref_id']).first()
             concept_ref_history_id = com['concept_ref_history_id']
             # stop REVERT from automatically referring to the latest version of child concepts
             #if(concept_ref is not None):
@@ -1752,11 +1683,9 @@ def revertHistoryConcept(user, concept_history_id):
                 concept=concept_obj,
                 concept_ref=
                 concept_ref,  #Concept.objects.filter(pk=com['concept_ref_id']).first(),
-                created_by=User.objects.filter(
-                    pk=com['created_by_id']).first(),
+                created_by=User.objects.filter(pk=com['created_by_id']).first(),
                 logical_type=com['logical_type'],
-                modified_by=User.objects.filter(
-                    pk=com['modified_by_id']).first(),
+                modified_by=User.objects.filter(pk=com['modified_by_id']).first(),
                 name=com['name'],
                 created=com['created'],
                 modified=com['modified'],
@@ -1769,8 +1698,7 @@ def revertHistoryConcept(user, concept_history_id):
                 # check if it is a code list component
                 if com['component_type'] == 1 or com['component_type'] == 2:
                     # get historical code list that was active from the time of the concepts effective date
-                    codelist = getHistoryCodeListByComponentId(
-                        com['id'], concept_history_date)
+                    codelist = getHistoryCodeListByComponentId(com['id'], concept_history_date)
 
                     # recreate historical code list
                     codelist_obj = CodeList.objects.create(
@@ -1783,8 +1711,7 @@ def revertHistoryConcept(user, concept_history_id):
                     # check if the historical code list was created
                     if codelist_obj:
                         # get historical codes that were active from the time of the concepts effective date
-                        codes = getHistoryCodes(codelist['id'],
-                                                concept_history_date)
+                        codes = getHistoryCodes(codelist['id'], concept_history_date)
 
                         for code in codes:
                             # recreate historical code
@@ -1798,13 +1725,11 @@ def revertHistoryConcept(user, concept_history_id):
                     codelist_obj = None
 
                     # get historical code regex that was active from the time of the concepts effective date
-                    coderegex = getHistoryCodeRegex(com['id'],
-                                                    concept_history_date)
+                    coderegex = getHistoryCodeRegex(com['id'], concept_history_date)
 
                     if coderegex['code_list_id'] is not None:
                         # get historical code list that was active from the time of the concepts effective date
-                        codelist = getHistoryCodeListById(
-                            coderegex['code_list_id'], concept_history_date)
+                        codelist = getHistoryCodeListById(coderegex['code_list_id'], concept_history_date)
 
                         # recreate historical code list
                         codelist_obj = CodeList.objects.create(
@@ -1816,8 +1741,7 @@ def revertHistoryConcept(user, concept_history_id):
 
                         if codelist_obj:
                             # get historical codes that were active from the time of the concepts effective date
-                            codes = getHistoryCodes(codelist['id'],
-                                                    concept_history_date)
+                            codes = getHistoryCodes(codelist['id'], concept_history_date)
 
                             for code in codes:
                                 # recreate historical code
@@ -1857,43 +1781,30 @@ def build_sql_parameters(rules):
     for cond in rules['rules']:
 
         if 'condition' not in cond:
-            if cond['operator'] == 'is_null' or cond[
-                    'operator'] == 'is_not_null' or cond[
-                        'operator'] == 'is_empty' or cond[
-                            'operator'] == 'is_not_empty':
+            if cond['operator'] == 'is_null' or cond['operator'] == 'is_not_null' or cond['operator'] == 'is_empty' or cond['operator'] == 'is_not_empty':
                 continue
             elif cond['type'] == 'string':
                 cond_list.append("'{}'".format(cond['value']))
             elif cond['type'] == 'date':
-                if cond['operator'] == 'between' or cond[
-                        'operator'] == 'not_between':
-                    cond_list.append("to_date('{}', 'YYYY-MM-DD')".format(
-                        cond['value'][0]))
-                    cond_list.append("to_date('{}', 'YYYY-MM-DD')".format(
-                        cond['value'][1]))
+                if cond['operator'] == 'between' or cond['operator'] == 'not_between':
+                    cond_list.append("to_date('{}', 'YYYY-MM-DD')".format(cond['value'][0]))
+                    cond_list.append("to_date('{}', 'YYYY-MM-DD')".format(cond['value'][1]))
                 else:
-                    cond_list.append("to_date('{}', 'YYYY-MM-DD')".format(
-                        cond['value']))
+                    cond_list.append("to_date('{}', 'YYYY-MM-DD')".format(cond['value']))
             elif cond['type'] == 'datetime':
-                if cond['operator'] == 'between' or cond[
-                        'operator'] == 'not_between':
-                    cond_list.append("to_date('{}', 'YYYY-MM-DD')".format(
-                        cond['value'][0]))
-                    cond_list.append("to_date('{}', 'YYYY-MM-DD')".format(
-                        cond['value'][1]))
+                if cond['operator'] == 'between' or cond['operator'] == 'not_between':
+                    cond_list.append("to_date('{}', 'YYYY-MM-DD')".format(cond['value'][0]))
+                    cond_list.append("to_date('{}', 'YYYY-MM-DD')".format(cond['value'][1]))
                 else:
-                    cond_list.append("to_date('{}', 'YYYY-MM-DD')".format(
-                        cond['value']))
+                    cond_list.append("to_date('{}', 'YYYY-MM-DD')".format(cond['value']))
             elif cond['type'] == 'integer':
-                if cond['operator'] == 'between' or cond[
-                        'operator'] == 'not_between':
+                if cond['operator'] == 'between' or cond['operator'] == 'not_between':
                     cond_list.append(cond['value'][0])
                     cond_list.append(cond['value'][1])
                 else:
                     cond_list.append(cond['value'])
             elif cond['type'] == 'double':
-                if cond['operator'] == 'between' or cond[
-                        'operator'] == 'not_between':
+                if cond['operator'] == 'between' or cond['operator'] == 'not_between':
                     cond_list.append(cond['value'][0])
                     cond_list.append(cond['value'][1])
                 else:
@@ -1943,12 +1854,10 @@ def get_where_query(component_type, code_field, desc_field, search_text,
     '''
 
     if not is_valid_column_name(code_field):
-        raise NameError('NOT is_valid_column_name() error (' +
-                        str(code_field).replace("'", "\'") + ').')
+        raise NameError('NOT is_valid_column_name() error (' + str(code_field).replace("'", "\'") + ').')
 
     if not is_valid_column_name(desc_field):
-        raise NameError('NOT is_valid_column_name() error (' +
-                        str(desc_field).replace("'", "\'") + ').')
+        raise NameError('NOT is_valid_column_name() error (' + str(desc_field).replace("'", "\'") + ').')
 
     strSQL = ""
     paramList = []
@@ -1959,27 +1868,19 @@ def get_where_query(component_type, code_field, desc_field, search_text,
             strSQL = " WHERE ( %s )" % (search_text)
             strSQL = strSQL.format(search_params)  # seems does nothing ?
             strSQL = strSQL.replace("?", "%s")
-            strSQL = strSQL % tuple(
-                (get_placeholder(item) for item in search_params))
+            strSQL = strSQL % tuple((get_placeholder(item) for item in search_params))
             paramList.extend(search_params)
 
-        elif component_type in (Component.COMPONENT_TYPE_EXPRESSION_SELECT,
-                                Component.COMPONENT_TYPE_EXPRESSION):
+        elif component_type in (Component.COMPONENT_TYPE_EXPRESSION_SELECT, Component.COMPONENT_TYPE_EXPRESSION):
             if column_search == CodeRegex.CODE:
                 # check user choice of case-sensitive
-                strSQL = " WHERE %s " % (
-                    code_field
-                ) if case_sensitive_search else " WHERE UPPER(%s) " % (
-                    code_field)
+                strSQL = " WHERE %s " % (code_field) if case_sensitive_search else " WHERE UPPER(%s) " % (code_field)
                 strSQL = strSQL + " LIKE  %s " if case_sensitive_search else strSQL + " LIKE  UPPER(%s) "
 
                 paramList.append(regex_code)
             elif column_search == CodeRegex.DESCRIPTION:
                 # check user choice of case-sensitive
-                strSQL = " WHERE %s " % (
-                    desc_field
-                ) if case_sensitive_search else " WHERE UPPER(%s) " % (
-                    desc_field)
+                strSQL = " WHERE %s " % (desc_field) if case_sensitive_search else " WHERE UPPER(%s) " % (desc_field)
                 strSQL = strSQL + " LIKE  %s " if case_sensitive_search else strSQL + " LIKE  UPPER(%s) "
                 paramList.append(regex_code)
 
@@ -2067,25 +1968,21 @@ def update_codelist_codes(component_type,
     current_date = now()
 
     update_sql1 = "with deleted_rows AS ( "
-    update_sql2 = "DELETE FROM public.clinicalcode_code c WHERE code_list_id = %s AND NOT EXISTS( " % (
-        str(code_list_id))
+    update_sql2 = "DELETE FROM public.clinicalcode_code c WHERE code_list_id = %s AND NOT EXISTS( " % (str(code_list_id))
     update_sql3 = "SELECT 1 FROM %s t " % (table_name)
     #update_sql4= "%s AND c.code = t."+code_field+" and c.description = t."+desc_field+") " % (where_sql)
-    update_sql4 = where_sql_dic[
-        'strSQL'] + " AND c.code = t." + code_field + " and c.description = t." + desc_field + ") "
+    update_sql4 = where_sql_dic['strSQL'] + " AND c.code = t." + code_field + " and c.description = t." + desc_field + ") "
     paramList.extend(where_sql_dic['paramList'])
     update_sql5 = "RETURNING * ) "
     update_sql6 = "INSERT INTO public.clinicalcode_historicalcode(id, code, description, history_date, history_type, code_list_id, history_user_id) "
-    update_sql7 = "SELECT id, code, description, '%s', '-', code_list_id, %s FROM deleted_rows; " % (
-        str(current_date), str(user_id))
+    update_sql7 = "SELECT id, code, description, '%s', '-', code_list_id, %s FROM deleted_rows; " % (str(current_date), str(user_id))
     update_sql8_dic = get_codes_insert_query(code_field, code_list_id,
                                              desc_field, table_name,
                                              where_sql_dic, current_date,
                                              user_id)
     paramList.extend(update_sql8_dic['paramList'])
 
-    update_sql = update_sql1 + update_sql2 + update_sql3 + update_sql4 + update_sql5 + update_sql6 + update_sql7 + update_sql8_dic[
-        'strSQL']
+    update_sql = update_sql1 + update_sql2 + update_sql3 + update_sql4 + update_sql5 + update_sql6 + update_sql7 + update_sql8_dic['strSQL']
 
     with connections[database_connection_name].cursor() as cursor:
         #cursor.execute(update_sql)
@@ -2122,8 +2019,7 @@ def get_codes_insert_query(code_field, code_list_id, desc_field, table_name,
 
     paramList = []
 
-    select_sql = "SELECT t.%s as code, %s as code_list_id, t.%s as description FROM %s t " % (
-        code_field, str(code_list_id), desc_field, table_name)
+    select_sql = "SELECT t.%s as code, %s as code_list_id, t.%s as description FROM %s t " % (code_field, str(code_list_id), desc_field, table_name)
     select_sql += " LEFT OUTER JOIN public.clinicalcode_code cc ON cc.code = t." + code_field + " and cc.description = t." + desc_field
     select_sql += " AND cc.code_list_id = %s "
     paramList.append(str(code_list_id))
@@ -2132,12 +2028,10 @@ def get_codes_insert_query(code_field, code_list_id, desc_field, table_name,
     paramList.extend(where_sql['paramList'])
 
     insert_sql = "with saved_rows AS ("
-    insert_sql += "INSERT INTO public.clinicalcode_code(code, code_list_id, description) %s and cc.code IS NULL " % (
-        select_sql)
+    insert_sql += "INSERT INTO public.clinicalcode_code(code, code_list_id, description) %s and cc.code IS NULL " % (select_sql)
     insert_sql += "RETURNING * ) "
     insert_sql += "INSERT INTO public.clinicalcode_historicalcode(id, code, description, history_date, history_type, code_list_id, history_user_id) "
-    insert_sql += "SELECT id, code, description, '%s', '+', code_list_id, %s FROM saved_rows;" % (
-        str(current_date), str(user_id))
+    insert_sql += "SELECT id, code, description, '%s', '+', code_list_id, %s FROM saved_rows;" % (str(current_date), str(user_id))
 
     return {'strSQL': insert_sql, 'paramList': paramList}
 
@@ -2159,17 +2053,14 @@ def update_expression_codes(component_type, database_connection_name,
     current_date = now()
 
     update_sql = "with deleted_rows AS ( "
-    update_sql += "DELETE FROM public.clinicalcode_code c WHERE code_list_id = %s AND NOT EXISTS( " % (
-        str(code_list_id))
+    update_sql += "DELETE FROM public.clinicalcode_code c WHERE code_list_id = %s AND NOT EXISTS( " % (str(code_list_id))
     update_sql += "SELECT 1 FROM %s t " % (table_name)
     #update_sql += "%s AND c.code = t."+code_field+" and c.description = t."+desc_field+") " % (where_sql)
-    update_sql += where_sql_dic[
-        'strSQL'] + " AND c.code = t." + code_field + " and c.description = t." + desc_field + ") "
+    update_sql += where_sql_dic['strSQL'] + " AND c.code = t." + code_field + " and c.description = t." + desc_field + ") "
     paramList.extend(where_sql_dic['paramList'])
     update_sql += "RETURNING * ) "
     update_sql += "INSERT INTO public.clinicalcode_historicalcode(id, code, description, history_date, history_type, code_list_id, history_user_id) "
-    update_sql += "SELECT id, code, description, '%s', '-', code_list_id, %s FROM deleted_rows; " % (
-        str(current_date), str(user_id))
+    update_sql += "SELECT id, code, description, '%s', '-', code_list_id, %s FROM deleted_rows; " % (str(current_date), str(user_id))
 
     #update_sql += get_codes_insert_query(code_field, code_list_id, desc_field, table_name, where_sql_dic, current_date, user_id)
     sql_1 = get_codes_insert_query(code_field, code_list_id, desc_field,
@@ -2201,8 +2092,7 @@ def search_codes(component_type,
     '''
         Search code based on SQL LIKE or regex.
     '''
-    strSQL = "SELECT DISTINCT %s AS code, %s AS description FROM %s t " % (
-        code_field, desc_field, table_name)
+    strSQL = "SELECT DISTINCT %s AS code, %s AS description FROM %s t " % (code_field, desc_field, table_name)
     with connections[database_connection_name].cursor() as cursor:
         paramList = []
         get_where_query_dic = get_where_query(component_type, code_field,
@@ -2343,29 +2233,27 @@ def chk_children_permission_and_deletion(request,
     is_ok = False
     error_dict = {}
 
-    is_permitted_to_all, error_perms = allowed_to_view_children(
-        request,
-        set_class,
-        set_id,
-        returnErrors=True,
-        WS_concepts_json=WS_concepts_json,
-        WS_concept_version=submitted_concept_version,
-        set_history_id=set_history_id)
-    children_not_deleted, error_del = chk_deleted_children(
-        request,
-        set_class,
-        set_id,
-        returnErrors=True,
-        WS_concepts_json=WS_concepts_json,
-        WS_concept_version=submitted_concept_version,
-        set_history_id=set_history_id)
+    is_permitted_to_all, error_perms = allowed_to_view_children(request,
+                                                                set_class,
+                                                                set_id,
+                                                                returnErrors=True,
+                                                                WS_concepts_json=WS_concepts_json,
+                                                                WS_concept_version=submitted_concept_version,
+                                                                set_history_id=set_history_id)
+    
+    children_not_deleted, error_del = chk_deleted_children(request,
+                                                            set_class,
+                                                            set_id,
+                                                            returnErrors=True,
+                                                            WS_concepts_json=WS_concepts_json,
+                                                            WS_concept_version=submitted_concept_version,
+                                                            set_history_id=set_history_id)
 
     is_ok = (is_permitted_to_all & children_not_deleted)
 
     dd = defaultdict(list)
 
-    for d in (error_perms,
-              error_del):  # you can list as many input dicts as you want here
+    for d in (error_perms, error_del):  # you can list as many input dicts as you want here
         for key, value in d.items():
             dd[key].append(value)
 
@@ -2381,8 +2269,7 @@ def get_concept_structure_Live(concept_id):
     '''
     with connection.cursor() as cursor:
 
-        cursor.execute("SELECT * FROM get_concept_structure_Live(%s);",
-                       [concept_id])
+        cursor.execute("SELECT * FROM get_concept_structure_Live(%s);", [concept_id])
 
         columns = [col[0] for col in cursor.description]
 
@@ -2424,35 +2311,26 @@ def get_all_levels_codes(df1, concept_id, level=1, includeExclude=None):
     df = df1
     #max_depth = df["level_depth"].max()
 
-    level_codes = df[(df['component_type'] != 1) & (df['level_depth'] == level)
-                     &
-                     (df['concept_id'] == concept_id)]  # & (df['code'] != '')
+    level_codes = df[(df['component_type'] != 1) & (df['level_depth'] == level) & (df['concept_id'] == concept_id)]  # & (df['code'] != '')
 
     #-------------------
-    child_concepts = df[(df['component_type'] == 1) &
-                        (df['level_depth'] == level) &
-                        (df['concept_id']
-                         == concept_id)]  # & (df['code'] != '')
+    child_concepts = df[(df['component_type'] == 1) & (df['level_depth'] == level) & (df['concept_id'] == concept_id)]  # & (df['code'] != '')
 
     if not child_concepts.empty:
         for c in child_concepts.itertuples():
-            next_level_codes = get_all_levels_codes(
-                df1,
-                concept_id=c.concept_ref_id,
-                level=c.level_depth + 1  # go to next level
-                ,
-                includeExclude=c.logical_type)
+            next_level_codes = get_all_levels_codes(df1,
+                                                    concept_id = c.concept_ref_id,
+                                                    level = c.level_depth + 1  # go to next level
+                                                    , includeExclude=c.logical_type)
 
-            level_codes = pd.concat([level_codes, next_level_codes],
-                                    ignore_index=True)
+            level_codes = pd.concat([level_codes, next_level_codes], ignore_index=True)
     #-------------------
 
     return_codes = get_net_codes(level_codes)
 
     # mask the net codes with their parent include/Exclude flag
     if includeExclude != None:
-        return_codes['logical_type'] = [includeExclude] * len(
-            return_codes.index)
+        return_codes['logical_type'] = [includeExclude] * len(return_codes.index)
 
     return return_codes
 
@@ -2466,8 +2344,7 @@ def get_net_codes(dfi):
     x_codes = dfi[(dfi['logical_type'] == 2)]  # & (dfi['code'] != '')
     exclude_codes = x_codes.drop_duplicates(['code'])[['code']]
 
-    i_codes = dfi[(dfi['logical_type'] == 1) & (
-        ~dfi['code'].isin(exclude_codes['code']))]  # & (dfi['code'] != '')
+    i_codes = dfi[(dfi['logical_type'] == 1) & (~dfi['code'].isin(exclude_codes['code']))]  # & (dfi['code'] != '')
 
     include_codes = i_codes.drop_duplicates(['code', 'description'])
 
@@ -2481,37 +2358,29 @@ def save_child_concept_codes(concept_id, component_id, referenced_concept_id,
     componentObj = Component.objects.get(pk=component_id)
     if insert_or_update.lower() == 'insert':
         # create codelist obj.
-        code_list = CodeList.objects.create(component=componentObj,
-                                            description='child-concept')
+        code_list = CodeList.objects.create(component=componentObj, description='child-concept')
 
         # create code objects
         # get codes of the re. concept  / for chosen version
-        if Concept.objects.get(pk=referenced_concept_id).history.latest(
-        ).pk == concept_ref_history_id:
+        if Concept.objects.get(pk=referenced_concept_id).history.latest().pk == concept_ref_history_id:
             codes = getGroupOfCodesByConceptId(referenced_concept_id)
         else:
-            codes = getGroupOfCodesByConceptId_HISTORICAL(
-                concept_id=referenced_concept_id,
-                concept_history_id=concept_ref_history_id)
+            codes = getGroupOfCodesByConceptId_HISTORICAL(concept_id=referenced_concept_id, concept_history_id=concept_ref_history_id)
 
         for row in codes:
-            obj, created = Code.objects.get_or_create(
-                code_list=code_list,
-                code=row['code'],
-                defaults={'description': row['description']})
+            obj, created = Code.objects.get_or_create(code_list=code_list,
+                                                      code=row['code'],
+                                                      defaults={'description': row['description']})
 
     elif insert_or_update.lower() == 'update':
         # should be 1 codelist
         code_list = CodeList.objects.get(component=componentObj)
 
         # find the add and remove codes
-        if Concept.objects.get(pk=referenced_concept_id).history.latest(
-        ).pk == concept_ref_history_id:
+        if Concept.objects.get(pk=referenced_concept_id).history.latest().pk == concept_ref_history_id:
             new_codes = getGroupOfCodesByConceptId(referenced_concept_id)
         else:
-            new_codes = getGroupOfCodesByConceptId_HISTORICAL(
-                concept_id=referenced_concept_id,
-                concept_history_id=concept_ref_history_id)
+            new_codes = getGroupOfCodesByConceptId_HISTORICAL(concept_id=referenced_concept_id, concept_history_id=concept_ref_history_id)
 
         new_codes_lst = [d['code'] for d in new_codes]
         # old saved codes
@@ -2526,8 +2395,7 @@ def save_child_concept_codes(concept_id, component_id, referenced_concept_id,
 
         # delete old codes
         for code in deleted_codes:
-            codes_to_del = Code.objects.filter(code_list_id=code_list.pk,
-                                               code=code)
+            codes_to_del = Code.objects.filter(code_list_id=code_list.pk, code=code)
 
             for code_to_del in codes_to_del:
                 try:
@@ -2538,15 +2406,13 @@ def save_child_concept_codes(concept_id, component_id, referenced_concept_id,
         # add new codes
         for code in added_codes:
             # check it doesn't already exist
-            codes_to_add = Code.objects.filter(code_list_id=code_list.pk,
-                                               code=code)
+            codes_to_add = Code.objects.filter(code_list_id=code_list.pk, code=code)
 
             if not codes_to_add:
-                Code.objects.create(
-                    code_list=code_list,
-                    code=code,
-                    description=next(item for item in new_codes
-                                     if item["code"] == code)['description'])
+                Code.objects.create(code_list=code_list,
+                                    code=code,
+                                    description=next(item for item in new_codes if item["code"] == code)['description']
+                                    )
 
 
 #---------------------------------------------------------------------------
@@ -2554,10 +2420,7 @@ def getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_history_id):
     '''
         get unique set of codes for a concept of a specific version id
     '''
-    df = pd.DataFrame(columns=[
-        'logical_type', 'code', 'description', 'component_name',
-        'component_id', 'component_type'
-    ])
+    df = pd.DataFrame(columns=['logical_type', 'code', 'description', 'component_name', 'component_id', 'component_type'])
 
     history_concept = getHistoryConcept(concept_history_id)
     concept_history_date = history_concept['history_date']
@@ -2639,13 +2502,11 @@ def isValidWorkingSet(request, working_set):
     errors = {}
     attribute_names = {}
 
-    if working_set.name.isspace() or len(
-            working_set.name) < 3 or working_set.name is None:
+    if working_set.name.isspace() or len(working_set.name) < 3 or working_set.name is None:
         errors['name'] = "Workingset name should be at least 3 characters"
         is_valid = False
 
-    if working_set.author.isspace() or len(
-            working_set.author) < 3 or working_set.author is None:
+    if working_set.author.isspace() or len(working_set.author) < 3 or working_set.author is None:
         errors['author'] = "Author should be at least 3 characters"
         is_valid = False
 
@@ -2653,15 +2514,11 @@ def isValidWorkingSet(request, working_set):
 #         errors['publication'] = "Workingset publication should be at least 10 characters"
 #         is_valid = False
 
-    if working_set.description.isspace() or len(
-            working_set.description) < 10 or working_set.description is None:
-        errors[
-            'description'] = "Workingset description should be at least 10 characters"
+    if working_set.description.isspace() or len(working_set.description) < 10 or working_set.description is None:
+        errors['description'] = "Workingset description should be at least 10 characters"
         is_valid = False
 
-    if not working_set.publication_link.isspace() and len(
-            working_set.publication_link
-    ) > 0 and not working_set.publication_link is None:
+    if not working_set.publication_link.isspace() and len(working_set.publication_link) > 0 and not working_set.publication_link is None:
         # if publication_link is given, it must be a valid URL
         validate = URLValidator()
 
@@ -2670,17 +2527,12 @@ def isValidWorkingSet(request, working_set):
             #print("String is a valid URL")
         except Exception as exc:
             #print("String is not valid URL")
-            errors[
-                'publication_link'] = "working_set publication_link is not valid URL"
+            errors['publication_link'] = "working_set publication_link is not valid URL"
             is_valid = False
 
-    if working_set.concept_informations is not None and len(
-            working_set.concept_informations) > 0:
-        if not chkListIsAllIntegers(
-                getConceptsFromJSON(
-                    concepts_json=working_set.concept_informations)):
-            errors[
-                'wrong_concept_id'] = "You must choose a concept from the search dropdown list."
+    if working_set.concept_informations is not None and len(working_set.concept_informations) > 0:
+        if not chkListIsAllIntegers(getConceptsFromJSON(concepts_json=working_set.concept_informations)):
+            errors['wrong_concept_id'] = "You must choose a concept from the search dropdown list."
             is_valid = False
 
         decoded_concepts = json.loads(working_set.concept_informations)
@@ -2706,20 +2558,17 @@ def isValidWorkingSet(request, working_set):
                     if not header in attribute_names[key]:
                         attribute_names[key].append(header)
                     else:
-                        errors[
-                            'attributes'] = "Attributes name must not repeat (" + header + ")"
+                        errors['attributes'] = "Attributes name must not repeat (" + header + ")"
                         is_valid = False
 
                     #verify that the attribute name starts with a character
                     if not re.match("^[A-Za-z]", header):
-                        errors[
-                            'attributes_start'] = "Attribute name must start with a character (" + header + ")"
+                        errors['attributes_start'] = "Attribute name must start with a character (" + header + ")"
                         is_valid = False
 
                     #verify that the attribute name contains only letters, numbers and underscores
                     if not re.match("^[A-Za-z0-9_]*$", header):
-                        errors[
-                            'attributes_name'] = "Attribute name must contain only alphabet/numbers and underscores (" + header + ")"
+                        errors['attributes_name'] = "Attribute name must contain only alphabet/numbers and underscores (" + header + ")"
                         is_valid = False
 
                     #----------------------------------------------------------------------------------------------
@@ -2728,16 +2577,14 @@ def isValidWorkingSet(request, working_set):
                             try:
                                 int(concept_data)
                             except ValueError:
-                                errors[
-                                    'type'] = "The values of attribute(" + header + ") should be integer"
+                                errors['type'] = "The values of attribute(" + header + ") should be integer"
                                 is_valid = False
                     elif type == "2":  # FLOAT
                         if concept_data != "":  # allows empty values
                             try:
                                 float(concept_data)
                             except ValueError:
-                                errors[
-                                    'type'] = "The values of attribute(" + header + ") should be float"
+                                errors['type'] = "The values of attribute(" + header + ") should be float"
                                 is_valid = False
                     elif type.lower() == "type":  # check type is selected
                         errors['type'] = "Choose a type of the attribute"
@@ -2746,8 +2593,7 @@ def isValidWorkingSet(request, working_set):
             if (list(data.keys())[0] and list(data.keys())[0].strip() != ""):
                 concept_keys.append(list(data.keys())[0])
             else:
-                errors[
-                    'empty_id'] = "Fill in concepts inputs by clicking on autocomplete prompt"
+                errors['empty_id'] = "Fill in concepts inputs by clicking on autocomplete prompt"
                 is_valid = False
 
     if len(set(concept_keys)) != len(concept_keys):
@@ -2766,10 +2612,7 @@ def get_history_child_concept_components(concept_id, concept_history_id=None):
 
     if concept_history_id is None:
         # live version
-        conceptComp = Component.objects.filter(concept_id=concept_id,
-                                               component_type=1).values(
-                                                   'concept_ref_id',
-                                                   'concept_ref_history_id')
+        conceptComp = Component.objects.filter(concept_id=concept_id, component_type=1).values('concept_ref_id', 'concept_ref_history_id')
         childConcepts = list(conceptComp)
         return childConcepts
     else:
@@ -3756,9 +3599,7 @@ def isValidDataSource(request, datasource):
     is_valid = True
     errors = {}
 
-    if not datasource.name or len(
-            datasource.name
-    ) < 3 or datasource.name is None:  #TODO CHECK UNIQUE
+    if not datasource.name or len(datasource.name) < 3 or datasource.name is None:  #TODO CHECK UNIQUE
         errors['name'] = "DataSource name should be at least 3 characters"
         is_valid = False
 
@@ -3800,8 +3641,7 @@ def isValidPhenotype(request, phenotype):
     errors = {}
     attribute_names = {}
 
-    if not phenotype.title or len(
-            phenotype.title) < 3 or phenotype.title is None:
+    if not phenotype.title or len(phenotype.title) < 3 or phenotype.title is None:
         errors['title'] = "Phenotype title should be at least 3 characters"
         is_valid = False
 
@@ -3809,8 +3649,7 @@ def isValidPhenotype(request, phenotype):
         errors['name'] = "Phenotype name should be at least 3 characters"
         is_valid = False
 
-    if not phenotype.author or len(
-            phenotype.author) < 3 or phenotype.author is None:
+    if not phenotype.author or len(phenotype.author) < 3 or phenotype.author is None:
         errors['author'] = "Phenotype author should be at least 3 characters"
         is_valid = False
 
@@ -3819,25 +3658,23 @@ def isValidPhenotype(request, phenotype):
         errors['layout'] = "Phenotype layout should be at least 3 characters"
         is_valid = False"""
 
-    if not phenotype.phenotype_uuid or len(
-            phenotype.phenotype_uuid) < 3 or phenotype.phenotype_uuid is None:
-        errors[
-            'phenotype_uuid'] = "Phenotype phenotype_uuid should be at least 3 characters"
+    # Removed for now
+    """
+    if not phenotype.phenotype_uuid or len(phenotype.phenotype_uuid) < 3 or phenotype.phenotype_uuid is None:
+        errors['phenotype_uuid'] = "Phenotype phenotype_uuid should be at least 3 characters"
         is_valid = False
+    """
 
     if not phenotype.type or len(phenotype.type) < 3 or phenotype.type is None:
         errors['type'] = "Phenotype type should be at least 3 characters"
         is_valid = False
 
-    if not phenotype.publication_link and len(
-            phenotype.publication_link
-    ) > 0 and not phenotype.publication_link is None:
+    if not phenotype.publication_link and len(phenotype.publication_link) > 0 and not phenotype.publication_link is None:
         validate = URLValidator()
         try:
             validate(phenotype.publication_link)
         except Exception as exc:
-            errors[
-                'publication_link'] = "Phenotype publication_link is not valid URL"
+            errors['publication_link'] = "Phenotype publication_link is not valid URL"
             is_valid = False
     """if phenotype.concept_informations is not None and len(phenotype.concept_informations) > 0:
         if not chkListIsAllIntegers(getConceptsFromJSON(concepts_json=phenotype.concept_informations)):
@@ -4204,38 +4041,6 @@ def get_brand_associated_collections(request, concept_or_phenotype="concept", br
     return collections, sorted_order
 
 
-def get_brand_associated_collections_dynamic(request, concept_or_phenotype, excluded_collections=None):
-    """
-        get associated collections of the current brand (or all if using default site)
-        dynamically, Not from statistics.
-    """
-
-    if concept_or_phenotype == 'concept':
-        data = get_visible_live_or_published_concept_versions(request
-                                                            , get_live_and_or_published_ver=[2, 3][request.user.is_authenticated]  # 1= live only, 2= published only, 3= live+published
-                                                            , exclude_deleted=[True, False][request.user.is_authenticated]
-                                                            , force_get_live_and_or_published_ver=[2, 3][request.user.is_authenticated]
-                                                            )
-
-    elif concept_or_phenotype == 'phenotype':
-        data = get_visible_live_or_published_phenotype_versions(request
-                                                                , get_live_and_or_published_ver=[2, 3][request.user.is_authenticated]  # 1= live only, 2= published only, 3= live+published 
-                                                                , exclude_deleted=[True, False][request.user.is_authenticated]
-                                                                , force_get_live_and_or_published_ver=[2, 3][request.user.is_authenticated]
-                                                                )
-
-    Tag_List = []
-    for i in data:
-        if i['tags'] is not None:
-            Tag_List = Tag_List + i['tags']
-    unique_tags = []
-    unique_tags = list(set(Tag_List))
-
-    if excluded_collections:
-        unique_tags = list(set(unique_tags) - set(excluded_collections))
-        
-    return Tag.objects.filter(id__in=unique_tags, tag_type=2)
-
 def send_review_email(phenotype, review_decision, review_message):
     phenotype_id = phenotype.id
     phenotype_name = phenotype.title
@@ -4255,10 +4060,10 @@ def send_review_email(phenotype, review_decision, review_message):
     if not settings.IS_DEVELOPMENT_PC:
         try:
             msg = EmailMultiAlternatives(email_subject,
-                email_content,
-                'Helpdesk <%s>' % settings.DEFAULT_FROM_EMAIL,
-                to=[owner_email]
-            )
+                                        email_content,
+                                        'Helpdesk <%s>' % settings.DEFAULT_FROM_EMAIL,
+                                        to=[owner_email]
+                                    )
             msg.content_subtype = 'html'
             msg.send()
             return True
