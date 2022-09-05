@@ -23,8 +23,8 @@ concept_order_queries = {
     'Created (Asc)': ' ORDER BY created ASC ',
     'Last Updated (Desc)': ' ORDER BY modified DESC ',
     'Last Updated (Asc)': ' ORDER BY modified ASC ',
-    'Published Date (Desc)': ' ORDER BY created DESC ',
-    'Published Date (Asc)': ' ORDER BY created ASC '
+    'Published Date (Desc)': ' ORDER BY publish_date DESC ',
+    'Published Date (Asc)': ' ORDER BY publish_date ASC '
 }
 concept_order_default = list(concept_order_queries.values())[0]
 #---------------------------------------
