@@ -4,7 +4,8 @@
     A working set is a list of columns from a number of Concepts.
 '''
 from django.contrib.auth.models import Group, User
-from django.contrib.postgres.fields import JSONField
+#from django.contrib.postgres.fields import JSONField
+from django.db.models import JSONField
 from django.db import models
 from simple_history.models import HistoricalRecords
 
