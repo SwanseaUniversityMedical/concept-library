@@ -100,11 +100,10 @@ def api_remove_data(request):
                 'rowsAffected': rowsAffected
             })
 
-
 @login_required
-def moveDataSources(request):
+def json_adjust(request):
     # not needed anymore
-    raise PermissionDenied
+    #raise PermissionDenied
 
     if not request.user.is_superuser:
         raise PermissionDenied
@@ -123,6 +122,60 @@ def moveDataSources(request):
                 raise PermissionDenied
 
             rowsAffected = {}
+
+
+            ######################################################################
+
+            hisp = Phenotype.history.filter(id__gte=0)  #.exclude(id__in=[1026])
+            for hp in hisp:
+                if hp.concept_informations:
+                    concept_informations = json.loads(hp.concept_informations)
+                    hp.concept_informations = concept_informations
+                    hp.save()
+
+                    if hp.history_id == int(Phenotype.objects.get(pk=hp.id).history.latest().history_id):
+                        p0 = Phenotype.objects.get(id=hp.id)
+                        p0.concept_informations = concept_informations
+                        p0.save_without_historical_record()
+        
+                        rowsAffected[hp.id] = "phenotype: " + hp.name + ":: json adjusted"
+            
+            
+            
+            
+            
+            return render(request,
+                        'clinicalcode/adminTemp/moveDataSources.html',
+                        {   'pk': -10,
+                            'strSQL': {},
+                            'rowsAffected' : rowsAffected
+                        }
+                        )
+            
+            
+# @login_required
+# def moveDataSources(request):
+#     # not needed anymore
+#     raise PermissionDenied
+#
+#     if not request.user.is_superuser:
+#         raise PermissionDenied
+#
+#     if settings.CLL_READ_ONLY:
+#         raise PermissionDenied
+#
+#     if request.method == 'GET':
+#         if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
+#             return render(request, 'clinicalcode/adminTemp/moveDataSources.html', {})
+#
+#     elif request.method == 'POST':
+#         if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
+#             code = request.POST.get('code')
+#             if code.strip() != "nvd)#_0-i_a05n^5p6az2q_cd(_(+_4g)r&9h!#ru*pr(xa@=k":
+#                 raise PermissionDenied
+#
+#             rowsAffected = {}
+#
 
 
             ######################################################################

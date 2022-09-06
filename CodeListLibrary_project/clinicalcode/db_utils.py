@@ -2143,8 +2143,7 @@ def chk_deleted_children(request,
         if WS_concepts_json.strip() != "":
             concepts = getConceptsFromJSON(concepts_json=WS_concepts_json)
         else:
-            concepts = getGroupOfConceptsByWorkingsetId_historical(
-                set_id, set_history_id)
+            concepts = getGroupOfConceptsByWorkingsetId_historical(set_id, set_history_id)
 
         unique_concepts = set()
         for concept in concepts:
@@ -2157,11 +2156,9 @@ def chk_deleted_children(request,
             # Need to parse the concept_informations section of the database and use
             # the concepts here to form a list of concept_ref_ids.
         if WS_concepts_json.strip() != "":
-            concepts = [x['concept_id'] for x in json.loads(WS_concepts_json)
-                        ]  #getConceptsFromJSON(concepts_json=WS_concepts_json)
+            concepts = [x['concept_id'] for x in json.loads(WS_concepts_json)]  #getConceptsFromJSON(concepts_json=WS_concepts_json)
         else:
-            concepts = getGroupOfConceptsByPhenotypeId_historical(
-                set_id, set_history_id)
+            concepts = getGroupOfConceptsByPhenotypeId_historical(set_id, set_history_id)
 
         unique_concepts = set()
         for concept in concepts:
@@ -2176,8 +2173,7 @@ def chk_deleted_children(request,
             errors[set_id] = 'Concept not permitted.'
 
         # Now, with no sync propagation, we check only one level for permissions
-        concepts = get_history_child_concept_components(
-            set_id, concept_history_id=set_history_id)
+        concepts = get_history_child_concept_components(set_id, concept_history_id=set_history_id)
         unique_concepts = set()
         for concept in concepts:
             unique_concepts.add(concept['concept_ref_id'])
@@ -3237,7 +3233,7 @@ def get_visible_live_or_published_phenotype_versions(request,
                                id, created, modified, title, name, layout, phenotype_uuid, type, 
                                validation, valid_event_data_range,  
                                sex, author, status, hdr_created_date, hdr_modified_date, description, implementation,
-                               concept_informations, publication_doi, publication_link, secondary_publication_links, 
+                               concept_informations::json, publication_doi, publication_link, secondary_publication_links, 
                                source_reference, citation_requirements, is_deleted, deleted, 
                                owner_access, group_access, world_access, history_id, history_date, 
                                history_change_reason, history_type, created_by_id, deleted_by_id, 
@@ -3312,7 +3308,7 @@ def getHistoryPhenotype(phenotype_history_id, highlight_result=False, q_highligh
         hph.hdr_created_date,
         hph.hdr_modified_date,
         hph.description,
-        hph.concept_informations,
+        hph.concept_informations::json,
         hph.publication_doi,
         hph.publication_link,
         hph.secondary_publication_links,
@@ -3381,10 +3377,8 @@ def getGroupOfConceptsByPhenotypeId_historical(phenotype_id,
     concept_id_version = []
     concept_informations = Phenotype.history.get(id=phenotype_id, history_id=phenotype_history_id).concept_informations
     if concept_informations:
-        concept_informations = json.loads(concept_informations)
-
-    for c in concept_informations:
-        concept_id_version.append((c['concept_id'], c['concept_version_id']))
+        for c in concept_informations:
+            concept_id_version.append((c['concept_id'], c['concept_version_id']))
 
     return concept_id_version
 
@@ -3402,7 +3396,7 @@ def getPhenotypeConceptJson(concept_ids_list):
                                 "concept_version_id": concept_history_ids[concept_id],
                                 "attributes": []
                             })
-    return json.dumps(concept_json)
+    return concept_json
 
 
 def getPhenotypeConceptHistoryIDs(concept_ids_list):
@@ -3417,8 +3411,8 @@ def get_CodingSystems_from_Phenotype_concept_informations(concept_informations):
     if not concept_informations:
         return []
 
-    concept_id_list = [x['concept_id'] for x in json.loads(concept_informations)]
-    concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(concept_informations)]
+    concept_id_list = [x['concept_id'] for x in concept_informations]
+    concept_hisoryid_list = [x['concept_version_id'] for x in concept_informations]
     CodingSystem_ids = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).order_by().values('coding_system_id').distinct()
 
     return list(CodingSystem_ids.values_list('coding_system_id', flat=True))
@@ -3681,7 +3675,7 @@ def isValidPhenotype(request, phenotype):
             errors['wrong_concept_id'] = "You must choose a concept from the search dropdown list."
             is_valid = False
 
-        decoded_concepts = json.loads(phenotype.concept_informations)
+        decoded_concepts = phenotype.concept_informations
         for data in decoded_concepts:
             for key, value in data.iteritems():
                 attribute_names[key] = []
