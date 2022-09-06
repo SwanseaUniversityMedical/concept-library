@@ -509,6 +509,16 @@
 	<script src="{% static 'js/clinicalcode/component.js' %}"></script>
 	<script src="{% static 'js/clinicalcode/concept.js' %}"></script>
 	<script src="{% static 'js/clinicalcode/tags.js' %}"></script>
+
+	<!------------------------ Selection Service dependencies -------------------------->
+	<link href="{% static 'lib/daterangepicker/daterangepicker.css' %}" rel="stylesheet" />
+	<script src="{% static 'js/clinicalcode/filters/utils.js' %}"></script>
+	<script src="{% static 'js/lib/daterangepicker/moment.min.js' %}"></script>
+	<script src="{% static 'js/lib/daterangepicker/daterangepicker.js' %}"></script>
+	<script src="{% static 'js/clinicalcode/filters/FuzzyQuery.js' %}"></script>
+	<script src="{% static 'js/clinicalcode/filters/autocompleteSearch.js' %}"></script>
+	<script src="{% static 'js/clinicalcode/workingset/selectionService.js' %}"></script>
+	<!---------------------------------------------------------------------------------->
 	
 	<script type="text/javascript">
 		// call the tag service initialize function in tags.js
@@ -626,6 +636,10 @@
 					
 				});				
 			}			
+			
+			//----------------------------------------------------------------------------------------------------------------------
+			$('#add-concept').createSelection();
+
 			
 			//----------------------------------------------------------------------------------------------------------------------
 			$('#add-concept').click(function() {

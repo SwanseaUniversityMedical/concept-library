@@ -1109,3 +1109,154 @@ code.api-codeblock .code-value-highlight {
 code.api-codeblock .code-text-highlight, .code-comment-highlight {
   color: #009700;
 }
+
+/* Modal for working set */
+@media (min-width:1202px){
+  .modal-xl{width:1200px}
+}
+
+.ws-header {
+  padding-bottom: 0px;
+  margin-left: 0px;
+}
+
+.ws-nav {
+  margin-left: 0px;
+  margin-right: 0px;
+  width: 100%;
+  border-bottom: none;
+}
+
+.ws-nav li, .ws-nav li a {
+  border-bottom: none;
+}
+
+.ws-nav li.active {
+  border-bottom: 2px #fff;
+}
+
+.ws-content {
+  width: 100%;
+  margin: 0px;
+  padding: 0px;
+}
+
+.ws-tab-content {
+  padding: 0px;
+  margin: 0px;
+  width: 100%;
+  height: 600px;
+}
+
+.ws-tab-panel {
+  overflow-x: hidden;
+  padding-left: 10px;
+  padding-right: 10px;
+  width: 100%;
+  margin: 0px;
+}
+
+.ws-sidebar {
+  height: 600px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.ws-border {
+  border-right: 1px solid rgba(109, 109, 109, 0.5);
+}
+
+.ws-group {
+  padding-top: 5px;
+  padding-bottom: 0px;
+}
+
+.ws-no-padding {
+  margin: 0px;
+  padding: 0px;
+}
+
+.ws-group h1 {
+  font-weight: bolder;
+  color: #333;
+  font-size: 14px;
+  margin-top: 10px;
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(109, 109, 109, 0.5);
+}
+
+.ws-box {
+  padding-top: 0px;
+}
+
+.ws-result-container {
+  margin: 0px;
+  padding: 5px 5px 10px 5px;
+  height: 600px;
+}
+
+.ws-results {
+  margin: 0px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding-right: 5px;
+  padding-left: 5px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  height: 550px;
+}
+
+.ws-filter-box {
+  padding-right: 0px;
+  padding-left: 0px;
+  width: 100%;
+}
+
+.ws-well-background {
+  background-color: #F7F9Fc;
+  background-image: none;
+  padding: 0px;
+}
+
+.ws-well-concepts {
+  padding: 5px;
+  margin: 0px;
+}
+
+.ws-results::-webkit-scrollbar, .ws-sidebar::-webkit-scrollbar {
+  width: 6px;
+  height: 12px;
+}
+
+.ws-results::-webkit-scrollbar-track, .ws-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.ws-results::-webkit-scrollbar-thumb, .ws-sidebar::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: #ccc;
+}
+
+.ws-results::-webkit-scrollbar-thumb:hover, .ws-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #999;  
+}
+
+.ws-notify-bubble {
+  position: absolute;
+  right: -7px;
+  top: -5px;
+  padding: 2px 4px;
+  background: #0088ff;
+  font-size: 10px;
+  color: #fff;
+  border-radius: 3px;
+  display: none;
+}
+
+.ws-page-control {
+  height: 50px;
+  margin-left: 5px;
+}
+
