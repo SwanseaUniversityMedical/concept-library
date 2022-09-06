@@ -6,7 +6,8 @@
 
 #from cll import settings
 from django.conf import settings
-from django.conf.urls import url  # , include  #, handler400
+#from django.conf.urls import url  # , include  #, handler400
+from django.urls import re_path as url
 from django.contrib.auth import views as auth_views
 
 from .views import (Admin, ComponentConcept, ComponentExpression,
