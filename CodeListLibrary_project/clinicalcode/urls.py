@@ -383,7 +383,7 @@ if not settings.CLL_READ_ONLY:
 urlpatterns += [
     url(
         '^change-password/$',
-        auth_views.PasswordChangeView,  #.password_change, 
+        auth_views.PasswordChangeView.as_view(),  #.password_change, 
         {'post_change_redirect': 'concept_library_home'},
         name='password_change'),
 ]
