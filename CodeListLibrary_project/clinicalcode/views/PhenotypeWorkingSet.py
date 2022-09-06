@@ -4,6 +4,7 @@ from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.views.generic.edit import CreateView
+from collections import OrderedDict as ordr
 
 from clinicalcode import db_utils
 from clinicalcode.forms.WorkingsetForms import WorkingsetForms
@@ -28,6 +29,18 @@ class PhenotypeWorkingsetCreate(LoginRequiredMixin,HasAccessToCreateCheckMixin,C
 
         return overall
 
+    def get_brand_collections(self, array_collections):
+        queryset = Tag.objects
+
+        rows_to_return = []
+        titles = ['id', 'name','brand']
+
+        queryset = queryset.filter(id__in=array_collections)
+        for t in queryset:
+            ret = [t.id, t.description,t.collection_brand.name]
+            rows_to_return.append(ordr(list(zip(titles, ret))))
+        print(rows_to_return)
+
     def get_form_kwargs(self):
         print('test kwarks ')
         kwargs = super(CreateView, self).get_form_kwargs()
@@ -38,7 +51,8 @@ class PhenotypeWorkingsetCreate(LoginRequiredMixin,HasAccessToCreateCheckMixin,C
     def form_invalid(self, form):
         print('test form invalid ')
         tag_ids = self.request.POST.get('tagids')
-        collections = self.commaSeparate('collections')
+        print(self.commaSeparate('collections'))
+        collections = self.get_brand_collections(self.commaSeparate('collections'))
         datasources = self.commaSeparate('datasources')
 
         context = self.get_context_data()
