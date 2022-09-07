@@ -11,7 +11,8 @@ from django.contrib.auth import views as auth_views
 
 from .views import (Admin, ComponentConcept, ComponentExpression,
                     ComponentQueryBuilder, Concept, Phenotype, View,
-                    WorkingSet, PhenotypeWorkingSet, adminTemp, site)
+                    WorkingSet, adminTemp, site, PhenotypeWorkingSet)
+
 
 from django.urls import path
 from django.views.generic.base import TemplateView
@@ -212,7 +213,7 @@ urlpatterns += [
 if not settings.CLL_READ_ONLY:
     urlpatterns += [
         url(r'^workingsets/create/$',
-            WorkingSet.workingset_create,
+            PhenotypeWorkingSet.PhenotypeWorkingsetCreate.as_view(),
             name='workingset_create'),
         url(r'^workingsets/WS(?P<pk>\d+)/update/$',
             WorkingSet.WorkingSetUpdate.as_view(),

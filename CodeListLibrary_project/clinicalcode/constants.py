@@ -35,8 +35,7 @@ Lifestyle_risk_factor = 3
 Musculoskeletal = 4
 Surgical_procedure = 5
 Type_status = ((Disease, 'Disease or syndrome '),
-               (Biomarker,'Biomarker'),
-               (Drug, 'Drug'),
+               (Biomarker,'Biomarker'),(Drug,'Drug'),
                (Lifestyle_risk_factor,'Lifestyle risk factor'),
                (Musculoskeletal,'Musculoskeletal'),
                (Surgical_procedure,'Surgical procedure'))
