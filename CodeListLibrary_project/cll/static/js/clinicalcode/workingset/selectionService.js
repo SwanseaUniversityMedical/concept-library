@@ -203,7 +203,7 @@ var SelectionService = function (element, methods, previouslySelected = []) {
           e.preventDefault();
 
           var data = $(e.target).parent().find('input[name="ws-concept-data"]').val().split(':');
-          var selected = this.selected.find(e => e.id == data[0] && e.version == data[1]);
+          var selected = this.selected.find(e => e.concept_id == data[0] && e.concept_version == data[1]);
           if (selected) {
             var index = this.selected.indexOf(selected);
             this.selected.splice(index, 1);
@@ -231,7 +231,7 @@ var SelectionService = function (element, methods, previouslySelected = []) {
     var $concepts = modal.find('.ws-concept-option');
     $concepts.each((i, elem) => {
       var data = $(elem).val().split(':');
-      var selected = this.selected.find(e => e.id == data[0] && e.version == data[1]);
+      var selected = this.selected.find(e => e.concept_id == data[0] && e.concept_version == data[1]);
       if (typeof selected == 'undefined') {
         $(elem).prop('checked', false);
         return;
@@ -249,7 +249,7 @@ var SelectionService = function (element, methods, previouslySelected = []) {
     $concepts.change((e) => {
       var elem = $(e.target);
       var data = $(elem).val().split(':');
-      var selected = this.selected.find(e => e.id == data[0] && e.version == data[1]);
+      var selected = this.selected.find(e => e.concept_id == data[0] && e.concept_version == data[1]);
       if (selected) {
         // Pop
         var index = this.selected.indexOf(selected);
@@ -258,10 +258,13 @@ var SelectionService = function (element, methods, previouslySelected = []) {
         // Push
         var name = elem.parent().find('input[name="ws-concept-name"]').val();
         var code = elem.parent().find('input[name="ws-concept-coding"]').val();
+        var pheno = elem.parent().find('input[name="ws-phenotype-element"]').val().split(':');
         this.selected.push({
           name: name,
-          id: data[0],
-          version: data[1],
+          concept_id: data[0],
+          concept_version: data[1],
+          phenotype_id: pheno[0],
+          phenotype_version: pheno[1],
           coding: code,
         });
       }
@@ -735,8 +738,8 @@ var SelectionService = function (element, methods, previouslySelected = []) {
 
   /* Create HTML component(s) */
   var createConceptComponent = (concept) => {
-    var id    = concept.id,
-      version = concept.version,
+    var id    = concept.concept_id,
+      version = concept.concept_version,
       name    = concept.name,
       coding  = concept.coding;
     
