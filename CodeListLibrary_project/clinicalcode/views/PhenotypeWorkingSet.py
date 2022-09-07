@@ -33,8 +33,9 @@ from django.views.generic import DetailView
 from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from ..forms.WorkingsetForm import WorkingsetForm
+
 from .. import db_utils, utils
+from ..forms import WorkingsetForm
 from ..models import *
 from ..permissions import *
 from .View import *
