@@ -907,6 +907,7 @@ def is_brand_accessible(request, set_class, set_id, set_history_id=None):
     from .models.Concept import Concept
     from .models.Phenotype import Phenotype
     from .models.WorkingSet import WorkingSet
+    from .models.PhenotypeWorkingset import PhenotypeWorkingset
 
     # setting set_history_id = None,
     # so this permission is always checked from the live obj like other permissions
@@ -926,19 +927,21 @@ def is_brand_accessible(request, set_class, set_id, set_history_id=None):
             if set_history_id is None:
                 history_id = set_class.objects.get(pk=set_id).history.latest().history_id
 
-            set_tags = []
+            set_collections = []
             if set_class in (Concept, Phenotype):
-                set_tags = set_class.history.get(id=set_id, history_id=history_id).tags
+                set_collections = set_class.history.get(id=set_id, history_id=history_id).tags
+            elif set_class == PhenotypeWorkingset:
+                set_collections = set_class.history.get(id=set_id, history_id=history_id).collections
             elif set_class == WorkingSet:
                 workingset_history_date = set_class.history.get(id=set_id, history_id=history_id).history_date
                 ws_tags = getHistoryTags_Workingset(set_id, workingset_history_date)
                 if ws_tags:
-                    set_tags = [i['tag_id'] for i in ws_tags if 'tag_id' in i]
+                    set_collections = [i['tag_id'] for i in ws_tags if 'tag_id' in i]
 
-            if not set_tags:
+            if not set_collections:
                 return False
             else:
                 # check if the set tags has any of the brand's collection tags
-                return any(c in set_tags for c in brand_collection_ids)
+                return any(c in set_collections for c in brand_collection_ids)
             
             
