@@ -347,13 +347,12 @@ def export_concept_codes_byVersionID(request, pk, concept_history_id):
 
     current_concept = Concept.objects.get(pk=pk)
 
-    user_can_export = (allowed_to_view_children(
-        request, Concept, pk, set_history_id=concept_history_id) and
-                       chk_deleted_children(request,
-                                            Concept,
-                                            pk,
-                                            returnErrors=False,
-                                            set_history_id=concept_history_id)
+    user_can_export = (allowed_to_view_children(request, Concept, pk, set_history_id=concept_history_id) 
+                       and chk_deleted_children(request,
+                                                Concept,
+                                                pk,
+                                                returnErrors=False,
+                                                set_history_id=concept_history_id)
                        and not current_concept.is_deleted)
 
     if not user_can_export:
@@ -1005,7 +1004,7 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
     daterange, date_range_cond = apply_filter_condition(query='daterange', 
                                                     selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, 
                                                     conditions='',
-                                                    is_authenticated_use =is_authenticated_user)
+                                                    is_authenticated_user =is_authenticated_user)
    
 
     # check if it is the public site or not

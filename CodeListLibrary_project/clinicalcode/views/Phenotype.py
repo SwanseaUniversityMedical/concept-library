@@ -440,12 +440,11 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         can_edit = (not Phenotype.objects.get(pk=pk).is_deleted) and allowed_to_edit(request, Phenotype, pk)
 
         user_can_export = (allowed_to_view_children(request, Phenotype, pk, set_history_id=phenotype_history_id)
-                           and db_utils.chk_deleted_children(
-                                                               request,
-                                                               Phenotype,
-                                                               pk,
-                                                               returnErrors=False,
-                                                               set_history_id=phenotype_history_id)
+                           and db_utils.chk_deleted_children(request,
+                                                           Phenotype,
+                                                           pk,
+                                                           returnErrors=False,
+                                                           set_history_id=phenotype_history_id)
                            and not Phenotype.objects.get(pk=pk).is_deleted)
         user_allowed_to_create = allowed_to_create()
 

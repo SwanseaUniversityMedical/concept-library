@@ -2155,8 +2155,8 @@ def chk_deleted_children(request,
             errors[set_id] = 'Phenotype not permitted.'
             # Need to parse the concept_informations section of the database and use
             # the concepts here to form a list of concept_ref_ids.
-        if WS_concepts_json.strip() != "":
-            concepts = [x['concept_id'] for x in json.loads(WS_concepts_json)]  #getConceptsFromJSON(concepts_json=WS_concepts_json)
+        if WS_concepts_json:
+            concepts = [x['concept_id'] for x in WS_concepts_json]  
         else:
             concepts = getGroupOfConceptsByPhenotypeId_historical(set_id, set_history_id)
 
@@ -3385,7 +3385,7 @@ def getGroupOfConceptsByPhenotypeId_historical(phenotype_id,
 
 def getPhenotypeConceptJson(concept_ids_list):
     if len(concept_ids_list) < 1:
-        return []  #None
+        return []  
 
     concept_history_ids = getPhenotypeConceptHistoryIDs(concept_ids_list)
 
