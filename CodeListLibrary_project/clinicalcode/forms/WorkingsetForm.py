@@ -187,7 +187,6 @@ class WorkingsetForm(forms.ModelForm):
         '''
         model = PhenotypeWorkingset
 
-
         exclude = [
-            'created_by', 'modified_by', 'deleted', 'is_deleted', 'deleted_by','phenotypes_concepts_data'
+            'created_by', 'updated_by', 'deleted', 'is_deleted', 'deleted_by','phenotypes_concepts_data'
         ] #Exciding jsonfileobject because will be separate validation from client
