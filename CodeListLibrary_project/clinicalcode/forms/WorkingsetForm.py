@@ -8,7 +8,7 @@ from clinicalcode.constants import Type_status
 
 
 
-class WorkingsetForms(forms.ModelForm):
+class WorkingsetForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         # To get request.user, do not use kwargs.pop('user', None) due to
@@ -189,5 +189,5 @@ class WorkingsetForms(forms.ModelForm):
 
 
         exclude = [
-            'created_by', 'updated_by', 'deleted', 'is_deleted', 'deleted_by','phenotypes_concepts_data'
+            'created_by', 'modified_by', 'deleted', 'is_deleted', 'deleted_by','phenotypes_concepts_data'
         ] #Exciding jsonfileobject because will be separate validation from client

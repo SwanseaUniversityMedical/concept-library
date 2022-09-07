@@ -35,7 +35,7 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 
 from .. import db_utils, utils
-from ..forms import WorkingsetForm
+from clinicalcode.forms.WorkingsetForm import WorkingsetForm
 from ..models import *
 from ..permissions import *
 from .View import *
