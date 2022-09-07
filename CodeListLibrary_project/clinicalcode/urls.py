@@ -213,7 +213,7 @@ urlpatterns += [
 if not settings.CLL_READ_ONLY:
     urlpatterns += [
         url(r'^workingsets/create/$',
-            PhenotypeWorkingSet.PhenotypeWorkingsetCreate.as_view(),
+            WorkingSet.workingset_create,
             name='workingset_create'),
         url(r'^workingsets/WS(?P<pk>\d+)/update/$',
             WorkingSet.WorkingSetUpdate.as_view(),
