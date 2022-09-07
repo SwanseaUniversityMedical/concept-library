@@ -35,7 +35,6 @@ from ..models.Concept import Concept
 from ..models.PublishedConcept import PublishedConcept
 from ..permissions import *
 from ..views.View import build_permitted_components_list
-from test.support import catch_threading_exception
 
 logger = logging.getLogger(__name__)
 

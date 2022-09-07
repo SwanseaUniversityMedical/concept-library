@@ -11,7 +11,7 @@ from django.conf import settings
 from django.conf.urls import include, url
 from rest_framework import routers
 
-from .views import Concept, DataSource, Phenotype, View, WorkingSet
+from .views import Concept, DataSource, Phenotype, View, WorkingSet, PhenotypeWorkingSet
 
 from rest_framework import permissions
 from drf_yasg.generators import OpenAPISchemaGenerator
@@ -294,7 +294,7 @@ urlpatterns += [
     
     
     # ---------------------------------------------------------
-    # ---  tags / collections  --------------------------------------
+    # ---  tags / collections  --------------------------------
     #----------------------------------------------------------
     # public tags
     url(r'^public/tags/$',
@@ -311,6 +311,27 @@ urlpatterns += [
     url(r'^public/collections/(?P<pk>\d+)/$',
         View.getTagsOrCollections, {'tag_type': 2},
         name='collections_list_by_id_public'),
+    
+       
+        
+    #----------------------------------------------------------
+    # --- phenotype-working set   -----------------------------
+    #----------------------------------------------------------
+    url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/export/codes/$',
+        PhenotypeWorkingSet.export_phenotypeworkingset_codes_byVersionID,
+        name='api_export_phenotypeworkingset_codes_latestVersion'),
+    url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/export/codes/$',
+        PhenotypeWorkingSet.export_phenotypeworkingset_codes_byVersionID,
+        name='api_export_phenotypeworkingset_codes_byVersionID'),
+        
+    url(r'^public/phenotypeworkingsets/(?P<pk>WS\d+)/export/codes/$',
+        PhenotypeWorkingSet.export_published_phenotypeworkingset_codes,
+        name='api_export_published_phenotypeworkingset_codes_latestVersion'),
+    url(r'^public/phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/export/codes/$',
+        PhenotypeWorkingSet.export_published_phenotypeworkingset_codes,
+        name='api_export_published_phenotypeworkingset_codes'),
+    
+    
     
 ]
 

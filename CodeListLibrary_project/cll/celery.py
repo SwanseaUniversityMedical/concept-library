@@ -24,8 +24,8 @@ app.conf.beat_schedule = {
         'task': 'clinicalcode.views.Admin.run_celery_statistics',
         'schedule': crontab(minute='*/5') if settings.IS_DEVELOPMENT_PC else crontab(minute=0,hour='9,18')
     },
-    'celery_run_collections': {
-        'task': 'clinicalcode.views.Admin.run_celery_collections',
+    'celery_run_filters': {
+        'task': 'clinicalcode.views.Admin.run_celery_filters',
         'schedule': crontab(minute='*/5') if settings.IS_DEVELOPMENT_PC else crontab(minute=0,hour='9,18')
 
     },'celery_run_data_sync':{
