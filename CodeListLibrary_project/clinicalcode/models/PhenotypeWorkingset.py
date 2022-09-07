@@ -33,7 +33,7 @@ class PhenotypeWorkingset(TimeStampedModel):
 
     # Permissions section for updating/creating phenotype_workingset
     created_by = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,related_name="phenotype_workingset_created")
-    modified_by = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,related_name="phenotype_workingset_updated")
+    updated_by = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,related_name="phenotype_workingset_updated")
     is_deleted = models.NullBooleanField(default=False)
     deleted = models.DateTimeField(null=True, blank=True)
     deleted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,related_name="phenotype_workingset_deleted")
