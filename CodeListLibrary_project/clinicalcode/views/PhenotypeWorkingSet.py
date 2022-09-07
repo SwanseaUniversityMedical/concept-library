@@ -403,7 +403,7 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         print('test form valid ')
         with transaction.atomic():
             form.instance.created_by = self.request.user
-            form.instance.author = self.commaSeparate('author')
+            form.instance.author = self.request.POST.get('author')
             form.instance.tags = self.commaSeparate('tagids')
             form.instance.collections = self.commaSeparate('collections')
             form.instance.data_sources = self.commaSeparate('datasources')
