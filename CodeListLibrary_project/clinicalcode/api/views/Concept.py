@@ -1005,7 +1005,7 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
     daterange, date_range_cond = apply_filter_condition(query='daterange', 
                                                     selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, 
                                                     conditions='',
-                                                    is_authenticated_use =is_authenticated_user)
+                                                    is_authenticated_user =is_authenticated_user)
    
 
     # check if it is the public site or not
