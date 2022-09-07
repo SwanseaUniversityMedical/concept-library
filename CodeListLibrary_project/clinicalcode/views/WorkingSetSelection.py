@@ -64,6 +64,10 @@ def selection_list(request):
     '''
     if not request.user.is_authenticated:
         raise PermissionDenied()
+
+    method = request.GET.get('method', '')
+    if method != '1':
+        return redirect('/workingsets/')
     
     search_tag_list = []
     tags = []
@@ -77,7 +81,7 @@ def selection_list(request):
     collection_ids = request.GET.get('collection_ids', '')
     owner = request.GET.get('owner', '')
     author = request.GET.get('author', '')
-    coding_ids = request.GET.get('codingids', '')
+    coding_ids = request.GET.get('coding_ids', '')
     des_order = request.GET.get('order_by', '')
     selected_phenotype_types = request.GET.get('selected_phenotype_types', '')
     phenotype_brand = request.GET.get('phenotype_brand', '')

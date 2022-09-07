@@ -1,16 +1,4 @@
-/*
-
-  Todo:
-    1. Concept list
-      -> Collapsible list in phenotype selection-results
-      -> Checkbox addition, add to list -> add to page
-    2. Concept selection page incl. removal
-    3. Destruction method
-
-*/
-
-
-var SelectionService = function (element, methods) {
+var SelectionService = function (element, methods, previouslySelected = []) {
   /*************************************
    *                                   *
    *            Private defs           *
@@ -185,11 +173,13 @@ var SelectionService = function (element, methods) {
   this.data = undefined;
   this.filter_order = undefined;
   this.element = element[0];
-  this.selected = [];
+  this.selected = previouslySelected;
   this.onImport = methods.onImport || (() => { });
   this.onClose = methods.onClose || (() => { });
   this.modal = null;
   this.filters = Object.assign({}, DEFAULT_VALUES);
+  this.clearOnClose = methods.clearSelectedOnClose || false;
+  this.clearOnImport = methods.clearSelectedOnImport || false;
 
 
   /*************************************
@@ -197,6 +187,88 @@ var SelectionService = function (element, methods) {
    *           Private methods         *
    *                                   *
    *************************************/
+
+  /* Push updates to selected components tab */
+  var updateSelectedConcepts = (modal) => {
+    // Update selected tab component
+    var container = modal.find('#ws-active-selection');
+    container.html(createNullComponent());
+    
+    for (var index in this.selected) {
+      var concept = this.selected[index];
+      createConceptComponent(concept)
+        .appendTo(container)
+        .find('button')
+        .on('click', (e) => {
+          e.preventDefault();
+
+          var data = $(e.target).parent().find('input[name="ws-concept-data"]').val().split(':');
+          var selected = this.selected.find(e => e.id == data[0] && e.version == data[1]);
+          if (selected) {
+            var index = this.selected.indexOf(selected);
+            this.selected.splice(index, 1);
+            updateSelectedConcepts(modal);
+            toggleConcepts(modal);
+          }
+        });
+    }
+
+    // Update bubble counter
+    var $bubble = modal.find('.ws-notify-bubble');
+    var $nosel = modal.find('#ws-no-selection');
+    if (this.selected.length > 0) {
+      $bubble.removeClass('hide');
+      $nosel.addClass('hide');
+    } else {
+      $bubble.addClass('hide');
+      $nosel.removeClass('hide');
+    }
+    $bubble.text(this.selected.length.toString());
+  }
+
+  /* Handles interaction with concept checkbox */
+  var toggleConcepts = (modal) => {
+    var $concepts = modal.find('.ws-concept-option');
+    $concepts.each((i, elem) => {
+      var data = $(elem).val().split(':');
+      var selected = this.selected.find(e => e.id == data[0] && e.version == data[1]);
+      if (typeof selected == 'undefined') {
+        $(elem).prop('checked', false);
+        return;
+      }
+      
+      $(elem).prop('checked', true);
+    });
+  }
+
+  var handleConcepts = (modal) => {
+    updateSelectedConcepts(modal);
+    toggleConcepts(modal);
+
+    var $concepts = modal.find('.ws-concept-option');
+    $concepts.change((e) => {
+      var elem = $(e.target);
+      var data = $(elem).val().split(':');
+      var selected = this.selected.find(e => e.id == data[0] && e.version == data[1]);
+      if (selected) {
+        // Pop
+        var index = this.selected.indexOf(selected);
+        this.selected.splice(index, 1);
+      } else {
+        // Push
+        var name = elem.parent().find('input[name="ws-concept-name"]').val();
+        var code = elem.parent().find('input[name="ws-concept-coding"]').val();
+        this.selected.push({
+          name: name,
+          id: data[0],
+          version: data[1],
+          coding: code,
+        });
+      }
+
+      updateSelectedConcepts(modal);
+    });
+  }
 
   /* Update subheader's filter reset buttons */
   var updateSubheader = (name, value) => {
@@ -248,10 +320,10 @@ var SelectionService = function (element, methods) {
     return $(`
     <li class="checkbox">
       <label>
-      <input class="form-check-input filter_option ` + mapped.item +`" type="checkbox" name="` + mapped.name + `" value="` + value + `">
-      <span class="form-check-label">
-        ` + (name.toLocaleLowerCase() == name ? transformTitleCase(name) : name) + `
-      </span>
+        <input class="form-check-input filter_option ` + mapped.item +`" type="checkbox" name="` + mapped.name + `" value="` + value + `">
+        <span class="form-check-label">
+          ` + (name.toLocaleLowerCase() == name ? transformTitleCase(name) : name) + `
+        </span>
       </label>
     </li>
     `);
@@ -582,25 +654,48 @@ var SelectionService = function (element, methods) {
     // Callback for importing concepts
     modal.find('#import-concepts').on('click', (e) => {
       var currentSelection = this.selected;
-      this.selected = [];
       modal.modal('hide');
 
-      this.onImport(currentSelection);
+      if (this.clearOnImport) {
+        this.selected = [];
+      }
+
+      this.onImport(this, currentSelection);
     });
 
-    // Callback for clearing all / individual concepts
+    // Callback for clearing all selected concept(s)
+    modal.find('#clear-all-concepts').on('click', (e) => {
+      this.selected = [];
+      updateSelectedConcepts(modal);
+      toggleConcepts(modal);
+    });
 
+    // Callback for changing tabs
+    modal.find('a[data-toggle="tab"]').on('shown.bs.tab', (e) => {
+      var target = $(e.target).attr('id');
+      switch (target) {
+        case "ws-add-concepts":
+          modal.find('#clear-all-concepts').addClass('hide');
+          break;
+        case "ws-selected-concepts":
+          modal.find('#clear-all-concepts').removeClass('hide');
+          break;
+      }
+    });
 
     // Callback for modal closure
     modal.on('hidden.bs.modal', () => {
       var currentSelection = this.selected;
       this.modal.remove();
-      this.selected = [];
       this.modal = null;
       this.filters = Object.assign({}, DEFAULT_VALUES);
 
+      if (this.clearOnClose) {
+        this.selected = [];
+      }
+
       if (this.selected.length > 0) {
-        this.onClose(currentSelection);
+        this.onClose(this, currentSelection);
       }
     });
   }
@@ -639,6 +734,53 @@ var SelectionService = function (element, methods) {
   }
 
   /* Create HTML component(s) */
+  var createConceptComponent = (concept) => {
+    var id    = concept.id,
+      version = concept.version,
+      name    = concept.name,
+      coding  = concept.coding;
+    
+    return $(`
+    <div class="cl-card ws-no-hover ws-md-padding">
+      <button class="btn btn-cl-danger ws-trash" id="ws-remove-concept">
+        <i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i>
+      </button>
+      <label>
+        <input type="hidden" name="ws-concept-data" value="` + id + `:` + version + `">
+        <span>
+          <i class="ws-id-title">C` + id + `/` + version + `:</i>
+          &nbsp;
+          ` + name + `
+          &nbsp;
+          ` + coding + `
+          &nbsp;
+        </span>
+      </label>
+    </div>
+    `);
+  }
+
+  var createNullComponent = () => {
+    return `
+    <p class="ws-none-selected" id="ws-no-selection">You have not selected any Concepts yet.</p>
+    `
+  }
+
+  var createSelectionComponent = () => {
+    return `
+    <div class="row">
+      <div class="col-xs-12 ws-selected-container">
+        <div class="ws-group ws-lg-margin">
+          <h1>Selected:</h1>
+          <div class="well ws-well-background ws-selected-box" id="ws-active-selection">` + 
+            createNullComponent()
+          + `</div>
+        </div>
+      </div>
+    </div>
+    `
+  }
+
   var createFilterBox = () => {
     return `
     <!-- Type -->
@@ -843,7 +985,7 @@ var SelectionService = function (element, methods) {
                 <a href="#ws-selected-concept-tab" id="ws-selected-concepts" aria-controls="selected-concept" role="tab" data-toggle="tab">
                   Selected Concepts
                 </a>
-                <span class="ws-notify-bubble">0</span>
+                <span class="ws-notify-bubble hide">0</span>
               </li>
             </ul>
           </div>
@@ -873,12 +1015,15 @@ var SelectionService = function (element, methods) {
                   </div>
                 </div>
               </div>
-              <div role="tabpanel" class="tab-pane ws-tab-panel" id="ws-selected-concept-tab">
-  
-              </div>
+              <div role="tabpanel" class="tab-pane ws-tab-panel" id="ws-selected-concept-tab">` + 
+                createSelectionComponent()
+              + `</div>
             </div>
           </div>
           <div class="modal-footer">
+            <a class="btn btn-outline-primary btn-cl btn-cl-danger hide" id="clear-all-concepts">
+              Clear Selected
+            </a>
             <a class="btn btn-outline-primary btn-cl btn-cl-secondary" id="import-concepts">
               Import Concepts
             </a>
@@ -913,7 +1058,7 @@ var SelectionService = function (element, methods) {
       $.ajax({
         url: '/workingsets/select-concepts/',
         type: 'GET',
-        data: values,
+        data: Object.assign(values, {method: 1}),
         dataType: 'html',
         success: function (data) {
           if (data) {
@@ -973,6 +1118,9 @@ var SelectionService = function (element, methods) {
 
           handlePagination($controls);
         }
+
+        // Pass ctx to concept handle
+        handleConcepts(this.modal);
       })
       .catch((error) => {
         if (typeof error === 'object' && typeof error['canceled'] !== 'undefined') {
@@ -990,6 +1138,8 @@ var SelectionService = function (element, methods) {
    *                                   *
    *************************************/
   $(this.element).on('click', (e) => {
+    e.preventDefault();
+
     // Initialise modal
     this.modal = createSelectionModal();
 
@@ -1015,20 +1165,21 @@ var SelectionService = function (element, methods) {
  *************************************/
 SelectionService.prototype = {
   constructor: SelectionService,
-  clearSelected: function (index = -1) {
-    if (index < 0) {
-      // Clear all selected
-
-      return;
-    }
-
-    // Clear individual element
-
-  },
   destroy: function () {
     // Delete SelectionService & clean up
-    
+    this.modal.remove();
+    this.selected = null;
+    this.modal = null;
+    this.filters = null;
+    $(this.element).data('SelectionService', undefined);
+    delete this;
   },
+  getSelected: function () {
+    return this.selected;
+  },
+  getModal: function () {
+    return this.modal;
+  }
 };
 
 
@@ -1037,10 +1188,10 @@ SelectionService.prototype = {
  *           jQuery plugin           *
  *                                   *
  *************************************/
-$.fn.createSelection = function (methods) {
+$.fn.createSelection = function (methods, previouslySelected) {
   methods = methods || { };
 
-  var service = new SelectionService(this, methods);
+  var service = new SelectionService(this, methods, previouslySelected);
   $(this).data('SelectionService', service);
 
   return this;

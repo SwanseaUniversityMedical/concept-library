@@ -10,11 +10,11 @@
 
 {% block content %}
 	{% for phenotype in page_obj.object_list %}
-			<div class="cl-card {% if phenotype.is_deleted is True %} cl-card-deleted{% endif %} {% cycle ' dark-div ' '' %}   "
+			<div class="cl-card ws-no-hover {% if phenotype.is_deleted is True %} cl-card-deleted{% endif %} {% cycle ' dark-div ' '' %}   "
                         {% if phenotype.approval_status == 1 and phenotype.owner_id == request.user.id or request.user|has_group:"Moderators" and phenotype.approval_status == 1 %}title="Waiting for approval"{% endif %}>
 				<div class="row form-group">
 					<div class="col-sm-12">
-						<a class="" href="{% url 'phenotype_history_detail' phenotype.id phenotype.history_id %}">
+						<a class="ws-disabled-link" href="{% url 'phenotype_history_detail' phenotype.id phenotype.history_id %}">
 						<span style='font-size: 22px;margin-top:0;'>{{ phenotype.friendly_id }} - {{ phenotype.name_highlighted|safe }}</span>
 						</a>				
 					</div>
@@ -74,17 +74,21 @@
 				<div class="well ws-well-concepts">
 					{% for concept in concept_data|from_phenotype:phenotype.id %}
 						<li class="checkbox">
-							<label>
-								<input type="hidden" name="ws-concept-name" value="{{ concept.name }}"/>
-								<input type="hidden" name="ws-concept-coding" value="{{ concept.coding_system }}"/>
-								<input class="form-check-input ws-concept-option" type="checkbox" name="ws-concept-element" value="{{ concept.concept_id }}:{{ concept.concept_version_id }}">
-								<span class="form-check-label">
-									{{ concept.name }}
-									&nbsp;
-									({{ concept.coding_system }})
-									&nbsp;
-								</span>
-							</label>
+							<div class="cl-card ws-no-hover ws-sm-padding">
+								<label>
+									<input type="hidden" name="ws-concept-name" value="{{ concept.name }}"/>
+									<input type="hidden" name="ws-concept-coding" value="{{ concept.coding_system }}"/>
+									<input class="form-check-input ws-concept-option" type="checkbox" name="ws-concept-element" value="{{ concept.id }}:{{ concept.history_id }}">
+									<span class="form-check-label">
+										<i class="ws-id-title">C{{ concept.id }}/{{ concept.history_id }}:</i>
+										&nbsp;
+										{{ concept.name }}
+										&nbsp;
+										({{ concept.coding_system }})
+										&nbsp;
+									</span>
+								</label>
+							</div>
 						</li>
 					{% endfor %}
 				</div>

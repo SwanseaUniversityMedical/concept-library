@@ -512,9 +512,9 @@
 
 	<!------------------------ Selection Service dependencies -------------------------->
 	<link href="{% static 'lib/daterangepicker/daterangepicker.css' %}" rel="stylesheet" />
-	<script src="{% static 'js/clinicalcode/filters/utils.js' %}"></script>
 	<script src="{% static 'js/lib/daterangepicker/moment.min.js' %}"></script>
 	<script src="{% static 'js/lib/daterangepicker/daterangepicker.js' %}"></script>
+	<script src="{% static 'js/clinicalcode/filters/utils.js' %}"></script>
 	<script src="{% static 'js/clinicalcode/filters/FuzzyQuery.js' %}"></script>
 	<script src="{% static 'js/clinicalcode/filters/autocompleteSearch.js' %}"></script>
 	<script src="{% static 'js/clinicalcode/workingset/selectionService.js' %}"></script>
@@ -638,7 +638,21 @@
 			}			
 			
 			//----------------------------------------------------------------------------------------------------------------------
-			$('#add-concept').createSelection();
+			$('#add-concept').createSelection({
+				// Props
+				clearSelectedOnClose: false,
+				clearSelectedOnImport: true,
+
+				// Methods
+				onImport: (service, selected) => {
+					// Clicked the 'Import Concepts' button, and imported 'selected'
+					console.log(selected);
+				},
+				onClose: (service, selected) => {
+					// Left the modal with 'selected' being their current selection
+					
+				}
+			});
 
 			
 			//----------------------------------------------------------------------------------------------------------------------

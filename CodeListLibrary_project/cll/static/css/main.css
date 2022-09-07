@@ -1176,6 +1176,16 @@ code.api-codeblock .code-text-highlight, .code-comment-highlight {
   padding: 0px;
 }
 
+.ws-sm-padding {
+  padding: 5px;
+  margin: 0px;
+}
+
+.ws-md-padding {
+  padding: 5px;
+  margin: 5px;
+}
+
 .ws-group h1 {
   font-weight: bolder;
   color: #333;
@@ -1196,6 +1206,12 @@ code.api-codeblock .code-text-highlight, .code-comment-highlight {
   height: 600px;
 }
 
+.ws-selected-container {
+  margin: 0px;
+  padding: 5px;
+  height: 600px;
+}
+
 .ws-results {
   margin: 0px;
   overflow-y: scroll;
@@ -1213,6 +1229,23 @@ code.api-codeblock .code-text-highlight, .code-comment-highlight {
   width: 100%;
 }
 
+.ws-lg-margin {
+  margin: 5px 20px 10px 20px;
+}
+
+.ws-selected-box {
+  padding: 10px !important;
+  height: 525px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.ws-none-selected {
+  text-align: center;
+  font-weight: bold;
+  margin: 10px;
+}
+
 .ws-well-background {
   background-color: #F7F9Fc;
   background-image: none;
@@ -1224,22 +1257,22 @@ code.api-codeblock .code-text-highlight, .code-comment-highlight {
   margin: 0px;
 }
 
-.ws-results::-webkit-scrollbar, .ws-sidebar::-webkit-scrollbar {
+.ws-results::-webkit-scrollbar, .ws-sidebar::-webkit-scrollbar, .ws-selected-box::-webkit-scrollbar {
   width: 6px;
   height: 12px;
 }
 
-.ws-results::-webkit-scrollbar-track, .ws-sidebar::-webkit-scrollbar-track {
+.ws-results::-webkit-scrollbar-track, .ws-sidebar::-webkit-scrollbar-track, .ws-selected-box::-webkit-scrollbar-track {
   background: transparent;
   border-radius: 10px;
 }
 
-.ws-results::-webkit-scrollbar-thumb, .ws-sidebar::-webkit-scrollbar-thumb {
+.ws-results::-webkit-scrollbar-thumb, .ws-sidebar::-webkit-scrollbar-thumb, .ws-selected-box::-webkit-scrollbar-thumb {
   border-radius: 10px;
   background: #ccc;
 }
 
-.ws-results::-webkit-scrollbar-thumb:hover, .ws-sidebar::-webkit-scrollbar-thumb:hover {
+.ws-results::-webkit-scrollbar-thumb:hover, .ws-sidebar::-webkit-scrollbar-thumb:hover, .ws-selected-box::-webkit-scrollbar-thumb:hover {
   background: #999;  
 }
 
@@ -1252,7 +1285,11 @@ code.api-codeblock .code-text-highlight, .code-comment-highlight {
   font-size: 10px;
   color: #fff;
   border-radius: 3px;
-  display: none;
+  display: block;
+}
+
+.ws-id-title {
+  color: #919191;
 }
 
 .ws-page-control {
@@ -1260,3 +1297,18 @@ code.api-codeblock .code-text-highlight, .code-comment-highlight {
   margin-left: 5px;
 }
 
+.ws-no-hover:hover {
+  background-color: #FFFFFF;
+}
+
+.ws-no-hover.dark-div {
+  background-color: #F7F9FC;
+}
+
+.ws-disabled-link {
+  pointer-events: none;
+}
+
+.ws-trash {
+  margin-right: 10px;
+}
