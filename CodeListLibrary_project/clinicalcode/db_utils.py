@@ -4614,7 +4614,7 @@ def get_visible_live_or_published_phenotype_workingset_versions(request,
         brand_collection_ids = [str(i) for i in brand_collection_ids]
 
         if brand_collection_ids:
-            brand_filter_cond = " WHERE tags && '{" + ','.join(brand_collection_ids) + "}' "
+            brand_filter_cond = " WHERE collections && '{" + ','.join(brand_collection_ids) + "}' "
 
 
     # order by clause
