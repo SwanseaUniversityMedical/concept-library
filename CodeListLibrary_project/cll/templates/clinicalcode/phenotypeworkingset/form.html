@@ -138,8 +138,7 @@
                             <div class="material-textfield">
 
                                 <input class="input-material col-sm-12 form-control" type="text" name="collections"
-                                       id="collections"
-                                       value="{{ form.instance.collections|default_if_none:'' }}">
+                                       id="collections">
                                 <label class="label-material">Collections</label>
                             </div>
                         </div>
@@ -471,6 +470,11 @@
            {% for tag in tags %}
 			$('#txtTags').tagsinput('add', { 'id': {{ tag.id }}, 'description': '{{ tag.description }}', 'display': '{{ tag.get_display_display }}'});
 		{% endfor %}
+         {% for collection in collections %}
+
+			$('#collections').tagsinput('add', { 'id': {{ collection.id }}, 'description': '{{ collection.name }}', 'display': '{{ collection.get_display_display }}'});
+		{% endfor %}
+
         });
         $("#author").tagsinput('items')
         tagAutocomplete('/api/v1/public/data-sources-list/', 'datasources', 'datasource_id', 'name').initialize()

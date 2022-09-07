@@ -22,10 +22,7 @@ class PhenotypeWorkingsetCreate(LoginRequiredMixin,HasAccessToCreateCheckMixin,C
         data = self.request.POST.get(id)
         overall = None
         if data:
-            if (type(data) == str):
-                overall = [str(i) for i in data.split(",")]
-            else:
-                overall = [int(i) for i in data.split(",")]
+            overall = [int(i) for i in data.split(",")]
 
         return overall
 
@@ -39,7 +36,8 @@ class PhenotypeWorkingsetCreate(LoginRequiredMixin,HasAccessToCreateCheckMixin,C
         for t in queryset:
             ret = [t.id, t.description,t.collection_brand.name]
             rows_to_return.append(ordr(list(zip(titles, ret))))
-        print(rows_to_return)
+
+        return rows_to_return
 
     def get_form_kwargs(self):
         print('test kwarks ')
@@ -50,18 +48,19 @@ class PhenotypeWorkingsetCreate(LoginRequiredMixin,HasAccessToCreateCheckMixin,C
 
     def form_invalid(self, form):
         print('test form invalid ')
-        tag_ids = self.request.POST.get('tagids')
-        print(self.commaSeparate('collections'))
-        collections = self.get_brand_collections(self.commaSeparate('collections'))
+        tag_ids = self.commaSeparate('tagids')
+        collections = self.commaSeparate('collections')
         datasources = self.commaSeparate('datasources')
-
         context = self.get_context_data()
 
         if tag_ids:
-            new_tag_list = [int(i) for i in tag_ids.split(",")]
-            context['tags'] = Tag.objects.filter(pk__in=new_tag_list)
+            context['tags'] = Tag.objects.filter(pk__in=tag_ids)
+            print(context['tags'])
 
-        context['collections'] = collections #next time need to make sure to itarate like tags
+        if collections:
+            context['collections'] = self.get_brand_collections(collections)
+            print(context['collections'])
+
         context['datasources'] = datasources #itarate datasources
         print(context)
 
@@ -75,7 +74,7 @@ class PhenotypeWorkingsetCreate(LoginRequiredMixin,HasAccessToCreateCheckMixin,C
             form.instance.tags = self.commaSeparate('tagids')
             form.instance.collections = self.commaSeparate('collections')
             form.instance.data_sources = self.commaSeparate('datasources')
-            form.instance.phenotypes_concepts_data = "[{phenotype_id: PH3,phenotype_version_id: 6,concept_id: C717,concept_version_id:2573,Attributes:[{name: Attribute name,type:int/float/string,value: 234}]}]"
+            form.instance.phenotypes_concepts_data = [{"phenotype_id": "PH3","phenotype_version_id": 6,"concept_id": "C717","concept_version_id":2573,"Attributes":[{"name": "Attributename","type":"int","value": 234}]}]
 
 
             self.object = form.save()
