@@ -99,8 +99,8 @@ def workingset_list(request):
    
     search_form = request.GET.get('search_form', request.session.get('ph_workingset_search_form', 'basic-form'))
 
-    start_date_range = request.GET.get('startdate', request.session.get('phenotype_date_start', ''))
-    end_date_range = request.GET.get('enddate', request.session.get('phenotype_date_end', ''))
+    start_date_range = request.GET.get('startdate', request.session.get('ph_workingset_date_start', ''))
+    end_date_range = request.GET.get('enddate', request.session.get('ph_workingset_date_end', ''))
     
     start_date_query, end_date_query = False, False
     try:
