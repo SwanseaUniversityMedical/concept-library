@@ -43,6 +43,7 @@ from clinicalcode.api.views.View import get_canonical_path_by_brand
 from clinicalcode.constants import *
 from django.db.models.functions import Lower
 from clinicalcode.constants import Type_status
+from django.utils.timezone import make_aware
 
 logger = logging.getLogger(__name__)
 
@@ -69,53 +70,45 @@ def workingset_list(request):
 
     search_tag_list = []
     tags = []
-    ph_workingset_selected_types_list = []
     # get page index variables from query or from session
     expand_published_versions = 0  # disable this option
         
+    method = request.GET.get('filtermethod', '')
     page_size = utils.get_int_value(request.GET.get('page_size', request.session.get('ph_workingset_page_size', 20)), 20)
     page = utils.get_int_value(request.GET.get('page', request.session.get('ph_workingset_page', 1)), 1)
     search = request.GET.get('search', request.session.get('ph_workingset_search', ''))
-    tag_ids = request.GET.get('tagids', request.session.get('ph_workingset_tagids', ''))
+    tag_ids = request.GET.get('tag_ids', request.session.get('ph_workingset_tagids', ''))
+    collection_ids = request.GET.get('collection_ids', request.session.get('ph_workingset_collection_ids', ''))
     owner = request.GET.get('owner', request.session.get('ph_workingset_owner', ''))
     author = request.GET.get('author', request.session.get('ph_workingset_author', ''))
+    #coding_ids = request.GET.get('codingids', request.session.get('ph_workingset_codingids', ''))
+    des_order = request.GET.get('order_by', request.session.get('ph_workingset_order_by', ''))
+    data_sources = request.GET.get('data_source_ids', request.session.get('ph_workingset_data_source_ids', ''))
     ph_workingset_brand = request.GET.get('ph_workingset_brand', request.session.get('ph_workingset_brand', ''))  # request.CURRENT_BRAND
     
     show_deleted_ph_workingsets = request.GET.get('show_deleted_ph_workingsets', request.session.get('ph_workingset_show_deleted_ph_workingsets', 0))
     show_my_ph_workingsets = request.GET.get('show_my_ph_workingsets', request.session.get('ph_workingset_show_my_workingsets', 0))
-    show_only_validated_workingsets = request.GET.get('show_only_validated_workingsets', request.session.get('show_only_validated_workingsets', 0))
+    show_only_validated_workingsets = request.GET.get('show_only_validated_workingsets', request.session.get('ph_show_only_validated_workingsets', 0))
     ph_workingset_must_have_published_versions = request.GET.get('ph_workingset_must_have_published_versions', request.session.get('ph_workingset_must_have_published_versions', 0))
 
     show_my_pending_workingsets = request.GET.get('show_my_pending_workingsets', request.session.get('ph_workingset_show_my_pending_workingsets', 0))
     show_mod_pending_workingsets = request.GET.get('show_mod_pending_workingsets', request.session.get('ph_workingset_show_mod_pending_workingsets', 0))
     show_rejected_workingsets = request.GET.get('show_rejected_workingsets', request.session.get('ph_workingset_show_rejected_workingsets', 0))
     
-    ph_workingset_selected_types = request.GET.get('ph_workingset_selected_types', request.session.get('ph_workingset_selected_types', ''))
+    ph_workingset_selected_types = request.GET.get('selected_workingset_types', request.session.get('ph_workingset_selected_types', ''))
    
     search_form = request.GET.get('search_form', request.session.get('ph_workingset_search_form', 'basic-form'))
 
-
-    if bool(request.GET):
-        # get posted parameters
-        search = request.GET.get('search', '')
-        page_size = request.GET.get('page_size', 20)
-        page = request.GET.get('page', page)     
-        tag_ids = request.GET.get('tagids', '')
-        ph_workingset_brand = request.GET.get('ph_workingset_brand', '')  # request.CURRENT_BRAND
-        search_form = request.GET.get('search_form', 'basic-form')
-        ph_workingset_selected_types = request.GET.get('ph_workingset_selected_types', '')
-        
-        if search_form !='basic-form': 
-            author = request.GET.get('author', '')
-            owner = request.GET.get('owner', '')
-            show_my_ph_workingsets = request.GET.get('show_my_ph_workingsets', 0)
-            show_deleted_ph_workingsets = request.GET.get('show_deleted_ph_workingsets', 0)
-            show_only_validated_workingsets = request.GET.get('show_only_validated_workingsets', 0)
-            ph_workingset_must_have_published_versions = request.GET.get('ph_workingset_must_have_published_versions', 0)
-            show_my_pending_workingsets = request.GET.get('show_my_pending_workingsets', 0)
-            show_mod_pending_workingsets = request.GET.get('show_mod_pending_workingsets', 0)
-            show_rejected_workingsets = request.GET.get('show_rejected_workingsets', 0)
-        
+    start_date_range = request.GET.get('startdate', request.session.get('phenotype_date_start', ''))
+    end_date_range = request.GET.get('enddate', request.session.get('phenotype_date_end', ''))
+    
+    start_date_query, end_date_query = False, False
+    try:
+        start_date_query = make_aware(datetime.datetime.strptime(start_date_range, '%Y-%m-%d'))
+        end_date_query = make_aware(datetime.datetime.strptime(end_date_range, '%Y-%m-%d'))
+    except ValueError:
+        start_date_query = False
+        end_date_query = False
         
     # store page index variables to session
     request.session['ph_workingset_page_size'] = page_size
@@ -124,36 +117,27 @@ def workingset_list(request):
     request.session['ph_workingset_tagids'] = tag_ids
     request.session['ph_workingset_brand'] = ph_workingset_brand   
     request.session['ph_workingset_selected_types'] = ph_workingset_selected_types
-   
-   #if search_form !='basic-form': 
     request.session['ph_workingset_author'] = author  
     request.session['ph_workingset_owner'] = owner     
     request.session['ph_workingset_show_my_workingsets'] = show_my_ph_workingsets
     request.session['ph_workingset_show_deleted_ph_workingsets'] = show_deleted_ph_workingsets
-    request.session['show_only_validated_workingsets'] = show_only_validated_workingsets
+    request.session['ph_show_only_validated_workingsets'] = show_only_validated_workingsets
     request.session['ph_workingset_must_have_published_versions'] = ph_workingset_must_have_published_versions 
     request.session['ph_workingset_search_form'] = search_form
     request.session['ph_workingset_show_my_pending_workingsets'] = show_my_pending_workingsets    
     request.session['ph_workingset_show_mod_pending_workingsets'] = show_mod_pending_workingsets
     request.session['ph_workingset_show_rejected_workingsets'] = show_rejected_workingsets
-       
-    if search_form == 'basic-form':     
-        owner = '' 
-        author = ''
-        show_my_ph_workingsets = 0
-        show_deleted_ph_workingsets = 0
-        show_only_validated_workingsets = 0
-        ph_workingset_must_have_published_versions = 0
-        show_my_pending_workingsets = 0
-        show_mod_pending_workingsets = 0
-        show_rejected_workingsets = 0
-            
+    request.session['ph_workingset_collection_ids'] = collection_ids
+    #request.session['ph_workingset_codingids'] = coding_ids
+    request.session['ph_workingset_date_start'] = start_date_range
+    request.session['ph_workingset_date_end'] = end_date_range
+    request.session['ph_workingset_order_by'] = des_order  
+    request.session['ph_workingset_data_source_ids'] = data_sources
 
     # remove leading, trailing and multiple spaces from text search params
     search = re.sub(' +', ' ', search.strip())
     owner = re.sub(' +', ' ', owner.strip())
     author = re.sub(' +', ' ', author.strip())
-    
         
     filter_cond = " 1=1 "
     approved_status = []
@@ -161,9 +145,8 @@ def workingset_list(request):
     get_live_and_or_published_ver = 3  # 1= live only, 2= published only, 3= live+published
 
     # available ph_workingset_types in the DB
-    ph_workingset_types_list_ids = list(PhenotypeWorkingset.history.values('type').distinct().order_by('type').values_list('type',  flat=True))
-    ph_workingset_types_list = [t[1] for t in Type_status if t[0] in ph_workingset_types_list_ids]
-    
+    ph_workingset_types_list, ph_workingset_types_order = db_utils.get_brand_associated_workingset_types(request, brand=None)
+    ph_workingset_selected_types_list = {ph_workingset_types_order[k]: v for k, v in enumerate(ph_workingset_types_list)}
     
     # search by ID (only with prefix)
     # chk if the search word is valid ID (with  prefix 'PH' case insensitive)
@@ -175,27 +158,14 @@ def workingset_list(request):
             if is_valid_id:
                 search_by_id = True
                 filter_cond += " AND (id =" + str(ret_int_id) + " ) "
-            
-            
-    if tag_ids:
-        # split tag ids into list
-        search_tag_list = [str(i) for i in tag_ids.split(",")]
-        # chk if these tags are valid, to prevent injection
-        # use only those found in the DB
-        tags = Tag.objects.filter(id__in=search_tag_list)
-        search_tag_list = list(tags.values_list('id',  flat=True))
-        search_tag_list = [str(i) for i in search_tag_list]          
-        filter_cond += " AND collections && '{" + ','.join(search_tag_list) + "}' "
 
-    if ph_workingset_selected_types:
-        ph_workingset_selected_types_list = [str(t) for t in ph_workingset_selected_types.split(',')]
-        # chk if these types are valid, to prevent injection
-        # use only those found in the DB
-        ph_workingset_selected_types_list = list(set(ph_workingset_types_list).intersection(set(ph_workingset_selected_types_list)))
-        ph_workingset_selected_types_list_int = [t[0] for t in Type_status if t[1] in ph_workingset_selected_types_list]
-        ph_workingset_selected_types_list_int = [str(t) for t in ph_workingset_selected_types_list_int]
-        filter_cond += " AND type IN(" + ", ".join(ph_workingset_selected_types_list_int) + ") "
-   
+    collections, filter_cond = db_utils.apply_filter_condition(query='collections', selected=collection_ids, conditions=filter_cond)
+    tags, filter_cond = db_utils.apply_filter_condition(query='tags', selected=tag_ids, conditions=filter_cond)
+    #coding, filter_cond = db_utils.apply_filter_condition(query='clinical_terminologies', selected=coding_ids, conditions=filter_cond)
+    sources, filter_cond = db_utils.apply_filter_condition(query='data_sources', selected=data_sources, conditions=filter_cond)
+    selected_phenotype_types_list, filter_cond = db_utils.apply_filter_condition(query='workingset_type', selected=ph_workingset_selected_types, conditions=filter_cond, data=ph_workingset_types_list)
+    daterange, filter_cond = db_utils.apply_filter_condition(query='daterange', selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, conditions=filter_cond)
+    
     
     # check if it is the public site or not
     if request.user.is_authenticated:
@@ -287,7 +257,8 @@ def workingset_list(request):
     collections_excluded_from_filters = []
     if request.CURRENT_BRAND != "":
         collections_excluded_from_filters = request.BRAND_OBJECT.collections_excluded_from_filters
-            
+    
+    # Collections
     brand_associated_collections, collections_order = db_utils.get_brand_associated_collections(request, 
                                                                             concept_or_phenotype='phenotype',
                                                                             brand=None,
@@ -296,52 +267,92 @@ def workingset_list(request):
     
     brand_associated_collections_ids = [x.id for x in brand_associated_collections]
 
-    author = request.session.get('ph_workingset_author')  
-    owner = request.session.get('ph_workingset_owner')       
-    show_my_ph_workingsets = request.session.get('ph_workingset_show_my_workingsets')
-    show_deleted_ph_workingsets = request.session.get('ph_workingset_show_deleted_ph_workingsets')
-    show_only_validated_workingsets = request.session.get('show_only_validated_workingsets') 
-    ph_workingset_must_have_published_versions = request.session.get('ph_workingset_must_have_published_versions') 
-    show_my_pending_workingsets = request.session.get('ph_workingset_show_my_pending_workingsets') 
-    show_mod_pending_workingsets = request.session.get('ph_workingset_show_mod_pending_workingsets')
-    show_rejected_workingsets = request.session.get('ph_workingset_show_rejected_workingsets') 
-         
-    
-    return render(
-        request,
-        'clinicalcode/phenotypeworkingset/index.html',
-        {
-            'page': page,
-            'page_size': str(page_size),
-            'page_obj': p,
-            'search': search,
-            'author': author,
-            'show_my_ph_workingsets': show_my_ph_workingsets,
-            'show_deleted_ph_workingsets': show_deleted_ph_workingsets,
-            'show_my_pending_workingsets': show_my_pending_workingsets,
-            'show_mod_pending_workingsets': show_mod_pending_workingsets,
-            'show_rejected_workingsets': show_rejected_workingsets,
-            'tags': tags,
-            'tag_ids': tag_ids2,
-            'tag_ids_list': tag_ids_list,
-            'owner': owner,
-            'show_only_validated_workingsets': show_only_validated_workingsets,
-            'allowed_to_create': not settings.CLL_READ_ONLY,
-            'ph_workingset_brand': ph_workingset_brand,
-            'ph_workingset_must_have_published_versions': ph_workingset_must_have_published_versions,
-            'allTags': Tag.objects.all().order_by('description'),
-            'all_CodingSystems': CodingSystem.objects.all().order_by('id'),
-            'search_form': search_form,
-            'p_btns': p_btns,
-            'brand_associated_collections': brand_associated_collections,
-            'brand_associated_collections_ids': brand_associated_collections_ids,
-            'all_collections_selected': all(item in tag_ids_list for item in brand_associated_collections_ids),
-            'ph_workingset_types':ph_workingset_types_list,
-            'ph_workingset_selected_types': [t for t in ph_workingset_selected_types.split(',') ],
-            'ph_workingset_selected_types_str': ph_workingset_selected_types, # ','.join([t for t in ph_workingset_selected_types.split(',') ]),
-            'all_types_selected': all(item in ph_workingset_selected_types_list for item in ph_workingset_types_list),
+    # Tags
+    brand_associated_tags, tags_order = db_utils.get_brand_associated_tags(request, 
+                                                                excluded_tags=collections_excluded_from_filters,
+                                                                concept_or_phenotype='phenotype'
+                                                                )
 
-        })
+    # Coding id 
+    # coding_system_reference, coding_order = db_utils.get_coding_system_reference(request, brand=None, concept_or_phenotype="phenotype")
+    # coding_system_reference_ids = [x.id for x in coding_system_reference]
+    # coding_id_list = []
+    # if coding_ids:
+    #     coding_id_list = utils.expect_integer_list(coding_ids)
+    
+    # Data sources
+    data_source_reference, datasource_order = db_utils.get_data_source_reference(request, brand=None)
+    data_sources_list = []
+    if data_sources:
+        data_sources_list = utils.expect_integer_list(data_sources)
+
+    # Collections
+    collection_ids_list = []
+    if collection_ids:
+        collection_ids_list = utils.expect_integer_list(collection_ids)
+
+    # Sorted order of each field
+    filter_statistics_ordering = {
+        'tags': tags_order,
+        'collection': collections_order,
+        #'coding': coding_order,
+        'types': ph_workingset_types_order,
+        'datasources': datasource_order,
+    }
+
+    context = {
+        'page': page,
+        'page_size': str(page_size),
+        'page_obj': p,
+        'search': search,
+        'author': author,
+        'show_my_ph_workingsets': show_my_ph_workingsets,
+        'show_deleted_ph_workingsets': show_deleted_ph_workingsets,
+        'show_my_pending_workingsets': show_my_pending_workingsets,
+        'show_mod_pending_workingsets': show_mod_pending_workingsets,
+        'show_rejected_workingsets': show_rejected_workingsets,
+        'workingset_must_have_published_versions': ph_workingset_must_have_published_versions,
+        'show_only_validated_workingsets': show_only_validated_workingsets,
+        'tags': tags,
+        'tag_ids': tag_ids2,
+        'tag_ids_list': tag_ids_list,
+        'collections': collections,
+        'collection_ids': collection_ids,
+        'collection_ids_list': collection_ids_list,
+        'owner': owner,
+        'allowed_to_create': not settings.CLL_READ_ONLY,
+        'ph_workingset_brand': ph_workingset_brand,
+        'allTags': Tag.objects.all().order_by('description'),
+        'all_CodingSystems': CodingSystem.objects.all().order_by('id'),
+        'search_form': search_form,
+        'p_btns': p_btns,
+        'brand_associated_collections': brand_associated_collections,
+        'brand_associated_collections_ids': brand_associated_collections_ids,
+        'all_collections_selected': all(item in tag_ids_list for item in brand_associated_collections_ids),
+        'workingset_types': ph_workingset_selected_types_list,
+        'workingset_selected_types': [t for t in ph_workingset_selected_types.split(',') ],
+        'workingset_selected_types_str': ph_workingset_selected_types,
+        # 'coding_system_reference': coding_system_reference,
+        # 'coding_system_reference_ids': coding_system_reference_ids,
+        # 'coding_id_list': coding_id_list,
+        # 'coding_ids': coding_ids,
+        # 'all_coding_selected': all(item in coding_id_list for item in coding_system_reference_ids),
+        'data_source_ids': data_sources,
+        'data_source_list': data_sources_list,
+        'data_sources_reference': data_source_reference,
+        'brand_associated_tags': brand_associated_tags,
+        'brand_associated_tags_ids': list(brand_associated_tags.values()),
+        'all_tags_selected': all(item in tag_ids_list for item in brand_associated_tags.values()),
+        'ordered_by': des_order,
+        'filter_start_date': start_date_range,
+        'filter_end_date': end_date_range,
+        'filter_statistics_ordering': filter_statistics_ordering,
+    }
+
+    if method == 'basic-form':
+        return render(request, 'clinicalcode/phenotypeworkingset/workingset_results.html', context)
+    else:
+        return render(request, 'clinicalcode/phenotypeworkingset/index.html', context)
 
 
 

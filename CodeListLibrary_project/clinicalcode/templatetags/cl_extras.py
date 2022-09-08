@@ -10,6 +10,12 @@ from clinicalcode.constants import Type_status
 
 register = template.Library()
 
+@register.filter(name='from_phenotype')
+def from_phenotype(value, index, default=''):
+    if index in value:
+        return value[index]['concepts']
+    return default
+
 @register.filter(name='size')
 def size(value):
     return len(value)
