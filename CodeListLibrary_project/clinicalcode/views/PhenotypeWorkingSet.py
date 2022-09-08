@@ -1,3 +1,4 @@
+
 import csv
 import json
 import logging
@@ -5,7 +6,7 @@ import re
 import time
 from collections import OrderedDict
 from datetime import datetime
-
+from collections import OrderedDict as ordr
 from django import forms
 from django.conf import settings
 from django.contrib import messages
@@ -32,8 +33,9 @@ from django.views.generic import DetailView
 from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from ..forms.WorkingsetForm import WorkingsetForm
+
 from .. import db_utils, utils
+from clinicalcode.forms.WorkingsetForm import WorkingsetForm
 from ..models import *
 from ..permissions import *
 from .View import *
@@ -356,16 +358,68 @@ def workingset_list(request):
 
 
 class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageMixin, CreateView):
-    '''
-        Create a working set.
-    '''
-    model = Concept
+    model = PhenotypeWorkingset
     form_class = WorkingsetForm
     template_name = 'clinicalcode/phenotypeworkingset/form.html'
-    
-    pass
-    # look at concept equivalent
-    
+
+    def commaSeparate(self, id):
+        data = self.request.POST.get(id)
+        overall = None
+        if data:
+            overall = [int(i) for i in data.split(",")]
+
+        return overall
+
+
+
+    def get_form_kwargs(self):
+        print('test kwarks ')
+        kwargs = super(CreateView, self).get_form_kwargs()
+        kwargs.update({'user': self.request.user})
+        kwargs.update({'groups': getGroups(self.request.user)})
+        return kwargs
+
+    def form_invalid(self, form):
+        print('test form invalid ')
+        tag_ids = self.commaSeparate('tagids')
+        collections = self.commaSeparate('collections')
+        datasources = self.commaSeparate('datasources')
+        context = self.get_context_data()
+
+        if tag_ids:
+            context['tags'] = Tag.objects.filter(pk__in=tag_ids)
+            print(context['tags'])
+
+        if collections:
+            queryset = Tag.objects.filter(tag_type=2)
+            context['collections'] = queryset.filter(id__in=collections)
+            print(context['collections'])
+
+        if datasources:
+            print(datasources)
+            context['datasources'] = DataSource.objects.filter(datasource_id__in=datasources)
+
+
+        return self.render_to_response(context)
+
+    def form_valid(self, form):
+        print('test form valid ')
+        with transaction.atomic():
+            form.instance.created_by = self.request.user
+            form.instance.author = self.request.POST.get('author')
+            form.instance.tags = self.commaSeparate('tagids')
+            form.instance.collections = self.commaSeparate('collections')
+            form.instance.data_sources = self.commaSeparate('datasources')
+            form.instance.phenotypes_concepts_data = [{"phenotype_id": "PH3","phenotype_version_id": 6,"concept_id": "C717","concept_version_id":2573,"Attributes":[{"name": "Attributename","type":"int","value": 234}]}]
+
+
+            self.object = form.save()
+            db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset,self.object.pk,"Created")
+            print(self.object.pk)
+            messages.success(self.request,"Workingset has been successfully created.")
+
+        return HttpResponseRedirect(reverse('phenotypeworkingset_create'))
+        # return HttpResponseRedirect(reverse('workingset_update'),args=(self.object.pk)) when update is done
 
 
 @login_required
@@ -660,4 +714,4 @@ def workingset_conceptcodesByVersion(request,
     pass
     # look at phenotype equivalent
     
-    
+
