@@ -120,39 +120,6 @@
 		});
 	</script>
 	
-	<script type="text/javascript">
-		$('#reset-form').click(function() {
-			 
-			$("input[id^='search']").val('');		
-			$('#page_size').val('20');
-						
-			$('#txtTags').tagsinput('removeAll');
-			
-			$('#txtAuthor').val('');
-			
-			
-			$('#concept_brand').val('');
-			$('#concept_brand_img').html('');
-						
-			{% if user.is_authenticated %}
-				$('#show_deleted_concepts').prop("checked", false);
-				$('#show_deleted_concepts_hidden').val("0");
-				
-				$('#show_my_concepts').prop("checked", false);	
-				$('#show_my_concepts_hidden').val("0");
-				
-				$('#must_have_published_versions').prop("checked", false);
-				$('#must_have_published_versions_hidden').val("0");
-				
-				$('#txtOwner').val('');
-			{% endif %}						
-			
-			$('#show_only_validated_concepts').prop("checked", false);
-			$('#show_only_validated_concepts_hidden').val("0");
-			
-		});		
-	</script>
-	
 	<script>
 		// Import references
 		var filter_statistics_ordering = {{ filter_statistics_ordering|safe }};
