@@ -359,18 +359,7 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
 
         return overall
 
-    def get_brand_collections(self, array_collections):
-        queryset = Tag.objects
 
-        rows_to_return = []
-        titles = ['id', 'name','brand']
-
-        queryset = queryset.filter(id__in=array_collections)
-        for t in queryset:
-            ret = [t.id, t.description,t.collection_brand.name]
-            rows_to_return.append(ordr(list(zip(titles, ret))))
-
-        return rows_to_return
 
     def get_form_kwargs(self):
         print('test kwarks ')
@@ -395,8 +384,10 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
             context['collections'] = queryset.filter(id__in=collections)
             print(context['collections'])
 
-        context['datasources'] = datasources #itarate datasources
-        print(context)
+        if datasources:
+            print(datasources)
+            context['datasources'] = DataSource.objects.filter(datasource_id__in=datasources)
+
 
         return self.render_to_response(context)
 

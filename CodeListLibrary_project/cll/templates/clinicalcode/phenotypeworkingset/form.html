@@ -18,11 +18,24 @@
 
 {% block container %}
 
+
+
     {% if form.pk  is None %}
         <h2>Create a new working set</h2>
         <div class="row">
             <div class="col-md-12">
                 <i class="help-block"><span class="required">*</span> denotes a required field</i>
+                         {% if form.errors %}
+					<div id="form-error" class="alert alert-danger  col-sm-12">
+						<p>The operation could not be performed because one or more error(s) occurred.<br />
+							Please resubmit the form after making the following changes:</p>
+						<ul>
+							{% for field,error in form.errors.items %}
+							<li>{{field}} - {{ error|striptags }}</li>
+							{% endfor %}
+						</ul>
+					</div>
+					{% endif %}
             </div>
         </div>
     {% else %}
@@ -30,9 +43,12 @@
         <div class="row">
             <div class="col-md-12">
                 <i class="help-block"><span class="required">*</span> denotes a required field</i>
+
             </div>
         </div>
     {% endif %}
+
+
 
     <link href="{% static 'css/phenotypeworkingset/form.css' %}" rel="stylesheet"/>
 
@@ -367,17 +383,7 @@
 
                     <hr/>
                     </div>
-                    {% if form.errors %}
-					<div id="form-error" class="alert alert-danger  col-sm-12">
-						<p>The operation could not be performed because one or more error(s) occurred.<br />
-							Please resubmit the form after making the following changes:</p>
-						<ul>
-							{% for field,error in form.errors.items %}
-							<li>{{field}} - {{ error|striptags }}</li>
-							{% endfor %}
-						</ul>
-					</div>
-					{% endif %}
+
                     <div class="form-group">
                         <div class="col-sm-12">
                             <div class="row-form-flex row">
@@ -476,7 +482,11 @@
 			$('#txtTags').tagsinput('add', { 'id': {{ tag.id }}, 'description': '{{ tag.description }}', 'display': '{{ tag.get_display_display }}'});
 		{% endfor %}
          {% for collection in collections %}
-			$('#collections').tagsinput('add', { 'id': {{ collection.id }}, 'name': '{{ collection.description }}'});
+			$('#collections').tagsinput('add', { 'id': '{{ collection.id }}', 'name': '{{ collection.description }}'});
+		{% endfor %}
+
+         {% for datasource in datasources %}
+			$('#datasources').tagsinput('add', { 'datasource_id': '{{ datasource.datasource_id }}', 'name': '{{ datasource.name }}'});
 		{% endfor %}
 
         });
