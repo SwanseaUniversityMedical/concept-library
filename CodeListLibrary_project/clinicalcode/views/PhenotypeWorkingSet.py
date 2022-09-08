@@ -391,7 +391,8 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
             print(context['tags'])
 
         if collections:
-            context['collections'] = self.get_brand_collections(collections)
+            queryset = Tag.objects.filter(tag_type=2)
+            context['collections'] = queryset.filter(id__in=collections)
             print(context['collections'])
 
         context['datasources'] = datasources #itarate datasources
@@ -415,7 +416,7 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
             print(self.object.pk)
             messages.success(self.request,"Workingset has been successfully created.")
 
-        return HttpResponseRedirect(reverse('workingset_create'))
+        return HttpResponseRedirect(reverse('phenotypeworkingset_create'))
         # return HttpResponseRedirect(reverse('workingset_update'),args=(self.object.pk)) when update is done
 
 

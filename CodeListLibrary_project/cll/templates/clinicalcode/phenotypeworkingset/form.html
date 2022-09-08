@@ -139,8 +139,8 @@
                             <div class="material-textfield">
 
                                 <input class="input-material col-sm-12 form-control" type="text" name="collections"
-                                       id="collections">
-                                <label class="label-material">Collections</label>
+                                       id="collections" data-role="tagsinput">
+                                <label class="label-material" for="collections">Collections</label>
                             </div>
                         </div>
                     </div>
@@ -366,6 +366,7 @@
 
 
                     <hr/>
+                    </div>
                     {% if form.errors %}
 					<div id="form-error" class="alert alert-danger  col-sm-12">
 						<p>The operation could not be performed because one or more error(s) occurred.<br />
@@ -465,6 +466,9 @@
 
     <script type="text/javascript">
         // call the tag service initialize function in tags.js
+         $("#author").tagsinput('items')
+        tagAutocomplete('/api/v1/public/data-sources-list/', 'datasources', 'datasource_id', 'name').initialize()
+        tagAutocomplete('/api/v1/public/collections/', 'collections', 'id', 'name').initialize()
         tagService.initialize();
 
         $(function () {
@@ -472,14 +476,11 @@
 			$('#txtTags').tagsinput('add', { 'id': {{ tag.id }}, 'description': '{{ tag.description }}', 'display': '{{ tag.get_display_display }}'});
 		{% endfor %}
          {% for collection in collections %}
-
-			$('#collections').tagsinput('add', { 'id': {{ collection.id }}, 'description': '{{ collection.name }}', 'display': '{{ collection.get_display_display }}'});
+			$('#collections').tagsinput('add', { 'id': {{ collection.id }}, 'name': '{{ collection.description }}'});
 		{% endfor %}
 
         });
-        $("#author").tagsinput('items')
-        tagAutocomplete('/api/v1/public/data-sources-list/', 'datasources', 'datasource_id', 'name').initialize()
-        tagAutocomplete('/api/v1/public/collections/', 'collections', 'id', 'name').initialize()
+
 
     </script>
 
