@@ -75,7 +75,8 @@ if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_P
     ]
 if not settings.CLL_READ_ONLY: # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
     urlpatterns += [
-        url(r'^adminTemp/json-adjust/$', adminTemp.json_adjust, name='json_adjust'),
+        url(r'^adminTemp/json-adjust-phenotype/$', adminTemp.json_adjust_phenotype, name='json_adjust_phenotype'),
+        url(r'^adminTemp/json-adjust-workingset/$', adminTemp.json_adjust_workingset, name='json_adjust_workingset'),
     ]
 
 # saving statistics

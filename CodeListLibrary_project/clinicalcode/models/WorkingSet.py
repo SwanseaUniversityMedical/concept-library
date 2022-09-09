@@ -26,8 +26,7 @@ class WorkingSet(TimeStampedModel):
                                                    null=True,
                                                    blank=True)
     source_reference = models.CharField(max_length=250)  # Was this code list from another source?  Reference here.
-    citation_requirements = models.CharField(
-        max_length=250)  # Any request for citation requirements to be honoured
+    citation_requirements = models.CharField(max_length=250)  # Any request for citation requirements to be honoured
 
     created_by = models.ForeignKey(User,
                                    on_delete=models.SET_NULL,

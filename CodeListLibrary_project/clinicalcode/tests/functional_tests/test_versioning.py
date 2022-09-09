@@ -159,8 +159,7 @@ class VersioningTest(StaticLiveServerTestCase):
         self.concept_everybody_can_edit.author = "the_test_goat2"
         self.concept_everybody_can_edit.save()
 
-        concept_info_string = '[{"%s":{"ttt|4":"yyy"}}]' % (str(
-            self.concept_everybody_can_edit.id))
+        concept_info_list = [{str(self.concept_everybody_can_edit.id):{"ttt|4":"yyy"}}] 
 
         self.workingset_everybody_can_edit = WorkingSet.objects.create(
             name="wokringset everybody can access",
@@ -173,7 +172,7 @@ class VersioningTest(StaticLiveServerTestCase):
             created_by=super_user,
             updated_by=super_user,
             owner=owner_user,
-            concept_informations=concept_info_string,
+            concept_informations=concept_info_list,
             concept_version={
                 (str(self.concept_everybody_can_edit.id)):
                 str(self.concept_everybody_can_edit.history.first().history_id)

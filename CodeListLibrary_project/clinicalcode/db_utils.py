@@ -486,8 +486,7 @@ def getGroupOfCodesByConceptId_xxx(concept_id):
     return getConceptUniqueCodesLive(concept_id)
 
 
-def getGroupOfConceptsByWorkingsetId_historical(workingset_id,
-                                                workingset_history_id=None):
+def getGroupOfConceptsByWorkingsetId_historical(workingset_id, workingset_history_id=None):
     '''
         get concept_informations of the specified working set 
         - from a specific version (or live version if workingset_history_id is None) 
@@ -498,9 +497,10 @@ def getGroupOfConceptsByWorkingsetId_historical(workingset_id,
         workingset_history_id = WorkingSet.objects.get(pk=workingset_id).history.latest('history_id').history_id
 
     concepts = OrderedDict([])
-    concept_informations = json.loads(WorkingSet.history.get(id=workingset_id, history_id=workingset_history_id).concept_informations
-                                      , object_pairs_hook=OrderedDict
-                                      )
+    # concept_informations = json.loads(WorkingSet.history.get(id=workingset_id, history_id=workingset_history_id).concept_informations
+    #                                   , object_pairs_hook=OrderedDict
+    #                                   )
+    concept_informations = WorkingSet.history.get(id=workingset_id, history_id=workingset_history_id).concept_informations
 
     c = OrderedDict([])
     for c in concept_informations:
@@ -516,13 +516,13 @@ def get_concept_versions_in_workingset(workingset_id,
         - from a specific version (or live if workingset_history_id is None)
     '''
 
-    with connection.cursor() as cursor:
-        if workingset_history_id is None:
-            concept_version = WorkingSet.objects.get(id=workingset_id).concept_version
-        else:
-            concept_version = WorkingSet.history.get(id=workingset_id, history_id=workingset_history_id).concept_version
+    #with connection.cursor() as cursor:
+    if workingset_history_id is None:
+        concept_version = WorkingSet.objects.get(id=workingset_id).concept_version
+    else:
+        concept_version = WorkingSet.history.get(id=workingset_id, history_id=workingset_history_id).concept_version
 
-        return concept_version
+    return concept_version
 
 
 def getHistoryCodeListByComponentId(component_id, concept_history_date):
@@ -862,8 +862,8 @@ def getHistoryWorkingset(workingset_history_id):
         hw.owner_access,
         hw.group_access,
         hw.world_access,
-        hw.concept_informations,
-        hw.concept_version,
+        hw.concept_informations::json,
+        hw.concept_version::json,
         hw.created_by_id,
         hw.updated_by_id,
         ucb.username as created_by_username,
@@ -952,19 +952,17 @@ def getHistoryWorkingsetTagMaps(workingset_id, workingset_history_date):
         return [dict(list(zip(col_names, row))) for row in cursor.fetchall()]
 
 
-def getConceptsFromJSON(pk="", concepts_json=""):
+def getConceptsFromJSON(pk="", concepts_json=[]):
     '''
         Extract concept the ids from a workingset's JSON field.
     '''
 
-    tempLst = []
     conceptIDs = []
     if pk.strip() != "":
         rows = getGroupOfConceptsByWorkingsetId_historical(pk)
         conceptIDs = list(rows.keys())
-    elif concepts_json.strip() != "":
-        rows = ast.literal_eval(concepts_json)
-        conceptIDs = [k for d in rows for k in list(d.keys())]
+    elif concepts_json:
+        conceptIDs = [k for d in concepts_json for k in list(d.keys())]
 
     return conceptIDs
 
@@ -1315,7 +1313,7 @@ def getWSConceptsHistoryIDs(concept_informations,
         you can specify a list of concepts to update and ignore the rest
         saved_concept_version=[], concepts_to_update=[] Both should be empty or assigned
     '''
-    if concept_informations.strip() == "":
+    if not concept_informations:
         return {}
 
     if len(concept_ids_list) == 0:
@@ -1325,7 +1323,8 @@ def getWSConceptsHistoryIDs(concept_informations,
     else:
         concepIDs = concept_ids_list
 
-    stored_concepts = json.loads(concept_informations, object_pairs_hook=OrderedDict)
+    #stored_concepts = json.loads(concept_informations, object_pairs_hook=OrderedDict)
+    stored_concepts = concept_informations 
 
     new_concept_version = OrderedDict([])
 
@@ -1348,14 +1347,15 @@ def getWSConceptsVersionsData(concept_informations, submitted_concept_version):
     '''
         prepare Concepts versions.
     '''
-    if concept_informations.strip() == "":
+    if not concept_informations:
         return {}
 
     concepIDs = getConceptsFromJSON(concepts_json=concept_informations)
     if len(concepIDs) == 0:
         return {}
 
-    stored_concepts = json.loads(concept_informations, object_pairs_hook=OrderedDict)
+    #stored_concepts = json.loads(concept_informations, object_pairs_hook=OrderedDict)
+    stored_concepts = concept_informations
 
     new_concept_version = OrderedDict([])
 
@@ -2140,7 +2140,7 @@ def chk_deleted_children(request,
             errors[set_id] = 'Working set not permitted.'
         # Need to parse the concept_informations section of the database and use
         # the concepts here to form a list of concept_ref_ids.
-        if WS_concepts_json.strip() != "":
+        if WS_concepts_json:
             concepts = getConceptsFromJSON(concepts_json=WS_concepts_json)
         else:
             concepts = getGroupOfConceptsByWorkingsetId_historical(set_id, set_history_id)
@@ -2474,15 +2474,12 @@ def getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_history_id):
 #---------------------------------------------------------------------------
 ############################################################################
 def convert_concept_ids_to_WSjson(concept_ids_list, no_attributes=True):
-    #""[{\"8\":{\"\":\"\"}},{\"11\":{\"\":\"\"}},{\"15\":{\"\":\"\"}},{\"26\":{\"\":\"\"}}]""
-    ret_val = "["
-    i = 0
+    ret_val = []
     for c in concept_ids_list:
-        ret_val += "," if i > 0 else ""
-        ret_val += "{\"" + str(c) + "\":{\"\":\"\"}}"
-        i += 1
+        c_dict = {}
+        c_dict[str(c)] = {"": ""}
+        ret_val.append(c_dict)
 
-    ret_val += "]"
     return ret_val
 
 
@@ -2531,7 +2528,8 @@ def isValidWorkingSet(request, working_set):
             errors['wrong_concept_id'] = "You must choose a concept from the search dropdown list."
             is_valid = False
 
-        decoded_concepts = json.loads(working_set.concept_informations)
+        #decoded_concepts = json.loads(working_set.concept_informations)
+        decoded_concepts = working_set.concept_informations
 
         # validation the type of input for attributes
         for data in decoded_concepts:
