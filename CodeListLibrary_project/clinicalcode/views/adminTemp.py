@@ -31,7 +31,6 @@ import os
 
 from django.core.exceptions import PermissionDenied
 from django.db import connection, connections  # , transaction
-from rest_framework.reverse import reverse
         
         
 @login_required
@@ -101,10 +100,11 @@ def api_remove_data(request):
                 'rowsAffected': rowsAffected
             })
 
+
 @login_required
-def json_adjust_phenotype(request):
+def moveDataSources(request):
     # not needed anymore
-    #raise PermissionDenied
+    raise PermissionDenied
 
     if not request.user.is_superuser:
         raise PermissionDenied
@@ -114,10 +114,8 @@ def json_adjust_phenotype(request):
 
     if request.method == 'GET':
         if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-            return render(request, 'clinicalcode/adminTemp/json_adjust.html', 
-                          {'url': reverse('json_adjust_phenotype')
-                           })
-            
+            return render(request, 'clinicalcode/adminTemp/moveDataSources.html', {})
+
     elif request.method == 'POST':
         if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
             code = request.POST.get('code')
@@ -125,114 +123,6 @@ def json_adjust_phenotype(request):
                 raise PermissionDenied
 
             rowsAffected = {}
-
-
-            ######################################################################
-
-            hisp = Phenotype.history.filter(id__gte=0)  #.exclude(id__in=[1026])
-            for hp in hisp:
-                if hp.concept_informations:
-                    concept_informations = json.loads(hp.concept_informations)
-                    hp.concept_informations = concept_informations
-                    hp.save()
-
-                    if hp.history_id == int(Phenotype.objects.get(pk=hp.id).history.latest().history_id):
-                        p0 = Phenotype.objects.get(id=hp.id)
-                        p0.concept_informations = concept_informations
-                        p0.save_without_historical_record()
-        
-                        rowsAffected[hp.id] = "phenotype: " + hp.name + ":: json adjusted"
-            
-            
-            
-            
-            
-            return render(request,
-                        'clinicalcode/adminTemp/json_adjust.html',
-                        {   'pk': -10,
-                            'strSQL': {},
-                            'rowsAffected' : rowsAffected
-                        }
-                        )
-            
-@login_required
-def json_adjust_workingset(request):
-    # not needed anymore
-    #raise PermissionDenied
-
-    if not request.user.is_superuser:
-        raise PermissionDenied
-
-    if settings.CLL_READ_ONLY:
-        raise PermissionDenied
-
-    if request.method == 'GET':
-        if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-            return render(request, 'clinicalcode/adminTemp/json_adjust.html', 
-                          {'url': reverse('json_adjust_workingset')
-                           })
-            
-    elif request.method == 'POST':
-        if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-            code = request.POST.get('code')
-            if code.strip() != "nvd)#_0-i_a05n^5p6az2q_cd(_(+_4g)r&9h!#ru*pr(xa@=k":
-                raise PermissionDenied
-
-            rowsAffected = {}
-
-
-            ######################################################################
-
-            ws_hitory = WorkingSet.history.filter(id__gte=0)  #.exclude(id__in=[1026])
-            for ws in ws_hitory:
-                if ws.concept_informations:
-                    concept_informations = json.loads(ws.concept_informations)
-                    ws.concept_informations = concept_informations
-                    ws.save()
-
-                    if ws.history_id == int(WorkingSet.objects.get(pk=ws.id).history.latest().history_id):
-                        wso = WorkingSet.objects.get(id=ws.id)
-                        wso.concept_informations = concept_informations
-                        wso.save_without_historical_record()
-        
-                        rowsAffected[ws.id] = "working set: " + ws.name + ":: json adjusted"
-            
-            
-            
-            
-            
-            return render(request,
-                        'clinicalcode/adminTemp/json_adjust.html',
-                        {   'pk': -10,
-                            'strSQL': {},
-                            'rowsAffected' : rowsAffected
-                        }
-                        )
-            
-                        
-# @login_required
-# def moveDataSources(request):
-#     # not needed anymore
-#     raise PermissionDenied
-#
-#     if not request.user.is_superuser:
-#         raise PermissionDenied
-#
-#     if settings.CLL_READ_ONLY:
-#         raise PermissionDenied
-#
-#     if request.method == 'GET':
-#         if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-#             return render(request, 'clinicalcode/adminTemp/moveDataSources.html', {})
-#
-#     elif request.method == 'POST':
-#         if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-#             code = request.POST.get('code')
-#             if code.strip() != "nvd)#_0-i_a05n^5p6az2q_cd(_(+_4g)r&9h!#ru*pr(xa@=k":
-#                 raise PermissionDenied
-#
-#             rowsAffected = {}
-#
 
 
             ######################################################################

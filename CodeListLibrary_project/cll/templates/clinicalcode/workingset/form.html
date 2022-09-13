@@ -453,7 +453,7 @@
 				
 										
 					<input type="hidden" id="concepts_json" name="concepts_json">
-					<input type="hidden" id="get_concepts_json" name="get_concepts_json" value="{{ concept_informations }}">
+					<input type="hidden" id="get_concepts_json" name="get_concepts_json" value="{{ workingset.concept_informations|default_if_none:'' }}">
 					<input type="hidden" id="concept_model" value="{{ concepts }}">
 					<input type="hidden" id="concepts_id_versionID"  name="concepts_id_versionID" size=100 value="{{ concepts_id_versionID }}"> 
 

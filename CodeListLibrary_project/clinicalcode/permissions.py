@@ -131,8 +131,8 @@ def allowed_to_view_children(request,
             errors[set_id] = 'Phenotype not permitted.'
             # Need to parse the concept_informations section of the database and use
             # the concepts here to form a list of concept_ref_ids.
-        if WS_concepts_json:
-            concepts = [(x['concept_id'], x['concept_version_id']) for x in WS_concepts_json]  
+        if WS_concepts_json.strip() != "":
+            concepts = [(x['concept_id'], x['concept_version_id']) for x in json.loads(WS_concepts_json)]  # getConceptsFromJSON(concepts_json=WS_concepts_json)
         else:
             concepts = getGroupOfConceptsByPhenotypeId_historical(set_id, set_history_id)
 
@@ -890,20 +890,19 @@ def is_brand_accessible(request, set_class, set_id, set_history_id=None):
             if set_history_id is None:
                 history_id = set_class.objects.get(pk=set_id).history.latest().history_id
 
-            set_collections = []
+            set_tags = []
             if set_class in (Concept, Phenotype):
-                set_collections = set_class.history.get(id=set_id, history_id=history_id).tags
+                set_tags = set_class.history.get(id=set_id, history_id=history_id).tags
             elif set_class == WorkingSet:
                 workingset_history_date = set_class.history.get(id=set_id, history_id=history_id).history_date
                 ws_tags = getHistoryTags_Workingset(set_id, workingset_history_date)
                 if ws_tags:
-                    set_collections = [i['tag_id'] for i in ws_tags if 'tag_id' in i]
+                    set_tags = [i['tag_id'] for i in ws_tags if 'tag_id' in i]
 
-            if not set_collections:
+            if not set_tags:
                 return False
             else:
-                # check if the set collections has any of the brand's collection tags
-                return any(c in set_collections for c in brand_collection_ids)
-            
+                # check if the set tags has any of the brand's collection tags
+                return any(c in set_tags for c in brand_collection_ids)
             
             

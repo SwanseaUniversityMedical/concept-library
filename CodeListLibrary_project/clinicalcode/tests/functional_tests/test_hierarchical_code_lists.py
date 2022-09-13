@@ -82,7 +82,8 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
             name="concept everybody can edit",
             world_access=Permissions.EDIT)
 
-        concept_info_list = [{str(self.concept_everybody_can_edit.id):{"ttt|4":"yyy"}}] 
+        concept_info_string = '[{"%s":{"ttt|4":"yyy"}}]' % (str(
+            self.concept_everybody_can_edit.id))
 
         self.workingset_everybody_can_edit = WorkingSet.objects.create(
             name="wokringset everybody can access",
@@ -95,7 +96,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
             created_by=self.super_user,
             updated_by=self.super_user,
             owner=self.owner_user,
-            concept_informations=concept_info_list,
+            concept_informations=concept_info_string,
             concept_version={
                 (str(self.concept_everybody_can_edit.id)):
                 str(self.concept_everybody_can_edit.history.first().history_id)

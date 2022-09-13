@@ -53,14 +53,23 @@ class VersioningTest(StaticLiveServerTestCase):
 
         self.factory = RequestFactory()
 
-        self.WEBAPP_HOST = self.live_server_url.replace('localhost', '127.0.0.1')
+        self.WEBAPP_HOST = self.live_server_url.replace(
+            'localhost', '127.0.0.1')
         if settings_cll.REMOTE_TEST:
             self.WEBAPP_HOST = settings_cll.WEBAPP_HOST
         '''data'''
-        super_user = User.objects.create_superuser(username=su_user, password=su_password, email=None)
-        self.normal_user = User.objects.create_user(username=nm_user, password=nm_password, email=None)
-        owner_user = User.objects.create_user(username=ow_user, password=ow_password, email=None)
-        group_user = User.objects.create_user(username=gp_user, password=gp_password, email=None)
+        super_user = User.objects.create_superuser(username=su_user,
+                                                   password=su_password,
+                                                   email=None)
+        self.normal_user = User.objects.create_user(username=nm_user,
+                                                    password=nm_password,
+                                                    email=None)
+        owner_user = User.objects.create_user(username=ow_user,
+                                              password=ow_password,
+                                              email=None)
+        group_user = User.objects.create_user(username=gp_user,
+                                              password=gp_password,
+                                              email=None)
 
         # Groups: a group that is not permitted and one that is.
         permitted_group = Group.objects.create(name="permitted_group")
@@ -150,7 +159,8 @@ class VersioningTest(StaticLiveServerTestCase):
         self.concept_everybody_can_edit.author = "the_test_goat2"
         self.concept_everybody_can_edit.save()
 
-        concept_info_list = [{str(self.concept_everybody_can_edit.id):{"ttt|4":"yyy"}}] 
+        concept_info_string = '[{"%s":{"ttt|4":"yyy"}}]' % (str(
+            self.concept_everybody_can_edit.id))
 
         self.workingset_everybody_can_edit = WorkingSet.objects.create(
             name="wokringset everybody can access",
@@ -163,7 +173,7 @@ class VersioningTest(StaticLiveServerTestCase):
             created_by=super_user,
             updated_by=super_user,
             owner=owner_user,
-            concept_informations=concept_info_list,
+            concept_informations=concept_info_string,
             concept_version={
                 (str(self.concept_everybody_can_edit.id)):
                 str(self.concept_everybody_can_edit.history.first().history_id)
@@ -531,7 +541,8 @@ class VersioningTest(StaticLiveServerTestCase):
     '''
 
     def test_concept_has_url_to_latest_ver_in_api(self):
-        latest_version = self.concept_everybody_can_edit.history.first().history_id
+        latest_version = self.concept_everybody_can_edit.history.first(
+        ).history_id
 
         self.login(nm_user, nm_password)
         browser = self.browser
@@ -554,14 +565,22 @@ class VersioningTest(StaticLiveServerTestCase):
             self.assertEqual(int(x.text), latest_version)
 
     def test_workingset_has_url_to_latest_ver_in_api(self):
-        latest_version = self.concept_everybody_can_edit.history.first().history_id
+        latest_version = self.concept_everybody_can_edit.history.first(
+        ).history_id
 
         self.login(nm_user, nm_password)
         browser = self.browser
 
         browser.get(self.WEBAPP_HOST)
 
-        browser.get(self.WEBAPP_HOST + reverse('api:api_export_workingset_codes', kwargs={'pk': self.workingset_everybody_can_edit.id}))
+        # get the test server url
+        # browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/export_workingset_codes/',
+        #                       self.workingset_everybody_can_edit.id))
+
+        browser.get(
+            self.WEBAPP_HOST +
+            reverse('api:api_export_workingset_codes',
+                    kwargs={'pk': self.workingset_everybody_can_edit.id}))
 
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
@@ -581,6 +600,8 @@ class VersioningTest(StaticLiveServerTestCase):
         # get the test server url
         browser.get(self.WEBAPP_HOST)
 
+        # browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/export_concept_codes/',
+        #                       self.concept_everybody_can_edit.id))
 
         browser.get(self.WEBAPP_HOST +
                     reverse('api:api_export_concept_codes',
@@ -598,6 +619,9 @@ class VersioningTest(StaticLiveServerTestCase):
         browser = self.browser
         # get the test server url
         browser.get(self.WEBAPP_HOST)
+
+        # browser.get('%s%s%s' % (self.WEBAPP_HOST, '/api/export_workingset_codes/',
+        #                       self.workingset_everybody_can_edit.id))
 
         browser.get(self.WEBAPP_HOST + reverse(
             'api:api_export_workingset_codes_byVersionID',

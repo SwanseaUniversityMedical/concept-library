@@ -6,8 +6,7 @@
 
 #from cll import settings
 from django.conf import settings
-#from django.conf.urls import url  # , include  #, handler400
-from django.urls import re_path as url
+from django.conf.urls import url  # , include  #, handler400
 from django.contrib.auth import views as auth_views
 
 from .views import (Admin, ComponentConcept, ComponentExpression,
@@ -72,11 +71,6 @@ if settings.IS_HDRUK_EXT == "1" or settings.IS_DEVELOPMENT_PC:
 if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
     urlpatterns += [
         url(r'^adminTemp/api_remove_data/$', adminTemp.api_remove_data, name='api_remove_data'),
-    ]
-if not settings.CLL_READ_ONLY: # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-    urlpatterns += [
-        url(r'^adminTemp/json-adjust-phenotype/$', adminTemp.json_adjust_phenotype, name='json_adjust_phenotype'),
-        url(r'^adminTemp/json-adjust-workingset/$', adminTemp.json_adjust_workingset, name='json_adjust_workingset'),
     ]
 
 # saving statistics
@@ -388,7 +382,7 @@ if not settings.CLL_READ_ONLY:
 urlpatterns += [
     url(
         '^change-password/$',
-        auth_views.PasswordChangeView.as_view(),  #.password_change, 
+        auth_views.PasswordChangeView,  #.password_change, 
         {'post_change_redirect': 'concept_library_home'},
         name='password_change'),
 ]

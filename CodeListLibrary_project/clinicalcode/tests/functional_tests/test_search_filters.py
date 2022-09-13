@@ -148,9 +148,10 @@ class SearchTest(StaticLiveServerTestCase):
                 ["Disease or Syndrome", "Biomarker", "Lifestyle Risk Factor"]),
             sex="Female,Male",
             phenoflowid=4,
-            concept_informations= [{"concept_version_id": str(self.concept_everybody_can_edit.id), 
-                                    "concept_id": str(self.concept_everybody_can_edit.id), 
-                                    "attributes": []}],
+            concept_informations=
+            '[{"concept_version_id": %s, "concept_id": %s, "attributes": []}]'
+            % (str(self.concept_everybody_can_edit.id),
+               str(self.concept_everybody_can_edit.id)),
             validation_performed=False,
             publication_doi="",
             publication_link=Google_website,

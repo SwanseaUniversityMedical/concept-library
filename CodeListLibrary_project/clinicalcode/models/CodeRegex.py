@@ -31,6 +31,6 @@ class CodeRegex(models.Model):
                                   blank=True,
                                   null=True)
 
-    case_sensitive_search = models.BooleanField(default=False)
+    case_sensitive_search = models.NullBooleanField(default=False)
 
     history = HistoricalRecords()

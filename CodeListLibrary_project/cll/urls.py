@@ -16,9 +16,7 @@ Including another URLconf
 from clinicalcode import api
 from clinicalcode.views import View
 from django.conf import settings
-#from django.conf.urls import include, url
-from django.urls import re_path as url
-from django.urls import include
+from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles.views import serve

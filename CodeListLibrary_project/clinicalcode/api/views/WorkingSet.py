@@ -61,7 +61,8 @@ def export_workingset_codes(request, pk):
 
     # Require that the user has access to the base workingset and all its concepts.
     validate_access_to_view(request, WorkingSet, pk)
-    children_permitted_and_not_deleted, error_dic = chk_children_permission_and_deletion(request, WorkingSet, pk)
+    children_permitted_and_not_deleted, error_dic = chk_children_permission_and_deletion(
+        request, WorkingSet, pk)
     if (not children_permitted_and_not_deleted):
         #return Response(error_dic, status=status.HTTP_200_OK)
         raise PermissionDenied
@@ -98,7 +99,8 @@ def get_workingset_codes_byVersionID(request, pk, workingset_history_id):
 
     # Require that the user has access to the base workingset and all its concepts.
     validate_access_to_view(request, WorkingSet, pk)
-    children_permitted_and_not_deleted, error_dic = chk_children_permission_and_deletion(request, WorkingSet, pk, set_history_id=workingset_history_id)
+    children_permitted_and_not_deleted, error_dic = chk_children_permission_and_deletion(
+        request, WorkingSet, pk, set_history_id=workingset_history_id)
     if (not children_permitted_and_not_deleted):
         #return Response(error_dic, status=status.HTTP_200_OK)
         raise PermissionDenied
@@ -108,15 +110,18 @@ def get_workingset_codes_byVersionID(request, pk, workingset_history_id):
         if workingset.count() == 0: raise Http404
 
         #.exclude(is_deleted=True)
-        if WorkingSet.history.filter(id=pk, history_id=workingset_history_id).count() == 0:
+        if WorkingSet.history.filter(
+                id=pk, history_id=workingset_history_id).count() == 0:
             raise Http404
 
-        current_ws_version = WorkingSet.history.get(id=pk, history_id=workingset_history_id)
+        current_ws_version = WorkingSet.history.get(
+            id=pk, history_id=workingset_history_id)
 
         # Get the list of concepts in the working set data (this is listed in the
         # concept_informations field with additional, user specified columns. Each
         # row is a concept ID and the column data for these extra columns.
-        concepts_info = getGroupOfConceptsByWorkingsetId_historical(pk, workingset_history_id)
+        concepts_info = getGroupOfConceptsByWorkingsetId_historical(
+            pk, workingset_history_id)
 
         concept_data = OrderedDict([])
         title_row = []
@@ -144,13 +149,18 @@ def get_workingset_codes_byVersionID(request, pk, workingset_history_id):
             ['working_set_id', 'working_set_version_id', 'working_set_name'] +
             title_row)
 
-        concept_version = WorkingSet.history.get(id=pk, history_id=workingset_history_id).concept_version
+        concept_version = WorkingSet.history.get(
+            id=pk, history_id=workingset_history_id).concept_version
 
         for concept_id, data in concept_data.items():
-            concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version[concept_id]).coding_system.name
-            concept_name = Concept.history.get(id=concept_id, history_id=concept_version[concept_id]).name
+            concept_coding_system = Concept.history.get(
+                id=concept_id,
+                history_id=concept_version[concept_id]).coding_system.name
+            concept_name = Concept.history.get(
+                id=concept_id, history_id=concept_version[concept_id]).name
             rows_no = 0
-            codes = getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version[concept_id])
+            codes = getGroupOfCodesByConceptId_HISTORICAL(
+                concept_id, concept_version[concept_id])
             #Allow Working sets with zero attributes
             if title_row == [] and data == ['']:
                 data = []
@@ -160,7 +170,8 @@ def get_workingset_codes_byVersionID(request, pk, workingset_history_id):
                     ordr(
                         list(
                             zip(final_titles, [
-                                cc['code'], cc['description'].encode('ascii', 'ignore').decode('ascii'),
+                                cc['code'], cc['description'].encode(
+                                    'ascii', 'ignore').decode('ascii'),
                                 concept_coding_system, 'C' + str(concept_id),
                                 concept_version[concept_id], concept_name,
                                 current_ws_version.friendly_id,
@@ -212,10 +223,13 @@ def api_workingset_create(request):
         new_workingset.publication = request.data.get('publication')
         new_workingset.description = request.data.get('description')
         new_workingset.publication_doi = request.data.get('publication_doi')
-        new_workingset.publication_link = request.data.get('publication_link')  # valid URL    #??
-        new_workingset.secondary_publication_links = request.data.get('secondary_publication_links')
+        new_workingset.publication_link = request.data.get(
+            'publication_link')  # valid URL    #??
+        new_workingset.secondary_publication_links = request.data.get(
+            'secondary_publication_links')
         new_workingset.source_reference = request.data.get('source_reference')
-        new_workingset.citation_requirements = request.data.get('citation_requirements')
+        new_workingset.citation_requirements = request.data.get(
+            'citation_requirements')
 
         new_workingset.created_by = request.user
         new_workingset.owner_access = Permissions.EDIT  # int(request.data.get('ownerAccess'))
@@ -224,31 +238,43 @@ def api_workingset_create(request):
         # concepts
         concept_ids_list = request.data.get('concept_informations')
         if concept_ids_list is None or not isinstance(concept_ids_list, list):
-            errors_dict['concept_informations'] = 'concept_informations must have a valid concept ids list'
+            errors_dict[
+                'concept_informations'] = 'concept_informations must have a valid concept ids list'
         else:
             # validate concept_ids_list
             if len(concept_ids_list) == 0:
-                errors_dict['concept_informations'] = 'concept_informations must have a valid non-empty concept ids list'
+                errors_dict[
+                    'concept_informations'] = 'concept_informations must have a valid non-empty concept ids list'
             else:
                 if not chkListIsAllIntegers(concept_ids_list):
-                    errors_dict['concept_informations'] = 'concept_informations must have a valid concept ids list'
+                    errors_dict[
+                        'concept_informations'] = 'concept_informations must have a valid concept ids list'
                 else:
                     if len(set(concept_ids_list)) != len(concept_ids_list):
-                        errors_dict['concept_informations'] = 'concept_informations must have a unique concept ids list'
+                        errors_dict[
+                            'concept_informations'] = 'concept_informations must have a unique concept ids list'
                     else:
                         # check all concepts are permitted/or published
-                        permittedConcepts = get_list_of_visible_entity_ids(get_visible_live_or_published_concept_versions(request, exclude_deleted=True),
-                                                                           return_id_or_history_id="id")
-                        if not (set(concept_ids_list).issubset(set(permittedConcepts))):
-                            errors_dict['concept_informations'] = 'invalid concept_informations ids list, all concept ids must be valid and accessible by user'
+                        permittedConcepts = get_list_of_visible_entity_ids(
+                            get_visible_live_or_published_concept_versions(
+                                request, exclude_deleted=True),
+                            return_id_or_history_id="id")
+                        if not (set(concept_ids_list).issubset(
+                                set(permittedConcepts))):
+                            errors_dict[
+                                'concept_informations'] = 'invalid concept_informations ids list, all concept ids must be valid and accessible by user'
                         else:
-                            concept_informations = convert_concept_ids_to_WSjson(concept_ids_list, no_attributes=True)
+                            concept_informations = convert_concept_ids_to_WSjson(
+                                concept_ids_list, no_attributes=True)
                             new_workingset.concept_informations = concept_informations
                             # concept_version always point to latest versions - from API
-                            new_workingset.concept_version = getWSConceptsHistoryIDs(concept_informations, concept_ids_list=concept_ids_list)
+                            new_workingset.concept_version = getWSConceptsHistoryIDs(
+                                concept_informations,
+                                concept_ids_list=concept_ids_list)
 
         #  group id
-        is_valid_data, err, ret_value = chk_group(request.data.get('group'), user_groups)
+        is_valid_data, err, ret_value = chk_group(request.data.get('group'),
+                                                  user_groups)
         if is_valid_data:
             group_id = ret_value
             if group_id is None or group_id == "0":
@@ -257,7 +283,8 @@ def api_workingset_create(request):
             else:
                 new_workingset.group_id = group_id
                 # handle group-Access
-                is_valid_data, err, ret_value = chk_group_access(request.data.get('group_access'))
+                is_valid_data, err, ret_value = chk_group_access(
+                    request.data.get('group_access'))
                 if is_valid_data:
                     new_workingset.group_access = ret_value
                 else:
@@ -267,7 +294,8 @@ def api_workingset_create(request):
 
         #-----------------------------------------------------------
         # handle world-access
-        is_valid_data, err, ret_value = chk_world_access(request.data.get('world_access'))
+        is_valid_data, err, ret_value = chk_world_access(
+            request.data.get('world_access'))
         if is_valid_data:
             new_workingset.world_access = ret_value
         else:
@@ -314,9 +342,10 @@ def api_workingset_create(request):
             # add tags that have not been stored in db
             if tag_ids:
                 for tag_id_to_add in new_tag_list:
-                    WorkingSetTagMap.objects.get_or_create(workingset=new_workingset,
-                                                            tag=Tag.objects.get(id=tag_id_to_add),
-                                                            created_by=request.user)
+                    WorkingSetTagMap.objects.get_or_create(
+                        workingset=new_workingset,
+                        tag=Tag.objects.get(id=tag_id_to_add),
+                        created_by=request.user)
 
             save_Entity_With_ChangeReason(WorkingSet, created_WS.pk, "Created from API")
             # created_WS.changeReason = "Created from API"
@@ -388,10 +417,14 @@ def api_workingset_update(request):
         update_workingset.publication = request.data.get('publication')
         update_workingset.description = request.data.get('description')
         update_workingset.publication_doi = request.data.get('publication_doi')
-        update_workingset.publication_link = request.data.get('publication_link')  # valid URL    #??
-        update_workingset.secondary_publication_links = request.data.get('secondary_publication_links')
-        update_workingset.source_reference = request.data.get('source_reference')
-        update_workingset.citation_requirements = request.data.get('citation_requirements')
+        update_workingset.publication_link = request.data.get(
+            'publication_link')  # valid URL    #??
+        update_workingset.secondary_publication_links = request.data.get(
+            'secondary_publication_links')
+        update_workingset.source_reference = request.data.get(
+            'source_reference')
+        update_workingset.citation_requirements = request.data.get(
+            'citation_requirements')
 
         update_workingset.updated_by = request.user
         update_workingset.modified = datetime.datetime.now()
@@ -401,30 +434,43 @@ def api_workingset_update(request):
         # concepts
         concept_ids_list = request.data.get('concept_informations')
         if concept_ids_list is None or not isinstance(concept_ids_list, list):
-            errors_dict['concept_informations'] = 'concept_informations must have a valid concept ids list'
+            errors_dict[
+                'concept_informations'] = 'concept_informations must have a valid concept ids list'
         else:
             # validate concept_ids_list
             if len(concept_ids_list) == 0:
-                errors_dict['concept_informations'] = 'concept_informations must have a valid non-empty concept ids list'
+                errors_dict[
+                    'concept_informations'] = 'concept_informations must have a valid non-empty concept ids list'
             else:
                 if not chkListIsAllIntegers(concept_ids_list):
-                    errors_dict['concept_informations'] = 'concept_informations must have a valid concept ids list'
+                    errors_dict[
+                        'concept_informations'] = 'concept_informations must have a valid concept ids list'
                 else:
                     if len(set(concept_ids_list)) != len(concept_ids_list):
-                        errors_dict['concept_informations'] = 'concept_informations must have a unique concept ids list'
+                        errors_dict[
+                            'concept_informations'] = 'concept_informations must have a unique concept ids list'
                     else:
                         # check all concepts are permitted
-                        permittedConcepts = get_list_of_visible_entity_ids(get_visible_live_or_published_concept_versions(request, exclude_deleted=True), return_id_or_history_id="id")
-                        if not (set(concept_ids_list).issubset(set(permittedConcepts))):
-                            errors_dict['concept_informations'] = 'invalid concept_informations ids list, all concept ids must be valid and accessible by user'
+                        permittedConcepts = get_list_of_visible_entity_ids(
+                            get_visible_live_or_published_concept_versions(
+                                request, exclude_deleted=True),
+                            return_id_or_history_id="id")
+                        if not (set(concept_ids_list).issubset(
+                                set(permittedConcepts))):
+                            errors_dict[
+                                'concept_informations'] = 'invalid concept_informations ids list, all concept ids must be valid and accessible by user'
                         else:
-                            concept_informations = convert_concept_ids_to_WSjson(concept_ids_list, no_attributes=True)
+                            concept_informations = convert_concept_ids_to_WSjson(
+                                concept_ids_list, no_attributes=True)
                             update_workingset.concept_informations = concept_informations
                             # concept_version always point to latest versions - from API
-                            update_workingset.concept_version = getWSConceptsHistoryIDs(concept_informations, concept_ids_list=concept_ids_list)
+                            update_workingset.concept_version = getWSConceptsHistoryIDs(
+                                concept_informations,
+                                concept_ids_list=concept_ids_list)
 
         #  group id
-        is_valid_data, err, ret_value = chk_group(request.data.get('group'), user_groups)
+        is_valid_data, err, ret_value = chk_group(request.data.get('group'),
+                                                  user_groups)
         if is_valid_data:
             group_id = ret_value
             if group_id is None or group_id == "0":
@@ -433,7 +479,8 @@ def api_workingset_update(request):
             else:
                 update_workingset.group_id = group_id
                 # handle group-Access
-                is_valid_data, err, ret_value = chk_group_access(request.data.get('group_access'))
+                is_valid_data, err, ret_value = chk_group_access(
+                    request.data.get('group_access'))
                 if is_valid_data:
                     update_workingset.group_access = ret_value
                 else:
@@ -443,7 +490,8 @@ def api_workingset_update(request):
 
         #-----------------------------------------------------------
         # handle world-access
-        is_valid_data, err, ret_value = chk_world_access(request.data.get('world_access'))
+        is_valid_data, err, ret_value = chk_world_access(
+            request.data.get('world_access'))
         if is_valid_data:
             update_workingset.world_access = ret_value
         else:
@@ -471,9 +519,9 @@ def api_workingset_update(request):
             errors_dict.update(errors_ws)
             # y= {**errors_dict, **errors_ws}
             return Response(  #data = json.dumps(errors_dict)
-                            data=errors_dict,
-                            content_type="json",
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
+                data=errors_dict,
+                content_type="json",
+                status=status.HTTP_406_NOT_ACCEPTABLE)
 
         #-----------------------------------------------------------
         else:
@@ -489,7 +537,9 @@ def api_workingset_update(request):
 
             # save the tag ids
             old_tag_list = list(
-                WorkingSetTagMap.objects.filter(workingset=update_workingset).values_list('tag', flat=True))
+                WorkingSetTagMap.objects.filter(
+                    workingset=update_workingset).values_list('tag',
+                                                              flat=True))
 
             # detect tags to add
             tag_ids_to_add = list(set(new_tag_list) - set(old_tag_list))
@@ -499,13 +549,16 @@ def api_workingset_update(request):
 
             # add tags that have not been stored in db
             for tag_id_to_add in tag_ids_to_add:
-                WorkingSetTagMap.objects.get_or_create(workingset=update_workingset,
-                                                        tag=Tag.objects.get(id=tag_id_to_add),
-                                                        created_by=request.user)
+                WorkingSetTagMap.objects.get_or_create(
+                    workingset=update_workingset,
+                    tag=Tag.objects.get(id=tag_id_to_add),
+                    created_by=request.user)
 
             # remove tags no longer required in db
             for tag_id_to_remove in tag_ids_to_remove:
-                tag_to_remove = WorkingSetTagMap.objects.filter(workingset=update_workingset, tag=Tag.objects.get(id=tag_id_to_remove))
+                tag_to_remove = WorkingSetTagMap.objects.filter(
+                    workingset=update_workingset,
+                    tag=Tag.objects.get(id=tag_id_to_remove))
                 tag_to_remove.delete()
 
             #-----------------------------------------------------
@@ -667,17 +720,20 @@ def workingset_detail(request,
         raise PermissionDenied
 
     if workingset_history_id is not None:
-        ws_ver = WorkingSet.history.filter(id=pk, history_id=workingset_history_id)
+        ws_ver = WorkingSet.history.filter(id=pk,
+                                           history_id=workingset_history_id)
         if ws_ver.count() == 0: raise Http404
 
     if workingset_history_id is None:
         # get the latest version
-        workingset_history_id = WorkingSet.objects.get(pk=pk).history.latest().history_id
+        workingset_history_id = WorkingSet.objects.get(
+            pk=pk).history.latest().history_id
 
     # here, check live version
     current_ws = WorkingSet.objects.get(pk=pk)
 
-    children_permitted_and_not_deleted, error_dic = chk_children_permission_and_deletion(request, WorkingSet, pk, set_history_id=workingset_history_id)
+    children_permitted_and_not_deleted, error_dic = chk_children_permission_and_deletion(
+        request, WorkingSet, pk, set_history_id=workingset_history_id)
     if not children_permitted_and_not_deleted:
         raise PermissionDenied
 
@@ -818,7 +874,8 @@ def get_workingset_concepts(request, pk, workingset_history_id):
     # here, check live version
     current_ws = WorkingSet.objects.get(pk=pk)
 
-    children_permitted_and_not_deleted, error_dic = chk_children_permission_and_deletion(request, WorkingSet, pk, set_history_id=workingset_history_id)
+    children_permitted_and_not_deleted, error_dic = chk_children_permission_and_deletion(
+        request, WorkingSet, pk, set_history_id=workingset_history_id)
     if not children_permitted_and_not_deleted:
         raise PermissionDenied
 
@@ -831,7 +888,8 @@ def get_workingset_concepts(request, pk, workingset_history_id):
     # Get the list of concepts in the working set data (this is listed in the
     # concept_informations field with additional, user specified columns. Each
     # row is a concept ID and the column data for these extra columns.
-    rows = getGroupOfConceptsByWorkingsetId_historical(pk, workingset_history_id)
+    rows = getGroupOfConceptsByWorkingsetId_historical(pk,
+                                                       workingset_history_id)
 
     concept_data = OrderedDict([])
     title_row = []
@@ -851,13 +909,14 @@ def get_workingset_concepts(request, pk, workingset_history_id):
 
     titles = ['concept_id', 'concept_version_id', 'concept_name'] + title_row
 
-    concept_version = WorkingSet.history.get(id=pk, history_id=workingset_history_id).concept_version
+    concept_version = WorkingSet.history.get(
+        id=pk, history_id=workingset_history_id).concept_version
 
     rows_to_return = []
     for concept_id, data in concept_data.items():
-        ret = (['C' + str(concept_id),
-                concept_version[concept_id]] + [
-            Concept.history.get(id=concept_id, history_id=concept_version[concept_id]).name
+        ret = (['C' + str(concept_id), concept_version[concept_id]] + [
+            Concept.history.get(id=concept_id,
+                                history_id=concept_version[concept_id]).name
         ] + data)
 
         rows_to_return.append(ordr(list(zip(titles, ret))))
@@ -876,7 +935,8 @@ def get_workingset_codes(request, pk, workingset_history_id):
     # here, check live version
     current_ws = WorkingSet.objects.get(pk=pk)
 
-    children_permitted_and_not_deleted, error_dic = chk_children_permission_and_deletion(request, WorkingSet, pk, set_history_id=workingset_history_id)
+    children_permitted_and_not_deleted, error_dic = chk_children_permission_and_deletion(
+        request, WorkingSet, pk, set_history_id=workingset_history_id)
     if not children_permitted_and_not_deleted:
         raise PermissionDenied
 
@@ -889,7 +949,8 @@ def get_workingset_codes(request, pk, workingset_history_id):
     # Get the list of concepts in the working set data (this is listed in the
     # concept_informations field with additional, user specified columns. Each
     # row is a concept ID and the column data for these extra columns.
-    rows = getGroupOfConceptsByWorkingsetId_historical(pk, workingset_history_id)
+    rows = getGroupOfConceptsByWorkingsetId_historical(pk,
+                                                       workingset_history_id)
 
     concept_data = OrderedDict([])
     title_row = []
@@ -913,22 +974,26 @@ def get_workingset_codes(request, pk, workingset_history_id):
         #+ ['working_set_id' , 'working_set_version_id' , 'working_set_name']
         + title_row)
 
-    concept_version = WorkingSet.history.get(id=pk, history_id=workingset_history_id).concept_version
+    concept_version = WorkingSet.history.get(
+        id=pk, history_id=workingset_history_id).concept_version
 
     rows_to_return = []
     for concept_id, data in concept_data.items():
         rows_no = 0
-        codes = getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version[concept_id])
+        codes = getGroupOfCodesByConceptId_HISTORICAL(
+            concept_id, concept_version[concept_id])
         #Allow Working sets with zero attributes
         if title_row == [] and data == ['']:
             data = []
 
-        concept_name = Concept.history.get(id=concept_id, history_id=concept_version[concept_id]).name
+        concept_name = Concept.history.get(
+            id=concept_id, history_id=concept_version[concept_id]).name
         for cc in codes:
             rows_no += 1
             ret = (
                 [
-                    cc['code'], cc['description'].encode('ascii', 'ignore').decode('ascii'),
+                    cc['code'], cc['description'].encode(
+                        'ascii', 'ignore').decode('ascii'),
                     'C' + str(concept_id)
                 ] + [concept_version[concept_id]] + [concept_name]
                 #+ [current_ws_version.id ,current_ws_version.history_id , current_ws_version.name]

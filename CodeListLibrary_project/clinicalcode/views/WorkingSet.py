@@ -15,7 +15,8 @@ from django import forms
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin  # , UserPassesTestMixin
+from django.contrib.auth.mixins import \
+    LoginRequiredMixin  # , UserPassesTestMixin
 from django.contrib.auth.models import Group, User
 # from django.contrib.messages import constants
 from django.core import serializers
@@ -24,7 +25,8 @@ from django.core.paginator import EmptyPage, Paginator
 #from django.db.models import Q
 from django.db import transaction  # , models, IntegrityError
 # from django.forms.models import model_to_dict
-from django.http import HttpResponseRedirect  # , StreamingHttpResponse, HttpResponseForbidden
+from django.http import \
+    HttpResponseRedirect  # , StreamingHttpResponse, HttpResponseForbidden
 from django.http import HttpResponseNotFound
 from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -62,7 +64,8 @@ def workingset_create(request):
         workingset = WorkingSet()
         workingset.owner_id = request.user.id
         workingset.owner_access = Permissions.EDIT
-        return render(request, 'clinicalcode/workingset/form.html', {
+        return render(
+            request, 'clinicalcode/workingset/form.html', {
                 'users': users,
                 'groups': groups,
                 'workingset': workingset,
@@ -78,11 +81,14 @@ def workingset_create(request):
         new_workingset.description = request.POST.get('description')
         new_workingset.publication_doi = request.POST.get('publication_doi')
         new_workingset.publication_link = request.POST.get('publication_link')
-        new_workingset.secondary_publication_links = request.POST.get('secondary_publication_links')
+        new_workingset.secondary_publication_links = request.POST.get(
+            'secondary_publication_links')
         new_workingset.source_reference = request.POST.get('source_reference')
-        new_workingset.citation_requirements = request.POST.get('citation_requirements')
-        new_workingset.concept_informations = json.loads(request.POST.get('concepts_json'))
-        new_workingset.concept_version = db_utils.getWSConceptsHistoryIDs(json.loads(request.POST.get('concepts_json')))
+        new_workingset.citation_requirements = request.POST.get(
+            'citation_requirements')
+        new_workingset.concept_informations = request.POST.get('concepts_json')
+        new_workingset.concept_version = db_utils.getWSConceptsHistoryIDs(
+            request.POST.get('concepts_json'))
         new_workingset.created_by = request.user
         new_workingset.owner_access = Permissions.EDIT  #int(request.POST.get('ownerAccess'))
         new_workingset.group_access = int(request.POST.get('groupAccess'))
@@ -112,17 +118,17 @@ def workingset_create(request):
                 for tag_id in new_tag_list:
                     tags.append(Tag.objects.get(id=tag_id))
 
-            concept_ids = db_utils.getConceptsFromJSON(concepts_json=new_workingset.concept_informations)
+            concept_ids = db_utils.getConceptsFromJSON(
+                concepts_json=new_workingset.concept_informations)
             concepts = Concept.objects.filter(id__in=concept_ids)
             context = {}
             #messages.error(request, errors.values())
             context['errorMsg'] = errors
 
-            concept_informations = json.dumps(new_workingset.concept_informations)
-            return render(request, 'clinicalcode/workingset/form.html', {
+            return render(
+                request, 'clinicalcode/workingset/form.html', {
                     'errorMsg': context['errorMsg'],
                     'workingset': new_workingset,
-                    'concept_informations': concept_informations,
                     'concepts': concepts,
                     'tags': tags,
                     'users': users,
@@ -149,11 +155,13 @@ def workingset_create(request):
             # add tags that have not been stored in db
             if tag_ids:
                 for tag_id_to_add in new_tag_list:
-                    WorkingSetTagMap.objects.get_or_create(workingset=new_workingset,
-                                                            tag = Tag.objects.get(id=tag_id_to_add),
-                                                            created_by = request.user)
+                    WorkingSetTagMap.objects.get_or_create(
+                        workingset=new_workingset,
+                        tag=Tag.objects.get(id=tag_id_to_add),
+                        created_by=request.user)
 
-            db_utils.save_Entity_With_ChangeReason(WorkingSet, created_WS.pk, "Created")
+            db_utils.save_Entity_With_ChangeReason(WorkingSet, created_WS.pk,
+                                                   "Created")
             # created_WS.changeReason = "Created"
             # created_WS.save()
 
@@ -181,8 +189,8 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin,
         workingset = WorkingSet.objects.get(pk=pk)
         latest_history_id = str(workingset.history.latest().history_id)
         tags = WorkingSetTagMap.objects.filter(workingset=workingset)
-        tags = Tag.objects.filter(id__in=list(tags.values_list('tag_id', flat=True)))
-        concept_informations = json.dumps(workingset.concept_informations)
+        tags = Tag.objects.filter(
+            id__in=list(tags.values_list('tag_id', flat=True)))
         concept_list = db_utils.getConceptsFromJSON(pk=pk)
         concepts = Concept.objects.filter(id__in=concept_list)
         users = User.objects.all()
@@ -190,30 +198,46 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin,
         #----------------------------------------------------------
         children_permitted_and_not_deleted = True
         error_dic = {}
-        children_permitted_and_not_deleted, error_dic2 = db_utils.chk_children_permission_and_deletion(self.request, WorkingSet, pk)
+        children_permitted_and_not_deleted, error_dic2 = db_utils.chk_children_permission_and_deletion(
+            self.request, WorkingSet, pk)
         if not children_permitted_and_not_deleted:
             error_dic['children'] = error_dic2
         #-----------------------------------------------------------
-        are_concepts_latest_version, version_alerts = checkConceptVersionIsTheLatest(pk)
+        are_concepts_latest_version, version_alerts = checkConceptVersionIsTheLatest(
+            pk)
 
         return render(
             request, self.template_name, {
-                'pk': pk,
-                'workingset': workingset,
-                'concept_informations': concept_informations,
-                'concepts': concepts,
-                'tags': tags,
-                'users': users,
-                'groups': groups,
-                'errorMsg': error_dic,
-                'allowed_to_permit': allowed_to_permit(self.request.user, WorkingSet, pk),
-                'history': self.get_object().history.all(),
-                'latest_history_id': latest_history_id,
-                'overrideVersion': 0,
-                'concepts_id_versionID': json.dumps(workingset.concept_version),
-                'are_concepts_latest_version': are_concepts_latest_version,
-                'version_alerts': version_alerts,
-                'current_workingset_history_id': int(WorkingSet.objects.get(pk=pk).history.latest().history_id)
+                'pk':
+                pk,
+                'workingset':
+                workingset,
+                'concepts':
+                concepts,
+                'tags':
+                tags,
+                'users':
+                users,
+                'groups':
+                groups,
+                'errorMsg':
+                error_dic,
+                'allowed_to_permit':
+                allowed_to_permit(self.request.user, WorkingSet, pk),
+                'history':
+                self.get_object().history.all(),
+                'latest_history_id':
+                latest_history_id,
+                'overrideVersion':
+                0,
+                'concepts_id_versionID':
+                json.dumps(workingset.concept_version),
+                'are_concepts_latest_version':
+                are_concepts_latest_version,
+                'version_alerts':
+                version_alerts,
+                'current_workingset_history_id':
+                int(WorkingSet.objects.get(pk=pk).history.latest().history_id)
             })
 
     def post(self, request, pk):
@@ -235,7 +259,8 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin,
         users = User.objects.all()
         groups = getGroups(request.user)
 
-        is_allowed_to_permit = allowed_to_permit(self.request.user, WorkingSet, pk)
+        is_allowed_to_permit = allowed_to_permit(self.request.user, WorkingSet,
+                                                 pk)
 
         #----------- update object -------------------------------------------------
         workingset.name = request.POST.get('name')
@@ -244,15 +269,19 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin,
         workingset.description = request.POST.get('description')
         workingset.publication_doi = request.POST.get('publication_doi')
         workingset.publication_link = request.POST.get('publication_link')
-        workingset.secondary_publication_links = request.POST.get('secondary_publication_links')
+        workingset.secondary_publication_links = request.POST.get(
+            'secondary_publication_links')
         workingset.source_reference = request.POST.get('source_reference')
-        workingset.citation_requirements = request.POST.get('citation_requirements')
-        workingset.concept_informations = json.loads(request.POST.get('concepts_json'))
+        workingset.citation_requirements = request.POST.get(
+            'citation_requirements')
+        workingset.concept_informations = request.POST.get('concepts_json')
 
-        #workingset.concept_version = db_utils.getWSConceptsHistoryIDs(json.loads(request.POST.get('concepts_json')))
+        #workingset.concept_version = db_utils.getWSConceptsHistoryIDs(request.POST.get('concepts_json'))
         # save concepts versions as shown in form
-        workingset.concept_version = db_utils.getWSConceptsVersionsData(concept_informations = workingset.concept_informations,
-                                                                        submitted_concept_version = json.loads(request.POST.get('concepts_id_versionID')))
+        workingset.concept_version = db_utils.getWSConceptsVersionsData(
+            concept_informations=workingset.concept_informations,
+            submitted_concept_version=json.loads(
+                request.POST.get('concepts_id_versionID')))
 
         if is_allowed_to_permit:
             workingset.owner_access = Permissions.EDIT  #int(request.POST.get('ownerAccess'))
@@ -268,7 +297,8 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin,
             workingset.group_id = None
         #decoded_concepts = json.loads(workingset.concept_informations)
 
-        are_concepts_latest_version, version_alerts = checkConceptVersionIsTheLatest(pk)
+        are_concepts_latest_version, version_alerts = checkConceptVersionIsTheLatest(
+            pk)
 
         # Validation
         is_valid = True
@@ -279,44 +309,65 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin,
         # alert user when concurrent editing of ws
         confirm_overrideVersion = 0
         warnings = []
-        if latest_history_id_shown != latest_history_id and str(overrideVersion) == "0":
+        if latest_history_id_shown != latest_history_id and str(
+                overrideVersion) == "0":
             confirm_overrideVersion = -1
             is_valid = False
-            warnings.append("This working set has an updated version, Do you want to continue and override it? ")
+            warnings.append(
+                "This working set has an updated version, Do you want to continue and override it? "
+            )
         #----------------------------------------------------------
         children_permitted_and_not_deleted = True
-        children_permitted_and_not_deleted, error_dic2 = db_utils.chk_children_permission_and_deletion(self.request,
-                                                                                                        WorkingSet,
-                                                                                                        pk,
-                                                                                                        WS_concepts_json=workingset.concept_informations,
-                                                                                                        submitted_concept_version=workingset.concept_version)
+        children_permitted_and_not_deleted, error_dic2 = db_utils.chk_children_permission_and_deletion(
+            self.request,
+            WorkingSet,
+            pk,
+            WS_concepts_json=workingset.concept_informations,
+            submitted_concept_version=workingset.concept_version)
         if not children_permitted_and_not_deleted:
             errors['children'] = error_dic2
 
         is_valid = (is_valid & children_permitted_and_not_deleted)
         #-----------------------------------------------------------
         if not is_valid:  # pop the form with data to correct and submit
-            concept_informations = json.dumps(workingset.concept_informations)
-            return render(request,
+            return render(
+                request,
                 'clinicalcode/workingset/form.html',
                 {
-                    'pk': pk,
-                    'workingset': workingset,
-                    'concept_informations': concept_informations,
-                    'concepts': concepts,
-                    'tags': tags,
-                    'users': users,
-                    'groups': groups,
-                    'errorMsg': errors,
-                    'allowed_to_permit': is_allowed_to_permit,  #allowed_to_permit(self.request.user, WorkingSet, pk),
-                    'history': self.get_object().history.all(),
-                    'latest_history_id': latest_history_id_shown,
-                    'overrideVersion': confirm_overrideVersion,
-                    'warningsMsg': warnings,
-                    'concepts_id_versionID': json.dumps(workingset.concept_version),
-                    'are_concepts_latest_version': are_concepts_latest_version,
-                    'version_alerts': version_alerts,
-                    'current_workingset_history_id': int(WorkingSet.objects.get(pk=pk).history.latest().history_id)
+                    'pk':
+                    pk,
+                    'workingset':
+                    workingset,
+                    'concepts':
+                    concepts,
+                    'tags':
+                    tags,
+                    'users':
+                    users,
+                    'groups':
+                    groups,
+                    'errorMsg':
+                    errors,
+                    'allowed_to_permit':
+                    is_allowed_to_permit,  #allowed_to_permit(self.request.user, WorkingSet, pk),
+                    'history':
+                    self.get_object().history.all(),
+                    'latest_history_id':
+                    latest_history_id_shown,
+                    'overrideVersion':
+                    confirm_overrideVersion,
+                    'warningsMsg':
+                    warnings,
+                    'concepts_id_versionID':
+                    json.dumps(workingset.concept_version),
+                    'are_concepts_latest_version':
+                    are_concepts_latest_version,
+                    'version_alerts':
+                    version_alerts,
+                    'current_workingset_history_id':
+                    int(
+                        WorkingSet.objects.get(
+                            pk=pk).history.latest().history_id)
                 })
         else:
             if workingset.group_access == 1:
@@ -352,13 +403,16 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin,
 
                 # add tags that have not been stored in db
                 for tag_id_to_add in tag_ids_to_add:
-                    WorkingSetTagMap.objects.get_or_create(workingset=workingset,
-                                                            tag=Tag.objects.get(id=tag_id_to_add),
-                                                            created_by=self.request.user)
+                    WorkingSetTagMap.objects.get_or_create(
+                        workingset=workingset,
+                        tag=Tag.objects.get(id=tag_id_to_add),
+                        created_by=self.request.user)
 
                 # remove tags no longer required in db
                 for tag_id_to_remove in tag_ids_to_remove:
-                    tag_to_remove = WorkingSetTagMap.objects.filter(workingset=workingset, tag=Tag.objects.get(id=tag_id_to_remove))
+                    tag_to_remove = WorkingSetTagMap.objects.filter(
+                        workingset=workingset,
+                        tag=Tag.objects.get(id=tag_id_to_remove))
                     tag_to_remove.delete()
 
                 #-----------------------------------------------------
@@ -400,7 +454,8 @@ class WorkingSetDelete(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin,
     def post(self, request, pk):
         with transaction.atomic():
             db_utils.deleteWorkingset(pk, request.user)
-            db_utils.modify_Entity_ChangeReason(WorkingSet, pk, "Working set has been deleted")
+            db_utils.modify_Entity_ChangeReason(
+                WorkingSet, pk, "Working set has been deleted")
         messages.success(self.request, "Working Set has been deleted")
         return HttpResponseRedirect(self.get_success_url())
 
@@ -424,18 +479,24 @@ class WorkingSetDetail(LoginRequiredMixin, HasAccessToViewWorkingsetCheckMixin,
         workingset = WorkingSet.objects.get(pk=self.kwargs['pk'])
         tags = WorkingSetTagMap.objects.filter(workingset=self.get_object())
         context['tags'] = tags
-        context['concept_informations'] = json.dumps(self.get_object().concept_informations)
-        concept_list = db_utils.getConceptsFromJSON(concepts_json=self.get_object().concept_informations)
-        concepts = Concept.objects.filter(id__in=concept_list).values('id', 'name', 'group')
+        concept_list = db_utils.getConceptsFromJSON(
+            concepts_json=self.get_object().concept_informations)
+        concepts = Concept.objects.filter(id__in=concept_list).values(
+            'id', 'name', 'group')
         #        concepts = Concept.history.all().filter(id__in=concept_list, history_id__in=workingset['concept_version'].values()).values('id','name', 'group')
         context['concepts_id_name'] = json.dumps(list(concepts))
-        context['concepts_id_versionID'] = json.dumps(self.get_object().concept_version)
+        context['concepts_id_versionID'] = json.dumps(
+            self.get_object().concept_version)
         context['user_can_edit'] = (not workingset.is_deleted
-                                    and allowed_to_edit(self.request, WorkingSet, self.get_object().id))
+                                    and allowed_to_edit(
+                                        self.request, WorkingSet,
+                                        self.get_object().id))
         context['history'] = self.get_object().history.all()
 
-        children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(self.request, WorkingSet, self.kwargs['pk'])
-        are_concepts_latest_version, version_alerts = checkConceptVersionIsTheLatest(self.kwargs['pk'])
+        children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(
+            self.request, WorkingSet, self.kwargs['pk'])
+        are_concepts_latest_version, version_alerts = checkConceptVersionIsTheLatest(
+            self.kwargs['pk'])
 
         context['user_can_export'] = (children_permitted_and_not_deleted
                                       and not workingset.is_deleted)
@@ -444,10 +505,13 @@ class WorkingSetDetail(LoginRequiredMixin, HasAccessToViewWorkingsetCheckMixin,
         context['are_concepts_latest_version'] = are_concepts_latest_version
         context['version_alerts'] = version_alerts
         context['allowed_to_create'] = not settings.CLL_READ_ONLY
-        context['conceptBrands'] = json.dumps(db_utils.getConceptBrands(self.request, concept_list))
+        context['conceptBrands'] = json.dumps(
+            db_utils.getConceptBrands(self.request, concept_list))
 
         context['is_latest_version'] = True
-        context['current_workingset_history_id'] = int(WorkingSet.objects.get(pk=self.kwargs['pk']).history.latest().history_id)
+        context['current_workingset_history_id'] = int(
+            WorkingSet.objects.get(
+                pk=self.kwargs['pk']).history.latest().history_id)
         return context
 
 
@@ -501,7 +565,8 @@ class WorkingSetRestore(LoginRequiredMixin,
     def post(self, request, pk):
         with transaction.atomic():
             db_utils.restoreWorkingset(pk, request.user)
-            db_utils.modify_Entity_ChangeReason(WorkingSet, pk, "Working set has been restored")
+            db_utils.modify_Entity_ChangeReason(
+                WorkingSet, pk, "Working set has been restored")
         messages.success(self.request, "Working set has been restored")
         return HttpResponseRedirect(self.get_success_url())
 
@@ -533,33 +598,48 @@ def workingset_history_detail(request, pk, workingset_history_id):
         tag_list = [i['tag_id'] for i in tags_comp if 'tag_id' in i]
         tags = Tag.objects.filter(pk__in=tag_list)
 
-    concept_informations = json.dumps(workingset['concept_informations'])
-    concept_list = db_utils.getConceptsFromJSON(concepts_json=workingset['concept_informations'])
+    concept_list = db_utils.getConceptsFromJSON(
+        concepts_json=workingset['concept_informations'])
     #concepts = Concept.objects.filter(id__in=concept_list).values('id','name', 'group')
-    concepts = Concept.history.all().filter(id__in=concept_list, history_id__in=list(workingset['concept_version'].values())).values('id', 'name', 'group')
+    concepts = Concept.history.all().filter(
+        id__in=concept_list,
+        history_id__in=list(workingset['concept_version'].values())).values(
+            'id', 'name', 'group')
     concepts_id_name = json.dumps(list(concepts))
 
     workingset_live = WorkingSet.objects.get(pk=pk)
 
-    children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(request, WorkingSet, pk, set_history_id=workingset_history_id)
-    user_can_export = (children_permitted_and_not_deleted and not workingset_live.is_deleted)
+    children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(
+        request, WorkingSet, pk, set_history_id=workingset_history_id)
+    user_can_export = (children_permitted_and_not_deleted
+                       and not workingset_live.is_deleted)
 
-    conceptBrands = json.dumps(db_utils.getConceptBrands(request, concept_list))
+    conceptBrands = json.dumps(db_utils.getConceptBrands(
+        request, concept_list))
 
-    is_latest_version = (int(workingset_history_id) == WorkingSet.objects.get(pk=pk).history.latest().history_id)
+    is_latest_version = (int(workingset_history_id) == WorkingSet.objects.get(
+        pk=pk).history.latest().history_id)
 
-    return render(request, 'clinicalcode/workingset/history/detail.html', 
-        {
-            'workingset': workingset,
-            'concept_informations': concept_informations,
-            'tags': tags,
-            'concepts_id_name': concepts_id_name,
-            'concepts_id_versionID': json.dumps(workingset['concept_version']),
-            'user_can_edit': (not workingset_live.is_deleted and allowed_to_edit(request, WorkingSet, pk)),
-            'allowed_to_create': allowed_to_create(),
-            'user_can_export': user_can_export,
-            'conceptBrands': conceptBrands,
-            'is_latest_version': is_latest_version
+    return render(
+        request, 'clinicalcode/workingset/history/detail.html', {
+            'workingset':
+            workingset,
+            'tags':
+            tags,
+            'concepts_id_name':
+            concepts_id_name,
+            'concepts_id_versionID':
+            json.dumps(workingset['concept_version']),
+            'user_can_edit': (not workingset_live.is_deleted
+                              and allowed_to_edit(request, WorkingSet, pk)),
+            'allowed_to_create':
+            allowed_to_create(),
+            'user_can_export':
+            user_can_export,
+            'conceptBrands':
+            conceptBrands,
+            'is_latest_version':
+            is_latest_version
         })
 
 
@@ -576,19 +656,24 @@ def workingset_history_revert(request, pk, workingset_history_id):
         try:
             with transaction.atomic():
                 db_utils.deleteWorkingsetRelatedObjects(pk)
-                db_utils.revertHistoryWorkingset(request.user, workingset_history_id)
+                db_utils.revertHistoryWorkingset(request.user,
+                                                 workingset_history_id)
 
                 data['form_is_valid'] = True
-                data['message'] = render_to_string('clinicalcode/workingset/history/reverted.html', {'id': pk}, request)
+                data['message'] = render_to_string(
+                    'clinicalcode/workingset/history/reverted.html',
+                    {'id': pk}, request)
                 return JsonResponse(data)
         except Exception as e:
             # todo: need to log error
             data['form_is_valid'] = False
-            data['message'] = render_to_string('clinicalcode/workingset/history/revert.html', {}, request)
+            data['message'] = render_to_string(
+                'clinicalcode/workingset/history/revert.html', {}, request)
             return JsonResponse(data)
 
     workingset = db_utils.getHistoryWorkingset(workingset_history_id)
-    return render(request, 'clinicalcode/workingset/history/revert.html', {'workingset': workingset})
+    return render(request, 'clinicalcode/workingset/history/revert.html',
+                  {'workingset': workingset})
 
 
 @login_required
@@ -600,7 +685,8 @@ def workingset_to_csv(request, pk):
 
     current_ws = WorkingSet.objects.get(pk=pk)
 
-    children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(request, WorkingSet, pk)
+    children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(
+        request, WorkingSet, pk)
     if not children_permitted_and_not_deleted:
         raise PermissionDenied
 
@@ -622,19 +708,22 @@ def history_workingset_to_csv(request, pk, workingset_history_id):
     # here, check live version
     current_ws = WorkingSet.objects.get(pk=pk)
 
-    children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(request, WorkingSet, pk, set_history_id=workingset_history_id)
+    children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(
+        request, WorkingSet, pk, set_history_id=workingset_history_id)
     if not children_permitted_and_not_deleted:
         raise PermissionDenied
 
     if current_ws.is_deleted == True:
         raise PermissionDenied
 
-    current_ws_version = WorkingSet.history.get(id=pk, history_id=workingset_history_id)
+    current_ws_version = WorkingSet.history.get(
+        id=pk, history_id=workingset_history_id)
 
     # Get the list of concepts in the working set data (this is listed in the
     # concept_informations field with additional, user specified columns. Each
     # row is a concept ID and the column data for these extra columns.
-    rows = db_utils.getGroupOfConceptsByWorkingsetId_historical(pk, workingset_history_id)
+    rows = db_utils.getGroupOfConceptsByWorkingsetId_historical(
+        pk, workingset_history_id)
 
     my_params = {
         'workingset_id': pk,
@@ -642,7 +731,9 @@ def history_workingset_to_csv(request, pk, workingset_history_id):
         'creation_date': time.strftime("%Y%m%dT%H%M%S")
     }
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = ('attachment; filename="workingset_WS%(workingset_id)s_ver_%(workingset_history_id)s_concepts_%(creation_date)s.csv"' % my_params)
+    response['Content-Disposition'] = (
+        'attachment; filename="workingset_WS%(workingset_id)s_ver_%(workingset_history_id)s_concepts_%(creation_date)s.csv"'
+        % my_params)
 
     writer = csv.writer(response)
 
@@ -677,41 +768,37 @@ def history_workingset_to_csv(request, pk, workingset_history_id):
 
     writer.writerow(final_titles)
 
-    concept_version = WorkingSet.history.get(id=pk, history_id=workingset_history_id).concept_version
+    concept_version = WorkingSet.history.get(
+        id=pk, history_id=workingset_history_id).concept_version
 
     for concept_id, data in concept_data.items():
-        concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version[concept_id]).coding_system.name
-        concept_name = Concept.history.get(id=concept_id, history_id=concept_version[concept_id]).name
+        concept_coding_system = Concept.history.get(
+            id=concept_id,
+            history_id=concept_version[concept_id]).coding_system.name
+        concept_name = Concept.history.get(
+            id=concept_id, history_id=concept_version[concept_id]).name
 
         rows_no = 0
-        codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version[concept_id])
+        codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(
+            concept_id, concept_version[concept_id])
         #Allow Working sets with zero attributes
         if title_row == [] and data == ['']:
             data = []
         for cc in codes:
             rows_no += 1
             writer.writerow([
-                cc['code'], 
-                cc['description'].encode('ascii', 'ignore').decode('ascii'),
-                concept_coding_system, 
-                'C' + str(concept_id), 
-                concept_version[concept_id], 
-                concept_name,
-                current_ws_version.friendly_id, 
-                current_ws_version.history_id,
+                cc['code'], cc['description'].encode('ascii', 'ignore').decode(
+                    'ascii'), concept_coding_system, 'C' +
+                str(concept_id), concept_version[concept_id], concept_name,
+                current_ws_version.friendly_id, current_ws_version.history_id,
                 current_ws_version.name
             ] + data)
 
         if rows_no == 0:
             writer.writerow([
-                '', 
-                '', 
-                concept_coding_system, 
-                'C' + str(concept_id), 
-                concept_version[concept_id], 
-                concept_name,
-                current_ws_version.friendly_id, 
-                current_ws_version.history_id,
+                '', '', concept_coding_system, 'C' +
+                str(concept_id), concept_version[concept_id], concept_name,
+                current_ws_version.friendly_id, current_ws_version.history_id,
                 current_ws_version.name
             ] + data)
 

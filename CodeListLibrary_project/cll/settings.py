@@ -460,8 +460,3 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 SWAGGER_TITLE = "Concept Library API"
 
-
-# Default primary key field type
-# Django >= 3.2
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-

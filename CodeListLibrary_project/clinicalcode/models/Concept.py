@@ -22,16 +22,16 @@ class Concept(TimeStampedModel):
     author = models.CharField(max_length=1000)
     entry_date = models.DateField()
     modified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="concepts_modified" )  # user of the person who modified this row.
-    validation_performed = models.BooleanField(null=True, default=False)  # Was there any clinical validation of this concept?  1=yes 0=no
+    validation_performed = models.NullBooleanField()  # Was there any clinical validation of this concept?  1=yes 0=no
     validation_description = models.TextField(null=True, blank=True)  # Description of Validation (think about structure of this)
     publication_doi = models.CharField(max_length=100)  # DOI of publication
     publication_link = models.URLField(max_length=1000)  # http link to pub
     secondary_publication_links = models.TextField(null=True, blank=True)
-    paper_published = models.BooleanField(null=True, default=False)  # Has a paper been published with these codes? 1=yes 0=no
+    paper_published = models.NullBooleanField()  # Has a paper been published with these codes? 1=yes 0=no
     source_reference = models.CharField(max_length=250)  # Was this code list from another source?  Reference here.
     citation_requirements = models.CharField(max_length=250)  # Any request for citation requirements to be honoured
     coding_system = models.ForeignKey(CodingSystem, on_delete=models.SET_NULL, related_name="concepts", null=True, blank=True)
-    is_deleted = models.BooleanField(null=True, default=False)
+    is_deleted = models.NullBooleanField()
     deleted = models.DateTimeField(null=True, blank=True)
     deleted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="concepts_deleted")
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="concepts_owned")

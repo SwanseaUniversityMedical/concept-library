@@ -9,8 +9,7 @@ from importlib import import_module
 from clinicalcode.models import Brand
 from decouple import Config, Csv, RepositoryEnv
 from django.conf import settings
-#from django.conf.urls import include, url
-from django.urls import include
+from django.conf.urls import include, url
 from django.contrib import auth, messages
 #import json
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied

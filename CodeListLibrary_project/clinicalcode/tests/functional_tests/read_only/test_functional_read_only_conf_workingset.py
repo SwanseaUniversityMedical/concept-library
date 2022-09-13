@@ -94,7 +94,7 @@ class ReadOnlyTestWorkingSet(StaticLiveServerTestCase):
             publication_link=Google_website,
             source_reference="",
             citation_requirements="",
-            concept_informations=[],
+            concept_informations="",
             created_by=super_user,
             updated_by=super_user,
             owner=owner_user,

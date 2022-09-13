@@ -61,7 +61,7 @@ class ReadOnlyTest(TestCase):
             publication_link=Google_website,
             source_reference="",
             citation_requirements="",
-            concept_informations=["concept1":"id"],
+            concept_informations='{ "workingset1":"id"}',
             created_by=super_user,
             updated_by=super_user,
             owner=owner_user,
