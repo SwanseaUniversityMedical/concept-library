@@ -906,6 +906,52 @@ def getHistoryConcept(concept_history_id, highlight_result=False, q_highlight=No
         return row_dict
 
 
+def getHistoryPhenotypeWorkingset(workingset_history_id):
+    ''' Get historic phenotypeworkingset based on a workingset history id '''
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            '''SELECT hw.created,
+        hw.modified,
+        hw.id,
+        hw.name,
+        hw.description,
+        hw.author,
+        hw.publications,
+        hw.citation_requirements,
+        hw.owner_id,
+        hw.group_id,
+        hw.tags,
+        hw.collections,
+        hw.owner_access,
+        hw.group_access,
+        hw.world_access,
+        hw.phenotypes_concepts_data,
+        hw.created_by_id,
+        hw.updated_by_id,
+        ucb.username as created_by_username,
+        umb.username as modified_by_username,
+        hw.history_id,
+        hw.history_date,
+        hw.history_change_reason,
+        hw.history_user_id,
+        uhu.username as history_user,
+        hw.history_type,
+        hw.is_deleted,
+        hw.deleted,
+        hw.deleted_by_id
+        FROM clinicalcode_historicalphenotypeworkingset AS hw
+        LEFT OUTER JOIN auth_user AS ucb on ucb.id = hw.created_by_id
+        LEFT OUTER JOIN auth_user AS umb on umb.id = hw.updated_by_id
+        LEFT OUTER JOIN auth_user AS uhu on uhu.id = hw.history_user_id
+        WHERE (hw.history_id = %s)''', [workingset_history_id])
+
+        col_names = [col[0] for col in cursor.description]
+        row = cursor.fetchone()
+        row_dict = dict(zip(col_names, row))
+
+        return row_dict
+
 def getHistoryWorkingset(workingset_history_id):
     ''' Get historic workingset based on a workingset history id '''
 
@@ -1631,6 +1677,67 @@ def getHistoryTags(concept_id, concept_history_date):
 
         return [dict(list(zip(columns, row))) for row in cursor.fetchall()]
 
+
+def getHistoryTags_PhenotypeWorkingset(workingset_id, workingset_history_date):
+    ''' Get historic tags attached to a workingset that were effective from a point in time '''
+
+    my_params = {
+        'workingset_id': workingset_id,
+        'workingset_history_date': workingset_history_date
+    }
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            '''
+        -- Select all the data from the tags historical record for all
+        -- the entries that are contained in the JOIN which produces a list of
+        -- the latest history IDs for all codes that don't have a
+        -- delete event by the specified date.
+        SELECT 
+            hc.id,
+            hc.created,
+            hc.modified,
+            hc.history_id,
+            hc.history_date,
+            hc.history_change_reason,
+            hc.history_type,
+            hc.workingset_id,
+            hc.created_by_id,
+            hc.history_user_id,
+            hc.tag_id
+        FROM clinicalcode_historicalworkingsettagmap AS hc
+        INNER JOIN (
+            SELECT a.id, a.history_id
+            FROM (
+                -- Get the list of all the tags for this concept and
+                -- before the timestamp and return the latest history ID.
+                SELECT id, MAX(history_id) AS history_id
+                FROM   clinicalcode_historicalworkingsettagmap
+                WHERE  (workingset_id = %(workingset_id)s AND 
+                        history_date <= %(workingset_history_date)s::timestamptz)
+                GROUP BY id
+            ) AS a
+            LEFT JOIN (
+                -- Get the list of all the tags that have been deleted
+                -- for this concept.
+                SELECT DISTINCT id
+                FROM   clinicalcode_historicalworkingsettagmap
+                WHERE  (workingset_id = %(workingset_id)s AND 
+                        history_date <= %(workingset_history_date)s::timestamptz AND
+                        history_type = '-')
+            ) AS b
+            -- Join only those from the first group that are not in the deleted
+            -- group.
+            ON a.id = b.id
+            WHERE b.id IS NULL
+        ) AS d
+        ON hc.history_id = d.history_id
+        ORDER BY hc.id
+        ''', my_params)
+
+        columns = [col[0] for col in cursor.description]
+
+        return [dict(list(zip(columns, row))) for row in cursor.fetchall()]
 
 def getHistoryTags_Workingset(workingset_id, workingset_history_date):
     ''' Get historic tags attached to a workingset that were effective from a point in time '''

@@ -689,7 +689,7 @@ def get_visible_versions_list(request,
                               pk,
                               is_authenticated_user=True):
 
-    if set_class == WorkingSet:
+    if set_class == WorkingSet or set_class == PhenotypeWorkingset:
         return get_versions_list(request, set_class, pk)
 
     versions = set_class.objects.get(pk=pk).history.all().order_by('-history_id')
