@@ -539,7 +539,6 @@
                         "Data": element.phenotype.id + '/' + element.phenotype.version + '-' + element.concept.id + '/' + element.concept.version + '-' + element.concept.name
                     }
                 })
-                $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
 
 
                 $('#attributes-table').show()
@@ -547,6 +546,7 @@
                     var table = $('#attributes-table').DataTable();
                     table.clear();
                     table.rows.add(dataset).draw();
+                    $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
                 } else {
                     var table = $('#attributes-table').DataTable({
                         data: dataset,
@@ -563,7 +563,7 @@
                         retrieve: true,
 
                     })
-                    $('#phenotypes_concepts_json').val()
+                    $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
                 }
 
                     $('#test').click(function () {
