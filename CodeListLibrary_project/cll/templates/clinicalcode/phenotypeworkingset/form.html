@@ -377,27 +377,24 @@
                     <div class="form-group">
                         <div class="col-sm-12">
                             <label>Phenotype/Concepts</label>
+                            <table class="table display-table" id="attributes-table" style="width:100%;display:none">
+
+
+                            </table>
+
                         </div>
+
                         <div class="row-form-flex row">
                             <button class="upload-button" id="add-data" type="button" aria-pressed="false"
                                     data-toggle="modal" data-target="#myModal">
                                 Upload
                             </button>
 
+                            <button id='test' type="button">add column</button>
+
                         </div>
 
-                        <table class="table display-table" id="attributes-table" style="width:100%;display:none">
-                            <thead>
-                            <tr>
 
-                                <th>Phenotype</th>
-                                <th>Concept</th>
-                                <th><input class="input-material" type="text" placeholder="Attribute name"
-                                           id="attribute-input-header"/></th>
-                            </tr>
-                            </thead>
-
-                        </table>
                         <hr/>
 
                     </div>
@@ -423,12 +420,8 @@
                     </div>
 
 
-                    <input type="hidden" id="phenotypes_concepts_json" name="phenotypes_concepts_json">
-                    <input type="hidden" id="get_concepts_json" name="get_concepts_json"
-                           value="{{ workingset.concept_informations|default_if_none:'' }}">
-                    <input type="hidden" id="concept_model" value="{{ concepts }}">
-                    <input type="hidden" id="concepts_id_versionID" name="concepts_id_versionID" size=100
-                           value="{{ concepts_id_versionID }}">
+                    <input type="hidden" id="phenotypes_concepts_json" value="loh" name="phenotypes_concepts_json">
+
 
 
                     </form>
@@ -540,13 +533,15 @@
             onImport: (service, selected) => {
                 // Clicked the 'Import Concepts' button, and imported 'selected'
                 console.log(selected);
+
                 var dataset = selected.map(element => {
                     return {
-                        "Concept": element.concept.id + '/' + element.concept.version + '-' + element.concept.name,
-                        "Phenotype": element.phenotype.id + '/' + element.phenotype.version + '-' + element.phenotype.name,
-                        "Attributes": ['<input class="input-material" type="text"  id="attribute-input"/>']
+                        "Data": element.phenotype.id + '/' + element.phenotype.version + '-' + element.concept.id + '/' + element.concept.version + '-' + element.concept.name
                     }
                 })
+                $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
+
+
                 $('#attributes-table').show()
                 if ($.fn.dataTable.isDataTable('#attributes-table')) {
                     var table = $('#attributes-table').DataTable();
@@ -556,33 +551,73 @@
                     var table = $('#attributes-table').DataTable({
                         data: dataset,
                         columns: [
-                            {data: "Phenotype"}, {data: 'Concept'}, {data: 'Attributes'}],
-                         dom: 'Bfrtip',
-                        buttons: [
-                            {
-                                text: 'My button',
-                                action: function (e, dt, node, config) {
-                                    alert('Button activated');
-                                }
-                            }
-                        ],
+                            {data: "Data"}],
 
-                        scrollYInner: true,
+                        fixedColumns: {
+                            left: 1
+                        },
+                        scrollY: '50vh',
+                        scrollX: true,
                         scrollCollapse: true,
-                        scrollXInner: true,
-                        colReorder: true,
-                        rowReorder: true
-
+                        destroy: true,
+                        retrieve: true,
 
                     })
-
+                    $('#phenotypes_concepts_json').val()
                 }
+
+                    $('#test').click(function () {
+                        var dataset = selected.map(element => {
+                            return {
+                                "Data": element.phenotype.id + '/' + element.phenotype.version + '-' + element.concept.id + '/' + element.concept.version + '-' + element.concept.name,
+                                "Attributes": ['<input class="input-material" type="text" style="width:100%" id="attribute-input"/>']
+                            }
+                        })
+                        console.log($('#phenotypes_concepts_json').val())
+
+                        var columns = []
+                        for (const [key, value] of Object.entries(dataset[0])) {
+                                    columns.push({data:key})
+                                }
+                        if ($.fn.DataTable.isDataTable('#attributes-table')) {
+                            $('#attributes-table').DataTable().destroy();
+                            $('#attributes-table').empty();
+                            var table = $('#attributes-table').DataTable({
+                                data: dataset,
+                                columns: columns,
+
+                                fixedColumns: {
+                                    left: 1
+                                },
+                                scrollY: '50vh',
+                                scrollX: true,
+                                retrieve: true,
+                                scrollCollapse: true,
+
+                            })
+                        }
+                    })
+
+
             },
             onClose: (service, selected) => {
                 // Left the modal with 'selected' being their current selection
 
             }
         });
+
+        const addColumn = () => {
+            [...document.querySelectorAll('#attributes-table tr')].forEach((row, i) => {
+                const input = document.createElement("input")
+                input.setAttribute('type', 'text')
+                input.setAttribute('style', 'width:100%')
+                input.setAttribute('id', 'attribute-input')
+                input.setAttribute('class', 'input-material')
+                const cell = document.createElement(i ? "td" : "th")
+                cell.appendChild(input)
+                row.appendChild(cell)
+            });
+        }
 
 
     </script>
