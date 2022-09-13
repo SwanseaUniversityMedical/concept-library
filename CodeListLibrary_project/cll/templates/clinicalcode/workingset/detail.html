@@ -255,7 +255,7 @@
 	-->				
 					<hr />
 					<h3><i aria-hidden="true"></i> Concepts</h3>
-					<input type="hidden" id="concepts_json" value="{{ object.concept_informations }}">
+					<input type="hidden" id="concepts_json" value="{{ concept_informations }}">
 					<input type="hidden" id="concepts_id_name" value="{{ concepts_id_name }}">
  					<input type="hidden" id="concepts_id_versionID"  value="{{ concepts_id_versionID }}"> 
 					<table id="concept_table" class="table table-striped small-table table-hover">
@@ -383,7 +383,7 @@
  	  													   +'<td>C' + key + '</td>'
  	  						                               +'<td>' + concepts_id_version[key] + '</td>'
  	  						                               +'<td>' 
- 	  						                               + '<a href='+c_url+'   title='+c_url+' target="_blank" class="alert-link">'
+ 	  						                               + '<a href='+c_url+'   title='+c_url+'  class="alert-link">'
  	  						                               + get_Concept_name(concepts_id_name, key)
 			    										   + '</a>'
  	  						                               + '</td></tr>'

@@ -8,8 +8,7 @@ import os
 import urllib3
 from django.db import connection, connections  # , transaction
 
-SCREEN_DUMP_LOCATION = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                    'screendumps')
+SCREEN_DUMP_LOCATION = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'screendumps')
 '''
     Global test parameters.
 '''
@@ -55,7 +54,7 @@ def save_stat(host):
 
     print((str(resp_stat.status) + "#### Run-stat ####"))
 
-    url_save = host + "/admin/run-stat-collections"
+    url_save = host + "/admin/run-stat-filters"
     resp_stat = http.request("GET", url_save)
 
-    print((str(resp_stat.status) + "#### Run-stat-collections save ####"))
+    print((str(resp_stat.status) + "#### Run-stat-filters save ####"))

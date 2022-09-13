@@ -249,8 +249,7 @@ class ComponentConceptUpdate(LoginRequiredMixin,
     def get_context_data(self, **kwargs):
         context = UpdateView.get_context_data(self, **kwargs)
         component = Component.objects.get(pk=self.kwargs['pk'])
-        context.update(
-            build_permitted_components_list(self.request, component.concept_id))
+        context.update(build_permitted_components_list(self.request, component.concept_id))
         #         # Set up the components element again (already done in buildPermittedComponentList)
         #         # as we want the components not for this concept but for the referenced concept.
         #         context['components'] = list(Component.objects.filter(concept=component.concept_ref_id))
@@ -285,6 +284,7 @@ class ComponentConceptUpdate(LoginRequiredMixin,
         #context['latest_history_ID'] = latest_history_ID
         context['latest_history_ID'] = latest_history_ID if self.request.POST.get('latest_history_id_shown') is None else self.request.POST.get('latest_history_id_shown')
         #-------------------------------
+        context['q'] = ['', self.request.session.get('concept_search', '')][self.request.GET.get('highlight','0')=='1']
 
         return context
 
