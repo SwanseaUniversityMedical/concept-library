@@ -420,7 +420,8 @@
                     </div>
 
 
-                    <input type="hidden" id="phenotypes_concepts_json" value="loh" name="phenotypes_concepts_json">
+                    <input type="hidden" id="phenotypes_concepts_json" name="phenotypes_concepts_json">
+                    <input type="hidden" id="copy" name="copy">
 
 
 
@@ -533,6 +534,7 @@
             onImport: (service, selected) => {
                 // Clicked the 'Import Concepts' button, and imported 'selected'
                 console.log(selected);
+                var numbers = 0
 
                 var dataset = selected.map(element => {
                     return {
@@ -564,39 +566,52 @@
 
                     })
                     $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
+                    console.log($('#phenotypes_concepts_json').val())
                 }
 
-                    $('#test').click(function () {
-                        var dataset = selected.map(element => {
-                            return {
-                                "Data": element.phenotype.id + '/' + element.phenotype.version + '-' + element.concept.id + '/' + element.concept.version + '-' + element.concept.name,
-                                "Attributes": ['<input class="input-material" type="text" style="width:100%" id="attribute-input"/>']
-                            }
-                        })
-                        console.log($('#phenotypes_concepts_json').val())
+                $('#test').click(function () {
+                    let dataPrevious = $('#phenotypes_concepts_json').val()
+                    console.log(dataPrevious)
+                    dataPrevious = JSON.parse(dataPrevious)
 
-                        var columns = []
-                        for (const [key, value] of Object.entries(dataset[0])) {
-                                    columns.push({data:key})
-                                }
-                        if ($.fn.DataTable.isDataTable('#attributes-table')) {
-                            $('#attributes-table').DataTable().destroy();
-                            $('#attributes-table').empty();
-                            var table = $('#attributes-table').DataTable({
-                                data: dataset,
-                                columns: columns,
 
-                                fixedColumns: {
-                                    left: 1
-                                },
-                                scrollY: '50vh',
-                                scrollX: true,
-                                retrieve: true,
-                                scrollCollapse: true,
-
-                            })
+                    for (let i = 0; i < dataPrevious.length; i++) {
+                        dataPrevious[i] = {
+                            ...dataPrevious[i],
+                            ["Attributes" + numbers]: ['<input class="input-material" type="text" style="width:100%" id="attribute-input"/>']
                         }
-                    })
+                        console.log(dataPrevious[i])
+                    }
+                    dataset = dataPrevious
+                    numbers++
+
+
+                    $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
+
+                    let columns = []
+                    for (const [key, value] of Object.entries(dataset[0])) {
+                        columns.push({data: key})
+                    }
+
+                    if ($.fn.DataTable.isDataTable('#attributes-table')) {
+                        $('#attributes-table').DataTable().destroy();
+                        $('#attributes-table').empty();
+                        var table = $('#attributes-table').DataTable({
+                            data: dataset,
+                            columns: columns,
+
+                            fixedColumns: {
+                                left: 1
+                            },
+                            scrollY: '50vh',
+                            scrollX: '50vh',
+                            scrollCollapse: true,
+
+                        })
+                    }
+
+
+                })
 
 
             },
