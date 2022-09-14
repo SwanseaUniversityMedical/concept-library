@@ -323,11 +323,22 @@ urlpatterns += [
     url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/$',
         PhenotypeWorkingSet.phenotypeworkingsets,
         name='api_phenotypeworkingset_by_id'),
-        
+    
+    # public search
+    url(r'^public/phenotypeworkingsets/$',
+        PhenotypeWorkingSet.published_phenotypeworkingsets,
+        name='api_published_phenotypeworkingset'),
+    url(r'^public/phenotypeworkingsets/(?P<pk>WS\d+)/$',
+        PhenotypeWorkingSet.published_phenotypeworkingsets,
+        name='api_published_phenotypeworkingset_by_id'),
+    
     # details
     url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/detail/$',
         PhenotypeWorkingSet.phenotypeworkingset_detail,
         name='api_phenotypeworkingset_detail'),
+    url(r'^public/phenotypeworkingsets/(?P<pk>WS\d+)/detail/$',
+        PhenotypeWorkingSet.phenotypeworkingset_detail_PUBLIC,
+        name='api_phenotypeworkingset_detail_public'),
 
     # get specific version
     url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/detail/$',

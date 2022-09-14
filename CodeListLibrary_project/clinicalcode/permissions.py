@@ -856,22 +856,6 @@ def get_visible_workingsets(user):
 
     return query
 
-def get_visible_phenotypeworkingsets(user):
-    # This does NOT excludes deleted ones
-    from .models.PhenotypeWorkingset import PhenotypeWorkingset
-    workingsets = PhenotypeWorkingset.objects.distinct()
-    if user.is_superuser:
-        return workingsets
-
-    query = workingsets.filter(Q(world_access=Permissions.VIEW))
-    query |= workingsets.filter(Q(world_access=Permissions.EDIT))
-    query |= workingsets.filter(Q(owner=user))
-    for group in user.groups.all():
-        query |= workingsets.filter(Q(group_access=Permissions.VIEW, group_id=group))
-        query |= workingsets.filter(Q(group_access=Permissions.EDIT, group_id=group))
-
-    return query
-
 def get_visible_phenotypes(user):
     # This does NOT excludes deleted ones
     from .models.Phenotype import Phenotype
