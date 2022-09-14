@@ -65,7 +65,7 @@ def getPhenotypeWorkingSets(request, is_authenticated=False, pk=None):
     show_deleted_workingsets = request.query_params.get('show_deleted_ph_workingsets', "0")
     ws_brand = request.query_params.get('brand', "")
     do_not_show_versions = request.query_params.get('do_not_show_versions', "0")
-    selected_phenotype_types = request.query_params.get('selected_phenotype_types', '')
+    selected_phenotype_types = request.query_params.get('selected_workingset_types', '')
 
     data_sources = request.query_params.get('data_source_ids', '')
     start_date_range = request.query_params.get('start_date', '')
