@@ -380,6 +380,7 @@
                             <table class="table display-table" id="attributes-table" style="width:100%;display:none">
 
 
+
                             </table>
 
                         </div>
@@ -390,7 +391,7 @@
                                 Upload
                             </button>
 
-                            <button id='test' type="button">add column</button>
+                            <button class="upload-button" id="test" type="button" style="display:none">Column</button>
 
                         </div>
 
@@ -544,6 +545,7 @@
 
 
                 $('#attributes-table').show()
+                $('#test').show()
                 if ($.fn.dataTable.isDataTable('#attributes-table')) {
                     var table = $('#attributes-table').DataTable();
                     table.clear();
@@ -552,17 +554,31 @@
                 } else {
                     var table = $('#attributes-table').DataTable({
                         data: dataset,
+                         dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'collection',
+                className: 'custom-html-collection',
+                buttons: [
+                    '<h3>Export</h3>',
+                    'pdf',
+                    'csv',
+                    'excel',
+                    '<h3 class="not-top-heading">Column Visibility</h3>',
+                    'colvis',
+                    'colvis'
+                ]
+            }
+        ],
                         columns: [
                             {data: "Data"}],
 
                         fixedColumns: {
                             left: 1
                         },
-                        scrollY: '50vh',
                         scrollX: true,
                         scrollCollapse: true,
-                        destroy: true,
-                        retrieve: true,
+                        paging:false
 
                     })
                     $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
@@ -578,7 +594,7 @@
                     for (let i = 0; i < dataPrevious.length; i++) {
                         dataPrevious[i] = {
                             ...dataPrevious[i],
-                            ["Attributes" + numbers]: ['<input class="input-material" type="text" style="width:100%" id="attribute-input"/>']
+                            ["Attributes" + numbers]: [`<input class="input-material" type="text" style="width:100%" id="attribute-input${numbers}"/>`]
                         }
                         console.log(dataPrevious[i])
                     }
@@ -590,7 +606,11 @@
 
                     let columns = []
                     for (const [key, value] of Object.entries(dataset[0])) {
-                        columns.push({data: key})
+                        console.log(key)
+
+                        columns.push({data: key,title: key})
+
+
                     }
 
                     if ($.fn.DataTable.isDataTable('#attributes-table')) {
@@ -603,9 +623,11 @@
                             fixedColumns: {
                                 left: 1
                             },
+                            scrollX: true,
                             scrollY: '50vh',
-                            scrollX: '50vh',
                             scrollCollapse: true,
+                            paging:false,
+                            columnDefs: [ {  "targets": 0 } ]
 
                         })
                     }
