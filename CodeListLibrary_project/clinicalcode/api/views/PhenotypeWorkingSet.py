@@ -197,7 +197,7 @@ def getPhenotypeWorkingSets(request, is_authenticated=False, pk=None):
                 get_visible_versions_list(request,
                                           PhenotypeWorkingset,
                                           c['id'],
-                                          is_authenticated_user=True)
+                                          is_authenticated_user=is_authenticated)
             ]
 
         rows_to_return.append(ordr(list(zip(titles, ret))))
@@ -282,7 +282,7 @@ def getPhenotypeWorkingSetDetail(request, pk, is_authenticated=False, workingset
                 get_visible_versions_list(request,
                                           PhenotypeWorkingset,
                                           pk,
-                                          is_authenticated_user=True)
+                                          is_authenticated_user=is_authenticated)
             ]
             rows_to_return = []
             rows_to_return.append(ordr(list(zip(titles, ret))))
@@ -372,7 +372,7 @@ def getPhenotypeWorkingSetDetail(request, pk, is_authenticated=False, workingset
         get_visible_versions_list(request,
                                   PhenotypeWorkingset,
                                   pk,
-                                  is_authenticated_user=True)
+                                  is_authenticated_user=is_authenticated)
     ]
 
     rows_to_return.append(ordr(list(zip(titles, ret))))

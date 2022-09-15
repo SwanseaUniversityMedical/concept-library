@@ -689,7 +689,7 @@ def get_visible_versions_list(request,
                               pk,
                               is_authenticated_user=True):
 
-    if set_class == WorkingSet or set_class == PhenotypeWorkingset:
+    if set_class == WorkingSet:
         return get_versions_list(request, set_class, pk)
 
     versions = set_class.objects.get(pk=pk).history.all().order_by('-history_id')
@@ -701,6 +701,8 @@ def get_visible_versions_list(request,
             ver = getHistoryConcept(v.history_id)
         elif set_class == Phenotype:
             ver = getHistoryPhenotype(v.history_id)
+        elif set_class == PhenotypeWorkingset:
+            ver = getHistoryPhenotypeWorkingset(v.history_id)
 
         is_this_version_published = False
         is_this_version_published = checkIfPublished(set_class, ver['id'], ver['history_id'])
