@@ -549,50 +549,68 @@
                     table.rows.add(dataset).draw();
                     $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
                 } else {
-                    var table = $('#attributes-table').DataTable({
-                        data: dataset,
-                        buttons: [
-                            {
-
-                                text: "Column",
-                                action: function (e, dt, node, config) {
-                                    addColumn(numbers)
-                                },
-                                attr:{
-                                    id:'column-add'
-                                }
-                            }
-                        ],
-                        columns: [
-                            {data: "Data"}],
-
-                        fixedColumns: {
-                            left: 1
-                        },
-                        scrollX: true,
-                        scrollCollapse: true,
-                        paging: false
-
-                    })
+                    var table = createTable(numbers, dataset)
                     table.buttons().container()
-                        .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0)'));
+                        .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
 
 
                     $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
-                    console.log($('#phenotypes_concepts_json').val())
                 }
 
 
             },
             onClose: (service, selected) => {
                 // Left the modal with 'selected' being their current selection
+                console.log(selected)
 
             }
         });
 
+        var createTable = (numbers, dataset) => {
+            var table = $('#attributes-table').DataTable({
+                data: dataset,
+                buttons: [
+                    {
+
+                        text: "Column",
+                        className: "table-button",
+                        action: function (e, dt, node, config) {
+                            addColumn(numbers)
+                        },
+                        attr: {
+                            id: 'column-add'
+                        }
+                    },
+                    {
+
+                        text: "Print",
+                        className: "table-button",
+                        action: function (e, dt, node, config) {
+                            addColumn(numbers)
+                        },
+                        attr: {
+                            id: 'print-button'
+                        }
+                    }
+                ],
+                columns: [
+                    {data: "Data"}],
+
+                fixedColumns: {
+                    left: 1
+                },
+                scrollX: true,
+                scrollY: '50vh',
+                scrollCollapse: true,
+                paging: false
+
+            })
+            return table;
+        }
+
         const addColumn = (numbers) => {
             let dataPrevious = $('#phenotypes_concepts_json').val()
-            console.log(dataPrevious)
+
             dataPrevious = JSON.parse(dataPrevious)
 
 
@@ -601,7 +619,6 @@
                     ...dataPrevious[i],
                     ["Attributes" + numbers]: [`<input class="input-material" type="text" style="width:100%" id="attribute-input${numbers}"/>`]
                 }
-                console.log(dataPrevious[i])
             }
             dataset = dataPrevious
             numbers++
@@ -611,8 +628,6 @@
 
             let columns = []
             for (const [key, value] of Object.entries(dataset[0])) {
-                console.log(key)
-
                 columns.push({data: key, title: key})
 
 
@@ -626,9 +641,25 @@
                     columns: columns,
                     buttons: [
                         {
+
                             text: "Column",
+                            className: "table-button",
                             action: function (e, dt, node, config) {
                                 addColumn(numbers)
+                            },
+                            attr: {
+                                id: 'column-add'
+                            }
+                        },
+                        {
+
+                            text: "Print",
+                            className: "table-button",
+                            action: function (e, dt, node, config) {
+                                addColumn(numbers)
+                            },
+                            attr: {
+                                id: 'print-button'
                             }
                         }
                     ],
@@ -640,13 +671,11 @@
                     scrollY: '50vh',
                     scrollCollapse: true,
                     paging: false,
-                    columnDefs: [{"targets": 0}]
 
                 })
                 table.buttons().container()
-                    .appendTo($('.col-sm-6:eq(0)', table.table().container()));
-                table.buttons().container()
-                    .appendTo($('#column-add'));
+                    .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+
             }
 
 
