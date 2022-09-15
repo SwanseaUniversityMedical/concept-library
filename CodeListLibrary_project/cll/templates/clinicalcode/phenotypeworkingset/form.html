@@ -380,7 +380,6 @@
                             <table class="table display-table" id="attributes-table" style="width:100%;display:none">
 
 
-
                             </table>
 
                         </div>
@@ -391,7 +390,6 @@
                                 Upload
                             </button>
 
-                            <button class="upload-button" id="test" type="button" style="display:none">Column</button>
 
                         </div>
 
@@ -534,7 +532,6 @@
             // Methods
             onImport: (service, selected) => {
                 // Clicked the 'Import Concepts' button, and imported 'selected'
-                console.log(selected);
                 var numbers = 0
 
                 var dataset = selected.map(element => {
@@ -554,22 +551,18 @@
                 } else {
                     var table = $('#attributes-table').DataTable({
                         data: dataset,
-                         dom: 'Bfrtip',
-        buttons: [
-            {
-                extend: 'collection',
-                className: 'custom-html-collection',
-                buttons: [
-                    '<h3>Export</h3>',
-                    'pdf',
-                    'csv',
-                    'excel',
-                    '<h3 class="not-top-heading">Column Visibility</h3>',
-                    'colvis',
-                    'colvis'
-                ]
-            }
-        ],
+                        buttons: [
+                            {
+
+                                text: "Column",
+                                action: function (e, dt, node, config) {
+                                    addColumn(numbers)
+                                },
+                                attr:{
+                                    id:'column-add'
+                                }
+                            }
+                        ],
                         columns: [
                             {data: "Data"}],
 
@@ -578,62 +571,16 @@
                         },
                         scrollX: true,
                         scrollCollapse: true,
-                        paging:false
+                        paging: false
 
                     })
+                    table.buttons().container()
+                        .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0)'));
+
+
                     $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
                     console.log($('#phenotypes_concepts_json').val())
                 }
-
-                $('#test').click(function () {
-                    let dataPrevious = $('#phenotypes_concepts_json').val()
-                    console.log(dataPrevious)
-                    dataPrevious = JSON.parse(dataPrevious)
-
-
-                    for (let i = 0; i < dataPrevious.length; i++) {
-                        dataPrevious[i] = {
-                            ...dataPrevious[i],
-                            ["Attributes" + numbers]: [`<input class="input-material" type="text" style="width:100%" id="attribute-input${numbers}"/>`]
-                        }
-                        console.log(dataPrevious[i])
-                    }
-                    dataset = dataPrevious
-                    numbers++
-
-
-                    $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
-
-                    let columns = []
-                    for (const [key, value] of Object.entries(dataset[0])) {
-                        console.log(key)
-
-                        columns.push({data: key,title: key})
-
-
-                    }
-
-                    if ($.fn.DataTable.isDataTable('#attributes-table')) {
-                        $('#attributes-table').DataTable().destroy();
-                        $('#attributes-table').empty();
-                        var table = $('#attributes-table').DataTable({
-                            data: dataset,
-                            columns: columns,
-
-                            fixedColumns: {
-                                left: 1
-                            },
-                            scrollX: true,
-                            scrollY: '50vh',
-                            scrollCollapse: true,
-                            paging:false,
-                            columnDefs: [ {  "targets": 0 } ]
-
-                        })
-                    }
-
-
-                })
 
 
             },
@@ -643,17 +590,66 @@
             }
         });
 
-        const addColumn = () => {
-            [...document.querySelectorAll('#attributes-table tr')].forEach((row, i) => {
-                const input = document.createElement("input")
-                input.setAttribute('type', 'text')
-                input.setAttribute('style', 'width:100%')
-                input.setAttribute('id', 'attribute-input')
-                input.setAttribute('class', 'input-material')
-                const cell = document.createElement(i ? "td" : "th")
-                cell.appendChild(input)
-                row.appendChild(cell)
-            });
+        const addColumn = (numbers) => {
+            let dataPrevious = $('#phenotypes_concepts_json').val()
+            console.log(dataPrevious)
+            dataPrevious = JSON.parse(dataPrevious)
+
+
+            for (let i = 0; i < dataPrevious.length; i++) {
+                dataPrevious[i] = {
+                    ...dataPrevious[i],
+                    ["Attributes" + numbers]: [`<input class="input-material" type="text" style="width:100%" id="attribute-input${numbers}"/>`]
+                }
+                console.log(dataPrevious[i])
+            }
+            dataset = dataPrevious
+            numbers++
+
+
+            $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
+
+            let columns = []
+            for (const [key, value] of Object.entries(dataset[0])) {
+                console.log(key)
+
+                columns.push({data: key, title: key})
+
+
+            }
+
+            if ($.fn.DataTable.isDataTable('#attributes-table')) {
+                $('#attributes-table').DataTable().destroy();
+                $('#attributes-table').empty();
+                var table = $('#attributes-table').DataTable({
+                    data: dataset,
+                    columns: columns,
+                    buttons: [
+                        {
+                            text: "Column",
+                            action: function (e, dt, node, config) {
+                                addColumn(numbers)
+                            }
+                        }
+                    ],
+
+                    fixedColumns: {
+                        left: 1
+                    },
+                    scrollX: true,
+                    scrollY: '50vh',
+                    scrollCollapse: true,
+                    paging: false,
+                    columnDefs: [{"targets": 0}]
+
+                })
+                table.buttons().container()
+                    .appendTo($('.col-sm-6:eq(0)', table.table().container()));
+                table.buttons().container()
+                    .appendTo($('#column-add'));
+            }
+
+
         }
 
 
