@@ -542,21 +542,13 @@
 
 
                 $('#attributes-table').show()
-                $('#test').show()
-                if ($.fn.dataTable.isDataTable('#attributes-table')) {
-                    var table = $('#attributes-table').DataTable();
-                    table.clear();
-                    table.rows.add(dataset).draw();
-                    $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
-                } else {
-                    var table = createTable(numbers, dataset)
-                    table.buttons().container()
-                        .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+                var table = createTable(numbers, dataset)
+                table.buttons().container()
+                    .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
 
 
-                    $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
-                }
-
+                $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
+                $('#add-data').hide()
 
             },
             onClose: (service, selected) => {
@@ -566,13 +558,25 @@
             }
         });
 
+
         var createTable = (numbers, dataset) => {
-            var table = $('#attributes-table').DataTable({
+            return $('#attributes-table').DataTable({
                 data: dataset,
                 buttons: [
                     {
 
-                        text: "Column",
+                        text: "Add Concept",
+                        className: "table-button",
+                        action: function (e, dt, node, config) {
+                            addColumn(numbers)
+                        },
+                        attr: {
+                            id: 'concept-add'
+                        }
+                    },
+                    {
+
+                        text: "Add Column",
                         className: "table-button",
                         action: function (e, dt, node, config) {
                             addColumn(numbers)
@@ -582,7 +586,6 @@
                         }
                     },
                     {
-
                         text: "Print",
                         className: "table-button",
                         action: function (e, dt, node, config) {
@@ -604,23 +607,24 @@
                 scrollCollapse: true,
                 paging: false
 
-            })
-            return table;
+            });
         }
+
 
         const addColumn = (numbers) => {
             let dataPrevious = $('#phenotypes_concepts_json').val()
 
             dataPrevious = JSON.parse(dataPrevious)
+            console.log(dataPrevious)
 
 
             for (let i = 0; i < dataPrevious.length; i++) {
                 dataPrevious[i] = {
                     ...dataPrevious[i],
-                    ["Attributes" + numbers]: [`<input class="input-material" type="text" style="width:100%" id="attribute-input${numbers}"/>`]
+                    ["Attributes" + numbers]: [`<input class="input-material" type="text"  style="width:100%" id="attribute-input-${numbers}"/>`]
                 }
             }
-            dataset = dataPrevious
+            let dataset = dataPrevious
             numbers++
 
 
@@ -642,7 +646,18 @@
                     buttons: [
                         {
 
-                            text: "Column",
+                            text: "Add Concept",
+                            className: "table-button",
+                            action: function (e, dt, node, config) {
+                                addColumn(numbers)
+                            },
+                            attr: {
+                                id: 'concept-add'
+                            }
+                        },
+                        {
+
+                            text: "Add Column",
                             className: "table-button",
                             action: function (e, dt, node, config) {
                                 addColumn(numbers)
@@ -672,14 +687,39 @@
                     scrollCollapse: true,
                     paging: false,
 
+
                 })
                 table.buttons().container()
                     .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+
 
             }
 
 
         }
+
+
+        $('#attributes-table').on('input', function () {
+             var table = $('#attributes-table').DataTable()
+            table.cells().every(function (rowIdx,colindex) {
+                var firstVal = $(this.node()).find('input').val();
+
+
+                if (firstVal !== undefined){
+                      let dataPrevious = $('#phenotypes_concepts_json').val()
+                    console.log(firstVal)
+
+                dataPrevious = JSON.parse(dataPrevious)
+                    dataPrevious[rowIdx]['Attributes'+(colindex-1)] =  [`<input class="input-material" type="text" value="${firstVal}" style="width:100%" id="attribute-input-${colindex-1}"/>`]
+
+                console.log(dataPrevious)
+                   $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
+                }
+
+
+            });
+        });
+
 
 
     </script>
