@@ -34,8 +34,6 @@ from drf_yasg.utils import swagger_auto_schema
 @swagger_auto_schema(method='post', auto_schema=None)
 @api_view(['POST'])
 def api_phenotype_create(request):
-    if not request.user.is_superuser:
-        raise PermissionDenied
 
     if is_member(request.user, group_name='ReadOnlyUsers'):
         raise PermissionDenied
@@ -168,12 +166,17 @@ def api_phenotype_create(request):
 
             save_Entity_With_ChangeReason(Phenotype, created_pt.pk, "Created from API")
 
-            # publish immediately - for HDR-UK testing
+            # publish immediately - allow only super user 
+            publish_msg = ""   
             if request.data.get('publish_immediately') == True:
-                publish_entity(request, Phenotype, created_pt.pk)
+                if request.user.is_superuser:
+                    publish_entity(request, Phenotype, created_pt.pk)
+                else:
+                    publish_msg = "Phenotype is not published, only superuser can publish via API."
+                
 
             data = {
-                'message': 'Phenotype created successfully',
+                'message': 'Phenotype created successfully. ' + publish_msg,
                 'id': created_pt.pk
             }
 
@@ -186,8 +189,7 @@ def api_phenotype_create(request):
 @swagger_auto_schema(method='put', auto_schema=None)
 @api_view(['PUT'])
 def api_phenotype_update(request):
-    if not request.user.is_superuser:
-        raise PermissionDenied
+
     if is_member(request.user, group_name='ReadOnlyUsers'):
         raise PermissionDenied
 
@@ -318,12 +320,18 @@ def api_phenotype_update(request):
             update_phenotype.save()
             modify_Entity_ChangeReason(Phenotype, update_phenotype.pk, "Updated from API")
 
-            # publish immediately - for HDR-UK testing
+            # publish immediately - allow only super user 
+            publish_msg = ""   
             if request.data.get('publish_immediately') == True:
-                publish_entity(request, Phenotype, update_phenotype.pk)
+                if request.user.is_superuser:
+                    publish_entity(request, Phenotype, update_phenotype.pk)
+                else:
+                    publish_msg = "Phenotype is not published, only superuser can publish via API."
+
+                
 
             data = {
-                'message': 'Phenotype updated successfully',
+                'message': 'Phenotype updated successfully. ' + publish_msg,
                 'id': update_phenotype.pk
             }
 

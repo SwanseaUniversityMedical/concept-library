@@ -443,10 +443,6 @@ def get_historical_concept_codes(request, pk, concept_history_id):
 @api_view(['POST'])
 def api_concept_create(request):
     
-    # allow only super user (and not 'ReadOnlyUsers')
-    if not request.user.is_superuser:
-        raise PermissionDenied
-
     if is_member(request.user, group_name='ReadOnlyUsers'):
         raise PermissionDenied
 
@@ -611,12 +607,16 @@ def api_concept_create(request):
             # created_concept.changeReason = "Created from API"
             # created_concept.save()
 
-            # publish immediately - for HDR-UK testing
+            # publish immediately - allow only super user 
+            publish_msg = ""   
             if request.data.get('publish_immediately') == True:
-                publish_entity(request, Concept, created_concept.pk)
+                if request.user.is_superuser:
+                    publish_entity(request, Concept, created_concept.pk)
+                else:
+                    publish_msg = "Concept is not published, only superuser can publish via API."
 
             data = {
-                'message': 'Concept created successfully',
+                'message': 'Concept created successfully. ' + publish_msg,
                 'id': created_concept.pk
             }
             return Response(data=data,
@@ -630,10 +630,6 @@ def api_concept_create(request):
 @swagger_auto_schema(method='put', auto_schema=None)
 @api_view(['PUT'])
 def api_concept_update(request):
-
-    # allow only super user (and not 'ReadOnlyUsers')
-    if not request.user.is_superuser:
-        raise PermissionDenied
 
     if is_member(request.user, group_name='ReadOnlyUsers'):
         raise PermissionDenied
@@ -853,18 +849,24 @@ def api_concept_update(request):
                 update_concept.pk, "Component concept #" +
                 str(update_concept.pk) + " was updated")
 
-            # publish immediately - for HDR-UK testing
+            # publish immediately - allow only super user 
+            publish_msg = ""   
             if request.data.get('publish_immediately') == True:
-                publish_entity(request, Concept, update_concept.pk)
+                if request.user.is_superuser:
+                    publish_entity(request, Concept, update_concept.pk)
+                else:
+                    publish_msg = "Concept is not published, only superuser can publish via API."
+                                
 
             data = {
-                'message': 'Concept updated successfully',
+                'message': 'Concept updated successfully. ' + publish_msg,
                 'id': update_concept.pk
             }
             return Response(data=data,
                             content_type="text/json-comment-filtered",
                             status=status.HTTP_201_CREATED)
 
+            
 
 ##################################################################################
 # search my concepts / published ones
