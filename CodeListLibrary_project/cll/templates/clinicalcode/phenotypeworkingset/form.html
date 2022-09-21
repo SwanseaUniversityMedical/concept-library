@@ -586,13 +586,11 @@
                         }
                     },
                     {
-                        text: "Print",
+
+                        text: "Delete row",
                         className: "table-button",
-                        action: function (e, dt, node, config) {
-                            addColumn(numbers)
-                        },
                         attr: {
-                            id: 'print-button'
+                            id: 'delete-button'
                         }
                     }
                 ],
@@ -602,7 +600,7 @@
                 fixedColumns: {
                     left: 1
                 },
-                scrollX: true,
+                scrollX: '50vh',
                 scrollY: '50vh',
                 scrollCollapse: true,
                 paging: false
@@ -632,7 +630,21 @@
 
             let columns = []
             for (const [key, value] of Object.entries(dataset[0])) {
-                columns.push({data: key, title: key})
+                if (key === 'Data') {
+                    columns.push({data: key, title: key})
+                } else {
+                    columns.push({
+                        data: key,
+                        title: `<select style="width:50%; float:left;" class="input-material col-sm-12 form-control" id="column_type">'
+						    +'<option selected >Type</option>'
+						    +'<option value="1">INT</option>'
+						    +'<option value="2">FLOAT</option>'
+						    +'<option value="3">STRING</option>'
+						  +'</select>
+<input class="input-material" type="text" placeholder="Attribute name" style="width:100%" id="attribute-header-${key}"/>`
+                    })
+                }
+
 
 
             }
@@ -668,13 +680,10 @@
                         },
                         {
 
-                            text: "Print",
+                            text: "Delete row",
                             className: "table-button",
-                            action: function (e, dt, node, config) {
-                                addColumn(numbers)
-                            },
                             attr: {
-                                id: 'print-button'
+                                id: 'delete-button'
                             }
                         }
                     ],
@@ -686,6 +695,7 @@
                     scrollY: '50vh',
                     scrollCollapse: true,
                     paging: false,
+
 
 
                 })
@@ -700,26 +710,21 @@
 
 
         $('#attributes-table').on('input', function () {
-             var table = $('#attributes-table').DataTable()
-            table.cells().every(function (rowIdx,colindex) {
+            var table = $('#attributes-table').DataTable()
+            table.cells().every(function (rowIdx, colindex) {
                 var firstVal = $(this.node()).find('input').val();
 
 
-                if (firstVal !== undefined){
-                      let dataPrevious = $('#phenotypes_concepts_json').val()
-                    console.log(firstVal)
+                if (firstVal !== undefined) {
+                    let dataPrevious = $('#phenotypes_concepts_json').val()
 
-                dataPrevious = JSON.parse(dataPrevious)
-                    dataPrevious[rowIdx]['Attributes'+(colindex-1)] =  [`<input class="input-material" type="text" value="${firstVal}" style="width:100%" id="attribute-input-${colindex-1}"/>`]
-
-                console.log(dataPrevious)
-                   $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
+                    dataPrevious = JSON.parse(dataPrevious)
+                    dataPrevious[rowIdx]['Attributes' + (colindex - 1)] = [`<input class="input-material" type="text" value="${firstVal}" style="width:100%" id="attribute-input-${colindex - 1}"/>`]
+                    $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
                 }
-
 
             });
         });
-
 
 
     </script>
