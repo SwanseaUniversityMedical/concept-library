@@ -18,7 +18,7 @@ class Phenotype(TimeStampedModel):
     title = models.CharField(max_length=250)
     name = models.CharField(max_length=250)
     layout = models.CharField(max_length=250)
-    phenotype_uuid = models.CharField(max_length=250)  # Unique ID for the phenotype on HDR UK platform
+    phenotype_uuid = models.CharField(max_length=250, null=True, blank=True)  # Unique ID for the phenotype on HDR UK platform
     type = models.CharField(max_length=250)
     validation_performed = models.NullBooleanField()  # Was there any clinical validation of this phenotype?  1=yes 0=no
     validation = models.TextField(null=True, blank=True)
