@@ -635,16 +635,15 @@
                 } else {
                     columns.push({
                         data: key,
-                        title: `<select style="width:50%; float:left;" class="input-material col-sm-12 form-control" id="column_type">'
+                        title: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" id="column_type-${key}">'
 						    +'<option selected >Type</option>'
 						    +'<option value="1">INT</option>'
 						    +'<option value="2">FLOAT</option>'
 						    +'<option value="3">STRING</option>'
 						  +'</select>
-<input class="input-material" type="text" placeholder="Attribute name" style="width:100%" id="attribute-header-${key}"/>`
+<input class="input-material" type="text" placeholder="Attribute name"  id="attribute-header-${key}"/>`
                     })
                 }
-
 
 
             }
@@ -694,16 +693,24 @@
                     scrollX: true,
                     scrollY: '50vh',
                     scrollCollapse: true,
+                    colReorder:true,
                     paging: false,
-
-
-
-                })
-                table.buttons().container()
-                    .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
-
+                    columnDefs: [{
+                        targets: [0],
+                        orderable: true,
+                    }, {
+                        targets: [''],
+                        orderable: false
+                    }
+                    ]
 
             }
+        )
+        table.buttons().container()
+            .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+
+
+        }
 
 
         }
