@@ -75,6 +75,96 @@ page_size_limits = [20, 50, 100]
 #---------------------------------------
 
 
+#------------ API data validation-------
+def validate_phenotype_workingset_attribute(attribute):
+    """ Attempts to parse the given attribute's value as it's given datatype
+    
+        Returns:
+            1. boolean
+                -> describes success state
+            2. any[value, string]
+                -> returns value as the proposed datatype if successful
+                -> returns a description of the error if failure occurs
+    """
+    from clinicalcode.constants import PWS_ATTRIBUTE_TYPE_DATATYPE
+
+    proposed_type = attribute['type']
+    proposed_value = attribute['value']
+    
+    if proposed_type in PWS_ATTRIBUTE_TYPE_DATATYPE:
+        expected_type = PWS_ATTRIBUTE_TYPE_DATATYPE[proposed_type]
+        try:
+            value = expected_type(proposed_value)
+            return True, value
+        except:
+            return False, f"Attribute error: '{proposed_value}' could not be parsed as type '{proposed_type}', expected {expected_type}"
+    
+    is_case_issue = proposed_type.upper() in PWS_ATTRIBUTE_TYPE_DATATYPE
+    issue = f"Attribute error: Unknown type '{proposed_type}'"
+    if is_case_issue:
+        issue += f". Did you mean '{proposed_type.upper()}'?"
+        
+    return False, issue
+
+
+
+
+def validate_api_entry(item, data, expected_type=str):
+    """ Attempts to parse the item in data as the expected type
+    
+        Returns:
+            1. any[true, false, none]
+                -> True if successful
+                -> False if unable to parse
+                -> None if item[data] is not indexable
+            2. result
+                -> returns parsed value if successful
+                -> returns a description of the error if failure occurs
+    """
+    if item in data:
+        try:
+            datapoint = data[item]
+            datapoint = expected_type(datapoint)
+            return True, datapoint
+        except Exception as e:
+            return False, f"Item '{item}' with value '{data[item]}' could not be parsed as type {expected_type}"
+    return None, f"Item '{item}' was null"
+
+def apply_entry_if_valid(element, key, data, item, expected_type=str, predicate=None, errors_dict=None):
+    """ If the data[item] is a valid type, will set the attribute of the object
+        If a predicate is given as a parameter, the data[item] must also pass the defined clause
+        If an error_dict is passed, the ValueError will be added to the dict
+
+        Returns:
+            1. boolean
+                -> describes the success state of the method
+            2. any[value, ValueError]
+                -> returns the value if successful
+                -> returns a descriptive value error on failure
+    """
+    success, res = validate_api_entry(item, data, expected_type)
+    if success is True:
+        if predicate is None or predicate(res):
+            setattr(element, key, data[item])
+            return True, res
+        else:
+            issue = ValueError(f"Item '{item}' with value '{data[item]}' failed predicate clause")
+            if errors_dict is not None:
+                errors_dict[key] = str(issue)
+            return False, issue
+    elif success is False:
+        if errors_dict is not None:
+            errors_dict[key] = res
+        return False, ValueError(res)
+    else:
+        if errors_dict is not None:
+            errors_dict[key] = res
+        return False, ValueError(res)
+
+    
+    
+#---------------------------------------
+
 # pandas needs to be installed by "pip2"
 # pip2 install pandas
 
@@ -4466,25 +4556,27 @@ def chk_valid_id(request, set_class, pk, chk_permission=False):
             int_pk = int(pk[2:])        
         elif set_class == WorkingSet and pk[0:2].upper() == 'WS' and utils.isInt(pk[2:]):
             int_pk = int(pk[2:])
+        elif set_class == PhenotypeWorkingset and pk[0:2].upper() == 'WS' and utils.isInt(pk[2:]):
+            int_pk = int(pk[2:])
         else:
             is_valid_id = False
             err = 'ID must be a valid id.'
     else:
         int_pk = int(pk)
-        
-        
-    if set_class.objects.filter(pk=int_pk).count() == 0:
+
+    actual_pk = pk if set_class == PhenotypeWorkingset else int_pk
+    if set_class.objects.filter(pk=actual_pk).count() == 0:
         is_valid_id = False
         err = 'ID not found.'
 
     if chk_permission:
-        if not allowed_to_edit(request, set_class, int_pk):
+        if not allowed_to_edit(request, set_class, actual_pk):
             is_valid_id = False
             err = 'ID must be of a valid accessible entity.'
 
 
     if is_valid_id:
-        ret_int_id = set_class.objects.get(pk=int_pk).id
+        ret_int_id = set_class.objects.get(pk=actual_pk).id
 
     return is_valid_id, err, ret_int_id
 

@@ -1,9 +1,11 @@
+from distutils import errors
 import json
 import string
 from collections import OrderedDict
 from collections import OrderedDict as ordr
 from datetime import datetime
 
+from clinicalcode.constants import Type_status
 from clinicalcode.context_processors import clinicalcode
 from django.contrib.auth.models import User
 from django.core import serializers
@@ -32,6 +34,202 @@ from drf_yasg.utils import swagger_auto_schema
 def parse_ident(item):
     item = str(item)
     return int(item.strip(string.ascii_letters))
+
+#------------- phenotype working set create/update api ------------------------
+@swagger_auto_schema(method='post', auto_schema=None)
+@api_view(['POST'])
+def api_phenotypeworkingset_create(request):
+    raise PermissionDenied
+
+@swagger_auto_schema(method='put', auto_schema=None)
+@api_view(['PUT'])
+def api_phenotypeworkingset_update(request):
+
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if is_member(request.user, group_name='ReadOnlyUsers'):
+        raise PermissionDenied
+    
+    validate_access_to_create()
+    user_groups = getGroups(request.user)
+    if request.method != 'PUT':
+        return Response(data={'request': 'Request method invalid'},
+                        content_type="json",
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
+    
+    errors_dict = { }
+    is_valid = True
+
+    phenotypeworkingset_id, pws_id = request.data.get('id'), -1
+    is_valid_id, err, ret_int_id = chk_valid_id(request, PhenotypeWorkingset, phenotypeworkingset_id, chk_permission=True)
+
+    if is_valid_id:
+        pws_id = ret_int_id
+    else:
+        errors_dict['id'] = err
+        return Response(data=errors_dict,
+                        content_type="json",
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
+
+    update_pws = PhenotypeWorkingset.objects.get(pk=pws_id)
+    apply_entry_if_valid(update_pws, 'name', request.data, 'name', errors_dict=errors_dict,
+                        predicate=lambda x: len(x) >= 3)
+    apply_entry_if_valid(update_pws, 'author', request.data, 'author', errors_dict=errors_dict,
+                        predicate=lambda x: len(x) >= 3)
+    apply_entry_if_valid(update_pws, 'citation_requirements', request.data, 'citation_requirements', errors_dict=errors_dict)
+    apply_entry_if_valid(update_pws, 'description', request.data, 'description', errors_dict=errors_dict)
+    setattr(update_pws, 'updated_by', request.user)
+    setattr(update_pws, 'modified', make_aware(datetime.datetime.now()))
+
+    # type -> int
+    apply_entry_if_valid(update_pws, 'type', request.data, 'type', int, errors_dict=errors_dict,
+                        predicate=lambda x: any([x == t[0] for t in Type_status]))
+
+    # tags -> int[]
+    apply_entry_if_valid(update_pws, 'tags', request.data, 'tags', list, errors_dict=errors_dict,
+                        predicate=lambda x: set(x).issubset(set(Tag.objects.filter(tag_type=1).values_list('id', flat=True))))
+
+    # collections -> int[]
+    apply_entry_if_valid(update_pws, 'collections', request.data, 'collections', list, errors_dict=errors_dict,
+                        predicate=lambda x: set(x).issubset(set(Tag.objects.filter(tag_type=2).values_list('id', flat=True))))
+
+    # data_sources -> int[]
+    apply_entry_if_valid(update_pws, 'data_sources', request.data, 'data_sources', list, errors_dict=errors_dict,
+                        predicate=lambda x: set(x).issubset(set(DataSource.objects.all().values_list('id', flat=True))))
+
+    # publications -> str[]
+    apply_entry_if_valid(update_pws, 'publications', request.data, 'publications', list, errors_dict=errors_dict)
+
+    # phenotype_concepts_data -> List<Dict>
+    success, res = validate_api_entry('phenotype_concepts_data', request.data, list)
+    if success:
+        for element in res:
+            data = {
+                'concept_id': validate_api_entry('concept_id', element, str),
+                'concept_version_id': validate_api_entry('concept_version_id', element, int),
+                'phenotype_id': validate_api_entry('phenotype_id', element, str),
+                'phenotype_version_id': validate_api_entry('phenotype_version_id', element, int),
+                'attributes': validate_api_entry('Attributes', element, list),
+            }
+            
+            valid = [e[0] for e in data.values()]
+            data = {k: e[1] for k, e in data.items()}
+            if not all(valid):
+                issues = [list(data.values())[j] for j, v in enumerate(valid) if not v]
+                errors_dict['phenotype_concepts_data'] = (
+                    (errors_dict['phenotype_concepts_data'] if 'phenotype_concepts_data' in errors_dict else [])
+                    + issues
+                )
+
+                continue
+
+            # validate pk and version id of both phenotype & concept
+            concept_id = parse_ident(data["concept_id"])
+            concept_version = parse_ident(data["concept_version_id"])
+            try:
+                concept = Concept.history.get(id=concept_id, history_id=concept_version)
+            except:
+                concept = None
+
+            if concept is None:
+                errors_dict['phenotype_concepts_data'] = (
+                    (errors_dict['phenotype_concepts_data'] if 'phenotype_concepts_data' in errors_dict else [])
+                    + [f"Unable to find concept, concept_id and concept_version_id was invalid - ID: {data['concept_id']}, Version Id: {data['concept_version_id']}"]
+                )
+            
+            phenotype_id = parse_ident(data["phenotype_id"])
+            phenotype_version = parse_ident(data["phenotype_version_id"])
+            try:
+                phenotype = Phenotype.history.get(id=phenotype_id, history_id=phenotype_version)
+            except:
+                phenotype = None
+
+            if phenotype is None:
+                errors_dict['phenotype_concepts_data'] = (
+                    (errors_dict['phenotype_concepts_data'] if 'phenotype_concepts_data' in errors_dict else [])
+                    + [f"Unable to find phenotype, phenotype_id and phenotype_version_id was invalid - ID: {data['phenotype_id']}, Version Id: {data['phenotype_version_id']}"]
+                )
+
+            # validate attributes
+            for attribute in data['attributes']:
+                attr = {
+                    'name': validate_api_entry('name', attribute, str),
+                    'type': validate_api_entry('type', attribute, str),
+                    'value': validate_api_entry('value', attribute, str),
+                }
+
+                valid = [e[0] for e in attr.values()]
+                attr = {k: e[1] for k, e in attr.items()}
+                if not all(valid):
+                    issues = [('Invalid attribute: ' + list(attr.values())[j]) for j, v in enumerate(valid) if not v]
+                    errors_dict['phenotype_concepts_data'] = (
+                        (errors_dict['phenotype_concepts_data'] if 'phenotype_concepts_data' in errors_dict else [])
+                        + issues
+                    )
+
+                    continue
+                
+                # validate the attribute value by its proposed type
+                is_typed_correctly, val = validate_phenotype_workingset_attribute(attribute)
+                if not is_typed_correctly:
+                    errors_dict['phenotype_concepts_data'] = (
+                        (errors_dict['phenotype_concepts_data'] if 'phenotype_concepts_data' in errors_dict else [])
+                        + [val]
+                    )
+        
+        if not 'phenotype_concepts_data' in errors_dict:
+            update_pws.phenotype_concepts_data = res
+    else:
+        errors_dict['phenotype_concepts_data'] = res
+
+    # group_id
+    is_valid_data, err, ret_value = chk_group(request.data.get('group'), user_groups)
+    if is_valid_data:
+        group_id = ret_value
+        if group_id is None or group_id == "0":
+            update_pws.group_id = None
+            update_pws.group_access = 1
+        else:
+            update_pws.group_id = group_id
+            is_valid_data, err, ret_value = chk_group_access(request.data.get('group_access'))
+            if is_valid_data:
+                update_pws.group_access = ret_value
+            else:
+                errors_dict['group_access'] = err
+    else:
+        errors_dict['group'] = err
+
+    # world_access
+    is_valid_data, err, ret_value = chk_world_access(request.data.get('world_access'))
+    if is_valid_data:
+        update_pws.world_access = ret_value
+    else:
+        errors_dict['world_access'] = err
+
+    # validation check
+    if bool(errors_dict):
+        is_valid = False
+
+    if not is_valid:
+        return Response(data=errors_dict, 
+                        content_type="json",
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
+
+    update_pws.save()
+    modify_Entity_ChangeReason(PhenotypeWorkingset, update_pws.pk, "Update from API")
+    
+    if request.data.get('publish_immediately') == True:
+        publish_entity(request, PhenotypeWorkingset, update_pws.pk)
+
+    data = {
+        'message': 'PhenotypeWorkingset updated successfully',
+        'id': update_pws.pk,
+    }
+
+    return Response(data=data,
+                    content_type="text/json-comment-filtered",
+                    status=status.HTTP_201_CREATED)
 
 #------------------ phenotype working sets api --------------------------------
 @api_view(['GET'])

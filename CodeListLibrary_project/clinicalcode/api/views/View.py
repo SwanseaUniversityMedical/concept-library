@@ -511,12 +511,12 @@ def chk_tags(tags_input):
         if isinstance(tags, list):  # check tags is a list
             if not (set(tags).issubset(set(Tag.objects.all().values_list('id', flat=True)))):
                 is_valid_data = False
-                err = 'invalid tag ids list, all tags ids must be valid'
+                err = 'Invalid tag ids list, all tags ids must be valid'
             else:
                 ret_value = tags
         else:
             is_valid_data = False
-            err = 'tags must be valid list with valid tag ids'
+            err = 'Tags must be valid list with valid tag ids'
 
     return is_valid_data, err, ret_value
 

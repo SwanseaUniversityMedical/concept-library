@@ -366,9 +366,6 @@ urlpatterns += [
     url(r'^public/phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/export/codes/$',
         PhenotypeWorkingSet.export_published_phenotypeworkingset_codes,
         name='api_export_published_phenotypeworkingset_codes'),
-    
-    
-    
 ]
 
 #======== Concept/Working set/Phenotye create/update ===================
@@ -394,5 +391,11 @@ if not settings.CLL_READ_ONLY:
             name='api_phenotype_update'),
         url(r'^api_datasource_create/$',
             DataSource.api_datasource_create,
-            name='api_datasource_create')
+            name='api_datasource_create'),
+        url(r'^api_phenotypeworkingset_create/$',
+            PhenotypeWorkingSet.api_phenotypeworkingset_create,
+            name='api_phenotypeworkingset_create'),
+        url(r'^api_phenotypeworkingset_update/$',
+            PhenotypeWorkingSet.api_phenotypeworkingset_update,
+            name='api_phenotypeworkingset_update'),
     ]
