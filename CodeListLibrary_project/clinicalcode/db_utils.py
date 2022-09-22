@@ -76,39 +76,6 @@ page_size_limits = [20, 50, 100]
 
 
 #------------ API data validation-------
-def validate_phenotype_workingset_attribute(attribute):
-    """ Attempts to parse the given attribute's value as it's given datatype
-    
-        Returns:
-            1. boolean
-                -> describes success state
-            2. any[value, string]
-                -> returns value as the proposed datatype if successful
-                -> returns a description of the error if failure occurs
-    """
-    from clinicalcode.constants import PWS_ATTRIBUTE_TYPE_DATATYPE
-
-    proposed_type = attribute['type']
-    proposed_value = attribute['value']
-    
-    if proposed_type in PWS_ATTRIBUTE_TYPE_DATATYPE:
-        expected_type = PWS_ATTRIBUTE_TYPE_DATATYPE[proposed_type]
-        try:
-            value = expected_type(proposed_value)
-            return True, value
-        except:
-            return False, f"Attribute error: '{proposed_value}' could not be parsed as type '{proposed_type}', expected {expected_type}"
-    
-    is_case_issue = proposed_type.upper() in PWS_ATTRIBUTE_TYPE_DATATYPE
-    issue = f"Attribute error: Unknown type '{proposed_type}'"
-    if is_case_issue:
-        issue += f". Did you mean '{proposed_type.upper()}'?"
-        
-    return False, issue
-
-
-
-
 def validate_api_entry(item, data, expected_type=str):
     """ Attempts to parse the item in data as the expected type
     
@@ -161,8 +128,137 @@ def apply_entry_if_valid(element, key, data, item, expected_type=str, predicate=
             errors_dict[key] = res
         return False, ValueError(res)
 
+#---------------------------------------
+
+
+#--- phenotypeworkingset validation ----
+def validate_phenotype_workingset_attribute(attribute):
+    """ Attempts to parse the given attribute's value as it's given datatype
     
+        Returns:
+            1. boolean
+                -> describes success state
+            2. any[value, string]
+                -> returns value as the proposed datatype if successful
+                -> returns a description of the error if failure occurs
+    """
+    from clinicalcode.constants import PWS_ATTRIBUTE_TYPE_DATATYPE
+
+    proposed_type = attribute['type']
+    proposed_value = attribute['value']
     
+    if proposed_type in PWS_ATTRIBUTE_TYPE_DATATYPE:
+        expected_type = PWS_ATTRIBUTE_TYPE_DATATYPE[proposed_type]
+        try:
+            value = expected_type(proposed_value)
+            return True, value
+        except:
+            return False, f"Attribute error: '{proposed_value}' could not be parsed as type '{proposed_type}', expected {expected_type}"
+    
+    is_case_issue = proposed_type.upper() in PWS_ATTRIBUTE_TYPE_DATATYPE
+    issue = f"Attribute error: Unknown type '{proposed_type}'"
+    if is_case_issue:
+        issue += f". Did you mean '{proposed_type.upper()}'?"
+        
+    return False, issue
+
+
+def validate_phenotype_workingset_attribute_group(attributes, errors_dict):
+    """
+        Iterates through the phenotypes_concepts_data (expects list as attribute group)
+        
+        Validates:
+            1. Concept_id and concept_version_id
+            2. Phenotype_id and phenotype_version_id
+            3. That each assoc. attribute is a dict of [name (str), type (str), value (str)]
+            4. That each value of each attribute can be parsed as the value of type
+        
+        Returns:
+            1. boolean
+                -> Describes success/validation state of the method call
+    """
+    import string
+    parse_ident = lambda x: int(str(x).strip(string.ascii_letters))
+
+    for element in attributes:
+        data = {
+            'concept_id': validate_api_entry('concept_id', element, str),
+            'concept_version_id': validate_api_entry('concept_version_id', element, int),
+            'phenotype_id': validate_api_entry('phenotype_id', element, str),
+            'phenotype_version_id': validate_api_entry('phenotype_version_id', element, int),
+            'attributes': validate_api_entry('Attributes', element, list),
+        }
+        
+        valid = [e[0] for e in data.values()]
+        data = {k: e[1] for k, e in data.items()}
+        if not all(valid):
+            issues = [list(data.values())[j] for j, v in enumerate(valid) if not v]
+            errors_dict['phenotypes_concepts_data'] = (
+                (errors_dict['phenotypes_concepts_data'] if 'phenotypes_concepts_data' in errors_dict else [])
+                + issues
+            )
+
+            continue
+
+        # validate pk and version id of both phenotype & concept
+        concept_id = parse_ident(data["concept_id"])
+        concept_version = parse_ident(data["concept_version_id"])
+        try:
+            concept = Concept.history.get(id=concept_id, history_id=concept_version)
+        except:
+            concept = None
+
+        if concept is None:
+            errors_dict['phenotypes_concepts_data'] = (
+                (errors_dict['phenotypes_concepts_data'] if 'phenotypes_concepts_data' in errors_dict else [])
+                + [f"Unable to find concept, concept_id and concept_version_id was invalid - ID: {data['concept_id']}, Version Id: {data['concept_version_id']}"]
+            )
+        
+        phenotype_id = parse_ident(data["phenotype_id"])
+        phenotype_version = parse_ident(data["phenotype_version_id"])
+        try:
+            phenotype = Phenotype.history.get(id=phenotype_id, history_id=phenotype_version)
+        except:
+            phenotype = None
+
+        if phenotype is None:
+            errors_dict['phenotypes_concepts_data'] = (
+                (errors_dict['phenotypes_concepts_data'] if 'phenotypes_concepts_data' in errors_dict else [])
+                + [f"Unable to find phenotype, phenotype_id and phenotype_version_id was invalid - ID: {data['phenotype_id']}, Version Id: {data['phenotype_version_id']}"]
+            )
+
+        # validate attributes
+        for attribute in data['attributes']:
+            attr = {
+                'name': validate_api_entry('name', attribute, str),
+                'type': validate_api_entry('type', attribute, str),
+                'value': validate_api_entry('value', attribute, str),
+            }
+
+            valid = [e[0] for e in attr.values()]
+            attr = {k: e[1] for k, e in attr.items()}
+            if not all(valid):
+                issues = [('Invalid attribute: ' + list(attr.values())[j]) for j, v in enumerate(valid) if not v]
+                errors_dict['phenotypes_concepts_data'] = (
+                    (errors_dict['phenotypes_concepts_data'] if 'phenotypes_concepts_data' in errors_dict else [])
+                    + issues
+                )
+
+                continue
+            
+            # validate the attribute value by its proposed type
+            is_typed_correctly, val = validate_phenotype_workingset_attribute(attribute)
+            if not is_typed_correctly:
+                errors_dict['phenotypes_concepts_data'] = (
+                    (errors_dict['phenotypes_concepts_data'] if 'phenotypes_concepts_data' in errors_dict else [])
+                    + [val]
+                )
+    
+    if not 'phenotypes_concepts_data' in errors_dict:
+        return True
+    
+    return False
+
 #---------------------------------------
 
 # pandas needs to be installed by "pip2"
