@@ -40,10 +40,10 @@ RUN \
   apt remove python2.7
 
 RUN \
-  pip --proxy http://192.168.10.15:8080 install  --upgrade pip 
+  pip3 --proxy http://192.168.10.15:8080 install  --upgrade pip3 
 
 RUN \
-  pip install virtualenv 
+  pip3 install virtualenv 
   #&& \
   #pip install psycopg2-binary==2.8.6
 

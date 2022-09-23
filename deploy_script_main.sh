@@ -12,7 +12,7 @@ echo ">>>>> STARTING (production server deployment) <<<<<<<<<<<<<<<<<<<"
 
 #      echo ">>>>> update .ini file (to be  arranged later)<<<<<<<<<<<<<<<<<<<"
 echo "@@@@@@@@@@ OS pip version="
-pip -V
+pip3 -V
 
 echo ">>>>> open project's virtual env <<<<<<<<<<<<<<<<<<<"
 cd /var/www/concept_lib_sites/v1
@@ -25,18 +25,18 @@ echo `pwd`
 echo ">>>>> install requirements <<<<<<<<<<<<<<<<<<<"
 cd /var/www/concept_lib_sites/v1/requirements
 
-#pip ${pip_proxy} install  python_ldap-3.3.1-cp39-cp39-win_amd64.whl
+#pip3 ${pip_proxy} install  python_ldap-3.3.1-cp39-cp39-win_amd64.whl
 
 echo "@@@@@@@@@@ venv pip version="
-pip -V
+pip3 -V
 
-pip ${pip_proxy} install --upgrade pip
+pip3 ${pip_proxy} install --upgrade pip3
 
-pip ${pip_proxy} install -r base.txt
+pip3 ${pip_proxy} install -r base.txt
 
-pip ${pip_proxy} install drf_yasg-1.17.1-py2.py3-none-any.whl
+pip3 ${pip_proxy} install drf_yasg-1.17.1-py2.py3-none-any.whl
 
-#pip ${pip_proxy} install  psycopg2-binary==2.8.6
+#pip3 ${pip_proxy} install  psycopg2-binary==2.8.6
 #pip2 ${pip_proxy} install pandas
 
 cd /var/www/concept_lib_sites/v1/CodeListLibrary_project
