@@ -34,7 +34,7 @@ pip3 ${pip_proxy} install --upgrade pip3
 
 pip3 ${pip_proxy} install -r base.txt
 
-pip3 ${pip_proxy} install drf_yasg-1.17.1-py2.py3-none-any.whl
+#pip3 ${pip_proxy} install drf_yasg-1.17.1-py2.py3-none-any.whl
 
 #pip3 ${pip_proxy} install  psycopg2-binary==2.8.6
 #pip2 ${pip_proxy} install pandas
