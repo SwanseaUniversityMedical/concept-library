@@ -629,19 +629,6 @@
                 }
             }
             let dataset = dataPrevious
-
-
-            let dataToshow = dataset.map(function (element) {
-                let keysTodel = []
-                for (const key of Object.keys(element)) {
-                   if (key.startsWith('Attributes-column')){
-                       keysTodel.push(key)
-                   }
-                }
-                console.log(keysTodel)
-                let picked = Object.fromEntries(Object.entries(element).filter(([key]) => !keysTodel.includes(key))) //to remove column from actual table
-                return picked
-            })
             numbers++
 
             $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
