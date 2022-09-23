@@ -36,6 +36,8 @@ RUN \
   #&& \
   #pip ${pip_proxy} install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip==20.2
 
+RUN \
+  apt remove python2.7
 
 RUN \
   pip --proxy http://192.168.10.15:8080 install  --upgrade pip 
