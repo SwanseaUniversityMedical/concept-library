@@ -613,104 +613,124 @@
             let dataPrevious = $('#phenotypes_concepts_json').val()
 
             dataPrevious = JSON.parse(dataPrevious)
-            console.log(dataPrevious)
 
 
             for (let i = 0; i < dataPrevious.length; i++) {
                 dataPrevious[i] = {
                     ...dataPrevious[i],
-                    ["Attributes" + numbers]: [`<input class="input-material" type="text"  style="width:100%" id="attribute-input-${numbers}"/>`]
+                    ["Attributes-row" + numbers]: `<input class="input-material" type="text"  style="width:100%" id="attribute-input-${numbers}"/>`,
+                    ["Attributes-column" + numbers]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" id="column_type">'
+						    +'<option selected >Type</option>'
+						    +'<option value="1">INT</option>'
+						    +'<option value="2">FLOAT</option>'
+						    +'<option value="3">STRING</option>'
+						  +'</select>
+<input class="input-material" type="text" placeholder="Attribute name"  id="attribute-header"/>`
                 }
             }
             let dataset = dataPrevious
+
+
+            let dataToshow = dataset.map(function (element) {
+                let keysTodel = []
+                for (const key of Object.keys(element)) {
+                   if (key.startsWith('Attributes-column')){
+                       keysTodel.push(key)
+                   }
+                }
+                console.log(keysTodel)
+                let picked = Object.fromEntries(Object.entries(element).filter(([key]) => !keysTodel.includes(key))) //to remove column from actual table
+                return picked
+            })
             numbers++
 
-
             $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
+
 
             let columns = []
             for (const [key, value] of Object.entries(dataset[0])) {
                 if (key === 'Data') {
                     columns.push({data: key, title: key})
                 } else {
-                    columns.push({
-                        data: key,
-                        title: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" id="column_type-${key}">'
-						    +'<option selected >Type</option>'
-						    +'<option value="1">INT</option>'
-						    +'<option value="2">FLOAT</option>'
-						    +'<option value="3">STRING</option>'
-						  +'</select>
-<input class="input-material" type="text" placeholder="Attribute name"  id="attribute-header-${key}"/>`
-                    })
+                    if (key.startsWith("Attributes-row"))
+                        columns.push({
+                            data:key,
+                            title: dataset[0]['Attributes-column'+(numbers-1)]
+                        })
+
+
+
                 }
 
 
             }
+            console.log(columns)
+            console.log(dataset)
+
 
             if ($.fn.DataTable.isDataTable('#attributes-table')) {
                 $('#attributes-table').DataTable().destroy();
                 $('#attributes-table').empty();
                 var table = $('#attributes-table').DataTable({
-                    data: dataset,
-                    columns: columns,
-                    buttons: [
-                        {
+                        data: dataset,
+                        columns: columns,
+                        buttons: [
+                            {
 
-                            text: "Add Concept",
-                            className: "table-button",
-                            action: function (e, dt, node, config) {
-                                addColumn(numbers)
+                                text: "Add Concept",
+                                className: "table-button",
+                                action: function (e, dt, node, config) {
+                                    addColumn(numbers)
+                                },
+                                attr: {
+                                    id: 'concept-add'
+                                }
                             },
-                            attr: {
-                                id: 'concept-add'
-                            }
-                        },
-                        {
+                            {
 
-                            text: "Add Column",
-                            className: "table-button",
-                            action: function (e, dt, node, config) {
-                                addColumn(numbers)
+                                text: "Add Column",
+                                className: "table-button",
+                                action: function (e, dt, node, config) {
+                                    addColumn(numbers)
+                                },
+                                attr: {
+                                    id: 'column-add'
+                                }
                             },
-                            attr: {
-                                id: 'column-add'
+                            {
+
+                                text: "Delete row",
+                                className: "table-button",
+                                attr: {
+                                    id: 'delete-button'
+                                }
                             }
+                        ],
+
+                        fixedColumns: {
+                            left: 1
                         },
-                        {
+                        scrollX: true,
+                        scrollY: '50vh',
+                        scrollCollapse: true,
+                        colReorder: true,
+                        paging: false,
+                        columnDefs: [{
+                            targets: [0],
+                            orderable: true,
+                        }, {
+                            targets: [''],
+                            orderable: false
+                        },
+                        ]
 
-                            text: "Delete row",
-                            className: "table-button",
-                            attr: {
-                                id: 'delete-button'
-                            }
-                        }
-                    ],
-
-                    fixedColumns: {
-                        left: 1
-                    },
-                    scrollX: true,
-                    scrollY: '50vh',
-                    scrollCollapse: true,
-                    colReorder:true,
-                    paging: false,
-                    columnDefs: [{
-                        targets: [0],
-                        orderable: true,
-                    }, {
-                        targets: [''],
-                        orderable: false
                     }
-                    ]
+                )
+                table.buttons().container()
+                    .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+
 
             }
-        )
-        table.buttons().container()
-            .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
-
-
-        }
 
 
         }
@@ -726,11 +746,15 @@
                     let dataPrevious = $('#phenotypes_concepts_json').val()
 
                     dataPrevious = JSON.parse(dataPrevious)
-                    dataPrevious[rowIdx]['Attributes' + (colindex - 1)] = [`<input class="input-material" type="text" value="${firstVal}" style="width:100%" id="attribute-input-${colindex - 1}"/>`]
+                    dataPrevious[rowIdx]['Attributes-row' + (colindex - 1)] = `<input class="input-material" type="text" value="${firstVal}" style="width:100%" id="attribute-input-${colindex - 1}"/>`
                     $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
                 }
 
             });
+        });
+
+         $('#attributes-table thead').on('input', function () {
+             console.log('lllll')
         });
 
 
