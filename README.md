@@ -8,7 +8,7 @@ The specific goals of this work are:
 - Provide a mechanism for sharing code lists between projects and organizations.
 
 ## Live Site
-The Concept Library web application is [available here](conceptlibrary.saildatabank.com).
+The Concept Library web application is [available here](htttps://conceptlibrary.saildatabank.com).
 
 ## User documentation
 Concept Library documentation is [available here](https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation).
@@ -24,29 +24,29 @@ Often the definitions that are created are of interest to researchers for many s
 # Table of contents
 1. [Clone this repository](#1.-Clone-this-Repository)  
 2. [Setup with Docker](#2.-Setup-with-Docker)  
-  2.1. [Prerequisites](##2.1.-Prerequisites)  
-  2.2. [Database Setup](##2.2.-Database-Setup)  
-    2.2.2. [Restore from Git Repository](###2.2.2.-Restore-from-Git-Repository)  
-    2.2.3. [Migration only](###2.2.3.-Migration-only)  
-    2.2.1. [Restore from Local Backup](###2.2.1.-Restore-from-Local-Backup)  
-  2.3. [Development](##2.3.-Development)  
-    2.3.1. [Initial Build](###2.3.1.-Initial-Build)  
-    2.3.2. [Stopping and Starting the Containers](###2.3.2.-Stopping-and-Starting-the-Containers)  
-    2.3.3. [Live Working](###2.3.3.-Live-Working)  
-    2.3.4. [Removing the Containers](###2.3.4.-Removing-the-Containers)  
-  2.4. [Accessing and Exporting the Database](##2.4.-Accessing-and-Exporting-the-Database)  
-    2.4.1. [Access/Export with PGAdmin4](###2.4.1.-Access/Export-with-PGAdmin4)  
-    2.4.2. [Access/Export with CLI](###2.4.2.-Access/Export-with-CLI)  
-  2.5. [Debugging and Running Tests](##2.5.-Debugging-and-Running-Tests)  
-    2.5.1. [Django logging](###2.5.1.-Django-Logging)  
-    2.5.2. [Debug Tools in Visual Studio Code](###2.5.2.-Debug-Tools-in-Visual-Studio-Code)  
-    2.5.3. [Running Tests](###2.5.3.-Running-Tests)  
+  2.1. [Prerequisites](#2.1.-Prerequisites)  
+  2.2. [Database Setup](#2.2.-Database-Setup)  
+    2.2.2. [Restore from Git Repository](#2.2.2.-Restore-from-Git-Repository)  
+    2.2.3. [Migration only](#2.2.3.-Migration-only)  
+    2.2.1. [Restore from Local Backup](#2.2.1.-Restore-from-Local-Backup)  
+  2.3. [Development](#2.3.-Development)  
+    2.3.1. [Initial Build](#2.3.1.-Initial-Build)  
+    2.3.2. [Stopping and Starting the Containers](#2.3.2.-Stopping-and-Starting-the-Containers)  
+    2.3.3. [Live Working](#2.3.3.-Live-Working)  
+    2.3.4. [Removing the Containers](#2.3.4.-Removing-the-Containers)  
+  2.4. [Accessing and Exporting the Database](#2.4.-Accessing-and-Exporting-the-Database)  
+    2.4.1. [Access/Export with PGAdmin4](#2.4.1.-Access/Export-with-PGAdmin4)  
+    2.4.2. [Access/Export with CLI](#2.4.2.-Access/Export-with-CLI)  
+  2.5. [Debugging and Running Tests](#2.5.-Debugging-and-Running-Tests)  
+    2.5.1. [Django logging](#2.5.1.-Django-Logging)  
+    2.5.2. [Debug Tools in Visual Studio Code](#2.5.2.-Debug-Tools-in-Visual-Studio-Code)  
+    2.5.3. [Running Tests](#2.5.3.-Running-Tests)  
 3. [Setup without Docker](#3.-Setup-without-Docker)  
-  3.1. [Prerequisites](##3.1.-Prerequisites)  
-  3.2. [Installing](##3.2.-Installing)  
-  3.3. [Running Tests](##3.3.-Running-Tests)  
+  3.1. [Prerequisites](#3.1.-Prerequisites)  
+  3.2. [Installing](#3.2.-Installing)  
+  3.3. [Running Tests](#3.3.-Running-Tests)  
 4. [Deployment](#4.-Deployment)  
-  4.1. [Running Tests](##4.1.-Running-Tests)  
+  4.1. [Running Tests](#4.1.-Running-Tests)  
 
 # 1. Clone this Repository
 To download this repository:
@@ -74,7 +74,7 @@ To restore from a local backup:
 1. Navigate to the `concept-library/docker/development` folder
 2. Place a `.backup` file inside of the `db` folder  
 >**Note: Do not share this file with anyone**
-3. Skip to [2.3. Development](##2.3.-Development)  
+3. Skip to [2.3. Development](#2.3.-Development)  
 
 ### 2.2.2. Restore from Git Repository
 >*Note:  
@@ -89,10 +89,10 @@ To restore from a Git repository:
 >**Note: Do not share this file with anyone**
 6. Open the `docker-compose.yaml` file inside of the `development/` folder
 7. Ensure that the environment variable `POSTGRES_RESTORE_REPO` is set to the correct GitHub repository where your `.backup` file is stored
-8. Skip to [2.3. Development](##2.3.-Development)  
+8. Skip to [2.3. Development](#2.3.-Development)  
 
 ### 2.2.3. Migration only
-If you do not have a backup available the application will run successfully as migrations are automatically applied, however, no data will be restored. Please skip to [2.3. Development](##2.3.-Development).
+If you do not have a backup available the application will still run successfully as migrations are automatically applied, however, no data will be restored. Please skip to [2.3. Development](#2.3.-Development).
 
 ## 2.3. Development
 ### 2.3.1. Initial Build

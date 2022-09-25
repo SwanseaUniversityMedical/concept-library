@@ -5,3 +5,4 @@ CodeListLibrary_project/.settings/org.eclipse.core.resources.prefs
 **/docker/development/db/backup
 *.backup
 git.token
+CodeListLibrary_project/debug.log
