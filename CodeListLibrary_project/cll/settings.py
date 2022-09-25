@@ -279,7 +279,7 @@ DATABASES = {
         'USER': get_env_value('DB_USER'),
         'PASSWORD': get_env_value('DB_PASSWORD'),
         'HOST': get_env_value('DB_HOST'),
-        'PORT': '',
+        'PORT': get_env_value('DB_PORT'),
     }
 }
 
@@ -305,7 +305,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-if IS_LINUX:
+if IS_LINUX and not IS_DEVELOPMENT_PC:
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,
@@ -319,6 +319,31 @@ if IS_LINUX:
                 'handlers': ['console'],
                 'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
             },
+        },
+    }
+elif IS_LINUX and IS_DEVELOPMENT_PC and DEBUG:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format':
+                '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+            }
+        },
+        'handlers': {
+            'console': {
+                'level': 'DEBUG',
+                'class': 'logging.StreamHandler',
+                'formatter': 'verbose',
+            }
+        },
+        'loggers': {
+            '*': {
+                'handlers': ['console'],
+                'level': 'DEBUG',
+                'propagate': True,
+            }
         },
     }
 else:

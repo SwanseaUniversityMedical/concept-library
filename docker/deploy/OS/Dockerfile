@@ -22,9 +22,6 @@ RUN \
   apt-get -y -q install sudo nano && \
   apt-get install -y -q redis-server
 
-
-
-
 # install this for LDAP to work
 RUN apt-get install -y -q libsasl2-dev python-dev libldap2-dev libssl-dev
 
@@ -36,7 +33,6 @@ RUN \
   #&& \
   #pip ${pip_proxy} install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip==20.2
 
-
 RUN \
   pip --proxy http://192.168.10.15:8080 install  --upgrade pip 
 
@@ -46,7 +42,3 @@ RUN \
 
 RUN mkdir -p /home/config_cll/cll_srvr_logs
 RUN chmod 750 /home/config_cll/cll_srvr_logs
-
-
-
-
