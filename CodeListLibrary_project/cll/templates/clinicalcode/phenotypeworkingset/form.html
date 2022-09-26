@@ -619,40 +619,29 @@
                 dataPrevious[i] = {
                     ...dataPrevious[i],
                     ["Attributes-row" + numbers]: `<input class="input-material" type="text"  style="width:100%" id="attribute-input-${numbers}"/>`,
-                    ["Attributes-column" + numbers]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" id="column_type">'
+                    ["Attributes-column" + numbers]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=changeHeader() id="column_type${numbers}">'
 						    +'<option selected >Type</option>'
 						    +'<option value="1">INT</option>'
 						    +'<option value="2">FLOAT</option>'
 						    +'<option value="3">STRING</option>'
 						  +'</select>
-<input class="input-material" type="text" placeholder="Attribute name"  id="attribute-header"/>`
+<input class="input-material" type="text"  oninput = inputheader() placeholder="Attribute name"  id="attribute-header${numbers}"/>`
                 }
             }
+
             let dataset = dataPrevious
-            numbers++
 
             $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
 
 
-            let columns = []
-            for (const [key, value] of Object.entries(dataset[0])) {
-                if (key === 'Data') {
-                    columns.push({data: key, title: key})
-                } else {
-                    if (key.startsWith("Attributes-row"))
-                        columns.push({
-                            data:key,
-                            title: dataset[0]['Attributes-column'+(numbers-1)]
-                        })
-
-
-
+            let columns = [{data: "Data", title: "Data"}]
+            let headers = Object.entries(dataset[0])
+            for (let i=0;i<headers.length-1;i++) {
+                if(headers[i][0].startsWith('Attributes-row')){
+                    columns.push({data: headers[i][0], title: headers[i+1][1]})
                 }
-
-
             }
-            console.log(columns)
-            console.log(dataset)
+            numbers++
 
 
             if ($.fn.DataTable.isDataTable('#attributes-table')) {
@@ -722,6 +711,34 @@
 
         }
 
+        const inputheader = (selectval) => {
+
+            var table = $('#attributes-table').DataTable()
+            table.columns().eq(0).each(function (index) {
+                var val = event.target.value
+                let dataPrevious = $('#phenotypes_concepts_json').val()
+                console.log(index)
+
+                dataPrevious = JSON.parse(dataPrevious)
+                for (let i = 0; i < dataPrevious.length; i++) {
+                    dataPrevious[i]['Attributes-column' + index] = `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=changeHeader() id="column_type${index}">'
+						    +'<option selected >Type</option>'
+						    +'<option value="1">INT</option>'
+						    +'<option value="2">FLOAT</option>'
+						    +'<option value="3">STRING</option>'
+						  +'</select>
+<input class="input-material" type="text" value="${val}" oninput = inputheader() placeholder="Attribute name"  id="attribute-header${index}"/>`
+                    $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
+                }
+
+
+            });
+        }
+
+        const changeHeader = () => {
+            var selectval = event.target.value
+            inputheader(selectval)
+        }
 
         $('#attributes-table').on('input', function () {
             var table = $('#attributes-table').DataTable()
@@ -738,10 +755,6 @@
                 }
 
             });
-        });
-
-         $('#attributes-table thead').on('input', function () {
-             console.log('lllll')
         });
 
 
