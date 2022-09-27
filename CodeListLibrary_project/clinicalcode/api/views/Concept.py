@@ -347,13 +347,12 @@ def export_concept_codes_byVersionID(request, pk, concept_history_id):
 
     current_concept = Concept.objects.get(pk=pk)
 
-    user_can_export = (allowed_to_view_children(
-        request, Concept, pk, set_history_id=concept_history_id) and
-                       chk_deleted_children(request,
-                                            Concept,
-                                            pk,
-                                            returnErrors=False,
-                                            set_history_id=concept_history_id)
+    user_can_export = (allowed_to_view_children(request, Concept, pk, set_history_id=concept_history_id) 
+                       and chk_deleted_children(request,
+                                                Concept,
+                                                pk,
+                                                returnErrors=False,
+                                                set_history_id=concept_history_id)
                        and not current_concept.is_deleted)
 
     if not user_can_export:
