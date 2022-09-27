@@ -8,7 +8,9 @@ from clinicalcode.views import View as cc_view
 #from . import views
 #from cll import settings
 from django.conf import settings
-from django.conf.urls import include, url
+#from django.conf.urls import include, url
+from django.urls import re_path as url
+from django.urls import include
 from rest_framework import routers
 
 from .views import Concept, DataSource, Phenotype, View, WorkingSet

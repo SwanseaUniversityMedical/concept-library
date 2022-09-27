@@ -327,7 +327,7 @@ class OtherTest(StaticLiveServerTestCase):
             publication_link=Google_website,
             source_reference="",
             citation_requirements="",
-            concept_informations=str('[{"3":{"ttt|3":"yyy"}}]'),
+            concept_informations=[{"3":{"ttt|3":"yyy"}}],
             concept_version={"3": 1},
             created_by=super_user,
             updated_by=super_user,
@@ -345,10 +345,8 @@ class OtherTest(StaticLiveServerTestCase):
             publication_link=Google_website,
             source_reference="",
             citation_requirements="",
-            concept_informations=str(
-                '[{"%s":{"ttt|3":"yyy"}}, {"%s":{"ttt|3":"yyy"}}]' %
-                (str(self.concept_everybody_can_view.id),
-                 str(self.concept_everybody_can_edit.id))),
+            concept_informations=[{str(self.concept_everybody_can_view.id):{"ttt|3":"yyy"}}, 
+                                  {str(self.concept_everybody_can_edit.id):{"ttt|3":"yyy"}}],
             concept_version={
                 (str(self.concept_everybody_can_view.id)):
                 self.concept_everybody_can_view.history.first().history_id,
@@ -371,9 +369,7 @@ class OtherTest(StaticLiveServerTestCase):
             publication_link=Google_website,
             source_reference="",
             citation_requirements="",
-            concept_informations=str(
-                '[{"%s":{"ttt|3":"yyy"}}]' %
-                (str(self.concept_everybody_can_view.id))),
+            concept_informations=[{str(self.concept_everybody_can_view.id):{"ttt|3":"yyy"}}],
             concept_version={
                 (str(self.concept_everybody_can_view.id)):
                 self.concept_everybody_can_view.history.first().history_id
@@ -386,8 +382,7 @@ class OtherTest(StaticLiveServerTestCase):
             owner_access=Permissions.EDIT,
             world_access=Permissions.NONE)
 
-        concept_info_string = '[{"%s":{"ttt|3":"yyy"}}]' % (str(
-            self.concept_with_excluded_codes.id))
+        concept_info_list = [{str(self.concept_with_excluded_codes.id):{"ttt|3":"yyy"}}] 
 
         self.workingset_with_excluded_codes = WorkingSet.objects.create(
             name="workingset_noone_can_access",
@@ -397,7 +392,7 @@ class OtherTest(StaticLiveServerTestCase):
             publication_link=Google_website,
             source_reference="",
             citation_requirements="",
-            concept_informations=concept_info_string,
+            concept_informations=concept_info_list,
             concept_version={
                 (str(self.concept_with_excluded_codes.id)):
                 self.concept_with_excluded_codes.history.first().history_id
@@ -411,8 +406,7 @@ class OtherTest(StaticLiveServerTestCase):
             owner_access=Permissions.EDIT,
             world_access=Permissions.NONE)
 
-        concept_info_string2 = '[{"%s":{"ttt|3":"yyy"}}]' % (str(
-            self.concept_with_excluded_and_included_codes.id))
+        concept_info_list2 = [{str(self.concept_with_excluded_and_included_codes.id):{"ttt|3":"yyy"}}] 
 
         self.workingset_with_excluded_and_included_codes = WorkingSet.objects.create(
             name="workingset_noone_can_access",
@@ -422,7 +416,7 @@ class OtherTest(StaticLiveServerTestCase):
             publication_link=Google_website,
             source_reference="",
             citation_requirements="",
-            concept_informations=concept_info_string2,
+            concept_informations=concept_info_list2,
             concept_version={
                 (str(self.concept_with_excluded_and_included_codes.id)):
                 self.concept_with_excluded_and_included_codes.history.first().

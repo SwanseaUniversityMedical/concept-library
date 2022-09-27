@@ -1347,8 +1347,7 @@ def concept_codes_to_csv(request, pk):
     current_concept = Concept.objects.get(pk=pk)
 
     user_can_export = (allowed_to_view_children(request, Concept, pk)
-                       and db_utils.chk_deleted_children(
-                           request, Concept, pk, returnErrors=False)
+                       and db_utils.chk_deleted_children(request, Concept, pk, returnErrors=False)
                        and not current_concept.is_deleted)
     if not user_can_export:
         return HttpResponseNotFound("Not found.")

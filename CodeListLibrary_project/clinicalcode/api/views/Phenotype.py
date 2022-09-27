@@ -401,15 +401,14 @@ def export_phenotype_codes_byVersionID(request, pk, phenotype_history_id=None):
 
     current_phenotype = Phenotype.objects.get(pk=pk)
 
-    user_can_export = (allowed_to_view_children(
-        request, Phenotype, pk, set_history_id=phenotype_history_id)
-                       and chk_deleted_children(
-                           request,
-                           Phenotype,
-                           pk,
-                           returnErrors=False,
-                           set_history_id=phenotype_history_id)
-                       and not current_phenotype.is_deleted)
+    user_can_export = (allowed_to_view_children(request, Phenotype, pk, set_history_id=phenotype_history_id)
+                       and chk_deleted_children(request,
+                                               Phenotype,
+                                               pk,
+                                               returnErrors=False,
+                                               set_history_id=phenotype_history_id)
+                        and not current_phenotype.is_deleted
+                        )
 
     if not user_can_export:
         raise PermissionDenied
@@ -768,8 +767,7 @@ def phenotype_detail(request,
     # we can remove this check as in phenotype-detail
     #---------------------------------------------------------
     # validate access to child phenotypes
-    if not (allowed_to_view_children(
-            request, Phenotype, pk, set_history_id=phenotype_history_id)
+    if not (allowed_to_view_children(request, Phenotype, pk, set_history_id=phenotype_history_id)
             and chk_deleted_children(request,
                                      Phenotype,
                                      pk,
@@ -865,8 +863,8 @@ def getPhenotypeDetail(request,
     concepts = Concept.history.filter(pk=-1)
 
     if phenotype['concept_informations']:
-        concept_id_list = [x['concept_id'] for x in json.loads(phenotype['concept_informations'])]
-        concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(phenotype['concept_informations'])]
+        concept_id_list = [x['concept_id'] for x in phenotype['concept_informations']]
+        concept_hisoryid_list = [x['concept_version_id'] for x in phenotype['concept_informations']]
         concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list)
 
     clinicalTerminologies = []  #CodingSystem.objects.filter(pk=-1)
