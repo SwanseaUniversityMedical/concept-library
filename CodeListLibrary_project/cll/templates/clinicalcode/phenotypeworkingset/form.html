@@ -642,6 +642,8 @@
                 }
             }
             numbers++
+            console.log(dataset)
+            console.log(columns)
 
 
             if ($.fn.DataTable.isDataTable('#attributes-table')) {
@@ -714,14 +716,15 @@
         const inputheader = (selectval) => {
 
             var table = $('#attributes-table').DataTable()
-            table.columns().eq(0).each(function (index) {
+            table.columns().eq(0).each(function () {
                 var val = event.target.value
+                let index = event.target.id.match(/\d+/)[0]
                 let dataPrevious = $('#phenotypes_concepts_json').val()
-                console.log(index)
+
 
                 dataPrevious = JSON.parse(dataPrevious)
                 for (let i = 0; i < dataPrevious.length; i++) {
-                    dataPrevious[i]['Attributes-column' + index] = `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=changeHeader() id="column_type${index}">'
+                    dataPrevious[i]['Attributes-column' + (index)] = `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=changeHeader() id="column_type${index}">'
 						    +'<option selected >Type</option>'
 						    +'<option value="1">INT</option>'
 						    +'<option value="2">FLOAT</option>'
