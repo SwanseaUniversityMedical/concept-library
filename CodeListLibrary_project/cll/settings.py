@@ -309,8 +309,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# if IS_LINUX:
-LOGGING = {
+if IS_LINUX:
+    LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,
         'handlers': {
@@ -325,43 +325,43 @@ LOGGING = {
             },
         },
     }
-# else:
-#     LOGGING = {
-#         'version': 1,
-#         'disable_existing_loggers': False,
-#         'formatters': {
-#             'verbose': {
-#                 'format':
-#                 '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
-#             },
-#             'simple': {
-#                 'format': '%(levelname)s %(message)s'
-#             },
-#         },
-#         'handlers': {
-#             'file': {
-#                 'level': 'DEBUG',
-#                 'class': 'logging.FileHandler',
-#                 'filename': os.path.join(BASE_DIR, 'debug.log'),
-#             },
-#             'stream_to_console': {
-#                 'level': 'DEBUG',
-#                 'class': 'logging.StreamHandler'
-#             },
-#         },
-#         'loggers': {
-#             'django': {
-#                 'handlers': ['file'],
-#                 'level': 'DEBUG',
-#                 'propagate': True,
-#             },
-#             'django_auth_ldap': {
-#                 'handlers': ['stream_to_console'],
-#                 'level': 'DEBUG',
-#                 'propagate': True,
-#             },
-#         },
-#     }
+else:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format':
+                '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+            },
+            'simple': {
+                'format': '%(levelname)s %(message)s'
+            },
+        },
+        'handlers': {
+            'file': {
+                'level': 'DEBUG',
+                'class': 'logging.FileHandler',
+                'filename': os.path.join(BASE_DIR, 'debug.log'),
+            },
+            'stream_to_console': {
+                'level': 'DEBUG',
+                'class': 'logging.StreamHandler'
+            },
+        },
+        'loggers': {
+            'django': {
+                'handlers': ['file'],
+                'level': 'DEBUG',
+                'propagate': True,
+            },
+            'django_auth_ldap': {
+                'handlers': ['stream_to_console'],
+                'level': 'DEBUG',
+                'propagate': True,
+            },
+        },
+    }
 
 GRAPH_MODELS = {
     'all_applications': True,
