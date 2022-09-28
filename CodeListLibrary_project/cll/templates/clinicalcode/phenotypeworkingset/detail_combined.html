@@ -684,7 +684,6 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
             data: 'name',
             title: 'Concept',
             render: (data, type, row, meta) => {
-                console.log(row);
                 if(type === 'display') {
                     data = `<a href="/concepts/${row.concept_id}/version/${row.concept_version_id}/detail/">${data}</a>`;
                 }
