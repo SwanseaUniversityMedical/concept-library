@@ -84,7 +84,7 @@ def try_parse_phenotype_gender(gender):
             1. Array [string, string] e.g. ['Female', 'Male']
     
     """
-    gender = gender.split()
+    gender = '/'.join(gender.split(',')).split('/')
     gender = [''.join(e for e in x.lower() if e.isalpha()).capitalize() for x in gender]
     return gender
 
