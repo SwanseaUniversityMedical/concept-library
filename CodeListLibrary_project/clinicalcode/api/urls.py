@@ -317,9 +317,44 @@ urlpatterns += [
     #----------------------------------------------------------
     # --- phenotype-working set   -----------------------------
     #----------------------------------------------------------
+
+    # search
+    url(r'^phenotypeworkingsets/$', PhenotypeWorkingSet.phenotypeworkingsets, name='phenotypeworkingsets'),
+    url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/$',
+        PhenotypeWorkingSet.phenotypeworkingsets,
+        name='api_phenotypeworkingset_by_id'),
+    
+    # public search
+    url(r'^public/phenotypeworkingsets/$',
+        PhenotypeWorkingSet.published_phenotypeworkingsets,
+        name='api_published_phenotypeworkingset'),
+    url(r'^public/phenotypeworkingsets/(?P<pk>WS\d+)/$',
+        PhenotypeWorkingSet.published_phenotypeworkingsets,
+        name='api_published_phenotypeworkingset_by_id'),
+    
+    # details
+    url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/detail/$',
+        PhenotypeWorkingSet.phenotypeworkingset_detail,
+        name='api_phenotypeworkingset_detail'),
+    url(r'^public/phenotypeworkingsets/(?P<pk>WS\d+)/detail/$',
+        PhenotypeWorkingSet.phenotypeworkingset_detail_PUBLIC,
+        name='api_phenotypeworkingset_detail_public'),
+
+    # get specific version
+    url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/detail/$',
+        PhenotypeWorkingSet.phenotypeworkingset_detail,
+        name='api_phenotypeworkingset_detail_version'),
+
+    # show versions
+    url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/get-versions/$',
+        PhenotypeWorkingSet.phenotypeworkingset_detail, {'get_versions_only': '1'},
+        name='get_phenotypeworkingset_versions'),
+
+    # coding
     url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/export/codes/$',
         PhenotypeWorkingSet.export_phenotypeworkingset_codes_byVersionID,
         name='api_export_phenotypeworkingset_codes_latestVersion'),
+
     url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/export/codes/$',
         PhenotypeWorkingSet.export_phenotypeworkingset_codes_byVersionID,
         name='api_export_phenotypeworkingset_codes_byVersionID'),
@@ -327,12 +362,10 @@ urlpatterns += [
     url(r'^public/phenotypeworkingsets/(?P<pk>WS\d+)/export/codes/$',
         PhenotypeWorkingSet.export_published_phenotypeworkingset_codes,
         name='api_export_published_phenotypeworkingset_codes_latestVersion'),
+
     url(r'^public/phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/export/codes/$',
         PhenotypeWorkingSet.export_published_phenotypeworkingset_codes,
         name='api_export_published_phenotypeworkingset_codes'),
-    
-    
-    
 ]
 
 #======== Concept/Working set/Phenotye create/update ===================
@@ -358,5 +391,11 @@ if not settings.CLL_READ_ONLY:
             name='api_phenotype_update'),
         url(r'^api_datasource_create/$',
             DataSource.api_datasource_create,
-            name='api_datasource_create')
+            name='api_datasource_create'),
+        url(r'^api_phenotypeworkingset_create/$',
+            PhenotypeWorkingSet.api_phenotypeworkingset_create,
+            name='api_phenotypeworkingset_create'),
+        url(r'^api_phenotypeworkingset_update/$',
+            PhenotypeWorkingSet.api_phenotypeworkingset_update,
+            name='api_phenotypeworkingset_update'),
     ]

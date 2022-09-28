@@ -39,3 +39,11 @@ Type_status = ((Disease, 'Disease or syndrome '),
                (Lifestyle_risk_factor,'Lifestyle risk factor'),
                (Musculoskeletal,'Musculoskeletal'),
                (Surgical_procedure,'Surgical procedure'))
+
+
+PWS_ATTRIBUTE_TYPES = ['INT', 'FLOAT', 'STRING']
+PWS_ATTRIBUTE_TYPE_DATATYPE = {
+    'INT': int,
+    'FLOAT': float,
+    'STRING': str,
+}

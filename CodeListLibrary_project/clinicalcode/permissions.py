@@ -856,7 +856,6 @@ def get_visible_workingsets(user):
 
     return query
 
-
 def get_visible_phenotypes(user):
     # This does NOT excludes deleted ones
     from .models.Phenotype import Phenotype

@@ -75,6 +75,192 @@ page_size_limits = [20, 50, 100]
 #---------------------------------------
 
 
+#------------ API data validation-------
+def validate_api_entry(item, data, expected_type=str):
+    """ Attempts to parse the item in data as the expected type
+    
+        Returns:
+            1. any[true, false, none]
+                -> True if successful
+                -> False if unable to parse
+                -> None if item[data] is not indexable
+            2. result
+                -> returns parsed value if successful
+                -> returns a description of the error if failure occurs
+    """
+    if item in data:
+        try:
+            datapoint = data[item]
+            datapoint = expected_type(datapoint)
+            return True, datapoint
+        except Exception as e:
+            return False, f"Item '{item}' with value '{data[item]}' could not be parsed as type {expected_type}"
+    return None, f"Item '{item}' was null"
+
+def apply_entry_if_valid(element, key, data, item, expected_type=str, predicate=None, errors_dict=None):
+    """ If the data[item] is a valid type, will set the attribute of the object
+        If a predicate is given as a parameter, the data[item] must also pass the defined clause
+        If an error_dict is passed, the ValueError will be added to the dict
+
+        Returns:
+            1. boolean
+                -> describes the success state of the method
+            2. any[value, ValueError]
+                -> returns the value if successful
+                -> returns a descriptive value error on failure
+    """
+    success, res = validate_api_entry(item, data, expected_type)
+    if success is True:
+        if predicate is None or predicate(res):
+            setattr(element, key, data[item])
+            return True, res
+        else:
+            issue = ValueError(f"Item '{item}' with value '{data[item]}' failed predicate clause")
+            if errors_dict is not None:
+                errors_dict[key] = str(issue)
+            return False, issue
+    elif success is False:
+        if errors_dict is not None:
+            errors_dict[key] = res
+        return False, ValueError(res)
+    else:
+        if errors_dict is not None:
+            errors_dict[key] = res
+        return False, ValueError(res)
+
+#---------------------------------------
+
+
+#--- phenotypeworkingset validation ----
+def validate_phenotype_workingset_attribute(attribute):
+    """ Attempts to parse the given attribute's value as it's given datatype
+    
+        Returns:
+            1. boolean
+                -> describes success state
+            2. any[value, string]
+                -> returns value as the proposed datatype if successful
+                -> returns a description of the error if failure occurs
+    """
+    from clinicalcode.constants import PWS_ATTRIBUTE_TYPE_DATATYPE
+
+    proposed_type = attribute['type']
+    proposed_value = attribute['value']
+    
+    if proposed_type in PWS_ATTRIBUTE_TYPE_DATATYPE:
+        expected_type = PWS_ATTRIBUTE_TYPE_DATATYPE[proposed_type]
+        try:
+            value = expected_type(proposed_value)
+            return True, value
+        except:
+            return False, f"Attribute error: '{proposed_value}' could not be parsed as type '{proposed_type}', expected {expected_type}"
+    
+    is_case_issue = proposed_type.upper() in PWS_ATTRIBUTE_TYPE_DATATYPE
+    issue = f"Attribute error: Unknown type '{proposed_type}'"
+    if is_case_issue:
+        issue += f". Did you mean '{proposed_type.upper()}'?"
+        
+    return False, issue
+
+
+def validate_phenotype_workingset_attribute_group(attributes, errors_dict):
+    """
+        Iterates through the phenotypes_concepts_data (expects list as attribute group)
+        
+        Validates:
+            1. Concept_id and concept_version_id
+            2. Phenotype_id and phenotype_version_id
+            3. That each assoc. attribute is a dict of [name (str), type (str), value (str)]
+            4. That each value of each attribute can be parsed as the value of type
+        
+        Returns:
+            1. boolean
+                -> Describes success/validation state of the method call
+    """
+    import string
+    parse_ident = lambda x: int(str(x).strip(string.ascii_letters))
+
+    for element in attributes:
+        data = {
+            'concept_id': validate_api_entry('concept_id', element, str),
+            'concept_version_id': validate_api_entry('concept_version_id', element, int),
+            'phenotype_id': validate_api_entry('phenotype_id', element, str),
+            'phenotype_version_id': validate_api_entry('phenotype_version_id', element, int),
+            'attributes': validate_api_entry('Attributes', element, list),
+        }
+        
+        valid = [e[0] for e in data.values()]
+        data = {k: e[1] for k, e in data.items()}
+        if not all(valid):
+            issues = [list(data.values())[j] for j, v in enumerate(valid) if not v]
+            errors_dict['phenotypes_concepts_data'] = (
+                (errors_dict['phenotypes_concepts_data'] if 'phenotypes_concepts_data' in errors_dict else [])
+                + issues
+            )
+
+            continue
+
+        # validate pk and version id of both phenotype & concept
+        concept_id = parse_ident(data["concept_id"])
+        concept_version = parse_ident(data["concept_version_id"])
+        try:
+            concept = Concept.history.get(id=concept_id, history_id=concept_version)
+        except:
+            concept = None
+
+        if concept is None:
+            errors_dict['phenotypes_concepts_data'] = (
+                (errors_dict['phenotypes_concepts_data'] if 'phenotypes_concepts_data' in errors_dict else [])
+                + [f"Unable to find concept, concept_id and concept_version_id was invalid - ID: {data['concept_id']}, Version Id: {data['concept_version_id']}"]
+            )
+        
+        phenotype_id = parse_ident(data["phenotype_id"])
+        phenotype_version = parse_ident(data["phenotype_version_id"])
+        try:
+            phenotype = Phenotype.history.get(id=phenotype_id, history_id=phenotype_version)
+        except:
+            phenotype = None
+
+        if phenotype is None:
+            errors_dict['phenotypes_concepts_data'] = (
+                (errors_dict['phenotypes_concepts_data'] if 'phenotypes_concepts_data' in errors_dict else [])
+                + [f"Unable to find phenotype, phenotype_id and phenotype_version_id was invalid - ID: {data['phenotype_id']}, Version Id: {data['phenotype_version_id']}"]
+            )
+
+        # validate attributes
+        for attribute in data['attributes']:
+            attr = {
+                'name': validate_api_entry('name', attribute, str),
+                'type': validate_api_entry('type', attribute, str),
+                'value': validate_api_entry('value', attribute, str),
+            }
+
+            valid = [e[0] for e in attr.values()]
+            attr = {k: e[1] for k, e in attr.items()}
+            if not all(valid):
+                issues = [('Invalid attribute: ' + list(attr.values())[j]) for j, v in enumerate(valid) if not v]
+                errors_dict['phenotypes_concepts_data'] = (
+                    (errors_dict['phenotypes_concepts_data'] if 'phenotypes_concepts_data' in errors_dict else [])
+                    + issues
+                )
+
+                continue
+            
+            # validate the attribute value by its proposed type
+            is_typed_correctly, val = validate_phenotype_workingset_attribute(attribute)
+            if not is_typed_correctly:
+                errors_dict['phenotypes_concepts_data'] = (
+                    (errors_dict['phenotypes_concepts_data'] if 'phenotypes_concepts_data' in errors_dict else [])
+                    + [val]
+                )
+    
+    if not 'phenotypes_concepts_data' in errors_dict:
+        return True
+    
+    return False
+
+#---------------------------------------
+
 # pandas needs to be installed by "pip2"
 # pip2 install pandas
 
@@ -905,6 +1091,52 @@ def getHistoryConcept(concept_history_id, highlight_result=False, q_highlight=No
             
         return row_dict
 
+
+def getHistoryPhenotypeWorkingset(workingset_history_id):
+    ''' Get historic phenotypeworkingset based on a workingset history id '''
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            '''SELECT hw.created,
+        hw.modified,
+        hw.id,
+        hw.name,
+        hw.description,
+        hw.author,
+        hw.publications,
+        hw.citation_requirements,
+        hw.owner_id,
+        hw.group_id,
+        hw.tags,
+        hw.collections,
+        hw.owner_access,
+        hw.group_access,
+        hw.world_access,
+        hw.phenotypes_concepts_data,
+        hw.created_by_id,
+        hw.updated_by_id,
+        ucb.username as created_by_username,
+        umb.username as modified_by_username,
+        hw.history_id,
+        hw.history_date,
+        hw.history_change_reason,
+        hw.history_user_id,
+        uhu.username as history_user,
+        hw.history_type,
+        hw.is_deleted,
+        hw.deleted,
+        hw.deleted_by_id
+        FROM clinicalcode_historicalphenotypeworkingset AS hw
+        LEFT OUTER JOIN auth_user AS ucb on ucb.id = hw.created_by_id
+        LEFT OUTER JOIN auth_user AS umb on umb.id = hw.updated_by_id
+        LEFT OUTER JOIN auth_user AS uhu on uhu.id = hw.history_user_id
+        WHERE (hw.history_id = %s)''', [workingset_history_id])
+
+        col_names = [col[0] for col in cursor.description]
+        row = cursor.fetchone()
+        row_dict = dict(zip(col_names, row))
+
+        return row_dict
 
 def getHistoryWorkingset(workingset_history_id):
     ''' Get historic workingset based on a workingset history id '''
@@ -4420,25 +4652,27 @@ def chk_valid_id(request, set_class, pk, chk_permission=False):
             int_pk = int(pk[2:])        
         elif set_class == WorkingSet and pk[0:2].upper() == 'WS' and utils.isInt(pk[2:]):
             int_pk = int(pk[2:])
+        elif set_class == PhenotypeWorkingset and pk[0:2].upper() == 'WS' and utils.isInt(pk[2:]):
+            int_pk = int(pk[2:])
         else:
             is_valid_id = False
             err = 'ID must be a valid id.'
     else:
         int_pk = int(pk)
-        
-        
-    if set_class.objects.filter(pk=int_pk).count() == 0:
+
+    actual_pk = pk if set_class == PhenotypeWorkingset else int_pk
+    if set_class.objects.filter(pk=actual_pk).count() == 0:
         is_valid_id = False
         err = 'ID not found.'
 
     if chk_permission:
-        if not allowed_to_edit(request, set_class, int_pk):
+        if not allowed_to_edit(request, set_class, actual_pk):
             is_valid_id = False
             err = 'ID must be of a valid accessible entity.'
 
 
     if is_valid_id:
-        ret_int_id = set_class.objects.get(pk=int_pk).id
+        ret_int_id = set_class.objects.get(pk=actual_pk).id
 
     return is_valid_id, err, ret_int_id
 
