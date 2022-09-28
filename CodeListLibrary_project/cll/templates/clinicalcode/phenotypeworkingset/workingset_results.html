@@ -10,10 +10,19 @@
   <div class="cl-card {% if workingset.is_deleted is True %} cl-card-deleted{% endif %} {% cycle ' dark-div ' '' %}   "
                     {% if workingset.approval_status == 1 and workingset.owner_id == request.user.id or request.user|has_group:"Moderators" and workingset.approval_status == 1 %}title="Waiting for approval"{% endif %}>
     <div class="row form-group">
-      <div class="col-sm-12">
+      <div class="col-sm-8">
         <a class="" href="{% url 'phenotypeworkingset_history_detail' workingset.id workingset.history_id %}">
         <span style='font-size: 22px;margin-top:0;'>{{ workingset.id }} - {{ workingset.name_highlighted|safe }}</span>
         </a>				
+      </div>
+      <div class="col-sm-4 text-right">
+        <span class="badge card-date-badge">
+          {% if user.is_authenticated %}
+            <span class="card-date-block">Modified:</span><i class="card-noweight">{{ workingset.modified|date:"Y-m-d" }}</i>
+          {% else %}	
+            <span class="card-date-block">Published:</span><i class="card-noweight">{{ workingset.publish_date|date:"Y-m-d" }}</i>
+          {% endif %}
+        </span>
       </div>
     </div>
     
@@ -24,44 +33,17 @@
       </div>
 
     </div>
-    
     <div class="row form-group">
-      <div class="col-sm-4">
-        <!-- CodingSystems -->
-  <!-- 						{% for cs in all_CodingSystems %} -->
-  <!-- 							{% for cs_id in phenotype.clinical_terminologies %} -->
-  <!-- 								{% if cs.id == cs_id %} -->
-  <!-- 							   		<span class="badge">{{ cs.name }}</span> -->
-  <!-- 							   	{% endif %} -->
-  <!-- 							{% endfor %}						 -->
-  <!-- 						{% endfor %}	 -->
-      </div>
-      <div class="col-sm-4">
-        <i><strong>{{ workingset.type|get_ws_type_name }}</i></strong>
-      </div>	
-      <div class="col-sm-4">
-        {% if user.is_authenticated %}
-          <i>{{ workingset.modified|date:"Y-m-d" }}</i>
-        {% else %}	
-          <i>{{ workingset.publish_date|date:"Y-m-d" }}</i>
-        {% endif %}
-      </div>
-
-  <!-- 					<div class="col-sm-2 text-right">
-        {% if user.is_authenticated and workingset.is_published == 1 %}
-          <span title="{{ workingset.published }} on {{ workingset.publish_date|date:"Y-m-d" }}" style="text-align: right;" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
-        {% endif %}	
-      </div>	 -->
-    </div>
-    
-  {% if workingset.collections or workingset.tags %}
-    <div class="row form-group">
-      <div class="col-sm-12">
+      <div class="col-sm-4 text-left">
+        <span class="badge phenotype-type-badge card-tag-sizing"><i><strong>{{ workingset.type|get_ws_type_name }}</i></strong></span>
+      </div>			
+      {% if workingset.collections or workingset.tags %}
+      <div class="col-sm-8 text-right">
         <!-- collections -->
         {% for tag in allTags %}
           {% for tag_id in workingset.collections %}
             {% if tag.id == tag_id %}
-                <span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
+                <span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">#{{ tag.description }}</span>
               {% endif %}
           {% endfor %}						
         {% endfor %}			
@@ -70,16 +52,14 @@
         {% for tag in allTags %}
           {% for tag_id in workingset.tags %}
             {% if tag.id == tag_id %}
-                <span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
+                <span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">#{{ tag.description }}</span>
               {% endif %}
           {% endfor %}						
         {% endfor %}			
                 
-      </div>	
-    </div>						
-  {% endif %}								
-      
-    
+      </div>			
+      {% endif %}						
+    </div>			
   </div>				  
   <br> 
   {% empty %}

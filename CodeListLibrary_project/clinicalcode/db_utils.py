@@ -74,6 +74,23 @@ def get_order_from_parameter(parameter):
 page_size_limits = [20, 50, 100]
 #---------------------------------------
 
+#------------ phenotype gender ---------
+
+def try_parse_phenotype_gender(gender):
+    """ Attempts to parse the gender of a phenotype into an array
+        Required as the sex of a phenotype has no definitive deliminator
+
+        Returns:
+            1. Array [string, string] e.g. ['Female', 'Male']
+    
+    """
+    gender = gender.split()
+    gender = [''.join(e for e in x.lower() if e.isalpha()).capitalize() for x in gender]
+    return gender
+
+
+#---------------------------------------
+
 
 #------------ API data validation-------
 def validate_api_entry(item, data, expected_type=str):
@@ -4717,7 +4734,8 @@ def get_visible_live_or_published_phenotype_workingset_versions(request,
                                                     force_get_live_and_or_published_ver = None,  # used only with no login
                                                     search_name_only = True,
                                                     highlight_result = False,
-                                                    do_not_use_FTS = False                                               
+                                                    do_not_use_FTS = False,
+                                                    order_by=None                                              
                                                     ):
     ''' Get all visible live or published workingset versions 
     - return all columns
@@ -4890,22 +4908,25 @@ def get_visible_live_or_published_phenotype_workingset_versions(request,
         if brand_collection_ids:
             brand_filter_cond = " WHERE collections && '{" + ','.join(brand_collection_ids) + "}' "
 
-
     # order by clause
-    order_by = " ORDER BY id, history_id DESC "
+    order_by = " ORDER BY id, history_id DESC " if order_by is None else order_by
     if search != '':
         if search_name_only:
             # search name field only
             order_by =  """ 
                             ORDER BY rank_name DESC
-                                    , id, history_id DESC  
-                        """
+                                    , """ + order_by.replace(' ORDER BY ', '')
         else:
             # search all related fields
-            order_by =  """                          
-                            /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
-                            ORDER BY rank_name DESC, rank_author DESC , rank_all DESC
-                        """
+            if order_by != concept_order_default:
+                order_by =  """
+                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
+                                ORDER BY rank_name DESC, rank_author DESC , rank_all DESC, """ + order_by.replace(' ORDER BY ', '')
+            else:
+                order_by =  """
+                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
+                                ORDER BY rank_name DESC, rank_author DESC , rank_all DESC
+                            """    
                             
         
     with connection.cursor() as cursor:

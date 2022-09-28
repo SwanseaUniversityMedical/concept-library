@@ -211,8 +211,13 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
 
     tags = Tag.objects.filter(pk=-1)
     concept_tags = concept['tags']
+    has_collections = False
+    has_tags = False
     if concept_tags:
         tags = Tag.objects.filter(pk__in=concept_tags)
+
+        has_tags = tags.filter(tag_type=1).count() != 0
+        has_collections = tags.filter(tag_type=2).count() != 0
 
     #     tags =  Tag.objects.filter(pk=-1)
     #     tags_comp = db_utils.getHistoryTags(pk, concept_history_date)
@@ -315,6 +320,8 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
         'concept': concept,
         'components': components,
         'tags': tags,
+        'has_tags': has_tags,
+        'has_collections': has_collections,
         'user_can_edit': can_edit,
         'allowed_to_create': user_allowed_to_create,
         'user_can_export': user_can_export,
