@@ -109,7 +109,7 @@ def json_adjust_phenotype(request):
     if not request.user.is_superuser:
         raise PermissionDenied
 
-    if settings.CLL_READ_ONLY:
+    if settings.CLL_READ_ONLY or (not settings.IS_DEVELOPMENT_PC):
         raise PermissionDenied
 
     if request.method == 'GET':
@@ -163,7 +163,7 @@ def json_adjust_workingset(request):
     if not request.user.is_superuser:
         raise PermissionDenied
 
-    if settings.CLL_READ_ONLY:
+    if settings.CLL_READ_ONLY or (not settings.IS_DEVELOPMENT_PC):
         raise PermissionDenied
 
     if request.method == 'GET':
