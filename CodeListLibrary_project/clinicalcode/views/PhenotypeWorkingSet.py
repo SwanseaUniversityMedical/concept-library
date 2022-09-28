@@ -1,6 +1,5 @@
 
 import csv
-from gc import collect
 import json
 import logging
 import re
@@ -8,7 +7,6 @@ import time
 from collections import OrderedDict
 from datetime import datetime
 from collections import OrderedDict as ordr
-from typing import Type
 from django import forms
 from django.conf import settings
 from django.contrib import messages
