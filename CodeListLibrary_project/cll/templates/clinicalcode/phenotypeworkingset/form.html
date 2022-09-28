@@ -385,8 +385,7 @@
                         </div>
 
                         <div class="row-form-flex row">
-                            <button class="upload-button" id="add-data" type="button" aria-pressed="false"
-                                    data-toggle="modal" data-target="#myModal">
+                            <button class="upload-button" id="add-data" type="button">
                                 Upload
                             </button>
 
@@ -540,46 +539,49 @@
                     }
                 })
 
-
-                $('#attributes-table').show()
-                var table = createTable(numbers, dataset)
-                table.buttons().container()
-                    .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+                if ($.fn.dataTable.isDataTable('#attributes-table')) {
+                    var table = $('#attributes-table').DataTable();
+                    table.clear();
 
 
-                $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
-                $('#add-data').hide()
+                    let dataPrevious = $('#phenotypes_concepts_json').val()
+                    dataPrevious = JSON.parse(dataPrevious)
 
-            },
-            onClose: (service, selected) => {
-                // Left the modal with 'selected' being their current selection
-                console.log(selected)
+                    let newObject = removalue(dataPrevious)
+
+                    for (let i = 0; i < dataset.length; i++) {
+                        dataPrevious.push({
+                            ...newObject,
+                            ["Data"]: dataset[i].Data
+                        })
+                    }
+                    table.rows.add(dataPrevious).draw();
+                    $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
+                } else {
+                    $('#attributes-table').show()
+                    var table = createTable(numbers, service, dataset)
+                    table.buttons().container()
+                        .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+                    $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
+                }
+
+
+                $('#add-data').html('Add concept/phenotype')
+
 
             }
         });
 
 
-        var createTable = (numbers, dataset) => {
+        var createTable = (numbers, service, dataset) => {
             return $('#attributes-table').DataTable({
                 data: dataset,
                 buttons: [
                     {
-
-                        text: "Add Concept",
-                        className: "table-button",
-                        action: function (e, dt, node, config) {
-                            addColumn(numbers)
-                        },
-                        attr: {
-                            id: 'concept-add'
-                        }
-                    },
-                    {
-
                         text: "Add Column",
                         className: "table-button",
                         action: function (e, dt, node, config) {
-                            addColumn(numbers)
+                            addColumn(numbers, service)
                         },
                         attr: {
                             id: 'column-add'
@@ -609,7 +611,23 @@
         }
 
 
-        const addColumn = (numbers) => {
+        const removalue = (dataPrevious) => {
+            let removeVal = Object.entries(dataPrevious[0])
+            removeVal.forEach(element => {
+                let parse = new DOMParser().parseFromString(element[1], "text/html")
+                let input = parse.querySelector('*[id^="attribute-input"]');
+                if (input !== null) {
+                    input.setAttribute('value', '')
+                    element[1] = $(input)[0].outerHTML
+                }
+                return element
+
+            })
+            let newObject = Object.fromEntries(removeVal)
+            return newObject
+        }
+
+        const addColumn = (numbers, service) => {
             let dataPrevious = $('#phenotypes_concepts_json').val()
 
             dataPrevious = JSON.parse(dataPrevious)
@@ -636,14 +654,12 @@
 
             let columns = [{data: "Data", title: "Data"}]
             let headers = Object.entries(dataset[0])
-            for (let i=0;i<headers.length-1;i++) {
-                if(headers[i][0].startsWith('Attributes-row')){
-                    columns.push({data: headers[i][0], title: headers[i+1][1]})
+            for (let i = 0; i < headers.length - 1; i++) {
+                if (headers[i][0].startsWith('Attributes-row')) {
+                    columns.push({data: headers[i][0], title: headers[i + 1][1]})
                 }
             }
             numbers++
-            console.log(dataset)
-            console.log(columns)
 
 
             if ($.fn.DataTable.isDataTable('#attributes-table')) {
@@ -653,17 +669,6 @@
                         data: dataset,
                         columns: columns,
                         buttons: [
-                            {
-
-                                text: "Add Concept",
-                                className: "table-button",
-                                action: function (e, dt, node, config) {
-                                    addColumn(numbers)
-                                },
-                                attr: {
-                                    id: 'concept-add'
-                                }
-                            },
                             {
 
                                 text: "Add Column",
@@ -676,7 +681,6 @@
                                 }
                             },
                             {
-
                                 text: "Delete row",
                                 className: "table-button",
                                 attr: {
@@ -742,6 +746,7 @@
             var selectval = event.target.value
             inputheader(selectval)
         }
+
 
         $('#attributes-table').on('input', function () {
             var table = $('#attributes-table').DataTable()
