@@ -1109,12 +1109,40 @@ def getHistoryConcept(concept_history_id, highlight_result=False, q_highlight=No
         return row_dict
 
 
-def getHistoryPhenotypeWorkingset(workingset_history_id):
+def getHistoryPhenotypeWorkingset(workingset_history_id, highlight_result=False, q_highlight=None):
     ''' Get historic phenotypeworkingset based on a workingset history id '''
 
+    sql_params = []
+    highlight_columns = ""
+    if highlight_result and q_highlight is not None:
+        # for highlighting
+        if str(q_highlight).strip() != '':
+            sql_params += [str(q_highlight)] * 4
+            highlight_columns += """ 
+                ts_headline('english', coalesce(hw.name, '')
+                        , websearch_to_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as name_highlighted,  
+
+                ts_headline('english', coalesce(hw.author, '')
+                        , websearch_to_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as author_highlighted,                                              
+               
+                ts_headline('english', coalesce(hw.description, '')
+                        , websearch_to_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=hightlight-txt > ", StopSel="</b>"') as description_highlighted,                                                                                            
+                                                              
+                ts_headline('english', coalesce(array_to_string(hw.publications, '^$^'), '')
+                        , websearch_to_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publications_highlighted,                                              
+             """
+                     
+    sql_params.append(workingset_history_id)
+
     with connection.cursor() as cursor:
-        cursor.execute(
-            '''SELECT hw.created,
+        cursor.execute("""
+        SELECT 
+        """ + highlight_columns + """
+        hw.created,
         hw.modified,
         hw.id,
         hw.name,
@@ -1125,6 +1153,8 @@ def getHistoryPhenotypeWorkingset(workingset_history_id):
         hw.owner_id,
         hw.group_id,
         hw.tags,
+        hw.type,
+        hw.data_sources,
         hw.collections,
         hw.owner_access,
         hw.group_access,
@@ -1147,11 +1177,19 @@ def getHistoryPhenotypeWorkingset(workingset_history_id):
         LEFT OUTER JOIN auth_user AS ucb on ucb.id = hw.created_by_id
         LEFT OUTER JOIN auth_user AS umb on umb.id = hw.updated_by_id
         LEFT OUTER JOIN auth_user AS uhu on uhu.id = hw.history_user_id
-        WHERE (hw.history_id = %s)''', [workingset_history_id])
+        WHERE (hw.history_id = %s)""", sql_params)
 
         col_names = [col[0] for col in cursor.description]
         row = cursor.fetchone()
         row_dict = dict(zip(col_names, row))
+
+        if highlight_columns != '':
+            row_dict['publications_highlighted'] = row_dict['publications_highlighted'].split('^$^')
+        else:
+            row_dict['name_highlighted'] = row_dict['name']
+            row_dict['author_highlighted'] = row_dict['author']
+            row_dict['description_highlighted'] = row_dict['description']
+            row_dict['publications_highlighted'] = row_dict['publications']
 
         return row_dict
 
@@ -4712,7 +4750,7 @@ def is_referred_from_search_page(request):
     
     url = HTTP_REFERER.split('?')[0]
     url = url.lower()
-    if url.endswith('/phenotypes/') or url.endswith('/concepts/'):
+    if url.endswith('/phenotypes/') or url.endswith('/concepts/') or url.endswith('/phenotypeworkingsets/'):
         return True
     else:
         return False

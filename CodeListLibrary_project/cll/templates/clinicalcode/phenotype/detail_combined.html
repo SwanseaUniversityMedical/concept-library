@@ -365,7 +365,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
 						{% if has_collections %}
 							{% for tag in tags %}
 								{% if tag.tag_type == 2 %}
-								<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
+								<span class="tag label label-{{ tag.get_display_display }} card-edit-sizing">{{ tag.description }}</span>
 								{% endif %}
 							{% endfor %}	
 						{% else %}
@@ -380,7 +380,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
 						{% if has_tags %}
 							{% for tag in tags %}
 								{% if tag.tag_type == 1 %}
-								<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
+								<span class="tag label label-{{ tag.get_display_display }} card-edit-sizing">{{ tag.description }}</span>
 								{% endif %}
 							{% endfor %}	
 						{% else %}
