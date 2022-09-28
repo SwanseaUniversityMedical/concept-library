@@ -26,6 +26,7 @@ from psycopg2.errorcodes import INVALID_PARAMETER_VALUE
 from simple_history.utils import update_change_reason
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
 from django.db.models.functions import Lower
+from string import ascii_letters
 
 from . import utils, tasks
 from .models import *
@@ -93,6 +94,9 @@ def try_parse_phenotype_gender(gender):
 
 
 #------------ API data validation-------
+
+parse_ident = lambda x: int(str(x).strip(ascii_letters))
+
 def validate_api_entry(item, data, expected_type=str):
     """ Attempts to parse the item in data as the expected type
     
@@ -194,9 +198,6 @@ def validate_phenotype_workingset_attribute_group(attributes, errors_dict):
             1. boolean
                 -> Describes success/validation state of the method call
     """
-    import string
-    parse_ident = lambda x: int(str(x).strip(string.ascii_letters))
-
     for element in attributes:
         data = {
             'concept_id': validate_api_entry('concept_id', element, str),

@@ -30,7 +30,7 @@
 		<tr>
 			<td>{{ history.history_id }}</td>
 			<td>
-				<a class="" href="{% url 'phenotype_history_detail' pk=history.id phenotype_history_id=history.history_id %}">	
+				<a class="" href="{% url 'phenotypeworkingset_history_detail' pk=workingset.id workingset_history_id=workingset.history_id %}">	
 				{% if history.name_highlighted|length %}
 					{{ history.name_highlighted|safe }}
 				{% else %}
@@ -62,14 +62,9 @@
 				<td>{{ history.publish_date|date:"Y-m-d" }}</td>
 			{% endif %}			
 			<td class="text-right">
-				{% if current_phenotype_history_id == history.history_id %}
+				{% if current_workingset_history_id == history.history_id %}
 					<span class="help-block-no-break" style="font-size: 10px;">currently shown</span>
 				{% endif %}
-<!-- 				<a class="" href="{% url 'phenotype_history_detail' pk=history.id phenotype_history_id=history.history_id %}">			 -->
-<!-- 					<button type="button" class="btn btn-info btn-xs" data-container="body" data-toggle="" data-html="true" data-placement="left"  data-trigger="hover"> -->
-<!-- 						<i class="glyphicon glyphicon-search"> </i> -->
-<!-- 					</button>			 -->
-<!-- 				</a> -->
 			</td>
 		</tr>
 	{% empty %}
