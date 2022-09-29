@@ -637,13 +637,13 @@
                 dataPrevious[i] = {
                     ...dataPrevious[i],
                     ["Attributes-row" + numbers]: `<input class="input-material" type="text"  style="width:100%" id="attribute-input-${numbers}"/>`,
-                    ["Attributes-column" + numbers]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=changeHeader() id="column_type${numbers}">'
-						    +'<option selected >Type</option>'
+                    ["Attributes-select" + numbers]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=selectHeader() id="column_type${numbers}">'
+						    +'<option  value="0" selected >Type</option>'
 						    +'<option value="1">INT</option>'
 						    +'<option value="2">FLOAT</option>'
 						    +'<option value="3">STRING</option>'
-						  +'</select>
-<input class="input-material" type="text"  oninput = inputheader() placeholder="Attribute name"  id="attribute-header${numbers}"/>`
+						  +'</select>`,
+                    ['Attributes-header' + numbers]: `<input class="input-material" type="text"  oninput = inputheader() placeholder="Attribute name"  id="attribute-header${numbers}"/>`
                 }
             }
 
@@ -656,7 +656,8 @@
             let headers = Object.entries(dataset[0])
             for (let i = 0; i < headers.length - 1; i++) {
                 if (headers[i][0].startsWith('Attributes-row')) {
-                    columns.push({data: headers[i][0], title: headers[i + 1][1]})
+
+                    columns.push({data: headers[i][0], title: headers[i + 1][1] + headers[i + 2][1]})
                 }
             }
             numbers++
@@ -693,7 +694,7 @@
                             left: 1
                         },
                         scrollX: true,
-                        scrollY: '50vh',
+                        scrollY: '80vh',
                         scrollCollapse: true,
                         colReorder: true,
                         paging: false,
@@ -717,24 +718,18 @@
 
         }
 
-        const inputheader = (selectval) => {
+        const inputheader = () => {
 
             var table = $('#attributes-table').DataTable()
             table.columns().eq(0).each(function () {
-                var val = event.target.value
+                let val = event.target.value
                 let index = event.target.id.match(/\d+/)[0]
                 let dataPrevious = $('#phenotypes_concepts_json').val()
 
 
                 dataPrevious = JSON.parse(dataPrevious)
                 for (let i = 0; i < dataPrevious.length; i++) {
-                    dataPrevious[i]['Attributes-column' + (index)] = `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=changeHeader() id="column_type${index}">'
-						    +'<option selected >Type</option>'
-						    +'<option value="1">INT</option>'
-						    +'<option value="2">FLOAT</option>'
-						    +'<option value="3">STRING</option>'
-						  +'</select>
-<input class="input-material" type="text" value="${val}" oninput = inputheader() placeholder="Attribute name"  id="attribute-header${index}"/>`
+                    dataPrevious[i]['Attributes-header' + (index)] = `<input class="input-material" type="text" value="${val}" oninput = inputheader() placeholder="Attribute name"  id="attribute-header${index}"/>`
                     $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
                 }
 
@@ -742,9 +737,37 @@
             });
         }
 
-        const changeHeader = () => {
-            var selectval = event.target.value
-            inputheader(selectval)
+        const selectHeader = () => {
+            let val = event.target.value
+            let index = event.target.id.match(/\d+/)[0]
+            console.log(val)
+
+            let dataPrevious = $('#phenotypes_concepts_json').val()
+
+            dataPrevious = JSON.parse(dataPrevious)
+            let updatedSelect = changeSelectValue(val, index)
+            console.log(updatedSelect)
+            for (let i = 0; i < dataPrevious.length; i++) {
+                dataPrevious[i]['Attributes-select' + (index)] = `${updatedSelect}`
+                $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
+            }
+
+
+        }
+
+
+        const changeSelectValue = (val, index) => {
+            let element = `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=selectHeader() id="column_type${index}">'
+						    +'<option value="0">Type</option>'
+						    +'<option value="1">INT</option>'
+						    +'<option value="2">FLOAT</option>'
+						    +'<option value="3">STRING</option>'
+						  +'</select>`
+            let parse = new DOMParser().parseFromString(element, "text/html")
+            let select = parse.querySelector('*[id^="column_type"]')
+            select.options[val].defaultSelected = true
+            return $(select)[0].outerHTML
+
         }
 
 
