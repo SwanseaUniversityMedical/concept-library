@@ -573,6 +573,7 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
                                                     conditions='',
                                                     is_authenticated_user=is_authenticated_user)
     
+
     selected_phenotype_types_list, filter_cond = apply_filter_condition(query='phenotype_type', selected=selected_phenotype_types, conditions=filter_cond, data=phenotype_types_list)
    
     

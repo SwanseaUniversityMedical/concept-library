@@ -58,4 +58,22 @@ APPROVED_STATUS = ((APPROVAL_REQUESTED, 'Requested'),
                    (REJECTED, 'Rejected'))
     
     
-    
+Disease = 0
+Biomarker = 1
+Drug = 2
+Lifestyle_risk_factor = 3
+Musculoskeletal = 4
+Surgical_procedure = 5
+Type_status = ((Disease, 'Disease or syndrome '),
+               (Biomarker,'Biomarker'),(Drug,'Drug'),
+               (Lifestyle_risk_factor,'Lifestyle risk factor'),
+               (Musculoskeletal,'Musculoskeletal'),
+               (Surgical_procedure,'Surgical procedure'))
+
+
+PWS_ATTRIBUTE_TYPES = ['INT', 'FLOAT', 'STRING']
+PWS_ATTRIBUTE_TYPE_DATATYPE = {
+    'INT': int,
+    'FLOAT': float,
+    'STRING': str,
+}

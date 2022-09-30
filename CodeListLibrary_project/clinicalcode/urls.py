@@ -12,7 +12,7 @@ from django.contrib.auth import views as auth_views
 
 from .views import (Admin, ComponentConcept, ComponentExpression,
                     ComponentQueryBuilder, Concept, Phenotype, View,
-                    WorkingSet, adminTemp, site)
+                    WorkingSet, WorkingSetSelection, PhenotypeWorkingSet, adminTemp, site)
 
 from django.urls import path
 from django.views.generic.base import TemplateView
@@ -25,6 +25,8 @@ urlpatterns = [
     url(r'^home/$', View.index, name='concept_library_home2'),
     url(r'^concepts/$', Concept.concept_list, name='concept_list'),
     url(r'^workingsets/$', WorkingSet.workingset_list, name='workingset_list'),
+    url(r'^workingsets/select-concepts/$', WorkingSetSelection.selection_list, name='selection_list'),
+    url(r'^phenotypeworkingsets/$', PhenotypeWorkingSet.workingset_list, name='phenotypeworkingsets_list'),
     url(r'^phenotypes/$', Phenotype.phenotype_list, name='phenotype_list'),
     
     url(r'^cookies-settings/$', View.cookies_settings, name='cookies_settings'),
@@ -103,6 +105,55 @@ urlpatterns += [
         Admin.get_caliberresearch_url_source,
         name='get_caliberresearch_url_source'),
 ]
+
+# ======== Phenotypes Working Sets ==============================================================================
+# add URLConf to create, update, and delete Phenotypes Working Sets
+urlpatterns += [
+    url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/detail/$',
+        PhenotypeWorkingSet.WorkingsetDetail_combined,
+        name='phenotypeworkingset_detail'),
+    url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/detail/$',
+        PhenotypeWorkingSet.WorkingsetDetail_combined,
+        name='phenotypeworkingset_history_detail'),
+    url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/export/codes/$',
+        PhenotypeWorkingSet.history_workingset_codes_to_csv,
+        name='latestVersion_phenotypeworkingset_codes_to_csv'),
+    url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/export/codes/$',
+        PhenotypeWorkingSet.history_workingset_codes_to_csv,
+        name='history_phenotypeworkingset_codes_to_csv'),    
+    url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/uniquecodesbyversion/(?P<workingset_history_id>\d+)/concept/C(?P<target_concept_id>\d+)/(?P<target_concept_history_id>\d+)/$',
+        PhenotypeWorkingSet.workingset_conceptcodesByVersion,
+        name='phenotypeworkingset_conceptcodesByVersion'),
+]
+
+if not settings.CLL_READ_ONLY:
+    urlpatterns += [
+        url(r'^phenotypeworkingsets/create/$',
+            PhenotypeWorkingSet.WorkingSetCreate.as_view(),
+            name='phenotypeworkingset_create'),
+        
+        # temp create test DB ws
+        url(r'^phenotypeworkingsets/create-test-db/$',
+            PhenotypeWorkingSet.phenotype_workingset_DB_test_create,
+            name='phenotype_workingset_DB_test_create'),
+
+
+        url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/update/$',
+            PhenotypeWorkingSet.WorkingSetUpdate.as_view(),
+            name='phenotypeworkingset_update'),
+
+        url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/delete/$',
+            PhenotypeWorkingSet.WorkingSetDelete.as_view(),
+            name='phenotypeworkingset_delete'),
+
+        url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/revert/$',
+            PhenotypeWorkingSet.workingset_history_revert,
+            name='phenotypeworkingset_history_revert'),
+        
+        url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/restore/$',
+            PhenotypeWorkingSet.WorkingSetRestore.as_view(),
+            name='phenotypeworkingset_create_restore'),
+    ]
 
 
 # ======== Phenotypes ==============================================================================

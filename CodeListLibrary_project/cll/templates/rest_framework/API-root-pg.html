@@ -40,6 +40,9 @@
 	{% if request.BRAND_OBJECT.allowed_tabs is none or 'workingsets' in request.BRAND_OBJECT.allowed_tabs %}
 		<li><a data-toggle="tab" href="#Working-Sets"><strong>Working Sets</strong></a></li>
 	{% endif %}
+	{% if request.BRAND_OBJECT.allowed_tabs is none or 'phenotypeworkingsets' in request.BRAND_OBJECT.allowed_tabs %}
+		<li><a data-toggle="tab" href="#Phenotype-Working-Sets"><strong>Phenotype Working Sets</strong></a></li>
+	{% endif %}
 	<li><a data-toggle="tab" href="#tags"><strong>Tags</strong></a></li>
 	<li><a data-toggle="tab" href="#collections"><strong>Collections</strong></a></li>
 </ul>
@@ -335,6 +338,99 @@
 		    </div>
 		   {% endif %}	
 	    {% endif %}	
+							
+			</ol>
+
+	  </div>
+{% endif %}
+<!-- ===============================================================  -->	  	  
+<!-- ===============================================================  -->	
+{% if request.BRAND_OBJECT.allowed_tabs is none or 'phenotypeworkingsets' in request.BRAND_OBJECT.allowed_tabs %}  
+	  <!-- working sets -->
+	  <div id="Phenotype-Working-Sets" class="tab-pane fade">
+	   	<h2>Phenotype Working Sets:</h2>
+		<h2>Authenticated APIs:</h2><div class="alert  alert-success" role="alert">
+		<p>Authenticated APIs return both public content and content that has not yet been published. A user account is required.</p>
+		</div>
+		<ol>
+		
+		<li><h3 class="pt-3">List/Search phenotype working sets</h3></li>
+    	<div>    
+		   <p style="padding-top: 10px;">Lists all available phenotype working sets <em>for the user</em>.</p>
+		   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> <a  href="{% url 'api:phenotypeworkingsets' %}" target="_blank" class="alert-link">{% url 'api:phenotypeworkingsets' %}</a></code></pre>
+		   <p style="padding-top: 10px;">
+	   	  	 User can search with criteria using a combinations of querystring parameters: <br>
+					<ul>
+						<li><code>?search=Alcohol</code><br>
+						search by part of working set name (do not put wild characters here)</li>
+					<li><code>?tag_ids=1</code><br>
+					Query by tag IDs
+					</li> 
+					<li><code>?collection_ids=18</code><br>
+					Query by collection IDs
+					</li> 
+					<li><code>?data_source_ids=1</code><br>
+					Specify the data source of the phenotype
+					</li> 
+					<li><code>?selected_workingset_types=0</code><br>
+					Specify the working set type<br>
+							You can get all available types from the <code><a href="{% url 'reference_data' %}" target="_blank" class="alert-link">reference data page</a></code>
+					</li>
+					<li><code>?start_date=2018-01-01&end_date=2022-08-25</code><br>
+					Specify the date range of your query
+					</li> 
+					<li><code>?show_only_my_workingsets=1</code><br>
+					Only show working sets owned by me</li>
+					<li><code>?show_deleted_workingsets=1</code><br>
+					will show also deleted working sets (by default, deleted objects are not shown)</li>
+					<li><code>?brand=ADP</code><br>
+					will show only working sets with brand=ADP</li>
+					<li><code>?author=moh</code><br>
+					search by part of the author name</li>
+					<li><code>?owner_username=a.john</code><br>
+					search by full username of the owner</li>
+					<li><code>?do_not_show_versions=1</code><br>
+					do not show working sets versions (by default, all working set version ids are shown)</li>
+	            </ul>
+	          (<code>Example: {% url 'api:phenotypeworkingsets' %}?author=m&brand=adp&tag_ids=11</code>)
+	    	</p>
+		</div>
+
+		<li><h3 class="pt-3">List working set by id</h3></li>
+    	<div>    
+		   <p style="padding-top: 10px;">Lists a working set by id <em>for the user</em>.</p>
+		   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ phenotypeworkingset_by_id }}</code></pre>
+		</div>
+		
+		<li><h3 class="pt-3">List working set detail (latest version)</h3></li>
+    	<div>    
+		   <p style="padding-top: 10px;">Lists the phenotype detail <em>of the latest version</em>.</p>
+		   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_phenotypeworkingset_detail }}</code></pre>
+		</div>	      		      
+	      
+	    <li><h3 class="pt-3">List working set detail (of a specific version)</h3></li>
+    	<div>    
+		   <p style="padding-top: 10px;">Lists the phenotype detail <em>of the specified version</em>.</p>
+		   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_phenotypeworkingset_detail_version }}</code></pre>   
+		</div>		
+			
+        <li><h3 class="pt-3">Export the code list of a specific version of a working set</h3></li>
+        <div>    
+         <p style="padding-top: 10px;"> Exports the code list of<em> the latest version</em> of a working set <em>for the user</em>.</p>
+         <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_export_phenotypeworkingset_codes_latestVersion }}</code></pre>
+        </div>
+        
+        <div>    
+         <p style="padding-top: 10px;"> Exports the code list of<em> a specific version</em> of a working set <em>for the user</em>.</p>
+         <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_export_phenotypeworkingset_codes_byVersionID }}</code></pre>
+        </div>        
+    			
+
+	    <li><h3 class="pt-3">List the versions of a working set</h3></li>
+    	<div>    
+		   <p style="padding-top: 10px;"> Lists all the versions of the working set <em>for the user</em>.</p>
+		   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ get_phenotypeworkingset_versions }}</code></pre>
+		</div>
 							
 			</ol>
 

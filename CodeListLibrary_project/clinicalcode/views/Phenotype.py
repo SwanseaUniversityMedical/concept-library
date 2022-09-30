@@ -398,13 +398,22 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
 
     tags = Tag.objects.filter(pk=-1)
     phenotype_tags = phenotype['tags']
+
+    has_tags = False
+    has_collections = False
     if phenotype_tags:
         tags = Tag.objects.filter(pk__in=phenotype_tags)
+
+        has_tags = tags.filter(tag_type=1).count() != 0
+        has_collections = tags.filter(tag_type=2).count() != 0
 
     data_sources = DataSource.objects.filter(pk=-1)
     phenotype_data_sources = phenotype['data_sources']  
     if phenotype_data_sources:
         data_sources = DataSource.objects.filter(pk__in=phenotype_data_sources)
+
+    # ------------------------- parse sex ----------------------------------
+    phenotype_gender = db_utils.try_parse_phenotype_gender(phenotype['sex'])
 
     # ----------------------------------------------------------------------
     concept_id_list = []
@@ -534,6 +543,9 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         'phenotype': phenotype,
         'concept_informations': json.dumps(phenotype['concept_informations']),
         'tags': tags,
+        'gender': phenotype_gender,
+        'has_tags': has_tags,
+        'has_collections': has_collections,
         'data_sources': data_sources,
         'clinicalTerminologies': clinicalTerminologies,
         'user_can_edit': False,  # for now  #can_edit,

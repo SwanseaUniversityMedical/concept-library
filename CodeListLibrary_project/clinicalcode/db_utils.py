@@ -44,6 +44,252 @@ def get_order_from_parameter(parameter):
 page_size_limits = [20, 50, 100]
 #---------------------------------------
 
+#--------- Filter queries --------------
+filter_queries = {
+    'tags': 0,
+    'collections': 0,
+    'clinical_terminologies': 0,
+    'data_sources': 0,
+    'coding_system_id': 1,
+    'phenotype_type': 2,
+    'workingset_type': 3,
+    'daterange': 4
+}
+
+filter_query_model = {
+    'tags': Tag,
+    'collections': Tag,
+    'clinical_terminologies': CodingSystem,
+    'coding_system_id': CodingSystem,
+    'data_sources': DataSource
+}
+
+#---------------------------------------
+
+#--------- Order queries ---------------
+concept_order_queries = {
+    'Relevance': ' ORDER BY id, history_id DESC ',
+    'Created (Desc)': ' ORDER BY created DESC ',
+    'Created (Asc)': ' ORDER BY created ASC ',
+    'Last Updated (Desc)': ' ORDER BY modified DESC ',
+    'Last Updated (Asc)': ' ORDER BY modified ASC '
+}
+concept_order_default = list(concept_order_queries.values())[0]
+
+def get_order_from_parameter(parameter):
+    if parameter in concept_order_queries:
+        return concept_order_queries[parameter]
+    return concept_order_default
+
+#---------------------------------------
+
+#------------ pagination lims ----------
+page_size_limits = [20, 50, 100]
+#---------------------------------------
+
+#------------ phenotype gender ---------
+
+def try_parse_phenotype_gender(gender):
+    """ Attempts to parse the gender of a phenotype into an array
+        Required as the sex of a phenotype has no definitive deliminator
+
+        Returns:
+            1. Array [string, string] e.g. ['Female', 'Male']
+    
+    """
+    gender = '/'.join(gender.split(',')).split('/')
+    gender = [''.join(e for e in x.lower() if e.isalpha()).capitalize() for x in gender]
+    return gender
+
+
+#---------------------------------------
+
+
+#------------ API data validation-------
+def validate_api_entry(item, data, expected_type=str):
+    """ Attempts to parse the item in data as the expected type
+    
+        Returns:
+            1. any[true, false, none]
+                -> True if successful
+                -> False if unable to parse
+                -> None if item[data] is not indexable
+            2. result
+                -> returns parsed value if successful
+                -> returns a description of the error if failure occurs
+    """
+    if item in data:
+        try:
+            datapoint = data[item]
+            datapoint = expected_type(datapoint)
+            return True, datapoint
+        except Exception as e:
+            return False, f"Item '{item}' with value '{data[item]}' could not be parsed as type {expected_type}"
+    return None, f"Item '{item}' was null"
+
+def apply_entry_if_valid(element, key, data, item, expected_type=str, predicate=None, errors_dict=None):
+    """ If the data[item] is a valid type, will set the attribute of the object
+        If a predicate is given as a parameter, the data[item] must also pass the defined clause
+        If an error_dict is passed, the ValueError will be added to the dict
+
+        Returns:
+            1. boolean
+                -> describes the success state of the method
+            2. any[value, ValueError]
+                -> returns the value if successful
+                -> returns a descriptive value error on failure
+    """
+    success, res = validate_api_entry(item, data, expected_type)
+    if success is True:
+        if predicate is None or predicate(res):
+            setattr(element, key, data[item])
+            return True, res
+        else:
+            issue = ValueError(f"Item '{item}' with value '{data[item]}' failed predicate clause")
+            if errors_dict is not None:
+                errors_dict[key] = str(issue)
+            return False, issue
+    elif success is False:
+        if errors_dict is not None:
+            errors_dict[key] = res
+        return False, ValueError(res)
+    else:
+        if errors_dict is not None:
+            errors_dict[key] = res
+        return False, ValueError(res)
+
+#---------------------------------------
+
+
+#--- phenotypeworkingset validation ----
+def validate_phenotype_workingset_attribute(attribute):
+    """ Attempts to parse the given attribute's value as it's given datatype
+    
+        Returns:
+            1. boolean
+                -> describes success state
+            2. any[value, string]
+                -> returns value as the proposed datatype if successful
+                -> returns a description of the error if failure occurs
+    """
+    from clinicalcode.constants import PWS_ATTRIBUTE_TYPE_DATATYPE
+
+    proposed_type = attribute['type']
+    proposed_value = attribute['value']
+    
+    if proposed_type in PWS_ATTRIBUTE_TYPE_DATATYPE:
+        expected_type = PWS_ATTRIBUTE_TYPE_DATATYPE[proposed_type]
+        try:
+            value = expected_type(proposed_value)
+            return True, value
+        except:
+            return False, f"Attribute error: '{proposed_value}' could not be parsed as type '{proposed_type}', expected {expected_type}"
+    
+    is_case_issue = proposed_type.upper() in PWS_ATTRIBUTE_TYPE_DATATYPE
+    issue = f"Attribute error: Unknown type '{proposed_type}'"
+    if is_case_issue:
+        issue += f". Did you mean '{proposed_type.upper()}'?"
+        
+    return False, issue
+
+
+def validate_phenotype_workingset_attribute_group(attributes, errors_dict):
+    """
+        Iterates through the phenotypes_concepts_data (expects list as attribute group)
+        
+        Validates:
+            1. Concept_id and concept_version_id
+            2. Phenotype_id and phenotype_version_id
+            3. That each assoc. attribute is a dict of [name (str), type (str), value (str)]
+            4. That each value of each attribute can be parsed as the value of type
+        
+        Returns:
+            1. boolean
+                -> Describes success/validation state of the method call
+    """
+    import string
+    parse_ident = lambda x: int(str(x).strip(string.ascii_letters))
+
+    for element in attributes:
+        data = {
+            'concept_id': validate_api_entry('concept_id', element, str),
+            'concept_version_id': validate_api_entry('concept_version_id', element, int),
+            'phenotype_id': validate_api_entry('phenotype_id', element, str),
+            'phenotype_version_id': validate_api_entry('phenotype_version_id', element, int),
+            'attributes': validate_api_entry('Attributes', element, list),
+        }
+        
+        valid = [e[0] for e in data.values()]
+        data = {k: e[1] for k, e in data.items()}
+        if not all(valid):
+            issues = [list(data.values())[j] for j, v in enumerate(valid) if not v]
+            errors_dict['phenotypes_concepts_data'] = (
+                (errors_dict['phenotypes_concepts_data'] if 'phenotypes_concepts_data' in errors_dict else [])
+                + issues
+            )
+
+            continue
+
+        # validate pk and version id of both phenotype & concept
+        concept_id = parse_ident(data["concept_id"])
+        concept_version = parse_ident(data["concept_version_id"])
+        try:
+            concept = Concept.history.get(id=concept_id, history_id=concept_version)
+        except:
+            concept = None
+
+        if concept is None:
+            errors_dict['phenotypes_concepts_data'] = (
+                (errors_dict['phenotypes_concepts_data'] if 'phenotypes_concepts_data' in errors_dict else [])
+                + [f"Unable to find concept, concept_id and concept_version_id was invalid - ID: {data['concept_id']}, Version Id: {data['concept_version_id']}"]
+            )
+        
+        phenotype_id = parse_ident(data["phenotype_id"])
+        phenotype_version = parse_ident(data["phenotype_version_id"])
+        try:
+            phenotype = Phenotype.history.get(id=phenotype_id, history_id=phenotype_version)
+        except:
+            phenotype = None
+
+        if phenotype is None:
+            errors_dict['phenotypes_concepts_data'] = (
+                (errors_dict['phenotypes_concepts_data'] if 'phenotypes_concepts_data' in errors_dict else [])
+                + [f"Unable to find phenotype, phenotype_id and phenotype_version_id was invalid - ID: {data['phenotype_id']}, Version Id: {data['phenotype_version_id']}"]
+            )
+
+        # validate attributes
+        for attribute in data['attributes']:
+            attr = {
+                'name': validate_api_entry('name', attribute, str),
+                'type': validate_api_entry('type', attribute, str),
+                'value': validate_api_entry('value', attribute, str),
+            }
+
+            valid = [e[0] for e in attr.values()]
+            attr = {k: e[1] for k, e in attr.items()}
+            if not all(valid):
+                issues = [('Invalid attribute: ' + list(attr.values())[j]) for j, v in enumerate(valid) if not v]
+                errors_dict['phenotypes_concepts_data'] = (
+                    (errors_dict['phenotypes_concepts_data'] if 'phenotypes_concepts_data' in errors_dict else [])
+                    + issues
+                )
+
+                continue
+            
+            # validate the attribute value by its proposed type
+            is_typed_correctly, val = validate_phenotype_workingset_attribute(attribute)
+            if not is_typed_correctly:
+                errors_dict['phenotypes_concepts_data'] = (
+                    (errors_dict['phenotypes_concepts_data'] if 'phenotypes_concepts_data' in errors_dict else [])
+                    + [val]
+                )
+    
+    if not 'phenotypes_concepts_data' in errors_dict:
+        return True
+    
+    return False
+
+#---------------------------------------
 
 # pandas needs to be installed by "pip2"
 # pip2 install pandas
@@ -839,6 +1085,52 @@ def getHistoryConcept(concept_history_id, highlight_result=False, q_highlight=No
             
         return row_dict
 
+
+def getHistoryPhenotypeWorkingset(workingset_history_id):
+    ''' Get historic phenotypeworkingset based on a workingset history id '''
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            '''SELECT hw.created,
+        hw.modified,
+        hw.id,
+        hw.name,
+        hw.description,
+        hw.author,
+        hw.publications,
+        hw.citation_requirements,
+        hw.owner_id,
+        hw.group_id,
+        hw.tags,
+        hw.collections,
+        hw.owner_access,
+        hw.group_access,
+        hw.world_access,
+        hw.phenotypes_concepts_data,
+        hw.created_by_id,
+        hw.updated_by_id,
+        ucb.username as created_by_username,
+        umb.username as modified_by_username,
+        hw.history_id,
+        hw.history_date,
+        hw.history_change_reason,
+        hw.history_user_id,
+        uhu.username as history_user,
+        hw.history_type,
+        hw.is_deleted,
+        hw.deleted,
+        hw.deleted_by_id
+        FROM clinicalcode_historicalphenotypeworkingset AS hw
+        LEFT OUTER JOIN auth_user AS ucb on ucb.id = hw.created_by_id
+        LEFT OUTER JOIN auth_user AS umb on umb.id = hw.updated_by_id
+        LEFT OUTER JOIN auth_user AS uhu on uhu.id = hw.history_user_id
+        WHERE (hw.history_id = %s)''', [workingset_history_id])
+
+        col_names = [col[0] for col in cursor.description]
+        row = cursor.fetchone()
+        row_dict = dict(zip(col_names, row))
+
+        return row_dict
 
 def getHistoryWorkingset(workingset_history_id):
     ''' Get historic workingset based on a workingset history id '''
@@ -2148,7 +2440,7 @@ def chk_deleted_children(request,
         unique_concepts = set()
         for concept in concepts:
             unique_concepts.add(int(concept))
-        pass
+        
     elif set_class == Phenotype:
         permitted = allowed_to_view(request, Phenotype, set_id)
         if (not permitted):
@@ -2157,13 +2449,30 @@ def chk_deleted_children(request,
             # the concepts here to form a list of concept_ref_ids.
         if WS_concepts_json:
             concepts = [x['concept_id'] for x in WS_concepts_json]  
+
         else:
             concepts = getGroupOfConceptsByPhenotypeId_historical(set_id, set_history_id)
 
         unique_concepts = set()
         for concept in concepts:
             unique_concepts.add(concept[0])
-        pass
+        
+    elif set_class == PhenotypeWorkingset:
+        permitted = allowed_to_view(request, PhenotypeWorkingset, set_id)
+        if (not permitted):
+            errors[set_id] = 'working set not permitted.'
+
+        if WS_concepts_json:
+            concepts = [(int(x['concept_id'].replace('C', '')), x['concept_version_id'], int(x['phenotype_id'].replace('PH', '')), x['phenotype_version_id']) for x in WS_concepts_json]  
+        else:
+            concepts = get_concept_data_of_historical_phenotypeWorkingset(set_id, set_history_id)
+
+        unique_concepts = set()
+        for concept in concepts:
+            # add all data
+            unique_concepts.add(concept)
+        
+                
     elif (set_class == Concept):
         permitted = allowed_to_view(request,
                                     Concept,
@@ -2199,12 +2508,17 @@ def chk_deleted_children(request,
     AllnotDeleted = True
     for concept in unique_concepts:
         isDeleted = False
-
-        isDeleted = (Concept.objects.filter(
-            Q(id=concept)).exclude(is_deleted=True).count() == 0)
-        if (isDeleted):
-            errors[concept] = 'Child concept deleted.'
-            AllnotDeleted = False
+        
+        if set_class == PhenotypeWorkingset:
+            isDeleted = (Phenotype.objects.filter(Q(id=concept[2])).exclude(is_deleted=True).count() == 0)
+            if (isDeleted):
+                errors[concept[2]] = 'Child phenotype deleted.'
+                AllnotDeleted = False
+        else:
+            isDeleted = (Concept.objects.filter(Q(id=concept)).exclude(is_deleted=True).count() == 0)   
+            if (isDeleted):
+                errors[concept] = 'Child concept deleted.'
+                AllnotDeleted = False
 
     if returnErrors:
         return AllnotDeleted, errors
@@ -3852,6 +4166,7 @@ def getConceptCodes_withAttributes_HISTORICAL(concept_id, concept_history_date,
 
 #-------------------- Data sources reference data ------------------------#
 def apply_filter_condition(query, selected=None, conditions='', data=None, is_authenticated_user=True):
+
     if query not in filter_queries:
         return None, conditions
     
@@ -3885,7 +4200,7 @@ def apply_filter_condition(query, selected=None, conditions='', data=None, is_au
             conditions += " AND " + query + " in (" + ','.join(search_list) + ") "
         return items, conditions
     elif qcase == 2:
-        # Phenotype type
+        # Phenotype type (string field?)
         if data is None:
             return [], conditions
 
@@ -3895,6 +4210,16 @@ def apply_filter_condition(query, selected=None, conditions='', data=None, is_au
             conditions += " AND lower(type) IN('" + "', '".join(selected_list) + "') "
         return selected_list, conditions
     elif qcase == 3:
+        # Workingset type (enum, as int field?)
+        if data is None:
+            return [], conditions
+        
+        selected_list = utils.expect_integer_list(selected)
+        selected_list = [str(i) for i, v in enumerate(data) if v in selected_list]
+        if len(selected_list) > 0:
+            conditions += " AND type in (" + ','.join(selected_list) + ") "
+        return selected_list, conditions
+    elif qcase == 4:
         # Daterange
         if isinstance(selected['start'][0], datetime.datetime) and isinstance(selected['end'][0], datetime.datetime):
             if is_authenticated_user:
@@ -3907,9 +4232,35 @@ def apply_filter_condition(query, selected=None, conditions='', data=None, is_au
     
     return None, conditions
 
-#---------------------------------------------------------------------------
+#------------------------------------------------------------------------------#
 
-#-------------------- Data sources reference data ------------------------#
+#-------------------- Working set types reference data ------------------------#
+def get_brand_associated_workingset_types(request, brand=None):
+    """
+        Return all workingset types assoc. with each brand from the filter statistics model
+    """
+    from clinicalcode.constants import Type_status
+    ph_workingset_types_list_ids = list(PhenotypeWorkingset.history.values('type').distinct().order_by('type').values_list('type',  flat=True))
+    ph_workingset_types_list = [t[1] for t in Type_status if t[0] in ph_workingset_types_list_ids]
+
+    return ph_workingset_types_list_ids, ph_workingset_types_list
+
+    """ Once we finalise field type of types for both pheno and concept & incl. statistics """
+    # if brand is None:
+    #     brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
+    
+    # source = 'all_data' if request.user.is_authenticated else 'published_data'
+    # stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact='phenotype_filters')).stat['workingset_types']
+    # stats = [entry for entry in stats if entry['data_scope'] == source][0]['types']
+
+    # available_types = PhenotypeWorkingset.history.annotate(type_lower=Lower('type')).values('type_lower').distinct().order_by('type_lower')    
+    # workingset_types = [entry[0] for entry in stats]
+    # workingset_types = [x for x in workingset_types if available_types.filter(type_lower=x).exists()]
+    # sorted_order = {str(entry[0]): entry[1] for entry in stats}
+
+    # return workingset_types, sorted_order
+
+#-------------------- Pheno types reference data ------------------------#
 def get_brand_associated_phenotype_types(request, brand=None):
     """
         Return all phenotype types assoc. with each brand from the filter statistics model
@@ -4032,6 +4383,33 @@ def get_brand_associated_collections(request, concept_or_phenotype="concept", br
     
     return collections, sorted_order
 
+def get_brand_associated_collections_dynamic(request, concept_or_phenotype, excluded_collections=None):
+    """
+        get associated collections of the current brand (or all if using default site)
+        dynamically, Not from statistics.
+    """
+
+    if concept_or_phenotype == 'concept':
+        data = get_visible_live_or_published_concept_versions(request
+                                                            , get_live_and_or_published_ver=[2, 3][request.user.is_authenticated]  # 1= live only, 2= published only, 3= live+published
+                                                            , exclude_deleted=[True, False][request.user.is_authenticated]
+                                                            , force_get_live_and_or_published_ver=[2, 3][request.user.is_authenticated]
+                                                            )
+
+    elif concept_or_phenotype == 'phenotype':
+        data = get_visible_live_or_published_phenotype_versions(request
+                                                                , get_live_and_or_published_ver=[2, 3][request.user.is_authenticated]  # 1= live only, 2= published only, 3= live+published 
+                                                                , exclude_deleted=[True, False][request.user.is_authenticated]
+                                                                , force_get_live_and_or_published_ver=[2, 3][request.user.is_authenticated]
+                                                                )
+
+    Tag_List = []
+    for i in data:
+        if i['tags'] is not None:
+            Tag_List = Tag_List + i['tags']
+    unique_tags = []
+    unique_tags = list(set(Tag_List))
+
 
 def send_review_email(phenotype, review_decision, review_message):
     phenotype_id = phenotype.id
@@ -4144,25 +4522,27 @@ def chk_valid_id(request, set_class, pk, chk_permission=False):
             int_pk = int(pk[2:])        
         elif set_class == WorkingSet and pk[0:2].upper() == 'WS' and utils.isInt(pk[2:]):
             int_pk = int(pk[2:])
+        elif set_class == PhenotypeWorkingset and pk[0:2].upper() == 'WS' and utils.isInt(pk[2:]):
+            int_pk = int(pk[2:])
         else:
             is_valid_id = False
             err = 'ID must be a valid id.'
     else:
         int_pk = int(pk)
-        
-        
-    if set_class.objects.filter(pk=int_pk).count() == 0:
+
+    actual_pk = pk if set_class == PhenotypeWorkingset else int_pk
+    if set_class.objects.filter(pk=actual_pk).count() == 0:
         is_valid_id = False
         err = 'ID not found.'
 
     if chk_permission:
-        if not allowed_to_edit(request, set_class, int_pk):
+        if not allowed_to_edit(request, set_class, actual_pk):
             is_valid_id = False
             err = 'ID must be of a valid accessible entity.'
 
 
     if is_valid_id:
-        ret_int_id = set_class.objects.get(pk=int_pk).id
+        ret_int_id = set_class.objects.get(pk=actual_pk).id
 
     return is_valid_id, err, ret_int_id
 
@@ -4192,4 +4572,290 @@ def is_referred_from_search_page(request):
     
     
     
+
+#=============================================================================
+def get_visible_live_or_published_phenotype_workingset_versions(request,
+                                                    get_live_and_or_published_ver = 3,  # 1= live only, 2= published only, 3= live+published
+                                                    search = "",
+                                                    author = "",
+                                                    workingset_id_to_exclude = 0,
+                                                    approved_status = None,
+                                                    exclude_deleted = True,
+                                                    filter_cond = "",
+                                                    show_top_version_only = False,
+                                                    force_brand = None,
+                                                    force_get_live_and_or_published_ver = None,  # used only with no login
+                                                    search_name_only = True,
+                                                    highlight_result = False,
+                                                    do_not_use_FTS = False,
+                                                    order_by=None                                              
+                                                    ):
+    ''' Get all visible live or published workingset versions 
+    - return all columns
+    '''
+
+    search = re.sub(' +', ' ', search.strip()) 
+
+    sql_params = []
+
+    user_cond = ""
+    if not request.user.is_authenticated:
+        get_live_and_or_published_ver = 2  #    2= published only
+        if force_get_live_and_or_published_ver is not None:
+            get_live_and_or_published_ver = force_get_live_and_or_published_ver
+    else:
+        if request.user.is_superuser:
+            user_cond = ""
+        else:
+            user_groups = list(request.user.groups.all().values_list('id', flat=True))
+            group_access_cond = ""
+            if user_groups:
+                group_access_cond = " OR (group_id IN(" + ', '.join(map(str, user_groups)) + ") AND group_access IN(2,3)) "
+
+            # since all params here are derived from user object, no need for parameterising here.
+            user_cond = ''' AND (
+                                    owner_id=%s 
+                                    OR world_access IN(2,3)
+                                    %s
+                                )
+                    ''' % (str(request.user.id), group_access_cond)
+
+        #sql_params.append(user_cond)
+    can_edit_subquery = get_can_edit_subquery(request)
+
+
+    highlight_columns = ""
+    if highlight_result:
+        # for highlighting
+        if search != '':
+            sql_params += [str(search)] * 2
+            highlight_columns += """ ts_headline('english', coalesce(name, '')
+                                            , websearch_to_tsquery('english', %s)
+                                            , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as name_highlighted,  
+                
+                                    ts_headline('english', coalesce(author, '')
+                                            , websearch_to_tsquery('english', %s)
+                                            , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as author_highlighted,                                              
+                                """ 
+        else:
+            highlight_columns += """ name as name_highlighted,              
+                                    author as author_highlighted,                                              
+                                """ 
+                                
+                                
+                                
+    rank_select = " "
+    if search != '':               
+        if search_name_only:
+            # search name field only
+            sql_params += [str(search)]
+            rank_select += """ 
+                        ts_rank(to_tsvector(coalesce(name, '')), websearch_to_tsquery('english', %s)) AS rank_name,
+                        """
+        else:
+            # search all related fields
+            sql_params += [str(search)] * 3
+            rank_select += """  
+                        ts_rank(to_tsvector('english', coalesce(name, '')), websearch_to_tsquery('english', %s)) AS rank_name,            
+                        ts_rank(to_tsvector('english', coalesce(author, '')), websearch_to_tsquery('english', %s)) AS rank_author,
+                        ts_rank(to_tsvector('english', coalesce(name, '') 
+                                            || ' ' || coalesce(author, '') 
+                                            || ' ' || coalesce(description, '') 
+                                            || ' ' || coalesce(array_to_string(publications, ','), '') 
+                                            )
+                                     , websearch_to_tsquery('english', %s)
+                                     ) AS rank_all,
+                            """
+
+
+
+    where_clause = " WHERE 1=1 "
+
+    if workingset_id_to_exclude > 0:
+        sql_params.append(str(workingset_id_to_exclude))
+        where_clause += " AND id NOT IN (%s) "
+
+    if search != '':
+        if do_not_use_FTS:  # normal search   
+            #note: we use iLike here for case-insensitive
+            if search_name_only: 
+                sql_params.append("%" + str(search) + "%")
+                where_clause += " AND name ILIKE %s "
+            else:
+                sql_params += ["%" + str(search) + "%"] * 5
+                where_clause += """ AND (name ILIKE %s OR 
+                                        author ILIKE %s OR 
+                                        description ILIKE %s OR 
+                                        array_to_string(publications , ',') ILIKE %s                                 
+                                        )  
+                                """
+            
+        else:       # Full-Text-Search (FTS)
+            if search_name_only:
+                # search name field only
+                sql_params += [str(search)] 
+                where_clause += """ AND (to_tsvector('english',
+                                                    coalesce(name, '') 
+                                                   ) @@ websearch_to_tsquery('english', %s)                              
+                                        )  
+                                """                            
+            else:
+                # search all related fields
+                sql_params += [str(search)] 
+                where_clause += """ AND (to_tsvector('english', coalesce(name, '') 
+                                                    || ' ' || coalesce(author, '') 
+                                                    || ' ' || coalesce(description, '') 
+                                                    || ' ' || coalesce(array_to_string(publications, ','), '') 
+                                                   ) @@ websearch_to_tsquery('english', %s)                              
+                                        )  
+                                """
+
+
+    if author != '':
+        sql_params.append("%" + str(author) + "%")
+        where_clause += " AND upper(author) like upper(%s) "
+
+    if exclude_deleted:
+        where_clause += " AND COALESCE(is_deleted, FALSE) IS NOT TRUE "
+
+    if filter_cond.strip() != "":
+        where_clause += " AND " + filter_cond
+
+
+
+
+    # --- second where clause  ---
+    if get_live_and_or_published_ver == 1:  # 1= live only
+        where_clause_2 = " AND  (rn=1 " + user_cond + " ) "
+    elif get_live_and_or_published_ver == 2:  # 2= published only
+        where_clause_2 = " AND (is_published=1) "
+    elif get_live_and_or_published_ver == 3:  # 3= live+published
+        where_clause_2 = " AND (is_published=1 OR  (rn=1 " + user_cond + " )) "
+    else:
+        raise INVALID_PARAMETER_VALUE
+
+
+    # --- third where clause  ---
+    where_clause_3 = " WHERE 1=1 "
+    if show_top_version_only:
+        where_clause_3 += " AND rn_res = 1 "
+
+
+    # --- where clause (publish approval)  ---
+    approval_where_clause = " "
+    if approved_status:
+        approval_where_clause = " AND (approval_status IN(" + ', '.join(map(str, approved_status)) + ")) "  
+        
+
+
+    # --- when in a brand, show only this brand's data
+    brand_filter_cond = " "
+    brand = request.CURRENT_BRAND
+    if force_brand is not None:
+        brand = force_brand
+
+    if brand != "":
+        brand_collection_ids = get_brand_collection_ids(brand)
+        brand_collection_ids = [str(i) for i in brand_collection_ids]
+
+        if brand_collection_ids:
+            brand_filter_cond = " WHERE collections && '{" + ','.join(brand_collection_ids) + "}' "
+
+    # order by clause
+    order_by = " ORDER BY id, history_id DESC " if order_by is None else order_by
+    if search != '':
+        if search_name_only:
+            # search name field only
+            order_by =  """ 
+                            ORDER BY rank_name DESC
+                                    , """ + order_by.replace(' ORDER BY ', '')
+        else:
+            # search all related fields
+            if order_by != concept_order_default:
+                order_by =  """
+                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
+                                ORDER BY rank_name DESC, rank_author DESC , rank_all DESC, """ + order_by.replace(' ORDER BY ', '')
+            else:
+                order_by =  """
+                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
+                                ORDER BY rank_name DESC, rank_author DESC , rank_all DESC
+                            """    
+                            
+        
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+                        SELECT
+                        """ + highlight_columns + """ 
+                        """ + rank_select + """                        
+                        *
+                        FROM
+                        (
+                            SELECT 
+                                """ + can_edit_subquery + """
+                                *
+                                , ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn_res
+                                , (CASE WHEN is_published=1 THEN 'published' ELSE 'not published' END) published
+                                , (SELECT username FROM auth_user WHERE id=r.owner_id ) owner_name
+                                , (SELECT username FROM auth_user WHERE id=r.created_by_id ) created_by_username
+                                , (SELECT username FROM auth_user WHERE id=r.updated_by_id ) modified_by_username
+                                , (SELECT username FROM auth_user WHERE id=r.deleted_by_id ) deleted_by_username
+                                , (SELECT name FROM auth_group WHERE id=r.group_id ) group_name
+                                , (SELECT created FROM clinicalcode_publishedworkingset WHERE workingset_id=r.id and workingset_history_id=r.history_id  and approval_status = 2 ) publish_date
+                            FROM
+                            (SELECT 
+                               ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn,
+                               (SELECT count(*) 
+                                   FROM clinicalcode_publishedworkingset 
+                                   WHERE workingset_id=t.id and workingset_history_id=t.history_id and approval_status = 2
+                               ) is_published,
+                                (SELECT approval_status 
+                                   FROM clinicalcode_publishedworkingset 
+                                   WHERE workingset_id=t.id and workingset_history_id=t.history_id 
+                               ) approval_status,
+                               
+                               id, name, type, tags, collections, publications, author, citation_requirements, description, 
+                               data_sources, phenotypes_concepts_data, 
+                               is_deleted, deleted, owner_access, group_access, world_access, 
+                               created, modified, 
+                               history_id, history_date, history_change_reason, history_type, 
+                               created_by_id, deleted_by_id, group_id, history_user_id, owner_id, updated_by_id
+ 
+                            FROM clinicalcode_historicalphenotypeworkingset t
+                                """ + brand_filter_cond + """
+                            ) r
+                            """ + where_clause + [where_clause_2 , approval_where_clause][approval_where_clause.strip() !=""] + """
+                        ) rr
+                        """ + where_clause_3 + """
+                        """ + order_by
+                        , sql_params)
+        
+        col_names = [col[0] for col in cursor.description]
+
+        return [dict(list(zip(col_names, row))) for row in cursor.fetchall()]
+
+
+
+def get_concept_data_of_historical_phenotypeWorkingset(pk, history_id=None):
+    '''
+        get concept informations of the specified phenotype working set
+        - from a specific version (or live version if history_id is None) 
+
+    '''
+    if history_id is None:
+        history_id = PhenotypeWorkingset.objects.get(pk=pk).history.latest('history_id').history_id
+
+    concept_id_version = []
+    phenotypes_concepts_data = PhenotypeWorkingset.history.get(id=pk, history_id=history_id).phenotypes_concepts_data
+    if phenotypes_concepts_data:
+        for c in phenotypes_concepts_data:
+            concept_id_version.append(
+                (int(c['concept_id'].replace('C', '')), c['concept_version_id'], 
+                 int(c['phenotype_id'].replace('PH', '')), c['phenotype_version_id'])
+                )
+
+    return concept_id_version
+
+
+
     
