@@ -131,18 +131,15 @@ class ConceptCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin,
             # self.object = form.save()
 
             self.object = form.save()
-            db_utils.modify_Entity_ChangeReason(Concept, self.object.pk,
-                                                "Created")
+            db_utils.modify_Entity_ChangeReason(Concept, self.object.pk, "Created")
             # to save correctly the computed friendly_id field
             concept = Concept.objects.get(pk=self.object.pk)
             concept.history.latest().delete()
-            db_utils.save_Entity_With_ChangeReason(Concept, self.object.pk,
-                                                   "Created")
+            db_utils.save_Entity_With_ChangeReason(Concept, self.object.pk, "Created")
             # concept.changeReason = "Created"
             # concept.save()
 
-            messages.success(self.request,
-                             "Concept has been successfully created.")
+            messages.success(self.request, "Concept has been successfully created.")
 
         return HttpResponseRedirect(self.get_success_url())
 
@@ -167,10 +164,8 @@ class ConceptDelete(LoginRequiredMixin, HasAccessToEditConceptCheckMixin,
     def post(self, request, pk):
         with transaction.atomic():
             db_utils.deleteConcept(pk, request.user)
-            db_utils.modify_Entity_ChangeReason(Concept, pk,
-                                                "Concept has been deleted")
-        messages.success(self.request,
-                         "Concept has been successfully deleted.")
+            db_utils.modify_Entity_ChangeReason(Concept, pk, "Concept has been deleted")
+        messages.success(self.request, "Concept has been successfully deleted.")
         return HttpResponseRedirect(self.get_success_url())
 
 
@@ -373,15 +368,11 @@ class ConceptFork(LoginRequiredMixin, HasAccessToViewConceptCheckMixin,
             with transaction.atomic():
                 new_concept_id = db_utils.fork(pk, request.user)
                 data['form_is_valid'] = True
-                data['message'] = render_to_string(
-                    'clinicalcode/concept/forked.html', {'id': new_concept_id},
-                    self.request)
-                db_utils.save_Entity_With_ChangeReason(
-                    Concept, new_concept_id, "Forked from concept %s" % pk)
+                data['message'] = render_to_string('clinicalcode/concept/forked.html', {'id': new_concept_id}, self.request)
+                db_utils.save_Entity_With_ChangeReason(Concept, new_concept_id, "Forked from concept %s" % pk)
         except Exception as e:
             data['form_is_valid'] = False
-            data['message'] = render_to_string('clinicalcode/error.html', {},
-                                               self.request)
+            data['message'] = render_to_string('clinicalcode/error.html', {}, self.request)
         return JsonResponse(data)
 
 
@@ -544,9 +535,8 @@ def concept_components(request, pk):
     components = Component.objects.filter(concept_id=pk)
     data = dict()
     data['form_is_valid'] = True
-    data['html_component_list'] = render_to_string(
-        'clinicalcode/component/partial_components_view.html',
-        {'components': components})
+    data['html_component_list'] = render_to_string('clinicalcode/component/partial_components_view.html',
+                                                   {'components': components})
 
     return JsonResponse(data)
 
@@ -616,7 +606,8 @@ def concept_uniquecodesByVersion(request, pk, concept_history_id):
     except:
         codes_count = "0"
     data['codes_count'] = codes_count
-    data['html_uniquecodes_list'] = render_to_string('clinicalcode/component/get_child_concept_codes.html', {
+    data['html_uniquecodes_list'] = render_to_string('clinicalcode/component/get_child_concept_codes.html', 
+                                                        {
                                                             'codes': codes,
                                                             'code_attribute_header': code_attribute_header,
                                                             'q': ['', request.session.get('concept_search', '')][request.GET.get('highlight','0')=='1']
@@ -670,34 +661,28 @@ def concept_history_revert(request, pk, concept_history_id):
             with transaction.atomic():
                 db_utils.deleteConceptRelatedObjects(pk)
                 db_utils.revertHistoryConcept(request.user, concept_history_id)
-                db_utils.modify_Entity_ChangeReason(
-                    Concept, pk,
-                    "Concept reverted from version %s" % concept_history_id)
+                db_utils.modify_Entity_ChangeReason(Concept, pk, "Concept reverted from version %s" % concept_history_id)
 
                 # Update dependent concepts & working sets
-                db_utils.saveDependentConceptsChangeReason(
-                    pk, "Component concept #" + str(pk) + " was updated")
+                db_utils.saveDependentConceptsChangeReason(pk, "Component concept #" + str(pk) + " was updated")
 
                 data['form_is_valid'] = True
-                data['message'] = render_to_string(
-                    'clinicalcode/concept/history/reverted.html', {'id': pk},
-                    request)
+                data['message'] = render_to_string('clinicalcode/concept/history/reverted.html', {'id': pk}, request)
                 return JsonResponse(data)
         except Exception as e:
             # todo: need to log error
             data['form_is_valid'] = False
-            data['message'] = render_to_string(
-                'clinicalcode/concept/history/revert.html', {}, request)
+            data['message'] = render_to_string('clinicalcode/concept/history/revert.html', {}, request)
             return JsonResponse(data)
 
     concept = db_utils.getHistoryConcept(concept_history_id)
-    is_latest_version = (int(concept_history_id) == Concept.objects.get(
-        pk=pk).history.latest().history_id)
+    is_latest_version = (int(concept_history_id) == Concept.objects.get(pk=pk).history.latest().history_id)
 
-    return render(request, 'clinicalcode/concept/history/revert.html', {
-        'concept': concept,
-        'is_latest_version': is_latest_version
-    })
+    return render(request, 'clinicalcode/concept/history/revert.html', 
+                  {
+                    'concept': concept,
+                    'is_latest_version': is_latest_version
+                })
 
 
 def concept_list(request):
@@ -791,7 +776,13 @@ def concept_list(request):
 
     tags, filter_cond = db_utils.apply_filter_condition(query='tags', selected=tag_ids, conditions=filter_cond)
     coding, filter_cond = db_utils.apply_filter_condition(query='coding_system_id', selected=coding_ids, conditions=filter_cond)
-    daterange, filter_cond = db_utils.apply_filter_condition(query='daterange', selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, conditions=filter_cond)
+    
+    is_authenticated_user = request.user.is_authenticated
+    daterange, date_range_cond = db_utils.apply_filter_condition(query='daterange', 
+                                                             selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, 
+                                                             conditions='',
+                                                             is_authenticated_user = is_authenticated_user)
+
     
     # check if it is the public site or not
     if request.user.is_authenticated:
@@ -852,7 +843,8 @@ def concept_list(request):
                                                                             show_top_version_only=show_top_version_only,
                                                                             search_name_only = False,
                                                                             highlight_result = True,
-                                                                            order_by=order_param
+                                                                            order_by = order_param,
+                                                                            date_range_cond = date_range_cond
                                                                             )
 
     # create pagination
@@ -1254,32 +1246,26 @@ def concept_upload_codes(request, pk):
                     data['form_is_valid'] = True
 
                     # refresh component list
-                    data['html_component_list'] = render_to_string(
-                        'clinicalcode/component/partial_component_list.html',
-                        build_permitted_components_list(request, pk))
+                    data['html_component_list'] = render_to_string('clinicalcode/component/partial_component_list.html',
+                                                                   build_permitted_components_list(request, pk))
 
                     concept = Concept.objects.get(id=pk)
 
                     # update history list
-                    data['html_history_list'] = render_to_string(
-                        'clinicalcode/concept/partial_history_list.html', {
-                            'history':
-                            concept.history.all(),
-                            'current_concept_history_id':
-                            concept.history.latest().pk,
-                            'published_historical_ids':
-                            list(
-                                PublishedConcept.objects.filter(
-                                    concept_id=pk).values_list(
-                                        'concept_history_id', flat=True))
-                        },
-                        request=request)
+                    data['html_history_list'] = render_to_string('clinicalcode/concept/partial_history_list.html', 
+                                                                 {
+                                                                    'history': concept.history.all(),
+                                                                    'current_concept_history_id': concept.history.latest().pk,
+                                                                    'published_historical_ids': list(
+                                                                        PublishedConcept.objects.filter(
+                                                                            concept_id=pk).values_list('concept_history_id', flat=True))
+                                                                },
+                                                                request=request)
 
                     data['latest_history_ID'] = concept.history.latest().pk
 
                     # update add_menu_items to reflect latest history id
-                    data['add_menu_items'] = render_to_string(
-                        'clinicalcode/concept/add_menu_items.html', {
+                    data['add_menu_items'] = render_to_string('clinicalcode/concept/add_menu_items.html', {
                             'pk': pk,
                             'latest_history_id': concept.history.latest().pk
                         })
@@ -1351,8 +1337,7 @@ def concept_upload_codes(request, pk):
             return JsonResponse(data)
 
     concept = Concept.objects.get(id=pk)
-    return render(
-        request, 'clinicalcode/concept/upload.html', {
+    return render(request, 'clinicalcode/concept/upload.html', {
             'pk': pk,
             'form': form_class,
             'latest_history_ID': concept.history.latest().pk,
@@ -1370,8 +1355,7 @@ def concept_codes_to_csv(request, pk):
     current_concept = Concept.objects.get(pk=pk)
 
     user_can_export = (allowed_to_view_children(request, Concept, pk)
-                       and db_utils.chk_deleted_children(
-                           request, Concept, pk, returnErrors=False)
+                       and db_utils.chk_deleted_children(request, Concept, pk, returnErrors=False)
                        and not current_concept.is_deleted)
     if not user_can_export:
         return HttpResponseNotFound("Not found.")
@@ -1381,9 +1365,7 @@ def concept_codes_to_csv(request, pk):
 
     my_params = {'id': pk, 'creation_date': time.strftime("%Y%m%dT%H%M%S")}
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = (
-        'attachment; filename="concept_C%(id)s_group_codes_%(creation_date)s.csv"'
-        % my_params)
+    response['Content-Disposition'] = ('attachment; filename="concept_C%(id)s_group_codes_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
 
@@ -1394,11 +1376,10 @@ def concept_codes_to_csv(request, pk):
     concept_history_date = Concept.history.get(id=pk, history_id=latest_history_id).history_date
     codes_with_attributes = []
     if code_attribute_header:
-        codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(
-                                                concept_id=pk,
-                                                concept_history_date=concept_history_date,
-                                                allCodes=codes,
-                                                code_attribute_header=code_attribute_header)
+        codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(concept_id=pk,
+                                                                                    concept_history_date=concept_history_date,
+                                                                                    allCodes=codes,
+                                                                                    code_attribute_header=code_attribute_header)
 
         codes = codes_with_attributes
     # ---------

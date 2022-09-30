@@ -347,13 +347,12 @@ def export_concept_codes_byVersionID(request, pk, concept_history_id):
 
     current_concept = Concept.objects.get(pk=pk)
 
-    user_can_export = (allowed_to_view_children(
-        request, Concept, pk, set_history_id=concept_history_id) and
-                       chk_deleted_children(request,
-                                            Concept,
-                                            pk,
-                                            returnErrors=False,
-                                            set_history_id=concept_history_id)
+    user_can_export = (allowed_to_view_children(request, Concept, pk, set_history_id=concept_history_id) 
+                       and chk_deleted_children(request,
+                                                Concept,
+                                                pk,
+                                                returnErrors=False,
+                                                set_history_id=concept_history_id)
                        and not current_concept.is_deleted)
 
     if not user_can_export:
@@ -443,10 +442,6 @@ def get_historical_concept_codes(request, pk, concept_history_id):
 @api_view(['POST'])
 def api_concept_create(request):
     
-    # allow only super user (and not 'ReadOnlyUsers')
-    if not request.user.is_superuser:
-        raise PermissionDenied
-
     if is_member(request.user, group_name='ReadOnlyUsers'):
         raise PermissionDenied
 
@@ -611,12 +606,16 @@ def api_concept_create(request):
             # created_concept.changeReason = "Created from API"
             # created_concept.save()
 
-            # publish immediately - for HDR-UK testing
+            # publish immediately - allow only super user 
+            publish_msg = ""   
             if request.data.get('publish_immediately') == True:
-                publish_entity(request, Concept, created_concept.pk)
+                if request.user.is_superuser:
+                    publish_entity(request, Concept, created_concept.pk)
+                else:
+                    publish_msg = "Concept is not published, only superuser can publish via API."
 
             data = {
-                'message': 'Concept created successfully',
+                'message': 'Concept created successfully. ' + publish_msg,
                 'id': created_concept.pk
             }
             return Response(data=data,
@@ -630,10 +629,6 @@ def api_concept_create(request):
 @swagger_auto_schema(method='put', auto_schema=None)
 @api_view(['PUT'])
 def api_concept_update(request):
-
-    # allow only super user (and not 'ReadOnlyUsers')
-    if not request.user.is_superuser:
-        raise PermissionDenied
 
     if is_member(request.user, group_name='ReadOnlyUsers'):
         raise PermissionDenied
@@ -853,18 +848,24 @@ def api_concept_update(request):
                 update_concept.pk, "Component concept #" +
                 str(update_concept.pk) + " was updated")
 
-            # publish immediately - for HDR-UK testing
+            # publish immediately - allow only super user 
+            publish_msg = ""   
             if request.data.get('publish_immediately') == True:
-                publish_entity(request, Concept, update_concept.pk)
+                if request.user.is_superuser:
+                    publish_entity(request, Concept, update_concept.pk)
+                else:
+                    publish_msg = "Concept is not published, only superuser can publish via API."
+                                
 
             data = {
-                'message': 'Concept updated successfully',
+                'message': 'Concept updated successfully. ' + publish_msg,
                 'id': update_concept.pk
             }
             return Response(data=data,
                             content_type="text/json-comment-filtered",
                             status=status.HTTP_201_CREATED)
 
+            
 
 ##################################################################################
 # search my concepts / published ones
@@ -1001,7 +1002,11 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
         collections, filter_cond = apply_filter_condition(query='tags', selected=collection_ids, conditions=filter_cond)
         
     coding, filter_cond = apply_filter_condition(query='coding_system_id', selected=coding_ids, conditions=filter_cond)
-    daterange, filter_cond = apply_filter_condition(query='daterange', selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, conditions=filter_cond)
+    
+    daterange, date_range_cond = apply_filter_condition(query='daterange', 
+                                                    selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, 
+                                                    conditions='',
+                                                    is_authenticated_user =is_authenticated_user)
    
 
     # check if it is the public site or not
@@ -1071,7 +1076,8 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
                                             filter_cond=filter_cond,
                                             show_top_version_only=show_top_version_only,
                                             force_brand=force_brand,
-                                            search_name_only = False)
+                                            search_name_only = False,
+                                            date_range_cond = date_range_cond)
 
     rows_to_return = []
     titles = [

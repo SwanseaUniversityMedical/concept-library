@@ -40,8 +40,10 @@
 	{% if request.BRAND_OBJECT.allowed_tabs is none or 'workingsets' in request.BRAND_OBJECT.allowed_tabs %}
 		<li><a data-toggle="tab" href="#Working-Sets"><strong>Working Sets</strong></a></li>
 	{% endif %}
-	{% if request.BRAND_OBJECT.allowed_tabs is none or 'phenotypeworkingsets' in request.BRAND_OBJECT.allowed_tabs %}
-		<li><a data-toggle="tab" href="#Phenotype-Working-Sets"><strong>Phenotype Working Sets</strong></a></li>
+	{% if IS_DEMO or IS_DEVELOPMENT_PC %}
+		{% if request.BRAND_OBJECT.allowed_tabs is none or 'phenotypeworkingsets' in request.BRAND_OBJECT.allowed_tabs %}
+			<li><a data-toggle="tab" href="#Phenotype-Working-Sets"><strong>Phenotype Working Sets</strong></a></li>
+		{% endif %}
 	{% endif %}
 	<li><a data-toggle="tab" href="#tags"><strong>Tags</strong></a></li>
 	<li><a data-toggle="tab" href="#collections"><strong>Collections</strong></a></li>
@@ -345,6 +347,7 @@
 {% endif %}
 <!-- ===============================================================  -->	  	  
 <!-- ===============================================================  -->	
+{% if IS_DEMO or IS_DEVELOPMENT_PC %}
 {% if request.BRAND_OBJECT.allowed_tabs is none or 'phenotypeworkingsets' in request.BRAND_OBJECT.allowed_tabs %}  
 	  <!-- working sets -->
 	  <div id="Phenotype-Working-Sets" class="tab-pane fade">
@@ -435,6 +438,7 @@
 			</ol>
 
 	  </div>
+{% endif %}
 {% endif %}
 <!-- ===============================================================  -->	  	  
 	  <!-- phenotypes -->

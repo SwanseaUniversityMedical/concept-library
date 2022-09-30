@@ -6,7 +6,8 @@
 
 #from cll import settings
 from django.conf import settings
-from django.conf.urls import url  # , include  #, handler400
+#from django.conf.urls import url  # , include  #, handler400
+from django.urls import re_path as url
 from django.contrib.auth import views as auth_views
 
 from .views import (Admin, ComponentConcept, ComponentExpression,
@@ -74,6 +75,11 @@ if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_P
     urlpatterns += [
         url(r'^adminTemp/api_remove_data/$', adminTemp.api_remove_data, name='api_remove_data'),
     ]
+if not settings.CLL_READ_ONLY and (settings.IS_DEVELOPMENT_PC):
+    urlpatterns += [
+        url(r'^adminTemp/json-adjust-phenotype/$', adminTemp.json_adjust_phenotype, name='json_adjust_phenotype'),
+        url(r'^adminTemp/json-adjust-workingset/$', adminTemp.json_adjust_workingset, name='json_adjust_workingset'),
+    ]
 
 # saving statistics
 if not settings.CLL_READ_ONLY:
@@ -101,53 +107,54 @@ urlpatterns += [
 ]
 
 # ======== Phenotypes Working Sets ==============================================================================
-# add URLConf to create, update, and delete Phenotypes Working Sets
-urlpatterns += [
-    url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/detail/$',
-        PhenotypeWorkingSet.WorkingsetDetail_combined,
-        name='phenotypeworkingset_detail'),
-    url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/detail/$',
-        PhenotypeWorkingSet.WorkingsetDetail_combined,
-        name='phenotypeworkingset_history_detail'),
-    url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/export/codes/$',
-        PhenotypeWorkingSet.history_workingset_codes_to_csv,
-        name='latestVersion_phenotypeworkingset_codes_to_csv'),
-    url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/export/codes/$',
-        PhenotypeWorkingSet.history_workingset_codes_to_csv,
-        name='history_phenotypeworkingset_codes_to_csv'),    
-    url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/uniquecodesbyversion/(?P<workingset_history_id>\d+)/concept/C(?P<target_concept_id>\d+)/(?P<target_concept_history_id>\d+)/$',
-        PhenotypeWorkingSet.workingset_conceptcodesByVersion,
-        name='phenotypeworkingset_conceptcodesByVersion'),
-]
-
-if not settings.CLL_READ_ONLY:
+if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
+    # add URLConf to create, update, and delete Phenotypes Working Sets
     urlpatterns += [
-        url(r'^phenotypeworkingsets/create/$',
-            PhenotypeWorkingSet.WorkingSetCreate.as_view(),
-            name='phenotypeworkingset_create'),
-        
-        # temp create test DB ws
-        url(r'^phenotypeworkingsets/create-test-db/$',
-            PhenotypeWorkingSet.phenotype_workingset_DB_test_create,
-            name='phenotype_workingset_DB_test_create'),
-
-
-        url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/update/$',
-            PhenotypeWorkingSet.WorkingSetUpdate.as_view(),
-            name='phenotypeworkingset_update'),
-
-        url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/delete/$',
-            PhenotypeWorkingSet.WorkingSetDelete.as_view(),
-            name='phenotypeworkingset_delete'),
-
-        url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/revert/$',
-            PhenotypeWorkingSet.workingset_history_revert,
-            name='phenotypeworkingset_history_revert'),
-        
-        url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/restore/$',
-            PhenotypeWorkingSet.WorkingSetRestore.as_view(),
-            name='phenotypeworkingset_create_restore'),
+        url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/detail/$',
+            PhenotypeWorkingSet.WorkingsetDetail_combined,
+            name='phenotypeworkingset_detail'),
+        url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/detail/$',
+            PhenotypeWorkingSet.WorkingsetDetail_combined,
+            name='phenotypeworkingset_history_detail'),
+        url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/export/codes/$',
+            PhenotypeWorkingSet.history_workingset_codes_to_csv,
+            name='latestVersion_phenotypeworkingset_codes_to_csv'),
+        url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/export/codes/$',
+            PhenotypeWorkingSet.history_workingset_codes_to_csv,
+            name='history_phenotypeworkingset_codes_to_csv'),    
+        url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/uniquecodesbyversion/(?P<workingset_history_id>\d+)/concept/C(?P<target_concept_id>\d+)/(?P<target_concept_history_id>\d+)/$',
+            PhenotypeWorkingSet.workingset_conceptcodesByVersion,
+            name='phenotypeworkingset_conceptcodesByVersion'),
     ]
+    
+    if not settings.CLL_READ_ONLY:
+        urlpatterns += [
+            url(r'^phenotypeworkingsets/create/$',
+                PhenotypeWorkingSet.WorkingSetCreate.as_view(),
+                name='phenotypeworkingset_create'),
+            
+            # temp create test DB ws
+            url(r'^phenotypeworkingsets/create-test-db/$',
+                PhenotypeWorkingSet.phenotype_workingset_DB_test_create,
+                name='phenotype_workingset_DB_test_create'),
+    
+    
+            url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/update/$',
+                PhenotypeWorkingSet.WorkingSetUpdate.as_view(),
+                name='phenotypeworkingset_update'),
+    
+            url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/delete/$',
+                PhenotypeWorkingSet.WorkingSetDelete.as_view(),
+                name='phenotypeworkingset_delete'),
+    
+            url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/revert/$',
+                PhenotypeWorkingSet.workingset_history_revert,
+                name='phenotypeworkingset_history_revert'),
+            
+            url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/restore/$',
+                PhenotypeWorkingSet.WorkingSetRestore.as_view(),
+                name='phenotypeworkingset_create_restore'),
+        ]
 
 
 # ======== Phenotypes ==============================================================================
@@ -433,7 +440,7 @@ if not settings.CLL_READ_ONLY:
 urlpatterns += [
     url(
         '^change-password/$',
-        auth_views.PasswordChangeView,  #.password_change, 
+        auth_views.PasswordChangeView.as_view(),  #.password_change, 
         {'post_change_redirect': 'concept_library_home'},
         name='password_change'),
 ]
