@@ -314,12 +314,13 @@ urlpatterns += [
         View.getTagsOrCollections, {'tag_type': 2},
         name='collections_list_by_id_public'),
     
-       
+]       
         
     #----------------------------------------------------------
     # --- phenotype-working set   -----------------------------
     #----------------------------------------------------------
-
+if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
+    urlpatterns += [
     # search
     url(r'^phenotypeworkingsets/$', PhenotypeWorkingSet.phenotypeworkingsets, name='phenotypeworkingsets'),
     url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/$',
@@ -394,10 +395,14 @@ if not settings.CLL_READ_ONLY:
         url(r'^api_datasource_create/$',
             DataSource.api_datasource_create,
             name='api_datasource_create'),
-        url(r'^api_phenotypeworkingset_create/$',
-            PhenotypeWorkingSet.api_phenotypeworkingset_create,
-            name='api_phenotypeworkingset_create'),
-        url(r'^api_phenotypeworkingset_update/$',
-            PhenotypeWorkingSet.api_phenotypeworkingset_update,
-            name='api_phenotypeworkingset_update'),
-    ]
+        ]
+    
+    if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
+        urlpatterns += [
+            url(r'^api_phenotypeworkingset_create/$',
+                PhenotypeWorkingSet.api_phenotypeworkingset_create,
+                name='api_phenotypeworkingset_create'),
+            url(r'^api_phenotypeworkingset_update/$',
+                PhenotypeWorkingSet.api_phenotypeworkingset_update,
+                name='api_phenotypeworkingset_update'),
+        ]
