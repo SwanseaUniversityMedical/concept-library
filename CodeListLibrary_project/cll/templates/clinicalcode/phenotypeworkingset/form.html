@@ -418,7 +418,7 @@
                     </div>
 
 
-                    <input type="hidden"  id="phenotypes_concepts_json" name="phenotypes_concepts_json">
+                    <input type="hidden" id="phenotypes_concepts_json" name="phenotypes_concepts_json">
                     <input type="hidden" id="copy" name="copy">
 
 
@@ -671,18 +671,17 @@
 
         const inputheader = () => {
             var table = $('#attributes-table').DataTable()
-            table.columns().eq(0).each(function () {
-                let val = event.target.value
-                let index = event.target.id.match(/\d+/)[0]
-                let dataPrevious = $('#phenotypes_concepts_json').val()
-                dataPrevious = JSON.parse(dataPrevious)
-                for (let i = 0; i < dataPrevious.length; i++) {
-                    dataPrevious[i]['Attributes-header' + (index)] = `<input class="input-material" type="text" value="${val}" oninput = inputheader() placeholder="Attribute name"  id="attribute-header${index}"/>`
-                    $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
-                }
+
+            let val = event.target.value
+            let index = event.target.id.match(/\d+/)[0]
+            let dataPrevious = $('#phenotypes_concepts_json').val()
+            dataPrevious = JSON.parse(dataPrevious)
+            for (let i = 0; i < dataPrevious.length; i++) {
+                dataPrevious[i]['Attributes-header' + (index)] = `<input class="input-material" type="text" value="${val}" oninput = inputheader() placeholder="Attribute name"  id="attribute-header${index}"/>`
+                $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
+            }
 
 
-            });
         }
 
         const selectHeader = () => {
@@ -715,29 +714,26 @@
         }
 
 
-        $('#attributes-table').on('input', function () {
-            var table = $('#attributes-table').DataTable()
-            table.cells().every(function (rowIdx, colindex) {
-                var firstVal = $(this.node()).find('input').val();
+        $('#attributes-table').on('input', 'td', function () {
+            let table = $('#attributes-table').DataTable()
+            let cell = table.cell(this).index()
+            let value = $(table.cell(this).node()).find('input').val()
+            let rowIdx = cell.row
+            let colindex = cell.column
+            let dataPrevious = $('#phenotypes_concepts_json').val()
+            dataPrevious = JSON.parse(dataPrevious)
+            dataPrevious[rowIdx]['Attributes-row' + (colindex - 1)] = `<input class="input-material" type="text" value="${value}" style="width:100%" id="attribute-input-${colindex - 1}"/>`
+            checkTypeinput(value, rowIdx, colindex)
+            $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
 
-                if (firstVal !== undefined) {
-
-                    let dataPrevious = $('#phenotypes_concepts_json').val()
-                    dataPrevious = JSON.parse(dataPrevious)
-                    dataPrevious[rowIdx]['Attributes-row' + (colindex - 1)] = `<input class="input-material" type="text" value="${firstVal}" style="width:100%" id="attribute-input-${colindex - 1}"/>`
-                    checkTypeinput(firstVal, rowIdx, colindex)
-                    $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
-                }
-
-            });
         });
 
         const checkTypeinput = (val, rowIndex, columnIndex) => {
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
-            console.log(dataPrevious)
+
             let type = dataPrevious[rowIndex]['Attributes-select' + (columnIndex - 1)]
-            console.log(type)
+
 
         }
 
