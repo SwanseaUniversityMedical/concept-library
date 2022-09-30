@@ -163,7 +163,7 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 							{% endfor %}
 						{% endfor %}
 					</h2>
-					<span>{{ concept.author_highlighted|safe }}</span>					
+					<span><i>{{ concept.author_highlighted|safe }}</i></span>					
 					<br>
 					<br>
 				</div>
@@ -218,13 +218,34 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 						</span>		
 					</div>	
 				</div>	
-												
+				
 				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-2">Tags /Collections</div>
+					<div class="col-sm-2">Collections</div>
 					<div class="col-sm-10">
-						{% for tag in tags %}
-							<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
-						{% endfor %}		
+						{% if has_collections %}
+							{% for tag in tags %}
+								{% if tag.tag_type == 2 %}
+								<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
+								{% endif %}
+							{% endfor %}	
+						{% else %}
+							<span class="card-no-data">No collections</span>
+						{% endif %}		
+					</div>	
+				</div>
+				
+				<div class="row" style="margin-top: 10px;">
+					<div class="col-sm-2">Tags</div>
+					<div class="col-sm-10">
+						{% if has_tags %}
+							{% for tag in tags %}
+								{% if tag.tag_type == 1 %}
+								<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
+								{% endif %}
+							{% endfor %}	
+						{% else %}
+							<span class="card-no-data">No tags</span>
+						{% endif %}		
 					</div>	
 				</div>	
 								
@@ -259,7 +280,11 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 				<div class="col-sm-12 shadow-frame">
 					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px"><span id="description"></span><strong>Description</strong></h3>
 					<div class="markdown-holder">
-						{{ concept.description_highlighted|markdownify }}
+						{% if concept.publication_doi_highlighted|safe != '' %}
+							{{ concept.description_highlighted|markdownify }}
+						{% else %}
+							<span class="card-no-data">No data available</span>
+						{% endif %}
 					</div>
 				</div>
 		
@@ -273,17 +298,29 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 					
 				    <div class="row" style="margin-top: 10px;">
 						<div  class="col-sm-3">Primary publication DOI</div>
+						{% if concept.publication_doi_highlighted|safe != '' %}
 						<div class="col-sm-9">{{ concept.publication_doi_highlighted|safe }}</div>
+						{% else %}
+						<div class="col-sm-9 card-no-data">No data available</div>
+						{% endif %}
 					</div>
 	
 					<div class="row" style="margin-top: 10px;">
 						<div  class="col-sm-3">Primary publication link</div>
+						{% if concept.publication_link_highlighted|safe != '' %}
 						<div class="col-sm-9">{{ concept.publication_link_highlighted|safe }}</div>
+						{% else %}
+						<div class="col-sm-9 card-no-data">No data available</div>
+						{% endif %}
 					</div>						
 							
 					<div class="row" style="margin-top: 10px;">
 						<div  class="col-sm-3">Secondary  publication link</div>
+						{% if concept.secondary_publication_links_highlighted|safe != '' %}
 						<div class="col-sm-9">{{ concept.secondary_publication_links_highlighted|safe }}</div>
+						{% else %}
+						<div class="col-sm-9 card-no-data">No data available</div>
+						{% endif %}
 					</div>
 
 					<div class="row" style="margin-top: 10px;">
@@ -294,10 +331,10 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 <!-- 							 </div> -->
 <!-- 							<input type="checkbox" {% if concept.paper_published %}checked="checked"{% endif %} disabled /> -->
 							{% if concept.paper_published %}
-								<span>&#10004;</span>
+								<span>Published &#10004;</span>
 <!-- 								<span class = "glyphicon glyphicon-ok"></span> -->
 							{% else %}
-								<span>&#10008;</span>
+								<span>Not published &#10008;</span>
 <!-- 								<span class = "glyphicon glyphicon-remove"></span> -->
 					 		{% endif %} 							
 						</div>
@@ -305,16 +342,20 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 					
 					<div class="row" style="margin-top: 10px;">
 						<div  class="col-sm-3">Source reference</div>
-						<div class="col-sm-9">
-							{{ concept.source_reference|highlight:q }}
-						</div>
+						{% if concept.source_reference|safe != '' %}
+						<div class="col-sm-9">{{ concept.source_reference|highlight:q }}</div>
+						{% else %}
+						<div class="col-sm-9 card-no-data">No data available</div>
+						{% endif %}
 					</div>
 					
 					<div class="row" style="margin-top: 10px;">
 						<div  class="col-sm-3">Citation requirements</div>
-						<div class="col-sm-9">
-							{{ concept.citation_requirements|highlight:q }}
-						</div>
+						{% if concept.citation_requirements|safe != '' %}
+						<div class="col-sm-9">{{ concept.citation_requirements|highlight:q }}</div>
+						{% else %}
+						<div class="col-sm-9 card-no-data">No data available</div>
+						{% endif %}
 					</div>
 
 				</div>
@@ -611,51 +652,53 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 			
 				<div id="permissions" class="row">
 					<div  class="col-sm-3">Owner</div>
-					<div class="col-sm-3">
-						{{ concept.owner.username }}
+					<div class="col-sm-4">
+						<span>{{ concept.owner.username }}</span>
 					</div>
-					<div  class="col-sm-2">Owner access</div>
-					<div class="col-sm-4">								
+					<div class="col-sm-5 text-right">
 						{% if concept.owner_access == 1 %}	
-							<span>None</span>
+							<span class="tag label label-danger justified-label"><i>Owner access:&nbsp;&nbsp;</i><span class="card-noweight">None</span></span>
 						{% elif concept.owner_access == 2 %}
-							<span>View only</span>
+							<span class="tag label label-warning justified-label"><i>Owner access:&nbsp;&nbsp;</i><span class="card-noweight">View only</span></span>
 						{% elif concept.owner_access == 3 %}
-							<span>View and edit</span>
+							<span class="tag label label-success justified-label"><i>Owner access:&nbsp;&nbsp;</i><span class="card-noweight">View and edit</span></span>
 						{% else %}
-							
+							<span class="tag label label-success justified-label"><i>Owner access:&nbsp;&nbsp;</i><span class="card-noweight">Unknown</span></span>
 						{% endif %}
 					</div>
 				</div>
-				
+				<hr class="small-divider"/>
 				<div id="permissions" class="row">
 					<div  class="col-sm-3">Group</div>
-					<div class="col-sm-3">
-						{{ concept.group }}
-					</div>
-					<div  class="col-sm-2">Group access</div>
 					<div class="col-sm-4">
-						{% if concept.group_access == 1 %}	
-							<span>No access</span>
-						{% elif concept.group_access == 2 %}
-							<span>View only</span>
-						{% elif concept.group_access == 3 %}
-							<span>View and edit</span>
+						{% if concept.group %}
+						<span>{{ concept.group }}</span>
 						{% else %}
-							
+						<span>No associated group</span>
+						{% endif %}
+					</div>
+					<div class="col-sm-5 text-right">
+						{% if concept.group_access == 1 %}	
+							<span class="tag label label-danger justified-label"><i>Group access:&nbsp;&nbsp;</i><span class="card-noweight text-right">No Access</span></span>
+						{% elif concept.group_access == 2 %}
+							<span class="tag label label-warning justified-label"><i>Group access:&nbsp;&nbsp;</i><span class="card-noweight text-right">View only</span></span>
+						{% elif concept.group_access == 3 %}
+							<span class="tag label label-success justified-label"><i>Group access:&nbsp;&nbsp;</i><span class="card-noweight text-right">View and edit</span></span>
+						{% else %}
+							<span class="tag label label-success justified-label"><i>Group access:&nbsp;&nbsp;</i><span class="card-noweight text-right">Unknown</span></span>
 						{% endif %}
 					</div>
 				</div>
-				
+				<hr class="small-divider"/>
 				<div id="permissions" class="row">
-					<div  class="col-sm-3">Everyone else access</div>
+					<div  class="col-sm-3">Public access</div>
 					<div class="col-sm-9">
 						{% if concept.world_access == 1 %}	
-							<span>No access</span>
+							<span class="tag label label-danger">No access</span>
 						{% elif concept.world_access == 2 %}
-							<span>View only</span>
+							<span class="tag label label-warning">View only</span>
 						{% elif concept.world_access == 3 %}
-							<span>View and edit</span>
+							<span class="tag label label-success">View and edit</span>
 						{% else %}
 							
 						{% endif %}
