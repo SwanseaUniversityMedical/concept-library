@@ -526,6 +526,7 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
     ''' 
         Display the detail of a working set.
     '''
+    
     # validate access for login and public site
     validate_access_to_view(request,
                             PhenotypeWorkingset,
