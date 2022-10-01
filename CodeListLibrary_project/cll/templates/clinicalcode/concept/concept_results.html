@@ -20,6 +20,7 @@
 							</a>
 				
 					</div>
+
 					<div class="col-sm-4 text-right">
 						<span class="badge card-date-badge">
 							{% if user.is_authenticated %}
@@ -33,6 +34,7 @@
 				
 				<div class="row form-group">
 					<div class="col-sm-12">
+
 						{{ concept.author_highlighted|safe  }} 
 					</div>
 				</div>				
@@ -47,6 +49,7 @@
 						{% for tag in allTags %}
 							{% for tag_id in concept.tags %}
 								{% if tag.id == tag_id %}
+
 										<span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">#{{ tag.description }}</span>
 									{% endif %}
 							{% endfor %}						

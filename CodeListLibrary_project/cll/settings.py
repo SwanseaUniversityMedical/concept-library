@@ -460,3 +460,18 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 SWAGGER_TITLE = "Concept Library API"
 
+
+# Default primary key field type
+# Django >= 3.2
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.saildatabank.com',
+    'https://phenotypes.healthdatagateway.org',
+    'http://conceptlibrary.serp.ac.uk',
+    'http://conceptlibrary.sail.ukserp.ac.uk'
+]
+
+
+

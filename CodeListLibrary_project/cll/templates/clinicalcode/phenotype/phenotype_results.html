@@ -15,6 +15,7 @@
 						<span style='font-size: 22px;margin-top:0;'>{{ phenotype.friendly_id }} - {{ phenotype.name_highlighted|safe }}</span>
 						</a>				
 					</div>
+
 					<div class="col-sm-4 text-right">
 						<span class="badge card-date-badge">
 							{% if user.is_authenticated %}
@@ -35,11 +36,13 @@
 				</div>
 				
 				<div class="row form-group">
+
 					<div class="col-sm-4 text-justify">
 						<!-- CodingSystems -->
 						{% for cs in all_CodingSystems %}
 							{% for cs_id in phenotype.clinical_terminologies %}
 								{% if cs.id == cs_id %}
+
 									<span class="badge card-coding-item"><i></i>{{ cs.name }}</span>
 								{% endif %}
 							{% endfor %}						
@@ -54,6 +57,7 @@
 						{% for tag in allTags %}
 							{% for tag_id in phenotype.tags %}
 								{% if tag.id == tag_id %}
+
 										<span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">#{{ tag.description }}</span>
 									{% endif %}
 							{% endfor %}						
