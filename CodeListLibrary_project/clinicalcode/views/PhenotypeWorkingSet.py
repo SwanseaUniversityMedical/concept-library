@@ -526,7 +526,7 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
     ''' 
         Display the detail of a working set.
     '''
-    
+
     # validate access for login and public site
     validate_access_to_view(request,
                             PhenotypeWorkingset,
@@ -625,14 +625,20 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
 
     # attributes
     workingset_attributes = workingset['phenotypes_concepts_data']
-    for data in workingset_attributes:
-        concept_id = db_utils.parse_ident(data["concept_id"])
-        concept_version = db_utils.parse_ident(data["concept_version_id"])
-        try:
-            concept = Concept.history.get(id=concept_id, history_id=concept_version)
-            data['concept_name'] = concept.name
-        except:
-            data['contept_name'] = 'Unknown'
+    try:
+        workingset_attributes = json.loads(workingset_attributes)
+    except:
+        workingset_attributes = None
+    
+    if workingset_attributes:
+        for data in workingset_attributes:
+            concept_id = db_utils.parse_ident(data["concept_id"])
+            concept_version = db_utils.parse_ident(data["concept_version_id"])
+            try:
+                concept = Concept.history.get(id=concept_id, history_id=concept_version)
+                data['concept_name'] = concept.name
+            except:
+                data['contept_name'] = 'Unknown'
 
     if workingset['is_deleted'] == True:
         messages.info(request, "This Working Set has been deleted.")
@@ -663,9 +669,7 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
         'force_highlight_result':  ['0', '1'][db_utils.is_referred_from_search_page(request)]                              
     }
 
-    return render(request, 
-                  'clinicalcode/phenotypeworkingset/detail_combined.html',
-                  context)
+    return render(request, 'clinicalcode/phenotypeworkingset/detail_combined.html', context)
 
 
 def get_history_table_data(request, pk):
