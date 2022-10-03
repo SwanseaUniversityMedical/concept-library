@@ -669,7 +669,7 @@
 
         }
 
-        const reDrawtable = (id,numbers,dataset) =>{
+        const reDrawtable = (id, numbers, dataset) => {
             let columns = [{data: "Data", title: "Data"}]
             let headers = Object.entries(dataset[0])
             for (let i = 0; i < headers.length - 1; i++) {
@@ -704,7 +704,6 @@
             }
 
 
-
         }
 
         const selectHeader = () => {
@@ -722,9 +721,9 @@
 
             let dataPrevious2 = $('#phenotypes_concepts_json').val()
             dataPrevious2 = JSON.parse(dataPrevious2)
-            table = reDrawtable('attributes-table',table.columns().header().length-1,dataPrevious2)
+            table = reDrawtable('attributes-table', table.columns().header().length - 1, dataPrevious2)
             table.buttons().container()
-                    .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+                .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
 
         }
 
@@ -786,6 +785,13 @@
                     }
                 case 2:
                     if (/^([-])([0-9]{1,})?(\.)?([0-9]{1,})?$|^([0-9]{1,})?(\.)?([0-9]{1,})?$/.test(val)) {
+                        return true
+                    } else {
+                        input.val($.trim(input.val()).slice(0, -1));
+                        return false
+                    }
+                case 3:
+                    if (/^([^0-9]*)$/.test(val)) {
                         return true
                     } else {
                         input.val($.trim(input.val()).slice(0, -1));
