@@ -720,7 +720,9 @@
                 $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
             }
 
-            table = reDrawtable('attributes-table',table.columns().header().length-1,dataPrevious)
+            let dataPrevious2 = $('#phenotypes_concepts_json').val()
+            dataPrevious2 = JSON.parse(dataPrevious2)
+            table = reDrawtable('attributes-table',table.columns().header().length-1,dataPrevious2)
             table.buttons().container()
                     .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
 
@@ -768,7 +770,7 @@
             let element = new DOMParser().parseFromString(type, "text/html")
             let select = element.querySelector('*[id^="column_type"]')
             let select_val = $("#" + `${select.id}`).val()
-            console.log(val)
+
 
             switch (parseInt(select_val)) {
                 case 0:
@@ -783,7 +785,7 @@
                         return false
                     }
                 case 2:
-                    if (val.match(/^-?[0-9]*[.][0-9]+$/)) {
+                    if (/^([-])([0-9]{1,})?(\.)?([0-9]{1,})?$|^([0-9]{1,})?(\.)?([0-9]{1,})?$/.test(val)) {
                         return true
                     } else {
                         input.val($.trim(input.val()).slice(0, -1));
