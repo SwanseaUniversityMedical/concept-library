@@ -526,9 +526,212 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
     ''' 
         Display the detail of a working set.
     '''
-    pass
-    # look at phenotype equivalent
 
+    # validate access for login and public site
+    validate_access_to_view(request,
+                            PhenotypeWorkingset,
+                            pk,
+                            set_history_id=workingset_history_id)
+
+    if workingset_history_id is None:
+        # get the latest version
+        workingset_history_id = int(PhenotypeWorkingset.objects.get(pk=pk).history.latest().history_id)
+
+    is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
+    approval_status = get_publish_approval_status(PhenotypeWorkingset, pk, workingset_history_id)
+
+    # ----------------------------------------------------------------------
+
+    workingset = db_utils.getHistoryPhenotypeWorkingset(workingset_history_id,
+                                            highlight_result=[False, True][db_utils.is_referred_from_search_page(request)],
+                                            q_highlight=db_utils.get_q_highlight(request, request.session.get('ph_workingset_search', ''))  
+                                            )
+    # The history working set contains the owner_id, to provide the owner name, we
+    # need to access the user object with that ID and add that to the working set.
+    if workingset['owner_id'] is not None:
+        workingset['owner'] = User.objects.get(id=int(workingset['owner_id']))
+        
+    workingset['group'] = None
+    if workingset['group_id'] is not None:
+        workingset['group'] = Group.objects.get(id=int(workingset['group_id']))
+
+    workingset_type = list(Type_status)[workingset['type']][1] if workingset['type'] < len(list(Type_status)) else ''
+
+    tags = Tag.objects.filter(pk=-1)
+    workingset_tags = workingset['tags']
+    has_tags = False
+    if workingset_tags:
+        tags = Tag.objects.filter(pk__in=workingset_tags)
+        has_tags = tags.count() != 0
+    
+    collections_tags = Tag.objects.filter(pk=-1)
+    workingset_collections = workingset['collections']
+    has_collections = False
+    if workingset_collections:
+        collections_tags = Tag.objects.filter(pk__in=workingset_collections)
+        has_collections = collections_tags.count() != 0
+
+    data_sources = DataSource.objects.filter(pk=-1)
+    workingset_data_sources = workingset['data_sources']  
+    if workingset_data_sources:
+        data_sources = DataSource.objects.filter(pk__in=workingset_data_sources)
+
+    is_latest_version = (int(workingset_history_id) == PhenotypeWorkingset.objects.get(pk=pk).history.latest().history_id)
+    is_latest_pending_version = False
+
+    if len(PublishedWorkingset.objects.filter(workingset_id=pk, workingset_history_id=workingset_history_id, approval_status=1)) > 0:
+        is_latest_pending_version = True
+
+    children_permitted_and_not_deleted = True
+    error_dic = {}
+    are_concepts_latest_version = True
+    version_alerts = {}
+
+    if request.user.is_authenticated:
+        can_edit = (not PhenotypeWorkingset.objects.get(pk=pk).is_deleted) and allowed_to_edit(request, PhenotypeWorkingset, pk)
+
+        user_can_export = (allowed_to_view_children(request, PhenotypeWorkingset, pk, set_history_id=workingset_history_id)
+                           and db_utils.chk_deleted_children(
+                                                               request,
+                                                               PhenotypeWorkingset,
+                                                               pk,
+                                                               returnErrors=False,
+                                                               set_history_id=workingset_history_id)
+                           and not PhenotypeWorkingset.objects.get(pk=pk).is_deleted)
+        user_allowed_to_create = allowed_to_create()
+
+        children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(request, PhenotypeWorkingset, pk)
+
+        # if is_latest_version:
+        #     are_concepts_latest_version, version_alerts = checkConceptVersionIsTheLatest(pk)
+
+    else:
+        can_edit = False
+        user_can_export = is_published
+        user_allowed_to_create = False
+
+    publish_date = None
+    if is_published:
+        publish_date = PublishedWorkingset.objects.get(workingset_id=pk, workingset_history_id=workingset_history_id).created
+
+    if PhenotypeWorkingset.objects.get(pk=pk).is_deleted == True:
+        messages.info(request, "This Working Set has been deleted.")
+
+    # published versions
+    published_historical_ids = list(PublishedWorkingset.objects.filter(workingset_id=pk, approval_status=2).values_list('workingset_history_id', flat=True))
+
+    # history
+    history = get_history_table_data(request, pk)
+
+    # attributes
+    workingset_attributes = workingset['phenotypes_concepts_data']
+    try:
+        workingset_attributes = json.loads(workingset_attributes)
+    except:
+        workingset_attributes = None
+    
+    if workingset_attributes:
+        for data in workingset_attributes:
+            concept_id = db_utils.parse_ident(data["concept_id"])
+            concept_version = db_utils.parse_ident(data["concept_version_id"])
+            try:
+                concept = Concept.history.get(id=concept_id, history_id=concept_version)
+                data['concept_name'] = concept.name
+            except:
+                data['contept_name'] = 'Unknown'
+
+    if workingset['is_deleted'] == True:
+        messages.info(request, "This Working Set has been deleted.")
+
+    context = {
+        'workingset': workingset,
+        'workingset_type': workingset_type,
+        'workingset_attributes': workingset_attributes,
+        'tags': tags,
+        'has_tags': has_tags,
+        'collections': collections_tags,
+        'has_collections': has_collections,
+        'data_sources': data_sources,
+        'user_can_edit': False,  # for now  #can_edit,
+        'allowed_to_create': False,  # for now  #user_allowed_to_create,    # not settings.CLL_READ_ONLY,
+        'user_can_export': user_can_export,
+        'history': history,
+        'live_ver_is_deleted': PhenotypeWorkingset.objects.get(pk=pk).is_deleted,
+        'published_historical_ids': published_historical_ids,
+        'is_published': is_published,
+        'approval_status': approval_status,
+        'publish_date': publish_date,
+        'is_latest_version': is_latest_version,
+        'is_latest_pending_version':is_latest_pending_version,
+        'current_phenotype_history_id': int(workingset_history_id),
+        'page_canonical_path': get_canonical_path_by_brand(request, PhenotypeWorkingset, pk, workingset_history_id),
+        'q': db_utils.get_q_highlight(request, request.session.get('ph_workingset_search', '')),
+        'force_highlight_result':  ['0', '1'][db_utils.is_referred_from_search_page(request)]                              
+    }
+
+    return render(request, 'clinicalcode/phenotypeworkingset/detail_combined.html', context)
+
+
+def get_history_table_data(request, pk):
+    """"
+        get history table data for the template
+    """
+    
+    versions = PhenotypeWorkingset.objects.get(pk=pk).history.all()
+    historical_versions = []
+
+    for v in versions:
+        ver = db_utils.getHistoryPhenotypeWorkingset(v.history_id
+                                        , highlight_result = [False, True][db_utils.is_referred_from_search_page(request)]
+                                        , q_highlight = db_utils.get_q_highlight(request, request.session.get('ph_workingset_search', ''))  
+                                        )
+        
+        if ver['owner_id'] is not None:
+            ver['owner'] = User.objects.get(id=int(ver['owner_id']))
+
+        if ver['created_by_id'] is not None:
+            ver['created_by'] = User.objects.get(id=int(ver['created_by_id']))
+
+        ver['updated_by'] = None
+        if ver['updated_by_id'] is not None:
+            ver['updated_by'] = User.objects.get(pk=ver['updated_by_id'])
+
+        is_this_version_published = False
+        is_this_version_published = checkIfPublished(PhenotypeWorkingset, ver['id'], ver['history_id'])
+
+        if is_this_version_published:
+            ver['publish_date'] = PublishedWorkingset.objects.get(workingset_id=ver['id'], workingset_history_id=ver['history_id'], approval_status=2).created
+        else:
+            ver['publish_date'] = None
+
+        ver['approval_status'] = -1
+        ver['approval_status_label'] = ''
+        if PublishedWorkingset.objects.filter(workingset_id=ver['id'], workingset_history_id=ver['history_id']).exists():
+            ver['approval_status'] = PublishedWorkingset.objects.get(workingset_id=ver['id'], workingset_history_id=ver['history_id']).approval_status
+            ver['approval_status_label'] = APPROVED_STATUS[ver['approval_status']][1]        
+        
+        
+        if request.user.is_authenticated:
+            if allowed_to_edit(request, PhenotypeWorkingset, pk) or allowed_to_view(request, PhenotypeWorkingset, pk):
+                historical_versions.append(ver)
+            else:
+                if is_this_version_published:
+                    historical_versions.append(ver)
+        else:
+            if is_this_version_published:
+                historical_versions.append(ver)
+                
+    return historical_versions
+
+class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, TemplateResponseMixin, View):
+    '''
+        Publish the current working set.
+    '''
+
+    model = PhenotypeWorkingset
+    template_name = 'clinicalcode/phenotypeworkingset/publish.html'
+
+    pass
 
 
 class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, UpdateView):

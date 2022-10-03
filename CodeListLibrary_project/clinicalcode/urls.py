@@ -463,6 +463,9 @@ if settings.ENABLE_PUBLISH:
         url(r'^phenotypes/PH(?P<pk>\d+)/(?P<phenotype_history_id>\d+)/publish/$',
             Phenotype.PhenotypePublish.as_view(),
             name='phenotype_publish'),
+        url(r'^phenotypeworkingset/(?P<pk>WS\d+)/(?P<workingset_history_id>\d+)/publish/$',
+            PhenotypeWorkingSet.WorkingSetPublish.as_view(),
+            name='workingset_publish'),
     ]
 
 # handler400 = 'clinicalcode.views.bad_request'
