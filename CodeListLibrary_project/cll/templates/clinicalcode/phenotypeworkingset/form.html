@@ -595,7 +595,7 @@
                         left: 1
                     },
                     scrollX: true,
-                    scrollY: '80vh',
+                    scrollY: '70vh',
                     scrollCollapse: true,
                     colReorder: true,
                     paging: false,
@@ -669,6 +669,28 @@
 
         }
 
+        const reDrawtable = (id,numbers,dataset) =>{
+            let columns = [{data: "Data", title: "Data"}]
+            let headers = Object.entries(dataset[0])
+            for (let i = 0; i < headers.length - 1; i++) {
+                if (headers[i][0].startsWith('Attributes-row')) {
+                    columns.push({data: headers[i][0], title: headers[i + 1][1] + headers[i + 2][1]})
+                }
+            }
+
+
+            if ($.fn.DataTable.isDataTable('#attributes-table')) {
+                $('#' + id).DataTable().destroy();
+                $('#' + id).empty();
+                var table = createTable(numbers, dataset, 'attributes-table', columns)
+                table.buttons().container()
+                    .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+                return table
+
+            }
+
+        }
+
         const inputheader = () => {
             var table = $('#attributes-table').DataTable()
 
@@ -682,9 +704,11 @@
             }
 
 
+
         }
 
         const selectHeader = () => {
+            var table = $('#attributes-table').DataTable()
             let val = event.target.value
             let index = event.target.id.match(/\d+/)[0]
             let dataPrevious = $('#phenotypes_concepts_json').val()
@@ -692,9 +716,13 @@
             let updatedSelect = changeSelectValue(val, index)
             for (let i = 0; i < dataPrevious.length; i++) {
                 dataPrevious[i]['Attributes-select' + (index)] = `${updatedSelect}`
+                dataPrevious[i]['Attributes-row' + (index)] = `<input class="input-material" type="text" value="" style="width:100%" id="attribute-input-${index}"/>`
                 $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
             }
 
+            table = reDrawtable('attributes-table',table.columns().header().length-1,dataPrevious)
+            table.buttons().container()
+                    .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
 
         }
 
@@ -709,30 +737,61 @@
             let parse = new DOMParser().parseFromString(element, "text/html")
             let select = parse.querySelector('*[id^="column_type"]')
             select.options[val].defaultSelected = true
+
+
             return $(select)[0].outerHTML
 
         }
 
 
-        $('#attributes-table').on('input', 'td', function () {
+        $('#attributes-table').on('input', 'td', function (e) {
             let table = $('#attributes-table').DataTable()
             let cell = table.cell(this).index()
-            let value = $(table.cell(this).node()).find('input').val()
+            let input = $(table.cell(this).node()).find('input')
+            let value = input.val()
             let rowIdx = cell.row
             let colindex = cell.column
-            let dataPrevious = $('#phenotypes_concepts_json').val()
-            dataPrevious = JSON.parse(dataPrevious)
-            dataPrevious[rowIdx]['Attributes-row' + (colindex - 1)] = `<input class="input-material" type="text" value="${value}" style="width:100%" id="attribute-input-${colindex - 1}"/>`
-            checkTypeinput(value, rowIdx, colindex)
-            $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
+            if (checkTypeinput(input, value, rowIdx, colindex)) {
+                let dataPrevious = $('#phenotypes_concepts_json').val()
+                dataPrevious = JSON.parse(dataPrevious)
+                dataPrevious[rowIdx]['Attributes-row' + (colindex - 1)] = `<input class="input-material" type="text" value="${value}" style="width:100%" id="attribute-input-${colindex - 1}"/>`
+                $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
+            }
+
 
         });
 
-        const checkTypeinput = (val, rowIndex, columnIndex) => {
+        const checkTypeinput = (input, val, rowIndex, columnIndex) => {
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
-
             let type = dataPrevious[rowIndex]['Attributes-select' + (columnIndex - 1)]
+            let element = new DOMParser().parseFromString(type, "text/html")
+            let select = element.querySelector('*[id^="column_type"]')
+            let select_val = $("#" + `${select.id}`).val()
+            console.log(val)
+
+            switch (parseInt(select_val)) {
+                case 0:
+                    alert('Choose type')
+                    return false
+
+                case 1:
+                    if (/^-?\d+$|^[-]+$/.test(val)) {
+                        return true
+                    } else {
+                        input.val($.trim(input.val()).slice(0, -1));
+                        return false
+                    }
+                case 2:
+                    if (val.match(/^-?[0-9]*[.][0-9]+$/)) {
+                        return true
+                    } else {
+                        input.val($.trim(input.val()).slice(0, -1));
+                        return false
+                    }
+
+
+            }
 
 
         }
