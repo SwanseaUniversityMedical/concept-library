@@ -314,8 +314,10 @@ def allowed_to_view(request,
 
     # check brand access
     if is_allowed_to_view and request is not None:
-        if not is_brand_accessible(request, set_class, set_id, set_history_id):
-            is_allowed_to_view = False
+        # if the entity is published ignore is_brand_accessible() in allowed_to_view()
+        if not checkIfPublished(set_class, set_id, set_history_id):
+            if not is_brand_accessible(request, set_class, set_id, set_history_id):
+                is_allowed_to_view = False
 
     return is_allowed_to_view
 
