@@ -509,7 +509,7 @@ def phenotype_workingset_DB_test_create(request):
             
             group = Group.objects.get(id=5),
             group_access = Permissions.VIEW,
-            owner_access = Permissions.VIEW,
+            owner_access = Permissions.EDIT,
             world_access = Permissions.VIEW
             )
     
@@ -624,12 +624,7 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
     history = get_history_table_data(request, pk)
 
     # attributes
-    workingset_attributes = workingset['phenotypes_concepts_data']
-    try:
-        workingset_attributes = json.loads(workingset_attributes)
-    except:
-        workingset_attributes = None
-    
+    workingset_attributes = workingset['phenotypes_concepts_data']    
     if workingset_attributes:
         for data in workingset_attributes:
             concept_id = db_utils.parse_ident(data["concept_id"])
