@@ -738,48 +738,51 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
 -->
 
                         <div id="permissions" class="row">
-                            <div  class="col-sm-3">Owner</div>
+                            <div  class="col-sm-2">Owner</div>
                             <div class="col-sm-4">
                                 <span>{{ phenotype.owner.username }}</span>
                             </div>
-                            <div class="col-sm-5 text-right">
+                            <div  class="col-sm-2">Owner access</div>
+                            
+                            <div class="col-sm-4">
                                 {% if phenotype.owner_access == 1 %}	
-                                    <span class="tag label label-danger justified-label"><i>Owner access:&nbsp;&nbsp;</i><span class="card-noweight">None</span></span>
+                                    <span class="tag label label-danger"><span class="card-noweight">None</span></span>
                                 {% elif phenotype.owner_access == 2 %}
-                                    <span class="tag label label-warning justified-label"><i>Owner access:&nbsp;&nbsp;</i><span class="card-noweight">View only</span></span>
+                                    <span class="tag label label-warning"><span class="card-noweight">View only</span></span>
                                 {% elif phenotype.owner_access == 3 %}
-                                    <span class="tag label label-success justified-label"><i>Owner access:&nbsp;&nbsp;</i><span class="card-noweight">View and edit</span></span>
+                                    <span class="tag label label-success"><span class="card-noweight">View and edit</span></span>
                                 {% else %}
-                                    <span class="tag label label-success justified-label"><i>Owner access:&nbsp;&nbsp;</i><span class="card-noweight">Unknown</span></span>
+                                    <span class="tag label label-success"><span class="card-noweight">Unknown</span></span>
                                 {% endif %}
                             </div>
                         </div>
                         <hr class="small-divider"/>
                         <div id="permissions" class="row">
-                            <div  class="col-sm-3">Group</div>
+                            <div  class="col-sm-2">Group</div>
                             <div class="col-sm-4">
                                 {% if phenotype.group %}
                                 <span>{{ phenotype.group }}</span>
                                 {% else %}
-                                <span>No associated group</span>
+                                <span class="card-no-data">No associated group</span>
                                 {% endif %}
                             </div>
-                            <div class="col-sm-5 text-right">
+                            <div class="col-sm-2">Group access</div>
+                            <div class="col-sm-4">
                                 {% if phenotype.group_access == 1 %}	
-                                    <span class="tag label label-danger justified-label"><i>Group access:&nbsp;&nbsp;</i><span class="card-noweight text-right">No Access</span></span>
+                                    <span class="tag label label-danger"><span class="card-noweight text-right">No Access</span></span>
                                 {% elif phenotype.group_access == 2 %}
-                                    <span class="tag label label-warning justified-label"><i>Group access:&nbsp;&nbsp;</i><span class="card-noweight text-right">View only</span></span>
+                                    <span class="tag label label-warning"><span class="card-noweight text-right">View only</span></span>
                                 {% elif phenotype.group_access == 3 %}
-                                    <span class="tag label label-success justified-label"><i>Group access:&nbsp;&nbsp;</i><span class="card-noweight text-right">View and edit</span></span>
+                                    <span class="tag label label-success"><span class="card-noweight text-right">View and edit</span></span>
                                 {% else %}
-                                    <span class="tag label label-success justified-label"><i>Group access:&nbsp;&nbsp;</i><span class="card-noweight text-right">Unknown</span></span>
+                                    <span class="tag label label-success"><span class="card-noweight text-right">Unknown</span></span>
                                 {% endif %}
                             </div>
                         </div>
                         <hr class="small-divider"/>
                         <div id="permissions" class="row">
-                            <div  class="col-sm-3">Public access</div>
-                            <div class="col-sm-9">
+                            <div class="col-sm-2">All other users</div>
+                            <div class="col-sm-10">
                                 {% if phenotype.world_access == 1 %}	
                                     <span class="tag label label-danger">No access</span>
                                 {% elif phenotype.world_access == 2 %}

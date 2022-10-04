@@ -8,7 +8,7 @@
 
 {% block content %}
 	{% for concept in page_obj.object_list %}  
-			<div class="cl-card {% if concept.is_deleted is True %} cl-card-deleted {% endif %} {% cycle ' dark-div ' '' %}   ">
+			<div class="cl-card {% if concept.is_deleted is True %} cl-card-deleted {% endif %} {% cycle ' dark-div ' '' %} {% if concept.is_deleted is not True and concept.can_edit %} cl-card-with-buttons {% endif %}">
 				<div class="row form-group">
 					<div class="col-sm-8"> <!-- {% if concept.is_deleted is not True and concept.can_edit %} class="col-sm-10" {% else %}  class="col-sm-12" {% endif %} > -->
 						{% if user.is_authenticated and concept.is_published != 1 %}
@@ -50,7 +50,7 @@
 							{% for tag_id in concept.tags %}
 								{% if tag.id == tag_id %}
 
-										<span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">#{{ tag.description }}</span>
+										<span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">{{ tag.description }}</span>
 									{% endif %}
 							{% endfor %}						
 						{% endfor %}			
@@ -59,7 +59,7 @@
 				</div>				
 
 			{% if concept.is_deleted is not True and concept.can_edit %}
-			<hr/>
+			<hr class="top-heavy-divider"/>
 			<div class="row form-group">
 					<div class="col-sm-12 text-right">
 							<a  class="btn btn-outline-primary btn-cl btn-cl-secondary card-edit-sizing" href="{% url 'concept_update' concept.id %}" title="Edit concept">
