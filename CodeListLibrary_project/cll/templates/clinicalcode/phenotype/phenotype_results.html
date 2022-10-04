@@ -58,7 +58,7 @@
 							{% for tag_id in phenotype.tags %}
 								{% if tag.id == tag_id %}
 
-										<span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">#{{ tag.description }}</span>
+										<span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">{{ tag.description }}</span>
 									{% endif %}
 							{% endfor %}						
 						{% endfor %}			
