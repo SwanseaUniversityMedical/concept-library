@@ -419,7 +419,7 @@
 
 
                     <input type="hidden" id="phenotypes_concepts_json" name="phenotypes_concepts_json">
-                    <input type="hidden" id="copy" name="copy">
+                    <input type="hidden" id="workingset_data" name="workingset_data">
 
 
 
@@ -526,7 +526,7 @@
         $('#add-data').createSelection({
             // Props
             clearSelectedOnClose: false,
-            clearSelectedOnImport: true,
+            clearSelectedOnImport: false,
 
             // Methods
             onImport: (service, selected) => {
@@ -537,6 +537,7 @@
                         "Data": element.phenotype.id + '/' + element.phenotype.version + '-' + element.concept.id + '/' + element.concept.version + '-' + element.concept.name
                     }
                 })
+
 
                 if ($.fn.dataTable.isDataTable('#attributes-table')) {
                     var table = $('#attributes-table').DataTable();
@@ -629,6 +630,25 @@
             return newObject
         }
 
+        const returnValue = (type, id) => {
+            let element = new DOMParser().parseFromString(type, "text/html")
+            let select = element.querySelector(`*[id^="${id}"]`)
+            if (id.startsWith("column_type")) {
+                let val = $("#" + `${select.id}`).val()
+                switch (val) {
+                    case 1:
+                        return 'INT'
+                    case 2:
+                        return 'FLOAT'
+                    case 3:
+                        return 'STRING'
+                }
+            } else {
+                return $("#" + `${select.id}`).val()
+            }
+
+        }
+
         const addColumn = (numbers) => {
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
@@ -670,6 +690,7 @@
         }
 
         const reDrawtable = (id, numbers, dataset) => {
+            wrapData()
             let columns = [{data: "Data", title: "Data"}]
             let headers = Object.entries(dataset[0])
             for (let i = 0; i < headers.length - 1; i++) {
@@ -703,8 +724,63 @@
                 $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
             }
 
+        }
+
+        const wrapData = () => {
+            let dataPrevious = $('#phenotypes_concepts_json').val()
+            dataPrevious = JSON.parse(dataPrevious)
+            let arrayOfData = []
+            for (let i = 0; i < dataPrevious.length; i++) {
+                let entry = Object.entries(dataPrevious[i])
+                let mainData = wrapIds(dataPrevious[i]['Data'])
+                if (entry.length > 1) {
+                mainData['Attributes'] = []
+                    for (let j = 0; j < (entry.length - 1) / 3; j++) {
+
+                        let type = dataPrevious[i]['Attributes-select' + j]
+                        let attribute_name = dataPrevious[i]['Attributes-header' + j]
+                        let attribute_value = dataPrevious[i]['Attributes-row' + j]
+                        mainData['Attributes'].push({
+                            name: returnValue(attribute_name, 'attribute-header' + j),
+                            type: returnValue(type, 'column_type' + j),
+                            value: returnValue(attribute_value, 'attribute-input-' + j)
+                        })
+
+                    }
+                    arrayOfData.push(mainData)
+                }
+                arrayOfData.push(mainData)
+
+            }
+             $('#workingset_data').val(JSON.stringify(arrayOfData))
+
 
         }
+
+         $('#save-changes').on('click', function () {
+             wrapData()
+         })
+
+
+
+        const wrapIds = (dataIds) => {
+            let phenotype = dataIds.substring(dataIds.indexOf('PH'), dataIds.indexOf('-C'))
+            let phenotype_id = phenotype.split('/')[0]
+            let phenotype_version = phenotype.split('/')[1]
+
+            let concept = dataIds.substring(dataIds.indexOf('-C'), dataIds.indexOf(' - '))
+            let concept_id = concept.split('/')[0].slice(1)
+            let concept_version = concept.split('/')[1].substring(0, concept.indexOf('-', 5)).replace(/\D/g, '')
+
+            return {
+                phenotype_id: phenotype_id,
+                phenotype_version: phenotype_version,
+                concept_id: concept_id,
+                concept_version_id: concept_version
+            }
+
+        }
+
 
         const selectHeader = () => {
             var table = $('#attributes-table').DataTable()
@@ -761,6 +837,7 @@
 
 
         });
+
 
         const checkTypeinput = (input, val, rowIndex, columnIndex) => {
             let dataPrevious = $('#phenotypes_concepts_json').val()
