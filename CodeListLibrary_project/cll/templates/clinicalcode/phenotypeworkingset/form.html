@@ -540,22 +540,26 @@
 
 
                 if ($.fn.dataTable.isDataTable('#attributes-table')) {
-                    var table = $('#attributes-table').DataTable();
-                    table.clear();
+                    let table = $('#attributes-table').DataTable();
+                    table.rows().remove().draw()
+
                     let dataPrevious = $('#phenotypes_concepts_json').val()
                     dataPrevious = JSON.parse(dataPrevious)
                     let newObject = removalue(dataPrevious)
+                    let tempArr = []
                     for (let i = 0; i < dataset.length; i++) {
-                        dataPrevious.push({
+                             tempArr.push({
                             ...newObject,
                             ["Data"]: dataset[i].Data
                         })
                     }
+
+
                     table.rows.add(dataPrevious).draw();
                     $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
                 } else {
                     $('#attributes-table').show()
-                    var table = createTable(numbers, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}])
+                    let table = createTable(numbers, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}])
                     table.buttons().container()
                         .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
                     $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
@@ -690,7 +694,6 @@
         }
 
         const reDrawtable = (id, numbers, dataset) => {
-            wrapData()
             let columns = [{data: "Data", title: "Data"}]
             let headers = Object.entries(dataset[0])
             for (let i = 0; i < headers.length - 1; i++) {
@@ -714,6 +717,7 @@
 
         const inputheader = () => {
             var table = $('#attributes-table').DataTable()
+
 
             let val = event.target.value
             let index = event.target.id.match(/\d+/)[0]
