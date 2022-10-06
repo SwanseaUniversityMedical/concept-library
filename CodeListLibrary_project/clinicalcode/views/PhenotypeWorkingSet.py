@@ -482,10 +482,10 @@ def phenotype_workingset_DB_test_create(request):
                                                       ]
                                           },
                                           {                                                                                                                             
-                                            "phenotype_id": "PH3",
-                                            "phenotype_version_id": 6,
-                                            "concept_id": "C717",
-                                            "concept_version_id": 2573,
+                                            "phenotype_id": "PH43",
+                                            "phenotype_version_id": 86,
+                                            "concept_id": "C806",
+                                            "concept_version_id": 2751,
                                             "Attributes": [
                                                         {
                                                           "name": "attr_1",

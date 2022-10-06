@@ -543,19 +543,17 @@ def getPhenotypeWorkingSetDetail(request, pk, is_authenticated=False, workingset
     tags = []
     tags_comp = ws['tags']
     if tags_comp:
-        tags = list(
-            Tag.objects.filter(pk__in=tags_comp).values('description', 'id', 'collection_brand'))
+        tags = list(Tag.objects.filter(pk__in=tags_comp).values('description', 'id', 'collection_brand'))
     
     collections = []
     collections_comp = ws['collections']
     if collections_comp:
-        collections = list(
-            Tag.objects.filter(pk__in=collections_comp).values('description', 'id', 'collection_brand'))
+        collections = list(Tag.objects.filter(pk__in=collections_comp).values('description', 'id', 'collection_brand'))
 
     rows_to_return = []
     titles = ([
-        'phenotypeworkingset_id',
-        'phenotypeworkingset_name',
+        'workingset_id',
+        'workingset_name',
         'version_id',
         'tags',
         'collections',
@@ -636,15 +634,12 @@ def get_codelist_from_concept(request, pk, history_id=None):
 
         codes = codes_with_attributes
 
-    titles = [
-        'code', 'description', 'coding_system'
-    ]
+    titles = ['code', 'description', 'coding_system']
+    
     if code_attribute_header:
         if request.query_params.get('format', 'xml').lower() == 'xml':
             # clean attr names/ remove space, etc
-            titles = titles + [
-                clean_str_as_db_col_name(a) for a in code_attribute_header
-            ]
+            titles = titles + [clean_str_as_db_col_name(a) for a in code_attribute_header]
         else:
             titles = titles + [a for a in code_attribute_header]
 
