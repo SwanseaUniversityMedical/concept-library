@@ -3844,6 +3844,8 @@ def get_phenotype_conceptcodesByVersion(request,
         Parameters:     request    The request.
                         pk         The phenotype id.
                         phenotype_history_id  The version id
+                        target_concept_id if you need only one concept's code
+                        target_concept_history_id if you need only one concept's code
         Returns:        list of Dict with the codes. 
     '''
 
@@ -3870,12 +3872,12 @@ def get_phenotype_conceptcodesByVersion(request,
     for concept in concept_ids_historyIDs:
         concept_id = concept[0]
         concept_version_id = concept[1]
-        concept_ver_name = Concept.history.get(id=concept_id, history_id=concept_version_id).name
         
         if (target_concept_id is not None and target_concept_history_id is not None):
             if target_concept_id != str(concept_id) and target_concept_history_id != str(concept_version_id):
                 continue
-
+        
+        concept_ver_name = Concept.history.get(id=concept_id, history_id=concept_version_id).name
         concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version_id).coding_system.name
 
         rows_no = 0
@@ -3910,16 +3912,16 @@ def get_phenotype_conceptcodesByVersion(request,
                 codes.append(
                     ordr(
                         list(
-                            zip(titles, [
-                                cc['code'], cc['description'].encode('ascii', 'ignore').decode('ascii')
-                            ] + [attributes_dict] + [
-                                concept_coding_system, 
-                                'C' + str(concept_id),
-                                concept_version_id,
-                                concept_ver_name,
-                                current_ph_version.friendly_id,
-                                current_ph_version.history_id,
-                                current_ph_version.name
+                            zip(titles, [cc['code']
+                                       , cc['description'].encode('ascii', 'ignore').decode('ascii')
+                                       ] + [attributes_dict] + [
+                                        concept_coding_system 
+                                        , 'C' + str(concept_id)
+                                        , concept_version_id
+                                        , concept_ver_name
+                                        , current_ph_version.friendly_id
+                                        , current_ph_version.history_id
+                                        , current_ph_version.name
                             ]))))
 
             if rows_no == 0:
@@ -3927,13 +3929,13 @@ def get_phenotype_conceptcodesByVersion(request,
                     ordr(
                         list(
                             zip(titles, ['', ''] + [attributes_dict] + [
-                                concept_coding_system, 
-                                'C' + str(concept_id),
-                                concept_version_id,
-                                concept_ver_name,
-                                current_ph_version.friendly_id,
-                                current_ph_version.history_id,
-                                current_ph_version.name
+                                concept_coding_system
+                                , 'C' + str(concept_id)
+                                , concept_version_id
+                                , concept_ver_name
+                                , current_ph_version.friendly_id
+                                , current_ph_version.history_id
+                                , current_ph_version.name
                             ]))))
 
     return codes
@@ -4898,3 +4900,141 @@ def get_concept_data_of_historical_phenotypeWorkingset(pk, history_id=None):
 
 
     
+def get_working_set_codes_by_version(request, 
+                                    pk, 
+                                    workingset_history_id,
+                                    target_concept_id=None,
+                                    target_concept_history_id=None):
+    '''
+        Get the codes of the phenotype working set concepts
+        for a specific version
+        Parameters:     request    The request.
+                        pk         The phenotype id.
+                        phenotype_history_id  The version id
+                        target_concept_id if you need only one concept's code
+                        target_concept_history_id if you need only one concept's code
+        Returns:        list of Dict with the codes. 
+    '''
+    
+    # here, check live version is not deleted
+    if PhenotypeWorkingset.objects.get(pk=pk).is_deleted == True:
+        raise PermissionDenied
+    #--------------------------------------------------
+    
+    current_ws_version = PhenotypeWorkingset.history.get(id=pk, history_id=workingset_history_id)
+
+    phenotypes_concepts_data = current_ws_version.phenotypes_concepts_data
+    
+    attributes_titles = []
+    if phenotypes_concepts_data:
+        attr_sample = phenotypes_concepts_data[0]["Attributes"]
+        attributes_titles = [x["name"] for x in attr_sample]
+
+    titles = ( ['code', 'description', 'code_attributes', 'coding_system']
+             + ['concept_id', 'concept_version_id' , 'concept_name']
+             + ['phenotype_id', 'phenotype_version_id', 'phenotype_name']
+             + ['workingset_id', 'workingset_version_id', 'workingset_name']
+             + attributes_titles
+            )
+
+    codes = []
+    for concept in phenotypes_concepts_data:
+        concept_id = int(concept["concept_id"].replace("C", ""))
+        concept_version_id = concept["concept_version_id"]
+        
+        if (target_concept_id is not None and target_concept_history_id is not None):
+            if target_concept_id != str(concept_id) and target_concept_history_id != str(concept_version_id):
+                continue
+            
+        concept_name = Concept.history.get(id=concept_id, history_id=concept_version_id).name
+        concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version_id).coding_system.name
+             
+        phenotype_id = int(concept["phenotype_id"].replace("PH", ""))
+        phenotype_version_id = concept["phenotype_version_id"]
+        phenotype_name = Phenotype.history.get(id=phenotype_id, history_id=phenotype_version_id).name
+                        
+        attributes_values = []
+        if attributes_titles:
+            attributes_values = [x["value"] for x in concept["Attributes"]]
+            
+               
+        rows_no = 0
+        concept_codes = getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
+        if concept_codes:
+            #---------
+            code_attribute_header = Concept.history.get(id=concept_id, history_id=concept_version_id).code_attribute_header
+            concept_history_date = Concept.history.get(id=concept_id, history_id=concept_version_id).history_date
+            codes_with_attributes = []
+            if code_attribute_header:
+                codes_with_attributes = getConceptCodes_withAttributes_HISTORICAL(concept_id=concept_id,
+                                                                                concept_history_date=concept_history_date,
+                                                                                allCodes=concept_codes,
+                                                                                code_attribute_header=code_attribute_header
+                                                                                )
+
+                concept_codes = codes_with_attributes
+            #---------
+            
+        for cc in concept_codes:
+            rows_no += 1
+            code_attributes_dict = {}
+            if code_attribute_header:
+                for attr in code_attribute_header:
+                    if request.GET.get('format', '').lower() == 'xml':
+                        # clean attr names/ remove space, etc
+                        attr2 = utils.clean_str_as_db_col_name(attr)
+                    else:
+                        attr2 = attr
+                    code_attributes_dict[attr2] = cc[attr]
+                                    
+            codes.append(
+                    ordr(
+                        list(
+                            zip(titles, [ cc['code']
+                                        , cc['description'].encode('ascii', 'ignore').decode('ascii')
+                                        ] + [code_attributes_dict] + [
+                                          concept_coding_system
+                                        , 'C' + str(concept_id)
+                                        , concept_version_id
+                                        , concept_name
+                                        , 'PH' + str(phenotype_id)
+                                        , phenotype_version_id
+                                        , phenotype_name                
+                                        , current_ws_version.id
+                                        , current_ws_version.history_id
+                                        , current_ws_version.name
+                                        ]
+                                        + attributes_values
+                                        )
+                            )
+                        )
+                    )
+
+                  
+
+        if rows_no == 0:
+            codes.append(
+                    ordr(
+                        list(
+                            zip(titles, [ '' 
+                                        , ''] + [attributes_dict] + [
+                                          concept_coding_system 
+                                        , 'C' + str(concept_id)
+                                        , concept_version_id
+                                        , concept_name
+                                        , 'PH' + str(phenotype_id)
+                                        , phenotype_version_id
+                                        , phenotype_name                
+                                        , current_ws_version.id
+                                        , current_ws_version.history_id
+                                        , current_ws_version.name
+                                        ]
+                                        + attributes_values 
+                                        )
+                            )
+                        )
+                    )
+
+    return codes
+
+
