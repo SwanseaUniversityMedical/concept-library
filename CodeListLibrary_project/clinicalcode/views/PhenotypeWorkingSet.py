@@ -440,7 +440,7 @@ def phenotype_workingset_DB_test_create(request):
             tags = random.sample(list(Tag.objects.filter(tag_type=1).values_list('id',  flat=True)), 1),
             collections = random.sample(list(Tag.objects.filter(tag_type=2).values_list('id',  flat=True)), 2),
             publications = ["paper no 1", "paper no 2", "paper no 3"],
-            author = "me, others, wolrd",
+            author = "me, others, world",
             citation_requirements = "citation requirements",
             description = "description description description",
             data_sources = random.sample(list(DataSource.objects.values_list('id',  flat=True)), 2),

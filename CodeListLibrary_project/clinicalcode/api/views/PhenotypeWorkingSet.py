@@ -455,20 +455,17 @@ def phenotypeworkingset_detail(request, pk, workingset_history_id=None):
         raise PermissionDenied
 
     if workingset_history_id is not None:
-        ws_ver = PhenotypeWorkingset.history.filter(id=pk,
-                                           history_id=workingset_history_id)
+        ws_ver = PhenotypeWorkingset.history.filter(id=pk, history_id=workingset_history_id)
         if ws_ver.count() == 0: raise Http404
 
     if workingset_history_id is None:
         # get the latest version
-        workingset_history_id = PhenotypeWorkingset.objects.get(
-            pk=pk).history.latest().history_id
+        workingset_history_id = PhenotypeWorkingset.objects.get(pk=pk).history.latest().history_id
 
     # here, check live version
     current_ws = PhenotypeWorkingset.objects.get(pk=pk)
 
-    children_permitted_and_not_deleted, error_dic = chk_children_permission_and_deletion(
-        request, PhenotypeWorkingset, pk, set_history_id=workingset_history_id)
+    children_permitted_and_not_deleted, error_dic = chk_children_permission_and_deletion(request, PhenotypeWorkingset, pk, set_history_id=workingset_history_id)
     if not children_permitted_and_not_deleted:
         raise PermissionDenied
 
@@ -492,14 +489,12 @@ def phenotypeworkingset_detail_PUBLIC(request, pk, workingset_history_id=None):
         raise Http404
 
     if workingset_history_id is not None:
-        ws_ver = PhenotypeWorkingset.history.filter(id=pk,
-                                           history_id=workingset_history_id)
+        ws_ver = PhenotypeWorkingset.history.filter(id=pk, history_id=workingset_history_id)
         if ws_ver.count() == 0: raise Http404
 
     if workingset_history_id is None:
         # get the latest version
-        workingset_history_id = PhenotypeWorkingset.objects.get(
-            pk=pk).history.latest().history_id
+        workingset_history_id = PhenotypeWorkingset.objects.get(pk=pk).history.latest().history_id
 
     is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
 
@@ -615,54 +610,6 @@ def getPhenotypeWorkingSetDetail(request, pk, is_authenticated=False, workingset
     return Response(rows_to_return, status=status.HTTP_200_OK)
 
 #--------------------------------------------------------------------------
-def get_codelist_from_concept(request, pk, history_id=None):
-    codes = getGroupOfCodesByConceptId(pk)
-    
-    if history_id is None:
-        history_id = Concept.objects.get(id=pk).history.latest('history_id').history_id
-    
-    code_attribute_header = Concept.history.get(id=pk, history_id=history_id).code_attribute_header
-    concept_history_date = Concept.history.get(id=pk, history_id=history_id).history_date
-    codes_with_attributes = []
-    if code_attribute_header:
-        codes_with_attributes = getConceptCodes_withAttributes_HISTORICAL(
-                                                                        concept_id=pk,
-                                                                        concept_history_date=concept_history_date,
-                                                                        allCodes=codes,
-                                                                        code_attribute_header=code_attribute_header)
-
-        codes = codes_with_attributes
-
-    titles = ['code', 'description', 'coding_system']
-    
-    if code_attribute_header:
-        if request.query_params.get('format', 'xml').lower() == 'xml':
-            # clean attr names/ remove space, etc
-            titles = titles + [clean_str_as_db_col_name(a) for a in code_attribute_header]
-        else:
-            titles = titles + [a for a in code_attribute_header]
-
-    current_concept = Concept.objects.get(pk=pk)
-
-    concept_coding_system = Concept.objects.get(id=pk).coding_system.name
-
-    rows_to_return = []
-    for c in codes:
-        code_attributes = []
-        if code_attribute_header:
-            for a in code_attribute_header:
-                code_attributes.append(c[a])
-
-        rows_to_return.append(
-            ordr(
-                list(
-                    zip(titles, [
-                        c['code'],
-                        c['description'].encode('ascii', 'ignore').decode('ascii'),
-                        concept_coding_system,
-                    ] + code_attributes))))
-
-    return rows_to_return
 
 def get_phenotypeworkingset_concepts(request, pk, workingset_history_id):
     # validate access
@@ -672,8 +619,7 @@ def get_phenotypeworkingset_concepts(request, pk, workingset_history_id):
     # here, check live version
     current_ws = PhenotypeWorkingset.objects.get(pk=pk)
 
-    children_permitted_and_not_deleted, error_dic = chk_children_permission_and_deletion(
-        request, PhenotypeWorkingset, pk, set_history_id=workingset_history_id)
+    children_permitted_and_not_deleted, error_dic = chk_children_permission_and_deletion(request, PhenotypeWorkingset, pk, set_history_id=workingset_history_id)
     if not children_permitted_and_not_deleted:
         raise PermissionDenied
 
@@ -708,6 +654,53 @@ def get_phenotypeworkingset_concepts(request, pk, workingset_history_id):
     
     return rows_to_return
 
+def get_codelist_from_concept(request, pk, history_id=None):
+    
+    if history_id is None:
+        history_id = Concept.objects.get(id=pk).history.latest('history_id').history_id
+    
+    codes = getGroupOfCodesByConceptId_HISTORICAL(pk, history_id)
+    
+    current_concept_version = Concept.history.get(id=pk, history_id=history_id)
+    code_attribute_header = current_concept_version.code_attribute_header
+    concept_history_date = current_concept_version.history_date
+    codes_with_attributes = []
+    if code_attribute_header:
+        codes_with_attributes = getConceptCodes_withAttributes_HISTORICAL(concept_id=pk,
+                                                                        concept_history_date=concept_history_date,
+                                                                        allCodes=codes,
+                                                                        code_attribute_header=code_attribute_header)
+
+        codes = codes_with_attributes
+
+    titles = ['code', 'description', 'coding_system']
+    
+    if code_attribute_header:
+        if request.query_params.get('format', 'xml').lower() == 'xml':
+            # clean attr names/ remove space, etc
+            titles = titles + [clean_str_as_db_col_name(a) for a in code_attribute_header]
+        else:
+            titles = titles + [a for a in code_attribute_header]
+
+    concept_coding_system = current_concept_version.coding_system.name
+
+    rows_to_return = []
+    for c in codes:
+        code_attributes = []
+        if code_attribute_header:
+            for a in code_attribute_header:
+                code_attributes.append(c[a])
+
+        rows_to_return.append(
+            ordr(
+                list(
+                    zip(titles, [
+                        c['code'],
+                        c['description'].encode('ascii', 'ignore').decode('ascii'),
+                        concept_coding_system,
+                    ] + code_attributes))))
+
+    return rows_to_return
 
 #--------------------------------------------------------------------------
 #disable authentication for this function
