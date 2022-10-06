@@ -824,7 +824,7 @@ def history_workingset_codes_to_csv(request, pk, workingset_history_id=None):
     attributes_titles = []
     if phenotypes_concepts_data:
         attr_sample = phenotypes_concepts_data[0]["Attributes"]
-        attributes_titles = [x["name"] for x in attr_sample]
+        attributes_titles = [x["name"]+"("+x["type"]+")" for x in attr_sample]
 
     titles = (    ['code', 'description', 'coding_system']
                 + ['concept_id', 'concept_version_id' , 'concept_name']
