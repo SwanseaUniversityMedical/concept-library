@@ -238,8 +238,8 @@ def selection_list(request):
     concept_data = { }
     for phenotype in p.object_list:
         if phenotype['concept_informations']:
-            concept_id_list = [x['concept_id'] for x in json.loads(phenotype['concept_informations']) ]
-            concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(phenotype['concept_informations']) ]
+            concept_id_list = [x['concept_id'] for x in phenotype['concept_informations'] ]
+            concept_hisoryid_list = [x['concept_version_id'] for x in phenotype['concept_informations'] ]
             concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list) #.values('id', 'history_id', 'name', 'group')
             concept_data[phenotype['id']] = {
                 'phenotype_id': phenotype['id'],
