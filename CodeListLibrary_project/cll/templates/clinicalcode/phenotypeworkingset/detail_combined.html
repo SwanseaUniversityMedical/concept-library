@@ -57,8 +57,8 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                             <span class="caret"></span>
                           </button>
                           <ul class="dropdown-menu">
-                           <li>
                            {% if user.is_authenticated %}
+                           <li>
                                <a {% if user_can_export %}
                                    href="{% url 'api:api_phenotypeworkingset_detail_version' workingset.id workingset.history_id %}?format=json"
                                    target=_blank {% endif %}
@@ -392,8 +392,59 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
             <div class="col-sm-12 shadow-frame">
                 <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
                         id="ClinicalCodeList"></span><strong>Clinical Code List</strong></h3>
-                
-                
+                <div class="dropdown btn-group" style="float: right;">
+                    <button {% if not user_can_export %} disabled
+                                                            title="Component concept(s) deleted or revoked access!" {% endif %}
+                                                            type="button" class="btn btn-primary dropdown-toggle"
+                                                            data-toggle="dropdown" aria-haspopup="true"
+                                                            aria-expanded="false" id="export-btn-codelist">
+                        Export Code List <i class="caret"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            {% if user.is_authenticated %}
+                                <a {% if user_can_export %}
+                                    href="{% url 'api:api_export_phenotypeworkingset_codes_byVersionID' pk=workingset.id workingset_history_id=workingset.history_id %}"
+                                    target=_blank {% endif %}
+                            {% elif enable_publish %}
+                                <a {% if user_can_export %}
+                                href="{% url 'api:api_export_published_phenotypeworkingset_codes' pk=workingset.id workingset_history_id=workingset.history_id %}"
+                                target=_blank {% endif %}
+                            {% endif %}
+                                class="dropdown-item">
+                                CSV
+                            </a>
+                        </li>
+                        <li>
+                            {% if user.is_authenticated %}
+                                <a {% if user_can_export %}
+                                    href="{% url 'api:api_export_phenotypeworkingset_codes_byVersionID' pk=workingset.id workingset_history_id=workingset.history_id %}?format=json"
+                                    target=_blank {% endif %}
+                            {% elif enable_publish %}
+                                <a {% if user_can_export %}
+                                href="{% url 'api:api_export_published_phenotypeworkingset_codes' pk=workingset.id workingset_history_id=workingset.history_id %}?format=json"
+                                target=_blank {% endif %}
+                            {% endif %}
+                                class="dropdown-item">
+                                JSON
+                            </a>
+                        </li>
+                        <li>
+                            {% if user.is_authenticated %}
+                                <a {% if user_can_export %}
+                                    href="{% url 'api:api_export_phenotypeworkingset_codes_byVersionID' pk=workingset.id workingset_history_id=workingset.history_id %}?format=xml"
+                                    target=_blank {% endif %}
+                            {% elif enable_publish %}
+                                <a {% if user_can_export %}
+                                href="{% url 'api:api_export_published_phenotypeworkingset_codes' pk=workingset.id workingset_history_id=workingset.history_id %}?format=xml"
+                                target=_blank {% endif %}
+                            {% endif %}
+                                class="dropdown-item">
+                                XML
+                            </a>
+                        </li>
+                    </ul>
+                </div>
                 <table class="table display-table" id="attributes-table" style="width:100%; display:none">
 
                 </table>

@@ -618,6 +618,57 @@ def getPhenotypeWorkingSetDetail(request, pk, is_authenticated=False, workingset
     return Response(rows_to_return, status=status.HTTP_200_OK)
 
 #--------------------------------------------------------------------------
+def get_codelist_from_concept(request, pk, history_id=None):
+    codes = getGroupOfCodesByConceptId(pk)
+    
+    if history_id is None:
+        history_id = Concept.objects.get(id=pk).history.latest('history_id').history_id
+    
+    code_attribute_header = Concept.history.get(id=pk, history_id=history_id).code_attribute_header
+    concept_history_date = Concept.history.get(id=pk, history_id=history_id).history_date
+    codes_with_attributes = []
+    if code_attribute_header:
+        codes_with_attributes = getConceptCodes_withAttributes_HISTORICAL(
+                                                                        concept_id=pk,
+                                                                        concept_history_date=concept_history_date,
+                                                                        allCodes=codes,
+                                                                        code_attribute_header=code_attribute_header)
+
+        codes = codes_with_attributes
+
+    titles = [
+        'code', 'description', 'coding_system'
+    ]
+    if code_attribute_header:
+        if request.query_params.get('format', 'xml').lower() == 'xml':
+            # clean attr names/ remove space, etc
+            titles = titles + [
+                clean_str_as_db_col_name(a) for a in code_attribute_header
+            ]
+        else:
+            titles = titles + [a for a in code_attribute_header]
+
+    current_concept = Concept.objects.get(pk=pk)
+
+    concept_coding_system = Concept.objects.get(id=pk).coding_system.name
+
+    rows_to_return = []
+    for c in codes:
+        code_attributes = []
+        if code_attribute_header:
+            for a in code_attribute_header:
+                code_attributes.append(c[a])
+
+        rows_to_return.append(
+            ordr(
+                list(
+                    zip(titles, [
+                        c['code'],
+                        c['description'].encode('ascii', 'ignore').decode('ascii'),
+                        concept_coding_system,
+                    ] + code_attributes))))
+
+    return rows_to_return
 
 def get_phenotypeworkingset_concepts(request, pk, workingset_history_id):
     # validate access
@@ -638,7 +689,7 @@ def get_phenotypeworkingset_concepts(request, pk, workingset_history_id):
 
     titles = ['concept_name', 'concept_id', 'concept_version_id',
             'phenotype_name', 'phenotype_id', 'phenotype_version_id',
-            'attributes']
+            'attributes', 'codes']
 
     rows_to_return = []
     for element in current_ws.phenotypes_concepts_data:
@@ -647,14 +698,16 @@ def get_phenotypeworkingset_concepts(request, pk, workingset_history_id):
         concept_id = parse_ident(element["concept_id"])
         concept_version = parse_ident(element["concept_version_id"])
         concept = Concept.history.get(id=concept_id, history_id=concept_version)
-        
+
         phenotype_id = parse_ident(element["phenotype_id"])
         phenotype_version = parse_ident(element["phenotype_version_id"])
         phenotype = Phenotype.history.get(id=phenotype_id, history_id=phenotype_version)
 
+        codes = get_codelist_from_concept(request, concept_id, concept_version)
+
         ret = ([concept.name, concept_id, concept_version]
             + [phenotype.name, phenotype_id, phenotype_version]
-            + [attributes]
+            + [attributes] + [codes]
         )
 
         rows_to_return.append(ordr(list(zip(titles, ret))))
