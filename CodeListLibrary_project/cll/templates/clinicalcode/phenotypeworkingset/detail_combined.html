@@ -402,18 +402,11 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                     </button>
                     <ul class="dropdown-menu">
                         <li>
-                            {% if user.is_authenticated %}
-                                <a {% if user_can_export %}
-                                    href="{% url 'api:api_export_phenotypeworkingset_codes_byVersionID' pk=workingset.id workingset_history_id=workingset.history_id %}"
-                                    target=_blank {% endif %}
-                            {% elif enable_publish %}
-                                <a {% if user_can_export %}
-                                href="{% url 'api:api_export_published_phenotypeworkingset_codes' pk=workingset.id workingset_history_id=workingset.history_id %}"
-                                target=_blank {% endif %}
-                            {% endif %}
+                            <a {% if user_can_export %}
+                                href="{% url 'history_phenotypeworkingset_codes_to_csv' pk=workingset.id workingset_history_id=workingset.history_id %}" {% endif %}
                                 class="dropdown-item">
                                 CSV
-                            </a>
+                            </a>                        
                         </li>
                         <li>
                             {% if user.is_authenticated %}
