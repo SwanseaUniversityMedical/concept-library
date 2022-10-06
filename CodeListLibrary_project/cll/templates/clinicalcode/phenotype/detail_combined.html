@@ -900,7 +900,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
 					</td>
 
 				  </tr>
-						<tr>
+				  <tr>
 					{% if user_can_export %}
                         <tr>
                         <td>CSV</td>
@@ -908,7 +908,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                         <a href="{% url 'history_phenotype_codes_to_csv' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
                            target=_blank>site_root{% url 'history_phenotype_codes_to_csv' phenotype.id phenotype.history_id %}</a>
                     {% endif %}
-                            </tr>
+                  </tr>
                   <tr>
                     <td>R Package</td>
                     <td>

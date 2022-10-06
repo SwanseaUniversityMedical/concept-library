@@ -594,8 +594,7 @@ def getPhenotypeWorkingSetDetail(request, pk, is_authenticated=False, workingset
         dict(Permissions.PERMISSION_CHOICES)[ws['group_access']],
         dict(Permissions.PERMISSION_CHOICES)[ws['world_access']]]
 
-        if (ws['is_deleted'] == True
-                or PhenotypeWorkingset.objects.get(pk=pk).is_deleted == True):
+        if (ws['is_deleted'] == True or PhenotypeWorkingset.objects.get(pk=pk).is_deleted == True):
             ret += [True]
         else:
             ret += [None]
