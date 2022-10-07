@@ -4909,8 +4909,8 @@ def get_working_set_codes_by_version(request,
         Get the codes of the phenotype working set concepts
         for a specific version
         Parameters:     request    The request.
-                        pk         The phenotype id.
-                        phenotype_history_id  The version id
+                        pk         The working set id.
+                        workingset_history_id  The version id
                         target_concept_id if you need only one concept's code
                         target_concept_history_id if you need only one concept's code
         Returns:        list of Dict with the codes. 
