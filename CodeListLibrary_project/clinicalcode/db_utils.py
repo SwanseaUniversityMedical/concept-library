@@ -4454,7 +4454,7 @@ def get_brand_associated_collections_dynamic(request, concept_or_phenotype, excl
 
 def send_review_email(phenotype, review_decision, review_message):
     phenotype_id = phenotype.id
-    phenotype_name = phenotype.title
+    phenotype_name = phenotype.name
     phenotype_owner_id = phenotype.owner_id
 
     owner_email = User.objects.get(id=phenotype_owner_id).email
@@ -4512,7 +4512,7 @@ def get_scheduled_email_to_send():
         phenotype = Phenotype.objects.get(pk=result['data'][i]['phenotype_id'], owner_id=result['data'][i]['owner_id'])
         phenotype_id = phenotype.id
 
-        phenotype_name = phenotype.title
+        phenotype_name = phenotype.name
         phenotype_owner_id = phenotype.owner_id
 
         review_decision = ''
