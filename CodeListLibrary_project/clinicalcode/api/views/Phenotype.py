@@ -56,7 +56,6 @@ def api_phenotype_create(request):
 
         new_phenotype = Phenotype()
         new_phenotype.phenotype_uuid = request.data.get('phenotype_uuid')
-        new_phenotype.title = request.data.get('title')
         new_phenotype.name = request.data.get('name')
         new_phenotype.author = request.data.get('author')
         new_phenotype.layout = request.data.get('layout')
@@ -212,7 +211,6 @@ def api_phenotype_update(request):
 
         update_phenotype = Phenotype.objects.get(pk=phenotype_id)
         update_phenotype.phenotype_uuid = request.data.get('phenotype_uuid')
-        update_phenotype.title = request.data.get('title')
         update_phenotype.name = request.data.get('name')
         update_phenotype.author = request.data.get('author')
         update_phenotype.layout = request.data.get('layout')

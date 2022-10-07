@@ -16,7 +16,6 @@ class Phenotype(TimeStampedModel):
     """
 
     # Metadata (imported from HDR UK):
-    title = models.CharField(max_length=250)
     name = models.CharField(max_length=250)
     layout = models.CharField(max_length=250)
     phenotype_uuid = models.CharField(max_length=250, null=True, blank=True)  # Unique ID for the phenotype on HDR UK platform

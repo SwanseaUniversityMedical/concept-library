@@ -3581,7 +3581,7 @@ def get_visible_live_or_published_phenotype_versions(request,
                                    WHERE phenotype_id=t.id and phenotype_history_id=t.history_id 
                                ) approval_status,
                                
-                               id, created, modified, title, name, layout, phenotype_uuid, type, 
+                               id, created, modified, name, layout, phenotype_uuid, type, 
                                validation, valid_event_data_range,  
                                sex, author, status, hdr_created_date, hdr_modified_date, description, implementation,
                                concept_informations::json, publication_doi, publication_link, secondary_publication_links, 
@@ -3646,7 +3646,6 @@ def getHistoryPhenotype(phenotype_history_id, highlight_result=False, q_highligh
         hph.id,
         hph.created,
         hph.modified,
-        hph.title,
         hph.name,
         hph.layout,
         hph.phenotype_uuid,
@@ -3988,9 +3987,6 @@ def isValidPhenotype(request, phenotype):
     errors = {}
     attribute_names = {}
 
-    if not phenotype.title or len(phenotype.title) < 3 or phenotype.title is None:
-        errors['title'] = "Phenotype title should be at least 3 characters"
-        is_valid = False
 
     if not phenotype.name or len(phenotype.name) < 3 or phenotype.name is None:
         errors['name'] = "Phenotype name should be at least 3 characters"
