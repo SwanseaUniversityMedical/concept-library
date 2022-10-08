@@ -522,7 +522,7 @@
             {% endfor %}
 
         });
-
+        var previoslySelected = []
         $('#add-data').createSelection({
             // Props
             clearSelectedOnClose: false,
@@ -546,15 +546,14 @@
                     let dataPrevious = $('#phenotypes_concepts_json').val()
                     dataPrevious = JSON.parse(dataPrevious)
                     let newObject = removalue(dataPrevious)
-                    let tempArr = []
+                    let newData = []
                     for (let i = 0; i < dataset.length; i++) {
-                             tempArr.push({
+                        newData.push({
                             ...newObject,
                             ["Data"]: dataset[i].Data
                         })
                     }
-
-
+                    dataPrevious = mergeArrays(dataPrevious,newData)
                     table.rows.add(dataPrevious).draw();
                     $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
                 } else {
@@ -567,8 +566,35 @@
                 $('#add-data').html('Add concept/phenotype')
 
 
+            },
+            onClose:(service, selected) => {
+                console.log(selected)
             }
-        });
+        }, previoslySelected);
+
+        function mergeArrays(dataPrevious, newData) {
+            let newArr = []
+            for (let j = 0; j < newData.length; j++) {
+                for (let k = 0; k < dataPrevious.length; k++) {
+                    if (newData[j].Data === dataPrevious[k].Data) {
+                        newData.slice(j, 1)
+                    }
+                }
+                newArr.push(newData[j])
+            }
+
+
+            for (let h = 0; h < newArr.length; h++) {
+                for (let i = 0; i < dataPrevious.length; i++) {
+                    if (newArr[h].Data === dataPrevious[i].Data) {
+                        newArr[h] = Object.assign({}, newArr[h], dataPrevious[i]);
+                    }
+                }
+            }
+
+
+            return newArr
+        }
 
 
         var createTable = (numbers, dataset, id, columns) => {
@@ -738,7 +764,7 @@
                 let entry = Object.entries(dataPrevious[i])
                 let mainData = wrapIds(dataPrevious[i]['Data'])
                 if (entry.length > 1) {
-                mainData['Attributes'] = []
+                    mainData['Attributes'] = []
                     for (let j = 0; j < (entry.length - 1) / 3; j++) {
 
                         let type = dataPrevious[i]['Attributes-select' + j]
@@ -756,15 +782,14 @@
                 arrayOfData.push(mainData)
 
             }
-             $('#workingset_data').val(JSON.stringify(arrayOfData))
+            $('#workingset_data').val(JSON.stringify(arrayOfData))
 
 
         }
 
-         $('#save-changes').on('click', function () {
-             wrapData()
-         })
-
+        $('#save-changes').on('click', function () {
+            wrapData()
+        })
 
 
         const wrapIds = (dataIds) => {
