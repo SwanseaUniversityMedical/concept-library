@@ -99,10 +99,10 @@ class WorkingsetForm(forms.ModelForm):
     publication = forms.CharField(
         label='Publication',
         required=False,
-        widget=forms.Textarea(attrs={
-            'class': 'input-material col-sm-12 form-control',
-            'rows': 5,
-             'placeholder':" "
+        widget=forms.TextInput(attrs={
+            'class': 'input-material form-control',
+            'rows':1,
+             'placeholder':"Add publication"
         }),
         max_length=3000)
 

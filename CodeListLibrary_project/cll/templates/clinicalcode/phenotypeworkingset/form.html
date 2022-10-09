@@ -183,14 +183,26 @@
                     </div>
 
                     <div class="form-group">
-                        <div class="col-sm-12">
-                            <div class="material-textfield">
 
+                        <div class="col-sm-12">
+                            <div class="material-textfield input-group">
                                 {{ form.publication }}
+                                <span class="input-group-btn">
+                                    <button id="addRow" style="padding:6.6px 12px" type="button"
+                                            class="btn btn-default"><i id='addRow' type='button'
+                                                                      class="glyphicon glyphicon-plus"
+                                                                      aria-hidden='true'></i></button>
+
+                                     </span>
                                 <label class="label-material">Publication</label>
+
                             </div>
+
                         </div>
+
+
                     </div>
+                    <div id="newRow"></div>
 
 
                     <div class="form-group">
@@ -522,6 +534,28 @@
             {% endfor %}
 
         });
+
+
+        $("#addRow").click(function () {
+                var html = '';
+                html += '<div class="form-group">';
+                html += '<div class="col-sm-12">';
+                html += '<div class="material-textfield input-group">';
+                html += '{{ form.publication }}'
+                html += '<span class="input-group-btn">';
+                html += '<button id="removeRow" style="padding:6px 12px" type="button" class="btn btn-danger">Remove</button>';
+                html += '</span>'
+                html += '</div>'
+                html += '</div>';
+                html += '</div>';
+
+                $('#newRow').append(html);
+            }
+        )
+        ;
+        $(document).on('click', '#removeRow', function () {
+            $(this).closest('.form-group').remove();
+        });
         var previoslySelected = []
         $('#add-data').createSelection({
             // Props
@@ -553,7 +587,8 @@
                             ["Data"]: dataset[i].Data
                         })
                     }
-                    dataPrevious = mergeArrays(dataPrevious,newData)
+                    dataPrevious = mergeArrays(dataPrevious, newData)
+                    console.log(dataPrevious)
                     table.rows.add(dataPrevious).draw();
                     $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
                 } else {
@@ -567,7 +602,7 @@
 
 
             },
-            onClose:(service, selected) => {
+            onClose: (service, selected) => {
                 console.log(selected)
             }
         }, previoslySelected);
