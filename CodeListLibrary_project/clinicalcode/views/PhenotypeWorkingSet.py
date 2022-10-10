@@ -912,6 +912,64 @@ def workingset_conceptcodesByVersion(request,
         Returns:        data       Dict with the codes. 
     '''
     pass
-    # look at phenotype equivalent
-    
+
+    validate_access_to_view(request,
+                            PhenotypeWorkingset,
+                            pk,
+                            set_history_id=workingset_history_id)
+
+    current_phw = PhenotypeWorkingset.objects.get(pk=pk)
+
+    if current_phw.is_deleted == True:
+        raise PermissionDenied
+
+    # --------------------------------------------------
+
+    codes = db_utils.get_working_set_codes_by_version(request, pk, workingset_history_id, target_concept_id, target_concept_history_id)
+
+    data = dict()
+    data['form_is_valid'] = True
+
+
+    # Get the list of concepts in the workingset data
+    groups = db_utils.getGroupOfConceptsByPhenotypeWorkingsetId_historical(pk, workingset_history_id)
+
+    concept_codes_html = []
+    for group in groups:
+        concept_id = db_utils.parse_ident(group[0])
+        concept_version_id = group[1]
+        
+        # check if the sent concept id/ver are valid
+        if (target_concept_id is not None and target_concept_history_id is not None):
+            if target_concept_id != str(concept_id) and target_concept_history_id != str(concept_version_id):
+                continue
+
+        c_codes = []
+
+        c_codes = codes
+
+        c_codes_count = "0"
+        try:
+            c_codes_count = str(len(c_codes))
+        except:
+            c_codes_count = "0"
+
+        c_code_attribute_header = Concept.history.get(id=concept_id, history_id=concept_version_id).code_attribute_header
+        concept_codes_html.append({
+            'concept_id': concept_id,
+            'concept_version_id': concept_version_id,
+            'c_codes_count': c_codes_count,
+            'c_html': render_to_string(
+                                        'clinicalcode/phenotypeworkingset/get_concept_codes.html', {
+                                            'codes': c_codes,
+                                            'code_attribute_header': c_code_attribute_header,
+                                            'showConcept': False,
+                                            'q': ['', request.session.get('phenotype_search', '')][request.GET.get('highlight','0')=='1']
+                                        })
+        })
+
+    data['headers'] = c_code_attribute_header
+    data['concept_codes_html'] = concept_codes_html
+
+    return JsonResponse(data)
 
