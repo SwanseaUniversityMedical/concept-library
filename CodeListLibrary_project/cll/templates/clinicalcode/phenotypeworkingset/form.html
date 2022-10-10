@@ -136,7 +136,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
+                <div class="form-group">
 
                         <div class="col-sm-11">
                             <div class="material-textfield">
@@ -144,7 +144,7 @@
                                 <label class="label-material">Publication</label>
                             </div>
                         </div>
-                        <div class="btn btn-default" id='addRow' style="padding: 6px 12px">
+                        <div class="btn btn-default publication-button" id='addRow' style="padding: 5px 12px">
                             <i type='button' class="glyphicon glyphicon-plus"></i>
                         </div>
 
@@ -207,6 +207,16 @@
                             <div class="material-textfield">
                                 {{ form.description }}
                                 <label class="label-material required">Description</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <div class="material-textfield">
+
+                                {{ form.publication }}
+                                <label class="label-material">Publication</label>
                             </div>
                         </div>
                     </div>
@@ -489,7 +499,6 @@
     </div>
 
 
-
 {% endblock container %}
 
 {% block scripts %}
@@ -543,15 +552,14 @@
 
         });
 
-
-        $("#addRow").click(function () {
+                $("#addRow").click(function () {
                 var html = '';
                 html += '<div class="form-group">';
                 html += '<div class="col-sm-12">';
                 html += '<div class="material-textfield input-group">';
                 html += '{{ form.publication }}'
                 html += '<span class="input-group-btn">';
-                html += '<button id="removeRow" style="padding:6px 12px" type="button" class="btn btn-danger">Remove</button>';
+                html += '<button id="removeRow" style="padding:6px 12px;height: 35px" type="button" class="btn btn-danger">Remove</button>';
                 html += '</span>'
                 html += '</div>'
                 html += '</div>';
@@ -564,6 +572,7 @@
         $(document).on('click', '#removeRow', function () {
             $(this).closest('.form-group').remove();
         });
+
         var previoslySelected = []
         $('#add-data').createSelection({
             // Props
@@ -595,8 +604,7 @@
                             ["Data"]: dataset[i].Data
                         })
                     }
-                    dataPrevious = mergeArrays(dataPrevious, newData)
-                    console.log(dataPrevious)
+                    dataPrevious = mergeArrays(dataPrevious,newData)
                     table.rows.add(dataPrevious).draw();
                     $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
                 } else {
@@ -610,7 +618,7 @@
 
 
             },
-            onClose: (service, selected) => {
+            onClose:(service, selected) => {
                 console.log(selected)
             }
         }, previoslySelected);

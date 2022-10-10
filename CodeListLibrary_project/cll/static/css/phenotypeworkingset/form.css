@@ -188,6 +188,23 @@
     display: inline-block;
     height:30px
 }
+.publication-button{
+    color: #ffffff;
+    background: #4285f4;
+    position: relative;
+    text-align: center;
+    text-decoration: none;
+    transition: color 100ms;
+    vertical-align: baseline;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    border-radius: 8px;
+    border-style: none;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: inline-block;
+}
 
 
 
