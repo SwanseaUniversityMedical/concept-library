@@ -723,22 +723,53 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
     <script src="{% static 'js/clinicalcode/dataService.js' %}"></script>
 
     <script type="text/javascript">
-        var dataset = {{ workingset_attributes|safe }};
+        var workingset_id = "{{ workingset.id }}";
+        var workingset_history_id = "{{ workingset.history_id }}";
+        var highlight_result = {{ force_highlight_result }};
 
+        // Create datatable for workingset concepts, assoc. phenotypes & attributes
+        var dataset = {{ workingset_attributes|safe }};
         var attributes = dataset.map(e => e.Attributes.map(x => [{[x.name]: x.value}]).flat().reduce((a, b) => {
             return Object.assign(a, b);
         }));
 
-        var concepts  = dataset.map(e => [{name: e.concept_name, concept_id: e.concept_id, concept_version_id: e.concept_version_id}]).flat();
+        var simple = 0;
+        var concepts  = dataset.map(e => [{
+                name: `${e.concept_id}/${e.concept_version_id} - ${e.concept_name}`,
+                concept_id: e.concept_id,
+                concept_version_id: e.concept_version_id,
+                phenotype_id: e.phenotype_id,
+                phenotype_version_id: e.phenotype_version_id,
+                phenotype_id_and_version_id: `${e.phenotype_id}/${e.phenotype_version_id}`,
+                component_hash: simple++
+            }])
+            .flat();
+        
         var datatypes = [...new Set(dataset.map(e => e.Attributes.map(x => x.type)).flat())];
         var headers   = [...new Set(attributes.map(e => Object.keys(e)).flat())];
         headers = Object.entries(headers).map(([i, e]) => [{data: e, title: `${e} (${datatypes[i]})`}]).flat();
 
+        headers.unshift({data: 'component_hash', title: 'Hash', searchable: false, visible: false});
+        headers.unshift({data: 'concept_id', title: 'Concept ID', searchable: false, visible: false});
         headers.unshift({data: 'concept_version_id', title: 'Concept Version', searchable: false, visible: false});
-        headers.unshift({data: 'concept_id', title: 'Concept ID'});
+        headers.unshift({data: 'phenotype_id', title: 'Phenotype ID', searchable: false, visible: false});
+        headers.unshift({data: 'phenotype_version_id', title: 'Phenotype Version', searchable: false, visible: false});
+
+        headers.unshift({
+            data: 'phenotype_id_and_version_id',
+            title: 'Phenotype ID/Version ID',
+            render: (data, type, row, meta) => {
+                if(type === 'display') {
+                    data = `<a href="/phenotypes/${row.phenotype_id}/version/${row.phenotype_version_id}/detail/">${data}</a>`;
+                }
+
+                return data;
+            },
+        });
+
         headers.unshift({
             data: 'name',
-            title: 'Concept',
+            title: 'Concept (ID/Version)',
             render: (data, type, row, meta) => {
                 if(type === 'display') {
                     data = `<a href="/concepts/${row.concept_id}/version/${row.concept_version_id}/detail/">${data}</a>`;
@@ -749,10 +780,109 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
         });
 
         attributes = Object.entries(attributes).map(([i, e]) => Object.assign(e, concepts[i]));
+        headers.unshift({
+            className: 'dt-control',
+            orderable: false,
+            data: null,
+            defaultContent: '',
+        });
 
         var table = $('#attributes-table').DataTable({
             data: attributes,
-            columns: headers
+            columns: headers,
+            ordering: false,
+        });
+
+        // Code list handling
+        var dataCache = { };
+        var createFoldout = (row) => {
+            var data = row.data();
+            return `<div class="foldout-data-table">
+                <div class="row">
+                    <div class="col-md-6">
+                        <span id="codesCount_c${data.concept_version_id}-${data.component_hash}" class="codesCount label label-primary">Codes: 0</span>
+                    </div>
+                </div>
+                <table class="table table-striped table-responsive-md display-table" style="width: 100%" id="codelist-tab-table-c${data.concept_version_id}-${data.component_hash}">
+                    <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>`;
+        }
+
+        var createHeaders = () => {
+            return `<th>Code</th>
+                    <th>Description</th>`
+        }
+
+        var showConceptsCodes = (data, concept_codes_html_list, headers) => {
+            var v = concept_codes_html_list[0];
+            if (typeof v === 'undefined')
+                return;
+            
+            var $head = $(`#codelist-tab-table-c${v.concept_version_id}-${data.component_hash} thead tr`);
+            $head.empty();
+            $head.html(createHeaders());
+            for (var i = 0; i < headers.length; i++) {
+                $head.append(`<th>${headers[i]}</th>`);
+            }
+            
+            $(`#codelist-tab-table-c${v.concept_version_id}-${data.component_hash} tbody`).html(v.c_html);
+            $(`#codesCount_c${v.concept_version_id}-${data.component_hash}`).text('Codes: ' + v.c_codes_count);
+            
+            var table = $(`#codelist-tab-table-c${v.concept_version_id}-${data.component_hash}`).DataTable({
+                "initComplete": function () {
+                    $(`#codelist-tab-table-c${v.concept_version_id}-${data.component_hash}`).addClass("specific_tablist")
+                },
+                "scrollX": true,
+                "scrollY": "700px",
+                "scrollCollapse": true,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+                "colReorder": true,
+                "rowReorder": true,
+            });
+        }
+
+        var showCodeList = (row) => {
+            var tab = row.child().find('.foldout-data-table');
+            var data = row.data();
+            var cached = dataCache[data.name];
+
+            // Grab data from server if not cached
+            if (typeof cached === 'undefined') {
+                dataService.getWorkingSetUniqueCodesByVersion(workingset_id, workingset_history_id, data.concept_id, data.concept_version_id, highlight_result, function (res) {
+                    if (!res.form_is_valid)
+                        return;
+                        
+                    dataCache[data.name] = res;
+                    showConceptsCodes(data, res.concept_codes_html, res.headers);
+                });
+
+                return;
+            }
+
+            showConceptsCodes(data, cached.concept_codes_html, cached.headers);
+        }
+
+        // Load code list (from cache, or by an AJAX request) when the data table control is clicked
+        $('#attributes-table tbody').on('click', 'td.dt-control', function () {
+            var tr = $(this).closest('tr');
+            var row = table.row(tr);
+            if (row.child.isShown()) {
+                row.child.hide();
+                tr.removeClass('shown');
+                return;
+            }
+
+            row.child(createFoldout(row)).show();
+            showCodeList(row);           
+            tr.addClass('shown');
         });
         
         $('#attributes-table').show();

@@ -1391,3 +1391,8 @@ code.api-codeblock .code-text-highlight, .code-comment-highlight {
   padding: 20px 20px 5px 20px;
 }
 
+/* Workingset datable modifiers */
+.foldout-data-table {
+  padding-left: 5px;
+}
+

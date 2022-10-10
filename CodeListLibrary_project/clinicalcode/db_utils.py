@@ -732,6 +732,21 @@ def getGroupOfCodesByConceptId_xxx(concept_id):
 
     return getConceptUniqueCodesLive(concept_id)
 
+def getGroupOfConceptsByPhenotypeWorkingsetId_historical(workingset_id, workingset_history_id=None):
+    '''
+        get phenotypes_concepts_data of the specified phenotype working set 
+        - from a specific version (or live version if workingset_history_id is None) 
+    '''
+    if workingset_history_id is None:
+        workingset_history_id = PhenotypeWorkingset.objects.get(pk=workingset_id).history.latest('history_id').history_id
+
+    concepts = []
+    concept_informations = PhenotypeWorkingset.history.get(id=workingset_id, history_id=workingset_history_id).phenotypes_concepts_data
+    for concept in concept_informations:
+        concepts.append((concept['concept_id'], concept['concept_version_id']))
+
+    return concepts
+
 
 def getGroupOfConceptsByWorkingsetId_historical(workingset_id, workingset_history_id=None):
     '''
