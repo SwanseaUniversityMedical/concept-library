@@ -21,15 +21,13 @@
 				
 					</div>
 
+					{% if concept.is_deleted is not True and concept.can_edit %}
 					<div class="col-sm-4 text-right">
-						<span class="badge card-date-badge">
-							{% if user.is_authenticated %}
-								<span class="card-date-block">Modified:</span><i class="card-noweight">{{ concept.modified|date:"Y-m-d" }}</i>
-							{% else %}	
-								<span class="card-date-block">Published:</span><i class="card-noweight">{{ concept.publish_date|date:"Y-m-d" }}</i>
-							{% endif %}
-						</span>
-					</div>
+							<a  class="btn btn-outline-primary btn-cl btn-cl-secondary card-edit-sizing" href="{% url 'concept_update' concept.id %}" title="Edit concept">
+								Edit
+							</a> 						
+					</div>		
+					{% endif %}		
 				</div>
 				
 				<div class="row form-group">
@@ -39,12 +37,25 @@
 					</div>
 				</div>				
 				<div class="row form-group">
-					<div class="col-sm-6 text-justify">
-						<!-- CodingSystems -->
+					<!-- CodingSystems -->
+					<div class="col-sm-4 text-justify">
 				   		<span class="badge">{{ concept.coding_system_name }}</span>
 					</div>
+
+					<!-- Date --> 
+					<div class="col-sm-4 text-center">
+						<span class="badge card-date-badge">
+							{% if user.is_authenticated %}
+								<span class="card-date-block">Modified:</span><i class="card-noweight">{{ concept.modified|date:"Y-m-d" }}</i>
+							{% else %}	
+								<span class="card-date-block">Published:</span><i class="card-noweight">{{ concept.publish_date|date:"Y-m-d" }}</i>
+							{% endif %}
+						</span>
+					</div>
+
+					<!-- Tags / Collections -->
 					{% if concept.tags %}
-					<div class="col-sm-6 text-right">
+					<div class="col-sm-4 text-right">
 						<!-- tags -->
 						{% for tag in allTags %}
 							{% for tag_id in concept.tags %}
@@ -57,17 +68,7 @@
 					</div>	
 					{% endif %}
 				</div>				
-
-			{% if concept.is_deleted is not True and concept.can_edit %}
-			<hr class="top-heavy-divider"/>
-			<div class="row form-group">
-					<div class="col-sm-12 text-right">
-							<a  class="btn btn-outline-primary btn-cl btn-cl-secondary card-edit-sizing" href="{% url 'concept_update' concept.id %}" title="Edit concept">
-								Edit
-							</a> 						
-					</div>			
-			</div>			
-			{% endif %}		  	
+ 	
 		</div>				  
 	<br> 
 	{% empty %}
