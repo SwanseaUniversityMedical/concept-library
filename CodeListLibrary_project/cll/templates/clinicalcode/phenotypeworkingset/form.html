@@ -135,6 +135,35 @@
                             </a>
                         </div>
                     </div>
+
+                    <div class="form-group">
+
+                        <div class="col-sm-11">
+                            <div class="material-textfield">
+                                {{ form.publication }}
+                                <label class="label-material">Publication</label>
+                            </div>
+                        </div>
+                        <div class="btn btn-default" id='addRow' style="padding: 6px 12px">
+                            <i type='button' class="glyphicon glyphicon-plus"></i>
+                        </div>
+
+                    </div>
+                    <div id="newRow"></div>
+
+
+                    <div class="form-group">
+
+                        <div class="col-sm-12">
+                            <div class="material-textfield">
+
+
+                                {{ form.citation_requirements }}
+
+                                <label class="label-material">{{ form.citation_requirements.label }}</label>
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <div class="col-sm-12">
                             <div class="material-textfield">
@@ -181,28 +210,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="form-group">
-
-                        <div class="col-sm-12">
-                            <div class="material-textfield input-group">
-                                {{ form.publication }}
-                                <span class="input-group-btn">
-                                    <button id="addRow" style="padding:6.6px 12px" type="button"
-                                            class="btn btn-default"><i id='addRow' type='button'
-                                                                      class="glyphicon glyphicon-plus"
-                                                                      aria-hidden='true'></i></button>
-
-                                     </span>
-                                <label class="label-material">Publication</label>
-
-                            </div>
-
-                        </div>
-
-
-                    </div>
-                    <div id="newRow"></div>
 
 
                     <div class="form-group">
@@ -480,6 +487,7 @@
             </div>
         </div>
     </div>
+
 
 
 {% endblock container %}

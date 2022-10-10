@@ -7,7 +7,6 @@ from clinicalcode.permissions import allowed_to_permit, Permissions
 from clinicalcode.constants import Type_status
 
 
-
 class WorkingsetForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
@@ -30,7 +29,7 @@ class WorkingsetForm(forms.ModelForm):
         # Populate the list of possible groups from the group list
         # maintained by Django.
         self.group_list = []  # Clear list or it will just accumulate.
-        self.phenotypes_concepts_data = [] # intial list of data to put
+        self.phenotypes_concepts_data = []  # intial list of data to put
         self.group_list.append((0, '----------'))
         for group in self.groups.all():
             # Use user.id (stored in the database) to refer to a User object;
@@ -41,7 +40,6 @@ class WorkingsetForm(forms.ModelForm):
         # Check that the user generating the request matches the user which
         # owns the concept for permission to edit permissions.
         instance = getattr(self, 'instance', None)
-
 
         # if self.user.id != instance.owner.id:
         if instance.owner is not None:
@@ -54,7 +52,6 @@ class WorkingsetForm(forms.ModelForm):
         else:
             # Note that we are setting self.initial NOT self.fields[].initial.
             self.initial['owner'] = self.user.id
-
 
         ## If the user does not belong to a certain group, remove the field
         # if not self.user.groups.filter(name__iexact='mygroup').exists():
@@ -75,7 +72,7 @@ class WorkingsetForm(forms.ModelForm):
         error_messages={'required': 'Please enter an author'},
         max_length=250,
 
-        widget=forms.TextInput(attrs={'class': 'input-material col-sm-12 form-control','placeholder':" "})
+        widget=forms.TextInput(attrs={'class': 'input-material col-sm-12 form-control', 'placeholder': " "})
     )
 
     type = forms.ChoiceField(
@@ -92,7 +89,7 @@ class WorkingsetForm(forms.ModelForm):
         error_messages={'required': 'Please enter a description'},
         widget=forms.Textarea(attrs={
             'class': 'input-material col-sm-12 form-control',
-            'rows': 5,'placeholder':" "
+            'rows': 5, 'placeholder': " "
         }),
         max_length=3000)
 
@@ -101,8 +98,8 @@ class WorkingsetForm(forms.ModelForm):
         required=False,
         widget=forms.TextInput(attrs={
             'class': 'input-material form-control',
-            'rows':1,
-             'placeholder':"Add publication"
+            'rows': 1,
+            'placeholder': "Add publication"
         }),
         max_length=3000)
 
@@ -111,7 +108,7 @@ class WorkingsetForm(forms.ModelForm):
         help_text='250 max characters',
         max_length=250,
         required=False,
-        widget=forms.TextInput(attrs={'class': 'input-material col-sm-12 form-control','placeholder':" "}))
+        widget=forms.TextInput(attrs={'class': 'input-material col-sm-12 form-control', 'placeholder': " "}))
 
     owner_access = forms.ChoiceField(
         label='Owner access',
@@ -135,7 +132,7 @@ class WorkingsetForm(forms.ModelForm):
     owner = forms.ChoiceField(
         label='Owned by',
         required=True,
-        widget=forms.Select(attrs={'class': 'input-material col-sm-12 form-control','placeholder':" "})
+        widget=forms.Select(attrs={'class': 'input-material col-sm-12 form-control', 'placeholder': " "})
         # No choices or initial value as these are assigned dynamically.
     )
     group = forms.ChoiceField(
@@ -188,5 +185,5 @@ class WorkingsetForm(forms.ModelForm):
         model = PhenotypeWorkingset
 
         exclude = [
-            'created_by', 'updated_by', 'deleted', 'is_deleted', 'deleted_by','phenotypes_concepts_data'
-        ] #Exciding jsonfileobject because will be separate validation from client
+            'created_by', 'updated_by', 'deleted', 'is_deleted', 'deleted_by', 'phenotypes_concepts_data'
+        ]  # Exciding jsonfileobject because will be separate validation from client
