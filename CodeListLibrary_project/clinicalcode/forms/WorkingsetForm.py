@@ -101,7 +101,7 @@ class WorkingsetForm(forms.ModelForm):
             'rows': 1,
             'placeholder': "Add publication"
         }),
-        max_length=3000)
+        max_length=500)
 
     citation_requirements = forms.CharField(
         label='Citation requirements',
