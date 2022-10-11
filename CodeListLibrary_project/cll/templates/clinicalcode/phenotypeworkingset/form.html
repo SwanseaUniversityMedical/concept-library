@@ -136,12 +136,12 @@
                         </div>
                     </div>
 
-                <div class="form-group">
+                    <div class="form-group">
 
                         <div class="col-sm-11">
                             <div class="material-textfield">
                                 {{ form.publication }}
-                                <label class="label-material">Publication</label>
+                                <label class="label-material">{{ form.publication.label }}</label>
                             </div>
                         </div>
                         <div class="btn btn-default publication-button" id='addRow' style="padding: 5px 12px">
@@ -211,29 +211,6 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <div class="col-sm-12">
-                            <div class="material-textfield">
-
-                                {{ form.publication }}
-                                <label class="label-material">Publication</label>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <div class="col-sm-12">
-                            <div class="material-textfield">
-
-
-                                {{ form.citation_requirements }}
-
-                                <label class="label-material">{{ form.citation_requirements.label }}</label>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="form-group">
                         <label class="col-sm-3" for="">Created by</label>
@@ -449,6 +426,7 @@
 
                     <input type="hidden" id="phenotypes_concepts_json" name="phenotypes_concepts_json">
                     <input type="hidden" id="workingset_data" name="workingset_data">
+                    <input type="hidden" id="publication_data" name="publication_data">
 
 
 
@@ -551,8 +529,7 @@
             {% endfor %}
 
         });
-
-                $("#addRow").click(function () {
+        $("#addRow").click(function () {
                 var html = '';
                 html += '<div class="form-group">';
                 html += '<div class="col-sm-12">';
@@ -566,12 +543,29 @@
                 html += '</div>';
 
                 $('#newRow').append(html);
+
+
             }
-        )
-        ;
+        );
         $(document).on('click', '#removeRow', function () {
             $(this).closest('.form-group').remove();
+
+
         });
+
+        const wrapPubinputs = () => {
+            let input = document.querySelectorAll('*[id^="id_publication"]');
+            let data = []
+            for (let i = 0; i < input.length; i++) {
+                if (input[i].value !== "") {
+                    data.push(input[i].value)
+                }
+
+            }
+            return data
+
+        }
+
 
         var previoslySelected = []
         $('#add-data').createSelection({
@@ -604,7 +598,7 @@
                             ["Data"]: dataset[i].Data
                         })
                     }
-                    dataPrevious = mergeArrays(dataPrevious,newData)
+                    dataPrevious = mergeArrays(dataPrevious, newData)
                     table.rows.add(dataPrevious).draw();
                     $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
                 } else {
@@ -618,7 +612,7 @@
 
 
             },
-            onClose:(service, selected) => {
+            onClose: (service, selected) => {
                 console.log(selected)
             }
         }, previoslySelected);
@@ -808,6 +802,7 @@
         }
 
         const wrapData = () => {
+            $('#publication_data').val(JSON.stringify(wrapPubinputs()).replace(/\[/g, '{').replace(/]/g, '}'))
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
             let arrayOfData = []
@@ -833,6 +828,7 @@
                 arrayOfData.push(mainData)
 
             }
+
             $('#workingset_data').val(JSON.stringify(arrayOfData))
 
 

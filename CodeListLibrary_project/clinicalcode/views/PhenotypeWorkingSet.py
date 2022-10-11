@@ -411,11 +411,9 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
             form.instance.collections = self.commaSeparate('collections')
             form.instance.data_sources = self.commaSeparate('datasources')
             form.instance.phenotypes_concepts_data = self.request.POST.get('workingset_data')
-
-
+            form.instance.publications = self.request.POST.get('publication_data')
             self.object = form.save()
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset,self.object.pk,"Created")
-            print(self.object.pk)
             messages.success(self.request,"Workingset has been successfully created.")
 
         return HttpResponseRedirect(reverse('phenotypeworkingset_create'))
