@@ -384,20 +384,22 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         tag_ids = self.commaSeparate('tagids')
         collections = self.commaSeparate('collections')
         datasources = self.commaSeparate('datasources')
+        publications = self.request.POST.get('publication_data')
         context = self.get_context_data()
 
         if tag_ids:
             context['tags'] = Tag.objects.filter(pk__in=tag_ids)
-            print(context['tags'])
 
         if collections:
             queryset = Tag.objects.filter(tag_type=2)
             context['collections'] = queryset.filter(id__in=collections)
-            print(context['collections'])
 
         if datasources:
-            print(datasources)
             context['datasources'] = DataSource.objects.filter(datasource_id__in=datasources)
+
+        if publications:
+            context['publications'] = publications
+
 
 
         return self.render_to_response(context)

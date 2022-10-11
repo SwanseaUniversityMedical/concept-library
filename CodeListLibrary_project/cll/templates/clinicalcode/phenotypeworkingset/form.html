@@ -526,25 +526,29 @@
                     'datasource_id': '{{ datasource.datasource_id }}',
                     'name': '{{ datasource.name }}'
                 });
+
             {% endfor %}
+
+            {% if publications %}
+                let returnPub = JSON.parse('{{publications}}'.replace(/(&quot\;)/g, "\"").replace(/{(.*)}/, '[$1]'))
+                if (returnPub.length > 1) {
+                    for (let j = 0;j<returnPub.length;j++) {
+                        if (j === 0){
+                            $('#id_publication').val(returnPub[0])
+                        }else {
+                            addInput(returnPub[j],'newRow')
+                        }
+                    }
+                }else {
+                    $('#id_publication').val(returnPub[0])
+
+                }
+
+            {% endif %}
 
         });
         $("#addRow").click(function () {
-                var html = '';
-                html += '<div class="form-group">';
-                html += '<div class="col-sm-12">';
-                html += '<div class="material-textfield input-group">';
-                html += '{{ form.publication }}'
-                html += '<span class="input-group-btn">';
-                html += '<button id="removeRow" style="padding:6px 12px;height: 35px" type="button" class="btn btn-danger">Remove</button>';
-                html += '</span>'
-                html += '</div>'
-                html += '</div>';
-                html += '</div>';
-
-                $('#newRow').append(html);
-
-
+                addInput('', 'newRow');
             }
         );
         $(document).on('click', '#removeRow', function () {
@@ -552,6 +556,22 @@
 
 
         });
+
+        const addInput = (value, id) => {
+            var html = '';
+            html += '<div class="form-group">';
+            html += '<div class="col-sm-12">';
+            html += '<div class="material-textfield input-group">';
+            html += `<input type="text" name="publication" value ="${value}" class="input-material form-control" rows="1" placeholder="Add publication" maxlength="500" id="id_publication">`
+            html += '<span class="input-group-btn">';
+            html += '<button id="removeRow" style="padding:6px 12px;height: 35px" type="button" class="btn btn-danger">Remove</button>';
+            html += '</span>'
+            html += '</div>'
+            html += '</div>';
+            html += '</div>';
+
+            $('#' + id).append(html);
+        }
 
         const wrapPubinputs = () => {
             let input = document.querySelectorAll('*[id^="id_publication"]');
