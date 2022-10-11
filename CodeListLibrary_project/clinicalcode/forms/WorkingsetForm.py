@@ -97,7 +97,7 @@ class WorkingsetForm(forms.ModelForm):
         label='Publication',
         required=False,
         widget=forms.TextInput(attrs={
-            'class': 'input-material form-control',
+            'class': 'input-material col-sm-11 form-control',
             'rows': 1,
             'placeholder': "Add publication"
         }),
