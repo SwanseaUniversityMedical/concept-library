@@ -5026,7 +5026,7 @@ def get_working_set_codes_by_version(request,
                     ordr(
                         list(
                             zip(titles, [ '' 
-                                        , ''] + [attributes_dict] + [
+                                        , ''] + [code_attributes_dict] + [
                                           concept_coding_system 
                                         , 'C' + str(concept_id)
                                         , concept_version_id
