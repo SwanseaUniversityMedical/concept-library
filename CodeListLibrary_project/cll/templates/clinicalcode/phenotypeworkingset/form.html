@@ -531,14 +531,14 @@
             {% if publications %}
                 let returnPub = JSON.parse('{{publications}}'.replace(/(&quot\;)/g, "\"").replace(/{(.*)}/, '[$1]'))
                 if (returnPub.length > 1) {
-                    for (let j = 0;j<returnPub.length;j++) {
-                        if (j === 0){
+                    for (let j = 0; j < returnPub.length; j++) {
+                        if (j === 0) {
                             $('#id_publication').val(returnPub[0])
-                        }else {
-                            addInput(returnPub[j],'newRow')
+                        } else {
+                            addInput(returnPub[j], 'newRow')
                         }
                     }
-                }else {
+                } else {
                     $('#id_publication').val(returnPub[0])
 
                 }
@@ -619,16 +619,25 @@
                         })
                     }
                     dataPrevious = mergeArrays(dataPrevious, newData)
-                    table.rows.add(dataPrevious).draw();
-                    $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
+                    if (dataPrevious.length > 0) {
+                        table.rows.add(dataPrevious).draw();
+                        $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
+                    } else {
+                        $('#attributes-table').DataTable().destroy();
+                        $('#attributes-table').empty();
+                        $('#phenotypes_concepts_json').val('')
+                         $('#add-data').html('Upload')
+                    }
+
                 } else {
                     $('#attributes-table').show()
                     let table = createTable(numbers, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}])
                     table.buttons().container()
                         .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
                     $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
+                    $('#add-data').html('Add concept/phenotype')
                 }
-                $('#add-data').html('Add concept/phenotype')
+
 
 
             },
