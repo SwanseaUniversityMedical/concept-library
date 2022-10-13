@@ -39,52 +39,8 @@ def get_order_from_parameter(parameter):
         return concept_order_queries[parameter]
     return concept_order_default
 
-#---------------------------------------
-
-#------------ pagination lims ----------
-page_size_limits = [20, 50, 100]
-#---------------------------------------
-
-#--------- Filter queries --------------
-filter_queries = {
-    'tags': 0,
-    'collections': 0,
-    'clinical_terminologies': 0,
-    'data_sources': 0,
-    'coding_system_id': 1,
-    'phenotype_type': 2,
-    'workingset_type': 3,
-    'daterange': 4
-}
-
-filter_query_model = {
-    'tags': Tag,
-    'collections': Tag,
-    'clinical_terminologies': CodingSystem,
-    'coding_system_id': CodingSystem,
-    'data_sources': DataSource
-}
-
-#---------------------------------------
-
-#--------- Order queries ---------------
-concept_order_queries = {
-    'Relevance': ' ORDER BY id, history_id DESC ',
-    'Created (Desc)': ' ORDER BY created DESC ',
-    'Created (Asc)': ' ORDER BY created ASC ',
-    'Last Updated (Desc)': ' ORDER BY modified DESC ',
-    'Last Updated (Asc)': ' ORDER BY modified ASC '
-}
-concept_order_default = list(concept_order_queries.values())[0]
-
-#---------------------------------------
-
-#------------ pagination lims ----------
-page_size_limits = [20, 50, 100]
-#---------------------------------------
 
 #------------ phenotype gender ---------
-
 def try_parse_phenotype_gender(gender):
     """ Attempts to parse the gender of a phenotype into an array
         Required as the sex of a phenotype has no definitive deliminator
@@ -3272,11 +3228,10 @@ def get_visible_live_or_published_concept_versions(request,
             # search all related fields
             if order_by != concept_order_default:
                 order_by =  """
-                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
-                                ORDER BY rank_name DESC, rank_author DESC , rank_all DESC, """ + order_by.replace(' ORDER BY ', '')
+                                ORDER BY """ + order_by.replace(' ORDER BY ', '') + """, rank_name DESC, rank_author DESC , rank_all DESC
+                            """
             else:
                 order_by =  """
-                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
                                 ORDER BY rank_name DESC, rank_author DESC , rank_all DESC
                             """
                     
@@ -3551,11 +3506,10 @@ def get_visible_live_or_published_phenotype_versions(request,
             # search all related fields
             if order_by != concept_order_default.replace(" id,", " REPLACE(id, 'PH', '')::INTEGER,"):
                 order_by =  """
-                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
-                                ORDER BY rank_name DESC, rank_author DESC , rank_all DESC, """ + order_by.replace(' ORDER BY ', '')
+                                ORDER BY """ + order_by.replace(' ORDER BY ', '') + """, rank_name DESC, rank_author DESC, rank_all DESC 
+                            """
             else:
                 order_by =  """
-                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
                                 ORDER BY rank_name DESC, rank_author DESC , rank_all DESC
                             """                            
         
@@ -4818,11 +4772,10 @@ def get_visible_live_or_published_phenotype_workingset_versions(request,
             # search all related fields
             if order_by != concept_order_default.replace(" id,", " REPLACE(id, 'WS', '')::INTEGER,"):
                 order_by =  """
-                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
-                                ORDER BY rank_name DESC, rank_author DESC , rank_all DESC, """ + order_by.replace(' ORDER BY ', '')
+                                ORDER BY """ + order_by.replace(' ORDER BY ', '') + """ , rank_name DESC, rank_author DESC , rank_all DESC
+                            """ 
             else:
                 order_by =  """
-                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
                                 ORDER BY rank_name DESC, rank_author DESC , rank_all DESC
                             """    
                             
