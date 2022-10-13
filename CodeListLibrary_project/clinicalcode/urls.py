@@ -160,19 +160,19 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
 # ======== Phenotypes ==============================================================================
 # add URLConf to create, update, and delete Phenotypes
 urlpatterns += [
-    url(r'^phenotypes/PH(?P<pk>\d+)/detail/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/detail/$',
         Phenotype.PhenotypeDetail_combined,
         name='phenotype_detail'),
-    url(r'^phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/detail/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/version/(?P<phenotype_history_id>\d+)/detail/$',
         Phenotype.PhenotypeDetail_combined,
         name='phenotype_history_detail'),
-    url(r'^phenotypes/PH(?P<pk>\d+)/export/codes/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/export/codes/$',
         Phenotype.history_phenotype_codes_to_csv,
         name='latestVersion_phenotype_codes_to_csv'),
-    url(r'^phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/export/codes/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/version/(?P<phenotype_history_id>\d+)/export/codes/$',
         Phenotype.history_phenotype_codes_to_csv,
         name='history_phenotype_codes_to_csv'),    
-    url(r'^phenotypes/PH(?P<pk>\d+)/uniquecodesbyversion/(?P<phenotype_history_id>\d+)/concept/C(?P<target_concept_id>\d+)/(?P<target_concept_history_id>\d+)/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/uniquecodesbyversion/(?P<phenotype_history_id>\d+)/concept/C(?P<target_concept_id>\d+)/(?P<target_concept_history_id>\d+)/$',
         Phenotype.phenotype_conceptcodesByVersion,
         name='phenotype_conceptcodesByVersion'),
 ]
@@ -183,19 +183,19 @@ urlpatterns += [
 #             Phenotype.phenotype_create,
 #             name='phenotype_create'),
 #
-#         url(r'^phenotypes/PH(?P<pk>\d+)/update/$',
+#         url(r'^phenotypes/(?P<pk>PH\d+)/update/$',
 #             Phenotype.PhenotypeUpdate.as_view(),
 #             name='phenotype_update'),
 #
-#         url(r'^phenotypes/PH(?P<pk>\d+)/delete/$',
+#         url(r'^phenotypes/(?P<pk>PH\d+)/delete/$',
 #             Phenotype.PhenotypeDelete.as_view(),
 #             name='phenotype_delete'),
 #
-#         # url(r'^phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/revert/$',
+#         # url(r'^phenotypes/(?P<pk>PH\d+)/version/(?P<phenotype_history_id>\d+)/revert/$',
 #         #     Phenotype.phenotype_history_revert,
 #         #     name='phenotype_history_revert'),
 #         #
-#         # url(r'^phenotypes/PH(?P<pk>\d+)/restore/$',
+#         # url(r'^phenotypes/(?P<pk>PH\d+)/restore/$',
 #         #     Phenotype.PhenotypeRestore.as_view(),
 #         #     name='phenotype_restore'),
 #     ]
@@ -460,7 +460,7 @@ if settings.ENABLE_PUBLISH:
         url(r'^concepts/C(?P<pk>\d+)/(?P<concept_history_id>\d+)/publish/$',
             Concept.ConceptPublish.as_view(),
             name='concept_publish'),
-        url(r'^phenotypes/PH(?P<pk>\d+)/(?P<phenotype_history_id>\d+)/publish/$',
+        url(r'^phenotypes/(?P<pk>PH\d+)/(?P<phenotype_history_id>\d+)/publish/$',
             Phenotype.PhenotypePublish.as_view(),
             name='phenotype_publish'),
         url(r'^phenotypeworkingset/(?P<pk>WS\d+)/(?P<workingset_history_id>\d+)/publish/$',

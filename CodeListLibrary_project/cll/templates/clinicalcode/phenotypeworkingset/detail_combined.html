@@ -341,7 +341,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
               <div class="col-sm-12 shadow-frame">
                 <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
                         id="Description"></span><strong>Description</strong></h3>
-                {% if workingset.description_highlighted|safe != '' %}
+                {% if workingset.description_highlighted|length %}
                 {{ workingset.description_highlighted|markdownify }}
                 {% else %}
                 <span class="card-no-data">No data available</span>
@@ -355,7 +355,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
               <div class="col-sm-12 shadow-frame">
                 <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
                         id="CitationRequirements"></span><strong>Citation Requirements</strong></h3>
-                {% if workingset.citation_requirements|safe != '' %}
+                {% if workingset.citation_requirements|length %}
                 {{ workingset.citation_requirements|markdownify }}
                 {% else %}
                 <span class="card-no-data">No data available</span>

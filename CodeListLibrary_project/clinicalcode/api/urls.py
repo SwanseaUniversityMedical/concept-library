@@ -198,17 +198,17 @@ urlpatterns += [
     #----------------------------------------------------------
     # --- phenotypes   ----------------------------------------
     #----------------------------------------------------------
-    url(r'^phenotypes/PH(?P<pk>\d+)/export/codes/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/export/codes/$',
         Phenotype.export_phenotype_codes_byVersionID,
         name='api_export_phenotype_codes_latestVersion'),
-    url(r'^phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/export/codes/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/version/(?P<phenotype_history_id>\d+)/export/codes/$',
         Phenotype.export_phenotype_codes_byVersionID,
         name='api_export_phenotype_codes_byVersionID'),
         
-    url(r'^public/phenotypes/PH(?P<pk>\d+)/export/codes/$',
+    url(r'^public/phenotypes/(?P<pk>PH\d+)/export/codes/$',
         Phenotype.export_published_phenotype_codes,
         name='api_export_published_phenotype_codes_latestVersion'),
-    url(r'^public/phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/export/codes/$',
+    url(r'^public/phenotypes/(?P<pk>PH\d+)/version/(?P<phenotype_history_id>\d+)/export/codes/$',
         Phenotype.export_published_phenotype_codes,
         name='api_export_published_phenotype_codes'),
 
@@ -216,7 +216,7 @@ urlpatterns += [
     url(r'^phenotypes/$', 
         Phenotype.phenotypes,
         name='phenotypes'),
-    url(r'^phenotypes/PH(?P<pk>\d+)/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/$',
         Phenotype.phenotypes,
         name='phenotype_by_id'),
 
@@ -224,33 +224,33 @@ urlpatterns += [
     url(r'^public/phenotypes/$',
         Phenotype.published_phenotypes,
         name='api_published_phenotypes'),
-    url(r'^public/phenotypes/PH(?P<pk>\d+)/$',
+    url(r'^public/phenotypes/(?P<pk>PH\d+)/$',
         Phenotype.published_phenotypes,
         name='api_published_phenotype_by_id'),
     #===============================================
 
     # my phenotype detail
     # if only phenotype_id is provided, get the latest version
-    url(r'^phenotypes/PH(?P<pk>\d+)/detail/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/detail/$',
         Phenotype.phenotype_detail,
         name='api_phenotype_detail'),
-    url(r'^public/phenotypes/PH(?P<pk>\d+)/detail/$',
+    url(r'^public/phenotypes/(?P<pk>PH\d+)/detail/$',
         Phenotype.phenotype_detail_PUBLIC,
         name='api_phenotype_detail_public'),
 
     # get specific version
-    url(r'^phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/detail/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/version/(?P<phenotype_history_id>\d+)/detail/$',
         Phenotype.phenotype_detail,
         name='api_phenotype_detail_version'),
-    url(r'^public/phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/detail/$',
+    url(r'^public/phenotypes/(?P<pk>PH\d+)/version/(?P<phenotype_history_id>\d+)/detail/$',
         Phenotype.phenotype_detail_PUBLIC,
         name='api_phenotype_detail_version_public'),
 
     # show versions
-    url(r'^phenotypes/PH(?P<pk>\d+)/get-versions/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/get-versions/$',
         Phenotype.phenotype_detail, {'get_versions_only': '1'},
         name='get_phenotype_versions'),
-    url(r'^public/phenotypes/PH(?P<pk>\d+)/get-versions/$',
+    url(r'^public/phenotypes/(?P<pk>PH\d+)/get-versions/$',
         Phenotype.phenotype_detail_PUBLIC, {'get_versions_only': '1'},
         name='get_phenotype_versions_public'),
 

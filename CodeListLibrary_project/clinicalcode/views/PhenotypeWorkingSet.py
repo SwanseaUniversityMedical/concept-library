@@ -149,15 +149,15 @@ def workingset_list(request):
     ph_workingset_selected_types_list = {ph_workingset_types_order[k]: v for k, v in enumerate(ph_workingset_types_list)}
     
     # search by ID (only with prefix)
-    # chk if the search word is valid ID (with  prefix 'PH' case insensitive)
+    # chk if the search word is valid ID (with  prefix 'WS' case insensitive)
     search_by_id = False
     id_match = re.search(r"(?i)^WS\d+$", search)
     if id_match:
         if id_match.group() == id_match.string: # full match
-            is_valid_id, err, ret_int_id = db_utils.chk_valid_id(request, set_class=Phenotype, pk=search, chk_permission=False)
+            is_valid_id, err, ret_id = db_utils.chk_valid_id(request, set_class=PhenotypeWorkingset, pk=search, chk_permission=False)
             if is_valid_id:
                 search_by_id = True
-                filter_cond += " AND (id =" + str(ret_int_id) + " ) "
+                filter_cond += " AND (id ='" + str(ret_id) + "') "
 
     collections, filter_cond = db_utils.apply_filter_condition(query='collections', selected=collection_ids, conditions=filter_cond)
     tags, filter_cond = db_utils.apply_filter_condition(query='tags', selected=tag_ids, conditions=filter_cond)
@@ -841,7 +841,7 @@ def history_workingset_codes_to_csv(request, pk, workingset_history_id=None):
         concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version_id).coding_system.name
         concept_name = Concept.history.get(id=concept_id, history_id=concept_version_id).name
               
-        phenotype_id = int(concept["phenotype_id"].replace("PH", ""))
+        phenotype_id = concept["phenotype_id"]
         phenotype_version_id = concept["phenotype_version_id"]
         phenotype_name = Phenotype.history.get(id=phenotype_id, history_id=phenotype_version_id).name
                         
@@ -862,7 +862,7 @@ def history_workingset_codes_to_csv(request, pk, workingset_history_id=None):
                 , 'C' + str(concept_id)
                 , concept_version_id
                 , concept_name
-                , 'PH' + str(phenotype_id)
+                , phenotype_id
                 , phenotype_version_id
                 , phenotype_name                
                 , current_ws_version.id
@@ -880,7 +880,7 @@ def history_workingset_codes_to_csv(request, pk, workingset_history_id=None):
                 , 'C' + str(concept_id)
                 , concept_version_id
                 , concept_name
-                , 'PH' + str(phenotype_id)
+                , phenotype_id
                 , phenotype_version_id
                 , phenotype_name                
                 , current_ws_version.id

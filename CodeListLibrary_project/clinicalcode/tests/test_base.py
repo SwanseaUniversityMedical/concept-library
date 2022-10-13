@@ -31,8 +31,6 @@ def update_friendly_id():
     update_sqls = [
         "UPDATE clinicalcode_historicalconcept       SET       friendly_id = concat('C', cast(id as text));",
         "UPDATE clinicalcode_concept                 SET       friendly_id = concat('C', cast(id as text));",
-        "UPDATE clinicalcode_historicalphenotype     SET       friendly_id = concat('PH', cast(id as text));",
-        "UPDATE clinicalcode_phenotype               SET       friendly_id = concat('PH', cast(id as text));",
         "UPDATE clinicalcode_historicalworkingset    SET       friendly_id = concat('WS', cast(id as text));",
         "UPDATE clinicalcode_workingset              SET       friendly_id = concat('WS', cast(id as text));"
     ]
