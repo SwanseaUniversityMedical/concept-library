@@ -168,8 +168,7 @@
                         <div class="col-sm-12">
                             <div class="material-textfield">
                                 <input class="input-material col-sm-12 form-control" type="text" name="datasources"
-                                       id="datasources"
-                                       value="{{ form.instance.data_sources|default_if_none:'' }}">
+                                       id="datasources">
                                 <label class="label-material">Data Sources</label>
 
                             </div>
@@ -547,6 +546,7 @@
             {% endif %}
 
         });
+
         $("#addRow").click(function () {
                 addInput('', 'newRow');
             }
