@@ -3540,7 +3540,7 @@ def get_visible_live_or_published_phenotype_versions(request,
 
 
     # order by clause
-    order_by = " ORDER BY id, history_id desc " if order_by is None else order_by
+    order_by = " ORDER BY REPLACE(id, 'PH', '')::INTEGER, history_id desc " if order_by is None else order_by
     if search != '':
         if search_name_only:
             # search name field only
@@ -3549,7 +3549,7 @@ def get_visible_live_or_published_phenotype_versions(request,
                                     , """ + order_by.replace(' ORDER BY ', '')
         else:
             # search all related fields
-            if order_by != concept_order_default:
+            if order_by != concept_order_default.replace(" id,", " REPLACE(id, 'PH', '')::INTEGER,"):
                 order_by =  """
                                 /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
                                 ORDER BY rank_name DESC, rank_author DESC , rank_all DESC, """ + order_by.replace(' ORDER BY ', '')
@@ -4807,7 +4807,7 @@ def get_visible_live_or_published_phenotype_workingset_versions(request,
             brand_filter_cond = " WHERE collections && '{" + ','.join(brand_collection_ids) + "}' "
 
     # order by clause
-    order_by = " ORDER BY id, history_id DESC " if order_by is None else order_by
+    order_by = " ORDER BY REPLACE(id, 'WS', '')::INTEGER, history_id DESC " if order_by is None else order_by
     if search != '':
         if search_name_only:
             # search name field only
@@ -4816,7 +4816,7 @@ def get_visible_live_or_published_phenotype_workingset_versions(request,
                                     , """ + order_by.replace(' ORDER BY ', '')
         else:
             # search all related fields
-            if order_by != concept_order_default:
+            if order_by != concept_order_default.replace(" id,", " REPLACE(id, 'WS', '')::INTEGER,"):
                 order_by =  """
                                 /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
                                 ORDER BY rank_name DESC, rank_author DESC , rank_all DESC, """ + order_by.replace(' ORDER BY ', '')

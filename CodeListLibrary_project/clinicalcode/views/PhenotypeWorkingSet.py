@@ -227,7 +227,7 @@ def workingset_list(request):
         group_list = list(current_brand.values_list('groups', flat=True))
         filter_cond += " AND group_id IN(" + ', '.join(map(str, group_list)) + ") "
 
-    order_param = db_utils.get_order_from_parameter(des_order)
+    order_param = db_utils.get_order_from_parameter(des_order).replace(" id,", " REPLACE(id, 'WS', '')::INTEGER,")
     workingset_srch = db_utils.get_visible_live_or_published_phenotype_workingset_versions(request,
                                                                             get_live_and_or_published_ver=get_live_and_or_published_ver,
                                                                             search=[search, ''][search_by_id],
