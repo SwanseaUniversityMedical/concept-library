@@ -1,17 +1,24 @@
 from .models import *
 
+#------------ pagination lims ----------
+page_size_limits = [20, 50, 100]
+#---------------------------------------
+
 #--------- Filter queries --------------
 filter_queries = {
     'tags': 0,
+    'collections': 0,
     'clinical_terminologies': 0,
     'data_sources': 0,
     'coding_system_id': 1,
     'phenotype_type': 2,
-    'daterange': 3
+    'workingset_type': 3,
+    'daterange': 4
 }
 
 filter_query_model = {
     'tags': Tag,
+    'collections': Tag,
     'clinical_terminologies': CodingSystem,
     'coding_system_id': CodingSystem,
     'data_sources': DataSource

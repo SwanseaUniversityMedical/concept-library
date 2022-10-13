@@ -26,6 +26,7 @@ from psycopg2.errorcodes import INVALID_PARAMETER_VALUE
 from simple_history.utils import update_change_reason
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
 from django.db.models.functions import Lower
+from string import ascii_letters
 
 from . import utils, tasks
 from .models import *
@@ -38,57 +39,8 @@ def get_order_from_parameter(parameter):
         return concept_order_queries[parameter]
     return concept_order_default
 
-#---------------------------------------
-
-#------------ pagination lims ----------
-page_size_limits = [20, 50, 100]
-#---------------------------------------
-
-#--------- Filter queries --------------
-filter_queries = {
-    'tags': 0,
-    'collections': 0,
-    'clinical_terminologies': 0,
-    'data_sources': 0,
-    'coding_system_id': 1,
-    'phenotype_type': 2,
-    'workingset_type': 3,
-    'daterange': 4
-}
-
-filter_query_model = {
-    'tags': Tag,
-    'collections': Tag,
-    'clinical_terminologies': CodingSystem,
-    'coding_system_id': CodingSystem,
-    'data_sources': DataSource
-}
-
-#---------------------------------------
-
-#--------- Order queries ---------------
-concept_order_queries = {
-    'Relevance': ' ORDER BY id, history_id DESC ',
-    'Created (Desc)': ' ORDER BY created DESC ',
-    'Created (Asc)': ' ORDER BY created ASC ',
-    'Last Updated (Desc)': ' ORDER BY modified DESC ',
-    'Last Updated (Asc)': ' ORDER BY modified ASC '
-}
-concept_order_default = list(concept_order_queries.values())[0]
-
-def get_order_from_parameter(parameter):
-    if parameter in concept_order_queries:
-        return concept_order_queries[parameter]
-    return concept_order_default
-
-#---------------------------------------
-
-#------------ pagination lims ----------
-page_size_limits = [20, 50, 100]
-#---------------------------------------
 
 #------------ phenotype gender ---------
-
 def try_parse_phenotype_gender(gender):
     """ Attempts to parse the gender of a phenotype into an array
         Required as the sex of a phenotype has no definitive deliminator
@@ -106,6 +58,9 @@ def try_parse_phenotype_gender(gender):
 
 
 #------------ API data validation-------
+
+parse_ident = lambda x: int(str(x).strip(ascii_letters))
+
 def validate_api_entry(item, data, expected_type=str):
     """ Attempts to parse the item in data as the expected type
     
@@ -207,9 +162,6 @@ def validate_phenotype_workingset_attribute_group(attributes, errors_dict):
             1. boolean
                 -> Describes success/validation state of the method call
     """
-    import string
-    parse_ident = lambda x: int(str(x).strip(string.ascii_letters))
-
     for element in attributes:
         data = {
             'concept_id': validate_api_entry('concept_id', element, str),
@@ -731,6 +683,21 @@ def getGroupOfCodesByConceptId_xxx(concept_id):
 
     return getConceptUniqueCodesLive(concept_id)
 
+def getGroupOfConceptsByPhenotypeWorkingsetId_historical(workingset_id, workingset_history_id=None):
+    '''
+        get phenotypes_concepts_data of the specified phenotype working set 
+        - from a specific version (or live version if workingset_history_id is None) 
+    '''
+    if workingset_history_id is None:
+        workingset_history_id = PhenotypeWorkingset.objects.get(pk=workingset_id).history.latest('history_id').history_id
+
+    concepts = []
+    concept_informations = PhenotypeWorkingset.history.get(id=workingset_id, history_id=workingset_history_id).phenotypes_concepts_data
+    for concept in concept_informations:
+        concepts.append((concept['concept_id'], concept['concept_version_id']))
+
+    return concepts
+
 
 def getGroupOfConceptsByWorkingsetId_historical(workingset_id, workingset_history_id=None):
     '''
@@ -1086,12 +1053,40 @@ def getHistoryConcept(concept_history_id, highlight_result=False, q_highlight=No
         return row_dict
 
 
-def getHistoryPhenotypeWorkingset(workingset_history_id):
+def getHistoryPhenotypeWorkingset(workingset_history_id, highlight_result=False, q_highlight=None):
     ''' Get historic phenotypeworkingset based on a workingset history id '''
 
+    sql_params = []
+    highlight_columns = ""
+    if highlight_result and q_highlight is not None:
+        # for highlighting
+        if str(q_highlight).strip() != '':
+            sql_params += [str(q_highlight)] * 4
+            highlight_columns += """ 
+                ts_headline('english', coalesce(hw.name, '')
+                        , websearch_to_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as name_highlighted,  
+
+                ts_headline('english', coalesce(hw.author, '')
+                        , websearch_to_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as author_highlighted,                                              
+               
+                ts_headline('english', coalesce(hw.description, '')
+                        , websearch_to_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=hightlight-txt > ", StopSel="</b>"') as description_highlighted,                                                                                            
+                                                              
+                ts_headline('english', coalesce(array_to_string(hw.publications, '^$^'), '')
+                        , websearch_to_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publications_highlighted,                                              
+             """
+                     
+    sql_params.append(workingset_history_id)
+
     with connection.cursor() as cursor:
-        cursor.execute(
-            '''SELECT hw.created,
+        cursor.execute("""
+        SELECT 
+        """ + highlight_columns + """
+        hw.created,
         hw.modified,
         hw.id,
         hw.name,
@@ -1102,11 +1097,13 @@ def getHistoryPhenotypeWorkingset(workingset_history_id):
         hw.owner_id,
         hw.group_id,
         hw.tags,
+        hw.type,
+        hw.data_sources,
         hw.collections,
         hw.owner_access,
         hw.group_access,
         hw.world_access,
-        hw.phenotypes_concepts_data,
+        hw.phenotypes_concepts_data::json,
         hw.created_by_id,
         hw.updated_by_id,
         ucb.username as created_by_username,
@@ -1124,11 +1121,19 @@ def getHistoryPhenotypeWorkingset(workingset_history_id):
         LEFT OUTER JOIN auth_user AS ucb on ucb.id = hw.created_by_id
         LEFT OUTER JOIN auth_user AS umb on umb.id = hw.updated_by_id
         LEFT OUTER JOIN auth_user AS uhu on uhu.id = hw.history_user_id
-        WHERE (hw.history_id = %s)''', [workingset_history_id])
+        WHERE (hw.history_id = %s)""", sql_params)
 
         col_names = [col[0] for col in cursor.description]
         row = cursor.fetchone()
         row_dict = dict(zip(col_names, row))
+
+        if highlight_columns != '':
+            row_dict['publications_highlighted'] = row_dict['publications_highlighted'].split('^$^')
+        else:
+            row_dict['name_highlighted'] = row_dict['name']
+            row_dict['author_highlighted'] = row_dict['author']
+            row_dict['description_highlighted'] = row_dict['description']
+            row_dict['publications_highlighted'] = row_dict['publications']
 
         return row_dict
 
@@ -2463,7 +2468,7 @@ def chk_deleted_children(request,
             errors[set_id] = 'working set not permitted.'
 
         if WS_concepts_json:
-            concepts = [(int(x['concept_id'].replace('C', '')), x['concept_version_id'], int(x['phenotype_id'].replace('PH', '')), x['phenotype_version_id']) for x in WS_concepts_json]  
+            concepts = [(int(x['concept_id'].replace('C', '')), x['concept_version_id'], x['phenotype_id'], x['phenotype_version_id']) for x in WS_concepts_json]  
         else:
             concepts = get_concept_data_of_historical_phenotypeWorkingset(set_id, set_history_id)
 
@@ -3223,11 +3228,10 @@ def get_visible_live_or_published_concept_versions(request,
             # search all related fields
             if order_by != concept_order_default:
                 order_by =  """
-                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
-                                ORDER BY rank_name DESC, rank_author DESC , rank_all DESC, """ + order_by.replace(' ORDER BY ', '')
+                                ORDER BY """ + order_by.replace(' ORDER BY ', '') + """, rank_name DESC, rank_author DESC , rank_all DESC
+                            """
             else:
                 order_by =  """
-                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
                                 ORDER BY rank_name DESC, rank_author DESC , rank_all DESC
                             """
                     
@@ -3491,7 +3495,7 @@ def get_visible_live_or_published_phenotype_versions(request,
 
 
     # order by clause
-    order_by = " ORDER BY id, history_id desc " if order_by is None else order_by
+    order_by = " ORDER BY REPLACE(id, 'PH', '')::INTEGER, history_id desc " if order_by is None else order_by
     if search != '':
         if search_name_only:
             # search name field only
@@ -3500,66 +3504,64 @@ def get_visible_live_or_published_phenotype_versions(request,
                                     , """ + order_by.replace(' ORDER BY ', '')
         else:
             # search all related fields
-            if order_by != concept_order_default:
+            if order_by != concept_order_default.replace(" id,", " REPLACE(id, 'PH', '')::INTEGER,"):
                 order_by =  """
-                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
-                                ORDER BY rank_name DESC, rank_author DESC , rank_all DESC, """ + order_by.replace(' ORDER BY ', '')
+                                ORDER BY """ + order_by.replace(' ORDER BY ', '') + """, rank_name DESC, rank_author DESC, rank_all DESC 
+                            """
             else:
                 order_by =  """
-                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
                                 ORDER BY rank_name DESC, rank_author DESC , rank_all DESC
                             """                            
         
     with connection.cursor() as cursor:
         cursor.execute(
             """
-                        SELECT
-                        """ + highlight_columns + """ 
-                        """ + rank_select + """                        
+                SELECT
+                """ + highlight_columns + """ 
+                """ + rank_select + """                        
+                *
+                FROM
+                (
+                    SELECT 
+                        """ + can_edit_subquery + """
                         *
-                        FROM
-                        (
-                            SELECT 
-                                """ + can_edit_subquery + """
-                                *
-                                , ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn_res
-                                , (CASE WHEN is_published=1 THEN 'published' ELSE 'not published' END) published
-                                , (SELECT username FROM auth_user WHERE id=r.owner_id ) owner_name
-                                , (SELECT username FROM auth_user WHERE id=r.created_by_id ) created_by_username
-                                , (SELECT username FROM auth_user WHERE id=r.updated_by_id ) modified_by_username
-                                , (SELECT username FROM auth_user WHERE id=r.deleted_by_id ) deleted_by_username
-                                , (SELECT name FROM auth_group WHERE id=r.group_id ) group_name
-                                , (SELECT created FROM clinicalcode_publishedphenotype WHERE phenotype_id=r.id and phenotype_history_id=r.history_id  and approval_status = 2 ) publish_date
-                            FROM
-                            (SELECT 
-                               ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn,
-                               (SELECT count(*) 
-                                   FROM clinicalcode_publishedphenotype 
-                                   WHERE phenotype_id=t.id and phenotype_history_id=t.history_id and approval_status = 2
-                               ) is_published,
-                                (SELECT approval_status 
-                                   FROM clinicalcode_publishedphenotype 
-                                   WHERE phenotype_id=t.id and phenotype_history_id=t.history_id 
-                               ) approval_status,
-                               
-                               id, created, modified, title, name, layout, phenotype_uuid, type, 
-                               validation, valid_event_data_range,  
-                               sex, author, status, hdr_created_date, hdr_modified_date, description, implementation,
-                               concept_informations::json, publication_doi, publication_link, secondary_publication_links, 
-                               source_reference, citation_requirements, is_deleted, deleted, 
-                               owner_access, group_access, world_access, history_id, history_date, 
-                               history_change_reason, history_type, created_by_id, deleted_by_id, 
-                               group_id, history_user_id, owner_id, updated_by_id, validation_performed, 
-                               phenoflowid, tags, clinical_terminologies, publications,
-                               friendly_id, data_sources
-                            FROM clinicalcode_historicalphenotype t
-                                """ + brand_filter_cond + """
-                            ) r
-                            """ + where_clause + [where_clause_2 , approval_where_clause][approval_where_clause.strip() !=""] + """
-                        ) rr
-                        """ + where_clause_3 + """
-                        """ + order_by
-                        , sql_params)
+                        , ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn_res
+                        , (CASE WHEN is_published=1 THEN 'published' ELSE 'not published' END) published
+                        , (SELECT username FROM auth_user WHERE id=r.owner_id ) owner_name
+                        , (SELECT username FROM auth_user WHERE id=r.created_by_id ) created_by_username
+                        , (SELECT username FROM auth_user WHERE id=r.updated_by_id ) modified_by_username
+                        , (SELECT username FROM auth_user WHERE id=r.deleted_by_id ) deleted_by_username
+                        , (SELECT name FROM auth_group WHERE id=r.group_id ) group_name
+                        , (SELECT created FROM clinicalcode_publishedphenotype WHERE phenotype_id=r.id and phenotype_history_id=r.history_id  and approval_status = 2 ) publish_date
+                    FROM
+                    (SELECT 
+                       ROW_NUMBER () OVER (PARTITION BY id ORDER BY history_id desc) rn,
+                       (SELECT count(*) 
+                           FROM clinicalcode_publishedphenotype 
+                           WHERE phenotype_id=t.id and phenotype_history_id=t.history_id and approval_status = 2
+                       ) is_published,
+                        (SELECT approval_status 
+                           FROM clinicalcode_publishedphenotype 
+                           WHERE phenotype_id=t.id and phenotype_history_id=t.history_id 
+                       ) approval_status,
+                       
+                       id, created, modified, name, layout, phenotype_uuid, type, 
+                       validation, valid_event_data_range,  
+                       sex, author, status, hdr_created_date, hdr_modified_date, description, implementation,
+                       concept_informations::json, publication_doi, publication_link, secondary_publication_links, 
+                       source_reference, citation_requirements, is_deleted, deleted, 
+                       owner_access, group_access, world_access, history_id, history_date, 
+                       history_change_reason, history_type, created_by_id, deleted_by_id, 
+                       group_id, history_user_id, owner_id, updated_by_id, validation_performed, 
+                       phenoflowid, tags, clinical_terminologies, publications, data_sources
+                    FROM clinicalcode_historicalphenotype t
+                        """ + brand_filter_cond + """
+                    ) r
+                    """ + where_clause + [where_clause_2 , approval_where_clause][approval_where_clause.strip() !=""] + """
+                ) rr
+                """ + where_clause_3 + """
+                """ + order_by
+                , sql_params)
         
         col_names = [col[0] for col in cursor.description]
 
@@ -3607,7 +3609,6 @@ def getHistoryPhenotype(phenotype_history_id, highlight_result=False, q_highligh
         hph.id,
         hph.created,
         hph.modified,
-        hph.title,
         hph.name,
         hph.layout,
         hph.phenotype_uuid,
@@ -3647,7 +3648,6 @@ def getHistoryPhenotype(phenotype_history_id, highlight_result=False, q_highligh
         hph.tags,
         hph.clinical_terminologies,
         hph.publications,
-        hph.friendly_id,
         hph.data_sources,
         ucb.username as created_by_username,
         umb.username as modified_by_username,
@@ -3805,6 +3805,8 @@ def get_phenotype_conceptcodesByVersion(request,
         Parameters:     request    The request.
                         pk         The phenotype id.
                         phenotype_history_id  The version id
+                        target_concept_id if you need only one concept's code
+                        target_concept_history_id if you need only one concept's code
         Returns:        list of Dict with the codes. 
     '''
 
@@ -3831,12 +3833,12 @@ def get_phenotype_conceptcodesByVersion(request,
     for concept in concept_ids_historyIDs:
         concept_id = concept[0]
         concept_version_id = concept[1]
-        concept_ver_name = Concept.history.get(id=concept_id, history_id=concept_version_id).name
         
         if (target_concept_id is not None and target_concept_history_id is not None):
             if target_concept_id != str(concept_id) and target_concept_history_id != str(concept_version_id):
                 continue
-
+        
+        concept_ver_name = Concept.history.get(id=concept_id, history_id=concept_version_id).name
         concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version_id).coding_system.name
 
         rows_no = 0
@@ -3871,16 +3873,16 @@ def get_phenotype_conceptcodesByVersion(request,
                 codes.append(
                     ordr(
                         list(
-                            zip(titles, [
-                                cc['code'], cc['description'].encode('ascii', 'ignore').decode('ascii')
-                            ] + [attributes_dict] + [
-                                concept_coding_system, 
-                                'C' + str(concept_id),
-                                concept_version_id,
-                                concept_ver_name,
-                                current_ph_version.friendly_id,
-                                current_ph_version.history_id,
-                                current_ph_version.name
+                            zip(titles, [cc['code']
+                                       , cc['description'].encode('ascii', 'ignore').decode('ascii')
+                                       ] + [attributes_dict] + [
+                                        concept_coding_system 
+                                        , 'C' + str(concept_id)
+                                        , concept_version_id
+                                        , concept_ver_name
+                                        , current_ph_version.id
+                                        , current_ph_version.history_id
+                                        , current_ph_version.name
                             ]))))
 
             if rows_no == 0:
@@ -3888,13 +3890,13 @@ def get_phenotype_conceptcodesByVersion(request,
                     ordr(
                         list(
                             zip(titles, ['', ''] + [attributes_dict] + [
-                                concept_coding_system, 
-                                'C' + str(concept_id),
-                                concept_version_id,
-                                concept_ver_name,
-                                current_ph_version.friendly_id,
-                                current_ph_version.history_id,
-                                current_ph_version.name
+                                concept_coding_system
+                                , 'C' + str(concept_id)
+                                , concept_version_id
+                                , concept_ver_name
+                                , current_ph_version.id
+                                , current_ph_version.history_id
+                                , current_ph_version.name
                             ]))))
 
     return codes
@@ -3947,9 +3949,6 @@ def isValidPhenotype(request, phenotype):
     errors = {}
     attribute_names = {}
 
-    if not phenotype.title or len(phenotype.title) < 3 or phenotype.title is None:
-        errors['title'] = "Phenotype title should be at least 3 characters"
-        is_valid = False
 
     if not phenotype.name or len(phenotype.name) < 3 or phenotype.name is None:
         errors['name'] = "Phenotype name should be at least 3 characters"
@@ -4413,7 +4412,7 @@ def get_brand_associated_collections_dynamic(request, concept_or_phenotype, excl
 
 def send_review_email(phenotype, review_decision, review_message):
     phenotype_id = phenotype.id
-    phenotype_name = phenotype.title
+    phenotype_name = phenotype.name
     phenotype_owner_id = phenotype.owner_id
 
     owner_email = User.objects.get(id=phenotype_owner_id).email
@@ -4422,7 +4421,7 @@ def send_review_email(phenotype, review_decision, review_message):
 
     email_subject = 'Concept Library - Phenotype %s has been %s' % (phenotype_id, review_decision)
     email_content = '''<strong>New Message from Concept Library Website</strong><br><br>
-    <strong>Phenotype:</strong><br>PH{id} - {name}<br><br>
+    <strong>Phenotype:</strong><br>{id} - {name}<br><br>
     <strong>Decision:</strong><br>{decision}<br><br>
     <strong>Reviewer message:</strong><br>{message}
     '''.format(id=phenotype_id, name=phenotype_name, decision=review_decision, message=review_message)
@@ -4471,7 +4470,7 @@ def get_scheduled_email_to_send():
         phenotype = Phenotype.objects.get(pk=result['data'][i]['phenotype_id'], owner_id=result['data'][i]['owner_id'])
         phenotype_id = phenotype.id
 
-        phenotype_name = phenotype.title
+        phenotype_name = phenotype.name
         phenotype_owner_id = phenotype.owner_id
 
         review_decision = ''
@@ -4488,7 +4487,7 @@ def get_scheduled_email_to_send():
             return False
 
         email_message = '''<br><br>
-                 <strong>Phenotype:</strong><br>PH{id} - {name}<br><br>
+                 <strong>Phenotype:</strong><br>{id} - {name}<br><br>
                  <strong>Decision:</strong><br>{decision}<br><br>
                  <strong>Reviewer message:</strong><br>{message}
                  '''.format(id=phenotype_id, name=phenotype_name, decision=review_decision, message=review_message)
@@ -4509,7 +4508,7 @@ def chk_valid_id(request, set_class, pk, chk_permission=False):
     
     is_valid_id = True
     err = ""
-    ret_int_id = -1
+    ret_id = -1
 
     if str(pk).strip()=='':
         is_valid_id = False
@@ -4530,7 +4529,7 @@ def chk_valid_id(request, set_class, pk, chk_permission=False):
     else:
         int_pk = int(pk)
 
-    actual_pk = pk if set_class == PhenotypeWorkingset else int_pk
+    actual_pk = str(pk).upper() if (set_class == PhenotypeWorkingset or set_class == Phenotype) else int_pk
     if set_class.objects.filter(pk=actual_pk).count() == 0:
         is_valid_id = False
         err = 'ID not found.'
@@ -4542,9 +4541,9 @@ def chk_valid_id(request, set_class, pk, chk_permission=False):
 
 
     if is_valid_id:
-        ret_int_id = set_class.objects.get(pk=actual_pk).id
+        ret_id = set_class.objects.get(pk=actual_pk).id
 
-    return is_valid_id, err, ret_int_id
+    return is_valid_id, err, ret_id
 
 
 
@@ -4565,7 +4564,7 @@ def is_referred_from_search_page(request):
     
     url = HTTP_REFERER.split('?')[0]
     url = url.lower()
-    if url.endswith('/phenotypes/') or url.endswith('/concepts/'):
+    if url.endswith('/phenotypes/') or url.endswith('/concepts/') or url.endswith('/phenotypeworkingsets/'):
         return True
     else:
         return False
@@ -4762,7 +4761,7 @@ def get_visible_live_or_published_phenotype_workingset_versions(request,
             brand_filter_cond = " WHERE collections && '{" + ','.join(brand_collection_ids) + "}' "
 
     # order by clause
-    order_by = " ORDER BY id, history_id DESC " if order_by is None else order_by
+    order_by = " ORDER BY REPLACE(id, 'WS', '')::INTEGER, history_id DESC " if order_by is None else order_by
     if search != '':
         if search_name_only:
             # search name field only
@@ -4771,13 +4770,12 @@ def get_visible_live_or_published_phenotype_workingset_versions(request,
                                     , """ + order_by.replace(' ORDER BY ', '')
         else:
             # search all related fields
-            if order_by != concept_order_default:
+            if order_by != concept_order_default.replace(" id,", " REPLACE(id, 'WS', '')::INTEGER,"):
                 order_by =  """
-                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
-                                ORDER BY rank_name DESC, rank_author DESC , rank_all DESC, """ + order_by.replace(' ORDER BY ', '')
+                                ORDER BY """ + order_by.replace(' ORDER BY ', '') + """ , rank_name DESC, rank_author DESC , rank_all DESC
+                            """ 
             else:
                 order_by =  """
-                                /*ORDER BY rank_all DESC, rank_name DESC, rank_author DESC*/ 
                                 ORDER BY rank_name DESC, rank_author DESC , rank_all DESC
                             """    
                             
@@ -4815,7 +4813,7 @@ def get_visible_live_or_published_phenotype_workingset_versions(request,
                                ) approval_status,
                                
                                id, name, type, tags, collections, publications, author, citation_requirements, description, 
-                               data_sources, phenotypes_concepts_data, 
+                               data_sources, phenotypes_concepts_data::json, 
                                is_deleted, deleted, owner_access, group_access, world_access, 
                                created, modified, 
                                history_id, history_date, history_change_reason, history_type, 
@@ -4851,7 +4849,7 @@ def get_concept_data_of_historical_phenotypeWorkingset(pk, history_id=None):
         for c in phenotypes_concepts_data:
             concept_id_version.append(
                 (int(c['concept_id'].replace('C', '')), c['concept_version_id'], 
-                 int(c['phenotype_id'].replace('PH', '')), c['phenotype_version_id'])
+                 c['phenotype_id'], c['phenotype_version_id'])
                 )
 
     return concept_id_version
@@ -4859,3 +4857,141 @@ def get_concept_data_of_historical_phenotypeWorkingset(pk, history_id=None):
 
 
     
+def get_working_set_codes_by_version(request, 
+                                    pk, 
+                                    workingset_history_id,
+                                    target_concept_id=None,
+                                    target_concept_history_id=None):
+    '''
+        Get the codes of the phenotype working set concepts
+        for a specific version
+        Parameters:     request    The request.
+                        pk         The working set id.
+                        workingset_history_id  The version id
+                        target_concept_id if you need only one concept's code
+                        target_concept_history_id if you need only one concept's code
+        Returns:        list of Dict with the codes. 
+    '''
+    
+    # here, check live version is not deleted
+    if PhenotypeWorkingset.objects.get(pk=pk).is_deleted == True:
+        raise PermissionDenied
+    #--------------------------------------------------
+    
+    current_ws_version = PhenotypeWorkingset.history.get(id=pk, history_id=workingset_history_id)
+
+    phenotypes_concepts_data = current_ws_version.phenotypes_concepts_data
+    
+    attributes_titles = []
+    if phenotypes_concepts_data:
+        attr_sample = phenotypes_concepts_data[0]["Attributes"]
+        attributes_titles = [x["name"] for x in attr_sample]
+
+    titles = ( ['code', 'description', 'code_attributes', 'coding_system']
+             + ['concept_id', 'concept_version_id' , 'concept_name']
+             + ['phenotype_id', 'phenotype_version_id', 'phenotype_name']
+             + ['workingset_id', 'workingset_version_id', 'workingset_name']
+             + attributes_titles
+            )
+
+    codes = []
+    for concept in phenotypes_concepts_data:
+        concept_id = int(concept["concept_id"].replace("C", ""))
+        concept_version_id = concept["concept_version_id"]
+        
+        if (target_concept_id is not None and target_concept_history_id is not None):
+            if target_concept_id != str(concept_id) and target_concept_history_id != str(concept_version_id):
+                continue
+            
+        concept_name = Concept.history.get(id=concept_id, history_id=concept_version_id).name
+        concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version_id).coding_system.name
+             
+        phenotype_id = concept["phenotype_id"]
+        phenotype_version_id = concept["phenotype_version_id"]
+        phenotype_name = Phenotype.history.get(id=phenotype_id, history_id=phenotype_version_id).name
+                        
+        attributes_values = []
+        if attributes_titles:
+            attributes_values = [x["value"] for x in concept["Attributes"]]
+            
+               
+        rows_no = 0
+        concept_codes = getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
+        if concept_codes:
+            #---------
+            code_attribute_header = Concept.history.get(id=concept_id, history_id=concept_version_id).code_attribute_header
+            concept_history_date = Concept.history.get(id=concept_id, history_id=concept_version_id).history_date
+            codes_with_attributes = []
+            if code_attribute_header:
+                codes_with_attributes = getConceptCodes_withAttributes_HISTORICAL(concept_id=concept_id,
+                                                                                concept_history_date=concept_history_date,
+                                                                                allCodes=concept_codes,
+                                                                                code_attribute_header=code_attribute_header
+                                                                                )
+
+                concept_codes = codes_with_attributes
+            #---------
+            
+        for cc in concept_codes:
+            rows_no += 1
+            code_attributes_dict = {}
+            if code_attribute_header:
+                for attr in code_attribute_header:
+                    if request.GET.get('format', '').lower() == 'xml':
+                        # clean attr names/ remove space, etc
+                        attr2 = utils.clean_str_as_db_col_name(attr)
+                    else:
+                        attr2 = attr
+                    code_attributes_dict[attr2] = cc[attr]
+                                    
+            codes.append(
+                    ordr(
+                        list(
+                            zip(titles, [ cc['code']
+                                        , cc['description'].encode('ascii', 'ignore').decode('ascii')
+                                        ] + [code_attributes_dict] + [
+                                          concept_coding_system
+                                        , 'C' + str(concept_id)
+                                        , concept_version_id
+                                        , concept_name
+                                        , phenotype_id
+                                        , phenotype_version_id
+                                        , phenotype_name                
+                                        , current_ws_version.id
+                                        , current_ws_version.history_id
+                                        , current_ws_version.name
+                                        ]
+                                        + attributes_values
+                                        )
+                            )
+                        )
+                    )
+
+                  
+
+        if rows_no == 0:
+            codes.append(
+                    ordr(
+                        list(
+                            zip(titles, [ '' 
+                                        , ''] + [code_attributes_dict] + [
+                                          concept_coding_system 
+                                        , 'C' + str(concept_id)
+                                        , concept_version_id
+                                        , concept_name
+                                        , phenotype_id
+                                        , phenotype_version_id
+                                        , phenotype_name                
+                                        , current_ws_version.id
+                                        , current_ws_version.history_id
+                                        , current_ws_version.name
+                                        ]
+                                        + attributes_values 
+                                        )
+                            )
+                        )
+                    )
+
+    return codes
+
+

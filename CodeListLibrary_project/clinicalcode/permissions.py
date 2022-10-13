@@ -158,7 +158,7 @@ def allowed_to_view_children(request,
             # Need to parse the concept_informations section of the database and use
             # the concepts here to form a list of concept_ref_ids.
         if WS_concepts_json:
-            concepts = [(int(x['concept_id'].replace('C', '')), x['concept_version_id'], int(x['phenotype_id'].replace('PH', '')), x['phenotype_version_id']) for x in WS_concepts_json]  
+            concepts = [(int(x['concept_id'].replace('C', '')), x['concept_version_id'], x['phenotype_id'], x['phenotype_version_id']) for x in WS_concepts_json]  
         else:
             concepts = get_concept_data_of_historical_phenotypeWorkingset(set_id, set_history_id)
 

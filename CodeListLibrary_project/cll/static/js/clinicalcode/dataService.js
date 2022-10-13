@@ -49,11 +49,17 @@ var dataService = new function(){
 	};
 	
 	getPhenotypeUniqueCodesByVersion = function(phenotype, version, target_concept_id, target_concept_history_id, force_highlight_result, callback){		
-		$.getJSON('/phenotypes/PH' + phenotype + '/uniquecodesbyversion/'+ version + '/concept/C' + target_concept_id + '/' + target_concept_history_id +'/?highlight=' + force_highlight_result, function(data){
+		$.getJSON('/phenotypes/' + phenotype + '/uniquecodesbyversion/'+ version + '/concept/C' + target_concept_id + '/' + target_concept_history_id +'/?highlight=' + force_highlight_result, function(data){
 			callback(data);
 		});
 	};
 	
+	getWorkingSetUniqueCodesByVersion = function(workingset_id, workingset_version, target_concept_id, target_concept_history_id, force_highlight_result, callback){		
+		$.getJSON('/phenotypeworkingsets/' + workingset_id + '/uniquecodesbyversion/'+ workingset_version + '/concept/' + target_concept_id + '/' + target_concept_history_id +'/?highlight=' + force_highlight_result, function(data){
+			callback(data);
+		});
+	};
+
 	getConceptVersions = function(concept, version, indx, callback){		
 		$.getJSON('/concepts/C' + concept + '/conceptversions/'+ version +'/'+ indx +'/', function(data){
 			callback(data);
@@ -93,6 +99,7 @@ var dataService = new function(){
 		getConceptUniqueCodes: getConceptUniqueCodes,
 		getConceptVersions: getConceptVersions,
 		getConceptUniqueCodesByVersion: getConceptUniqueCodesByVersion,
-		getPhenotypeUniqueCodesByVersion: getPhenotypeUniqueCodesByVersion
+		getPhenotypeUniqueCodesByVersion: getPhenotypeUniqueCodesByVersion,
+		getWorkingSetUniqueCodesByVersion: getWorkingSetUniqueCodesByVersion,
 	}
 }

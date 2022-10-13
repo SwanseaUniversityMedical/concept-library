@@ -235,7 +235,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                     <div class="col-sm-2">ID</div>
                     <div class="col-sm-10">
 					<span id="phenotype_id_div" phenotype_id="{{ phenotype.id }}">
-						{{ phenotype.friendly_id }}						
+						{{ phenotype.id }}						
 					</span>
                     </div>
                 </div>
@@ -309,10 +309,10 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
 	                <div class="row" style="margin-top: 10px;">
 	                    <div class="col-sm-2">Valid event data range</div>
 	                    <div class="col-sm-10">
-                            {% if phenotype.valid_event_data_range|safe != '' %}
+                            {% if phenotype.valid_event_data_range|length %}
 	                            {{ phenotype.valid_event_data_range }}
                             {% else %}
-                                <span class="card-no-data">No collections</span>
+                                <span class="card-no-data">No data available</span>
                             {% endif %}
 	                    </div>
 	                </div>
@@ -323,7 +323,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                     <div class="col-sm-10">
                         {% if gender|length %}
                             {% for sex in gender %}
-                            <span class="badge gender-badge-{{ sex }}">
+                            <span class="badge Xgender-badge-{{ sex }}">
                                 {% if sex == "Male" %}♂{% else %}♀{% endif %}&nbsp;&nbsp;{{ sex }}
                             </span>
                             {% endfor %}
@@ -365,7 +365,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
 						{% if has_collections %}
 							{% for tag in tags %}
 								{% if tag.tag_type == 2 %}
-								<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
+								<span class="tag label label-{{ tag.get_display_display }} card-edit-sizing">{{ tag.description }}</span>
 								{% endif %}
 							{% endfor %}	
 						{% else %}
@@ -380,7 +380,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
 						{% if has_tags %}
 							{% for tag in tags %}
 								{% if tag.tag_type == 1 %}
-								<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
+								<span class="tag label label-{{ tag.get_display_display }} card-edit-sizing">{{ tag.description }}</span>
 								{% endif %}
 							{% endfor %}	
 						{% else %}
@@ -400,7 +400,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
             <div class="col-sm-12 shadow-frame">
                 <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
                         id="definition"></span><strong>Definition</strong></h3>
-                {% if phenotype.description_highlighted|safe != '' %}
+                {% if phenotype.description_highlighted|length %}
                 {{ phenotype.description_highlighted|markdownify }}
                 {% else %}
                 <span class="card-no-data">No data available</span>
@@ -738,54 +738,57 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
 -->
 
                         <div id="permissions" class="row">
-                            <div  class="col-sm-3">Owner</div>
+                            <div  class="col-sm-2">Owner</div>
                             <div class="col-sm-4">
                                 <span>{{ phenotype.owner.username }}</span>
                             </div>
-                            <div class="col-sm-5 text-right">
+                            <div  class="col-sm-2">Owner access</div>
+                            
+                            <div class="col-sm-4">
                                 {% if phenotype.owner_access == 1 %}	
-                                    <span class="tag label label-danger justified-label"><i>Owner access:&nbsp;&nbsp;</i><span class="card-noweight">None</span></span>
+                                    <span class="card-noweight">None</span>
                                 {% elif phenotype.owner_access == 2 %}
-                                    <span class="tag label label-warning justified-label"><i>Owner access:&nbsp;&nbsp;</i><span class="card-noweight">View only</span></span>
+                                    <span class="card-noweight">View only</span>
                                 {% elif phenotype.owner_access == 3 %}
-                                    <span class="tag label label-success justified-label"><i>Owner access:&nbsp;&nbsp;</i><span class="card-noweight">View and edit</span></span>
+                                    <span class="card-noweight">View and edit</span>
                                 {% else %}
-                                    <span class="tag label label-success justified-label"><i>Owner access:&nbsp;&nbsp;</i><span class="card-noweight">Unknown</span></span>
+                                    <span class="card-noweight">Unknown</span>
                                 {% endif %}
                             </div>
                         </div>
                         <hr class="small-divider"/>
                         <div id="permissions" class="row">
-                            <div  class="col-sm-3">Group</div>
+                            <div  class="col-sm-2">Group</div>
                             <div class="col-sm-4">
                                 {% if phenotype.group %}
                                 <span>{{ phenotype.group }}</span>
                                 {% else %}
-                                <span>No associated group</span>
+                                <span class="card-no-data">No associated group</span>
                                 {% endif %}
                             </div>
-                            <div class="col-sm-5 text-right">
+                            <div class="col-sm-2">Group access</div>
+                            <div class="col-sm-4">
                                 {% if phenotype.group_access == 1 %}	
-                                    <span class="tag label label-danger justified-label"><i>Group access:&nbsp;&nbsp;</i><span class="card-noweight text-right">No Access</span></span>
+                                    <span class="card-noweight text-right">No Access</span>
                                 {% elif phenotype.group_access == 2 %}
-                                    <span class="tag label label-warning justified-label"><i>Group access:&nbsp;&nbsp;</i><span class="card-noweight text-right">View only</span></span>
+                                    <span class="card-noweight text-right">View only</span>
                                 {% elif phenotype.group_access == 3 %}
-                                    <span class="tag label label-success justified-label"><i>Group access:&nbsp;&nbsp;</i><span class="card-noweight text-right">View and edit</span></span>
+                                    <span class="card-noweight text-right">View and edit</span>
                                 {% else %}
-                                    <span class="tag label label-success justified-label"><i>Group access:&nbsp;&nbsp;</i><span class="card-noweight text-right">Unknown</span></span>
+                                    <span class="card-noweight text-right">Unknown</span>
                                 {% endif %}
                             </div>
                         </div>
                         <hr class="small-divider"/>
                         <div id="permissions" class="row">
-                            <div  class="col-sm-3">Public access</div>
-                            <div class="col-sm-9">
+                            <div class="col-sm-2">All other users</div>
+                            <div class="col-sm-10">
                                 {% if phenotype.world_access == 1 %}	
-                                    <span class="tag label label-danger">No access</span>
+                                    <span>No access</span>
                                 {% elif phenotype.world_access == 2 %}
-                                    <span class="tag label label-warning">View only</span>
+                                    <span>View only</span>
                                 {% elif phenotype.world_access == 3 %}
-                                    <span class="tag label label-success">View and edit</span>
+                                    <span>View and edit</span>
                                 {% else %}
                                     
                                 {% endif %}
@@ -857,7 +860,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                                 # Get details of phenotype
                             </p>
                             <p class="code-general-highlight">
-                                details = get_phenotype_detail_by_version(<span class="code-text-highlight">'PH{{ phenotype.id }}'</span>, 
+                                details = get_phenotype_detail_by_version(<span class="code-text-highlight">'{{ phenotype.id }}'</span>, 
                                     <span class="code-text-highlight">'{{ phenotype.history_id }}'</span>, 
                                     api_client=client)
                             </p>
@@ -897,7 +900,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
 					</td>
 
 				  </tr>
-						<tr>
+				  <tr>
 					{% if user_can_export %}
                         <tr>
                         <td>CSV</td>
@@ -905,7 +908,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                         <a href="{% url 'history_phenotype_codes_to_csv' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
                            target=_blank>site_root{% url 'history_phenotype_codes_to_csv' phenotype.id phenotype.history_id %}</a>
                     {% endif %}
-                            </tr>
+                  </tr>
                   <tr>
                     <td>R Package</td>
                     <td>
@@ -928,7 +931,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                                 # Get codelists of phenotype
                             </p>
                             <p class="code-general-highlight">
-                                codelists = get_phenotype_code_list(<span class="code-text-highlight">'PH{{ phenotype.id }}'</span>, 
+                                codelists = get_phenotype_code_list(<span class="code-text-highlight">'{{ phenotype.id }}'</span>, 
                                 <span class="code-text-highlight">'{{ phenotype.history_id }}'</span>, 
                                 api_client=client)
                             </p>

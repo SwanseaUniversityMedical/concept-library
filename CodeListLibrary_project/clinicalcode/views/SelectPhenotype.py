@@ -1,6 +1,6 @@
 '''
     ---------------------------------------------------------------------------
-    WorkingSet selection view
+    Select Phenotypes view
     ---------------------------------------------------------------------------
 '''
 import csv
@@ -120,7 +120,7 @@ def selection_list(request):
             is_valid_id, err, ret_int_id = db_utils.chk_valid_id(request, set_class=Phenotype, pk=search, chk_permission=False)
             if is_valid_id:
                 search_by_id = True
-                filter_cond += " AND (id =" + str(ret_int_id) + " ) "
+                filter_cond += " AND (id ='" + str(ret_int_id) + "') "
     
     # Change to collections once model + data represents parameter
     collections, filter_cond = db_utils.apply_filter_condition(query='tags', selected=collection_ids, conditions=filter_cond)
@@ -146,7 +146,7 @@ def selection_list(request):
         group_list = list(current_brand.values_list('groups', flat=True))
         filter_cond += " AND group_id IN(" + ', '.join(map(str, group_list)) + ") "
 
-    order_param = db_utils.get_order_from_parameter(des_order)
+    order_param = db_utils.get_order_from_parameter(des_order).replace(" id,", " REPLACE(id, 'PH', '')::INTEGER,")
     phenotype_srch = db_utils.get_visible_live_or_published_phenotype_versions(request,
                                                                             get_live_and_or_published_ver=get_live_and_or_published_ver,
                                                                             search=[search, ''][search_by_id],
@@ -238,8 +238,8 @@ def selection_list(request):
     concept_data = { }
     for phenotype in p.object_list:
         if phenotype['concept_informations']:
-            concept_id_list = [x['concept_id'] for x in json.loads(phenotype['concept_informations']) ]
-            concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(phenotype['concept_informations']) ]
+            concept_id_list = [x['concept_id'] for x in phenotype['concept_informations'] ]
+            concept_hisoryid_list = [x['concept_version_id'] for x in phenotype['concept_informations'] ]
             concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list) #.values('id', 'history_id', 'name', 'group')
             concept_data[phenotype['id']] = {
                 'phenotype_id': phenotype['id'],

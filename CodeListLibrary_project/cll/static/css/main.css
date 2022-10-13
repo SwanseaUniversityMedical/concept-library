@@ -1375,6 +1375,10 @@ code.api-codeblock .code-text-highlight, .code-comment-highlight {
   margin: 5px 0 5px 0;
 }
 
+.top-heavy-divider {
+  margin: 10px 0 10px 0;
+}
+
 .gender-badge-Male {
   background-color:#E2F0CB
 }
@@ -1382,3 +1386,13 @@ code.api-codeblock .code-text-highlight, .code-comment-highlight {
 .gender-badge-Female {
   background-color: #FFB7B2
 }
+
+.cl-card-with-buttons {
+  padding: 20px 20px 5px 20px;
+}
+
+/* Workingset datable modifiers */
+.foldout-data-table {
+  padding-left: 5px;
+}
+

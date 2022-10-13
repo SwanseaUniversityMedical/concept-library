@@ -15,15 +15,6 @@
         <span style='font-size: 22px;margin-top:0;'>{{ workingset.id }} - {{ workingset.name_highlighted|safe }}</span>
         </a>				
       </div>
-      <div class="col-sm-4 text-right">
-        <span class="badge card-date-badge">
-          {% if user.is_authenticated %}
-            <span class="card-date-block">Modified:</span><i class="card-noweight">{{ workingset.modified|date:"Y-m-d" }}</i>
-          {% else %}	
-            <span class="card-date-block">Published:</span><i class="card-noweight">{{ workingset.publish_date|date:"Y-m-d" }}</i>
-          {% endif %}
-        </span>
-      </div>
     </div>
     
     <div class="row form-group">
@@ -34,16 +25,28 @@
 
     </div>
     <div class="row form-group">
+      <!-- Type -->
       <div class="col-sm-4 text-left">
         <span class="badge phenotype-type-badge card-tag-sizing"><i><strong>{{ workingset.type|get_ws_type_name }}</i></strong></span>
-      </div>			
+      </div>
+      <!-- Date -->
+      <div class="col-sm-4 text-center">
+        <span class="badge card-date-badge">
+          {% if user.is_authenticated %}
+            <span class="card-date-block">Modified:</span><i class="card-noweight">{{ workingset.modified|date:"Y-m-d" }}</i>
+          {% else %}	
+            <span class="card-date-block">Published:</span><i class="card-noweight">{{ workingset.publish_date|date:"Y-m-d" }}</i>
+          {% endif %}
+        </span>
+      </div>
+      <!-- Tags/Collections -->
       {% if workingset.collections or workingset.tags %}
-      <div class="col-sm-8 text-right">
+      <div class="col-sm-4 text-right">
         <!-- collections -->
         {% for tag in allTags %}
           {% for tag_id in workingset.collections %}
             {% if tag.id == tag_id %}
-                <span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">#{{ tag.description }}</span>
+                <span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">{{ tag.description }}</span>
               {% endif %}
           {% endfor %}						
         {% endfor %}			
@@ -52,7 +55,7 @@
         {% for tag in allTags %}
           {% for tag_id in workingset.tags %}
             {% if tag.id == tag_id %}
-                <span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">#{{ tag.description }}</span>
+                <span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">{{ tag.description }}</span>
               {% endif %}
           {% endfor %}						
         {% endfor %}			

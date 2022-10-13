@@ -56,7 +56,6 @@ def api_phenotype_create(request):
 
         new_phenotype = Phenotype()
         new_phenotype.phenotype_uuid = request.data.get('phenotype_uuid')
-        new_phenotype.title = request.data.get('title')
         new_phenotype.name = request.data.get('name')
         new_phenotype.author = request.data.get('author')
         new_phenotype.layout = request.data.get('layout')
@@ -200,9 +199,9 @@ def api_phenotype_update(request):
         is_valid = True
 
         phenotype_id = request.data.get('id')
-        is_valid_id, err, ret_int_id = chk_valid_id(request, Phenotype, phenotype_id, chk_permission=True)
+        is_valid_id, err, ret_id = chk_valid_id(request, Phenotype, phenotype_id, chk_permission=True)
         if is_valid_id:
-            phenotype_id = ret_int_id
+            phenotype_id = ret_id
         else:
             errors_dict['id'] = err
             return Response(data=errors_dict,
@@ -212,7 +211,6 @@ def api_phenotype_update(request):
 
         update_phenotype = Phenotype.objects.get(pk=phenotype_id)
         update_phenotype.phenotype_uuid = request.data.get('phenotype_uuid')
-        update_phenotype.title = request.data.get('title')
         update_phenotype.name = request.data.get('name')
         update_phenotype.author = request.data.get('author')
         update_phenotype.layout = request.data.get('layout')
@@ -553,10 +551,10 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
     id_match = re.search(r"(?i)^PH\d+$", search)
     if id_match:
         if id_match.group() == id_match.string: # full match
-            is_valid_id, err, ret_int_id = chk_valid_id(request, set_class=Phenotype, pk=search, chk_permission=False)
+            is_valid_id, err, ret_id = chk_valid_id(request, set_class=Phenotype, pk=search, chk_permission=False)
             if is_valid_id:
                 search_by_id = True
-                filter_cond += " AND (id =" + str(ret_int_id) + " ) "    
+                filter_cond += " AND (id ='" + str(ret_id) + "') "    
     
     
     if tag_collection_ids != '':
@@ -613,7 +611,7 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
 
     if phenotype_id is not None:
         if phenotype_id != '':
-            filter_cond += " AND id=" + phenotype_id
+            filter_cond += " AND id='" + phenotype_id + "' "
 
     if owner is not None:
         if owner != '':
@@ -691,7 +689,7 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
             data_sources = list(DataSource.objects.filter(pk__in=ds_list).values('id', 'name', 'url', 'datasource_id'))  # , 'uid', 'description'
 
         ret = [
-            c['friendly_id'],
+            c['id'],
             c['history_id']
         ]
         if is_authenticated_user:
@@ -952,7 +950,7 @@ def getPhenotypeDetail(request,
     
 
     ret = [
-        phenotype['friendly_id'],
+        phenotype['id'],
         phenotype['history_id']
         ]
     if is_authenticated_user:
