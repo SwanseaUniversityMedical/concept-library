@@ -77,11 +77,6 @@ concept_order_queries = {
 }
 concept_order_default = list(concept_order_queries.values())[0]
 
-def get_order_from_parameter(parameter):
-    if parameter in concept_order_queries:
-        return concept_order_queries[parameter]
-    return concept_order_default
-
 #---------------------------------------
 
 #------------ pagination lims ----------
