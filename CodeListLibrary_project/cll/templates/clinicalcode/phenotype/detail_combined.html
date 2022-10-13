@@ -746,13 +746,13 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                             
                             <div class="col-sm-4">
                                 {% if phenotype.owner_access == 1 %}	
-                                    <span class="tag label label-danger"><span class="card-noweight">None</span></span>
+                                    <span class="card-noweight">None</span>
                                 {% elif phenotype.owner_access == 2 %}
-                                    <span class="tag label label-warning"><span class="card-noweight">View only</span></span>
+                                    <span class="card-noweight">View only</span>
                                 {% elif phenotype.owner_access == 3 %}
-                                    <span class="tag label label-success"><span class="card-noweight">View and edit</span></span>
+                                    <span class="card-noweight">View and edit</span>
                                 {% else %}
-                                    <span class="tag label label-success"><span class="card-noweight">Unknown</span></span>
+                                    <span class="card-noweight">Unknown</span>
                                 {% endif %}
                             </div>
                         </div>
@@ -769,13 +769,13 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                             <div class="col-sm-2">Group access</div>
                             <div class="col-sm-4">
                                 {% if phenotype.group_access == 1 %}	
-                                    <span class="tag label label-danger"><span class="card-noweight text-right">No Access</span></span>
+                                    <span class="card-noweight text-right">No Access</span>
                                 {% elif phenotype.group_access == 2 %}
-                                    <span class="tag label label-warning"><span class="card-noweight text-right">View only</span></span>
+                                    <span class="card-noweight text-right">View only</span>
                                 {% elif phenotype.group_access == 3 %}
-                                    <span class="tag label label-success"><span class="card-noweight text-right">View and edit</span></span>
+                                    <span class="card-noweight text-right">View and edit</span>
                                 {% else %}
-                                    <span class="tag label label-success"><span class="card-noweight text-right">Unknown</span></span>
+                                    <span class="card-noweight text-right">Unknown</span>
                                 {% endif %}
                             </div>
                         </div>
@@ -784,11 +784,11 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                             <div class="col-sm-2">All other users</div>
                             <div class="col-sm-10">
                                 {% if phenotype.world_access == 1 %}	
-                                    <span class="tag label label-danger">No access</span>
+                                    <span>No access</span>
                                 {% elif phenotype.world_access == 2 %}
-                                    <span class="tag label label-warning">View only</span>
+                                    <span>View only</span>
                                 {% elif phenotype.world_access == 3 %}
-                                    <span class="tag label label-success">View and edit</span>
+                                    <span>View and edit</span>
                                 {% else %}
                                     
                                 {% endif %}

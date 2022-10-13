@@ -659,13 +659,13 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 						
 						<div class="col-sm-4">
 								{% if concept.owner_access == 1 %}	
-										<span class="tag label label-danger"><span class="card-noweight">None</span></span>
+										<span class="card-noweight">None</span>
 								{% elif concept.owner_access == 2 %}
-										<span class="tag label label-warning"><span class="card-noweight">View only</span></span>
+										<span class="card-noweight">View only</span>
 								{% elif concept.owner_access == 3 %}
-										<span class="tag label label-success"><span class="card-noweight">View and edit</span></span>
+										<span class="card-noweight">View and edit</span>
 								{% else %}
-										<span class="tag label label-success"><span class="card-noweight">Unknown</span></span>
+										<span class="card-noweight">Unknown</span>
 								{% endif %}
 						</div>
 					</div>
@@ -682,13 +682,13 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 						<div class="col-sm-2">Group access</div>
 						<div class="col-sm-4">
 								{% if concept.group_access == 1 %}	
-										<span class="tag label label-danger"><span class="card-noweight text-right">No Access</span></span>
+										<span class="card-noweight text-right">No Access</span>
 								{% elif concept.group_access == 2 %}
-										<span class="tag label label-warning"><span class="card-noweight text-right">View only</span></span>
+										<span class="card-noweight text-right">View only</span>
 								{% elif concept.group_access == 3 %}
-										<span class="tag label label-success"><span class="card-noweight text-right">View and edit</span></span>
+										<span class="card-noweight text-right">View and edit</span>
 								{% else %}
-										<span class="tag label label-success"><span class="card-noweight text-right">Unknown</span></span>
+										<span class="card-noweight text-right">Unknown</span>
 								{% endif %}
 						</div>
 					</div>
@@ -697,11 +697,11 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 						<div class="col-sm-2">All other users</div>
 						<div class="col-sm-10">
 								{% if concept.world_access == 1 %}	
-										<span class="tag label label-danger">No access</span>
+										<span>No access</span>
 								{% elif concept.world_access == 2 %}
-										<span class="tag label label-warning">View only</span>
+										<span>View only</span>
 								{% elif concept.world_access == 3 %}
-										<span class="tag label label-success">View and edit</span>
+										<span>View and edit</span>
 								{% else %}
 										
 								{% endif %}
@@ -754,7 +754,7 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 							{% endif %}
 						</td>
 				  </tr>
-					<tr>
+				  <tr>
 							<td>R Package</td>
 							<td>
 								<code class="api-codeblock">
