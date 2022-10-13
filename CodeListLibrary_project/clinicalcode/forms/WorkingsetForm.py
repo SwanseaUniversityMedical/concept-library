@@ -93,8 +93,7 @@ class WorkingsetForm(forms.ModelForm):
         widget=forms.Textarea(attrs={
             'class': 'input-material col-sm-12 form-control',
             'rows': 5,'placeholder':" "
-        }),
-        max_length=3000)
+        }))
 
     publication = forms.CharField(
         label='Publication',

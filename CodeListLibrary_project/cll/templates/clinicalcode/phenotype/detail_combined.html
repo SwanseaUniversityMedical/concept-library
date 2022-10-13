@@ -235,7 +235,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                     <div class="col-sm-2">ID</div>
                     <div class="col-sm-10">
 					<span id="phenotype_id_div" phenotype_id="{{ phenotype.id }}">
-						{{ phenotype.friendly_id }}						
+						{{ phenotype.id }}						
 					</span>
                     </div>
                 </div>
@@ -309,10 +309,10 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
 	                <div class="row" style="margin-top: 10px;">
 	                    <div class="col-sm-2">Valid event data range</div>
 	                    <div class="col-sm-10">
-                            {% if phenotype.valid_event_data_range|safe != '' %}
+                            {% if phenotype.valid_event_data_range|length %}
 	                            {{ phenotype.valid_event_data_range }}
                             {% else %}
-                                <span class="card-no-data">No collections</span>
+                                <span class="card-no-data">No data available</span>
                             {% endif %}
 	                    </div>
 	                </div>
@@ -400,7 +400,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
             <div class="col-sm-12 shadow-frame">
                 <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
                         id="definition"></span><strong>Definition</strong></h3>
-                {% if phenotype.description_highlighted|safe != '' %}
+                {% if phenotype.description_highlighted|length %}
                 {{ phenotype.description_highlighted|markdownify }}
                 {% else %}
                 <span class="card-no-data">No data available</span>
@@ -860,7 +860,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                                 # Get details of phenotype
                             </p>
                             <p class="code-general-highlight">
-                                details = get_phenotype_detail_by_version(<span class="code-text-highlight">'PH{{ phenotype.id }}'</span>, 
+                                details = get_phenotype_detail_by_version(<span class="code-text-highlight">'{{ phenotype.id }}'</span>, 
                                     <span class="code-text-highlight">'{{ phenotype.history_id }}'</span>, 
                                     api_client=client)
                             </p>
@@ -931,7 +931,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                                 # Get codelists of phenotype
                             </p>
                             <p class="code-general-highlight">
-                                codelists = get_phenotype_code_list(<span class="code-text-highlight">'PH{{ phenotype.id }}'</span>, 
+                                codelists = get_phenotype_code_list(<span class="code-text-highlight">'{{ phenotype.id }}'</span>, 
                                 <span class="code-text-highlight">'{{ phenotype.history_id }}'</span>, 
                                 api_client=client)
                             </p>

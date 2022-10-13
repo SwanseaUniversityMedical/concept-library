@@ -14,9 +14,6 @@ from ..permissions import Permissions
 from .TimeStampedModel import TimeStampedModel
 
 
-
-
-
 class PhenotypeWorkingset(TimeStampedModel):
     id = models.CharField(primary_key=True, editable=False, max_length=50)
     name = models.CharField(max_length=250)

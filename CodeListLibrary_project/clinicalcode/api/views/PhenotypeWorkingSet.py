@@ -171,10 +171,10 @@ def api_phenotypeworkingset_update(request):
     is_valid = True
 
     phenotypeworkingset_id, pws_id = request.data.get('id'), -1
-    is_valid_id, err, ret_int_id = chk_valid_id(request, PhenotypeWorkingset, phenotypeworkingset_id, chk_permission=True)
+    is_valid_id, err, ret_id = chk_valid_id(request, PhenotypeWorkingset, phenotypeworkingset_id, chk_permission=True)
 
     if is_valid_id:
-        pws_id = ret_int_id
+        pws_id = ret_id
     else:
         errors_dict['id'] = err
         return Response(data=errors_dict,
@@ -334,10 +334,10 @@ def getPhenotypeWorkingSets(request, is_authenticated=False, pk=None):
     id_match = re.search(r"(?i)^PH\d+$", search)
     if id_match:
         if id_match.group() == id_match.string:
-            is_valid_id, err, ret_int_id = chk_valid_id(request, set_class=PhenotypeWorkingset, pk=search, chk_permission=False)
+            is_valid_id, err, ret_id = chk_valid_id(request, set_class=PhenotypeWorkingset, pk=search, chk_permission=False)
             if is_valid_id:
                 search_by_id = True
-                filter_cond += " AND (id =" + str(ret_int_id) + " ) "    
+                filter_cond += " AND (id ='" + str(ret_id) + "') "    
 
     collections, filter_cond = apply_filter_condition(query='collections', selected=collection_ids, conditions=filter_cond)
     tags, filter_cond = apply_filter_condition(query='tags', selected=tag_ids, conditions=filter_cond)

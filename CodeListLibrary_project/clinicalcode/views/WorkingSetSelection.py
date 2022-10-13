@@ -120,7 +120,7 @@ def selection_list(request):
             is_valid_id, err, ret_int_id = db_utils.chk_valid_id(request, set_class=Phenotype, pk=search, chk_permission=False)
             if is_valid_id:
                 search_by_id = True
-                filter_cond += " AND (id =" + str(ret_int_id) + " ) "
+                filter_cond += " AND (id ='" + str(ret_int_id) + "') "
     
     # Change to collections once model + data represents parameter
     collections, filter_cond = db_utils.apply_filter_condition(query='tags', selected=collection_ids, conditions=filter_cond)

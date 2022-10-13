@@ -280,7 +280,7 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 				<div class="col-sm-12 shadow-frame">
 					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px"><span id="description"></span><strong>Description</strong></h3>
 					<div class="markdown-holder">
-						{% if concept.publication_doi_highlighted|safe != '' %}
+						{% if concept.description_highlighted|length %}
 							{{ concept.description_highlighted|markdownify }}
 						{% else %}
 							<span class="card-no-data">No data available</span>
@@ -342,7 +342,7 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 					
 					<div class="row" style="margin-top: 10px;">
 						<div  class="col-sm-3">Source reference</div>
-						{% if concept.source_reference|safe != '' %}
+						{% if concept.source_reference|length %}
 						<div class="col-sm-9">{{ concept.source_reference|highlight:q }}</div>
 						{% else %}
 						<div class="col-sm-9 card-no-data">No data available</div>
@@ -351,7 +351,7 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 					
 					<div class="row" style="margin-top: 10px;">
 						<div  class="col-sm-3">Citation requirements</div>
-						{% if concept.citation_requirements|safe != '' %}
+						{% if concept.citation_requirements|length %}
 						<div class="col-sm-9">{{ concept.citation_requirements|highlight:q }}</div>
 						{% else %}
 						<div class="col-sm-9 card-no-data">No data available</div>
