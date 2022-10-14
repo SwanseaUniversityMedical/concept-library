@@ -386,20 +386,22 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         tag_ids = self.commaSeparate('tagids')
         collections = self.commaSeparate('collections')
         datasources = self.commaSeparate('datasources')
+        publications = self.request.POST.get('publication_data')
         context = self.get_context_data()
 
         if tag_ids:
             context['tags'] = Tag.objects.filter(pk__in=tag_ids)
-            print(context['tags'])
 
         if collections:
             queryset = Tag.objects.filter(tag_type=2)
             context['collections'] = queryset.filter(id__in=collections)
-            print(context['collections'])
 
         if datasources:
-            print(datasources)
             context['datasources'] = DataSource.objects.filter(datasource_id__in=datasources)
+
+        if publications:
+            context['publications'] = publications
+
 
 
         return self.render_to_response(context)
@@ -412,12 +414,11 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
             form.instance.tags = self.commaSeparate('tagids')
             form.instance.collections = self.commaSeparate('collections')
             form.instance.data_sources = self.commaSeparate('datasources')
-            form.instance.phenotypes_concepts_data = [{"phenotype_id": "PH3","phenotype_version_id": 6,"concept_id": "C717","concept_version_id":2573,"Attributes":[{"name": "Attributename","type":"int","value": 234}]}]
-
+            form.instance.phenotypes_concepts_data = json.loads(self.request.POST.get('workingset_data'))
+            form.instance.publications = self.request.POST.get('publication_data')
 
             self.object = form.save()
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset,self.object.pk,"Created")
-            print(self.object.pk)
             messages.success(self.request,"Workingset has been successfully created.")
 
         return HttpResponseRedirect(reverse('phenotypeworkingset_create'))
