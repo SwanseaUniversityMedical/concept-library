@@ -557,6 +557,11 @@
 
         });
 
+        /**
+         * Adding input to html
+         * @param value input value
+         * @param id of the HTML element
+         */
         const addInput = (value, id) => {
             var html = '';
             html += '<div class="form-group">';
@@ -573,8 +578,12 @@
             $('#' + id).append(html);
         }
 
+        /**
+         * Collection all input values from all publication inputs
+         * @returns {Array} data of all inputs t handle
+         */
         const wrapPubinputs = () => {
-            let input = document.querySelectorAll('*[id^="id_publication"]');
+            let input = document.querySelectorAll('*[id^="id_publication"]'); // Find inputs from appended html
             let data = []
             for (let i = 0; i < input.length; i++) {
                 if (input[i].value !== "") {
@@ -586,8 +595,11 @@
 
         }
 
-
-        var previoslySelected = []
+        /*************************************
+         *                                   *
+         *            Selection logic        *
+         *                                   *
+         *************************************/
         $('#add-data').createSelection({
             // Props
             clearSelectedOnClose: false,
@@ -603,58 +615,63 @@
                     }
                 })
 
-
+                // Check if table exist to update table or create table
                 if ($.fn.dataTable.isDataTable('#attributes-table')) {
                     let table = $('#attributes-table').DataTable();
                     table.rows().remove().draw()
-
-                    let dataPrevious = $('#phenotypes_concepts_json').val()
+                    let dataPrevious = $('#phenotypes_concepts_json').val() // restore old values
                     dataPrevious = JSON.parse(dataPrevious)
-                    let newObject = removalue(dataPrevious)
+                    let newObject = removalue(dataPrevious) // Use first row as example to take columns but delete value
                     let newData = []
                     for (let i = 0; i < dataset.length; i++) {
                         newData.push({
                             ...newObject,
-                            ["Data"]: dataset[i].Data
+                            ["Data"]: dataset[i].Data // Append new row
                         })
                     }
-                    dataPrevious = mergeArrays(dataPrevious, newData)
-                    if (dataPrevious.length > 0) {
-                        table.rows.add(dataPrevious).draw();
-                        $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
+                    dataPrevious = mergeArrays(dataPrevious, newData) // Merge old values and new value to avoid duplicates
+                    if (dataPrevious.length > 0) { // Check if user deletes data from pop-up or add
+                        table.rows.add(dataPrevious).draw(); // draw row/rows
+                        $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious)) // Saving as Json
                     } else {
                         $('#attributes-table').DataTable().destroy();
                         $('#attributes-table').empty();
-                        $('#phenotypes_concepts_json').val('')
-                         $('#add-data').html('Upload')
+                        $('#phenotypes_concepts_json').val('') // Clear table as user cleared the modal
+                        $('#add-data').html('Upload')
                     }
 
                 } else {
                     $('#attributes-table').show()
-                    let table = createTable(numbers, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}])
+                    let table = createTable(numbers, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}]) // Create table with initial data
                     table.buttons().container()
-                        .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
-                    $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
+                        .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) ')); // Append buttons to the table
+                    $('#phenotypes_concepts_json').val(JSON.stringify(dataset)) // save value temporarly
                     $('#add-data').html('Add concept/phenotype')
                 }
-
 
 
             },
             onClose: (service, selected) => {
                 console.log(selected)
             }
-        }, previoslySelected);
+        });
 
-        function mergeArrays(dataPrevious, newData) {
+
+        /**
+         * Merge two arrays of old Json with a new object
+         * @param dataPrevious
+         * @param newData
+         * @returns {*[]}
+         */
+        const mergeArrays = (dataPrevious, newData) => {
             let newArr = []
             for (let j = 0; j < newData.length; j++) {
                 for (let k = 0; k < dataPrevious.length; k++) {
                     if (newData[j].Data === dataPrevious[k].Data) {
-                        newData.slice(j, 1)
+                        newData.slice(j, 1) // remove data if new object has same data with previous one
                     }
                 }
-                newArr.push(newData[j])
+                newArr.push(newData[j]) // else append new data
             }
 
 
@@ -662,6 +679,7 @@
                 for (let i = 0; i < dataPrevious.length; i++) {
                     if (newArr[h].Data === dataPrevious[i].Data) {
                         newArr[h] = Object.assign({}, newArr[h], dataPrevious[i]);
+                        // After we add new data we can convert it to object to have same columns as previous
                     }
                 }
             }
@@ -670,8 +688,15 @@
             return newArr
         }
 
-
-        var createTable = (numbers, dataset, id, columns) => {
+        /**
+         * Create table with columns or without
+         * @param numbers - current column index
+         * @param dataset - current JSON dataset to pass
+         * @param id - HTML id element for table
+         * @param columns - array of named columns
+         * @returns {*|define.amd.jQuery}
+         */
+        const createTable = (numbers, dataset, id, columns) => {
             return $('#' + id).DataTable({
                     data: dataset,
                     columns: columns,
@@ -699,12 +724,12 @@
                     fixedColumns: {
                         left: 1
                     },
-                    scrollX: true,
-                    scrollY: '70vh',
-                    scrollCollapse: true,
-                    colReorder: true,
+                    scrollX: true, // allow to scroll horizontaly
+                    scrollY: '70vh', // allow scroll vericaly for specific size 
+                    scrollCollapse: true, // allow to table have overflow-x 
+                    colReorder: true, // order the collumns 
                     paging: false,
-                    columnDefs: [{
+                    columnDefs: [{ // define which columns exclude for ordering 
                         targets: [0],
                         orderable: true,
                     }, {
@@ -717,7 +742,11 @@
             );
         }
 
-
+        /**
+         * Remove value from the first row to pass new element input to the new object input
+         * @param dataPrevious
+         * @returns new input with empty value
+         */
         const removalue = (dataPrevious) => {
             let removeVal = Object.entries(dataPrevious[0])
             removeVal.forEach(element => {
@@ -734,6 +763,12 @@
             return newObject
         }
 
+        /**
+         * Return string type select value when wraping value or just input value when wrappinf
+         * @param type html element from the array
+         * @param id html id to find select value
+         * @returns  select string type from select or input value
+         */
         const returnValue = (type, id) => {
             let element = new DOMParser().parseFromString(type, "text/html")
             let select = element.querySelector(`*[id^="${id}"]`)
@@ -753,11 +788,15 @@
 
         }
 
+        /**
+         * Main functionality to add column dynamically
+         * @param numbers - current column index
+         */
         const addColumn = (numbers) => {
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
             for (let i = 0; i < dataPrevious.length; i++) {
-                dataPrevious[i] = {
+                dataPrevious[i] = { // for all row start initialize the object keys and values but taking into account old row
                     ...dataPrevious[i],
                     ["Attributes-row" + numbers]: `<input class="input-material" type="text"  style="width:100%" id="attribute-input-${numbers}"/>`,
                     ["Attributes-select" + numbers]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=selectHeader() id="column_type${numbers}">'
@@ -770,40 +809,35 @@
                 }
             }
             let dataset = dataPrevious
-            $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
-            let columns = [{data: "Data", title: "Data"}]
-            let headers = Object.entries(dataset[0])
-            for (let i = 0; i < headers.length - 1; i++) {
-                if (headers[i][0].startsWith('Attributes-row')) {
-                    columns.push({data: headers[i][0], title: headers[i + 1][1] + headers[i + 2][1]})
-                }
-            }
-            numbers++
-
-
-            if ($.fn.DataTable.isDataTable('#attributes-table')) {
-                $('#attributes-table').DataTable().destroy();
-                $('#attributes-table').empty();
-                var table = createTable(numbers, dataset, 'attributes-table', columns)
-                table.buttons().container()
-                    .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
-
-            }
+            $('#phenotypes_concepts_json').val(JSON.stringify(dataset)) //saving the rows
+            let table = reDrawtable('attributes-table', numbers, true, dataset)
+            table.buttons().container()
+                .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
 
 
         }
 
-        const reDrawtable = (id, numbers, dataset) => {
-            let columns = [{data: "Data", title: "Data"}]
+        /**
+         * Apply changes and redraw table
+         * @param id of the existing table
+         * @param numbers current column index
+         * @param needColumn update column index if added column
+         * @param dataset current dataset
+         * @returns new table
+         */
+        const reDrawtable = (id, numbers, needColumn, dataset) => {
+            let columns = [{data: "Data", title: "Data"}]// keep data column same
             let headers = Object.entries(dataset[0])
             for (let i = 0; i < headers.length - 1; i++) {
                 if (headers[i][0].startsWith('Attributes-row')) {
                     columns.push({data: headers[i][0], title: headers[i + 1][1] + headers[i + 2][1]})
                 }
             }
+            if (needColumn) {
+                numbers++// add number index as we added column
+            }
 
-
-            if ($.fn.DataTable.isDataTable('#attributes-table')) {
+            if ($.fn.DataTable.isDataTable('#attributes-table')) {// if table exist we need to update by destroying old table and generate new table
                 $('#' + id).DataTable().destroy();
                 $('#' + id).empty();
                 var table = createTable(numbers, dataset, 'attributes-table', columns)
@@ -814,6 +848,7 @@
             }
 
         }
+
 
         const inputheader = () => {
             var table = $('#attributes-table').DataTable()
@@ -896,16 +931,15 @@
             let updatedSelect = changeSelectValue(val, index)
             for (let i = 0; i < dataPrevious.length; i++) {
                 dataPrevious[i]['Attributes-select' + (index)] = `${updatedSelect}`
-                dataPrevious[i]['Attributes-row' + (index)] = `<input class="input-material" type="text" value="" style="width:100%" id="attribute-input-${index}"/>`
+                dataPrevious[i]['Attributes-row' + (index)] = `<input class="input-material" type="text" value="" oninput="validate(this)" style="width:100%" id="attribute-input-${index}"/>`
                 $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
             }
 
             let dataPrevious2 = $('#phenotypes_concepts_json').val()
             dataPrevious2 = JSON.parse(dataPrevious2)
-            table = reDrawtable('attributes-table', table.columns().header().length - 1, dataPrevious2)
+            table = reDrawtable('attributes-table', table.columns().header().length - 1, false, dataPrevious2)
             table.buttons().container()
                 .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
-
         }
 
 
@@ -926,6 +960,20 @@
         }
 
 
+        function validate(input) {
+            //logically decide and set custom validation message
+            if (input.value === "20" || input.value === "30") {
+                // set custom validation message
+                input.setCustomValidity('Your Age (' + input.value + ') is in a transition phase.');
+                input.reportValidity()
+            } else {
+                // reset the validation message - makes it valid for checkValidity function
+                input.setCustomValidity('');
+            }
+
+        }
+
+
         $('#attributes-table').on('input', 'td', function (e) {
             let table = $('#attributes-table').DataTable()
             let cell = table.cell(this).index()
@@ -936,12 +984,25 @@
             if (checkTypeinput(input, value, rowIdx, colindex)) {
                 let dataPrevious = $('#phenotypes_concepts_json').val()
                 dataPrevious = JSON.parse(dataPrevious)
-                dataPrevious[rowIdx]['Attributes-row' + (colindex - 1)] = `<input class="input-material" type="text" value="${value}" style="width:100%" id="attribute-input-${colindex - 1}"/>`
+                dataPrevious[rowIdx]['Attributes-row' + (colindex - 1)] = `<input class="input-material" type="text"  value="${value}" style="width:100%" id="attribute-input-${colindex - 1}"/>`
                 $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
             }
 
 
         });
+
+        const cjeckInput = () => {
+            let field = document.getElementById("fnumber");
+            let error = document.getElementById("cnumber");
+            if (!field.checkValidity()) {
+                let valid = false;
+                field.classList.add("err");
+                error.innerHTML = "Num must be between 1-12\r\n";
+            } else {
+                field.classList.remove("err");
+                error.innerHTML = "";
+            }
+        }
 
 
         const checkTypeinput = (input, val, rowIndex, columnIndex) => {
