@@ -4,16 +4,14 @@
     A working set is a list of columns from a number of Concepts and Phenotypes
 '''
 from django.contrib.auth.models import Group, User
-from django.contrib.postgres.fields import JSONField, ArrayField
+from django.contrib.postgres.fields import  ArrayField
+from django.db.models import JSONField
 from django.db import models
 from simple_history.models import HistoricalRecords
 from clinicalcode.constants import Type_status
 
 from ..permissions import Permissions
 from .TimeStampedModel import TimeStampedModel
-
-
-
 
 
 class PhenotypeWorkingset(TimeStampedModel):
@@ -34,7 +32,7 @@ class PhenotypeWorkingset(TimeStampedModel):
     # Permissions section for updating/creating phenotype_workingset
     created_by = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,related_name="phenotype_workingset_created")
     updated_by = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,related_name="phenotype_workingset_updated")
-    is_deleted = models.NullBooleanField(default=False)
+    is_deleted = models.BooleanField(default=False)
     deleted = models.DateTimeField(null=True, blank=True)
     deleted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,related_name="phenotype_workingset_deleted")
     owner = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,related_name="phenotype_workingset_owned")

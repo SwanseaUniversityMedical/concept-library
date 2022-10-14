@@ -30,11 +30,13 @@ var TAG_DECORATION       = {     // Det. decoration for 'Applied Filters' tag(s)
     tagColor: '#FCDDAF',
     prefix: 'Type:',
   },
+
   'selected_workingset_types': {
     textColor: '#333',
     tagColor: '#FCDDAF',
     prefix: 'Type:',
   },
+
   'codingids': {
     textColor: '#333',
     tagColor: '#B5EAD7',
@@ -64,6 +66,7 @@ var all_phenotypes = typeof all_phenotypes === 'undefined' ? [] : all_phenotypes
 var data_source_reference = typeof data_source_reference === 'undefined' ? [] : data_source_reference;
 var data_source_reference_ids = typeof data_source_reference_ids === 'undefined' ? [] : data_source_reference_ids;
 var source_names = typeof source_names === 'undefined' ? [] : source_names;
+
 var coding_names = typeof coding_names === 'undefined' ? [] : coding_names;
 var all_coding = typeof all_coding === 'undefined' ? [] : all_coding;
 
@@ -586,6 +589,7 @@ var initFilters = () => {
       // Set current input
       $("#basic-form input[name=" + key + "]").val(value);
     });
+
 
     if (library == PAGE.WORKINGSET) {
       if (params.searchParams.get('selected_workingset_types') == null) {

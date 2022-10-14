@@ -151,10 +151,10 @@ def phenotype_list(request):
     id_match = re.search(r"(?i)^PH\d+$", search)
     if id_match:
         if id_match.group() == id_match.string: # full match
-            is_valid_id, err, ret_int_id = db_utils.chk_valid_id(request, set_class=Phenotype, pk=search, chk_permission=False)
+            is_valid_id, err, ret_id = db_utils.chk_valid_id(request, set_class=Phenotype, pk=search, chk_permission=False)
             if is_valid_id:
                 search_by_id = True
-                filter_cond += " AND (id =" + str(ret_int_id) + " ) "
+                filter_cond += " AND (id ='" + str(ret_id) + "') "
     
     # Change to collections once model + data represents parameter
     collections, filter_cond = db_utils.apply_filter_condition(query='tags', selected=collection_ids, conditions=filter_cond)
@@ -163,7 +163,12 @@ def phenotype_list(request):
     coding, filter_cond = db_utils.apply_filter_condition(query='clinical_terminologies', selected=coding_ids, conditions=filter_cond)
     sources, filter_cond = db_utils.apply_filter_condition(query='data_sources', selected=data_sources, conditions=filter_cond)
     selected_phenotype_types_list, filter_cond = db_utils.apply_filter_condition(query='phenotype_type', selected=selected_phenotype_types, conditions=filter_cond, data=phenotype_types_list)
-    daterange, filter_cond = db_utils.apply_filter_condition(query='daterange', selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, conditions=filter_cond)
+    
+    is_authenticated_user = request.user.is_authenticated
+    daterange, date_range_cond = db_utils.apply_filter_condition(query='daterange', 
+                                                             selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, 
+                                                             conditions='',
+                                                             is_authenticated_user=is_authenticated_user)
     
     # check if it is the public site or not
     if request.user.is_authenticated:
@@ -225,7 +230,7 @@ def phenotype_list(request):
         group_list = list(current_brand.values_list('groups', flat=True))
         filter_cond += " AND group_id IN(" + ', '.join(map(str, group_list)) + ") "
 
-    order_param = db_utils.get_order_from_parameter(des_order)
+    order_param = db_utils.get_order_from_parameter(des_order).replace(" id,", " REPLACE(id, 'PH', '')::INTEGER,")
     phenotype_srch = db_utils.get_visible_live_or_published_phenotype_versions(request,
                                                                             get_live_and_or_published_ver=get_live_and_or_published_ver,
                                                                             search=[search, ''][search_by_id],
@@ -236,7 +241,8 @@ def phenotype_list(request):
                                                                             show_top_version_only=show_top_version_only,
                                                                             search_name_only = False,
                                                                             highlight_result = True,
-                                                                            order_by=order_param
+                                                                            order_by = order_param,
+                                                                            date_range_cond = date_range_cond
                                                                             )
     # create pagination
     paginator = Paginator(phenotype_srch,
@@ -392,13 +398,22 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
 
     tags = Tag.objects.filter(pk=-1)
     phenotype_tags = phenotype['tags']
+
+    has_tags = False
+    has_collections = False
     if phenotype_tags:
         tags = Tag.objects.filter(pk__in=phenotype_tags)
+
+        has_tags = tags.filter(tag_type=1).count() != 0
+        has_collections = tags.filter(tag_type=2).count() != 0
 
     data_sources = DataSource.objects.filter(pk=-1)
     phenotype_data_sources = phenotype['data_sources']  
     if phenotype_data_sources:
         data_sources = DataSource.objects.filter(pk__in=phenotype_data_sources)
+
+    # ------------------------- parse sex ----------------------------------
+    phenotype_gender = db_utils.try_parse_phenotype_gender(phenotype['sex'])
 
     # ----------------------------------------------------------------------
     concept_id_list = []
@@ -406,8 +421,8 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     concepts = Concept.history.filter(pk=-1).values('id', 'history_id', 'name', 'group')
 
     if phenotype['concept_informations']:
-        concept_id_list = [x['concept_id'] for x in json.loads(phenotype['concept_informations']) ]
-        concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(phenotype['concept_informations']) ]
+        concept_id_list = [x['concept_id'] for x in phenotype['concept_informations']]
+        concept_hisoryid_list = [x['concept_version_id'] for x in phenotype['concept_informations']]
         concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).values('id', 'history_id', 'name', 'group')
 
     concepts_id_name = json.dumps(list(concepts))
@@ -434,12 +449,11 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         can_edit = (not Phenotype.objects.get(pk=pk).is_deleted) and allowed_to_edit(request, Phenotype, pk)
 
         user_can_export = (allowed_to_view_children(request, Phenotype, pk, set_history_id=phenotype_history_id)
-                           and db_utils.chk_deleted_children(
-                                                               request,
-                                                               Phenotype,
-                                                               pk,
-                                                               returnErrors=False,
-                                                               set_history_id=phenotype_history_id)
+                           and db_utils.chk_deleted_children(request,
+                                                           Phenotype,
+                                                           pk,
+                                                           returnErrors=False,
+                                                           set_history_id=phenotype_history_id)
                            and not Phenotype.objects.get(pk=pk).is_deleted)
         user_allowed_to_create = allowed_to_create()
 
@@ -488,12 +502,12 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         phenotype['implementation'] = ''
     if phenotype['secondary_publication_links'] is None:
         phenotype['secondary_publication_links'] = ''
-
+            
     conceptBrands = db_utils.getConceptBrands(request, concept_id_list)
     concept_data = []
     if phenotype['concept_informations']:
-        for c in json.loads(phenotype['concept_informations']):
-            c['codingsystem'] = CodingSystem.objects.get(pk=Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).coding_system_id)
+        for c in phenotype['concept_informations']:
+            c['codingsystem'] = CodingSystem.objects.get(pk=Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).coding_system_id).name
             c['code_attribute_header'] = Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).code_attribute_header
 
             c['alerts'] = ''
@@ -529,6 +543,9 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         'phenotype': phenotype,
         'concept_informations': json.dumps(phenotype['concept_informations']),
         'tags': tags,
+        'gender': phenotype_gender,
+        'has_tags': has_tags,
+        'has_collections': has_collections,
         'data_sources': data_sources,
         'clinicalTerminologies': clinicalTerminologies,
         'user_can_edit': False,  # for now  #can_edit,
@@ -621,7 +638,7 @@ def checkConceptVersionIsTheLatest(phenotypeID):
     if not phenotype.concept_informations:
         return is_ok, version_alerts
 
-    concepts_id_versionID = json.loads(phenotype.concept_informations)
+    concepts_id_versionID = phenotype.concept_informations
 
     # loop for concept versions
     for c in concepts_id_versionID:
@@ -802,7 +819,7 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id=None):
         'creation_date': time.strftime("%Y%m%dT%H%M%S")
     }
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = ('attachment; filename="phenotype_PH%(phenotype_id)s_ver_%(phenotype_history_id)s_concepts_%(creation_date)s.csv"' % my_params)
+    response['Content-Disposition'] = ('attachment; filename="phenotype_%(phenotype_id)s_ver_%(phenotype_history_id)s_concepts_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
 
@@ -832,7 +849,7 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id=None):
                 'C' + str(concept_id), 
                 concept_version_id,
                 concept_name,
-                current_ph_version.friendly_id, 
+                current_ph_version.id, 
                 current_ph_version.history_id,
                 current_ph_version.name
             ])
@@ -845,7 +862,7 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id=None):
                 'C' + str(concept_id), 
                 concept_version_id,
                 concept_name,
-                current_ph_version.friendly_id, 
+                current_ph_version.id, 
                 current_ph_version.history_id,
                 current_ph_version.name
             ])
@@ -1270,7 +1287,7 @@ def checkAllChildConcepts4Publish_Historical(request, phenotype_id,
         has_child_concepts = False
         child_concepts_versions = ''
     else:
-        child_concepts_versions = [(x['concept_id'], x['concept_version_id']) for x in json.loads(phenotype['concept_informations']) ]
+        child_concepts_versions = [(x['concept_id'], x['concept_version_id']) for x in phenotype['concept_informations']]
 
     # Now check all the child concepts for deletion(from live version) and Publish(from historical version)
     # we check access(from live version) here.

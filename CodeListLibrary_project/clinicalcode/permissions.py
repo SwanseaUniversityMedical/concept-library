@@ -142,8 +142,8 @@ def allowed_to_view_children(request,
             errors[set_id] = 'Phenotype not permitted.'
             # Need to parse the concept_informations section of the database and use
             # the concepts here to form a list of concept_ref_ids.
-        if WS_concepts_json.strip() != "":
-            concepts = [(x['concept_id'], x['concept_version_id']) for x in json.loads(WS_concepts_json)]  # getConceptsFromJSON(concepts_json=WS_concepts_json)
+        if WS_concepts_json:
+            concepts = [(x['concept_id'], x['concept_version_id']) for x in WS_concepts_json]  
         else:
             concepts = getGroupOfConceptsByPhenotypeId_historical(set_id, set_history_id)
 
@@ -158,7 +158,7 @@ def allowed_to_view_children(request,
             # Need to parse the concept_informations section of the database and use
             # the concepts here to form a list of concept_ref_ids.
         if WS_concepts_json:
-            concepts = [(int(x['concept_id'].replace('C', '')), x['concept_version_id'], int(x['phenotype_id'].replace('PH', '')), x['phenotype_version_id']) for x in WS_concepts_json]  
+            concepts = [(int(x['concept_id'].replace('C', '')), x['concept_version_id'], x['phenotype_id'], x['phenotype_version_id']) for x in WS_concepts_json]  
         else:
             concepts = get_concept_data_of_historical_phenotypeWorkingset(set_id, set_history_id)
 
@@ -856,7 +856,6 @@ def get_visible_workingsets(user):
 
     return query
 
-
 def get_visible_phenotypes(user):
     # This does NOT excludes deleted ones
     from .models.Phenotype import Phenotype
@@ -930,8 +929,10 @@ def is_brand_accessible(request, set_class, set_id, set_history_id=None):
             set_collections = []
             if set_class in (Concept, Phenotype):
                 set_collections = set_class.history.get(id=set_id, history_id=history_id).tags
+
             elif set_class == PhenotypeWorkingset:
                 set_collections = set_class.history.get(id=set_id, history_id=history_id).collections
+                
             elif set_class == WorkingSet:
                 workingset_history_date = set_class.history.get(id=set_id, history_id=history_id).history_date
                 ws_tags = getHistoryTags_Workingset(set_id, workingset_history_date)
@@ -941,7 +942,8 @@ def is_brand_accessible(request, set_class, set_id, set_history_id=None):
             if not set_collections:
                 return False
             else:
-                # check if the set tags has any of the brand's collection tags
+                # check if the set collections has any of the brand's collection tags
                 return any(c in set_collections for c in brand_collection_ids)
+
             
             

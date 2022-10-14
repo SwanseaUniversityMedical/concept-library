@@ -8,7 +8,9 @@ from clinicalcode.views import View as cc_view
 #from . import views
 #from cll import settings
 from django.conf import settings
-from django.conf.urls import include, url
+#from django.conf.urls import include, url
+from django.urls import re_path as url
+from django.urls import include
 from rest_framework import routers
 
 from .views import Concept, DataSource, Phenotype, View, WorkingSet, PhenotypeWorkingSet
@@ -196,17 +198,17 @@ urlpatterns += [
     #----------------------------------------------------------
     # --- phenotypes   ----------------------------------------
     #----------------------------------------------------------
-    url(r'^phenotypes/PH(?P<pk>\d+)/export/codes/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/export/codes/$',
         Phenotype.export_phenotype_codes_byVersionID,
         name='api_export_phenotype_codes_latestVersion'),
-    url(r'^phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/export/codes/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/version/(?P<phenotype_history_id>\d+)/export/codes/$',
         Phenotype.export_phenotype_codes_byVersionID,
         name='api_export_phenotype_codes_byVersionID'),
         
-    url(r'^public/phenotypes/PH(?P<pk>\d+)/export/codes/$',
+    url(r'^public/phenotypes/(?P<pk>PH\d+)/export/codes/$',
         Phenotype.export_published_phenotype_codes,
         name='api_export_published_phenotype_codes_latestVersion'),
-    url(r'^public/phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/export/codes/$',
+    url(r'^public/phenotypes/(?P<pk>PH\d+)/version/(?P<phenotype_history_id>\d+)/export/codes/$',
         Phenotype.export_published_phenotype_codes,
         name='api_export_published_phenotype_codes'),
 
@@ -214,7 +216,7 @@ urlpatterns += [
     url(r'^phenotypes/$', 
         Phenotype.phenotypes,
         name='phenotypes'),
-    url(r'^phenotypes/PH(?P<pk>\d+)/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/$',
         Phenotype.phenotypes,
         name='phenotype_by_id'),
 
@@ -222,33 +224,33 @@ urlpatterns += [
     url(r'^public/phenotypes/$',
         Phenotype.published_phenotypes,
         name='api_published_phenotypes'),
-    url(r'^public/phenotypes/PH(?P<pk>\d+)/$',
+    url(r'^public/phenotypes/(?P<pk>PH\d+)/$',
         Phenotype.published_phenotypes,
         name='api_published_phenotype_by_id'),
     #===============================================
 
     # my phenotype detail
     # if only phenotype_id is provided, get the latest version
-    url(r'^phenotypes/PH(?P<pk>\d+)/detail/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/detail/$',
         Phenotype.phenotype_detail,
         name='api_phenotype_detail'),
-    url(r'^public/phenotypes/PH(?P<pk>\d+)/detail/$',
+    url(r'^public/phenotypes/(?P<pk>PH\d+)/detail/$',
         Phenotype.phenotype_detail_PUBLIC,
         name='api_phenotype_detail_public'),
 
     # get specific version
-    url(r'^phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/detail/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/version/(?P<phenotype_history_id>\d+)/detail/$',
         Phenotype.phenotype_detail,
         name='api_phenotype_detail_version'),
-    url(r'^public/phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/detail/$',
+    url(r'^public/phenotypes/(?P<pk>PH\d+)/version/(?P<phenotype_history_id>\d+)/detail/$',
         Phenotype.phenotype_detail_PUBLIC,
         name='api_phenotype_detail_version_public'),
 
     # show versions
-    url(r'^phenotypes/PH(?P<pk>\d+)/get-versions/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/get-versions/$',
         Phenotype.phenotype_detail, {'get_versions_only': '1'},
         name='get_phenotype_versions'),
-    url(r'^public/phenotypes/PH(?P<pk>\d+)/get-versions/$',
+    url(r'^public/phenotypes/(?P<pk>PH\d+)/get-versions/$',
         Phenotype.phenotype_detail_PUBLIC, {'get_versions_only': '1'},
         name='get_phenotype_versions_public'),
 
@@ -312,14 +314,50 @@ urlpatterns += [
         View.getTagsOrCollections, {'tag_type': 2},
         name='collections_list_by_id_public'),
     
-       
+]       
         
     #----------------------------------------------------------
     # --- phenotype-working set   -----------------------------
     #----------------------------------------------------------
+if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
+    urlpatterns += [
+    # search
+    url(r'^phenotypeworkingsets/$', PhenotypeWorkingSet.phenotypeworkingsets, name='phenotypeworkingsets'),
+    url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/$',
+        PhenotypeWorkingSet.phenotypeworkingsets,
+        name='api_phenotypeworkingset_by_id'),
+    
+    # public search
+    url(r'^public/phenotypeworkingsets/$',
+        PhenotypeWorkingSet.published_phenotypeworkingsets,
+        name='api_published_phenotypeworkingset'),
+    url(r'^public/phenotypeworkingsets/(?P<pk>WS\d+)/$',
+        PhenotypeWorkingSet.published_phenotypeworkingsets,
+        name='api_published_phenotypeworkingset_by_id'),
+    
+    # details
+    url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/detail/$',
+        PhenotypeWorkingSet.phenotypeworkingset_detail,
+        name='api_phenotypeworkingset_detail'),
+    url(r'^public/phenotypeworkingsets/(?P<pk>WS\d+)/detail/$',
+        PhenotypeWorkingSet.phenotypeworkingset_detail_PUBLIC,
+        name='api_phenotypeworkingset_detail_public'),
+
+    # get specific version
+    url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/detail/$',
+        PhenotypeWorkingSet.phenotypeworkingset_detail,
+        name='api_phenotypeworkingset_detail_version'),
+
+    # show versions
+    url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/get-versions/$',
+        PhenotypeWorkingSet.phenotypeworkingset_detail, {'get_versions_only': '1'},
+        name='get_phenotypeworkingset_versions'),
+
+    # coding
     url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/export/codes/$',
         PhenotypeWorkingSet.export_phenotypeworkingset_codes_byVersionID,
         name='api_export_phenotypeworkingset_codes_latestVersion'),
+
     url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/export/codes/$',
         PhenotypeWorkingSet.export_phenotypeworkingset_codes_byVersionID,
         name='api_export_phenotypeworkingset_codes_byVersionID'),
@@ -327,12 +365,10 @@ urlpatterns += [
     url(r'^public/phenotypeworkingsets/(?P<pk>WS\d+)/export/codes/$',
         PhenotypeWorkingSet.export_published_phenotypeworkingset_codes,
         name='api_export_published_phenotypeworkingset_codes_latestVersion'),
+
     url(r'^public/phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/export/codes/$',
         PhenotypeWorkingSet.export_published_phenotypeworkingset_codes,
         name='api_export_published_phenotypeworkingset_codes'),
-    
-    
-    
 ]
 
 #======== Concept/Working set/Phenotye create/update ===================
@@ -358,5 +394,15 @@ if not settings.CLL_READ_ONLY:
             name='api_phenotype_update'),
         url(r'^api_datasource_create/$',
             DataSource.api_datasource_create,
-            name='api_datasource_create')
-    ]
+            name='api_datasource_create'),
+        ]
+    
+    if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
+        urlpatterns += [
+            url(r'^api_phenotypeworkingset_create/$',
+                PhenotypeWorkingSet.api_phenotypeworkingset_create,
+                name='api_phenotypeworkingset_create'),
+            url(r'^api_phenotypeworkingset_update/$',
+                PhenotypeWorkingSet.api_phenotypeworkingset_update,
+                name='api_phenotypeworkingset_update'),
+        ]

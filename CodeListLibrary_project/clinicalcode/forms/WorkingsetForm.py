@@ -89,9 +89,8 @@ class WorkingsetForm(forms.ModelForm):
         error_messages={'required': 'Please enter a description'},
         widget=forms.Textarea(attrs={
             'class': 'input-material col-sm-12 form-control',
-            'rows': 5, 'placeholder': " "
-        }),
-        max_length=3000)
+            'rows': 5,'placeholder':" "
+        }))
 
     publication = forms.CharField(
         label='Publication',

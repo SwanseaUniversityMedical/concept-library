@@ -1312,3 +1312,87 @@ code.api-codeblock .code-text-highlight, .code-comment-highlight {
 .ws-trash {
   margin-right: 10px;
 }
+
+
+/* Modifiers */
+.card-coding-block {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  background-color: #CCDAE1;
+  padding: 2px;
+  border-radius: 0.25rem;
+}
+
+.card-coding-item {
+  margin: 0 0.5rem 0 0;
+}
+
+.phenotype-type-badge {
+  background-color: #f9f2f4;
+  border-radius: 0.25rem;
+}
+
+.card-date-badge {
+  background-color: #BED8D4;
+  border-radius: 0.25rem;
+}
+
+.card-date-block {
+  display: inline-flex;
+  margin: 0 5px 0 0;
+}
+
+.card-noweight {
+  font-weight: normal;
+}
+
+.card-tag-sizing {
+  padding: 5px;
+  line-height: 1;
+  display: inline-block;
+  margin: 0;
+}
+
+.card-edit-sizing {
+  padding: 5px 10px 5px 10px ;
+  line-height: 1;
+  display: inline-block;
+  margin: 0;
+}
+
+.card-no-data {
+  color:rgba(109, 109, 109, 0.5);
+}
+
+.justified-label {
+  display: inline-flex;
+  min-width: 18rem;
+  justify-content: space-between;
+}
+
+.small-divider {
+  margin: 5px 0 5px 0;
+}
+
+.top-heavy-divider {
+  margin: 10px 0 10px 0;
+}
+
+.gender-badge-Male {
+  background-color:#E2F0CB
+}
+
+.gender-badge-Female {
+  background-color: #FFB7B2
+}
+
+.cl-card-with-buttons {
+  padding: 20px 20px 5px 20px;
+}
+
+/* Workingset datable modifiers */
+.foldout-data-table {
+  padding-left: 5px;
+}
+

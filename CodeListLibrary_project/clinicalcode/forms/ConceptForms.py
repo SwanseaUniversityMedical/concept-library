@@ -111,8 +111,7 @@ class ConceptForm(forms.ModelForm):
         widget=forms.Textarea(attrs={
             'class': 'form-control',
             'rows': 5
-        }),
-        max_length=3000)
+        }))
     coding_system = forms.ModelChoiceField(
         label='Coding system:',
         required=True,
@@ -127,7 +126,6 @@ class ConceptForm(forms.ModelForm):
             'class': 'form-control',
             'rows': 5
         }),
-        max_length=3000,
         required=False)
     publication_doi = forms.CharField(
         label='Primary publication DOI:',
@@ -149,8 +147,7 @@ class ConceptForm(forms.ModelForm):
         widget=forms.Textarea(attrs={
             'class': 'form-control',
             'rows': 5
-        }),
-        max_length=3000)
+        }))
     paper_published = forms.BooleanField(label='Paper published:',
                                          required=False)
     source_reference = forms.CharField(

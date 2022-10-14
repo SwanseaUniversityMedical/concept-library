@@ -14,6 +14,7 @@ class PublishedWorkingset(models.Model):
     modified_by = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,related_name="workingset_modified")  # user of the person who modified this row.
     approval_status = models.IntegerField(default=0)
     moderator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    
     history = HistoricalRecords()
 
     class Meta:

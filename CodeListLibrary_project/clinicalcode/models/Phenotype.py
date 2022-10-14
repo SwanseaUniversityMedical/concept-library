@@ -1,5 +1,6 @@
 from django.contrib.auth.models import Group, User
-from django.contrib.postgres.fields import ArrayField, JSONField
+from django.contrib.postgres.fields import ArrayField
+from django.db.models import JSONField
 from django.db import models
 from simple_history.models import HistoricalRecords
 
@@ -13,14 +14,14 @@ class Phenotype(TimeStampedModel):
         Phenotype Model
         Representation of a Phenotype imported from the HDR UK Gateway.
     """
-
+    
+    id = models.CharField(primary_key=True, editable=False, max_length=50)
     # Metadata (imported from HDR UK):
-    title = models.CharField(max_length=250)
     name = models.CharField(max_length=250)
     layout = models.CharField(max_length=250)
-    phenotype_uuid = models.CharField(max_length=250)  # Unique ID for the phenotype on HDR UK platform
+    phenotype_uuid = models.CharField(max_length=250, null=True, blank=True)  # Unique ID for the phenotype on HDR UK platform
     type = models.CharField(max_length=250)
-    validation_performed = models.NullBooleanField()  # Was there any clinical validation of this phenotype?  1=yes 0=no
+    validation_performed = models.BooleanField(null=True, default=False)  # Was there any clinical validation of this phenotype?  1=yes 0=no
     validation = models.TextField(null=True, blank=True)
     valid_event_data_range = models.CharField(max_length=250, null=True, blank=True)
     #     valid_event_data_range_start = models.DateField()
@@ -43,7 +44,7 @@ class Phenotype(TimeStampedModel):
 
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="phenotype_created")
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="phenotype_updated")
-    is_deleted = models.NullBooleanField()
+    is_deleted = models.BooleanField(null=True, default=False)
 
     deleted = models.DateTimeField(null=True, blank=True)
     deleted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="phenotype_deleted")
@@ -58,14 +59,21 @@ class Phenotype(TimeStampedModel):
     clinical_terminologies = ArrayField(models.IntegerField(), blank=True, null=True)  # coding systems
     publications = ArrayField(models.CharField(max_length=500), blank=True, null=True)
 
-    friendly_id = models.CharField(max_length=50, default='', editable=False)
     data_sources = ArrayField(models.IntegerField(), blank=True, null=True)  #default=list
 
     history = HistoricalRecords()
 
+
     def save(self, *args, **kwargs):
-        self.friendly_id = 'PH' + str(self.id)
-        super(Phenotype, self).save(*args, **kwargs)
+        count = Phenotype.objects.count()
+        if count:
+            count += 35   # we needed offset here because count != last int id
+        else:
+            count = 1
+        if not self.id:
+            self.id = "PH" + str(count)
+
+        super(Phenotype, self).save(*args, **kwargs)            
 
     def save_without_historical_record(self, *args, **kwargs):
         self.skip_history_when_saving = True

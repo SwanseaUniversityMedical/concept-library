@@ -4,7 +4,8 @@
     A working set is a list of columns from a number of Concepts.
 '''
 from django.contrib.auth.models import Group, User
-from django.contrib.postgres.fields import JSONField
+#from django.contrib.postgres.fields import JSONField
+from django.db.models import JSONField
 from django.db import models
 from simple_history.models import HistoricalRecords
 
@@ -24,11 +25,8 @@ class WorkingSet(TimeStampedModel):
     secondary_publication_links = models.CharField(max_length=3000,
                                                    null=True,
                                                    blank=True)
-    source_reference = models.CharField(
-        max_length=250
-    )  # Was this code list from another source?  Reference here.
-    citation_requirements = models.CharField(
-        max_length=250)  # Any request for citation requirements to be honoured
+    source_reference = models.CharField(max_length=250)  # Was this code list from another source?  Reference here.
+    citation_requirements = models.CharField(max_length=250)  # Any request for citation requirements to be honoured
 
     created_by = models.ForeignKey(User,
                                    on_delete=models.SET_NULL,
@@ -38,7 +36,7 @@ class WorkingSet(TimeStampedModel):
                                    on_delete=models.SET_NULL,
                                    null=True,
                                    related_name="working_set_updated")
-    is_deleted = models.NullBooleanField()
+    is_deleted = models.BooleanField(null=True, default=False)
     deleted = models.DateTimeField(null=True, blank=True)
     deleted_by = models.ForeignKey(User,
                                    on_delete=models.SET_NULL,
