@@ -387,6 +387,7 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         collections = self.commaSeparate('collections')
         datasources = self.commaSeparate('datasources')
         publications = self.request.POST.get('publication_data')
+        table_elements_data = self.request.POST.get('phenotypes_concepts_json')
         context = self.get_context_data()
 
         if tag_ids:
@@ -401,6 +402,13 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
 
         if publications:
             context['publications'] = publications
+
+        if table_elements_data:
+            context['table_elements'] = table_elements_data
+
+
+
+
 
 
 

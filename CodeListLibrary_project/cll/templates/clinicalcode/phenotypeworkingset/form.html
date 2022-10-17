@@ -539,11 +539,23 @@
                         }
                     }
                 } else {
-                    $('#id_publication').val(returnPub[0])
-
+                    $('#id_publication').val(returnPub[0]);
                 }
 
             {% endif %}
+
+            {% if table_elements %}
+                let dataset = {{table_elements|safe}}
+                    $('#attributes-table').show()
+                let table = createTable(0, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}])
+                let next_column_index = ((Object.keys(dataset[0]).length - 1) / 3)
+                table = reDrawtable('attributes-table', next_column_index, false, dataset)
+                table.buttons().container()
+                    .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+                $('#phenotypes_concepts_json').val(JSON.stringify(dataset)) // save value temporarly
+
+            {% endif %}
+
 
         });
 
@@ -554,8 +566,8 @@
         $(document).on('click', '#removeRow', function () {
             $(this).closest('.form-group').remove();
 
-
         });
+
 
         /**
          * Adding input to html
@@ -608,7 +620,6 @@
             // Methods
             onImport: (service, selected) => {
                 // Clicked the 'Import Concepts' button, and imported 'selected'
-                var numbers = 0
                 var dataset = selected.map(element => {
                     return {
                         "Data": element.phenotype.id + '/' + element.phenotype.version + '-' + element.concept.id + '/' + element.concept.version + '-' + element.concept.name
@@ -641,8 +652,10 @@
                     }
 
                 } else {
+                    console.log('lph')
+
                     $('#attributes-table').show()
-                    let table = createTable(numbers, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}]) // Create table with initial data
+                    let table = createTable(0, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}]) // Create table with initial data
                     table.buttons().container()
                         .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) ')); // Append buttons to the table
                     $('#phenotypes_concepts_json').val(JSON.stringify(dataset)) // save value temporarly
@@ -652,7 +665,7 @@
 
             },
             onClose: (service, selected) => {
-                console.log(selected)
+
             }
         });
 
@@ -793,6 +806,7 @@
          * @param numbers - current column index
          */
         const addColumn = (numbers) => {
+            console.log(numbers)
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
             for (let i = 0; i < dataPrevious.length; i++) {
@@ -980,7 +994,6 @@
             let cell = table.cell(this).index()
             let input = $(table.cell(this).node()).find('input')
             let value = input.val()
-            wrapData()
             let rowIdx = cell.row
             let colindex = cell.column
             if (checkTypeinput(input, value, rowIdx, colindex)) {
