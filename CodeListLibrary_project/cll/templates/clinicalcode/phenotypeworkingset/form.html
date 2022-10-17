@@ -547,6 +547,7 @@
             {% if table_elements %}
                 let dataset = {{table_elements|safe}}
                     $('#attributes-table').show()
+                $('#add-data').hide()
                 let table = createTable(0, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}])
                 let next_column_index = ((Object.keys(dataset[0]).length - 1) / 3)
                 table = reDrawtable('attributes-table', next_column_index, false, dataset)
