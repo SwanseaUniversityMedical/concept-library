@@ -648,18 +648,16 @@
                         $('#attributes-table').DataTable().destroy();
                         $('#attributes-table').empty();
                         $('#phenotypes_concepts_json').val('') // Clear table as user cleared the modal
-                        $('#add-data').html('Upload')
+                        $('#add-data').show()
                     }
 
                 } else {
-                    console.log('lph')
-
                     $('#attributes-table').show()
                     let table = createTable(0, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}]) // Create table with initial data
                     table.buttons().container()
                         .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) ')); // Append buttons to the table
                     $('#phenotypes_concepts_json').val(JSON.stringify(dataset)) // save value temporarly
-                    $('#add-data').html('Add concept/phenotype')
+                    $('#add-data').hide()
                 }
 
 
@@ -731,6 +729,17 @@
                             attr: {
                                 id: 'delete-button'
                             }
+                        },
+                        {
+                            text: "Add concept",
+                            className: "table-button",
+                            action: function (e, dt, node, config) {
+
+                                $('#add-data').trigger('click')
+                            },
+                            attr: {
+                                id: 'add-concept'
+                            }
                         }
                     ],
 
@@ -740,7 +749,7 @@
                     scrollX: true, // allow to scroll horizontaly
                     scrollY: '70vh', // allow scroll vericaly for specific size 
                     scrollCollapse: true, // allow to table have overflow-x 
-                    colReorder: true, // order the collumns 
+                    colReorder: true, // order the collumns
                     paging: false,
                     columnDefs: [{ // define which columns exclude for ordering 
                         targets: [0],
