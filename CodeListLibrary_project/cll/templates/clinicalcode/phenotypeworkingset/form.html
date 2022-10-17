@@ -774,7 +774,7 @@
             let select = element.querySelector(`*[id^="${id}"]`)
             if (id.startsWith("column_type")) {
                 let val = $("#" + `${select.id}`).val()
-                switch (val) {
+                switch (parseInt(val)) {
                     case 1:
                         return 'INT'
                     case 2:
@@ -878,6 +878,7 @@
                     for (let j = 0; j < (entry.length - 1) / 3; j++) {
 
                         let type = dataPrevious[i]['Attributes-select' + j]
+
                         let attribute_name = dataPrevious[i]['Attributes-header' + j]
                         let attribute_value = dataPrevious[i]['Attributes-row' + j]
                         mainData['Attributes'].push({
@@ -979,6 +980,7 @@
             let cell = table.cell(this).index()
             let input = $(table.cell(this).node()).find('input')
             let value = input.val()
+            wrapData()
             let rowIdx = cell.row
             let colindex = cell.column
             if (checkTypeinput(input, value, rowIdx, colindex)) {
