@@ -561,6 +561,7 @@
         });
 
         $("#addRow").click(function () {
+                wrapData()
                 addInput('', 'newRow');
             }
         );
@@ -913,10 +914,11 @@
 
                     }
                     arrayOfData.push(mainData)
+                } else {
+                    arrayOfData.push(mainData)
                 }
-                arrayOfData.push(mainData)
-
             }
+
 
             $('#workingset_data').val(JSON.stringify(arrayOfData))
 
