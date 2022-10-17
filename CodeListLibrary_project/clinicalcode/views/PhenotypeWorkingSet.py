@@ -422,7 +422,7 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
             form.instance.tags = self.commaSeparate('tagids')
             form.instance.collections = self.commaSeparate('collections')
             form.instance.data_sources = self.commaSeparate('datasources')
-            form.instance.phenotypes_concepts_data = json.loads(self.request.POST.get('workingset_data'))
+            form.instance.phenotypes_concepts_data = json.loads(self.request.POST.get('workingset_data') or '[]')
             form.instance.publications = self.request.POST.get('publication_data')
 
             self.object = form.save()
