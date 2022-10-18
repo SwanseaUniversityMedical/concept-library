@@ -674,7 +674,7 @@
 
 
             }
-        },previous_selection);
+        }, previous_selection);
 
 
         /**
@@ -730,13 +730,6 @@
                             },
                             attr: {
                                 id: 'column-add'
-                            }
-                        },
-                        {
-                            text: "Delete row",
-                            className: "table-button",
-                            attr: {
-                                id: 'delete-button'
                             }
                         },
                         {
@@ -961,9 +954,10 @@
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
             let updatedSelect = changeSelectValue(val, index)
+
             for (let i = 0; i < dataPrevious.length; i++) {
                 dataPrevious[i]['Attributes-select' + (index)] = `${updatedSelect}`
-                dataPrevious[i]['Attributes-row' + (index)]
+                dataPrevious[i]['Attributes-row' + (index)] = highlightinput(dataPrevious[i]['Attributes-row' + (index)], updatedSelect)
                 $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
             }
 
@@ -992,16 +986,32 @@
         }
 
 
-        function validateInputAfterSelect(input) {
-            //logically decide and set custom validation message
-            if (input.value === undefined) {
-                // set custom validation message
-                input.setCustomValidity('Your Age (' + input.value + ') is in a transition phase.');
-                input.reportValidity()
-            } else {
-                // reset the validation message - makes it valid for checkValidity function
-                input.setCustomValidity('');
+        function highlightinput(input, select) {
+            input = new DOMParser().parseFromString(input, "text/html")
+            select = new DOMParser().parseFromString(select, "text/html")
+            input = input.querySelector('*[id^="attribute-input"]')
+            select = select.querySelector('*[id^="column_type"]')
+
+            if (input !== null ) {
+                if (input.value !== '') {
+                    input.classList.add('bg-danger')
+                    let custom = '<div>'
+                    custom += input.outerHTML
+                    if ( select.value === "0"){
+                         custom += `<span class='text-danger'>Choose type attribute</span>`
+                    }else{
+                         custom += `<span class='text-danger'>Type changed to ${select.options[select.value].text}</span>`
+                    }
+
+                    custom += '</div>'
+
+                    return custom
+                }else {
+                    return input.outerHTML
+                }
+
             }
+
 
         }
 
@@ -1010,7 +1020,8 @@
             let table = $('#attributes-table').DataTable()
             let cell = table.cell(this).index()
             let input = $(table.cell(this).node()).find('input')
-
+            input.removeClass('bg-danger')
+            $(table.cell(this).node()).find('span').remove()
             let value = input.val()
             let rowIdx = cell.row
             let colindex = cell.column
@@ -1051,7 +1062,7 @@
                 case 0:
                     input.addClass('bg-danger')
                     input.val($.trim(input.val()).slice(0, -1));
-                    input[0].setCustomValidity("Choose type input")
+                    input[0].setCustomValidity("Choose type attribute")
                     input[0].reportValidity()
                     return false
 
