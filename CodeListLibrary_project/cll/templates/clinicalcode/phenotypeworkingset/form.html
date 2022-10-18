@@ -530,7 +530,7 @@
             {% endfor %}
 
             {% if publications %}
-                let returnPub = JSON.parse('{{publications}}'.replace(/(&quot\;)/g, "\"").replace(/{(.*)}/, '[$1]'))
+                let returnPub = JSON.parse('{{publications|safe}}')
                 if (returnPub.length > 1) {
                     for (let j = 0; j < returnPub.length; j++) {
                         if (j === 0) {
@@ -672,6 +672,7 @@
             },
             onClose: (service, selected) => {
 
+
             }
         },previous_selection);
 
@@ -803,7 +804,7 @@
             let element = new DOMParser().parseFromString(type, "text/html")
             let select = element.querySelector(`*[id^="${id}"]`)
             if (id.startsWith("column_type")) {
-                let val = $("#" + `${select.id}`).val()
+                let val = select.value
                 switch (parseInt(val)) {
                     case 1:
                         return 'INT'
@@ -907,9 +908,7 @@
                 if (entry.length > 1) {
                     mainData['Attributes'] = []
                     for (let j = 0; j < (entry.length - 1) / 3; j++) {
-
                         let type = dataPrevious[i]['Attributes-select' + j]
-
                         let attribute_name = dataPrevious[i]['Attributes-header' + j]
                         let attribute_value = dataPrevious[i]['Attributes-row' + j]
                         mainData['Attributes'].push({
@@ -931,7 +930,7 @@
 
         }
 
-        $('#save-changes').on('click', function () {
+        $('#save-changes').on('click', function (e) {
             wrapData()
         })
 
@@ -964,7 +963,7 @@
             let updatedSelect = changeSelectValue(val, index)
             for (let i = 0; i < dataPrevious.length; i++) {
                 dataPrevious[i]['Attributes-select' + (index)] = `${updatedSelect}`
-                dataPrevious[i]['Attributes-row' + (index)] = `<input class="input-material" type="text" value="" oninput="validate(this)" style="width:100%" id="attribute-input-${index}"/>`
+                dataPrevious[i]['Attributes-row' + (index)]
                 $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
             }
 
@@ -993,9 +992,9 @@
         }
 
 
-        function validate(input) {
+        function validateInputAfterSelect(input) {
             //logically decide and set custom validation message
-            if (input.value === "20" || input.value === "30") {
+            if (input.value === undefined) {
                 // set custom validation message
                 input.setCustomValidity('Your Age (' + input.value + ') is in a transition phase.');
                 input.reportValidity()
@@ -1011,6 +1010,7 @@
             let table = $('#attributes-table').DataTable()
             let cell = table.cell(this).index()
             let input = $(table.cell(this).node()).find('input')
+
             let value = input.val()
             let rowIdx = cell.row
             let colindex = cell.column
@@ -1044,12 +1044,15 @@
             let type = dataPrevious[rowIndex]['Attributes-select' + (columnIndex - 1)]
             let element = new DOMParser().parseFromString(type, "text/html")
             let select = element.querySelector('*[id^="column_type"]')
-            let select_val = $("#" + `${select.id}`).val()
+            let select_val = select.value
 
 
             switch (parseInt(select_val)) {
                 case 0:
-                    alert('Choose type')
+                    input.addClass('bg-danger')
+                    input.val($.trim(input.val()).slice(0, -1));
+                    input[0].setCustomValidity("Choose type input")
+                    input[0].reportValidity()
                     return false
 
                 case 1:
@@ -1061,13 +1064,6 @@
                     }
                 case 2:
                     if (/^([-])([0-9]{1,})?(\.)?([0-9]{1,})?$|^([0-9]{1,})?(\.)?([0-9]{1,})?$/.test(val)) {
-                        return true
-                    } else {
-                        input.val($.trim(input.val()).slice(0, -1));
-                        return false
-                    }
-                case 3:
-                    if (/^([^0-9]*)$/.test(val)) {
                         return true
                     } else {
                         input.val($.trim(input.val()).slice(0, -1));
