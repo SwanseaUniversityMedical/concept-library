@@ -388,7 +388,9 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         datasources = self.commaSeparate('datasources')
         publications = self.request.POST.get('publication_data')
         table_elements_data = self.request.POST.get('phenotypes_concepts_json')
+        previous_selection = self.request.POST.get('previous_selection')
         context = self.get_context_data()
+
 
         if tag_ids:
             context['tags'] = Tag.objects.filter(pk__in=tag_ids)
@@ -405,6 +407,11 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
 
         if table_elements_data:
             context['table_elements'] = table_elements_data
+
+        if previous_selection:
+            context['previous_selection'] = previous_selection
+
+        print(context)
 
 
 

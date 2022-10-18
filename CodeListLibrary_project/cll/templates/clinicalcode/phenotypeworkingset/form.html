@@ -426,6 +426,7 @@
                     <input type="hidden" id="phenotypes_concepts_json" name="phenotypes_concepts_json">
                     <input type="hidden" id="workingset_data" name="workingset_data">
                     <input type="hidden" id="publication_data" name="publication_data">
+                    <input type="hidden" id="previous_selection" name="previous_selection">
 
 
 
@@ -614,6 +615,11 @@
          *            Selection logic        *
          *                                   *
          *************************************/
+        var previous_selection = [];
+        {% if previous_selection %}
+            previous_selection = JSON.parse('{{ previous_selection |safe}}')
+
+        {% endif %}
         $('#add-data').createSelection({
             // Props
             clearSelectedOnClose: false,
@@ -667,7 +673,7 @@
             onClose: (service, selected) => {
 
             }
-        });
+        },previous_selection);
 
 
         /**
@@ -817,7 +823,6 @@
          * @param numbers - current column index
          */
         const addColumn = (numbers) => {
-            console.log(numbers)
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
             for (let i = 0; i < dataPrevious.length; i++) {
@@ -892,6 +897,7 @@
 
         const wrapData = () => {
             $('#publication_data').val(JSON.stringify(wrapPubinputs()).replace(/\[/g, '{').replace(/]/g, '}'))
+            $('#previous_selection').val(JSON.stringify($('#add-data').data('SelectionService').selected))
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
             let arrayOfData = []
