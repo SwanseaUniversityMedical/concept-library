@@ -576,6 +576,7 @@
          * @param id of the HTML element
          */
         const addInput = (value, id) => {
+            wrapData()
             var html = '';
             html += '<div class="form-group">';
             html += '<div class="col-sm-12">';
@@ -806,7 +807,7 @@
                         return 'STRING'
                 }
             } else {
-                return $("#" + `${select.id}`).val()
+                return select.value
             }
 
         }
@@ -876,7 +877,7 @@
 
         const inputheader = () => {
             var table = $('#attributes-table').DataTable()
-
+            wrapData()
 
             let val = event.target.value
             let index = event.target.id.match(/\d+/)[0]
