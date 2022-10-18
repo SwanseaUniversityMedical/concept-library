@@ -14,9 +14,9 @@ class Phenotype(TimeStampedModel):
         Phenotype Model
         Representation of a Phenotype imported from the HDR UK Gateway.
     """
-
+    
+    id = models.CharField(primary_key=True, editable=False, max_length=50)
     # Metadata (imported from HDR UK):
-    title = models.CharField(max_length=250)
     name = models.CharField(max_length=250)
     layout = models.CharField(max_length=250)
     phenotype_uuid = models.CharField(max_length=250, null=True, blank=True)  # Unique ID for the phenotype on HDR UK platform
@@ -59,14 +59,21 @@ class Phenotype(TimeStampedModel):
     clinical_terminologies = ArrayField(models.IntegerField(), blank=True, null=True)  # coding systems
     publications = ArrayField(models.CharField(max_length=500), blank=True, null=True)
 
-    friendly_id = models.CharField(max_length=50, default='', editable=False)
     data_sources = ArrayField(models.IntegerField(), blank=True, null=True)  #default=list
 
     history = HistoricalRecords()
 
+
     def save(self, *args, **kwargs):
-        self.friendly_id = 'PH' + str(self.id)
-        super(Phenotype, self).save(*args, **kwargs)
+        count = Phenotype.objects.count()
+        if count:
+            count += 35   # we needed offset here because count != last int id
+        else:
+            count = 1
+        if not self.id:
+            self.id = "PH" + str(count)
+
+        super(Phenotype, self).save(*args, **kwargs)            
 
     def save_without_historical_record(self, *args, **kwargs):
         self.skip_history_when_saving = True

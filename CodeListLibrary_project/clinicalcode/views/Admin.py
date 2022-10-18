@@ -441,7 +441,7 @@ def get_caliberresearch_url_source(request):
             is_Caliber = 'N'
             
         writer.writerow([
-                        'PH' + str(p.id),
+                        p.id,
                         list(tags.filter(id__in=p.tags).values_list('description', flat=True)),
                         p.source_reference, 
                         is_Caliber,

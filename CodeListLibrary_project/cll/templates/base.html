@@ -149,6 +149,16 @@
 								</li>	
 							{% endif %}		
 						{% endif %}		
+
+						{% if user.is_authenticated %}
+							{% if IS_DEMO or IS_DEVELOPMENT_PC %}					
+								{% if request.BRAND_OBJECT.allowed_tabs is none or 'phenotypeworkingsets' in request.BRAND_OBJECT.allowed_tabs %}					
+									<li id="phenotypeworkingsets_li"  >
+										<a id="phenotypeworkingsets_a" class="main_menu nav-bar-title" href="{% url 'phenotypeworkingsets_list' %}">Phenotype Working Sets</a>
+									</li>	
+								{% endif %}		
+							{% endif %}		
+						{% endif %}								
 							
 						{% if request.BRAND_OBJECT.allowed_tabs is none or 'api' in request.BRAND_OBJECT.allowed_tabs %}					
 							<li id="api_li"  >

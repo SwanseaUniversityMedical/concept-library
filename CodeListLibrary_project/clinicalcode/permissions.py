@@ -11,6 +11,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group, User
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
+from dataclasses import replace
 
 
 class Permissions:
@@ -28,13 +29,17 @@ def checkIfPublished(set_class, set_id, set_history_id):
 
     from .models.Concept import Concept
     from .models.Phenotype import Phenotype
+    from .models.PhenotypeWorkingset import PhenotypeWorkingset
     from .models.PublishedConcept import PublishedConcept
     from .models.PublishedPhenotype import PublishedPhenotype
+    from .models.PublishedWorkingset import PublishedWorkingset
 
     if (set_class == Concept):
         return PublishedConcept.objects.filter(concept_id=set_id, concept_history_id=set_history_id).exists()
     elif (set_class == Phenotype):
         return PublishedPhenotype.objects.filter(phenotype_id=set_id, phenotype_history_id=set_history_id, approval_status=2).exists()
+    elif (set_class == PhenotypeWorkingset):
+        return PublishedWorkingset.objects.filter(workingset_id=set_id, workingset_history_id=set_history_id, approval_status=2).exists()
     else:
         return False
 
@@ -44,11 +49,15 @@ def get_publish_approval_status(set_class, set_id, set_history_id):
 
     from .models.Concept import Concept
     from .models.Phenotype import Phenotype
+    from .models.PhenotypeWorkingset import PhenotypeWorkingset
     from .models.PublishedConcept import PublishedConcept
     from .models.PublishedPhenotype import PublishedPhenotype
+    from .models.PublishedWorkingset import PublishedWorkingset
 
     if (set_class == Phenotype):
         return PublishedPhenotype.objects.filter(phenotype_id = set_id, phenotype_history_id = set_history_id).values_list("approval_status", flat=True).first()
+    elif (set_class == PhenotypeWorkingset):
+        return PublishedWorkingset.objects.filter(workingset_id = set_id, workingset_history_id = set_history_id).values_list("approval_status", flat=True).first()
 
     # elif (set_class == Concept):
     #     return PublishedConcept.objects.filter(concept_id = set_id).values_list('approval_status', flat=True).first()
@@ -85,11 +94,13 @@ def allowed_to_view_children(request,
                            get_history_child_concept_components,
                            getConceptsFromJSON, getConceptTreeByConceptId,
                            getGroupOfConceptsByPhenotypeId_historical,
-                           getGroupOfConceptsByWorkingsetId_historical)
+                           getGroupOfConceptsByWorkingsetId_historical,
+                           get_concept_data_of_historical_phenotypeWorkingset)
     from .models.Component import Component
     from .models.Concept import Concept
     from .models.Phenotype import Phenotype
     from .models.WorkingSet import WorkingSet
+    from .models.PhenotypeWorkingset import PhenotypeWorkingset
 
     user = request.user
     errors = dict()
@@ -124,7 +135,7 @@ def allowed_to_view_children(request,
         unique_concepts = set()
         for concept in concepts:
             unique_concepts.add((int(concept), concepts[concept]))
-        pass
+        
     elif set_class == Phenotype:
         permitted = allowed_to_view(request, Phenotype, set_id)
         if (not permitted):
@@ -139,7 +150,22 @@ def allowed_to_view_children(request,
         unique_concepts = set()
         for concept in concepts:
             unique_concepts.add(concept)
-        pass
+            
+    elif set_class == PhenotypeWorkingset:
+        permitted = allowed_to_view(request, PhenotypeWorkingset, set_id)
+        if (not permitted):
+            errors[set_id] = 'Working set not permitted.'
+            # Need to parse the concept_informations section of the database and use
+            # the concepts here to form a list of concept_ref_ids.
+        if WS_concepts_json:
+            concepts = [(int(x['concept_id'].replace('C', '')), x['concept_version_id'], x['phenotype_id'], x['phenotype_version_id']) for x in WS_concepts_json]  
+        else:
+            concepts = get_concept_data_of_historical_phenotypeWorkingset(set_id, set_history_id)
+
+        unique_concepts = set()
+        for concept in concepts:
+            unique_concepts.add(concept)
+                
     elif (set_class == Concept):
         permitted = allowed_to_view(request,
                                     Concept,
@@ -174,14 +200,23 @@ def allowed_to_view_children(request,
     permittedToAll = True
     for concept in unique_concepts:
         permitted = False
-        permitted = allowed_to_view(request,
-                                    Concept,
-                                    set_id=concept[0],
-                                    set_history_id=concept[1])
+        if set_class == PhenotypeWorkingset:  # check access to phenotypes
+            permitted = allowed_to_view(request,
+                                        Phenotype,
+                                        set_id=concept[2],
+                                        set_history_id=concept[3])
+            if (not permitted):
+                errors[concept[2]] = 'Child phenotype not permitted.'
+                permittedToAll = False
+        else: # check access to concepts
+            permitted = allowed_to_view(request,
+                                        Concept, 
+                                        set_id=concept[0],
+                                        set_history_id=concept[1])
 
-        if (not permitted):
-            errors[concept[0]] = 'Child concept not permitted.'
-            permittedToAll = False
+            if (not permitted):
+                errors[concept[0]] = 'Child concept not permitted.'
+                permittedToAll = False
 
     if returnErrors:
         return permittedToAll, errors
@@ -212,6 +247,7 @@ def allowed_to_view(request,
 
     from .models.Concept import Concept
     from .models.Phenotype import Phenotype
+    from .models.PhenotypeWorkingset import PhenotypeWorkingset
 
     # from .models.WorkingSet import WorkingSet
     # check if the entity/version exists
@@ -237,7 +273,7 @@ def allowed_to_view(request,
             is_allowed_to_view = True
         else:
             # if a specific version is published
-            if set_history_id is not None and set_class in (Concept, Phenotype):
+            if set_history_id is not None and set_class in (Concept, Phenotype, PhenotypeWorkingset):
                 if checkIfPublished(set_class, set_id, set_history_id):
                     is_allowed_to_view = True
 
@@ -278,8 +314,10 @@ def allowed_to_view(request,
 
     # check brand access
     if is_allowed_to_view and request is not None:
-        if not is_brand_accessible(request, set_class, set_id, set_history_id):
-            is_allowed_to_view = False
+        # if the entity is published ignore is_brand_accessible() in allowed_to_view()
+        if not checkIfPublished(set_class, set_id, set_history_id):
+            if not is_brand_accessible(request, set_class, set_id, set_history_id):
+                is_allowed_to_view = False
 
     return is_allowed_to_view
 
@@ -820,7 +858,6 @@ def get_visible_workingsets(user):
 
     return query
 
-
 def get_visible_phenotypes(user):
     # This does NOT excludes deleted ones
     from .models.Phenotype import Phenotype
@@ -871,6 +908,7 @@ def is_brand_accessible(request, set_class, set_id, set_history_id=None):
     from .models.Concept import Concept
     from .models.Phenotype import Phenotype
     from .models.WorkingSet import WorkingSet
+    from .models.PhenotypeWorkingset import PhenotypeWorkingset
 
     # setting set_history_id = None,
     # so this permission is always checked from the live obj like other permissions
@@ -893,6 +931,10 @@ def is_brand_accessible(request, set_class, set_id, set_history_id=None):
             set_collections = []
             if set_class in (Concept, Phenotype):
                 set_collections = set_class.history.get(id=set_id, history_id=history_id).tags
+
+            elif set_class == PhenotypeWorkingset:
+                set_collections = set_class.history.get(id=set_id, history_id=history_id).collections
+                
             elif set_class == WorkingSet:
                 workingset_history_date = set_class.history.get(id=set_id, history_id=history_id).history_date
                 ws_tags = getHistoryTags_Workingset(set_id, workingset_history_date)
@@ -904,6 +946,6 @@ def is_brand_accessible(request, set_class, set_id, set_history_id=None):
             else:
                 # check if the set collections has any of the brand's collection tags
                 return any(c in set_collections for c in brand_collection_ids)
-            
+
             
             

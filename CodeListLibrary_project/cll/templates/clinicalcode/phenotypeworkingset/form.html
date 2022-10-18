@@ -1,0 +1,995 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+    {% if form.pk  is None %}
+        New Working Set
+    {% else %}
+        Edit Working Set
+    {% endif %}
+{% endblock title %}
+
+{% block crumbs %}
+    <a class="nav-bar-title underline" href="{% url 'workingset_list' %}">Working Sets</a>
+    > <strong>{{ form.instance.name|default_if_none:"" }}</strong>
+{% endblock crumbs %}
+
+{% block container %}
+
+
+
+    {% if form.pk  is None %}
+        <h2>Create a new working set</h2>
+        <div class="row">
+            <div class="col-md-12">
+                <i class="help-block"><span class="required">*</span> denotes a required field</i>
+                {% if form.errors %}
+                    <div id="form-error" class="alert alert-danger  col-sm-12">
+                        <p>The operation could not be performed because one or more error(s) occurred.<br/>
+                            Please resubmit the form after making the following changes:</p>
+                        <ul>
+                            {% for field,error in form.errors.items %}
+                                <li>{{ field }} - {{ error|striptags }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <h2>Edit working set</h2>
+        <div class="row">
+            <div class="col-md-12">
+                <i class="help-block"><span class="required">*</span> denotes a required field</i>
+
+            </div>
+        </div>
+    {% endif %}
+
+
+
+    <link href="{% static 'css/phenotypeworkingset/form.css' %}" rel="stylesheet"/>
+
+    <!-- This is used for the forking message. -->
+    <div class="alert alert-success alert-dismissable" id="success-message" style="display: none;"
+         role="alert"></div>
+    <div class="alert alert-danger alert-dismissable" id="error-message" style="display: none;"
+         role="alert"></div>
+
+
+    <div class="panel panel-default">
+        <div class="panel-body">
+
+            <div class="row">
+                <div class="col-md-12">
+                    {% if form.pk is None %}
+                        <form action="" method="post" class="form-horizontal" novalidate>
+
+                    {% else %}
+                        <form name='workingset-form' id='workingset-form' class="form-horizontal"
+                              action="{% url "workingset_update" form.pk %}" method="POST" autocomplete="off">
+                    {% endif %}
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <div class="material-textfield">
+                                {{ form.name }}
+                                <label class="label-material required">{{ form.name.label }}</label>
+                            </div>
+
+
+                        </div>
+                    </div>
+
+                    <hr/>
+
+
+                    {% if form.pk  is not None %}
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>Latest version ID</label>
+                                <input type="hidden" id="latest_history_id" name="latest_history_id"
+                                       value="{{ form.latest_history_id }}">
+                                <input type="hidden" id="overrideVersion" name="overrideVersion"
+                                       value="{{ overrideVersion|default_if_none:'0' }}">
+                                {{ latest_history_id }}
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <div class="material-textfield">
+
+                                <select class="input-material col-sm-12 form-control" name="type" id="type">
+                                    {% for type in form.type %}
+                                        {{ type }}
+                                    {% endfor %}
+                                </select>
+                                <label class="label-material">Type</label>
+
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <div class="col-sm-11" id="concept-tag-form-container">
+
+                            <div class="material-textfield">
+                                <input class="input-material col-sm-12 form-control" type="text" id="txtTags"
+                                       name="tagids" data-role="tagsinput">
+                                <label class="label-material" for="txtTags">Tags</label>
+
+                            </div>
+                        </div>
+
+                        <div class="col-sm-1 form-help-popover">
+                            <a href="#" role="button" class="btn popovers" id="concept-tag-form" data-toggle="popover"
+                               data-trigger="hover" data-container="#concept-tag-form-container" title=""
+                               data-original-title="Tags" data-placement="left">
+                                <i class="fa fa-question-circle" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+
+                        <div class="col-sm-11">
+                            <div class="material-textfield">
+                                {{ form.publication }}
+                                <label class="label-material">{{ form.publication.label }}</label>
+                            </div>
+                        </div>
+                        <div class="btn btn-default publication-button" id='addRow' style="padding: 5px 12px">
+                            <i type='button' class="glyphicon glyphicon-plus"></i>
+                        </div>
+
+                    </div>
+                    <div id="newRow"></div>
+
+
+                    <div class="form-group">
+
+                        <div class="col-sm-12">
+                            <div class="material-textfield">
+
+
+                                {{ form.citation_requirements }}
+
+                                <label class="label-material">{{ form.citation_requirements.label }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <div class="material-textfield">
+                                <input class="input-material col-sm-12 form-control" type="text" name="datasources"
+                                       id="datasources">
+                                <label class="label-material">Data Sources</label>
+
+                            </div>
+
+                        </div>
+
+
+                    </div>
+                    <div class="form-group">
+
+                        <div class="col-sm-12">
+                            <div class="material-textfield">
+
+                                <input class="input-material col-sm-12 form-control" type="text" name="collections"
+                                       id="collections" data-role="tagsinput">
+                                <label class="label-material" for="collections">Collections</label>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <div class="col-sm-12">
+                            <div class="material-textfield">
+                                {{ form.author }}
+                                <label class="label-material required">{{ form.author.label }}</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+
+                        <div class="col-sm-12">
+                            <div class="material-textfield">
+                                {{ form.description }}
+                                <label class="label-material required">Description</label>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label class="col-sm-3" for="">Created by</label>
+                        <div class="col-sm-12">
+                            <p class="form-control-static">
+                                {% if form.pk  is None %}
+                                    {{ user.username }}
+                                {% else %}
+                                    {{ form.created_by.username }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+
+                    {% if form.pk  is not None %}
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label for="">Modified by</label>
+                                <p class="form-control-static">{{ form.instance.modified_by.username }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- ----------------------------------------------------------------------
+                            PERMISSIONS
+                         ----------------------------------------------------------------------
+                     -->
+                    <hr/>
+
+
+                    <fieldset {% if not allowed_to_permit and form.pk  is not None %}disabled{% endif %}>
+                        <!-- div class="form-group">
+						<label class="col-sm-3" for="">Owned by:</label>
+						<div class="col-sm-12">
+							<p class="form-control-static">{{ form.owner.username}}</p>
+						</div>
+					</div-->
+
+                        <!-- Allow the user to select a user from the list of known users. -->
+                        <div class="form-group">
+
+                            <div class="col-sm-11" id="workingset-owned-form-container">
+                                <div class="material-textfield">
+                                    {{ form.owner }}
+                                    <label class="label-select required"
+                                           for="{{ form.owner.id_for_label }}">{{ form.owner.label }}</label>
+                                </div>
+                            </div>
+                            <div class="col-sm-1 form-help-popover">
+                                <a href="#" role="button" class="btn popovers" id="workingset-owned-form"
+                                   data-toggle="popover"
+                                   data-trigger="hover" data-container="#workingset-owned-form-container" title=""
+                                   data-original-title="Owned by:" data-placement="left">
+                                    <i class="fa fa-question-circle" aria-hidden="true"></i>
+                                </a>
+                            </div>
+                            <div id="popover-content-workingset-owned-form" class="hide popover-lg">
+                                <p>This field defines the user who has permission to modify access to the concept.
+                                    Please be aware that you will not be able to modify this if you give ownership to
+                                    someone else and do not have editing permission.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+
+                            <div class="col-sm-11" id="workingset-group-form-container">
+                                <div class="material-textfield">
+
+                                    {{ form.group }}
+                                    <label class="label-select"
+                                           for="{{ form.group.id_for_label }}">{{ form.group.label }}</label>
+                                </div>
+                            </div>
+                            <div class="col-sm-1 form-help-popover">
+                                <a href="#" role="button" class="btn popovers" id="workingset-group-form"
+                                   data-toggle="popover"
+                                   data-trigger="hover" data-container="#workingset-group-form-container" title=""
+                                   data-original-title="Permitted group:" data-placement="left">
+                                    <i class="fa fa-question-circle" aria-hidden="true"></i>
+                                </a>
+                            </div>
+                            <div id="popover-content-workingset-group-form" class="hide popover-lg">
+                                <p>This field defines which group has permission to modify access to the concept if
+                                    group
+                                    permissions are selected. You can only select a group in which you are a member.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div id="permissions" class="form-group">
+                            <label class="col-sm-3">{{ form.owner_access.label }}</label>
+                            <div class="col-sm-7">
+                                <table>
+                                    <tr>
+                                        {% for choice in form.owner_access %}
+                                            <td class="col-sm-2">
+                                                <div class="radio">
+                                                    <label>
+                                                        {{ choice.tag }}
+                                                        {{ choice.choice_label }}
+                                                    </label>
+                                                </div>
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+
+                        <div id="permissions" class="form-group">
+                            <label class="col-sm-3">{{ form.group_access.label }}</label>
+                            <div class="col-sm-7">
+                                <table>
+                                    <tr>
+                                        {% for choice in form.group_access %}
+                                            <td class="col-sm-2">
+                                                <div class="radio">
+                                                    <label>
+                                                        {{ choice.tag }}
+                                                        {{ choice.choice_label }}
+                                                        {% if choice.choice_label.strip == "View" or choice.choice_label.strip == "Edit" %}
+                                                            {% if form.pk is not None %}
+                                                                <span class="alert-warning"
+                                                                      id="group_access_note"></span>
+                                                            {% endif %}
+                                                        {% endif %}
+                                                    </label>
+                                                </div>
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div id="permissions" class="form-group">
+                            <label class="col-sm-3">Everyone else access:</label>
+                            <div class="col-sm-7">
+                                <table>
+                                    <tr>
+                                        {% for choice in form.world_access %}
+                                            <td class="col-sm-2">
+                                                <div class="radio">
+                                                    <label>
+                                                        {{ choice.tag }}
+                                                        {{ choice.choice_label }}
+                                                    </label>
+                                                </div>
+                                            </td>
+                                        {% endfor %}
+                                        <td class="col-sm-2">
+                                            <div>&nbsp;</div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <hr/>
+
+                    <!-- ----------------------------------------------------------------------
+                            Data LIST
+                         ----------------------------------------------------------------------
+                     -->
+
+
+                    <div id=conceptsErrorsDiv style='display:none;'></div>
+
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <label>Phenotype/Concepts</label>
+                            <table class="table display-table" id="attributes-table" style="width:100%;display:none">
+
+
+                            </table>
+
+                        </div>
+
+                        <div class="row-form-flex row">
+                            <button class="upload-button" id="add-data" type="button">
+                                Upload
+                            </button>
+
+
+                        </div>
+
+
+                        <hr/>
+
+                    </div>
+
+
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <div class="row-form-flex row">
+
+                                <div><br>
+                                    <a href="{% url 'workingset_list' %}" class="btn">
+                                        Return to list
+                                    </a>
+                                    <button class="btn btn-primary save-button" type="submit" id="save-changes">
+                                        Save
+                                    </button>
+
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <input type="hidden" id="phenotypes_concepts_json" name="phenotypes_concepts_json">
+                    <input type="hidden" id="workingset_data" name="workingset_data">
+                    <input type="hidden" id="publication_data" name="publication_data">
+
+
+
+                    </form>
+
+                    <!--	-------------------------------------------------------------------
+                      Version History
+                    -------------------------------------------------------------------	-->
+                    {% if pk is not none %}
+                        <div class="panel-body">
+                            <div class="row">
+
+                                <hr/>
+                                <h3>Version History</h3>
+                                <div class="pre-scrollable">
+                                    <table class="table table-striped small-table table-hover">
+                                        <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Description</th>
+                                            <th>Date</th>
+                                            <!-- 							<th>Type</th> -->
+                                            <th>Change reason</th>
+                                            <th>User</th>
+                                            <th></th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% include './partial_history_list.html' %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div id="popover-content-concept-tag-form" class="hide popover-lg">
+                        <p>Tags are added within the administration section. Once a tag has been stored then you can
+                            assign it here so that you can search this working set based on tag name(s). Simply start
+                            typing the tag name you are looking for and it will appear within a dropdown just beneath
+                            the textbox.</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock container %}
+
+{% block scripts %}
+    <script src="{% static 'js/clinicalcode/dataService.js' %}"></script>
+    <script src="{% static 'js/clinicalcode/component.js' %}"></script>
+    <script src="{% static 'js/clinicalcode/concept.js' %}"></script>
+    <script src="{% static 'js/clinicalcode/tags.js' %}"></script>
+    <script src="{% static 'js/clinicalcode/tagAutocomplete.js' %}"></script>
+
+    <!------------------------ Selection Service dependencies -------------------------->
+    <link href="{% static 'lib/daterangepicker/daterangepicker.css' %}" rel="stylesheet"/>
+    <script src="{% static 'js/lib/daterangepicker/moment.min.js' %}"></script>
+    <script src="{% static 'js/lib/daterangepicker/daterangepicker.js' %}"></script>
+    <script src="{% static 'js/clinicalcode/filters/utils.js' %}"></script>
+    <script src="{% static 'js/clinicalcode/filters/FuzzyQuery.js' %}"></script>
+    <script src="{% static 'js/clinicalcode/filters/autocompleteSearch.js' %}"></script>
+    <script src="{% static 'js/clinicalcode/workingset/selectionService.js' %}"></script>
+    <!---------------------------------------------------------------------------------->
+
+
+
+
+    <script type="text/javascript">
+        // call the tag service initialize function in tags.js
+        $("#author").tagsinput('items')
+        tagAutocomplete('/api/v1/public/data-sources-list/', 'datasources', 'datasource_id', 'name').initialize()
+        tagAutocomplete('/api/v1/public/collections/', 'collections', 'id', 'name').initialize()
+        tagService.initialize();
+
+        $(function () {
+            {% for tag in tags %}
+                $('#txtTags').tagsinput('add', {
+                    'id': {{ tag.id }},
+                    'description': '{{ tag.description }}',
+                    'display': '{{ tag.get_display_display }}'
+                });
+            {% endfor %}
+            {% for collection in collections %}
+                $('#collections').tagsinput('add', {
+                    'id': '{{ collection.id }}',
+                    'name': '{{ collection.description }}'
+                });
+            {% endfor %}
+
+            {% for datasource in datasources %}
+                $('#datasources').tagsinput('add', {
+                    'datasource_id': '{{ datasource.datasource_id }}',
+                    'name': '{{ datasource.name }}'
+                });
+
+            {% endfor %}
+
+            {% if publications %}
+                let returnPub = JSON.parse('{{publications}}'.replace(/(&quot\;)/g, "\"").replace(/{(.*)}/, '[$1]'))
+                if (returnPub.length > 1) {
+                    for (let j = 0; j < returnPub.length; j++) {
+                        if (j === 0) {
+                            $('#id_publication').val(returnPub[0])
+                        } else {
+                            addInput(returnPub[j], 'newRow')
+                        }
+                    }
+                } else {
+                    $('#id_publication').val(returnPub[0])
+
+                }
+
+            {% endif %}
+
+        });
+
+        $("#addRow").click(function () {
+                addInput('', 'newRow');
+            }
+        );
+        $(document).on('click', '#removeRow', function () {
+            $(this).closest('.form-group').remove();
+
+
+        });
+
+        const addInput = (value, id) => {
+            var html = '';
+            html += '<div class="form-group">';
+            html += '<div class="col-sm-12">';
+            html += '<div class="material-textfield input-group">';
+            html += `<input type="text" name="publication" value ="${value}" class="input-material form-control" rows="1" placeholder="Add publication" maxlength="500" id="id_publication">`
+            html += '<span class="input-group-btn">';
+            html += '<button id="removeRow" style="padding:6px 12px;height: 35px" type="button" class="btn btn-danger">Remove</button>';
+            html += '</span>'
+            html += '</div>'
+            html += '</div>';
+            html += '</div>';
+
+            $('#' + id).append(html);
+        }
+
+        const wrapPubinputs = () => {
+            let input = document.querySelectorAll('*[id^="id_publication"]');
+            let data = []
+            for (let i = 0; i < input.length; i++) {
+                if (input[i].value !== "") {
+                    data.push(input[i].value)
+                }
+
+            }
+            return data
+
+        }
+
+
+        var previoslySelected = []
+        $('#add-data').createSelection({
+            // Props
+            clearSelectedOnClose: false,
+            clearSelectedOnImport: false,
+
+            // Methods
+            onImport: (service, selected) => {
+                // Clicked the 'Import Concepts' button, and imported 'selected'
+                var numbers = 0
+                var dataset = selected.map(element => {
+                    return {
+                        "Data": element.phenotype.id + '/' + element.phenotype.version + '-' + element.concept.id + '/' + element.concept.version + '-' + element.concept.name
+                    }
+                })
+
+
+                if ($.fn.dataTable.isDataTable('#attributes-table')) {
+                    let table = $('#attributes-table').DataTable();
+                    table.rows().remove().draw()
+
+                    let dataPrevious = $('#phenotypes_concepts_json').val()
+                    dataPrevious = JSON.parse(dataPrevious)
+                    let newObject = removalue(dataPrevious)
+                    let newData = []
+                    for (let i = 0; i < dataset.length; i++) {
+                        newData.push({
+                            ...newObject,
+                            ["Data"]: dataset[i].Data
+                        })
+                    }
+                    dataPrevious = mergeArrays(dataPrevious, newData)
+                    if (dataPrevious.length > 0) {
+                        table.rows.add(dataPrevious).draw();
+                        $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
+                    } else {
+                        $('#attributes-table').DataTable().destroy();
+                        $('#attributes-table').empty();
+                        $('#phenotypes_concepts_json').val('')
+                         $('#add-data').html('Upload')
+                    }
+
+                } else {
+                    $('#attributes-table').show()
+                    let table = createTable(numbers, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}])
+                    table.buttons().container()
+                        .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+                    $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
+                    $('#add-data').html('Add concept/phenotype')
+                }
+
+
+
+            },
+            onClose: (service, selected) => {
+                console.log(selected)
+            }
+        }, previoslySelected);
+
+        function mergeArrays(dataPrevious, newData) {
+            let newArr = []
+            for (let j = 0; j < newData.length; j++) {
+                for (let k = 0; k < dataPrevious.length; k++) {
+                    if (newData[j].Data === dataPrevious[k].Data) {
+                        newData.slice(j, 1)
+                    }
+                }
+                newArr.push(newData[j])
+            }
+
+
+            for (let h = 0; h < newArr.length; h++) {
+                for (let i = 0; i < dataPrevious.length; i++) {
+                    if (newArr[h].Data === dataPrevious[i].Data) {
+                        newArr[h] = Object.assign({}, newArr[h], dataPrevious[i]);
+                    }
+                }
+            }
+
+
+            return newArr
+        }
+
+
+        var createTable = (numbers, dataset, id, columns) => {
+            return $('#' + id).DataTable({
+                    data: dataset,
+                    columns: columns,
+                    buttons: [
+                        {
+
+                            text: "Add Column",
+                            className: "table-button",
+                            action: function (e, dt, node, config) {
+                                addColumn(numbers)
+                            },
+                            attr: {
+                                id: 'column-add'
+                            }
+                        },
+                        {
+                            text: "Delete row",
+                            className: "table-button",
+                            attr: {
+                                id: 'delete-button'
+                            }
+                        }
+                    ],
+
+                    fixedColumns: {
+                        left: 1
+                    },
+                    scrollX: true,
+                    scrollY: '70vh',
+                    scrollCollapse: true,
+                    colReorder: true,
+                    paging: false,
+                    columnDefs: [{
+                        targets: [0],
+                        orderable: true,
+                    }, {
+                        targets: [''],
+                        orderable: false
+                    },
+                    ]
+
+                }
+            );
+        }
+
+
+        const removalue = (dataPrevious) => {
+            let removeVal = Object.entries(dataPrevious[0])
+            removeVal.forEach(element => {
+                let parse = new DOMParser().parseFromString(element[1], "text/html")
+                let input = parse.querySelector('*[id^="attribute-input"]');
+                if (input !== null) {
+                    input.setAttribute('value', '')
+                    element[1] = $(input)[0].outerHTML
+                }
+                return element
+
+            })
+            let newObject = Object.fromEntries(removeVal)
+            return newObject
+        }
+
+        const returnValue = (type, id) => {
+            let element = new DOMParser().parseFromString(type, "text/html")
+            let select = element.querySelector(`*[id^="${id}"]`)
+            if (id.startsWith("column_type")) {
+                let val = $("#" + `${select.id}`).val()
+                switch (val) {
+                    case 1:
+                        return 'INT'
+                    case 2:
+                        return 'FLOAT'
+                    case 3:
+                        return 'STRING'
+                }
+            } else {
+                return $("#" + `${select.id}`).val()
+            }
+
+        }
+
+        const addColumn = (numbers) => {
+            let dataPrevious = $('#phenotypes_concepts_json').val()
+            dataPrevious = JSON.parse(dataPrevious)
+            for (let i = 0; i < dataPrevious.length; i++) {
+                dataPrevious[i] = {
+                    ...dataPrevious[i],
+                    ["Attributes-row" + numbers]: `<input class="input-material" type="text"  style="width:100%" id="attribute-input-${numbers}"/>`,
+                    ["Attributes-select" + numbers]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=selectHeader() id="column_type${numbers}">'
+						    +'<option  value="0" selected >Type</option>'
+						    +'<option value="1">INT</option>'
+						    +'<option value="2">FLOAT</option>'
+						    +'<option value="3">STRING</option>'
+						  +'</select>`,
+                    ['Attributes-header' + numbers]: `<input class="input-material" type="text"  oninput = inputheader() placeholder="Attribute name"  id="attribute-header${numbers}"/>`
+                }
+            }
+            let dataset = dataPrevious
+            $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
+            let columns = [{data: "Data", title: "Data"}]
+            let headers = Object.entries(dataset[0])
+            for (let i = 0; i < headers.length - 1; i++) {
+                if (headers[i][0].startsWith('Attributes-row')) {
+                    columns.push({data: headers[i][0], title: headers[i + 1][1] + headers[i + 2][1]})
+                }
+            }
+            numbers++
+
+
+            if ($.fn.DataTable.isDataTable('#attributes-table')) {
+                $('#attributes-table').DataTable().destroy();
+                $('#attributes-table').empty();
+                var table = createTable(numbers, dataset, 'attributes-table', columns)
+                table.buttons().container()
+                    .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+
+            }
+
+
+        }
+
+        const reDrawtable = (id, numbers, dataset) => {
+            let columns = [{data: "Data", title: "Data"}]
+            let headers = Object.entries(dataset[0])
+            for (let i = 0; i < headers.length - 1; i++) {
+                if (headers[i][0].startsWith('Attributes-row')) {
+                    columns.push({data: headers[i][0], title: headers[i + 1][1] + headers[i + 2][1]})
+                }
+            }
+
+
+            if ($.fn.DataTable.isDataTable('#attributes-table')) {
+                $('#' + id).DataTable().destroy();
+                $('#' + id).empty();
+                var table = createTable(numbers, dataset, 'attributes-table', columns)
+                table.buttons().container()
+                    .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+                return table
+
+            }
+
+        }
+
+        const inputheader = () => {
+            var table = $('#attributes-table').DataTable()
+
+
+            let val = event.target.value
+            let index = event.target.id.match(/\d+/)[0]
+            let dataPrevious = $('#phenotypes_concepts_json').val()
+            dataPrevious = JSON.parse(dataPrevious)
+            for (let i = 0; i < dataPrevious.length; i++) {
+                dataPrevious[i]['Attributes-header' + (index)] = `<input class="input-material" type="text" value="${val}" oninput = inputheader() placeholder="Attribute name"  id="attribute-header${index}"/>`
+                $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
+            }
+
+        }
+
+        const wrapData = () => {
+            $('#publication_data').val(JSON.stringify(wrapPubinputs()).replace(/\[/g, '{').replace(/]/g, '}'))
+            let dataPrevious = $('#phenotypes_concepts_json').val()
+            dataPrevious = JSON.parse(dataPrevious)
+            let arrayOfData = []
+            for (let i = 0; i < dataPrevious.length; i++) {
+                let entry = Object.entries(dataPrevious[i])
+                let mainData = wrapIds(dataPrevious[i]['Data'])
+                if (entry.length > 1) {
+                    mainData['Attributes'] = []
+                    for (let j = 0; j < (entry.length - 1) / 3; j++) {
+
+                        let type = dataPrevious[i]['Attributes-select' + j]
+                        let attribute_name = dataPrevious[i]['Attributes-header' + j]
+                        let attribute_value = dataPrevious[i]['Attributes-row' + j]
+                        mainData['Attributes'].push({
+                            name: returnValue(attribute_name, 'attribute-header' + j),
+                            type: returnValue(type, 'column_type' + j),
+                            value: returnValue(attribute_value, 'attribute-input-' + j)
+                        })
+
+                    }
+                    arrayOfData.push(mainData)
+                }
+                arrayOfData.push(mainData)
+
+            }
+
+            $('#workingset_data').val(JSON.stringify(arrayOfData))
+
+
+        }
+
+        $('#save-changes').on('click', function () {
+            wrapData()
+        })
+
+
+        const wrapIds = (dataIds) => {
+            let phenotype = dataIds.substring(dataIds.indexOf('PH'), dataIds.indexOf('-C'))
+            let phenotype_id = phenotype.split('/')[0]
+            let phenotype_version = phenotype.split('/')[1]
+
+            let concept = dataIds.substring(dataIds.indexOf('-C'), dataIds.indexOf(' - '))
+            let concept_id = concept.split('/')[0].slice(1)
+            let concept_version = concept.split('/')[1].substring(0, concept.indexOf('-', 5)).replace(/\D/g, '')
+
+            return {
+                phenotype_id: phenotype_id,
+                phenotype_version_id: parseInt(phenotype_version),
+                concept_id: concept_id,
+                concept_version_id: parseInt(concept_version)
+            }
+
+        }
+
+
+        const selectHeader = () => {
+            var table = $('#attributes-table').DataTable()
+            let val = event.target.value
+            let index = event.target.id.match(/\d+/)[0]
+            let dataPrevious = $('#phenotypes_concepts_json').val()
+            dataPrevious = JSON.parse(dataPrevious)
+            let updatedSelect = changeSelectValue(val, index)
+            for (let i = 0; i < dataPrevious.length; i++) {
+                dataPrevious[i]['Attributes-select' + (index)] = `${updatedSelect}`
+                dataPrevious[i]['Attributes-row' + (index)] = `<input class="input-material" type="text" value="" style="width:100%" id="attribute-input-${index}"/>`
+                $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
+            }
+
+            let dataPrevious2 = $('#phenotypes_concepts_json').val()
+            dataPrevious2 = JSON.parse(dataPrevious2)
+            table = reDrawtable('attributes-table', table.columns().header().length - 1, dataPrevious2)
+            table.buttons().container()
+                .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+
+        }
+
+
+        const changeSelectValue = (val, index) => {
+            let element = `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=selectHeader() id="column_type${index}">'
+						    +'<option value="0">Type</option>'
+						    +'<option value="1">INT</option>'
+						    +'<option value="2">FLOAT</option>'
+						    +'<option value="3">STRING</option>'
+						  +'</select>`
+            let parse = new DOMParser().parseFromString(element, "text/html")
+            let select = parse.querySelector('*[id^="column_type"]')
+            select.options[val].defaultSelected = true
+
+
+            return $(select)[0].outerHTML
+
+        }
+
+
+        $('#attributes-table').on('input', 'td', function (e) {
+            let table = $('#attributes-table').DataTable()
+            let cell = table.cell(this).index()
+            let input = $(table.cell(this).node()).find('input')
+            let value = input.val()
+            let rowIdx = cell.row
+            let colindex = cell.column
+            if (checkTypeinput(input, value, rowIdx, colindex)) {
+                let dataPrevious = $('#phenotypes_concepts_json').val()
+                dataPrevious = JSON.parse(dataPrevious)
+                dataPrevious[rowIdx]['Attributes-row' + (colindex - 1)] = `<input class="input-material" type="text" value="${value}" style="width:100%" id="attribute-input-${colindex - 1}"/>`
+                $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
+            }
+
+
+        });
+
+
+        const checkTypeinput = (input, val, rowIndex, columnIndex) => {
+            let dataPrevious = $('#phenotypes_concepts_json').val()
+            dataPrevious = JSON.parse(dataPrevious)
+            let type = dataPrevious[rowIndex]['Attributes-select' + (columnIndex - 1)]
+            let element = new DOMParser().parseFromString(type, "text/html")
+            let select = element.querySelector('*[id^="column_type"]')
+            let select_val = $("#" + `${select.id}`).val()
+
+
+            switch (parseInt(select_val)) {
+                case 0:
+                    alert('Choose type')
+                    return false
+
+                case 1:
+                    if (/^-?\d+$|^[-]+$/.test(val)) {
+                        return true
+                    } else {
+                        input.val($.trim(input.val()).slice(0, -1));
+                        return false
+                    }
+                case 2:
+                    if (/^([-])([0-9]{1,})?(\.)?([0-9]{1,})?$|^([0-9]{1,})?(\.)?([0-9]{1,})?$/.test(val)) {
+                        return true
+                    } else {
+                        input.val($.trim(input.val()).slice(0, -1));
+                        return false
+                    }
+                case 3:
+                    if (/^([^0-9]*)$/.test(val)) {
+                        return true
+                    } else {
+                        input.val($.trim(input.val()).slice(0, -1));
+                        return false
+                    }
+
+
+            }
+
+
+        }
+
+
+    </script>
+
+
+
+{% endblock scripts %}
+
