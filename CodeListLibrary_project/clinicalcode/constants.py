@@ -1,17 +1,24 @@
 from .models import *
 
+#------------ pagination lims ----------
+page_size_limits = [20, 50, 100]
+#---------------------------------------
+
 #--------- Filter queries --------------
 filter_queries = {
     'tags': 0,
+    'collections': 0,
     'clinical_terminologies': 0,
     'data_sources': 0,
     'coding_system_id': 1,
     'phenotype_type': 2,
-    'daterange': 3
+    'workingset_type': 3,
+    'daterange': 4
 }
 
 filter_query_model = {
     'tags': Tag,
+    'collections': Tag,
     'clinical_terminologies': CodingSystem,
     'coding_system_id': CodingSystem,
     'data_sources': DataSource
@@ -58,4 +65,22 @@ APPROVED_STATUS = ((APPROVAL_REQUESTED, 'Requested'),
                    (REJECTED, 'Rejected'))
     
     
-    
+Disease = 0
+Biomarker = 1
+Drug = 2
+Lifestyle_risk_factor = 3
+Musculoskeletal = 4
+Surgical_procedure = 5
+Type_status = ((Disease, 'Disease or syndrome '),
+               (Biomarker,'Biomarker'),(Drug,'Drug'),
+               (Lifestyle_risk_factor,'Lifestyle risk factor'),
+               (Musculoskeletal,'Musculoskeletal'),
+               (Surgical_procedure,'Surgical procedure'))
+
+
+PWS_ATTRIBUTE_TYPES = ['INT', 'FLOAT', 'STRING']
+PWS_ATTRIBUTE_TYPE_DATATYPE = {
+    'INT': int,
+    'FLOAT': float,
+    'STRING': str,
+}

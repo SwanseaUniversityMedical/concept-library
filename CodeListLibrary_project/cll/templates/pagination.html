@@ -3,6 +3,8 @@
 	{% if is_header %}
 	<!-- Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} |  {{ page_obj.paginator.count }} Record(s) -->
 	<div class="col col-xs-6" style="line-height: 34px">
+
+		{% if not ignore_order %}
 		<span style="color: inherit; text-decoration: inherit; display: inline;">Order By: </span>
 		<div class="dropdown" style="display: inline; margin-right: 10px">
 			<button style="background: none;" class="btn btn-default dropdown-toggle filter_overflow" type="button" id="filter_order_option" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -22,6 +24,8 @@
 				{% endif %}
 			</ul>
 		</div>
+		{% endif %}
+    
 		<span style="color: inherit; text-decoration: inherit;">Results Per Page: </span>
 		<div class="dropdown" style="display: inline;">
 			<button style="background: none;" class="btn btn-default dropdown-toggle filter_overflow" type="button" id="filter_number_option" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">

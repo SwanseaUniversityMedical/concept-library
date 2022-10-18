@@ -1,0 +1,984 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load markdownify %}
+{% load cl_extras %}
+
+{% block title %}| workingset: {{ workingset.name }}{% endblock title %}
+{% block description %}{{ workingset.name }}{% endblock description %}
+{% block keywords %}, {{ workingset.name }}{% endblock keywords %}
+
+{% block canonical_path %}
+	<link rel="canonical" href="{{ page_canonical_path }}" />
+{% endblock canonical_path %}
+
+{% block crumbs %}
+    <a class="nav-bar-title underline" href="{% url 'phenotypeworkingsets_list' %}">Working Sets</a>
+    > <strong>{{ workingset.name }}</strong>
+{% endblock crumbs %}
+
+{% block scrollNav %}
+data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
+{% endblock scrollNav %}
+
+{% block container %}
+    <div class="row">
+        <nav class="col-sm-2 hideleft-navbar" id="WorkingSetMenu"
+             style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;">
+            <ul class=" nav left-navbar "  id='navList'>
+                <li class=" active"><a href="#Home" id="Homelinkid">Home</a></li>
+                <li><a href="#Description">Description</a></li>
+                <li><a href="#CitationRequirements">Citation Requirements</a></li>
+                <li><a href="#Publications">Publications</a></li>
+                <li><a href="#ClinicalCodeList">Clinical Code List</a></li>
+                {% if user.is_authenticated %}
+                <li><a href="#Permissions">Permissions</a></li>
+                {% endif %}
+                <li><a href="#API">API</a></li>
+                <li><a href="#CodeListsVersions">Version History</a></li>
+            </ul>
+        </nav>
+
+
+        <h3><span id="Home" style="margin-top: -100px;"></span></h3>
+        <div class="col-sm-10">
+
+			<span id="topButtons">			
+                <div class="row" style="margin-left: 2px">
+                    <div class="col-sm-12 text-right action-buttons-container">
+                        
+                       <div class="dropdown btn-group">
+                          <button {% if not user_can_export %} disabled
+                                                               title="Component concept(s) deleted or revoked access!!" {% endif %}
+                                                               type="button" class="btn btn-primary dropdown-toggle"
+                                                               data-toggle="dropdown" aria-haspopup="true"
+                                                               aria-expanded="false" id="export-btn">
+                            Export Working Set
+                            <span class="caret"></span>
+                          </button>
+                          <ul class="dropdown-menu">
+                           {% if user.is_authenticated %}
+                           <li>
+                               <a {% if user_can_export %}
+                                   href="{% url 'api:api_phenotypeworkingset_detail_version' workingset.id workingset.history_id %}?format=json"
+                                   target=_blank {% endif %}
+                           {% elif enable_publish %}
+                               <a {% if user_can_export %}
+                               href="{% url 'api:api_phenotypeworkingset_detail_version' workingset.id workingset.history_id %}?format=json"
+                               target=_blank {% endif %}
+                           {% endif %}
+                               class="dropdown-item">
+                                   JSON
+                               </a>
+                           </li>
+                           <li>
+                           {% if user.is_authenticated %}
+                               <a {% if user_can_export %}
+                                   href="{% url 'api:api_phenotypeworkingset_detail_version' workingset.id workingset.history_id %}?format=xml"
+                                   target=_blank {% endif %}
+                           {% elif enable_publish %}
+                               <a {% if user_can_export %}
+                               href="{% url 'api:api_phenotypeworkingset_detail_version' workingset.id workingset.history_id %}?format=xml"
+                               target=_blank {% endif %}
+                           {% endif %}
+                               class="dropdown-item">
+                                   XML
+                               </a>
+                           </li>
+                          </ul>
+                        </div>
+
+                        {% if user.is_authenticated and not CLL_READ_ONLY %}
+                            {% if enable_publish %}
+
+                                {% if is_published and approval_status == 2%}
+
+                                    <a class="btn btn-success" disabled title="This version is already published">
+                                    &nbsp;Published&nbsp;
+                                    <span class="glyphicon glyphicon-ok" style="color:green"></span>
+                                </a>
+                                {% else %}
+                                    <a
+                                            {% if request.user|has_group:"Moderators" %}
+                                                {% if not live_ver_is_deleted %}
+                                                    {% if approval_status == 1 and is_latest_pending_version %}
+                                                        class="js-load-modal btn btn-warning"
+                                                        href="{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}"
+                                                        title="Needs to be approved"
+                                                    {% else %}
+                                                        {% if approval_status == 3 %}
+                                                        class="js-load-modal  btn btn-danger"
+                                                        href="{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}"
+                                                        title="Approve declined Working Set"
+                                                        {% else %}
+                                                        class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
+                                                        href="{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}"
+                                                        title="Publish immediately"
+                                                        {% endif %}
+
+
+
+                                                    {% endif %}
+
+                                                {% else %}
+                                                        class="btn btn-primary"
+                                                    {% if is_published and approval_status == 2 %}
+                                                        title="This version is already published"
+                                                    {% elif live_ver_is_deleted %}
+                                                        title="Deleted Working Set cannot be published !!"
+                                                    {% endif %}
+
+                                                {% endif %}
+                                                        id="publish2">
+                                               {% if approval_status == 1 and is_latest_pending_version%}
+                                                   Approve
+                                               {% else %}
+                                                        Publish
+                                               {% endif %}
+
+
+                                            {% else %}
+
+
+                                                <a
+                                                        {% if not live_ver_is_deleted and approval_status is None  or approval_status == 2 %}
+                                                            class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
+                                                            href="{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}"
+                                                        {% else %}
+                                                            {% if is_published and approval_status == 2 %}
+                                                                class="btn btn-primary"
+                                                                title="This version is already published"
+                                                            {% elif live_ver_is_deleted %}
+                                                                class="btn btn-primary"
+                                                                title="Deleted Working Set cannot be published !!"
+                                                            {% elif approval_status == 3 %}
+                                                                class="btn btn-danger"
+                                                                disabled title="This version is declined"
+                                                            {% elif  approval_status == 1 %}
+                                                                {% if phenotype.owner_id == request.user.id %}
+                                                                    class="btn btn-primary btn-warning"
+                                                                    disabled title="This version needs to be approved "
+                                                                {% else %}
+                                                                    class="btn btn-primary"
+                                                                    disabled = true
+                                                                    disabled title="Unavailable to publish"
+                                                                {% endif %}
+                                                            {% endif %}
+
+
+                                                        {% endif %}
+                                                            id="publish2">
+                                                         {% if approval_status == 3 %}
+                                                               Declined
+                                                         {% else %}
+                                                            {% if approval_status == 1 %}
+                                                                Pending
+                                                            {% else %}
+            
+                                                                Publish
+                                                            {% endif %}
+                                                         {% endif %}
+                                                    {% endif %}
+
+
+                                {% endif %}
+
+                            {% endif %}
+
+                        {% endif %}
+
+
+                        <a id="printBtn" class="btn btn-outline-primary btn-cl btn-cl-secondary">
+                            Print
+                        </a>
+                        <a href="#" role="button" class="btn popovers" id="help-hist-phenotype"
+                           data-toggle="popover" data-trigger="hover" data-container="body" title=""
+                           data-original-title="" data-placement="left">
+                            <i class="fa fa-question-circle" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </div>
+        
+                <div class="alert alert-success alert-dismissable" id="success-message" style="display: none;"
+                     role="alert"></div>
+                <div class="alert alert-danger alert-dismissable" id="error-message" style="display: none;"
+                     role="alert"></div>
+            </span>
+
+            
+            <!--	-------------------------------------------------------------------
+                    DETAILS
+                    -------------------------------------------------------------------
+              -->
+            <div class="col-md-12">
+                <div classXX="col-md-6" styleXX="margin-left: -10px">
+                    <h2>
+                        <strong>{{ workingset.name_highlighted|safe }}</strong>
+                        {% for item in request.BRAND_GROUPS %}
+                            {% for brand, groups in item.iteritems %}
+                                {% if workingset.group.name in groups %}
+                                    <img style="margin-top:-5px;" src="{% static 'img/brands/' %}{{ brand }}/logo.png"
+                                         height="29px" title="{{ brand }}" alt="{{ brand }}"/>
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    </h2>
+                    <span><i>{{ workingset.author_highlighted|safe }}</i></span>
+                    <br>
+                    <br>
+                </div>
+
+
+                <div class="row"></div>
+                <div class="row" style="margin-top: 10px;">
+                    <div class="col-sm-2">ID</div>
+                    <div class="col-sm-10">
+					<span id="workingset_id_div" workingset_id="{{ workingset.id }}">
+						{{ workingset.id }}						
+					</span>
+                    </div>
+                </div>
+
+                <div class="row" style="margin-top: 10px;">
+                    <div class="col-sm-2">Version ID</div>
+                    <div class="col-sm-10">
+						<span id="workingset_history_id_div" workingset_history_id="{{ workingset.history_id }}">
+							{{ workingset.history_id }}
+                            {% if user.is_authenticated %}
+                                &nbsp;&nbsp;
+                                &nbsp;&nbsp;
+                                {% if is_latest_version %}
+                                    <span class="tag label" style='background-color:#F98E2B;'>LATEST VERSION</span>
+                                {% else %}
+                                    <span class="tag label label-default">HISTORICAL VERSION</span>
+                                {% endif %}
+                            {% endif %}
+						</span>
+                    </div>
+                </div>
+
+                <div class="row" style="margin-top: 10px;">
+                    <div class="col-sm-2">Type</div>
+                    <div class="col-sm-10">
+					<span id="workingset_type_div" phenotype_type="{{ workingset.type }}">
+                        {% if workingset_type|length %}
+                            <span class="badge phenotype-type-badge card-tag-sizing"><i><strong>{{ workingset_type }}</i></strong></span>
+                        {% else %}
+                            <span class="card-no-data">Unknown type</span>
+                        {% endif %}
+					</span>
+                    </div>
+                </div>
+                
+                <div class="row" style="margin-top: 10px;">
+                    <div class="col-sm-2">Data Sources</div>
+                    <div class="col-sm-10">
+                        {% for ds in data_sources %}
+                            {% if ds.url|length %}
+                                <a href="{{ ds.url }}" target=_blank rel="noopener noreferrer">{{ ds.name }}</a>
+                            {% else %}
+                                {{ ds.name }}
+                            {% endif %}
+                            {% if not forloop.last %}
+                                ,
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {% if user.is_authenticated %}
+                <div class="row" style="margin-top: 10px;">
+                    <div class="col-sm-2">Modified Date</div>
+                    <div class="col-sm-10">
+                        {{ workingset.modified }}
+                    </div>
+                </div>
+                {% endif %}
+                <div class="row" style="margin-top: 10px;">
+                    <div class="col-sm-2">Published Date</div>
+                    <div class="col-sm-10">
+                        {{ workingset.created }}
+                    </div>
+                </div>
+
+				<div class="row" style="margin-top: 10px;">
+					<div class="col-sm-2">Collections</div>
+					<div class="col-sm-10">
+						{% if has_collections %}
+							{% for tag in collections %}
+								{% if tag.tag_type == 2 %}
+								<span class="tag label label-{{ tag.get_display_display }} card-edit-sizing">{{ tag.description }}</span>
+								{% endif %}
+							{% endfor %}	
+						{% else %}
+							<span class="card-no-data">No collections</span>
+						{% endif %}		
+					</div>	
+				</div>
+				
+				<div class="row" style="margin-top: 10px;">
+					<div class="col-sm-2">Tags</div>
+					<div class="col-sm-10">
+						{% if has_tags %}
+							{% for tag in tags %}
+								{% if tag.tag_type == 1 %}
+								<span class="tag label label-{{ tag.get_display_display }} card-edit-sizing">{{ tag.description }}</span>
+								{% endif %}
+							{% endfor %}	
+						{% else %}
+							<span class="card-no-data">No tags</span>
+						{% endif %}		
+					</div>	
+				</div>	
+
+            </div>
+
+
+            <!--	-------------------------------------------------------------------
+                    DESCRIPTION
+                    -------------------------------------------------------------------
+              -->
+              <div class="col-sm-12 shadow-frame">
+                <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
+                        id="Description"></span><strong>Description</strong></h3>
+                {% if workingset.description_highlighted|length %}
+                {{ workingset.description_highlighted|markdownify }}
+                {% else %}
+                <span class="card-no-data">No data available</span>
+                {% endif %}
+            </div>
+
+            <!--	-------------------------------------------------------------------
+                    CITATION REQUIREMENTS
+                    -------------------------------------------------------------------
+              -->
+              <div class="col-sm-12 shadow-frame">
+                <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
+                        id="CitationRequirements"></span><strong>Citation Requirements</strong></h3>
+                {% if workingset.citation_requirements|length %}
+                {{ workingset.citation_requirements|markdownify }}
+                {% else %}
+                <span class="card-no-data">No data available</span>
+                {% endif %}
+            </div>
+
+            <!--	-------------------------------------------------------------------
+                    PUBLICATIONS
+                    -------------------------------------------------------------------
+              -->
+            <div class="col-sm-12 shadow-frame">
+                <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
+                        id="Publications"></span><strong>Publications</strong></h3>
+
+
+                <div class="markdown-holder">
+                    {% if workingset.publications|length %}
+                        <ul>
+                            {% for p in workingset.publications_highlighted %}
+                                <li>{{ p|markdownify }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                    <span class="card-no-data">No data available</span>
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <!--	-------------------------------------------------------------------
+                    PUBLICATIONS
+                    -------------------------------------------------------------------
+              -->
+            <div class="col-sm-12 shadow-frame">
+                <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
+                        id="ClinicalCodeList"></span><strong>Clinical Code List</strong></h3>
+                <div class="dropdown btn-group" style="float: right;">
+                    <button {% if not user_can_export %} disabled
+                                                            title="Component concept(s) deleted or revoked access!" {% endif %}
+                                                            type="button" class="btn btn-primary dropdown-toggle"
+                                                            data-toggle="dropdown" aria-haspopup="true"
+                                                            aria-expanded="false" id="export-btn-codelist">
+                        Export Code List <i class="caret"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a {% if user_can_export %}
+                                href="{% url 'history_phenotypeworkingset_codes_to_csv' pk=workingset.id workingset_history_id=workingset.history_id %}" {% endif %}
+                                class="dropdown-item">
+                                CSV
+                            </a>                        
+                        </li>
+                        <li>
+                            {% if user.is_authenticated %}
+                                <a {% if user_can_export %}
+                                    href="{% url 'api:api_export_phenotypeworkingset_codes_byVersionID' pk=workingset.id workingset_history_id=workingset.history_id %}?format=json"
+                                    target=_blank {% endif %}
+                            {% elif enable_publish %}
+                                <a {% if user_can_export %}
+                                href="{% url 'api:api_export_published_phenotypeworkingset_codes' pk=workingset.id workingset_history_id=workingset.history_id %}?format=json"
+                                target=_blank {% endif %}
+                            {% endif %}
+                                class="dropdown-item">
+                                JSON
+                            </a>
+                        </li>
+                        <li>
+                            {% if user.is_authenticated %}
+                                <a {% if user_can_export %}
+                                    href="{% url 'api:api_export_phenotypeworkingset_codes_byVersionID' pk=workingset.id workingset_history_id=workingset.history_id %}?format=xml"
+                                    target=_blank {% endif %}
+                            {% elif enable_publish %}
+                                <a {% if user_can_export %}
+                                href="{% url 'api:api_export_published_phenotypeworkingset_codes' pk=workingset.id workingset_history_id=workingset.history_id %}?format=xml"
+                                target=_blank {% endif %}
+                            {% endif %}
+                                class="dropdown-item">
+                                XML
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <table class="table display-table" id="attributes-table" style="width:100%; display:none">
+
+                </table>
+            </div>
+
+            <!--	-------------------------------------------------------------------
+                    PERMISSIONS
+                    -------------------------------------------------------------------
+              -->
+            {% if user.is_authenticated %}
+                <div class="col-sm-12 shadow-frame">
+                    <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;">
+                        <span id="Permissions"></span><strong>Permissions</strong>
+                    </h3>
+                    <div id="permissions" class="row">
+                        <div  class="col-sm-2">Owner</div>
+                        <div class="col-sm-4">
+                            <span>{{ workingset.owner.username }}</span>
+                        </div>
+                        <div  class="col-sm-2">Owner access</div>
+                        
+                        <div class="col-sm-4">
+                            {% if workingset.owner_access == 1 %}	
+                                <span class="card-noweight">None</span>
+                            {% elif workingset.owner_access == 2 %}
+                                <span class="card-noweight">View only</span>
+                            {% elif workingset.owner_access == 3 %}
+                                <span class="card-noweight">View and edit</span>
+                            {% else %}
+                                <span class="card-noweight">Unknown</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <hr class="small-divider"/>
+                    <div id="permissions" class="row">
+                        <div  class="col-sm-2">Group</div>
+                        <div class="col-sm-4">
+                            {% if workingset.group %}
+                            <span>{{ workingset.group }}</span>
+                            {% else %}
+                            <span class="card-no-data">No associated group</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-sm-2">Group access</div>
+                        <div class="col-sm-4">
+                            {% if workingset.group_access == 1 %}	
+                                <span class="card-noweight text-right">No Access</span>
+                            {% elif workingset.group_access == 2 %}
+                                <span class="card-noweight text-right">View only</span>
+                            {% elif workingset.group_access == 3 %}
+                                <span class="card-noweight text-right">View and edit</span>
+                            {% else %}
+                                <span class="card-noweight text-right">Unknown</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <hr class="small-divider"/>
+                    <div id="permissions" class="row">
+                        <div class="col-sm-2">All other users</div>
+                        <div class="col-sm-10">
+                            {% if workingset.world_access == 1 %}	
+                                <span>No access</span>
+                            {% elif workingset.world_access == 2 %}
+                                <span>View only</span>
+                            {% elif workingset.world_access == 3 %}
+                                <span>View and edit</span>
+                            {% else %}
+                                
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!--	-------------------------------------------------------------------
+                        api
+                        -------------------------------------------------------------------
+                  -->
+                <div class="col-sm-12 no-print shadow-frame">
+                    <h3 class="paneltitle" id="API_Header" style="margin-top:20px; margin-bottom:20px;"><span
+                            id="API"></span><strong>API</strong></h3>
+    
+                    <span id="api_id" phenotype_id="{{ phenotype.id }}">
+                    <p> To Export Working Set Details:</p>
+    
+                    <table class="table table-striped table-responsive-md table-flex-rows">
+                      <tr>
+                        <th>Format</th>
+                        <th>API</th>
+                      </tr>
+                      <tr>
+                        <td>XML</td>
+                        <td>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'api:api_phenotypeworkingset_detail_version' workingset.id workingset.history_id %}?format=xml"
+                               target=_blank>site_root{% url 'api:api_phenotypeworkingset_detail_version' workingset.id workingset.history_id %}?format=xml</a>
+                        {% else %}
+                            <a href="{% url 'api:api_phenotypeworkingset_detail_public' workingset.id workingset.history_id %}?format=xml"
+                               target=_blank>site_root{% url 'api:api_phenotypeworkingset_detail_public' workingset.id workingset.history_id %}?format=xml</a>
+                        {% endif %}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>JSON</td>
+                        <td>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'api:api_phenotypeworkingset_detail_version' workingset.id workingset.history_id %}?format=json"
+                               target=_blank>site_root{% url 'api:api_phenotypeworkingset_detail_version' workingset.id workingset.history_id %}?format=json</a>
+                        {% else %}
+                            <a href="{% url 'api:api_phenotypeworkingset_detail_public' workingset.id workingset.history_id %}?format=json"
+                               target=_blank>site_root{% url 'api:api_phenotypeworkingset_detail_public' workingset.id workingset.history_id %}?format=json</a>
+                        {% endif %}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>R Package</td>
+                        <td>
+                            <code class="api-codeblock">
+                                <p class="code-comment-highlight">
+                                    # <a href="https://github.com/SwanseaUniversityMedical/ConceptLibraryClient">Download here</a>
+                                </p>
+                                <p class="code-general-highlight">
+                                    library(ConceptLibraryClient)
+                                </p>
+                                <br>
+                                <p class="code-comment-highlight">
+                                    # Connect to API
+                                </p>
+                                <p class="code-general-highlight">
+                                    client = connect_to_API(public=<span class="code-value-highlight">{% if user.is_authenticated %}FALSE{% else %}TRUE{% endif %}</span>)
+                                </p>
+                                <br>
+                                <p class="code-comment-highlight">
+                                    # Get details of workingset
+                                </p>
+                                <p class="code-general-highlight">
+                                    details = get_workingset_detail_by_version(<span class="code-text-highlight">'{{ workingset.id }}'</span>, 
+                                        <span class="code-text-highlight">'{{ workingset.history_id }}'</span>, 
+                                        api_client=client)
+                                </p>
+                            </code>
+                        </td>
+                      </tr>
+                    </table>
+                    <p> To Export Working Set Code List:</p>
+                        <table class="table table-striped table-responsive-md table-flex-rows">
+                      <tr>
+                        <th>Format</th>
+                        <th>API</th>
+                      </tr>
+    
+                          <tr>
+                        <td>XML</td>
+                        <td>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'api:api_export_phenotypeworkingset_codes_byVersionID' pk=workingset.id workingset_history_id=workingset.history_id %}?format=xml"
+                               target=_blank>site_root{% url 'api:api_export_phenotypeworkingset_codes_byVersionID' workingset.id workingset.history_id %}?format=xml</a>
+                        {% else %}
+                            <a href="{% url 'api:api_export_published_phenotypeworkingset_codes' pk=workingset.id workingset_history_id=workingset.history_id %}?format=xml"
+                               target=_blank>site_root{% url 'api:api_export_published_phenotypeworkingset_codes' workingset.id workingset.history_id %}?format=xml</a>
+                        {% endif %}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>JSON</td>
+                        <td>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'api:api_export_phenotypeworkingset_codes_byVersionID' workingset.id workingset.history_id %}?format=json"
+                               target=_blank>site_root{% url 'api:api_export_phenotypeworkingset_codes_byVersionID' workingset.id workingset.history_id %}?format=json</a>
+                        {% else %}
+                            <a href="{% url 'api:api_export_published_phenotypeworkingset_codes' pk=workingset.id workingset_history_id=workingset.history_id %}?format=json"
+                               target=_blank>site_root{% url 'api:api_export_published_phenotypeworkingset_codes' workingset.id workingset.history_id %}?format=json</a>
+                        {% endif %}
+                        </td>
+    
+                      </tr>
+					  <tr>
+						{% if user_can_export %}
+	                        <tr>
+	                        <td>CSV</td>
+	                        <td>
+	                        <a href="{% url 'history_phenotypeworkingset_codes_to_csv' pk=workingset.id workingset_history_id=workingset.history_id %}"
+	                           target=_blank>site_root{% url 'history_phenotypeworkingset_codes_to_csv' workingset.id workingset.history_id %}</a>
+	                    {% endif %}
+	                  </tr>                      
+                      <tr>
+                        <td>R Package</td>
+                        <td>
+                            <code class="api-codeblock">
+                                <p class="code-comment-highlight">
+                                    # <a href="https://github.com/SwanseaUniversityMedical/ConceptLibraryClient">Download here</a>
+                                </p>
+                                <p class="code-general-highlight">
+                                    library(ConceptLibraryClient)
+                                </p>
+                                <br>
+                                <p class="code-comment-highlight">
+                                    # Connect to API
+                                </p>
+                                <p class="code-general-highlight">
+                                    client = connect_to_API(public=<span class="code-value-highlight">{% if user.is_authenticated %}FALSE{% else %}TRUE{% endif %}</span>)
+                                </p>
+                                <br>
+                                <p class="code-comment-highlight">
+                                    # Get codelists of workingset
+                                </p>
+                                <p class="code-general-highlight">
+                                    codelists = get_workingset_code_list(<span class="code-text-highlight">'{{ workingset.id }}'</span>, 
+                                    <span class="code-text-highlight">'{{ workingset.history_id }}'</span>, 
+                                    api_client=client)
+                                </p>
+                            </code>
+                        </td>
+                      </tr>
+                    </table>
+                </span>
+                </div>
+            {% endif %}
+
+            <!--	----------------------------- --------------------------------------
+                    VERSION HISTORY
+                    -------------------------------------------------------------------
+              -->
+              <div class="col-sm-12 no-print shadow-frame" id="history-section">
+                <h3 class="paneltitle" id="ClinicalCodeHistory" style="margin-top:20px; margin-bottom:20px;"><span
+                        id="CodeListsVersions"></span><strong>Version History</strong></h3>
+
+
+                <span>
+	  	  		{% if user.is_authenticated %}
+                    <div class="row">
+					<div class="col-sm-11" id="help-workingset-history-container"></div>
+					<div class="col-sm-1 text-right">
+						<a href="#" role="button" class="popovers" id="help-workingset-history"
+                           data-container="#help-workingset-history-container" data-toggle="popover" data-trigger="hover"
+                           title="" data-original-title="Version History" data-placement="left">
+							<i class="fa fa-question-circle" aria-hidden="true"></i>
+						</a>
+					</div>
+				</div>
+                {% endif %}
+                    <div class="pre-scrollable">
+					{% include '../phenotypeworkingset/partial_history_list.html' %}
+			   	    </div>	
+			</span>
+
+            </div>
+
+            <!--	-------------------------------------------------------------------
+                    HELP POP-UP TEXTS
+                    -------------------------------------------------------------------
+              -->
+            {% if user.is_authenticated %}
+              <div id="popover-content-help-workingset-history" class="hide popover-lg">
+                  <p>
+                      Every time you make any change to a Working Set it is audited.
+                  </p>
+                  <p>
+                      You can view a Working Set from a specific point in time by clicking the View link at the required
+                      save
+                      point.
+                  </p>
+                  <p>
+                      Within the view you can revert changes and restore a Working Set back to a specific point in time.
+                  </p>
+                  <p>
+                      You can fork and create a new Working Set from a specific point in time.
+                  </p>
+              </div>
+          {% endif %}
+        </div>
+    </div>
+
+{% endblock container %}
+
+
+
+
+
+
+{% block scripts %}
+    <script src="{% static 'js/clinicalcode/component.js' %}"></script>
+    <script src="{% static 'js/clinicalcode/concept.js' %}"></script>
+    <script src="{% static 'js/clinicalcode/dataService.js' %}"></script>
+
+    <script type="text/javascript">
+        var workingset_id = "{{ workingset.id }}";
+        var workingset_history_id = "{{ workingset.history_id }}";
+        var highlight_result = {{ force_highlight_result }};
+
+        // Create datatable for workingset concepts, assoc. phenotypes & attributes
+        var dataset = {{ workingset_attributes|safe }};
+        var attributes = dataset.map(e => e.Attributes.map(x => [{[x.name]: x.value}]).flat().reduce((a, b) => {
+            return Object.assign(a, b);
+        }));
+
+        var simple = 0;
+        var concepts  = dataset.map(e => [{
+                name: `${e.concept_id}/${e.concept_version_id} - ${e.concept_name}`,
+                concept_id: e.concept_id,
+                concept_version_id: e.concept_version_id,
+                phenotype_id: e.phenotype_id,
+                phenotype_version_id: e.phenotype_version_id,
+                phenotype_id_and_version_id: `${e.phenotype_id}/${e.phenotype_version_id}`,
+                component_hash: simple++
+            }])
+            .flat();
+        
+        var datatypes = [...new Set(dataset.map(e => e.Attributes.map(x => x.type)).flat())];
+        var headers   = [...new Set(attributes.map(e => Object.keys(e)).flat())];
+        headers = Object.entries(headers).map(([i, e]) => [{data: e, title: `${e} (${datatypes[i]})`}]).flat();
+
+        headers.unshift({data: 'component_hash', title: 'Hash', searchable: false, visible: false});
+        headers.unshift({data: 'concept_id', title: 'Concept ID', searchable: false, visible: false});
+        headers.unshift({data: 'concept_version_id', title: 'Concept Version', searchable: false, visible: false});
+        headers.unshift({data: 'phenotype_id', title: 'Phenotype ID', searchable: false, visible: false});
+        headers.unshift({data: 'phenotype_version_id', title: 'Phenotype Version', searchable: false, visible: false});
+
+        headers.unshift({
+            data: 'phenotype_id_and_version_id',
+            title: 'Phenotype ID/Version ID',
+            render: (data, type, row, meta) => {
+                if(type === 'display') {
+                    data = `<a href="/phenotypes/${row.phenotype_id}/version/${row.phenotype_version_id}/detail/">${data}</a>`;
+                }
+
+                return data;
+            },
+        });
+
+        headers.unshift({
+            data: 'name',
+            title: 'Concept (ID/Version)',
+            render: (data, type, row, meta) => {
+                if(type === 'display') {
+                    data = `<a href="/concepts/${row.concept_id}/version/${row.concept_version_id}/detail/">${data}</a>`;
+                }
+
+                return data;
+            }
+        });
+
+        attributes = Object.entries(attributes).map(([i, e]) => Object.assign(e, concepts[i]));
+        headers.unshift({
+            className: 'dt-control',
+            orderable: false,
+            data: null,
+            defaultContent: '',
+        });
+
+        var table = $('#attributes-table').DataTable({
+            data: attributes,
+            columns: headers,
+            ordering: false,
+        });
+
+        // Code list handling
+        var dataCache = { };
+        var createFoldout = (row) => {
+            var data = row.data();
+            return `<div class="foldout-data-table">
+                <div class="row">
+                    <div class="col-md-6">
+                        <span id="codesCount_c${data.concept_version_id}-${data.component_hash}" class="codesCount label label-primary">Codes: 0</span>
+                    </div>
+                </div>
+                <table class="table table-striped table-responsive-md display-table" style="width: 100%" id="codelist-tab-table-c${data.concept_version_id}-${data.component_hash}">
+                    <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>`;
+        }
+
+        var createHeaders = () => {
+            return `<th>Code</th>
+                    <th>Description</th>`
+        }
+
+        var showConceptsCodes = (data, concept_codes_html_list, headers) => {
+            var v = concept_codes_html_list[0];
+            if (typeof v === 'undefined')
+                return;
+            
+            var $head = $(`#codelist-tab-table-c${v.concept_version_id}-${data.component_hash} thead tr`);
+            $head.empty();
+            $head.html(createHeaders());
+            for (var i = 0; i < headers.length; i++) {
+                $head.append(`<th>${headers[i]}</th>`);
+            }
+            
+            $(`#codelist-tab-table-c${v.concept_version_id}-${data.component_hash} tbody`).html(v.c_html);
+            $(`#codesCount_c${v.concept_version_id}-${data.component_hash}`).text('Codes: ' + v.c_codes_count);
+            
+            var table = $(`#codelist-tab-table-c${v.concept_version_id}-${data.component_hash}`).DataTable({
+                "initComplete": function () {
+                    $(`#codelist-tab-table-c${v.concept_version_id}-${data.component_hash}`).addClass("specific_tablist")
+                },
+                "scrollX": true,
+                "scrollY": "700px",
+                "scrollCollapse": true,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+                "colReorder": true,
+                "rowReorder": true,
+            });
+        }
+
+        var showCodeList = (row) => {
+            var tab = row.child().find('.foldout-data-table');
+            var data = row.data();
+            var cached = dataCache[data.name];
+
+            // Grab data from server if not cached
+            if (typeof cached === 'undefined') {
+                dataService.getWorkingSetUniqueCodesByVersion(workingset_id, workingset_history_id, data.concept_id, data.concept_version_id, highlight_result, function (res) {
+                    if (!res.form_is_valid)
+                        return;
+                        
+                    dataCache[data.name] = res;
+                    showConceptsCodes(data, res.concept_codes_html, res.headers);
+                });
+
+                return;
+            }
+
+            showConceptsCodes(data, cached.concept_codes_html, cached.headers);
+        }
+
+        // Load code list (from cache, or by an AJAX request) when the data table control is clicked
+        $('#attributes-table tbody').on('click', 'td.dt-control', function () {
+            var tr = $(this).closest('tr');
+            var row = table.row(tr);
+            if (row.child.isShown()) {
+                row.child.hide();
+                tr.removeClass('shown');
+                return;
+            }
+
+            row.child(createFoldout(row)).show();
+            showCodeList(row);           
+            tr.addClass('shown');
+        });
+        
+        $('#attributes-table').show();
+
+    </script>
+
+    <script type="text/javascript">
+        $("#printBtn").click(function () {
+            //window.print();
+            printPage(printCallback);
+        })
+
+        function printPage(callback) {
+            // before printing hide all unnecessary elements from webpage
+            $('.btn').hide();
+            //$('#history-section').hide();
+            $('#PhenotypeMenu').hide();
+            $('#topButtons').hide();
+            $('footer').hide();
+            $('.popovers').hide();
+
+			// Hide elements of table for printing
+            {% if not user.is_authenticated %}
+                var table = $('.display-table');
+                table.DataTable().destroy();
+                table.DataTable({
+                    "searching":false,
+                    "paging":false,
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]]
+                });
+            {% endif %}
+
+
+
+
+            {% if user.is_authenticated %}
+                $('#codelist-div-container').removeClass('pre-scrollable');
+            {% endif%}
+			
+            // change paper orientation to landscape
+            var css = '@page { size: landscape; }',
+            head = document.head || document.getElementsByTagName('head')[0],
+            style = document.createElement('style');
+
+	        style.type = 'text/css';
+	        style.media = 'print';
+	
+	        if (style.styleSheet){
+	          style.styleSheet.cssText = css;
+	        } else {
+	          style.appendChild(document.createTextNode(css));
+	        }
+	
+	        head.appendChild(style);
+        
+
+            window.print();
+
+            // call printCallback function which shows back hidden elements
+            callback();
+        }
+
+        function printCallback() {
+            // when printing is finished or cancel show all hidden elements
+            //$('#history-section').show();
+            $('#PhenotypeMenu').show();
+            $('#topButtons').show();
+            $('footer').show();
+            $('.btn').show();
+            $('.popovers').show();
+
+			// restore the table if user not login when printing finished
+			{% if not user.is_authenticated %}
+                 var table = $('.display-table');
+                table.DataTable().destroy();
+                table.DataTable({
+                	"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]]
+                });
+            {% endif %}
+
+
+            {% if user.is_authenticated %}
+                $('#codelist-div-container').addClass('pre-scrollable');
+            {% endif%}
+        }
+
+    </script>
+
+    <script type="text/javascript">
+
+    // make api urls with site name
+        $(function () {
+            var v = $('#api_id').html();
+            v = v.replace(/site_root/g, 'http://' + document.location.host);
+            $('#api_id').html(v);
+        });
+    </script>
+
+{% endblock scripts %}

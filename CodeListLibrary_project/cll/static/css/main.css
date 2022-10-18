@@ -1109,3 +1109,290 @@ code.api-codeblock .code-value-highlight {
 code.api-codeblock .code-text-highlight, .code-comment-highlight {
   color: #009700;
 }
+
+/* Modal for working set */
+@media (min-width:1202px){
+  .modal-xl{width:1200px}
+}
+
+.ws-header {
+  padding-bottom: 0px;
+  margin-left: 0px;
+}
+
+.ws-nav {
+  margin-left: 0px;
+  margin-right: 0px;
+  width: 100%;
+  border-bottom: none;
+}
+
+.ws-nav li, .ws-nav li a {
+  border-bottom: none;
+}
+
+.ws-nav li.active {
+  border-bottom: 2px #fff;
+}
+
+.ws-content {
+  width: 100%;
+  margin: 0px;
+  padding: 0px;
+}
+
+.ws-tab-content {
+  padding: 0px;
+  margin: 0px;
+  width: 100%;
+  height: 600px;
+}
+
+.ws-tab-panel {
+  overflow-x: hidden;
+  padding-left: 10px;
+  padding-right: 10px;
+  width: 100%;
+  margin: 0px;
+}
+
+.ws-sidebar {
+  height: 600px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.ws-border {
+  border-right: 1px solid rgba(109, 109, 109, 0.5);
+}
+
+.ws-group {
+  padding-top: 5px;
+  padding-bottom: 0px;
+}
+
+.ws-no-padding {
+  margin: 0px;
+  padding: 0px;
+}
+
+.ws-sm-padding {
+  padding: 5px;
+  margin: 0px;
+}
+
+.ws-md-padding {
+  padding: 5px;
+  margin: 5px;
+}
+
+.ws-group h1 {
+  font-weight: bolder;
+  color: #333;
+  font-size: 14px;
+  margin-top: 10px;
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(109, 109, 109, 0.5);
+}
+
+.ws-box {
+  padding-top: 0px;
+}
+
+.ws-result-container {
+  margin: 0px;
+  padding: 5px 5px 10px 5px;
+  height: 600px;
+}
+
+.ws-selected-container {
+  margin: 0px;
+  padding: 5px;
+  height: 600px;
+}
+
+.ws-results {
+  margin: 0px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding-right: 5px;
+  padding-left: 5px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  height: 550px;
+}
+
+.ws-filter-box {
+  padding-right: 0px;
+  padding-left: 0px;
+  width: 100%;
+}
+
+.ws-lg-margin {
+  margin: 5px 20px 10px 20px;
+}
+
+.ws-selected-box {
+  padding: 10px !important;
+  height: 525px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.ws-none-selected {
+  text-align: center;
+  font-weight: bold;
+  margin: 10px;
+}
+
+.ws-well-background {
+  background-color: #F7F9Fc;
+  background-image: none;
+  padding: 0px;
+}
+
+.ws-well-concepts {
+  padding: 5px;
+  margin: 0px;
+}
+
+.ws-results::-webkit-scrollbar, .ws-sidebar::-webkit-scrollbar, .ws-selected-box::-webkit-scrollbar {
+  width: 6px;
+  height: 12px;
+}
+
+.ws-results::-webkit-scrollbar-track, .ws-sidebar::-webkit-scrollbar-track, .ws-selected-box::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.ws-results::-webkit-scrollbar-thumb, .ws-sidebar::-webkit-scrollbar-thumb, .ws-selected-box::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: #ccc;
+}
+
+.ws-results::-webkit-scrollbar-thumb:hover, .ws-sidebar::-webkit-scrollbar-thumb:hover, .ws-selected-box::-webkit-scrollbar-thumb:hover {
+  background: #999;  
+}
+
+.ws-notify-bubble {
+  position: absolute;
+  right: -7px;
+  top: -5px;
+  padding: 2px 4px;
+  background: #0088ff;
+  font-size: 10px;
+  color: #fff;
+  border-radius: 3px;
+  display: block;
+}
+
+.ws-id-title {
+  color: #919191;
+}
+
+.ws-page-control {
+  height: 50px;
+  margin-left: 5px;
+}
+
+.ws-no-hover:hover {
+  background-color: #FFFFFF;
+}
+
+.ws-no-hover.dark-div {
+  background-color: #F7F9FC;
+}
+
+.ws-disabled-link {
+  pointer-events: none;
+}
+
+.ws-trash {
+  margin-right: 10px;
+}
+
+
+/* Modifiers */
+.card-coding-block {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  background-color: #CCDAE1;
+  padding: 2px;
+  border-radius: 0.25rem;
+}
+
+.card-coding-item {
+  margin: 0 0.5rem 0 0;
+}
+
+.phenotype-type-badge {
+  background-color: #f9f2f4;
+  border-radius: 0.25rem;
+}
+
+.card-date-badge {
+  background-color: #BED8D4;
+  border-radius: 0.25rem;
+}
+
+.card-date-block {
+  display: inline-flex;
+  margin: 0 5px 0 0;
+}
+
+.card-noweight {
+  font-weight: normal;
+}
+
+.card-tag-sizing {
+  padding: 5px;
+  line-height: 1;
+  display: inline-block;
+  margin: 0;
+}
+
+.card-edit-sizing {
+  padding: 5px 10px 5px 10px ;
+  line-height: 1;
+  display: inline-block;
+  margin: 0;
+}
+
+.card-no-data {
+  color:rgba(109, 109, 109, 0.5);
+}
+
+.justified-label {
+  display: inline-flex;
+  min-width: 18rem;
+  justify-content: space-between;
+}
+
+.small-divider {
+  margin: 5px 0 5px 0;
+}
+
+.top-heavy-divider {
+  margin: 10px 0 10px 0;
+}
+
+.gender-badge-Male {
+  background-color:#E2F0CB
+}
+
+.gender-badge-Female {
+  background-color: #FFB7B2
+}
+
+.cl-card-with-buttons {
+  padding: 20px 20px 5px 20px;
+}
+
+/* Workingset datable modifiers */
+.foldout-data-table {
+  padding-left: 5px;
+}
+

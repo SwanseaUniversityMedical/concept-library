@@ -10,10 +10,20 @@
 			<div class="cl-card {% if phenotype.is_deleted is True %} cl-card-deleted{% endif %} {% cycle ' dark-div ' '' %}   "
                         {% if phenotype.approval_status == 1 and phenotype.owner_id == request.user.id or request.user|has_group:"Moderators" and phenotype.approval_status == 1 %}title="Waiting for approval"{% endif %}>
 				<div class="row form-group">
-					<div class="col-sm-12">
+					<div class="col-sm-8">
 						<a class="" href="{% url 'phenotype_history_detail' phenotype.id phenotype.history_id %}">
-						<span style='font-size: 22px;margin-top:0;'>{{ phenotype.friendly_id }} - {{ phenotype.name_highlighted|safe }}</span>
+						<span style='font-size: 22px;margin-top:0;'>{{ phenotype.id }} - {{ phenotype.name_highlighted|safe }}</span>
 						</a>				
+					</div>
+
+					<div class="col-sm-4 text-right">
+						<span class="badge card-date-badge">
+							{% if user.is_authenticated %}
+								<span class="card-date-block">Modified:</span><i class="card-noweight">{{ phenotype.modified|date:"Y-m-d" }}</i>
+							{% else %}	
+								<span class="card-date-block">Published:</span><i class="card-noweight">{{ phenotype.publish_date|date:"Y-m-d" }}</i>
+							{% endif %}
+						</span>
 					</div>
 				</div>
 				
@@ -26,51 +36,41 @@
 				</div>
 				
 				<div class="row form-group">
-					<div class="col-sm-4">
+
+					<div class="col-sm-4 text-justify">
 						<!-- CodingSystems -->
 						{% for cs in all_CodingSystems %}
 							{% for cs_id in phenotype.clinical_terminologies %}
 								{% if cs.id == cs_id %}
-							   		<span class="badge">{{ cs.name }}</span>
-							   	{% endif %}
+
+									<span class="badge card-coding-item"><i></i>{{ cs.name }}</span>
+								{% endif %}
 							{% endfor %}						
-						{% endfor %}	
+						{% endfor %}
 					</div>
-					<div class="col-sm-4">
-						<i><strong>{{ phenotype.type }}</i></strong>
+					<div class="col-sm-4 text-center">
+						<span class="badge phenotype-type-badge card-tag-sizing"><i><strong>{{ phenotype.type }}</i></strong></span>
+					</div>			
+					{% if phenotype.tags %}	
+					<div class="col-sm-4 text-right">
+						<!-- tags -->
+						{% for tag in allTags %}
+							{% for tag_id in phenotype.tags %}
+								{% if tag.id == tag_id %}
+
+										<span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">{{ tag.description }}</span>
+									{% endif %}
+							{% endfor %}						
+						{% endfor %}			
 					</div>	
-					<div class="col-sm-4">
-						{% if user.is_authenticated %}
-							<i>{{ phenotype.modified|date:"Y-m-d" }}</i>
-						{% else %}	
-							<i>{{ phenotype.publish_date|date:"Y-m-d" }}</i>
-						{% endif %}
-					</div>
+					{% endif %}	
 
 <!-- 					<div class="col-sm-2 text-right">
 						{% if user.is_authenticated and phenotype.is_published == 1 %}
 							<span title="{{ phenotype.published }} on {{ phenotype.publish_date|date:"Y-m-d" }}" style="text-align: right;" ><i class="fa fa-paper-plane" aria-hidden="true"></i></span>
 						{% endif %}	
 					</div>	 -->
-				</div>
-				
-			{% if phenotype.tags %}
-				<div class="row form-group">
-					<div class="col-sm-12">
-						<!-- tags -->
-						{% for tag in allTags %}
-							{% for tag_id in phenotype.tags %}
-								{% if tag.id == tag_id %}
-							   		<span class="tag label label-{{ tag.get_display_display }}">{{ tag.description }}</span>
-							   	{% endif %}
-							{% endfor %}						
-						{% endfor %}			
-										
-					</div>	
 				</div>						
-			{% endif %}								
-					
-				
 	</div>				  
 	<br> 
 	{% empty %}
