@@ -828,7 +828,7 @@
 						    +'<option value="2">FLOAT</option>'
 						    +'<option value="3">STRING</option>'
 						  +'</select>`,
-                    ['Attributes-header' + numbers]: `<input class="input-material" type="text"  oninput = inputheader() placeholder="Attribute name"  id="attribute-header${numbers}"/>`
+                    ['Attributes-header' + numbers]: `<input class="input-material" type="text"  oninput="inputheader(this)" placeholder="Attribute name"  id="attribute-header${numbers}"/>`
                 }
             }
             let dataset = dataPrevious
@@ -873,18 +873,25 @@
         }
 
 
-        const inputheader = () => {
-            var table = $('#attributes-table').DataTable()
-            wrapData()
-
-            let val = event.target.value
-            let index = event.target.id.match(/\d+/)[0]
-            let dataPrevious = $('#phenotypes_concepts_json').val()
-            dataPrevious = JSON.parse(dataPrevious)
-            for (let i = 0; i < dataPrevious.length; i++) {
-                dataPrevious[i]['Attributes-header' + (index)] = `<input class="input-material" type="text" value="${val}" oninput = inputheader() placeholder="Attribute name"  id="attribute-header${index}"/>`
-                $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
+        const inputheader = (element) => {
+            let val = element.value
+            let index = element.id.match(/\d+/)[0]
+            if (/^[a-zA-Z0-9]+$/.test(val)) {
+                let dataPrevious = $('#phenotypes_concepts_json').val()
+                dataPrevious = JSON.parse(dataPrevious)
+                element.setCustomValidity("")
+                element.classList.remove('bg-danger')
+                for (let i = 0; i < dataPrevious.length; i++) {
+                    dataPrevious[i]['Attributes-header' + (index)] = `<input class="input-material" type="text" value="${val}" oninput="inputheader(this)" placeholder="Attribute name"  id="attribute-header${index}"/>`
+                    $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
+                }
+            } else {
+                element.setCustomValidity("Spaces and symbols are not allowed")
+                element.classList.add('bg-danger')
+                element.reportValidity()
+                element.value = (element.value.slice(0, -1));
             }
+
 
         }
 
