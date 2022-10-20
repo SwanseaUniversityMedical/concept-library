@@ -577,6 +577,7 @@
          * @param id of the HTML element
          */
         const addInput = (value, id) => {
+            wrapData()
             var html = '';
             html += '<div class="form-group">';
             html += '<div class="col-sm-12">';
@@ -629,8 +630,10 @@
                 // Clicked the 'Import Concepts' button, and imported 'selected'
                 var dataset = selected.map(element => {
                     return {
-                        "Data": element.phenotype.id + '/' + element.phenotype.version + '-' + element.concept.id + '/' + element.concept.version + '-' + element.concept.name
+                        "Data": `<a href="/phenotypes/${element.phenotype.id}/version/${element.phenotype.version}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${element.phenotype.id + '/' + element.phenotype.version}</a>` + '-' +
+                        `<a href="/concepts/${ element.concept.id}/version/${element.concept.version}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${element.concept.id + '/' + element.concept.version + '-' + element.concept.name}</a>`
                     }
+
                 })
 
                 // Check if table exist to update table or create table
@@ -934,6 +937,9 @@
 
 
         const wrapIds = (dataIds) => {
+            let element = new DOMParser().parseFromString(dataIds, "text/html")
+            element = element.links
+            dataIds = element[0].innerText + '-' + element[1].innerText
             let phenotype = dataIds.substring(dataIds.indexOf('PH'), dataIds.indexOf('-C'))
             let phenotype_id = phenotype.split('/')[0]
             let phenotype_version = phenotype.split('/')[1]
