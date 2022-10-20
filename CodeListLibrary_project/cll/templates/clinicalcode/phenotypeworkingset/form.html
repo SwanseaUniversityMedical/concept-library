@@ -631,7 +631,7 @@
                 var dataset = selected.map(element => {
                     return {
                         "Data": `<a href="/phenotypes/${element.phenotype.id}/version/${element.phenotype.version}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${element.phenotype.id + '/' + element.phenotype.version}</a>` + '-' +
-                        `<a href="/concepts/${ element.concept.id}/version/${element.concept.version}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${element.concept.id + '/' + element.concept.version + '-' + element.concept.name}</a>`
+                            `<a href="/concepts/${element.concept.id}/version/${element.concept.version}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${element.concept.id + '/' + element.concept.version + '-' + element.concept.name}</a>`
                     }
 
                 })
@@ -800,6 +800,8 @@
             if (id.startsWith("column_type")) {
                 let val = select.value
                 switch (parseInt(val)) {
+                    case 0:
+                        return false
                     case 1:
                         return 'INT'
                     case 2:
@@ -808,8 +810,10 @@
                         return 'STRING'
                 }
             } else {
+
                 return select.value
             }
+
 
         }
 
@@ -892,6 +896,7 @@
                 element.classList.add('bg-danger')
                 element.reportValidity()
                 element.value = (element.value.slice(0, -1));
+
             }
 
 
@@ -912,11 +917,16 @@
                         let type = dataPrevious[i]['Attributes-select' + j]
                         let attribute_name = dataPrevious[i]['Attributes-header' + j]
                         let attribute_value = dataPrevious[i]['Attributes-row' + j]
-                        mainData['Attributes'].push({
-                            name: returnValue(attribute_name, 'attribute-header' + j),
-                            type: returnValue(type, 'column_type' + j),
-                            value: returnValue(attribute_value, 'attribute-input-' + j)
-                        })
+                        if (returnValue(attribute_name, 'attribute-header' + j) && returnValue(type, 'column_type' + j)) {
+                            mainData['Attributes'].push({
+                                name: returnValue(attribute_name, 'attribute-header' + j),
+                                type: returnValue(type, 'column_type' + j),
+                                value: returnValue(attribute_value, 'attribute-input-' + j)
+                            })
+                        } else {
+                            return false
+                        }
+
 
                     }
                     arrayOfData.push(mainData)
@@ -927,13 +937,34 @@
 
 
             $('#workingset_data').val(JSON.stringify(arrayOfData))
+            return true
 
 
         }
 
         $('#save-changes').on('click', function (e) {
-            wrapData()
+            if (!wrapData()) {
+                e.preventDefault()
+            }
         })
+
+        const finalValidation = (input, select, header) => {
+            input = new DOMParser().parseFromString(input, "text/html")
+            select = new DOMParser().parseFromString(select, "text/html")
+            header = new DOMParser().parseFromString(header, "text/html")
+            input = input.querySelector('*[id^="attribute-input"]')
+            select = select.querySelector('*[id^="column_type"]')
+            header = header.querySelector('*[id^="attribute-header"]')
+            let header_cond = true
+            if (!/^[a-zA-Z0-9]+$/.test(header.value)) {
+                header.setCustomValidity("Spaces and symbols are not allowed")
+                header.classList.add('bg-danger')
+                header.reportValidity()
+                header_cond = false
+            }
+            console.log( $('#' + input.id).val())
+            return regexCheck(select.value, $('#' + input.id), input.value,false) && header_cond
+        }
 
 
         const wrapIds = (dataIds) => {
@@ -1053,8 +1084,11 @@
             let element = new DOMParser().parseFromString(type, "text/html")
             let select = element.querySelector('*[id^="column_type"]')
             let select_val = select.value
+            return regexCheck(select_val, input, val,true)
 
 
+        }
+        const regexCheck = (select_val, input, val, trim) => {
             switch (parseInt(select_val)) {
                 case 0:
                     input.addClass('bg-danger')
@@ -1071,7 +1105,9 @@
                         input.addClass('bg-danger')
                         input[0].setCustomValidity("Only integers")
                         input[0].reportValidity()
-                        input.val(input.val().slice(0, -1));
+                        {
+                            trim ? input.val(input.val().slice(0, -1)) : false
+                        }
                         return false
                     }
                 case 2:
@@ -1082,15 +1118,15 @@
                         input.addClass('bg-danger')
                         input[0].setCustomValidity("Only float numbers")
                         input[0].reportValidity()
-                        input.val(input.val().slice(0, -1));
+                        {
+                            trim ? input.val(input.val().slice(0, -1)) : false
+                        }
                         return false
                     }
                 case 3:
                     return true
 
             }
-
-
         }
 
 
