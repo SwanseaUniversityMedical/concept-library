@@ -642,7 +642,8 @@
                     table.rows().remove().draw()
                     let dataPrevious = $('#phenotypes_concepts_json').val() // restore old values
                     dataPrevious = JSON.parse(dataPrevious)
-                    let newObject = removalue(dataPrevious) // Use first row as example to take columns but delete value
+
+                    let newObject = removalue(dataPrevious,dataPrevious.length) // Use first row as example to take columns but delete value
                     let newData = []
                     for (let i = 0; i < dataset.length; i++) {
                         newData.push({
@@ -772,12 +773,16 @@
          * @param dataPrevious
          * @returns new input with empty value
          */
-        const removalue = (dataPrevious) => {
-            let removeVal = Object.entries(dataPrevious[0])
+        const removalue = (dataPrevious,length) => {
+            console.log(length-1)
+
+            let removeVal = Object.entries(dataPrevious[length-1])
+
             removeVal.forEach(element => {
                 let parse = new DOMParser().parseFromString(element[1], "text/html")
                 let input = parse.querySelector('*[id^="attribute-input"]');
                 if (input !== null) {
+                    console.log(input.id.substring(input.id.indexOf('row')))
                     input.setAttribute('value', '')
                     element[1] = $(input)[0].outerHTML
                 }
@@ -810,7 +815,6 @@
                         return 'STRING'
                 }
             } else {
-
                 return select.value
             }
 
@@ -825,9 +829,11 @@
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
             for (let i = 0; i < dataPrevious.length; i++) {
+
+
                 dataPrevious[i] = { // for all row start initialize the object keys and values but taking into account old row
                     ...dataPrevious[i],
-                    ["Attributes-row" + numbers]: `<input class="input-material" type="text"  style="width:100%" id="attribute-input-${numbers}"/>`,
+                    ["Attributes-row" + numbers]: `<input class="input-material" type="text"  style="width:100%" id="attribute-input-${'col'+numbers + 'row' + i}"/>`,
                     ["Attributes-select" + numbers]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=selectHeader() id="column_type${numbers}">'
 						    +'<option  value="0" selected >Type</option>'
 						    +'<option value="1">INT</option>'
@@ -883,20 +889,20 @@
             let val = element.value
             let index = element.id.match(/\d+/)[0]
             if (/^[a-zA-Z0-9]+$/.test(val)) {
-                let dataPrevious = $('#phenotypes_concepts_json').val()
-                dataPrevious = JSON.parse(dataPrevious)
                 element.setCustomValidity("")
                 element.classList.remove('bg-danger')
-                for (let i = 0; i < dataPrevious.length; i++) {
-                    dataPrevious[i]['Attributes-header' + (index)] = `<input class="input-material" type="text" value="${val}" oninput="inputheader(this)" placeholder="Attribute name"  id="attribute-header${index}"/>`
-                    $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
-                }
+                element.setAttribute('value', val)
             } else {
                 element.setCustomValidity("Spaces and symbols are not allowed")
                 element.classList.add('bg-danger')
+                element.setAttribute('value', val)
                 element.reportValidity()
-                element.value = (element.value.slice(0, -1));
-
+            }
+            let dataPrevious = $('#phenotypes_concepts_json').val()
+            dataPrevious = JSON.parse(dataPrevious)
+            for (let i = 0; i < dataPrevious.length; i++) {
+                dataPrevious[i]['Attributes-header' + (index)] = element.outerHTML
+                $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
             }
 
 
@@ -917,7 +923,10 @@
                         let type = dataPrevious[i]['Attributes-select' + j]
                         let attribute_name = dataPrevious[i]['Attributes-header' + j]
                         let attribute_value = dataPrevious[i]['Attributes-row' + j]
-                        if (returnValue(attribute_name, 'attribute-header' + j) && returnValue(type, 'column_type' + j)) {
+
+                        //console.log(finalValidation(attribute_value, type, attribute_name))
+
+                        if (finalValidation(attribute_value, type, attribute_name)) {
                             mainData['Attributes'].push({
                                 name: returnValue(attribute_name, 'attribute-header' + j),
                                 type: returnValue(type, 'column_type' + j),
@@ -955,15 +964,8 @@
             input = input.querySelector('*[id^="attribute-input"]')
             select = select.querySelector('*[id^="column_type"]')
             header = header.querySelector('*[id^="attribute-header"]')
-            let header_cond = true
-            if (!/^[a-zA-Z0-9]+$/.test(header.value)) {
-                header.setCustomValidity("Spaces and symbols are not allowed")
-                header.classList.add('bg-danger')
-                header.reportValidity()
-                header_cond = false
-            }
-            console.log( $('#' + input.id).val())
-            return regexCheck(select.value, $('#' + input.id), input.value,false) && header_cond
+            let header_cond = /^[a-zA-Z0-9]+$/.test(header.value)
+            return regexCheck(select.value, $('#' + input.id), input.value, false, false, false) && header_cond
         }
 
 
@@ -1066,12 +1068,10 @@
             let value = input.val()
             let rowIdx = cell.row
             let colindex = cell.column
-            if (checkTypeinput(input, value, rowIdx, colindex)) {
-                let dataPrevious = $('#phenotypes_concepts_json').val()
-                dataPrevious = JSON.parse(dataPrevious)
-                dataPrevious[rowIdx]['Attributes-row' + (colindex - 1)] = `<input class="input-material" type="text"  value="${value}" style="width:100%" id="attribute-input-${colindex - 1}"/>`
-                $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
-            }
+            let dataPrevious = $('#phenotypes_concepts_json').val()
+            dataPrevious = JSON.parse(dataPrevious)
+            dataPrevious[rowIdx]['Attributes-row' + (colindex - 1)] = checkTypeinput(input, value, rowIdx, colindex)[0].outerHTML
+            $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
 
 
         });
@@ -1084,47 +1084,62 @@
             let element = new DOMParser().parseFromString(type, "text/html")
             let select = element.querySelector('*[id^="column_type"]')
             let select_val = select.value
-            return regexCheck(select_val, input, val,true)
+            return regexCheck(select_val, input, val, false, true, true)
 
 
         }
-        const regexCheck = (select_val, input, val, trim) => {
+        const regexCheck = (select_val, input, val, trim, returninput, changeinp) => {
+
             switch (parseInt(select_val)) {
                 case 0:
                     input.addClass('bg-danger')
                     input.val($.trim(input.val()).slice(0, -1));
                     input[0].setCustomValidity("Choose type attribute")
                     input[0].reportValidity()
-                    return false
+                    return returninput ? input : false
 
                 case 1:
-                    if (/^-?\d+$|^[-]+$/.test(val)) {
+                    if (/(^[0-9]+$|^$|^\s$)/.test(val)) {
+                        {
+                            changeinp ? input.attr('value', val) : false
+                        }
                         input[0].setCustomValidity("");
-                        return true
+                        return returninput ? input : true
                     } else {
                         input.addClass('bg-danger')
+                        {
+                            changeinp ? input.attr('value', val) : false
+                        }
                         input[0].setCustomValidity("Only integers")
                         input[0].reportValidity()
                         {
                             trim ? input.val(input.val().slice(0, -1)) : false
                         }
-                        return false
+                        return returninput ? input : false
                     }
                 case 2:
                     if (/^([-])([0-9]{1,})?(\.)?([0-9]{1,})?$|^([0-9]{1,})?(\.)?([0-9]{1,})?$/.test(val)) {
                         input[0].setCustomValidity("");
-                        return true
+                        {
+                            changeinp ? input.attr('value', val) : false
+                        }
+                        return returninput ? input : true
                     } else {
                         input.addClass('bg-danger')
+                        {
+                            changeinp ? input.attr('value', val) : false
+                        }
                         input[0].setCustomValidity("Only float numbers")
                         input[0].reportValidity()
                         {
                             trim ? input.val(input.val().slice(0, -1)) : false
                         }
-                        return false
+                        return returninput ? input : false
                     }
-                case 3:
-                    return true
+                case 3: {
+                    changeinp ? input.attr('value', val) : false
+                }
+                    return returninput ? input : true
 
             }
         }
