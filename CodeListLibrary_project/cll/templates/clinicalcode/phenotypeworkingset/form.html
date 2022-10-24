@@ -790,6 +790,7 @@
                 let input = parse.querySelector('*[id^="attribute-input"]');
                 if (input !== null) {
                     input.setAttribute('value', '')
+                    input.classList.remove('bg-danger')
                     input.id = input.id.slice(0, -1) + length
                     element[1] = $(input)[0].outerHTML
                 }
@@ -810,7 +811,6 @@
 
                         let newRowID = input.id.substring(input.id.indexOf('row')).replace(/[0-9]/g, i.toString())
                         input.id = input.id.replace(/^row/g, newRowID)
-                        console.log(input.id)
                         element[1] = $(input)[0].outerHTML
                     }
                     return element
@@ -978,12 +978,11 @@
         }
 
         $('#save-changes').on('click', function (e) {
-            if(!finalValidation($('#phenotypes_concepts_json').val())){
-               e.preventDefault();
-            }else{
+            if (!finalValidation($('#phenotypes_concepts_json').val())) {
+                e.preventDefault();
+            } else {
                 wrapData()
             }
-
 
 
         })
@@ -1005,7 +1004,10 @@
                     header = header.querySelector('*[id^="attribute-header"]')
                     let header_cond = /^[a-zA-Z0-9]+$/.test(header.value)
                     if (!header_cond) {
-                        $('#' + header.id)[0].setCustomValidity("Spaces and symbols are not allowed")
+                        {
+                            header.value === '' ?
+                                $('#' + header.id)[0].setCustomValidity("Empty attribute is not allowed") : $('#' + header.id)[0].setCustomValidity("Spaces and symbols are not allowed")
+                        }
                         $('#' + header.id)[0].classList.add('bg-danger')
                         $('#' + header.id)[0].reportValidity()
                     }
