@@ -643,7 +643,7 @@
                     let dataPrevious = $('#phenotypes_concepts_json').val() // restore old values
                     dataPrevious = JSON.parse(dataPrevious)
 
-                     // Use first row as example to take columns but delete value
+                    // Use first row as example to take columns but delete value
                     let newData = []
                     for (let i = 0; i < dataset.length; i++) {
                         let newObject = removalue(dataPrevious, i)
@@ -654,8 +654,10 @@
 
                     }
 
-                    dataPrevious = refreshInputid(dataPrevious)
+
                     dataPrevious = mergeArrays(dataPrevious, newData) // Merge old values and new value to avoid duplicates
+                    dataPrevious = refreshInputid(dataPrevious)
+                    console.log(dataPrevious)
 
                     if (dataPrevious.length > 0) { // Check if user deletes data from pop-up or add
                         table.rows.add(dataPrevious).draw(); // draw row/rows
@@ -788,7 +790,7 @@
                 let input = parse.querySelector('*[id^="attribute-input"]');
                 if (input !== null) {
                     input.setAttribute('value', '')
-                    input.id = input.id.slice(0,-1) + length
+                    input.id = input.id.slice(0, -1) + length
                     element[1] = $(input)[0].outerHTML
                 }
                 return element
@@ -807,10 +809,11 @@
                     if (input !== null) {
 
                         let newRowID = input.id.substring(input.id.indexOf('row')).replace(/[0-9]/g, i.toString())
-                        input.id = input.id.replace(/^row/g,newRowID)
+                        input.id = input.id.replace(/^row/g, newRowID)
+                        console.log(input.id)
                         element[1] = $(input)[0].outerHTML
                     }
-                     return element
+                    return element
 
                 })
                 dataPrevious[i] = Object.fromEntries(entries)
@@ -953,18 +956,11 @@
                         let type = dataPrevious[i]['Attributes-select' + j]
                         let attribute_name = dataPrevious[i]['Attributes-header' + j]
                         let attribute_value = dataPrevious[i]['Attributes-row' + j]
-
-                        //console.log(finalValidation(attribute_value, type, attribute_name))
-
-                        if (finalValidation(attribute_value, type, attribute_name)) {
-                            mainData['Attributes'].push({
-                                name: returnValue(attribute_name, 'attribute-header' + j),
-                                type: returnValue(type, 'column_type' + j),
-                                value: returnValue(attribute_value, 'attribute-input-' + j)
-                            })
-                        } else {
-                            return false
-                        }
+                        mainData['Attributes'].push({
+                            name: returnValue(attribute_name, 'attribute-header' + j),
+                            type: returnValue(type, 'column_type' + j),
+                            value: returnValue(attribute_value, 'attribute-input-col' + j)
+                        })
 
 
                     }
@@ -982,20 +978,42 @@
         }
 
         $('#save-changes').on('click', function (e) {
-            if (!wrapData()) {
-                e.preventDefault()
+            if(!finalValidation($('#phenotypes_concepts_json').val())){
+               e.preventDefault();
+            }else{
+                wrapData()
             }
+
+
+
         })
 
-        const finalValidation = (input, select, header) => {
-            input = new DOMParser().parseFromString(input, "text/html")
-            select = new DOMParser().parseFromString(select, "text/html")
-            header = new DOMParser().parseFromString(header, "text/html")
-            input = input.querySelector('*[id^="attribute-input"]')
-            select = select.querySelector('*[id^="column_type"]')
-            header = header.querySelector('*[id^="attribute-header"]')
-            let header_cond = /^[a-zA-Z0-9]+$/.test(header.value)
-            return regexCheck(select.value, $('#' + input.id), input.value, false, false, false) && header_cond
+        const finalValidation = (dataPrevious) => {
+            let conds = []
+            dataPrevious = JSON.parse(dataPrevious)
+            for (let i = 0; i < dataPrevious.length; i++) {
+                let entry = Object.entries(dataPrevious[i])
+                for (let j = 0; j < (entry.length - 1) / 3; j++) {
+                    let select = dataPrevious[i]['Attributes-select' + j]
+                    let header = dataPrevious[i]['Attributes-header' + j]
+                    let input = dataPrevious[i]['Attributes-row' + j]
+                    input = new DOMParser().parseFromString(input, "text/html")
+                    select = new DOMParser().parseFromString(select, "text/html")
+                    header = new DOMParser().parseFromString(header, "text/html")
+                    input = input.querySelector('*[id^="attribute-input"]')
+                    select = select.querySelector('*[id^="column_type"]')
+                    header = header.querySelector('*[id^="attribute-header"]')
+                    let header_cond = /^[a-zA-Z0-9]+$/.test(header.value)
+                    if (!header_cond) {
+                        $('#' + header.id)[0].setCustomValidity("Spaces and symbols are not allowed")
+                        $('#' + header.id)[0].classList.add('bg-danger')
+                        $('#' + header.id)[0].reportValidity()
+                    }
+                    conds.push(regexCheck(select.value, $('#' + input.id), $('#' + input.id).val(), false, false, false) && header_cond)
+                }
+            }
+            return !conds.includes(false);
+
         }
 
 
