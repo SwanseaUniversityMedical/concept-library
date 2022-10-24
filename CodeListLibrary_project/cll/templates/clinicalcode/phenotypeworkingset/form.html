@@ -643,15 +643,20 @@
                     let dataPrevious = $('#phenotypes_concepts_json').val() // restore old values
                     dataPrevious = JSON.parse(dataPrevious)
 
-                    let newObject = removalue(dataPrevious,dataPrevious.length) // Use first row as example to take columns but delete value
+                     // Use first row as example to take columns but delete value
                     let newData = []
                     for (let i = 0; i < dataset.length; i++) {
+                        let newObject = removalue(dataPrevious, i)
                         newData.push({
                             ...newObject,
                             ["Data"]: dataset[i].Data // Append new row
                         })
+
                     }
+
+                    dataPrevious = refreshInputid(dataPrevious)
                     dataPrevious = mergeArrays(dataPrevious, newData) // Merge old values and new value to avoid duplicates
+
                     if (dataPrevious.length > 0) { // Check if user deletes data from pop-up or add
                         table.rows.add(dataPrevious).draw(); // draw row/rows
                         $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious)) // Saving as Json
@@ -773,25 +778,50 @@
          * @param dataPrevious
          * @returns new input with empty value
          */
-        const removalue = (dataPrevious,length) => {
-            console.log(length-1)
+        const removalue = (dataPrevious, length) => {
 
-            let removeVal = Object.entries(dataPrevious[length-1])
+
+            let removeVal = Object.entries(dataPrevious[0])
 
             removeVal.forEach(element => {
                 let parse = new DOMParser().parseFromString(element[1], "text/html")
                 let input = parse.querySelector('*[id^="attribute-input"]');
                 if (input !== null) {
-                    console.log(input.id.substring(input.id.indexOf('row')))
                     input.setAttribute('value', '')
+                    input.id = input.id.slice(0,-1) + length
                     element[1] = $(input)[0].outerHTML
                 }
                 return element
 
             })
-            let newObject = Object.fromEntries(removeVal)
-            return newObject
+
+            return Object.fromEntries(removeVal)
         }
+
+        const refreshInputid = (dataPrevious) => {
+            for (let i = 0; i < dataPrevious.length; i++) {
+                let entries = Object.entries(dataPrevious[i])
+                entries.forEach(element => {
+                    let parse = new DOMParser().parseFromString(element[1], "text/html")
+                    let input = parse.querySelector('*[id^="attribute-input"]');
+                    if (input !== null) {
+
+                        let newRowID = input.id.substring(input.id.indexOf('row')).replace(/[0-9]/g, i.toString())
+                        input.id = input.id.replace(/^row/g,newRowID)
+                        element[1] = $(input)[0].outerHTML
+                    }
+                     return element
+
+                })
+                dataPrevious[i] = Object.fromEntries(entries)
+
+
+            }
+            return dataPrevious
+
+
+        }
+
 
         /**
          * Return string type select value when wraping value or just input value when wrappinf
@@ -833,7 +863,7 @@
 
                 dataPrevious[i] = { // for all row start initialize the object keys and values but taking into account old row
                     ...dataPrevious[i],
-                    ["Attributes-row" + numbers]: `<input class="input-material" type="text"  style="width:100%" id="attribute-input-${'col'+numbers + 'row' + i}"/>`,
+                    ["Attributes-row" + numbers]: `<input class="input-material" type="text"  style="width:100%" id="attribute-input-${'col' + numbers + 'row' + i}"/>`,
                     ["Attributes-select" + numbers]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=selectHeader() id="column_type${numbers}">'
 						    +'<option  value="0" selected >Type</option>'
 						    +'<option value="1">INT</option>'
