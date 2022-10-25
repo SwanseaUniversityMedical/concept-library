@@ -654,14 +654,15 @@
 
                     }
 
-
                     dataPrevious = mergeArrays(dataPrevious, newData) // Merge old values and new value to avoid duplicates
                     dataPrevious = refreshInputid(dataPrevious)
-                    console.log(dataPrevious)
+
 
                     if (dataPrevious.length > 0) { // Check if user deletes data from pop-up or add
                         table.rows.add(dataPrevious).draw(); // draw row/rows
                         $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious)) // Saving as Json
+
+
                     } else {
                         $('#attributes-table').DataTable().destroy();
                         $('#attributes-table').empty();
@@ -698,12 +699,13 @@
             for (let j = 0; j < newData.length; j++) {
                 for (let k = 0; k < dataPrevious.length; k++) {
                     if (newData[j].Data === dataPrevious[k].Data) {
-                        newData.slice(j, 1) // remove data if new object has same data with previous one
+                         newData.filter(function (el, i) {
+                            return j !== i;
+                        }); // remove data if new object has same data with previous one
                     }
                 }
                 newArr.push(newData[j]) // else append new data
             }
-
 
             for (let h = 0; h < newArr.length; h++) {
                 for (let i = 0; i < dataPrevious.length; i++) {
@@ -803,20 +805,15 @@
 
         const refreshInputid = (dataPrevious) => {
             for (let i = 0; i < dataPrevious.length; i++) {
-                let entries = Object.entries(dataPrevious[i])
-                entries.forEach(element => {
-                    let parse = new DOMParser().parseFromString(element[1], "text/html")
-                    let input = parse.querySelector('*[id^="attribute-input"]');
+                for (let [key, value] of Object.entries(dataPrevious[i])) {
+                    let parse = new DOMParser().parseFromString(value, "text/html")
+                    let input = parse.querySelector('*[id^="attribute-input-col"]');
                     if (input !== null) {
+                        input.id = "attribute-input-col" + key.slice(-1) + 'row'+ i
+                        dataPrevious[i][key] = $(input)[0].outerHTML
 
-                        let newRowID = input.id.substring(input.id.indexOf('row')).replace(/[0-9]/g, i.toString())
-                        input.id = input.id.replace(/^row/g, newRowID)
-                        element[1] = $(input)[0].outerHTML
                     }
-                    return element
-
-                })
-                dataPrevious[i] = Object.fromEntries(entries)
+                }
 
 
             }
