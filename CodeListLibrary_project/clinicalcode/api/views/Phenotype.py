@@ -16,6 +16,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import (api_view, authentication_classes, permission_classes)
 from rest_framework.response import Response
 from django.db.models.functions import Lower
+from django.utils.timezone import make_aware
 
 from ...db_utils import *
 from ...models import *
@@ -33,8 +34,6 @@ from drf_yasg.utils import swagger_auto_schema
 @swagger_auto_schema(method='post', auto_schema=None)
 @api_view(['POST'])
 def api_phenotype_create(request):
-    if not request.user.is_superuser:
-        raise PermissionDenied
 
     if is_member(request.user, group_name='ReadOnlyUsers'):
         raise PermissionDenied
@@ -57,7 +56,6 @@ def api_phenotype_create(request):
 
         new_phenotype = Phenotype()
         new_phenotype.phenotype_uuid = request.data.get('phenotype_uuid')
-        new_phenotype.title = request.data.get('title')
         new_phenotype.name = request.data.get('name')
         new_phenotype.author = request.data.get('author')
         new_phenotype.layout = request.data.get('layout')
@@ -77,8 +75,7 @@ def api_phenotype_create(request):
         new_phenotype.publication_link = request.data.get('publication_link')
         new_phenotype.secondary_publication_links = request.data.get('secondary_publication_links')
         new_phenotype.source_reference = request.data.get('source_reference')
-        new_phenotype.citation_requirements = request.data.get(
-            'citation_requirements')
+        new_phenotype.citation_requirements = request.data.get('citation_requirements')
         #new_phenotype.concept_informations = request.data.get('concept_informations')
 
         new_phenotype.description = request.data.get('description')
@@ -122,8 +119,7 @@ def api_phenotype_create(request):
             errors_dict['group'] = err
 
         # handle world-access
-        is_valid_data, err, ret_value = chk_world_access(
-            request.data.get('world_access'))
+        is_valid_data, err, ret_value = chk_world_access(request.data.get('world_access'))
         if is_valid_data:
             new_phenotype.world_access = ret_value
         else:
@@ -141,10 +137,11 @@ def api_phenotype_create(request):
 
         # handling data-sources
         datasource_ids_list = request.data.get('data_sources')
-        is_valid_data, err, ret_value = chk_data_sources(
-            request.data.get('data_sources'))
+        is_valid_data, err, ret_value = chk_data_sources(request.data.get('data_sources'))
         if is_valid_data:
             datasource_ids_list = ret_value
+            if datasource_ids_list:
+                new_phenotype.data_sources = [int(i) for i in datasource_ids_list]
         else:
             errors_dict['data_sources'] = err
 
@@ -164,27 +161,21 @@ def api_phenotype_create(request):
         else:
             new_phenotype.save()
             created_pt = Phenotype.objects.get(pk=new_phenotype.pk)
-            created_pt.history.latest().delete()
-
-            # - datasource -----
-            if datasource_ids_list:
-                new_datasource_list = [int(i) for i in datasource_ids_list]
-                for datasource_id in new_datasource_list:
-                    PhenotypeDataSourceMap.objects.get_or_create(phenotype=new_phenotype,
-                                                                datasource=DataSource.objects.get(id=datasource_id), 
-                                                                created_by=request.user
-                                                                )
+            created_pt.history.latest().delete()            
 
             save_Entity_With_ChangeReason(Phenotype, created_pt.pk, "Created from API")
-            # created_pt.changeReason = "Created from API"
-            # created_pt.save()
 
-            # publish immediately - for HDR-UK testing
+            # publish immediately - allow only super user 
+            publish_msg = ""   
             if request.data.get('publish_immediately') == True:
-                publish_entity(request, Phenotype, created_pt.pk)
+                if request.user.is_superuser:
+                    publish_entity(request, Phenotype, created_pt.pk)
+                else:
+                    publish_msg = "Phenotype is not published, only superuser can publish via API."
+                
 
             data = {
-                'message': 'Phenotype created successfully',
+                'message': 'Phenotype created successfully. ' + publish_msg,
                 'id': created_pt.pk
             }
 
@@ -197,8 +188,7 @@ def api_phenotype_create(request):
 @swagger_auto_schema(method='put', auto_schema=None)
 @api_view(['PUT'])
 def api_phenotype_update(request):
-    if not request.user.is_superuser:
-        raise PermissionDenied
+
     if is_member(request.user, group_name='ReadOnlyUsers'):
         raise PermissionDenied
 
@@ -209,36 +199,18 @@ def api_phenotype_update(request):
         is_valid = True
 
         phenotype_id = request.data.get('id')
-        is_valid_id, err, ret_int_id = chk_valid_id(request, Phenotype, phenotype_id, chk_permission=True)
+        is_valid_id, err, ret_id = chk_valid_id(request, Phenotype, phenotype_id, chk_permission=True)
         if is_valid_id:
-            phenotype_id = ret_int_id
+            phenotype_id = ret_id
         else:
             errors_dict['id'] = err
             return Response(data=errors_dict,
                             content_type="json",
                             status=status.HTTP_406_NOT_ACCEPTABLE)
                
-        # if not isInt(phenotype_id):
-        #     errors_dict['id'] = 'phenotype_id must be a valid id.'
-        #     return Response(data=errors_dict,
-        #                     content_type="json",
-        #                     status=status.HTTP_406_NOT_ACCEPTABLE)
-        #
-        # if Phenotype.objects.filter(pk=phenotype_id).count() == 0:
-        #     errors_dict['id'] = 'phenotype_id not found.'
-        #     return Response(data=errors_dict,
-        #                     content_type="json",
-        #                     status=status.HTTP_406_NOT_ACCEPTABLE)
-        # if not allowed_to_edit(request, Phenotype, phenotype_id):
-        #     errors_dict[
-        #         'id'] = 'phenotype_id must be a valid accessible phenotype id.'
-        #     return Response(data=errors_dict,
-        #                     content_type="json",
-        #                     status=status.HTTP_406_NOT_ACCEPTABLE)
 
         update_phenotype = Phenotype.objects.get(pk=phenotype_id)
         update_phenotype.phenotype_uuid = request.data.get('phenotype_uuid')
-        update_phenotype.title = request.data.get('title')
         update_phenotype.name = request.data.get('name')
         update_phenotype.author = request.data.get('author')
         update_phenotype.layout = request.data.get('layout')
@@ -322,6 +294,10 @@ def api_phenotype_update(request):
         is_valid_data, err, ret_value = chk_data_sources(request.data.get('data_sources'))
         if is_valid_data:
             datasource_ids_list = ret_value
+            if datasource_ids_list:
+                update_phenotype.data_sources = [int(i) for i in datasource_ids_list]
+            else:
+                update_phenotype.data_sources = None
         else:
             errors_dict['data_sources'] = err
 
@@ -338,37 +314,22 @@ def api_phenotype_update(request):
                             content_type="json",
                             status=status.HTTP_406_NOT_ACCEPTABLE)
         else:
-            # update data-sources
-            new_datasource_list = []
 
-            if datasource_ids_list:
-                new_datasource_list = [int(i) for i in datasource_ids_list]
-
-            old_datasource_list = list(PhenotypeDataSourceMap.objects.filter(phenotype=update_phenotype).values_list('datasource',  flat=True))
-            datasource_ids_to_add = list(set(new_datasource_list) - set(old_datasource_list))
-            datasource_ids_to_remove = list(set(old_datasource_list) - set(new_datasource_list))
-
-            for datasource_id_to_add in datasource_ids_to_add:
-                PhenotypeDataSourceMap.objects.get_or_create(phenotype=update_phenotype,
-                                                            datasource=DataSource.objects.get(id=datasource_id_to_add),
-                                                            created_by=request.user)
-
-            for datasource_id_to_remove in datasource_ids_to_remove:
-                datasource_to_remove = PhenotypeDataSourceMap.objects.filter(phenotype=update_phenotype,
-                                                                            datasource=DataSource.objects.get(id=datasource_id_to_remove))
-                datasource_to_remove.delete()
-
-            #save_Entity_With_ChangeReason(Phenotype, update_phenotype.pk, "Updated from API")
-            # update_phenotype.changeReason = "Updated from API"
             update_phenotype.save()
             modify_Entity_ChangeReason(Phenotype, update_phenotype.pk, "Updated from API")
 
-            # publish immediately - for HDR-UK testing
+            # publish immediately - allow only super user 
+            publish_msg = ""   
             if request.data.get('publish_immediately') == True:
-                publish_entity(request, Phenotype, update_phenotype.pk)
+                if request.user.is_superuser:
+                    publish_entity(request, Phenotype, update_phenotype.pk)
+                else:
+                    publish_msg = "Phenotype is not published, only superuser can publish via API."
+
+                
 
             data = {
-                'message': 'Phenotype updated successfully',
+                'message': 'Phenotype updated successfully. ' + publish_msg,
                 'id': update_phenotype.pk
             }
 
@@ -438,15 +399,14 @@ def export_phenotype_codes_byVersionID(request, pk, phenotype_history_id=None):
 
     current_phenotype = Phenotype.objects.get(pk=pk)
 
-    user_can_export = (allowed_to_view_children(
-        request, Phenotype, pk, set_history_id=phenotype_history_id)
-                       and chk_deleted_children(
-                           request,
-                           Phenotype,
-                           pk,
-                           returnErrors=False,
-                           set_history_id=phenotype_history_id)
-                       and not current_phenotype.is_deleted)
+    user_can_export = (allowed_to_view_children(request, Phenotype, pk, set_history_id=phenotype_history_id)
+                       and chk_deleted_children(request,
+                                               Phenotype,
+                                               pk,
+                                               returnErrors=False,
+                                               set_history_id=phenotype_history_id)
+                        and not current_phenotype.is_deleted
+                        )
 
     if not user_can_export:
         raise PermissionDenied
@@ -473,7 +433,9 @@ def published_phenotypes(request, pk=None):
     -  <code>?search=Alcohol</code>  
     search by part of phenotype name (do not put wild characters here)  
     -  <code>?tag_collection_ids=11,4</code>  
-    You can specify tag or collection ids   
+    You can specify tag and collection ids   
+    -  <code>?collection_ids=18&tag_ids=1</code>  
+    Or you can query tags and/or collections individually   
     -  <code>?selected_phenotype_types=drug,lifestyle risk factor</code>
     Specify types of the phenotypes  
     -  <code>?show_only_validated_phenotypes=1</code>  
@@ -497,7 +459,9 @@ def phenotypes(request, pk=None):
     -  <code>?search=Alcohol</code>  
     search by part of phenotype name (do not put wild characters here)  
     -  <code>?tag_collection_ids=11,4</code>  
-    You can specify tag or collection ids   
+    You can specify tag and collection ids   
+    -  <code>?collection_ids=18&tag_ids=1</code>  
+    Or you can query tags and/or collections individually   
     -  <code>?selected_phenotype_types=drug,lifestyle risk factor</code>
     Specify types of the phenotypes         
     -  <code>?show_only_my_phenotypes=1</code>  
@@ -530,7 +494,11 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
     else:
         phenotype_id = request.query_params.get('id', None)
 
-    tag_ids = request.query_params.get('tag_collection_ids', '')
+    # Once data & models reflect tag/collection split, remove the following:
+    tag_collection_ids = request.query_params.get('tag_collection_ids', '')
+
+    tag_ids = request.query_params.get('tag_ids', '')
+    collection_ids = request.query_params.get('collection_ids', '')
     owner = request.query_params.get('owner_username', '')
     show_only_my_phenotypes = request.query_params.get('show_only_my_phenotypes', "0")
     show_deleted_phenotypes = request.query_params.get('show_deleted_phenotypes', "0")
@@ -543,6 +511,19 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
     show_live_and_or_published_ver = "3"  # request.query_params.get('show_live_and_or_published_ver', "3")      # 1= live only, 2= published only, 3= live+published
     must_have_published_versions = request.query_params.get('must_have_published_versions', "0")
     selected_phenotype_types = request.query_params.get('selected_phenotype_types', '')
+    
+    coding_ids = request.query_params.get('coding_ids', '')
+    data_sources = request.query_params.get('data_source_ids', '')
+    start_date_range = request.query_params.get('start_date', '')
+    end_date_range = request.query_params.get('end_date', '')
+    
+    start_date_query, end_date_query = False, False
+    try:
+        start_date_query = make_aware(datetime.datetime.strptime(start_date_range, '%Y-%m-%d'))
+        end_date_query = make_aware(datetime.datetime.strptime(end_date_range, '%Y-%m-%d'))
+    except ValueError:
+        start_date_query = False
+        end_date_query = False
     
     selected_phenotype_types = selected_phenotype_types.strip().lower()
 
@@ -570,27 +551,28 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
     id_match = re.search(r"(?i)^PH\d+$", search)
     if id_match:
         if id_match.group() == id_match.string: # full match
-            is_valid_id, err, ret_int_id = chk_valid_id(request, set_class=Phenotype, pk=search, chk_permission=False)
+            is_valid_id, err, ret_id = chk_valid_id(request, set_class=Phenotype, pk=search, chk_permission=False)
             if is_valid_id:
                 search_by_id = True
-                filter_cond += " AND (id =" + str(ret_int_id) + " ) "    
+                filter_cond += " AND (id ='" + str(ret_id) + "') "    
     
-    if tag_ids:
-        # split tag ids into list
-        search_tag_list = [str(i).strip() for i in tag_ids.split(",")]
-        # chk if these tags are valid, to prevent injection
-        # use only those found in the DB
-        tags = Tag.objects.filter(id__in=search_tag_list)
-        search_tag_list = list(tags.values_list('id',  flat=True))
-        search_tag_list = [str(i) for i in search_tag_list]
-        filter_cond += " AND tags && '{" + ','.join(search_tag_list) + "}' "
+    
+    if tag_collection_ids != '':
+        tags, filter_cond = apply_filter_condition(query='tags', selected=tag_collection_ids, conditions=filter_cond)
+    else:
+        tags, filter_cond = apply_filter_condition(query='tags', selected=tag_ids, conditions=filter_cond)
+        collections, filter_cond = apply_filter_condition(query='tags', selected=collection_ids, conditions=filter_cond)
+    
+    coding, filter_cond = apply_filter_condition(query='clinical_terminologies', selected=coding_ids, conditions=filter_cond)
+    sources, filter_cond = apply_filter_condition(query='data_sources', selected=data_sources, conditions=filter_cond)
+    
+    daterange, date_range_cond = apply_filter_condition(query='daterange', 
+                                                    selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]},
+                                                    conditions='',
+                                                    is_authenticated_user=is_authenticated_user)
+    
 
-    if selected_phenotype_types:
-        selected_phenotype_types_list = [str(t).strip() for t in selected_phenotype_types.split(',')]
-        # chk if these types are valid, to prevent injection
-        # use only those found in the DB
-        selected_phenotype_types_list = list(set(phenotype_types_list).intersection(set(selected_phenotype_types_list)))
-        filter_cond += " AND lower(type) IN('" + "', '".join(selected_phenotype_types_list) + "') "
+    selected_phenotype_types_list, filter_cond = apply_filter_condition(query='phenotype_type', selected=selected_phenotype_types, conditions=filter_cond, data=phenotype_types_list)
    
     
     
@@ -629,7 +611,7 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
 
     if phenotype_id is not None:
         if phenotype_id != '':
-            filter_cond += " AND id=" + phenotype_id
+            filter_cond += " AND id='" + phenotype_id + "' "
 
     if owner is not None:
         if owner != '':
@@ -661,7 +643,8 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
                                                             filter_cond=filter_cond,
                                                             show_top_version_only=show_top_version_only,
                                                             force_brand=force_brand,
-                                                            search_name_only = False
+                                                            search_name_only = False,
+                                                            date_range_cond = date_range_cond
                                                             )
 
     rows_to_return = []
@@ -699,14 +682,14 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
 
         #--------------
 
-        data_sources = []  # DataSource.objects.filter(pk=-1)
-        data_sources_comp = getHistoryDataSource_Phenotype(c['id'], c['history_date'])
+        data_sources = [] 
+        data_sources_comp = c['data_sources']   
         if data_sources_comp:
-            ds_list = [i['datasource_id'] for i in data_sources_comp if 'datasource_id' in i ]
-            data_sources = list(DataSource.objects.filter(pk__in=ds_list).values('id', 'name', 'url'))  # , 'uid', 'description'
+            ds_list = data_sources_comp 
+            data_sources = list(DataSource.objects.filter(pk__in=ds_list).values('id', 'name', 'url', 'datasource_id'))  # , 'uid', 'description'
 
         ret = [
-            c['friendly_id'],
+            c['id'],
             c['history_id']
         ]
         if is_authenticated_user:
@@ -783,8 +766,7 @@ def phenotype_detail(request,
     # we can remove this check as in phenotype-detail
     #---------------------------------------------------------
     # validate access to child phenotypes
-    if not (allowed_to_view_children(
-            request, Phenotype, pk, set_history_id=phenotype_history_id)
+    if not (allowed_to_view_children(request, Phenotype, pk, set_history_id=phenotype_history_id)
             and chk_deleted_children(request,
                                      Phenotype,
                                      pk,
@@ -880,8 +862,8 @@ def getPhenotypeDetail(request,
     concepts = Concept.history.filter(pk=-1)
 
     if phenotype['concept_informations']:
-        concept_id_list = [x['concept_id'] for x in json.loads(phenotype['concept_informations'])]
-        concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(phenotype['concept_informations'])]
+        concept_id_list = [x['concept_id'] for x in phenotype['concept_informations']]
+        concept_hisoryid_list = [x['concept_version_id'] for x in phenotype['concept_informations']]
         concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list)
 
     clinicalTerminologies = []  #CodingSystem.objects.filter(pk=-1)
@@ -891,12 +873,11 @@ def getPhenotypeDetail(request,
 
     #--------------
 
-    data_sources = []  #DataSource.objects.filter(pk=-1)
-    data_sources_comp = getHistoryDataSource_Phenotype(pk, phenotype_history_date)
+    data_sources = [] 
+    data_sources_comp = phenotype['data_sources']  
     if data_sources_comp:
-        ds_list = [i['datasource_id'] for i in data_sources_comp if 'datasource_id' in i ]
-        data_sources = list(
-            DataSource.objects.filter(pk__in=ds_list).values('id', 'name', 'url'))  # , 'uid', 'description'
+        ds_list = data_sources_comp 
+        data_sources = list(DataSource.objects.filter(pk__in=ds_list).values('id', 'name', 'url', 'datasource_id'))  # , 'uid', 'description'
 
     tags = []
     collections = []
@@ -969,7 +950,7 @@ def getPhenotypeDetail(request,
     
 
     ret = [
-        phenotype['friendly_id'],
+        phenotype['id'],
         phenotype['history_id']
         ]
     if is_authenticated_user:

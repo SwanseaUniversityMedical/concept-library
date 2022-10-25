@@ -5,9 +5,25 @@ from django.conf import settings
 from django.utils.safestring import mark_safe
 from re import IGNORECASE, compile, escape as rescape
 import re 
+from clinicalcode.constants import Type_status
+
 
 register = template.Library()
 
+
+@register.filter(name='from_phenotype')
+def from_phenotype(value, index, default=''):
+    if index in value:
+        return value[index]['concepts']
+    return default
+
+@register.filter(name='size')
+def size(value):
+    return len(value)
+
+@register.filter(name='title')
+def title(value):
+    return str(value).title()
 
 @register.filter
 def cut(value, arg):
@@ -186,6 +202,10 @@ def markdownify(text, custom_settings="default"):
 
 @register.filter   
 def highlight(text, q):
+    q = q.lower()
+    q = q.replace('"', '').replace(' -', ' ').replace(' - ', ' ')
+    q = q.replace(' or ', ' ')
+
     q = re.sub(' +', ' ', q.strip())
     return_text = text
     for w in q.split(' '):
@@ -221,4 +241,12 @@ def highlight_all_search_text(text, q):
         )
     )  
 
-
+@register.filter   
+def get_ws_type_name(type_int):
+    '''
+        get working set type name
+    '''
+    
+    return str([t[1] for t in Type_status if t[0]==type_int][0])
+    
+    

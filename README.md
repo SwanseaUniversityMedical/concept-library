@@ -109,9 +109,9 @@ The application and database will be available at:
 To stop the docker container:
 1. If you have a terminal open which is running the docker containers, press `ctrl+c`
 2. If you do not have a terminal open which is running the containers:  
-a. Open a terminal
-b. Navigate to the `concept-library/docker/development/` folder
-c. In the terminal, run `docker compose stop`
+a. Open a terminal  
+b. Navigate to the `concept-library/docker/development/` folder  
+c. In the terminal, run `docker compose stop`  
 
 To start the docker container (if it has already been built and has stopped for any reason):
 1. Open a terminal

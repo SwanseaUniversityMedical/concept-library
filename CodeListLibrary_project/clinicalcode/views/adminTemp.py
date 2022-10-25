@@ -3,13 +3,11 @@ from datetime import datetime
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.mixins import \
-    LoginRequiredMixin  # , UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin  # , UserPassesTestMixin
 from django.contrib.auth.models import Group, User
 from django.core.paginator import EmptyPage, Paginator
 from django.db import transaction  # , models, IntegrityError
-from django.http import \
-    HttpResponseRedirect  # , StreamingHttpResponse, HttpResponseForbidden
+from django.http import HttpResponseRedirect  # , StreamingHttpResponse, HttpResponseForbidden
 from django.http.response import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
 #from django.core.urlresolvers import reverse_lazy, reverse
@@ -33,6 +31,7 @@ import os
 
 from django.core.exceptions import PermissionDenied
 from django.db import connection, connections  # , transaction
+from rest_framework.reverse import reverse
         
         
 @login_required
@@ -102,73 +101,181 @@ def api_remove_data(request):
                 'rowsAffected': rowsAffected
             })
 
-
 @login_required
-def moveTags(request):
-    # not needed any more
-    raise PermissionDenied
+def json_adjust_phenotype(request):
+    # not needed anymore
+    #raise PermissionDenied
 
     if not request.user.is_superuser:
         raise PermissionDenied
 
-    if settings.CLL_READ_ONLY:
+    if settings.CLL_READ_ONLY or (not settings.IS_DEVELOPMENT_PC):
         raise PermissionDenied
 
     if request.method == 'GET':
         if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-            return render(request, 'clinicalcode/adminTemp/moveTags.html', {})
-
+            return render(request, 'clinicalcode/adminTemp/json_adjust.html', 
+                          {'url': reverse('json_adjust_phenotype')
+                           })
+            
     elif request.method == 'POST':
         if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
             code = request.POST.get('code')
-            if code.strip(
-            ) != "nvd)#_0-i_a05n^5p6az2q_cd(_(+_4g)r&9h!#ru*pr(xa@=k":
+            if code.strip() != "nvd)#_0-i_a05n^5p6az2q_cd(_(+_4g)r&9h!#ru*pr(xa@=k":
                 raise PermissionDenied
 
             rowsAffected = {}
 
 
-#             ######################################################################
-#             # move concept tags as attribute
-#             distinct_concepts_with_tags = ConceptTagMap.objects.all().distinct('concept_id')
-#             for dp in distinct_concepts_with_tags:
-#                 #print "*************"
-#                 #print dp.concept_id
-#                 hisp = Concept.history.filter(id=dp.concept_id)
-#                 for hp in hisp:
-#                     #print hp.id, "...", hp.history_id
-#                     concept_tags_history = db_utils.getHistoryTags(hp.id, hp.history_date)
-#                     if concept_tags_history:
-#                         concept_tag_list = [i['tag_id'] for i in concept_tags_history if 'tag_id' in i]
-#                     else:
-#                         concept_tag_list = []
-#                     #print concept_tag_list
-#                     with connection.cursor() as cursor:
-#                         sql = """ UPDATE clinicalcode_historicalconcept
-#                                     SET tags = '{""" + ','.join([str(i) for i in concept_tag_list]) + """}'
-#                                     WHERE id="""+str(hp.id)+""" and history_id="""+str(hp.history_id)+""";
-#                              """
-#                         cursor.execute(sql)
-#                         if hp.history_id == int(Concept.objects.get(pk=hp.id).history.latest().history_id):
-#                             sql2 = """ UPDATE clinicalcode_concept
-#                                     SET tags = '{""" + ','.join([str(i) for i in concept_tag_list]) + """}'
-#                                     WHERE id="""+str(hp.id)+"""  ;
-#                              """
-#                             cursor.execute(sql2)
+            ######################################################################
+
+            hisp = Phenotype.history.filter(id__gte=0)  #.exclude(id__in=[1026])
+            for hp in hisp:
+                if hp.concept_informations:
+                    concept_informations = json.loads(hp.concept_informations)
+                    hp.concept_informations = concept_informations
+                    hp.save()
+
+                    if hp.history_id == int(Phenotype.objects.get(pk=hp.id).history.latest().history_id):
+                        p0 = Phenotype.objects.get(id=hp.id)
+                        p0.concept_informations = concept_informations
+                        p0.save_without_historical_record()
+        
+                        rowsAffected[hp.id] = "phenotype: " + hp.name + ":: json adjusted"
+            
+            
+            
+            
+            
+            return render(request,
+                        'clinicalcode/adminTemp/json_adjust.html',
+                        {   'pk': -10,
+                            'strSQL': {},
+                            'rowsAffected' : rowsAffected
+                        }
+                        )
+            
+@login_required
+def json_adjust_workingset(request):
+    # not needed anymore
+    #raise PermissionDenied
+
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    if settings.CLL_READ_ONLY or (not settings.IS_DEVELOPMENT_PC):
+        raise PermissionDenied
+
+    if request.method == 'GET':
+        if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
+            return render(request, 'clinicalcode/adminTemp/json_adjust.html', 
+                          {'url': reverse('json_adjust_workingset')
+                           })
+            
+    elif request.method == 'POST':
+        if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
+            code = request.POST.get('code')
+            if code.strip() != "nvd)#_0-i_a05n^5p6az2q_cd(_(+_4g)r&9h!#ru*pr(xa@=k":
+                raise PermissionDenied
+
+            rowsAffected = {}
+
+
+            ######################################################################
+
+            ws_hitory = WorkingSet.history.filter(id__gte=0)  #.exclude(id__in=[1026])
+            for ws in ws_hitory:
+                if ws.concept_informations:
+                    concept_informations = json.loads(ws.concept_informations)
+                    ws.concept_informations = concept_informations
+                    ws.save()
+
+                    if ws.history_id == int(WorkingSet.objects.get(pk=ws.id).history.latest().history_id):
+                        wso = WorkingSet.objects.get(id=ws.id)
+                        wso.concept_informations = concept_informations
+                        wso.save_without_historical_record()
+        
+                        rowsAffected[ws.id] = "working set: " + ws.name + ":: json adjusted"
+            
+            
+            
+            
+            
+            return render(request,
+                        'clinicalcode/adminTemp/json_adjust.html',
+                        {   'pk': -10,
+                            'strSQL': {},
+                            'rowsAffected' : rowsAffected
+                        }
+                        )
+            
+                        
+# @login_required
+# def moveDataSources(request):
+#     # not needed anymore
+#     raise PermissionDenied
 #
-#                             rowsAffected[hp.id] = "concept: " + hp.name + ":: tags moved"
+#     if not request.user.is_superuser:
+#         raise PermissionDenied
 #
+#     if settings.CLL_READ_ONLY:
+#         raise PermissionDenied
 #
+#     if request.method == 'GET':
+#         if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
+#             return render(request, 'clinicalcode/adminTemp/moveDataSources.html', {})
 #
+#     elif request.method == 'POST':
+#         if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
+#             code = request.POST.get('code')
+#             if code.strip() != "nvd)#_0-i_a05n^5p6az2q_cd(_(+_4g)r&9h!#ru*pr(xa@=k":
+#                 raise PermissionDenied
 #
+#             rowsAffected = {}
 #
-#             return render(request,
-#                         'clinicalcode/adminTemp/moveTags.html',
-#                         {   'pk': -10,
-#                             'strSQL': {},
-#                             'rowsAffected' : rowsAffected
-#                         }
-#                         )
+
+
+            ######################################################################
+            # # move phenotype data-sources as an attribute
+            # distinct_phenotypes_with_ds = PhenotypeDataSourceMap.objects.all().distinct('phenotype_id')
+            # for dp in distinct_phenotypes_with_ds:
+            #     #print "*************"
+            #     #print dp.phenotype_id
+            #     hisp = Phenotype.history.filter(id=dp.phenotype_id)
+            #     for hp in hisp:
+            #         #print hp.id, "...", hp.history_id
+            #         ph_DataSources_history = db_utils.getHistoryDataSource_Phenotype(hp.id, hp.history_date)
+            #         if ph_DataSources_history:
+            #             ph_DataSources_list = [i['datasource_id'] for i in ph_DataSources_history if 'datasource_id' in i]
+            #         else:
+            #             ph_DataSources_list = []
+            #         #print ph_DataSources_list
+            #         with connection.cursor() as cursor:
+            #             sql = """ UPDATE clinicalcode_historicalphenotype
+            #                         SET data_sources = '{""" + ','.join([str(i) for i in ph_DataSources_list]) + """}'
+            #                         WHERE id="""+str(hp.id)+""" and history_id="""+str(hp.history_id)+""";
+            #                  """
+            #             cursor.execute(sql)
+            #             if hp.history_id == int(Phenotype.objects.get(pk=hp.id).history.latest().history_id):
+            #                 sql2 = """ UPDATE clinicalcode_phenotype
+            #                         SET data_sources = '{""" + ','.join([str(i) for i in ph_DataSources_list]) + """}'
+            #                         WHERE id="""+str(hp.id)+"""  ;
+            #                  """
+            #                 cursor.execute(sql2)
+            #
+            #                 rowsAffected[hp.id] = "phenotype: " + hp.name + ":: data_sources moved"
+            #
+            #
+            #
+            #
+            #
+            # return render(request,
+            #             'clinicalcode/adminTemp/moveDataSources.html',
+            #             {   'pk': -10,
+            #                 'strSQL': {},
+            #                 'rowsAffected' : rowsAffected
+            #             }
+            #             )
 
 # @login_required
 # def api_remove_longIDfromName(request):
@@ -267,28 +374,19 @@ def update_concept_tags_from_phenotype_tags():
 
     phenotypes = Phenotype.objects.all()
     for p in phenotypes:
-        concept_id_list = [
-            x['concept_id'] for x in json.loads(p.concept_informations)
-        ]
-        concept_hisoryid_list = [
-            x['concept_version_id'] for x in json.loads(p.concept_informations)
-        ]
-        concepts = Concept.history.filter(id__in=concept_id_list,
-                                          history_id__in=concept_hisoryid_list)
+        concept_id_list = [x['concept_id'] for x in json.loads(p.concept_informations)]
+        concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(p.concept_informations)]
+        concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list)
 
         for c in concepts:
             with connection.cursor() as cursor:
                 sql = """ UPDATE clinicalcode_historicalconcept 
-                            SET tags = '{""" + ','.join([
-                    str(i) for i in p.tags
-                ]) + """}'
-                            WHERE id=""" + str(
-                    c.id) + """ and history_id=""" + str(c.history_id) + """;
+                            SET tags = '{""" + ','.join([str(i) for i in p.tags ]) + """}'
+                            WHERE id=""" + str(c.id) + """ and history_id=""" + str(c.history_id) + """;
                     """
                 cursor.execute(sql)
                 sql2 = """ UPDATE clinicalcode_concept 
-                            SET tags = '{""" + ','.join(
-                    [str(i) for i in p.tags]) + """}'
+                            SET tags = '{""" + ','.join([str(i) for i in p.tags]) + """}'
                             WHERE id=""" + str(c.id) + """  ;
                     """
                 cursor.execute(sql2)

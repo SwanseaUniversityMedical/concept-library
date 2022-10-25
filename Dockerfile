@@ -12,7 +12,7 @@ WORKDIR /var/www/
 ######### copy code ######################
 RUN mkdir -p /var/www/concept_lib_sites/v1
 
-COPY ./docker/deploy/requirements/ /var/www/concept_lib_sites/v1/requirements
+COPY ./docker/requirements /var/www/concept_lib_sites/v1/requirements
 #COPY CodeListLibrary_project /var/www/concept_lib_sites/v1/CodeListLibrary_project
 
 COPY CodeListLibrary_project/clinicalcode /var/www/concept_lib_sites/v1/CodeListLibrary_project/clinicalcode

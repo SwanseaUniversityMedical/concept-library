@@ -33,12 +33,16 @@ RUN \
   #&& \
   #pip ${pip_proxy} install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip==20.2
 
+#RUN \
+#  apt remove python2.7
+
 RUN \
   pip --proxy http://192.168.10.15:8080 install  --upgrade pip 
 
 RUN \
-  pip install virtualenv && \
-  pip install psycopg2-binary==2.8.6
+  pip install virtualenv 
+  #&& \
+  #pip install psycopg2-binary==2.8.6
 
 RUN mkdir -p /home/config_cll/cll_srvr_logs
 RUN chmod 750 /home/config_cll/cll_srvr_logs

@@ -6,12 +6,13 @@
 
 #from cll import settings
 from django.conf import settings
-from django.conf.urls import url  # , include  #, handler400
+#from django.conf.urls import url  # , include  #, handler400
+from django.urls import re_path as url
 from django.contrib.auth import views as auth_views
 
 from .views import (Admin, ComponentConcept, ComponentExpression,
                     ComponentQueryBuilder, Concept, Phenotype, View,
-                    WorkingSet, adminTemp, site)
+                    WorkingSet, SelectPhenotype, PhenotypeWorkingSet, adminTemp, site)
 
 from django.urls import path
 from django.views.generic.base import TemplateView
@@ -24,6 +25,8 @@ urlpatterns = [
     url(r'^home/$', View.index, name='concept_library_home2'),
     url(r'^concepts/$', Concept.concept_list, name='concept_list'),
     url(r'^workingsets/$', WorkingSet.workingset_list, name='workingset_list'),
+    url(r'^workingsets/select-concepts/$', SelectPhenotype.selection_list, name='selection_list'),
+    url(r'^phenotypeworkingsets/$', PhenotypeWorkingSet.workingset_list, name='phenotypeworkingsets_list'),
     url(r'^phenotypes/$', Phenotype.phenotype_list, name='phenotype_list'),
     
     url(r'^cookies-settings/$', View.cookies_settings, name='cookies_settings'),
@@ -65,7 +68,6 @@ if settings.IS_HDRUK_EXT == "1" or settings.IS_DEVELOPMENT_PC:
         
     ]
     
-    
 
 #======== Admin ===================================================================================
 # for API testing
@@ -73,13 +75,18 @@ if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_P
     urlpatterns += [
         url(r'^adminTemp/api_remove_data/$', adminTemp.api_remove_data, name='api_remove_data'),
     ]
+if not settings.CLL_READ_ONLY and (settings.IS_DEVELOPMENT_PC):
+    urlpatterns += [
+        url(r'^adminTemp/json-adjust-phenotype/$', adminTemp.json_adjust_phenotype, name='json_adjust_phenotype'),
+        url(r'^adminTemp/json-adjust-workingset/$', adminTemp.json_adjust_workingset, name='json_adjust_workingset'),
+    ]
 
 # saving statistics
 if not settings.CLL_READ_ONLY:
     urlpatterns += [
         url(r'^admin/run-datasource-sync/$', Admin.run_datasource_sync, name='datasource_sync'),# Datasource sync
-        url(r'^admin/run-stat/$',  Admin.run_statistics, name='HDRUK_run_statistics'),# HDRUK stat
-        url(r'^admin/run-stat-collections/$', Admin.run_statistics_collections, name='collections_run_statistics'),# collections filter stat
+        url(r'^admin/run-stat/$',  Admin.run_statistics, name='HDRUK_run_statistics'),# HDRUK home page stat
+        url(r'^admin/run-stat-filters/$', Admin.run_filter_statistics, name='collections_run_filters'),# filter stat
     ]
 
 # check concepts not associated with phenotypes
@@ -99,23 +106,73 @@ urlpatterns += [
         name='get_caliberresearch_url_source'),
 ]
 
+# ======== Phenotypes Working Sets ==============================================================================
+if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
+    # add URLConf to create, update, and delete Phenotypes Working Sets
+    urlpatterns += [
+        url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/detail/$',
+            PhenotypeWorkingSet.WorkingsetDetail_combined,
+            name='phenotypeworkingset_detail'),
+        url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/detail/$',
+            PhenotypeWorkingSet.WorkingsetDetail_combined,
+            name='phenotypeworkingset_history_detail'),
+        url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/export/codes/$',
+            PhenotypeWorkingSet.history_workingset_codes_to_csv,
+            name='latestVersion_phenotypeworkingset_codes_to_csv'),
+        url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/export/codes/$',
+            PhenotypeWorkingSet.history_workingset_codes_to_csv,
+            name='history_phenotypeworkingset_codes_to_csv'),    
+        url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/uniquecodesbyversion/(?P<workingset_history_id>\d+)/concept/C(?P<target_concept_id>\d+)/(?P<target_concept_history_id>\d+)/$',
+            PhenotypeWorkingSet.workingset_conceptcodesByVersion,
+            name='phenotypeworkingset_conceptcodesByVersion'),
+    ]
+    
+    if not settings.CLL_READ_ONLY:
+        urlpatterns += [
+            url(r'^phenotypeworkingsets/create/$',
+                PhenotypeWorkingSet.WorkingSetCreate.as_view(),
+                name='phenotypeworkingset_create'),
+            
+            # temp create test DB ws
+            url(r'^phenotypeworkingsets/create-test-db/$',
+                PhenotypeWorkingSet.phenotype_workingset_DB_test_create,
+                name='phenotype_workingset_DB_test_create'),
+    
+    
+            url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/update/$',
+                PhenotypeWorkingSet.WorkingSetUpdate.as_view(),
+                name='phenotypeworkingset_update'),
+    
+            url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/delete/$',
+                PhenotypeWorkingSet.WorkingSetDelete.as_view(),
+                name='phenotypeworkingset_delete'),
+    
+            url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/revert/$',
+                PhenotypeWorkingSet.workingset_history_revert,
+                name='phenotypeworkingset_history_revert'),
+            
+            url(r'^phenotypeworkingsets/(?P<pk>WS\d+)/restore/$',
+                PhenotypeWorkingSet.WorkingSetRestore.as_view(),
+                name='phenotypeworkingset_create_restore'),
+        ]
+
 
 # ======== Phenotypes ==============================================================================
 # add URLConf to create, update, and delete Phenotypes
 urlpatterns += [
-    url(r'^phenotypes/PH(?P<pk>\d+)/detail/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/detail/$',
         Phenotype.PhenotypeDetail_combined,
         name='phenotype_detail'),
-    url(r'^phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/detail/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/version/(?P<phenotype_history_id>\d+)/detail/$',
         Phenotype.PhenotypeDetail_combined,
         name='phenotype_history_detail'),
-    url(r'^phenotypes/PH(?P<pk>\d+)/export/codes/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/export/codes/$',
         Phenotype.history_phenotype_codes_to_csv,
         name='latestVersion_phenotype_codes_to_csv'),
-    url(r'^phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/export/codes/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/version/(?P<phenotype_history_id>\d+)/export/codes/$',
         Phenotype.history_phenotype_codes_to_csv,
         name='history_phenotype_codes_to_csv'),    
-    url(r'^phenotypes/PH(?P<pk>\d+)/uniquecodesbyversion/(?P<phenotype_history_id>\d+)/concept/C(?P<target_concept_id>\d+)/(?P<target_concept_history_id>\d+)/$',
+    url(r'^phenotypes/(?P<pk>PH\d+)/uniquecodesbyversion/(?P<phenotype_history_id>\d+)/concept/C(?P<target_concept_id>\d+)/(?P<target_concept_history_id>\d+)/$',
         Phenotype.phenotype_conceptcodesByVersion,
         name='phenotype_conceptcodesByVersion'),
 ]
@@ -126,19 +183,19 @@ urlpatterns += [
 #             Phenotype.phenotype_create,
 #             name='phenotype_create'),
 #
-#         url(r'^phenotypes/PH(?P<pk>\d+)/update/$',
+#         url(r'^phenotypes/(?P<pk>PH\d+)/update/$',
 #             Phenotype.PhenotypeUpdate.as_view(),
 #             name='phenotype_update'),
 #
-#         url(r'^phenotypes/PH(?P<pk>\d+)/delete/$',
+#         url(r'^phenotypes/(?P<pk>PH\d+)/delete/$',
 #             Phenotype.PhenotypeDelete.as_view(),
 #             name='phenotype_delete'),
 #
-#         # url(r'^phenotypes/PH(?P<pk>\d+)/version/(?P<phenotype_history_id>\d+)/revert/$',
+#         # url(r'^phenotypes/(?P<pk>PH\d+)/version/(?P<phenotype_history_id>\d+)/revert/$',
 #         #     Phenotype.phenotype_history_revert,
 #         #     name='phenotype_history_revert'),
 #         #
-#         # url(r'^phenotypes/PH(?P<pk>\d+)/restore/$',
+#         # url(r'^phenotypes/(?P<pk>PH\d+)/restore/$',
 #         #     Phenotype.PhenotypeRestore.as_view(),
 #         #     name='phenotype_restore'),
 #     ]
@@ -383,7 +440,7 @@ if not settings.CLL_READ_ONLY:
 urlpatterns += [
     url(
         '^change-password/$',
-        auth_views.PasswordChangeView,  #.password_change, 
+        auth_views.PasswordChangeView.as_view(),  #.password_change, 
         {'post_change_redirect': 'concept_library_home'},
         name='password_change'),
 ]
@@ -403,9 +460,12 @@ if settings.ENABLE_PUBLISH:
         url(r'^concepts/C(?P<pk>\d+)/(?P<concept_history_id>\d+)/publish/$',
             Concept.ConceptPublish.as_view(),
             name='concept_publish'),
-        url(r'^phenotypes/PH(?P<pk>\d+)/(?P<phenotype_history_id>\d+)/publish/$',
+        url(r'^phenotypes/(?P<pk>PH\d+)/(?P<phenotype_history_id>\d+)/publish/$',
             Phenotype.PhenotypePublish.as_view(),
             name='phenotype_publish'),
+        url(r'^phenotypeworkingset/(?P<pk>WS\d+)/(?P<workingset_history_id>\d+)/publish/$',
+            PhenotypeWorkingSet.WorkingSetPublish.as_view(),
+            name='workingset_publish'),
     ]
 
 # handler400 = 'clinicalcode.views.bad_request'

@@ -16,7 +16,7 @@ build_image:
         only:
             - master
         script:
-            - docker build -f "docker/OS/Dockerfile" -t cll/os . --build-arg http_proxy=http://192.168.10.15:8080 --build-arg https_proxy=http://192.168.10.15:8080 --build-arg pip_proxy="--proxy http://192.168.10.15:8080" 
+            - docker build -f "docker/deployOS/Dockerfile" -t cll/os . --build-arg http_proxy=http://192.168.10.15:8080 --build-arg https_proxy=http://192.168.10.15:8080 --build-arg pip_proxy="--proxy http://192.168.10.15:8080" 
             - docker build -t $CI_REGISTRY/conceptlibrary/github-mirror2 . --build-arg http_proxy=http://192.168.10.15:8080 --build-arg https_proxy=http://192.168.10.15:8080 --build-arg pip_proxy="--proxy http://192.168.10.15:8080" 
             - docker push $CI_REGISTRY/conceptlibrary/github-mirror2
             - docker rmi $CI_REGISTRY/conceptlibrary/github-mirror2 

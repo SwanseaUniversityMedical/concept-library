@@ -16,7 +16,9 @@ Including another URLconf
 from clinicalcode import api
 from clinicalcode.views import View
 from django.conf import settings
-from django.conf.urls import include, url
+#from django.conf.urls import include, url
+from django.urls import re_path as url
+from django.urls import include
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles.views import serve
@@ -26,9 +28,7 @@ from django.views.generic import RedirectView
 
 
 def db_table_exists(table_name):
-    return table_name.lower() in [
-        x.lower() for x in connection.introspection.table_names()
-    ]
+    return table_name.lower() in [x.lower() for x in connection.introspection.table_names()]
 
 
 if settings.DEBUG:

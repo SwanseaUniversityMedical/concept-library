@@ -76,6 +76,15 @@ def get_int_value(value, default_value):
     else:
         return default_value
 
+def expect_integer_list(values):
+    try:
+        values = str(values).split(',')
+        values = [int(x) for x in values if get_int_value(x, None) != None]
+    except BaseException:
+        return []
+    else:
+        return values
+
 
 def detect_sql_meta_characters(value):
     # reference https://www.symantec.com/connect/articles/detection-sql-injection-and-cross-site-scripting-attacks

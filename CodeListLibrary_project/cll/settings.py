@@ -283,6 +283,10 @@ DATABASES = {
     }
 }
 
+# sslmode is required for production DB
+if not IS_DEMO and (not IS_DEVELOPMENT_PC):
+    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
+
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
 
@@ -480,4 +484,19 @@ USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 SWAGGER_TITLE = "Concept Library API"
+
+
+# Default primary key field type
+# Django >= 3.2
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.saildatabank.com',
+    'https://phenotypes.healthdatagateway.org',
+    'http://conceptlibrary.serp.ac.uk',
+    'http://conceptlibrary.sail.ukserp.ac.uk'
+]
+
+
 

@@ -95,8 +95,7 @@ linux_chromdriver = check_driver('clinicalcode/tests/functional_tests','linux')
 windows_chromdriver = check_driver('clinicalcode/tests/functional_tests','windows')
 
 chrome_options = webdriver.ChromeOptions()
-chrome_options.add_experimental_option(
-    "prefs", {'profile.managed_default_content_settings.javascript': 'enable'})
+chrome_options.add_experimental_option("prefs", {'profile.managed_default_content_settings.javascript': 'enable'})
 
 chrome_options.add_argument('--headless')
 chrome_options.add_argument("--no-sandbox")
@@ -130,9 +129,7 @@ DATABASES = {
         'HOST': get_env_value('UNIT_TEST_DB_HOST'),
         'PORT': '',
         'TEST': {
-            'NAME':
-            get_env_value('UNIT_TEST_DB_NAME'
-                          )  # TODO: check this was cl_testdatabase before!
+            'NAME': get_env_value('UNIT_TEST_DB_NAME')  # TODO: check this was cl_testdatabase before!
         },
     }
 }

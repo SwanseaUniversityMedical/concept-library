@@ -15,7 +15,6 @@ from .NON_STANDARD_CODES import NON_STANDARD_CODES
 from .OPCS4_CODES_AND_TITLES import OPCS4_CODES_AND_TITLES
 from .Operator import Operator
 from .Phenotype import Phenotype
-from .PhenotypeDataSourceMap import PhenotypeDataSourceMap
 from .PROD_CODES import PROD_CODES
 from .PublishedConcept import PublishedConcept
 from .PublishedPhenotype import PublishedPhenotype
@@ -28,6 +27,8 @@ from .TimeStampedModel import TimeStampedModel
 from .UKBIOBANK_CODES import UKBIOBANK_CODES
 from .WorkingSet import WorkingSet
 from .WorkingSetTagMap import WorkingSetTagMap
+from .PhenotypeWorkingset import PhenotypeWorkingset
+from .PublishedWorkingset import PublishedWorkingset
 from .ICPC_2_CODES import ICPC_2_CODES
 from .CTV3_CODES import CTV3_CODES
 from .ICD_11_CODES import ICD_11_CODES

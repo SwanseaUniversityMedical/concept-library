@@ -1,0 +1,87 @@
+{% load static %}
+{% load cl_extras %}
+
+<div class="page-control-container">
+	{% include 'pagination.html' with form_target=search_form is_header=True %}	
+</div>
+
+
+{% block content %}
+	{% for concept in page_obj.object_list %}  
+			<div class="cl-card {% if concept.is_deleted is True %} cl-card-deleted {% endif %} {% cycle ' dark-div ' '' %} {% if concept.is_deleted is not True and concept.can_edit %} cl-card-with-buttons {% endif %}">
+				<div class="row form-group">
+					<div class="col-sm-8"> <!-- {% if concept.is_deleted is not True and concept.can_edit %} class="col-sm-10" {% else %}  class="col-sm-12" {% endif %} > -->
+						{% if user.is_authenticated and concept.is_published != 1 %}
+							<a class="" href="{% url 'concept_detail' concept.id %}"/>
+						{% else %}
+							<a class="" href="{% url 'concept_history_detail' concept.id concept.history_id %}">
+						{% endif %}
+							<span style='font-size: 22px;margin-top:0;'>{{ concept.friendly_id }} - {{ concept.name_highlighted|safe }}</span> 
+							</a>
+				
+					</div>
+
+					{% if concept.is_deleted is not True and concept.can_edit %}
+					<div class="col-sm-4 text-right">
+							<a  class="btn btn-outline-primary btn-cl btn-cl-secondary card-edit-sizing" href="{% url 'concept_update' concept.id %}" title="Edit concept">
+								Edit
+							</a> 						
+					</div>		
+					{% endif %}		
+				</div>
+				
+				<div class="row form-group">
+					<div class="col-sm-12">
+
+						{{ concept.author_highlighted|safe  }} 
+					</div>
+				</div>				
+				<div class="row form-group">
+					<!-- CodingSystems -->
+					<div class="col-sm-4 text-justify">
+				   		<span class="badge">{{ concept.coding_system_name }}</span>
+					</div>
+
+					<!-- Date --> 
+					<div class="col-sm-4 text-center">
+						<span class="badge card-date-badge">
+							{% if user.is_authenticated %}
+								<span class="card-date-block">Modified:</span><i class="card-noweight">{{ concept.modified|date:"Y-m-d" }}</i>
+							{% else %}	
+								<span class="card-date-block">Published:</span><i class="card-noweight">{{ concept.publish_date|date:"Y-m-d" }}</i>
+							{% endif %}
+						</span>
+					</div>
+
+					<!-- Tags / Collections -->
+					{% if concept.tags %}
+					<div class="col-sm-4 text-right">
+						<!-- tags -->
+						{% for tag in allTags %}
+							{% for tag_id in concept.tags %}
+								{% if tag.id == tag_id %}
+
+										<span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">{{ tag.description }}</span>
+									{% endif %}
+							{% endfor %}						
+						{% endfor %}			
+					</div>	
+					{% endif %}
+				</div>				
+ 	
+		</div>				  
+	<br> 
+	{% empty %}
+		<div class="row form-group">
+			<div class="col-sm-12 text-center bg-warning">
+				No concepts
+			</div>	
+		</div>				
+			
+	{% endfor %}
+{% endblock %}
+
+
+<div class="page-control-container">
+	{% include 'pagination.html' with form_target=search_form is_header=False %}	
+</div>

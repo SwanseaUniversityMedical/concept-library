@@ -36,6 +36,9 @@ from django.core.exceptions import PermissionDenied
 from django.db import connection, connections  # , transaction
 from django.test import RequestFactory
 import csv
+from django.db.models import Min, Max
+from collections import Counter
+
 
 ##### Datasources
 def get_hdruk_datasources():
@@ -226,7 +229,7 @@ def get_HDRUK_statistics(request):
         'published_concept_count': len(HDRUK_published_concepts_ids),
         'published_phenotype_count': len(HDRUK_published_phenotypes_ids),
         'published_clinical_codes': get_published_clinical_codes(HDRUK_published_concepts_id_version),
-        'datasources_component_count': get_dataSources_count(HDRUK_published_phenotypes_ids),  
+        'datasources_component_count': get_dataSources_count(HDRUK_published_phenotypes),  
         'clinical_terminologies': get_codingSystems_count(HDRUK_published_phenotypes)  # number of coding systems used in published phenotypes
     }
 
@@ -250,14 +253,18 @@ def get_codingSystems_count(published_phenotypes):
     return len(unique_coding_systems_ids_list)
 
 
-def get_dataSources_count(published_phenotypes_ids):
+def get_dataSources_count(published_phenotypes):
     """
         get only data-sources count used in (published) phenotypes
     """
 
-    ds_ids = PhenotypeDataSourceMap.objects.filter(phenotype_id__in=published_phenotypes_ids).values('datasource_id').distinct()
-
-    unique_ds_ids = list(set([i['datasource_id'] for i in ds_ids]))
+    ds_ids = [] 
+    
+    for p in published_phenotypes:
+        if p['data_sources'] is not None:
+            ds_ids = list(set(ds_ids + p['data_sources']))
+            
+    unique_ds_ids = list(set(ds_ids))
     # make sure data-source exists
     unique_ds_ids_list = list(DataSource.objects.filter(id__in=unique_ds_ids).values_list('id', flat=True))
 
@@ -304,155 +311,6 @@ def get_published_concept_codecount(concept_id, concept_history_id):
     else:
         return saved_codecount
 
-
-def run_statistics_collections(request):
-    """
-        save collection stat for brands (phenotypes/concepts)
-    """
-    brands = Brand.objects.all()
-    brand_list = list(brands.values_list('name', flat=True))
-
-    if settings.CLL_READ_ONLY:
-        raise PermissionDenied
-
-    if request.method == 'GET':
-        for brand in brand_list:
-            save_statistics_collections(request, 'concept', brand)
-            save_statistics_collections(request, 'phenotype', brand)
-
-        # save for all data
-        save_statistics_collections(request, 'concept', brand='ALL')
-        save_statistics_collections(request, 'phenotype', brand='ALL')
-
-    clear_statistics_history()
-    
-    return render(request, 'clinicalcode/admin/run_statistics.html',
-                {
-                    'successMsg': ['Collections for concepts/Phenotypes statistics saved'],
-                })
-
-
-def save_statistics_collections(request, concept_or_phenotype, brand):
-    """
-        Function to insert statistics to the table clinicalcode_statistics.
-        This will include the number of collections associated with each brand for phenotypes/concepts.
-    """
-
-    if concept_or_phenotype == 'concept':
-        concept_stat = get_brand_collections(request, 'concept', force_brand=brand)
-
-        if Statistics.objects.all().filter(org__iexact=brand, type__iexact='concept_collections').exists():
-            concept_stat_update = Statistics.objects.get(org__iexact=brand, type__iexact='concept_collections')
-            concept_stat_update.stat = concept_stat
-            concept_stat_update.updated_by = [None, request.user][request.user.is_authenticated]
-            concept_stat_update.modified = datetime.datetime.now()
-            concept_stat_update.save()
-            return [concept_stat, concept_stat_update.id]
-        else:
-            obj, created = Statistics.objects.get_or_create(org=brand,
-                                                            type='concept_collections',
-                                                            stat=concept_stat,
-                                                            created_by=[None, request.user][request.user.is_authenticated]
-                                                            )
-            return [concept_stat, obj.id]
-
-    else:
-        if concept_or_phenotype == 'phenotype':
-            phenotype_stat = get_brand_collections(request, 'phenotype', force_brand=brand)
-
-            if Statistics.objects.all().filter(org__iexact=brand, type__iexact='phenotype_collections').exists():
-                phenotype_stat_update = Statistics.objects.get(org__iexact=brand, type__iexact='phenotype_collections')
-                phenotype_stat_update.stat = phenotype_stat
-                phenotype_stat_update.updated_by = [None, request.user][request.user.is_authenticated]
-                phenotype_stat_update.modified = datetime.datetime.now()
-                phenotype_stat_update.save()
-                return [phenotype_stat, phenotype_stat_update.id]
-            else:
-                obj, created = Statistics.objects.get_or_create(org=brand,
-                                                                type='phenotype_collections',
-                                                                stat=phenotype_stat,
-                                                                created_by=[None, request.user][request.user.is_authenticated]
-                                                                )
-                return [phenotype_stat, obj.id]
-
-
-def get_brand_collections(request, concept_or_phenotype, force_brand=None):
-    """
-        For each brand this function will add a new row to the table "Statistics" which will list all of the
-        collection IDs in a dictionary for when they are listed as published or not.
-    """
-
-    if force_brand == 'ALL':
-        force_brand = ''
-
-    if concept_or_phenotype == 'concept':
-        # to be shown with login
-        data = db_utils.get_visible_live_or_published_concept_versions(request,
-                                                                        get_live_and_or_published_ver=3,  # 1= live only, 2= published only, 3= live+published 
-                                                                        exclude_deleted=False,
-                                                                        force_brand=force_brand,
-                                                                        force_get_live_and_or_published_ver=3  # get live + published data
-                                                                    )
-
-        # to be shown without login - publish data only
-        data_published = db_utils.get_visible_live_or_published_concept_versions(request,
-                                                                                get_live_and_or_published_ver=2,  # 1= live only, 2= published only, 3= live+published 
-                                                                                exclude_deleted=True,
-                                                                                force_brand=force_brand,
-                                                                                force_get_live_and_or_published_ver=2  # get published data
-                                                                            )
-    elif concept_or_phenotype == 'phenotype':
-        # to be shown with login
-        data = db_utils.get_visible_live_or_published_phenotype_versions(request,
-                                                                        get_live_and_or_published_ver=3,  # 1= live only, 2= published only, 3= live+published 
-                                                                        exclude_deleted=False,
-                                                                        force_brand=force_brand,
-                                                                        force_get_live_and_or_published_ver=3  # get live + published data
-                                                                    )
-
-        # to be shown without login - publish data only
-        data_published = db_utils.get_visible_live_or_published_phenotype_versions(request,
-                                                                                    get_live_and_or_published_ver=2,  # 1= live only, 2= published only, 3= live+published 
-                                                                                    exclude_deleted=True,
-                                                                                    force_brand=force_brand,
-                                                                                    force_get_live_and_or_published_ver=2  # get published data
-                                                                                )
-
-    # Creation of two lists, one for all data and the other for published data
-    Tag_List = []
-    Tag_List_Published = []
-
-    for i in data:
-        if i['tags'] is not None:
-            Tag_List = list(set(Tag_List + i['tags']))
-
-    for i in data_published:
-        if i['tags'] is not None:
-            Tag_List_Published = list(set(Tag_List_Published + i['tags']))
-
-    # Create a list for both allData and published.
-    unique_tags_ids = list(set(Tag_List))
-    unique_tags_ids_list = list(Tag.objects.filter(id__in=unique_tags_ids, tag_type=2).values_list('id', flat=True))
-
-    unique_tags_ids_published = list(set(Tag_List_Published))
-    unique_tags_ids_published_list = list(Tag.objects.filter(id__in=unique_tags_ids_published, tag_type=2).values_list('id', flat=True))
-
-    # Create two distinct dictionaries for both allData and published
-    StatsDict_Published = {}
-    StatsDict = {}
-
-    StatsDict_Published['Data_Scope'] = 'published_data'
-    StatsDict_Published['Collection_IDs'] = unique_tags_ids_published_list
-
-    StatsDict['Data_Scope'] = 'all_data'
-    StatsDict['Collection_IDs'] = unique_tags_ids_list
-
-    # Create list of the two created dictionaries above.
-    StatsDictFinal = []
-    StatsDictFinal.append(StatsDict.copy())
-    StatsDictFinal.append(StatsDict_Published.copy())
-
-    return StatsDictFinal
 
 
 def clear_statistics_history():
@@ -501,14 +359,14 @@ def run_celery_statistics(self):
     request.CURRENT_BRAND = ''
     if request.method == 'GET':
         stat = save_statistics(request)
-        # print("Celery_statistics finished" + str(stat))
+
         return True, stat
 
 
 @shared_task(bind=True)
-def run_celery_collections(self):
+def run_celery_filters(self):
     request_factory = RequestFactory()
-    my_url = r'^admin/run-collections/$'
+    my_url = r'^admin/run-stat-filters/$'
     request = request_factory.get(my_url)
     request.user = AnonymousUser()
     request.CURRENT_BRAND = ''
@@ -518,17 +376,16 @@ def run_celery_collections(self):
 
     if request.method == 'GET':
         for brand in brand_list:
-            save_statistics_collections(request, 'concept', brand)
-            save_statistics_collections(request, 'phenotype', brand)
+            save_filter_statistics(request, Concept, brand)
+            save_filter_statistics(request, Phenotype, brand)
 
         # save for all data
-        stat1 = save_statistics_collections(request, 'concept', brand='ALL')
-        stat2 = save_statistics_collections(request, 'phenotype', brand='ALL')
+        stat1 = save_filter_statistics(request, Concept, brand='ALL')
+        stat2 = save_filter_statistics(request, Phenotype, brand='ALL')
         
         clear_statistics_history()
         
-        # print("Celery_collections finished")
-        return True, stat1+stat2
+        return True, stat1 + stat2
 
 
 
@@ -584,7 +441,7 @@ def get_caliberresearch_url_source(request):
             is_Caliber = 'N'
             
         writer.writerow([
-                        'PH' + str(p.id),
+                        p.id,
                         list(tags.filter(id__in=p.tags).values_list('description', flat=True)),
                         p.source_reference, 
                         is_Caliber,
@@ -597,4 +454,243 @@ def get_caliberresearch_url_source(request):
     
     
     
+
+
+def run_filter_statistics(request):
+    """
+        save filter stat for brands (phenotypes/concepts)
+    """
+    brands = Brand.objects.all()
+    brand_list = list(brands.values_list('name', flat=True))
+
+    if settings.CLL_READ_ONLY:
+        raise PermissionDenied
+
+    if request.method == 'GET':
+        for brand in brand_list:
+            save_filter_statistics(request, Concept, brand)
+            save_filter_statistics(request, Phenotype, brand)
+
+        # save for all data
+        save_filter_statistics(request, Concept, brand='ALL')
+        save_filter_statistics(request, Phenotype, brand='ALL')
+
+    clear_statistics_history()
+    
+    return render(request, 'clinicalcode/admin/run_statistics.html',
+                {
+                    'successMsg': ['Filter statistics for Concepts/Phenotypes saved'],
+                })
+
+
+def save_filter_statistics(request, entity_class, brand):
+    """
+        save filter stat associated with each brand for phenotypes/concepts.
+    """
+
+    if entity_class == Concept:
+        concept_stat = get_brand_filter_stat(request, entity_class, force_brand=brand)
+
+        if Statistics.objects.all().filter(org__iexact=brand, type__iexact='concept_filters').exists():
+            concept_stat_update = Statistics.objects.get(org__iexact=brand, type__iexact='concept_filters')
+            concept_stat_update.stat = concept_stat
+            concept_stat_update.updated_by = [None, request.user][request.user.is_authenticated]
+            concept_stat_update.modified = datetime.datetime.now()
+            concept_stat_update.save()
+            return [concept_stat, concept_stat_update.id]
+        else:
+            obj, created = Statistics.objects.get_or_create(org=brand,
+                                                            type='concept_filters',
+                                                            stat=concept_stat,
+                                                            created_by=[None, request.user][request.user.is_authenticated]
+                                                            )
+            return [concept_stat, obj.id]
+
+    else:
+        if entity_class == Phenotype:
+            phenotype_stat = get_brand_filter_stat(request, entity_class, force_brand=brand)
+
+            if Statistics.objects.all().filter(org__iexact=brand, type__iexact='phenotype_filters').exists():
+                phenotype_stat_update = Statistics.objects.get(org__iexact=brand, type__iexact='phenotype_filters')
+                phenotype_stat_update.stat = phenotype_stat
+                phenotype_stat_update.updated_by = [None, request.user][request.user.is_authenticated]
+                phenotype_stat_update.modified = datetime.datetime.now()
+                phenotype_stat_update.save()
+                return [phenotype_stat, phenotype_stat_update.id]
+            else:
+                obj, created = Statistics.objects.get_or_create(org=brand,
+                                                                type='phenotype_filters',
+                                                                stat=phenotype_stat,
+                                                                created_by=[None, request.user][request.user.is_authenticated]
+                                                                )
+                return [phenotype_stat, obj.id]
+
+def get_date_from_datetime(datetime):
+    return datetime.date() if datetime is not None else datetime
+
+    
+def get_brand_filter_stat(request, entity_class, force_brand=None):
+    """
+        save filter stat for the brand in both cases of published content or not.
+    """
+
+    if force_brand == 'ALL':
+        force_brand = ''
+
+    if entity_class == Concept:
+        # to be shown with login
+        data = db_utils.get_visible_live_or_published_concept_versions(request,
+                                                                        get_live_and_or_published_ver=3,  # 1= live only, 2= published only, 3= live+published 
+                                                                        exclude_deleted=False,
+                                                                        force_brand=force_brand,
+                                                                        force_get_live_and_or_published_ver=3  # get live + published data
+                                                                    )
+
+        # to be shown without login - publish data only
+        data_published = db_utils.get_visible_live_or_published_concept_versions(request,
+                                                                                get_live_and_or_published_ver=2,  # 1= live only, 2= published only, 3= live+published 
+                                                                                exclude_deleted=True,
+                                                                                force_brand=force_brand,
+                                                                                force_get_live_and_or_published_ver=2  # get published data
+                                                                            )
+    elif entity_class == Phenotype:
+        # to be shown with login
+        data = db_utils.get_visible_live_or_published_phenotype_versions(request,
+                                                                        get_live_and_or_published_ver=3,  # 1= live only, 2= published only, 3= live+published 
+                                                                        exclude_deleted=False,
+                                                                        force_brand=force_brand,
+                                                                        force_get_live_and_or_published_ver=3  # get live + published data
+                                                                    )
+
+        # to be shown without login - publish data only
+        data_published = db_utils.get_visible_live_or_published_phenotype_versions(request,
+                                                                                    get_live_and_or_published_ver=2,  # 1= live only, 2= published only, 3= live+published 
+                                                                                    exclude_deleted=True,
+                                                                                    force_brand=force_brand,
+                                                                                    force_get_live_and_or_published_ver=2  # get published data
+                                                                                )
+
+    # Creation of two lists, one for all data and the other for published data  
+    entity_id_list = []
+    entity_id_list_published = []
+    
+    tag_list = []
+    tag_list_published = []
+    
+    collection_list = []
+    collection_list_published = []
+    
+    codingSystem_list = []
+    codingSystem_list_published = []    
+    
+    phenotype_types_list = []
+    phenotype_types_list_published = []
+    
+    datasources_ids_list = []
+    datasources_ids_published_list = []
+
+    for i in data:
+        entity_id_list = list(set(entity_id_list + [i['id']]))
+        
+        if i['tags'] is not None:
+            tag_list = tag_list + i['tags']
+            collection_list = collection_list + i['tags']
+            
+        if entity_class == Concept:
+            if i['coding_system_id'] is not None:
+                codingSystem_list = codingSystem_list + [i['coding_system_id']]
+        elif entity_class == Phenotype:
+            if i['clinical_terminologies'] is not None:
+                codingSystem_list = codingSystem_list + i['clinical_terminologies']
+            if i['type'] is not None:
+                phenotype_types_list = phenotype_types_list + [i['type'].lower()]
+            if i['data_sources'] is not None:
+                datasources_ids_list = datasources_ids_list + i['data_sources']
+
+
+
+    for i in data_published:
+        entity_id_list_published = list(set(entity_id_list_published + [i['id']]))
+
+        if i['tags'] is not None:
+            tag_list_published = tag_list_published + i['tags']
+            collection_list_published = collection_list_published + i['tags']
+            
+        if entity_class == Concept:
+            if i['coding_system_id'] is not None:
+                codingSystem_list_published = codingSystem_list_published + [i['coding_system_id']]
+        elif entity_class == Phenotype:
+            if i['clinical_terminologies'] is not None:
+                codingSystem_list_published = codingSystem_list_published + i['clinical_terminologies']
+            if i['type'] is not None:
+                phenotype_types_list_published = phenotype_types_list_published + [i['type'].lower()]
+            if i['data_sources'] is not None:
+                datasources_ids_published_list = datasources_ids_published_list + i['data_sources']
+                
+    # Create a list for both allData and published.
+    # tags
+    unique_tags_ids_list = list(Tag.objects.filter(id__in=list(set(tag_list)), tag_type=1).values_list('id', flat=True))
+    unique_tags_ids_published_list = list(Tag.objects.filter(id__in=list(set(tag_list_published)), tag_type=1).values_list('id', flat=True))
+
+    # collections
+    unique_collections_ids_list = list(Tag.objects.filter(id__in=list(set(collection_list)), tag_type=2).values_list('id', flat=True))
+    unique_collections_ids_published_list = list(Tag.objects.filter(id__in=list(set(collection_list_published)), tag_type=2).values_list('id', flat=True))
+
+
+    # publish_date
+    if entity_class == Concept:
+        publish_date_dict = PublishedConcept.objects.filter(concept_id__in=entity_id_list).aggregate(Max('created'),Min('created'))
+    elif entity_class == Phenotype:
+        publish_date_dict = PublishedPhenotype.objects.filter(phenotype_id__in=entity_id_list).aggregate(Max('created'),Min('created'))
+
+            
+    min_publish_date = str(get_date_from_datetime(publish_date_dict['created__min']))
+    max_publish_date = str(get_date_from_datetime(publish_date_dict['created__max']))
+
+    # create_update_date
+    create_update_date_dict = entity_class.objects.filter(id__in=entity_id_list).aggregate(Min('created')
+                                                                                        ,Max('created')
+                                                                                        ,Min('modified')
+                                                                                        ,Max('modified')
+                                                                                        )
+    min_create_date = str(get_date_from_datetime(create_update_date_dict['created__min']))
+    max_create_date = str(get_date_from_datetime(create_update_date_dict['created__max']))
+    min_update_date = str(get_date_from_datetime(create_update_date_dict['modified__min']))
+    max_update_date = str(get_date_from_datetime(create_update_date_dict['modified__max']))
+    
+
+    # Create two distinct dictionaries for both allData and published
+    stats_dict = {}
+    stats_dict['collections'] = [{"data_scope": "all_data", "collection_ids": [x for x in Counter(collection_list).most_common() if x[0] in unique_collections_ids_list]} 
+                                ,{"data_scope": "published_data", "collection_ids": [x for x in Counter(collection_list_published).most_common() if x[0] in unique_collections_ids_published_list]}
+                                ]
+    
+    stats_dict['tags'] = [{"data_scope": "all_data", "tag_ids": [x for x in Counter(tag_list).most_common() if x[0] in unique_tags_ids_list]} 
+                         ,{"data_scope": "published_data", "tag_ids": [x for x in Counter(tag_list_published).most_common() if x[0] in unique_tags_ids_published_list]} 
+                         ]
+        
+    stats_dict['coding_systems'] = [{"data_scope": "all_data", "coding_system_ids": Counter(codingSystem_list).most_common()}
+                                   ,{"data_scope": "published_data", "coding_system_ids": Counter(codingSystem_list_published).most_common()} 
+                                   ]
+    
+        
+    stats_dict['publish_date'] = {"min_publish_date": min_publish_date, "max_publish_date": max_publish_date}
+    stats_dict['create_date'] = {"min_create_date": min_create_date, "max_create_date": max_create_date}
+    stats_dict['update_date'] = {"min_update_date": min_update_date, "max_update_date": max_update_date}
+    
+    if entity_class == Phenotype:
+        stats_dict['data_sources'] = [{"data_scope": "all_data", "data_source_ids": Counter(datasources_ids_list).most_common()}
+                                     ,{"data_scope": "published_data", "data_source_ids": Counter(datasources_ids_published_list).most_common()}
+                                   ]
+            
+        stats_dict['phenotype_types'] = [{"data_scope": "all_data", "types": Counter(phenotype_types_list).most_common()}
+                                        ,{"data_scope": "published_data", "types": Counter(phenotype_types_list_published).most_common()}
+                                        ]
+
+    
+    
+    return stats_dict
+
+
+
     

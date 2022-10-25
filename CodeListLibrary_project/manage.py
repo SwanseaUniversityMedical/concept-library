@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     else:
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cll.settings")
-    
+
     # Setup debugpy for debugging local development container
     if 'IS_DEVELOPMENT_PC' in os.environ and os.environ['IS_DEVELOPMENT_PC'].lower() == 'true':
         if 'DEBUG_TOOLS' in os.environ and os.environ['DEBUG_TOOLS'].lower() == 'true':

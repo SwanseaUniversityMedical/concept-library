@@ -35,7 +35,6 @@ from ..models.Concept import Concept
 from ..models.PublishedConcept import PublishedConcept
 from ..permissions import *
 from ..views.View import build_permitted_components_list
-from test.support import catch_threading_exception
 
 logger = logging.getLogger(__name__)
 
@@ -66,16 +65,13 @@ class ComponentExpressionCreate(LoginRequiredMixin,
 
         concept = Concept.objects.get(id=self.kwargs['concept_id'])
 
-        context['coding_system_filter'] = CodingSystemFilter.objects.filter(
-            coding_system_id=concept.coding_system_id)
+        context['coding_system_filter'] = CodingSystemFilter.objects.filter(coding_system_id=concept.coding_system_id)
 
         #------------------------------
         latest_history_ID = concept.history.latest().pk
         #context['latest_history_ID'] = latest_history_ID
         context[
-            'latest_history_ID'] = latest_history_ID if self.request.POST.get(
-                'latest_history_id_shown') is None else self.request.POST.get(
-                    'latest_history_id_shown')
+            'latest_history_ID'] = latest_history_ID if self.request.POST.get('latest_history_id_shown') is None else self.request.POST.get('latest_history_id_shown')
         #-------------------------------
 
         return context
@@ -89,8 +85,7 @@ class ComponentExpressionCreate(LoginRequiredMixin,
             err = 'does not exist'
             #print(err)
 
-        initials['component_type'] = '%s' % (
-            Component.COMPONENT_TYPE_EXPRESSION)
+        initials['component_type'] = '%s' % (Component.COMPONENT_TYPE_EXPRESSION)
 
         return initials
 
@@ -105,10 +100,7 @@ class ComponentExpressionCreate(LoginRequiredMixin,
 
         #------------------------------
         concept = Concept.objects.get(id=self.kwargs['concept_id'])
-        data['latest_history_ID'] = concept.history.latest(
-        ).pk if self.request.POST.get(
-            'latest_history_id_shown') is None else self.request.POST.get(
-                'latest_history_id_shown')
+        data['latest_history_ID'] = concept.history.latest().pk if self.request.POST.get('latest_history_id_shown') is None else self.request.POST.get('latest_history_id_shown')
         #------------------------------
 
         return JsonResponse(data)
@@ -142,15 +134,15 @@ class ComponentExpressionCreate(LoginRequiredMixin,
 
             # get where query
             db_utils.create_expression_codes(
-                Component.COMPONENT_TYPE_EXPRESSION,
-                coding_system.database_connection_name,
-                coding_system.table_name, coding_system.code_column_name,
-                coding_system.desc_column_name, '', '',
-                formset.instance.coderegex.column_search,
-                formset.instance.coderegex.regex_type,
-                formset.instance.coderegex.regex_code, code_list.id,
-                self.request.user.id, coding_system.filter,
-                formset.instance.coderegex.case_sensitive_search)
+                                            Component.COMPONENT_TYPE_EXPRESSION,
+                                            coding_system.database_connection_name,
+                                            coding_system.table_name, coding_system.code_column_name,
+                                            coding_system.desc_column_name, '', '',
+                                            formset.instance.coderegex.column_search,
+                                            formset.instance.coderegex.regex_type,
+                                            formset.instance.coderegex.regex_code, code_list.id,
+                                            self.request.user.id, coding_system.filter,
+                                            formset.instance.coderegex.case_sensitive_search)
 
             # Save the concept with a change reason to reflect the creation
             # within the concept audit history.
