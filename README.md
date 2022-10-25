@@ -41,6 +41,7 @@ Often the definitions that are created are of interest to researchers for many s
     2.5.1. [Django logging](#2.5.1.-Django-Logging)  
     2.5.2. [Debug Tools in Visual Studio Code](#2.5.2.-Debug-Tools-in-Visual-Studio-Code)  
     2.5.3. [Running Tests](#2.5.3.-Running-Tests)  
+  2.6. [Creating a Superuser](#2.6-Creating-a-Superuser)
 3. [Setup without Docker](#3.-Setup-without-Docker)  
   3.1. [Prerequisites](#3.1.-Prerequisites)  
   3.2. [Installing](#3.2.-Installing)  
@@ -240,6 +241,15 @@ To run only the read-only functional tests, run:
 To run only the read-only unit tests, run:  
 `python manage.py test --noinput clinicalcode.tests.unit_tests.read_only`
 
+## 2.6. Creating a Superuser
+
+To create a superuser:
+1. Ensure the docker container is running and open a new terminal
+2. Run `docker exec -it concept-library-development-app-1 /bin/bash`
+3. Navigate to the CodeListLibrary_project directory by running: `cd /var/www/CodeListLibrary_project`
+4. Run `python manage.py createsuperuser` and follow the instructions in the terminal to create the user
+5. Verify that the user was created properly by navigating to the website and logging in with the credentials entered
+
 # 3. Setup without Docker
 
 ## 3.1. Prerequisites
@@ -418,10 +428,10 @@ If we are to use ldap over ssl then we’ll need to follow this example:
 https://support.microsoft.com/en-us/help/938703/how-to-troubleshoot-ldap-over-ssl-connection-problems
 
 ## 3.3. Running Tests
-To run all the tests you need to run THREE commands:
-    - python manage.py test  --noinput 
-    - python manage.py test  --noinput clinicalcode.tests.functional_tests.read_only
-    - python manage.py test  --noinput clinicalcode.tests.unit_tests.read_only
+To run all the tests you need to run THREE commands:  
+- python manage.py test  --noinput  
+- python manage.py test  --noinput clinicalcode.tests.functional_tests.read_only  
+- python manage.py test  --noinput clinicalcode.tests.unit_tests.read_only  
 
 The first one will run all the tests except read only tests. It is necessary  because normal tests will take settings from settings.py
 The second one runs READ_ONLY tests. It takes settings from read_only_test_settings.py. Read_only tests must take settings from read_only_test_settings.py otherwise they will fail.
