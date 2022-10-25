@@ -594,7 +594,9 @@ def get_brand_filter_stat(request, entity_class, force_brand=None):
         
         if i['tags'] is not None:
             tag_list = tag_list + i['tags']
-            collection_list = collection_list + i['tags']
+        
+        if i['collections'] is not None:
+            collection_list = collection_list + i['collections']
             
         if entity_class == Concept:
             if i['coding_system_id'] is not None:
@@ -614,7 +616,9 @@ def get_brand_filter_stat(request, entity_class, force_brand=None):
 
         if i['tags'] is not None:
             tag_list_published = tag_list_published + i['tags']
-            collection_list_published = collection_list_published + i['tags']
+            
+        if i['collections'] is not None:
+            collection_list_published = collection_list_published + i['collections']
             
         if entity_class == Concept:
             if i['coding_system_id'] is not None:

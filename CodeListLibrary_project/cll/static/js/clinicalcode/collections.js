@@ -1,20 +1,20 @@
-var tagService = new function(){
+var collectionService = new function(){
 	
-	var initialize = function(){
-		var elt = $('#txtTags');
+	var initializeC = function(){
+		var elt = $('#txtCollections');
 		
 		var tags = new Bloodhound({
 			datumTokenizer: Bloodhound.tokenizers.obj.whitespace('id'),
 			queryTokenizer: Bloodhound.tokenizers.whitespace,
 			remote: {
-				url: '/api/v1/tags-and-collections/?type=1&search=%QUERY%',
+				url: '/api/v1/tags-and-collections/?type=2&search=%QUERY%',
 				wildcard: '%QUERY%',
 			}
 		});
 		
 		tags.initialize();
 		
-		$('#txtTags').tagsinput({
+		$('#txtCollections').tagsinput({
 			itemValue: 'id',
 			itemText: 'description',
 			maxChars: 10,
@@ -38,7 +38,7 @@ var tagService = new function(){
 				highlight: true
 			},
 			{
-				name: 'tagids',
+				name: 'collectionids',
 				itemValue: 'id',
 				displayKey: 'description',
 				source: tags.ttAdapter(),
@@ -55,7 +55,7 @@ var tagService = new function(){
 	}
 	
 	return {
-		initialize: initialize
+		initialize: initializeC
 	}
 	
 }

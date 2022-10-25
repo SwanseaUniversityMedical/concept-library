@@ -66,23 +66,25 @@
                 <ul>
                   <li><code>?search=Alcohol</code><br>
                   search by part of concept name (do not put wild characters here)</li>
-                  <li><code>?tag_collection_ids=11,4</code><br>
-                  You can specify tag and collection ids <br>
-	               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
+                  
+                  <li><code>?collection_ids=20,23</code><br>
+                  You can specify collection ids <br>
 	               (get collections from <code><a href="{{ collections }}" target="_blank" class="alert-link">{{ collections }}</a></code>)
 	                </li>
-								  <li><code>?collection_ids=18&tag_ids=1</code><br>
-									Or you can query tags and/or collections individually
-								  </li> 
-									<li><code>?coding_ids=4</code><br>
-									Specify the coding system of the phenotype
-									</li> 
-									<li><code>?data_source_ids=1</code><br>
-									Specify the data source of the phenotype
-									</li> 
-									<li><code>?start_date=2018-01-01&end_date=2022-08-25</code><br>
-									Specify the date range of your query
-									</li> 
+                  <li><code>?tag_ids=1,3</code><br>
+                  You can specify tag ids <br>
+	               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
+	                </li>	                
+
+				  <li><code>?coding_ids=4</code><br>
+					Specify the coding system of the phenotype
+				  </li> 
+				  <li><code>?data_source_ids=1</code><br>
+					Specify the data source of the phenotype
+				  </li> 
+				  <li><code>?start_date=2018-01-01&end_date=2022-08-25</code><br>
+					Specify the date range of your query
+				  </li> 
                   <li><code>?show_only_validated_concepts=1</code><br>
                   will show only validated concepts</li>
                   <li><code>?brand=HDRUK</code><br>
@@ -144,23 +146,23 @@
                 <ul>
                   <li><code>?search=Alcohol</code><br>
                   search by part of concept name (do not put wild characters here)</li>
-                  <li><code>?tag_collection_ids=11,4</code><br>
-                  You can specify tag and collection ids <br>
-	               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
+                  <li><code>?collection_ids=20,23</code><br>
+                  You can specify collection ids <br>
 	               (get collections from <code><a href="{{ collections }}" target="_blank" class="alert-link">{{ collections }}</a></code>)
-	              </li>
-								<li><code>?collection_ids=18&tag_ids=1</code><br>
-								Or you can query tags and/or collections individually
-								</li> 
-								<li><code>?coding_ids=4</code><br>
-								Specify the coding system of the phenotype
-								</li> 
-								<li><code>?data_source_ids=1</code><br>
-								Specify the data source of the phenotype
-								</li> 
-								<li><code>?start_date=2018-01-01&end_date=2022-08-25</code><br>
-								Specify the date range of your query
-								</li> 
+	                </li>
+                  <li><code>?tag_ids=1,3</code><br>
+                  You can specify tag ids <br>
+	               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
+	                </li>	
+				<li><code>?coding_ids=4</code><br>
+				Specify the coding system of the phenotype
+				</li> 
+				<li><code>?data_source_ids=1</code><br>
+				Specify the data source of the phenotype
+				</li> 
+				<li><code>?start_date=2018-01-01&end_date=2022-08-25</code><br>
+				Specify the date range of your query
+				</li> 
                   <li><code>?show_only_my_concepts=1</code><br>
                   Only show concepts owned by me</li>
                   <li><code>?show_deleted_concepts=1</code><br>
@@ -366,12 +368,14 @@
 					<ul>
 						<li><code>?search=Alcohol</code><br>
 						search by part of working set name (do not put wild characters here)</li>
-					<li><code>?tag_ids=1</code><br>
-					Query by tag IDs
-					</li> 
-					<li><code>?collection_ids=18</code><br>
-					Query by collection IDs
-					</li> 
+                  <li><code>?collection_ids=20,23</code><br>
+                  You can specify collection ids <br>
+	               (get collections from <code><a href="{{ collections }}" target="_blank" class="alert-link">{{ collections }}</a></code>)
+	                </li>
+                  <li><code>?tag_ids=1,3</code><br>
+                  You can specify tag ids <br>
+	               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
+	                </li>	
 					<li><code>?data_source_ids=1</code><br>
 					Specify the data source of the phenotype
 					</li> 
@@ -455,27 +459,27 @@
 		            <ul>
 		              <li><code>?search=Alcohol</code><br>
 		              search by part of phenotype name (do not put wild characters here)</li>
-		              <li><code>?tag_collection_ids=11,4</code><br>
-		              You can specify tag and collection ids <br>
-		               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
-		               (get collections from <code><a href="{{ collections }}" target="_blank" class="alert-link">{{ collections }}</a></code>)
-		              </li>
-								  <li><code>?collection_ids=18&tag_ids=1</code><br>
-									Or you can query tags and/or collections individually
-								  </li> 
+		              <li><code>?collection_ids=20,23</code><br>
+                  You can specify collection ids <br>
+	               (get collections from <code><a href="{{ collections }}" target="_blank" class="alert-link">{{ collections }}</a></code>)
+	                </li>
+                  <li><code>?tag_ids=1,3</code><br>
+                  You can specify tag ids <br>
+	               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
+	                </li>	
 		              <li><code>?selected_phenotype_types=drug,lifestyle risk factor</code><br>
 		              Specify types of the phenotypes<br>
                       You can get all available types from the <code><a href="{% url 'reference_data' %}" target="_blank" class="alert-link">reference data page</a></code>
 	                  </li>
-									<li><code>?coding_ids=4</code><br>
-									Specify the coding system of the phenotype
-									</li> 
-									<li><code>?data_source_ids=1</code><br>
-									Specify the data source of the phenotype
-									</li> 
-									<li><code>?start_date=2018-01-01&end_date=2022-08-25</code><br>
-									Specify the date range of your query
-									</li> 
+					<li><code>?coding_ids=4</code><br>
+					Specify the coding system of the phenotype
+					</li> 
+					<li><code>?data_source_ids=1</code><br>
+					Specify the data source of the phenotype
+					</li> 
+					<li><code>?start_date=2018-01-01&end_date=2022-08-25</code><br>
+					Specify the date range of your query
+					</li> 
 		              <li><code>?show_only_validated_phenotypes=1</code><br>
 		              will show only validated phenotypes</li>
 		              <li><code>?brand=HDRUK</code><br>
@@ -541,23 +545,23 @@
 		            <ul>
 		              <li><code>?search=Alcohol</code><br>
 		              search by part of phenotype name (do not put wild characters here)</li>
-		              <li><code>?tag_collection_ids=11,4</code><br>
-		              You can specify tag or collection ids <br>
-		               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
-		               (get collections from <code><a href="{{ collections }}" target="_blank" class="alert-link">{{ collections }}</a></code>)
-		              </li>
-								  <li><code>?collection_ids=18&tag_ids=1</code><br>
-									Or you can query tags and/or collections individually
-								  </li> 
-									<li><code>?coding_ids=4</code><br>
-									Specify the coding system of the phenotype
-									</li> 
-									<li><code>?data_source_ids=1</code><br>
-									Specify the data source of the phenotype
-									</li> 
-									<li><code>?start_date=2018-01-01&end_date=2022-08-25</code><br>
-									Specify the date range of your query
-									</li> 
+                  <li><code>?collection_ids=20,23</code><br>
+                  You can specify collection ids <br>
+	               (get collections from <code><a href="{{ collections }}" target="_blank" class="alert-link">{{ collections }}</a></code>)
+	                </li>
+                  <li><code>?tag_ids=1,3</code><br>
+                  You can specify tag ids <br>
+	               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
+	                </li>	
+					<li><code>?coding_ids=4</code><br>
+					Specify the coding system of the phenotype
+					</li> 
+					<li><code>?data_source_ids=1</code><br>
+					Specify the data source of the phenotype
+					</li> 
+					<li><code>?start_date=2018-01-01&end_date=2022-08-25</code><br>
+					Specify the date range of your query
+					</li> 
 		              <li><code>?selected_phenotype_types=drug,lifestyle risk factor</code><br>
 		              Specify types of the phenotypes<br>
                       You can get all available types from the <code><a href="{% url 'reference_data' %}" target="_blank" class="alert-link">reference data page</a></code>

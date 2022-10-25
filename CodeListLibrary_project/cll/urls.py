@@ -49,13 +49,6 @@ if db_table_exists("clinicalcode_brand"):
 urlpatterns = []
 #--------------------------------------------------------------------
 
-# admin system
-if not settings.CLL_READ_ONLY:
-    urlpatterns += [
-        url(r'^admin/', admin.site.urls),
-    ]
-#--------------------------------------------------------------------
-
 # api
 urlpatterns += [
     url(r'^api/v1/', include(('clinicalcode.api.urls', 'cll'), namespace='api')),
@@ -88,7 +81,13 @@ for brand in brands:
 urlpatterns += [
     url(r'^', include('clinicalcode.urls')),
 ]
+#--------------------------------------------------------------------
 
+# admin system
+if not settings.CLL_READ_ONLY:
+    urlpatterns += [
+        url(r'^admin/', admin.site.urls),
+    ]
 #--------------------------------------------------------------------
 
 # MEDIA_URL

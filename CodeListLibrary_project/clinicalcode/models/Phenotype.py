@@ -55,11 +55,12 @@ class Phenotype(TimeStampedModel):
     group_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.NONE)
     world_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.NONE)
 
-    tags = ArrayField(models.IntegerField(), blank=True, null=True)  #default=list
+    tags = ArrayField(models.IntegerField(), blank=True, null=True) 
+    collections = ArrayField(models.IntegerField(), blank=True, null=True) 
     clinical_terminologies = ArrayField(models.IntegerField(), blank=True, null=True)  # coding systems
     publications = ArrayField(models.CharField(max_length=500), blank=True, null=True)
 
-    data_sources = ArrayField(models.IntegerField(), blank=True, null=True)  #default=list
+    data_sources = ArrayField(models.IntegerField(), blank=True, null=True) 
 
     history = HistoricalRecords()
 

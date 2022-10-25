@@ -40,13 +40,7 @@ if settings.DEBUG:
 #--------------------------------------------------------------------
 
 urlpatterns = []
-#--------------------------------------------------------------------
 
-# admin system
-if not settings.CLL_READ_ONLY:
-    urlpatterns += [
-        url(r'^' + current_brand + 'admin/', admin.site.urls),
-    ]
 #--------------------------------------------------------------------
 
 # api
@@ -65,7 +59,13 @@ urlpatterns += [
 urlpatterns += [
     url(r'^' + current_brand + 'account/', include('django.contrib.auth.urls')),
 ]
+#--------------------------------------------------------------------
 
+# admin system
+if not settings.CLL_READ_ONLY:
+    urlpatterns += [
+        url(r'^' + current_brand + 'admin/', admin.site.urls),
+    ]
 #--------------------------------------------------------------------
 
 # MEDIA_URL

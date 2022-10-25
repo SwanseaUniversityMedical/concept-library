@@ -54,19 +54,32 @@
 					</div>
 
 					<!-- Tags / Collections -->
-					{% if concept.tags %}
+					{% if concept.collections or concept.tags %}	
 					<div class="col-sm-4 text-right">
-						<!-- tags -->
 						{% for tag in allTags %}
-							{% for tag_id in concept.tags %}
-								{% if tag.id == tag_id %}
-
-										<span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">{{ tag.description }}</span>
-									{% endif %}
-							{% endfor %}						
-						{% endfor %}			
+							<!-- collections -->
+							{% if concept.collections %}
+								{% for tag_id in concept.collections %}
+									{% if tag.id == tag_id %}
+											<span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">{{ tag.description }}</span>
+										{% endif %}
+								{% endfor %}
+							{% endif %}		
+							
+							<!-- tags -->
+							{% if concept.tags %}
+								{% for tag_id in concept.tags %}
+									{% if tag.id == tag_id %}
+											<span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">{{ tag.description }}</span>
+										{% endif %}
+								{% endfor %}
+							{% endif %}	
+																			
+						{% endfor %}	
 					</div>	
 					{% endif %}
+					
+					
 				</div>				
  	
 		</div>				  
