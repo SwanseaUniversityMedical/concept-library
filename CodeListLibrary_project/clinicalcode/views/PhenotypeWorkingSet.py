@@ -411,9 +411,6 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         if previous_selection:
             context['previous_selection'] = previous_selection
 
-        print(context)
-
-
 
 
 
@@ -749,6 +746,24 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
     '''
         Update the current working set.
     '''
+
+    model = PhenotypeWorkingset
+    form_class = WorkingsetForm
+    success_url = reverse_lazy('workingset_list')
+    template_name = 'clinicalcode/phenotypeworkingset/form.html'
+
+    confirm_overrideVersion = 0
+    is_valid1 = True
+
+    def get_form_kwargs(self):
+        kwargs = super(UpdateView, self).get_form_kwargs()
+        kwargs.update({'user': self.request.user})
+        kwargs.update({'groups': getGroups(self.request.user)})
+        return kwargs
+
+    def get_success_url(self):
+        return reverse('workingset_update', args=(self.object.id, ))
+
     pass
     # look at concept equivalent
     
