@@ -1033,7 +1033,7 @@ var SelectionService = function (element, methods, previouslySelected = []) {
               Clear Selected
             </a>
             <a class="btn btn-outline-primary btn-cl btn-cl-secondary" id="import-concepts">
-              Import Concepts
+              Apply changes
             </a>
           </div>
         </div>
