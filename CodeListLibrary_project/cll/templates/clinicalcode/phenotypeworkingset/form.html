@@ -557,6 +557,8 @@
 
         });
 
+        let previouslySelected = [];
+
         const addInput = (value, id) => {
             var html = '';
             html += '<div class="form-group">';
@@ -587,15 +589,20 @@
         }
 
 
-        var previoslySelected = []
         $('#add-data').createSelection({
             // Props
             clearSelectedOnClose: false,
             clearSelectedOnImport: false,
 
             // Methods
+            onOpen: (service, e) => {
+                service.selected = [...previouslySelected];
+            },
+
             onImport: (service, selected) => {
                 // Clicked the 'Import Concepts' button, and imported 'selected'
+                previouslySelected = [...selected];
+
                 var numbers = 0
                 var dataset = selected.map(element => {
                     return {
@@ -641,10 +648,7 @@
 
 
             },
-            onClose: (service, selected) => {
-                console.log(selected)
-            }
-        }, previoslySelected);
+        });
 
         function mergeArrays(dataPrevious, newData) {
             let newArr = []
