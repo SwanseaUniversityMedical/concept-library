@@ -290,5 +290,5 @@ def selection_list(request):
         'filter_end_date': end_date_range,
         'filter_statistics_ordering': filter_statistics_ordering,
     }
-
-    return render(request, 'clinicalcode/workingset/selection_results.html', context)
+    
+    return render(request, 'clinicalcode/phenotypeworkingset/selection_results.html', context)

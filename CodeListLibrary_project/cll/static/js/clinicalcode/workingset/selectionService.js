@@ -1064,7 +1064,7 @@ var SelectionService = function (element, methods, previouslySelected = []) {
   
     var getResults = new Promise((resolve, reject) => {
       $.ajax({
-        url: '/workingsets/select-concepts/',
+        url: '/phenotypeworkingsets/select-concepts/',
         type: 'GET',
         data: Object.assign(values, {method: 1}),
         dataType: 'html',
