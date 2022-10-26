@@ -738,7 +738,7 @@
             let element = new DOMParser().parseFromString(type, "text/html")
             let select = element.querySelector(`*[id^="${id}"]`)
             if (id.startsWith("column_type")) {
-                let val = $("#" + `${select.id}`).val()
+                let val = parseInt($("#" + `${select.id}`).val());
                 switch (val) {
                     case 1:
                         return 'INT'
