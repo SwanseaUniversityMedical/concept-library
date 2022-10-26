@@ -137,7 +137,7 @@ def api_phenotype_create(request):
             
         # handling collections
         collections = request.data.get('collections')
-        is_valid_data, err, ret_value = chk_tags(request.data.get('tags'), type='collections')
+        is_valid_data, err, ret_value = chk_tags(request.data.get('collections'), type='collections')
         if is_valid_data:
             collections = ret_value
             if collections:
