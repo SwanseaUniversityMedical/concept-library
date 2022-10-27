@@ -359,9 +359,9 @@
 		</div>
 		<ol>
 		
-		<li><h3 class="pt-3">List/Search phenotype working sets</h3></li>
+		<li><h3 class="pt-3">List/Search working sets</h3></li>
     	<div>    
-		   <p style="padding-top: 10px;">Lists all available phenotype working sets <em>for the user</em>.</p>
+		   <p style="padding-top: 10px;">Lists all available working sets <em>for the user</em>.</p>
 		   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> <a  href="{% url 'api:phenotypeworkingsets' %}" target="_blank" class="alert-link">{% url 'api:phenotypeworkingsets' %}</a></code></pre>
 		   <p style="padding-top: 10px;">
 	   	  	 User can search with criteria using a combinations of querystring parameters: <br>
@@ -377,7 +377,7 @@
 	               (get tags from <code><a href="{{ tags }}" target="_blank" class="alert-link">{{ tags }}</a></code>)
 	                </li>	
 					<li><code>?data_source_ids=1</code><br>
-					Specify the data source of the phenotype
+					Specify the data source of the working set
 					</li> 
 					<li><code>?selected_workingset_types=0</code><br>
 					Specify the working set type<br>
@@ -411,13 +411,13 @@
 		
 		<li><h3 class="pt-3">List working set detail (latest version)</h3></li>
     	<div>    
-		   <p style="padding-top: 10px;">Lists the phenotype detail <em>of the latest version</em>.</p>
+		   <p style="padding-top: 10px;">Lists the working set detail <em>of the latest version</em>.</p>
 		   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_phenotypeworkingset_detail }}</code></pre>
 		</div>	      		      
 	      
 	    <li><h3 class="pt-3">List working set detail (of a specific version)</h3></li>
     	<div>    
-		   <p style="padding-top: 10px;">Lists the phenotype detail <em>of the specified version</em>.</p>
+		   <p style="padding-top: 10px;">Lists the workng set detail <em>of the specified version</em>.</p>
 		   <pre><code><span class="btn btn-primary btn-no-hover" style="text-transform: uppercase">get</span> {{ api_phenotypeworkingset_detail_version }}</code></pre>   
 		</div>		
 			
