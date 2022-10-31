@@ -837,17 +837,29 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
         tags = Tag.objects.filter(pk=-1)
         workigset_tags = self.get_object().tags
         workigset_publications = self.get_object().publications
+        workingset_collections = self.get_object().collections
+        workingset_datasources = self.get_object().data_sources
 
         if workigset_tags:
             tags = Tag.objects.filter(pk__in=workigset_tags)
 
+        if workingset_collections:
+            queryset = Tag.objects.filter(tag_type=2)
+            workingset_collections = queryset.filter(id__in=workingset_collections)
+
+        if workingset_datasources:
+            workingset_datasources = DataSource.objects.filter(datasource_id__in=workingset_datasources)
 
         if self.get_object().is_deleted == True:
             messages.info(self.request, "This workingset has been deleted.")
 
         context['tags'] = tags
+        context['datasources'] = workingset_datasources
+        context['collections'] = workingset_collections
         context['publications'] = workigset_publications
-        print(workigset_publications)
+        context['workingset_data'] = json.dumps(self.get_object().phenotypes_concepts_data)
+        
+
         context['overrideVersion'] = self.confirm_overrideVersion
         context['history'] = self.get_object().history.all()
         latest_history_id = context['phenotypeworkingset'].history.first().history_id
@@ -856,13 +868,10 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
 
         context['current_workingset_history_id'] = int(latest_history_id)
         context['is_published'] = PublishedWorkingset.objects.filter(workingset_id=self.get_object().id,
-                                                                  workingset_history_id=context[
-                                                                      'latest_history_id']).exists()
-
-
+                                                                     workingset_history_id=context[
+                                                                         'latest_history_id']).exists()
 
         return context
-
 
 
 class WorkingSetDelete(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, TemplateResponseMixin, View):
