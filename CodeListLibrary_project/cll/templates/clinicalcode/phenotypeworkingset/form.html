@@ -558,6 +558,12 @@
 
             {% endif %}
 
+            {% if workingset_data %}
+                importTable({{ workingset_data|safe }})
+            {% endif %}
+
+
+
 
         });
 
@@ -698,7 +704,7 @@
             for (let j = 0; j < newData.length; j++) {
                 for (let k = 0; k < dataPrevious.length; k++) {
                     if (newData[j].Data === dataPrevious[k].Data) {
-                         newData.filter(function (el, i) {
+                        newData.filter(function (el, i) {
                             return j !== i;
                         }); // remove data if new object has same data with previous one
                     }
@@ -808,7 +814,7 @@
                     let parse = new DOMParser().parseFromString(value, "text/html")
                     let input = parse.querySelector('*[id^="attribute-input-col"]');
                     if (input !== null) {
-                        input.id = "attribute-input-col" + key.slice(-1) + 'row'+ i
+                        input.id = "attribute-input-col" + key.slice(-1) + 'row' + i
                         dataPrevious[i][key] = $(input)[0].outerHTML
 
                     }
@@ -1011,6 +1017,49 @@
                 }
             }
             return !conds.includes(false);
+
+        }
+
+        const importTable = (data) => {
+            let phenotype_concepts_json = [];
+            let allData;
+            for (let i = 0; i < data.length; i++) {
+                allData = {
+                    "Data": `<a href="/phenotypes/${data[i].phenotype_id}/version/${data[i].phenotype_version_id}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${data[i].phenotype_id + '/' + data[i].phenotype_version_id}</a>` + '-' +
+                        `<a href="/concepts/${data[i].concept_id}/version/${data[i].concept_version_id}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${data[i].concept_id + '/' + data[i].concept_version_id + '-' + data[i].concept_name}</a>`
+                }
+                if (data[i].Attributes.length > 0) {
+                    for (let j = 0; j < data[i].Attributes.length; j++) {
+                        allData = {
+                            ...allData,
+                            ["Attributes-row" + j]: `<input class="input-material" type="text" value=${data[i].Attributes[j].value} style="width:100%" id="attribute-input-${'col' + j + 'row' + i}"/>`,
+                            ["Attributes-select" + j]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=selectHeader() id="column_type${j}">'
+						    + '<option  value="0">Type</option>'
+						    +'<option value="1" ${data[i].Attributes[j].type === 'INT' ? 'selected' : ''}>INT</option>'
+						    +'<option value="2" ${data[i].Attributes[j].type === 'FLOAT' ? 'selected' : ''}>FLOAT</option>'
+						    +'<option value="3" ${data[i].Attributes[j].type === 'STRING' ? 'selected' : ''}>STRING</option>'
+						  +'</select>`,
+                            ['Attributes-header' + j]: `<input class="input-material" type="text"  value=${data[i].Attributes[j].name} oninput="inputheader(this)" placeholder="Attribute name"  id="attribute-header${j}"/>`
+
+                        }
+                        phenotype_concepts_json.push(allData)
+                    }
+                } else {
+                    phenotype_concepts_json.push(allData)
+                }
+
+            }
+            let dataset = phenotype_concepts_json
+            console.log(dataset)
+            $('#attributes-table').show()
+            $('#add-data').hide()
+            let table = createTable(0, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}])
+            let next_column_index = ((Object.keys(dataset[0]).length - 1) / 3)
+            table = reDrawtable('attributes-table', next_column_index, false, dataset)
+            table.buttons().container()
+                .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+            $('#phenotypes_concepts_json').val(JSON.stringify(dataset)) // save value temporarly
+
 
         }
 
