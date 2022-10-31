@@ -55,10 +55,10 @@ urlpatterns += [
 ]
 
 # contact us page
-if not settings.CLL_READ_ONLY:
-    urlpatterns += [
-        url(r'^contact-us/$', View.contact_us, name='contact_us'),
-    ]
+#if not settings.CLL_READ_ONLY:
+urlpatterns += [
+    url(r'^contact-us/$', View.contact_us, name='contact_us'),
+]
 
 #======== robots.txt / sitemap ====================================================================
 if settings.IS_HDRUK_EXT == "1" or settings.IS_DEVELOPMENT_PC:
