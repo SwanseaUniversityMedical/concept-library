@@ -855,14 +855,21 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
             for data in workingset_data:
                 concept_id = db_utils.parse_ident(data["concept_id"])
                 concept_version = db_utils.parse_ident(data["concept_version_id"])
+                phenotype_version = db_utils.parse_ident(data["phenotype_version_id"])
                 try:
                     concept = Concept.history.get(id=concept_id, history_id=concept_version)
+                    phenotype = Phenotype.history.get(id=data["phenotype_id"], history_id=phenotype_version)
+                    data['phenotype_name'] = phenotype.name
                     data['concept_name'] = concept.name
-                except:
+                    data['concept_coding'] = concept.coding_system.name
+                except Exception:
                     data['concept_name'] = 'Unknown'
 
         if self.get_object().is_deleted == True:
             messages.info(self.request, "This workingset has been deleted.")
+
+
+        print(workingset_data)
 
         context['tags'] = tags
         context['datasources'] = workingset_datasources
