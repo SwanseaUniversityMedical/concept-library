@@ -560,6 +560,7 @@
 
             {% if workingset_data %}
                 importTable({{ workingset_data|safe }})
+                importSelection({{ workingset_data|safe }})
             {% endif %}
 
 
@@ -640,6 +641,7 @@
                     }
 
                 })
+                console.log(selected)
 
                 // Check if table exist to update table or create table
                 if ($.fn.dataTable.isDataTable('#attributes-table')) {
@@ -1059,6 +1061,28 @@
                 .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
             $('#phenotypes_concepts_json').val(JSON.stringify(dataset)) // save value temporarly
 
+
+        }
+
+        const importSelection = (array) => {
+            let arraySelection = []
+            for (let i = 0; i < array.length; i++) {
+                arraySelection.push({
+                    'concept': {
+                        'coding': array[i].coding,
+                        'id': array[i].concept_id,
+                        'version': array[i].concept_version_id,
+                        'name': array[i].concept_name
+                    },
+                    'phenotype':{
+                        'id': array[i].phenotype_id,
+                        'name':array[i].phenotype_name,
+                        'version': array[i].phenotype_version_id,
+
+                    }
+                })
+            }
+            $('#add-data').data('SelectionService').selected = arraySelection
 
         }
 
