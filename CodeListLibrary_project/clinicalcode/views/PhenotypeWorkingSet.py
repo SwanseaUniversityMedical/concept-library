@@ -376,18 +376,18 @@ def workingset_list(request):
         return render(request, 'clinicalcode/phenotypeworkingset/index.html', context)
 
 
+def commaSeparate(request):
+    data = request
+    overall = None
+    if data:
+        overall = [int(i) for i in data.split(",")]
+    return overall
+
+
 class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageMixin, CreateView):
     model = PhenotypeWorkingset
     form_class = WorkingsetForm
     template_name = 'clinicalcode/phenotypeworkingset/form.html'
-
-    def commaSeparate(self, id):
-        data = self.request.POST.get(id)
-        overall = None
-        if data:
-            overall = [int(i) for i in data.split(",")]
-
-        return overall
 
     def get_form_kwargs(self):
         print('test kwarks ')
@@ -398,9 +398,9 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
 
     def form_invalid(self, form):
         print('test form invalid ')
-        tag_ids = self.commaSeparate('tagids')
-        collections = self.commaSeparate('collections')
-        datasources = self.commaSeparate('datasources')
+        tag_ids = commaSeparate(self.request.POST.get('tagids'))
+        collections = commaSeparate(self.request.POST.get('collections'))
+        datasources = commaSeparate(self.request.POST.get('datasources'))
         publications = self.request.POST.get('publication_data')
         table_elements_data = self.request.POST.get('phenotypes_concepts_json')
         previous_selection = self.request.POST.get('previous_selection')
@@ -432,9 +432,9 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         with transaction.atomic():
             form.instance.created_by = self.request.user
             form.instance.author = self.request.POST.get('author')
-            form.instance.tags = self.commaSeparate('tagids')
-            form.instance.collections = self.commaSeparate('collections')
-            form.instance.data_sources = self.commaSeparate('datasources')
+            form.instance.tags = commaSeparate(self.request.POST.get('tagids'))
+            form.instance.collections = commaSeparate(self.request.POST.get('collections'))
+            form.instance.data_sources = commaSeparate(self.request.POST.get('datasources'))
             form.instance.phenotypes_concepts_data = json.loads(self.request.POST.get('workingset_data') or '[]')
             form.instance.publications = self.request.POST.get('publication_data') or '{}'
 
@@ -602,7 +602,7 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
         data_sources = DataSource.objects.filter(pk__in=workingset_data_sources)
 
     is_latest_version = (
-                int(workingset_history_id) == PhenotypeWorkingset.objects.get(pk=pk).history.latest().history_id)
+            int(workingset_history_id) == PhenotypeWorkingset.objects.get(pk=pk).history.latest().history_id)
     is_latest_pending_version = False
 
     if len(PublishedWorkingset.objects.filter(workingset_id=pk, workingset_history_id=workingset_history_id,
@@ -619,14 +619,14 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
                                                                                                PhenotypeWorkingset, pk)
 
         user_can_export = (
-                    allowed_to_view_children(request, PhenotypeWorkingset, pk, set_history_id=workingset_history_id)
-                    and db_utils.chk_deleted_children(
-                request,
-                PhenotypeWorkingset,
-                pk,
-                returnErrors=False,
-                set_history_id=workingset_history_id)
-                    and not PhenotypeWorkingset.objects.get(pk=pk).is_deleted)
+                allowed_to_view_children(request, PhenotypeWorkingset, pk, set_history_id=workingset_history_id)
+                and db_utils.chk_deleted_children(
+            request,
+            PhenotypeWorkingset,
+            pk,
+            returnErrors=False,
+            set_history_id=workingset_history_id)
+                and not PhenotypeWorkingset.objects.get(pk=pk).is_deleted)
         user_allowed_to_create = allowed_to_create()
 
         children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(request,
@@ -782,7 +782,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
     template_name = 'clinicalcode/phenotypeworkingset/form.html'
 
     confirm_overrideVersion = 0
-    errors_dict ={}
+    errors_dict = {}
     is_valid1 = True
 
     def get_form_kwargs(self):
@@ -792,12 +792,11 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
         return kwargs
 
     def get_success_url(self):
-        return reverse('workingset_update', args=(self.object.id,))
+        return reverse('phenotypeworkingset_update', args=(self.object.id,))
 
     def form_valid(self, form):
-
         # ----------------------------------------------------------
-        # alert user when concurrent editing of concept
+        # alert user when concurrent editing of workingset
         latest_history_id = str(self.object.history.latest().history_id)
         latest_history_id_shown = str(self.request.POST.get('latest_history_id'))
         overrideVersion = self.request.POST.get('overrideVersion')
@@ -814,22 +813,14 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
         with transaction.atomic():
             form.instance.modified_by = self.request.user
             form.instance.modified = datetime.datetime.now()
+            form.instance.created_by = self.request.user
+            form.instance.author = self.request.POST.get('author')
+            form.instance.tags = commaSeparate(self.request.POST.get('tagids'))
+            form.instance.collections = commaSeparate(self.request.POST.get('collections'))
+            form.instance.data_sources = commaSeparate(self.request.POST.get('datasources'))
+            form.instance.phenotypes_concepts_data = json.loads(self.request.POST.get('workingset_data') or '[]')
+            form.instance.publications = self.request.POST.get('publication_data') or '{}'
 
-            phenotypes_concept_json = json.loads(
-                self.request.POST.get('phenotypes_concept_json'))
-            form.instance.phenotypes_concepts_data = phenotypes_concept_json
-            # -----------------------------------------------------
-            # get tags
-            tag_ids = self.request.POST.get('tagids')
-            #             new_tag_list = []
-            if tag_ids:
-                # split tag ids into list
-                new_tag_list = [int(i) for i in tag_ids.split(",")]
-                form.instance.tags = new_tag_list
-
-            #             #-----------------------------------------------------
-
-            # save the concept with a change reason to reflect the update within the concept audit history
             self.object = form.save()
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, self.kwargs['pk'], "Updated")
             # Get all the 'parent' concepts i.e. those that include this one,
@@ -840,8 +831,6 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
 
         return HttpResponseRedirect(self.get_success_url())
 
-    pass
-    # look at concept equivalent
 
 
 class WorkingSetDelete(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, TemplateResponseMixin, View):
@@ -923,7 +912,7 @@ def history_workingset_codes_to_csv(request, pk, workingset_history_id=None):
     }
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = (
-                'attachment; filename="workingset_%(workingset_id)s_ver_%(workingset_history_id)s_codes_%(creation_date)s.csv"' % my_params)
+            'attachment; filename="workingset_%(workingset_id)s_ver_%(workingset_history_id)s_codes_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
 
