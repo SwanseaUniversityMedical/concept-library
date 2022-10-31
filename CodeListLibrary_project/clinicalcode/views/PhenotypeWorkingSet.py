@@ -831,6 +831,34 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
 
         return HttpResponseRedirect(self.get_success_url())
 
+    def get_context_data(self, **kwargs):
+        context = UpdateView.get_context_data(self, **kwargs)
+        print(context)
+        tags = Tag.objects.filter(pk=-1)
+        workigset_tags = self.get_object().tags
+
+        if workigset_tags:
+            tags = Tag.objects.filter(pk__in=workigset_tags)
+
+
+        if self.get_object().is_deleted == True:
+            messages.info(self.request, "This workingset has been deleted.")
+
+        context['tags'] = tags
+        context['overrideVersion'] = self.confirm_overrideVersion
+        latest_history_id = context['phenotypeworkingset'].history.first().history_id
+        context['latest_history_id'] = latest_history_id if self.request.POST.get(
+            'latest_history_id') is None else self.request.POST.get('latest_history_id')
+
+        context['current_workingset_history_id'] = int(latest_history_id)
+        context['is_published'] = PublishedWorkingset.objects.filter(workingset_id=self.get_object().id,
+                                                                  workingset_history_id=context[
+                                                                      'latest_history_id']).exists()
+
+
+
+        return context
+
 
 
 class WorkingSetDelete(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, TemplateResponseMixin, View):
