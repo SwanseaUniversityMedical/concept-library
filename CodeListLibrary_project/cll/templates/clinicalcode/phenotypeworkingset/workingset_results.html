@@ -42,22 +42,25 @@
       <!-- Tags/Collections -->
       {% if workingset.collections or workingset.tags %}
       <div class="col-sm-4 text-right">
+       {% for tag in allTags %}
         <!-- collections -->
-        {% for tag in allTags %}
-          {% for tag_id in workingset.collections %}
-            {% if tag.id == tag_id %}
-                <span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">{{ tag.description }}</span>
-              {% endif %}
-          {% endfor %}						
-        {% endfor %}			
+          {% if workingset.collections %}
+	         {% for tag_id in workingset.collections %}
+	            {% if tag.id == tag_id %}
+	                <span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">{{ tag.description }}</span>
+	            {% endif %}
+	         {% endfor %}						
+          {% endif %}
         
         <!-- tags -->
-        {% for tag in allTags %}
-          {% for tag_id in workingset.tags %}
-            {% if tag.id == tag_id %}
+          {% if workingset.tags %}
+            {% for tag_id in workingset.tags %}
+              {% if tag.id == tag_id %}
                 <span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">{{ tag.description }}</span>
               {% endif %}
-          {% endfor %}						
+            {% endfor %}			
+          {% endif %}
+          			
         {% endfor %}			
                 
       </div>			

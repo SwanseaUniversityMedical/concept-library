@@ -314,8 +314,10 @@ def allowed_to_view(request,
 
     # check brand access
     if is_allowed_to_view and request is not None:
-        if not is_brand_accessible(request, set_class, set_id, set_history_id):
-            is_allowed_to_view = False
+        # if the entity is published ignore is_brand_accessible() in allowed_to_view()
+        if not checkIfPublished(set_class, set_id, set_history_id):
+            if not is_brand_accessible(request, set_class, set_id, set_history_id):
+                is_allowed_to_view = False
 
     return is_allowed_to_view
 
@@ -927,10 +929,7 @@ def is_brand_accessible(request, set_class, set_id, set_history_id=None):
                 history_id = set_class.objects.get(pk=set_id).history.latest().history_id
 
             set_collections = []
-            if set_class in (Concept, Phenotype):
-                set_collections = set_class.history.get(id=set_id, history_id=history_id).tags
-
-            elif set_class == PhenotypeWorkingset:
+            if set_class in (Concept, Phenotype, PhenotypeWorkingset):
                 set_collections = set_class.history.get(id=set_id, history_id=history_id).collections
                 
             elif set_class == WorkingSet:
