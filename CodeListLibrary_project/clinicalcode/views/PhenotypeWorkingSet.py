@@ -850,6 +850,17 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
         if workingset_datasources:
             workingset_datasources = DataSource.objects.filter(datasource_id__in=workingset_datasources)
 
+        workingset_data = self.get_object().phenotypes_concepts_data
+        if workingset_data:
+            for data in workingset_data:
+                concept_id = db_utils.parse_ident(data["concept_id"])
+                concept_version = db_utils.parse_ident(data["concept_version_id"])
+                try:
+                    concept = Concept.history.get(id=concept_id, history_id=concept_version)
+                    data['concept_name'] = concept.name
+                except:
+                    data['concept_name'] = 'Unknown'
+
         if self.get_object().is_deleted == True:
             messages.info(self.request, "This workingset has been deleted.")
 
@@ -857,8 +868,8 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
         context['datasources'] = workingset_datasources
         context['collections'] = workingset_collections
         context['publications'] = workigset_publications
-        context['workingset_data'] = json.dumps(self.get_object().phenotypes_concepts_data)
-        
+        context['workingset_data'] = workingset_data
+
 
         context['overrideVersion'] = self.confirm_overrideVersion
         context['history'] = self.get_object().history.all()
