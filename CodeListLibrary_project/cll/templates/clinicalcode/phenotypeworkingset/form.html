@@ -1028,7 +1028,7 @@
                     "Data": `<a href="/phenotypes/${data[i].phenotype_id}/version/${data[i].phenotype_version_id}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${data[i].phenotype_id + '/' + data[i].phenotype_version_id}</a>` + '-' +
                         `<a href="/concepts/${data[i].concept_id}/version/${data[i].concept_version_id}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${data[i].concept_id + '/' + data[i].concept_version_id + '-' + data[i].concept_name}</a>`
                 }
-                if (data[i].Attributes.length > 0) {
+                if (data[i].Attributes !== undefined) {
                     for (let j = 0; j < data[i].Attributes.length; j++) {
                         allData = {
                             ...allData,
@@ -1050,7 +1050,6 @@
 
             }
             let dataset = phenotype_concepts_json
-            console.log(dataset)
             $('#attributes-table').show()
             $('#add-data').hide()
             let table = createTable(0, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}])
