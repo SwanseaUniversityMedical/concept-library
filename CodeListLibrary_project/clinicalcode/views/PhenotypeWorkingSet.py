@@ -833,9 +833,10 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
 
     def get_context_data(self, **kwargs):
         context = UpdateView.get_context_data(self, **kwargs)
-        print(context)
+
         tags = Tag.objects.filter(pk=-1)
         workigset_tags = self.get_object().tags
+        workigset_publications = self.get_object().publications
 
         if workigset_tags:
             tags = Tag.objects.filter(pk__in=workigset_tags)
@@ -845,7 +846,10 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
             messages.info(self.request, "This workingset has been deleted.")
 
         context['tags'] = tags
+        context['publications'] = workigset_publications
+        print(workigset_publications)
         context['overrideVersion'] = self.confirm_overrideVersion
+        context['history'] = self.get_object().history.all()
         latest_history_id = context['phenotypeworkingset'].history.first().history_id
         context['latest_history_id'] = latest_history_id if self.request.POST.get(
             'latest_history_id') is None else self.request.POST.get('latest_history_id')
