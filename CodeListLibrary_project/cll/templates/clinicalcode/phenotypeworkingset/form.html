@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block title %}
-    {% if form.pk  is None %}
+    {% if form.instance.pk  is None %}
         New Working Set
     {% else %}
         Edit Working Set
@@ -19,7 +19,7 @@
 
 
 
-    {% if form.pk  is None %}
+    {% if form.instance.pk is None %}
         <h2>Create a new working set</h2>
         <div class="row">
             <div class="col-md-12">
@@ -68,7 +68,7 @@
 
                     {% else %}
                         <form name='workingset-form' id='workingset-form' class="form-horizontal"
-                              action="{% url "workingset_update" form.pk %}" method="POST" autocomplete="off">
+                              action="{% url "phenotypeworkingset_update" form.pk %}" method="POST" autocomplete="off">
                     {% endif %}
                     {% csrf_token %}
                     <div class="form-group">
@@ -85,7 +85,7 @@
                     <hr/>
 
 
-                    {% if form.pk  is not None %}
+                    {% if form.pk is not None %}
                         <div class="form-group">
                             <div class="col-sm-12">
                                 <label>Latest version ID</label>
