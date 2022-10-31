@@ -530,7 +530,7 @@
             {% endfor %}
 
             {% if publications %}
-                let returnPub = JSON.parse('{{publications|safe}}')
+                let returnPub = {{publications|safe}}
                 if (returnPub.length > 1) {
                     for (let j = 0; j < returnPub.length; j++) {
                         if (j === 0) {
@@ -577,7 +577,6 @@
          * @param id of the HTML element
          */
         const addInput = (value, id) => {
-            wrapData()
             var html = '';
             html += '<div class="form-group">';
             html += '<div class="col-sm-12">';
