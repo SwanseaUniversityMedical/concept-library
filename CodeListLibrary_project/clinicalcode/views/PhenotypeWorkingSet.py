@@ -436,7 +436,7 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
             form.instance.collections = self.commaSeparate('collections')
             form.instance.data_sources = self.commaSeparate('datasources')
             form.instance.phenotypes_concepts_data = json.loads(self.request.POST.get('workingset_data') or '[]')
-            form.instance.publications = self.request.POST.get('publication_data')
+            form.instance.publications = self.request.POST.get('publication_data') or '{}'
 
             self.object = form.save()
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, self.object.pk, "Created")
