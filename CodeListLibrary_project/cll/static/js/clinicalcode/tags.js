@@ -7,7 +7,7 @@ var tagService = new function(){
 			datumTokenizer: Bloodhound.tokenizers.obj.whitespace('id'),
 			queryTokenizer: Bloodhound.tokenizers.whitespace,
 			remote: {
-				url: '/api/v1/tags-and-collections/?search=%QUERY%',
+				url: '/api/v1/tags-and-collections/?type=1&search=%QUERY%',
 				wildcard: '%QUERY%',
 			}
 		});

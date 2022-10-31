@@ -43,14 +43,17 @@ def api_remove_data(request):
         raise PermissionDenied
 
     if request.method == 'GET':
-        if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-            return render(request, 'clinicalcode/adminTemp/adminTemp.html', {})
+        if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
+            return render(request, 'clinicalcode/adminTemp/adminTemp.html', 
+                          {'url': reverse('json_adjust_phenotype'),
+                           'action_title': 'Delete API Data'
+                        }
+                        )
 
     elif request.method == 'POST':
-        if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
+        if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
             code = request.POST.get('code')
-            if code.strip(
-            ) != "nvd)#_0-i_a05n^5p6az2q_cd(_(+_4g)r&9h!#ru*pr(xa@=k":
+            if code.strip() != "nvd)#_0-i_a05n^5p6az2q_cd(_(+_4g)r&9h!#ru*pr(xa@=k":
                 raise PermissionDenied
 
             rowsAffected = {}
@@ -66,8 +69,7 @@ def api_remove_data(request):
                 rowsAffected[c.id] = "concept: " + c.name + " :: deleted"
                 c.delete()
 
-            rowsAffected[
-                "**********************************"] = "**********************************"
+            rowsAffected["**********************************"] = "**********************************"
 
             workingsets = WorkingSet.objects.filter(owner=request.user)
             for ws in workingsets:
@@ -79,8 +81,7 @@ def api_remove_data(request):
                 rowsAffected[ws.id] = "working set: " + ws.name + ":: deleted"
                 ws.delete()
 
-            rowsAffected[
-                "**********************************"] = "**********************************"
+            rowsAffected["**********************************"] = "**********************************"
 
             phenotypes = Phenotype.objects.filter(owner=request.user)
             for ph in phenotypes:
@@ -92,19 +93,20 @@ def api_remove_data(request):
                 rowsAffected[ph.id] = "phenotype: " + ph.name + ":: deleted"
                 ph.delete()
 
-            rowsAffected[
-                "**********************************"] = "**********************************"
+            rowsAffected["**********************************"] = "**********************************"
 
             return render(request, 'clinicalcode/adminTemp/adminTemp.html', {
                 'pk': -10,
                 'strSQL': {},
-                'rowsAffected': rowsAffected
+                'rowsAffected': rowsAffected,
+                'action_title': 'Delete API Data'
             })
-
+            
+"""
 @login_required
 def json_adjust_phenotype(request):
     # not needed anymore
-    #raise PermissionDenied
+    raise PermissionDenied
 
     if not request.user.is_superuser:
         raise PermissionDenied
@@ -114,7 +116,7 @@ def json_adjust_phenotype(request):
 
     if request.method == 'GET':
         if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-            return render(request, 'clinicalcode/adminTemp/json_adjust.html', 
+            return render(request, 'clinicalcode/adminTemp/adminTemp.html', 
                           {'url': reverse('json_adjust_phenotype')
                            })
             
@@ -148,17 +150,19 @@ def json_adjust_phenotype(request):
             
             
             return render(request,
-                        'clinicalcode/adminTemp/json_adjust.html',
+                        'clinicalcode/adminTemp/adminTemp.html',
                         {   'pk': -10,
                             'strSQL': {},
                             'rowsAffected' : rowsAffected
                         }
                         )
-            
+"""
+
+"""            
 @login_required
 def json_adjust_workingset(request):
     # not needed anymore
-    #raise PermissionDenied
+    raise PermissionDenied
 
     if not request.user.is_superuser:
         raise PermissionDenied
@@ -168,7 +172,7 @@ def json_adjust_workingset(request):
 
     if request.method == 'GET':
         if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-            return render(request, 'clinicalcode/adminTemp/json_adjust.html', 
+            return render(request, 'clinicalcode/adminTemp/adminTemp.html', 
                           {'url': reverse('json_adjust_workingset')
                            })
             
@@ -202,13 +206,14 @@ def json_adjust_workingset(request):
             
             
             return render(request,
-                        'clinicalcode/adminTemp/json_adjust.html',
+                        'clinicalcode/adminTemp/adminTemp.html',
                         {   'pk': -10,
                             'strSQL': {},
                             'rowsAffected' : rowsAffected
                         }
                         )
             
+"""
                         
 # @login_required
 # def moveDataSources(request):
@@ -371,11 +376,12 @@ def json_adjust_workingset(request):
 
 
 def update_concept_tags_from_phenotype_tags():
+    return 
 
     phenotypes = Phenotype.objects.all()
     for p in phenotypes:
-        concept_id_list = [x['concept_id'] for x in json.loads(p.concept_informations)]
-        concept_hisoryid_list = [x['concept_version_id'] for x in json.loads(p.concept_informations)]
+        concept_id_list = [x['concept_id'] for x in p.concept_informations]
+        concept_hisoryid_list = [x['concept_version_id'] for x in p.concept_informations]
         concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list)
 
         for c in concepts:
@@ -428,3 +434,90 @@ def check_concepts_not_associated_with_phenotypes(request):
                       'count': unasscoiated_concepts.count(),
                       'concepts': unasscoiated_concepts
                   })
+
+
+
+
+@login_required
+def populate_collections_tags(request):
+    # not needed anymore
+    #raise PermissionDenied
+
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    if settings.CLL_READ_ONLY: # or (not settings.IS_DEVELOPMENT_PC):
+        raise PermissionDenied
+
+    if request.method == 'GET':
+        if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
+            return render(request, 'clinicalcode/adminTemp/adminTemp.html', 
+                          {'url': reverse('populate_collections_tags'),
+                           'action_title': 'Split tags & collections'
+                        })
+            
+    elif request.method == 'POST':
+        if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
+            code = request.POST.get('code')
+            if code.strip() != "nvd)#_0-i_a05n^5p6az2q_cd(_(+_4g)r&9h!#ru*pr(xa@=k":
+                raise PermissionDenied
+
+            rowsAffected = {}
+
+
+            ######################################################################
+            # phenotype
+            hisp = Phenotype.history.filter(id__gte=0)
+            for hp in hisp:
+                if hp.tags:
+                    tag_ids_list = list(Tag.objects.filter(id__in=hp.tags, tag_type=1).values_list('id', flat=True))
+                    collection_ids_list = list(Tag.objects.filter(id__in=hp.tags, tag_type=2).values_list('id', flat=True))
+            
+                    hp.tags = tag_ids_list
+                    hp.collections = collection_ids_list
+                    hp.save()
+            
+                    if hp.history_id == int(Phenotype.objects.get(pk=hp.id).history.latest().history_id):
+                        p0 = Phenotype.objects.get(id=hp.id)
+                        p0.tags = tag_ids_list
+                        p0.collections = collection_ids_list
+                        p0.save_without_historical_record()
+            
+                        rowsAffected[hp.id] = "phenotype: " + hp.name + ":: tags/collections split"
+            
+            
+            
+            ######################################################################
+            # concepts
+            hisc = Concept.history.filter(id__gte=0)
+            for hc in hisc:
+                if hc.tags:
+                    tag_ids_list = list(Tag.objects.filter(id__in=hc.tags, tag_type=1).values_list('id', flat=True))
+                    collection_ids_list = list(Tag.objects.filter(id__in=hc.tags, tag_type=2).values_list('id', flat=True))
+
+                    hc.tags = tag_ids_list
+                    hc.collections = collection_ids_list
+                    hc.save()
+
+                    if hc.history_id == int(Concept.objects.get(pk=hc.id).history.latest().history_id):
+                        c0 = Concept.objects.get(id=hc.id)
+                        c0.tags = tag_ids_list
+                        c0.collections = collection_ids_list
+                        c0.save_without_historical_record()
+        
+                        rowsAffected[hc.id] = "concept: " + hc.name + ":: tags/collections split"
+            
+            
+            
+            
+            
+            return render(request,
+                        'clinicalcode/adminTemp/adminTemp.html',
+                        {   'pk': -10,
+                            'rowsAffected' : rowsAffected,
+                            'action_title': 'Split tags & collections'
+                        }
+                        )
+            
+            
+            

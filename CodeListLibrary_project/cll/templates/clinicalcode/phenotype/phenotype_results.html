@@ -51,16 +51,27 @@
 					<div class="col-sm-4 text-center">
 						<span class="badge phenotype-type-badge card-tag-sizing"><i><strong>{{ phenotype.type }}</i></strong></span>
 					</div>			
-					{% if phenotype.tags %}	
+					{% if phenotype.collections or phenotype.tags %}	
 					<div class="col-sm-4 text-right">
-						<!-- tags -->
 						{% for tag in allTags %}
-							{% for tag_id in phenotype.tags %}
-								{% if tag.id == tag_id %}
-
-										<span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">{{ tag.description }}</span>
-									{% endif %}
-							{% endfor %}						
+							<!-- collections -->
+							{% if phenotype.collections %}
+								{% for tag_id in phenotype.collections %}
+									{% if tag.id == tag_id %}
+											<span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">{{ tag.description }}</span>
+										{% endif %}
+								{% endfor %}
+							{% endif %}		
+							
+							<!-- tags -->
+							{% if phenotype.tags %}
+								{% for tag_id in phenotype.tags %}
+									{% if tag.id == tag_id %}
+											<span class="tag label label-{{ tag.get_display_display }} card-tag-sizing">{{ tag.description }}</span>
+										{% endif %}
+								{% endfor %}
+							{% endif %}	
+																			
 						{% endfor %}			
 					</div>	
 					{% endif %}	
