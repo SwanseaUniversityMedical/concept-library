@@ -1124,7 +1124,8 @@
 
         const selectHeader = (element) => {
             var table = $('#attributes-table').DataTable()
-            var oldScroll = $('#attributes-table').position().left
+            var oldScrollX = $('#attributes-table').position().left
+            var oldScrollY = $('#attributes-table').position().top
             let val = element.value
             let index = element.id.match(/\d+/)[0]
             let dataPrevious = $('#phenotypes_concepts_json').val()
@@ -1143,7 +1144,8 @@
             table.buttons().container()
                 .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
 
-            $('div.dataTables_scrollBody')[0].scrollLeft = oldScroll * -1
+            $('div.dataTables_scrollBody')[0].scrollLeft = oldScrollX * -1
+               $('div.dataTables_scrollBody')[0].scrollTop = oldScrollY * -1
 
 
 
