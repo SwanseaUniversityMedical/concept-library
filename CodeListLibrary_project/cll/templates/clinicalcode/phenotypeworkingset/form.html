@@ -494,6 +494,8 @@
     <script src="{% static 'js/clinicalcode/filters/FuzzyQuery.js' %}"></script>
     <script src="{% static 'js/clinicalcode/filters/autocompleteSearch.js' %}"></script>
     <script src="{% static 'js/clinicalcode/workingset/selectionService.js' %}"></script>
+    <script src="{% static 'js/clinicalcode/workingset/dragHorizontal.js' %}"></script>
+
     <!---------------------------------------------------------------------------------->
 
 
@@ -552,6 +554,7 @@
                 let table = createTable(0, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}])
                 let next_column_index = ((Object.keys(dataset[0]).length - 1) / 3)
                 table = reDrawtable('attributes-table', next_column_index, false, dataset)
+
                 table.buttons().container()
                     .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
                 $('#phenotypes_concepts_json').val(JSON.stringify(dataset)) // save value temporarly
@@ -682,6 +685,8 @@
                     let table = createTable(0, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}]) // Create table with initial data
                     table.buttons().container()
                         .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) ')); // Append buttons to the table
+
+
                     $('#phenotypes_concepts_json').val(JSON.stringify(dataset)) // save value temporarly
                     $('#add-data').hide()
                 }
@@ -915,6 +920,12 @@
                 var table = createTable(numbers, dataset, 'attributes-table', columns)
                 table.buttons().container()
                     .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+
+                // var $container = $(".container");
+                // var $scroller = $(".dataTables_scrollBody");
+                //bindDragScroll($container, $scroller);
+
+
                 return table
 
             }
@@ -982,13 +993,13 @@
         }
 
         $('#save-changes').on('click', function (e) {
-            if (!$('#phenotypes_concepts_json').val()){
+            if (!$('#phenotypes_concepts_json').val()) {
                 return;
             }
             if (!finalValidation($('#phenotypes_concepts_json').val())) {
                 e.preventDefault();
             } else {
-               wrapData()
+                wrapData()
             }
 
 
@@ -1037,7 +1048,8 @@
                 if (data[i].Attributes !== undefined) {
                     let attributes = {};
                     for (let j = 0; j < data[i].Attributes.length; j++) {
-                        attributes = {...attributes,
+                        attributes = {
+                            ...attributes,
                             ["Attributes-row" + j]: `<input class="input-material" type="text" value="${data[i].Attributes[j].value}" style="width:100%" id="attribute-input-${'col' + j + 'row' + i}"/>`,
                             ["Attributes-select" + j]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=selectHeader() id="column_type${j}">'
 						    + '<option  value="0">Type</option>'
@@ -1050,7 +1062,7 @@
                         }
 
                     }
-                    phenotype_concepts_json.push({...allData,...attributes})
+                    phenotype_concepts_json.push({...allData, ...attributes})
 
                 } else {
                     phenotype_concepts_json.push(allData)
@@ -1067,6 +1079,7 @@
             table = reDrawtable('attributes-table', next_column_index, false, dataset)
             table.buttons().container()
                 .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+
             $('#phenotypes_concepts_json').val(JSON.stringify(dataset)) // save value temporarly
 
 
@@ -1136,6 +1149,7 @@
             table = reDrawtable('attributes-table', table.columns().header().length - 1, false, dataPrevious2)
             table.buttons().container()
                 .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+
         }
 
 
@@ -1200,6 +1214,26 @@
             $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
 
 
+        });
+
+        var mx;
+
+        $("#attributes-table").on({
+
+            mousemove: function (e) {
+                var $scroller = $(".dataTables_scrollBody");
+                var mx2 = e.pageX - $scroller[0].offsetLeft;
+                if (mx) $scroller[0].scrollLeft = this.sx + mx - mx2;
+            },
+            mousedown: function (e) {
+                var $scroller = $(".dataTables_scrollBody");
+                this.sx = $scroller[0].scrollLeft;
+                mx = e.pageX - $scroller[0].offsetLeft;
+            }
+        });
+
+        $("#attributes-table").on("mouseup", function () {
+            mx = 0;
         });
 
 
