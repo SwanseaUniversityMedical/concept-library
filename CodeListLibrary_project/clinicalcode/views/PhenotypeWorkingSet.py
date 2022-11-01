@@ -869,7 +869,6 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
             messages.info(self.request, "This workingset has been deleted.")
 
 
-        print(workingset_data)
 
         context['tags'] = tags
         context['datasources'] = workingset_datasources
