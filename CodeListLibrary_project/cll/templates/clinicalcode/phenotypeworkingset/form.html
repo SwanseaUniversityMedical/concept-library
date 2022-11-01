@@ -898,7 +898,7 @@
          * @returns new table
          */
         const reDrawtable = (id, numbers, needColumn, dataset) => {
-            let columns = [{data: "Data", title: "Data"}]// keep data column same
+            let columns = [{data: "Data", title: "Concepts"}]// keep data column same
             let headers = Object.entries(dataset[0])
             for (let i = 0; i < headers.length - 1; i++) {
                 if (headers[i][0].startsWith('Attributes-row')) {
