@@ -641,6 +641,7 @@
                     }
 
                 })
+                console.log(selected)
 
                 // Check if table exist to update table or create table
                 if ($.fn.dataTable.isDataTable('#attributes-table')) {
@@ -981,7 +982,9 @@
         }
 
         $('#save-changes').on('click', function (e) {
-
+            if (!$('#phenotypes_concepts_json').val()){
+                return;
+            }
             if (!finalValidation($('#phenotypes_concepts_json').val())) {
                 e.preventDefault();
             } else {
@@ -1074,7 +1077,7 @@
             for (let i = 0; i < array.length; i++) {
                 arraySelection.push({
                     'concept': {
-                        'coding': array[i].coding,
+                        'coding': array[i].concept_coding,
                         'id': array[i].concept_id,
                         'version': array[i].concept_version_id,
                         'name': array[i].concept_name
