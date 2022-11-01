@@ -42,6 +42,7 @@ class Concept(TimeStampedModel):
     world_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.NONE)
 
     tags = ArrayField(models.IntegerField(), blank=True, null=True)
+    collections = ArrayField(models.IntegerField(), blank=True, null=True)
     code_attribute_header = ArrayField(models.CharField(max_length=100), blank=True, null=True)
     friendly_id = models.CharField(max_length=50, default='', editable=False)
 

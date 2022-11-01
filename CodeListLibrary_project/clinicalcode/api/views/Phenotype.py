@@ -127,13 +127,23 @@ def api_phenotype_create(request):
 
         # handling tags
         tags = request.data.get('tags')
-        is_valid_data, err, ret_value = chk_tags(request.data.get('tags'))
+        is_valid_data, err, ret_value = chk_tags(request.data.get('tags'), type='tags')
         if is_valid_data:
             tags = ret_value
             if tags:
                 new_phenotype.tags = [int(i) for i in tags]
         else:
             errors_dict['tags'] = err
+            
+        # handling collections
+        collections = request.data.get('collections')
+        is_valid_data, err, ret_value = chk_tags(request.data.get('collections'), type='collections')
+        if is_valid_data:
+            collections = ret_value
+            if collections:
+                new_phenotype.collections = [int(i) for i in collections]
+        else:
+            errors_dict['collections'] = err            
 
         # handling data-sources
         datasource_ids_list = request.data.get('data_sources')
@@ -279,7 +289,7 @@ def api_phenotype_update(request):
 
         # handling tags
         tags = request.data.get('tags')
-        is_valid_data, err, ret_value = chk_tags(request.data.get('tags'))
+        is_valid_data, err, ret_value = chk_tags(request.data.get('tags'), type='tags')
         if is_valid_data:
             tags = ret_value
             if tags:
@@ -289,6 +299,18 @@ def api_phenotype_update(request):
         else:
             errors_dict['tags'] = err
 
+        # handling collections
+        collections = request.data.get('collections')
+        is_valid_data, err, ret_value = chk_tags(request.data.get('collections'), type='collections')
+        if is_valid_data:
+            collections = ret_value
+            if collections:
+                update_phenotype.collections = [int(i) for i in collections]
+            else:
+                update_phenotype.collections = None
+        else:
+            errors_dict['collections'] = err
+        
         # handling data-sources
         datasource_ids_list = request.data.get('data_sources')
         is_valid_data, err, ret_value = chk_data_sources(request.data.get('data_sources'))
@@ -458,10 +480,10 @@ def phenotypes(request, pk=None):
     User can search with criteria using a combinations of querystring parameters:   
     -  <code>?search=Alcohol</code>  
     search by part of phenotype name (do not put wild characters here)  
-    -  <code>?tag_collection_ids=11,4</code>  
-    You can specify tag and collection ids   
-    -  <code>?collection_ids=18&tag_ids=1</code>  
-    Or you can query tags and/or collections individually   
+    -  <code>?collection_ids=20,23</code>  
+    You can specify collection ids   
+    -  <code>?tag_ids=1,3</code>  
+    You can query tags ids  
     -  <code>?selected_phenotype_types=drug,lifestyle risk factor</code>
     Specify types of the phenotypes         
     -  <code>?show_only_my_phenotypes=1</code>  
@@ -493,9 +515,6 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
         phenotype_id = pk
     else:
         phenotype_id = request.query_params.get('id', None)
-
-    # Once data & models reflect tag/collection split, remove the following:
-    tag_collection_ids = request.query_params.get('tag_collection_ids', '')
 
     tag_ids = request.query_params.get('tag_ids', '')
     collection_ids = request.query_params.get('collection_ids', '')
@@ -557,11 +576,8 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
                 filter_cond += " AND (id ='" + str(ret_id) + "') "    
     
     
-    if tag_collection_ids != '':
-        tags, filter_cond = apply_filter_condition(query='tags', selected=tag_collection_ids, conditions=filter_cond)
-    else:
-        tags, filter_cond = apply_filter_condition(query='tags', selected=tag_ids, conditions=filter_cond)
-        collections, filter_cond = apply_filter_condition(query='tags', selected=collection_ids, conditions=filter_cond)
+    tags, filter_cond = apply_filter_condition(query='tags', selected=tag_ids, conditions=filter_cond)
+    collections, filter_cond = apply_filter_condition(query='collections', selected=collection_ids, conditions=filter_cond)
     
     coding, filter_cond = apply_filter_condition(query='clinical_terminologies', selected=coding_ids, conditions=filter_cond)
     sources, filter_cond = apply_filter_condition(query='data_sources', selected=data_sources, conditions=filter_cond)
@@ -666,14 +682,19 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
 
     for c in phenotypes_srch:
         c_tags = []
-        c_collections = []
         phenotype_tags = c['tags']
         if phenotype_tags:
             c_tags = list(Tag.objects.filter(pk__in=phenotype_tags, tag_type=1).values('description', 'id'))
-            c_collections = list(Tag.objects.filter(pk__in=phenotype_tags, tag_type=2).values('description', 'id',  'collection_brand'))
+       
+        c_collections = []
+        phenotype_collections = c['collections']
+        if phenotype_collections:
+            c_collections = list(Tag.objects.filter(pk__in=phenotype_collections, tag_type=2).values('description', 'id',  'collection_brand'))
             if c_collections:
                 for col in c_collections:
                     col['collection_brand'] = Brand.objects.get(pk=col['collection_brand']).name
+                                        
+                    
                     
         c_clinical_terminologies = []
         phenotype_clinical_terminologies = c['clinical_terminologies']
@@ -880,14 +901,18 @@ def getPhenotypeDetail(request,
         data_sources = list(DataSource.objects.filter(pk__in=ds_list).values('id', 'name', 'url', 'datasource_id'))  # , 'uid', 'description'
 
     tags = []
-    collections = []
     phenotype_tags = phenotype['tags']
     if phenotype_tags:
         tags = list(Tag.objects.filter(pk__in=phenotype_tags, tag_type=1).values('description', 'id'))
-        collections = list(Tag.objects.filter(pk__in=phenotype_tags, tag_type=2).values('description', 'id',  'collection_brand'))
+               
+
+    collections = []
+    phenotype_collections = phenotype['collections']
+    if phenotype_collections:
+        collections = list(Tag.objects.filter(pk__in=phenotype_collections, tag_type=2).values('description', 'id',  'collection_brand'))
         if collections:
             for col in collections:
-                col['collection_brand'] = Brand.objects.get(pk=col['collection_brand']).name
+                col['collection_brand'] = Brand.objects.get(pk=col['collection_brand']).name                
                 
                     
     rows_to_return = []

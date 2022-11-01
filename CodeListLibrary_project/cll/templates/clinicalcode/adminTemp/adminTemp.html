@@ -9,7 +9,7 @@
 {% block container %}
 
 {% if request.user.is_superuser %}
-	<h2><i class="fa fa-file-text-o" aria-hidden="true"></i> Delete API Data</h2>
+	<h2><i class="fa fa-file-text-o" aria-hidden="true"></i> {{ action_title }}</h2>
 	{% if errorMsg %}
 		<div class="bs-example">
 		    <div class="alert alert-danger fade in">
@@ -21,10 +21,10 @@
 		                {% if not key == 'children' %}
 		            		<li>{{ error|safe }}</li> 
 		            	{% else %}
-		                	<li>Concepts errors:</li>
+		                	<li>Errors:</li>
 		                	<ul>	         
 		                	{% for key2, error2 in error.items %}
-				                	<li>Concept({{ key2|safe }}): {{ error2|safe }}</li> 			                		            	           
+				                	<li>{{ key2|safe }}: {{ error2|safe }}</li> 			                		            	           
 				            {% endfor %}  
 				            </ul> 	
 	                    {% endif %}	            
@@ -54,7 +54,7 @@
 			<div class="row">
 				<div class="col-md-12">	
 	{% if pk is None %}
-	    <form name='workingset-form' id='workingset-form' class="form-horizontal" action="{% url "api_remove_data" %}" method="POST" autocomplete="off" >
+	    <form name='form1' id='form1' class="form-horizontal" action="{{ url }}" method="POST" autocomplete="off" >
 	    	{% csrf_token %}
 	    	<div class="form-group">
 				<label class="col-sm-3 required">Auth-Code</label>
@@ -67,7 +67,7 @@
 				<div class="col-md-6">								
 					<div><br>
 						<button class="btn btn-danger" id="save-changes">
-							<i class="fa fa-remove" aria-hidden="true"></i> Delete
+							<i class="fa fa-remove" aria-hidden="true"></i> {{ action_title }}
 						</button>
 					</div> 
 			

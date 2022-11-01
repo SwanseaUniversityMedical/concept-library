@@ -195,8 +195,15 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
         '''
         queryset = Tag.objects.all()
         keyword_search = self.request.query_params.get('search', None)
+        type = self.request.query_params.get('type', None)
+        
         if keyword_search is not None:
             queryset = queryset.filter(description__icontains=keyword_search)
+        
+        if type is not None:
+            if type in ('1', '2'):
+                queryset = queryset.filter(tag_type=int(type))
+                
         return queryset
 
     def filter_queryset(self, queryset):
@@ -498,8 +505,8 @@ def chk_world_access(world_access_input):
 
 
 #---------------------------------------------------------------------------
-def chk_tags(tags_input):
-    # handling tags
+def chk_tags(tags_input, type='tags'):
+    # handling tags/collections
     is_valid_data = True
     err = ""
     ret_value = tags_input
@@ -509,14 +516,14 @@ def chk_tags(tags_input):
     tags = tags_input
     if tags is not None:
         if isinstance(tags, list):  # check tags is a list
-            if not (set(tags).issubset(set(Tag.objects.all().values_list('id', flat=True)))):
+            if not (set(tags).issubset(set(Tag.objects.filter(tag_type=[2,1][type=='tags']).values_list('id', flat=True)))):
                 is_valid_data = False
-                err = 'Invalid tag ids list, all tags ids must be valid'
+                err = 'Invalid ' + type + ' ids list, all tags ids must be valid'
             else:
                 ret_value = tags
         else:
             is_valid_data = False
-            err = 'Tags must be valid list with valid tag ids'
+            err = type + ' must be valid list with valid ' + type + ' ids'
 
     return is_valid_data, err, ret_value
 
