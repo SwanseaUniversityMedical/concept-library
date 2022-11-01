@@ -387,7 +387,10 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         collections = self.commaSeparate('collections')
         datasources = self.commaSeparate('datasources')
         publications = self.request.POST.get('publication_data')
+        table_elements_data = self.request.POST.get('phenotypes_concepts_json')
+        previous_selection = self.request.POST.get('previous_selection')
         context = self.get_context_data()
+
 
         if tag_ids:
             context['tags'] = Tag.objects.filter(pk__in=tag_ids)
@@ -402,6 +405,18 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         if publications:
             context['publications'] = publications
 
+        if table_elements_data:
+            context['table_elements'] = table_elements_data
+
+        if previous_selection:
+            context['previous_selection'] = previous_selection
+
+        print(context)
+
+
+
+
+
 
 
         return self.render_to_response(context)
@@ -414,7 +429,7 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
             form.instance.tags = self.commaSeparate('tagids')
             form.instance.collections = self.commaSeparate('collections')
             form.instance.data_sources = self.commaSeparate('datasources')
-            form.instance.phenotypes_concepts_data = json.loads(self.request.POST.get('workingset_data'))
+            form.instance.phenotypes_concepts_data = json.loads(self.request.POST.get('workingset_data') or '[]')
             form.instance.publications = self.request.POST.get('publication_data')
 
             self.object = form.save()

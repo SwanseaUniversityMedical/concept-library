@@ -12,7 +12,6 @@
 		<tr>
 			<th>Version<br> ID</th>
 			<th>Name</th>
-			<th>Description</th>
 			{% if user.is_authenticated %}
 				<th>Date</th>
 				<th>Change reason</th>
@@ -40,7 +39,6 @@
 				{% endif %}
 				</a>
 			</td>
-			<td title="{{ history.description }}">{{ history.description|truncatechars:50| markdownify}}</td>
 			{% if user.is_authenticated %}
 				<td>{{ history.history_date}}</td>
 				<td>{{ history.history_change_reason }}</td>

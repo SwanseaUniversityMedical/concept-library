@@ -156,10 +156,9 @@ def phenotype_list(request):
                 search_by_id = True
                 filter_cond += " AND (id ='" + str(ret_id) + "') "
     
-    # Change to collections once model + data represents parameter
-    collections, filter_cond = db_utils.apply_filter_condition(query='tags', selected=collection_ids, conditions=filter_cond)
-
+    collections, filter_cond = db_utils.apply_filter_condition(query='collections', selected=collection_ids, conditions=filter_cond)
     tags, filter_cond = db_utils.apply_filter_condition(query='tags', selected=tag_ids, conditions=filter_cond)
+    
     coding, filter_cond = db_utils.apply_filter_condition(query='clinical_terminologies', selected=coding_ids, conditions=filter_cond)
     sources, filter_cond = db_utils.apply_filter_condition(query='data_sources', selected=data_sources, conditions=filter_cond)
     selected_phenotype_types_list, filter_cond = db_utils.apply_filter_condition(query='phenotype_type', selected=selected_phenotype_types, conditions=filter_cond, data=phenotype_types_list)
@@ -398,14 +397,19 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
 
     tags = Tag.objects.filter(pk=-1)
     phenotype_tags = phenotype['tags']
-
-    has_tags = False
-    has_collections = False
+    has_tags = False    
     if phenotype_tags:
         tags = Tag.objects.filter(pk__in=phenotype_tags)
-
         has_tags = tags.filter(tag_type=1).count() != 0
-        has_collections = tags.filter(tag_type=2).count() != 0
+
+    collections = Tag.objects.filter(pk=-1)
+    phenotype_collections = phenotype['collections']
+    has_collections = False
+    if phenotype_collections:
+        collections = Tag.objects.filter(pk__in=phenotype_collections)
+        has_collections = collections.filter(tag_type=2).count() != 0
+
+
 
     data_sources = DataSource.objects.filter(pk=-1)
     phenotype_data_sources = phenotype['data_sources']  
@@ -543,9 +547,10 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         'phenotype': phenotype,
         'concept_informations': json.dumps(phenotype['concept_informations']),
         'tags': tags,
-        'gender': phenotype_gender,
         'has_tags': has_tags,
+        'collections': collections,
         'has_collections': has_collections,
+        'gender': phenotype_gender,        
         'data_sources': data_sources,
         'clinicalTerminologies': clinicalTerminologies,
         'user_can_edit': False,  # for now  #can_edit,

@@ -177,7 +177,7 @@
 					{% endif %}
 
 					<div class="form-group">
-						<label class="col-sm-3" for="txtTags">Tags/Collections:</label>
+						<label class="col-sm-3" for="txtTags">Tags:</label>
 						<div class="col-sm-7" id="concept-tag-form-container">
 							<input type="text" id="txtTags" class="form-control" name="tagids" data-role="tagsinput" />
 						</div>
@@ -190,7 +190,19 @@
 						</div>
 					</div>
 
-
+					<div class="form-group">
+						<label class="col-sm-3" for="txtCollections">Collections:</label>
+						<div class="col-sm-7" id="concept-collection-form-container">
+							<input type="text" id="txtCollections" class="form-control" name="collectionids" data-role="tagsinput" />
+						</div>
+						<div class="col-sm-1 form-help-popover">
+							<a href="#" role="button" class="btn popovers" id="concept-collection-form" data-toggle="popover"
+								data-trigger="hover" data-container="#concept-collection-form-container" title=""
+								data-original-title="Collections" data-placement="left">
+								<i class="fa fa-question-circle" aria-hidden="true"></i>
+							</a>
+						</div>
+					</div>
 
 					<div class="form-group {% if form.author.errors %}has-error{% endif %}">
 						<label class="required col-sm-3"
@@ -737,6 +749,12 @@
 				looking for and it will appear within a dropdown just beneath the textbox.</p>
 		</div>
 
+		<div id="popover-content-concept-collection-form" class="hide popover-lg">
+			<p>Collections are added within the administration section. Once a collection has been stored then you can assign it here
+				so that you can search this concept based on collection name(s). Simply start typing the collection name you are
+				looking for and it will appear within a dropdown just beneath the textbox.</p>
+		</div>
+		
 		<div id="popover-content-concept-coding-system-form" class="hide popover-lg">
 			<p>This field identifies the coding system to use when querying codes for a code list or code regex
 				component. For example you can query ICD10 or Read codes depending on the coding system selected.
@@ -750,6 +768,7 @@
 <script src="{% static 'js/clinicalcode/component.js' %}"></script>
 <script src="{% static 'js/clinicalcode/concept.js' %}"></script>
 <script src="{% static 'js/clinicalcode/tags.js' %}"></script>
+<script src="{% static 'js/clinicalcode/collections.js' %}"></script>
 
 <script type="text/javascript">
 	// call the tag service initialize function in tags.js
@@ -761,6 +780,14 @@
 		{% endfor %}		
 	});
 
+	// call the collection service initialize function in collections.js
+	collectionService.initialize();
+
+	$(function () {
+		{% for tag in collections %}
+			$('#txtCollections').tagsinput('add', { 'id': {{ tag.id }}, 'description': '{{ tag.description }}', 'display': '{{ tag.get_display_display }}'});
+		{% endfor %}		
+	});
 </script>
 
 

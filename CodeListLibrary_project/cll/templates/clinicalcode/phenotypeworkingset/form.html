@@ -426,6 +426,7 @@
                     <input type="hidden" id="phenotypes_concepts_json" name="phenotypes_concepts_json">
                     <input type="hidden" id="workingset_data" name="workingset_data">
                     <input type="hidden" id="publication_data" name="publication_data">
+                    <input type="hidden" id="previous_selection" name="previous_selection">
 
 
 
@@ -529,7 +530,7 @@
             {% endfor %}
 
             {% if publications %}
-                let returnPub = JSON.parse('{{publications}}'.replace(/(&quot\;)/g, "\"").replace(/{(.*)}/, '[$1]'))
+                let returnPub = JSON.parse('{{publications|safe}}')
                 if (returnPub.length > 1) {
                     for (let j = 0; j < returnPub.length; j++) {
                         if (j === 0) {
@@ -539,11 +540,24 @@
                         }
                     }
                 } else {
-                    $('#id_publication').val(returnPub[0])
-
+                    $('#id_publication').val(returnPub[0]);
                 }
 
             {% endif %}
+
+            {% if table_elements %}
+                let dataset = {{table_elements|safe}}
+                    $('#attributes-table').show()
+                $('#add-data').hide()
+                let table = createTable(0, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}])
+                let next_column_index = ((Object.keys(dataset[0]).length - 1) / 3)
+                table = reDrawtable('attributes-table', next_column_index, false, dataset)
+                table.buttons().container()
+                    .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+                $('#phenotypes_concepts_json').val(JSON.stringify(dataset)) // save value temporarly
+
+            {% endif %}
+
 
         });
 
@@ -554,10 +568,16 @@
         $(document).on('click', '#removeRow', function () {
             $(this).closest('.form-group').remove();
 
-
         });
 
+
+        /**
+         * Adding input to html
+         * @param value input value
+         * @param id of the HTML element
+         */
         const addInput = (value, id) => {
+            wrapData()
             var html = '';
             html += '<div class="form-group">';
             html += '<div class="col-sm-12">';
@@ -573,8 +593,12 @@
             $('#' + id).append(html);
         }
 
+        /**
+         * Collection all input values from all publication inputs
+         * @returns {Array} data of all inputs t handle
+         */
         const wrapPubinputs = () => {
-            let input = document.querySelectorAll('*[id^="id_publication"]');
+            let input = document.querySelectorAll('*[id^="id_publication"]'); // Find inputs from appended html
             let data = []
             for (let i = 0; i < input.length; i++) {
                 if (input[i].value !== "") {
@@ -586,8 +610,16 @@
 
         }
 
+        /*************************************
+         *                                   *
+         *            Selection logic        *
+         *                                   *
+         *************************************/
+        var previous_selection = [];
+        {% if previous_selection %}
+            previous_selection = JSON.parse('{{ previous_selection |safe}}')
 
-        var previoslySelected = []
+        {% endif %}
         $('#add-data').createSelection({
             // Props
             clearSelectedOnClose: false,
@@ -596,72 +628,90 @@
             // Methods
             onImport: (service, selected) => {
                 // Clicked the 'Import Concepts' button, and imported 'selected'
-                var numbers = 0
                 var dataset = selected.map(element => {
                     return {
-                        "Data": element.phenotype.id + '/' + element.phenotype.version + '-' + element.concept.id + '/' + element.concept.version + '-' + element.concept.name
+                        "Data": `<a href="/phenotypes/${element.phenotype.id}/version/${element.phenotype.version}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${element.phenotype.id + '/' + element.phenotype.version}</a>` + '-' +
+                            `<a href="/concepts/${element.concept.id}/version/${element.concept.version}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${element.concept.id + '/' + element.concept.version + '-' + element.concept.name}</a>`
                     }
+
                 })
 
-
+                // Check if table exist to update table or create table
                 if ($.fn.dataTable.isDataTable('#attributes-table')) {
                     let table = $('#attributes-table').DataTable();
                     table.rows().remove().draw()
-
-                    let dataPrevious = $('#phenotypes_concepts_json').val()
+                    let dataPrevious = $('#phenotypes_concepts_json').val() // restore old values
                     dataPrevious = JSON.parse(dataPrevious)
-                    let newObject = removalue(dataPrevious)
+
+                    // Use first row as example to take columns but delete value
                     let newData = []
                     for (let i = 0; i < dataset.length; i++) {
+                        let newObject = removalue(dataPrevious, i)
                         newData.push({
                             ...newObject,
-                            ["Data"]: dataset[i].Data
+                            ["Data"]: dataset[i].Data // Append new row
                         })
+
                     }
-                    dataPrevious = mergeArrays(dataPrevious, newData)
-                    if (dataPrevious.length > 0) {
-                        table.rows.add(dataPrevious).draw();
-                        $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
+
+                    dataPrevious = mergeArrays(dataPrevious, newData) // Merge old values and new value to avoid duplicates
+                    dataPrevious = refreshInputid(dataPrevious)
+
+
+                    if (dataPrevious.length > 0) { // Check if user deletes data from pop-up or add
+                        table.rows.add(dataPrevious).draw(); // draw row/rows
+                        $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious)) // Saving as Json
+
+
                     } else {
                         $('#attributes-table').DataTable().destroy();
                         $('#attributes-table').empty();
-                        $('#phenotypes_concepts_json').val('')
-                         $('#add-data').html('Upload')
+                        $('#phenotypes_concepts_json').val('') // Clear table as user cleared the modal
+                        $('#add-data').show()
                     }
 
                 } else {
                     $('#attributes-table').show()
-                    let table = createTable(numbers, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}])
+                    let table = createTable(0, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}]) // Create table with initial data
                     table.buttons().container()
-                        .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
-                    $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
-                    $('#add-data').html('Add concept/phenotype')
+                        .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) ')); // Append buttons to the table
+                    $('#phenotypes_concepts_json').val(JSON.stringify(dataset)) // save value temporarly
+                    $('#add-data').hide()
                 }
-
 
 
             },
             onClose: (service, selected) => {
-                console.log(selected)
-            }
-        }, previoslySelected);
 
-        function mergeArrays(dataPrevious, newData) {
+
+            }
+        }, previous_selection);
+
+
+        /**
+         * Merge two arrays of old Json with a new object
+         * @param dataPrevious
+         * @param newData
+         * @returns {*[]}
+         */
+        const mergeArrays = (dataPrevious, newData) => {
             let newArr = []
             for (let j = 0; j < newData.length; j++) {
                 for (let k = 0; k < dataPrevious.length; k++) {
                     if (newData[j].Data === dataPrevious[k].Data) {
-                        newData.slice(j, 1)
+                         newData.filter(function (el, i) {
+                            return j !== i;
+                        }); // remove data if new object has same data with previous one
                     }
                 }
-                newArr.push(newData[j])
+                newArr.push(newData[j]) // else append new data
             }
-
 
             for (let h = 0; h < newArr.length; h++) {
                 for (let i = 0; i < dataPrevious.length; i++) {
                     if (newArr[h].Data === dataPrevious[i].Data) {
                         newArr[h] = Object.assign({}, newArr[h], dataPrevious[i]);
+                        // After we add new data we can convert it to object to have same columns as previous
                     }
                 }
             }
@@ -670,15 +720,22 @@
             return newArr
         }
 
-
-        var createTable = (numbers, dataset, id, columns) => {
+        /**
+         * Create table with columns or without
+         * @param numbers - current column index
+         * @param dataset - current JSON dataset to pass
+         * @param id - HTML id element for table
+         * @param columns - array of named columns
+         * @returns {*|define.amd.jQuery}
+         */
+        const createTable = (numbers, dataset, id, columns) => {
             return $('#' + id).DataTable({
                     data: dataset,
                     columns: columns,
                     buttons: [
                         {
 
-                            text: "Add Column",
+                            text: "Add column",
                             className: "table-button",
                             action: function (e, dt, node, config) {
                                 addColumn(numbers)
@@ -688,10 +745,13 @@
                             }
                         },
                         {
-                            text: "Delete row",
+                            text: "Add concept",
                             className: "table-button",
+                            action: function (e, dt, node, config) {
+                                $('#add-data').trigger('click')
+                            },
                             attr: {
-                                id: 'delete-button'
+                                id: 'add-concept'
                             }
                         }
                     ],
@@ -699,12 +759,12 @@
                     fixedColumns: {
                         left: 1
                     },
-                    scrollX: true,
-                    scrollY: '70vh',
-                    scrollCollapse: true,
-                    colReorder: true,
+                    scrollX: true, // allow to scroll horizontaly
+                    scrollY: '70vh', // allow scroll vericaly for specific size 
+                    scrollCollapse: true, // allow to table have overflow-x 
+                    colReorder: true, // order the collumns
                     paging: false,
-                    columnDefs: [{
+                    columnDefs: [{ // define which columns exclude for ordering 
                         targets: [0],
                         orderable: true,
                     }, {
@@ -717,29 +777,66 @@
             );
         }
 
+        /**
+         * Remove value from the first row to pass new element input to the new object input
+         * @param dataPrevious
+         * @returns new input with empty value
+         */
+        const removalue = (dataPrevious, length) => {
 
-        const removalue = (dataPrevious) => {
+
             let removeVal = Object.entries(dataPrevious[0])
+
             removeVal.forEach(element => {
                 let parse = new DOMParser().parseFromString(element[1], "text/html")
                 let input = parse.querySelector('*[id^="attribute-input"]');
                 if (input !== null) {
                     input.setAttribute('value', '')
+                    input.classList.remove('bg-danger')
+                    input.id = input.id.slice(0, -1) + length
                     element[1] = $(input)[0].outerHTML
                 }
                 return element
 
             })
-            let newObject = Object.fromEntries(removeVal)
-            return newObject
+
+            return Object.fromEntries(removeVal)
         }
 
+        const refreshInputid = (dataPrevious) => {
+            for (let i = 0; i < dataPrevious.length; i++) {
+                for (let [key, value] of Object.entries(dataPrevious[i])) {
+                    let parse = new DOMParser().parseFromString(value, "text/html")
+                    let input = parse.querySelector('*[id^="attribute-input-col"]');
+                    if (input !== null) {
+                        input.id = "attribute-input-col" + key.slice(-1) + 'row'+ i
+                        dataPrevious[i][key] = $(input)[0].outerHTML
+
+                    }
+                }
+
+
+            }
+            return dataPrevious
+
+
+        }
+
+
+        /**
+         * Return string type select value when wraping value or just input value when wrappinf
+         * @param type html element from the array
+         * @param id html id to find select value
+         * @returns  select string type from select or input value
+         */
         const returnValue = (type, id) => {
             let element = new DOMParser().parseFromString(type, "text/html")
             let select = element.querySelector(`*[id^="${id}"]`)
             if (id.startsWith("column_type")) {
-                let val = $("#" + `${select.id}`).val()
-                switch (val) {
+                let val = select.value
+                switch (parseInt(val)) {
+                    case 0:
+                        return false
                     case 1:
                         return 'INT'
                     case 2:
@@ -748,62 +845,64 @@
                         return 'STRING'
                 }
             } else {
-                return $("#" + `${select.id}`).val()
+                return select.value
             }
+
 
         }
 
+        /**
+         * Main functionality to add column dynamically
+         * @param numbers - current column index
+         */
         const addColumn = (numbers) => {
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
             for (let i = 0; i < dataPrevious.length; i++) {
-                dataPrevious[i] = {
+
+
+                dataPrevious[i] = { // for all row start initialize the object keys and values but taking into account old row
                     ...dataPrevious[i],
-                    ["Attributes-row" + numbers]: `<input class="input-material" type="text"  style="width:100%" id="attribute-input-${numbers}"/>`,
+                    ["Attributes-row" + numbers]: `<input class="input-material" type="text"  style="width:100%" id="attribute-input-${'col' + numbers + 'row' + i}"/>`,
                     ["Attributes-select" + numbers]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=selectHeader() id="column_type${numbers}">'
 						    +'<option  value="0" selected >Type</option>'
 						    +'<option value="1">INT</option>'
 						    +'<option value="2">FLOAT</option>'
 						    +'<option value="3">STRING</option>'
 						  +'</select>`,
-                    ['Attributes-header' + numbers]: `<input class="input-material" type="text"  oninput = inputheader() placeholder="Attribute name"  id="attribute-header${numbers}"/>`
+                    ['Attributes-header' + numbers]: `<input class="input-material" type="text"  oninput="inputheader(this)" placeholder="Attribute name"  id="attribute-header${numbers}"/>`
                 }
             }
             let dataset = dataPrevious
-            $('#phenotypes_concepts_json').val(JSON.stringify(dataset))
-            let columns = [{data: "Data", title: "Data"}]
-            let headers = Object.entries(dataset[0])
-            for (let i = 0; i < headers.length - 1; i++) {
-                if (headers[i][0].startsWith('Attributes-row')) {
-                    columns.push({data: headers[i][0], title: headers[i + 1][1] + headers[i + 2][1]})
-                }
-            }
-            numbers++
-
-
-            if ($.fn.DataTable.isDataTable('#attributes-table')) {
-                $('#attributes-table').DataTable().destroy();
-                $('#attributes-table').empty();
-                var table = createTable(numbers, dataset, 'attributes-table', columns)
-                table.buttons().container()
-                    .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
-
-            }
+            $('#phenotypes_concepts_json').val(JSON.stringify(dataset)) //saving the rows
+            let table = reDrawtable('attributes-table', numbers, true, dataset)
+            table.buttons().container()
+                .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
 
 
         }
 
-        const reDrawtable = (id, numbers, dataset) => {
-            let columns = [{data: "Data", title: "Data"}]
+        /**
+         * Apply changes and redraw table
+         * @param id of the existing table
+         * @param numbers current column index
+         * @param needColumn update column index if added column
+         * @param dataset current dataset
+         * @returns new table
+         */
+        const reDrawtable = (id, numbers, needColumn, dataset) => {
+            let columns = [{data: "Data", title: "Data"}]// keep data column same
             let headers = Object.entries(dataset[0])
             for (let i = 0; i < headers.length - 1; i++) {
                 if (headers[i][0].startsWith('Attributes-row')) {
                     columns.push({data: headers[i][0], title: headers[i + 1][1] + headers[i + 2][1]})
                 }
             }
+            if (needColumn) {
+                numbers++// add number index as we added column
+            }
 
-
-            if ($.fn.DataTable.isDataTable('#attributes-table')) {
+            if ($.fn.DataTable.isDataTable('#attributes-table')) {// if table exist we need to update by destroying old table and generate new table
                 $('#' + id).DataTable().destroy();
                 $('#' + id).empty();
                 var table = createTable(numbers, dataset, 'attributes-table', columns)
@@ -815,23 +914,33 @@
 
         }
 
-        const inputheader = () => {
-            var table = $('#attributes-table').DataTable()
 
-
-            let val = event.target.value
-            let index = event.target.id.match(/\d+/)[0]
+        const inputheader = (element) => {
+            let val = element.value
+            let index = element.id.match(/\d+/)[0]
+            if (/^[a-zA-Z0-9]+$/.test(val)) {
+                element.setCustomValidity("")
+                element.classList.remove('bg-danger')
+                element.setAttribute('value', val)
+            } else {
+                element.setCustomValidity("Spaces and symbols are not allowed")
+                element.classList.add('bg-danger')
+                element.setAttribute('value', val)
+                element.reportValidity()
+            }
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
             for (let i = 0; i < dataPrevious.length; i++) {
-                dataPrevious[i]['Attributes-header' + (index)] = `<input class="input-material" type="text" value="${val}" oninput = inputheader() placeholder="Attribute name"  id="attribute-header${index}"/>`
+                dataPrevious[i]['Attributes-header' + (index)] = element.outerHTML
                 $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
             }
+
 
         }
 
         const wrapData = () => {
             $('#publication_data').val(JSON.stringify(wrapPubinputs()).replace(/\[/g, '{').replace(/]/g, '}'))
+            $('#previous_selection').val(JSON.stringify($('#add-data').data('SelectionService').selected))
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
             let arrayOfData = []
@@ -841,34 +950,76 @@
                 if (entry.length > 1) {
                     mainData['Attributes'] = []
                     for (let j = 0; j < (entry.length - 1) / 3; j++) {
-
                         let type = dataPrevious[i]['Attributes-select' + j]
                         let attribute_name = dataPrevious[i]['Attributes-header' + j]
                         let attribute_value = dataPrevious[i]['Attributes-row' + j]
                         mainData['Attributes'].push({
                             name: returnValue(attribute_name, 'attribute-header' + j),
                             type: returnValue(type, 'column_type' + j),
-                            value: returnValue(attribute_value, 'attribute-input-' + j)
+                            value: returnValue(attribute_value, 'attribute-input-col' + j)
                         })
+
 
                     }
                     arrayOfData.push(mainData)
+                } else {
+                    arrayOfData.push(mainData)
                 }
-                arrayOfData.push(mainData)
-
             }
 
+
             $('#workingset_data').val(JSON.stringify(arrayOfData))
+            return true
 
 
         }
 
-        $('#save-changes').on('click', function () {
-            wrapData()
+        $('#save-changes').on('click', function (e) {
+            if (!finalValidation($('#phenotypes_concepts_json').val())) {
+                e.preventDefault();
+            } else {
+                wrapData()
+            }
+
+
         })
+
+        const finalValidation = (dataPrevious) => {
+            let conds = []
+            dataPrevious = JSON.parse(dataPrevious)
+            for (let i = 0; i < dataPrevious.length; i++) {
+                let entry = Object.entries(dataPrevious[i])
+                for (let j = 0; j < (entry.length - 1) / 3; j++) {
+                    let select = dataPrevious[i]['Attributes-select' + j]
+                    let header = dataPrevious[i]['Attributes-header' + j]
+                    let input = dataPrevious[i]['Attributes-row' + j]
+                    input = new DOMParser().parseFromString(input, "text/html")
+                    select = new DOMParser().parseFromString(select, "text/html")
+                    header = new DOMParser().parseFromString(header, "text/html")
+                    input = input.querySelector('*[id^="attribute-input"]')
+                    select = select.querySelector('*[id^="column_type"]')
+                    header = header.querySelector('*[id^="attribute-header"]')
+                    let header_cond = /^[a-zA-Z0-9]+$/.test(header.value)
+                    if (!header_cond) {
+                        {
+                            header.value === '' ?
+                                $('#' + header.id)[0].setCustomValidity("Empty attribute is not allowed") : $('#' + header.id)[0].setCustomValidity("Spaces and symbols are not allowed")
+                        }
+                        $('#' + header.id)[0].classList.add('bg-danger')
+                        $('#' + header.id)[0].reportValidity()
+                    }
+                    conds.push(regexCheck(select.value, $('#' + input.id), $('#' + input.id).val(), false, false, false) && header_cond)
+                }
+            }
+            return !conds.includes(false);
+
+        }
 
 
         const wrapIds = (dataIds) => {
+            let element = new DOMParser().parseFromString(dataIds, "text/html")
+            element = element.links
+            dataIds = element[0].innerText + '-' + element[1].innerText
             let phenotype = dataIds.substring(dataIds.indexOf('PH'), dataIds.indexOf('-C'))
             let phenotype_id = phenotype.split('/')[0]
             let phenotype_version = phenotype.split('/')[1]
@@ -894,18 +1045,18 @@
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
             let updatedSelect = changeSelectValue(val, index)
+
             for (let i = 0; i < dataPrevious.length; i++) {
                 dataPrevious[i]['Attributes-select' + (index)] = `${updatedSelect}`
-                dataPrevious[i]['Attributes-row' + (index)] = `<input class="input-material" type="text" value="" style="width:100%" id="attribute-input-${index}"/>`
+                dataPrevious[i]['Attributes-row' + (index)] = highlightinput(dataPrevious[i]['Attributes-row' + (index)], updatedSelect)
                 $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
             }
 
             let dataPrevious2 = $('#phenotypes_concepts_json').val()
             dataPrevious2 = JSON.parse(dataPrevious2)
-            table = reDrawtable('attributes-table', table.columns().header().length - 1, dataPrevious2)
+            table = reDrawtable('attributes-table', table.columns().header().length - 1, false, dataPrevious2)
             table.buttons().container()
                 .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
-
         }
 
 
@@ -926,19 +1077,48 @@
         }
 
 
+        function highlightinput(input, select) {
+            input = new DOMParser().parseFromString(input, "text/html")
+            select = new DOMParser().parseFromString(select, "text/html")
+            input = input.querySelector('*[id^="attribute-input"]')
+            select = select.querySelector('*[id^="column_type"]')
+
+            if (input !== null) {
+                if (input.value !== '') {
+                    input.classList.add('bg-danger')
+                    let custom = '<div>'
+                    custom += input.outerHTML
+                    if (select.value === "0") {
+                        custom += `<span class='text-danger'>Choose type attribute</span>`
+                    } else {
+                        custom += `<span class='text-danger'>Type changed to ${select.options[select.value].text}</span>`
+                    }
+
+                    custom += '</div>'
+                    return custom
+                } else {
+                    return input.outerHTML
+                }
+
+            }
+
+
+        }
+
+
         $('#attributes-table').on('input', 'td', function (e) {
             let table = $('#attributes-table').DataTable()
             let cell = table.cell(this).index()
             let input = $(table.cell(this).node()).find('input')
+            input.removeClass('bg-danger')
+            $(table.cell(this).node()).find('span').remove()
             let value = input.val()
             let rowIdx = cell.row
             let colindex = cell.column
-            if (checkTypeinput(input, value, rowIdx, colindex)) {
-                let dataPrevious = $('#phenotypes_concepts_json').val()
-                dataPrevious = JSON.parse(dataPrevious)
-                dataPrevious[rowIdx]['Attributes-row' + (colindex - 1)] = `<input class="input-material" type="text" value="${value}" style="width:100%" id="attribute-input-${colindex - 1}"/>`
-                $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
-            }
+            let dataPrevious = $('#phenotypes_concepts_json').val()
+            dataPrevious = JSON.parse(dataPrevious)
+            dataPrevious[rowIdx]['Attributes-row' + (colindex - 1)] = checkTypeinput(input, value, rowIdx, colindex)[0].outerHTML
+            $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
 
 
         });
@@ -950,40 +1130,65 @@
             let type = dataPrevious[rowIndex]['Attributes-select' + (columnIndex - 1)]
             let element = new DOMParser().parseFromString(type, "text/html")
             let select = element.querySelector('*[id^="column_type"]')
-            let select_val = $("#" + `${select.id}`).val()
+            let select_val = select.value
+            return regexCheck(select_val, input, val, false, true, true)
 
+
+        }
+        const regexCheck = (select_val, input, val, trim, returninput, changeinp) => {
 
             switch (parseInt(select_val)) {
                 case 0:
-                    alert('Choose type')
-                    return false
+                    input.addClass('bg-danger')
+                    input.val($.trim(input.val()).slice(0, -1));
+                    input[0].setCustomValidity("Choose type attribute")
+                    input[0].reportValidity()
+                    return returninput ? input : false
 
                 case 1:
-                    if (/^-?\d+$|^[-]+$/.test(val)) {
-                        return true
+                    if (/(^[0-9]+$|^$|^\s$)/.test(val)) {
+                        {
+                            changeinp ? input.attr('value', val) : false
+                        }
+                        input[0].setCustomValidity("");
+                        return returninput ? input : true
                     } else {
-                        input.val($.trim(input.val()).slice(0, -1));
-                        return false
+                        input.addClass('bg-danger')
+                        {
+                            changeinp ? input.attr('value', val) : false
+                        }
+                        input[0].setCustomValidity("Only integers")
+                        input[0].reportValidity()
+                        {
+                            trim ? input.val(input.val().slice(0, -1)) : false
+                        }
+                        return returninput ? input : false
                     }
                 case 2:
                     if (/^([-])([0-9]{1,})?(\.)?([0-9]{1,})?$|^([0-9]{1,})?(\.)?([0-9]{1,})?$/.test(val)) {
-                        return true
+                        input[0].setCustomValidity("");
+                        {
+                            changeinp ? input.attr('value', val) : false
+                        }
+                        return returninput ? input : true
                     } else {
-                        input.val($.trim(input.val()).slice(0, -1));
-                        return false
+                        input.addClass('bg-danger')
+                        {
+                            changeinp ? input.attr('value', val) : false
+                        }
+                        input[0].setCustomValidity("Only float numbers")
+                        input[0].reportValidity()
+                        {
+                            trim ? input.val(input.val().slice(0, -1)) : false
+                        }
+                        return returninput ? input : false
                     }
-                case 3:
-                    if (/^([^0-9]*)$/.test(val)) {
-                        return true
-                    } else {
-                        input.val($.trim(input.val()).slice(0, -1));
-                        return false
-                    }
-
+                case 3: {
+                    changeinp ? input.attr('value', val) : false
+                }
+                    return returninput ? input : true
 
             }
-
-
         }
 
 

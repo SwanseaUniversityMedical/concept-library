@@ -497,7 +497,9 @@ def forkHistoryConcept(user, concept_history_id):
         group_access=concept['group_access'],
         world_access=concept['world_access'],
         tags=concept['tags'],
-        code_attribute_header=concept['code_attribute_header'])
+        collections=concept['collections'],
+        code_attribute_header=concept['code_attribute_header']
+        )
     concept_obj.changeReason = "Forked root from concept %s/%s/%s" % (concept['id'], concept_history_id, concept['entry_date'])
     concept_obj.save()
     concept_obj.history.latest().delete()
@@ -1028,6 +1030,7 @@ def getHistoryConcept(concept_history_id, highlight_result=False, q_highlight=No
         hc.deleted,
         hc.deleted_by_id,
         hc.tags,
+        hc.collections,
         hc.code_attribute_header,
         hc.friendly_id
         FROM clinicalcode_historicalconcept AS hc
@@ -1935,6 +1938,7 @@ def revertHistoryConcept(user, concept_history_id):
     concept_obj.group_access = concept['group_access']
     concept_obj.world_access = concept['world_access']
     concept_obj.tags = concept['tags']
+    concept_obj.collections = concept['collections']
     concept_obj.code_attribute_header = concept['code_attribute_header']
     concept_obj.changeReason = "Reverted root historic concept"
     concept_obj.save()
@@ -3213,7 +3217,7 @@ def get_visible_live_or_published_concept_versions(request,
         brand_collection_ids = [str(i) for i in brand_collection_ids]
 
         if brand_collection_ids:
-            brand_filter_cond = " WHERE tags && '{" + ','.join(brand_collection_ids) + "}' "
+            brand_filter_cond = " WHERE collections && '{" + ','.join(brand_collection_ids) + "}' "
 
 
     # order by clause
@@ -3271,7 +3275,7 @@ def get_visible_live_or_published_concept_versions(request,
                                owner_access, group_access, world_access, history_id, history_date, 
                                history_change_reason, history_type, coding_system_id, created_by_id, 
                                deleted_by_id, group_id, history_user_id, modified_by_id, owner_id,
-                               tags, code_attribute_header, friendly_id
+                               tags, collections, code_attribute_header, friendly_id
                             FROM clinicalcode_historicalconcept t
                                 """ + brand_filter_cond + """
                             ) r
@@ -3491,7 +3495,7 @@ def get_visible_live_or_published_phenotype_versions(request,
         brand_collection_ids = [str(i) for i in brand_collection_ids]
 
         if brand_collection_ids:
-            brand_filter_cond = " WHERE tags && '{" + ','.join(brand_collection_ids) + "}' "
+            brand_filter_cond = " WHERE collections && '{" + ','.join(brand_collection_ids) + "}' "
 
 
     # order by clause
@@ -3553,7 +3557,7 @@ def get_visible_live_or_published_phenotype_versions(request,
                        owner_access, group_access, world_access, history_id, history_date, 
                        history_change_reason, history_type, created_by_id, deleted_by_id, 
                        group_id, history_user_id, owner_id, updated_by_id, validation_performed, 
-                       phenoflowid, tags, clinical_terminologies, publications, data_sources
+                       phenoflowid, tags, collections, clinical_terminologies, publications, data_sources
                     FROM clinicalcode_historicalphenotype t
                         """ + brand_filter_cond + """
                     ) r
@@ -3646,6 +3650,7 @@ def getHistoryPhenotype(phenotype_history_id, highlight_result=False, q_highligh
         hph.updated_by_id,
         hph.validation_performed,
         hph.tags,
+        hph.collections,
         hph.clinical_terminologies,
         hph.publications,
         hph.data_sources,

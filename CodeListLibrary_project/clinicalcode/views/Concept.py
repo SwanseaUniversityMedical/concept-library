@@ -107,11 +107,16 @@ class ConceptCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin,
         context = self.get_context_data()
 
         tag_ids = self.request.POST.get('tagids')
-
         # split tag ids into list
         if tag_ids:
             new_tag_list = [int(i) for i in tag_ids.split(",")]
             context['tags'] = Tag.objects.filter(pk__in=new_tag_list)
+            
+        collection_ids = self.request.POST.get('collectionids')
+        # split collection ids into list
+        if collection_ids:
+            new_collection_list = [int(i) for i in collection_ids.split(",")]
+            context['collections'] = Tag.objects.filter(pk__in=new_collection_list)            
 
         return self.render_to_response(context)
 
@@ -121,11 +126,16 @@ class ConceptCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin,
             form.instance.created_by = self.request.user
 
             tag_ids = self.request.POST.get('tagids')
-
             # split tag ids into list
             if tag_ids:
                 new_tag_list = [int(i) for i in tag_ids.split(",")]
                 form.instance.tags = new_tag_list
+                
+            collection_ids = self.request.POST.get('collectionids')
+            # split collection ids into list
+            if collection_ids:
+                new_collection_list = [int(i) for i in collection_ids.split(",")]
+                form.instance.collections = new_collection_list                
 
             # form.changeReason = "Created"
             # self.object = form.save()
@@ -206,19 +216,18 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
 
     tags = Tag.objects.filter(pk=-1)
     concept_tags = concept['tags']
-    has_collections = False
     has_tags = False
     if concept_tags:
         tags = Tag.objects.filter(pk__in=concept_tags)
-
         has_tags = tags.filter(tag_type=1).count() != 0
-        has_collections = tags.filter(tag_type=2).count() != 0
+    
+    collections = Tag.objects.filter(pk=-1)
+    concept_collections = concept['collections']
+    has_collections = False
+    if concept_collections:
+        collections = Tag.objects.filter(pk__in=concept_collections)
+        has_collections = collections.filter(tag_type=2).count() != 0    
 
-    #     tags =  Tag.objects.filter(pk=-1)
-    #     tags_comp = db_utils.getHistoryTags(pk, concept_history_date)
-    #     if tags_comp:
-    #         tag_list = [i['tag_id'] for i in tags_comp if 'tag_id' in i]
-    #         tags = Tag.objects.filter(pk__in=tag_list)
     # ----------------------------------------------------------------------
 
     if request.user.is_authenticated:
@@ -316,6 +325,7 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
         'components': components,
         'tags': tags,
         'has_tags': has_tags,
+        'collections': collections,
         'has_collections': has_collections,
         'user_can_edit': can_edit,
         'allowed_to_create': user_allowed_to_create,
@@ -329,7 +339,7 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
         'current_concept_history_id': int(concept_history_id),
         'component_tab_active': component_tab_active,
         'codelist_tab_active': codelist_tab_active,
-        'codelist': codelist,  # json.dumps(codelist)
+        'codelist': codelist,  
         'codelist_loaded': codelist_loaded,
         'code_attribute_header': code_attribute_header,
         'page_canonical_path': get_canonical_path_by_brand(request, Concept, pk, concept_history_id),
@@ -457,13 +467,19 @@ class ConceptUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin,
             # -----------------------------------------------------
             # get tags
             tag_ids = self.request.POST.get('tagids')
-            #             new_tag_list = []
             if tag_ids:
                 # split tag ids into list
                 new_tag_list = [int(i) for i in tag_ids.split(",")]
                 form.instance.tags = new_tag_list
 
-            #             #-----------------------------------------------------
+            # -----------------------------------------------------
+            # get collections
+            collection_ids = self.request.POST.get('collectionids')
+            if collection_ids:
+                # split collection ids into list
+                new_collection_list = [int(i) for i in collection_ids.split(",")]
+                form.instance.collections = new_collection_list
+            #-----------------------------------------------------
 
             # save the concept with a change reason to reflect the update within the concept audit history
             self.object = form.save()
@@ -478,17 +494,24 @@ class ConceptUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin,
 
     def get_context_data(self, **kwargs):
         context = UpdateView.get_context_data(self, **kwargs)
+        
         tags = Tag.objects.filter(pk=-1)
         concept_tags = self.get_object().tags
         if concept_tags:
             tags = Tag.objects.filter(pk__in=concept_tags)
 
+        collections = Tag.objects.filter(pk=-1)
+        concept_collections = self.get_object().collections
+        if concept_collections:
+            collections = Tag.objects.filter(pk__in=concept_collections)
+            
         context.update(build_permitted_components_list(self.request, self.get_object().pk, check_published_child_concept=True))
 
         if self.get_object().is_deleted == True:
             messages.info(self.request, "This concept has been deleted.")
 
         context['tags'] = tags
+        context['collections'] = collections
         context['code_attribute_header'] = json.dumps(self.get_object().code_attribute_header)
         context['history'] = self.get_object().history.all()
         # user_can_export is intended to control the Export CSV button. It might
@@ -771,10 +794,9 @@ def concept_list(request):
                 search_by_id = True
                 filter_cond += " AND (id =" + str(ret_int_id) + " ) "
 
-    # Change to collections once model + data represents parameter
-    collections, filter_cond = db_utils.apply_filter_condition(query='tags', selected=collection_ids, conditions=filter_cond)
-
+    collections, filter_cond = db_utils.apply_filter_condition(query='collections', selected=collection_ids, conditions=filter_cond)
     tags, filter_cond = db_utils.apply_filter_condition(query='tags', selected=tag_ids, conditions=filter_cond)
+    
     coding, filter_cond = db_utils.apply_filter_condition(query='coding_system_id', selected=coding_ids, conditions=filter_cond)
     
     is_authenticated_user = request.user.is_authenticated

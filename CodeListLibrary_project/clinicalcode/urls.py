@@ -55,10 +55,10 @@ urlpatterns += [
 ]
 
 # contact us page
-if not settings.CLL_READ_ONLY:
-    urlpatterns += [
-        url(r'^contact-us/$', View.contact_us, name='contact_us'),
-    ]
+#if not settings.CLL_READ_ONLY:
+urlpatterns += [
+    url(r'^contact-us/$', View.contact_us, name='contact_us'),
+]
 
 #======== robots.txt / sitemap ====================================================================
 if settings.IS_HDRUK_EXT == "1" or settings.IS_DEVELOPMENT_PC:
@@ -75,10 +75,9 @@ if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_P
     urlpatterns += [
         url(r'^adminTemp/api_remove_data/$', adminTemp.api_remove_data, name='api_remove_data'),
     ]
-if not settings.CLL_READ_ONLY and (settings.IS_DEVELOPMENT_PC):
+if not settings.CLL_READ_ONLY: # and (settings.IS_DEVELOPMENT_PC):
     urlpatterns += [
-        url(r'^adminTemp/json-adjust-phenotype/$', adminTemp.json_adjust_phenotype, name='json_adjust_phenotype'),
-        url(r'^adminTemp/json-adjust-workingset/$', adminTemp.json_adjust_workingset, name='json_adjust_workingset'),
+        url(r'^adminTemp/tag-collection-split/$', adminTemp.populate_collections_tags, name='populate_collections_tags'),
     ]
 
 # saving statistics
