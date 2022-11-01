@@ -494,8 +494,6 @@
     <script src="{% static 'js/clinicalcode/filters/FuzzyQuery.js' %}"></script>
     <script src="{% static 'js/clinicalcode/filters/autocompleteSearch.js' %}"></script>
     <script src="{% static 'js/clinicalcode/workingset/selectionService.js' %}"></script>
-    <script src="{% static 'js/clinicalcode/workingset/dragHorizontal.js' %}"></script>
-
     <!---------------------------------------------------------------------------------->
 
 
@@ -644,7 +642,7 @@
                     }
 
                 })
-                console.log(selected)
+
 
                 // Check if table exist to update table or create table
                 if ($.fn.dataTable.isDataTable('#attributes-table')) {
@@ -682,7 +680,7 @@
 
                 } else {
                     $('#attributes-table').show()
-                    let table = createTable(0, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}]) // Create table with initial data
+                    let table = createTable(0, dataset, 'attributes-table', [{data: 'Data', title: 'Concepts'}]) // Create table with initial data
                     table.buttons().container()
                         .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) ')); // Append buttons to the table
 
@@ -746,7 +744,6 @@
                     columns: columns,
                     buttons: [
                         {
-
                             text: "Add column",
                             className: "table-button",
                             action: function (e, dt, node, config) {
@@ -876,7 +873,7 @@
                 dataPrevious[i] = { // for all row start initialize the object keys and values but taking into account old row
                     ...dataPrevious[i],
                     ["Attributes-row" + numbers]: `<input class="input-material" type="text"  style="width:100%" id="attribute-input-${'col' + numbers + 'row' + i}"/>`,
-                    ["Attributes-select" + numbers]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=selectHeader() id="column_type${numbers}">'
+                    ["Attributes-select" + numbers]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange="selectHeader(this)" id="column_type${numbers}">'
 						    +'<option  value="0" selected >Type</option>'
 						    +'<option value="1">INT</option>'
 						    +'<option value="2">FLOAT</option>'
@@ -920,11 +917,6 @@
                 var table = createTable(numbers, dataset, 'attributes-table', columns)
                 table.buttons().container()
                     .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
-
-                // var $container = $(".container");
-                // var $scroller = $(".dataTables_scrollBody");
-                //bindDragScroll($container, $scroller);
-
 
                 return table
 
@@ -1051,7 +1043,7 @@
                         attributes = {
                             ...attributes,
                             ["Attributes-row" + j]: `<input class="input-material" type="text" value="${data[i].Attributes[j].value}" style="width:100%" id="attribute-input-${'col' + j + 'row' + i}"/>`,
-                            ["Attributes-select" + j]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=selectHeader() id="column_type${j}">'
+                            ["Attributes-select" + j]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange="selectHeader(this)" id="column_type${j}">'
 						    + '<option  value="0">Type</option>'
 						    +'<option value="1" ${data[i].Attributes[j].type === 'INT' ? 'selected' : ''}>INT</option>'
 						    +'<option value="2" ${data[i].Attributes[j].type === 'FLOAT' ? 'selected' : ''}>FLOAT</option>'
@@ -1130,10 +1122,10 @@
         }
 
 
-        const selectHeader = () => {
+        const selectHeader = (element) => {
             var table = $('#attributes-table').DataTable()
-            let val = event.target.value
-            let index = event.target.id.match(/\d+/)[0]
+            let val = element.value
+            let index = element.id.match(/\d+/)[0]
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
             let updatedSelect = changeSelectValue(val, index)
@@ -1154,7 +1146,7 @@
 
 
         const changeSelectValue = (val, index) => {
-            let element = `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=selectHeader() id="column_type${index}">'
+            let element = `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange="selectHeader(this)" id="column_type${index}">'
 						    +'<option value="0">Type</option>'
 						    +'<option value="1">INT</option>'
 						    +'<option value="2">FLOAT</option>'
