@@ -62,10 +62,6 @@ To download this repository:
 ## 2.1. Prerequisites
 Please ensure that you have installed [Docker Desktop v4.10.1](https://docs.docker.com/desktop/release-notes/) or [Docker Engine v20.10.17](https://docs.docker.com/engine/release-notes/).
 
-Once installed, verify your install by:
-1. Open a terminal
-2. Run `docker run hello-world`
-
 If you encounter any issues, please see Docker's documentation (https://docs.docker.com/).
 
 ## 2.2. Database setup
@@ -88,7 +84,7 @@ To restore from a Git repository:
 4. Rename the duplicated file to `git.token`
 5. Delete the contents of the file and paste your personal access token
 >**Note: Do not share this file with anyone**
-6. Open the `docker-compose.yaml` file inside of the `development/` folder
+6. Open the `docker-compose.yaml` file inside of the `docker/` folder
 7. Ensure that the environment variable `POSTGRES_RESTORE_REPO` is set to the correct GitHub repository where your `.backup` file is stored
 8. Skip to [2.3. Development](#2.3.-Development)  
 
@@ -99,7 +95,7 @@ If you do not have a backup available the application will still run successfull
 ### 2.3.1. Initial Build
 To perform the initial build and run of the application:
 1. Open a terminal
-2. Navgiate to the `concept-library/docker/development/` folder
+2. Navgiate to the `concept-library/docker/` folder
 3. In the terminal, run `docker compose up --build`
 
 The application and database will be available at:
@@ -111,12 +107,12 @@ To stop the docker container:
 1. If you have a terminal open which is running the docker containers, press `ctrl+c`
 2. If you do not have a terminal open which is running the containers:  
 a. Open a terminal  
-b. Navigate to the `concept-library/docker/development/` folder  
+b. Navigate to the `concept-library/docker/` folder  
 c. In the terminal, run `docker compose stop`  
 
 To start the docker container (if it has already been built and has stopped for any reason):
 1. Open a terminal
-2. Navigate to the `concept-library/docker/development/` folder
+2. Navigate to the `concept-library/docker/` folder
 3. In the terminal, run `docker compose start`
 
 ### 2.3.3. Live Working
@@ -129,7 +125,7 @@ If you make any changes to the models you will need to:
 ### 2.3.4. Removing the Containers
 To remove the containers:
 1. Open a terminal
-2. Navigate to the `concept-library/docker/development/` folder
+2. Navigate to the `concept-library/docker/` folder
 3. In the terminal, run:  
 a. `docker compose down`: removes networks and containers.  
 b. *OR;* `docker-compose down --rmi all -v`: removes networks, containers, images and volumes.
