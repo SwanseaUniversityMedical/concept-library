@@ -25,6 +25,7 @@ Often the definitions that are created are of interest to researchers for many s
 1. [Clone this repository](#1.-Clone-this-Repository)  
 2. [Setup with Docker](#2.-Setup-with-Docker)  
   2.1. [Prerequisites](#2.1.-Prerequisites)  
+  2.1.1. [Running on Apple](#2.1.1.-Running-on-Apple)  
   2.2. [Database Setup](#2.2.-Database-Setup)  
     2.2.2. [Restore from Git Repository](#2.2.2.-Restore-from-Git-Repository)  
     2.2.3. [Migration only](#2.2.3.-Migration-only)  
@@ -63,6 +64,26 @@ To download this repository:
 Please ensure that you have installed [Docker Desktop v4.10.1](https://docs.docker.com/desktop/release-notes/) or [Docker Engine v20.10.17](https://docs.docker.com/engine/release-notes/).
 
 If you encounter any issues, please see Docker's documentation (https://docs.docker.com/).
+
+# 2.1.1. Running on Apple
+
+> **NOTE:** _Current build does not work on Apple devices, below is a workaround. Tested on Apple Macbook Pro M2_
+
+Before building the service, please:
+1. Open a terminal  
+  a. Navigate to the `./docker` folder  
+  b. Run the command: `chmod +x ./development/scripts/init-db.sh`  
+  c. Run the command: `chmod +x ./development/scripts/wait-for-it.sh`  
+
+2. Open the `postgres.Dockerfile` in the `./docker` folder  
+  a. Remove lines 3-6 and save the file
+
+3. Place a database backup file in the `./docker/development/db` folder  
+  a. Rename the backup file to `db.backup`  
+  b. Open the `init-db.sh` script in the `./docker/development/scripts/` folder  
+  c. Replace the contents of the file with `/usr/bin/pg_restore -U $POSTGRES_USER -d $POSTGRES_DB /docker-entrypoint-initdb.d/db/db.backup`
+
+Skip to [2.3. Development](#2.3.-Development)
 
 ## 2.2. Database setup
 

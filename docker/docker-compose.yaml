@@ -1,6 +1,7 @@
 name: concept-library-development
 services:
   postgres:
+    platform: linux/amd64
     build:
       context: .
       dockerfile: ./postgres.Dockerfile
@@ -19,6 +20,7 @@ services:
       POSTGRES_PORT: 5432
 
   app:
+    platform: linux/amd64
     build:
       context: .
       dockerfile: ./app.Dockerfile

@@ -24,8 +24,9 @@ if __name__ == "__main__":
     # Setup debugpy for debugging local development container
     if 'IS_DEVELOPMENT_PC' in os.environ and os.environ['IS_DEVELOPMENT_PC'].lower() == 'true':
         if 'DEBUG_TOOLS' in os.environ and os.environ['DEBUG_TOOLS'].lower() == 'true':
-            import debugpy
-            debugpy.listen(("0.0.0.0", 3000))
+            if os.environ.get('RUN_MAIN') or os.environ.get('WERKZEUG_RUN_MAIN'):
+                import debugpy
+                debugpy.listen(("0.0.0.0", 3000))
 
     try:
         from django.core.management import execute_from_command_line
