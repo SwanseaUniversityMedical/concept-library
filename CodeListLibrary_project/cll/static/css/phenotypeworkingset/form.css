@@ -18,13 +18,24 @@
 .panel {
     margin-bottom: 10px;
 }
+
 .ws-trash {
     padding: 6px 12px;
     height: 35px;
 }
-table.dataTable tbody td.selected a{
-    color:white;
+
+table.dataTable tbody td.selected a {
+    color: white;
 }
+
+.data-row {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 290px;
+    white-space: pre-line;
+    margin-top: 7px
+}
+
 .material-textfield {
     position: relative;
 }
@@ -55,7 +66,7 @@ table.dataTable tbody td.selected a{
 }
 
 .bootstrap-tagsinput {
-     font-size: 14px;
+    font-size: 14px;
     outline: none;
     border: 1px solid #8499d6;
     border-radius: 5px;
@@ -65,12 +76,11 @@ table.dataTable tbody td.selected a{
 
 }
 
-.table-button{
+.table-button {
     margin-top: 17px;
     height: 35px;
     background-image: none;
 }
-
 
 
 .form-control {
@@ -88,8 +98,6 @@ table.dataTable tbody td.selected a{
     top: 0;
     transform: translateY(-50%) scale(.9);
 }
-
-
 
 
 .input-material:not(:placeholder-shown) + .label-material {
@@ -165,7 +173,7 @@ table.dataTable tbody td.selected a{
     box-sizing: border-box;
     cursor: pointer;
     display: inline-block;
-    height:30px
+    height: 30px
 }
 
 
@@ -191,9 +199,10 @@ table.dataTable tbody td.selected a{
     box-sizing: border-box;
     cursor: pointer;
     display: inline-block;
-    height:30px
+    height: 30px
 }
-.publication-button{
+
+.publication-button {
     color: #ffffff;
     background: #4285f4;
     position: relative;
