@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 BACKUP_FILE=$(find /docker-entrypoint-initdb.d/db/ -name '*.backup'| head -1)
-if [ -e $BACKUP_FILE ]; then 
+if [ ! -z $BACKUP_FILE ] && [ -e $BACKUP_FILE ]; then 
   echo "Found backup, restoring from local"
   
   echo "Restoring database"

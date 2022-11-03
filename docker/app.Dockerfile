@@ -13,3 +13,6 @@ RUN apt-get install -y -q python3-pip
 # Install Python packages
 COPY ./requirements/ /home/requirements/
 RUN pip install -r /home/requirements/local.txt
+
+COPY ./development/scripts/wait-for-it.sh /bin/wait-for-it.sh
+RUN ["chmod", "u+x", "/bin/wait-for-it.sh"]

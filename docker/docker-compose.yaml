@@ -23,11 +23,10 @@ services:
       context: .
       dockerfile: ./app.Dockerfile
     command: >
-      bash -c "/bin/wait-for-it.sh -t 0 postgres:5432 -- python /var/www/CodeListLibrary_project/manage.py makemigrations
+      sh -c "/bin/wait-for-it.sh -t 0 postgres:5432 -- python /var/www/CodeListLibrary_project/manage.py makemigrations
       && python /var/www/CodeListLibrary_project/manage.py migrate
       && python /var/www/CodeListLibrary_project/manage.py runserver 0.0.0.0:8000"
     volumes:
-      - ./development/scripts/wait-for-it.sh:/bin/wait-for-it.sh
       - ../CodeListLibrary_project:/var/www/CodeListLibrary_project/
     ports:
       - "8000:8000"

@@ -65,14 +65,11 @@ Please ensure that you have installed [Docker Desktop v4.10.1](https://docs.dock
 
 If you encounter any issues, please see Docker's documentation (https://docs.docker.com/).
 
-# 2.1.1. Running on Apple
+## 2.1.1. Running on Apple
 
-> **NOTE:** _Current build does not work on Apple devices, below is a workaround. Tested on Apple Macbook Pro M2_
-
-Before building the service, please:
-1. Open a terminal  
-  a. Navigate to the `./docker` folder   
-  c. Run the command: `chmod +x ./development/scripts/wait-for-it.sh`
+The app container requires emulation for ARM CPUs, please install Rosetta 2:
+1. Open a terminal
+2. Run: `softwareupdate --install-rosetta`
 
 ## 2.2. Database setup
 
