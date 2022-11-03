@@ -637,8 +637,8 @@
                 // Clicked the 'Import Concepts' button, and imported 'selected'
                 var dataset = selected.map(element => {
                     return {
-                        "Data": `<a href="/phenotypes/${element.phenotype.id}/version/${element.phenotype.version}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${element.phenotype.id + '/' + element.phenotype.version}</a>` + '-' +
-                            `<a href="/concepts/${element.concept.id}/version/${element.concept.version}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${element.concept.id + '/' + element.concept.version + '-' + element.concept.name}</a>`
+                        "Data": `<div class="data-row" style="white-space:nowrap;"><a href="/phenotypes/${element.phenotype.id}/version/${element.phenotype.version}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${element.phenotype.id + '/' + element.phenotype.version}</a>` + '-' +
+                            `<a href="/concepts/${element.concept.id}/version/${element.concept.version}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${element.concept.id + '/' + element.concept.version + '-' + element.concept.name}</a></div>`
                     }
 
                 })
@@ -776,9 +776,11 @@
                     columnDefs: [{ // define which columns exclude for ordering 
                         targets: [0],
                         orderable: true,
+
                     }, {
                         targets: [''],
                         orderable: false
+
                     },
                     ]
 
@@ -879,7 +881,9 @@
 						    +'<option value="2">FLOAT</option>'
 						    +'<option value="3">STRING</option>'
 						  +'</select>`,
-                    ['Attributes-header' + numbers]: `<input class="input-material" type="text"  oninput="inputheader(this)" placeholder="Attribute name"  id="attribute-header${numbers}"/>`
+                    ["Attributes-header" + numbers]: `<input class="input-material" type="text"   oninput="inputheader(this)" placeholder="Attribute name"  id="attribute-header${numbers}"/>`,
+                    ["Attributes-delete" + numbers]: `<button class="btn btn-cl-danger ws-trash" id="ws-remove-column${numbers}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`
+
                 }
             }
             let dataset = dataPrevious
@@ -904,7 +908,10 @@
             let headers = Object.entries(dataset[0])
             for (let i = 0; i < headers.length - 1; i++) {
                 if (headers[i][0].startsWith('Attributes-row')) {
-                    columns.push({data: headers[i][0], title: headers[i + 1][1] + headers[i + 2][1]})
+                    columns.push({
+                        data: headers[i][0],
+                        title:  `<div class='header-functions'><div class='header-functions-delete' style="display:flex">` + headers[i + 1][1] + headers[i + 3][1] +  `</div>`+ headers[i + 2][1] +`</div>`
+                    })
                 }
             }
             if (needColumn) {
@@ -959,7 +966,7 @@
                 let mainData = wrapIds(dataPrevious[i]['Data'])
                 if (entry.length > 1) {
                     mainData['Attributes'] = []
-                    for (let j = 0; j < (entry.length - 1) / 3; j++) {
+                    for (let j = 0; j < (entry.length - 1) / 4; j++) {
                         let type = dataPrevious[i]['Attributes-select' + j]
                         let attribute_name = dataPrevious[i]['Attributes-header' + j]
                         let attribute_value = dataPrevious[i]['Attributes-row' + j]
@@ -1002,7 +1009,7 @@
             dataPrevious = JSON.parse(dataPrevious)
             for (let i = 0; i < dataPrevious.length; i++) {
                 let entry = Object.entries(dataPrevious[i])
-                for (let j = 0; j < (entry.length - 1) / 3; j++) {
+                for (let j = 0; j < (entry.length - 1) / 4; j++) {
                     let select = dataPrevious[i]['Attributes-select' + j]
                     let header = dataPrevious[i]['Attributes-header' + j]
                     let input = dataPrevious[i]['Attributes-row' + j]
@@ -1049,7 +1056,9 @@
 						    +'<option value="2" ${data[i].Attributes[j].type === 'FLOAT' ? 'selected' : ''}>FLOAT</option>'
 						    +'<option value="3" ${data[i].Attributes[j].type === 'STRING' ? 'selected' : ''}>STRING</option>'
 						  +'</select>`,
-                            ['Attributes-header' + j]: `<input class="input-material" type="text"  value="${data[i].Attributes[j].name}" oninput="inputheader(this)" placeholder="Attribute name"  id="attribute-header${j}"/>`
+                            ['Attributes-header' + j]: `<input class="input-material" type="text"  value="${data[i].Attributes[j].name}" oninput="inputheader(this)" placeholder="Attribute name"  id="attribute-header${j}"/>`,
+                            ["Attributes-delete" + j]: `<button class="btn btn-cl-danger ws-trash" id="ws-remove-column${j}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`
+
 
                         }
 
@@ -1065,7 +1074,7 @@
             $('#attributes-table').show()
             $('#add-data').hide()
             let table = createTable(0, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}])
-            let next_column_index = ((Object.keys(dataset[1]).length - 1) / 3)
+            let next_column_index = ((Object.keys(dataset[1]).length - 1) / 4)
 
 
             table = reDrawtable('attributes-table', next_column_index, false, dataset)
@@ -1145,8 +1154,7 @@
                 .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
 
             $('div.dataTables_scrollBody')[0].scrollLeft = oldScrollX * -1
-               $('div.dataTables_scrollBody')[0].scrollTop = oldScrollY * -1
-
+            $('div.dataTables_scrollBody')[0].scrollTop = oldScrollY * -1
 
 
         }
