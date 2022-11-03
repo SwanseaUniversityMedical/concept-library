@@ -1,7 +1,6 @@
 name: concept-library-development
 services:
   postgres:
-    platform: linux/amd64
     build:
       context: .
       dockerfile: ./postgres.Dockerfile
@@ -10,9 +9,8 @@ services:
       - "5432:5432"
     volumes:
       - ./development/db/:/docker-entrypoint-initdb.d/db/
-      - ./development/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     environment:
-      POSTGRES_RESTORE_REPO: "github.com/SwanseaUniversityMedical/concept-library-dev-db/"
+      POSTGRES_RESTORE_REPO: "github.com/SwanseaUniversityMedical/concept-library-dev-db.git"
       POSTGRES_HOST: "localhost"
       POSTGRES_DB: "concept_library"
       POSTGRES_USER: "clluser"

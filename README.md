@@ -71,19 +71,8 @@ If you encounter any issues, please see Docker's documentation (https://docs.doc
 
 Before building the service, please:
 1. Open a terminal  
-  a. Navigate to the `./docker` folder  
-  b. Run the command: `chmod +x ./development/scripts/init-db.sh`  
-  c. Run the command: `chmod +x ./development/scripts/wait-for-it.sh`  
-
-2. Open the `postgres.Dockerfile` in the `./docker` folder  
-  a. Remove lines 3-6 and save the file
-
-3. Place a database backup file in the `./docker/development/db` folder  
-  a. Rename the backup file to `db.backup`  
-  b. Open the `init-db.sh` script in the `./docker/development/scripts/` folder  
-  c. Replace the contents of the file with `/usr/bin/pg_restore -U $POSTGRES_USER -d $POSTGRES_DB /docker-entrypoint-initdb.d/db/db.backup`
-
-Skip to [2.3. Development](#2.3.-Development)
+  a. Navigate to the `./docker` folder   
+  c. Run the command: `chmod +x ./development/scripts/wait-for-it.sh`
 
 ## 2.2. Database setup
 
