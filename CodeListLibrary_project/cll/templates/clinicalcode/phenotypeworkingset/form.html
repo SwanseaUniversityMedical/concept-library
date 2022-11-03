@@ -637,7 +637,7 @@
                 // Clicked the 'Import Concepts' button, and imported 'selected'
                 var dataset = selected.map(element => {
                     return {
-                        "Data": `<div class="data-row" style="white-space:nowrap;"><a href="/phenotypes/${element.phenotype.id}/version/${element.phenotype.version}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${element.phenotype.id + '/' + element.phenotype.version}</a>` + '-' +
+                        "Data": `<div class="data-row" style="white-space:nowrap;margin-top: 7px"><a href="/phenotypes/${element.phenotype.id}/version/${element.phenotype.version}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${element.phenotype.id + '/' + element.phenotype.version}</a>` + '-' +
                             `<a href="/concepts/${element.concept.id}/version/${element.concept.version}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${element.concept.id + '/' + element.concept.version + '-' + element.concept.name}</a></div>`
                     }
 
@@ -762,6 +762,21 @@
                             attr: {
                                 id: 'add-concept'
                             }
+                        }, {
+                            text: "Delete concept<i style='margin-left: 4px;color:#DA1E28' class='fa fa-trash'></i>",
+                            className: "table-button",
+                            action: function (e, dt, node, config) {
+                                if ($.fn.dataTable.isDataTable('#attributes-table')) {
+                                    console.log('loh')
+                                    let table = $('#attributes-table').DataTable();
+                                    console.log( table.row('td.selected'))
+                                    table.row('td.selected').remove().draw(false);
+                                }
+
+                            },
+                            attr: {
+                                id: 'delete-concept'
+                            }
                         }
                     ],
 
@@ -773,7 +788,7 @@
                     scrollCollapse: true, // allow to table have overflow-x 
                     colReorder: true, // order the collumns
                     paging: false,
-                    columnDefs: [{ // define which columns exclude for ordering 
+                    columnDefs: [{ // define which columns exclude for ordering
                         targets: [0],
                         orderable: true,
 
@@ -910,7 +925,7 @@
                 if (headers[i][0].startsWith('Attributes-row')) {
                     columns.push({
                         data: headers[i][0],
-                        title:  `<div class='header-functions'><div class='header-functions-delete' style="display:flex">` + headers[i + 1][1] + headers[i + 3][1] +  `</div>`+ headers[i + 2][1] +`</div>`
+                        title: `<div class='header-functions'><div class='header-functions-delete' style="display:flex">` + headers[i + 1][1] + headers[i + 3][1] + `</div>` + headers[i + 2][1] + `</div>`
                     })
                 }
             }
@@ -1241,6 +1256,10 @@
 
         $("#attributes-table").on("mouseup", function () {
             mx = 0;
+        });
+
+        $('#attributes-table').on('click', 'td:nth-child(1)', function () {
+            $(this).toggleClass('selected');
         });
 
 

@@ -22,7 +22,9 @@
     padding: 6px 12px;
     height: 35px;
 }
-
+table.dataTable tbody td.selected a{
+    color:white;
+}
 .material-textfield {
     position: relative;
 }
