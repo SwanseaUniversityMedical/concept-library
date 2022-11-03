@@ -21,7 +21,7 @@ COPY CodeListLibrary_project/manage.py /var/www/concept_lib_sites/v1/CodeListLib
 
 #########################################
 # config apache
-COPY ./docker/deploy/OS/cll.conf /etc/apache2/sites-available/cll.conf
+COPY ./docker/production/cll.conf /etc/apache2/sites-available/cll.conf
 
 RUN a2enmod wsgi
 
@@ -40,7 +40,7 @@ RUN \
 #COPY pip-20.2-py2.py3-none-any.whl /var/www/concept_lib_sites/v1/requirements/pip-20.2-py2.py3-none-any.whl
 
 # Deploy script
-COPY ./docker/deploy/scripts /home/config_cll/
+COPY ./docker/production/scripts /home/config_cll/
 
 # Make file executable:
 RUN ["chmod" , "+x" , "/home/config_cll/deploy_script_main.sh"]
