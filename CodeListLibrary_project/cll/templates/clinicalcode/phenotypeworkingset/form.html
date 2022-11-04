@@ -585,7 +585,6 @@
          * @param id of the HTML element
          */
         const addInput = (value, id) => {
-            //wrapData()
             var html = '';
             html += '<div class="form-group">';
             html += '<div class="col-sm-12">';
@@ -884,7 +883,6 @@
          * @param numbers - current column index
          */
         const addColumn = (numbers) => {
-            console.log(numbers)
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
             for (let i = 0; i < dataPrevious.length; i++) {
@@ -984,7 +982,7 @@
                 let mainData = wrapIds(dataPrevious[i]['Data'])
                 if (entry.length > 1) {
                     mainData['Attributes'] = []
-                    for (let j = 0; j < (entry.length - 1) / 4; j++) {
+                    for (let j = 0; j < (entry.length - 2) / 4; j++) {
                         let type = dataPrevious[i]['Attributes-select' + j]
                         let attribute_name = dataPrevious[i]['Attributes-header' + j]
                         let attribute_value = dataPrevious[i]['Attributes-row' + j]
@@ -1027,7 +1025,7 @@
             dataPrevious = JSON.parse(dataPrevious)
             for (let i = 0; i < dataPrevious.length; i++) {
                 let entry = Object.entries(dataPrevious[i])
-                for (let j = 0; j < (entry.length - 1) / 4; j++) {
+                for (let j = 0; j < (entry.length - 2) / 4; j++) {
                     let select = dataPrevious[i]['Attributes-select' + j]
                     let header = dataPrevious[i]['Attributes-header' + j]
                     let input = dataPrevious[i]['Attributes-row' + j]
