@@ -549,7 +549,7 @@
                 let dataset = {{table_elements|safe}}
                     $('#attributes-table').show()
                 $('#add-data').hide()
-                let table = createTable(0, dataset, 'attributes-table', [{data: 'Deletebut', title: ''},{data: 'Data', title: 'Data'}])
+                let table = createTable(0, dataset, 'attributes-table', [{data: 'Deletebutton', title: ''},{data: 'Data', title: 'Data'}])
                 let next_column_index = ((Object.keys(dataset[0]).length - 2) / 4)
                 table = reDrawtable('attributes-table', next_column_index, false, dataset)
 
@@ -637,7 +637,7 @@
                 // Clicked the 'Import Concepts' button, and imported 'selected'
                 var dataset = selected.map((element, index) => {
                     return {
-                        "Deletebut": `<button class="btn btn-cl-danger ws-trash" type="button" onclick="deleteRow(this)" style="margin-top: 7px" id="ws-remove-row${index}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`,
+                        "Deletebutton": `<button class="btn btn-cl-danger ws-trash" type="button" onclick="deleteRow(this)" style="margin-top: 7px" id="ws-remove-row${index}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`,
 
                         "Data": `<div class="data-row" ><a href="/phenotypes/${element.phenotype.id}/version/${element.phenotype.version}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${element.phenotype.id + '/' + element.phenotype.version}</a>` + '-' +
                             `<a href="/concepts/${element.concept.id}/version/${element.concept.version}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${element.concept.id + '/' + element.concept.version + '-' + element.concept.name}</a></div>`
@@ -683,7 +683,7 @@
                 } else {
                     $('#attributes-table').show()
                     let table = createTable(0, dataset, 'attributes-table', [{
-                        data: 'Deletebut',
+                        data: 'Deletebutton',
                         title: ''
                     }, {data: 'Data', title: 'Concepts'}]) // Create table with initial data
                     table.buttons().container()
@@ -920,7 +920,7 @@
          * @returns new table
          */
         const reDrawtable = (id, numbers, needColumn, dataset) => {
-            let columns = [{data: "Deletebut", title: ""}, {data: "Data", title: "Concepts"}]// keep data column same
+            let columns = [{data: "Deletebutton", title: ""}, {data: "Data", title: "Concepts"}]// keep data column same
             let headers = Object.entries(dataset[0])
             for (let i = 0; i < headers.length - 1; i++) {
                 if (headers[i][0].startsWith('Attributes-row')) {
@@ -1056,7 +1056,7 @@
             let allData;
             for (let i = 0; i < data.length; i++) {
                 allData = {
-                     "Deletebut": `<button class="btn btn-cl-danger ws-trash" type="button" onclick="deleteRow(this)" style="margin-top: 7px" id="ws-remove-row${i}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`,
+                     "Deletebutton": `<button class="btn btn-cl-danger ws-trash" type="button" onclick="deleteRow(this)" style="margin-top: 7px" id="ws-remove-row${i}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`,
 
                     "Data": `<div class="data-row" ><a href="/phenotypes/${data[i].phenotype_id}/version/${data[i].phenotype_version_id}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${data[i].phenotype_id + '/' + data[i].phenotype_version_id}</a>` + '-' +
                         `<a href="/concepts/${data[i].concept_id}/version/${data[i].concept_version_id}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${data[i].concept_id + '/' + data[i].concept_version_id + '-' + data[i].concept_name}</a>` +`</div>`
@@ -1091,7 +1091,7 @@
             let dataset = phenotype_concepts_json
             $('#attributes-table').show()
             $('#add-data').hide()
-            let table = createTable(0, dataset, 'attributes-table', [{data: 'Deletebut', title: ''}, {
+            let table = createTable(0, dataset, 'attributes-table', [{data: 'Deletebutton', title: ''}, {
                 data: 'Data',
                 title: 'Data'
             }])
