@@ -585,7 +585,7 @@
          * @param id of the HTML element
          */
         const addInput = (value, id) => {
-            wrapData()
+            //wrapData()
             var html = '';
             html += '<div class="form-group">';
             html += '<div class="col-sm-12">';
@@ -1060,8 +1060,8 @@
                 allData = {
                      "Deletebut": `<button class="btn btn-cl-danger ws-trash" type="button" onclick="deleteRow(this)" style="margin-top: 7px" id="ws-remove-row${i}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`,
 
-                    "Data": `<a href="/phenotypes/${data[i].phenotype_id}/version/${data[i].phenotype_version_id}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${data[i].phenotype_id + '/' + data[i].phenotype_version_id}</a>` + '-' +
-                        `<a href="/concepts/${data[i].concept_id}/version/${data[i].concept_version_id}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${data[i].concept_id + '/' + data[i].concept_version_id + '-' + data[i].concept_name}</a>`
+                    "Data": `<div class="data-row" ><a href="/phenotypes/${data[i].phenotype_id}/version/${data[i].phenotype_version_id}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${data[i].phenotype_id + '/' + data[i].phenotype_version_id}</a>` + '-' +
+                        `<a href="/concepts/${data[i].concept_id}/version/${data[i].concept_version_id}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${data[i].concept_id + '/' + data[i].concept_version_id + '-' + data[i].concept_name}</a>` +`</div>`
                 }
 
                 if (data[i].Attributes !== undefined) {
@@ -1097,7 +1097,7 @@
                 data: 'Data',
                 title: 'Data'
             }])
-            let next_column_index = ((Object.keys(dataset[1]).length - 1) / 4)
+            let next_column_index = ((Object.keys(dataset[1]).length - 2) / 4)
 
 
             table = reDrawtable('attributes-table', next_column_index, false, dataset)
