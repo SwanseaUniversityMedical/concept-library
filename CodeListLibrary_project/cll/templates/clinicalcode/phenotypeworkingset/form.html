@@ -1056,6 +1056,8 @@
             let allData;
             for (let i = 0; i < data.length; i++) {
                 allData = {
+                     "Deletebut": `<button class="btn btn-cl-danger ws-trash" type="button" onclick="deleteRow(this)" style="margin-top: 7px" id="ws-remove-row${i}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`,
+
                     "Data": `<a href="/phenotypes/${data[i].phenotype_id}/version/${data[i].phenotype_version_id}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${data[i].phenotype_id + '/' + data[i].phenotype_version_id}</a>` + '-' +
                         `<a href="/concepts/${data[i].concept_id}/version/${data[i].concept_version_id}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${data[i].concept_id + '/' + data[i].concept_version_id + '-' + data[i].concept_name}</a>`
                 }
@@ -1204,17 +1206,23 @@
             if (confirm("Remove this concept?")) {
                 let tr = $(element).closest('tr')
                 table.row(tr).remove().draw(false);
+                if (table.rows().count() !== 0) {
+                    let toDel = phenotype_concepts_json[parseInt(index)]
+                    let filtered = phenotype_concepts_json.filter(function (el) {
+                        return el !== toDel;
+                    });
 
-                let toDel = phenotype_concepts_json[parseInt(index)]
-                let filtered = phenotype_concepts_json.filter(function (el) {
-                    return el !== toDel;
-                });
-
-
-                $('#phenotypes_concepts_json').val(JSON.stringify(filtered))
-                $('#add-data').data('SelectionService').selected = selection.filter(function (el) {
-                    return el !== $('#add-data').data('SelectionService').selected[parseInt(index)];
-                });
+                    $('#phenotypes_concepts_json').val(JSON.stringify(filtered))
+                    $('#add-data').data('SelectionService').selected = selection.filter(function (el) {
+                        return el !== $('#add-data').data('SelectionService').selected[parseInt(index)];
+                    });
+                } else {
+                    $('#add-data').data('SelectionService').selected = []
+                    $('#attributes-table').DataTable().destroy();
+                    $('#attributes-table').empty();
+                    $('#phenotypes_concepts_json').val('') // Clear table as user cleared the modal
+                    $('#add-data').show()
+                }
 
 
             }
