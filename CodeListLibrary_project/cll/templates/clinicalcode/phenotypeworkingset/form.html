@@ -550,7 +550,7 @@
                     $('#attributes-table').show()
                 $('#add-data').hide()
                 let table = createTable(0, dataset, 'attributes-table', [{data: 'Deletebut', title: ''},{data: 'Data', title: 'Data'}])
-                let next_column_index = ((Object.keys(dataset[0]).length - 1) / 4)
+                let next_column_index = ((Object.keys(dataset[0]).length - 2) / 4)
                 table = reDrawtable('attributes-table', next_column_index, false, dataset)
 
                 table.buttons().container()
@@ -884,6 +884,7 @@
          * @param numbers - current column index
          */
         const addColumn = (numbers) => {
+            console.log(numbers)
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
             for (let i = 0; i < dataPrevious.length; i++) {
