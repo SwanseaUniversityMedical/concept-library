@@ -745,7 +745,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
             }])
             .flat();
         
-        var datatypes = [...new Set(dataset.map(e => e.Attributes.map(x => x.type)).flat())];
+        var datatypes = dataset.map(e => e.Attributes.map(x => x.type)).flat();
         var headers   = [...new Set(attributes.map(e => Object.keys(e)).flat())];
         headers = Object.entries(headers).map(([i, e]) => [{data: e, title: `${e} (${datatypes[i]})`}]).flat();
 
