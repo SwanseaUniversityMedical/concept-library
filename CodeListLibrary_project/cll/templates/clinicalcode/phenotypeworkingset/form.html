@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block title %}
-    {% if form.pk  is None %}
+    {% if form.instance.pk  is None %}
         New Working Set
     {% else %}
         Edit Working Set
@@ -19,7 +19,7 @@
 
 
 
-    {% if form.pk  is None %}
+    {% if form.instance.pk is None %}
         <h2>Create a new working set</h2>
         <div class="row">
             <div class="col-md-12">
@@ -68,7 +68,7 @@
 
                     {% else %}
                         <form name='workingset-form' id='workingset-form' class="form-horizontal"
-                              action="{% url "workingset_update" form.pk %}" method="POST" autocomplete="off">
+                              action="{% url "phenotypeworkingset_update" form.pk %}" method="POST" autocomplete="off">
                     {% endif %}
                     {% csrf_token %}
                     <div class="form-group">
@@ -85,7 +85,7 @@
                     <hr/>
 
 
-                    {% if form.pk  is not None %}
+                    {% if form.pk is not None %}
                         <div class="form-group">
                             <div class="col-sm-12">
                                 <label>Latest version ID</label>
@@ -530,7 +530,7 @@
             {% endfor %}
 
             {% if publications %}
-                let returnPub = JSON.parse('{{publications|safe}}')
+                let returnPub = {{publications|safe}}
                 if (returnPub.length > 1) {
                     for (let j = 0; j < returnPub.length; j++) {
                         if (j === 0) {
@@ -558,6 +558,13 @@
 
             {% endif %}
 
+            {% if workingset_data %}
+                importTable({{ workingset_data|safe }})
+                importSelection({{ workingset_data|safe }})
+            {% endif %}
+
+
+
 
         });
 
@@ -577,7 +584,6 @@
          * @param id of the HTML element
          */
         const addInput = (value, id) => {
-            wrapData()
             var html = '';
             html += '<div class="form-group">';
             html += '<div class="col-sm-12">';
@@ -635,6 +641,7 @@
                     }
 
                 })
+                console.log(selected)
 
                 // Check if table exist to update table or create table
                 if ($.fn.dataTable.isDataTable('#attributes-table')) {
@@ -699,7 +706,7 @@
             for (let j = 0; j < newData.length; j++) {
                 for (let k = 0; k < dataPrevious.length; k++) {
                     if (newData[j].Data === dataPrevious[k].Data) {
-                         newData.filter(function (el, i) {
+                        newData.filter(function (el, i) {
                             return j !== i;
                         }); // remove data if new object has same data with previous one
                     }
@@ -809,7 +816,7 @@
                     let parse = new DOMParser().parseFromString(value, "text/html")
                     let input = parse.querySelector('*[id^="attribute-input-col"]');
                     if (input !== null) {
-                        input.id = "attribute-input-col" + key.slice(-1) + 'row'+ i
+                        input.id = "attribute-input-col" + key.slice(-1) + 'row' + i
                         dataPrevious[i][key] = $(input)[0].outerHTML
 
                     }
@@ -891,7 +898,7 @@
          * @returns new table
          */
         const reDrawtable = (id, numbers, needColumn, dataset) => {
-            let columns = [{data: "Data", title: "Data"}]// keep data column same
+            let columns = [{data: "Data", title: "Concepts"}]// keep data column same
             let headers = Object.entries(dataset[0])
             for (let i = 0; i < headers.length - 1; i++) {
                 if (headers[i][0].startsWith('Attributes-row')) {
@@ -975,10 +982,13 @@
         }
 
         $('#save-changes').on('click', function (e) {
+            if (!$('#phenotypes_concepts_json').val()){
+                return;
+            }
             if (!finalValidation($('#phenotypes_concepts_json').val())) {
                 e.preventDefault();
             } else {
-                wrapData()
+               wrapData()
             }
 
 
@@ -1012,6 +1022,75 @@
                 }
             }
             return !conds.includes(false);
+
+        }
+
+        const importTable = (data) => {
+            let phenotype_concepts_json = [];
+            let allData;
+            for (let i = 0; i < data.length; i++) {
+                allData = {
+                    "Data": `<a href="/phenotypes/${data[i].phenotype_id}/version/${data[i].phenotype_version_id}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${data[i].phenotype_id + '/' + data[i].phenotype_version_id}</a>` + '-' +
+                        `<a href="/concepts/${data[i].concept_id}/version/${data[i].concept_version_id}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${data[i].concept_id + '/' + data[i].concept_version_id + '-' + data[i].concept_name}</a>`
+                }
+
+                if (data[i].Attributes !== undefined) {
+                    let attributes = {};
+                    for (let j = 0; j < data[i].Attributes.length; j++) {
+                        attributes = {...attributes,
+                            ["Attributes-row" + j]: `<input class="input-material" type="text" value="${data[i].Attributes[j].value}" style="width:100%" id="attribute-input-${'col' + j + 'row' + i}"/>`,
+                            ["Attributes-select" + j]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=selectHeader() id="column_type${j}">'
+						    + '<option  value="0">Type</option>'
+						    +'<option value="1" ${data[i].Attributes[j].type === 'INT' ? 'selected' : ''}>INT</option>'
+						    +'<option value="2" ${data[i].Attributes[j].type === 'FLOAT' ? 'selected' : ''}>FLOAT</option>'
+						    +'<option value="3" ${data[i].Attributes[j].type === 'STRING' ? 'selected' : ''}>STRING</option>'
+						  +'</select>`,
+                            ['Attributes-header' + j]: `<input class="input-material" type="text"  value="${data[i].Attributes[j].name}" oninput="inputheader(this)" placeholder="Attribute name"  id="attribute-header${j}"/>`
+
+                        }
+
+                    }
+                    phenotype_concepts_json.push({...allData,...attributes})
+
+                } else {
+                    phenotype_concepts_json.push(allData)
+                }
+
+            }
+            let dataset = phenotype_concepts_json
+            $('#attributes-table').show()
+            $('#add-data').hide()
+            let table = createTable(0, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}])
+            let next_column_index = ((Object.keys(dataset[1]).length - 1) / 3)
+
+
+            table = reDrawtable('attributes-table', next_column_index, false, dataset)
+            table.buttons().container()
+                .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+            $('#phenotypes_concepts_json').val(JSON.stringify(dataset)) // save value temporarly
+
+
+        }
+
+        const importSelection = (array) => {
+            let arraySelection = []
+            for (let i = 0; i < array.length; i++) {
+                arraySelection.push({
+                    'concept': {
+                        'coding': array[i].concept_coding,
+                        'id': array[i].concept_id,
+                        'version': array[i].concept_version_id,
+                        'name': array[i].concept_name
+                    },
+                    'phenotype': {
+                        'id': array[i].phenotype_id,
+                        'name': array[i].phenotype_name,
+                        'version': array[i].phenotype_version_id,
+
+                    }
+                })
+            }
+            $('#add-data').data('SelectionService').selected = arraySelection
 
         }
 
