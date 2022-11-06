@@ -852,48 +852,9 @@
 
         }
 
-        const refreshColumnId = (dataPrevious) => {
-            for (let i = 0; i < dataPrevious.length; i++) {
-                let types = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-select'))
-                let headers_name = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-header'))
-                let input_values = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-row'))
-                let delete_buttons = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-delete'))
-                console.log(types)
-
-                for (let j = 0; j < types.length; j++) {
-                    let type = new DOMParser().parseFromString(dataPrevious[i][types[j]], "text/html").querySelector('*[id^="column_type"]')
-                    let attribute_name = new DOMParser().parseFromString(dataPrevious[i][headers_name[j]], "text/html").querySelector('*[id^="attribute-header"]')
-                    let attribute_value = new DOMParser().parseFromString(dataPrevious[i][input_values[j]], "text/html").querySelector('*[id^="attribute-input-col"]')
-                    let delete_button = new DOMParser().parseFromString(dataPrevious[i][delete_buttons[j]], "text/html").querySelector('*[id^="ws-remove-column"]')
-                    type.id = "column_type" + j
-                    attribute_name.id = "attribute-header" + j
-                    attribute_value.id = "attribute-input-col" + j + "row" + i
-                    delete_button.id = "ws-remove-column" + j
-
-                    dataPrevious[i][types[j]] = $(type)[0].outerHTML
-                    dataPrevious[i][headers_name[j]] = $(attribute_name)[0].outerHTML
-                    dataPrevious[i][input_values[j]] = $(attribute_value)[0].outerHTML
-                    dataPrevious[i][delete_buttons[j]] = $(delete_button)[0].outerHTML
-
-                    dataPrevious[i]["Attributes-select" + j] = dataPrevious[i][types[j]]
-                    console.log(dataPrevious[i][types[j]])
-                     delete dataPrevious[i][types[j]]
-                    dataPrevious[i]["Attributes-header" + j] = dataPrevious[i][headers_name[j]]
-                    delete dataPrevious[i][headers_name[j]]
-                    dataPrevious[i]["Attributes-row" + j] = dataPrevious[i][input_values[j]]
-                    delete dataPrevious[i][input_values[j]]
-                    dataPrevious[i]["Attributes-delete" + j] = dataPrevious[i][delete_buttons[j]]
-                    delete dataPrevious[i][delete_buttons[j]]
-
-
-                }
 
 
 
-            }
-            return dataPrevious
-
-        }
 
 
         /**
@@ -930,6 +891,7 @@
          */
         const addColumn = (numbers) => {
             let dataPrevious = $('#phenotypes_concepts_json').val()
+
             dataPrevious = JSON.parse(dataPrevious)
             for (let i = 0; i < dataPrevious.length; i++) {
 
@@ -1060,13 +1022,11 @@
                 delete items["Attributes-header" + (index)]
             })
 
-            data = refreshColumnId(data)
-            console.log(data)
-            let next_column_index = ((Object.keys(data[0]).length - 2) / 4)
+
 
             $('#phenotypes_concepts_json').val(JSON.stringify(data))
 
-            table = reDrawtable('attributes-table', next_column_index, false, false, data)
+            table = reDrawtable('attributes-table',  table.columns().header().length - 1, false, false, data)
             table.buttons().container()
                 .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
 
@@ -1084,18 +1044,22 @@
             let arrayOfData = []
             for (let i = 0; i < dataPrevious.length; i++) {
                 let entry = Object.entries(dataPrevious[i])
+                let types = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-select'))
+                let headers_name = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-header'))
+                let input_values = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-row'))
+
                 let mainData = wrapIds(dataPrevious[i]['Data'])
                 if (entry.length > 1) {
                     mainData['Attributes'] = []
-                    for (let j = 0; j < (entry.length - 2) / 4; j++) {
-                        let type = dataPrevious[i]['Attributes-select' + j]
-                        let attribute_name = dataPrevious[i]['Attributes-header' + j]
-                        let attribute_value = dataPrevious[i]['Attributes-row' + j]
+                    for (let j = 0; j < types.length; j++) {
+                        let type = dataPrevious[i][types[j]]
+                        let attribute_name = dataPrevious[i][headers_name[j]]
+                        let attribute_value = dataPrevious[i][input_values[j]]
 
                         mainData['Attributes'].push({
-                            name: returnValue(attribute_name, 'attribute-header' + j),
-                            type: returnValue(type, 'column_type' + j),
-                            value: returnValue(attribute_value, 'attribute-input-col' + j)
+                            name: returnValue(attribute_name, 'attribute-header'),
+                            type: returnValue(type, 'column_type'),
+                            value: returnValue(attribute_value, 'attribute-input-col')
                         })
 
 
@@ -1130,11 +1094,13 @@
             let conds = []
             dataPrevious = JSON.parse(dataPrevious)
             for (let i = 0; i < dataPrevious.length; i++) {
-                let entry = Object.entries(dataPrevious[i])
-                for (let j = 0; j < (entry.length - 2) / 4; j++) {
-                    let select = dataPrevious[i]['Attributes-select' + j]
-                    let header = dataPrevious[i]['Attributes-header' + j]
-                    let input = dataPrevious[i]['Attributes-row' + j]
+                let types = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-select'))
+                let headers_name = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-header'))
+                let input_values = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-row'))
+                for (let j = 0; j < types.length; j++) {
+                    let select = dataPrevious[i][types[j]]
+                    let header = dataPrevious[i][headers_name[j]]
+                    let input = dataPrevious[i][input_values[j]]
                     input = new DOMParser().parseFromString(input, "text/html")
                     select = new DOMParser().parseFromString(select, "text/html")
                     header = new DOMParser().parseFromString(header, "text/html")
@@ -1349,6 +1315,7 @@
             let colindex = cell.column
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
+            console.log(colindex)
             dataPrevious[rowIdx]['Attributes-row' + (colindex - 1)] = checkTypeinput(input, value, rowIdx, colindex)[0].outerHTML
             $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
 
@@ -1379,7 +1346,7 @@
         const checkTypeinput = (input, val, rowIndex, columnIndex) => {
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
-            let type = dataPrevious[rowIndex]['Attributes-select' + (columnIndex - 1)]
+            let type = dataPrevious[rowIndex]['Attributes-select' + (columnIndex - 2)]
             let element = new DOMParser().parseFromString(type, "text/html")
             let select = element.querySelector('*[id^="column_type"]')
             let select_val = select.value
