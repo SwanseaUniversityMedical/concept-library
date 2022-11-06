@@ -588,7 +588,6 @@
          * @param id of the HTML element
          */
         const addInput = (value, id) => {
-            wrapData()
             var html = '';
             html += '<div class="form-group">';
             html += '<div class="col-sm-12">';
@@ -1168,7 +1167,6 @@
                 title: 'Data'
             }])
             let next_column_index = ((Object.keys(dataset[1]).length - 2) / 4)
-
 
             table = reDrawtable('attributes-table', next_column_index, false, false, dataset)
             table.buttons().container()
