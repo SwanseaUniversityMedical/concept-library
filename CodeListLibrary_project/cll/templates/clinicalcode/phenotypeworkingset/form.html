@@ -553,8 +553,7 @@
                     data: 'Deletebutton',
                     title: ''
                 }, {data: 'Data', title: 'Data'}])
-                let next_column_index = ((Object.keys(dataset[0]).length - 2) / 4)
-                table = reDrawtable('attributes-table', next_column_index, false, false, dataset)
+                table = reDrawtable('attributes-table', dataset)
 
                 table.buttons().container()
                     .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
@@ -913,7 +912,7 @@
             }
             let dataset = dataPrevious
             $('#phenotypes_concepts_json').val(JSON.stringify(dataset)) //saving the rows
-            let table = reDrawtable('attributes-table', numbers, true, false, dataset)
+            let table = reDrawtable('attributes-table', dataset)
             table.buttons().container()
                 .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
 
@@ -923,12 +922,10 @@
         /**
          * Apply changes and redraw table
          * @param id of the existing table
-         * @param numbers current column index
-         * @param needColumn update column index if added column
          * @param dataset current dataset
          * @returns new table
          */
-        const reDrawtable = (id, numbers, needColumn, deletecolumn, dataset) => {
+        const reDrawtable = (id, dataset) => {
             let columns = [{data: "Deletebutton", title: ""}, {data: "Data", title: "Concepts"}]// keep data column same
             let headers = Object.entries(dataset[0])
             for (let i = 0; i < headers.length - 1; i++) {
@@ -938,12 +935,6 @@
                         title: `<div class='header-functions'><div class='header-functions-delete' style="display:flex">` + headers[i + 1][1] + headers[i + 3][1] + `</div>` + headers[i + 2][1] + `</div>`
                     })
                 }
-            }
-            if (needColumn) {
-                numbers++// add number index as we added column
-            }
-            if (deletecolumn) {
-                numbers--
             }
 
             if ($.fn.DataTable.isDataTable('#attributes-table')) {// if table exist we need to update by destroying old table and generate new table
@@ -976,7 +967,7 @@
 
             let dataPrevious2 = $('#phenotypes_concepts_json').val()
             dataPrevious2 = JSON.parse(dataPrevious2)
-            table = reDrawtable('attributes-table', table.columns().header().length - 1, false, false, dataPrevious2)
+            table = reDrawtable('attributes-table', dataPrevious2)
             table.buttons().container()
                 .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
 
@@ -1026,7 +1017,7 @@
 
             $('#phenotypes_concepts_json').val(JSON.stringify(data))
 
-            table = reDrawtable('attributes-table', table.columns().header().length - 1, false, false, data)
+            table = reDrawtable('attributes-table', data)
             table.buttons().container()
                 .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
 
@@ -1169,7 +1160,7 @@
             }])
             let next_column_index = ((Object.keys(dataset[1]).length - 2) / 4)
 
-            table = reDrawtable('attributes-table', next_column_index, false, false, dataset)
+            table = reDrawtable('attributes-table', dataset)
             table.buttons().container()
                 .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
 
