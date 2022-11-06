@@ -24,6 +24,9 @@
     height: 35px;
     margin-left: 10px;
 }
+.ws-upload{
+    margin-left: 3px;
+}
 
 table.dataTable tbody td.selected a {
     color: white;

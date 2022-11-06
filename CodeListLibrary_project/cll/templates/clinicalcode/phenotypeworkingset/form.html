@@ -391,7 +391,7 @@
 
                         <div class="row-form-flex row">
                             <button class="upload-button" id="add-data" type="button">
-                                Upload
+                                Upload<i class="ws-upload glyphicon glyphicon-save" aria-hidden="true"></i>
                             </button>
 
 
@@ -549,9 +549,12 @@
                 let dataset = {{table_elements|safe}}
                     $('#attributes-table').show()
                 $('#add-data').hide()
-                let table = createTable(0, dataset, 'attributes-table', [{data: 'Deletebutton', title: ''},{data: 'Data', title: 'Data'}])
+                let table = createTable(0, dataset, 'attributes-table', [{
+                    data: 'Deletebutton',
+                    title: ''
+                }, {data: 'Data', title: 'Data'}])
                 let next_column_index = ((Object.keys(dataset[0]).length - 2) / 4)
-                table = reDrawtable('attributes-table', next_column_index, false, dataset)
+                table = reDrawtable('attributes-table', next_column_index, false, false, dataset)
 
                 table.buttons().container()
                     .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
@@ -585,6 +588,7 @@
          * @param id of the HTML element
          */
         const addInput = (value, id) => {
+            wrapData()
             var html = '';
             html += '<div class="form-group">';
             html += '<div class="col-sm-12">';
@@ -759,7 +763,7 @@
                             }
                         },
                         {
-                            text: "Add concept",
+                            text: 'Add concept<i class="ws-upload glyphicon glyphicon-save" aria-hidden="true"></i>',
                             className: "table-button",
                             action: function (e, dt, node, config) {
                                 $('#add-data').trigger('click')
@@ -846,6 +850,48 @@
             }
             return dataPrevious
 
+        }
+
+        const refreshColumnId = (dataPrevious) => {
+            for (let i = 0; i < dataPrevious.length; i++) {
+                let types = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-select'))
+                let headers_name = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-header'))
+                let input_values = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-row'))
+                let delete_buttons = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-delete'))
+                console.log(types)
+
+                for (let j = 0; j < types.length; j++) {
+                    let type = new DOMParser().parseFromString(dataPrevious[i][types[j]], "text/html").querySelector('*[id^="column_type"]')
+                    let attribute_name = new DOMParser().parseFromString(dataPrevious[i][headers_name[j]], "text/html").querySelector('*[id^="attribute-header"]')
+                    let attribute_value = new DOMParser().parseFromString(dataPrevious[i][input_values[j]], "text/html").querySelector('*[id^="attribute-input-col"]')
+                    let delete_button = new DOMParser().parseFromString(dataPrevious[i][delete_buttons[j]], "text/html").querySelector('*[id^="ws-remove-column"]')
+                    type.id = "column_type" + j
+                    attribute_name.id = "attribute-header" + j
+                    attribute_value.id = "attribute-input-col" + j + "row" + i
+                    delete_button.id = "ws-remove-column" + j
+
+                    dataPrevious[i][types[j]] = $(type)[0].outerHTML
+                    dataPrevious[i][headers_name[j]] = $(attribute_name)[0].outerHTML
+                    dataPrevious[i][input_values[j]] = $(attribute_value)[0].outerHTML
+                    dataPrevious[i][delete_buttons[j]] = $(delete_button)[0].outerHTML
+
+                    dataPrevious[i]["Attributes-select" + j] = dataPrevious[i][types[j]]
+                    console.log(dataPrevious[i][types[j]])
+                     delete dataPrevious[i][types[j]]
+                    dataPrevious[i]["Attributes-header" + j] = dataPrevious[i][headers_name[j]]
+                    delete dataPrevious[i][headers_name[j]]
+                    dataPrevious[i]["Attributes-row" + j] = dataPrevious[i][input_values[j]]
+                    delete dataPrevious[i][input_values[j]]
+                    dataPrevious[i]["Attributes-delete" + j] = dataPrevious[i][delete_buttons[j]]
+                    delete dataPrevious[i][delete_buttons[j]]
+
+
+                }
+
+
+
+            }
+            return dataPrevious
 
         }
 
@@ -898,13 +944,13 @@
 						    +'<option value="3">STRING</option>'
 						  +'</select>`,
                     ["Attributes-header" + numbers]: `<input class="input-material" type="text"   oninput="inputheader(this)" placeholder="Attribute name"  id="attribute-header${numbers}"/>`,
-                    ["Attributes-delete" + numbers]: `<button class="btn btn-cl-danger ws-trash" id="ws-remove-column${numbers}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`
+                    ["Attributes-delete" + numbers]: `<button class="btn btn-cl-danger ws-trash" type="button" onclick="deletecolumn(this)" id="ws-remove-column${numbers}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`
 
                 }
             }
             let dataset = dataPrevious
             $('#phenotypes_concepts_json').val(JSON.stringify(dataset)) //saving the rows
-            let table = reDrawtable('attributes-table', numbers, true, dataset)
+            let table = reDrawtable('attributes-table', numbers, true, false, dataset)
             table.buttons().container()
                 .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
 
@@ -919,7 +965,7 @@
          * @param dataset current dataset
          * @returns new table
          */
-        const reDrawtable = (id, numbers, needColumn, dataset) => {
+        const reDrawtable = (id, numbers, needColumn, deletecolumn, dataset) => {
             let columns = [{data: "Deletebutton", title: ""}, {data: "Data", title: "Concepts"}]// keep data column same
             let headers = Object.entries(dataset[0])
             for (let i = 0; i < headers.length - 1; i++) {
@@ -932,6 +978,9 @@
             }
             if (needColumn) {
                 numbers++// add number index as we added column
+            }
+            if (deletecolumn) {
+                numbers--
             }
 
             if ($.fn.DataTable.isDataTable('#attributes-table')) {// if table exist we need to update by destroying old table and generate new table
@@ -946,7 +995,33 @@
             }
 
         }
+        const selectHeader = (element) => {
+            var table = $('#attributes-table').DataTable()
+            var oldScrollX = $('#attributes-table').position().left
+            var oldScrollY = $('#attributes-table').position().top
+            let val = element.value
+            let index = element.id.match(/\d+/)[0]
+            let dataPrevious = $('#phenotypes_concepts_json').val()
+            dataPrevious = JSON.parse(dataPrevious)
+            let updatedSelect = changeSelectValue(val, index)
 
+            for (let i = 0; i < dataPrevious.length; i++) {
+                dataPrevious[i]['Attributes-select' + (index)] = `${updatedSelect}`
+                dataPrevious[i]['Attributes-row' + (index)] = highlightinput(dataPrevious[i]['Attributes-row' + (index)], updatedSelect)
+                $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
+            }
+
+            let dataPrevious2 = $('#phenotypes_concepts_json').val()
+            dataPrevious2 = JSON.parse(dataPrevious2)
+            table = reDrawtable('attributes-table', table.columns().header().length - 1, false, false, dataPrevious2)
+            table.buttons().container()
+                .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+
+            $('div.dataTables_scrollBody')[0].scrollLeft = oldScrollX * -1
+            $('div.dataTables_scrollBody')[0].scrollTop = oldScrollY * -1
+
+
+        }
 
         const inputheader = (element) => {
             let val = element.value
@@ -971,6 +1046,36 @@
 
         }
 
+        const deletecolumn = (element) => {
+            let table = $('#attributes-table').DataTable()
+            let index = element.id.match(/\d+/)[0]
+            let data = $('#phenotypes_concepts_json').val()
+            let oldScrollX = $('#attributes-table').position().left
+            let oldScrollY = $('#attributes-table').position().top
+            data = JSON.parse(data)
+            data.forEach(items => {
+                delete items['Attributes-select' + (index)]
+                delete items['Attributes-row' + (index)]
+                delete items["Attributes-delete" + (index)]
+                delete items["Attributes-header" + (index)]
+            })
+
+            data = refreshColumnId(data)
+            console.log(data)
+            let next_column_index = ((Object.keys(data[0]).length - 2) / 4)
+
+            $('#phenotypes_concepts_json').val(JSON.stringify(data))
+
+            table = reDrawtable('attributes-table', next_column_index, false, false, data)
+            table.buttons().container()
+                .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+
+            $('div.dataTables_scrollBody')[0].scrollLeft = oldScrollX * -1
+            $('div.dataTables_scrollBody')[0].scrollTop = oldScrollY * -1
+
+        }
+
+
         const wrapData = () => {
             $('#publication_data').val(JSON.stringify(wrapPubinputs()).replace(/\[/g, '{').replace(/]/g, '}'))
             $('#previous_selection').val(JSON.stringify($('#add-data').data('SelectionService').selected))
@@ -986,6 +1091,7 @@
                         let type = dataPrevious[i]['Attributes-select' + j]
                         let attribute_name = dataPrevious[i]['Attributes-header' + j]
                         let attribute_value = dataPrevious[i]['Attributes-row' + j]
+
                         mainData['Attributes'].push({
                             name: returnValue(attribute_name, 'attribute-header' + j),
                             type: returnValue(type, 'column_type' + j),
@@ -1056,10 +1162,10 @@
             let allData;
             for (let i = 0; i < data.length; i++) {
                 allData = {
-                     "Deletebutton": `<button class="btn btn-cl-danger ws-trash" type="button" onclick="deleteRow(this)" style="margin-top: 7px" id="ws-remove-row${i}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`,
+                    "Deletebutton": `<button class="btn btn-cl-danger ws-trash" type="button" onclick="deleteRow(this)" style="margin-top: 7px" id="ws-remove-row${i}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`,
 
                     "Data": `<div class="data-row" ><a href="/phenotypes/${data[i].phenotype_id}/version/${data[i].phenotype_version_id}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${data[i].phenotype_id + '/' + data[i].phenotype_version_id}</a>` + '-' +
-                        `<a href="/concepts/${data[i].concept_id}/version/${data[i].concept_version_id}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${data[i].concept_id + '/' + data[i].concept_version_id + '-' + data[i].concept_name}</a>` +`</div>`
+                        `<a href="/concepts/${data[i].concept_id}/version/${data[i].concept_version_id}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${data[i].concept_id + '/' + data[i].concept_version_id + '-' + data[i].concept_name}</a>` + `</div>`
                 }
 
                 if (data[i].Attributes !== undefined) {
@@ -1098,7 +1204,7 @@
             let next_column_index = ((Object.keys(dataset[1]).length - 2) / 4)
 
 
-            table = reDrawtable('attributes-table', next_column_index, false, dataset)
+            table = reDrawtable('attributes-table', next_column_index, false, false, dataset)
             table.buttons().container()
                 .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
 
@@ -1152,35 +1258,6 @@
         }
 
 
-        const selectHeader = (element) => {
-            var table = $('#attributes-table').DataTable()
-            var oldScrollX = $('#attributes-table').position().left
-            var oldScrollY = $('#attributes-table').position().top
-            let val = element.value
-            let index = element.id.match(/\d+/)[0]
-            let dataPrevious = $('#phenotypes_concepts_json').val()
-            dataPrevious = JSON.parse(dataPrevious)
-            let updatedSelect = changeSelectValue(val, index)
-
-            for (let i = 0; i < dataPrevious.length; i++) {
-                dataPrevious[i]['Attributes-select' + (index)] = `${updatedSelect}`
-                dataPrevious[i]['Attributes-row' + (index)] = highlightinput(dataPrevious[i]['Attributes-row' + (index)], updatedSelect)
-                $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
-            }
-
-            let dataPrevious2 = $('#phenotypes_concepts_json').val()
-            dataPrevious2 = JSON.parse(dataPrevious2)
-            table = reDrawtable('attributes-table', table.columns().header().length - 1, false, dataPrevious2)
-            table.buttons().container()
-                .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
-
-            $('div.dataTables_scrollBody')[0].scrollLeft = oldScrollX * -1
-            $('div.dataTables_scrollBody')[0].scrollTop = oldScrollY * -1
-
-
-        }
-
-
         const changeSelectValue = (val, index) => {
             let element = `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange="selectHeader(this)" id="column_type${index}">'
 						    +'<option value="0">Type</option>'
@@ -1211,6 +1288,7 @@
                     let filtered = phenotype_concepts_json.filter(function (el) {
                         return el !== toDel;
                     });
+
 
                     $('#phenotypes_concepts_json').val(JSON.stringify(filtered))
                     $('#add-data').data('SelectionService').selected = selection.filter(function (el) {
