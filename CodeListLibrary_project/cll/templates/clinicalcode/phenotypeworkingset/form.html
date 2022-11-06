@@ -549,7 +549,7 @@
                 let dataset = {{table_elements|safe}}
                     $('#attributes-table').show()
                 $('#add-data').hide()
-                let table = createTable(0, dataset, 'attributes-table', [{
+                let table = createTable( dataset, 'attributes-table', [{
                     data: 'Deletebutton',
                     title: ''
                 }, {data: 'Data', title: 'Data'}])
@@ -686,7 +686,7 @@
 
                 } else {
                     $('#attributes-table').show()
-                    let table = createTable(0, dataset, 'attributes-table', [{
+                    let table = createTable( dataset, 'attributes-table', [{
                         data: 'Deletebutton',
                         title: ''
                     }, {data: 'Data', title: 'Concepts'}]) // Create table with initial data
@@ -747,7 +747,7 @@
          * @param columns - array of named columns
          * @returns {*|define.amd.jQuery}
          */
-        const createTable = (numbers, dataset, id, columns) => {
+        const createTable = (dataset, id, columns) => {
             return $('#' + id).DataTable({
                     data: dataset,
                     columns: columns,
@@ -756,7 +756,7 @@
                             text: "Add column",
                             className: "table-button",
                             action: function (e, dt, node, config) {
-                                addColumn(numbers)
+                                addColumn()
                             },
                             attr: {
                                 id: 'column-add'
@@ -885,10 +885,11 @@
          * Main functionality to add column dynamically
          * @param numbers - current column index
          */
-        const addColumn = (numbers) => {
+        const addColumn = () => {
             let dataPrevious = $('#phenotypes_concepts_json').val()
 
             dataPrevious = JSON.parse(dataPrevious)
+            let numbers;
             let arrayofcolumns = Object.keys(dataPrevious[0]).filter(v => v.startsWith('Attributes-row')).map(v => parseInt(v.slice(-1)))
             {
                 arrayofcolumns.sort((a, b) => a - b).reverse()[0] !== undefined ? numbers = arrayofcolumns.sort((a, b) => a - b).reverse()[0] + 1 : numbers = 0
@@ -948,7 +949,7 @@
             if ($.fn.DataTable.isDataTable('#attributes-table')) {// if table exist we need to update by destroying old table and generate new table
                 $('#' + id).DataTable().destroy();
                 $('#' + id).empty();
-                var table = createTable(numbers, dataset, 'attributes-table', columns)
+                var table = createTable( dataset, 'attributes-table', columns)
                 table.buttons().container()
                     .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
 
@@ -1162,7 +1163,7 @@
             let dataset = phenotype_concepts_json
             $('#attributes-table').show()
             $('#add-data').hide()
-            let table = createTable(0, dataset, 'attributes-table', [{data: 'Deletebutton', title: ''}, {
+            let table = createTable( dataset, 'attributes-table', [{data: 'Deletebutton', title: ''}, {
                 data: 'Data',
                 title: 'Data'
             }])
