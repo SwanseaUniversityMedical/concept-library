@@ -836,7 +836,7 @@
                     let input = parse.querySelector('*[id^="attribute-input-col"]');
                     let deleBut = parse.querySelector('*[id^="ws-remove-row"]')
                     if (input !== null) {
-                        input.id = "attribute-input-col" + key.slice(-1) + 'row' + i
+                        input.id = "attribute-input-col" + key.match(/\d+/)[0] + 'row' + i
                         dataPrevious[i][key] = $(input)[0].outerHTML
                     }
                     if (deleBut !== null) {
@@ -889,7 +889,8 @@
 
             dataPrevious = JSON.parse(dataPrevious)
             let numbers;
-            let arrayofcolumns = Object.keys(dataPrevious[0]).filter(v => v.startsWith('Attributes-row')).map(v => parseInt(v.slice(-1)))
+            let arrayofcolumns = Object.keys(dataPrevious[0]).filter(v => v.startsWith('Attributes-row')).map(v => parseInt(v.match(/\d+/)[0]))
+
             {
                 arrayofcolumns.sort((a, b) => a - b).reverse()[0] !== undefined ? numbers = arrayofcolumns.sort((a, b) => a - b).reverse()[0] + 1 : numbers = 0
             }
@@ -1146,7 +1147,7 @@
 						    +'<option value="3" ${data[i].Attributes[j].type === 'STRING' ? 'selected' : ''}>STRING</option>'
 						  +'</select>`,
                             ['Attributes-header' + j]: `<input class="input-material" type="text"  value="${data[i].Attributes[j].name}" oninput="inputheader(this)" placeholder="Attribute name"  id="attribute-header${j}"/>`,
-                            ["Attributes-delete" + j]: `<button class="btn btn-cl-danger ws-trash" id="ws-remove-column${j}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`
+                            ["Attributes-delete" + j]: `<button class="btn btn-cl-danger ws-trash" onclick="deletecolumn(this)" type="button" id="ws-remove-column${j}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`
 
 
                         }
