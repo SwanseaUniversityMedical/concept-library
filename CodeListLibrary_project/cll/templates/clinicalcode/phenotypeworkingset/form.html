@@ -853,10 +853,6 @@
         }
 
 
-
-
-
-
         /**
          * Return string type select value when wraping value or just input value when wrappinf
          * @param type html element from the array
@@ -893,7 +889,12 @@
             let dataPrevious = $('#phenotypes_concepts_json').val()
 
             dataPrevious = JSON.parse(dataPrevious)
-            console.log(numbers)
+            let arrayofcolumns = Object.keys(dataPrevious[0]).filter(v => v.startsWith('Attributes-row')).map(v => parseInt(v.slice(-1)))
+            {
+                arrayofcolumns.sort((a, b) => a - b).reverse()[0] !== undefined ? numbers = arrayofcolumns.sort((a, b) => a - b).reverse()[0] + 1 : numbers = 0
+            }
+
+
             for (let i = 0; i < dataPrevious.length; i++) {
                 dataPrevious[i] = { // for all row start initialize the object keys and values but taking into account old row
                     ...dataPrevious[i],
@@ -1022,10 +1023,9 @@
             })
 
 
-
             $('#phenotypes_concepts_json').val(JSON.stringify(data))
 
-            table = reDrawtable('attributes-table',  table.columns().header().length - 1, false, false, data)
+            table = reDrawtable('attributes-table', table.columns().header().length - 1, false, false, data)
             table.buttons().container()
                 .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
 
