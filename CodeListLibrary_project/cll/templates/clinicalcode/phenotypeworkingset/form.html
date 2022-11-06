@@ -893,9 +893,8 @@
             let dataPrevious = $('#phenotypes_concepts_json').val()
 
             dataPrevious = JSON.parse(dataPrevious)
+            console.log(numbers)
             for (let i = 0; i < dataPrevious.length; i++) {
-
-
                 dataPrevious[i] = { // for all row start initialize the object keys and values but taking into account old row
                     ...dataPrevious[i],
                     ["Attributes-row" + numbers]: `<input class="input-material" type="text"  style="width:100%" id="attribute-input-${'col' + numbers + 'row' + i}"/>`,
@@ -1312,11 +1311,9 @@
             $(table.cell(this).node()).find('span').remove()
             let value = input.val()
             let rowIdx = cell.row
-            let colindex = cell.column
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
-            console.log(colindex)
-            dataPrevious[rowIdx]['Attributes-row' + (colindex - 1)] = checkTypeinput(input, value, rowIdx, colindex)[0].outerHTML
+            dataPrevious[rowIdx]['Attributes-row' + parseInt(input[0].id.match(/\d+/)[0])] = checkTypeinput(input, value, rowIdx, parseInt(input[0].id.match(/\d+/)[0]))[0].outerHTML
             $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
 
 
@@ -1346,7 +1343,7 @@
         const checkTypeinput = (input, val, rowIndex, columnIndex) => {
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
-            let type = dataPrevious[rowIndex]['Attributes-select' + (columnIndex - 2)]
+            let type = dataPrevious[rowIndex]['Attributes-select' + columnIndex]
             let element = new DOMParser().parseFromString(type, "text/html")
             let select = element.querySelector('*[id^="column_type"]')
             let select_val = select.value
