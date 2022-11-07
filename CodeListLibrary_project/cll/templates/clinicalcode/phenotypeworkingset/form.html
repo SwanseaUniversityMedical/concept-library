@@ -215,8 +215,8 @@
 
                     {% if form.instance.pk %}
                         <div class="form-group">
+                            <label class="col-sm-3" for="">Latest version ID</label>
                             <div class="col-sm-12">
-                                <label>Latest version ID</label>
                                 <input type="hidden" id="latest_history_id" name="latest_history_id"
                                        value="{{ form.latest_history_id }}">
                                 <input type="hidden" id="overrideVersion" name="overrideVersion"
@@ -225,7 +225,7 @@
                             </div>
                         </div>
                     {% endif %}
-                
+
                     <div class="form-group">
                         <label class="col-sm-3" for="">Created by</label>
                         <div class="col-sm-12">
