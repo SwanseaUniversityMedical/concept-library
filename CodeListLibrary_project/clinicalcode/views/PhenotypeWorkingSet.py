@@ -810,7 +810,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
         # ----------------------------------------------------------
 
         with transaction.atomic():
-            form.instance.modified_by = self.request.user
+            form.instance.updated_by = self.request.user
             form.instance.modified = datetime.datetime.now()
             form.instance.created_by = self.request.user
             form.instance.author = self.request.POST.get('author')
