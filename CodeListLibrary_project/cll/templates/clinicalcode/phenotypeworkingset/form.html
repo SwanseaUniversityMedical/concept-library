@@ -510,7 +510,7 @@
         // call the tag service initialize function in tags.js
         $("#author").tagsinput('items')
         tagAutocomplete('/api/v1/public/data-sources-list/', 'datasources', 'datasource_id', 'name').initialize()
-        tagAutocomplete('/api/v1/public/collections/', 'collections', 'id', 'name').initialize()
+        tagAutocomplete('/api/v1/tags-and-collections/?tag_type=2', 'collections', 'id', 'description').initialize()
         tagService.initialize();
 
         $(function () {
@@ -525,7 +525,7 @@
                 $('#collections').tagsinput('add', {
                     'id': '{{ collection.id }}',
                     'name': '{{ collection.description }}',
-                     'display': '{{ collection.get_display_display }}'
+                    'display': '{{ collection.get_display_display }}'
                 });
             {% endfor %}
 
