@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block title %}
-    {% if form.instance.pk  is None %}
+    {% if not form.instance.pk  %}
         New Working Set
     {% else %}
         Edit Working Set
@@ -19,7 +19,7 @@
 
 
 
-    {% if form.instance.pk is None %}
+    {% if not form.instance.pk%}
         <h2>Create a new working set</h2>
         <div class="row">
             <div class="col-md-12">
@@ -38,10 +38,22 @@
             </div>
         </div>
     {% else %}
+
         <h2>Edit working set</h2>
         <div class="row">
             <div class="col-md-12">
                 <i class="help-block"><span class="required">*</span> denotes a required field</i>
+                 {% if form.errors %}
+                    <div id="form-error" class="alert alert-danger  col-sm-12">
+                        <p>The operation could not be performed because one or more error(s) occurred.<br/>
+                            Please resubmit the form after making the following changes:</p>
+                        <ul>
+                            {% for field,error in form.errors.items %}
+                                <li>{{ field }} - {{ error|striptags }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
 
             </div>
         </div>
@@ -63,7 +75,7 @@
 
             <div class="row">
                 <div class="col-md-12">
-                    {% if form.pk is None %}
+                    {% if not form.pk  %}
                         <form action="" method="post" class="form-horizontal" novalidate>
 
                     {% else %}
@@ -85,7 +97,7 @@
                     <hr/>
 
 
-                    {% if form.pk is not None %}
+                    {% if form.pk  %}
                         <div class="form-group">
                             <div class="col-sm-12">
                                 <label>Latest version ID</label>
@@ -215,7 +227,7 @@
                         <label class="col-sm-3" for="">Created by</label>
                         <div class="col-sm-12">
                             <p class="form-control-static">
-                                {% if form.pk  is None %}
+                                {% if not form.pk  %}
                                     {{ user.username }}
                                 {% else %}
                                     {{ form.created_by.username }}
@@ -225,7 +237,7 @@
                     </div>
 
 
-                    {% if form.pk  is not None %}
+                    {% if form.pk   %}
                         <div class="form-group">
                             <div class="col-sm-12">
                                 <label for="">Modified by</label>
@@ -241,7 +253,7 @@
                     <hr/>
 
 
-                    <fieldset {% if not allowed_to_permit and form.pk  is not None %}disabled{% endif %}>
+                    <fieldset {% if not allowed_to_permit and form.pk  %}disabled{% endif %}>
                         <!-- div class="form-group">
 						<label class="col-sm-3" for="">Owned by:</label>
 						<div class="col-sm-12">
@@ -333,7 +345,7 @@
                                                         {{ choice.tag }}
                                                         {{ choice.choice_label }}
                                                         {% if choice.choice_label.strip == "View" or choice.choice_label.strip == "Edit" %}
-                                                            {% if form.pk is not None %}
+                                                            {% if form.pk  %}
                                                                 <span class="alert-warning"
                                                                       id="group_access_note"></span>
                                                             {% endif %}
@@ -435,7 +447,7 @@
                     <!--	-------------------------------------------------------------------
                       Version History
                     -------------------------------------------------------------------	-->
-                    {% if pk is not none %}
+                    {% if form.pk  %}
                         <div class="panel-body">
                             <div class="row">
 
