@@ -218,10 +218,10 @@
                             <label class="col-sm-3" for="">Latest version ID</label>
                             <div class="col-sm-12">
                                 <input type="hidden" id="latest_history_id" name="latest_history_id"
-                                       value="{{ form.latest_history_id }}">
+                                       value="{{ latest_history_id }}">
                                 <input type="hidden" id="overrideVersion" name="overrideVersion"
                                        value="{{ overrideVersion|default_if_none:'0' }}">
-                                {{ latest_history_id }}
+                                {{ history.0.history_id }}
                             </div>
                         </div>
                     {% endif %}
