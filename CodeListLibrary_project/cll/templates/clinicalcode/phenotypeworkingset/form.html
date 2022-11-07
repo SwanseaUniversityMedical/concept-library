@@ -524,7 +524,8 @@
             {% for collection in collections %}
                 $('#collections').tagsinput('add', {
                     'id': '{{ collection.id }}',
-                    'name': '{{ collection.description }}'
+                    'name': '{{ collection.description }}',
+                     'display': '{{ collection.get_display_display }}'
                 });
             {% endfor %}
 
