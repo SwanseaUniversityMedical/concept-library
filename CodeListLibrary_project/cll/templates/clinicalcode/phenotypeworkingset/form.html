@@ -509,8 +509,8 @@
     <script type="text/javascript">
         // call the tag service initialize function in tags.js
         $("#author").tagsinput('items')
-        tagAutocomplete('/api/v1/public/data-sources-list/', 'datasources', 'datasource_id', 'name').initialize()
-        tagAutocomplete('/api/v1/tags-and-collections/?tag_type=2', 'collections', 'id', 'description').initialize()
+        tagAutocomplete('/api/v1/public/data-sources-list/?search=%QUERY%', 'datasources', 'datasource_id', 'name').initialize()
+        tagAutocomplete('/api/v1/tags-and-collections/?tag_type=2&search=%QUERY%', 'collections', 'id', 'description').initialize()
         tagService.initialize();
 
         $(function () {

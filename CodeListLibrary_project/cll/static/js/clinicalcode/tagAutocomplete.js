@@ -8,7 +8,7 @@ function tagAutocomplete(url,id,lookup,description){
 			datumTokenizer: Bloodhound.tokenizers.obj.whitespace('id'),
 			queryTokenizer: Bloodhound.tokenizers.whitespace,
 			remote: {
-				url: url+'&search=%QUERY%',
+				url: url,
 				wildcard: '%QUERY%',
 			}
 		});
