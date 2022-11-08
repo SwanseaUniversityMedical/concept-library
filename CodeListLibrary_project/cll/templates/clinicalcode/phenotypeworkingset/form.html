@@ -406,7 +406,7 @@
 
                         <div class="row-form-flex row">
                             <button class="upload-button" id="add-data" type="button">
-                                Upload<i class="ws-upload glyphicon glyphicon-save" aria-hidden="true"></i>
+                                Add concept
                             </button>
 
 
@@ -510,7 +510,7 @@
         // call the tag service initialize function in tags.js
         $("#author").tagsinput('items')
         tagAutocomplete('/api/v1/public/data-sources-list/?search=%QUERY%', 'datasources', 'datasource_id', 'name').initialize()
-        tagAutocomplete('/api/v1/tags-and-collections/?tag_type=2&search=%QUERY%', 'collections', 'id', 'description').initialize()
+        tagAutocomplete('/api/v1/tags-and-collections/?type=2&search=%QUERY%', 'collections', 'id', 'description').initialize()
         tagService.initialize();
 
         $(function () {
@@ -769,7 +769,7 @@
                             }
                         },
                         {
-                            text: 'Add concept<i class="ws-upload glyphicon glyphicon-save" aria-hidden="true"></i>',
+                            text: 'Add concept',
                             className: "table-button",
                             action: function (e, dt, node, config) {
                                 $('#add-data').trigger('click')
