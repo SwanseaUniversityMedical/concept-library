@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block title %}
-    {% if form.instance.pk  is None %}
+    {% if not form.instance.pk %}
         New Working Set
     {% else %}
         Edit Working Set
@@ -19,7 +19,7 @@
 
 
 
-    {% if form.instance.pk is None %}
+    {% if not form.instance.pk %}
         <h2>Create a new working set</h2>
         <div class="row">
             <div class="col-md-12">
@@ -38,10 +38,22 @@
             </div>
         </div>
     {% else %}
+
         <h2>Edit working set</h2>
         <div class="row">
             <div class="col-md-12">
                 <i class="help-block"><span class="required">*</span> denotes a required field</i>
+                {% if form.errors %}
+                    <div id="form-error" class="alert alert-danger  col-sm-12">
+                        <p>The operation could not be performed because one or more error(s) occurred.<br/>
+                            Please resubmit the form after making the following changes:</p>
+                        <ul>
+                            {% for field,error in form.errors.items %}
+                                <li>{{ field }} - {{ error|striptags }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
 
             </div>
         </div>
@@ -63,12 +75,14 @@
 
             <div class="row">
                 <div class="col-md-12">
-                    {% if form.pk is None %}
+
+                    {% if not form.instance.pk %}
                         <form action="" method="post" class="form-horizontal" novalidate>
 
                     {% else %}
                         <form name='workingset-form' id='workingset-form' class="form-horizontal"
-                              action="{% url "phenotypeworkingset_update" form.pk %}" method="POST" autocomplete="off">
+                              action="{% url "phenotypeworkingset_update" pk=form.instance.pk %}" method="POST"
+                              autocomplete="off">
                     {% endif %}
                     {% csrf_token %}
                     <div class="form-group">
@@ -85,18 +99,6 @@
                     <hr/>
 
 
-                    {% if form.pk is not None %}
-                        <div class="form-group">
-                            <div class="col-sm-12">
-                                <label>Latest version ID</label>
-                                <input type="hidden" id="latest_history_id" name="latest_history_id"
-                                       value="{{ form.latest_history_id }}">
-                                <input type="hidden" id="overrideVersion" name="overrideVersion"
-                                       value="{{ overrideVersion|default_if_none:'0' }}">
-                                {{ latest_history_id }}
-                            </div>
-                        </div>
-                    {% endif %}
                     <div class="form-group">
                         <div class="col-sm-12">
                             <div class="material-textfield">
@@ -211,25 +213,38 @@
                     </div>
 
 
+                    {% if form.instance.pk %}
+                        <div class="form-group">
+                            <label class="col-sm-3" for="">Latest version ID</label>
+                            <div class="col-sm-12">
+                                <input type="hidden" id="latest_history_id" name="latest_history_id"
+                                       value="{{ latest_history_id }}">
+                                <input type="hidden" id="overrideVersion" name="overrideVersion"
+                                       value="{{ overrideVersion|default_if_none:'0' }}">
+                                {{ history.0.history_id }}
+                            </div>
+                        </div>
+                    {% endif %}
+
                     <div class="form-group">
                         <label class="col-sm-3" for="">Created by</label>
                         <div class="col-sm-12">
                             <p class="form-control-static">
-                                {% if form.pk  is None %}
+                                {% if not form.instance.pk %}
                                     {{ user.username }}
                                 {% else %}
-                                    {{ form.created_by.username }}
+                                    {{ form.instance.created_by.username }}
                                 {% endif %}
                             </p>
                         </div>
                     </div>
 
 
-                    {% if form.pk  is not None %}
+                    {% if form.instance.pk %}
                         <div class="form-group">
                             <div class="col-sm-12">
                                 <label for="">Modified by</label>
-                                <p class="form-control-static">{{ form.instance.modified_by.username }}</p>
+                                <p class="form-control-static">{{ form.instance.updated_by.username }}</p>
                             </div>
                         </div>
                     {% endif %}
@@ -241,7 +256,7 @@
                     <hr/>
 
 
-                    <fieldset {% if not allowed_to_permit and form.pk  is not None %}disabled{% endif %}>
+                    <fieldset {% if not allowed_to_permit and form.instance.pk %}disabled{% endif %}>
                         <!-- div class="form-group">
 						<label class="col-sm-3" for="">Owned by:</label>
 						<div class="col-sm-12">
@@ -333,7 +348,7 @@
                                                         {{ choice.tag }}
                                                         {{ choice.choice_label }}
                                                         {% if choice.choice_label.strip == "View" or choice.choice_label.strip == "Edit" %}
-                                                            {% if form.pk is not None %}
+                                                            {% if form.instance.pk %}
                                                                 <span class="alert-warning"
                                                                       id="group_access_note"></span>
                                                             {% endif %}
@@ -408,7 +423,7 @@
                             <div class="row-form-flex row">
 
                                 <div><br>
-                                    <a href="{% url 'workingset_list' %}" class="btn">
+                                    <a href="{% url 'phenotypeworkingsets_list' %}" class="btn">
                                         Return to list
                                     </a>
                                     <button class="btn btn-primary save-button" type="submit" id="save-changes">
@@ -435,32 +450,24 @@
                     <!--	-------------------------------------------------------------------
                       Version History
                     -------------------------------------------------------------------	-->
-                    {% if pk is not none %}
-                        <div class="panel-body">
-                            <div class="row">
+                    {% if form.instance.pk %}
 
-                                <hr/>
+
+                        <div class="row">
+                            <div class="col-sm-11" id="help-concept-history-container">
                                 <h3>Version History</h3>
-                                <div class="pre-scrollable">
-                                    <table class="table table-striped small-table table-hover">
-                                        <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Name</th>
-                                            <th>Description</th>
-                                            <th>Date</th>
-                                            <!-- 							<th>Type</th> -->
-                                            <th>Change reason</th>
-                                            <th>User</th>
-                                            <th></th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        {% include './partial_history_list.html' %}
-                                        </tbody>
-                                    </table>
-                                </div>
                             </div>
+                            <div class="col-sm-1 text-right">
+                                <a href="#" role="button" class="popovers" id="help-concept-history"
+                                   data-container="#help-concept-history-container" data-toggle="popover"
+                                   data-trigger="hover"
+                                   title="" data-original-title="Change history" data-placement="left">
+                                    <i class="fa fa-question-circle" aria-hidden="true"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="pre-scrollable">
+                            {% include './partial_history_list.html' %}
                         </div>
                     {% endif %}
 
@@ -502,8 +509,8 @@
     <script type="text/javascript">
         // call the tag service initialize function in tags.js
         $("#author").tagsinput('items')
-        tagAutocomplete('/api/v1/public/data-sources-list/', 'datasources', 'datasource_id', 'name').initialize()
-        tagAutocomplete('/api/v1/public/collections/', 'collections', 'id', 'name').initialize()
+        tagAutocomplete('/api/v1/public/data-sources-list/?search=%QUERY%', 'datasources', 'datasource_id', 'name').initialize()
+        tagAutocomplete('/api/v1/tags-and-collections/?tag_type=2&search=%QUERY%', 'collections', 'id', 'description').initialize()
         tagService.initialize();
 
         $(function () {
@@ -517,7 +524,8 @@
             {% for collection in collections %}
                 $('#collections').tagsinput('add', {
                     'id': '{{ collection.id }}',
-                    'name': '{{ collection.description }}'
+                    'description': '{{ collection.description }}',
+                    'display': '{{ collection.get_display_display }}'
                 });
             {% endfor %}
 

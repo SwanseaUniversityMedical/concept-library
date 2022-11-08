@@ -421,8 +421,7 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, self.object.pk, "Created")
             messages.success(self.request, "Workingset has been successfully created.")
 
-        return HttpResponseRedirect(reverse('phenotypeworkingset_create'))
-        # return HttpResponseRedirect(reverse('workingset_update'),args=(self.object.pk)) when update is done
+        return HttpResponseRedirect(reverse('phenotypeworkingset_update', args=(self.object.id,)))
 
 
 @login_required
@@ -790,7 +789,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
         # ----------------------------------------------------------
 
         with transaction.atomic():
-            form.instance.modified_by = self.request.user
+            form.instance.updated_by = self.request.user
             form.instance.modified = datetime.datetime.now()
             form.instance.created_by = self.request.user
             form.instance.author = self.request.POST.get('author')
@@ -854,6 +853,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
         context['collections'] = workingset_collections
         context['publications'] = workigset_publications
         context['workingset_data'] = workingset_data
+        context['allowed_to_permit'] = allowed_to_permit(self.request.user, PhenotypeWorkingset, self.get_object().id)
 
 
         context['overrideVersion'] = self.confirm_overrideVersion
