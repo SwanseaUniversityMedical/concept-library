@@ -391,7 +391,7 @@
 
                         <div class="row-form-flex row">
                             <button class="upload-button" id="add-data" type="button">
-                                Upload
+                                Upload<i class="ws-upload glyphicon glyphicon-save" aria-hidden="true"></i>
                             </button>
 
 
@@ -549,9 +549,12 @@
                 let dataset = {{table_elements|safe}}
                     $('#attributes-table').show()
                 $('#add-data').hide()
-                let table = createTable(0, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}])
-                let next_column_index = ((Object.keys(dataset[0]).length - 1) / 3)
-                table = reDrawtable('attributes-table', next_column_index, false, dataset)
+                let table = createTable( dataset, 'attributes-table', [{
+                    data: 'Deletebutton',
+                    title: ''
+                }, {data: 'Data', title: 'Data'}])
+                table = reDrawtable('attributes-table', dataset)
+
                 table.buttons().container()
                     .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
                 $('#phenotypes_concepts_json').val(JSON.stringify(dataset)) // save value temporarly
@@ -634,14 +637,16 @@
             // Methods
             onImport: (service, selected) => {
                 // Clicked the 'Import Concepts' button, and imported 'selected'
-                var dataset = selected.map(element => {
+                var dataset = selected.map((element, index) => {
                     return {
-                        "Data": `<a href="/phenotypes/${element.phenotype.id}/version/${element.phenotype.version}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${element.phenotype.id + '/' + element.phenotype.version}</a>` + '-' +
-                            `<a href="/concepts/${element.concept.id}/version/${element.concept.version}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${element.concept.id + '/' + element.concept.version + '-' + element.concept.name}</a>`
+                        "Deletebutton": `<button class="btn btn-cl-danger ws-trash" type="button" onclick="deleteRow(this)" style="margin-top: 7px" id="ws-remove-row${index}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`,
+
+                        "Data": `<div class="data-row" ><a href="/phenotypes/${element.phenotype.id}/version/${element.phenotype.version}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${element.phenotype.id + '/' + element.phenotype.version}</a>` + '-' +
+                            `<a href="/concepts/${element.concept.id}/version/${element.concept.version}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${element.concept.id + '/' + element.concept.version + '-' + element.concept.name}</a></div>`
                     }
 
                 })
-                console.log(selected)
+
 
                 // Check if table exist to update table or create table
                 if ($.fn.dataTable.isDataTable('#attributes-table')) {
@@ -679,9 +684,14 @@
 
                 } else {
                     $('#attributes-table').show()
-                    let table = createTable(0, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}]) // Create table with initial data
+                    let table = createTable( dataset, 'attributes-table', [{
+                        data: 'Deletebutton',
+                        title: ''
+                    }, {data: 'Data', title: 'Concepts'}]) // Create table with initial data
                     table.buttons().container()
                         .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) ')); // Append buttons to the table
+
+
                     $('#phenotypes_concepts_json').val(JSON.stringify(dataset)) // save value temporarly
                     $('#add-data').hide()
                 }
@@ -735,24 +745,23 @@
          * @param columns - array of named columns
          * @returns {*|define.amd.jQuery}
          */
-        const createTable = (numbers, dataset, id, columns) => {
+        const createTable = (dataset, id, columns) => {
             return $('#' + id).DataTable({
                     data: dataset,
                     columns: columns,
                     buttons: [
                         {
-
                             text: "Add column",
                             className: "table-button",
                             action: function (e, dt, node, config) {
-                                addColumn(numbers)
+                                addColumn()
                             },
                             attr: {
                                 id: 'column-add'
                             }
                         },
                         {
-                            text: "Add concept",
+                            text: 'Add concept<i class="ws-upload glyphicon glyphicon-save" aria-hidden="true"></i>',
                             className: "table-button",
                             action: function (e, dt, node, config) {
                                 $('#add-data').trigger('click')
@@ -764,21 +773,30 @@
                     ],
 
                     fixedColumns: {
-                        left: 1
+                        left: 2
                     },
                     scrollX: true, // allow to scroll horizontaly
                     scrollY: '70vh', // allow scroll vericaly for specific size 
                     scrollCollapse: true, // allow to table have overflow-x 
                     colReorder: true, // order the collumns
                     paging: false,
-                    columnDefs: [{ // define which columns exclude for ordering 
+                    columnDefs: [{ // define which columns exclude for ordering
                         targets: [0],
+                        orderable: false,
+                        width: '5%'
+
+                    }, { // define which columns exclude for ordering
+                        targets: [1],
                         orderable: true,
+
+
                     }, {
                         targets: [''],
                         orderable: false
+
                     },
-                    ]
+                    ],
+                    order: [[1, 'asc']],
 
                 }
             );
@@ -815,17 +833,20 @@
                 for (let [key, value] of Object.entries(dataPrevious[i])) {
                     let parse = new DOMParser().parseFromString(value, "text/html")
                     let input = parse.querySelector('*[id^="attribute-input-col"]');
+                    let deleBut = parse.querySelector('*[id^="ws-remove-row"]')
                     if (input !== null) {
-                        input.id = "attribute-input-col" + key.slice(-1) + 'row' + i
+                        input.id = "attribute-input-col" + key.match(/\d+/)[0] + 'row' + i
                         dataPrevious[i][key] = $(input)[0].outerHTML
-
+                    }
+                    if (deleBut !== null) {
+                        deleBut.id = "ws-remove-row" + i
+                        dataPrevious[i][key] = $(deleBut)[0].outerHTML
                     }
                 }
 
 
             }
             return dataPrevious
-
 
         }
 
@@ -862,27 +883,36 @@
          * Main functionality to add column dynamically
          * @param numbers - current column index
          */
-        const addColumn = (numbers) => {
+        const addColumn = () => {
             let dataPrevious = $('#phenotypes_concepts_json').val()
+
             dataPrevious = JSON.parse(dataPrevious)
+            let numbers;
+            let arrayofcolumns = Object.keys(dataPrevious[0]).filter(v => v.startsWith('Attributes-row')).map(v => parseInt(v.match(/\d+/)[0]))
+
+            {
+                arrayofcolumns.sort((a, b) => a - b).reverse()[0] !== undefined ? numbers = arrayofcolumns.sort((a, b) => a - b).reverse()[0] + 1 : numbers = 0
+            }
+
+
             for (let i = 0; i < dataPrevious.length; i++) {
-
-
                 dataPrevious[i] = { // for all row start initialize the object keys and values but taking into account old row
                     ...dataPrevious[i],
                     ["Attributes-row" + numbers]: `<input class="input-material" type="text"  style="width:100%" id="attribute-input-${'col' + numbers + 'row' + i}"/>`,
-                    ["Attributes-select" + numbers]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=selectHeader() id="column_type${numbers}">'
+                    ["Attributes-select" + numbers]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange="selectHeader(this)" id="column_type${numbers}">'
 						    +'<option  value="0" selected >Type</option>'
 						    +'<option value="1">INT</option>'
 						    +'<option value="2">FLOAT</option>'
 						    +'<option value="3">STRING</option>'
 						  +'</select>`,
-                    ['Attributes-header' + numbers]: `<input class="input-material" type="text"  oninput="inputheader(this)" placeholder="Attribute name"  id="attribute-header${numbers}"/>`
+                    ["Attributes-header" + numbers]: `<input class="input-material" type="text"   oninput="inputheader(this)" placeholder="Attribute name"  id="attribute-header${numbers}"/>`,
+                    ["Attributes-delete" + numbers]: `<button class="btn btn-cl-danger ws-trash" type="button" onclick="deletecolumn(this)" id="ws-remove-column${numbers}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`
+
                 }
             }
             let dataset = dataPrevious
             $('#phenotypes_concepts_json').val(JSON.stringify(dataset)) //saving the rows
-            let table = reDrawtable('attributes-table', numbers, true, dataset)
+            let table = reDrawtable('attributes-table', dataset)
             table.buttons().container()
                 .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
 
@@ -892,35 +922,60 @@
         /**
          * Apply changes and redraw table
          * @param id of the existing table
-         * @param numbers current column index
-         * @param needColumn update column index if added column
          * @param dataset current dataset
          * @returns new table
          */
-        const reDrawtable = (id, numbers, needColumn, dataset) => {
-            let columns = [{data: "Data", title: "Concepts"}]// keep data column same
+        const reDrawtable = (id, dataset) => {
+            let columns = [{data: "Deletebutton", title: ""}, {data: "Data", title: "Concepts"}]// keep data column same
             let headers = Object.entries(dataset[0])
             for (let i = 0; i < headers.length - 1; i++) {
                 if (headers[i][0].startsWith('Attributes-row')) {
-                    columns.push({data: headers[i][0], title: headers[i + 1][1] + headers[i + 2][1]})
+                    columns.push({
+                        data: headers[i][0],
+                        title: `<div class='header-functions'><div class='header-functions-delete' style="display:flex">` + headers[i + 1][1] + headers[i + 3][1] + `</div>` + headers[i + 2][1] + `</div>`
+                    })
                 }
-            }
-            if (needColumn) {
-                numbers++// add number index as we added column
             }
 
             if ($.fn.DataTable.isDataTable('#attributes-table')) {// if table exist we need to update by destroying old table and generate new table
                 $('#' + id).DataTable().destroy();
                 $('#' + id).empty();
-                var table = createTable(numbers, dataset, 'attributes-table', columns)
+                var table = createTable( dataset, 'attributes-table', columns)
                 table.buttons().container()
                     .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+
                 return table
 
             }
 
         }
+        const selectHeader = (element) => {
+            var table = $('#attributes-table').DataTable()
+            var oldScrollX = $('#attributes-table').position().left
+            var oldScrollY = $('#attributes-table').position().top
+            let val = element.value
+            let index = element.id.match(/\d+/)[0]
+            let dataPrevious = $('#phenotypes_concepts_json').val()
+            dataPrevious = JSON.parse(dataPrevious)
+            let updatedSelect = changeSelectValue(val, index)
 
+            for (let i = 0; i < dataPrevious.length; i++) {
+                dataPrevious[i]['Attributes-select' + (index)] = `${updatedSelect}`
+                dataPrevious[i]['Attributes-row' + (index)] = highlightinput(dataPrevious[i]['Attributes-row' + (index)], updatedSelect)
+                $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
+            }
+
+            let dataPrevious2 = $('#phenotypes_concepts_json').val()
+            dataPrevious2 = JSON.parse(dataPrevious2)
+            table = reDrawtable('attributes-table', dataPrevious2)
+            table.buttons().container()
+                .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+
+            $('div.dataTables_scrollBody')[0].scrollLeft = oldScrollX * -1
+            $('div.dataTables_scrollBody')[0].scrollTop = oldScrollY * -1
+
+
+        }
 
         const inputheader = (element) => {
             let val = element.value
@@ -945,6 +1000,33 @@
 
         }
 
+        const deletecolumn = (element) => {
+            let table = $('#attributes-table').DataTable()
+            let index = element.id.match(/\d+/)[0]
+            let data = $('#phenotypes_concepts_json').val()
+            let oldScrollX = $('#attributes-table').position().left
+            let oldScrollY = $('#attributes-table').position().top
+            data = JSON.parse(data)
+            data.forEach(items => {
+                delete items['Attributes-select' + (index)]
+                delete items['Attributes-row' + (index)]
+                delete items["Attributes-delete" + (index)]
+                delete items["Attributes-header" + (index)]
+            })
+
+
+            $('#phenotypes_concepts_json').val(JSON.stringify(data))
+
+            table = reDrawtable('attributes-table', data)
+            table.buttons().container()
+                .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+
+            $('div.dataTables_scrollBody')[0].scrollLeft = oldScrollX * -1
+            $('div.dataTables_scrollBody')[0].scrollTop = oldScrollY * -1
+
+        }
+
+
         const wrapData = () => {
             $('#publication_data').val(JSON.stringify(wrapPubinputs()).replace(/\[/g, '{').replace(/]/g, '}'))
             $('#previous_selection').val(JSON.stringify($('#add-data').data('SelectionService').selected))
@@ -953,17 +1035,22 @@
             let arrayOfData = []
             for (let i = 0; i < dataPrevious.length; i++) {
                 let entry = Object.entries(dataPrevious[i])
+                let types = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-select'))
+                let headers_name = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-header'))
+                let input_values = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-row'))
+
                 let mainData = wrapIds(dataPrevious[i]['Data'])
                 if (entry.length > 1) {
                     mainData['Attributes'] = []
-                    for (let j = 0; j < (entry.length - 1) / 3; j++) {
-                        let type = dataPrevious[i]['Attributes-select' + j]
-                        let attribute_name = dataPrevious[i]['Attributes-header' + j]
-                        let attribute_value = dataPrevious[i]['Attributes-row' + j]
+                    for (let j = 0; j < types.length; j++) {
+                        let type = dataPrevious[i][types[j]]
+                        let attribute_name = dataPrevious[i][headers_name[j]]
+                        let attribute_value = dataPrevious[i][input_values[j]]
+
                         mainData['Attributes'].push({
-                            name: returnValue(attribute_name, 'attribute-header' + j),
-                            type: returnValue(type, 'column_type' + j),
-                            value: returnValue(attribute_value, 'attribute-input-col' + j)
+                            name: returnValue(attribute_name, 'attribute-header'),
+                            type: returnValue(type, 'column_type'),
+                            value: returnValue(attribute_value, 'attribute-input-col')
                         })
 
 
@@ -982,13 +1069,13 @@
         }
 
         $('#save-changes').on('click', function (e) {
-            if (!$('#phenotypes_concepts_json').val()){
+            if (!$('#phenotypes_concepts_json').val()) {
                 return;
             }
             if (!finalValidation($('#phenotypes_concepts_json').val())) {
                 e.preventDefault();
             } else {
-               wrapData()
+                wrapData()
             }
 
 
@@ -998,11 +1085,13 @@
             let conds = []
             dataPrevious = JSON.parse(dataPrevious)
             for (let i = 0; i < dataPrevious.length; i++) {
-                let entry = Object.entries(dataPrevious[i])
-                for (let j = 0; j < (entry.length - 1) / 3; j++) {
-                    let select = dataPrevious[i]['Attributes-select' + j]
-                    let header = dataPrevious[i]['Attributes-header' + j]
-                    let input = dataPrevious[i]['Attributes-row' + j]
+                let types = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-select'))
+                let headers_name = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-header'))
+                let input_values = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-row'))
+                for (let j = 0; j < types.length; j++) {
+                    let select = dataPrevious[i][types[j]]
+                    let header = dataPrevious[i][headers_name[j]]
+                    let input = dataPrevious[i][input_values[j]]
                     input = new DOMParser().parseFromString(input, "text/html")
                     select = new DOMParser().parseFromString(select, "text/html")
                     header = new DOMParser().parseFromString(header, "text/html")
@@ -1030,27 +1119,32 @@
             let allData;
             for (let i = 0; i < data.length; i++) {
                 allData = {
-                    "Data": `<a href="/phenotypes/${data[i].phenotype_id}/version/${data[i].phenotype_version_id}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${data[i].phenotype_id + '/' + data[i].phenotype_version_id}</a>` + '-' +
-                        `<a href="/concepts/${data[i].concept_id}/version/${data[i].concept_version_id}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${data[i].concept_id + '/' + data[i].concept_version_id + '-' + data[i].concept_name}</a>`
+                    "Deletebutton": `<button class="btn btn-cl-danger ws-trash" type="button" onclick="deleteRow(this)" style="margin-top: 7px" id="ws-remove-row${i}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`,
+
+                    "Data": `<div class="data-row" ><a href="/phenotypes/${data[i].phenotype_id}/version/${data[i].phenotype_version_id}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${data[i].phenotype_id + '/' + data[i].phenotype_version_id}</a>` + '-' +
+                        `<a href="/concepts/${data[i].concept_id}/version/${data[i].concept_version_id}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${data[i].concept_id + '/' + data[i].concept_version_id + '-' + data[i].concept_name}</a>` + `</div>`
                 }
 
                 if (data[i].Attributes !== undefined) {
                     let attributes = {};
                     for (let j = 0; j < data[i].Attributes.length; j++) {
-                        attributes = {...attributes,
+                        attributes = {
+                            ...attributes,
                             ["Attributes-row" + j]: `<input class="input-material" type="text" value="${data[i].Attributes[j].value}" style="width:100%" id="attribute-input-${'col' + j + 'row' + i}"/>`,
-                            ["Attributes-select" + j]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=selectHeader() id="column_type${j}">'
+                            ["Attributes-select" + j]: `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange="selectHeader(this)" id="column_type${j}">'
 						    + '<option  value="0">Type</option>'
 						    +'<option value="1" ${data[i].Attributes[j].type === 'INT' ? 'selected' : ''}>INT</option>'
 						    +'<option value="2" ${data[i].Attributes[j].type === 'FLOAT' ? 'selected' : ''}>FLOAT</option>'
 						    +'<option value="3" ${data[i].Attributes[j].type === 'STRING' ? 'selected' : ''}>STRING</option>'
 						  +'</select>`,
-                            ['Attributes-header' + j]: `<input class="input-material" type="text"  value="${data[i].Attributes[j].name}" oninput="inputheader(this)" placeholder="Attribute name"  id="attribute-header${j}"/>`
+                            ['Attributes-header' + j]: `<input class="input-material" type="text"  value="${data[i].Attributes[j].name}" oninput="inputheader(this)" placeholder="Attribute name"  id="attribute-header${j}"/>`,
+                            ["Attributes-delete" + j]: `<button class="btn btn-cl-danger ws-trash" onclick="deletecolumn(this)" type="button" id="ws-remove-column${j}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`
+
 
                         }
 
                     }
-                    phenotype_concepts_json.push({...allData,...attributes})
+                    phenotype_concepts_json.push({...allData, ...attributes})
 
                 } else {
                     phenotype_concepts_json.push(allData)
@@ -1060,13 +1154,16 @@
             let dataset = phenotype_concepts_json
             $('#attributes-table').show()
             $('#add-data').hide()
-            let table = createTable(0, dataset, 'attributes-table', [{data: 'Data', title: 'Data'}])
-            let next_column_index = ((Object.keys(dataset[1]).length - 1) / 3)
+            let table = createTable( dataset, 'attributes-table', [{data: 'Deletebutton', title: ''}, {
+                data: 'Data',
+                title: 'Data'
+            }])
+            let next_column_index = ((Object.keys(dataset[1]).length - 2) / 4)
 
-
-            table = reDrawtable('attributes-table', next_column_index, false, dataset)
+            table = reDrawtable('attributes-table', dataset)
             table.buttons().container()
                 .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
+
             $('#phenotypes_concepts_json').val(JSON.stringify(dataset)) // save value temporarly
 
 
@@ -1117,30 +1214,8 @@
         }
 
 
-        const selectHeader = () => {
-            var table = $('#attributes-table').DataTable()
-            let val = event.target.value
-            let index = event.target.id.match(/\d+/)[0]
-            let dataPrevious = $('#phenotypes_concepts_json').val()
-            dataPrevious = JSON.parse(dataPrevious)
-            let updatedSelect = changeSelectValue(val, index)
-
-            for (let i = 0; i < dataPrevious.length; i++) {
-                dataPrevious[i]['Attributes-select' + (index)] = `${updatedSelect}`
-                dataPrevious[i]['Attributes-row' + (index)] = highlightinput(dataPrevious[i]['Attributes-row' + (index)], updatedSelect)
-                $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
-            }
-
-            let dataPrevious2 = $('#phenotypes_concepts_json').val()
-            dataPrevious2 = JSON.parse(dataPrevious2)
-            table = reDrawtable('attributes-table', table.columns().header().length - 1, false, dataPrevious2)
-            table.buttons().container()
-                .appendTo($('#attributes-table_wrapper .col-sm-6:eq(0) '));
-        }
-
-
         const changeSelectValue = (val, index) => {
-            let element = `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange=selectHeader() id="column_type${index}">'
+            let element = `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange="selectHeader(this)" id="column_type${index}">'
 						    +'<option value="0">Type</option>'
 						    +'<option value="1">INT</option>'
 						    +'<option value="2">FLOAT</option>'
@@ -1152,6 +1227,40 @@
 
 
             return $(select)[0].outerHTML
+
+        }
+
+        const deleteRow = (element) => {
+
+            let table = $('#attributes-table').DataTable()
+            let phenotype_concepts_json = JSON.parse($('#phenotypes_concepts_json').val())
+            let index = element.id.match(/\d+/)[0]
+            let selection = $('#add-data').data('SelectionService').selected
+            if (confirm("Remove this concept?")) {
+                let tr = $(element).closest('tr')
+                table.row(tr).remove().draw(false);
+                if (table.rows().count() !== 0) {
+                    let toDel = phenotype_concepts_json[parseInt(index)]
+                    let filtered = phenotype_concepts_json.filter(function (el) {
+                        return el !== toDel;
+                    });
+
+
+                    $('#phenotypes_concepts_json').val(JSON.stringify(filtered))
+                    $('#add-data').data('SelectionService').selected = selection.filter(function (el) {
+                        return el !== $('#add-data').data('SelectionService').selected[parseInt(index)];
+                    });
+                } else {
+                    $('#add-data').data('SelectionService').selected = []
+                    $('#attributes-table').DataTable().destroy();
+                    $('#attributes-table').empty();
+                    $('#phenotypes_concepts_json').val('') // Clear table as user cleared the modal
+                    $('#add-data').show()
+                }
+
+
+            }
+
 
         }
 
@@ -1193,20 +1302,39 @@
             $(table.cell(this).node()).find('span').remove()
             let value = input.val()
             let rowIdx = cell.row
-            let colindex = cell.column
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
-            dataPrevious[rowIdx]['Attributes-row' + (colindex - 1)] = checkTypeinput(input, value, rowIdx, colindex)[0].outerHTML
+            dataPrevious[rowIdx]['Attributes-row' + parseInt(input[0].id.match(/\d+/)[0])] = checkTypeinput(input, value, rowIdx, parseInt(input[0].id.match(/\d+/)[0]))[0].outerHTML
             $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
 
 
+        });
+
+        var mx;
+
+        $("#attributes-table").on({
+
+            mousemove: function (e) {
+                var $scroller = $(".dataTables_scrollBody");
+                var mx2 = e.pageX - $scroller[0].offsetLeft;
+                if (mx) $scroller[0].scrollLeft = this.sx + mx - mx2;
+            },
+            mousedown: function (e) {
+                var $scroller = $(".dataTables_scrollBody");
+                this.sx = $scroller[0].scrollLeft;
+                mx = e.pageX - $scroller[0].offsetLeft;
+            }
+        });
+
+        $("#attributes-table").on("mouseup", function () {
+            mx = 0;
         });
 
 
         const checkTypeinput = (input, val, rowIndex, columnIndex) => {
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
-            let type = dataPrevious[rowIndex]['Attributes-select' + (columnIndex - 1)]
+            let type = dataPrevious[rowIndex]['Attributes-select' + columnIndex]
             let element = new DOMParser().parseFromString(type, "text/html")
             let select = element.querySelector('*[id^="column_type"]')
             let select_val = select.value
