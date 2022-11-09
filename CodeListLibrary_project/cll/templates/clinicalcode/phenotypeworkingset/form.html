@@ -146,7 +146,7 @@
                                 <label class="label-material">{{ form.publication.label }}</label>
                             </div>
                         </div>
-                        <div class="btn btn-default publication-button" id='addRow' style="padding: 5px 12px">
+                        <div class="btn btn-default publication-button" id='addRow'>
                             <i type='button' class="glyphicon glyphicon-plus"></i>
                         </div>
 
@@ -597,14 +597,12 @@
         const addInput = (value, id) => {
             var html = '';
             html += '<div class="form-group">';
-            html += '<div class="col-sm-12">';
-            html += '<div class="material-textfield input-group">';
+            html += '<div class="col-sm-11">';
+            html += '<div class="material-textfield">';
             html += `<input type="text" name="publication" value ="${value}" class="input-material form-control" rows="1" placeholder="Add publication" maxlength="500" id="id_publication">`
-            html += '<span class="input-group-btn">';
-            html += '<button id="removeRow" style="padding:6px 12px;height: 35px" type="button" class="btn btn-danger">Remove</button>';
-            html += '</span>'
             html += '</div>'
             html += '</div>';
+            html += '<div class="btn btn-cl-danger ws-trash-pub" style="padding: 5px 12px" id="removeRow" style="padding: 5px 12px"> <i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i> </div>';
             html += '</div>';
 
             $('#' + id).append(html);

@@ -24,7 +24,14 @@
     height: 35px;
     margin-left: 10px;
 }
-.ws-upload{
+
+.ws-trash-pub {
+    margin-left: -6px;
+    padding: 6px 12px;
+    height: 35px;
+}
+
+.ws-upload {
     margin-left: 3px;
 }
 
@@ -132,7 +139,8 @@ table.dataTable tbody td.selected a {
     background-color: transparent;
 
 }
-.bootstrap-tagsinput{
+
+.bootstrap-tagsinput {
     margin-bottom: 20px;
 }
 
@@ -211,6 +219,9 @@ table.dataTable tbody td.selected a {
 .publication-button {
     color: #ffffff;
     background: #4285f4;
+    padding: 7px 12px;
+    height: 35px;
+    margin-left: -6px;
     position: relative;
     text-align: center;
     text-decoration: none;
