@@ -1036,7 +1036,7 @@
 
 
         const wrapData = () => {
-            $('#publication_data').val(JSON.stringify(wrapPubinputs()).replace(/\[/g, '{').replace(/]/g, '}'))
+
             $('#previous_selection').val(JSON.stringify($('#add-data').data('SelectionService').selected))
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
@@ -1077,6 +1077,7 @@
         }
 
         $('#save-changes').on('click', function (e) {
+              $('#publication_data').val(JSON.stringify(wrapPubinputs()))
             if (!$('#phenotypes_concepts_json').val()) {
                 return;
             }
