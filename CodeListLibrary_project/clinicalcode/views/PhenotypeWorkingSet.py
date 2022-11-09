@@ -369,14 +369,12 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
     template_name = 'clinicalcode/phenotypeworkingset/form.html'
 
     def get_form_kwargs(self):
-        print('test kwarks ')
         kwargs = super(CreateView, self).get_form_kwargs()
         kwargs.update({'user': self.request.user})
         kwargs.update({'groups': getGroups(self.request.user)})
         return kwargs
 
     def form_invalid(self, form):
-        print('test form invalid ')
         tag_ids = commaSeparate(self.request.POST.get('tagids'))
         collections = commaSeparate(self.request.POST.get('collections'))
         datasources = commaSeparate(self.request.POST.get('datasources'))
@@ -396,7 +394,6 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
             context['datasources'] = DataSource.objects.filter(datasource_id__in=datasources)
 
         if publications:
-            print(publications)
             context['publications'] = publications
 
         if table_elements_data:
@@ -408,7 +405,6 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         return self.render_to_response(context)
 
     def form_valid(self, form):
-        print('test form valid ')
         with transaction.atomic():
             form.instance.created_by = self.request.user
             form.instance.author = self.request.POST.get('author')
