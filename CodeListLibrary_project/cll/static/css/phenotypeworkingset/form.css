@@ -88,7 +88,7 @@ table.dataTable tbody td.selected a {
 
 
 .form-control {
-    margin-bottom: 8px;
+    margin-bottom: 20px;
     height: 35px;
 }
 
@@ -132,7 +132,9 @@ table.dataTable tbody td.selected a {
     background-color: transparent;
 
 }
-
+.bootstrap-tagsinput{
+    margin-bottom: 20px;
+}
 
 .form-control[disabled], .form-control[readonly], fieldset[disabled] .label-select::before {
     border-top: 3px;
