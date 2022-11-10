@@ -85,16 +85,21 @@
                               autocomplete="off">
                     {% endif %}
                     {% csrf_token %}
-                    <div class="form-group">
+                     <div class="form-group {% if form.name.errors %}has-error{% endif %}">
                         <div class="col-sm-12">
                             <div class="material-textfield">
                                 {{ form.name }}
                                 <label class="label-material required">{{ form.name.label }}</label>
                             </div>
-
+                            	{% if form.name.errors %}
+							<span class="help-block">
+								{% for error in form.name.errors %}{{ error }}{% endfor %}
+							</span>
+							{% endif %}
 
                         </div>
                     </div>
+
 
                     <hr/>
 
@@ -119,7 +124,7 @@
 
                     <div class="form-group">
 
-                        <div class="col-sm-11" id="concept-tag-form-container">
+                        <div class="col-sm-11" id="workingset-tag-form-container">
 
                             <div class="material-textfield">
                                 <input class="input-material col-sm-12 form-control" type="text" id="txtTags"
@@ -130,8 +135,8 @@
                         </div>
 
                         <div class="col-sm-1 form-help-popover">
-                            <a href="#" role="button" class="btn popovers" id="concept-tag-form" data-toggle="popover"
-                               data-trigger="hover" data-container="#concept-tag-form-container" title=""
+                            <a href="#" role="button" class="btn popovers" id="workingset-tag-form" data-toggle="popover"
+                               data-trigger="hover" data-container="#workingset-tag-form-container" title=""
                                data-original-title="Tags" data-placement="left">
                                 <i class="fa fa-question-circle" aria-hidden="true"></i>
                             </a>
@@ -192,25 +197,38 @@
                     </div>
 
 
-                    <div class="form-group">
+                     <div class="form-group {% if form.author.errors %}has-error{% endif %}">
 
                         <div class="col-sm-12">
                             <div class="material-textfield">
                                 {{ form.author }}
-                                <label class="label-material required">{{ form.author.label }}</label>
+                                <label for="{{ form.author.id_for_label }}" class="label-material required">{{ form.author.label }}</label>
+
                             </div>
+                              {% if form.author.errors %}
+							<span class="help-block">
+								{% for error in form.author.errors %}{{ error}}{% endfor %}
+							</span>
+							{% endif %}
                         </div>
                     </div>
 
-                    <div class="form-group">
+
+                  <div class="form-group {% if form.description.errors %}has-error{% endif %}">
 
                         <div class="col-sm-12">
                             <div class="material-textfield">
                                 {{ form.description }}
                                 <label class="label-material required">Description</label>
                             </div>
+                            	{% if form.description.errors %}
+							<span class="help-block">
+								{% for error in form.description.errors %}{{ error }}{% endfor %}
+							</span>
+							{% endif %}
                         </div>
                     </div>
+
 
 
                     {% if form.instance.pk %}
@@ -471,7 +489,7 @@
                         </div>
                     {% endif %}
 
-                    <div id="popover-content-concept-tag-form" class="hide popover-lg">
+                    <div id="popover-content-workingset-tag-form" class="hide popover-lg">
                         <p>Tags are added within the administration section. Once a tag has been stored then you can
                             assign it here so that you can search this working set based on tag name(s). Simply start
                             typing the tag name you are looking for and it will appear within a dropdown just beneath

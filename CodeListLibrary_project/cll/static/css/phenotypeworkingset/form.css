@@ -28,12 +28,24 @@
 .ws-trash-pub {
     margin-left: -6px;
     padding: 6px 12px;
+    margin-top: 20px;
     height: 35px;
 }
 
 .ws-upload {
     margin-left: 3px;
 }
+#workingset-tag-form{
+    margin-top: 20px;
+}
+#workingset-owned-form{
+    margin-top: 20px;
+}
+
+#workingset-group-form{
+    margin-top: 20px;
+}
+
 
 table.dataTable tbody td.selected a {
     color: white;
@@ -48,6 +60,7 @@ table.dataTable tbody td.selected a {
 }
 
 .material-textfield {
+    margin-top: 20px;
     position: relative;
 }
 
@@ -88,14 +101,13 @@ table.dataTable tbody td.selected a {
 }
 
 .table-button {
-    margin-top: 17px;
+    margin-top: 20px;
     height: 35px;
     background-image: none;
 }
 
 
 .form-control {
-    margin-bottom: 20px;
     height: 35px;
 }
 
@@ -140,9 +152,7 @@ table.dataTable tbody td.selected a {
 
 }
 
-.bootstrap-tagsinput {
-    margin-bottom: 20px;
-}
+
 
 .form-control[disabled], .form-control[readonly], fieldset[disabled] .label-select::before {
     border-top: 3px;
@@ -223,6 +233,7 @@ table.dataTable tbody td.selected a {
     height: 35px;
     margin-left: -6px;
     position: relative;
+    margin-top: 20px;
     text-align: center;
     text-decoration: none;
     transition: color 100ms;
