@@ -929,7 +929,7 @@
 						    +'<option value="2">FLOAT</option>'
 						    +'<option value="3">STRING</option>'
 						  +'</select>`,
-                    ["Attributes-header" + numbers]: `<input class="input-material" type="text"   oninput="inputheader(this)" placeholder="Attribute name"  id="attribute-header${numbers}"/>`,
+                    ["Attributes-header" + numbers]: `<input class="input-material" type="text"   oninput="inputheader(this)" placeholder="Attribute name"   style="margin-top: 5px" id="attribute-header${numbers}"/>`,
                     ["Attributes-delete" + numbers]: `<button class="btn btn-cl-danger ws-trash" type="button" onclick="deletecolumn(this)" id="ws-remove-column${numbers}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`
 
                 }
@@ -1162,7 +1162,7 @@
 						    +'<option value="2" ${data[i].Attributes[j].type === 'FLOAT' ? 'selected' : ''}>FLOAT</option>'
 						    +'<option value="3" ${data[i].Attributes[j].type === 'STRING' ? 'selected' : ''}>STRING</option>'
 						  +'</select>`,
-                            ['Attributes-header' + j]: `<input class="input-material" type="text"  value="${data[i].Attributes[j].name}" oninput="inputheader(this)" placeholder="Attribute name"  id="attribute-header${j}"/>`,
+                            ['Attributes-header' + j]: `<input class="input-material" type="text"  value="${data[i].Attributes[j].name}" oninput="inputheader(this)" style="margin-top: 5px" placeholder="Attribute name"  id="attribute-header${j}"/>`,
                             ["Attributes-delete" + j]: `<button class="btn btn-cl-danger ws-trash" onclick="deletecolumn(this)" type="button" id="ws-remove-column${j}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`
 
 
