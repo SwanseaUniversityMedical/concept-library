@@ -15,7 +15,7 @@
 				<div class="row form-group">
 					<div class="col-sm-12">
 						<a class="ws-disabled-link" href="{% url 'phenotype_history_detail' phenotype.id phenotype.history_id %}">
-						<span style='font-size: 22px;margin-top:0;'>{{ phenotype.friendly_id }} - {{ phenotype.name_highlighted|safe }}</span>
+							<span style='font-size: 22px;margin-top:0;'>{{ phenotype.id }} - {{ phenotype.name_highlighted|safe }}</span>
 						</a>				
 					</div>
 				</div>
@@ -78,7 +78,7 @@
 								<label>
 									<input type="hidden" name="ws-concept-name" value="{{ concept.name }}"/>
 									<input type="hidden" name="ws-concept-coding" value="{{ concept.coding_system }}"/>
-									<input type="hidden" name="ws-phenotype-element" value="{{ phenotype.name }}:PH{{ phenotype.id }}:{{ phenotype.history_id }}"/>
+									<input type="hidden" name="ws-phenotype-element" value="{{ phenotype.name }}:{{ phenotype.id }}:{{ phenotype.history_id }}"/>
 									<input class="form-check-input ws-concept-option" type="checkbox" name="ws-concept-element" value="C{{ concept.id }}:{{ concept.history_id }}">
 									<span class="form-check-label">
 										<i class="ws-id-title">C{{ concept.id }}/{{ concept.history_id }}:</i>

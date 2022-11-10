@@ -25,7 +25,7 @@ urlpatterns = [
     url(r'^home/$', View.index, name='concept_library_home2'),
     url(r'^concepts/$', Concept.concept_list, name='concept_list'),
     url(r'^workingsets/$', WorkingSet.workingset_list, name='workingset_list'),
-    url(r'^workingsets/select-concepts/$', SelectPhenotype.selection_list, name='selection_list'),
+    url(r'^phenotypeworkingsets/select-concepts/$', SelectPhenotype.selection_list, name='selection_list'),
     url(r'^phenotypeworkingsets/$', PhenotypeWorkingSet.workingset_list, name='phenotypeworkingsets_list'),
     url(r'^phenotypes/$', Phenotype.phenotype_list, name='phenotype_list'),
     
