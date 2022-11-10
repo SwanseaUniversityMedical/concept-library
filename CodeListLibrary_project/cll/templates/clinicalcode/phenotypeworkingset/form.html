@@ -986,7 +986,7 @@
         const inputheader = (element) => {
             let val = element.value
             let index = element.id.match(/\d+/)[0]
-            if (/^[a-zA-Z0-9]+$/.test(val)) {
+            if (/^([a-zA-Z])([a-zA0-Z9_])*$/.test(val)) {
                 element.setCustomValidity("")
                 element.classList.remove('bg-danger')
                 element.setAttribute('value', val)
@@ -1105,7 +1105,7 @@
                     input = input.querySelector('*[id^="attribute-input"]')
                     select = select.querySelector('*[id^="column_type"]')
                     header = header.querySelector('*[id^="attribute-header"]')
-                    let header_cond = /^[a-zA-Z0-9]+$/.test(header.value)
+                    let header_cond = /^([a-zA-Z])([a-zA0-Z9_])*$/.test(header.value)
                     if (!header_cond) {
                         {
                             header.value === '' ?
