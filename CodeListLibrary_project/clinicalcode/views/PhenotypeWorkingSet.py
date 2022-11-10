@@ -369,14 +369,12 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
     template_name = 'clinicalcode/phenotypeworkingset/form.html'
 
     def get_form_kwargs(self):
-        print('test kwarks ')
         kwargs = super(CreateView, self).get_form_kwargs()
         kwargs.update({'user': self.request.user})
         kwargs.update({'groups': getGroups(self.request.user)})
         return kwargs
 
     def form_invalid(self, form):
-        print('test form invalid ')
         tag_ids = commaSeparate(self.request.POST.get('tagids'))
         collections = commaSeparate(self.request.POST.get('collections'))
         datasources = commaSeparate(self.request.POST.get('datasources'))
@@ -407,7 +405,6 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         return self.render_to_response(context)
 
     def form_valid(self, form):
-        print('test form valid ')
         with transaction.atomic():
             form.instance.created_by = self.request.user
             form.instance.author = self.request.POST.get('author')
@@ -415,14 +412,13 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
             form.instance.collections = commaSeparate(self.request.POST.get('collections'))
             form.instance.data_sources = commaSeparate(self.request.POST.get('datasources'))
             form.instance.phenotypes_concepts_data = json.loads(self.request.POST.get('workingset_data') or '[]')
-            form.instance.publications = self.request.POST.get('publication_data') or '{}'
+            form.instance.publications = json.loads(self.request.POST.get('publication_data') or '[]')
 
             self.object = form.save()
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, self.object.pk, "Created")
             messages.success(self.request, "Workingset has been successfully created.")
 
-        return HttpResponseRedirect(reverse('phenotypeworkingset_create'))
-        # return HttpResponseRedirect(reverse('workingset_update'),args=(self.object.pk)) when update is done
+        return HttpResponseRedirect(reverse('phenotypeworkingset_update', args=(self.object.id,)))
 
 
 @login_required
@@ -790,7 +786,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
         # ----------------------------------------------------------
 
         with transaction.atomic():
-            form.instance.modified_by = self.request.user
+            form.instance.updated_by = self.request.user
             form.instance.modified = datetime.datetime.now()
             form.instance.created_by = self.request.user
             form.instance.author = self.request.POST.get('author')
@@ -798,7 +794,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
             form.instance.collections = commaSeparate(self.request.POST.get('collections'))
             form.instance.data_sources = commaSeparate(self.request.POST.get('datasources'))
             form.instance.phenotypes_concepts_data = json.loads(self.request.POST.get('workingset_data') or '[]')
-            form.instance.publications = self.request.POST.get('publication_data') or '{}'
+            form.instance.publications = json.loads(self.request.POST.get('publication_data') or '[]')
 
             self.object = form.save()
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, self.kwargs['pk'], "Updated")
@@ -854,6 +850,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
         context['collections'] = workingset_collections
         context['publications'] = workigset_publications
         context['workingset_data'] = workingset_data
+        context['allowed_to_permit'] = allowed_to_permit(self.request.user, PhenotypeWorkingset, self.get_object().id)
 
 
         context['overrideVersion'] = self.confirm_overrideVersion

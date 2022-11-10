@@ -8,7 +8,7 @@ function tagAutocomplete(url,id,lookup,description){
 			datumTokenizer: Bloodhound.tokenizers.obj.whitespace('id'),
 			queryTokenizer: Bloodhound.tokenizers.whitespace,
 			remote: {
-				url: url+'?search=%QUERY%',
+				url: url,
 				wildcard: '%QUERY%',
 			}
 		});
@@ -48,7 +48,7 @@ function tagAutocomplete(url,id,lookup,description){
 						'<ul class="list-group"><li class="list-group-item">Nothing found.</li></ul>'
 					],
 					suggestion: function(data){
-						return '<li class="list-group-item">' + data.name + '</li>'
+						return '<li class="list-group-item">' + `${!data.name  ? data.description : data.name}`+ '</li>'
 					}
 				}
 			}]
