@@ -89,6 +89,11 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                         </div>
 
                         {% if user.is_authenticated and not CLL_READ_ONLY %}
+                        <span>
+								<a  class="btn btn-outline-primary btn-cl btn-cl-secondary card-edit-sizing" href="{% url "phenotypeworkingset_update" workingset.id %}" title="Edit workingset">
+								Edit
+							</a>
+							</span>
                             {% if enable_publish %}
 
                                 {% if is_published and approval_status == 2%}
