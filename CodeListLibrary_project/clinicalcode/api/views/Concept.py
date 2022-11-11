@@ -222,22 +222,27 @@ def export_concept_codes(request, pk):
         Return the unique set of codes and descriptions for the specified
         concept (pk).
     '''
-    # Require that the user has access to the base concept.
-    validate_access_to_view(request, Concept, pk)
-    if not (allowed_to_view_children(request, Concept, pk) and
-            chk_deleted_children(request, Concept, pk, returnErrors=False)):
-        raise PermissionDenied
-    #
+
     if request.method == 'GET':
         concept = Concept.objects.filter(id=pk).exclude(is_deleted=True)
         if concept.count() == 0: raise Http404
+        
+        # Require that the user has access to the base concept.
+    
+        # get the latest version
+        latest_history_id = int(Concept.objects.get(pk=pk).history.latest().history_id)
+        validate_access_to_view(request, Concept, pk, set_history_id=latest_history_id)
+        if not (allowed_to_view_children(request, Concept, pk) and
+                chk_deleted_children(request, Concept, pk, returnErrors=False)):
+            raise PermissionDenied
+    
 
         # Use a SQL function to extract this data.
         codes = getGroupOfCodesByConceptId(pk)
 
         #---------
         # latest concept_history_id
-        latest_history_id = Concept.objects.get(id=pk).history.latest('history_id').history_id
+        #latest_history_id = Concept.objects.get(id=pk).history.latest('history_id').history_id
         code_attribute_header = Concept.history.get(id=pk, history_id=latest_history_id).code_attribute_header
         concept_history_date = Concept.history.get(id=pk, history_id=latest_history_id).history_date
         codes_with_attributes = []
