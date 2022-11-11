@@ -191,6 +191,12 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                         <a id="printBtn" class="btn btn-outline-primary btn-cl btn-cl-secondary">
                             Print
                         </a>
+
+							{% if live_ver_is_deleted is True %}
+								<a class="js-load-modal btn btn-outline-danger btn-cl btn-cl-danger" href="{% url 'phenotypeworkingset_create_restore' workingset.id %}" title="Restore workingset">
+									Restore
+								</a>
+							{% endif %}
                         <a href="#" role="button" class="btn popovers" id="help-hist-phenotype"
                            data-toggle="popover" data-trigger="hover" data-container="body" title=""
                            data-original-title="" data-placement="left">
