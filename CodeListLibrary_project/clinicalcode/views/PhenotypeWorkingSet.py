@@ -898,9 +898,24 @@ class WorkingSetRestore(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Te
     '''
         Restore a deleted working set.
     '''
-    pass
-    # look at concept equivalent
 
+    model = PhenotypeWorkingset
+    success_url = reverse_lazy('phenotypeworkingsets_list')
+    template_name = 'clinicalcode/phenotypeworkingset/restore.html'
+
+    def get_success_url(self):
+        return reverse_lazy('phenotypeworkingsets_list')
+
+    def get(self, request, pk):
+        workingset = PhenotypeWorkingset.objects.get(pk=pk)
+        return self.render_to_response({'pk': pk, 'name': workingset.name})
+
+    def post(self, request, pk):
+        with transaction.atomic():
+            db_utils.restorePhenotypeWorkingset(pk, request.user)
+            db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, pk, "Workingset has been restored")
+        messages.success(self.request, "Workingset has been successfully restored.")
+        return HttpResponseRedirect(self.get_success_url())
 
 @login_required
 def workingset_history_revert(request, pk, concept_history_id):
