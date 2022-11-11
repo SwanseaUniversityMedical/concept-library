@@ -25,7 +25,7 @@ urlpatterns = [
     url(r'^home/$', View.index, name='concept_library_home2'),
     url(r'^concepts/$', Concept.concept_list, name='concept_list'),
     url(r'^workingsets/$', WorkingSet.workingset_list, name='workingset_list'),
-    url(r'^workingsets/select-concepts/$', SelectPhenotype.selection_list, name='selection_list'),
+    url(r'^phenotypeworkingsets/select-concepts/$', SelectPhenotype.selection_list, name='selection_list'),
     url(r'^phenotypeworkingsets/$', PhenotypeWorkingSet.workingset_list, name='phenotypeworkingsets_list'),
     url(r'^phenotypes/$', Phenotype.phenotype_list, name='phenotype_list'),
     
@@ -75,10 +75,7 @@ if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_P
     urlpatterns += [
         url(r'^adminTemp/api_remove_data/$', adminTemp.api_remove_data, name='api_remove_data'),
     ]
-if not settings.CLL_READ_ONLY: # and (settings.IS_DEVELOPMENT_PC):
-    urlpatterns += [
-        url(r'^adminTemp/tag-collection-split/$', adminTemp.populate_collections_tags, name='populate_collections_tags'),
-    ]
+
 
 # saving statistics
 if not settings.CLL_READ_ONLY:
