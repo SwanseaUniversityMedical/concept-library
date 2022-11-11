@@ -621,8 +621,6 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
         publish_date = PublishedWorkingset.objects.get(workingset_id=pk,
                                                        workingset_history_id=workingset_history_id).created
 
-    if PhenotypeWorkingset.objects.get(pk=pk).is_deleted == True:
-        messages.info(request, "This Working Set has been deleted.")
 
     # published versions
     published_historical_ids = list(
@@ -644,7 +642,7 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
             except:
                 data['contept_name'] = 'Unknown'
 
-    if workingset['is_deleted'] == True:
+    if PhenotypeWorkingset.objects.get(pk=pk).is_deleted == True:
         messages.info(request, "This Working Set has been deleted.")
 
     context = {
