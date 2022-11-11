@@ -259,14 +259,26 @@ def deleteConcept(pk, user):
 
 
 def deleteWorkingset(pk, user):
-    ''' Delete a concept based on a concept id '''
-    # get selected concept
+    ''' Delete a workingset based on a workingset id '''
+    # get selected workingset
     workingset = PhenotypeWorkingset.objects.get(pk=pk)
     workingset.is_deleted = True
     workingset.deleted = datetime.datetime.now()
     workingset.deleted_by = user
     workingset.changeReason = standardiseChangeReason("Deleted")
     workingset.save()
+
+
+def restorePhenotypeWorkingset(pk, user):
+    ''' Restore a workingset '''
+    # get selected workingset
+    workingset = PhenotypeWorkingset.objects.get(pk=pk)
+    workingset.is_deleted = False
+    workingset.deleted = None
+    workingset.deleted_by = None
+    workingset.changeReason = standardiseChangeReason("restored")
+    workingset.save()
+
 
 def restoreConcept(pk, user):
     ''' Restore a concept '''
