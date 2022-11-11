@@ -746,6 +746,9 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin,
     pass
 
 
+
+
+
 class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, UpdateView):
     '''
         Update the current working set.
@@ -753,7 +756,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
 
     model = PhenotypeWorkingset
     form_class = WorkingsetForm
-    success_url = reverse_lazy('workingset_list')
+    success_url = reverse_lazy('phenotypeworkingsets_list')
     template_name = 'clinicalcode/phenotypeworkingset/form.html'
 
     confirm_overrideVersion = 0
@@ -869,10 +872,26 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
 
 class WorkingSetDelete(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, TemplateResponseMixin, View):
     '''
-        Delete a working set.
-    '''
-    pass
-    # look at concept equivalent
+           Delete a workingset.
+       '''
+    model = PhenotypeWorkingset
+    success_url = reverse_lazy('phenotypeworkingsets_list')
+    template_name = 'clinicalcode/phenotypeworkingset/delete.html'
+
+    def get_success_url(self):
+        return reverse_lazy('phenotypeworkingsets_list')
+
+    def get(self, request, pk):
+        workingset = PhenotypeWorkingset.objects.get(pk=pk)
+
+        return self.render_to_response({'pk': pk, 'name': workingset.name})
+
+    def post(self, request, pk):
+        with transaction.atomic():
+            db_utils.deleteWorkingset(pk, request.user)
+            db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, pk, "Workingset has been deleted")
+        messages.success(self.request, "Workingset has been successfully deleted.")
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class WorkingSetRestore(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, TemplateResponseMixin, View):
