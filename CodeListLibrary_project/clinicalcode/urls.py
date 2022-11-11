@@ -75,10 +75,7 @@ if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_P
     urlpatterns += [
         url(r'^adminTemp/api_remove_data/$', adminTemp.api_remove_data, name='api_remove_data'),
     ]
-if not settings.CLL_READ_ONLY: # and (settings.IS_DEVELOPMENT_PC):
-    urlpatterns += [
-        url(r'^adminTemp/tag-collection-split/$', adminTemp.populate_collections_tags, name='populate_collections_tags'),
-    ]
+
 
 # saving statistics
 if not settings.CLL_READ_ONLY:
