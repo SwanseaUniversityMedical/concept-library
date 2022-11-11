@@ -41,7 +41,7 @@
 
         <h2>Edit working set</h2>
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-12" style="display: flex;justify-content: space-between">
                 <i class="help-block"><span class="required">*</span> denotes a required field</i>
                 {% if form.errors %}
                     <div id="form-error" class="alert alert-danger  col-sm-12">
@@ -54,6 +54,21 @@
                         </ul>
                     </div>
                 {% endif %}
+            <div class="delete-button-workingset">
+                  {% if form.instance.pk %}
+			{% if not CLL_READ_ONLY %}
+				{% if form.instance.is_deleted is not True %}
+					<a class="js-load-modal btn btn-outline-danger btn-cl btn-cl-danger"  href="{% url 'phenotypeworkingset_delete' form.instance.pk %}" title="Delete workingset">
+						Delete
+					</a>
+				{% endif %}
+			{% endif %}
+            </div>
+
+
+
+	{% endif %}
+
 
             </div>
         </div>
