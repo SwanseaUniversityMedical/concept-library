@@ -1387,7 +1387,7 @@ def concept_codes_to_csv(request, pk):
 
     my_params = {'id': pk, 'creation_date': time.strftime("%Y%m%dT%H%M%S")}
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = ('attachment; filename="concept_C%(id)s_group_codes_%(creation_date)s.csv"' % my_params)
+    response['Content-Disposition'] = ('attachment; filename="concept_C%(id)s_codelist_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
 
@@ -1491,7 +1491,7 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
         'creation_date': time.strftime("%Y%m%dT%H%M%S")
     }
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = ('attachment; filename="concept_C%(id)s_ver_%(concept_history_id)s_group_codes_%(creation_date)s.csv"' % my_params)
+    response['Content-Disposition'] = ('attachment; filename="concept_C%(id)s_ver_%(concept_history_id)s_codelist_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
 
