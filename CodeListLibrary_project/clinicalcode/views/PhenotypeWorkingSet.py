@@ -876,7 +876,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, 
         return context
 
 
-class WorkingSetDelete(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, TemplateResponseMixin, View):
+class WorkingSetDelete(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, TemplateResponseMixin, View):
     '''
            Delete a workingset.
        '''
