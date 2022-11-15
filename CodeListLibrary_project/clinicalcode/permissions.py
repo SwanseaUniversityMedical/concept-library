@@ -572,14 +572,14 @@ class HasAccessToEditWorkingsetCheckMixin(object):
     '''
 
     def has_access_to_edit_workingset(self, user, workingset_id):
-        from .models.WorkingSet import WorkingSet
-        return allowed_to_edit(self.request, WorkingSet, workingset_id)
+        from .models.PhenotypeWorkingset import PhenotypeWorkingset
+        return allowed_to_edit(self.request, PhenotypeWorkingset, workingset_id)
 
     def access_to_edit_workingset_failed(self, request, *args, **kwargs):
         raise PermissionDenied
 
     def dispatch(self, request, *args, **kwargs):
-        if not self.has_access_to_edit_workingset(request.user):
+        if not self.has_access_to_edit_workingset(request.user,self.kwargs['pk']):
             return self.access_to_edit_workingset_failed(request, *args, **kwargs)
 
         return super(HasAccessToEditWorkingsetCheckMixin, self).dispatch(request, *args, **kwargs)
@@ -592,8 +592,8 @@ class HasAccessToViewWorkingsetCheckMixin(object):
     '''
 
     def has_access_to_view_workingset(self, user, workingset_id):
-        from .models.WorkingSet import WorkingSet
-        return allowed_to_view(self.request, WorkingSet, workingset_id)
+        from .models.PhenotypeWorkingset import PhenotypeWorkingset
+        return allowed_to_view(self.request, PhenotypeWorkingset, workingset_id)
 
     def access_to_view_workingset_failed(self, request, *args, **kwargs):
         raise PermissionDenied
