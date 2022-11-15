@@ -15,7 +15,7 @@ from .TimeStampedModel import TimeStampedModel
 
 
 class PhenotypeWorkingset(TimeStampedModel):
-    id = models.CharField(primary_key=True, editable=False, max_length=50)
+    id = models.CharField(primary_key=True, editable=False, default=None,max_length=50)
     name = models.CharField(max_length=250)
     type = models.IntegerField(choices=Type_status,null=True,blank=True,default = 0)  # restricted type of the working_set(constants)
     tags = ArrayField(models.IntegerField(), blank=True, null=True)  # tags of brands
