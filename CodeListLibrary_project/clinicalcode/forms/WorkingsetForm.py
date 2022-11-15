@@ -44,9 +44,7 @@ class WorkingsetForm(forms.ModelForm):
         # if self.user.id != instance.owner.id:
         if instance.owner is not None:
             if not allowed_to_permit(self.user, PhenotypeWorkingset, instance.id):
-                self.fields['owner'].disabled = True
                 self.fields['owner_access'].disabled = True
-                self.fields['group'].disabled = True
                 self.fields['group_access'].disabled = True
                 self.fields['world_access'].disabled = True
         else:
