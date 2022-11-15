@@ -26,10 +26,11 @@
 		</tr>
 	</thead>
 	<tbody>	 
-	{% for history in history.all %}
+	{% for history in history %}
 		<tr>
 			<td>{{ history.history_id }}</td>
 			<td>
+
 				<a class="" href="{% url 'phenotypeworkingset_history_detail' pk=history.id workingset_history_id=history.history_id %}">
 				{% if history.name_highlighted|length %}
 					{{ history.name_highlighted|safe }}
