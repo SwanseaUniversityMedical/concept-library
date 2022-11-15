@@ -375,9 +375,9 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         return kwargs
 
     def get_success_url(self):
-        if allowed_to_edit(self.request, Concept, self.object.id):
+        if allowed_to_edit(self.request, PhenotypeWorkingset, self.object.id):
             return reverse('phenotypeworkingset_update', args=(self.object.id, ))
-        elif allowed_to_view(self.request, Concept, self.object.id):
+        elif allowed_to_view(self.request, PhenotypeWorkingset, self.object.id):
             return reverse('phenotypeworkingset_detail', args=(self.object.id, ))
         else:
             return reverse('phenotypeworkingsets_list')
@@ -755,7 +755,7 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin,
 
 
 
-class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, UpdateView):
+class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, UpdateView):
     '''
         Update the current working set.
     '''
