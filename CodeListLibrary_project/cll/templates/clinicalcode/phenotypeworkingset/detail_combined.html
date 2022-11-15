@@ -90,7 +90,8 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
 
                         {% if user.is_authenticated and not CLL_READ_ONLY %}
                         <span>
-								<a  class="btn btn-outline-primary btn-cl btn-cl-secondary card-edit-sizing" href="{% url "phenotypeworkingset_update" workingset.id %}" title="Edit workingset">
+								<a class="btn btn-outline-primary btn-cl btn-cl-secondary card-edit-sizing" {% if user_can_edit %} href="{% url "phenotypeworkingset_update" workingset.id %}" {% endif %} title="Edit workingset"
+								{% if not user_can_edit %} disabled {% endif %}>
 								Edit
 							</a>
 							</span>
