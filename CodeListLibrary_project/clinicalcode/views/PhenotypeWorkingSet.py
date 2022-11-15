@@ -374,6 +374,14 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         kwargs.update({'groups': getGroups(self.request.user)})
         return kwargs
 
+    def get_success_url(self):
+        if allowed_to_edit(self.request, Concept, self.object.id):
+            return reverse('phenotypeworkingset_update', args=(self.object.id, ))
+        elif allowed_to_view(self.request, Concept, self.object.id):
+            return reverse('phenotypeworkingset_detail', args=(self.object.id, ))
+        else:
+            return reverse('phenotypeworkingsets_list')
+
     def form_invalid(self, form):
         tag_ids = commaSeparate(self.request.POST.get('tagids'))
         collections = commaSeparate(self.request.POST.get('collections'))
@@ -418,7 +426,7 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, self.object.pk, "Created")
             messages.success(self.request, "Workingset has been successfully created.")
 
-        return HttpResponseRedirect(reverse('phenotypeworkingset_update', args=(self.object.id,)))
+        return HttpResponseRedirect(self.get_success_url())
 
 
 @login_required
