@@ -149,21 +149,38 @@ table.dataTable tbody td.selected a {
     color: #9b9191;
     z-index: 1;
     background-color: transparent;
-
 }
 
 
 
 .form-control[disabled], .form-control[readonly], fieldset[disabled] .label-select::before {
-    border-top: 3px;
+
     content: "";
-    margin: 0 auto; /* this centers the line to the full width specified */
-    position: absolute; /* positioning must be absolute here, and relative positioning must be applied to the parent */
+    position: inherit;
     top: 50%;
     left: 0;
     right: 0;
     bottom: 0;
-    width: 95%;
+
+    background-color: #eee;
+
+    z-index: -1;
+}
+
+.form-control[disabled], .form-control[readonly], fieldset[disabled] .input-material {
+    color: #9b9191;
+    z-index: 1;
+}
+
+
+
+.form-control[disabled], .form-control[readonly], fieldset[disabled] .input-material::before {
+
+
+    top: 50%;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background-color: #eee;
     z-index: -1;
 }
