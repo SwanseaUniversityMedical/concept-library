@@ -572,6 +572,46 @@ class HasAccessToEditWorkingsetCheckMixin(object):
     '''
 
     def has_access_to_edit_workingset(self, user, workingset_id):
+        from .models.WorkingSet import WorkingSet
+        return allowed_to_edit(self.request, WorkingSet, workingset_id)
+
+    def access_to_edit_workingset_failed(self, request, *args, **kwargs):
+        raise PermissionDenied
+
+    def dispatch(self, request, *args, **kwargs):
+        if not self.has_access_to_edit_workingset(request.user):
+            return self.access_to_edit_workingset_failed(request, *args, **kwargs)
+
+        return super(HasAccessToEditWorkingsetCheckMixin, self).dispatch(request, *args, **kwargs)
+
+
+class HasAccessToViewWorkingsetCheckMixin(object):
+    '''
+        mixin to check if user has view access to a working set
+        this mixin is used within class based views and can be overridden
+    '''
+
+    def has_access_to_view_workingset(self, user, workingset_id):
+        from .models.WorkingSet import WorkingSet
+        return allowed_to_view(self.request, WorkingSet, workingset_id)
+
+    def access_to_view_workingset_failed(self, request, *args, **kwargs):
+        raise PermissionDenied
+
+    def dispatch(self, request, *args, **kwargs):
+        if not self.has_access_to_view_workingset(request.user, self.kwargs['pk']):
+            return self.access_to_view_workingset_failed(request, *args, **kwargs)
+
+        return super(HasAccessToViewWorkingsetCheckMixin, self).dispatch(request, *args, **kwargs)
+
+
+class HasAccessToEditPhenotypeWorkingsetCheckMixin(object):
+    '''
+        mixin to check if user has edit access to a working set
+        this mixin is used within class based views and can be overridden
+    '''
+
+    def has_access_to_edit_workingset(self, user, workingset_id):
         from .models.PhenotypeWorkingset import PhenotypeWorkingset
         return allowed_to_edit(self.request, PhenotypeWorkingset, workingset_id)
 
@@ -582,10 +622,10 @@ class HasAccessToEditWorkingsetCheckMixin(object):
         if not self.has_access_to_edit_workingset(request.user,self.kwargs['pk']):
             return self.access_to_edit_workingset_failed(request, *args, **kwargs)
 
-        return super(HasAccessToEditWorkingsetCheckMixin, self).dispatch(request, *args, **kwargs)
+        return super(HasAccessToEditPhenotypeWorkingsetCheckMixin, self).dispatch(request, *args, **kwargs)
 
 
-class HasAccessToViewWorkingsetCheckMixin(object):
+class HasAccessToViewPhenotypeWorkingsetCheckMixin(object):
     '''
         mixin to check if user has view access to a working set
         this mixin is used within class based views and can be overridden
@@ -602,7 +642,7 @@ class HasAccessToViewWorkingsetCheckMixin(object):
         if not self.has_access_to_view_workingset(request.user, self.kwargs['pk']):
             return self.access_to_view_workingset_failed(request, *args, **kwargs)
 
-        return super(HasAccessToViewWorkingsetCheckMixin, self).dispatch(request, *args, **kwargs)
+        return super(HasAccessToViewPhenotypeWorkingsetCheckMixin, self).dispatch(request, *args, **kwargs)
 
 
 class HasAccessToEditPhenotypeCheckMixin(object):
