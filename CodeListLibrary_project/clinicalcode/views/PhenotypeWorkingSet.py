@@ -741,7 +741,7 @@ def get_history_table_data(request, pk):
     return historical_versions
 
 
-class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, TemplateResponseMixin, View):
+class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
     '''
         Publish the current working set.
     '''
@@ -755,7 +755,7 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin,
 
 
 
-class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, UpdateView):
+class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCheckMixin, UpdateView):
     '''
         Update the current working set.
     '''
@@ -876,7 +876,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, 
         return context
 
 
-class WorkingSetDelete(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, TemplateResponseMixin, View):
+class WorkingSetDelete(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
     '''
            Delete a workingset.
        '''
@@ -894,13 +894,13 @@ class WorkingSetDelete(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, 
 
     def post(self, request, pk):
         with transaction.atomic():
-            db_utils.deleteWorkingset(pk, request.user)
+            db_utils.deletePhenotypeWorkingset(pk, request.user)
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, pk, "Workingset has been deleted")
         messages.success(self.request, "Workingset has been successfully deleted.")
         return HttpResponseRedirect(self.get_success_url())
 
 
-class WorkingSetRestore(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, TemplateResponseMixin, View):
+class WorkingSetRestore(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
     '''
         Restore a deleted working set.
     '''
