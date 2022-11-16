@@ -662,7 +662,7 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
         'collections': collections_tags,
         'has_collections': has_collections,
         'data_sources': data_sources,
-        'user_can_edit': False,  # for now  #can_edit,
+        'user_can_edit': can_edit,  #can_edit,
         'allowed_to_create': False,  # for now  #user_allowed_to_create,    # not settings.CLL_READ_ONLY,
         'user_can_export': user_can_export,
         'history': history,
@@ -900,7 +900,7 @@ class WorkingSetDelete(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, 
         return HttpResponseRedirect(self.get_success_url())
 
 
-class WorkingSetRestore(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, TemplateResponseMixin, View):
+class WorkingSetRestore(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, TemplateResponseMixin, View):
     '''
         Restore a deleted working set.
     '''
