@@ -124,8 +124,7 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 								
 						{% endif %}
 						
-
-							{{ user_can_edit }}
+                        
 							{% if live_ver_is_deleted is True %}
 								<a class="js-load-modal btn btn-outline-danger btn-cl btn-cl-danger" href="{% url 'concept_restore' concept.id %}" title="Restore concept">
 									Restore
