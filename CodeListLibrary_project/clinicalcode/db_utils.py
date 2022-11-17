@@ -265,6 +265,7 @@ def deletePhenotypeWorkingset(pk, user):
     workingset.is_deleted = True
     workingset.deleted = datetime.datetime.now()
     workingset.deleted_by = user
+    workingset.updated_by = user
     workingset.changeReason = standardiseChangeReason("Deleted")
     workingset.save()
 
@@ -276,6 +277,7 @@ def restorePhenotypeWorkingset(pk, user):
     workingset.is_deleted = False
     workingset.deleted = None
     workingset.deleted_by = None
+    workingset.updated_by = user
     workingset.changeReason = standardiseChangeReason("restored")
     workingset.save()
 
