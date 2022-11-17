@@ -601,6 +601,9 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
         can_edit = (not PhenotypeWorkingset.objects.get(pk=pk).is_deleted) and allowed_to_edit(request,
                                                                                                PhenotypeWorkingset, pk)
 
+        can_restore = PhenotypeWorkingset.objects.get(pk=pk).is_deleted and allowed_to_edit(request,
+                                                                                               PhenotypeWorkingset, pk)
+
         user_can_export = (
                 allowed_to_view_children(request, PhenotypeWorkingset, pk, set_history_id=workingset_history_id)
                 and db_utils.chk_deleted_children(
@@ -621,6 +624,7 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
 
     else:
         can_edit = False
+        can_restore =False
         user_can_export = is_published
         user_allowed_to_create = False
 
@@ -663,6 +667,7 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
         'has_collections': has_collections,
         'data_sources': data_sources,
         'user_can_edit': can_edit,  #can_edit,
+        'user_can_restore':can_restore,
         'allowed_to_create': False,  # for now  #user_allowed_to_create,    # not settings.CLL_READ_ONLY,
         'user_can_export': user_can_export,
         'history': history,
