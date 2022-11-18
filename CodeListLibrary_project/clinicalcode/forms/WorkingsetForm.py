@@ -29,7 +29,6 @@ class WorkingsetForm(forms.ModelForm):
         # Populate the list of possible groups from the group list
         # maintained by Django.
         self.group_list = []  # Clear list or it will just accumulate.
-        self.phenotypes_concepts_data = []  # intial list of data to put
         self.group_list.append((0, '----------'))
         for group in self.groups.all():
             # Use user.id (stored in the database) to refer to a User object;
@@ -52,7 +51,11 @@ class WorkingsetForm(forms.ModelForm):
         else:
             # Note that we are setting self.initial NOT self.fields[].initial.
             self.initial['owner'] = self.user.id
-            self.fields['owner'].disabled = True
+            if not self.user.is_superuser:
+                self.fields['owner'].disabled = True
+
+
+
 
         ## If the user does not belong to a certain group, remove the field
         # if not self.user.groups.filter(name__iexact='mygroup').exists():
