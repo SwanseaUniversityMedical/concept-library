@@ -33,6 +33,7 @@ from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from .. import db_utils, utils
+from ..view_utils import workingset_db_utils
 from clinicalcode.forms.WorkingsetForm import WorkingsetForm
 from ..models import *
 from ..permissions import *
@@ -143,7 +144,7 @@ def workingset_list(request):
     get_live_and_or_published_ver = 3  # 1= live only, 2= published only, 3= live+published
 
     # available ph_workingset_types in the DB
-    ph_workingset_types_list, ph_workingset_types_order = db_utils.get_brand_associated_workingset_types(request, brand=None)
+    ph_workingset_types_list, ph_workingset_types_order = workingset_db_utils.get_brand_associated_workingset_types(request, brand=None)
     ph_workingset_selected_types_list = {ph_workingset_types_order[k]: v for k, v in enumerate(ph_workingset_types_list)}
     
     # search by ID (only with prefix)
@@ -226,7 +227,7 @@ def workingset_list(request):
         filter_cond += " AND group_id IN(" + ', '.join(map(str, group_list)) + ") "
 
     order_param = db_utils.get_order_from_parameter(des_order).replace(" id,", " REPLACE(id, 'WS', '')::INTEGER,")
-    workingset_srch = db_utils.get_visible_live_or_published_phenotype_workingset_versions(request,
+    workingset_srch = workingset_db_utils.get_visible_live_or_published_phenotype_workingset_versions(request,
                                                                             get_live_and_or_published_ver=get_live_and_or_published_ver,
                                                                             search=[search, ''][search_by_id],
                                                                             author=author,
@@ -546,7 +547,7 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
 
     # ----------------------------------------------------------------------
 
-    workingset = db_utils.getHistoryPhenotypeWorkingset(workingset_history_id,
+    workingset = workingset_db_utils.getHistoryPhenotypeWorkingset(workingset_history_id,
                                                         highlight_result=[False, True][
                                                             db_utils.is_referred_from_search_page(request)],
                                                         q_highlight=db_utils.get_q_highlight(request,
@@ -696,7 +697,7 @@ def get_history_table_data(request, pk):
     historical_versions = []
 
     for v in versions:
-        ver = db_utils.getHistoryPhenotypeWorkingset(v.history_id
+        ver = workingset_db_utils.getHistoryPhenotypeWorkingset(v.history_id
                                                      , highlight_result=[False, True][
                 db_utils.is_referred_from_search_page(request)]
                                                      , q_highlight=db_utils.get_q_highlight(request,
@@ -899,7 +900,7 @@ class WorkingSetDelete(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
 
     def post(self, request, pk):
         with transaction.atomic():
-            db_utils.deletePhenotypeWorkingset(pk, request.user)
+            workingset_db_utils.deletePhenotypeWorkingset(pk, request.user)
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, pk, "Workingset has been deleted")
         messages.success(self.request, "Workingset has been successfully deleted.")
         return HttpResponseRedirect(self.get_success_url())
@@ -923,7 +924,7 @@ class WorkingSetRestore(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
 
     def post(self, request, pk):
         with transaction.atomic():
-            db_utils.restorePhenotypeWorkingset(pk, request.user)
+            workingset_db_utils.restorePhenotypeWorkingset(pk, request.user)
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, pk, "Workingset has been restored")
         messages.success(self.request, "Workingset has been successfully restored.")
         return HttpResponseRedirect(self.get_success_url())
@@ -1097,14 +1098,14 @@ def workingset_conceptcodesByVersion(request,
 
     # --------------------------------------------------
 
-    codes = db_utils.get_working_set_codes_by_version(request, pk, workingset_history_id, target_concept_id,
+    codes = workingset_db_utils.get_working_set_codes_by_version(request, pk, workingset_history_id, target_concept_id,
                                                       target_concept_history_id)
 
     data = dict()
     data['form_is_valid'] = True
 
     # Get the list of concepts in the workingset data
-    groups = db_utils.getGroupOfConceptsByPhenotypeWorkingsetId_historical(pk, workingset_history_id)
+    groups = workingset_db_utils.getGroupOfConceptsByPhenotypeWorkingsetId_historical(pk, workingset_history_id)
 
     concept_codes_html = []
     for group in groups:
