@@ -540,8 +540,6 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
             c['concept_friendly_id'] = 'C' + str(c['concept_id'])
             concept_data.append(c)
 
-    if phenotype['is_deleted'] == True:
-        messages.info(request, "This phenotype has been deleted.")
 
     context = {
         'phenotype': phenotype,
