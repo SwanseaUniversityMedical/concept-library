@@ -1,5 +1,6 @@
 import time
 from datetime import datetime
+import re
 
 from django.conf import settings
 from django.contrib import messages
@@ -520,4 +521,145 @@ def populate_collections_tags(request):
     #                     )
             
             
+@login_required
+def admin_delete_phenotypes(request):
+    # for admin(developers) to mark phenotypes as deleted    
+   
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not is_member(request.user, 'system developers'):
+        raise PermissionDenied
+    
+
+    if request.method == 'GET':
+        if not settings.CLL_READ_ONLY: 
+            return render(request, 'clinicalcode/adminTemp/admin_delete_phenotypes.html', 
+                          {'url': reverse('admin_delete_phenotypes'),
+                           'action_title': 'Delete Phenotypes'
+                        })
+    
+    elif request.method == 'POST':
+        if not settings.CLL_READ_ONLY: 
+            code = request.POST.get('code')
+            if code.strip() != "6)r&9hpr_a0_4g(xan5p@=kaz2q_cd(v5n^!#ru*_(+d)#_0-i":
+                raise PermissionDenied
+    
+            phenotype_ids = request.POST.get('phenotype_ids')
+            phenotype_ids = phenotype_ids.strip().upper()
             
+            ph_id_list = []
+            if phenotype_ids:
+                ph_id_list = [i.strip() for i in phenotype_ids.split(",")]
+            
+            rowsAffected = {}    
+    
+            if ph_id_list:
+                for pk in ph_id_list:
+                    pk = re.sub(' +', ' ', pk.strip())
+                    id_match = re.search(r"(?i)^PH\d+$", pk)
+                    if id_match:
+                        if id_match.group() == id_match.string: # full match
+                            is_valid_id, err, ret_id = db_utils.chk_valid_id(request, set_class=Phenotype, pk=pk, chk_permission=True)
+                            if is_valid_id:
+                                pk = str(ret_id)
+                
+                                if Phenotype.objects.filter(pk=pk).exists():
+                                    phenotype = Phenotype.objects.get(pk=pk)
+                                    phenotype.is_deleted = True
+                                    phenotype.deleted = datetime.datetime.now()
+                                    phenotype.deleted_by = request.user
+                                    phenotype.updated_by = request.user
+                                    phenotype.changeReason = "Deleted"
+                                    phenotype.save()
+                                    db_utils.modify_Entity_ChangeReason(Phenotype, pk, "Deleted")
+                                    
+                                    
+                                    rowsAffected[pk] = "phenotype(" + str(pk) + "): \"" + phenotype.name + "\" is marked as deleted."
+    
+            else:
+                rowsAffected[-1] = "Phenotype IDs NOT correct"
+    
+            return render(request,
+                        'clinicalcode/adminTemp/admin_delete_phenotypes.html',
+                        {   'pk': -10,
+                            'rowsAffected' : rowsAffected,
+                            'action_title': 'Delete Phenotypes'
+                        }
+                        )
+            
+            
+@login_required
+def admin_restore_phenotypes(request):
+    # for admin(developers) to restore deleted phenotypes 
+   
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not is_member(request.user, 'system developers'):
+        raise PermissionDenied
+    
+
+    if request.method == 'GET':
+        if not settings.CLL_READ_ONLY: 
+            return render(request, 'clinicalcode/adminTemp/admin_delete_phenotypes.html', 
+                          {'url': reverse('admin_restore_phenotypes'),
+                           'action_title': 'Restore Phenotypes'
+                        })
+    
+    elif request.method == 'POST':
+        if not settings.CLL_READ_ONLY: 
+            code = request.POST.get('code')
+            if code.strip() != "6)r&9hpr_a0_4g(xan5p@=kaz2q_cd(v5n^!#ru*_(+d)#_0-i":
+                raise PermissionDenied
+    
+            phenotype_ids = request.POST.get('phenotype_ids')
+            phenotype_ids = phenotype_ids.strip().upper()
+
+            ph_id_list = []
+            if phenotype_ids:
+                ph_id_list = [i.strip() for i in phenotype_ids.split(",")]
+                
+                            
+            rowsAffected = {}    
+    
+            if ph_id_list:
+                for pk in ph_id_list:
+                    pk = re.sub(' +', ' ', pk.strip())
+                    id_match = re.search(r"(?i)^PH\d+$", pk)
+                    if id_match:
+                        if id_match.group() == id_match.string: # full match
+                            is_valid_id, err, ret_id = db_utils.chk_valid_id(request, set_class=Phenotype, pk=pk, chk_permission=True)
+                            if is_valid_id:
+                                pk = str(ret_id)
+                                                    
+                                if Phenotype.objects.filter(pk=pk).exists():
+                                    phenotype = Phenotype.objects.get(pk=pk)
+                                    phenotype.is_deleted = False
+                                    phenotype.deleted = None
+                                    phenotype.deleted_by = None
+                                    phenotype.updated_by = request.user
+                                    phenotype.changeReason = "Restored"
+                                    phenotype.save()
+                                    db_utils.modify_Entity_ChangeReason(Phenotype, pk, "Restored")
+                                    
+                                    rowsAffected[pk] = "phenotype(" + str(pk) + "): \"" + phenotype.name + "\" is restored."
+    
+            else:
+                rowsAffected[-1] = "Phenotype IDs NOT correct"
+    
+            return render(request,
+                        'clinicalcode/adminTemp/admin_delete_phenotypes.html',
+                        {   'pk': -10,
+                            'rowsAffected' : rowsAffected,
+                            'action_title': 'Restore Phenotypes'
+                        }
+                        )
+            
+
