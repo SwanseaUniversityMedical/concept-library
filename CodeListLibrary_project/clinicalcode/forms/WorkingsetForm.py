@@ -52,6 +52,7 @@ class WorkingsetForm(forms.ModelForm):
         else:
             # Note that we are setting self.initial NOT self.fields[].initial.
             self.initial['owner'] = self.user.id
+            self.fields['owner'].disabled = True
 
         ## If the user does not belong to a certain group, remove the field
         # if not self.user.groups.filter(name__iexact='mygroup').exists():
