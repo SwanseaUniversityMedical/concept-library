@@ -1,4 +1,4 @@
-<form method="post" action="{% url 'concept_history_revert' pk=concept.id concept_history_id=concept.history_id %}" class="form-horizontal js-fork-submit-form">
+<form method="post" action="{% url 'phenotypeworkingset_history_revert' workingset.id workingset.history_id %}" class="form-horizontal js-fork-submit-form">
 	{% csrf_token %}
 
 	<div class="modal-header">
@@ -6,7 +6,7 @@
 			<span aria-hidden="true">&times;</span>
 		</button>
 		<div class="has-error">
-		<h4 class="modal-title">Are you sure you want to revert this previously saved version "{{ concept.name }}"?</h4>
+		<h4 class="modal-title">Are you sure you want to revert this previously saved version "{{ workingset.name }}"?</h4>
 		</div>
 	</div>
 	<div class="modal-body">
@@ -15,7 +15,7 @@
 				<div class="form-horizontal">
 					<div class="form-group">
 						<label class="col-sm-3">Name:</label>
-						<div class="col-sm-7">{{ concept.name }}</div>
+						<div class="col-sm-7">{{ workingset.name }}</div>
 						<div class="col-sm-2 text-right">
 							<a href="#" role="button" class="popovers" id="revert-help" data-container="body" data-toggle="popover" data-trigger="hover" title="" data-original-title="Revert overview" data-placement="left">
 								<i class="fa fa-question-circle" aria-hidden="true"></i>
@@ -25,33 +25,33 @@
 
 <!-- 					<div class="form-group"> -->
 <!-- 						<label class="col-sm-3">Description:</label> -->
-<!-- 						<div class="col-sm-7">{{ concept.description }}</div> -->
+<!-- 						<div class="col-sm-7">{{ workingset.description }}</div> -->
 <!-- 					</div> -->
 					<div class="form-group">
 						<label class="col-sm-3">Author:</label>
-						<div class="col-sm-7">{{ concept.author }}</div>
+						<div class="col-sm-7">{{ workingset.author }}</div>
 					</div>
 					<div class="form-group">
 						<label class="col-sm-3">Coding system:</label>
-						<div class="col-sm-7">{{ concept.coding_system_name }}</div>
+						<div class="col-sm-7">{{ workingset.coding_system_name }}</div>
 					</div>
 					<div class="form-group">
 						<label class="col-sm-3">History date:</label>
-						<div class="col-sm-7">{{ concept.history_date }}</div>
+						<div class="col-sm-7">{{ workingset.history_date }}</div>
 					</div>
 					<div class="form-group">
 						<label class="col-sm-3">Change reason:</label>
-						<div class="col-sm-7">{{ concept.history_change_reason }}</div>
+						<div class="col-sm-7">{{ workingset.history_change_reason }}</div>
 					</div>
 					<div class="form-group">
 						<label class="col-sm-3">History user:</label>
-						<div class="col-sm-7">{{ concept.history_user }}</div>
+						<div class="col-sm-7">{{ workingset.history_user }}</div>
 					</div>
 				</div>
 			</div>
 		</div>
 		<div id="popover-content-revert-help" class="hide popover-lg">
-			<p>This will restore the concept back to this version.</p>
+			<p>This will restore the workingset back to this version.</p>
 		</div>
 	</div>
 	<div class="modal-footer">
