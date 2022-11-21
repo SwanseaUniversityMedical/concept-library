@@ -930,12 +930,37 @@ class WorkingSetRestore(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
         return HttpResponseRedirect(self.get_success_url())
 
 @login_required
-def workingset_history_revert(request, pk, concept_history_id):
+def workingset_history_revert(request, pk, workingset_history_id):
     ''' 
         Revert a previously saved working set from the history.
     '''
-    pass
-    # look at concept equivalent
+    validate_access_to_edit(request, Concept, pk)
+    data = dict()
+    if request.method == 'POST':
+        # Don't allow revert if the active object is deleted
+        if PhenotypeWorkingset.objects.get(pk=pk).is_deleted: raise PermissionDenied
+        try:
+            with transaction.atomic():
+                db_utils.revertHistoryConcept(request.user, workingset_history_id)
+                db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, pk, "Workingset reverted from version %s" % workingset_history_id)
+
+
+                data['form_is_valid'] = True
+                data['message'] = render_to_string('clinicalcode/concept/history/reverted.html', {'id': pk}, request)
+                return JsonResponse(data)
+        except Exception as e:
+            data['form_is_valid'] = False
+            data['message'] = render_to_string('clinicalcode/concept/history/revert.html', {}, request)
+            return JsonResponse(data)
+
+    workingset = db_utils.getHistoryConcept(workingset_history_id)
+    is_latest_version = (int(workingset_history_id) == PhenotypeWorkingset.objects.get(pk=pk).history.latest().history_id)
+
+    return render(request, 'clinicalcode/concept/history/revert.html',
+                  {
+                      'workingset': workingset,
+                      'is_latest_version': is_latest_version
+                  })
 
 
 def history_workingset_codes_to_csv(request, pk, workingset_history_id=None):
