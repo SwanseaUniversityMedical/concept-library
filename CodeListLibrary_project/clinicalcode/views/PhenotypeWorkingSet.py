@@ -953,11 +953,10 @@ def workingset_history_revert(request, pk, workingset_history_id):
                 return JsonResponse(data)
         except Exception as e:
             data['form_is_valid'] = False
-            data['message'] = render_to_string('clinicalcode/phenotypeworkingset/revert.html', {}, request)
+            data['message'] = "Something went wrong"
             return JsonResponse(data)
 
     workingset = PhenotypeWorkingset.history.filter(id=pk,history_id=workingset_history_id).first()
-    print(workingset)
     is_latest_version = (int(workingset_history_id) == PhenotypeWorkingset.objects.get(pk=pk).history.latest().history_id)
 
     return render(request, 'clinicalcode/phenotypeworkingset/revert.html',
