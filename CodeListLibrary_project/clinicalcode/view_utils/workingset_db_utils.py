@@ -38,38 +38,40 @@ def restorePhenotypeWorkingset(pk, user):
     workingset.save()
 
 
-def revertHistoryPhenotypeWorkingset(pk,workingset_history_id):
+def revertHistoryPhenotypeWorkingset(user,workingset_history_id):
     ''' Revert a selected historical workingset and create it as a new workingset using an existing workingset id '''
 
-    workingset = PhenotypeWorkingset.history.filter(id=pk,history_id=workingset_history_id).first()
+    workingset = getHistoryPhenotypeWorkingset(workingset_history_id)
 
-    # get selected concept
-    workingset_obj = PhenotypeWorkingset.objects.get(pk=workingset.id)
+    # get selected working set
+    workingset_obj = PhenotypeWorkingset.objects.get(pk=workingset['id'])
 
     # Don't allow revert if the active object is deleted
-    if workingset.is_deleted: raise PermissionDenied
+    if workingset_obj.is_deleted: raise PermissionDenied
 
-    # update concept with historical information
-    workingset_obj.name = workingset.name
-    workingset_obj.description = workingset.description
-    workingset_obj.created_by = workingset.created_by
-    workingset_obj.author = workingset.author
-    workingset_obj.modified_by = workingset.updated_by
-    workingset_obj.citation_requirements = workingset.citation_requirements
-    workingset_obj.created = workingset.created
-    workingset_obj.modified = workingset.modified
-    workingset_obj.owner = workingset.owner
-    workingset_obj.group = workingset.group
-    workingset_obj.owner_access = workingset.owner_access
-    workingset_obj.group_access = workingset.group_access
-    workingset_obj.world_access = workingset.world_access
-    workingset_obj.tags = workingset.tags
-    workingset_obj.collections = workingset.collections
-    workingset_obj.phenotypes_concepts_data = workingset.phenotypes_concepts_data
+    # update working set with historical information
+    workingset_obj.name = workingset['name']
+    workingset_obj.author = workingset['author']
+    workingset_obj.description = workingset['description']
+    workingset_obj.publications = workingset['publications']
+
+    workingset_obj.created_by = User.objects.filter(pk=workingset['created_by_id']).first()
+
+    workingset_obj.updated_by = User.objects.filter(pk=user.id).first()
+
+    workingset_obj.citation_requirements = workingset['citation_requirements']
+    workingset_obj.owner = User.objects.filter(pk=workingset['owner_id']).first()
+    workingset_obj.group = Group.objects.filter(pk=workingset['group_id']).first()
+    workingset_obj.owner_access = workingset['owner_access']
+    workingset_obj.group_access = workingset['group_access']
+    workingset_obj.world_access = workingset['world_access']
+    workingset_obj.created = workingset['created']
+    workingset_obj.modified = workingset['modified']
+    workingset_obj.phenotypes_concepts_data = workingset['phenotypes_concepts_data']
+
+    modify_Entity_ChangeReason(PhenotypeWorkingset, workingset_obj.pk, "Working set reverted from version " + str(workingset_history_id))
     workingset_obj.changeReason = "Working set reverted from version " + str(workingset_history_id) + ""
     workingset_obj.save()
-    modify_Entity_ChangeReason(PhenotypeWorkingset, pk, "Working set reverted from version " + str(workingset_history_id))
-
 
 
 def validate_phenotype_workingset_attribute(attribute):
@@ -621,3 +623,87 @@ def getGroupOfConceptsByPhenotypeWorkingsetId_historical(workingset_id, workings
 
     return concepts
 
+
+def getHistoryPhenotypeWorkingset(workingset_history_id, highlight_result=False, q_highlight=None):
+    ''' Get historic phenotypeworkingset based on a workingset history id '''
+
+    sql_params = []
+    highlight_columns = ""
+    if highlight_result and q_highlight is not None:
+        # for highlighting
+        if str(q_highlight).strip() != '':
+            sql_params += [str(q_highlight)] * 4
+            highlight_columns += """ 
+                ts_headline('english', coalesce(hw.name, '')
+                        , websearch_to_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as name_highlighted,  
+
+                ts_headline('english', coalesce(hw.author, '')
+                        , websearch_to_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as author_highlighted,                                              
+
+                ts_headline('english', coalesce(hw.description, '')
+                        , websearch_to_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=hightlight-txt > ", StopSel="</b>"') as description_highlighted,                                                                                            
+
+                ts_headline('english', coalesce(array_to_string(hw.publications, '^$^'), '')
+                        , websearch_to_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publications_highlighted,                                              
+             """
+
+    sql_params.append(workingset_history_id)
+
+    with connection.cursor() as cursor:
+        cursor.execute("""
+        SELECT 
+        """ + highlight_columns + """
+        hw.created,
+        hw.modified,
+        hw.id,
+        hw.name,
+        hw.description,
+        hw.author,
+        hw.publications,
+        hw.citation_requirements,
+        hw.owner_id,
+        hw.group_id,
+        hw.tags,
+        hw.type,
+        hw.data_sources,
+        hw.collections,
+        hw.owner_access,
+        hw.group_access,
+        hw.world_access,
+        hw.phenotypes_concepts_data::json,
+        hw.created_by_id,
+        hw.updated_by_id,
+        ucb.username as created_by_username,
+        umb.username as modified_by_username,
+        hw.history_id,
+        hw.history_date,
+        hw.history_change_reason,
+        hw.history_user_id,
+        uhu.username as history_user,
+        hw.history_type,
+        hw.is_deleted,
+        hw.deleted,
+        hw.deleted_by_id
+        FROM clinicalcode_historicalphenotypeworkingset AS hw
+        LEFT OUTER JOIN auth_user AS ucb on ucb.id = hw.created_by_id
+        LEFT OUTER JOIN auth_user AS umb on umb.id = hw.updated_by_id
+        LEFT OUTER JOIN auth_user AS uhu on uhu.id = hw.history_user_id
+        WHERE (hw.history_id = %s)""", sql_params)
+
+        col_names = [col[0] for col in cursor.description]
+        row = cursor.fetchone()
+        row_dict = dict(zip(col_names, row))
+
+        if highlight_columns != '':
+            row_dict['publications_highlighted'] = row_dict['publications_highlighted'].split('^$^')
+        else:
+            row_dict['name_highlighted'] = row_dict['name']
+            row_dict['author_highlighted'] = row_dict['author']
+            row_dict['description_highlighted'] = row_dict['description']
+            row_dict['publications_highlighted'] = row_dict['publications']
+
+        return row_dict
