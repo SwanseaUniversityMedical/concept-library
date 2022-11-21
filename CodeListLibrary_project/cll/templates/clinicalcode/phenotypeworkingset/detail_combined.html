@@ -94,6 +94,11 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
 								{% if not user_can_edit %} disabled {% endif %}>
 								Edit
 							</a>
+							<a  {% if allowed_to_create and user_can_edit and not is_latest_version %} class="js-load-modal btn btn-outline-danger btn-cl btn-cl-danger" href="{% url 'phenotypeworkingset_history_revert' workingset.id workingset.history_id %}"
+								{% else %} class="btn btn-outline-danger btn-cl btn-cl-danger" disabled   title="You don't have access to update or this is already the latest version !"
+								{% endif %} id="revert-btn" >
+								Revert
+							</a>
 							</span>
                             {% if enable_publish %}
 
