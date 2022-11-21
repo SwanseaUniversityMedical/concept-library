@@ -222,6 +222,11 @@ table.dataTable tbody td.selected a {
     background: #2b6cb0;
 }
 
+.form-label-flex{
+    display: flex;
+    align-items: center;
+
+}
 .save-button {
     padding: 2px 37px;
     color: #ffffff;
