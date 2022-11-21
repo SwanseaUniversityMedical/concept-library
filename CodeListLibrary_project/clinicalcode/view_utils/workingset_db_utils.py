@@ -38,6 +38,46 @@ def restorePhenotypeWorkingset(pk, user):
     workingset.save()
 
 
+def revertHistoryPhenotypeWorkingset(user, pk,worikingset_history_id):
+    ''' Revert a selected historical workingset and create it as a new workingset using an existing workingset id '''
+
+    workingset = PhenotypeWorkingset.objects.get(pk=pk,worikingset_history_id=worikingset_history_id)
+
+    # get selected concept
+    workingset_obj = PhenotypeWorkingset()
+
+    # Don't allow revert if the active object is deleted
+    if workingset_obj.is_deleted: raise PermissionDenied
+
+    # update concept with historical information
+    workingset_obj.name = workingset['name']
+    workingset_obj.description = workingset['description']
+    workingset_obj.created_by = User.objects.filter(pk=workingset['created_by_id']).first()
+    workingset_obj.author = workingset['author']
+    workingset_obj.entry_date = workingset['entry_date']
+    workingset_obj.modified_by = User.objects.filter(pk=user.id).first()
+    workingset_obj.validation_performed = workingset['validation_performed']
+    workingset_obj.validation_description = workingset['validation_description']
+    workingset_obj.publication_doi = workingset['publication_doi']
+    workingset_obj.publication_link = workingset['publication_link']
+    workingset_obj.secondary_publication_links = workingset['secondary_publication_links']
+    workingset_obj.paper_published = workingset['paper_published']
+    workingset_obj.source_reference = workingset['source_reference']
+    workingset_obj.citation_requirements = workingset['citation_requirements']
+    workingset_obj.coding_system = CodingSystem.objects.filter(pk=workingset['coding_system_id']).first()
+    workingset_obj.created = workingset['created']
+    workingset_obj.modified = workingset['modified']
+    workingset_obj.owner = User.objects.filter(pk=workingset['owner_id']).first()
+    workingset_obj.group = Group.objects.filter(pk=workingset['group_id']).first()
+    workingset_obj.owner_access = workingset['owner_access']
+    workingset_obj.group_access = workingset['group_access']
+    workingset_obj.world_access = workingset['world_access']
+    workingset_obj.tags = workingset['tags']
+    workingset_obj.collections = workingset['collections']
+    workingset_obj.code_attribute_header = workingset['code_attribute_header']
+    workingset_obj.changeReason = "Reverted root historic workingset"
+    workingset_obj.save()
+
 def validate_phenotype_workingset_attribute(attribute):
     """ Attempts to parse the given attribute's value as it's given datatype
 
@@ -586,3 +626,4 @@ def getGroupOfConceptsByPhenotypeWorkingsetId_historical(workingset_id, workings
         concepts.append((concept['concept_id'], concept['concept_version_id']))
 
     return concepts
+
