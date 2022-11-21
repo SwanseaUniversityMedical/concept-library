@@ -7,7 +7,7 @@ from django.db import connection  # , transaction
 from psycopg2.errorcodes import INVALID_PARAMETER_VALUE
 
 from clinicalcode.db_utils import standardiseChangeReason, get_can_edit_subquery, get_brand_collection_ids, \
-    getGroupOfCodesByConceptId_HISTORICAL, getConceptCodes_withAttributes_HISTORICAL
+    getGroupOfCodesByConceptId_HISTORICAL, getConceptCodes_withAttributes_HISTORICAL, modify_Entity_ChangeReason
 from clinicalcode.models import PhenotypeWorkingset
 from .. import utils
 from ..constants import *
@@ -38,45 +38,39 @@ def restorePhenotypeWorkingset(pk, user):
     workingset.save()
 
 
-def revertHistoryPhenotypeWorkingset(user, pk,worikingset_history_id):
+def revertHistoryPhenotypeWorkingset(pk,workingset_history_id):
     ''' Revert a selected historical workingset and create it as a new workingset using an existing workingset id '''
 
-    workingset = PhenotypeWorkingset.objects.get(pk=pk,worikingset_history_id=worikingset_history_id)
+    workingset = PhenotypeWorkingset.history.filter(id=pk,history_id=workingset_history_id).first()
 
     # get selected concept
-    workingset_obj = PhenotypeWorkingset()
+    workingset_obj = PhenotypeWorkingset.objects.get(pk=workingset.id)
 
     # Don't allow revert if the active object is deleted
-    if workingset_obj.is_deleted: raise PermissionDenied
+    if workingset.is_deleted: raise PermissionDenied
 
     # update concept with historical information
-    workingset_obj.name = workingset['name']
-    workingset_obj.description = workingset['description']
-    workingset_obj.created_by = User.objects.filter(pk=workingset['created_by_id']).first()
-    workingset_obj.author = workingset['author']
-    workingset_obj.entry_date = workingset['entry_date']
-    workingset_obj.modified_by = User.objects.filter(pk=user.id).first()
-    workingset_obj.validation_performed = workingset['validation_performed']
-    workingset_obj.validation_description = workingset['validation_description']
-    workingset_obj.publication_doi = workingset['publication_doi']
-    workingset_obj.publication_link = workingset['publication_link']
-    workingset_obj.secondary_publication_links = workingset['secondary_publication_links']
-    workingset_obj.paper_published = workingset['paper_published']
-    workingset_obj.source_reference = workingset['source_reference']
-    workingset_obj.citation_requirements = workingset['citation_requirements']
-    workingset_obj.coding_system = CodingSystem.objects.filter(pk=workingset['coding_system_id']).first()
-    workingset_obj.created = workingset['created']
-    workingset_obj.modified = workingset['modified']
-    workingset_obj.owner = User.objects.filter(pk=workingset['owner_id']).first()
-    workingset_obj.group = Group.objects.filter(pk=workingset['group_id']).first()
-    workingset_obj.owner_access = workingset['owner_access']
-    workingset_obj.group_access = workingset['group_access']
-    workingset_obj.world_access = workingset['world_access']
-    workingset_obj.tags = workingset['tags']
-    workingset_obj.collections = workingset['collections']
-    workingset_obj.code_attribute_header = workingset['code_attribute_header']
-    workingset_obj.changeReason = "Reverted root historic workingset"
+    workingset_obj.name = workingset.name
+    workingset_obj.description = workingset.description
+    workingset_obj.created_by = workingset.created_by
+    workingset_obj.author = workingset.author
+    workingset_obj.modified_by = workingset.updated_by
+    workingset_obj.citation_requirements = workingset.citation_requirements
+    workingset_obj.created = workingset.created
+    workingset_obj.modified = workingset.modified
+    workingset_obj.owner = workingset.owner
+    workingset_obj.group = workingset.group
+    workingset_obj.owner_access = workingset.owner_access
+    workingset_obj.group_access = workingset.group_access
+    workingset_obj.world_access = workingset.world_access
+    workingset_obj.tags = workingset.tags
+    workingset_obj.collections = workingset.collections
+    workingset_obj.phenotypes_concepts_data = workingset.phenotypes_concepts_data
+    workingset_obj.changeReason = "Working set reverted from version " + str(workingset_history_id) + ""
     workingset_obj.save()
+    modify_Entity_ChangeReason(PhenotypeWorkingset, pk, "Working set reverted from version " + str(workingset_history_id))
+
+
 
 def validate_phenotype_workingset_attribute(attribute):
     """ Attempts to parse the given attribute's value as it's given datatype
