@@ -118,6 +118,19 @@
 
                     <hr/>
 
+                 {% if form.instance.pk %}
+                        <div class="form-group form-label-flex" >
+                            <label class="col-sm-1" for="">Latest version ID:</label>
+                            <div class="col-sm-1">
+                                <input type="hidden" id="latest_history_id" name="latest_history_id"
+                                       value="{{ latest_history_id }}">
+                                <input type="hidden" id="overrideVersion" name="overrideVersion"
+                                       value="{{ overrideVersion|default_if_none:'0' }}">
+                                {{ history.0.history_id }}
+                            </div>
+                        </div>
+                    {% endif %}
+
 
                     <div class="form-group">
                         <div class="col-sm-12">
@@ -246,22 +259,11 @@
 
 
 
-                    {% if form.instance.pk %}
-                        <div class="form-group">
-                            <label class="col-sm-3" for="">Latest version ID</label>
-                            <div class="col-sm-12">
-                                <input type="hidden" id="latest_history_id" name="latest_history_id"
-                                       value="{{ latest_history_id }}">
-                                <input type="hidden" id="overrideVersion" name="overrideVersion"
-                                       value="{{ overrideVersion|default_if_none:'0' }}">
-                                {{ history.0.history_id }}
-                            </div>
-                        </div>
-                    {% endif %}
 
-                    <div class="form-group">
-                        <label class="col-sm-3" for="">Created by</label>
-                        <div class="col-sm-12">
+
+                    <div class="form-group form-label-flex"  >
+                        <label class="col-sm-1" for="">Created by:</label>
+                        <div class="col-sm-1">
                             <p class="form-control-static">
                                 {% if not form.instance.pk %}
                                     {{ user.username }}
@@ -274,9 +276,9 @@
 
 
                     {% if form.instance.pk %}
-                        <div class="form-group">
-                            <div class="col-sm-12">
-                                <label for="">Modified by</label>
+                        <div class="form-group form-label-flex">
+                        <label  class="col-sm-1" for="">Modified by:</label>
+                            <div class="col-sm-1">
                                 <p class="form-control-static">{{ form.instance.updated_by.username }}</p>
                             </div>
                         </div>
@@ -298,6 +300,7 @@
 					</div-->
 
                         <!-- Allow the user to select a user from the list of known users. -->
+                    {% if not form.fields.owner.disabled %}
                         <div class="form-group">
 
                             <div class="col-sm-11" id="workingset-owned-form-container">
@@ -322,6 +325,8 @@
                                 </p>
                             </div>
                         </div>
+                    {% endif %}
+
                         <div class="form-group">
 
                             <div class="col-sm-11" id="workingset-group-form-container">
