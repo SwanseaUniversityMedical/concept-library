@@ -944,7 +944,12 @@ def workingset_history_revert(request, pk, workingset_history_id):
                 workingset_db_utils.revertHistoryPhenotypeWorkingset(pk,workingset_history_id)
                 db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, pk, "Workingset reverted from version %s" % workingset_history_id)
                 data['form_is_valid'] = True
-                data['message'] =messages.success(request, "Workingset has been successfully restored.")
+                print(reverse('phenotypeworkingset_update', args=(pk,)))
+
+                data['message'] = """The workingset has been successfully reverted. To amend the reverted workingset please visit
+                 <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(url=reverse('phenotypeworkingset_update', args=(pk,)),pk=pk)
+
+                messages.success(request, "Workingset has been successfully restored.")
                 return JsonResponse(data)
         except Exception as e:
             data['form_is_valid'] = False
