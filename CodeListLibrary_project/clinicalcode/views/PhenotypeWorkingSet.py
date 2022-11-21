@@ -941,10 +941,9 @@ def workingset_history_revert(request, pk, workingset_history_id):
         if PhenotypeWorkingset.objects.get(pk=pk).is_deleted: raise PermissionDenied
         try:
             with transaction.atomic():
-                workingset_db_utils.revertHistoryPhenotypeWorkingset(pk,workingset_history_id)
+                workingset_db_utils.revertHistoryPhenotypeWorkingset(request.user,workingset_history_id)
                 db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, pk, "Workingset reverted from version %s" % workingset_history_id)
                 data['form_is_valid'] = True
-                print(reverse('phenotypeworkingset_update', args=(pk,)))
 
                 data['message'] = """The workingset has been successfully reverted. To amend the reverted workingset please visit
                  <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(url=reverse('phenotypeworkingset_update', args=(pk,)),pk=pk)
@@ -956,7 +955,7 @@ def workingset_history_revert(request, pk, workingset_history_id):
             data['message'] = "Something went wrong"
             return JsonResponse(data)
 
-    workingset = PhenotypeWorkingset.history.filter(id=pk,history_id=workingset_history_id).first()
+    workingset = workingset_db_utils.getHistoryPhenotypeWorkingset(workingset_history_id)
     is_latest_version = (int(workingset_history_id) == PhenotypeWorkingset.objects.get(pk=pk).history.latest().history_id)
 
     return render(request, 'clinicalcode/phenotypeworkingset/revert.html',
