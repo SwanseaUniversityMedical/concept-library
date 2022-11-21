@@ -943,10 +943,8 @@ def workingset_history_revert(request, pk, workingset_history_id):
             with transaction.atomic():
                 db_utils.revertHistoryConcept(request.user, workingset_history_id)
                 db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, pk, "Workingset reverted from version %s" % workingset_history_id)
-
-
                 data['form_is_valid'] = True
-                data['message'] = render_to_string('clinicalcode/concept/history/reverted.html', {'id': pk}, request)
+                data['message'] =messages.success(request, "Workingset has been successfully restored.")
                 return JsonResponse(data)
         except Exception as e:
             data['form_is_valid'] = False
