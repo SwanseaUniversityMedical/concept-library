@@ -369,6 +369,7 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
     form_class = WorkingsetForm
     template_name = 'clinicalcode/phenotypeworkingset/form.html'
 
+
     def get_form_kwargs(self):
         kwargs = super(CreateView, self).get_form_kwargs()
         kwargs.update({'user': self.request.user})
@@ -382,6 +383,18 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
             return reverse('phenotypeworkingset_detail', args=(self.object.id, ))
         else:
             return reverse('phenotypeworkingsets_list')
+
+
+    def post(self, request, *args, **kwargs):
+        form_class = self.form_class
+        form = self.get_form(form_class)
+        self.object = None
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+
 
     def form_invalid(self, form):
         tag_ids = commaSeparate(self.request.POST.get('tagids'))
