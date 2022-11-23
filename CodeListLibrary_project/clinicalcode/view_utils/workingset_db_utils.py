@@ -42,10 +42,50 @@ def validate_workingset_table(workingset_table):
     errors = {}
     is_valid = True
     attribute_names = {}
-    decoded_concepts = json.dumps(workingset_table)
+    decoded_concepts = json.loads(workingset_table)
+    for concept in decoded_concepts:
+        attribute_names[concept['concept_id']] = []
+        for attribute in concept['Attributes']:
+            if (attribute['name'] == "" and attribute['value']):
+                continue
 
-    print(workingset_table)
+            if attribute['name'].strip() == "":
+                errors['header'] = "Specify names of all attributes"
+                is_valid = False
 
+            if not attribute['name'] in attribute_names[concept['concept_id']]:
+                attribute_names[concept['concept_id']].append(attribute['name'])
+            else:
+                errors['attributes'] = "Attributes name must not repeat (" + attribute['name'] + ")"
+                is_valid = False
+
+            # verify that the attribute name starts with a character
+            if not re.match("^[A-Za-z]", attribute['name']):
+                errors['attributes_start'] = "Attribute name must start with a character (" + attribute['name'] + ")"
+                is_valid = False
+
+            # verify that the attribute name contains only letters, numbers and underscores
+            if not re.match("^([a-zA-Z])([a-zA0-Z9_])*$", attribute['name']):
+                errors['attributes_name'] = "Attribute name must contain only alphabet/numbers and underscores (" + attribute['name'] + ")"
+                is_valid = False
+
+            if attribute['type'] == "INT":  # INT
+                if attribute['value'] != "":  # allows empty values
+                    try:
+                        int( attribute['value'])
+                    except ValueError:
+                        errors['type'] = "The values of attribute(" + attribute['name'] + ") should be integer"
+                        is_valid = False
+            elif  attribute['type'] == "FLOAT":  # FLOAT
+                if  attribute['value'] != "":  # allows empty values
+                    try:
+                        float( attribute['value'])
+                    except ValueError:
+                        errors['type'] = "The values of attribute(" + attribute['name'] + ") should be float"
+                        is_valid = False
+            elif attribute['type'].lower() == "TYPE":  # check type is selected
+                errors['type'] = "Choose a type of the attribute"
+                is_valid = False
 
     return is_valid, errors
 def validate_phenotype_workingset_attribute(attribute):
