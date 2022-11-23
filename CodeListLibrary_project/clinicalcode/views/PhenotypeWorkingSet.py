@@ -33,6 +33,7 @@ from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from .. import db_utils, utils
+from ..db_utils import validate_phenotype_workingset_attribute_group
 from ..view_utils import workingset_db_utils
 from clinicalcode.forms.WorkingsetForm import WorkingsetForm
 from ..models import *
@@ -389,6 +390,9 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         form_class = self.form_class
         form = self.get_form(form_class)
         self.object = None
+
+        is_valid_table = workingset_db_utils.validate_workingset_table(self.request.POST.get('workingset_data') or '[]')
+        print(is_valid_table)
         if form.is_valid():
             return self.form_valid(form)
         else:

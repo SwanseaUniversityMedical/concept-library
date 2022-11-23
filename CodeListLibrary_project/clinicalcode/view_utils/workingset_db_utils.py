@@ -38,6 +38,16 @@ def restorePhenotypeWorkingset(pk, user):
     workingset.save()
 
 
+def validate_workingset_table(workingset_table):
+    errors = {}
+    is_valid = True
+    attribute_names = {}
+    decoded_concepts = json.dumps(workingset_table)
+
+    print(workingset_table)
+
+
+    return is_valid, errors
 def validate_phenotype_workingset_attribute(attribute):
     """ Attempts to parse the given attribute's value as it's given datatype
 
