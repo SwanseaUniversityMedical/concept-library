@@ -43,17 +43,6 @@
         <div class="row">
             <div class="col-md-12" style="display: flex;justify-content: space-between">
                 <i class="help-block"><span class="required">*</span> denotes a required field</i>
-                {% if form.errors %}
-                    <div id="form-error" class="alert alert-danger  col-sm-12">
-                        <p>The operation could not be performed because one or more error(s) occurred.<br/>
-                            Please resubmit the form after making the following changes:</p>
-                        <ul>
-                            {% for field,error in form.errors.items %}
-                                <li>{{ field }} - {{ error|striptags }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                {% endif %}
             <div class="delete-button-workingset">
                   {% if form.instance.pk %}
 			{% if not CLL_READ_ONLY %}
@@ -71,6 +60,19 @@
 
 
             </div>
+        <div class="col-md-12">
+             {% if form.errors %}
+                    <div id="form-error" class="alert alert-danger col-sm-12">
+                        <p>The operation could not be performed because one or more error(s) occurred.<br/>
+                            Please resubmit the form after making the following changes:</p>
+                        <ul>
+                            {% for field,error in form.errors.items %}
+                                <li>{{ field }} - {{ error|striptags }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+        </div>
         </div>
     {% endif %}
 
