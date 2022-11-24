@@ -56,12 +56,12 @@ def validate_workingset_table(workingset_table):
             if not attribute['name'] in attribute_names[concept['concept_id']]:
                 attribute_names[concept['concept_id']].append(attribute['name'])
             else:
-                errors['attributes'] = "Attributes name must not repeat (" + attribute['name'] + ")"
+                errors['attributes'] = "Attributes name must not repeat - now is (" + attribute['name'] + ")"
                 is_valid = False
 
             # verify that the attribute name starts with a character
             if not re.match("^[A-Za-z]", attribute['name']):
-                errors['attributes_start'] = "Attribute name must start with a character (" + attribute['name'] + ")"
+                errors['attributes_start'] = "Attribute name must start with a character - now is (" + attribute['name'] + ")"
                 is_valid = False
 
             # verify that the attribute name contains only letters, numbers and underscores
