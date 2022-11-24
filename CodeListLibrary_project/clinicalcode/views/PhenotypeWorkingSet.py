@@ -386,19 +386,6 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
             return reverse('phenotypeworkingsets_list')
 
 
-    def post(self, request, *args, **kwargs):
-        form_class = self.form_class
-        form = self.get_form(form_class)
-        self.object = None
-
-        is_valid_table = workingset_db_utils.validate_workingset_table(self.request.POST.get('workingset_data') or '[]')
-        print(is_valid_table)
-        if form.is_valid():
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
-
-
 
     def form_invalid(self, form):
         tag_ids = commaSeparate(self.request.POST.get('tagids'))
@@ -408,6 +395,7 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         table_elements_data = self.request.POST.get('phenotypes_concepts_json')
         previous_selection = self.request.POST.get('previous_selection')
         context = self.get_context_data()
+
 
         if tag_ids:
             context['tags'] = Tag.objects.filter(pk__in=tag_ids)
