@@ -186,7 +186,7 @@ class WorkingsetForm(forms.ModelForm):
 
     def clean_table_data(self):
         self.cleaned_data['table_data'] = self.data['workingset_data']
-        is_valid, message = workingset_db_utils.validate_workingset_table(self.cleaned_data['table_data'])
+        is_valid, message = workingset_db_utils.validate_workingset_table(self.cleaned_data['table_data'] or '[]')
         if not is_valid:
             for error in message.keys():
                 self.add_error('table_data',message[error])
