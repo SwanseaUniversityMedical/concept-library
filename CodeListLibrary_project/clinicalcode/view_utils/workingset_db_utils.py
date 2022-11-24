@@ -46,7 +46,7 @@ def validate_workingset_table(workingset_table):
     for concept in decoded_concepts:
         attribute_names[concept['concept_id']] = []
         for attribute in concept['Attributes']:
-            if (attribute['name'] == "" and attribute['value']):
+            if (attribute['name'] == "" and attribute['value']== ""):
                 continue
 
             if attribute['name'].strip() == "":
