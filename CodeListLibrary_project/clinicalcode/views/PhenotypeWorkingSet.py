@@ -674,7 +674,7 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
         'data_sources': data_sources,
         'user_can_edit': can_edit,  #can_edit,
         'user_can_restore':can_restore,
-        'allowed_to_create': False,  # for now  #user_allowed_to_create,    # not settings.CLL_READ_ONLY,
+        'allowed_to_create': user_allowed_to_create,  # for now  #user_allowed_to_create,    # not settings.CLL_READ_ONLY,
         'user_can_export': user_can_export,
         'history': history,
         'live_ver_is_deleted': PhenotypeWorkingset.objects.get(pk=pk).is_deleted,
@@ -935,12 +935,39 @@ class WorkingSetRestore(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
         return HttpResponseRedirect(self.get_success_url())
 
 @login_required
-def workingset_history_revert(request, pk, concept_history_id):
+def workingset_history_revert(request, pk, workingset_history_id):
     ''' 
         Revert a previously saved working set from the history.
     '''
-    pass
-    # look at concept equivalent
+    validate_access_to_edit(request, PhenotypeWorkingset, pk)
+    data = dict()
+    if request.method == 'POST':
+        # Don't allow revert if the active object is deleted
+        if PhenotypeWorkingset.objects.get(pk=pk).is_deleted: raise PermissionDenied
+        try:
+            with transaction.atomic():
+                workingset_db_utils.revertHistoryPhenotypeWorkingset(request.user,workingset_history_id)
+                db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, pk, "Workingset reverted from version %s" % workingset_history_id)
+                data['form_is_valid'] = True
+
+                data['message'] = """The workingset has been successfully reverted. To amend the reverted workingset please visit
+                 <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(url=reverse('phenotypeworkingset_update', args=(pk,)),pk=pk)
+
+                messages.success(request, "Workingset has been successfully restored.")
+                return JsonResponse(data)
+        except Exception as e:
+            data['form_is_valid'] = False
+            data['message'] = "Something went wrong"
+            return JsonResponse(data)
+
+    workingset = workingset_db_utils.getHistoryPhenotypeWorkingset(workingset_history_id)
+    is_latest_version = (int(workingset_history_id) == PhenotypeWorkingset.objects.get(pk=pk).history.latest().history_id)
+
+    return render(request, 'clinicalcode/phenotypeworkingset/revert.html',
+                  {
+                      'workingset': workingset,
+                      'is_latest_version': is_latest_version
+                  })
 
 
 def history_workingset_codes_to_csv(request, pk, workingset_history_id=None):

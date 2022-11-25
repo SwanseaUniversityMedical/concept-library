@@ -7,7 +7,7 @@ from django.db import connection  # , transaction
 from psycopg2.errorcodes import INVALID_PARAMETER_VALUE
 
 from clinicalcode.db_utils import standardiseChangeReason, get_can_edit_subquery, get_brand_collection_ids, \
-    getGroupOfCodesByConceptId_HISTORICAL, getConceptCodes_withAttributes_HISTORICAL
+    getGroupOfCodesByConceptId_HISTORICAL, getConceptCodes_withAttributes_HISTORICAL, modify_Entity_ChangeReason
 from clinicalcode.models import PhenotypeWorkingset
 from .. import utils
 from ..constants import *
@@ -88,6 +88,7 @@ def validate_workingset_table(workingset_table):
                 is_valid = False
 
     return is_valid, errors
+
 def validate_phenotype_workingset_attribute(attribute):
     """ Attempts to parse the given attribute's value as it's given datatype
 
@@ -636,3 +637,88 @@ def getGroupOfConceptsByPhenotypeWorkingsetId_historical(workingset_id, workings
         concepts.append((concept['concept_id'], concept['concept_version_id']))
 
     return concepts
+
+
+def getHistoryPhenotypeWorkingset(workingset_history_id, highlight_result=False, q_highlight=None):
+    ''' Get historic phenotypeworkingset based on a workingset history id '''
+
+    sql_params = []
+    highlight_columns = ""
+    if highlight_result and q_highlight is not None:
+        # for highlighting
+        if str(q_highlight).strip() != '':
+            sql_params += [str(q_highlight)] * 4
+            highlight_columns += """ 
+                ts_headline('english', coalesce(hw.name, '')
+                        , websearch_to_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as name_highlighted,  
+
+                ts_headline('english', coalesce(hw.author, '')
+                        , websearch_to_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as author_highlighted,                                              
+
+                ts_headline('english', coalesce(hw.description, '')
+                        , websearch_to_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=hightlight-txt > ", StopSel="</b>"') as description_highlighted,                                                                                            
+
+                ts_headline('english', coalesce(array_to_string(hw.publications, '^$^'), '')
+                        , websearch_to_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publications_highlighted,                                              
+             """
+
+    sql_params.append(workingset_history_id)
+
+    with connection.cursor() as cursor:
+        cursor.execute("""
+        SELECT 
+        """ + highlight_columns + """
+        hw.created,
+        hw.modified,
+        hw.id,
+        hw.name,
+        hw.description,
+        hw.author,
+        hw.publications,
+        hw.citation_requirements,
+        hw.owner_id,
+        hw.group_id,
+        hw.tags,
+        hw.type,
+        hw.data_sources,
+        hw.collections,
+        hw.owner_access,
+        hw.group_access,
+        hw.world_access,
+        hw.phenotypes_concepts_data::json,
+        hw.created_by_id,
+        hw.updated_by_id,
+        ucb.username as created_by_username,
+        umb.username as modified_by_username,
+        hw.history_id,
+        hw.history_date,
+        hw.history_change_reason,
+        hw.history_user_id,
+        uhu.username as history_user,
+        hw.history_type,
+        hw.is_deleted,
+        hw.deleted,
+        hw.deleted_by_id
+        FROM clinicalcode_historicalphenotypeworkingset AS hw
+        LEFT OUTER JOIN auth_user AS ucb on ucb.id = hw.created_by_id
+        LEFT OUTER JOIN auth_user AS umb on umb.id = hw.updated_by_id
+        LEFT OUTER JOIN auth_user AS uhu on uhu.id = hw.history_user_id
+        WHERE (hw.history_id = %s)""", sql_params)
+
+        col_names = [col[0] for col in cursor.description]
+        row = cursor.fetchone()
+        row_dict = dict(zip(col_names, row))
+
+        if highlight_columns != '':
+            row_dict['publications_highlighted'] = row_dict['publications_highlighted'].split('^$^')
+        else:
+            row_dict['name_highlighted'] = row_dict['name']
+            row_dict['author_highlighted'] = row_dict['author']
+            row_dict['description_highlighted'] = row_dict['description']
+            row_dict['publications_highlighted'] = row_dict['publications']
+
+        return row_dict
