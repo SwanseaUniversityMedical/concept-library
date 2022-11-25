@@ -299,6 +299,16 @@ def allowed_to_view(request,
                 approval_status = get_publish_approval_status(set_class, set_id, set_history_id)
                 if approval_status in [1, 3]: # pending or rejected
                     is_allowed_to_view = True
+                    
+            # check if the version is published
+            if set_history_id is None:
+                # get the latest version
+                set_history_id = int(set_class.objects.get(pk=set_id).history.latest().history_id)
+    
+            is_published = checkIfPublished(set_class, set_id, set_history_id)
+    
+            if is_published:
+                is_allowed_to_view = True
 
     else:  # public content
         # check if the version is published

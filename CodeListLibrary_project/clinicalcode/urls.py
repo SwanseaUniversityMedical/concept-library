@@ -75,10 +75,14 @@ if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_P
     urlpatterns += [
         url(r'^adminTemp/api_remove_data/$', adminTemp.api_remove_data, name='api_remove_data'),
     ]
-if not settings.CLL_READ_ONLY: # and (settings.IS_DEVELOPMENT_PC):
+
+# for admin(developers) to mark phenotypes as deleted/restored
+if not settings.CLL_READ_ONLY:
     urlpatterns += [
-        url(r'^adminTemp/tag-collection-split/$', adminTemp.populate_collections_tags, name='populate_collections_tags'),
+        url(r'^adminTemp/delete-phenotype/$', adminTemp.admin_delete_phenotypes, name='admin_delete_phenotypes'),
+        url(r'^adminTemp/restore-phenotype/$', adminTemp.admin_restore_phenotypes, name='admin_restore_phenotypes'),
     ]
+
 
 # saving statistics
 if not settings.CLL_READ_ONLY:

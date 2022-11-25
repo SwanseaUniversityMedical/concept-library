@@ -234,7 +234,8 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
         components_permissions = build_permitted_components_list(request, pk, concept_history_id=concept_history_id)
 
         can_edit = (not Concept.objects.get(pk=pk).is_deleted) and allowed_to_edit(request, Concept, pk)
-
+        user_can_restore = Concept.objects.get(pk=pk).is_deleted and allowed_to_edit(request, Concept, pk)
+        
         user_can_export = (allowed_to_view_children(request, Concept, pk, set_history_id=concept_history_id)
                            and db_utils.chk_deleted_children(request,
                                                            Concept,
@@ -246,6 +247,7 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
         user_allowed_to_create = allowed_to_create()
     else:
         can_edit = False
+        user_can_restore = False
         user_can_export = is_published
         user_allowed_to_create = False
 
@@ -328,6 +330,7 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
         'collections': collections,
         'has_collections': has_collections,
         'user_can_edit': can_edit,
+        'user_can_restore': user_can_restore,
         'allowed_to_create': user_allowed_to_create,
         'user_can_export': user_can_export,
         'history': other_historical_versions,
@@ -1387,7 +1390,7 @@ def concept_codes_to_csv(request, pk):
 
     my_params = {'id': pk, 'creation_date': time.strftime("%Y%m%dT%H%M%S")}
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = ('attachment; filename="concept_C%(id)s_group_codes_%(creation_date)s.csv"' % my_params)
+    response['Content-Disposition'] = ('attachment; filename="concept_C%(id)s_codelist_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
 
@@ -1491,7 +1494,7 @@ def history_concept_codes_to_csv(request, pk, concept_history_id):
         'creation_date': time.strftime("%Y%m%dT%H%M%S")
     }
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = ('attachment; filename="concept_C%(id)s_ver_%(concept_history_id)s_group_codes_%(creation_date)s.csv"' % my_params)
+    response['Content-Disposition'] = ('attachment; filename="concept_C%(id)s_ver_%(concept_history_id)s_codelist_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
 
