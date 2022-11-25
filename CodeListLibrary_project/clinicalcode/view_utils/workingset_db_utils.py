@@ -38,41 +38,56 @@ def restorePhenotypeWorkingset(pk, user):
     workingset.save()
 
 
-def revertHistoryPhenotypeWorkingset(user,workingset_history_id):
-    ''' Revert a selected historical workingset and create it as a new workingset using an existing workingset id '''
+def validate_workingset_table(workingset_table):
+    errors = {}
+    is_valid = True
+    attribute_names = {}
+    decoded_concepts = json.loads(workingset_table)
+    for concept in decoded_concepts:
+        attribute_names[concept['concept_id']] = []
+        for attribute in concept['Attributes']:
+            if (attribute['name'] == "" and attribute['value']== ""):
+                continue
 
-    workingset = getHistoryPhenotypeWorkingset(workingset_history_id)
+            if attribute['name'].strip() == "":
+                errors['header'] = "Specify names of all attributes"
+                is_valid = False
 
-    # get selected working set
-    workingset_obj = PhenotypeWorkingset.objects.get(pk=workingset['id'])
+            if not attribute['name'] in attribute_names[concept['concept_id']]:
+                attribute_names[concept['concept_id']].append(attribute['name'])
+            else:
+                errors['attributes'] = "Attributes name must not repeat - now is (" + attribute['name'] + ")"
+                is_valid = False
 
-    # Don't allow revert if the active object is deleted
-    if workingset_obj.is_deleted: raise PermissionDenied
+            # verify that the attribute name starts with a character
+            if not re.match("^[A-Za-z]", attribute['name']):
+                errors['attributes_start'] = "Attribute name must start with a character - now is (" + attribute['name'] + ")"
+                is_valid = False
 
-    # update working set with historical information
-    workingset_obj.name = workingset['name']
-    workingset_obj.author = workingset['author']
-    workingset_obj.description = workingset['description']
-    workingset_obj.publications = workingset['publications']
+            # verify that the attribute name contains only letters, numbers and underscores
+            if not re.match("^([a-zA-Z])([a-zA0-Z9_])*$", attribute['name']):
+                errors['attributes_name'] = "Attribute name must contain only alphabet/numbers and underscores (" + attribute['name'] + ")"
+                is_valid = False
 
-    workingset_obj.created_by = User.objects.filter(pk=workingset['created_by_id']).first()
+            if attribute['type'] == "INT":  # INT
+                if attribute['value'] != "":  # allows empty values
+                    try:
+                        int( attribute['value'])
+                    except ValueError:
+                        errors['type'] = "The values of attribute(" + attribute['name'] + ") should be integer"
+                        is_valid = False
+            elif  attribute['type'] == "FLOAT":  # FLOAT
+                if  attribute['value'] != "":  # allows empty values
+                    try:
+                        float( attribute['value'])
+                    except ValueError:
+                        errors['type'] = "The values of attribute(" + attribute['name'] + ") should be float"
+                        is_valid = False
+            elif attribute['type'].lower() == "TYPE":  # check type is selected
+                errors['type'] = "Choose a type of the attribute"
+                is_valid = False
 
-    workingset_obj.updated_by = User.objects.filter(pk=user.id).first()
-
-    workingset_obj.citation_requirements = workingset['citation_requirements']
-    workingset_obj.owner = User.objects.filter(pk=workingset['owner_id']).first()
-    workingset_obj.group = Group.objects.filter(pk=workingset['group_id']).first()
-    workingset_obj.owner_access = workingset['owner_access']
-    workingset_obj.group_access = workingset['group_access']
-    workingset_obj.world_access = workingset['world_access']
-    workingset_obj.created = workingset['created']
-    workingset_obj.modified = workingset['modified']
-    workingset_obj.phenotypes_concepts_data = workingset['phenotypes_concepts_data']
-
-    modify_Entity_ChangeReason(PhenotypeWorkingset, workingset_obj.pk, "Working set reverted from version " + str(workingset_history_id))
-    workingset_obj.changeReason = "Working set reverted from version " + str(workingset_history_id) + ""
-    workingset_obj.save()
-
+    return is_valid, errors
 
 def validate_phenotype_workingset_attribute(attribute):
     """ Attempts to parse the given attribute's value as it's given datatype

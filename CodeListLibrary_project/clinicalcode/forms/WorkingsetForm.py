@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from clinicalcode.models import PhenotypeWorkingset
 from clinicalcode.permissions import allowed_to_permit, Permissions
 from clinicalcode.constants import Type_status
+from clinicalcode.view_utils import workingset_db_utils
 
 
 class WorkingsetForm(forms.ModelForm):
@@ -146,6 +147,7 @@ class WorkingsetForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'input-material col-sm-12 form-control'})
         # No choices or initial value as these are assigned dynamically.
     )
+    table_data = forms.CharField(max_length=2048,required=False)
 
     def clean_owner(self):
         owner_id = self.cleaned_data['owner']
@@ -181,6 +183,18 @@ class WorkingsetForm(forms.ModelForm):
             # No group found, so get Django to put up the required error.
             self._errors['group'] = self.error_class(['required'])
 
+
+    def clean_table_data(self):
+        self.cleaned_data['table_data'] = self.data['workingset_data']
+        is_valid, message = workingset_db_utils.validate_workingset_table(self.cleaned_data['table_data'] or '[]')
+        if not is_valid:
+            for error in message.keys():
+                self.add_error('table_data',message[error])
+
+
+
+
+
     class Meta:
         '''
             Class metadata (anything that's not a field).
@@ -189,4 +203,4 @@ class WorkingsetForm(forms.ModelForm):
 
         exclude = [
             'created_by', 'updated_by', 'deleted', 'is_deleted', 'deleted_by', 'phenotypes_concepts_data'
-        ]  # Exciding jsonfileobject because will be separate validation from client
+        ]  #phenotypes_concepts_data excluding raw data

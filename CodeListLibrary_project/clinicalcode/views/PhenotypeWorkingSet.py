@@ -33,6 +33,7 @@ from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from .. import db_utils, utils
+from ..db_utils import validate_phenotype_workingset_attribute_group
 from ..view_utils import workingset_db_utils
 from clinicalcode.forms.WorkingsetForm import WorkingsetForm
 from ..models import *
@@ -369,6 +370,7 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
     form_class = WorkingsetForm
     template_name = 'clinicalcode/phenotypeworkingset/form.html'
 
+
     def get_form_kwargs(self):
         kwargs = super(CreateView, self).get_form_kwargs()
         kwargs.update({'user': self.request.user})
@@ -383,6 +385,8 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         else:
             return reverse('phenotypeworkingsets_list')
 
+
+
     def form_invalid(self, form):
         tag_ids = commaSeparate(self.request.POST.get('tagids'))
         collections = commaSeparate(self.request.POST.get('collections'))
@@ -391,6 +395,7 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         table_elements_data = self.request.POST.get('phenotypes_concepts_json')
         previous_selection = self.request.POST.get('previous_selection')
         context = self.get_context_data()
+
 
         if tag_ids:
             context['tags'] = Tag.objects.filter(pk__in=tag_ids)
