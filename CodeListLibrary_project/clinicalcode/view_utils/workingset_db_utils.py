@@ -68,7 +68,6 @@ def revertHistoryPhenotypeWorkingset(user,workingset_history_id):
     workingset_obj.modified = workingset['modified']
     workingset_obj.phenotypes_concepts_data = workingset['phenotypes_concepts_data']
 
-    modify_Entity_ChangeReason(PhenotypeWorkingset, workingset_obj.pk, "Working set reverted from version " + str(workingset_history_id))
     workingset_obj.changeReason = "Working set reverted from version " + str(workingset_history_id) + ""
     workingset_obj.save()
 
