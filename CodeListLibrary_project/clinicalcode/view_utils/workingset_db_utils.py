@@ -37,6 +37,40 @@ def restorePhenotypeWorkingset(pk, user):
     workingset.changeReason = standardiseChangeReason("restored")
     workingset.save()
 
+def revertHistoryPhenotypeWorkingset(user,workingset_history_id):
+    ''' Revert a selected historical workingset and create it as a new workingset using an existing workingset id '''
+
+    workingset = getHistoryPhenotypeWorkingset(workingset_history_id)
+
+    # get selected working set
+    workingset_obj = PhenotypeWorkingset.objects.get(pk=workingset['id'])
+
+    # Don't allow revert if the active object is deleted
+    if workingset_obj.is_deleted: raise PermissionDenied
+
+    # update working set with historical information
+    workingset_obj.name = workingset['name']
+    workingset_obj.author = workingset['author']
+    workingset_obj.description = workingset['description']
+    workingset_obj.publications = workingset['publications']
+
+    workingset_obj.created_by = User.objects.filter(pk=workingset['created_by_id']).first()
+
+    workingset_obj.updated_by = User.objects.filter(pk=user.id).first()
+
+    workingset_obj.citation_requirements = workingset['citation_requirements']
+    workingset_obj.owner = User.objects.filter(pk=workingset['owner_id']).first()
+    workingset_obj.group = Group.objects.filter(pk=workingset['group_id']).first()
+    workingset_obj.owner_access = workingset['owner_access']
+    workingset_obj.group_access = workingset['group_access']
+    workingset_obj.world_access = workingset['world_access']
+    workingset_obj.created = workingset['created']
+    workingset_obj.modified = workingset['modified']
+    workingset_obj.phenotypes_concepts_data = workingset['phenotypes_concepts_data']
+
+    modify_Entity_ChangeReason(PhenotypeWorkingset, workingset_obj.pk, "Working set reverted from version " + str(workingset_history_id))
+    workingset_obj.changeReason = "Working set reverted from version " + str(workingset_history_id) + ""
+    workingset_obj.save()
 
 def validate_workingset_table(workingset_table):
     errors = {}
