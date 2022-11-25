@@ -128,9 +128,9 @@
                     <hr/>
 
                  {% if form.instance.pk %}
-                        <div class="form-group form-label-flex" >
-                            <label class="col-sm-1" for="">Latest version ID:</label>
-                            <div class="col-sm-1">
+                        <div class="form-group form-label-flex">
+                            <label>Latest version ID:</label>
+                            <div class="col-sm-1" style="margin-bottom: 5px">
                                 <input type="hidden" id="latest_history_id" name="latest_history_id"
                                        value="{{ latest_history_id }}">
                                 <input type="hidden" id="overrideVersion" name="overrideVersion"
@@ -271,7 +271,7 @@
 
 
                     <div class="form-group form-label-flex"  >
-                        <label class="col-sm-1" for="">Created by:</label>
+                        <label>Created by:</label>
                         <div class="col-sm-1">
                             <p class="form-control-static">
                                 {% if not form.instance.pk %}
@@ -281,17 +281,26 @@
                                 {% endif %}
                             </p>
                         </div>
+                    {% if form.instance.pk %}
+                        <label>Modified by:</label>
+                         <div class="col-sm-1">
+                         <p class="form-control-static">{{ form.instance.updated_by.username }}</p>
+                         </div>
+                     {% endif %}
+                    {% if not allowed_to_permit and form.instance.pk %}
+                         <label>Owned by:</label>
+                         <div class="col-sm-1">
+                         <p class="form-control-static">{{ form.instance.owner }}</p>
+                         </div>
+
+
+                    {% endif %}
+
+
+
                     </div>
 
 
-                    {% if form.instance.pk %}
-                        <div class="form-group form-label-flex">
-                        <label  class="col-sm-1" for="">Modified by:</label>
-                            <div class="col-sm-1">
-                                <p class="form-control-static">{{ form.instance.updated_by.username }}</p>
-                            </div>
-                        </div>
-                    {% endif %}
 
                     <!-- ----------------------------------------------------------------------
                             PERMISSIONS
@@ -362,7 +371,7 @@
                             </div>
                         </div>
 
-                       
+
 
 
                         <div id="permissions" class="form-group">

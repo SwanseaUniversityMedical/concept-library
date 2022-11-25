@@ -225,6 +225,8 @@ table.dataTable tbody td.selected a {
 .form-label-flex{
     display: flex;
     align-items: center;
+    padding-left: 15px;
+
 
 }
 .save-button {
