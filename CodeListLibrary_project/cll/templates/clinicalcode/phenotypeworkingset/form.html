@@ -25,6 +25,7 @@
             <div class="col-md-12">
                 <i class="help-block"><span class="required">*</span> denotes a required field</i>
                 {% if form.errors %}
+
                     <div id="form-error" class="alert alert-danger  col-sm-12">
                         <p>The operation could not be performed because one or more error(s) occurred.<br/>
                             Please resubmit the form after making the following changes:</p>
@@ -71,11 +72,13 @@
                         <p>The operation could not be performed because one or more error(s) occurred.<br/>
                             Please resubmit the form after making the following changes:</p>
                         <ul>
+                         {% for field,error in form.errors.items %}
                             {% if field == 'table_data' %}
                                      <li>{{ field }} - There are issues with table data below</li>
                                     {% else %}
                                       <li>{{ field }} - {{ error|striptags }}</li>
                                 {% endif %}
+                        {% endfor %}
                         </ul>
                     </div>
                 {% endif %}
@@ -620,7 +623,7 @@
 
             {% endif %}
 
-            {% if workingset_data %}
+            {% if workingset_data and not form.errors %}
                 importTable({{ workingset_data|safe }})
                 importSelection({{ workingset_data|safe }})
             {% endif %}
