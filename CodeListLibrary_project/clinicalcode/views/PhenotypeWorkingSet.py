@@ -789,6 +789,35 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
     def get_success_url(self):
         return reverse('phenotypeworkingset_update', args=(self.object.id,))
 
+    def form_invalid(self, form):
+        tag_ids = commaSeparate(self.request.POST.get('tagids'))
+        collections = commaSeparate(self.request.POST.get('collections'))
+        datasources = commaSeparate(self.request.POST.get('datasources'))
+        publications = self.request.POST.get('publication_data')
+        table_elements_data = self.request.POST.get('phenotypes_concepts_json')
+        previous_selection = self.request.POST.get('previous_selection')
+        context = self.get_context_data()
+
+        if tag_ids:
+            context['tags'] = Tag.objects.filter(pk__in=tag_ids)
+
+        if collections:
+            queryset = Tag.objects.filter(tag_type=2)
+            context['collections'] = queryset.filter(id__in=collections)
+
+        if datasources:
+            context['datasources'] = DataSource.objects.filter(datasource_id__in=datasources)
+
+        if publications:
+            context['publications'] = publications
+
+        if table_elements_data:
+            context['table_elements'] = table_elements_data
+
+        if previous_selection:
+            context['previous_selection'] = previous_selection
+
+        return self.render_to_response(context)
     def form_valid(self, form):
         # ----------------------------------------------------------
         # alert user when concurrent editing of workingset
@@ -802,7 +831,10 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
             self.is_valid1 = False
             form.is_valid = self.is_valid1
             return self.form_invalid(form)
+
+
             # return HttpResponseRedirect(self.get_context_data(**kwargs))
+
         # ----------------------------------------------------------
 
         with transaction.atomic():
@@ -871,6 +903,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
         context['publications'] = workigset_publications
         context['workingset_data'] = workingset_data
         context['allowed_to_permit'] = allowed_to_permit(self.request.user, PhenotypeWorkingset, self.get_object().id)
+
 
 
         context['overrideVersion'] = self.confirm_overrideVersion
