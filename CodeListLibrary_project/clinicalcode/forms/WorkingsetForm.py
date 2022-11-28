@@ -147,7 +147,7 @@ class WorkingsetForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'input-material col-sm-12 form-control'})
         # No choices or initial value as these are assigned dynamically.
     )
-    table_data = forms.CharField(max_length=2048,required=False)
+    table_data = forms.CharField(max_length=10000,widget=forms.Textarea(),required=False)
 
     def clean_owner(self):
         owner_id = self.cleaned_data['owner']
@@ -182,6 +182,7 @@ class WorkingsetForm(forms.ModelForm):
                     return group
             # No group found, so get Django to put up the required error.
             self._errors['group'] = self.error_class(['required'])
+
 
 
     def clean_table_data(self):
