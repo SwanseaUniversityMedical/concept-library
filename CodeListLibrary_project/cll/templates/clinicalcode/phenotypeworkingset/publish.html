@@ -178,7 +178,7 @@ function submitForm(status){
         // post form
 
         $.ajax({
-            url:  "{% url 'phenotype_publish' pk=pk phenotype_history_id=phenotype_history_id %}",
+            url:  "{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}",
             data: form.serialize() + '&value='+status,
             type: "POST",
             dataType: 'json',
