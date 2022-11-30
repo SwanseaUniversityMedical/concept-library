@@ -831,6 +831,7 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
         is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
         approval_status = get_publish_approval_status(PhenotypeWorkingset, pk, workingset_history_id)
         is_lastapproved = len(PublishedWorkingset.objects.filter(workingset=PhenotypeWorkingset.objects.get(pk=pk).id, approval_status=2)) > 0
+
         workingset = workingset_db_utils.getHistoryPhenotypeWorkingset(workingset_history_id,
                                                                        highlight_result=[False, True][
                                                                            db_utils.is_referred_from_search_page(request)],
@@ -865,6 +866,51 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
             'isAllowedtoViewChildren': isAllowedtoViewChildren,
             'errors': errors
         })
+    def post(self, request, pk, workingset_history_id):
+        global errors, allow_to_publish, phenotype_is_deleted, is_owner, approval_status, is_moderator, is_latest_pending_version
+        global phenotype_has_codes, AllnotDeleted, AllarePublished, isAllowedtoViewChildren
+        errors = {}
+        allow_to_publish = True
+        phenotype_is_deleted = False
+        is_owner = True
+        is_moderator = True
+        phenotype_has_codes = True
+        AllnotDeleted = True
+        AllarePublished = True
+        isAllowedtoViewChildren = True
+
+        is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
+        if not is_published:
+            self.checkWorkingsetTobePublished(request, pk, workingset_history_id)
+
+        data = dict()
+
+        if not allow_to_publish or is_published:
+            data['form_is_valid'] = False
+            data['message'] = render_to_string('clinicalcode/error.html', {},
+                                               self.request)
+            return JsonResponse(data)
+
+        try:
+            if allow_to_publish and not is_published:
+                # start a transaction
+                with transaction.atomic():
+                    workingset = PhenotypeWorkingset.objects.get(pk=pk)
+                    published_workingset = PublishedWorkingset(workingset=workingset, workingset_history_id=workingset_history_id, created_by=request.user)
+                    published_workingset.approval_status = 2
+
+                    published_workingset.save()
+                    data['form_is_valid'] = True
+        except Exception as e:
+            data['form_is_valid'] = False
+            data['message'] = render_to_string('clinicalcode/error.html',
+                                               {},
+                                               self.request)
+
+        return JsonResponse(data)
+
+
+
 
 
 
