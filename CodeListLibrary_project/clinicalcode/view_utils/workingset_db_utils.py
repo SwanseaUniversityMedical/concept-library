@@ -22,6 +22,7 @@ def deletePhenotypeWorkingset(pk, user):
     workingset.is_deleted = True
     workingset.deleted = datetime.datetime.now()
     workingset.deleted_by = user
+    workingset.updated_by = user
     workingset.changeReason = standardiseChangeReason("Deleted")
     workingset.save()
 
