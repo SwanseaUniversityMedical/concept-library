@@ -25,12 +25,18 @@
             <div class="col-md-12">
                 <i class="help-block"><span class="required">*</span> denotes a required field</i>
                 {% if form.errors %}
+
                     <div id="form-error" class="alert alert-danger  col-sm-12">
                         <p>The operation could not be performed because one or more error(s) occurred.<br/>
                             Please resubmit the form after making the following changes:</p>
                         <ul>
                             {% for field,error in form.errors.items %}
-                                <li>{{ field }} - {{ error|striptags }}</li>
+                                {% if field == 'table_data' %}
+                                     <li>{{ field }} - There are issues with table data below</li>
+                                    {% else %}
+                                      <li>{{ field }} - {{ error|striptags }}</li>
+                                {% endif %}
+
                             {% endfor %}
                         </ul>
                     </div>
@@ -41,21 +47,42 @@
 
         <h2>Edit working set</h2>
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-12" style="display: flex;justify-content: space-between">
                 <i class="help-block"><span class="required">*</span> denotes a required field</i>
-                {% if form.errors %}
-                    <div id="form-error" class="alert alert-danger  col-sm-12">
+            <div class="delete-button-workingset">
+                  {% if form.instance.pk %}
+			{% if not CLL_READ_ONLY %}
+				{% if form.instance.is_deleted is not True %}
+					<a class="js-load-modal btn btn-outline-danger btn-cl btn-cl-danger"  href="{% url 'phenotypeworkingset_delete' form.instance.pk %}" title="Delete workingset">
+						Delete
+					</a>
+				{% endif %}
+			{% endif %}
+            </div>
+
+
+
+	{% endif %}
+
+
+            </div>
+        <div class="col-md-12">
+             {% if form.errors %}
+                    <div id="form-error" class="alert alert-danger col-sm-12">
                         <p>The operation could not be performed because one or more error(s) occurred.<br/>
                             Please resubmit the form after making the following changes:</p>
                         <ul>
-                            {% for field,error in form.errors.items %}
-                                <li>{{ field }} - {{ error|striptags }}</li>
-                            {% endfor %}
+                         {% for field,error in form.errors.items %}
+                            {% if field == 'table_data' %}
+                                     <li>{{ field }} - There are issues with table data below</li>
+                                    {% else %}
+                                      <li>{{ field }} - {{ error|striptags }}</li>
+                                {% endif %}
+                        {% endfor %}
                         </ul>
                     </div>
                 {% endif %}
-
-            </div>
+        </div>
         </div>
     {% endif %}
 
@@ -85,18 +112,36 @@
                               autocomplete="off">
                     {% endif %}
                     {% csrf_token %}
-                    <div class="form-group">
+                     <div class="form-group {% if form.name.errors %}has-error{% endif %}">
                         <div class="col-sm-12">
                             <div class="material-textfield">
                                 {{ form.name }}
                                 <label class="label-material required">{{ form.name.label }}</label>
                             </div>
-
+                            	{% if form.name.errors %}
+							<span class="help-block">
+								{% for error in form.name.errors %}{{ error }}{% endfor %}
+							</span>
+							{% endif %}
 
                         </div>
                     </div>
 
+
                     <hr/>
+
+                 {% if form.instance.pk %}
+                        <div class="form-group form-label-flex">
+                            <label>Latest version ID:</label>
+                            <div class="col-sm-1" style="margin-bottom: 5px">
+                                <input type="hidden" id="latest_history_id" name="latest_history_id"
+                                       value="{{ latest_history_id }}">
+                                <input type="hidden" id="overrideVersion" name="overrideVersion"
+                                       value="{{ overrideVersion|default_if_none:'0' }}">
+                                {{ history.0.history_id }}
+                            </div>
+                        </div>
+                    {% endif %}
 
 
                     <div class="form-group">
@@ -119,7 +164,7 @@
 
                     <div class="form-group">
 
-                        <div class="col-sm-11" id="concept-tag-form-container">
+                        <div class="col-sm-11" id="workingset-tag-form-container">
 
                             <div class="material-textfield">
                                 <input class="input-material col-sm-12 form-control" type="text" id="txtTags"
@@ -130,8 +175,8 @@
                         </div>
 
                         <div class="col-sm-1 form-help-popover">
-                            <a href="#" role="button" class="btn popovers" id="concept-tag-form" data-toggle="popover"
-                               data-trigger="hover" data-container="#concept-tag-form-container" title=""
+                            <a href="#" role="button" class="btn popovers" id="workingset-tag-form" data-toggle="popover"
+                               data-trigger="hover" data-container="#workingset-tag-form-container" title=""
                                data-original-title="Tags" data-placement="left">
                                 <i class="fa fa-question-circle" aria-hidden="true"></i>
                             </a>
@@ -192,43 +237,45 @@
                     </div>
 
 
-                    <div class="form-group">
+                     <div class="form-group {% if form.author.errors %}has-error{% endif %}">
 
                         <div class="col-sm-12">
                             <div class="material-textfield">
                                 {{ form.author }}
-                                <label class="label-material required">{{ form.author.label }}</label>
+                                <label for="{{ form.author.id_for_label }}" class="label-material required">{{ form.author.label }}</label>
+
                             </div>
+                              {% if form.author.errors %}
+							<span class="help-block">
+								{% for error in form.author.errors %}{{ error}}{% endfor %}
+							</span>
+							{% endif %}
                         </div>
                     </div>
 
-                    <div class="form-group">
+
+                  <div class="form-group {% if form.description.errors %}has-error{% endif %}">
 
                         <div class="col-sm-12">
                             <div class="material-textfield">
                                 {{ form.description }}
                                 <label class="label-material required">Description</label>
                             </div>
+                            	{% if form.description.errors %}
+							<span class="help-block">
+								{% for error in form.description.errors %}{{ error }}{% endfor %}
+							</span>
+							{% endif %}
                         </div>
                     </div>
 
 
-                    {% if form.instance.pk %}
-                        <div class="form-group">
-                            <label class="col-sm-3" for="">Latest version ID</label>
-                            <div class="col-sm-12">
-                                <input type="hidden" id="latest_history_id" name="latest_history_id"
-                                       value="{{ latest_history_id }}">
-                                <input type="hidden" id="overrideVersion" name="overrideVersion"
-                                       value="{{ overrideVersion|default_if_none:'0' }}">
-                                {{ history.0.history_id }}
-                            </div>
-                        </div>
-                    {% endif %}
 
-                    <div class="form-group">
-                        <label class="col-sm-3" for="">Created by</label>
-                        <div class="col-sm-12">
+
+
+                    <div class="form-group form-label-flex"  >
+                        <label>Created by:</label>
+                        <div class="col-sm-1">
                             <p class="form-control-static">
                                 {% if not form.instance.pk %}
                                     {{ user.username }}
@@ -237,17 +284,26 @@
                                 {% endif %}
                             </p>
                         </div>
+                    {% if form.instance.pk %}
+                        <label>Modified by:</label>
+                         <div class="col-sm-1">
+                         <p class="form-control-static">{{ form.instance.updated_by.username }}</p>
+                         </div>
+                     {% endif %}
+                    {% if not allowed_to_permit and form.instance.pk %}
+                         <label>Owned by:</label>
+                         <div class="col-sm-1">
+                         <p class="form-control-static">{{ form.instance.owner }}</p>
+                         </div>
+
+
+                    {% endif %}
+
+
+
                     </div>
 
 
-                    {% if form.instance.pk %}
-                        <div class="form-group">
-                            <div class="col-sm-12">
-                                <label for="">Modified by</label>
-                                <p class="form-control-static">{{ form.instance.updated_by.username }}</p>
-                            </div>
-                        </div>
-                    {% endif %}
 
                     <!-- ----------------------------------------------------------------------
                             PERMISSIONS
@@ -265,6 +321,7 @@
 					</div-->
 
                         <!-- Allow the user to select a user from the list of known users. -->
+                    {% if not form.fields.owner.disabled %}
                         <div class="form-group">
 
                             <div class="col-sm-11" id="workingset-owned-form-container">
@@ -289,6 +346,8 @@
                                 </p>
                             </div>
                         </div>
+                    {% endif %}
+
                         <div class="form-group">
 
                             <div class="col-sm-11" id="workingset-group-form-container">
@@ -315,25 +374,7 @@
                             </div>
                         </div>
 
-                        <div id="permissions" class="form-group">
-                            <label class="col-sm-3">{{ form.owner_access.label }}</label>
-                            <div class="col-sm-7">
-                                <table>
-                                    <tr>
-                                        {% for choice in form.owner_access %}
-                                            <td class="col-sm-2">
-                                                <div class="radio">
-                                                    <label>
-                                                        {{ choice.tag }}
-                                                        {{ choice.choice_label }}
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        {% endfor %}
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
+
 
 
                         <div id="permissions" class="form-group">
@@ -392,10 +433,23 @@
                      -->
 
 
-                    <div id=conceptsErrorsDiv style='display:none;'></div>
+
 
                     <div class="form-group">
                         <div class="col-sm-12">
+                            {% if form.table_data.errors %}
+                    <div id="form-error" class="alert alert-danger  col-sm-12">
+                        <p>Please make following changes to the table:</p>
+                        <ul>
+                            {% for field,error in form.errors.items %}
+                                {% if field == "table_data" %}
+                                     {{ error }}
+                                {% endif %}
+
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
                             <label>Phenotype/Concepts</label>
                             <table class="table display-table" id="attributes-table" style="width:100%;display:none">
 
@@ -471,7 +525,7 @@
                         </div>
                     {% endif %}
 
-                    <div id="popover-content-concept-tag-form" class="hide popover-lg">
+                    <div id="popover-content-workingset-tag-form" class="hide popover-lg">
                         <p>Tags are added within the administration section. Once a tag has been stored then you can
                             assign it here so that you can search this working set based on tag name(s). Simply start
                             typing the tag name you are looking for and it will appear within a dropdown just beneath
@@ -569,7 +623,7 @@
 
             {% endif %}
 
-            {% if workingset_data %}
+            {% if workingset_data and not form.errors %}
                 importTable({{ workingset_data|safe }})
                 importSelection({{ workingset_data|safe }})
             {% endif %}
@@ -911,7 +965,7 @@
 						    +'<option value="2">FLOAT</option>'
 						    +'<option value="3">STRING</option>'
 						  +'</select>`,
-                    ["Attributes-header" + numbers]: `<input class="input-material" type="text"   oninput="inputheader(this)" placeholder="Attribute name"  id="attribute-header${numbers}"/>`,
+                    ["Attributes-header" + numbers]: `<input class="input-material" type="text"   oninput="inputheader(this)" placeholder="Attribute name"   style="margin-top: 5px" id="attribute-header${numbers}"/>`,
                     ["Attributes-delete" + numbers]: `<button class="btn btn-cl-danger ws-trash" type="button" onclick="deletecolumn(this)" id="ws-remove-column${numbers}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`
 
                 }
@@ -1144,7 +1198,7 @@
 						    +'<option value="2" ${data[i].Attributes[j].type === 'FLOAT' ? 'selected' : ''}>FLOAT</option>'
 						    +'<option value="3" ${data[i].Attributes[j].type === 'STRING' ? 'selected' : ''}>STRING</option>'
 						  +'</select>`,
-                            ['Attributes-header' + j]: `<input class="input-material" type="text"  value="${data[i].Attributes[j].name}" oninput="inputheader(this)" placeholder="Attribute name"  id="attribute-header${j}"/>`,
+                            ['Attributes-header' + j]: `<input class="input-material" type="text"  value="${data[i].Attributes[j].name}" oninput="inputheader(this)" style="margin-top: 5px" placeholder="Attribute name"  id="attribute-header${j}"/>`,
                             ["Attributes-delete" + j]: `<button class="btn btn-cl-danger ws-trash" onclick="deletecolumn(this)" type="button" id="ws-remove-column${j}"><i class="fa fa-trash ws-disabled-link" aria-hidden="true"></i></button>`
 
 
@@ -1165,7 +1219,7 @@
                 data: 'Data',
                 title: 'Data'
             }])
-            let next_column_index = ((Object.keys(dataset[1]).length - 2) / 4)
+            let next_column_index = ((Object.keys(dataset[0]).length - 2) / 4)
 
             table = reDrawtable('attributes-table', dataset)
             table.buttons().container()

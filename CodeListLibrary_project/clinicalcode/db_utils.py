@@ -258,6 +258,52 @@ def deleteConcept(pk, user):
     concept.save()
 
 
+def deletePhenotypeWorkingset(pk, user):
+    ''' Delete a phenotypeworkingset based on a workingset id '''
+    # get selected workingset
+    workingset = PhenotypeWorkingset.objects.get(pk=pk)
+    workingset.is_deleted = True
+    workingset.deleted = datetime.datetime.now()
+    workingset.deleted_by = user
+    workingset.updated_by = user
+    workingset.changeReason = standardiseChangeReason("Deleted")
+    workingset.save()
+
+
+def restorePhenotypeWorkingset(pk, user):
+    ''' Restore a phenotypeworkingset '''
+    # get selected workingset
+    workingset = PhenotypeWorkingset.objects.get(pk=pk)
+    workingset.is_deleted = False
+    workingset.deleted = None
+    workingset.deleted_by = None
+    workingset.updated_by = user
+    workingset.changeReason = standardiseChangeReason("restored")
+    workingset.save()
+
+
+def deleteWorkingset(pk, user):
+    ''' Delete a workingset based on a workingset id '''
+    # get selected workingset
+    workingset = WorkingSet.objects.get(pk=pk)
+    workingset.is_deleted = True
+    workingset.deleted = datetime.datetime.now()
+    workingset.deleted_by = user
+    workingset.changeReason = standardiseChangeReason("Deleted")
+    workingset.save()
+
+
+def restoreWorkingset(pk, user):
+    ''' Restore a workingset '''
+    # get selected workingset
+    workingset = WorkingSet.objects.get(pk=pk)
+    workingset.is_deleted = False
+    workingset.deleted = None
+    workingset.deleted_by = None
+    workingset.changeReason = standardiseChangeReason("restored")
+    workingset.save()
+
+
 def restoreConcept(pk, user):
     ''' Restore a concept '''
     # get selected concept
@@ -1364,7 +1410,7 @@ def revertHistoryWorkingset(user, workingset_history_id):
 def deleteWorkingset(pk, user):
     ''' Delete a working set based on a working set id '''
     # get selected concept
-    workingset = WorkingSet.objects.get(pk=pk)
+    workingset = PhenotypeWorkingset.objects.get(pk=pk)
     workingset.is_deleted = True
     workingset.deleted = datetime.datetime.now()
     workingset.deleted_by = user
