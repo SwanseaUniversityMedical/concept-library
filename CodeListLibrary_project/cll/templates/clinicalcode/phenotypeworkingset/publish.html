@@ -1,6 +1,4 @@
-
-
-<form
+<form method="post"
   id="publish-form"  class="form-horizontal" novalidate enctype="multipart/form-data">
     {% csrf_token %}
 
@@ -60,7 +58,7 @@
                 </div>
             {% endif %}
 
-        {% endif %}
+	 	{% endif %}
 
         {% if errors %}
             <br><br>
@@ -77,7 +75,7 @@
 
 
 
-    {% endif %}
+ 	{% endif %}
 
         <div class="row">
             <div class="col-md-12">
@@ -122,8 +120,9 @@
 
 
                     {% endif %}
-                    {% endif %}
-                    {% endif %}
+
+                {% endif %}
+                {% endif %}
 
                 </p>
             </div>
@@ -131,34 +130,14 @@
     </div>
 
     <div class="modal-footer">
-        {% if is_published and approval_status == 2 %}
-            <span class="glyphicon glyphicon-ok" style="color:green"></span>
-            <span class="text-success">&nbsp;Published&nbsp;</span>
-        {% else %}
-        {% if approval_status == 1 and not is_moderator and is_latest_pending_version%}
-            <span class="glyphicon glyphicon-ok" style="color:green"></span>
-            <span class="text-warning">&nbsp;Waiting to approve&nbsp</span>
-            {% else %}
-            <button {% if not allowed_to_publish %} disabled="false"
-
-            {% endif %} id="publishButton" name ="submitPublish"
-                type="button" onclick = "submitForm('publish')" class="btn btn-primary">
-            {% if is_moderator %}
-                Publish
-                {% else %}
-                {% if not is_lastapproved  %}
-                Submit
-                    {% else %}
-                    Publish
-                {% endif %}
-                {% endif %}
-            {% endif %}
-            </button>
-            {% if is_moderator and approval_status == 1 and is_latest_pending_version %}
-                <button type="button" class="btn btn-primary" id = "declineButton" onclick = "submitForm('decline')" name="declinePublish">Decline
-                </button>
-                {% endif %}
-
+    	{% if is_published %}
+    		<span class="glyphicon glyphicon-ok" style="color:green"></span>
+		    <span class="text-success">&nbsp;Published&nbsp;</span>
+    	{% else %}
+            <button {% if not allowed_to_publish %} disabled="true" {% endif %} id="publishButton"
+	            type="submit" class="btn btn-primary">
+	            Publish
+	        </button>
         {% endif %}
 
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -166,118 +145,85 @@
 
 </form>
 
-<script>
-function submitForm(status){
+<script >
+$(function(){
+	// unattach the submit event
+	$('#modal-section').off('submit', '#publish-form');
 
-    // unattach the submit event
+	$('#modal-section').on('submit', '#publish-form', function(e){
 
-        var form = $('#publish-form');
+		e.preventDefault();
 
-
-        //=============================================
-        // post form
-
-        $.ajax({
+		var form = $(this);
+		//=============================================
+	    // post form
+		 $.ajax({
             url:  "{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}",
-            data: form.serialize() + '&value='+status,
+            data: form.serialize(),
             type: "POST",
             dataType: 'json',
             beforeSend: function(xhr, opts){
                 //alert('doFormSubmit= b');
                 $(".loader").show();
             },
-            success: function(data){
+			success: function(data){
+				if(data.form_is_valid){
+// 					$('#component-table tbody').html(data.html_component_list);
+					$('#history-table').html(data.html_history_list);
+					$('#latest-history-ID-Div').html(data.latest_history_ID);
+					$('#latest_history_id').val(data.latest_history_ID);
+// 					$('#concept-component-form-container').html(data.add_menu_items);
+					form.find('input[name=latest_history_id_shown]').val(data.latest_history_ID);
 
+					// href needs to be updated for publish concept to show latest status
+					if($('#publish2').length){
+// 						var pub_href = $('#publish2').attr("href").split("/");
+// 						pub_href[3] = data.latest_history_ID;
+// 						pub_href = pub_href.join("/")
+// 						$('#publish2').attr("href", pub_href);
 
-                if(data.form_is_valid){
-                    $('#history-table').html(data.html_history_list);
-                    $('#latest-history-ID-Div').html(data.latest_history_ID);
-                    $('#latest_history_id').val(data.latest_history_ID);
-
-                    form.find('input[name=latest_history_id_shown]').val(data.latest_history_ID);
-
-                    // href needs to be updated for publish phenotype to show latest status
-                    if(data.approval_status === 2) {
-//                      var pub_href = $('#publish2').attr("href").split("/");
-//                      pub_href[3] = data.latest_history_ID;
-//                      pub_href = pub_href.join("/")
-//                      $('#publish2').attr("href", pub_href);
-
-                        // $('#publish2').prop("disabled", true );
-                        var element = document.getElementById('publish2');
+						//$('#publish2').prop("disabled", true );
+						var element = document.getElementById('publish2');
                         element.setAttribute('disabled', 'disabled');
 
-                        $('#publish2').attr("title", "This version is already published ");
-                        $('#publish2').addClass("btn-success");
-                        $('#publish2').removeClass("btn-primary");
-                        $('#publish2').html("Published&nbsp;<span class='glyphicon glyphicon-ok' style='color:green'></span>");
-                          //alert(data.message);
-                        $('#success-message').show();
-                        $('#success-message').html(data.message);
+						$('#publish2').attr("title", "This version is already published" );
+						$('#publish2').addClass("btn-success");
+						$('#publish2').removeClass("btn-primary");
+						$('#publish2').html("Published&nbsp;<span class='glyphicon glyphicon-ok' style='color:green'></span>");
 
-                        $('#modal-section').modal('hide');
-                        $('#modal-section .modal-content').html('');
+					}
 
-                    }else {
-                        if(data.approval_status === 1){
-                            var element2 = document.getElementById('publish2');
-                        element2.setAttribute('disabled', 'disabled');
+					//alert(data.message);
+					$('#success-message').show();
+					$('#success-message').html(data.message);
 
-                        $('#publish2').attr("title", "This version needs to be approved ");
-                        $('#publish2').addClass("btn-warning");
-                        $('#publish2').removeClass("btn-primary");
-                        $('#publish2').html("Pending");
+					$('#modal-section').modal('hide');
+					$('#modal-section .modal-content').html('');
 
-                          //alert(data.message);
-                        $('#success-message').show();
-                        $('#success-message').html(data.message);
+				}
+				else{
+					$('#error-message').show();
+					$('#error-message').html(data.message);
 
-                        $('#modal-section').modal('hide');
-                        $('#modal-section .modal-content').html('');
-                        }
-                        else {
-                            if (data.approval_status === 3) {
+					$('#modal-section').modal('hide');
+					$('#modal-section .modal-content').html('');
+				}
+			},
+			complete: function(){
+				//alert('doFormSubmit= cc');
+				$(".loader").hide();
+			}
+		});
 
-                                var element3 = document.getElementById('publish2');
-                                element3.setAttribute('disabled', 'disabled');
-
-                                $('#publish2').attr("title", "This version is declined ");
-                                $('#publish2').addClass("btn-danger");
-                                $('#publish2').removeClass("btn-primary");
-                                $('#publish2').html("Declined");
-
-                                //alert(data.message);
-                                $('#success-message').show();
-                                $('#success-message').html(data.message);
-
-                                $('#modal-section').modal('hide');
-                                $('#modal-section .modal-content').html('');
-                            }
-                        }
-                    }
-
-                }
-                else{
-                    $('#error-message').show();
-                    $('#error-message').html(data.message);
-
-                    $('#modal-section').modal('hide');
-                    $('#modal-section .modal-content').html('');
-                }
-            },
-            complete: function(){
-                //alert('doFormSubmit= cc');
-                $(".loader").hide();
-            }
-        });
-
-        //=============================================
+		//=============================================
 
 
-        return false;
+		return false;
+	});
 
-
-}
+});
 
 
 </script>
+
+
