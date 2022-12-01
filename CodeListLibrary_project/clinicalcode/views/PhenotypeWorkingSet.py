@@ -759,24 +759,13 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
 
     model = PhenotypeWorkingset
     template_name = 'clinicalcode/phenotypeworkingset/publish.html'
-    errors = {}
-    allow_to_publish = True
-    phenotype_is_deleted = False
-    is_owner = True
-    is_moderator = True
-    phenotype_has_codes = True
-    AllnotDeleted = True
-    AllarePublished = True
-    isAllowedtoViewChildren = True
 
     def checkWorkingsetTobePublished(self, request, pk, workingset_history_id):
-        global errors, allow_to_publish, phenotype_is_deleted, is_owner, is_moderator, is_latest_pending_version
-        global phenotype_has_codes, AllnotDeleted, AllarePublished, isAllowedtoViewChildren
         '''
             Allow to publish if:
-            - Phenotype is not deleted
+            - workingset is not deleted
             - user is an owner
-            - Phenotype contains codes
+            - Workingset contains codes
             - all conceots are published
         '''
         errors = {}
@@ -810,24 +799,25 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
 
         if len(PublishedWorkingset.objects.filter(workingset_id=pk, workingset_history_id=workingset_history_id, approval_status=1)) > 0:
             is_latest_pending_version = True
-        # print(is_latest_pending_version)
+
+        checks = {
+            "errors":errors,
+            "allowed_to_publish":allow_to_publish,
+            "phenotype_is_deleted":phenotype_is_deleted,
+            "is_owner":is_owner,
+            "is_moderator":is_moderator,
+            "is_latest_pending_version":is_latest_pending_version,
+            "phenotype_has_codes":phenotype_has_codes,
+            "isAllowedtoViewChildren":isAllowedtoViewChildren,
+            "AllarePublished":AllarePublished,
+            "AllnotDeleted":AllnotDeleted
+        }
+        return checks
 
 
 
     def get(self, request, pk, workingset_history_id):
-        global errors, allow_to_publish, phenotype_is_deleted, is_owner, approval_status, is_moderator, is_latest_pending_version
-        global phenotype_has_codes, AllnotDeleted, AllarePublished, isAllowedtoViewChildren
-        errors = {}
-        allow_to_publish = True
-        phenotype_is_deleted = False
-        is_owner = True
-        is_moderator = True
-        phenotype_has_codes = True
-        AllnotDeleted = True
-        AllarePublished = True
-        isAllowedtoViewChildren = True
-
-        phenotype_ver = PhenotypeWorkingset.history.get(id=pk, history_id=workingset_history_id)
+        workingset_ver = PhenotypeWorkingset.history.get(id=pk, history_id=workingset_history_id)
         is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
         approval_status = get_publish_approval_status(PhenotypeWorkingset, pk, workingset_history_id)
         is_lastapproved = len(PublishedWorkingset.objects.filter(workingset=PhenotypeWorkingset.objects.get(pk=pk).id, approval_status=2)) > 0
@@ -841,30 +831,30 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
                                                                                                                 ''))
                                                                        )
 
-        self.checkWorkingsetTobePublished(request, pk, workingset_history_id)
+        checks = self.checkWorkingsetTobePublished(request, pk, workingset_history_id)
 
         if not is_published:
-            self.checkWorkingsetTobePublished(request, pk, workingset_history_id)
+            checks = self.checkWorkingsetTobePublished(request, pk, workingset_history_id)
 
         # --------------------------------------------
 
         return self.render_to_response({
             'workingset': workingset,
-            'name': phenotype_ver.name,
+            'name': workingset_ver.name,
             'workingset_history_id': workingset_history_id,
             'is_published': is_published,
-            'allowed_to_publish': allow_to_publish,
-            'is_owner': is_owner,
+            'allowed_to_publish': checks['allowed_to_publish'],
+            'is_owner': checks['is_owner'],
             'approval_status': approval_status,
             'is_lastapproved': is_lastapproved,
-            'is_latest_pending_version': is_latest_pending_version,
-            'is_moderator': is_moderator,
-            'phenotype_is_deleted': phenotype_is_deleted,
-            'phenotype_has_codes': phenotype_has_codes,
-            'AllnotDeleted': AllnotDeleted,
-            'AllarePublished': AllarePublished,
-            'isAllowedtoViewChildren': isAllowedtoViewChildren,
-            'errors': errors
+            'is_latest_pending_version': checks['is_latest_pending_version'],
+            'is_moderator': checks['is_moderator'],
+            'phenotype_is_deleted': checks['phenotype_is_deleted'],
+            'phenotype_has_codes': checks['phenotype_has_codes'],
+            'AllnotDeleted': checks['AllnotDeleted'],
+            'AllarePublished': checks['AllarePublished'],
+            'isAllowedtoViewChildren': checks['isAllowedtoViewChildren'],
+            'errors': checks['errors']
         })
     def post(self, request, pk, workingset_history_id):
         global errors, allow_to_publish, phenotype_is_deleted, is_owner, approval_status, is_moderator, is_latest_pending_version
