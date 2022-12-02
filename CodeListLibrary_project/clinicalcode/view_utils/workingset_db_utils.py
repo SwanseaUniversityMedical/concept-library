@@ -9,7 +9,7 @@ from psycopg2.errorcodes import INVALID_PARAMETER_VALUE
 from clinicalcode.db_utils import standardiseChangeReason, get_can_edit_subquery, get_brand_collection_ids, \
     getGroupOfCodesByConceptId_HISTORICAL, getConceptCodes_withAttributes_HISTORICAL, modify_Entity_ChangeReason
 from clinicalcode.models import PhenotypeWorkingset
-from .. import utils
+from .. import utils, db_utils
 from ..constants import *
 from ..models import *
 from ..permissions import *
@@ -121,6 +121,78 @@ def validate_workingset_table(workingset_table):
                 is_valid = False
 
     return is_valid, errors
+
+def checkWorkingsetTobePublished(request,pk,workingset_history_id):
+    '''
+        Allow to publish if:
+        - workingset is not deleted
+        - user is an owner
+        - Workingset contains codes
+        - all conceots are published
+    '''
+    errors = {}
+    allow_to_publish = True
+    phenotype_is_deleted = False
+    is_owner = True
+    is_moderator = False
+    is_latest_pending_version = False
+    phenotype_has_codes = True
+    AllnotDeleted = True
+    AllarePublished = True
+    isAllowedtoViewChildren = True
+
+    if (PhenotypeWorkingset.objects.get(id=pk).is_deleted == True):
+        allow_to_publish = False
+        phenotype_is_deleted = True
+
+    if (PhenotypeWorkingset.objects.filter(Q(id=pk), Q(owner=request.user)).count() == 0):
+        allow_to_publish = False
+        is_owner = False
+
+    if (request.user.groups.filter(name="Moderators").exists()):
+        allow_to_publish = True
+        is_moderator = True
+
+    if (request.user.groups.filter(name="Moderators").exists()
+            and not (PhenotypeWorkingset.objects.filter(Q(id=pk), Q(owner=request.user)).count() == 0)):
+        allow_to_publish = True
+        is_owner = True
+        is_moderator = True
+
+    if len(PublishedWorkingset.objects.filter(workingset_id=pk, workingset_history_id=workingset_history_id, approval_status=1)) > 0:
+        is_latest_pending_version = True
+
+    workingset_ver = PhenotypeWorkingset.history.get(id=pk, history_id=workingset_history_id)
+    is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
+    approval_status = get_publish_approval_status(PhenotypeWorkingset, pk, workingset_history_id)
+    is_lastapproved = len(PublishedWorkingset.objects.filter(workingset=PhenotypeWorkingset.objects.get(pk=pk).id, approval_status=2)) > 0
+
+    workingset = getHistoryPhenotypeWorkingset(workingset_history_id,
+                                                                   highlight_result=[False, True][
+                                                                       db_utils.is_referred_from_search_page(request)],
+                                                                   q_highlight=db_utils.get_q_highlight(request,
+                                                                                                        request.session.get(
+                                                                                                            'ph_workingset_search',
+                                                                                                            ''))
+                                                                   )
+    checks = {
+        'workingset': workingset,
+        'name': workingset_ver.name,
+        "errors":errors,
+        "allowed_to_publish":allow_to_publish,
+        "phenotype_is_deleted":phenotype_is_deleted,
+        "is_owner":is_owner,
+        "is_moderator":is_moderator,
+        'approval_status': approval_status,
+        'is_lastapproved': is_lastapproved,
+        'is_published': is_published,
+        "is_latest_pending_version":is_latest_pending_version,
+        "phenotype_has_codes":phenotype_has_codes,
+        "isAllowedtoViewChildren":isAllowedtoViewChildren,
+        "AllarePublished":AllarePublished,
+        "AllnotDeleted":AllnotDeleted
+    }
+    return checks
 
 def validate_phenotype_workingset_attribute(attribute):
     """ Attempts to parse the given attribute's value as it's given datatype
