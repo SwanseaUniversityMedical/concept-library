@@ -807,30 +807,33 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
 
         try:
             if self.condition_to_publish(checks, is_published):
-         
-                if (checks['approval_status'] == 1 and checks['is_moderator']):
-                    with transaction.atomic():
-                        workingset = PhenotypeWorkingset.objects.get(pk=pk)
-                        published_workingset = PublishedWorkingset(workingset=workingset, workingset_history_id=workingset_history_id, created_by=request.user,
-                                                                   approval_status=1)
-                        published_workingset.workingset_history_id = workingset_history_id
-                        published_workingset.approval_status = 2
-                        published_workingset.moderator = request.user
-                        published_workingset.created_by = PublishedWorkingset(workingset=workingset, workingset_history_id=workingset_history_id, created_by=request.user,
-                                                                              approval_status=1).created_by
-                        published_workingset.save()
-
-                        data['approval_status'] = 2
-                        # data = self.form_validation(request, data, workingset_history_id, pk, phenotype)
-                else:
                     # start a transaction
                     with transaction.atomic():
                         workingset = PhenotypeWorkingset.objects.get(pk=pk)
-                        published_workingset = PublishedWorkingset(workingset=workingset, workingset_history_id=workingset_history_id, created_by=request.user)
+                        if checks['is_moderator']:
+                            published_workingset = PublishedWorkingset(workingset=workingset, workingset_history_id=workingset_history_id,moderator_id = request.user.id,
+                                                                    created_by_id=PhenotypeWorkingset.objects.get(pk=pk).created_by.id)
+                        if checks['is_lastapproved']:
+                            published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id, approval_status=2).first()
+                            published_workingset = PublishedWorkingset(workingset = workingset,workingset_history_id=workingset_history_id,moderator_id=published_workingset.moderator.id,created_by_id=request.user.id)
                         published_workingset.approval_status = 2
                         published_workingset.save()
                         data['form_is_valid'] = True
+            else:
+                if checks['approval_status'] == 1 and checks['is_moderator']:
+                    with transaction.atomic():
+                        print('loh')
+                        workingset = PhenotypeWorkingset.objects.get(pk=pk)
+                        published_workingset = PublishedWorkingset.objects.get(workingset_id=workingset.id, workingset_history_id=workingset_history_id,approval_status=1)
 
+                        published_workingset.workingset_history_id = workingset_history_id
+                        published_workingset.approval_status = 2
+                        published_workingset.moderator_id = request.user.id
+                        published_workingset.created_by_id = PublishedWorkingset.objects.get(workingset_id=workingset.id, workingset_history_id=workingset_history_id,approval_status=1).created_by_id
+                        published_workingset.save()
+
+                        data['approval_status'] = 2
+                        #data = self.form_validation(request, data, workingset_history_id, pk, phenotype)
 
 
         except Exception as e:
@@ -844,7 +847,7 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
 
     def condition_to_publish(self,checks,is_published):
         if (checks['allowed_to_publish'] and not is_published and checks['approval_status'] is None) or\
-                (checks['approval_status'] == 2 and not is_published) or (checks['is_moderator'] or checks['is_lastapproved']):
+                (checks['approval_status'] == 2 and not is_published):
             return True
 
 
