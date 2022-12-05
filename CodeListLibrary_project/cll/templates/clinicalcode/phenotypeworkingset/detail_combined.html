@@ -151,8 +151,13 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                                             {% else %}
 
 
-                                                <a
-                                                        {% if not live_ver_is_deleted and approval_status is None  or approval_status == 2 %}
+
+                                                <a {% if approval_status == None and not  request.user|has_group:"Moderators" %}
+                                                            class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
+                                                            href="{% url 'workingset_submit' pk=workingset.id workingset_history_id=workingset.history_id %}"
+
+                                                        {% elif not live_ver_is_deleted or approval_status == 2 %}
+
                                                             class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
                                                             href="{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}"
                                                         {% else %}
@@ -174,6 +179,8 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                                                                     disabled = true
                                                                     disabled title="Unavailable to publish"
                                                                 {% endif %}
+
+
                                                             {% endif %}
 
 
