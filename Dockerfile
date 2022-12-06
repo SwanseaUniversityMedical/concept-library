@@ -9,12 +9,10 @@ WORKDIR /var/www/
 
 #RUN mkdir -p /home/config_cll/cll_srvr_logs
 
-
 ######### copy code ######################
 RUN mkdir -p /var/www/concept_lib_sites/v1
 
-
-COPY requirements /var/www/concept_lib_sites/v1/requirements
+COPY ./docker/requirements /var/www/concept_lib_sites/v1/requirements
 #COPY CodeListLibrary_project /var/www/concept_lib_sites/v1/CodeListLibrary_project
 
 COPY CodeListLibrary_project/clinicalcode /var/www/concept_lib_sites/v1/CodeListLibrary_project/clinicalcode
@@ -23,7 +21,7 @@ COPY CodeListLibrary_project/manage.py /var/www/concept_lib_sites/v1/CodeListLib
 
 #########################################
 # config apache
-COPY OS/cll.conf /etc/apache2/sites-available/cll.conf
+COPY ./docker/production/cll.conf /etc/apache2/sites-available/cll.conf
 
 RUN a2enmod wsgi
 
@@ -41,13 +39,8 @@ RUN \
 # pip old ver for py2
 #COPY pip-20.2-py2.py3-none-any.whl /var/www/concept_lib_sites/v1/requirements/pip-20.2-py2.py3-none-any.whl
 
-
 # Deploy script
-COPY deploy_script_main.sh /home/config_cll/deploy_script_main.sh
-COPY deploy_script_DB_mig.sh /home/config_cll/deploy_script_DB_mig.sh
-COPY deploy_script_DB_mig_ro.sh /home/config_cll/deploy_script_DB_mig_ro.sh
-COPY worker_start.sh /home/config_cll/worker_start.sh
-COPY beat_start.sh /home/config_cll/beat_start.sh
+COPY ./docker/production/scripts /home/config_cll/
 
 # Make file executable:
 RUN ["chmod" , "+x" , "/home/config_cll/deploy_script_main.sh"]
@@ -58,7 +51,6 @@ RUN ["chmod" , "+x" , "/home/config_cll/worker_start.sh"]
 
 RUN ["chown" , "-R" , "www-data:www-data" , "/var/www/"]
 #RUN /home/config_cll/deploy_script_main.sh
-
 
 #ENTRYPOINT ["/home/config_cll/deploy_script_main.sh"]
 RUN ["/home/config_cll/deploy_script_main.sh"]

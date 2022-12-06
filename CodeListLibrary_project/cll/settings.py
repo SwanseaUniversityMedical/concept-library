@@ -309,7 +309,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-if IS_LINUX:
+if IS_LINUX and not IS_DEVELOPMENT_PC:
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,
