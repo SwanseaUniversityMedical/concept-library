@@ -254,6 +254,7 @@ def deleteConcept(pk, user):
     concept.is_deleted = True
     concept.deleted = datetime.datetime.now()
     concept.deleted_by = user
+    concept.modified_by = user 
     concept.changeReason = standardiseChangeReason("Deleted")
     concept.save()
 
@@ -265,6 +266,7 @@ def restoreConcept(pk, user):
     concept.is_deleted = False
     concept.deleted = None
     concept.deleted_by = None
+    concept.modified_by = user
     concept.changeReason = standardiseChangeReason("restored")
     concept.save()
 
@@ -1368,6 +1370,7 @@ def deleteWorkingset(pk, user):
     workingset.is_deleted = True
     workingset.deleted = datetime.datetime.now()
     workingset.deleted_by = user
+    workingset.updated_by = user
     workingset.changeReason = standardiseChangeReason("Deleted")
     workingset.save()
 
@@ -1678,6 +1681,7 @@ def restoreWorkingset(pk, user):
     workingset.is_deleted = False
     workingset.deleted = None
     workingset.deleted_by = None
+    workingset.updated_by = user
     workingset.changeReason = standardiseChangeReason("Restored")
     workingset.save()
 
@@ -3581,7 +3585,7 @@ def getHistoryPhenotype(phenotype_history_id, highlight_result=False, q_highligh
     if highlight_result and q_highlight is not None:
         # for highlighting
         if str(q_highlight).strip() != '':
-            sql_params += [str(q_highlight)] * 5
+            sql_params += [str(q_highlight)] * 6
             highlight_columns += """ 
                 ts_headline('english', coalesce(hph.name, '')
                         , websearch_to_tsquery('english', %s)
@@ -3601,7 +3605,11 @@ def getHistoryPhenotype(phenotype_history_id, highlight_result=False, q_highligh
                                                               
                 ts_headline('english', coalesce(array_to_string(hph.publications, '^$^'), '')
                         , websearch_to_tsquery('english', %s)
-                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publications_highlighted,                                              
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publications_highlighted,    
+                        
+                ts_headline('english', coalesce(hph.validation, '')
+                        , websearch_to_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=hightlight-txt > ", StopSel="</b>"') as validation_highlighted,                                                                     
              """
                      
     sql_params.append(phenotype_history_id)
@@ -3677,6 +3685,7 @@ def getHistoryPhenotype(phenotype_history_id, highlight_result=False, q_highligh
             row_dict['description_highlighted'] = row_dict['description']
             row_dict['implementation_highlighted'] = row_dict['implementation']
             row_dict['publications_highlighted'] = row_dict['publications']
+            row_dict['validation_highlighted'] = row_dict['validation']
             
         return row_dict
 
@@ -4998,5 +5007,7 @@ def get_working_set_codes_by_version(request,
                     )
 
     return codes
+
+
 
 

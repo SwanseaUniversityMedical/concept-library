@@ -89,6 +89,17 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                         </div>
 
                         {% if user.is_authenticated and not CLL_READ_ONLY %}
+                        <span>
+								<a class="btn btn-outline-primary btn-cl btn-cl-secondary card-edit-sizing" {% if user_can_edit %} href="{% url "phenotypeworkingset_update" workingset.id %}" {% endif %} title="Edit workingset"
+								{% if not user_can_edit %} disabled {% endif %}>
+								Edit
+							</a>
+							<a  {% if allowed_to_create and user_can_edit and not is_latest_version %} class="js-load-modal btn btn-outline-danger btn-cl btn-cl-danger" href="{% url 'phenotypeworkingset_history_revert' workingset.id workingset.history_id %}"
+								{% else %} class="btn btn-outline-danger btn-cl btn-cl-danger" disabled   title="You don't have access to update or this is already the latest version !"
+								{% endif %} id="revert-btn" >
+								Revert
+							</a>
+							</span>
                             {% if enable_publish %}
 
                                 {% if is_published and approval_status == 2%}
@@ -191,6 +202,14 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                         <a id="printBtn" class="btn btn-outline-primary btn-cl btn-cl-secondary">
                             Print
                         </a>
+
+							{% if live_ver_is_deleted is True and user_can_restore %}
+								<a class="js-load-modal btn btn-outline-danger btn-cl btn-cl-danger" href="{% url 'phenotypeworkingset_create_restore' workingset.id %}" title="Restore workingset">
+									Restore
+								</a>
+
+
+							{% endif %}
                         <a href="#" role="button" class="btn popovers" id="help-hist-phenotype"
                            data-toggle="popover" data-trigger="hover" data-container="body" title=""
                            data-original-title="" data-placement="left">

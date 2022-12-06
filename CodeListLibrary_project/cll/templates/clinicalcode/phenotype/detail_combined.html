@@ -30,15 +30,21 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                 <li><a href="#definition">Definition</a></li>
 
                 {% if phenotype.implementation|length or phenotype.phenoflowid|length %}
-                <li><a href="#implementation">Implementation</a></li>
+                	<li><a href="#implementation">Implementation</a></li>
                 {% endif %}
                 
- 				<!--<li><a href="#validation">Validation</a></li>-->
+                {% if IS_DEMO or IS_DEVELOPMENT_PC %}
+	                {% if phenotype.validation_highlighted|length %}
+	 						<li><a href="#validation">Validation</a></li>
+	 				{% endif %}
+ 				{% endif %}
                 <li><a href="#Publications">Publications</a></li>
                 <li><a href="#CodeLists">Clinical Code Lists</a></li>
+                
                  {% if user.is_authenticated %}
                         <li><a href="#permissions">Permissions</a></li>
-                    {% endif %}
+                 {% endif %}
+                 
                 <li><a href="#API">API</a></li>
 
                 <li><a href="#CodeListsVersions">Version History</a></li>
@@ -434,29 +440,20 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                     VALIDATION
                     -------------------------------------------------------------------
               -->
-            <!--		<div class="col-sm-12 shadow-frame">
-					<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span id="validation"></span><strong>Validation</strong></h3>
-					
-					
-					<div class="row" style="margin-top:10px;">
-						<div class="col-sm-3">Validation performed</div>
-							<div class="col-sm-9" style="margin-top: -10px">
-								<div class="validation-checkbox">
-									 <input type="checkbox" {% if phenotype.validation_performed %}
-                checked="checked" {% endif %} disabled />
-								</div>
-							</div>
-					</div>
-					<div class="row"></div>
-					
-					<div class="row" style="margin-top:10px;">
-						<div class="col-sm-3">Validation description</div>
-						<div class="col-sm-9" style="margin-left: -20px;">{{ phenotype.validation }}</div>
-					</div>
-		
-				</div>
-				
-			-->
+              
+            {% if IS_DEMO or IS_DEVELOPMENT_PC %}
+	        	{% if phenotype.validation_highlighted|length %}
+					<div class="col-sm-12 shadow-frame">
+		                <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
+		                        id="validation"></span><strong>Validation</strong></h3>
+		                {% if phenotype.validation_highlighted|length %}
+		                {{ phenotype.validation_highlighted|markdownify }}
+		                {% else %}
+		                <span class="card-no-data">No data available</span>
+		                {% endif %}
+		            </div>
+				{% endif %}
+			{% endif %}			
 
             <!--	-------------------------------------------------------------------
                     PUBLICATIONS

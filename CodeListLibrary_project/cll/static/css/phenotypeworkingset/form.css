@@ -28,12 +28,24 @@
 .ws-trash-pub {
     margin-left: -6px;
     padding: 6px 12px;
+    margin-top: 20px;
     height: 35px;
 }
 
 .ws-upload {
     margin-left: 3px;
 }
+#workingset-tag-form{
+    margin-top: 20px;
+}
+#workingset-owned-form{
+    margin-top: 20px;
+}
+
+#workingset-group-form{
+    margin-top: 20px;
+}
+
 
 table.dataTable tbody td.selected a {
     color: white;
@@ -48,6 +60,7 @@ table.dataTable tbody td.selected a {
 }
 
 .material-textfield {
+    margin-top: 20px;
     position: relative;
 }
 
@@ -88,14 +101,13 @@ table.dataTable tbody td.selected a {
 }
 
 .table-button {
-    margin-top: 17px;
+    margin-top: 20px;
     height: 35px;
     background-image: none;
 }
 
 
 .form-control {
-    margin-bottom: 20px;
     height: 35px;
 }
 
@@ -137,23 +149,38 @@ table.dataTable tbody td.selected a {
     color: #9b9191;
     z-index: 1;
     background-color: transparent;
-
 }
 
-.bootstrap-tagsinput {
-    margin-bottom: 20px;
-}
+
 
 .form-control[disabled], .form-control[readonly], fieldset[disabled] .label-select::before {
-    border-top: 3px;
+
     content: "";
-    margin: 0 auto; /* this centers the line to the full width specified */
-    position: absolute; /* positioning must be absolute here, and relative positioning must be applied to the parent */
+    position: inherit;
     top: 50%;
     left: 0;
     right: 0;
     bottom: 0;
-    width: 95%;
+
+    background-color: #eee;
+
+    z-index: -1;
+}
+
+.form-control[disabled], .form-control[readonly], fieldset[disabled] .input-material {
+    color: #9b9191;
+    z-index: 1;
+}
+
+
+
+.form-control[disabled], .form-control[readonly], fieldset[disabled] .input-material::before {
+
+
+    top: 50%;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background-color: #eee;
     z-index: -1;
 }
@@ -195,6 +222,13 @@ table.dataTable tbody td.selected a {
     background: #2b6cb0;
 }
 
+.form-label-flex{
+    display: flex;
+    align-items: center;
+    padding-left: 15px;
+
+
+}
 .save-button {
     padding: 2px 37px;
     color: #ffffff;
@@ -223,6 +257,7 @@ table.dataTable tbody td.selected a {
     height: 35px;
     margin-left: -6px;
     position: relative;
+    margin-top: 20px;
     text-align: center;
     text-decoration: none;
     transition: color 100ms;
