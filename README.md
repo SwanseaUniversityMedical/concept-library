@@ -203,7 +203,7 @@ Create a run configuration for the project:
       "request": "attach",
       "pathMappings": [
         {
-          "localRoot": "${workspaceFolder}/concept-library/CodeListLibrary_project",
+          "localRoot": "${workspaceFolder}/CodeListLibrary_project",
           "remoteRoot": "/var/www/CodeListLibrary_project"
         }
       ],

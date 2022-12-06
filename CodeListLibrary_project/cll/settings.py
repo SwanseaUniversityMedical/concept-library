@@ -325,31 +325,6 @@ if IS_LINUX and not IS_DEVELOPMENT_PC:
             },
         },
     }
-elif IS_LINUX and IS_DEVELOPMENT_PC and DEBUG:
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            'verbose': {
-                'format':
-                '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
-            }
-        },
-        'handlers': {
-            'console': {
-                'level': 'DEBUG',
-                'class': 'logging.StreamHandler',
-                'formatter': 'verbose',
-            }
-        },
-        'loggers': {
-            '*': {
-                'handlers': ['console'],
-                'level': 'DEBUG',
-                'propagate': True,
-            }
-        },
-    }
 else:
     LOGGING = {
         'version': 1,
