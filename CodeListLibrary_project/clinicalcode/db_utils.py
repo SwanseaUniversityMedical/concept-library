@@ -3585,7 +3585,7 @@ def getHistoryPhenotype(phenotype_history_id, highlight_result=False, q_highligh
     if highlight_result and q_highlight is not None:
         # for highlighting
         if str(q_highlight).strip() != '':
-            sql_params += [str(q_highlight)] * 5
+            sql_params += [str(q_highlight)] * 6
             highlight_columns += """ 
                 ts_headline('english', coalesce(hph.name, '')
                         , websearch_to_tsquery('english', %s)
@@ -3605,7 +3605,11 @@ def getHistoryPhenotype(phenotype_history_id, highlight_result=False, q_highligh
                                                               
                 ts_headline('english', coalesce(array_to_string(hph.publications, '^$^'), '')
                         , websearch_to_tsquery('english', %s)
-                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publications_highlighted,                                              
+                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publications_highlighted,    
+                        
+                ts_headline('english', coalesce(hph.validation, '')
+                        , websearch_to_tsquery('english', %s)
+                        , 'HighlightAll=TRUE, StartSel="<b class=hightlight-txt > ", StopSel="</b>"') as validation_highlighted,                                                                     
              """
                      
     sql_params.append(phenotype_history_id)
@@ -3681,6 +3685,7 @@ def getHistoryPhenotype(phenotype_history_id, highlight_result=False, q_highligh
             row_dict['description_highlighted'] = row_dict['description']
             row_dict['implementation_highlighted'] = row_dict['implementation']
             row_dict['publications_highlighted'] = row_dict['publications']
+            row_dict['validation_highlighted'] = row_dict['validation']
             
         return row_dict
 
