@@ -33,6 +33,8 @@ from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from .. import db_utils, utils
+from ..db_utils import validate_phenotype_workingset_attribute_group
+from ..view_utils import workingset_db_utils
 from clinicalcode.forms.WorkingsetForm import WorkingsetForm
 from ..models import *
 from ..permissions import *
@@ -143,7 +145,7 @@ def workingset_list(request):
     get_live_and_or_published_ver = 3  # 1= live only, 2= published only, 3= live+published
 
     # available ph_workingset_types in the DB
-    ph_workingset_types_list, ph_workingset_types_order = db_utils.get_brand_associated_workingset_types(request, brand=None)
+    ph_workingset_types_list, ph_workingset_types_order = workingset_db_utils.get_brand_associated_workingset_types(request, brand=None)
     ph_workingset_selected_types_list = {ph_workingset_types_order[k]: v for k, v in enumerate(ph_workingset_types_list)}
     
     # search by ID (only with prefix)
@@ -226,7 +228,7 @@ def workingset_list(request):
         filter_cond += " AND group_id IN(" + ', '.join(map(str, group_list)) + ") "
 
     order_param = db_utils.get_order_from_parameter(des_order).replace(" id,", " REPLACE(id, 'WS', '')::INTEGER,")
-    workingset_srch = db_utils.get_visible_live_or_published_phenotype_workingset_versions(request,
+    workingset_srch = workingset_db_utils.get_visible_live_or_published_phenotype_workingset_versions(request,
                                                                             get_live_and_or_published_ver=get_live_and_or_published_ver,
                                                                             search=[search, ''][search_by_id],
                                                                             author=author,
@@ -368,11 +370,22 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
     form_class = WorkingsetForm
     template_name = 'clinicalcode/phenotypeworkingset/form.html'
 
+
     def get_form_kwargs(self):
         kwargs = super(CreateView, self).get_form_kwargs()
         kwargs.update({'user': self.request.user})
         kwargs.update({'groups': getGroups(self.request.user)})
         return kwargs
+
+    def get_success_url(self):
+        if allowed_to_edit(self.request, PhenotypeWorkingset, self.object.id):
+            return reverse('phenotypeworkingset_update', args=(self.object.id, ))
+        elif allowed_to_view(self.request, PhenotypeWorkingset, self.object.id):
+            return reverse('phenotypeworkingset_detail', args=(self.object.id, ))
+        else:
+            return reverse('phenotypeworkingsets_list')
+
+
 
     def form_invalid(self, form):
         tag_ids = commaSeparate(self.request.POST.get('tagids'))
@@ -382,6 +395,7 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         table_elements_data = self.request.POST.get('phenotypes_concepts_json')
         previous_selection = self.request.POST.get('previous_selection')
         context = self.get_context_data()
+
 
         if tag_ids:
             context['tags'] = Tag.objects.filter(pk__in=tag_ids)
@@ -418,7 +432,7 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, self.object.pk, "Created")
             messages.success(self.request, "Workingset has been successfully created.")
 
-        return HttpResponseRedirect(reverse('phenotypeworkingset_update', args=(self.object.id,)))
+        return HttpResponseRedirect(self.get_success_url())
 
 
 @login_required
@@ -538,7 +552,7 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
 
     # ----------------------------------------------------------------------
 
-    workingset = db_utils.getHistoryPhenotypeWorkingset(workingset_history_id,
+    workingset = workingset_db_utils.getHistoryPhenotypeWorkingset(workingset_history_id,
                                                         highlight_result=[False, True][
                                                             db_utils.is_referred_from_search_page(request)],
                                                         q_highlight=db_utils.get_q_highlight(request,
@@ -593,6 +607,9 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
         can_edit = (not PhenotypeWorkingset.objects.get(pk=pk).is_deleted) and allowed_to_edit(request,
                                                                                                PhenotypeWorkingset, pk)
 
+        can_restore = PhenotypeWorkingset.objects.get(pk=pk).is_deleted and allowed_to_edit(request,
+                                                                                               PhenotypeWorkingset, pk)
+
         user_can_export = (
                 allowed_to_view_children(request, PhenotypeWorkingset, pk, set_history_id=workingset_history_id)
                 and db_utils.chk_deleted_children(
@@ -613,6 +630,7 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
 
     else:
         can_edit = False
+        can_restore =False
         user_can_export = is_published
         user_allowed_to_create = False
 
@@ -621,8 +639,6 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
         publish_date = PublishedWorkingset.objects.get(workingset_id=pk,
                                                        workingset_history_id=workingset_history_id).created
 
-    if PhenotypeWorkingset.objects.get(pk=pk).is_deleted == True:
-        messages.info(request, "This Working Set has been deleted.")
 
     # published versions
     published_historical_ids = list(
@@ -644,7 +660,7 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
             except:
                 data['contept_name'] = 'Unknown'
 
-    if workingset['is_deleted'] == True:
+    if PhenotypeWorkingset.objects.get(pk=pk).is_deleted == True:
         messages.info(request, "This Working Set has been deleted.")
 
     context = {
@@ -656,8 +672,9 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
         'collections': collections_tags,
         'has_collections': has_collections,
         'data_sources': data_sources,
-        'user_can_edit': False,  # for now  #can_edit,
-        'allowed_to_create': False,  # for now  #user_allowed_to_create,    # not settings.CLL_READ_ONLY,
+        'user_can_edit': can_edit,  #can_edit,
+        'user_can_restore':can_restore,
+        'allowed_to_create': user_allowed_to_create,  # for now  #user_allowed_to_create,    # not settings.CLL_READ_ONLY,
         'user_can_export': user_can_export,
         'history': history,
         'live_ver_is_deleted': PhenotypeWorkingset.objects.get(pk=pk).is_deleted,
@@ -685,7 +702,7 @@ def get_history_table_data(request, pk):
     historical_versions = []
 
     for v in versions:
-        ver = db_utils.getHistoryPhenotypeWorkingset(v.history_id
+        ver = workingset_db_utils.getHistoryPhenotypeWorkingset(v.history_id
                                                      , highlight_result=[False, True][
                 db_utils.is_referred_from_search_page(request)]
                                                      , q_highlight=db_utils.get_q_highlight(request,
@@ -735,7 +752,7 @@ def get_history_table_data(request, pk):
     return historical_versions
 
 
-class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin, TemplateResponseMixin, View):
+class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
     '''
         Publish the current working set.
     '''
@@ -746,14 +763,17 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditWorkingsetCheckMixin,
     pass
 
 
-class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, UpdateView):
+
+
+
+class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCheckMixin, UpdateView):
     '''
         Update the current working set.
     '''
 
     model = PhenotypeWorkingset
     form_class = WorkingsetForm
-    success_url = reverse_lazy('workingset_list')
+    success_url = reverse_lazy('phenotypeworkingsets_list')
     template_name = 'clinicalcode/phenotypeworkingset/form.html'
 
     confirm_overrideVersion = 0
@@ -769,6 +789,35 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
     def get_success_url(self):
         return reverse('phenotypeworkingset_update', args=(self.object.id,))
 
+    def form_invalid(self, form):
+        tag_ids = commaSeparate(self.request.POST.get('tagids'))
+        collections = commaSeparate(self.request.POST.get('collections'))
+        datasources = commaSeparate(self.request.POST.get('datasources'))
+        publications = self.request.POST.get('publication_data')
+        table_elements_data = self.request.POST.get('phenotypes_concepts_json')
+        previous_selection = self.request.POST.get('previous_selection')
+        context = self.get_context_data()
+
+        if tag_ids:
+            context['tags'] = Tag.objects.filter(pk__in=tag_ids)
+
+        if collections:
+            queryset = Tag.objects.filter(tag_type=2)
+            context['collections'] = queryset.filter(id__in=collections)
+
+        if datasources:
+            context['datasources'] = DataSource.objects.filter(datasource_id__in=datasources)
+
+        if publications:
+            context['publications'] = publications
+
+        if table_elements_data:
+            context['table_elements'] = table_elements_data
+
+        if previous_selection:
+            context['previous_selection'] = previous_selection
+
+        return self.render_to_response(context)
     def form_valid(self, form):
         # ----------------------------------------------------------
         # alert user when concurrent editing of workingset
@@ -782,7 +831,10 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
             self.is_valid1 = False
             form.is_valid = self.is_valid1
             return self.form_invalid(form)
+
+
             # return HttpResponseRedirect(self.get_context_data(**kwargs))
+
         # ----------------------------------------------------------
 
         with transaction.atomic():
@@ -853,6 +905,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
         context['allowed_to_permit'] = allowed_to_permit(self.request.user, PhenotypeWorkingset, self.get_object().id)
 
 
+
         context['overrideVersion'] = self.confirm_overrideVersion
         context['history'] = self.get_object().history.all()
         latest_history_id = context['phenotypeworkingset'].history.first().history_id
@@ -867,29 +920,87 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, Upd
         return context
 
 
-class WorkingSetDelete(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, TemplateResponseMixin, View):
+class WorkingSetDelete(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
     '''
-        Delete a working set.
-    '''
-    pass
-    # look at concept equivalent
+           Delete a workingset.
+       '''
+    model = PhenotypeWorkingset
+    success_url = reverse_lazy('phenotypeworkingsets_list')
+    template_name = 'clinicalcode/phenotypeworkingset/delete.html'
+
+    def get_success_url(self):
+        return reverse_lazy('phenotypeworkingsets_list')
+
+    def get(self, request, pk):
+        workingset = PhenotypeWorkingset.objects.get(pk=pk)
+
+        return self.render_to_response({'pk': pk, 'name': workingset.name})
+
+    def post(self, request, pk):
+        with transaction.atomic():
+            workingset_db_utils.deletePhenotypeWorkingset(pk, request.user)
+            db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, pk, "Workingset has been deleted")
+        messages.success(self.request, "Workingset has been successfully deleted.")
+        return HttpResponseRedirect(self.get_success_url())
 
 
-class WorkingSetRestore(LoginRequiredMixin, HasAccessToEditConceptCheckMixin, TemplateResponseMixin, View):
+class WorkingSetRestore(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
     '''
         Restore a deleted working set.
     '''
-    pass
-    # look at concept equivalent
 
+    model = PhenotypeWorkingset
+    success_url = reverse_lazy('phenotypeworkingsets_list')
+    template_name = 'clinicalcode/phenotypeworkingset/restore.html'
+
+    def get_success_url(self):
+        return reverse_lazy('phenotypeworkingsets_list')
+
+    def get(self, request, pk):
+        workingset = PhenotypeWorkingset.objects.get(pk=pk)
+        return self.render_to_response({'pk': pk, 'name': workingset.name})
+
+    def post(self, request, pk):
+        with transaction.atomic():
+            workingset_db_utils.restorePhenotypeWorkingset(pk, request.user)
+            db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, pk, "Workingset has been restored")
+        messages.success(self.request, "Workingset has been successfully restored.")
+        return HttpResponseRedirect(self.get_success_url())
 
 @login_required
-def workingset_history_revert(request, pk, concept_history_id):
+def workingset_history_revert(request, pk, workingset_history_id):
     ''' 
         Revert a previously saved working set from the history.
     '''
-    pass
-    # look at concept equivalent
+    validate_access_to_edit(request, PhenotypeWorkingset, pk)
+    data = dict()
+    if request.method == 'POST':
+        # Don't allow revert if the active object is deleted
+        if PhenotypeWorkingset.objects.get(pk=pk).is_deleted: raise PermissionDenied
+        try:
+            with transaction.atomic():
+                workingset_db_utils.revertHistoryPhenotypeWorkingset(request.user,workingset_history_id)
+                db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, pk, "Workingset reverted from version %s" % workingset_history_id)
+                data['form_is_valid'] = True
+
+                data['message'] = """The workingset has been successfully reverted. To amend the reverted workingset please visit
+                 <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(url=reverse('phenotypeworkingset_update', args=(pk,)),pk=pk)
+
+                messages.success(request, "Workingset has been successfully restored.")
+                return JsonResponse(data)
+        except Exception as e:
+            data['form_is_valid'] = False
+            data['message'] = "Something went wrong"
+            return JsonResponse(data)
+
+    workingset = workingset_db_utils.getHistoryPhenotypeWorkingset(workingset_history_id)
+    is_latest_version = (int(workingset_history_id) == PhenotypeWorkingset.objects.get(pk=pk).history.latest().history_id)
+
+    return render(request, 'clinicalcode/phenotypeworkingset/revert.html',
+                  {
+                      'workingset': workingset,
+                      'is_latest_version': is_latest_version
+                  })
 
 
 def history_workingset_codes_to_csv(request, pk, workingset_history_id=None):
@@ -1052,14 +1163,14 @@ def workingset_conceptcodesByVersion(request,
 
     # --------------------------------------------------
 
-    codes = db_utils.get_working_set_codes_by_version(request, pk, workingset_history_id, target_concept_id,
+    codes = workingset_db_utils.get_working_set_codes_by_version(request, pk, workingset_history_id, target_concept_id,
                                                       target_concept_history_id)
 
     data = dict()
     data['form_is_valid'] = True
 
     # Get the list of concepts in the workingset data
-    groups = db_utils.getGroupOfConceptsByPhenotypeWorkingsetId_historical(pk, workingset_history_id)
+    groups = workingset_db_utils.getGroupOfConceptsByPhenotypeWorkingsetId_historical(pk, workingset_history_id)
 
     concept_codes_html = []
     for group in groups:
