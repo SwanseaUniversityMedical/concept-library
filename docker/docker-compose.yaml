@@ -1,0 +1,72 @@
+name: concept-library-development
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: ./postgres.Dockerfile
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./development/db/:/docker-entrypoint-initdb.d/db/
+    environment:
+      POSTGRES_RESTORE_REPO: "github.com/SwanseaUniversityMedical/concept-library-dev-db.git"
+      POSTGRES_HOST: "localhost"
+      POSTGRES_DB: "concept_library"
+      POSTGRES_USER: "clluser"
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_PORT: 5432
+
+  app:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: ./app.Dockerfile
+    command: >
+      sh -c "/bin/wait-for-it.sh -t 0 postgres:5432 -- python /var/www/CodeListLibrary_project/manage.py makemigrations
+      && python /var/www/CodeListLibrary_project/manage.py migrate
+      && python /var/www/CodeListLibrary_project/manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ../CodeListLibrary_project:/var/www/CodeListLibrary_project/
+    ports:
+      - "8000:8000"
+      - "3000:3000"
+    links:
+      - postgres:postgres
+    tty: true
+    stdin_open: true
+    environment:
+      DEBUG: true
+      DEBUG_TOOLS: true
+      IS_DEMO: false
+      IS_INSIDE_GATEWAY: false
+      IS_DEVELOPMENT_PC: true
+      CLL_READ_ONLY: false
+      ENABLE_PUBLISH: false
+      SHOWADMIN: true
+      BROWSABLEAPI: false
+      SECRET_KEY: "abc"
+      ALLOWED_HOSTS: "localhost, 127.0.0.1"
+      DB_HOST: "postgres"
+      DB_NAME: "concept_library"
+      DB_USER: "clluser"
+      DB_PASSWORD: "password"
+      DB_PORT: 5432
+      ENABLE_LDAP_AUTH: false
+      AUTH_LDAP_SERVER_URI: ""
+      AUTH_LDAP_BIND_DN: ""
+      AUTH_LDAP_BIND_PASSWORD: ""
+      AUTH_LDAP_USER_SEARCH: ""
+      AUTH_LDAP_GROUP_SEARCH: ""
+      AUTH_LDAP_REQUIRE_GROUP: ""
+      GOOGLE_RECAPTCHA_SECRET_KEY: ""
+      EMAIL_BACKEND: "django.core.mail.backends.smtp.EmailBackend"
+      DEFAULT_FROM_EMAIL: ""
+      EMAIL_USE_TLS: false
+      EMAIL_HOST: ""
+      EMAIL_PORT: 25
+      EMAIL_HOST_PASSWORD: ""
+      EMAIL_HOST_USER: ""
+      HELPDESK_EMAIL: ""
+    depends_on:
+      - "postgres"
