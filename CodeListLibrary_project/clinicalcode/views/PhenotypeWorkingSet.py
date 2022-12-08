@@ -549,6 +549,7 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
 
     is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
     approval_status = get_publish_approval_status(PhenotypeWorkingset, pk, workingset_history_id)
+    is_lastapproved = len(PublishedWorkingset.objects.filter(workingset=PhenotypeWorkingset.objects.get(pk=pk).id, approval_status=2)) > 0
 
 
     # ----------------------------------------------------------------------
@@ -598,6 +599,8 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
     if len(PublishedWorkingset.objects.filter(workingset_id=pk, workingset_history_id=workingset_history_id,
                                               approval_status=1)) > 0:
         is_latest_pending_version = True
+
+
 
     children_permitted_and_not_deleted = True
     error_dic = {}
@@ -682,6 +685,7 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
         'published_historical_ids': published_historical_ids,
         'is_published': is_published,
         'approval_status': approval_status,
+        'is_lastapproved':is_lastapproved,
         'publish_date': publish_date,
         'is_latest_version': is_latest_version,
         'is_latest_pending_version': is_latest_pending_version,
@@ -820,8 +824,9 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
                         published_workingset.approval_status = 2
                         published_workingset.save()
                         data['form_is_valid'] = True
-            else:
-                if checks['approval_status'] == 1 and checks['is_moderator']:
+                        data['approval_status'] = 2
+
+            elif checks['approval_status'] == 1 and checks['is_moderator']:
                     with transaction.atomic():
                         workingset = PhenotypeWorkingset.objects.get(pk=pk)
                         published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id,approval_status=1)
@@ -830,7 +835,20 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
                             ws.moderator_id = request.user.id
                             ws.save()
                         data['approval_status'] = 2
+                        data['form_is_valid'] = True
                         #data = self.form_validation(request, data, workingset_history_id, pk, phenotype)
+            elif checks['approval_status'] == 3 and checks['is_moderator']:
+                with transaction.atomic():
+                    workingset = PhenotypeWorkingset.objects.get(pk=pk)
+                    published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id)
+                    for ws in published_workingset:
+                        ws.approval_status = 2
+                        ws.moderator_id = request.user.id
+                        ws.save()
+                    data['approval_status'] = 2
+                    data['form_is_valid'] = True
+
+
 
 
         except Exception as e:
