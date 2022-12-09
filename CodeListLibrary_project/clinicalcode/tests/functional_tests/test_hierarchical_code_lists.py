@@ -27,7 +27,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
     def setUp(self):
-        self.sett
 
         location = os.path.dirname(__file__)
         if settings_cll.REMOTE_TEST:
