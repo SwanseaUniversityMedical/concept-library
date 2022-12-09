@@ -50,6 +50,8 @@ class OtherTest(StaticLiveServerTestCase):
         #         chrome_options.add_argument("--allow-insecure-localhost")
 
         self.factory = RequestFactory()
+        settings.DEBUG = True
+
 
         location = os.path.dirname(__file__)
         if settings_cll.REMOTE_TEST:
@@ -104,15 +106,14 @@ class OtherTest(StaticLiveServerTestCase):
 
         self.brand = self.create_brand("HDRUK", "cll/static/img/brands/HDRUK")
 
-        self.nameTags = [
-            "Phenotype_library", "ADP", "BREATHE", "CALIBER", "PIONEER",
-            "SAIL", "BHF DSC"
+        self.nameTagsOrCollections = [
+            "Phenotype_library", "Adolescent Data Platform (ADP)", "BREATHE", "CALIBER", "PIONEER",
+            "SAIL","ClinicalCodes Repository", "COVID-19","DATAMIND","BHF Data Science Centre",
+            "feasibility-check","TECC"
         ]
-        self.collectionOftags = []
 
-        for i in range(len(self.nameTags)):
-            self.collectionOftags.append(
-                self.creat_tag(self.nameTags[i], self.brand))
+        self.tags = [self.creat_tag(i,self.brand) for i in self.nameTagsOrCollections[:6]]
+        self.collections = [self.creat_collection(j,self.brand) for j in self.nameTagsOrCollections[6:]]
 
         self.concept_everybody_can_view = Concept.objects.create(
             name="concept everybody can view",
@@ -438,9 +439,17 @@ class OtherTest(StaticLiveServerTestCase):
         tag = Tag.objects.create(collection_brand=brand,
                                  description=nametag,
                                  created_by=self.owner_user,
-                                 tag_type=2,
+                                 tag_type=1,
                                  display=random.randint(1, 6)).save()
         return tag
+
+    def creat_collection(self, nametag, brand):
+        collection = Tag.objects.create(collection_brand=brand,
+                                 description=nametag,
+                                 created_by=self.owner_user,
+                                 tag_type=2,
+                                 display=random.randint(1, 6)).save()
+        return collection
 
     def create_brand(self, nameBrand, pathBrand):
         brand = Brand.objects.create(name=nameBrand,
