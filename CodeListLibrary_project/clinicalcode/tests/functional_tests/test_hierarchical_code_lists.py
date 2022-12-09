@@ -27,6 +27,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 class HierarchicalCodeListsTest(StaticLiveServerTestCase):
 
     def setUp(self):
+        self.sett
 
         location = os.path.dirname(__file__)
         if settings_cll.REMOTE_TEST:
@@ -623,7 +624,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
             reverse('concept_detail', kwargs={
                 'pk': self.child_concept.id,
             }))
-        time.sleep(settings.TEST_SLEEP_TIME)
+        time.sleep(settings_cll.TEST_SLEEP_TIME)
 
         latest = self.child_concept.history.first().history_id
 
@@ -673,7 +674,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
                 'pk': self.child_concept.id,
             }))
 
-        time.sleep(settings.TEST_SLEEP_TIME)
+        time.sleep(settings_cll.TEST_SLEEP_TIME)
 
         latest = self.child_concept.history.first().history_id
 
@@ -725,7 +726,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
                                 'pk': self.concept_everybody_can_edit.id,
                             }))
 
-        time.sleep(settings.TEST_SLEEP_TIME)
+        time.sleep(settings_cll.TEST_SLEEP_TIME)
 
         latest = self.concept_everybody_can_edit.history.first().history_id
 
@@ -754,7 +755,7 @@ class HierarchicalCodeListsTest(StaticLiveServerTestCase):
                                 'pk': self.concept_everybody_can_edit.id,
                             }))
 
-        time.sleep(settings.TEST_SLEEP_TIME)
+        time.sleep(settings_cll.TEST_SLEEP_TIME)
 
         # try to add child
         browser.find_element(By.ID, 'conceptTypes').click()
