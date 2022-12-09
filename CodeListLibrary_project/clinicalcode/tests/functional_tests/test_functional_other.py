@@ -50,8 +50,6 @@ class OtherTest(StaticLiveServerTestCase):
         #         chrome_options.add_argument("--allow-insecure-localhost")
 
         self.factory = RequestFactory()
-        settings.DEBUG = True
-
 
         location = os.path.dirname(__file__)
         if settings_cll.REMOTE_TEST:
