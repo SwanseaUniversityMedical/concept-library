@@ -261,7 +261,7 @@ class HistoryTest(StaticLiveServerTestCase):
 
         # create a concept
         browser.find_element(By.ID, 'id_name').send_keys("concept2")
-        tagField = browser.find_element_by_class_name('tt-input')
+        tagField = browser.find_element(By.NAME,'tt-input')
         tagField.send_keys("tag")
 
         time.sleep(2)  # wait to load concept prompt
