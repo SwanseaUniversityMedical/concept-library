@@ -9,7 +9,6 @@ import logging
 import re
 import time
 from collections import OrderedDict
-from collections import OrderedDict as ordr
 from datetime import datetime
 
 from django import forms
@@ -831,20 +830,64 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id=None):
         'concept_id', 'concept_version_id', 'concept_name',
         'phenotype_id', 'phenotype_version_id', 'phenotype_name'
         ])
-
-    writer.writerow(final_titles)
+    # if the phenotype contains only one concept, write titles in the loop below
+    if len(concept_ids_historyIDs) != 1:
+        final_titles = final_titles + ["code_attributes"]
+        writer.writerow(final_titles)
+        
 
     for concept in concept_ids_historyIDs:
         concept_id = concept[0]
         concept_version_id = concept[1]
-        concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version_id).coding_system.name
-        concept_name = Concept.history.get(id=concept_id, history_id=concept_version_id).name
+        current_concept_version = Concept.history.get(id=concept_id, history_id=concept_version_id)
+        concept_coding_system = current_concept_version.coding_system.name
+        concept_name = current_concept_version.name
+        code_attribute_header = current_concept_version.code_attribute_header
+        concept_history_date = current_concept_version.history_date
         
         rows_no = 0
         codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
 
+        #---------------------------------------------
+        #  code attributes  ---
+        codes_with_attributes = []
+        if code_attribute_header:
+            codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(concept_id=concept_id,
+                                                                                    concept_history_date=concept_history_date,
+                                                                                    allCodes=codes,
+                                                                                    code_attribute_header=code_attribute_header)
+        
+            codes = codes_with_attributes
+            
+        # if the phenotype contains only one concept
+        if len(concept_ids_historyIDs) == 1:
+            if code_attribute_header:
+                final_titles = final_titles + code_attribute_header
+                
+            writer.writerow(final_titles)
+    
+        #---------------------------------------------
+
+        
         for cc in codes:
             rows_no += 1
+                         
+            #---------------------------------------------   
+            code_attributes = []
+            # if the phenotype contains only one concept
+            if len(concept_ids_historyIDs) == 1:
+                if code_attribute_header:
+                    for a in code_attribute_header:
+                        code_attributes.append(cc[a])
+            else:
+                code_attributes_dict = OrderedDict([])
+                if code_attribute_header:
+                    for a in code_attribute_header:
+                        code_attributes_dict[a] = cc[a]
+                    code_attributes.append(dict(code_attributes_dict))
+            #---------------------------------------------
+            
+            
             writer.writerow([
                 cc['code'], 
                 cc['description'].encode('ascii', 'ignore').decode('ascii'), 
@@ -855,7 +898,7 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id=None):
                 current_ph_version.id, 
                 current_ph_version.history_id,
                 current_ph_version.name
-            ])
+            ] + code_attributes)
 
         if rows_no == 0:
             writer.writerow([
