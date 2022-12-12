@@ -240,13 +240,13 @@ class VersioningTest(StaticLiveServerTestCase):
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
         table = self.browser.find_element(By.ID, 'history-table')
-        table_rows = table.find_elements_by_tag_name('tr')
+        table_rows = table.find_elements(By.TAG_NAME,'tr')
 
         i = 1
         for row in table_rows:
             test = True
             if i != 1:  # omit first row which contains headers
-                table_data = row.find_elements_by_tag_name('td')
+                table_data = row.find_elements(By.TAG_NAME,'td')
                 id = table_data[0].text
                 if id is None:
                     test = False
@@ -278,13 +278,13 @@ class VersioningTest(StaticLiveServerTestCase):
         # self.wait_to_be_logged_in(ow_user)
 
         table = self.browser.find_element(By.ID, 'history-table')
-        table_rows = table.find_elements_by_tag_name('tr')
+        table_rows = table.find_elements(By.TAG_NAME,'tr')
 
         i = 1
         for row in table_rows:
             test = True
             if i != 1:  # omit first row which contains headers
-                table_data = row.find_elements_by_tag_name('td')
+                table_data = row.find_elements(By.TAG_NAME,'td')
                 id = table_data[0].text
                 if id is None:
                     test = False
@@ -318,13 +318,13 @@ class VersioningTest(StaticLiveServerTestCase):
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
         table = self.browser.find_element(By.ID, 'history-table')
-        table_rows = table.find_elements_by_tag_name('tr')
+        table_rows = table.find_elements(By.TAG_NAME,'tr')
 
         i = 1
         for row in table_rows:
             test = True
             if i != 1:  # omit first row which contains headers
-                table_data = row.find_elements_by_tag_name('td')
+                table_data = row.find_elements(By.TAG_NAME,'td')
                 title = table_data[1].text
                 self.assertEqual(title, self.concept_everybody_can_edit.name)
             i += 1
@@ -347,13 +347,13 @@ class VersioningTest(StaticLiveServerTestCase):
         time.sleep(settings_cll.TEST_SLEEP_TIME)
 
         table = self.browser.find_element(By.ID, 'history-table')
-        table_rows = table.find_elements_by_tag_name('tr')
+        table_rows = table.find_elements(By.TAG_NAME,'tr')
 
         i = 1
         for row in table_rows:
             test = True
             if i != 1:  # omit first row which contains headers
-                table_data = row.find_elements_by_tag_name('td')
+                table_data = row.find_elements(By.TAG_NAME,'td')
                 title = table_data[1].text
                 self.assertEqual(title,
                                  self.workingset_everybody_can_edit.name)
