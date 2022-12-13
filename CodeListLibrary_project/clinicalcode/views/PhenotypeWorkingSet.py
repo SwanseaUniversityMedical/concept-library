@@ -757,7 +757,7 @@ def get_history_table_data(request, pk):
     return historical_versions
 
 
-def form_validation(self, request, data, workingset_history_id, pk, workingset,checks):
+def form_validation(request, data, workingset_history_id, pk,workingset,checks):
     data['form_is_valid'] = True
     data['latest_history_ID'] = workingset_history_id  # workingset.history.latest().pk
 
@@ -769,25 +769,23 @@ def form_validation(self, request, data, workingset_history_id, pk, workingset,c
             'current_workingset_history_id': int(workingset_history_id),  # workingset.history.latest().pk,
             'published_historical_ids':
                 list(PublishedWorkingset.objects.filter(workingset_id=pk, approval_status=2).values_list('workingset_history_id', flat=True))
-
         },
-        request=self.request)
+        request=request)
 
-    data['message'] = send_message(pk, workingset_history_id, data, workingset,checks)['message']
+    data['message'] = send_message(pk, data, workingset,workingset_history_id,checks)['message']
     return data
 
-
-def send_message(self, pk, data, workingset,checks):
+def send_message( pk, data, workingset,workingset_history_id,checks):
     if checks['approval_status'] == 2:
         data['message'] = """The workingset version has been successfully published.
-                         <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(url=reverse('phenotypeworkingset_history_detail', args=(pk,)), pk=pk)
+                         <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)), pk=pk)
 
-        self.send_email_decision(workingset, checks['approval_status'])
+        send_email_decision_workingset(workingset, checks['approval_status'])
         return data
 
     elif len(PublishedWorkingset.objects.filter(workingset=PhenotypeWorkingset.objects.get(pk=pk).id, approval_status=2)) > 0 and not checks['approval_status'] == 3:
         data['message'] = """The workingset version has been successfully published.
-                                 <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(url=reverse('phenotypeworkingset_history_detail', args=(pk,)),
+                                 <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
                                                                                                          pk=pk)
         send_email_decision_workingset(workingset, checks['approval_status'])
 
@@ -806,7 +804,7 @@ def send_message(self, pk, data, workingset,checks):
     elif checks['approval_status'] == 3:
         data['message'] = """The workingset version has been declined .
                                                <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(
-            url=reverse('phenotypeworkingset_history_detail', args=(pk,)),
+            url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
             pk=pk)
         send_email_decision_workingset(workingset, checks['approval_status'])
 
@@ -815,7 +813,7 @@ def send_message(self, pk, data, workingset,checks):
     elif checks['approval_status'] is None and checks['is_moderator']:
         data['message'] = """The workingset version has been successfully published.
                                                 <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(
-            url=reverse('phenotypeworkingset_history_detail', args=(pk,)),
+            url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
             pk=pk)
         send_email_decision_workingset(workingset, checks['approval_status'])
 
@@ -824,11 +822,10 @@ def send_message(self, pk, data, workingset,checks):
     elif checks['approval_status'] is None:
         data['message'] = """The workingset version is going to be reviewed by the moderator.
                                                       <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(
-            url=reverse('phenotypeworkingset_history_detail', args=(pk,)),
+            url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
             pk=pk)
         send_email_decision_workingset(workingset, checks['approval_status'])
         return data
-
 
 
 
@@ -881,6 +878,7 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
             'is_moderator': checks['is_moderator'],
             'phenotype_is_deleted': checks['phenotype_is_deleted'],
             'phenotype_has_codes': checks['phenotype_has_codes'],
+            'workingset_has_attributes':checks['workingset_has_attributes'],
             'AllnotDeleted': checks['AllnotDeleted'],
             'AllarePublished': checks['AllarePublished'],
             'isAllowedtoViewChildren': checks['isAllowedtoViewChildren'],
@@ -923,6 +921,7 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
                         published_workingset.save()
                         data['form_is_valid'] = True
                         data['approval_status'] = 2
+                        data = form_validation(request, data, workingset_history_id, pk, workingset,checks)
 
             elif checks['approval_status'] == 1 and checks['is_moderator']:
                     with transaction.atomic():
@@ -934,6 +933,7 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
                             ws.save()
                         data['approval_status'] = 2
                         data['form_is_valid'] = True
+                        data = form_validation(request, data, workingset_history_id, pk, workingset, checks)
                         #data = self.form_validation(request, data, workingset_history_id, pk, phenotype)
             elif checks['approval_status'] == 3 and checks['is_moderator']:
                 with transaction.atomic():
@@ -945,6 +945,7 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
                         ws.save()
                     data['approval_status'] = 2
                     data['form_is_valid'] = True
+                    data = form_validation(request, data, workingset_history_id, pk, workingset, checks)
 
 
 
@@ -993,6 +994,7 @@ class WorkingsetDecline(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
             'is_moderator': checks['is_moderator'],
             'phenotype_is_deleted': checks['phenotype_is_deleted'],
             'phenotype_has_codes': checks['phenotype_has_codes'],
+            'workingset_has_attributes':checks['workingset_has_attributes'],
             'AllnotDeleted': checks['AllnotDeleted'],
             'AllarePublished': checks['AllarePublished'],
             'isAllowedtoViewChildren': checks['isAllowedtoViewChildren'],
@@ -1023,6 +1025,7 @@ class WorkingsetDecline(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
                     published_workingset.save()
                     data['form_is_valid'] = True
                     data['approval_status'] = 3
+                    data = form_validation(request, data, workingset_history_id, pk, workingset, checks)
 
 
 
@@ -1067,6 +1070,7 @@ class WorkingSetSubmit(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
             'is_moderator': checks['is_moderator'],
             'phenotype_is_deleted': checks['phenotype_is_deleted'],
             'phenotype_has_codes': checks['phenotype_has_codes'],
+            'workingset_has_attributes':checks['workingset_has_attributes'],
             'AllnotDeleted': checks['AllnotDeleted'],
             'AllarePublished': checks['AllarePublished'],
             'isAllowedtoViewChildren': checks['isAllowedtoViewChildren'],
@@ -1097,6 +1101,7 @@ class WorkingSetSubmit(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
                         published_workingset.save()
                         data['form_is_valid'] = True
                         data['approval_status'] = 1
+                        data = form_validation(request, data, workingset_history_id, pk, workingset, checks)
 
 
         except Exception as e:
