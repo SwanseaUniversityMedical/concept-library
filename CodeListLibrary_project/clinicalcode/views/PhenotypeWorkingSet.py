@@ -872,6 +872,78 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
                 (checks['approval_status'] == 2 and not is_published):
             return True
 
+class WorkingsetDecline(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
+    '''
+        Decline the current working set.
+    '''
+
+    model = PhenotypeWorkingset
+    template_name = 'clinicalcode/phenotypeworkingset/publish.html'
+
+
+    def get(self, request, pk, workingset_history_id):
+
+        checks = workingset_db_utils.checkWorkingsetTobePublished(self.request, pk, workingset_history_id)
+
+        if not checks['is_published']:
+            checks = workingset_db_utils.checkWorkingsetTobePublished(self.request, pk, workingset_history_id)
+
+        # --------------------------------------------
+        return self.render_to_response({
+            'workingset': checks['workingset'],
+            'name': checks['name'],
+            'workingset_history_id': workingset_history_id,
+            'is_published': checks['is_published'],
+            'allowed_to_publish': checks['allowed_to_publish'],
+            'is_owner': checks['is_owner'],
+            'approval_status': checks['approval_status'],
+            'is_lastapproved': checks['is_lastapproved'],
+            'is_latest_pending_version': checks['is_latest_pending_version'],
+            'is_moderator': checks['is_moderator'],
+            'phenotype_is_deleted': checks['phenotype_is_deleted'],
+            'phenotype_has_codes': checks['phenotype_has_codes'],
+            'AllnotDeleted': checks['AllnotDeleted'],
+            'AllarePublished': checks['AllarePublished'],
+            'isAllowedtoViewChildren': checks['isAllowedtoViewChildren'],
+            'errors': checks['errors']
+        })
+    def post(self, request, pk, workingset_history_id):
+
+        is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
+        checks = workingset_db_utils.checkWorkingsetTobePublished(request, pk, workingset_history_id)
+        if not is_published:
+            checks = workingset_db_utils.checkWorkingsetTobePublished(request, pk, workingset_history_id)
+
+        data = dict()
+
+        if not checks['allowed_to_publish'] or is_published:
+            data['form_is_valid'] = False
+            data['message'] = render_to_string('clinicalcode/error.html', {},
+                                               self.request)
+            return JsonResponse(data)
+
+        try:
+            # start a transaction
+            with transaction.atomic():
+                workingset = PhenotypeWorkingset.objects.get(pk=pk)
+                if checks['is_moderator'] and checks['approval_status'] == 1:
+                    published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id, approval_status=1).first()
+                    published_workingset.approval_status = 3
+                    published_workingset.save()
+                    data['form_is_valid'] = True
+                    data['approval_status'] = 3
+
+
+
+        except Exception as e:
+            print(e)
+            data['form_is_valid'] = False
+            data['message'] = render_to_string('clinicalcode/error.html',
+                                               {},
+                                               self.request)
+
+        return JsonResponse(data)
+
 
 class WorkingSetSubmit(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
     '''
