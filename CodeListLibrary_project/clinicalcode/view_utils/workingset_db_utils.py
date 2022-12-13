@@ -167,6 +167,7 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
     is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
     approval_status = get_publish_approval_status(PhenotypeWorkingset, pk, workingset_history_id)
     is_lastapproved = len(PublishedWorkingset.objects.filter(workingset=PhenotypeWorkingset.objects.get(pk=pk).id, approval_status=2)) > 0
+    other_pending = len(PublishedWorkingset.objects.filter(workingset=PhenotypeWorkingset.objects.get(pk=pk).id, approval_status=1)) > 0
 
     workingset = getHistoryPhenotypeWorkingset(workingset_history_id,
                                                                    highlight_result=[False, True][
@@ -186,6 +187,7 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
         "is_moderator":is_moderator,
         'approval_status': approval_status,
         'is_lastapproved': is_lastapproved,
+        'other_pending':other_pending,
         'is_published': is_published,
         "is_latest_pending_version":is_latest_pending_version,
         "phenotype_has_codes":phenotype_has_codes,
