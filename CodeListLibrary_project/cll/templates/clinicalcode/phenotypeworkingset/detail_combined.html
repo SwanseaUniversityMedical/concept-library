@@ -152,11 +152,11 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
 
 
 
-                                                <a {% if not is_lastapproved and not request.user|has_group:"Moderators" %}
+                                                <a {% if not is_lastapproved and approval_status is None and not request.user|has_group:"Moderators" %}
                                                             class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
                                                             href="{% url 'workingset_submit' pk=workingset.id workingset_history_id=workingset.history_id %}"
 
-                                                        {% elif not live_ver_is_deleted or approval_status == 2 %}
+                                                        {% elif  is_lastapproved and not live_ver_is_deleted %}
 
                                                             class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
                                                             href="{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}"
