@@ -154,7 +154,7 @@
 
 <script >
 
-const submitForm = (value) =>{
+function submitForm(value){
     // unattach the submit event
 	$('#modal-section').off('submit', '#publish-form');
 
@@ -162,14 +162,14 @@ const submitForm = (value) =>{
 
 		e.preventDefault();
 
-		var form = $(this);
+		let form = $(this);
             value === "publish" ? doCall("{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}",form) : doCall("{% url 'workingset_decline' pk=workingset.id workingset_history_id=workingset.history_id %}",form)
             });
 
 		return false;
 }
 
-const doCall = (url,form) =>{
+function doCall(url,form){
     $.ajax({
             url:  url,
             data: form.serialize(),
@@ -188,7 +188,7 @@ const doCall = (url,form) =>{
 			}
 		});
 }
-const updateHistoryTable = (data,form) =>{
+function updateHistoryTable(data,form){
 				if(data.form_is_valid){
 // 					$('#component-table tbody').html(data.html_component_list);
 					$('#history-table').html(data.html_history_list);
