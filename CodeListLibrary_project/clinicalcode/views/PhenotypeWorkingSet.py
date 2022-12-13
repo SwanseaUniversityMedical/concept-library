@@ -818,6 +818,13 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
                         if checks['is_moderator']:
                             published_workingset = PublishedWorkingset(workingset=workingset, workingset_history_id=workingset_history_id,moderator_id = request.user.id,
                                                                     created_by_id=PhenotypeWorkingset.objects.get(pk=pk).created_by.id)
+                            if checks['other_pending']:
+                                published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id, approval_status=1)
+                                for ws in published_workingset:
+                                    ws.approval_status = 2
+                                    ws.moderator_id = request.user.id
+                                    ws.save()
+
                         if checks['is_lastapproved']:
                             published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id, approval_status=2).first()
                             published_workingset = PublishedWorkingset(workingset = workingset,workingset_history_id=workingset_history_id,moderator_id=published_workingset.moderator.id,created_by_id=request.user.id)
