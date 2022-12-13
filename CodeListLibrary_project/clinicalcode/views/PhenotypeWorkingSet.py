@@ -777,66 +777,59 @@ def form_validation(self, request, data, workingset_history_id, pk, workingset,c
     return data
 
 
-def send_message(self, pk, workingset_history_id, data, workingset,checks):
-    if approval_status == 2:
-        data['message'] = render_to_string('clinicalcode/workingset/published.html',
-                                           {
-                                               'id': pk,
-                                               'workingset_history_id': workingset_history_id
-                                           },
-                                           self.request)
-        self.send_email_decision(workingset, approval_status)
+def send_message(self, pk, data, workingset,checks):
+    if checks['approval_status'] == 2:
+        data['message'] = """The workingset version has been successfully published.
+                         <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(url=reverse('phenotypeworkingset_history_detail', args=(pk,)), pk=pk)
+
+        self.send_email_decision(workingset, checks['approval_status'])
         return data
 
-    elif len(PublishedWorkingset.objects.filter(workingset=PhenotypeWorkingset.objects.get(pk=pk).id, approval_status=2)) > 0 and not approval_status == 3:
-        data['message'] = render_to_string('clinicalcode/workingset/published.html',
-                                           {
-                                               'id': pk,
-                                               'workingset_history_id': workingset_history_id
-                                           },
-                                           self.request)
-        send_email_decision_workingset(workingset, approval_status)
+    elif len(PublishedWorkingset.objects.filter(workingset=PhenotypeWorkingset.objects.get(pk=pk).id, approval_status=2)) > 0 and not checks['approval_status'] == 3:
+        data['message'] = """The workingset version has been successfully published.
+                                 <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(url=reverse('phenotypeworkingset_history_detail', args=(pk,)),
+                                                                                                         pk=pk)
+        send_email_decision_workingset(workingset, checks['approval_status'])
 
         return data
 
 
-    elif approval_status == 1:
-        data['message'] = render_to_string('clinicalcode/workingset/published.html',
-                                           {
-                                               'id': pk,
-                                               'workingset_history_id': workingset_history_id
-                                           },
-                                           self.request)
-        send_email_decision_workingset(workingset, approval_status)
+    elif checks['approval_status'] == 1:
+        data['message'] = """The workingset version has been successfully published.
+                                         <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(
+            url=reverse('phenotypeworkingset_history_detail', args=(pk,)),
+            pk=pk)
+
+        send_email_decision_workingset(workingset, checks['approval_status'])
         return data
 
-    elif approval_status == 3:
-        data['message'] = render_to_string('clinicalcode/phenotypeworkingset/declined.html',
-                                           {
-                                               'id': pk,
-                                               'workingset_history_id': workingset_history_id
-                                           },
-                                           self.request)
-        send_email_decision_workingset(workingset, approval_status)
+    elif checks['approval_status'] == 3:
+        data['message'] = """The workingset version has been declined .
+                                               <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(
+            url=reverse('phenotypeworkingset_history_detail', args=(pk,)),
+            pk=pk)
+        send_email_decision_workingset(workingset, checks['approval_status'])
+
         return data
 
-    elif approval_status is None and is_moderator:
-        data['message'] = render_to_string('clinicalcode/workingset/published.html',
-                                           {
-                                               'id': pk,
-                                               'workingset_history_id': workingset_history_id
-                                           },
-                                           self.request)
+    elif checks['approval_status'] is None and checks['is_moderator']:
+        data['message'] = """The workingset version has been successfully published.
+                                                <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(
+            url=reverse('phenotypeworkingset_history_detail', args=(pk,)),
+            pk=pk)
+        send_email_decision_workingset(workingset, checks['approval_status'])
+
         return data
 
-    elif approval_status is None:
-        data['message'] = render_to_string('clinicalcode/workingset/approve.html',
-                                           {
-                                               'id': pk,
-                                               'workingset_history_id': workingset_history_id
-                                           },
-                                           self.request)
+    elif checks['approval_status'] is None:
+        data['message'] = """The workingset version is going to be reviewed by the moderator.
+                                                      <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(
+            url=reverse('phenotypeworkingset_history_detail', args=(pk,)),
+            pk=pk)
+        send_email_decision_workingset(workingset, checks['approval_status'])
         return data
+
+
 
 
 def send_email_decision_workingset(workingset, approved):
