@@ -177,6 +177,11 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
                                                                                                             'ph_workingset_search',
                                                                                                             ''))
                                                                    )
+    workingset_has_attributes = False
+    if PhenotypeWorkingset.history.get(id=pk, history_id=workingset_history_id).phenotypes_concepts_data:
+        workingset_has_attributes = len(PhenotypeWorkingset.history.get(id=pk, history_id=workingset_history_id).phenotypes_concepts_data[0]["Attributes"]) > 0
+
+
     checks = {
         'workingset': workingset,
         'name': workingset_ver.name,
@@ -188,6 +193,7 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
         'approval_status': approval_status,
         'is_lastapproved': is_lastapproved,
         'other_pending':other_pending,
+        'workingset_has_attributes':workingset_has_attributes,
         'is_published': is_published,
         "is_latest_pending_version":is_latest_pending_version,
         "phenotype_has_codes":phenotype_has_codes,
