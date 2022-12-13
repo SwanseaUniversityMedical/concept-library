@@ -87,7 +87,7 @@
 <!--                            This version "{{ name }}" is already published. -->
                         {% else %}
                             {% if  approval_status == 1 and is_moderator %}
-                                 Are you sure you want to approve this version of "{{ name }}"?
+                                 Are you sure you want to approve/decline this version of "{{ name }}"?
                                  <br>
                                  Published Working Set cannot be undone.
                         <br>
@@ -135,10 +135,17 @@
 		    <span class="text-success">&nbsp;Published&nbsp;</span>
     	{% else %}
             <button {% if not allowed_to_publish %} disabled="true" {% endif %} id="publishButton"
-	            type="submit" class="btn btn-primary">
+	            type="submit" class="btn btn-primary " onclick="submitForm('publish')" >
 	            Publish
 	        </button>
+            {% if approval_status == 1 %}
+                  <button {% if not allowed_to_publish %} disabled="true" {% endif %} id="declineButton"
+	            type="submit" class="btn btn-danger " onclick="submitForm('decline')">
+	            Decline
+	        </button>
+
         {% endif %}
+    {% endif %}
 
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
     </div>
@@ -146,8 +153,9 @@
 </form>
 
 <script >
-$(function(){
-	// unattach the submit event
+
+const submitForm = (value) =>{
+    // unattach the submit event
 	$('#modal-section').off('submit', '#publish-form');
 
 	$('#modal-section').on('submit', '#publish-form', function(e){
@@ -155,10 +163,15 @@ $(function(){
 		e.preventDefault();
 
 		var form = $(this);
-		//=============================================
-	    // post form
-		 $.ajax({
-            url:  "{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}",
+            value === "publish" ? doCall("{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}",form) : doCall("{% url 'workingset_decline' pk=workingset.id workingset_history_id=workingset.history_id %}",form)
+            });
+
+		return false;
+}
+
+const doCall = (url,form) =>{
+    $.ajax({
+            url:  url,
             data: form.serialize(),
             type: "POST",
             dataType: 'json',
@@ -167,6 +180,15 @@ $(function(){
                 $(".loader").show();
             },
 			success: function(data){
+				updateHistoryTable(data,form)
+			},
+			complete: function(){
+				//alert('doFormSubmit= cc');
+				$(".loader").hide();
+			}
+		});
+}
+const updateHistoryTable = (data,form) =>{
 				if(data.form_is_valid){
 // 					$('#component-table tbody').html(data.html_component_list);
 					$('#history-table').html(data.html_history_list);
@@ -208,20 +230,7 @@ $(function(){
 					$('#modal-section').modal('hide');
 					$('#modal-section .modal-content').html('');
 				}
-			},
-			complete: function(){
-				//alert('doFormSubmit= cc');
-				$(".loader").hide();
-			}
-		});
-
-		//=============================================
-
-
-		return false;
-	});
-
-});
+}
 
 
 </script>
