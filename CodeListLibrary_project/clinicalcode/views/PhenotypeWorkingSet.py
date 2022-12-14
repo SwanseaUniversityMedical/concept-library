@@ -845,7 +845,7 @@ def send_email_decision_workingset(workingset, approved):
                                    "Workingset has been rejected by the moderator. Please consider update changes and try again")
 
 
-class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
+class WorkingSetPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
     '''
         Publish the current working set.
     '''
@@ -963,7 +963,7 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
                 (checks['approval_status'] == 2 and not is_published):
             return True
 
-class WorkingsetDecline(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
+class WorkingsetDecline(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
     '''
         Decline the current working set.
     '''
@@ -1037,7 +1037,7 @@ class WorkingsetDecline(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
         return JsonResponse(data)
 
 
-class WorkingSetSubmit(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
+class WorkingSetSubmit(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
     '''
         Publish the current working set.
     '''
@@ -1049,10 +1049,13 @@ class WorkingSetSubmit(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
 
 
 
+
         checks = workingset_db_utils.checkWorkingsetTobePublished(self.request, pk, workingset_history_id)
+
 
         if not checks['is_published']:
             checks = workingset_db_utils.checkWorkingsetTobePublished(self.request, pk, workingset_history_id)
+
 
         # --------------------------------------------
         return self.render_to_response({
