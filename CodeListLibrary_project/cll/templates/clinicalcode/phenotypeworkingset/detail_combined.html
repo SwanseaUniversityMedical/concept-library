@@ -171,7 +171,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                                                                 class="btn btn-danger"
                                                                 disabled title="This version is declined"
                                                             {% elif  approval_status == 1 %}
-                                                                {% if phenotype.owner_id == request.user.id %}
+                                                                {% if workingset.owner_id == request.user.id %}
                                                                     class="btn btn-primary btn-warning"
                                                                     disabled title="This version needs to be approved "
                                                                 {% else %}
