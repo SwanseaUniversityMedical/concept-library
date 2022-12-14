@@ -133,18 +133,17 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
     '''
     errors = {}
     allow_to_publish = True
-    phenotype_is_deleted = False
+    workingset_is_deleted = False
     is_owner = True
     is_moderator = False
     is_latest_pending_version = False
-    phenotype_has_codes = True
     AllnotDeleted = True
     AllarePublished = True
     isAllowedtoViewChildren = True
 
     if (PhenotypeWorkingset.objects.get(id=pk).is_deleted == True):
         allow_to_publish = False
-        phenotype_is_deleted = True
+        workingset_is_deleted = True
 
     if (PhenotypeWorkingset.objects.filter(Q(id=pk), Q(owner=request.user)).count() == 0):
         allow_to_publish = False
@@ -187,7 +186,7 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
         'name': workingset_ver.name,
         "errors":errors,
         "allowed_to_publish":allow_to_publish,
-        "phenotype_is_deleted":phenotype_is_deleted,
+        "workingset_is_deleted":workingset_is_deleted,
         "is_owner":is_owner,
         "is_moderator":is_moderator,
         'approval_status': approval_status,
@@ -196,7 +195,6 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
         'workingset_has_attributes':workingset_has_attributes,
         'is_published': is_published,
         "is_latest_pending_version":is_latest_pending_version,
-        "phenotype_has_codes":phenotype_has_codes,
         "isAllowedtoViewChildren":isAllowedtoViewChildren,
         "AllarePublished":AllarePublished,
         "AllnotDeleted":AllnotDeleted
