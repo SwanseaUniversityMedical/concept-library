@@ -815,7 +815,6 @@ def send_message( pk, data, workingset,workingset_history_id,checks):
                                                 <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(
             url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
             pk=pk)
-        send_email_decision_workingset(workingset, checks['approval_status'])
 
         return data
 
@@ -824,7 +823,7 @@ def send_message( pk, data, workingset,workingset_history_id,checks):
                                                       <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(
             url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
             pk=pk)
-        send_email_decision_workingset(workingset, checks['approval_status'])
+
         return data
 
 
@@ -845,10 +844,6 @@ def send_email_decision_workingset(workingset, approved):
                                    "Rejected",
                                    "Workingset has been rejected by the moderator. Please consider update changes and try again")
 
-    elif approved is None:
-        db_utils.send_review_email(workingset,
-                                   "Pending",
-                                   "Workingset is going to be reviewed by moderator")
 
 class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
     '''
