@@ -9,9 +9,9 @@
         <h4 class="modal-title"> Publish Working Set"<b>{{ name }}</b>"?</h4>
     </div>
     <div class="modal-body">
-    {% if is_published and approval_status == 2 %}
+    {% if  approval_status == 1 %}
         <div class="alert alert-success" role="alert">
-          This version is already published.
+          This version is already submitted.
         </div>
     {% else %}
 
@@ -92,18 +92,6 @@
                                  Published Working Set cannot be undone.
                         <br>
 
-                        {% else %}
-
-                        {% if  approval_status == 1 and not is_moderator %}
-                            Working Set needs to be approved.
-                            Waiting for moderator to approve
-
-                           <br>
-                            {% else %}
-                             <span class="text-danger">&nbsp; Cannot publish !! </span>
-                            <br>
-
-                        {% endif %}
                             {% endif %}
                             {% endif %}
 
@@ -113,9 +101,9 @@
 
                         <br>
                         Published Working Set cannot be undone.
-                            {% if not is_moderator and not is_lastapproved %}
+                            {% if not is_lastapproved %}
                             <br>
-                            This Working Set is going to be reviewed by the moderator and you will be notified when the Working Set will be published
+                            This working set is going to be reviewed by the moderator and you will be notified when the working set will be published
 
 
 
@@ -130,9 +118,9 @@
     </div>
 
     <div class="modal-footer">
-    	{% if is_published %}
+    	{% if approval_status == 1 %}
     		<span class="glyphicon glyphicon-ok" style="color:green"></span>
-		    <span class="text-success">&nbsp;Published&nbsp;</span>
+		    <span class="text-success">&nbsp;Submitted&nbsp;</span>
     	{% else %}
             <button {% if not allowed_to_publish %} disabled="true" {% endif %} id="publishButton"
 	            type="submit" class="btn btn-primary">
@@ -186,10 +174,9 @@ $(function(){
 						var element = document.getElementById('publish2');
                         element.setAttribute('disabled', 'disabled');
 
-						$('#publish2').attr("title", "This version is already published" );
-						$('#publish2').addClass("btn-success");
-						$('#publish2').removeClass("btn-primary");
-						$('#publish2').html("Published&nbsp;<span class='glyphicon glyphicon-ok' style='color:green'></span>");
+						$('#publish2').attr("title", "This version is already submitted" );
+						$('#publish2').addClass("btn-warning");
+						$('#publish2').html("Pending");
 
 					}
 
