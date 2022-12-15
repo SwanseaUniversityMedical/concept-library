@@ -172,7 +172,7 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
                                                                                                             'ph_workingset_search',
                                                                                                             ''))
                                                                    )
-    has_child_concepts, has_child_phenenotypes, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
+    has_child_phenenotypes, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
         checkAllChildData4Publish_Historical(request,workingset_history_id)
 
     if not isOK:
@@ -210,36 +210,23 @@ def checkAllChildData4Publish_Historical(request,
 
 
     if len(workingset['phenotypes_concepts_data']) == 0:
-        has_child_concepts = False
         has_child_phenotypes = False
-        child_concepts_versions = ''
         child_phenotypes_versions = ''
     else:
-        child_concepts_versions = [(x['concept_id'], x['concept_version_id']) for x in workingset['phenotypes_concepts_data']]
         child_phenotypes_versions = [(x['phenotype_id'], x['phenotype_version_id']) for x in workingset['phenotypes_concepts_data']]
 
     # Now check all the child concepts for deletion(from live version) and Publish(from historical version)
     # we check access(from live version) here.
 
     errors = {}
-    has_child_concepts = False
     has_child_phenotypes = False
     all_not_deleted = True
     is_allowed_view_children = True
     all_are_published = True
-    if child_concepts_versions:
-        has_child_concepts = True
 
     if child_phenotypes_versions:
         has_child_phenotypes = True
 
-
-    for cc in child_concepts_versions:
-
-        isDeleted = (Concept.objects.filter(Q(friendly_id=cc[0])).exclude(is_deleted=True).count() == 0)
-        if isDeleted:
-            errors[cc[0]] = 'Child concept (' + str(cc[0]) + ') is deleted'
-            all_not_deleted = False
 
     for p in child_phenotypes_versions:
         isDeleted = (Phenotype.objects.filter(Q(id=p[0])).exclude(is_deleted=True).count() == 0)
@@ -248,29 +235,12 @@ def checkAllChildData4Publish_Historical(request,
             all_not_deleted = False
 
 
-    for cc in child_concepts_versions:
-        is_published = checkIfPublished(Concept, re.findall("\d+", cc[0])[0], cc[1])
-        if not is_published:
-            errors[str(cc[0]) + '/' + str(cc[1])] = 'Child concept (' + str(cc[0]) + '/' + str(cc[1]) + ') is not published'
-            all_are_published = False
-
     for p in child_phenotypes_versions:
         is_published = checkIfPublished(Phenotype, p[0], p[1])
         if not is_published:
             errors[str(p[0]) + '/' + str(p[1])] = 'Child phenotype (' + str(p[0]) + '/' + str(p[1]) + ') is not published'
             all_are_published = False
 
-
-
-    for cc in child_concepts_versions:
-        permitted = allowed_to_view(request,
-                                    Concept,
-                                    set_id=re.findall("\d+", cc[0])[0],
-                                    set_history_id=cc[1])
-
-        if not permitted:
-            errors[str(cc[0]) + '_view'] = 'Child concept (' + str(cc[0]) + ') is not permitted.'
-            is_allowed_view_children = False
 
     for p in child_phenotypes_versions:
         permitted = allowed_to_view(request,
@@ -283,9 +253,8 @@ def checkAllChildData4Publish_Historical(request,
             is_allowed_view_children = False
 
     isOK = (all_not_deleted and all_are_published and is_allowed_view_children)
-    print(errors)
 
-    return has_child_concepts, has_child_phenotypes,isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors
+    return  has_child_phenotypes,isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors
 
 
 
