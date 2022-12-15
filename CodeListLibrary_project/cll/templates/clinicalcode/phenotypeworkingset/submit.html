@@ -81,22 +81,7 @@
             <div class="col-md-12">
                 <p>
                     <br>
-                    {% if is_published or approval_status == 1%}
-                        {% if is_published and approval_status == 2 %}
-                            <br>
-<!--                            This version "{{ name }}" is already published. -->
-                        {% else %}
-                            {% if  approval_status == 1 and is_moderator %}
-                                 Are you sure you want to approve this version of "{{ name }}"?
-                                 <br>
-                                 Published Working Set cannot be undone.
-                        <br>
-
-                            {% endif %}
-                            {% endif %}
-
-                    {% else %}
-                        {% if is_owner or is_moderator %}
+                        {% if is_owner and not errors %}
                         Are you sure you want to publish this version of "{{ name }}"?
 
                         <br>
@@ -109,7 +94,6 @@
 
                     {% endif %}
 
-                {% endif %}
                 {% endif %}
 
                 </p>
