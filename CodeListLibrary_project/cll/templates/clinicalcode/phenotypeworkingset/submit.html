@@ -37,24 +37,24 @@
             </div>
 
         {% else %}
-            {% if not isAllowedtoViewChildren %}
+            {% if not is_allowed_view_children %}
                 <div class="col-md-12">
                     <span class="glyphicon glyphicon-remove" style="color:red"></span>
-                    <span class="text-danger">&nbsp;You must have view access to all concepts.</span>
+                    <span class="text-danger">&nbsp;You must have view access to all concepts/phenotypes.</span>
                 </div>
             {% endif %}
 
-            {% if not AllnotDeleted %}
+            {% if not all_not_deleted %}
                 <div class="col-md-12">
                     <span class="glyphicon glyphicon-remove" style="color:red"></span>
-                    <span class="text-danger">&nbsp;All concepts must not be deleted.</span>
+                    <span class="text-danger">&nbsp;All concepts/phenotypes must not be deleted.</span>
                 </div>
             {% endif %}
 
-            {% if not AllarePublished %}
+            {% if not all_are_published %}
                 <div class="col-md-12">
                     <span class="glyphicon glyphicon-remove" style="color:red"></span>
-                    <span class="text-danger">&nbsp;All concepts must be published.</span>
+                    <span class="text-danger">&nbsp;All concepts/phenotypes must be published.</span>
                 </div>
             {% endif %}
 
