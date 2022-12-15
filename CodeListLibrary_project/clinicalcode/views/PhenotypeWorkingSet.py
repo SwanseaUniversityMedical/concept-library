@@ -872,16 +872,16 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
             'is_published': checks['is_published'],
             'allowed_to_publish': checks['allowed_to_publish'],
             'is_owner': checks['is_owner'],
+            'workingset_is_deleted': checks['workingset_is_deleted'],
             'approval_status': checks['approval_status'],
             'is_lastapproved': checks['is_lastapproved'],
             'is_latest_pending_version': checks['is_latest_pending_version'],
             'is_moderator': checks['is_moderator'],
-            'workingset_is_deleted': checks['workingset_is_deleted'],
-            'workingset_has_attributes':checks['workingset_has_attributes'],
-            'AllnotDeleted': checks['AllnotDeleted'],
-            'AllarePublished': checks['AllarePublished'],
-            'isAllowedtoViewChildren': checks['isAllowedtoViewChildren'],
-            'errors': checks['errors']
+            'workingset_has_attributes': checks['workingset_has_attributes'],
+            'is_allowed_view_children': checks['is_allowed_view_children'],
+            'all_are_published': checks['all_are_published'],
+            'all_not_deleted': checks['all_not_deleted'],
+            'errors':checks['errors']
         })
     def post(self, request, pk, workingset_history_id):
 
@@ -987,15 +987,15 @@ class WorkingsetDecline(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
             'is_published': checks['is_published'],
             'allowed_to_publish': checks['allowed_to_publish'],
             'is_owner': checks['is_owner'],
+            'workingset_is_deleted': checks['workingset_is_deleted'],
             'approval_status': checks['approval_status'],
             'is_lastapproved': checks['is_lastapproved'],
             'is_latest_pending_version': checks['is_latest_pending_version'],
             'is_moderator': checks['is_moderator'],
-            'workingset_is_deleted': checks['workingset_is_deleted'],
-            'workingset_has_attributes':checks['workingset_has_attributes'],
-            'AllnotDeleted': checks['AllnotDeleted'],
-            'AllarePublished': checks['AllarePublished'],
-            'isAllowedtoViewChildren': checks['isAllowedtoViewChildren'],
+            'workingset_has_attributes': checks['workingset_has_attributes'],
+            'is_allowed_view_children': checks['is_allowed_view_children'],
+            'all_are_published': checks['all_are_published'],
+            'all_not_deleted': checks['all_not_deleted'],
             'errors': checks['errors']
         })
     def post(self, request, pk, workingset_history_id):
@@ -1071,9 +1071,9 @@ class WorkingSetSubmit(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetChe
             'is_latest_pending_version': checks['is_latest_pending_version'],
             'is_moderator': checks['is_moderator'],
             'workingset_has_attributes':checks['workingset_has_attributes'],
-            'AllnotDeleted': checks['AllnotDeleted'],
-            'AllarePublished': checks['AllarePublished'],
-            'isAllowedtoViewChildren': checks['isAllowedtoViewChildren'],
+            'is_allowed_view_children': checks['is_allowed_view_children'],
+            'all_are_published': checks['all_are_published'],
+            'all_not_deleted': checks['all_not_deleted'],
             'errors': checks['errors']
         })
     def post(self, request, pk, workingset_history_id):
@@ -1112,7 +1112,6 @@ class WorkingSetSubmit(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetChe
                                                self.request)
 
         return JsonResponse(data)
-
 
 
 
