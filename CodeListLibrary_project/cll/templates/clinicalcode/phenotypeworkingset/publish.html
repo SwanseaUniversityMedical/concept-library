@@ -108,7 +108,8 @@
                             {% endif %}
 
                     {% else %}
-                        {% if is_owner or is_moderator %}
+                        {% if not errors %}
+                        {% if is_owner or is_moderator  %}
                         Are you sure you want to publish this version of "{{ name }}"?
 
                         <br>
@@ -120,6 +121,7 @@
 
 
                     {% endif %}
+                            {% endif %}
 
                 {% endif %}
                 {% endif %}
