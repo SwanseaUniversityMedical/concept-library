@@ -4429,10 +4429,8 @@ def send_review_email(set_class, review_decision, review_message):
     id = set_class.id
     name = set_class.name
     owner_id = set_class.owner.id
-    print(id,owner_id,name)
 
     owner_email = User.objects.get(id=owner_id).email
-    print(owner_email)
     if owner_email == '':
         return False
 
@@ -4456,7 +4454,7 @@ def send_review_email(set_class, review_decision, review_message):
         except BadHeaderError:
             return False
     else:
-        print(email_content)
+        #print(email_content)
         return True
 
 def get_scheduled_email_to_send():
