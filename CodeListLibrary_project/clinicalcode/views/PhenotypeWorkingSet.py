@@ -778,15 +778,15 @@ def form_validation(request, data, workingset_history_id, pk,workingset,checks):
 def send_message( pk, data, workingset,workingset_history_id,checks):
     if checks['approval_status'] == 2:
         data['message'] = """The workingset version has been successfully published.
-                         <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)), pk=pk)
+                         <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)), pk=pk,history=workingset_history_id)
 
         send_email_decision_workingset(workingset, checks['approval_status'])
         return data
 
     elif len(PublishedWorkingset.objects.filter(workingset=PhenotypeWorkingset.objects.get(pk=pk).id, approval_status=2)) > 0 and not checks['approval_status'] == 3:
         data['message'] = """The workingset version has been successfully published.
-                                 <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
-                                                                                                         pk=pk)
+                                 <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
+                                                                                                         pk=pk,history=workingset_history_id)
         send_email_decision_workingset(workingset, checks['approval_status'])
 
         return data
@@ -794,35 +794,35 @@ def send_message( pk, data, workingset,workingset_history_id,checks):
 
     elif checks['approval_status'] == 1:
         data['message'] = """The workingset version has been successfully published.
-                                         <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(
+                                         <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(
             url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
-            pk=pk)
+            pk=pk,history=workingset_history_id)
 
         send_email_decision_workingset(workingset, checks['approval_status'])
         return data
 
     elif checks['approval_status'] == 3:
         data['message'] = """The workingset version has been declined .
-                                               <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(
+                                               <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(
             url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
-            pk=pk)
+            pk=pk,history=workingset_history_id)
         send_email_decision_workingset(workingset, checks['approval_status'])
 
         return data
 
     elif checks['approval_status'] is None and checks['is_moderator']:
         data['message'] = """The workingset version has been successfully published.
-                                                <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(
+                                                <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(
             url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
-            pk=pk)
+            pk=pk,history=workingset_history_id)
 
         return data
 
     elif checks['approval_status'] is None:
         data['message'] = """The workingset version is going to be reviewed by the moderator.
-                                                      <a href='{url}' class="alert-link">(WORKINGSET ID: {pk} )</a>""".format(
+                                                      <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(
             url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
-            pk=pk)
+            pk=pk,history=workingset_history_id)
 
         return data
 
