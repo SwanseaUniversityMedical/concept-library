@@ -120,7 +120,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                                                         {% if approval_status == 3 %}
                                                         class="js-load-modal  btn btn-danger"
                                                         href="{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}"
-                                                        title="Approve declined Working Set"
+                                                        title="Approve rejected Working Set"
                                                         {% else %}
                                                         class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
                                                         href="{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}"
@@ -156,7 +156,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                                                             class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
                                                             href="{% url 'workingset_submit' pk=workingset.id workingset_history_id=workingset.history_id %}"
 
-                                                        {% elif  is_lastapproved and not live_ver_is_deleted %}
+                                                        {% elif  is_lastapproved and not live_ver_is_deleted and not approval_status == 3%}
 
                                                             class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
                                                             href="{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}"
@@ -169,7 +169,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                                                                 title="Deleted Working Set cannot be published !!"
                                                             {% elif approval_status == 3 %}
                                                                 class="btn btn-danger"
-                                                                disabled title="This version is declined"
+                                                                disabled title="This version is rejected"
                                                             {% elif  approval_status == 1 %}
                                                                 {% if workingset.owner_id == request.user.id %}
                                                                     class="btn btn-primary btn-warning"
@@ -187,7 +187,8 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                                                         {% endif %}
                                                             id="publish2">
                                                          {% if approval_status == 3 %}
-                                                               Declined
+                                                               Rejected
+
                                                          {% else %}
                                                             {% if approval_status == 1 %}
                                                                 Pending
