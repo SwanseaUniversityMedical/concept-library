@@ -763,7 +763,7 @@ def form_validation(request, data, workingset_history_id, pk,workingset,checks):
 
     # update history list
     data['html_history_list'] = render_to_string(
-        'clinicalcode/workingset/partial_history_list.html',
+        'clinicalcode/phenotypeworkingset/partial_history_list.html',
         {
             'history': get_history_table_data(request, pk),  # workingset.history.all(),
             'current_workingset_history_id': int(workingset_history_id),  # workingset.history.latest().pk,
