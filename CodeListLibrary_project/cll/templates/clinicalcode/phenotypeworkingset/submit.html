@@ -81,7 +81,7 @@
             <div class="col-md-12">
                 <p>
                     <br>
-                        {% if is_owner and not errors %}
+                        {% if is_owner and not errors and not approval_status == 1%}
                         Are you sure you want to publish this version of "{{ name }}"?
 
                         <br>
