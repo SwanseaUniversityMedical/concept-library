@@ -15,6 +15,18 @@
         </div>
     {% else %}
 
+        {% if is_published and approval_status == 2 %}
+        <div class="alert alert-success" role="alert">
+          This version is already published.
+        </div>
+            {% endif %}
+
+         {% if approval_status == 3 %}
+        <div class="alert alert-danger" role="alert">
+          This version is rejected.
+        </div>
+            {% endif %}
+
         {% if workingset_is_deleted %}
             <div class="col-md-12">
                 <span class="glyphicon glyphicon-remove" style="color:red"></span>
@@ -81,7 +93,7 @@
             <div class="col-md-12">
                 <p>
                     <br>
-                        {% if is_owner and not errors and not approval_status == 1%}
+                        {% if is_owner and not errors and not approval_status == 1 and not approval_status == 3%}
                         Are you sure you want to publish this version of "{{ name }}"?
 
                         <br>
@@ -105,6 +117,11 @@
     	{% if approval_status == 1 %}
     		<span class="glyphicon glyphicon-ok" style="color:green"></span>
 		    <span class="text-success">&nbsp;Submitted&nbsp;</span>
+
+            {% elif approval_status == 3 %}
+    		<span class="glyphicon glyphicon-remove" style="color:red"></span>
+		    <span class="text-danger">&nbsp;Rejected&nbsp;</span>
+
     	{% else %}
             <button {% if not allowed_to_publish %} disabled="true" {% endif %} id="publishButton"
 	            type="submit" class="btn btn-primary">
@@ -164,9 +181,15 @@ $(function(){
 
 					}
 
-					//alert(data.message);
-					$('#success-message').show();
+					if(data.approval_status == 1){
+                        $('#warning-message').show();
+					$('#warning-message').html(data.message);
+                    }
+                    else{
+                        $('#success-message').show();
 					$('#success-message').html(data.message);
+                    }
+
 
 					$('#modal-section').modal('hide');
 					$('#modal-section .modal-content').html('');
