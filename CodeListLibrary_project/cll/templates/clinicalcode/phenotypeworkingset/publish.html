@@ -110,7 +110,12 @@
                     {% else %}
                         {% if not errors %}
                         {% if is_owner or is_moderator  %}
+                             {% if approval_status == 3 %}
+                                 Are you sure you want to approve previously declined "{{ name }}"?
+                                 {% else %}
                         Are you sure you want to publish this version of "{{ name }}"?
+                                 {% endif %}
+
 
                         <br>
                         Published Working Set cannot be undone.
@@ -211,15 +216,31 @@ function updateHistoryTable(data,form){
                         element.setAttribute('disabled', 'disabled');
 
 						$('#publish2').attr("title", "This version is already published" );
-						$('#publish2').addClass("btn-success");
-						$('#publish2').removeClass("btn-primary");
+
+                        if (data.approval_status === 2){
+                            $('#publish2').addClass("btn-success");
+
+						$('#publish2').removeClass($('#publish2').hasClass('btn-danger') ? "btn-danger":'btn-primary');
 						$('#publish2').html("Published&nbsp;<span class='glyphicon glyphicon-ok' style='color:green'></span>");
+                        }else {
+                              $('#publish2').addClass("btn-danger");
+						$('#publish2').removeClass("btn-primary");
+						$('#publish2').html("Rejected&nbsp;<span class='glyphicon glyphicon-remove' style='color:red'></span>");
+                        }
+
 
 					}
 
-					//alert(data.message);
-					$('#success-message').show();
+					if (data.approval_status === 2){
+                        $('#success-message').show();
 					$('#success-message').html(data.message);
+                    }else {
+                        if (data.approval_status === 3){
+                            $('#error-message').show();
+					$('#error-message').html(data.message);
+                        }
+                    }
+
 
 					$('#modal-section').modal('hide');
 					$('#modal-section .modal-content').html('');
