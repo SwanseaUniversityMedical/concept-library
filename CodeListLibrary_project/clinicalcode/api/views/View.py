@@ -28,6 +28,7 @@ from rest_framework.decorators import (api_view, authentication_classes,
 from rest_framework.response import Response
 
 from ...db_utils import *
+from ...view_utils import workingset_db_utils
 from ...models import *
 
 #from django.forms.models import model_to_dict
@@ -709,7 +710,7 @@ def get_visible_versions_list(request,
         elif set_class == Phenotype:
             ver = getHistoryPhenotype(v.history_id)
         elif set_class == PhenotypeWorkingset:
-            ver = getHistoryPhenotypeWorkingset(v.history_id)
+            ver = workingset_db_utils.getHistoryPhenotypeWorkingset(v.history_id)
 
         is_this_version_published = False
         is_this_version_published = checkIfPublished(set_class, ver['id'], ver['history_id'])
