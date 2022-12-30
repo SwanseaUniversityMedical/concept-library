@@ -1007,11 +1007,11 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 				
 			}else{
 			    // Generate standard type of table in code list if not login
-                {% if not user.is_authenticated %}
-                    var table = $('.display-table').DataTable({
-                    	"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]]
-                    });
-                {% endif %}
+//                 {% if not user.is_authenticated %}
+//                     var table = $('.display-table').DataTable({
+//                     	"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]]
+//                     });
+//                 {% endif %}
 
             }
 
@@ -1093,7 +1093,7 @@ data-spy="scroll" data-target="#ConceptMenu" data-offset = "140"
 
 			// restore the table if user not login when printing finished
 			{% if not user.is_authenticated %}
-                 var table = $('.display-table');
+                var table = $('.display-table');
                 table.DataTable().destroy();
                 table.DataTable({
                 	"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]]
