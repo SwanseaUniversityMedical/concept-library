@@ -72,11 +72,18 @@ class HistoryTest(StaticLiveServerTestCase):
         self.brand = self.create_brand("HDRUK", "cll/static/img/brands/HDRUK")
 
         self.tag = Tag.objects.create(description="tagTest",
-                                      tag_type=2,
+                                      tag_type=1,
                                       display =1,
                                       collection_brand=self.brand,
                                       created_by=self.owner_user)
         self.tag.save()
+
+        self.collection = Tag.objects.create(description="collectionTest",
+                                      tag_type=2,
+                                      display=1,
+                                      collection_brand=self.brand,
+                                      created_by=self.owner_user)
+        self.collection.save()
 
         self.concept1 = Concept.objects.create(name="concept level 4",
                                                description="concept level 4",
@@ -261,7 +268,7 @@ class HistoryTest(StaticLiveServerTestCase):
 
         # create a concept
         browser.find_element(By.ID, 'id_name').send_keys("concept2")
-        tagField = browser.find_element_by_class_name('tt-input')
+        tagField = browser.find_element(By.ID, 'concept-tag-form-container').find_element(By.CLASS_NAME,'tt-input')
         tagField.send_keys("tag")
 
         time.sleep(2)  # wait to load concept prompt
@@ -284,6 +291,44 @@ class HistoryTest(StaticLiveServerTestCase):
             concept.history.first().history_id) + "/detail/"
         browser.find_element(By.XPATH, '//a[@href="' + href + '"]').click()
 
-
         # TO-DO assertTrue or equal that tag exist
         self.assertTrue("tagTest" in browser.page_source)
+
+    def test_history_collection(self):
+        self.login(ow_user, ow_password)
+
+        browser = self.browser
+        # get the test server url
+        browser.get('%s%s' % (self.WEBAPP_HOST, '/concepts/create'))
+
+        browser.get(self.WEBAPP_HOST + reverse('concept_create', kwargs=None))
+
+        time.sleep(settings_cll.TEST_SLEEP_TIME)
+
+        # create a concept
+        browser.find_element(By.ID, 'id_name').send_keys("concept2")
+        collectionField = browser.find_element(By.ID, 'concept-collection-form-container').find_element(By.CLASS_NAME,'tt-input')
+
+        collectionField.send_keys("collection")
+
+        time.sleep(2)  # wait to load concept prompt
+
+        # click on a prompt to fill the field
+        collectionField.send_keys(Keys.DOWN)
+        collectionField.send_keys(Keys.ENTER)
+
+        browser.find_element(By.ID, 'id_author').send_keys("conceptAuthor")
+        browser.find_element(By.ID,
+                             'id_description').send_keys("concept2222222")
+        browser.find_element(By.ID, 'id_coding_system').send_keys(Keys.DOWN)
+
+        browser.find_element(By.ID, 'save-changes').click()
+        concept = Concept.objects.all().order_by('-id')[0]
+
+        # go to the latest historical version of the concept
+        href = "/concepts/C" + str(concept.id) + "/version/" + str(
+            concept.history.first().history_id) + "/detail/"
+        browser.find_element(By.XPATH, '//a[@href="' + href + '"]').click()
+
+        # TO-DO assertTrue or equal that tag exist
+        self.assertTrue("collectionTest" in browser.page_source)

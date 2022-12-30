@@ -22,6 +22,7 @@ from django.db.models.functions import Lower
 from django.utils.timezone import make_aware
 
 from ...db_utils import *
+from ...view_utils import workingset_db_utils
 from ...models import *
 from ...permissions import *
 from ...utils import *
@@ -90,7 +91,7 @@ def api_phenotypeworkingset_create(request):
     # phenotypes_concepts_data -> List<Dict>
     success, res = validate_api_entry('phenotypes_concepts_data', request.data, list)
     if success:
-        is_valid = validate_phenotype_workingset_attribute_group(res, errors_dict)
+        is_valid = workingset_db_utils.validate_phenotype_workingset_attribute_group(res, errors_dict)
         if is_valid:
             new_pws.phenotypes_concepts_data = res
     else:
@@ -213,7 +214,7 @@ def api_phenotypeworkingset_update(request):
     # phenotypes_concepts_data -> List<Dict>
     success, res = validate_api_entry('phenotypes_concepts_data', request.data, list)
     if success:
-        is_valid = validate_phenotype_workingset_attribute_group(res, errors_dict)
+        is_valid = workingset_db_utils.validate_phenotype_workingset_attribute_group(res, errors_dict)
         if is_valid:
             update_pws.phenotypes_concepts_data = res
     else:
@@ -327,11 +328,11 @@ def getPhenotypeWorkingSets(request, is_authenticated=False, pk=None):
     get_live_and_or_published_ver = 3  # 1= live only, 2= published only, 3= live+published
     show_top_version_only = True
 
-    ph_workingset_types_list, ph_workingset_types_order = get_brand_associated_workingset_types(request, brand=None)
+    ph_workingset_types_list, ph_workingset_types_order = workingset_db_utils.get_brand_associated_workingset_types(request, brand=None)
     ph_workingset_selected_types_list = {ph_workingset_types_order[k]: v for k, v in enumerate(ph_workingset_types_list)}
     
     search_by_id = False
-    id_match = re.search(r"(?i)^PH\d+$", search)
+    id_match = re.search(r"(?i)^WS\d+$", search)
     if id_match:
         if id_match.group() == id_match.string:
             is_valid_id, err, ret_id = chk_valid_id(request, set_class=PhenotypeWorkingset, pk=search, chk_permission=False)
@@ -376,12 +377,12 @@ def getPhenotypeWorkingSets(request, is_authenticated=False, pk=None):
 
     # by id
     if workingset_id is not None:
-        workingset_id = str(parse_ident(workingset_id))
+        workingset_id = str(workingset_id)
         if workingset_id != '':
-            filter_cond += " AND id=" + workingset_id
+            filter_cond += " AND (id= '" + workingset_id + "') "
 
     # show my workingsets
-    workingsets = get_visible_live_or_published_phenotype_workingset_versions(
+    workingsets = workingset_db_utils.get_visible_live_or_published_phenotype_workingset_versions(
                                                             request,
                                                             get_live_and_or_published_ver=get_live_and_or_published_ver,
                                                             search=[search, ''][search_by_id],
@@ -446,7 +447,7 @@ def getPhenotypeWorkingSets(request, is_authenticated=False, pk=None):
 #------------------ phenotype working set detail --------------------------
 @swagger_auto_schema(method='get', auto_schema=None)
 @api_view(['GET'])
-def phenotypeworkingset_detail(request, pk, workingset_history_id=None):
+def phenotypeworkingset_detail(request, pk, workingset_history_id=None, get_versions_only=None):
     ''' 
         Display the detail of a phenotype working set at a point in time.
     '''
@@ -475,7 +476,8 @@ def phenotypeworkingset_detail(request, pk, workingset_history_id=None):
     return getPhenotypeWorkingSetDetail(request,
                               pk=pk,
                               is_authenticated=True,
-                              workingset_history_id=workingset_history_id)
+                              workingset_history_id=workingset_history_id,
+                              get_versions_only=get_versions_only)
 
 
 @api_view(['GET'])
@@ -522,7 +524,7 @@ def getPhenotypeWorkingSetDetail(request, pk, is_authenticated=False, workingset
             return Response(rows_to_return, status=status.HTTP_200_OK)
     #--------------------------
 
-    ws = getHistoryPhenotypeWorkingset(workingset_history_id)
+    ws = workingset_db_utils.getHistoryPhenotypeWorkingset(workingset_history_id)
     # The history ws contains the owner_id, to provide the owner name, we
     # need to access the user object with that ID and add that to the ws.
     ws['owner'] = None
@@ -639,7 +641,7 @@ def get_phenotypeworkingset_concepts(request, pk, workingset_history_id):
         concept_version = parse_ident(element["concept_version_id"])
         concept = Concept.history.get(id=concept_id, history_id=concept_version)
 
-        phenotype_id = parse_ident(element["phenotype_id"])
+        phenotype_id = element["phenotype_id"]
         phenotype_version = parse_ident(element["phenotype_version_id"])
         phenotype = Phenotype.history.get(id=phenotype_id, history_id=phenotype_version)
 
@@ -735,7 +737,7 @@ def export_published_phenotypeworkingset_codes(request, pk, workingset_history_i
 
     #----------------------------------------------------------------------
     if request.method == 'GET':
-        rows_to_return = get_working_set_codes_by_version(request, pk, workingset_history_id)
+        rows_to_return = workingset_db_utils.get_working_set_codes_by_version(request, pk, workingset_history_id)
         return Response(rows_to_return, status=status.HTTP_200_OK)
 
 
@@ -773,7 +775,7 @@ def export_phenotypeworkingset_codes_byVersionID(request, pk, workingset_history
     #----------------------------------------------------------------------
 
     if request.method == 'GET':
-        rows_to_return = get_working_set_codes_by_version(request, pk, workingset_history_id)
+        rows_to_return = workingset_db_utils.get_working_set_codes_by_version(request, pk, workingset_history_id)
         return Response(rows_to_return, status=status.HTTP_200_OK)
     
 
