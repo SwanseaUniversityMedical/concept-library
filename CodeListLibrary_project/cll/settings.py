@@ -309,7 +309,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-if IS_LINUX:
+if IS_LINUX or IS_DEVELOPMENT_PC:
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,
@@ -409,7 +409,7 @@ MARKDOWNIFY = {
     "default": {
         "WHITELIST_TAGS": [
             'a', 'abbr', 'acronym', 'b', 'blockquote', 'em', 'i', 'li', 'ol',
-            'p', 'strong', 'ul', 'img'
+            'p', 'strong', 'ul', 'img',
             'h1', 'h2', 'h3','h4', 'h5', 'h6', 'h7'
             #, 'span', 'div',  'code'
         ],
