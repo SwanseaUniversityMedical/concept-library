@@ -1,6 +1,5 @@
 '''
     Test base class
-
     Set-up and tear-down etc. which are common for unit and functional tests.
 '''
 import os
