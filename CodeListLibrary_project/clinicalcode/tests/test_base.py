@@ -1,12 +1,15 @@
 '''
     Test base class
-
     Set-up and tear-down etc. which are common for unit and functional tests.
 '''
 import os
+import time
+
+import requests
 
 import urllib3
 from django.db import connection, connections  # , transaction
+from rest_framework.reverse import reverse
 
 SCREEN_DUMP_LOCATION = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'screendumps')
 '''
@@ -46,13 +49,13 @@ def update_friendly_id():
 
 
 def save_stat(host):
-    url_run = host + "/admin/run-stat/"
-    http = urllib3.PoolManager()
-    resp_stat = http.request("GET", url_run)
+    url_run = host + reverse("HDRUK_run_statistics")
+    resp_stat = requests.get(url_run)
 
-    print((str(resp_stat.status) + "#### Run-stat ####"))
 
-    url_save = host + "/admin/run-stat-filters/"
-    resp_stat = http.request("GET", url_save)
+    print((str(resp_stat.status_code) + "#### Run-stat ####"))
 
-    print((str(resp_stat.status) + "#### Run-stat-filters save ####"))
+    url_save = host + reverse("collections_run_filters")
+    resp_stat = requests.get(url_save)
+
+    print((str(resp_stat.status_code) + "#### Run-stat-filters save ####"))
