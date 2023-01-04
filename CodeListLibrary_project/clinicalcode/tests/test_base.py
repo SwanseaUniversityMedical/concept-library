@@ -46,13 +46,13 @@ def update_friendly_id():
 
 
 def save_stat(host):
-    url_run = host + "/admin/run-stat"
+    url_run = host + "/admin/run-stat/"
     http = urllib3.PoolManager()
     resp_stat = http.request("GET", url_run)
 
     print((str(resp_stat.status) + "#### Run-stat ####"))
 
-    url_save = host + "/admin/run-stat-filters"
+    url_save = host + "/admin/run-stat-filters/"
     resp_stat = http.request("GET", url_save)
 
     print((str(resp_stat.status) + "#### Run-stat-filters save ####"))
