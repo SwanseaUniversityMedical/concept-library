@@ -109,13 +109,15 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                                     <span class="glyphicon glyphicon-ok" style="color:green"></span>
                                 </a>
                                 {% else %}
-                                    <a
-                                            {% if request.user|has_group:"Moderators" %}
+
+
+                                            <a{% if request.user|has_group:"Moderators" %}
                                                 {% if not live_ver_is_deleted %}
-                                                    {% if approval_status == 1 and is_latest_pending_version %}
+                                                    {% if approval_status == 1 %}
                                                         class="js-load-modal btn btn-warning"
                                                         href="{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}"
                                                         title="Needs to be approved"
+
                                                     {% else %}
                                                         {% if approval_status == 3 %}
                                                         class="js-load-modal  btn btn-danger"
@@ -141,7 +143,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
 
                                                 {% endif %}
                                                         id="publish2">
-                                               {% if approval_status == 1 and is_latest_pending_version%}
+                                               {% if approval_status == 1%}
                                                    Approve
                                                {% else %}
                                                         Publish
@@ -152,7 +154,8 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
 
 
 
-                                                <a {% if not is_lastapproved and approval_status is None and not request.user|has_group:"Moderators" %}
+                                                 <a{% if not is_lastapproved and approval_status is None and not request.user|has_group:"Moderators" %}
+
                                                             class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
                                                             href="{% url 'workingset_submit' pk=workingset.id workingset_history_id=workingset.history_id %}"
 
