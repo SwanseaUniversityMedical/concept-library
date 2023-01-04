@@ -873,6 +873,7 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
             'workingset_has_attributes': checks['workingset_has_attributes'],
             'is_allowed_view_children': checks['is_allowed_view_children'],
             'all_are_published': checks['all_are_published'],
+            'other_pending':checks['other_pending'],
             'all_not_deleted': checks['all_not_deleted'],
             'errors':checks['errors']
         })
@@ -918,11 +919,20 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
             elif checks['approval_status'] == 1 and checks['is_moderator']:
                     with transaction.atomic():
                         workingset = PhenotypeWorkingset.objects.get(pk=pk)
-                        published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id,approval_status=1)
-                        for ws in published_workingset:
-                            ws.approval_status = 2
-                            ws.moderator_id = request.user.id
-                            ws.save()
+
+                        published_workingset =PublishedWorkingset.objects.filter(workingset_id=workingset.id,workingset_history_id=workingset_history_id,
+                                                                                      approval_status=1).first()
+
+                        if len(request.POST.getlist('check_workingset'))>0:
+                            published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id,
+                                                                                      approval_status=1)
+                            for ws in published_workingset:
+                                ws.approval_status = 2
+                                ws.moderator_id = request.user.id
+                                ws.save()
+                        else:
+                            published_workingset.approval_status = 2
+                            published_workingset.save()
                         data['approval_status'] = 2
                         data['form_is_valid'] = True
                         data = form_validation(request, data, workingset_history_id, pk, workingset, checks)
