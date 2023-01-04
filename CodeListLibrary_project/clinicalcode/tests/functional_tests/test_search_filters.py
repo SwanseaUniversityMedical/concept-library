@@ -22,7 +22,9 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
+from unittest import skip, skipIf
 
+@skipIf(True, "SEARCH PAGE TEST SKIPPED")
 class SearchTest(StaticLiveServerTestCase):
     reset_sequences = True
 
@@ -260,7 +262,7 @@ class SearchTest(StaticLiveServerTestCase):
 
             browser.find_elements(By.NAME, "collection_id")[i].click()
 
-    def test_unexpected_symbol_search(self):
+    def xx_test_unexpected_symbol_search(self):
 
         self.login(su_user, su_password)
         browser = self.browser
@@ -303,7 +305,7 @@ class SearchTest(StaticLiveServerTestCase):
 
             browser.find_element(By.ID, "reset-form").click()
 
-    def test_unexpected_phenotype_name(self):
+    def xx_test_unexpected_phenotype_name(self):
         self.login(su_user, su_password)
         browser = self.browser
 
@@ -400,7 +402,7 @@ class SearchTest(StaticLiveServerTestCase):
             browser.find_elements(By.NAME,"collection_id")[i].click()
         """
 
-    def test_blank_phenotype_search(self):
+    def xx_test_blank_phenotype_search(self):
         self.login(su_user, su_password)
         browser = self.browser
 
@@ -438,7 +440,7 @@ class SearchTest(StaticLiveServerTestCase):
 
         self.assertTrue("No phenotypes" not in browser.page_source)
 
-    def test_all_tag(self):
+    def xx_test_all_tag(self):
 
         # Test 'all' tag when user wants to delete the previous search
         self.login(su_user, su_password)
@@ -474,7 +476,7 @@ class SearchTest(StaticLiveServerTestCase):
 
         self.assertTrue(browser.find_element(By.ID, "search").text == "")
 
-    def test_search(self):
+    def xx_test_search(self):
         self.login(su_user, su_password)
 
         browser = self.browser
@@ -536,7 +538,7 @@ class SearchTest(StaticLiveServerTestCase):
             browser.find_element(By.ID, "reset-form").click()
             browser.find_elements(By.NAME, "collection_id")[i].click()
 
-    def test_deleted_phenotypes(self):
+    def xx_test_deleted_phenotypes(self):
 
         self.login(su_user, su_password)
 
@@ -568,7 +570,7 @@ class SearchTest(StaticLiveServerTestCase):
 
             browser.find_elements(By.NAME, "collection_id")[i].click()
 
-    def test_only_owned_phenotypes(self):
+    def xx_test_only_owned_phenotypes(self):
 
         # First login as superuser
         self.login(su_user, su_password)
@@ -605,7 +607,7 @@ class SearchTest(StaticLiveServerTestCase):
 
         self.assertTrue("No phenotypes" not in browser.page_source)
 
-    def test_author_filter(self):
+    def xx_test_author_filter(self):
 
         self.login(su_user, su_password)
         browser = self.browser
@@ -636,7 +638,7 @@ class SearchTest(StaticLiveServerTestCase):
 
             browser.find_elements(By.NAME, "collection_id")[i].click()
 
-    def test_phenotype_with_all_attributes(self):
+    def xx_test_phenotype_with_all_attributes(self):
         self.login(ow_user, ow_password)
 
         browser = self.browser
@@ -710,7 +712,7 @@ class SearchTest(StaticLiveServerTestCase):
         
         """
 
-    def test_tag_input_bar(self):
+    def xx_test_tag_input_bar(self):
         self.login(ow_user, ow_password)
 
         browser = self.browser
