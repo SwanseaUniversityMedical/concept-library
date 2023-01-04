@@ -48,14 +48,30 @@ def update_friendly_id():
     print("######  update_friendly_id   #############################")
 
 
-def save_stat(host):
+def save_stat000(host):
     url_run = host + reverse("HDRUK_run_statistics")
     resp_stat = requests.get(url_run)
 
 
-    print((str(resp_stat.status_code) + "#### Run-stat ####"))
+    print((str(resp_stat.status) + "#### Run-stat ####"))
 
     url_save = host + reverse("collections_run_filters")
     resp_stat = requests.get(url_save)
 
-    print((str(resp_stat.status_code) + "#### Run-stat-filters save ####"))
+    print((str(resp_stat.status) + "#### Run-stat-filters save ####"))
+
+def save_stat(host):
+    http = urllib3.PoolManager()
+    
+    url_run = host + "/admin/run-stat/"
+    resp_stat = http.request("GET", url_run)
+
+    print("#### Run-stat- HDRUK home page ####" + "(status-code= " + str(resp_stat.status) + ")")
+
+    url_save = host + "/admin/run-stat-filters/"
+    resp_stat = http.request("GET", url_save)
+
+    print("#### Run-stat-filters save ####" + "(status-code= " + str(resp_stat.status) + ")")
+    
+    
+    
