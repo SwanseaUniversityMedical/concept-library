@@ -207,7 +207,7 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
 def checkAllChildData4Publish_Historical(request,
                                              workingset_history_id):
 
-    workingset = db_utils.getHistoryPhenotypeWorkingset(workingset_history_id)
+    workingset = getHistoryPhenotypeWorkingset(workingset_history_id)
 
 
     if len(workingset['phenotypes_concepts_data']) == 0:
