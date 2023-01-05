@@ -900,18 +900,24 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
                         if checks['is_moderator']:
                             published_workingset = PublishedWorkingset(workingset=workingset, workingset_history_id=workingset_history_id,moderator_id = request.user.id,
                                                                     created_by_id=PhenotypeWorkingset.objects.get(pk=pk).created_by.id)
-                            if checks['other_pending']:
-                                published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id, approval_status=1)
-                                for ws in published_workingset:
-                                    ws.approval_status = 2
-                                    ws.moderator_id = request.user.id
-                                    ws.save()
+                            published_workingset.approval_status = 2
+                            published_workingset.save()
+
 
                         if checks['is_lastapproved']:
                             published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id, approval_status=2).first()
                             published_workingset = PublishedWorkingset(workingset = workingset,workingset_history_id=workingset_history_id,moderator_id=published_workingset.moderator.id,created_by_id=request.user.id)
-                        published_workingset.approval_status = 2
-                        published_workingset.save()
+                            published_workingset.approval_status = 2
+                            published_workingset.save()
+
+                        if checks['other_pending']:
+                            published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id,
+                                                                                      approval_status=1)
+                            for ws in published_workingset:
+                                ws.approval_status = 2
+                                ws.moderator_id = request.user.id
+                                ws.save()
+
                         data['form_is_valid'] = True
                         data['approval_status'] = 2
                         data = form_validation(request, data, workingset_history_id, pk, workingset,checks)
@@ -919,20 +925,13 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
             elif checks['approval_status'] == 1 and checks['is_moderator']:
                     with transaction.atomic():
                         workingset = PhenotypeWorkingset.objects.get(pk=pk)
+                        published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id,
+                                                                                  approval_status=1)
+                        for ws in published_workingset:
+                            ws.approval_status = 2
+                            ws.moderator_id = request.user.id
+                            ws.save()
 
-                        published_workingset =PublishedWorkingset.objects.filter(workingset_id=workingset.id,workingset_history_id=workingset_history_id,
-                                                                                      approval_status=1).first()
-
-                        if len(request.POST.getlist('check_workingset'))>0:
-                            published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id,
-                                                                                      approval_status=1)
-                            for ws in published_workingset:
-                                ws.approval_status = 2
-                                ws.moderator_id = request.user.id
-                                ws.save()
-                        else:
-                            published_workingset.approval_status = 2
-                            published_workingset.save()
                         data['approval_status'] = 2
                         data['form_is_valid'] = True
                         data = form_validation(request, data, workingset_history_id, pk, workingset, checks)
