@@ -221,6 +221,8 @@ function updateHistoryTable(data,form){
                             $('#publish2').addClass("btn-success");
 
 						$('#publish2').removeClass($('#publish2').hasClass('btn-danger') ? "btn-danger":'btn-primary');
+						$('#publish2').removeClass($('#publish2').hasClass('btn-warning') ? "btn-warning":'btn-primary');
+						
 						$('#publish2').html("Published&nbsp;<span class='glyphicon glyphicon-ok' style='color:green'></span>");
                         }else {
                               $('#publish2').addClass("btn-danger");
