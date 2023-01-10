@@ -469,9 +469,9 @@ if settings.ENABLE_PUBLISH:
         url(r'^phenotypeworkingset/(?P<pk>WS\d+)/(?P<workingset_history_id>\d+)/publish/$',
             PhenotypeWorkingSet.WorkingSetPublish.as_view(),
             name='workingset_publish'),
-        url(r'^phenotypeworkingset/(?P<pk>WS\d+)/(?P<workingset_history_id>\d+)/submit/$',
-            PhenotypeWorkingSet.WorkingSetSubmit.as_view(),
-            name='workingset_submit'),
+        url(r'^phenotypeworkingset/(?P<pk>WS\d+)/(?P<workingset_history_id>\d+)/request_publish/$',
+            PhenotypeWorkingSet.WorkingRequestPublish.as_view(),
+            name='workingset_request_publish'),
         url(r'^phenotypeworkingset/(?P<pk>WS\d+)/(?P<workingset_history_id>\d+)/decline/$',
             PhenotypeWorkingSet.WorkingsetDecline.as_view(),
             name='workingset_decline')

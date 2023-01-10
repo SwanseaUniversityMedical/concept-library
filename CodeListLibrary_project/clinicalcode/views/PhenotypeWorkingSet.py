@@ -1056,13 +1056,13 @@ class WorkingsetDecline(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
         return JsonResponse(data)
 
 
-class WorkingSetSubmit(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
+class WorkingRequestPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
     '''
         Publish the current working set.
     '''
 
     model = PhenotypeWorkingset
-    template_name = 'clinicalcode/phenotypeworkingset/submit.html'
+    template_name = 'clinicalcode/phenotypeworkingset/request_publish.html'
 
     def get(self, request, pk, workingset_history_id):
 

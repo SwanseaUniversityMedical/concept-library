@@ -147,7 +147,7 @@ $(function(){
 		//=============================================
 	    // post form
 		 $.ajax({
-            url:  "{% url 'workingset_submit' pk=workingset.id workingset_history_id=workingset.history_id %}",
+            url:  "{% url 'workingset_request_publish' pk=workingset.id workingset_history_id=workingset.history_id %}",
             data: form.serialize(),
             type: "POST",
             dataType: 'json',
