@@ -893,13 +893,24 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
                     with transaction.atomic():
                         workingset = PhenotypeWorkingset.objects.get(pk=pk)
                         if checks['is_moderator']:
-                            published_workingset = PublishedWorkingset(workingset=workingset, workingset_history_id=workingset_history_id,moderator_id = request.user.id,
-                                                                    created_by_id=PhenotypeWorkingset.objects.get(pk=pk).created_by.id)
-                            published_workingset.approval_status = 2
-                            published_workingset.save()
+                            if checks['is_lastapproved']:
+                                published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id,
+                                                                                          approval_status=2).first()
+                                published_workingset = PublishedWorkingset(workingset=workingset,
+                                                                           workingset_history_id=workingset_history_id,
+                                                                           moderator_id=published_workingset.moderator.id,
+                                                                           created_by_id=request.user.id)
+                                published_workingset.approval_status = 2
+                                published_workingset.save()
+                            else:
+                                published_workingset = PublishedWorkingset(workingset=workingset, workingset_history_id=workingset_history_id,moderator_id = request.user.id,
+                                                                        created_by_id=PhenotypeWorkingset.objects.get(pk=pk).created_by.id)
+                                published_workingset.approval_status = 2
+                                published_workingset.save()
 
 
-                        if checks['is_lastapproved']:
+
+                        if checks['is_lastapproved'] and not checks['is_moderator']:
                             published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id, approval_status=2).first()
                             published_workingset = PublishedWorkingset(workingset = workingset,workingset_history_id=workingset_history_id,moderator_id=published_workingset.moderator.id,created_by_id=request.user.id)
                             published_workingset.approval_status = 2
