@@ -838,7 +838,7 @@
                     scrollX: true, // allow to scroll horizontaly
                     scrollY: '70vh', // allow scroll vericaly for specific size 
                     scrollCollapse: true, // allow to table have overflow-x 
-                    colReorder: true, // order the collumns
+                    colReorder: false, // order the collumns
                     paging: false,
                     columnDefs: [{ // define which columns exclude for ordering
                         targets: [0],
@@ -847,7 +847,7 @@
 
                     }, { // define which columns exclude for ordering
                         targets: [1],
-                        orderable: true,
+                        orderable: false,
 
 
                     }, {
@@ -856,7 +856,7 @@
 
                     },
                     ],
-                    order: [[1, 'asc']],
+                    order: [],
 
                 }
             );
