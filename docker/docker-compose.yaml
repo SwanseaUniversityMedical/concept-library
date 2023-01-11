@@ -42,7 +42,7 @@ services:
       IS_INSIDE_GATEWAY: false
       IS_DEVELOPMENT_PC: true
       CLL_READ_ONLY: false
-      ENABLE_PUBLISH: false
+      ENABLE_PUBLISH: true
       SHOWADMIN: true
       BROWSABLEAPI: false
       SECRET_KEY: "abc"
