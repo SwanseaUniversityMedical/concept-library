@@ -744,12 +744,21 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
 
         // Create datatable for workingset concepts, assoc. phenotypes & attributes
         var dataset = {{ workingset_attributes|safe }};
-        var attributes = dataset.map(e => e.Attributes.map(x => [{[x.name]: x.value}]).flat().reduce((a, b) => {
-            return Object.assign(a, b);
-        }));
+
+        var attributes = []
+        var datatypes = []
+        for (let i = 0; i < dataset.length; ++i) {
+            var attr = dataset[i].Attributes;
+            if (typeof attr === 'undefined' || attr.length <= 0) {
+                continue;
+            }
+            
+            attributes[i] = attr.map(x => [{[x.name]: x.value}]).flat().reduce((a, b) => Object.assign(a, b))
+            datatypes[i] = attr.map(x => x.type).flat()
+        }
 
         var simple = 0;
-        var concepts  = dataset.map(e => [{
+        var concepts = dataset.map(e => [{
                 name: `${e.concept_id}/${e.concept_version_id} - ${e.concept_name}`,
                 concept_id: e.concept_id,
                 concept_version_id: e.concept_version_id,
@@ -759,8 +768,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                 component_hash: simple++
             }])
             .flat();
-        
-        var datatypes = dataset.map(e => e.Attributes.map(x => x.type)).flat();
+
         var headers   = [...new Set(attributes.map(e => Object.keys(e)).flat())];
         headers = Object.entries(headers).map(([i, e]) => [{data: e, title: `${e} (${datatypes[i]})`}]).flat();
 
@@ -794,7 +802,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
             }
         });
 
-        attributes = Object.entries(attributes).map(([i, e]) => Object.assign(e, concepts[i]));
+        attributes = Object.entries(concepts).map(([i, e]) => Object.assign(e, attributes[i]));
         headers.unshift({
             className: 'dt-control',
             orderable: false,
