@@ -336,7 +336,11 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                 <div class="row" style="margin-top: 10px;">
                     <div class="col-sm-2">Agreement Date</div>
                     <div class="col-sm-10">
-                        {{ phenotype.hdr_modified_date }}
+                    	{%  if phenotype.hdr_modified_date != '' %}
+                        	{{ phenotype.hdr_modified_date }}
+                        {% else %}
+                        	{{ phenotype.hdr_created_date }}
+                        {% endif %}
                     </div>
                 </div>
 
