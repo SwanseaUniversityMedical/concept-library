@@ -576,6 +576,8 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
 
     is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
     approval_status = get_publish_approval_status(PhenotypeWorkingset, pk, workingset_history_id)
+    is_lastapproved = len(PublishedWorkingset.objects.filter(workingset=PhenotypeWorkingset.objects.get(pk=pk).id, approval_status=2)) > 0
+
 
     # ----------------------------------------------------------------------
 
@@ -624,6 +626,8 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
     if len(PublishedWorkingset.objects.filter(workingset_id=pk, workingset_history_id=workingset_history_id,
                                               approval_status=1)) > 0:
         is_latest_pending_version = True
+
+
 
     children_permitted_and_not_deleted = True
     error_dic = {}
@@ -708,10 +712,11 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
         'published_historical_ids': published_historical_ids,
         'is_published': is_published,
         'approval_status': approval_status,
+        'is_lastapproved':is_lastapproved,
         'publish_date': publish_date,
         'is_latest_version': is_latest_version,
         'is_latest_pending_version': is_latest_pending_version,
-        'current_phenotype_history_id': int(workingset_history_id),
+        'current_workingset_history_id': int(workingset_history_id),
         'page_canonical_path': get_canonical_path_by_brand(request, PhenotypeWorkingset, pk, workingset_history_id),
         'q': db_utils.get_q_highlight(request, request.session.get('ph_workingset_search', '')),
         'force_highlight_result': ['0', '1'][db_utils.is_referred_from_search_page(request)]
@@ -778,7 +783,88 @@ def get_history_table_data(request, pk):
     return historical_versions
 
 
-class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
+def form_validation(request, data, workingset_history_id, pk,workingset,checks):
+    data['form_is_valid'] = True
+    data['latest_history_ID'] = workingset_history_id  # workingset.history.latest().pk
+
+    # update history list
+    data['html_history_list'] = render_to_string(
+        'clinicalcode/phenotypeworkingset/partial_history_list.html',
+        {
+            'history': get_history_table_data(request, pk),  # workingset.history.all(),
+            'current_workingset_history_id': int(workingset_history_id),  # workingset.history.latest().pk,
+            'published_historical_ids':
+                list(PublishedWorkingset.objects.filter(workingset_id=pk, approval_status=2).values_list('workingset_history_id', flat=True))
+        },
+        request=request)
+
+    data['message'] = send_message(pk, data, workingset,workingset_history_id,checks)['message']
+
+    return data
+
+def send_message( pk, data, workingset,workingset_history_id,checks):
+    if data['approval_status'] == 2:
+        data['message'] = """The workingset version has been successfully published.
+                         <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)), pk=pk,history=workingset_history_id)
+
+        send_email_decision_workingset(workingset, data['approval_status'])
+        return data
+
+    elif len(PublishedWorkingset.objects.filter(workingset=PhenotypeWorkingset.objects.get(pk=pk).id, approval_status=2)) > 0 and not data['approval_status'] == 3:
+        data['message'] = """The workingset version has been successfully published.
+                                 <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
+                                                                                                         pk=pk,history=workingset_history_id)
+        send_email_decision_workingset(workingset, data['approval_status'])
+
+        return data
+
+
+    elif data['approval_status'] == 3:
+        data['message'] = """The workingset version has been declined .
+                                               <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(
+            url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
+            pk=pk,history=workingset_history_id)
+        send_email_decision_workingset(workingset, data['approval_status'])
+
+        return data
+
+    elif data['approval_status'] is None and checks['is_moderator']:
+        data['message'] = """The workingset version has been successfully published.
+                                                <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(
+            url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
+            pk=pk,history=workingset_history_id)
+
+        return data
+
+
+    elif data['approval_status'] == 1:
+        data['message'] = """The workingset version is going to be reviewed by the moderator.
+                                                      <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(
+            url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
+            pk=pk,history=workingset_history_id)
+
+        return data
+
+
+
+def send_email_decision_workingset(workingset, approved):
+    if approved == 1:
+        db_utils.send_review_email(workingset,
+                                   "Published",
+                                   "Workingset has been successfully approved and published on the website")
+
+    elif approved == 2:
+        # This line for the case when user want to get notification of same workingset id but different version
+        db_utils.send_review_email(workingset,
+                                   "Published",
+                                   "Workingset has been successfully approved and published on the website")
+    elif approved == 3:
+        db_utils.send_review_email(workingset,
+                                   "Rejected",
+                                   "Workingset has been rejected by the moderator. Please consider update changes and try again")
+
+
+class WorkingSetPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
     '''
         Publish the current working set.
     '''
@@ -786,7 +872,299 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
     model = PhenotypeWorkingset
     template_name = 'clinicalcode/phenotypeworkingset/publish.html'
 
-    pass
+
+
+    def get(self, request, pk, workingset_history_id):
+
+
+
+        checks = workingset_db_utils.checkWorkingsetTobePublished(self.request, pk, workingset_history_id)
+
+        if not checks['is_published']:
+            checks = workingset_db_utils.checkWorkingsetTobePublished(self.request, pk, workingset_history_id)
+
+        # --------------------------------------------
+        return self.render_to_response({
+            'workingset': checks['workingset'],
+            'name': checks['name'],
+            'workingset_history_id': workingset_history_id,
+            'is_published': checks['is_published'],
+            'allowed_to_publish': checks['allowed_to_publish'],
+            'is_owner': checks['is_owner'],
+            'workingset_is_deleted': checks['workingset_is_deleted'],
+            'approval_status': checks['approval_status'],
+            'is_lastapproved': checks['is_lastapproved'],
+            'is_latest_pending_version': checks['is_latest_pending_version'],
+            'is_moderator': checks['is_moderator'],
+            'workingset_has_data': checks['workingset_has_data'],
+            'is_allowed_view_children': checks['is_allowed_view_children'],
+            'all_are_published': checks['all_are_published'],
+            'other_pending':checks['other_pending'],
+            'all_not_deleted': checks['all_not_deleted'],
+            'errors':checks['errors']
+        })
+    def post(self, request, pk, workingset_history_id):
+
+        is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
+        checks = workingset_db_utils.checkWorkingsetTobePublished(request, pk, workingset_history_id)
+        if not is_published:
+            checks = workingset_db_utils.checkWorkingsetTobePublished(request, pk, workingset_history_id)
+
+        data = dict()
+
+        if not checks['allowed_to_publish'] or is_published:
+            data['form_is_valid'] = False
+            data['message'] = render_to_string('clinicalcode/error.html', {},
+                                               self.request)
+            return JsonResponse(data)
+
+        try:
+            if self.condition_to_publish(checks, is_published):
+                    # start a transaction
+                    with transaction.atomic():
+                        workingset = PhenotypeWorkingset.objects.get(pk=pk)
+                        if checks['is_moderator']:
+                            if checks['is_lastapproved']:
+                                published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id,
+                                                                                          approval_status=2).first()
+                                published_workingset = PublishedWorkingset(workingset=workingset,
+                                                                           workingset_history_id=workingset_history_id,
+                                                                           moderator_id=published_workingset.moderator.id,
+                                                                           created_by_id=request.user.id)
+                                published_workingset.approval_status = 2
+                                published_workingset.save()
+                            else:
+                                published_workingset = PublishedWorkingset(workingset=workingset, workingset_history_id=workingset_history_id,moderator_id = request.user.id,
+                                                                        created_by_id=PhenotypeWorkingset.objects.get(pk=pk).created_by.id)
+                                published_workingset.approval_status = 2
+                                published_workingset.save()
+
+
+
+                        if checks['is_lastapproved'] and not checks['is_moderator']:
+                            published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id, approval_status=2).first()
+                            published_workingset = PublishedWorkingset(workingset = workingset,workingset_history_id=workingset_history_id,moderator_id=published_workingset.moderator.id,created_by_id=request.user.id)
+                            published_workingset.approval_status = 2
+                            published_workingset.save()
+
+                        if checks['other_pending']:
+                            published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id,
+                                                                                      approval_status=1)
+                            for ws in published_workingset:
+                                ws.approval_status = 2
+                                ws.moderator_id = request.user.id
+                                ws.save()
+
+                        data['form_is_valid'] = True
+                        data['approval_status'] = 2
+                        data = form_validation(request, data, workingset_history_id, pk, workingset,checks)
+
+            elif checks['approval_status'] == 1 and checks['is_moderator']:
+                    with transaction.atomic():
+                        workingset = PhenotypeWorkingset.objects.get(pk=pk)
+                        published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id,
+                                                                                  approval_status=1)
+                        for ws in published_workingset:
+                            ws.approval_status = 2
+                            ws.moderator_id = request.user.id
+                            ws.save()
+
+                        data['approval_status'] = 2
+                        data['form_is_valid'] = True
+                        data = form_validation(request, data, workingset_history_id, pk, workingset, checks)
+
+            elif checks['approval_status'] == 3 and checks['is_moderator']:
+                with transaction.atomic():
+                    workingset = PhenotypeWorkingset.objects.get(pk=pk)
+                    published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id,
+                                                                              workingset_history_id=workingset_history_id,approval_status=3).first()
+                    published_workingset.approval_status = 2
+                    published_workingset.moderator_id=request.user.id
+                    published_workingset.save()
+
+
+                    if checks['other_pending']:
+                        published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id,
+                                                                                  approval_status=1)
+                        for ws in published_workingset:
+                            ws.approval_status = 2
+                            ws.moderator_id = request.user.id
+                            ws.save()
+
+
+                    data['approval_status'] = 2
+                    data['form_is_valid'] = True
+                    data = form_validation(request, data, workingset_history_id, pk, workingset, checks)
+
+
+
+
+        except Exception as e:
+            print(e)
+            data['form_is_valid'] = False
+            data['message'] = render_to_string('clinicalcode/error.html',
+                                               {},
+                                               self.request)
+
+        return JsonResponse(data)
+
+    def condition_to_publish(self,checks,is_published):
+        if (checks['allowed_to_publish'] and not is_published and checks['approval_status'] is None) or\
+                (checks['approval_status'] == 2 and not is_published):
+            return True
+
+class WorkingsetDecline(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
+    '''
+        Decline the current working set.
+    '''
+
+    model = PhenotypeWorkingset
+    template_name = 'clinicalcode/phenotypeworkingset/publish.html'
+
+
+    def get(self, request, pk, workingset_history_id):
+
+        checks = workingset_db_utils.checkWorkingsetTobePublished(self.request, pk, workingset_history_id)
+
+        if not checks['is_published']:
+            checks = workingset_db_utils.checkWorkingsetTobePublished(self.request, pk, workingset_history_id)
+
+        # --------------------------------------------
+        return self.render_to_response({
+            'workingset': checks['workingset'],
+            'name': checks['name'],
+            'workingset_history_id': workingset_history_id,
+            'is_published': checks['is_published'],
+            'allowed_to_publish': checks['allowed_to_publish'],
+            'is_owner': checks['is_owner'],
+            'workingset_is_deleted': checks['workingset_is_deleted'],
+            'approval_status': checks['approval_status'],
+            'is_lastapproved': checks['is_lastapproved'],
+            'is_latest_pending_version': checks['is_latest_pending_version'],
+            'is_moderator': checks['is_moderator'],
+            'workingset_has_data': checks['workingset_has_data'],
+            'is_allowed_view_children': checks['is_allowed_view_children'],
+            'all_are_published': checks['all_are_published'],
+            'all_not_deleted': checks['all_not_deleted'],
+            'errors': checks['errors']
+        })
+    def post(self, request, pk, workingset_history_id):
+
+        is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
+        checks = workingset_db_utils.checkWorkingsetTobePublished(request, pk, workingset_history_id)
+        if not is_published:
+            checks = workingset_db_utils.checkWorkingsetTobePublished(request, pk, workingset_history_id)
+
+        data = dict()
+
+        if not checks['allowed_to_publish'] or is_published:
+            data['form_is_valid'] = False
+            data['message'] = render_to_string('clinicalcode/error.html', {},
+                                               self.request)
+            return JsonResponse(data)
+
+        try:
+            # start a transaction
+            with transaction.atomic():
+                workingset = PhenotypeWorkingset.objects.get(pk=pk)
+                if checks['is_moderator'] and checks['approval_status'] == 1:
+                    published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id, approval_status=1).first()
+                    published_workingset.approval_status = 3
+                    published_workingset.save()
+                    data['form_is_valid'] = True
+                    data['approval_status'] = 3
+                    data = form_validation(request, data, workingset_history_id, pk, workingset, checks)
+
+
+
+        except Exception as e:
+            print(e)
+            data['form_is_valid'] = False
+            data['message'] = render_to_string('clinicalcode/error.html',
+                                               {},
+                                               self.request)
+
+        return JsonResponse(data)
+
+
+class WorkingRequestPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
+    '''
+        Publish the current working set.
+    '''
+
+    model = PhenotypeWorkingset
+    template_name = 'clinicalcode/phenotypeworkingset/request_publish.html'
+
+    def get(self, request, pk, workingset_history_id):
+
+
+
+
+        checks = workingset_db_utils.checkWorkingsetTobePublished(self.request, pk, workingset_history_id)
+
+
+        if not checks['is_published']:
+            checks = workingset_db_utils.checkWorkingsetTobePublished(self.request, pk, workingset_history_id)
+
+
+        # --------------------------------------------
+        return self.render_to_response({
+            'workingset': checks['workingset'],
+            'name': checks['name'],
+            'workingset_history_id': workingset_history_id,
+            'is_published': checks['is_published'],
+            'allowed_to_publish': checks['allowed_to_publish'],
+            'is_owner': checks['is_owner'],
+            'workingset_is_deleted':checks['workingset_is_deleted'],
+            'approval_status': checks['approval_status'],
+            'is_lastapproved': checks['is_lastapproved'],
+            'is_latest_pending_version': checks['is_latest_pending_version'],
+            'is_moderator': checks['is_moderator'],
+            'workingset_has_data':checks['workingset_has_data'],
+            'is_allowed_view_children': checks['is_allowed_view_children'],
+            'all_are_published': checks['all_are_published'],
+            'all_not_deleted': checks['all_not_deleted'],
+            'errors': checks['errors']
+        })
+    def post(self, request, pk, workingset_history_id):
+
+        is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
+        checks = workingset_db_utils.checkWorkingsetTobePublished(request, pk, workingset_history_id)
+        if not is_published:
+            checks = workingset_db_utils.checkWorkingsetTobePublished(request, pk, workingset_history_id)
+
+        data = dict()
+
+        if not checks['allowed_to_publish'] or is_published:
+            data['form_is_valid'] = False
+            data['message'] = render_to_string('clinicalcode/error.html', {},
+                                               self.request)
+            return JsonResponse(data)
+
+        try:
+            if checks['allowed_to_publish'] and not is_published and checks['approval_status'] is None and not checks['is_moderator']:
+                    # start a transaction
+                    with transaction.atomic():
+                        workingset = PhenotypeWorkingset.objects.get(pk=pk)
+                        published_workingset = PublishedWorkingset(workingset=workingset, workingset_history_id=workingset_history_id,
+                                                                    created_by_id=request.user.id,approval_status=1)
+                        published_workingset.save()
+                        data['form_is_valid'] = True
+                        data['approval_status'] = 1
+                        data = form_validation(request, data, workingset_history_id, pk, workingset, checks)
+
+
+        except Exception as e:
+            print(e)
+            data['form_is_valid'] = False
+            data['message'] = render_to_string('clinicalcode/error.html',
+                                               {},
+                                               self.request)
+
+        return JsonResponse(data)
+
+
+
 
 
 

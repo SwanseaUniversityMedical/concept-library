@@ -9,11 +9,23 @@
         <h4 class="modal-title"> Publish Working Set"<b>{{ name }}</b>"?</h4>
     </div>
     <div class="modal-body">
-    {% if is_published and approval_status == 2 %}
+    {% if  approval_status == 1 %}
+        <div class="alert alert-success" role="alert">
+          This version is already submitted.
+        </div>
+    {% else %}
+
+        {% if is_published and approval_status == 2 %}
         <div class="alert alert-success" role="alert">
           This version is already published.
         </div>
-    {% else %}
+            {% endif %}
+
+         {% if approval_status == 3 %}
+        <div class="alert alert-danger" role="alert">
+          This version is rejected.
+        </div>
+            {% endif %}
 
         {% if workingset_is_deleted %}
             <div class="col-md-12">
@@ -26,7 +38,7 @@
         {% if not is_owner and not is_moderator %}
             <div class="col-md-12">
                 <span class="glyphicon glyphicon-remove" style="color:red"></span>
-                <span class="text-danger">&nbsp;You must be the owner to publish.</span>
+                <span class="text-danger">&nbsp;You must be the owner to submit.</span>
             </div>
         {% endif %}
 
@@ -37,7 +49,7 @@
             </div>
 
         {% else %}
-           {% if not is_allowed_view_children %}
+            {% if not is_allowed_view_children %}
                 <div class="col-md-12">
                     <span class="glyphicon glyphicon-remove" style="color:red"></span>
                     <span class="text-danger">&nbsp;You must have view access to all concepts/phenotypes.</span>
@@ -81,78 +93,41 @@
             <div class="col-md-12">
                 <p>
                     <br>
-                    {% if is_published or approval_status == 1%}
-                        {% if is_published and approval_status == 2 %}
-                            <br>
-<!--                            This version "{{ name }}" is already published. -->
-                        {% else %}
-                            {% if  approval_status == 1 and is_moderator %}
-                                 Are you sure you want to approve/decline this version of "{{ name }}"?
-                                 <br>
-                                 Published Working Set cannot be undone.
-                        <br>
-
-
-                        {% else %}
-
-                        {% if  approval_status == 1 and not is_moderator %}
-                            Working Set needs to be approved.
-                            Waiting for moderator to approve
-
-                           <br>
-                            {% else %}
-                             <span class="text-danger">&nbsp; Cannot publish !! </span>
-                            <br>
-
-                        {% endif %}
-                            {% endif %}
-                            {% endif %}
-
-                    {% else %}
-                        {% if not errors %}
-                        {% if is_owner or is_moderator  %}
-                             {% if approval_status == 3 %}
-                                 Are you sure you want to approve previously declined "{{ name }}"?
-                                 {% else %}
+                        {% if is_owner and not errors and not approval_status == 1 and not approval_status == 3%}
                         Are you sure you want to publish this version of "{{ name }}"?
-                                 {% endif %}
-
 
                         <br>
                         Published Working Set cannot be undone.
-                            {% if not is_moderator and not is_lastapproved %}
+                            {% if not is_lastapproved %}
                             <br>
-                            This Working Set is going to be reviewed by the moderator and you will be notified when the Working Set will be published
+                            This working set is going to be reviewed by the moderator and you will be notified when the working set will be published
 
 
 
                     {% endif %}
-                            {% endif %}
 
                 {% endif %}
-                {% endif %}
 
+                </p>
             </div>
         </div>
     </div>
 
     <div class="modal-footer">
-    	{% if is_published %}
+    	{% if approval_status == 1 %}
     		<span class="glyphicon glyphicon-ok" style="color:green"></span>
-		    <span class="text-success">&nbsp;Published&nbsp;</span>
-    	{% else %}
-            <button {% if not allowed_to_publish%} disabled {% endif %} id="publishButton"
-	            type="submit" class="btn btn-primary " onclick="submitForm('publish')" >
-	            Publish
-	        </button>
-            {% if approval_status == 1 %}
-                  <button {% if not allowed_to_publish %} disabled {% endif %} id="declineButton"
-	            type="submit" class="btn btn-danger " onclick="submitForm('decline')">
-	            Decline
-	        </button>
+		    <span class="text-success">&nbsp;Submitted&nbsp;</span>
 
+            {% elif approval_status == 3 %}
+    		<span class="glyphicon glyphicon-remove" style="color:red"></span>
+		    <span class="text-danger">&nbsp;Rejected&nbsp;</span>
+
+    	{% else %}
+            <button {% if not allowed_to_publish %} disabled {% endif %} id="publishButton"
+	            type="submit" class="btn btn-primary">
+	            Submit
+	        </button>
         {% endif %}
-    {% endif %}
 
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
     </div>
@@ -160,25 +135,19 @@
 </form>
 
 <script >
-
-function submitForm(value){
-    // unattach the submit event
+$(function(){
+	// unattach the submit event
 	$('#modal-section').off('submit', '#publish-form');
 
 	$('#modal-section').on('submit', '#publish-form', function(e){
 
 		e.preventDefault();
 
-		let form = $(this);
-            value === "publish" ? doCall("{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}",form) : doCall("{% url 'workingset_decline' pk=workingset.id workingset_history_id=workingset.history_id %}",form)
-            });
-
-		return false;
-}
-
-function doCall(url,form){
-    $.ajax({
-            url:  url,
+		var form = $(this);
+		//=============================================
+	    // post form
+		 $.ajax({
+            url:  "{% url 'workingset_request_publish' pk=workingset.id workingset_history_id=workingset.history_id %}",
             data: form.serialize(),
             type: "POST",
             dataType: 'json',
@@ -187,15 +156,6 @@ function doCall(url,form){
                 $(".loader").show();
             },
 			success: function(data){
-				updateHistoryTable(data,form)
-			},
-			complete: function(){
-				//alert('doFormSubmit= cc');
-				$(".loader").hide();
-			}
-		});
-}
-function updateHistoryTable(data,form){
 				if(data.form_is_valid){
 // 					$('#component-table tbody').html(data.html_component_list);
 					$('#history-table').html(data.html_history_list);
@@ -215,32 +175,19 @@ function updateHistoryTable(data,form){
 						var element = document.getElementById('publish2');
                         element.setAttribute('disabled', 'disabled');
 
-						$('#publish2').attr("title", "This version is already published" );
-
-                        if (data.approval_status === 2){
-                            $('#publish2').addClass("btn-success");
-
-						$('#publish2').removeClass($('#publish2').hasClass('btn-danger') ? "btn-danger":'btn-primary');
-						$('#publish2').removeClass($('#publish2').hasClass('btn-warning') ? "btn-warning":'btn-primary');
-						
-						$('#publish2').html("Published&nbsp;<span class='glyphicon glyphicon-ok' style='color:green'></span>");
-                        }else {
-                              $('#publish2').addClass("btn-danger");
-						$('#publish2').removeClass("btn-primary");
-						$('#publish2').html("Rejected&nbsp;<span class='glyphicon glyphicon-remove' style='color:red'></span>");
-                        }
-
+						$('#publish2').attr("title", "This version is already submitted" );
+						$('#publish2').addClass("btn-warning");
+						$('#publish2').html("Pending");
 
 					}
 
-					if (data.approval_status === 2){
+					if(data.approval_status == 1){
+                        $('#warning-message').show();
+					$('#warning-message').html(data.message);
+                    }
+                    else{
                         $('#success-message').show();
 					$('#success-message').html(data.message);
-                    }else {
-                        if (data.approval_status === 3){
-                            $('#error-message').show();
-					$('#error-message').html(data.message);
-                        }
                     }
 
 
@@ -255,7 +202,20 @@ function updateHistoryTable(data,form){
 					$('#modal-section').modal('hide');
 					$('#modal-section .modal-content').html('');
 				}
-}
+			},
+			complete: function(){
+				//alert('doFormSubmit= cc');
+				$(".loader").hide();
+			}
+		});
+
+		//=============================================
+
+
+		return false;
+	});
+
+});
 
 
 </script>
