@@ -1047,7 +1047,7 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
 
                     data['approval_status'] = 2
                     data['form_is_valid'] = True
-                    #send message to the client 
+                    #send message to the client
                     data = form_validation(request, data, workingset_history_id, pk, workingset, checks)
 
 
@@ -1069,7 +1069,7 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
         @param is_published: if already published
         @return: return True if this condition satisfies
 
-        if (ws is allowed to publish by default , approval not exist in database ) OR (ws approved but not yet published)
+        if (ws is allowed to publish by default , approval not exist in database ) OR (ws approved but not yet published) = True
         """
 
         if (checks['allowed_to_publish'] and not is_published and checks['approval_status'] is None) or\
@@ -1082,11 +1082,18 @@ class WorkingsetDecline(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
     '''
 
     model = PhenotypeWorkingset
+    #use same template as we have two buttons publish and decline
     template_name = 'clinicalcode/phenotypeworkingset/publish.html'
 
 
     def get(self, request, pk, workingset_history_id):
-
+        """
+        Get method to generate decline
+        @param request:
+        @param pk:
+        @param workingset_history_id:
+        @return:
+        """
         checks = workingset_db_utils.checkWorkingsetTobePublished(self.request, pk, workingset_history_id)
 
         if not checks['is_published']:
