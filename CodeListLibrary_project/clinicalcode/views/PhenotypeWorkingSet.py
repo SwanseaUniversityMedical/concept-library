@@ -64,7 +64,9 @@ class MessageMixin(object):
 @login_required
 def workingset_list(request):
     '''
-        display the list of working sets. This view can be searched and contains paging
+        Display the list of working sets. This view can be searched and contains paging
+        @param request: user reguest object
+        @return: context rendered data
     '''
 
     search_tag_list = []
@@ -365,18 +367,27 @@ def commaSeparate(request):
 
 
 class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageMixin, CreateView):
+
     model = PhenotypeWorkingset
     form_class = WorkingsetForm
     template_name = 'clinicalcode/phenotypeworkingset/form.html'
 
 
     def get_form_kwargs(self):
+        """
+        Overidden method to retrieve user and groups from CreateView
+        @return:
+        """
         kwargs = super(CreateView, self).get_form_kwargs()
         kwargs.update({'user': self.request.user})
         kwargs.update({'groups': getGroups(self.request.user)})
         return kwargs
 
     def get_success_url(self):
+        """
+        Show the success url message if any of this cases appeared
+        @return: message and redirect
+        """
         if allowed_to_edit(self.request, PhenotypeWorkingset, self.object.id):
             return reverse('phenotypeworkingset_update', args=(self.object.id, ))
         elif allowed_to_view(self.request, PhenotypeWorkingset, self.object.id):
@@ -387,6 +398,11 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
 
 
     def form_invalid(self, form):
+        """
+        Regenerate form if form is invalid(ex:user typed in wrong format)
+        @param form: DjangoForm object
+        @return: form context render
+        """
         tag_ids = commaSeparate(self.request.POST.get('tagids'))
         collections = commaSeparate(self.request.POST.get('collections'))
         datasources = commaSeparate(self.request.POST.get('datasources'))
@@ -409,15 +425,23 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         if publications:
             context['publications'] = publications
 
+        #check if table html rendered as well
         if table_elements_data:
             context['table_elements'] = table_elements_data
 
+        #check if previous selection from modal rendered as well
         if previous_selection:
             context['previous_selection'] = previous_selection
 
         return self.render_to_response(context)
 
+
     def form_valid(self, form):
+        """
+        Method which saves data if form correct and redirects to the success url
+        @param form: DjangoForm object
+        @return: form context render
+        """
         with transaction.atomic():
             form.instance.created_by = self.request.user
             form.instance.author = self.request.POST.get('author')
@@ -534,6 +558,10 @@ def phenotype_workingset_DB_test_create(request):
 def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
     ''' 
         Display the detail of a working set.
+        @param request: user request
+        @param pk: id workingset
+        @param workingset_history_id: historical id of workingset
+        @return: context render page
     '''
 
     # validate access for login and public site
@@ -694,7 +722,10 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
 
 def get_history_table_data(request, pk):
     """"
-        get history table data for the template
+        Get history table data for the template
+        @param request: user request object
+        @param pk: workingset id from database
+        @return: return historical table data to generate table context
     """
 
     versions = PhenotypeWorkingset.objects.get(pk=pk).history.all()
