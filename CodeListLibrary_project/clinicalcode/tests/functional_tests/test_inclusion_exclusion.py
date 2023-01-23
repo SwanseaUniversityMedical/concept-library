@@ -443,33 +443,32 @@ class InclusionExclusionTest(TestCase):
                          "response codes and expected output are not equal")
 
     def test_published(self):
-        if settings_cll.ENABLE_PUBLISH:
-            from clinicalcode.views.Concept import history_concept_codes_to_csv
+        from clinicalcode.views.Concept import history_concept_codes_to_csv
 
-            #             url = ('%s%s%s%s%s' % ('/concepts/C', self.published_root.concept_id
-            #                                    , '/version/', self.published_root.concept_history_id
-            #                                    , '/export/codes'))
+        #             url = ('%s%s%s%s%s' % ('/concepts/C', self.published_root.concept_id
+        #                                    , '/version/', self.published_root.concept_history_id
+        #                                    , '/export/codes'))
 
-            url = reverse('history_concept_codes_to_csv',
-                          kwargs={
-                              'pk':
-                              self.published_root.concept_id,
-                              'concept_history_id':
-                              self.published_root.concept_history_id
-                          })
-            request = self.factory.get(url)
-            request.user = self.owner_user
-            request.CURRENT_BRAND = ''
+        url = reverse('history_concept_codes_to_csv',
+                      kwargs={
+                          'pk':
+                          self.published_root.concept_id,
+                          'concept_history_id':
+                          self.published_root.concept_history_id
+                      })
+        request = self.factory.get(url)
+        request.user = self.owner_user
+        request.CURRENT_BRAND = ''
 
-            response = history_concept_codes_to_csv(
-                request, self.published_root.concept_id,
-                self.published_root.concept_history_id)
+        response = history_concept_codes_to_csv(
+            request, self.published_root.concept_id,
+            self.published_root.concept_history_id)
 
-            response_codes = self.get_codes_from_response(
-                response.content.decode('utf-8'))
+        response_codes = self.get_codes_from_response(
+            response.content.decode('utf-8'))
 
-            expected_output = self.output
+        expected_output = self.output
 
-            self.assertEqual(
-                response_codes, expected_output,
-                "response codes and expected output are not equal")
+        self.assertEqual(
+            response_codes, expected_output,
+            "response codes and expected output are not equal")

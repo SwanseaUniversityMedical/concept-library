@@ -76,7 +76,10 @@ if path_prj not in sys.path:
 IS_DEMO = get_env_value('IS_DEMO', cast='bool')
 
 CLL_READ_ONLY = get_env_value('CLL_READ_ONLY', cast='bool')
-ENABLE_PUBLISH = get_env_value('ENABLE_PUBLISH', cast='bool')
+
+# This variable was used for dev/admin and no longer maintained
+#ENABLE_PUBLISH = True   # get_env_value('ENABLE_PUBLISH', cast='bool')
+
 SHOWADMIN = get_env_value('SHOWADMIN', cast='bool')
 BROWSABLEAPI = get_env_value('BROWSABLEAPI', cast='bool')
 

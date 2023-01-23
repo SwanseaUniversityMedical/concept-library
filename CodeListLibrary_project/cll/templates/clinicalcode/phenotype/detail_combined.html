@@ -74,7 +74,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                                    <a {% if user_can_export %}
                                        href="{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=json"
                                        target=_blank {% endif %}
-                               {% elif enable_publish %}
+                               {% else %}
                                    <a {% if user_can_export %}
                                    href="{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=json"
                                    target=_blank {% endif %}
@@ -88,7 +88,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                                    <a {% if user_can_export %}
                                        href="{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=xml"
                                        target=_blank {% endif %}
-                               {% elif enable_publish %}
+                               {% else %}
                                    <a {% if user_can_export %}
                                    href="{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=xml"
                                    target=_blank {% endif %}
@@ -101,102 +101,97 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
 							</div>
 
                             {% if user.is_authenticated and not CLL_READ_ONLY %}
-                                {% if enable_publish %}
+                                  {% if is_published and approval_status == 2%}
 
-                                    {% if is_published and approval_status == 2%}
-
-                                        <a class="btn btn-success" disabled title="This version is already published">
-								    	&nbsp;Published&nbsp;
-								    	<span class="glyphicon glyphicon-ok" style="color:green"></span>
-								    </a>
-                                    {% else %}
-                                        <a
-                                                {% if request.user|has_group:"Moderators" %}
-                                                    {% if not live_ver_is_deleted %}
-                                                        {% if approval_status == 1 and is_latest_pending_version %}
-                                                            class="js-load-modal btn btn-warning"
-                                                            href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
-                                                            title="Needs to be approved"
-                                                        {% else %}
-                                                            {% if approval_status == 3 %}
-                                                            class="js-load-modal  btn btn-danger"
-                                                            href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
-                                                            title="Approve declined phenotype"
-                                                            {% else %}
-                                                            class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
-                                                            href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
-                                                            title="Publish immediately"
-                                                            {% endif %}
+                                      <a class="btn btn-success" disabled title="This version is already published">
+						    	&nbsp;Published&nbsp;
+						    	<span class="glyphicon glyphicon-ok" style="color:green"></span>
+						    </a>
+                                  {% else %}
+                                      <a
+                                              {% if request.user|has_group:"Moderators" %}
+                                                  {% if not live_ver_is_deleted %}
+                                                      {% if approval_status == 1 and is_latest_pending_version %}
+                                                          class="js-load-modal btn btn-warning"
+                                                          href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
+                                                          title="Needs to be approved"
+                                                      {% else %}
+                                                          {% if approval_status == 3 %}
+                                                          class="js-load-modal  btn btn-danger"
+                                                          href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
+                                                          title="Approve declined phenotype"
+                                                          {% else %}
+                                                          class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
+                                                          href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
+                                                          title="Publish immediately"
+                                                          {% endif %}
 
 
 
-                                                        {% endif %}
+                                                      {% endif %}
 
-                                                    {% else %}
-                                                            class="btn btn-primary"
-                                                        {% if is_published and approval_status == 2 %}
-                                                            title="This version is already published"
-                                                        {% elif live_ver_is_deleted %}
-                                                            title="Deleted phenotypes cannot be published !!"
-                                                        {% endif %}
+                                                  {% else %}
+                                                          class="btn btn-primary"
+                                                      {% if is_published and approval_status == 2 %}
+                                                          title="This version is already published"
+                                                      {% elif live_ver_is_deleted %}
+                                                          title="Deleted phenotypes cannot be published !!"
+                                                      {% endif %}
 
-                                                    {% endif %}
-                                                            id="publish2">
-                                                   {% if approval_status == 1 and is_latest_pending_version%}
-                                                       Approve
-                                                   {% else %}
-                                                            Publish
-                                                   {% endif %}
-
-
-                                                {% else %}
+                                                  {% endif %}
+                                                          id="publish2">
+                                                 {% if approval_status == 1 and is_latest_pending_version%}
+                                                     Approve
+                                                 {% else %}
+                                                          Publish
+                                                 {% endif %}
 
 
-                                                    <a
-                                                            {% if not live_ver_is_deleted and approval_status is None  or approval_status == 2 %}
-                                                                class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
-                                                                href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
-                                                            {% else %}
-                                                                {% if is_published and approval_status == 2 %}
-	                                                                class="btn btn-primary"
-	                                                                title="This version is already published"
-                                                                {% elif live_ver_is_deleted %}
-	                                                                class="btn btn-primary"
-	                                                                title="Deleted phenotypes cannot be published !!"
-                                                                {% elif approval_status == 3 %}
-	                                                                class="btn btn-danger"
-	                                                                disabled title="This version is declined"
-                                                                {% elif  approval_status == 1 %}
-	                                                                {% if phenotype.owner_id == request.user.id %}
-		                                                                class="btn btn-primary btn-warning"
-		                                                                disabled title="This version needs to be approved "
-	                                                                {% else %}
-		                                                                class="btn btn-primary"
-		                                                                disabled = true
-		                                                                disabled title="Unavailable to publish"
-	                                                                {% endif %}
-                                                                {% endif %}
+                                              {% else %}
 
 
-                                                            {% endif %}
-                                                                id="publish2">
-                                                             {% if approval_status == 3 %}
-			                                                       Declined
-			                                                 {% else %}
-	                                                            {% if approval_status == 1 %}
-	                                                                Pending
-	                                                            {% else %}
-				
-				                                                    Publish
-				                                                {% endif %}
-                                                             {% endif %}
-                                                        {% endif %}
+                                                  <a
+                                                          {% if not live_ver_is_deleted and approval_status is None  or approval_status == 2 %}
+                                                              class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
+                                                              href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
+                                                          {% else %}
+                                                              {% if is_published and approval_status == 2 %}
+                                                               class="btn btn-primary"
+                                                               title="This version is already published"
+                                                              {% elif live_ver_is_deleted %}
+                                                               class="btn btn-primary"
+                                                               title="Deleted phenotypes cannot be published !!"
+                                                              {% elif approval_status == 3 %}
+                                                               class="btn btn-danger"
+                                                               disabled title="This version is declined"
+                                                              {% elif  approval_status == 1 %}
+                                                               {% if phenotype.owner_id == request.user.id %}
+                                                                class="btn btn-primary btn-warning"
+                                                                disabled title="This version needs to be approved "
+                                                               {% else %}
+                                                                class="btn btn-primary"
+                                                                disabled = true
+                                                                disabled title="Unavailable to publish"
+                                                               {% endif %}
+                                                              {% endif %}
+
+
+                                                          {% endif %}
+                                                              id="publish2">
+                                                           {% if approval_status == 3 %}
+	                                                       Declined
+	                                                 {% else %}
+                                                           {% if approval_status == 1 %}
+                                                               Pending
+                                                           {% else %}
+		
+		                                                    Publish
+		                                                {% endif %}
+                                                           {% endif %}
+                                                      {% endif %}
 
 
                                     {% endif %}
-
-                                {% endif %}
-
                             {% endif %}
 
 
@@ -341,7 +336,11 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                 <div class="row" style="margin-top: 10px;">
                     <div class="col-sm-2">Agreement Date</div>
                     <div class="col-sm-10">
-                        {{ phenotype.hdr_modified_date }}
+                    	{%  if phenotype.hdr_modified_date != '' %}
+                        	{{ phenotype.hdr_modified_date }}
+                        {% else %}
+                        	{{ phenotype.hdr_created_date }}
+                        {% endif %}
                     </div>
                 </div>
 
@@ -512,7 +511,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                                     <a {% if user_can_export %}
                                         href="{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=json"
                                         target=_blank {% endif %}
-                                {% elif enable_publish %}
+                                {% else %}
                                     <a {% if user_can_export %}
                                     href="{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=json"
                                     target=_blank {% endif %}
@@ -526,7 +525,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                                     <a {% if user_can_export %}
                                         href="{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=xml"
                                         target=_blank {% endif %}
-                                {% elif enable_publish %}
+                                {% else %}
                                     <a {% if user_can_export %}
                                     href="{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=xml"
                                     target=_blank {% endif %}
