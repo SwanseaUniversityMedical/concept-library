@@ -789,7 +789,7 @@ def send_message( pk, data, workingset,workingset_history_id,checks):
 
 
     elif data['approval_status'] == 3:
-        data['message'] = """The workingset version has been declined .
+        data['message'] = """The workingset version has been rejected .
                                                <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(
             url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
             pk=pk,history=workingset_history_id)
