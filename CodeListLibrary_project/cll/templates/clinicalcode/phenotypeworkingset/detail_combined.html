@@ -62,7 +62,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                                <a {% if user_can_export %}
                                    href="{% url 'api:api_phenotypeworkingset_detail_version' workingset.id workingset.history_id %}?format=json"
                                    target=_blank {% endif %}
-                           {% elif enable_publish %}
+                           {% else %}
                                <a {% if user_can_export %}
                                href="{% url 'api:api_phenotypeworkingset_detail_version' workingset.id workingset.history_id %}?format=json"
                                target=_blank {% endif %}
@@ -76,7 +76,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                                <a {% if user_can_export %}
                                    href="{% url 'api:api_phenotypeworkingset_detail_version' workingset.id workingset.history_id %}?format=xml"
                                    target=_blank {% endif %}
-                           {% elif enable_publish %}
+                           {% else %}
                                <a {% if user_can_export %}
                                href="{% url 'api:api_phenotypeworkingset_detail_version' workingset.id workingset.history_id %}?format=xml"
                                target=_blank {% endif %}
@@ -100,7 +100,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
 								Revert
 							</a>
 							</span>
-                            {% if enable_publish %}
+
 
                                 {% if is_published and approval_status == 2%}
 
@@ -207,7 +207,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
 
                             {% endif %}
 
-                        {% endif %}
+
 
 
                         <a id="printBtn" class="btn btn-outline-primary btn-cl btn-cl-secondary">
@@ -448,7 +448,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                                 <a {% if user_can_export %}
                                     href="{% url 'api:api_export_phenotypeworkingset_codes_byVersionID' pk=workingset.id workingset_history_id=workingset.history_id %}?format=json"
                                     target=_blank {% endif %}
-                            {% elif enable_publish %}
+                            {% else%}
                                 <a {% if user_can_export %}
                                 href="{% url 'api:api_export_published_phenotypeworkingset_codes' pk=workingset.id workingset_history_id=workingset.history_id %}?format=json"
                                 target=_blank {% endif %}
@@ -462,7 +462,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                                 <a {% if user_can_export %}
                                     href="{% url 'api:api_export_phenotypeworkingset_codes_byVersionID' pk=workingset.id workingset_history_id=workingset.history_id %}?format=xml"
                                     target=_blank {% endif %}
-                            {% elif enable_publish %}
+                            {% else %}
                                 <a {% if user_can_export %}
                                 href="{% url 'api:api_export_published_phenotypeworkingset_codes' pk=workingset.id workingset_history_id=workingset.history_id %}?format=xml"
                                 target=_blank {% endif %}
