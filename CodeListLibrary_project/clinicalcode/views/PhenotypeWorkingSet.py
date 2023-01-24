@@ -1262,8 +1262,6 @@ class WorkingRequestPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkings
 
 
 
-
-
 class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCheckMixin, UpdateView):
     '''
         Update the current working set.
@@ -1271,7 +1269,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
 
     model = PhenotypeWorkingset
     form_class = WorkingsetForm
-    success_url = reverse_lazy('phenotypeworkingsets_list')
+    success_url = reverse_lazy('phenotypeworkingsets_list')#redirect to the ws list
     template_name = 'clinicalcode/phenotypeworkingset/form.html'
 
     confirm_overrideVersion = 0
@@ -1285,16 +1283,25 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
         return kwargs
 
     def get_success_url(self):
+        """
+        Redirect to the ws updating page even after update
+        @return: reverse url
+        """
         return reverse('phenotypeworkingset_update', args=(self.object.id,))
 
     def form_invalid(self, form):
+        """
+        Render the invalid form if user put wrong data
+        @param form: DjangoForm object
+        @return: render response of invalid form
+        """
         tag_ids = commaSeparate(self.request.POST.get('tagids'))
         collections = commaSeparate(self.request.POST.get('collections'))
         datasources = commaSeparate(self.request.POST.get('datasources'))
         publications = self.request.POST.get('publication_data')
         table_elements_data = self.request.POST.get('phenotypes_concepts_json')
         previous_selection = self.request.POST.get('previous_selection')
-        context = self.get_context_data()
+        context = self.get_context_data()#get the rest of the context data
 
         if tag_ids:
             context['tags'] = Tag.objects.filter(pk__in=tag_ids)
@@ -1316,7 +1323,14 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
             context['previous_selection'] = previous_selection
 
         return self.render_to_response(context)
+
+
     def form_valid(self, form):
+        """
+        Save updated changes to the database  if form is valid and redirect
+        @param form: DjangoForm object
+        @return: response redirect to the new page on success
+        """
         # ----------------------------------------------------------
         # alert user when concurrent editing of workingset
         latest_history_id = str(self.object.history.latest().history_id)
@@ -1343,8 +1357,8 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
             form.instance.tags = commaSeparate(self.request.POST.get('tagids'))
             form.instance.collections = commaSeparate(self.request.POST.get('collections'))
             form.instance.data_sources = commaSeparate(self.request.POST.get('datasources'))
-            form.instance.phenotypes_concepts_data = json.loads(self.request.POST.get('workingset_data') or '[]')
-            form.instance.publications = json.loads(self.request.POST.get('publication_data') or '[]')
+            form.instance.phenotypes_concepts_data = json.loads(self.request.POST.get('workingset_data') or '[]')#if updated version does not have table
+            form.instance.publications = json.loads(self.request.POST.get('publication_data') or '[]')#if publications is not exist on update
 
             self.object = form.save()
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, self.kwargs['pk'], "Updated")
@@ -1357,7 +1371,12 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
         return HttpResponseRedirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):
-        context = UpdateView.get_context_data(self, **kwargs)
+        """
+        Overriden method  to get specific context data to generate form
+        @param kwargs:
+        @return: filtered context
+        """
+        context = UpdateView.get_context_data(self, **kwargs)#get the initial context first
 
         tags = Tag.objects.filter(pk=-1)
         workigset_tags = self.get_object().tags
@@ -1390,6 +1409,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
                 except Exception:
                     data['concept_name'] = 'Unknown'
 
+        #in case if deleted
         if self.get_object().is_deleted == True:
             messages.info(self.request, "This workingset has been deleted.")
 
@@ -1400,12 +1420,13 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
         context['collections'] = workingset_collections
         context['publications'] = workigset_publications
         context['workingset_data'] = workingset_data
+        #check if user has permission to update
         context['allowed_to_permit'] = allowed_to_permit(self.request.user, PhenotypeWorkingset, self.get_object().id)
 
 
-
+        #get overide version in case concurrent operations
         context['overrideVersion'] = self.confirm_overrideVersion
-        context['history'] = self.get_object().history.all()
+        context['history'] = self.get_object().history.all() # get history to generate table
         latest_history_id = context['phenotypeworkingset'].history.first().history_id
         context['latest_history_id'] = latest_history_id if self.request.POST.get(
             'latest_history_id') is None else self.request.POST.get('latest_history_id')
@@ -1420,21 +1441,35 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
 
 class WorkingSetDelete(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
     '''
-           Delete a workingset.
+           Delete workingset class .
        '''
     model = PhenotypeWorkingset
     success_url = reverse_lazy('phenotypeworkingsets_list')
     template_name = 'clinicalcode/phenotypeworkingset/delete.html'
 
     def get_success_url(self):
+        """
+        Redirect to the list in case of request is finished
+        @return: reverse url to ws list
+        """
         return reverse_lazy('phenotypeworkingsets_list')
 
     def get(self, request, pk):
+        """
+        Get information about page when delete/or already deleted
+        @rtype: render response to template
+        """
         workingset = PhenotypeWorkingset.objects.get(pk=pk)
 
         return self.render_to_response({'pk': pk, 'name': workingset.name})
 
     def post(self, request, pk):
+        """
+        Perform a delete request and save delete flag to the database
+        @param request: user request object
+        @param pk: workingset id
+        @return: HttpResponse redirect to the provided URL
+        """
         with transaction.atomic():
             workingset_db_utils.deletePhenotypeWorkingset(pk, request.user)
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, pk, "Workingset has been deleted")
@@ -1452,13 +1487,28 @@ class WorkingSetRestore(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
     template_name = 'clinicalcode/phenotypeworkingset/restore.html'
 
     def get_success_url(self):
+
+        """
+        Redirect to the list in case of request is finished
+        @return: reverse url to ws list
+        """
         return reverse_lazy('phenotypeworkingsets_list')
 
     def get(self, request, pk):
+        """
+        Get information about page when to be restored
+        @rtype: render response to template
+        """
         workingset = PhenotypeWorkingset.objects.get(pk=pk)
         return self.render_to_response({'pk': pk, 'name': workingset.name})
 
     def post(self, request, pk):
+        """
+        Perfomr a restore request and restore the record to the database
+        @param request: user request object
+        @param pk: workingset id
+        @return: HTTPResponse redirect to the ws list
+        """
         with transaction.atomic():
             workingset_db_utils.restorePhenotypeWorkingset(pk, request.user)
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, pk, "Workingset has been restored")
@@ -1469,8 +1519,12 @@ class WorkingSetRestore(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
 def workingset_history_revert(request, pk, workingset_history_id):
     ''' 
         Revert a previously saved working set from the history.
+        @param request: user request object
+        @param pk: workingset id
+        @param workingset_history_id: historical workingset id
+        @return: message to the client side and JSON response from server of revert operation
     '''
-    validate_access_to_edit(request, PhenotypeWorkingset, pk)
+    validate_access_to_edit(request, PhenotypeWorkingset, pk)# check permissions
     data = dict()
     if request.method == 'POST':
         # Don't allow revert if the active object is deleted
@@ -1504,6 +1558,10 @@ def workingset_history_revert(request, pk, workingset_history_id):
 def history_workingset_codes_to_csv(request, pk, workingset_history_id=None):
     '''
         Return a csv file of codes for a working set for a specific historical version.
+        @param request: user request object
+        @param pk: workingset id
+        @param workingset_history_id: historical id of workingset
+        @return:
     '''
 
     if workingset_history_id is None:
