@@ -467,6 +467,8 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
 def phenotype_workingset_DB_test_create(request):
     '''
         temp create test DB ws
+        @param request: user request object
+        @return: demo records to the DB and success message 
     '''
     if not request.user.is_superuser:
         raise PermissionDenied
