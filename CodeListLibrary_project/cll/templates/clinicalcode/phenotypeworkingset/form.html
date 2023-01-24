@@ -1009,15 +1009,19 @@
             }
 
         }
+        /**
+         * Redraw table if user change select value and scroll to this header
+         * @param element html
+         */
         const selectHeader = (element) => {
             var table = $('#attributes-table').DataTable()
             var oldScrollX = $('#attributes-table').position().left
             var oldScrollY = $('#attributes-table').position().top
             let val = element.value
-            let index = element.id.match(/\d+/)[0]
+            let index = element.id.match(/\d+/)[0] // take the integer from the id
             let dataPrevious = $('#phenotypes_concepts_json').val()
-            dataPrevious = JSON.parse(dataPrevious)
-            let updatedSelect = changeSelectValue(val, index)
+            dataPrevious = JSON.parse(dataPrevious) // collect old data
+            let updatedSelect = changeSelectValue(val, index) // if value selected perfom additoanal actions
 
             for (let i = 0; i < dataPrevious.length; i++) {
                 dataPrevious[i]['Attributes-select' + (index)] = `${updatedSelect}`
@@ -1036,7 +1040,10 @@
 
 
         }
-
+        /**
+         * Allow user to name the header column with validation
+         * @param element html
+         */
         const inputheader = (element) => {
             let val = element.value
             let index = element.id.match(/\d+/)[0]
@@ -1060,10 +1067,17 @@
 
         }
 
+
+        /**
+         * Delete column on click and refresh table
+         * @param element html
+         */
         const deletecolumn = (element) => {
             let table = $('#attributes-table').DataTable()
-            let index = element.id.match(/\d+/)[0]
+            let index = element.id.match(/\d+/)[0] // taking the integer from id
             let data = $('#phenotypes_concepts_json').val()
+
+            //aplying same screen position when user clicks
             let oldScrollX = $('#attributes-table').position().left
             let oldScrollY = $('#attributes-table').position().top
             data = JSON.parse(data)
@@ -1074,7 +1088,7 @@
                 delete items["Attributes-header" + (index)]
             })
 
-
+            //save data json and redraw table
             $('#phenotypes_concepts_json').val(JSON.stringify(data))
 
             table = reDrawtable('attributes-table', data)
@@ -1086,19 +1100,24 @@
 
         }
 
-
+        /**
+         * Prepare data to dispatch to the server
+         * @returns {boolean} if success or fail
+         */
         const wrapData = () => {
 
             $('#previous_selection').val(JSON.stringify($('#add-data').data('SelectionService').selected))
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
             let arrayOfData = []
+            //loop on main data first
             for (let i = 0; i < dataPrevious.length; i++) {
                 let entry = Object.entries(dataPrevious[i])
                 let types = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-select'))
                 let headers_name = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-header'))
                 let input_values = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-row'))
 
+                //loop on attributes value
                 let mainData = wrapIds(dataPrevious[i]['Data'])
                 if (entry.length > 1) {
                     mainData['Attributes'] = []
@@ -1115,6 +1134,7 @@
 
 
                     }
+                    //put filtered data for the server
                     arrayOfData.push(mainData)
                 } else {
                     arrayOfData.push(mainData)
@@ -1128,11 +1148,16 @@
 
         }
 
+        /**
+         * Show error or proceed if user clicks submit button
+         */
         $('#save-changes').on('click', function (e) {
+                // collect publication data
               $('#publication_data').val(JSON.stringify(wrapPubinputs()))
             if (!$('#phenotypes_concepts_json').val()) {
                 return;
             }
+            //prevent default if validation is not valid else proccess to save data
             if (!finalValidation($('#phenotypes_concepts_json').val())) {
                 e.preventDefault();
             } else {
@@ -1142,6 +1167,11 @@
 
         })
 
+        /**
+         * Final validation before sending data to server
+         * @param dataPrevious html data elements before dispatch
+         * @returns {boolean} success of failed
+         */
         const finalValidation = (dataPrevious) => {
             let conds = []
             dataPrevious = JSON.parse(dataPrevious)
@@ -1150,15 +1180,23 @@
                 let headers_name = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-header'))
                 let input_values = Object.keys(dataPrevious[i]).filter(v => v.startsWith('Attributes-row'))
                 for (let j = 0; j < types.length; j++) {
+
+                    //Find elements
                     let select = dataPrevious[i][types[j]]
                     let header = dataPrevious[i][headers_name[j]]
                     let input = dataPrevious[i][input_values[j]]
+
+                    //Convert elements from string to dom element
                     input = new DOMParser().parseFromString(input, "text/html")
                     select = new DOMParser().parseFromString(select, "text/html")
                     header = new DOMParser().parseFromString(header, "text/html")
+
+                    //Apply query selector to find ids
                     input = input.querySelector('*[id^="attribute-input"]')
                     select = select.querySelector('*[id^="column_type"]')
                     header = header.querySelector('*[id^="attribute-header"]')
+
+                    // Check header
                     let header_cond = /^([a-zA-Z])([a-zA0-Z9_])*$/.test(header.value)
                     if (!header_cond) {
                         {
@@ -1168,6 +1206,7 @@
                         $('#' + header.id)[0].classList.add('bg-danger')
                         $('#' + header.id)[0].reportValidity()
                     }
+                    // check rest of the data using regex
                     conds.push(regexCheck(select.value, $('#' + input.id), $('#' + input.id).val(), false, false, false) && header_cond)
                 }
             }
@@ -1175,6 +1214,10 @@
 
         }
 
+        /**
+         * Import table on invalid form or on update ws request
+         * @param data from the server
+         */
         const importTable = (data) => {
             let phenotype_concepts_json = [];
             let allData;
@@ -1185,7 +1228,7 @@
                     "Data": `<div class="data-row" ><a href="/phenotypes/${data[i].phenotype_id}/version/${data[i].phenotype_version_id}/detail/" id="phenotype_url" target="_blank" rel="noopener noreferrer">${data[i].phenotype_id + '/' + data[i].phenotype_version_id}</a>` + '-' +
                         `<a href="/concepts/${data[i].concept_id}/version/${data[i].concept_version_id}/detail/"target="_blank" id="concept_url" rel="noopener noreferrer">${data[i].concept_id + '/' + data[i].concept_version_id + '-' + data[i].concept_name}</a>` + `</div>`
                 }
-
+                //if need table without attributes
                 if (data[i].Attributes !== undefined) {
                     let attributes = {};
                     for (let j = 0; j < data[i].Attributes.length; j++) {
@@ -1205,6 +1248,7 @@
                         }
 
                     }
+                    //save data and attributes
                     phenotype_concepts_json.push({...allData, ...attributes})
 
                 } else {
@@ -1219,6 +1263,8 @@
                 data: 'Data',
                 title: 'Data'
             }])
+
+            //as we have 4 elements row,delete button, column, header name we need to find next index to put next column
             let next_column_index = ((Object.keys(dataset[0]).length - 2) / 4)
 
             table = reDrawtable('attributes-table', dataset)
@@ -1230,6 +1276,10 @@
 
         }
 
+        /**
+         * Import selected concepts from modal when update or invalid  form
+         * @param array of selected concepts from server
+         */
         const importSelection = (array) => {
             let arraySelection = []
             for (let i = 0; i < array.length; i++) {
@@ -1253,6 +1303,11 @@
         }
 
 
+        /**
+         * Convert concepts/phenotypes ids from DOM elements
+         * @param dataIds client side id
+         * @returns converted concepts/phenotypes ids for the server model
+         */
         const wrapIds = (dataIds) => {
             let element = new DOMParser().parseFromString(dataIds, "text/html")
             element = element.links
@@ -1274,7 +1329,12 @@
 
         }
 
-
+        /**
+         * Function changes the selected value for type header
+         * @param val option int/string/float
+         * @param index for id
+         * @returns  updated DOM element
+         */
         const changeSelectValue = (val, index) => {
             let element = `<select style="margin-right: 5px" class="input-material col-sm-12 form-control" onchange="selectHeader(this)" id="column_type${index}">'
 						    +'<option value="0">Type</option>'
@@ -1284,30 +1344,37 @@
 						  +'</select>`
             let parse = new DOMParser().parseFromString(element, "text/html")
             let select = parse.querySelector('*[id^="column_type"]')
-            select.options[val].defaultSelected = true
+            select.options[val].defaultSelected = true // make selected
 
 
             return $(select)[0].outerHTML
 
         }
 
+        /**
+         * Delete row when function and update DOM redrawing table
+         * @param element html
+         */
         const deleteRow = (element) => {
 
             let table = $('#attributes-table').DataTable()
             let phenotype_concepts_json = JSON.parse($('#phenotypes_concepts_json').val())
             let index = element.id.match(/\d+/)[0]
-            let selection = $('#add-data').data('SelectionService').selected
+            let selection = $('#add-data').data('SelectionService').selected // to update the modal selected  values
+
             if (confirm("Remove this concept?")) {
                 let tr = $(element).closest('tr')
-                table.row(tr).remove().draw(false);
+                table.row(tr).remove().draw(false); // row and column number listener
                 if (table.rows().count() !== 0) {
                     let toDel = phenotype_concepts_json[parseInt(index)]
+                    //put only updated data
                     let filtered = phenotype_concepts_json.filter(function (el) {
                         return el !== toDel;
                     });
 
 
                     $('#phenotypes_concepts_json').val(JSON.stringify(filtered))
+                    //put only update data for selection
                     $('#add-data').data('SelectionService').selected = selection.filter(function (el) {
                         return el !== $('#add-data').data('SelectionService').selected[parseInt(index)];
                     });
@@ -1355,9 +1422,16 @@
         }
 
 
+         /*************************************
+         *                                   *
+         *        Input cell logic           *
+         *                                   *
+         *************************************/
         $('#attributes-table').on('input', 'td', function (e) {
             let table = $('#attributes-table').DataTable()
             let cell = table.cell(this).index()
+
+            //find listened input
             let input = $(table.cell(this).node()).find('input')
             input.removeClass('bg-danger')
             $(table.cell(this).node()).find('span').remove()
@@ -1365,6 +1439,8 @@
             let rowIdx = cell.row
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
+
+            //update data on the exact input with the correct id and validate
             dataPrevious[rowIdx]['Attributes-row' + parseInt(input[0].id.match(/\d+/)[0])] = checkTypeinput(input, value, rowIdx, parseInt(input[0].id.match(/\d+/)[0]))[0].outerHTML
             $('#phenotypes_concepts_json').val(JSON.stringify(dataPrevious))
 
@@ -1373,6 +1449,9 @@
 
         var mx;
 
+        /**
+         * This listnener allows user to dragtable on click
+         */
         $("#attributes-table").on({
 
             mousemove: function (e) {
@@ -1392,23 +1471,44 @@
         });
 
 
+        /**
+         * Check if select value(int/string/float) matches to the input cell type
+         * @param input dom element
+         * @param val value from input
+         * @param rowIndex
+         * @param columnIndex
+         * @returns {*|boolean} of the regex function if validated
+         */
         const checkTypeinput = (input, val, rowIndex, columnIndex) => {
             let dataPrevious = $('#phenotypes_concepts_json').val()
             dataPrevious = JSON.parse(dataPrevious)
+            // Convert from string and convert to DOM element
             let type = dataPrevious[rowIndex]['Attributes-select' + columnIndex]
             let element = new DOMParser().parseFromString(type, "text/html")
             let select = element.querySelector('*[id^="column_type"]')
             let select_val = select.value
+
             return regexCheck(select_val, input, val, false, true, true)
 
 
         }
+        /**
+         * Multi regex function to validate /header input/select element with row input
+         * @param select_val validate against certain types of data(INT/STRING/FLOAT)
+         * @param input input element
+         * @param val of the input
+         * @param trim to cut the text to the certain size
+         * @param returninput return DOM element
+         * @param changeinp change value of the selected DOM element
+         * @returns {*|boolean}
+         */
         const regexCheck = (select_val, input, val, trim, returninput, changeinp) => {
 
             switch (parseInt(select_val)) {
                 case 0:
                     input.addClass('bg-danger')
                     input.val($.trim(input.val()).slice(0, -1));
+                    //show warning to the user table
                     input[0].setCustomValidity("Choose type attribute")
                     input[0].reportValidity()
                     return returninput ? input : false
