@@ -414,14 +414,14 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         publications = self.request.POST.get('publication_data')
         table_elements_data = self.request.POST.get('phenotypes_concepts_json')
         previous_selection = self.request.POST.get('previous_selection')
-        context = self.get_context_data()
+        context = self.get_context_data()#get the rest of the context data
 
 
         if tag_ids:
             context['tags'] = Tag.objects.filter(pk__in=tag_ids)
 
         if collections:
-            queryset = Tag.objects.filter(tag_type=2)
+            queryset = Tag.objects.filter(tag_type=2)#collections by type 2
             context['collections'] = queryset.filter(id__in=collections)
 
         if datasources:
@@ -453,7 +453,7 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
             form.instance.tags = commaSeparate(self.request.POST.get('tagids'))
             form.instance.collections = commaSeparate(self.request.POST.get('collections'))
             form.instance.data_sources = commaSeparate(self.request.POST.get('datasources'))
-            form.instance.phenotypes_concepts_data = json.loads(self.request.POST.get('workingset_data') or '[]')
+            form.instance.phenotypes_concepts_data = json.loads(self.request.POST.get('workingset_data') or '[]')#if no workingset table data from client
             form.instance.publications = json.loads(self.request.POST.get('publication_data') or '[]') # if no publication from client
 
             self.object = form.save()
@@ -812,7 +812,7 @@ def form_validation(request, data, workingset_history_id, pk,workingset,checks):
                 list(PublishedWorkingset.objects.filter(workingset_id=pk, approval_status=2).values_list('workingset_history_id', flat=True))
         },
         request=request)
-
+    #send email message state and client side message
     data['message'] = send_message(pk, data, workingset,workingset_history_id,checks)['message']
 
     return data
@@ -834,6 +834,7 @@ def send_message( pk, data, workingset,workingset_history_id,checks):
         send_email_decision_workingset(workingset, data['approval_status'])
         return data
 
+    #publish message if not declined
     elif len(PublishedWorkingset.objects.filter(workingset=PhenotypeWorkingset.objects.get(pk=pk).id, approval_status=2)) > 0 and not data['approval_status'] == 3:
         data['message'] = """The workingset version has been successfully published.
                                  <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
@@ -842,7 +843,7 @@ def send_message( pk, data, workingset,workingset_history_id,checks):
 
         return data
 
-
+    #showing rejected message
     elif data['approval_status'] == 3:
         data['message'] = """The workingset version has been rejected .
                                                <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(
@@ -852,6 +853,7 @@ def send_message( pk, data, workingset,workingset_history_id,checks):
 
         return data
 
+    # ws is approved by moderator if moderator approved different version
     elif data['approval_status'] is None and checks['is_moderator']:
         data['message'] = """The workingset version has been successfully published.
                                                 <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(
@@ -861,6 +863,7 @@ def send_message( pk, data, workingset,workingset_history_id,checks):
         return data
 
 
+    #show pending message if user clicks to request review
     elif data['approval_status'] == 1:
         data['message'] = """The workingset version is going to be reviewed by the moderator.
                                                       <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(
@@ -929,11 +932,11 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
             'is_lastapproved': checks['is_lastapproved'],
             'is_latest_pending_version': checks['is_latest_pending_version'], # check if it is latest to approve
             'is_moderator': checks['is_moderator'],
-            'workingset_has_data': checks['workingset_has_data'],
+            'workingset_has_data': checks['workingset_has_data'],#check if table exists to publish ws
             'is_allowed_view_children': checks['is_allowed_view_children'],
-            'all_are_published': checks['all_are_published'],
-            'other_pending':checks['other_pending'],
-            'all_not_deleted': checks['all_not_deleted'],
+            'all_are_published': checks['all_are_published'],#see if rest of the phenotypes is published already
+            'other_pending':checks['other_pending'],#data if other pending ws
+            'all_not_deleted': checks['all_not_deleted'],# check if phenotypes is not deleted
             'errors':checks['errors']
         })
 
@@ -1088,12 +1091,13 @@ class WorkingsetDecline(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
 
     def get(self, request, pk, workingset_history_id):
         """
-        Get method to generate decline
-        @param request:
-        @param pk:
-        @param workingset_history_id:
-        @return:
+        Get method to generate decline page if it was previosly declined
+        @param request: user request object
+        @param pk: workingset id
+        @param workingset_history_id: historical id workingset
+        @return: render response to the template
         """
+        #get additional checks
         checks = workingset_db_utils.checkWorkingsetTobePublished(self.request, pk, workingset_history_id)
 
         if not checks['is_published']:
@@ -1118,8 +1122,15 @@ class WorkingsetDecline(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
             'all_not_deleted': checks['all_not_deleted'],
             'errors': checks['errors']
         })
-    def post(self, request, pk, workingset_history_id):
 
+    def post(self, request, pk, workingset_history_id):
+        """
+        Send request to server to  decline workingset
+        @param request: user request object
+        @param pk: workingset id from database
+        @param workingset_history_id: historical id workingset
+        @return: JSON response to the page
+        """
         is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
         checks = workingset_db_utils.checkWorkingsetTobePublished(request, pk, workingset_history_id)
         if not is_published:
@@ -1137,8 +1148,9 @@ class WorkingsetDecline(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
             # start a transaction
             with transaction.atomic():
                 workingset = PhenotypeWorkingset.objects.get(pk=pk)
+                #if moderator and in pending state
                 if checks['is_moderator'] and checks['approval_status'] == 1:
-                    published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id, approval_status=1).first()
+                    published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id, approval_status=1).first()#find first record
                     published_workingset.approval_status = 3
                     published_workingset.save()
                     data['form_is_valid'] = True
@@ -1159,17 +1171,21 @@ class WorkingsetDecline(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
 
 class WorkingRequestPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
     '''
-        Publish the current working set.
+        User request to publish workingset
     '''
 
     model = PhenotypeWorkingset
     template_name = 'clinicalcode/phenotypeworkingset/request_publish.html'
 
     def get(self, request, pk, workingset_history_id):
-
-
-
-
+        """
+        Get method to generate the modal window template to submit workingset
+        @param request: user request object
+        @param pk: workingset id from database
+        @param workingset_history_id: historical workingset id
+        @return: render the modal to user with an appropriate information
+        """
+        #get additional checks in case if ws is deleted/approved etc
         checks = workingset_db_utils.checkWorkingsetTobePublished(self.request, pk, workingset_history_id)
 
 
@@ -1184,7 +1200,7 @@ class WorkingRequestPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkings
             'workingset_history_id': workingset_history_id,
             'is_published': checks['is_published'],
             'allowed_to_publish': checks['allowed_to_publish'],
-            'is_owner': checks['is_owner'],
+            'is_owner': checks['is_owner'],#only owner can submit
             'workingset_is_deleted':checks['workingset_is_deleted'],
             'approval_status': checks['approval_status'],
             'is_lastapproved': checks['is_lastapproved'],
@@ -1196,6 +1212,7 @@ class WorkingRequestPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkings
             'all_not_deleted': checks['all_not_deleted'],
             'errors': checks['errors']
         })
+    
     def post(self, request, pk, workingset_history_id):
 
         is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
