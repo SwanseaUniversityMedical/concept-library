@@ -734,7 +734,7 @@ def get_history_table_data(request, pk):
     """"
         Get history table data for the template
         @param request: user request object
-        @param pk: workingset id from database
+        @param pk: workingset id for database query
         @return: return historical table data to generate table context
     """
 
@@ -794,7 +794,7 @@ def form_validation(request, data, workingset_history_id, pk,workingset,checks):
     @param request: user request object
     @param data: from any current operations with publish
     @param workingset_history_id: workingset historical id
-    @param pk: workingset id from database
+    @param pk: workingset id for database query
     @param workingset: object
     @param checks: additional utils checks  before approval
     @return: updated data dictionary to update historical table and request message
@@ -910,7 +910,7 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
         """
         Get method to generate modal response and pass additional information about working set
         @param request: user request object
-        @param pk: workingset id from database
+        @param pk: workingset id for database query
         @param workingset_history_id: historical workingset id from database
         @return: render response object to generate on template
         """
@@ -944,7 +944,7 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
         """
         Post data containing current state of workingset to backend (published/declined/pending)
         @param request: request user object
-        @param pk: workingset id from database
+        @param pk:workingset id for database query
         @param workingset_history_id: historical id of workingset
         @return: JsonResponse and status message
         """
@@ -1127,7 +1127,7 @@ class WorkingsetDecline(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
         """
         Send request to server to  decline workingset
         @param request: user request object
-        @param pk: workingset id from database
+        @param pk: workingset id for database query
         @param workingset_history_id: historical id workingset
         @return: JSON response to the page
         """
@@ -1181,7 +1181,7 @@ class WorkingRequestPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkings
         """
         Get method to generate the modal window template to submit workingset
         @param request: user request object
-        @param pk: workingset id from database
+        @param pk: workingset id for database query
         @param workingset_history_id: historical workingset id
         @return: render the modal to user with an appropriate information
         """
@@ -1212,9 +1212,15 @@ class WorkingRequestPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkings
             'all_not_deleted': checks['all_not_deleted'],
             'errors': checks['errors']
         })
-    
-    def post(self, request, pk, workingset_history_id):
 
+    def post(self, request, pk, workingset_history_id):
+        """
+        Send the request to publish data to the server
+        @param request: user request object
+        @param pk: workingset id for database query
+        @param workingset_history_id: historical id of workingset
+        @return: JSON success body response
+        """
         is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
         checks = workingset_db_utils.checkWorkingsetTobePublished(request, pk, workingset_history_id)
         if not is_published:
@@ -1229,6 +1235,7 @@ class WorkingRequestPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkings
             return JsonResponse(data)
 
         try:
+            # (allowed to permit) AND (ws not published) AND (approval_status not in database) AND (user not moderator)
             if checks['allowed_to_publish'] and not is_published and checks['approval_status'] is None and not checks['is_moderator']:
                     # start a transaction
                     with transaction.atomic():
