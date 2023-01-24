@@ -73,6 +73,11 @@ def revertHistoryPhenotypeWorkingset(user,workingset_history_id):
     workingset_obj.save()
 
 def validate_workingset_table(workingset_table):
+    """
+    Validate phenotypeworkingset table if update/create
+    @param workingset_table: json object
+    @return: dict errors and boolean if table valid
+    """
     errors = {}
     is_valid = True
     attribute_names = {}
@@ -130,6 +135,10 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
         - user is an owner
         - Workingset contains codes
         - all conceots are published
+        @param request: user request object
+        @param pk: workingset id
+        @param workingset_history_id: historical id of workingset
+        @return: dictionary containing all conditions to publish
     '''
     allow_to_publish = True
     workingset_is_deleted = False
@@ -141,6 +150,7 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
         allow_to_publish = False
         workingset_is_deleted = True
 
+    #check if user is not owner
     if (PhenotypeWorkingset.objects.filter(Q(id=pk), Q(owner=request.user)).count() == 0):
         allow_to_publish = False
         is_owner = False
@@ -149,14 +159,17 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
         allow_to_publish = True
         is_moderator = True
 
+    #check if either moderator or owner
     if (request.user.groups.filter(name="Moderators").exists()
             and not (PhenotypeWorkingset.objects.filter(Q(id=pk), Q(owner=request.user)).count() == 0)):
         allow_to_publish = True
         is_owner = True
         is_moderator = True
 
+    #check if current version of ws is the latest version to approve
     if len(PublishedWorkingset.objects.filter(workingset_id=pk, workingset_history_id=workingset_history_id, approval_status=1)) > 0:
         is_latest_pending_version = True
+
 
     workingset_ver = PhenotypeWorkingset.history.get(id=pk, history_id=workingset_history_id)
     is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
@@ -164,6 +177,7 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
     is_lastapproved = len(PublishedWorkingset.objects.filter(workingset=PhenotypeWorkingset.objects.get(pk=pk).id, approval_status=2)) > 0
     other_pending = len(PublishedWorkingset.objects.filter(workingset=PhenotypeWorkingset.objects.get(pk=pk).id, approval_status=1)) > 0
 
+    # get historical version by querying SQL command from DB
     workingset = getHistoryPhenotypeWorkingset(workingset_history_id,
                                                                    highlight_result=[False, True][
                                                                        db_utils.is_referred_from_search_page(request)],
@@ -178,7 +192,7 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
     if not isOK:
         allow_to_publish = False
 
-
+    #check if table is not empty
     workingset_has_data = len(PhenotypeWorkingset.history.get(id=pk, history_id=workingset_history_id).phenotypes_concepts_data) > 0
     if not workingset_has_data:
         allow_to_publish = False
@@ -198,7 +212,7 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
         'workingset_has_data':workingset_has_data,
         'is_published': is_published,
         'is_latest_pending_version':is_latest_pending_version,
-        'is_allowed_view_children':is_allowed_view_children,
+        'is_allowed_view_children':is_allowed_view_children,#to see if child phenotypes of ws is not deleted/not published etc
         'all_are_published':all_are_published,
         'all_not_deleted':all_not_deleted
     }
@@ -206,7 +220,12 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
 
 def checkAllChildData4Publish_Historical(request,
                                              workingset_history_id):
-
+    """
+    Check if workingset child data is validated
+    @param request: user request object
+    @param workingset_history_id: historical id ws
+    @return: collection of boolean conditions
+    """
     workingset = getHistoryPhenotypeWorkingset(workingset_history_id)
 
 

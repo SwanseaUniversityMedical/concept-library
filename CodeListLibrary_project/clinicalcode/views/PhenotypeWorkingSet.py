@@ -414,14 +414,14 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         publications = self.request.POST.get('publication_data')
         table_elements_data = self.request.POST.get('phenotypes_concepts_json')
         previous_selection = self.request.POST.get('previous_selection')
-        context = self.get_context_data()
+        context = self.get_context_data()#get the rest of the context data
 
 
         if tag_ids:
             context['tags'] = Tag.objects.filter(pk__in=tag_ids)
 
         if collections:
-            queryset = Tag.objects.filter(tag_type=2)
+            queryset = Tag.objects.filter(tag_type=2)#collections by type 2
             context['collections'] = queryset.filter(id__in=collections)
 
         if datasources:
@@ -453,7 +453,7 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
             form.instance.tags = commaSeparate(self.request.POST.get('tagids'))
             form.instance.collections = commaSeparate(self.request.POST.get('collections'))
             form.instance.data_sources = commaSeparate(self.request.POST.get('datasources'))
-            form.instance.phenotypes_concepts_data = json.loads(self.request.POST.get('workingset_data') or '[]')
+            form.instance.phenotypes_concepts_data = json.loads(self.request.POST.get('workingset_data') or '[]')#if no workingset table data from client
             form.instance.publications = json.loads(self.request.POST.get('publication_data') or '[]') # if no publication from client
 
             self.object = form.save()
@@ -467,6 +467,8 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
 def phenotype_workingset_DB_test_create(request):
     '''
         temp create test DB ws
+        @param request: user request object
+        @return: demo records to the DB and success message
     '''
     if not request.user.is_superuser:
         raise PermissionDenied
@@ -734,7 +736,7 @@ def get_history_table_data(request, pk):
     """"
         Get history table data for the template
         @param request: user request object
-        @param pk: workingset id from database
+        @param pk: workingset id for database query
         @return: return historical table data to generate table context
     """
 
@@ -794,7 +796,7 @@ def form_validation(request, data, workingset_history_id, pk,workingset,checks):
     @param request: user request object
     @param data: from any current operations with publish
     @param workingset_history_id: workingset historical id
-    @param pk: workingset id from database
+    @param pk: workingset id for database query
     @param workingset: object
     @param checks: additional utils checks  before approval
     @return: updated data dictionary to update historical table and request message
@@ -812,7 +814,7 @@ def form_validation(request, data, workingset_history_id, pk,workingset,checks):
                 list(PublishedWorkingset.objects.filter(workingset_id=pk, approval_status=2).values_list('workingset_history_id', flat=True))
         },
         request=request)
-
+    #send email message state and client side message
     data['message'] = send_message(pk, data, workingset,workingset_history_id,checks)['message']
 
     return data
@@ -834,6 +836,7 @@ def send_message( pk, data, workingset,workingset_history_id,checks):
         send_email_decision_workingset(workingset, data['approval_status'])
         return data
 
+    #publish message if not declined
     elif len(PublishedWorkingset.objects.filter(workingset=PhenotypeWorkingset.objects.get(pk=pk).id, approval_status=2)) > 0 and not data['approval_status'] == 3:
         data['message'] = """The workingset version has been successfully published.
                                  <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
@@ -842,7 +845,7 @@ def send_message( pk, data, workingset,workingset_history_id,checks):
 
         return data
 
-
+    #showing rejected message
     elif data['approval_status'] == 3:
         data['message'] = """The workingset version has been rejected .
                                                <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(
@@ -852,6 +855,7 @@ def send_message( pk, data, workingset,workingset_history_id,checks):
 
         return data
 
+    # ws is approved by moderator if moderator approved different version
     elif data['approval_status'] is None and checks['is_moderator']:
         data['message'] = """The workingset version has been successfully published.
                                                 <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(
@@ -861,6 +865,7 @@ def send_message( pk, data, workingset,workingset_history_id,checks):
         return data
 
 
+    #show pending message if user clicks to request review
     elif data['approval_status'] == 1:
         data['message'] = """The workingset version is going to be reviewed by the moderator.
                                                       <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(
@@ -907,7 +912,7 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
         """
         Get method to generate modal response and pass additional information about working set
         @param request: user request object
-        @param pk: workingset id from database
+        @param pk: workingset id for database query
         @param workingset_history_id: historical workingset id from database
         @return: render response object to generate on template
         """
@@ -929,11 +934,11 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
             'is_lastapproved': checks['is_lastapproved'],
             'is_latest_pending_version': checks['is_latest_pending_version'], # check if it is latest to approve
             'is_moderator': checks['is_moderator'],
-            'workingset_has_data': checks['workingset_has_data'],
+            'workingset_has_data': checks['workingset_has_data'],#check if table exists to publish ws
             'is_allowed_view_children': checks['is_allowed_view_children'],
-            'all_are_published': checks['all_are_published'],
-            'other_pending':checks['other_pending'],
-            'all_not_deleted': checks['all_not_deleted'],
+            'all_are_published': checks['all_are_published'],#see if rest of the phenotypes is published already
+            'other_pending':checks['other_pending'],#data if other pending ws
+            'all_not_deleted': checks['all_not_deleted'],# check if phenotypes is not deleted
             'errors':checks['errors']
         })
 
@@ -941,7 +946,7 @@ class WorkingSetPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
         """
         Post data containing current state of workingset to backend (published/declined/pending)
         @param request: request user object
-        @param pk: workingset id from database
+        @param pk:workingset id for database query
         @param workingset_history_id: historical id of workingset
         @return: JsonResponse and status message
         """
@@ -1088,12 +1093,13 @@ class WorkingsetDecline(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
 
     def get(self, request, pk, workingset_history_id):
         """
-        Get method to generate decline
-        @param request:
-        @param pk:
-        @param workingset_history_id:
-        @return:
+        Get method to generate decline page if it was previosly declined
+        @param request: user request object
+        @param pk: workingset id
+        @param workingset_history_id: historical id workingset
+        @return: render response to the template
         """
+        #get additional checks
         checks = workingset_db_utils.checkWorkingsetTobePublished(self.request, pk, workingset_history_id)
 
         if not checks['is_published']:
@@ -1118,8 +1124,15 @@ class WorkingsetDecline(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
             'all_not_deleted': checks['all_not_deleted'],
             'errors': checks['errors']
         })
-    def post(self, request, pk, workingset_history_id):
 
+    def post(self, request, pk, workingset_history_id):
+        """
+        Send request to server to  decline workingset
+        @param request: user request object
+        @param pk: workingset id for database query
+        @param workingset_history_id: historical id workingset
+        @return: JSON response to the page
+        """
         is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
         checks = workingset_db_utils.checkWorkingsetTobePublished(request, pk, workingset_history_id)
         if not is_published:
@@ -1137,8 +1150,9 @@ class WorkingsetDecline(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
             # start a transaction
             with transaction.atomic():
                 workingset = PhenotypeWorkingset.objects.get(pk=pk)
+                #if moderator and in pending state
                 if checks['is_moderator'] and checks['approval_status'] == 1:
-                    published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id, approval_status=1).first()
+                    published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id, approval_status=1).first()#find first record
                     published_workingset.approval_status = 3
                     published_workingset.save()
                     data['form_is_valid'] = True
@@ -1159,17 +1173,21 @@ class WorkingsetDecline(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCh
 
 class WorkingRequestPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
     '''
-        Publish the current working set.
+        User request to publish workingset
     '''
 
     model = PhenotypeWorkingset
     template_name = 'clinicalcode/phenotypeworkingset/request_publish.html'
 
     def get(self, request, pk, workingset_history_id):
-
-
-
-
+        """
+        Get method to generate the modal window template to submit workingset
+        @param request: user request object
+        @param pk: workingset id for database query
+        @param workingset_history_id: historical workingset id
+        @return: render the modal to user with an appropriate information
+        """
+        #get additional checks in case if ws is deleted/approved etc
         checks = workingset_db_utils.checkWorkingsetTobePublished(self.request, pk, workingset_history_id)
 
 
@@ -1184,7 +1202,7 @@ class WorkingRequestPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkings
             'workingset_history_id': workingset_history_id,
             'is_published': checks['is_published'],
             'allowed_to_publish': checks['allowed_to_publish'],
-            'is_owner': checks['is_owner'],
+            'is_owner': checks['is_owner'],#only owner can submit
             'workingset_is_deleted':checks['workingset_is_deleted'],
             'approval_status': checks['approval_status'],
             'is_lastapproved': checks['is_lastapproved'],
@@ -1196,8 +1214,15 @@ class WorkingRequestPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkings
             'all_not_deleted': checks['all_not_deleted'],
             'errors': checks['errors']
         })
-    def post(self, request, pk, workingset_history_id):
 
+    def post(self, request, pk, workingset_history_id):
+        """
+        Send the request to publish data to the server
+        @param request: user request object
+        @param pk: workingset id for database query
+        @param workingset_history_id: historical id of workingset
+        @return: JSON success body response
+        """
         is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
         checks = workingset_db_utils.checkWorkingsetTobePublished(request, pk, workingset_history_id)
         if not is_published:
@@ -1212,6 +1237,7 @@ class WorkingRequestPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkings
             return JsonResponse(data)
 
         try:
+            # (allowed to permit) AND (ws not published) AND (approval_status not in database) AND (user not moderator)
             if checks['allowed_to_publish'] and not is_published and checks['approval_status'] is None and not checks['is_moderator']:
                     # start a transaction
                     with transaction.atomic():
@@ -1238,8 +1264,6 @@ class WorkingRequestPublish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkings
 
 
 
-
-
 class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCheckMixin, UpdateView):
     '''
         Update the current working set.
@@ -1247,7 +1271,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
 
     model = PhenotypeWorkingset
     form_class = WorkingsetForm
-    success_url = reverse_lazy('phenotypeworkingsets_list')
+    success_url = reverse_lazy('phenotypeworkingsets_list')#redirect to the ws list
     template_name = 'clinicalcode/phenotypeworkingset/form.html'
 
     confirm_overrideVersion = 0
@@ -1261,16 +1285,25 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
         return kwargs
 
     def get_success_url(self):
+        """
+        Redirect to the ws updating page even after update
+        @return: reverse url
+        """
         return reverse('phenotypeworkingset_update', args=(self.object.id,))
 
     def form_invalid(self, form):
+        """
+        Render the invalid form if user put wrong data
+        @param form: DjangoForm object
+        @return: render response of invalid form
+        """
         tag_ids = commaSeparate(self.request.POST.get('tagids'))
         collections = commaSeparate(self.request.POST.get('collections'))
         datasources = commaSeparate(self.request.POST.get('datasources'))
         publications = self.request.POST.get('publication_data')
         table_elements_data = self.request.POST.get('phenotypes_concepts_json')
         previous_selection = self.request.POST.get('previous_selection')
-        context = self.get_context_data()
+        context = self.get_context_data()#get the rest of the context data
 
         if tag_ids:
             context['tags'] = Tag.objects.filter(pk__in=tag_ids)
@@ -1292,7 +1325,14 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
             context['previous_selection'] = previous_selection
 
         return self.render_to_response(context)
+
+
     def form_valid(self, form):
+        """
+        Save updated changes to the database  if form is valid and redirect
+        @param form: DjangoForm object
+        @return: response redirect to the new page on success
+        """
         # ----------------------------------------------------------
         # alert user when concurrent editing of workingset
         latest_history_id = str(self.object.history.latest().history_id)
@@ -1319,8 +1359,8 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
             form.instance.tags = commaSeparate(self.request.POST.get('tagids'))
             form.instance.collections = commaSeparate(self.request.POST.get('collections'))
             form.instance.data_sources = commaSeparate(self.request.POST.get('datasources'))
-            form.instance.phenotypes_concepts_data = json.loads(self.request.POST.get('workingset_data') or '[]')
-            form.instance.publications = json.loads(self.request.POST.get('publication_data') or '[]')
+            form.instance.phenotypes_concepts_data = json.loads(self.request.POST.get('workingset_data') or '[]')#if updated version does not have table
+            form.instance.publications = json.loads(self.request.POST.get('publication_data') or '[]')#if publications is not exist on update
 
             self.object = form.save()
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, self.kwargs['pk'], "Updated")
@@ -1333,7 +1373,12 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
         return HttpResponseRedirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):
-        context = UpdateView.get_context_data(self, **kwargs)
+        """
+        Overriden method  to get specific context data to generate form
+        @param kwargs:
+        @return: filtered context
+        """
+        context = UpdateView.get_context_data(self, **kwargs)#get the initial context first
 
         tags = Tag.objects.filter(pk=-1)
         workigset_tags = self.get_object().tags
@@ -1366,6 +1411,7 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
                 except Exception:
                     data['concept_name'] = 'Unknown'
 
+        #in case if deleted
         if self.get_object().is_deleted == True:
             messages.info(self.request, "This workingset has been deleted.")
 
@@ -1376,12 +1422,13 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
         context['collections'] = workingset_collections
         context['publications'] = workigset_publications
         context['workingset_data'] = workingset_data
+        #check if user has permission to update
         context['allowed_to_permit'] = allowed_to_permit(self.request.user, PhenotypeWorkingset, self.get_object().id)
 
 
-
+        #get overide version in case concurrent operations
         context['overrideVersion'] = self.confirm_overrideVersion
-        context['history'] = self.get_object().history.all()
+        context['history'] = self.get_object().history.all() # get history to generate table
         latest_history_id = context['phenotypeworkingset'].history.first().history_id
         context['latest_history_id'] = latest_history_id if self.request.POST.get(
             'latest_history_id') is None else self.request.POST.get('latest_history_id')
@@ -1396,21 +1443,35 @@ class WorkingSetUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetChe
 
 class WorkingSetDelete(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
     '''
-           Delete a workingset.
+           Delete workingset class .
        '''
     model = PhenotypeWorkingset
     success_url = reverse_lazy('phenotypeworkingsets_list')
     template_name = 'clinicalcode/phenotypeworkingset/delete.html'
 
     def get_success_url(self):
+        """
+        Redirect to the list in case of request is finished
+        @return: reverse url to ws list
+        """
         return reverse_lazy('phenotypeworkingsets_list')
 
     def get(self, request, pk):
+        """
+        Get information about page when delete/or already deleted
+        @rtype: render response to template
+        """
         workingset = PhenotypeWorkingset.objects.get(pk=pk)
 
         return self.render_to_response({'pk': pk, 'name': workingset.name})
 
     def post(self, request, pk):
+        """
+        Perform a delete request and save delete flag to the database
+        @param request: user request object
+        @param pk: workingset id
+        @return: HttpResponse redirect to the provided URL
+        """
         with transaction.atomic():
             workingset_db_utils.deletePhenotypeWorkingset(pk, request.user)
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, pk, "Workingset has been deleted")
@@ -1428,13 +1489,28 @@ class WorkingSetRestore(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
     template_name = 'clinicalcode/phenotypeworkingset/restore.html'
 
     def get_success_url(self):
+
+        """
+        Redirect to the list in case of request is finished
+        @return: reverse url to ws list
+        """
         return reverse_lazy('phenotypeworkingsets_list')
 
     def get(self, request, pk):
+        """
+        Get information about page when to be restored
+        @rtype: render response to template
+        """
         workingset = PhenotypeWorkingset.objects.get(pk=pk)
         return self.render_to_response({'pk': pk, 'name': workingset.name})
 
     def post(self, request, pk):
+        """
+        Perfomr a restore request and restore the record to the database
+        @param request: user request object
+        @param pk: workingset id
+        @return: HTTPResponse redirect to the ws list
+        """
         with transaction.atomic():
             workingset_db_utils.restorePhenotypeWorkingset(pk, request.user)
             db_utils.modify_Entity_ChangeReason(PhenotypeWorkingset, pk, "Workingset has been restored")
@@ -1445,8 +1521,12 @@ class WorkingSetRestore(LoginRequiredMixin, HasAccessToEditPhenotypeWorkingsetCh
 def workingset_history_revert(request, pk, workingset_history_id):
     ''' 
         Revert a previously saved working set from the history.
+        @param request: user request object
+        @param pk: workingset id
+        @param workingset_history_id: historical workingset id
+        @return: message to the client side and JSON response from server of revert operation
     '''
-    validate_access_to_edit(request, PhenotypeWorkingset, pk)
+    validate_access_to_edit(request, PhenotypeWorkingset, pk)# check permissions
     data = dict()
     if request.method == 'POST':
         # Don't allow revert if the active object is deleted
@@ -1480,6 +1560,10 @@ def workingset_history_revert(request, pk, workingset_history_id):
 def history_workingset_codes_to_csv(request, pk, workingset_history_id=None):
     '''
         Return a csv file of codes for a working set for a specific historical version.
+        @param request: user request object
+        @param pk: workingset id
+        @param workingset_history_id: historical id of workingset
+        @return:
     '''
 
     if workingset_history_id is None:
