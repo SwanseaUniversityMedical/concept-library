@@ -1392,7 +1392,9 @@
 
         }
 
-
+        /**
+         * Highlight input if type selection changed to the different value
+         */
         function highlightinput(input, select) {
             input = new DOMParser().parseFromString(input, "text/html")
             select = new DOMParser().parseFromString(select, "text/html")
@@ -1497,7 +1499,7 @@
          * @param select_val validate against certain types of data(INT/STRING/FLOAT)
          * @param input input element
          * @param val of the input
-         * @param trim to cut the text to the certain size
+         * @param trim to cut the text to the certain size if input value is wrong
          * @param returninput return DOM element
          * @param changeinp change value of the selected DOM element
          * @returns {*|boolean}

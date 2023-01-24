@@ -416,7 +416,7 @@ class WorkingSetCreate(LoginRequiredMixin, HasAccessToCreateCheckMixin, MessageM
         previous_selection = self.request.POST.get('previous_selection')
         context = self.get_context_data()#get the rest of the context data
 
-
+        #Some date stores not in Django form so we need to collect ids from context arrays to intialize first 
         if tag_ids:
             context['tags'] = Tag.objects.filter(pk__in=tag_ids)
 
