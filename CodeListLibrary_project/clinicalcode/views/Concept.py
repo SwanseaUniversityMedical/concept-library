@@ -527,7 +527,6 @@ class ConceptUpdate(LoginRequiredMixin, HasAccessToEditConceptCheckMixin,
                                                                       returnErrors=False)
                                     )
         context['allowed_to_permit'] = allowed_to_permit(self.request.user, Concept, self.get_object().id)
-        # context['enable_publish'] = settings.ENABLE_PUBLISH
 
         # published versions
         published_historical_ids = list(PublishedConcept.objects.filter(concept_id=self.get_object().id).values_list('concept_history_id', flat=True))
