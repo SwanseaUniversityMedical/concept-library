@@ -4135,22 +4135,23 @@ def get_brand_associated_collections(request, concept_or_phenotype="concept", br
     return collections, sorted_order
 
 
-def send_review_email(set_class, review_decision, review_message):
+def send_review_email(Entity_obj, review_decision, review_message):
 
-    id = set_class.id
-    name = set_class.name
-    owner_id = set_class.owner.id
+    id = Entity_obj.id
+    name = Entity_obj.name
+    owner_id = Entity_obj.owner.id
 
     owner_email = User.objects.get(id=owner_id).email
     if owner_email == '':
         return False
 
+    Entity_name = Entity_obj._meta.model.__name__
     email_subject = 'Concept Library - Data %s has been %s' % (id, review_decision)
     email_content = '''<strong>New Message from Concept Library Website</strong><br><br>
-    <strong>Phenotype:</strong><br>{id} - {name}<br><br>
+    <strong>{Entity_name}:</strong><br>{id} - {name}<br><br>
     <strong>Decision:</strong><br>{decision}<br><br>
     <strong>Reviewer message:</strong><br>{message}
-    '''.format(id=id, name=name, decision=review_decision, message=review_message)
+    '''.format(Entity_name=Entity_name, id=id, name=name, decision=review_decision, message=review_message)
 
     if not settings.IS_DEVELOPMENT_PC:
         try:
