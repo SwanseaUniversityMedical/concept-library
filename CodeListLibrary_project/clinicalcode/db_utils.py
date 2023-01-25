@@ -4135,21 +4135,22 @@ def get_brand_associated_collections(request, concept_or_phenotype="concept", br
     return collections, sorted_order
 
 
-def send_review_email(phenotype, review_decision, review_message):
-    phenotype_id = phenotype.id
-    phenotype_name = phenotype.name
-    phenotype_owner_id = phenotype.owner_id
+def send_review_email(set_class, review_decision, review_message):
 
-    owner_email = User.objects.get(id=phenotype_owner_id).email
+    id = set_class.id
+    name = set_class.name
+    owner_id = set_class.owner.id
+
+    owner_email = User.objects.get(id=owner_id).email
     if owner_email == '':
         return False
 
-    email_subject = 'Concept Library - Phenotype %s has been %s' % (phenotype_id, review_decision)
+    email_subject = 'Concept Library - Data %s has been %s' % (id, review_decision)
     email_content = '''<strong>New Message from Concept Library Website</strong><br><br>
     <strong>Phenotype:</strong><br>{id} - {name}<br><br>
     <strong>Decision:</strong><br>{decision}<br><br>
     <strong>Reviewer message:</strong><br>{message}
-    '''.format(id=phenotype_id, name=phenotype_name, decision=review_decision, message=review_message)
+    '''.format(id=id, name=name, decision=review_decision, message=review_message)
 
     if not settings.IS_DEVELOPMENT_PC:
         try:
@@ -4320,6 +4321,8 @@ def get_concept_data_of_historical_phenotypeWorkingset(pk, history_id=None):
                 )
 
     return concept_id_version
+
+
 
 
 
