@@ -6,7 +6,7 @@
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
-        <h4 class="modal-title"> Publish Working Set"<b>{{ name }}</b>"?</h4>
+        <h4 class="modal-title"> Publish Working Set "<b>{{ name }}</b>"?</h4>
     </div>
     <div class="modal-body">
     {% if  approval_status == 1 %}
@@ -94,13 +94,13 @@
                 <p>
                     <br>
                         {% if is_owner and not errors and not approval_status == 1 and not approval_status == 3%}
-                        Are you sure you want to publish this version of "{{ name }}"?
+                        Are you sure you want to publish this version of "<b>{{ name }}</b>"?
 
                         <br>
-                        Published Working Set cannot be undone.
+                        Published working set cannot be undone.
                             {% if not is_lastapproved %}
                             <br>
-                            This working set is going to be reviewed by the moderator and you will be notified when the working set will be published
+                            This working set is going to be reviewed by the moderator and you will be notified when the working set is published
 
 
 
