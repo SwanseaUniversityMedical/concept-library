@@ -33,7 +33,6 @@ from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from .. import db_utils, utils
-from ..db_utils import validate_phenotype_workingset_attribute_group
 from ..view_utils import workingset_db_utils
 from clinicalcode.forms.WorkingsetForm import WorkingsetForm
 from ..models import *
@@ -446,7 +445,7 @@ def phenotype_workingset_DB_test_create(request):
     import random
 
     test_workingset = PhenotypeWorkingset.objects.create(
-        name="wokringset test #" + str(random.random() * 1000000),
+        name="working set test #" + str(int(random.random() * 1000000)),
         type=random.choice(Type_status)[0],
         tags=random.sample(list(Tag.objects.filter(tag_type=1).values_list('id', flat=True)), 1),
         collections=random.sample(list(Tag.objects.filter(tag_type=2).values_list('id', flat=True)), 2),
@@ -703,12 +702,8 @@ def get_history_table_data(request, pk):
 
     for v in versions:
         ver = workingset_db_utils.getHistoryPhenotypeWorkingset(v.history_id
-                                                     , highlight_result=[False, True][
-                db_utils.is_referred_from_search_page(request)]
-                                                     , q_highlight=db_utils.get_q_highlight(request,
-                                                                                            request.session.get(
-                                                                                                'ph_workingset_search',
-                                                                                                ''))
+                                                     , highlight_result=[False, True][db_utils.is_referred_from_search_page(request)]
+                                                     , q_highlight=db_utils.get_q_highlight(request, request.session.get('ph_workingset_search', ''))
                                                      )
 
         if ver['owner_id'] is not None:

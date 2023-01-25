@@ -121,7 +121,7 @@ class ReadOnlyTestConcept(StaticLiveServerTestCase):
             world_access=Permissions.EDIT)
 
         update_friendly_id()
-        save_stat(self.WEBAPP_HOST)
+
 
     def tearDown(self):
         self.browser.quit()

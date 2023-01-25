@@ -15,9 +15,7 @@
 				<th>Date</th>
 				<th>Change reason</th>
 				<th>User</th>
-				{% if enable_publish %}
-					<th>Is Published?</th>
-				{% endif %}
+				<th>Is Published?</th>
 			{% else %}
 				<th>Owner</th>
 				<th>Publish date</th>
@@ -48,7 +46,6 @@
 						{{ history.created_by }}
 					{% endif %}
 				</td>
-				{% if enable_publish %}
 				<td classXX="text-center">
 					{% if history.history_id in published_historical_ids%}
 						<span>&#10004;</span>
@@ -56,7 +53,6 @@
 						{{ history.approval_status_label }}
 					{% endif %}
 				</td>
-				{% endif %}
 			{% else %}
 				<td>{{ history.owner }}</td>
 				<td>{{ history.publish_date|date:"Y-m-d" }}</td>
