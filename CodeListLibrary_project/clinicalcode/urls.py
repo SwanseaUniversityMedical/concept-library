@@ -458,6 +458,7 @@ if not settings.CLL_READ_ONLY:
     ]
 
 #======== Publish Concept =========================================================================
+
 urlpatterns += [
     url(r'^concepts/C(?P<pk>\d+)/(?P<concept_history_id>\d+)/publish/$',
         Concept.ConceptPublish.as_view(),
@@ -468,6 +469,12 @@ urlpatterns += [
     url(r'^phenotypeworkingset/(?P<pk>WS\d+)/(?P<workingset_history_id>\d+)/publish/$',
         PhenotypeWorkingSet.WorkingSetPublish.as_view(),
         name='workingset_publish'),
+    url(r'^phenotypeworkingset/(?P<pk>WS\d+)/(?P<workingset_history_id>\d+)/request_publish/$',
+        PhenotypeWorkingSet.WorkingRequestPublish.as_view(),
+        name='workingset_request_publish'),
+    url(r'^phenotypeworkingset/(?P<pk>WS\d+)/(?P<workingset_history_id>\d+)/decline/$',
+        PhenotypeWorkingSet.WorkingsetDecline.as_view(),
+        name='workingset_decline')
 ]
 
 # handler400 = 'clinicalcode.views.bad_request'
