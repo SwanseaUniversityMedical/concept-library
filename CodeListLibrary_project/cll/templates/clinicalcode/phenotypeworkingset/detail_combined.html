@@ -62,7 +62,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                                <a {% if user_can_export %}
                                    href="{% url 'api:api_phenotypeworkingset_detail_version' workingset.id workingset.history_id %}?format=json"
                                    target=_blank {% endif %}
-                           {% elif enable_publish %}
+                           {% else %}
                                <a {% if user_can_export %}
                                href="{% url 'api:api_phenotypeworkingset_detail_version' workingset.id workingset.history_id %}?format=json"
                                target=_blank {% endif %}
@@ -76,7 +76,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                                <a {% if user_can_export %}
                                    href="{% url 'api:api_phenotypeworkingset_detail_version' workingset.id workingset.history_id %}?format=xml"
                                    target=_blank {% endif %}
-                           {% elif enable_publish %}
+                           {% else %}
                                <a {% if user_can_export %}
                                href="{% url 'api:api_phenotypeworkingset_detail_version' workingset.id workingset.history_id %}?format=xml"
                                target=_blank {% endif %}
@@ -100,7 +100,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
 								Revert
 							</a>
 							</span>
-                            {% if enable_publish %}
+
 
                                 {% if is_published and approval_status == 2%}
 
@@ -109,18 +109,20 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                                     <span class="glyphicon glyphicon-ok" style="color:green"></span>
                                 </a>
                                 {% else %}
-                                    <a
-                                            {% if request.user|has_group:"Moderators" %}
+
+
+                                            <a{% if request.user|has_group:"Moderators" %}
                                                 {% if not live_ver_is_deleted %}
-                                                    {% if approval_status == 1 and is_latest_pending_version %}
+                                                    {% if approval_status == 1 %}
                                                         class="js-load-modal btn btn-warning"
                                                         href="{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}"
                                                         title="Needs to be approved"
+
                                                     {% else %}
                                                         {% if approval_status == 3 %}
                                                         class="js-load-modal  btn btn-danger"
                                                         href="{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}"
-                                                        title="Approve declined Working Set"
+                                                        title="Approve rejected Working Set"
                                                         {% else %}
                                                         class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
                                                         href="{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}"
@@ -141,7 +143,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
 
                                                 {% endif %}
                                                         id="publish2">
-                                               {% if approval_status == 1 and is_latest_pending_version%}
+                                               {% if approval_status == 1%}
                                                    Approve
                                                {% else %}
                                                         Publish
@@ -151,8 +153,14 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                                             {% else %}
 
 
-                                                <a
-                                                        {% if not live_ver_is_deleted and approval_status is None  or approval_status == 2 %}
+
+                                                 <a{% if not is_lastapproved and approval_status is None and not request.user|has_group:"Moderators" %}
+
+                                                            class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
+                                                            href="{% url 'workingset_request_publish' pk=workingset.id workingset_history_id=workingset.history_id %}"
+
+                                                        {% elif  is_lastapproved and not live_ver_is_deleted and not approval_status == 3%}
+
                                                             class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
                                                             href="{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}"
                                                         {% else %}
@@ -164,9 +172,9 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                                                                 title="Deleted Working Set cannot be published !!"
                                                             {% elif approval_status == 3 %}
                                                                 class="btn btn-danger"
-                                                                disabled title="This version is declined"
+                                                                disabled title="This version is rejected"
                                                             {% elif  approval_status == 1 %}
-                                                                {% if phenotype.owner_id == request.user.id %}
+                                                                {% if workingset.owner_id == request.user.id %}
                                                                     class="btn btn-primary btn-warning"
                                                                     disabled title="This version needs to be approved "
                                                                 {% else %}
@@ -174,13 +182,16 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                                                                     disabled = true
                                                                     disabled title="Unavailable to publish"
                                                                 {% endif %}
+
+
                                                             {% endif %}
 
 
                                                         {% endif %}
                                                             id="publish2">
                                                          {% if approval_status == 3 %}
-                                                               Declined
+                                                               Rejected
+
                                                          {% else %}
                                                             {% if approval_status == 1 %}
                                                                 Pending
@@ -196,7 +207,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
 
                             {% endif %}
 
-                        {% endif %}
+
 
 
                         <a id="printBtn" class="btn btn-outline-primary btn-cl btn-cl-secondary">
@@ -219,6 +230,9 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                 </div>
         
                 <div class="alert alert-success alert-dismissable" id="success-message" style="display: none;"
+                     role="alert"></div>
+
+                      <div class="alert alert-warning alert-dismissable" id="warning-message" style="display: none;"
                      role="alert"></div>
                 <div class="alert alert-danger alert-dismissable" id="error-message" style="display: none;"
                      role="alert"></div>
@@ -313,12 +327,14 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                     </div>
                 </div>
                 {% endif %}
+            {% if is_published %}
                 <div class="row" style="margin-top: 10px;">
                     <div class="col-sm-2">Published Date</div>
                     <div class="col-sm-10">
-                        {{ workingset.created }}
+                        {{ publish_date }}
                     </div>
                 </div>
+            {% endif %}
 
 				<div class="row" style="margin-top: 10px;">
 					<div class="col-sm-2">Collections</div>
@@ -432,7 +448,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                                 <a {% if user_can_export %}
                                     href="{% url 'api:api_export_phenotypeworkingset_codes_byVersionID' pk=workingset.id workingset_history_id=workingset.history_id %}?format=json"
                                     target=_blank {% endif %}
-                            {% elif enable_publish %}
+                            {% else%}
                                 <a {% if user_can_export %}
                                 href="{% url 'api:api_export_published_phenotypeworkingset_codes' pk=workingset.id workingset_history_id=workingset.history_id %}?format=json"
                                 target=_blank {% endif %}
@@ -446,7 +462,7 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                                 <a {% if user_can_export %}
                                     href="{% url 'api:api_export_phenotypeworkingset_codes_byVersionID' pk=workingset.id workingset_history_id=workingset.history_id %}?format=xml"
                                     target=_blank {% endif %}
-                            {% elif enable_publish %}
+                            {% else %}
                                 <a {% if user_can_export %}
                                 href="{% url 'api:api_export_published_phenotypeworkingset_codes' pk=workingset.id workingset_history_id=workingset.history_id %}?format=xml"
                                 target=_blank {% endif %}
@@ -863,8 +879,8 @@ data-spy="scroll" data-target="#WorkingSetMenu" data-offset = "140"
                 "scrollY": "700px",
                 "scrollCollapse": true,
                 "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-                "colReorder": true,
-                "rowReorder": true,
+                "orderable": false,
+                "ordering": false,
             });
         }
 

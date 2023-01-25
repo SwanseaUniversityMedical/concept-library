@@ -411,7 +411,7 @@ def check_concepts_not_associated_with_phenotypes(request):
     for p in phenotypes_id:
         phenotype = Phenotype.objects.get(pk=p)
         if phenotype.concept_informations:
-            concept_id_list = [x['concept_id'] for x in json.loads(phenotype.concept_informations)]    
+            concept_id_list = [x['concept_id'] for x in phenotype.concept_informations]    
             concepts_ids_in_phenotypes = concepts_ids_in_phenotypes + concept_id_list
 
     concepts_ids_in_phenotypes = set(concepts_ids_in_phenotypes)

@@ -458,18 +458,24 @@ if not settings.CLL_READ_ONLY:
     ]
 
 #======== Publish Concept =========================================================================
-if settings.ENABLE_PUBLISH:
-    urlpatterns += [
-        url(r'^concepts/C(?P<pk>\d+)/(?P<concept_history_id>\d+)/publish/$',
-            Concept.ConceptPublish.as_view(),
-            name='concept_publish'),
-        url(r'^phenotypes/(?P<pk>PH\d+)/(?P<phenotype_history_id>\d+)/publish/$',
-            Phenotype.PhenotypePublish.as_view(),
-            name='phenotype_publish'),
-        url(r'^phenotypeworkingset/(?P<pk>WS\d+)/(?P<workingset_history_id>\d+)/publish/$',
-            PhenotypeWorkingSet.WorkingSetPublish.as_view(),
-            name='workingset_publish'),
-    ]
+
+urlpatterns += [
+    url(r'^concepts/C(?P<pk>\d+)/(?P<concept_history_id>\d+)/publish/$',
+        Concept.ConceptPublish.as_view(),
+        name='concept_publish'),
+    url(r'^phenotypes/(?P<pk>PH\d+)/(?P<phenotype_history_id>\d+)/publish/$',
+        Phenotype.PhenotypePublish.as_view(),
+        name='phenotype_publish'),
+    url(r'^phenotypeworkingset/(?P<pk>WS\d+)/(?P<workingset_history_id>\d+)/publish/$',
+        PhenotypeWorkingSet.WorkingSetPublish.as_view(),
+        name='workingset_publish'),
+    url(r'^phenotypeworkingset/(?P<pk>WS\d+)/(?P<workingset_history_id>\d+)/request_publish/$',
+        PhenotypeWorkingSet.WorkingRequestPublish.as_view(),
+        name='workingset_request_publish'),
+    url(r'^phenotypeworkingset/(?P<pk>WS\d+)/(?P<workingset_history_id>\d+)/decline/$',
+        PhenotypeWorkingSet.WorkingsetDecline.as_view(),
+        name='workingset_decline')
+]
 
 # handler400 = 'clinicalcode.views.bad_request'
 # handler403 = 'clinicalcode.views.permission_denied'

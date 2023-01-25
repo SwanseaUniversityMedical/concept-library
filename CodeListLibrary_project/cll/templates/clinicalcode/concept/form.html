@@ -63,7 +63,7 @@
 			<a class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary" href="{% url 'concept_fork' form.instance.pk %}">
 				Fork
 			</a>
-			{% if enable_publish and not CLL_READ_ONLY %}
+			{% if not CLL_READ_ONLY %}
 				<button id="publish2"  
 					href="{% url 'concept_publish' pk=form.instance.pk concept_history_id=history.0.history_id %}"
 					{% if is_published %}
