@@ -183,15 +183,16 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
     ''' 
         Display the detail of a concept at a point in time.
     '''
+
+    # checks request perms, and either gets the latest published version or the latest entity version - the latter is only available to those with perms
+    if concept_history_id is None:
+        concept_history_id = try_get_valid_history_id(Concept, request, pk)
+    
     # validate access for login and public site
     validate_access_to_view(request,
                             Concept,
                             pk,
                             set_history_id=concept_history_id)
-
-    if concept_history_id is None:
-        # get the latest version
-        concept_history_id = int(Concept.objects.get(pk=pk).history.latest().history_id)
 
     is_published = checkIfPublished(Concept, pk, concept_history_id)
 

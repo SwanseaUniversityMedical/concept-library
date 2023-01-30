@@ -12,7 +12,20 @@ from django.contrib.auth.models import Group, User
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from dataclasses import replace
+from enum import Enum
 
+class PERM_ERROR_TEMPLATES(str, Enum):
+    """
+        Used to raise custom error messages via 403.html
+
+        Can be used by calling the 'raise PermissionDenied' command with the enum's value as a param
+            e.g. raise PermissionDenied(PERM_ERROR_TEMPLATES.INVALID_ACCESS.value)
+
+        @enum, 'INVALID_ACCESS' - validate_access_to_view method has failed because the request user does not have permission to access the requested content
+        @enum, ...other messages
+
+    """
+    INVALID_ACCESS = 'ERR_403_PERM'
 
 class Permissions:
     NONE = 1
@@ -22,7 +35,67 @@ class Permissions:
 
     PERMISSION_CHOICES_WORLD_ACCESS = ((NONE, 'No Access'), (VIEW, 'View'))
 
+def get_entity_history_id(entity):
+    """
+        Tries to get the entity's history id through reflection.
 
+        @param entity, an entity of the model
+        
+        @returns int, a history id
+    """
+
+    set_cls = entity._meta.model_name
+    entity = entity.history.latest()
+    if set_cls == 'publishedconcept':
+        return int(entity.concept_history_id)
+    elif set_cls == 'publishedphenotype':
+        return int(entity.phenotype_history_id)
+    elif set_cls == 'publishedworkingset':
+        return int(entity.workingset_history_id)
+    return None
+
+def try_get_valid_history_id(set_cls, request, pk):
+    """
+        Tries to resolve a valid history id for an entity query.
+
+        If the user is a superuser, the owner, or is a moderator this method will return the most recent version regardless of publication status.
+
+        Otherwise, this method will return the most recently published version, if available.
+
+        @param set_cls, a model
+        @param request, the request
+        @param pk, the id of the entity
+
+        @returns int, a history_id
+
+    """
+    
+    from .models.Concept import Concept
+    from .models.Phenotype import Phenotype
+    from .models.PhenotypeWorkingset import PhenotypeWorkingset
+    from .models.PublishedConcept import PublishedConcept
+    from .models.PublishedPhenotype import PublishedPhenotype
+    from .models.PublishedWorkingset import PublishedWorkingset
+
+    user = request.user
+    entity = set_cls.objects.get(pk=pk)
+    
+    if user.is_superuser or entity.owner == user or is_member(user, "Moderators"):
+        return int(entity.history.latest().history_id)
+
+    entity = None
+    if set_cls == Concept:
+        entity = PublishedConcept.objects.filter(concept_id=pk)
+    elif set_cls == Phenotype:
+        entity = PublishedPhenotype.objects.filter(phenotype_id=pk, approval_status=2)
+    elif set_cls == PhenotypeWorkingset:
+        entity = PublishedWorkingset.objects.filter(workingset_id=pk, approval_status=2)
+    
+    if entity is not None and entity.exists():
+        entity = entity.first()
+        return get_entity_history_id(entity)
+
+    return None
 
 def checkIfPublished(set_class, set_id, set_history_id):
     ''' Check if an entity version is published '''
@@ -442,7 +515,7 @@ def validate_access_to_view(request, set_class, set_id, set_history_id=None):
         page to be displayed.
     '''
     if allowed_to_view(request, set_class, set_id, set_history_id=set_history_id) == False:
-        raise PermissionDenied
+        raise PermissionDenied(PERM_ERROR_TEMPLATES.INVALID_ACCESS.value)
 
 
 def validate_access_to_edit(request, set_class, set_id):

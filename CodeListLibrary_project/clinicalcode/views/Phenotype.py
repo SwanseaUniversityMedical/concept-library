@@ -364,15 +364,16 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     ''' 
         Display the detail of a phenotype at a point in time.
     '''
+
+    # checks request perms, and either gets the latest published version or the latest entity version - the latter is only available to those with perms
+    if phenotype_history_id is None:
+        phenotype_history_id = try_get_valid_history_id(Phenotype, request, pk)
+    
     # validate access for login and public site
     validate_access_to_view(request,
                             Phenotype,
                             pk,
                             set_history_id=phenotype_history_id)
-
-    if phenotype_history_id is None:
-        # get the latest version
-        phenotype_history_id = int(Phenotype.objects.get(pk=pk).history.latest().history_id)
 
     is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
     approval_status = get_publish_approval_status(Phenotype, pk, phenotype_history_id)

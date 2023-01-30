@@ -571,15 +571,15 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
         @return: context render page
     '''
 
+    # checks request perms, and either gets the latest published version or the latest entity version - the latter is only available to those with perms
+    if workingset_history_id is None:
+        workingset_history_id = try_get_valid_history_id(PhenotypeWorkingset, request, pk)
+
     # validate access for login and public site
     validate_access_to_view(request,
                             PhenotypeWorkingset,
                             pk,
                             set_history_id=workingset_history_id)
-
-    if workingset_history_id is None:
-        # get the latest version
-        workingset_history_id = int(PhenotypeWorkingset.objects.get(pk=pk).history.latest().history_id)
 
     is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
     approval_status = get_publish_approval_status(PhenotypeWorkingset, pk, workingset_history_id)
