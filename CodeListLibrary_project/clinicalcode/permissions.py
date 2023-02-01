@@ -11,7 +11,6 @@ from django.conf import settings
 from django.contrib.auth.models import Group, User
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
-from django.apps import apps
 from dataclasses import replace
 from enum import Enum
 
