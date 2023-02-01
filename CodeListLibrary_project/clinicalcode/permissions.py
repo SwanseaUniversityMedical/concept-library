@@ -11,6 +11,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group, User
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
+from django.apps import apps
 from dataclasses import replace
 from enum import Enum
 
@@ -34,25 +35,6 @@ class Permissions:
     PERMISSION_CHOICES = ((NONE, 'No Access'), (VIEW, 'View'), (EDIT, 'Edit'))
 
     PERMISSION_CHOICES_WORLD_ACCESS = ((NONE, 'No Access'), (VIEW, 'View'))
-
-def get_entity_history_id(entity):
-    """
-        Tries to get the entity's history id through reflection.
-
-        @param entity, an entity of the model
-        
-        @returns int, a history id
-    """
-
-    set_cls = entity._meta.model_name
-    entity = entity.history.latest()
-    if set_cls == 'publishedconcept':
-        return int(entity.concept_history_id)
-    elif set_cls == 'publishedphenotype':
-        return int(entity.phenotype_history_id)
-    elif set_cls == 'publishedworkingset':
-        return int(entity.workingset_history_id)
-    return None
 
 def try_get_valid_history_id(set_cls, request, pk):
     """
@@ -79,21 +61,31 @@ def try_get_valid_history_id(set_cls, request, pk):
 
     user = request.user
     entity = set_cls.objects.get(pk=pk)
+    history_id = int(entity.history.latest().history_id)
     
-    if user.is_superuser or entity.owner == user or is_member(user, "Moderators"):
-        return int(entity.history.latest().history_id)
+    if allowed_to_view(request, set_cls, pk, history_id, user):
+        return history_id
 
     entity = None
+    history_id = None
     if set_cls == Concept:
-        entity = PublishedConcept.objects.filter(concept_id=pk)
+        entity = PublishedConcept.objects.filter(concept_id=pk).order_by('-concept_history_id')
+        if entity is not None and entity.exists():
+            entity = entity.first()
+            history_id = int(entity.concept_history_id)
     elif set_cls == Phenotype:
-        entity = PublishedPhenotype.objects.filter(phenotype_id=pk, approval_status=2)
+        entity = PublishedPhenotype.objects.filter(phenotype_id=pk, approval_status=2).order_by('-phenotype_history_id')
+        if entity is not None and entity.exists():
+            entity = entity.first()
+            history_id = int(entity.phenotype_history_id)
     elif set_cls == PhenotypeWorkingset:
-        entity = PublishedWorkingset.objects.filter(workingset_id=pk, approval_status=2)
-    
-    if entity is not None and entity.exists():
-        entity = entity.first()
-        return get_entity_history_id(entity)
+        entity = PublishedWorkingset.objects.filter(workingset_id=pk, approval_status=2).order_by('-workingset_history_id')
+        if entity is not None and entity.exists():
+            entity = entity.first()
+            history_id = int(entity.workingset_history_id)
+
+    if entity is not None and history_id is not None and allowed_to_view(request, set_cls, set_id=pk, set_history_id=history_id, user=user):
+        return history_id
 
     return None
 
@@ -390,7 +382,6 @@ def allowed_to_view(request,
             set_history_id = int(set_class.objects.get(pk=set_id).history.latest().history_id)
 
         is_published = checkIfPublished(set_class, set_id, set_history_id)
-
         if is_published:
             is_allowed_to_view = True
     # ********************************************
