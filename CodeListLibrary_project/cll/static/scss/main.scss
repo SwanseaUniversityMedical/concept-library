@@ -1,0 +1,49 @@
+@import '_fonts';
+@import '_brands';
+@import '_utils';
+@import 'components/_navigation';
+@import 'components/_footer';
+
+html {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  -webkit-text-size-adjust: none;
+}
+
+*:not(body) {
+  position: relative;
+}
+
+body {
+  @include flex-col();
+
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: col(bg);
+}
+
+.main-header {
+  @include flex-col();
+  min-height: fit-content;
+  padding: var(--main-top-padding) var(--main-gutter) 0 var(--main-gutter);
+
+  @include media("<=tablet", "screen") {
+    padding-right: var(--main-mobile-gutter);
+    padding-left: var(--main-mobile-gutter);
+  }
+}
+
+.main-content {
+  @include flex-col();
+  flex: 1;
+  min-height: fit-content;
+  padding: 0 var(--main-gutter) 0 var(--main-gutter);
+
+  @include media("<=tablet", "screen") {
+    padding-right: var(--main-mobile-gutter);
+    padding-left: var(--main-mobile-gutter);
+  }
+}

@@ -1,0 +1,71 @@
+@mixin app-font-style($sz: false) {
+  font: var(--font-size) var(--font-name), var(--font-family);
+  color: col(text-dark);
+
+  @if $sz {
+    font-size: $sz;
+  }
+}
+
+@mixin flex-col($gap: false) {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+
+  @if $gap {
+    gap: $gap;
+  }
+}
+
+@mixin flex-row($gap: false) {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+
+  @if $gap {
+    gap: $gap;
+  }
+}
+
+@mixin fontawesome-icon {
+  cursor: pointer;
+  pointer-events: auto;
+  width: 1rem;
+  height: 1rem;
+  font-family: var(--icons-name);
+  font-style: var(--icons-style);
+  font-size: var(--icons-size);
+  text-align: center;
+  margin-right: 1rem;
+}
+
+@mixin remove-appearance {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  -o-appearance: none;
+  appearance: none;
+}
+
+@mixin ignore-user {
+  -webkit-user-select: none;     
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+@mixin box-shadow($top, $left, $blur, $color, $inset:"") {
+  -webkit-box-shadow: $top $left $blur $color #{$inset};
+  -moz-box-shadow: $top $left $blur $color #{$inset};
+  box-shadow: $top $left $blur $color #{$inset};
+}
+
+@mixin text-shadow($off-x, $off-y, $blur, $color) {
+  text-shadow: $off-x $off-y $blur $color;
+}
+
+@mixin clear-anchor {
+  cursor: pointer;
+  text-decoration: inherit;
+  color: inherit;
+}

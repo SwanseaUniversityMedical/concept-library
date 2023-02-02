@@ -1,0 +1,28 @@
+/// Mixin to prefix a property
+/// @param {String} $property - Property name
+/// @param {*} $value - Property value
+/// @param {List} $prefixes - List of prefixes to print
+/// @return {List} - Standard + Prefixes printed
+@mixin prefix($property, $value, $prefixes: ()) {
+  @each $prefix in $prefixes {
+    #{'-' + $prefix + '-' + $property}: $value;
+  }
+ 
+  #{$property}: $value;
+}
+
+/// Mixin to map a brand's theme to CSS variables
+/// @param {List} $map - Brand map
+/// @return {List} - List of variables printed
+@mixin map-brand($map: ()) {
+  @each $key, $value in $map {
+    --#{$key}: #{$value};
+  }
+};
+
+/// Function to grab a color from the brand map
+/// @param {String} $color-name - Name of the color e.g. primary, bg etc
+/// @return {*} - CSS color variable with prefix
+@function col($color-name) {
+  @return var(--color-#{$color-name});
+}

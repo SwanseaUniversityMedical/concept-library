@@ -1,0 +1,212 @@
+// Helper color palette
+$transparent: rgba(255, 255, 255, 0);
+$white: rgb(255, 255, 255);
+$soft_cyan: rgb(204, 243, 238);
+$blackish-grey: rgb(82, 82, 82);
+$black: rgb(0, 0, 0);
+$dark_grey: rgb(140, 140, 140);
+
+// Per brand variables describing theme of components
+$brand-map-none: (
+  // Brand logo
+  'logo-url': url('/static/img/header_logo.png'),
+
+  // Fonts
+  'font-name': "Montserrat",
+  'font-family': sans-serif,
+  'font-size': 14px,
+
+  // Color accents
+  'color-bg': $white,
+  'color-clear': $transparent,
+
+  // Text accents
+  'color-text-darkest': $black,
+  'color-text-dark': $blackish-grey,
+  'color-text--washed': $dark_grey,
+
+  // Icons
+  'icons-name': var(--fa-style-family-classic),
+  'icons-style': var(--fa-font-solid),
+  'icons-size': 1rem,  
+
+  // Navigation
+  'navigation-offset': 1.5rem,
+  'navigation-gutter': 6rem,
+  'navigation-mobile-offset': 1rem,
+  'navigation-mobile-gutter': 1rem,
+  'navigation-hamburger-size': 1.5rem,
+  'navigation-height': 2rem,
+  'navigation-line-width': 0.15rem,
+  'navigation-selection-box': $white,
+  'navigation-item-selector': $soft_cyan,
+  'navigation-scroll-shadow': "0px 2px 5px 0px rgba(0, 0, 0, .3)",
+  'navigation-panel-shadow': "0px 5px 15px -1px rgba(0, 0, 0, 0.5)",
+
+  // Main page
+  'main-top-padding': 4rem,
+  'main-gutter': 1.25rem,
+  'main-mobile-gutter': 1.75rem,
+
+  // Footer
+  'footer-gutter': 1.25rem,
+  'footer-mobile-gutter': 1.75rem,
+  'footer-top-offset': 1rem,
+  'footer-bottom-offset': 1rem,
+  'footer-copyright-size': 10px,
+  'footer-text-size': 12px,
+  'footer-row-gap': 4rem,
+);
+
+$brand-map-ADP: (
+  // Brand logo
+  'logo-url': url('/static/img/brands/ADP/header_logo.png'),
+
+  // Fonts
+  'font-name': "Montserrat",
+  'font-family': sans-serif,
+  'font-size': 14px,
+
+  // Color accents
+  'color-bg': $white,
+  'color-clear': $transparent,
+
+  // Text accents
+  'color-text-darkest': $black,
+  'color-text-dark': $blackish-grey,
+  'color-text--washed': $dark_grey,
+
+  // Icons
+  'icons-name': var(--fa-style-family-classic),
+  'icons-style': var(--fa-font-solid),
+  'icons-size': 1rem,  
+
+  // Navigation
+  'navigation-offset': 1.5rem,
+  'navigation-gutter': 6rem,
+  'navigation-mobile-offset': 1rem,
+  'navigation-mobile-gutter': 1rem,
+  'navigation-hamburger-size': 1.5rem,
+  'navigation-height': 2rem,
+  'navigation-line-width': 0.15rem,
+  'navigation-selection-box': $white,
+  'navigation-item-selector': $soft_cyan,
+  'navigation-scroll-shadow': "0px 2px 5px 0px rgba(0, 0, 0, .3)",
+  'navigation-panel-shadow': "0px 5px 15px -1px rgba(0, 0, 0, 0.5)",
+
+  // Main page
+  'main-top-padding': 4rem,
+  'main-gutter': 1.25rem,
+  'main-mobile-gutter': 1.75rem,
+
+  // Footer
+  'footer-gutter': 1.25rem,
+  'footer-mobile-gutter': 1.75rem,
+  'footer-top-offset': 1rem,
+  'footer-bottom-offset': 1rem,
+  'footer-copyright-size': 10px,
+  'footer-text-size': 12px,
+  'footer-row-gap': 4rem,
+);
+
+$brand-map-HDRUK: (
+  // Brand logo
+  'logo-url': url('/static/img/brands/HDRUK/header_logo.png'),
+
+  // Fonts
+  'font-name': "Montserrat",
+  'font-family': sans-serif,
+  'font-size': 14px,
+
+  // Color accents
+  'color-bg': $white,
+  'color-clear': $transparent,
+
+  // Text accents
+  'color-text-darkest': $black,
+  'color-text-dark': $blackish-grey,
+  'color-text--washed': $dark_grey,
+
+  // Icons
+  'icons-name': var(--fa-style-family-classic),
+  'icons-style': var(--fa-font-solid),
+  'icons-size': 1rem,  
+
+  // Navigation
+  'navigation-offset': 1.5rem,
+  'navigation-gutter': 6rem,
+  'navigation-mobile-offset': 1rem,
+  'navigation-mobile-gutter': 1rem,
+  'navigation-hamburger-size': 1.5rem,
+  'navigation-height': 2rem,
+  'navigation-line-width': 0.15rem,
+  'navigation-selection-box': $white,
+  'navigation-item-selector': $soft_cyan,
+  'navigation-scroll-shadow': "0px 2px 5px 0px rgba(0, 0, 0, .3)",
+  'navigation-panel-shadow': "0px 5px 15px -1px rgba(0, 0, 0, 0.5)",
+
+  // Main page
+  'main-top-padding': 4rem,
+  'main-gutter': 1.25rem,
+  'main-mobile-gutter': 1.75rem,
+
+  // Footer
+  'footer-gutter': 1.25rem,
+  'footer-mobile-gutter': 1.75rem,
+  'footer-top-offset': 1rem,
+  'footer-bottom-offset': 1rem,
+  'footer-copyright-size': 10px,
+  'footer-text-size': 12px,
+  'footer-row-gap': 4rem,
+);
+
+$brand-map-SAIL: (
+  // Brand logo
+  'logo-url': url('/static/img/brands/SAIL/header_logo.png'),
+
+  // Fonts
+  'font-name': "Montserrat",
+  'font-family': sans-serif,
+  'font-size': 14px,
+
+  // Color accents
+  'color-bg': $white,
+  'color-clear': $transparent,
+
+  // Text accents
+  'color-text-darkest': $black,
+  'color-text-dark': $blackish-grey,
+  'color-text--washed': $dark_grey,
+
+  // Icons
+  'icons-name': var(--fa-style-family-classic),
+  'icons-style': var(--fa-font-solid),
+  'icons-size': 1rem,  
+
+  // Navigation
+  'navigation-offset': 1.5rem,
+  'navigation-gutter': 6rem,
+  'navigation-mobile-offset': 1rem,
+  'navigation-mobile-gutter': 1rem,
+  'navigation-hamburger-size': 1.5rem,
+  'navigation-height': 2rem,
+  'navigation-line-width': 0.15rem,
+  'navigation-selection-box': $white,
+  'navigation-item-selector': $soft_cyan,
+  'navigation-scroll-shadow': "0px 2px 5px 0px rgba(0, 0, 0, .3)",
+  'navigation-panel-shadow': "0px 5px 15px -1px rgba(0, 0, 0, 0.5)",
+
+  // Main page
+  'main-top-padding': 4rem,
+  'main-gutter': 1.25rem,
+  'main-mobile-gutter': 1.75rem,
+
+  // Footer
+  'footer-gutter': 1.25rem,
+  'footer-mobile-gutter': 1.75rem,
+  'footer-top-offset': 1rem,
+  'footer-bottom-offset': 1rem,
+  'footer-copyright-size': 10px,
+  'footer-text-size': 12px,
+  'footer-row-gap': 4rem,
+);

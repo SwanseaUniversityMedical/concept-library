@@ -22,6 +22,7 @@ from django.views.generic.base import TemplateView
 
 urlpatterns = [
     url(r'^$', View.index, name='concept_library_home'),
+    url(r'^test-scss/$', View.scss_test, name='scss_testing'),
     url(r'^home/$', View.index, name='concept_library_home2'),
     url(r'^concepts/$', Concept.concept_list, name='concept_list'),
     url(r'^workingsets/$', WorkingSet.workingset_list, name='workingset_list'),

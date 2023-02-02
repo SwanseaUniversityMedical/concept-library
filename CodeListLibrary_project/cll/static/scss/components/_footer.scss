@@ -1,0 +1,54 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+.page-footer {
+  &__row {
+    @include flex-row();
+    padding: var(--footer-top-offset) var(--footer-gutter) var(--footer-bottom-offset) var(--footer-gutter);
+    justify-content: space-between;
+  }
+
+  &__copyright {
+    flex: 0.35;
+    font-size: var(--footer-copyright-size);
+    text-overflow: ellipsis;
+    white-space: wrap;
+    text-align: right;
+  }
+
+  &__items {
+    @include flex-row($gap: 1.5rem);
+    flex: 1;
+    margin-right: var(--footer-row-gap);
+
+    a, a:visited {
+      @include clear-anchor();
+      color: col(text-washed);
+    }
+    
+    a:hover {
+      color: col(text-darkest);
+    }
+
+    a:active {
+      font-weight: bold;
+    }
+  }
+
+  @include media("<=tablet", "screen") {
+    & {
+      padding-left: var(--footer-mobile-gutter);
+      padding-right: var(--footer-mobile-gutter);
+    }
+
+    &__copyright {
+      flex: 0.15;
+    }
+
+    &__items {
+      @include flex-row($gap: 0.5rem);
+    }
+  }
+}

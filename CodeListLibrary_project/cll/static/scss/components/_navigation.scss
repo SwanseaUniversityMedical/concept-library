@@ -1,0 +1,226 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+$navigation_btn_transition: background-size 250ms ease, transform 250ms ease-in-out;
+$navigation_login_transition: background-color 250ms ease, transform 250ms ease;
+$navigation_btn_gradient: 90deg, var(--navigation-item-selector) 0%, var(--navigation-item-selector) 50%, var(--navigation-item-selector) 100%;
+$navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
+
+@mixin navigation-item($vertical: false) {
+  @include app-font-style();
+  @include prefix(transition, $navigation_btn_transition, webkit moz o);
+  
+  background-image: linear-gradient($navigation_btn_gradient);
+  background-image: -webkit-linear-gradient($navigation_btn_gradient);
+
+  cursor: pointer;
+  pointer-events: auto;
+  display: inline-flex;
+  height: auto;
+  width: auto;
+  font-weight: bold;
+  background-repeat: no-repeat;
+  
+  @if $vertical {
+    flex-direction: row;
+    padding: 0.5rem;
+    justify-content: left;
+    background-position: left 50%;
+    background-size: var(--navigation-line-width) 0, auto;
+    z-index: 999;
+
+    &:first-child {
+      padding: 0 0.5rem 0.5rem 0.5rem;
+    }
+
+    &:not(.active):not([role="login"]):hover {
+      background-size: var(--navigation-line-width) 90%, auto;
+    }
+
+    &.active {
+      background-size: var(--navigation-line-width) 90%, auto;
+    }
+
+    &:not(.active):not([role="login"]):active {
+      @include prefix(transform, translateY(2px), webkit moz o);
+    }
+  } @else {
+    flex-direction: column;
+    justify-content: center;
+    background-position: center bottom;
+    background-size: 0 var(--navigation-line-width), auto;
+
+    &:not(.active):not([role="login"]):hover {
+      background-size: 25% var(--navigation-line-width), auto;
+      @include prefix(transform, translateY(-2px), webkit moz o);
+    }
+
+    &.active {
+      background-size: 100% 100%, auto;
+      border-radius: 0.25rem;
+    }
+
+    &:not(.active):not([role="login"]):active {
+      @include prefix(transform, translateY(0px), webkit moz o);
+    }
+  }
+
+  &:not(.active) {
+    color: col(text-dark);
+  }
+
+  &[role="login"] {
+    @include prefix(transition, $navigation_login_transition, webkit moz o);
+    background-color: rgba(255, 255, 255, 0);
+    border-radius: 0.25rem;
+
+    &:hover {
+      background-color: var(--navigation-item-selector);
+    }
+    &:active {
+      @include prefix(transition, scale(0.95), webkit moz o);
+    }
+  }
+}
+
+.page-navigation {
+  @include prefix(transition, all 250ms ease-in, webkit moz o);
+
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  z-index: 998;
+
+  &.scrolled {
+    box-shadow: var(--navigation-scroll-shadow);
+  }
+
+  &:not(.transparent) {
+    background-color: col(bg);
+  }
+
+  &__container {
+    @include flex-row();
+
+    justify-content: space-between;
+    height: fit-content;
+    min-height: var(--navigation-height);
+    margin: var(--navigation-offset);
+  }
+
+  &__logo {
+    height: var(--navigation-height);
+    aspect-ratio: 3 / 1;
+    background-color: col(clear);
+    background-image: var(--logo-url);
+    background-repeat: no-repeat;
+    background-size: contain;
+
+    @include prefix(background-size, contain, webkit moz o);
+  }
+
+  @include media("<=tablet", "screen") {
+    &__container {
+      margin: var(--navigation-mobile-offset) var(--navigation-mobile-gutter);
+    }
+
+    &__logo {
+      margin-left: var(--navigation-mobile-gutter);
+    }
+  }
+
+  &__buttons {
+    --as-burger: "false";
+
+    display: flex;
+    height: auto;
+    width: auto;
+
+    @include media("<=tablet", "screen") {
+      &:not(:has(.open)):after {
+        --as-burger: "true";
+
+        content: '\f0c9';
+        cursor: pointer;
+        position: relative;
+        display: inline-flex;
+        flex-direction: column;
+        justify-content: center;
+        pointer-events: auto;
+        height: inherit;
+        margin-right: var(--navigation-mobile-gutter);
+        aspect-ratio: 1 / 1;
+        font-family: var(--icons-name);
+        font-style: var(--icons-style);
+        text-align: center;
+        font-size: var(--navigation-hamburger-size);
+      }
+    }
+  }
+
+  @include media(">tablet", "screen") {
+    &__items {
+      @include flex-row($gap: 1rem);
+
+      height: var(--navigation-height);
+
+      a {
+        @include navigation-item();
+        @include clear-anchor();
+
+        padding: 0.5rem;
+        white-space: nowrap;
+      }
+    }
+  }
+
+  @include media("<=tablet", "screen") {
+    &__items {
+      @include flex-col();
+
+      display: flex;
+      visibility: hidden;
+      opacity: 0;
+      position: fixed;
+      background-color: var(--navigation-selection-box);
+      right: var(--navigation-gutter);
+      top: var(--navigation-offset);
+      border-radius: 0.25rem;
+      padding: 0.5rem 0.5rem;
+      transition: opacity 250ms ease;
+
+      a {
+        @include navigation-item($vertical: true);
+        @include clear-anchor();
+
+        padding: 0.5rem;
+        white-space: nowrap;
+      }
+
+      &.open {
+        flex-grow: 0;
+        z-index: 999;
+        opacity: 1;
+        right: 1rem;
+        visibility: visible;
+        box-shadow: var(--navigation-panel-shadow);
+      }
+    }
+  }
+
+  &.transparent {
+    &__items a {
+      background-image: linear-gradient($navigation_transparent_gradient);
+      background-image: -webkit-linear-gradient($navigation_transparent_gradient);
+    }
+
+    a[role="login"]:hover {
+      background-color: col(bg);
+    }
+  }
+}

@@ -123,6 +123,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'cll/static'),
 ]
 
+
 STATIC_URL = '/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticroot')
@@ -132,7 +133,16 @@ WSGI_APPLICATION = 'cll.wsgi.application'
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+
+    # SCSS compilation
+    'sass_processor.finders.CssFinder',
 )
+
+# Sass options
+SASS_PROCESSOR_ENABLED = True
+SASS_PROCESSOR_AUTO_INCLUDE = True
+SASS_PROCESSOR_INCLUDE_FILE_PATTERN = r'^.+\.scss$'
+SASS_OUTPUT_STYLE = 'compressed'
 
 # Binding and connection options
 # LDAP authentication  =======================================================
@@ -200,6 +210,8 @@ INSTALLED_APPS = INSTALLED_APPS + [
     #'rest_framework_swagger',
     'drf_yasg',
     'django.contrib.sitemaps',
+    # sass
+    'sass_processor',
 ]
 
 MIDDLEWARE = [
