@@ -1,3 +1,5 @@
+/// Mixin to apply the application's main font style
+/// @param {Number} $sz - To apply an alternative font size
 @mixin app-font-style($sz: false) {
   font: var(--font-size) var(--font-name), var(--font-family);
   color: col(text-dark);
@@ -7,6 +9,9 @@
   }
 }
 
+/// Mixin to apply a columnn wise flex-box with wrapping
+/// @param {Number} $gap - To apply a flexbox gap
+/// Ref @ https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox
 @mixin flex-col($gap: false) {
   display: flex;
   flex-direction: column;
@@ -17,6 +22,9 @@
   }
 }
 
+/// Mixin to apply a row wise flex-box with wrapping
+/// @param {Number} $gap - To apply a flexbox gap
+/// Ref @ https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox
 @mixin flex-row($gap: false) {
   display: flex;
   flex-direction: row;
@@ -27,6 +35,7 @@
   }
 }
 
+/// Mixin to apply fontawesome style to an element
 @mixin fontawesome-icon {
   cursor: pointer;
   pointer-events: auto;
@@ -39,6 +48,7 @@
   margin-right: 1rem;
 }
 
+/// Mixin to remove the base appearance of an element e.g. an input textarea
 @mixin remove-appearance {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -47,6 +57,7 @@
   appearance: none;
 }
 
+/// Mixin to stop users from being able to highlight or drag an element
 @mixin ignore-user {
   -webkit-user-select: none;     
   -moz-user-select: none;
@@ -54,16 +65,19 @@
   user-select: none;
 }
 
+/// Mixin to apply a box-shadow with prefixes
 @mixin box-shadow($top, $left, $blur, $color, $inset:"") {
   -webkit-box-shadow: $top $left $blur $color #{$inset};
   -moz-box-shadow: $top $left $blur $color #{$inset};
   box-shadow: $top $left $blur $color #{$inset};
 }
 
+/// Mixin to apply a text-shadow with prefixes
 @mixin text-shadow($off-x, $off-y, $blur, $color) {
   text-shadow: $off-x $off-y $blur $color;
 }
 
+/// Mixin to clear an <a/>'s text decoration and style
 @mixin clear-anchor {
   cursor: pointer;
   text-decoration: inherit;
