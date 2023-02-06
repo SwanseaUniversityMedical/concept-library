@@ -6,11 +6,13 @@
 .page-footer {
   &__row {
     @include flex-row();
+    margin: var(--footer-page-offset) 0 0 0;
     padding: var(--footer-top-offset) var(--footer-gutter) var(--footer-bottom-offset) var(--footer-gutter);
     justify-content: space-between;
   }
 
   &__copyright {
+    @include app-font-style();
     flex: 0.35;
     font-size: var(--footer-copyright-size);
     text-overflow: ellipsis;
@@ -25,6 +27,7 @@
 
     a, a:visited {
       @include clear-anchor();
+      @include app-font-style();
       color: col(text-washed);
     }
     

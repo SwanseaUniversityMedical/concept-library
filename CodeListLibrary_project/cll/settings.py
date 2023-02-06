@@ -280,6 +280,9 @@ TEMPLATES = [
                 'cookielaw.context_processors.cookielaw',
                 'cll.context_processors.general_var',
             ],
+            'libraries': {
+                'breadcrumbs': 'clinicalcode.templatetags.breadcrumbs',
+            },
         },
     },
 ]

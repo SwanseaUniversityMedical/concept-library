@@ -35,7 +35,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
       padding: 0 0.5rem 0.5rem 0.5rem;
     }
 
-    &:not(.active):not([role="login"]):hover {
+    &:not(.active):not([role="login"]):not([role="profile"]):hover {
       background-size: var(--navigation-line-width) 90%, auto;
     }
 
@@ -43,7 +43,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
       background-size: var(--navigation-line-width) 90%, auto;
     }
 
-    &:not(.active):not([role="login"]):active {
+    &:not(.active):not([role="login"]):not([role="profile"]):active {
       @include prefix(transform, translateY(2px), webkit moz o);
     }
   } @else {
@@ -52,7 +52,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     background-position: center bottom;
     background-size: 0 var(--navigation-line-width), auto;
 
-    &:not(.active):not([role="login"]):hover {
+    &:not(.active):not([role="login"]):not([role="profile"]):hover {
       background-size: 25% var(--navigation-line-width), auto;
       @include prefix(transform, translateY(-2px), webkit moz o);
     }
@@ -62,7 +62,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
       border-radius: 0.25rem;
     }
 
-    &:not(.active):not([role="login"]):active {
+    &:not(.active):not([role="login"]):not([role="profile"]):active {
       @include prefix(transform, translateY(0px), webkit moz o);
     }
   }
@@ -71,7 +71,8 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     color: col(text-dark);
   }
 
-  &[role="login"] {
+  &[role="login"],
+  &[role="profile"] {
     @include prefix(transition, $navigation_login_transition, webkit moz o);
     background-color: rgba(255, 255, 255, 0);
     border-radius: 0.25rem;
@@ -124,7 +125,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     @include prefix(background-size, contain, webkit moz o);
   }
 
-  @include media("<=tablet", "screen") {
+  @include media("<desktop", "screen") {
     &__container {
       margin: var(--navigation-mobile-offset) var(--navigation-mobile-gutter);
     }
@@ -141,7 +142,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     height: auto;
     width: auto;
 
-    @include media("<=tablet", "screen") {
+    @include media("<desktop", "screen") {
       &:not(:has(.open)):after {
         --as-burger: "true";
 
@@ -163,7 +164,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     }
   }
 
-  @include media(">tablet", "screen") {
+  @include media(">=desktop", "screen") {
     &__items {
       @include flex-row($gap: 1rem);
 
@@ -179,7 +180,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     }
   }
 
-  @include media("<=tablet", "screen") {
+  @include media("<desktop", "screen") {
     &__items {
       @include flex-col();
 
@@ -217,10 +218,6 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     &__items a {
       background-image: linear-gradient($navigation_transparent_gradient);
       background-image: -webkit-linear-gradient($navigation_transparent_gradient);
-    }
-
-    a[role="login"]:hover {
-      background-color: col(bg);
     }
   }
 }

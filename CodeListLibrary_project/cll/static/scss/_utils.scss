@@ -83,3 +83,21 @@
   text-decoration: inherit;
   color: inherit;
 }
+
+/// Mixin to create a bottom divider on an element
+@mixin bottom-divider($size_pad: false, $border_col: false) {
+  @if not $border_col {
+    $border_col: black;
+  }
+
+  background-image: linear-gradient(90deg, $border_col 0%, $border_col 100%);
+  background-image: -webkit-linear-gradient(90deg, $border_col 0%, $border_col 100%);
+  background-repeat: no-repeat;
+  background-position: 50% 100%;
+
+  @if $size_pad {
+    background-size: calc(100% - #{$size_pad}) 1px, auto;
+  } @else {
+    background-size: 100% 1px, auto;
+  }
+}

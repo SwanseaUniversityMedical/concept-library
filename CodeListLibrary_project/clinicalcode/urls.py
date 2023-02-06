@@ -22,13 +22,13 @@ from django.views.generic.base import TemplateView
 
 urlpatterns = [
     url(r'^$', View.index, name='concept_library_home'),
-    url(r'^test-scss/$', View.scss_test, name='scss_testing'),
     url(r'^home/$', View.index, name='concept_library_home2'),
     url(r'^concepts/$', Concept.concept_list, name='concept_list'),
     url(r'^workingsets/$', WorkingSet.workingset_list, name='workingset_list'),
     url(r'^phenotypeworkingsets/select-concepts/$', SelectPhenotype.selection_list, name='selection_list'),
     url(r'^phenotypeworkingsets/$', PhenotypeWorkingSet.workingset_list, name='phenotypeworkingsets_list'),
     url(r'^phenotypes/$', Phenotype.phenotype_list, name='phenotype_list'),
+    url(r'^phenotypes/create/$', Phenotype.CreatePhenotypeView.as_view(), name='create_phenotype'),
     
     url(r'^cookies-settings/$', View.cookies_settings, name='cookies_settings'),
     url(r'^reference-data/$', View.reference_data, name='reference_data'),

@@ -1,0 +1,92 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+.steps-wizard {
+  @include app-font-style();
+
+  --top-position: 12rem;
+
+  position: fixed;
+  border-radius: 0.5rem;
+  width: 18%;
+  max-width: 20rem;
+  height: auto;
+  min-height: 4rem;
+  right: 72%;
+  top: var(--top-position);
+  padding: 1rem 1rem;
+  transition: top 250ms ease;
+
+  @include media("<desktop", "screen") {
+    display: none;
+  }
+
+  &__panel {
+    @include flex-col($gap: 1rem);
+    padding: 0 0 0 0.5rem;
+  }
+
+  &__header {
+    @include ignore-user();
+
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  &__item {
+    $step-circle-color: var(--wizard-step-color);
+
+    cursor: pointer;
+    pointer-events: auto;
+    padding-left: 15%;
+    overflow: visible;
+    font-weight: var(--wizard-counter-text-weight);
+    transition: all 250ms ease;
+
+    &:hover {
+      padding-left: 16%;
+    }
+
+    &:active {
+      padding-left: 14%;
+    }
+
+    &:not(:last-child):before {
+      content: '';
+      position: absolute;
+      color: #fff;
+      left: 5%;
+      top: 95%;
+      height: 105%;
+      width: 2px;
+      text-align: left;
+      background-color: var(--wizard-tracker-color);
+    }
+
+    &:after {
+      content: attr(data-value);
+      padding-left: 4%;
+      position: absolute;
+      color: col(text-dark);
+      overflow: visible;
+      left: 0rem;
+      height: 100%;
+      width: 100%;
+      background-color: $step-circle-color;
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='50' /%3E%3C/svg%3E");
+      -webkit-mask-position: -6% 50%;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-size: 20% 100%;
+      mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='50' /%3E%3C/svg%3E");
+      mask-position: -6% 50%;
+      mask-repeat: no-repeat;
+      mask-size: 20% 100%;
+    }
+  }
+}
+
+.page-navigation.scrolled ~ main.main-content > aside.steps-wizard {
+  --top-position: 8rem;
+}

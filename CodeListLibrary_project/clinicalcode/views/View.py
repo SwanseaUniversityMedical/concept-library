@@ -44,9 +44,6 @@ def index(request):
     else:
         return render(request, 'clinicalcode/index.html')
 
-def scss_test(request):
-    return render(request, 'clinicalcode/test.html')
-
 def index_HDRUK(request):
     '''
         Display the HDR UK homepage.

@@ -1,8 +1,15 @@
 @import '_fonts';
 @import '_brands';
 @import '_utils';
+@import '_media';
 @import 'components/_navigation';
 @import 'components/_footer';
+@import 'components/_breadcrumbs';
+@import 'components/_stepsWizard';
+@import 'components/_inputs';
+@import 'components/_buttons';
+@import 'components/_tags';
+@import 'components/_chips';
 
 html {
   height: 100%;
@@ -17,12 +24,12 @@ html {
 
 body {
   @include flex-col();
-
   width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
   background-color: col(bg);
+  flex-wrap: nowrap;
 }
 
 .main-header {
@@ -30,7 +37,7 @@ body {
   min-height: fit-content;
   padding: var(--main-top-padding) var(--main-gutter) 0 var(--main-gutter);
 
-  @include media("<=tablet", "screen") {
+  @include media("<desktop", "screen") {
     padding-right: var(--main-mobile-gutter);
     padding-left: var(--main-mobile-gutter);
   }
@@ -42,8 +49,345 @@ body {
   min-height: fit-content;
   padding: 0 var(--main-gutter) 0 var(--main-gutter);
 
-  @include media("<=tablet", "screen") {
+  @include media("<desktop", "screen") {
     padding-right: var(--main-mobile-gutter);
     padding-left: var(--main-mobile-gutter);
   }
 }
+
+// Phenotype creation article
+.phenotype-creation {
+  align-self: center;
+  width: var(--phenotype-article-lg-size);
+  max-width: var(--phenotype-article-lg-size);
+
+  @include media(">desktop", "screen") {
+    width: var(--phenotype-article-sm-size);
+    max-width: var(--phenotype-article-sm-size);
+  }
+
+  @include media("<desktop", "screen") {
+    width: var(--phenotype-article-lg-size);
+    max-width: var(--phenotype-article-lg-size);
+  }
+
+  &__completed {
+    @include flex-col();
+
+    position: relative;
+    width: 100%;
+    height: auto;
+    margin-top: 1rem;
+    padding: 0.5rem 0.5rem 1rem 0;
+    
+    &-row {
+      @include flex-row($gap: 0.5rem);
+
+      justify-content: center;
+      @include media(">phone", "screen") {
+        & {
+          justify-content: right;
+        }
+      }
+    }
+  }
+  
+  &__header {
+    @include app-font-style();
+    @include bottom-divider(2rem);
+  
+    padding: 0.5rem 1rem 1rem 1rem;
+  
+    h1 {
+      font-size: var(--phenotype-article-h1-size);
+      font-weight: var(--phenotype-article-h1-weight);
+      color: col(text-darkest);
+      line-height: 1;
+      margin: 1rem auto;
+    }
+  
+    span {
+      padding-left: 1rem;
+      color: col(text-dark);
+      font-weight: normal;
+      line-height: 1;
+      margin: 1rem auto;
+    }
+  
+    p {
+      line-height: 1;
+      padding: 0.5rem 0.2rem;
+    }
+  }
+}
+
+.phenotype-progress {
+  @include app-font-style();
+  @include flex-col($gap: 1rem);
+  width: 100%;
+  height: auto;
+  margin-top: 1rem;
+  padding: 0.5rem 1rem 0 1rem;
+  counter-reset: item;
+  list-style-type: none;
+
+  &__item {
+    --progress-percentage: 0%;
+
+    @include flex-col();
+    padding: 0 0rem 0.5rem 0.5rem;
+    min-height: var(--progress-item-min-step-height);
+    counter-increment: item;
+
+    &:not(:last-child):before {
+      content: "";
+      position: absolute;
+      height: 100%;
+      width: var(--progress-tracker-width);
+      left: calc(var(--progress-tracker-offset) - var(--progress-tracker-width)/2);
+      top: var(--progress-tracker-size);
+      background-image: linear-gradient(to bottom, var(--progress-tracker-active-color) var(--progress-percentage), var(--progress-tracker-color) var(--progress-percentage));
+      background-image: -webkit-linear-gradient(top, var(--progress-tracker-active-color) var(--progress-percentage), var(--progress-tracker-color) var(--progress-percentage));
+      z-index: 1;
+    }
+
+    &:after {
+      content: counter(item);
+      position: absolute;
+      top: 2px;
+      left: calc(var(--progress-tracker-offset) - var(--progress-tracker-size)/2 - 0.15rem);
+      width: var(--progress-tracker-size);
+      height: var(--progress-tracker-size);
+      background-color: var(--progress-tracker-bg-color);
+      color: var(--progress-tracker-counter-color);
+      font-weight: var(--progress-tracker-counter-weight);
+      font-size: calc(var(--progress-tracker-size) * 0.5);
+      border: 1px solid var(--progress-tracker-off-color);
+      border-width: var(--progress-tracker-line-width);
+      border-radius: 50%;
+      text-align: center;
+      line-height: 2;
+      z-index: 2;
+    }
+    
+    &-title {
+      padding: 0;
+      margin: 0 0 0.5rem 0;
+      font-weight: var(--progress-tracker-header-weight);
+      font-size: var(--progress-tracker-header-size);
+      color: var(--progress-tracker-header-color);
+      line-height: 1;
+    }
+
+    @include media("<desktop", "screen") {
+      &:not(:last-child):before {
+        left: calc(var(--progress-tracker-offset) - var(--progress-tracker-width)/2 + 0.7rem);
+      }
+
+      &:after {
+        left: calc(var(--progress-tracker-offset) - var(--progress-tracker-size)/2 + 0.55rem);
+      }
+    }
+
+    &-description {
+      padding: 0;
+      margin: 0;
+      font-size: var(--progress-tracker-description-size);
+      color: col(text-washed);
+    }
+
+    &-container {
+      @include flex-col();
+      width: 100%;
+      height: fit-content;
+    }
+  }
+}
+
+.concepts-view {
+  @include flex-col();
+
+  padding: 0;
+  margin: 1rem 0 0 0;
+  width: 100%;
+
+  &:not(.show) .concept-list {
+    height: 0;
+  }
+  
+  &__title {
+    padding: 0;
+    margin: 0 0 0.5rem 0;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1;
+  }
+
+  &__description {
+    margin: 0 0 0.5rem 0;
+    font-size: 14px;
+  }
+
+  &__expandable {
+    &>label {
+      padding: 0.25rem 0.5rem;
+      border: 1px solid col(accent-washed);
+      color: col(text-darkest);
+      border-radius: 0.2rem;
+      transition: all 250ms ease;
+
+      &:hover {
+        background-color: col(accent-washed);
+        transform: translateY(-2px);
+        -webkit-transform: translateY(-2px);
+      }
+
+      &:active {
+        transform: translateY(0px);
+        -webkit-transform: translateY(0px);
+      }
+    }
+  }
+
+  &.show &__expandable {
+    display: none;
+  }
+
+  &:not(.show) &__expandable {
+    @include flex-row();
+
+    justify-content: flex-end;
+    padding: 0 0.25rem 0 0;
+  }
+
+  &.show + .concept-list {
+    height: auto;
+    margin-bottom: 1rem;
+    transition: height 250ms ease;
+
+    &>.concept-interaction {
+      display: none;
+    }
+  }
+}
+
+.concept-list {
+  @include flex-col();
+
+  position: relative;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  padding-top: 1rem;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+
+  &__none-available {
+    padding: 1rem;
+    border-radius: 0.1rem;
+    background-color: col(accent-semi-transparent);
+    margin-bottom: 0.5rem;
+
+    &-message {
+      text-align: center;
+    }
+
+    &:not(.show) {
+      display: none;
+    }
+  }
+
+  &__group {
+    position: relative;
+    border-bottom: 1px solid col(accent-dark);
+  
+    &:nth-child(odd) &-item {
+      background-color: var(--item-list-odd-bg-color);
+    }
+    &:nth-child(even) &-item {
+      background-color: var(--item-list-even-bg-color);
+    }
+    &:last-child &-item {
+      border-bottom: none;
+    }
+
+    &-item {
+      @include flex-row();
+      
+      color: col(text-darkest);
+      padding: 0.5rem 0.25rem 0.5rem 1rem;
+  
+      &.is-open + .concept-group-content {
+        height: auto;
+      }
+  
+      .contextual-icon:after {
+        @include fontawesome-icon();
+        content: '\f105';
+      }
+  
+      &.is-open .contextual-icon:after {
+        @include fontawesome-icon();
+        content: '\f107';
+      }
+
+      .edit-icon:after {
+        @include fontawesome-icon();
+        content: '\f304';
+        color: col(accent-primary);
+      }
+    
+      .delete-icon:after {
+        @include fontawesome-icon();
+        content: '\f1f8';
+        color: col(accent-danger);
+      }
+    
+      .concept-name {
+        cursor: pointer;
+        pointer-events: auto;
+        font-weight: normal;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+    
+      .concept-buttons {
+        @include flex-row($gap: 1rem);
+        margin-left: auto;
+      }
+    }
+  }
+
+  &__interaction {
+    @include flex-row($gap: 0.5rem);
+    justify-content: center;
+    margin: 0;
+    padding-bottom: 1rem;
+
+    @include media(">phone", "screen") {
+      margin-right: 0.25rem;
+      justify-content: right;
+    }
+  }
+}
+
+.concept-group-content {
+  position: relative;
+  height: 0;
+  overflow: hidden;
+  transition: all 250ms ease;
+
+  &__details {
+    @include flex-row();
+    justify-content: space-between;
+  }
+
+  &__container {
+    @include flex-col();
+    position: relative;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+}
+

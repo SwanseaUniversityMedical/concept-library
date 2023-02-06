@@ -1,0 +1,135 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+.chips-group {
+  @include flex-row($gap: 0.5rem);
+
+	margin: 0;
+	padding: 0;
+	list-style-type: none;
+}
+
+.chip {
+  --accent-color: var(--accent-washed);
+  --text-color: var(--text-accent-darkest);
+  --icon-color: var(--text-accent-darkest);
+
+  border-radius: 0.2rem;
+	box-shadow: 0 0 0 2px var(--accent-color);
+  background: col(accent-transparent);
+  color: var(--text-color);
+  font-weight: bold;
+  transition: background-color 250ms ease, box-shadow 250ms ease;
+  margin: 0.25rem 0;
+
+  &.bold {
+    &>a {
+      font-weight: bold;
+    }
+  }
+
+  &>a {
+    @include clear-anchor();
+
+    display: inline-block;
+    position: relative;
+    color: var(--text-color);
+    padding: 0.25rem 1rem 0.25rem 2rem;
+    
+    &[href="#"] {
+      cursor: default;
+      pointer-events: none;
+  
+      &:before {
+        cursor: default;
+        pointer-events: none;
+      }
+    }
+
+    &:before {
+      content: '';
+      cursor: inherit;
+      pointer-events: inherit;
+      position: absolute;
+      top: 50%;
+      left: 1rem;
+      width: .5rem;
+      height: .5rem;
+      border-radius: 100%;
+      background-color: var(--icon-color);
+      transform: translateY(-50%);
+    }
+  }
+
+  &:hover {
+    background-color: var(--accent-color);
+    box-shadow: 0 0 0 calc(2px + .25rem) var(--accent-color);
+  }
+
+  &.codelist-icon {
+    &>a {
+      &:before {
+        @include fontawesome-icon();
+  
+        content: '\f02d';
+        cursor: inherit;
+        pointer-events: inherit;
+        position: absolute;
+        top: 50%;
+        left: 0.75rem;
+        width: .5rem;
+        height: .5rem;
+        color: var(--icon-color);
+        background-color: col(accent-transparent);
+        transform: translateY(-95%);
+      }
+    }
+  }
+
+  &.primary-accent {
+    --accent-color: var(--accent-primary);
+  }
+  &.secondary-accent {
+    --accent-color: var(--accent-secondary);
+  }
+  &.tertiary-accent {
+    --accent-color: var(--accent-tertiary);
+  }
+  &.highlight-accent {
+    --accent-color: var(--accent-highlight);
+  }
+  &.washed-accent {
+    --accent-color: var(--accent-washed);
+  }
+
+  &.text-accent-darkest {
+    --text-color: var(--text-accent-darkest);
+  }
+  &.text-accent-brightest {
+    --text-color: var(--text-accent-brightest);
+  }
+
+  &.icon-accent-primary {
+    --icon-color: var(--accent-primary);
+  }
+  &.icon-accent-secondary {
+    --icon-color: var(--accent-secondary);
+  }
+  &.icon-accent-tertiary {
+    --icon-color: var(--accent-tertiary);
+  }
+  &.icon-accent-washed {
+    --icon-color: var(--accent-washed);
+  }
+  &.icon-accent-highlight {
+    --icon-color: var(--accent-highlight);
+  }
+  &.icon-accent-darkest {
+    --icon-color: var(--accent-dark);
+  }
+  &.icon-accent-brightest {
+    --icon-color: var(--accent-bright);
+  }
+}
