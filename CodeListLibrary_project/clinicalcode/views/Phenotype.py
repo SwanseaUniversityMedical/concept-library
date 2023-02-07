@@ -371,8 +371,8 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
                             set_history_id=phenotype_history_id)
 
     if phenotype_history_id is None:
-        # get the latest version
-        phenotype_history_id = int(Phenotype.objects.get(pk=pk).history.latest().history_id)
+        # get the latest version/ or latest published version
+        phenotype_history_id = try_get_valid_history_id(request, Phenotype, pk)
 
     is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
     approval_status = get_publish_approval_status(Phenotype, pk, phenotype_history_id)
@@ -776,8 +776,8 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id=None):
         Return a csv file of codes for a phenotype for a specific historical version.
     """
     if phenotype_history_id is None:
-        # get the latest version
-        phenotype_history_id = Phenotype.objects.get(pk=pk).history.latest().history_id
+        # get the latest version/ or latest published version
+        phenotype_history_id = try_get_valid_history_id(request, Phenotype, pk)        
         
     # validate access for login and public site
     validate_access_to_view(request,

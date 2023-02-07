@@ -190,8 +190,9 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
                             set_history_id=concept_history_id)
 
     if concept_history_id is None:
-        # get the latest version
-        concept_history_id = int(Concept.objects.get(pk=pk).history.latest().history_id)
+        # get the latest version/ or latest published version
+        concept_history_id = try_get_valid_history_id(request, Concept, pk)
+
 
     is_published = checkIfPublished(Concept, pk, concept_history_id)
 
