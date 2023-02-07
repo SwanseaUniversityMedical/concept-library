@@ -3,6 +3,8 @@
 @import '../_media';
 @import '../_utils';
 
+/// Tags
+/// e.g. chip-like interface to represent a label, assoc. with js/tagify.js
 .tags-root-container {
   @include flex-col();
 

@@ -3,6 +3,8 @@
 @import '../_media';
 @import '../_utils';
 
+/// Step wizard
+///   Aside navigation used for skipping steps within creation processes e.g. phenotype creation
 .steps-wizard {
   @include app-font-style();
 

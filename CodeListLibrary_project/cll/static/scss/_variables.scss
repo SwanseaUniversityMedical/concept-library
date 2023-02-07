@@ -1,6 +1,6 @@
 // Helper color palette
 $transparent: rgba(255, 255, 255, 0);
-$white: rgb(255, 255, 255);
+$transparent_black: rgba(0, 0, 0, 0.4);
 $white: rgb(255, 255, 255);
 $off_white: rgb(251, 251, 250);
 $off_white02: rgb(247, 247, 247);
@@ -32,6 +32,7 @@ $brand-map-none: (
   // Color accents
   'color-bg': $white,
   'color-clear': $transparent,
+  'color-accent-bright': $white,
   'color-accent-dark': $dark_grey,
   'color-accent-washed': $lightest_grey,
   'color-accent-primary': $soft_blue,
@@ -69,6 +70,11 @@ $brand-map-none: (
   'navigation-scroll-shadow': "0px 2px 5px 0px rgba(0, 0, 0, .3)",
   'navigation-panel-shadow': "0px 5px 15px -1px rgba(0, 0, 0, 0.5)",
 
+  // Scrollbars
+  'slim-scrollbar-color': $transparent_black,
+  'slim-scrollbar-radius': 6px,
+  'slim-scrollbar-width': 6px,
+
   // Breadcrumbs
   'breadcrumb-color': $dark_grey,
   'breadcrumb-hover-color': $black,
@@ -90,8 +96,8 @@ $brand-map-none: (
   'footer-row-gap': 4rem,
 
   // Item lists
-  'item-list-odd-bg-color': $white,
-  'item-list-even-bg-color': $off_white02,
+  'item-list-odd-bg-color': $off_white02,
+  'item-list-even-bg-color': $white,
 
   /* Inputs */
   'switch-size': 50px,

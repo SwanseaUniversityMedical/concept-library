@@ -3,6 +3,9 @@
 @import '../_media';
 @import '../_utils';
 
+/// Inputs
+///   Defines all input-like elements and their assoc. containers for use across website
+ 
 .detailed-input-group {
   @include flex-col();
 

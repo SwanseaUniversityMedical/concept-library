@@ -3,6 +3,8 @@
 @import '../_media';
 @import '../_utils';
 
+/// Chips
+/// e.g. used to make selections, filter content, trigger actions or present small tag-like information
 .chips-group {
   @include flex-row($gap: 0.5rem);
 
@@ -12,17 +14,18 @@
 }
 
 .chip {
-  --accent-color: var(--accent-washed);
-  --text-color: var(--text-accent-darkest);
-  --icon-color: var(--text-accent-darkest);
+  --accent-color: var(--color-accent-washed);
+  --text-color: var(--color-text-darkest);
+  --icon-color: var(--color-text-darkest);
 
+  align-self: center;
   border-radius: 0.2rem;
-	box-shadow: 0 0 0 2px var(--accent-color);
   background: col(accent-transparent);
   color: var(--text-color);
   font-weight: bold;
-  transition: background-color 250ms ease, box-shadow 250ms ease;
   margin: 0.25rem 0;
+  transition: background-color 250ms ease, box-shadow 250ms ease;
+	box-shadow: 0 0 0 2px var(--accent-color);
 
   &.bold {
     &>a {
@@ -89,47 +92,47 @@
   }
 
   &.primary-accent {
-    --accent-color: var(--accent-primary);
+    --accent-color: var(--color-accent-primary);
   }
   &.secondary-accent {
-    --accent-color: var(--accent-secondary);
+    --accent-color: var(--color-accent-secondary);
   }
   &.tertiary-accent {
-    --accent-color: var(--accent-tertiary);
+    --accent-color: var(--color-accent-tertiary);
   }
   &.highlight-accent {
-    --accent-color: var(--accent-highlight);
+    --accent-color: var(--color-accent-highlight);
   }
   &.washed-accent {
-    --accent-color: var(--accent-washed);
+    --accent-color: var(--color-accent-washed);
   }
 
   &.text-accent-darkest {
-    --text-color: var(--text-accent-darkest);
+    --text-color: var(--color-text-darkest);
   }
   &.text-accent-brightest {
-    --text-color: var(--text-accent-brightest);
+    --text-color: var(--color-text-brightest);
   }
 
   &.icon-accent-primary {
-    --icon-color: var(--accent-primary);
+    --icon-color: var(--color-accent-primary);
   }
   &.icon-accent-secondary {
-    --icon-color: var(--accent-secondary);
+    --icon-color: var(--color-accent-secondary);
   }
   &.icon-accent-tertiary {
-    --icon-color: var(--accent-tertiary);
+    --icon-color: var(--color-accent-tertiary);
   }
   &.icon-accent-washed {
-    --icon-color: var(--accent-washed);
+    --icon-color: var(--color-accent-washed);
   }
   &.icon-accent-highlight {
-    --icon-color: var(--accent-highlight);
+    --icon-color: var(--color-accent-highlight);
   }
   &.icon-accent-darkest {
-    --icon-color: var(--accent-dark);
+    --icon-color: var(--color-accent-dark);
   }
   &.icon-accent-brightest {
-    --icon-color: var(--accent-bright);
+    --icon-color: var(--color-accent-bright);
   }
 }

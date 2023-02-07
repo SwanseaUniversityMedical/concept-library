@@ -3,6 +3,8 @@
 @import '../_media';
 @import '../_utils';
 
+/// Footer
+///   Used exclusively by footer.html to present the footer content of each page
 .page-footer {
   &__row {
     @include flex-row();

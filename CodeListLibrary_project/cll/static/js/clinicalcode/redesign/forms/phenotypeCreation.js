@@ -1,3 +1,5 @@
+import { stickifyTable } from "../components/tables.js";
+
 const updateTrackerStyle = (navbar, trackers, headerOffset) => {
   for (let i = 0; i < trackers.length; i++) {
     const tracker = trackers[i];
@@ -33,4 +35,11 @@ const initStepsWizard = () => {
 
 domReady.finally(() => {
   initStepsWizard();
+  
+  // Stickify codelist table(s)
+  const tables = document.querySelectorAll('#codelist-concept-table');
+  Object.values(tables).forEach(e => stickifyTable(e));
+
+  // 
 });
+

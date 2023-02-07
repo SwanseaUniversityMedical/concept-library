@@ -3,6 +3,9 @@
 @import '../_media';
 @import '../_utils';
 
+/// Navigation bar
+///   Used exclusively by navigation.html to present a fixed navigation bar
+///   Handles both mobile and desktop interfaces
 $navigation_btn_transition: background-size 250ms ease, transform 250ms ease-in-out;
 $navigation_login_transition: background-color 250ms ease, transform 250ms ease;
 $navigation_btn_gradient: 90deg, var(--navigation-item-selector) 0%, var(--navigation-item-selector) 50%, var(--navigation-item-selector) 100%;

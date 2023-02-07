@@ -1,0 +1,27 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+.slim-scrollbar {
+  &::-webkit-scrollbar {
+    width: var(--slim-scrollbar-width);
+    height: var(--slim-scrollbar-width);
+  }
+  
+  &::-webkit-scrollbar-track {
+    border-radius: var(--slim-scrollbar-radius);
+    -webkit-border-radius: var(--slim-scrollbar-radius);
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--slim-scrollbar-color);
+    border-radius: var(--slim-scrollbar-radius);
+    -webkit-border-radius: var(--slim-scrollbar-radius);
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+  }
+  
+  &::-webkit-scrollbar-thumb:window-inactive {
+    background: col(clear);
+  }
+}

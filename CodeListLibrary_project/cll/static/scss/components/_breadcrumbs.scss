@@ -2,6 +2,9 @@
 @import '../_variables';
 @import '../_utils';
 
+/// Breadcrumbs
+///   Used exclusively for breadcrumbs.py to present the breadcrumbs for each individual page
+
 .breadcrumbs {
   @include flex-row($gap: 0.5rem);
   

@@ -15,7 +15,7 @@
     {% endbreadcrumbs %}
   </header>
   <main class="main-content">
-    <!-- Aside jump to step navigation -->
+    <!-- Aside step navigation -->
     <aside class="steps-wizard">
       <section class="steps-wizard__panel" onselectstart="return false;">
         <span class="steps-wizard__header">Skip to step...</span>
@@ -113,48 +113,150 @@
           
           <div class="phenotype-progress__item-container">
             <!-- Current concepts -->
-            <section class="concepts-view show" aria-hidden="false" id="concepts-view">
-              <p class="concepts-view__title">Your Concepts</p>
-              <p class="concepts-view__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-              <section class="concepts-view__expandable" id="concepts-view-toggle">
-                <label>Expand</label>
-              </section>
-              <section class="concept-list">
-                <section class="concept-list__interaction">
-                  <button class="secondary-btn text-accent-darkest bold icon create-icon secondary-accent" aria-label="Import Concept" id="import-concept-btn">Import Concept</button>
+            <section class="concepts-view" id="concepts-view">
+              <section class="concepts-view__header">
+                <div class="concepts-view__container">
+                  <p class="concepts-view__title">Your Concepts</p>
+                  <p class="concepts-view__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                </div>
+                <div class="concepts-view__container">
                   <button class="secondary-btn text-accent-darkest bold icon import-icon secondary-accent" aria-label="Create new Concept" id="create-concept-btn">New Concept</button>
-                </section>
-                
+                </div>
+              </section>
+              <section class="concept-list">                
                 <!-- When no concepts are available -->
                 <section class="concept-list__none-available" id="no-available-concepts">
                   <p class="concept-list__none-available-message">You haven't added any concepts yet</p>
                 </section>
 
                 <!-- e.g. a concept's information -->
-                <section class="concept-list__group">
-                  <span class="concept-list__group-item">
+                <section class="concept-list__group show">
+                  <span class="concept-list__group-item is-open">
                     <span class="contextual-icon"></span>
-                    <label class="concept-name">Hello</label>
+                    <label class="concept-name">Some Concept</label>
                     <span class="concept-buttons">
                       <span class="edit-icon"></span>
                       <span class="delete-icon"></span>
                     </span>
                   </span>
                   <section class="concept-group-content">
-                    <section class="concept-group-content__container">
+                    <!-- Finalised concept content when not editing -->
+                    <section class="concept-group-content__container hide" id="concept-information">
+                      <!-- Header incl. coding system -->
                       <section class="concept-group-content__details">
-                        <!-- Chips meant to be here for codelist type -->
+                        <h4>Codelist</h4>
+                        <ul class="chips-group" id="coding-system-chip">
+                          <li class="chip bold washed-accent text-accent-darkest codelist-icon icon-accent-highlight">
+                            <a id="coding-system-info">ICD-10</a>
+                          </li>
+                        </ul>
                       </section>
                       <!-- Codelist section -->
+                      <div class="h-scrollable-table" id="codelist-concept-table">
+                        <div class="h-scrollable-table__wrapper slim-scrollbar">
+                          <table>
+                            <thead>
+                              <tr>
+                                <th class="sticky">Code</th>
+                                <th class="sticky">Description</th>
+                                <th>Inclusion 1</th>
+                                <th>Inclusion 2</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td class="sticky">J43</td>
+                                <td class="sticky">Emphysema</td>
+                                <td>Data</td>
+                                <td>Data</td>
+                              </tr>
+                              <tr>
+                                <td class="sticky">J44</td>
+                                <td class="sticky">Other chronic obstructive pulmonary disease</td>
+                                <td>Data</td>
+                                <td>Data</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </section>
 
+                    <!-- Editing concept content menu -->
+                    <section class="concept-group-content__container" id="concept-editing">
+                      <!-- Concept information -->
+                      <div class="detailed-input-group fill">
+                        <h3 class="detailed-input-group__title">Name</h3>
+                        <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                        <input class="text-input" aria-label="Concept Name" type="text" id="concept-name" name="concept-name" placeholder="" minlength="3" pattern="w{1,}.*?" required>
+                      </div>
+                      <div class="detailed-input-group fill">
+                        <h3 class="detailed-input-group__title">Coding System</h3>
+                        <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                        <select class="selection-input" aria-label="Select Phenotype Type" name="phenotype-type" id="phenotype-type" required>
+                          <option disabled value="0" selected hidden>Select Coding System</option>
+                          <option value="0">ICD-10</option>
+                          <option value="1">ICD-11</option>
+                          <option value="2">ReadCodes v2</option>
+                          <option value="3">UK BioBank</option>
+                        </select>
+                      </div>
+
+                      <!-- Inclusion Rulesets -->
+                      <section class="concept-group-content__details">
+                        <div class="concept-group-content__details-explanation">
+                          <h3>Inclusion Rulesets</h3>
+                          <p class="concept-group-content__details-explanation-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                        </div>
+                        <div class="concept-group-content__editor-selection">
+                          <label class="dropdown-btn">
+                            <div class="dropdown-btn__label">New Ruleset</div>
+                            <input type="checkbox" class="dropdown-btn__input" id="test">
+                            <ul class="dropdown-btn__menu fall-right">
+                              <li>Add Searchterm</li>
+                              <li>Import from File</li>
+                            </ul>
+                          </label>
+                        </div>
+                      </section>
+                      <section class="ruleset-group" id="inclusion-rulesets">
+                        <section class="ruleset-group__none-available show" id="no-available-concepts">
+                          <p class="ruleset-group__none-available-message">You haven't added any inclusion rules yet</p>
+                        </section>
+                      </section>
+
+                      <!-- Inclusion Rulesets -->
+                      <section class="concept-group-content__details">
+                        <div class="concept-group-content__details-explanation">
+                          <h3>Exclusion Rulesets</h3>
+                          <p class="concept-group-content__details-explanation-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                        </div>
+                        <div class="concept-group-content__editor-selection">
+                          <label class="dropdown-btn">
+                            <div class="dropdown-btn__label">New Ruleset</div>
+                            <input type="checkbox" class="dropdown-btn__input" id="test">
+                            <ul class="dropdown-btn__menu fall-right">
+                              <li>Add Searchterm</li>
+                              <li>Import from File</li>
+                            </ul>
+                          </label>
+                        </div>
+                      </section>
+                      <section class="ruleset-group" id="exclusion-rulesets">
+                        <section class="ruleset-group__none-available show" id="no-available-concepts">
+                          <p class="ruleset-group__none-available-message">You haven't added any exclusion rules yet</p>
+                        </section>
+                      </section>
+
+                      <!-- Final codelist -->
+
+                      <!-- Save / Cancel Button(s) -->
+                      
                     </section>
                   </section>
                 </section>
               </section>
             </section>
-
-            <!-- Create concept menu -->
-
           </div>
         </li>
         
@@ -180,6 +282,7 @@
             <input class="text-input" aria-label="Publication link input" type="text" placeholder="e.g. https://www.doi.org/XX.XXXX/XXXXXXXXXX">
 
             <!-- Publication list -->
+
           </div>
         </li>
 

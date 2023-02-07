@@ -3,6 +3,8 @@
 @import '../_media';
 @import '../_utils';
 
+/// Quit icon button
+/// i.e. used for single tap action to exit a behaviour, action or event
 .quit-button {
   cursor: pointer;
   pointer-events: auto;
@@ -28,6 +30,8 @@
   }
 }
 
+/// Stylised buttons with modifiable presentation
+/// e.g. Single tab buttons for actions
 .primary-btn {
   @include app-font-style();
 
@@ -184,7 +188,6 @@
     background-color: col(accent-bubble);
   }
 }
-
 
 .secondary-btn {
   --accent-color: var(--transparent);
@@ -466,5 +469,82 @@
   }
   &.bubble-accent {
     background-color: col(accent-bubble);
+  }
+}
+
+/// Dropdown button
+.dropdown-btn {
+  display: inline-block;
+  position: relative;
+  width: fit-content;
+
+  &__label {
+    cursor: pointer;
+    text-align: center;
+    vertical-align: middle;
+    display: inline-block;
+    border: 1px solid col(accent-washed);
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    background-color: col(bg);
+    white-space: nowrap;
+
+    &:hover {
+      background-color: col(accent-washed);
+    }
+  }
+
+  &__input {
+    display: none;
+  }
+
+  &__input ~ &__menu {
+    display: none;
+  } 
+  
+  &__input:checked ~ &__menu {
+    display: block;
+  }
+
+  &__menu {
+    position: absolute;
+    border: 1px solid col(accent-washed);
+    border-radius: 2px;
+    padding: 0;
+    margin: 2px 0 0 0;
+    box-shadow: 0 0 6px 0 rgba(0,0,0,0.1);
+    background-color: #ffffff;
+    list-style-type: none;
+    z-index: 2000;
+
+    &.static {
+      position: static;
+    }
+
+    &.fall-right {
+      right: 0;
+    }
+
+    li {
+      cursor: pointer;
+      padding: 10px 20px;
+      white-space: nowrap;
+
+      &:hover {
+        background-color: #f6f6f6;
+      }
+
+      a {
+        @include clear-anchor();
+        display: block;
+        margin: -10px -20px;
+        padding: 10px 20px;
+      }
+      
+      &.divider{
+        padding: 0;
+        border-bottom: 1px solid #cccccc;
+      }
+    }
   }
 }

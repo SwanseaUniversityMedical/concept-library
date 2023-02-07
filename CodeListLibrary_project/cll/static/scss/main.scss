@@ -10,6 +10,8 @@
 @import 'components/_buttons';
 @import 'components/_tags';
 @import 'components/_chips';
+@import 'components/_tables';
+@import 'components/_scrollbars';
 
 html {
   height: 100%;
@@ -20,12 +22,16 @@ html {
 
 *:not(body) {
   position: relative;
+
+  &.hide {
+    display: none;
+  }
 }
 
 body {
   @include flex-col();
-  width: 100%;
   height: 100%;
+  width: 100%;
   margin: 0;
   padding: 0;
   background-color: col(bg);
@@ -35,6 +41,7 @@ body {
 .main-header {
   @include flex-col();
   min-height: fit-content;
+  max-width: 100%;
   padding: var(--main-top-padding) var(--main-gutter) 0 var(--main-gutter);
 
   @include media("<desktop", "screen") {
@@ -45,8 +52,10 @@ body {
 
 .main-content {
   @include flex-col();
+  position: relative;
   flex: 1;
   min-height: fit-content;
+  max-width: 100%;
   padding: 0 var(--main-gutter) 0 var(--main-gutter);
 
   @include media("<desktop", "screen") {
@@ -57,6 +66,8 @@ body {
 
 // Phenotype creation article
 .phenotype-creation {
+  @include flex-col();
+  position: relative;
   align-self: center;
   width: var(--phenotype-article-lg-size);
   max-width: var(--phenotype-article-lg-size);
@@ -124,7 +135,9 @@ body {
 .phenotype-progress {
   @include app-font-style();
   @include flex-col($gap: 1rem);
+  position: relative;
   width: 100%;
+  max-width: 100%;
   height: auto;
   margin-top: 1rem;
   padding: 0.5rem 1rem 0 1rem;
@@ -135,7 +148,10 @@ body {
     --progress-percentage: 0%;
 
     @include flex-col();
+    position: relative;
     padding: 0 0rem 0.5rem 0.5rem;
+    width: 100%;
+    max-width: 100%;
     min-height: var(--progress-item-min-step-height);
     counter-increment: item;
 
@@ -198,6 +214,7 @@ body {
 
     &-container {
       @include flex-col();
+      position: relative;
       width: 100%;
       height: fit-content;
     }
@@ -207,14 +224,24 @@ body {
 .concepts-view {
   @include flex-col();
 
+  position: relative;
+  width: 100%;
   padding: 0;
   margin: 1rem 0 0 0;
   width: 100%;
-
-  &:not(.show) .concept-list {
-    height: 0;
-  }
   
+  &__header {
+    @include flex-row();
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  &__container {
+    @include flex-col();
+    width: fit-content;
+    justify-content: center;
+  }
+
   &__title {
     padding: 0;
     margin: 0 0 0.5rem 0;
@@ -227,48 +254,6 @@ body {
     margin: 0 0 0.5rem 0;
     font-size: 14px;
   }
-
-  &__expandable {
-    &>label {
-      padding: 0.25rem 0.5rem;
-      border: 1px solid col(accent-washed);
-      color: col(text-darkest);
-      border-radius: 0.2rem;
-      transition: all 250ms ease;
-
-      &:hover {
-        background-color: col(accent-washed);
-        transform: translateY(-2px);
-        -webkit-transform: translateY(-2px);
-      }
-
-      &:active {
-        transform: translateY(0px);
-        -webkit-transform: translateY(0px);
-      }
-    }
-  }
-
-  &.show &__expandable {
-    display: none;
-  }
-
-  &:not(.show) &__expandable {
-    @include flex-row();
-
-    justify-content: flex-end;
-    padding: 0 0.25rem 0 0;
-  }
-
-  &.show + .concept-list {
-    height: auto;
-    margin-bottom: 1rem;
-    transition: height 250ms ease;
-
-    &>.concept-interaction {
-      display: none;
-    }
-  }
 }
 
 .concept-list {
@@ -276,6 +261,7 @@ body {
 
   position: relative;
   width: 100%;
+  height: auto;
   padding: 0;
   margin: 0;
   padding-top: 1rem;
@@ -299,7 +285,9 @@ body {
 
   &__group {
     position: relative;
-    border-bottom: 1px solid col(accent-dark);
+    width: 100%;
+    max-width: 100%;
+    border-bottom: 1px solid col(accent-washed);
   
     &:nth-child(odd) &-item {
       background-color: var(--item-list-odd-bg-color);
@@ -307,18 +295,24 @@ body {
     &:nth-child(even) &-item {
       background-color: var(--item-list-even-bg-color);
     }
-    &:last-child &-item {
-      border-bottom: none;
+
+    &:not(.show) {
+      display: none;
     }
 
     &-item {
       @include flex-row();
       
+      position: relative;
       color: col(text-darkest);
-      padding: 0.5rem 0.25rem 0.5rem 1rem;
+      padding: 0.5rem 0.25rem 0.5rem 0.5rem;
   
       &.is-open + .concept-group-content {
         height: auto;
+      }
+
+      &.is-open {
+        border-bottom: 1px solid col(accent-washed);
       }
   
       .contextual-icon:after {
@@ -358,36 +352,63 @@ body {
       }
     }
   }
-
-  &__interaction {
-    @include flex-row($gap: 0.5rem);
-    justify-content: center;
-    margin: 0;
-    padding-bottom: 1rem;
-
-    @include media(">phone", "screen") {
-      margin-right: 0.25rem;
-      justify-content: right;
-    }
-  }
 }
 
 .concept-group-content {
   position: relative;
+  width: 100%;
+  max-width: 100%;
   height: 0;
-  overflow: hidden;
   transition: all 250ms ease;
 
   &__details {
     @include flex-row();
+    position: relative;
+    width: 100%;
     justify-content: space-between;
+
+    &-explanation {
+      @include flex-col();
+
+      &-description {
+        margin: 0 0 0.5rem 0;
+        font-size: 14px;
+      }
+    }
+  }
+
+  &__editor-selection {
+    @include flex-row();
+    justify-self: flex-end;
+    align-content: center;
+    position: relative;
   }
 
   &__container {
     @include flex-col();
     position: relative;
+    height: auto;
     padding: 0.5rem;
     margin-bottom: 0.5rem;
   }
 }
 
+.ruleset-group {
+  @include flex-col();
+
+  &__none-available {
+    padding: 1rem;
+    border-radius: 0.1rem;
+    background-color: col(accent-semi-transparent);
+    margin-bottom: 0.5rem;
+
+    &-message {
+      text-align: center;
+    }
+
+    &:not(.show) {
+      display: none;
+    }
+  }
+
+}
