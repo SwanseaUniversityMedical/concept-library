@@ -227,10 +227,11 @@ def export_concept_codes(request, pk):
         concept = Concept.objects.filter(id=pk).exclude(is_deleted=True)
         if concept.count() == 0: raise Http404
         
-        # Require that the user has access to the base concept.
+        # Requires that the user has access to the base concept.
     
-        # get the latest version
-        latest_history_id = int(Concept.objects.get(pk=pk).history.latest().history_id)
+        # get the latest version/ or latest published version
+        latest_history_id = try_get_valid_history_id(request, Concept, pk)
+                                                      
         validate_access_to_view(request, Concept, pk, set_history_id=latest_history_id)
         if not (allowed_to_view_children(request, Concept, pk) and
                 chk_deleted_children(request, Concept, pk, returnErrors=False)):
@@ -344,9 +345,6 @@ def export_concept_codes_byVersionID(request, pk, concept_history_id):
                             pk,
                             set_history_id=concept_history_id)
 
-    #     if concept_history_id is None:
-    #         # get the latest version
-    #         concept_history_id = int(Concept.objects.get(pk=pk).history.latest().history_id)
 
     #----------------------------------------------------------------------
 
@@ -1187,6 +1185,10 @@ def concept_detail(request,
         concept_ver = Concept.history.filter(id=pk, history_id=concept_history_id)
         if concept_ver.count() == 0: raise Http404
 
+    if concept_history_id is None:
+        # get the latest version/ or latest published version
+        concept_history_id = try_get_valid_history_id(request, Concept, pk)
+        
     # validate access concept
     if not allowed_to_view(request, Concept, pk, set_history_id=concept_history_id):
         raise PermissionDenied
@@ -1203,9 +1205,6 @@ def concept_detail(request,
         raise PermissionDenied
     #---------------------------------------------------------
 
-    if concept_history_id is None:
-        # get the latest version
-        concept_history_id = Concept.objects.get(pk=pk).history.latest().history_id
 
     return getConceptDetail(request,
                             pk = pk,
@@ -1236,8 +1235,8 @@ def concept_detail_PUBLIC(request,
         if concept_ver.count() == 0: raise Http404
 
     if concept_history_id is None:
-        # get the latest version
-        concept_history_id = Concept.objects.get(pk=pk).history.latest().history_id
+        # get the latest version/ or latest published version
+        concept_history_id = try_get_valid_history_id(request, Concept, pk)
 
     is_published = checkIfPublished(Concept, pk, concept_history_id)
     # check if the concept version is published

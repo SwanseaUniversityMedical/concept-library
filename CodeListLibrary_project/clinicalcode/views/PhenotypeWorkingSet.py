@@ -578,8 +578,8 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
                             set_history_id=workingset_history_id)
 
     if workingset_history_id is None:
-        # get the latest version
-        workingset_history_id = int(PhenotypeWorkingset.objects.get(pk=pk).history.latest().history_id)
+        # get the latest version/ or latest published version
+        workingset_history_id = try_get_valid_history_id(request, PhenotypeWorkingset, pk)
 
     is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
     approval_status = get_publish_approval_status(PhenotypeWorkingset, pk, workingset_history_id)
@@ -626,8 +626,7 @@ def WorkingsetDetail_combined(request, pk, workingset_history_id=None):
     if workingset_data_sources:
         data_sources = DataSource.objects.filter(pk__in=workingset_data_sources)
 
-    is_latest_version = (
-            int(workingset_history_id) == PhenotypeWorkingset.objects.get(pk=pk).history.latest().history_id)
+    is_latest_version = (int(workingset_history_id) == PhenotypeWorkingset.objects.get(pk=pk).history.latest().history_id)
     is_latest_pending_version = False
 
     if len(PublishedWorkingset.objects.filter(workingset_id=pk, workingset_history_id=workingset_history_id,
@@ -1567,8 +1566,8 @@ def history_workingset_codes_to_csv(request, pk, workingset_history_id=None):
     '''
 
     if workingset_history_id is None:
-        # get the latest version
-        workingset_history_id = PhenotypeWorkingset.objects.get(pk=pk).history.latest().history_id
+        # get the latest version/ or latest published version
+        workingset_history_id = try_get_valid_history_id(request, PhenotypeWorkingset, pk)        
 
     # validate access for login and public site
     validate_access_to_view(request,

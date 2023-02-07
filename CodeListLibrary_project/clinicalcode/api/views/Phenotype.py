@@ -407,8 +407,8 @@ def export_phenotype_codes_byVersionID(request, pk, phenotype_history_id=None):
     '''
         
     if phenotype_history_id is None:
-        # get the latest version
-        phenotype_history_id = Phenotype.objects.get(pk=pk).history.latest().history_id
+        # get the latest version/ or latest published version
+        phenotype_history_id = try_get_valid_history_id(request, Phenotype, pk)        
         
     # Require that the user has access to the base phenotype.
     # validate access for login site
@@ -779,7 +779,12 @@ def phenotype_detail(request,
     if phenotype_history_id is not None:
         phenotype_ver = Phenotype.history.filter(id=pk, history_id=phenotype_history_id)
         if phenotype_ver.count() == 0: raise Http404
-
+   
+    if phenotype_history_id is None:
+        # get the latest version/ or latest published version
+        phenotype_history_id = try_get_valid_history_id(request, Phenotype, pk)   
+        
+        
     # validate access phenotype
     if not allowed_to_view(request, Phenotype, pk, set_history_id=phenotype_history_id):
         raise PermissionDenied
@@ -796,9 +801,7 @@ def phenotype_detail(request,
         raise PermissionDenied
     #---------------------------------------------------------
 
-    if phenotype_history_id is None:
-        # get the latest version
-        phenotype_history_id = Phenotype.objects.get(pk=pk).history.latest().history_id
+     
 
     return getPhenotypeDetail(request,
                               pk = pk,
@@ -829,8 +832,8 @@ def phenotype_detail_PUBLIC(request,
         if phenotype_ver.count() == 0: raise Http404
 
     if phenotype_history_id is None:
-        # get the latest version
-        phenotype_history_id = Phenotype.objects.get(pk=pk).history.latest().history_id
+        # get the latest version/ or latest published version
+        phenotype_history_id = try_get_valid_history_id(request, Phenotype, pk)
 
     is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
     # check if the phenotype version is published

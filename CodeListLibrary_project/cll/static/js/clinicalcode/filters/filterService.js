@@ -78,6 +78,10 @@ var PAGE = {
 
 var RESULT_QUERIES = ['20', '50', '100'];
 var TEXT_QUERIES = ['search1', 'author_text', 'owner_text'];
+var ACTIVE_QUERIES = {
+  selected_phenotype_types: PAGE.PHENOTYPE,
+  selected_workingset_types: PAGE.WORKINGSET
+};
 var DISPLAY_QUERIES = {
   [PAGE.PHENOTYPE]: ['show_deleted_phenotypes', 'show_my_phenotypes',
                       'phenotype_must_have_published_versions', 'show_mod_pending_phenotypes', 
@@ -455,6 +459,10 @@ var initFilters = () => {
     }
 
     $.each(subheaderMap, (i, v) => {
+      if (typeof ACTIVE_QUERIES[i] !== 'undefined' && ACTIVE_QUERIES[i] !== library) {
+        return;
+      }
+      
       if (typeof _ignore[i] === 'undefined' && v !== 'publication' && v !== 'display') {
         if (url.searchParams.get(i) !== null) {
           if (i === 'tag_collection_ids') {
