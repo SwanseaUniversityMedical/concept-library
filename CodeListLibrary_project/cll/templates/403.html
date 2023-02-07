@@ -5,9 +5,21 @@
 {% block title %}Permission denied{% endblock title %}
 
 {% block container %}
-<h2>403: Permission denied</h2>
 
-<p>Apologies, but it seems as if you're not allowed to access this page.</p>
+{% if exception is None %}
+  <h2>403: Permission denied</h2>
+  <p>Apologies, but it seems as if you're not allowed to access this page.</p>
+{% else %}
+  {% if exception == "ERR_403_PERM" %}
+    <h2>You don't have permission to view this</h2>
+    <p>It looks like you're trying to access content that's not published yet.</p>
+    <p>You'll be able to view this content once it's been published by the author.</p>
+  {% else %}
+    <h2>403: Permission denied</h2>
+    <p>Apologies, but it seems as if you're not allowed to access this page.</p>
+  {% endif %}
+{% endif %}
+
+<p>Click <a href="javascript:history.back()">here</a> to go back.</p>
 
 {% endblock container %}
-
