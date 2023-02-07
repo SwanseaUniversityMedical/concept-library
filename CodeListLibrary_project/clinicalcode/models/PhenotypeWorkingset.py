@@ -22,7 +22,7 @@ class PhenotypeWorkingset(TimeStampedModel):
     collections = ArrayField(models.IntegerField(), blank=True, null=True)  # collection of branded workingsets
     publications = ArrayField(models.CharField(max_length=500), blank=True, null=True)
     author = models.CharField(max_length=250)
-    citation_requirements = models.CharField(max_length=250)  # Any request for citation requirements to be honoured
+    citation_requirements = models.TextField(null=True, blank=True)  # Any request for citation requirements to be honoured
     description = models.TextField(null=True, blank=True)
     data_sources = ArrayField(models.IntegerField(), blank=True, null=True)  # Easy access to data sources
 

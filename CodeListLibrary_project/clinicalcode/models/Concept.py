@@ -29,7 +29,7 @@ class Concept(TimeStampedModel):
     secondary_publication_links = models.TextField(null=True, blank=True)
     paper_published = models.BooleanField(null=True, default=False)  # Has a paper been published with these codes? 1=yes 0=no
     source_reference = models.CharField(max_length=250)  # Was this code list from another source?  Reference here.
-    citation_requirements = models.CharField(max_length=250)  # Any request for citation requirements to be honoured
+    citation_requirements = models.TextField(null=True, blank=True)  # Any request for citation requirements to be honoured
     coding_system = models.ForeignKey(CodingSystem, on_delete=models.SET_NULL, related_name="concepts", null=True, blank=True)
     is_deleted = models.BooleanField(null=True, default=False)
     deleted = models.DateTimeField(null=True, blank=True)

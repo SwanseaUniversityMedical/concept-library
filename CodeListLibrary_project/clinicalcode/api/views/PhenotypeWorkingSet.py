@@ -460,8 +460,8 @@ def phenotypeworkingset_detail(request, pk, workingset_history_id=None, get_vers
         if ws_ver.count() == 0: raise Http404
 
     if workingset_history_id is None:
-        # get the latest version
-        workingset_history_id = PhenotypeWorkingset.objects.get(pk=pk).history.latest().history_id
+        # get the latest version/ or latest published version
+        workingset_history_id = try_get_valid_history_id(request, PhenotypeWorkingset, pk)        
 
     # here, check live version
     current_ws = PhenotypeWorkingset.objects.get(pk=pk)
@@ -495,8 +495,8 @@ def phenotypeworkingset_detail_PUBLIC(request, pk, workingset_history_id=None):
         if ws_ver.count() == 0: raise Http404
 
     if workingset_history_id is None:
-        # get the latest version
-        workingset_history_id = PhenotypeWorkingset.objects.get(pk=pk).history.latest().history_id
+        # get the latest version/ or latest published version
+        workingset_history_id = try_get_valid_history_id(request, PhenotypeWorkingset, pk)        
 
     is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
 
@@ -751,8 +751,8 @@ def export_phenotypeworkingset_codes_byVersionID(request, pk, workingset_history
     '''
         
     if workingset_history_id is None:
-        # get the latest version
-        workingset_history_id = PhenotypeWorkingset.objects.get(pk=pk).history.latest().history_id
+        # get the latest version/ or latest published version
+        workingset_history_id = try_get_valid_history_id(request, PhenotypeWorkingset, pk)
         
     # Require that the user has access to the base working set.
     # validate access for login site

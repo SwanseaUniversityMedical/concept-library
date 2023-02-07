@@ -158,10 +158,11 @@ class ConceptForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'form-control'}))
     citation_requirements = forms.CharField(
         label='Citation requirements:',
-        help_text='250 max characters',
-        max_length=250,
-        required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control'}))
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 5
+        }),
+        required=False)
     owner_access = forms.ChoiceField(
         label='Owner access:',
         widget=forms.RadioSelect(attrs={

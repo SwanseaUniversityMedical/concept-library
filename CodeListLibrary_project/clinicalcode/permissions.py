@@ -12,6 +12,17 @@ from django.contrib.auth.models import Group, User
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from dataclasses import replace
+from enum import Enum
+
+class PERM_ERROR_TEMPLATES(str, Enum):
+    """
+        Used to raise custom error messages via 403.html
+        Can be used by calling the 'raise PermissionDenied' command with the enum's value as a param
+            e.g. raise PermissionDenied(PERM_ERROR_TEMPLATES.INVALID_ACCESS.value)
+        @enum, 'INVALID_ACCESS' - validate_access_to_view method has failed because the request user does not have permission to access the requested content
+        @enum, ...other messages
+    """
+    INVALID_ACCESS = 'ERR_403_PERM'
 
 
 class Permissions:
@@ -21,6 +32,33 @@ class Permissions:
     PERMISSION_CHOICES = ((NONE, 'No Access'), (VIEW, 'View'), (EDIT, 'Edit'))
 
     PERMISSION_CHOICES_WORLD_ACCESS = ((NONE, 'No Access'), (VIEW, 'View'))
+
+
+def try_get_valid_history_id(request, set_class, set_id):
+    """
+        Tries to resolve a valid history id for an entity query.
+        If the entity is accessible (i.e. validate_access_to_view() is TRUE), 
+        then return the most recent version if the user is authenticated,      
+        Otherwise, this method will return the most recently published version, if available.
+        @param request, the request
+        @param set_class, a model
+        @param set_id, the id of the entity
+        @returns int, a history_id
+    """
+    is_authenticated = request.user.is_authenticated
+    set_history_id = None
+    
+    if is_authenticated:                   
+        # get the latest version
+        set_history_id = int(set_class.objects.get(pk=set_id).history.latest().history_id)
+
+    else:  # public content
+        # get the latest published version
+        latest_published_version_id = get_latest_published_version(set_class, set_id)
+        if latest_published_version_id:
+            set_history_id = latest_published_version_id
+
+    return set_history_id
 
 
 
@@ -42,6 +80,36 @@ def checkIfPublished(set_class, set_id, set_history_id):
         return PublishedWorkingset.objects.filter(workingset_id=set_id, workingset_history_id=set_history_id, approval_status=2).exists()
     else:
         return False
+
+
+def get_latest_published_version(set_class, set_id):
+    ''' get latest published version '''
+
+    from .models.Concept import Concept
+    from .models.Phenotype import Phenotype
+    from .models.PhenotypeWorkingset import PhenotypeWorkingset
+    from .models.PublishedConcept import PublishedConcept
+    from .models.PublishedPhenotype import PublishedPhenotype
+    from .models.PublishedWorkingset import PublishedWorkingset
+
+    latest_published_version = None 
+    
+    if (set_class == Concept):
+        latest_published_version = PublishedConcept.objects.filter(concept_id=set_id).order_by('-concept_history_id').first()
+        if latest_published_version:
+            return latest_published_version.concept_history_id
+    elif (set_class == Phenotype):
+        latest_published_version = PublishedPhenotype.objects.filter(phenotype_id=set_id, approval_status=2).order_by('-phenotype_history_id').first()
+        if latest_published_version:
+            return latest_published_version.phenotype_history_id        
+    elif (set_class == PhenotypeWorkingset):
+        latest_published_version = PublishedWorkingset.objects.filter(workingset_id=set_id, approval_status=2).order_by('-workingset_history_id').first() 
+        if latest_published_version:
+            return latest_published_version.workingset_history_id            
+    else:
+        return None
+
+    return None
 
 
 def get_publish_approval_status(set_class, set_id, set_history_id):
@@ -313,8 +381,10 @@ def allowed_to_view(request,
     else:  # public content
         # check if the version is published
         if set_history_id is None:
-            # get the latest version
-            set_history_id = int(set_class.objects.get(pk=set_id).history.latest().history_id)
+            # get the latest published version
+            latest_published_version_id = get_latest_published_version(set_class, set_id)
+            if latest_published_version_id:
+                set_history_id = latest_published_version_id
 
         is_published = checkIfPublished(set_class, set_id, set_history_id)
 
@@ -443,7 +513,6 @@ def validate_access_to_view(request, set_class, set_id, set_history_id=None):
     '''
     if allowed_to_view(request, set_class, set_id, set_history_id=set_history_id) == False:
         raise PermissionDenied
-
 
 def validate_access_to_edit(request, set_class, set_id):
     '''
