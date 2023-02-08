@@ -24,6 +24,9 @@ from .. import db_utils, utils
 from ..models import *
 from ..permissions import *
 from .View import *
+from clinicalcode.models.GenericEntity import GenericEntity
+from ..constants import *
+from clinicalcode.models import Template
 
 logger = logging.getLogger(__name__)
 
@@ -659,6 +662,121 @@ def admin_restore_phenotypes(request):
                         {   'pk': -10,
                             'rowsAffected' : rowsAffected,
                             'action_title': 'Restore Phenotypes'
+                        }
+                        )
+            
+
+
+#### Dynamic Template  ####
+            
+@login_required
+def admin_mig_phenotypes_dt(request):
+    # for admin(developers) to migrate phenotypes into dynamic template
+   
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not is_member(request.user, 'system developers'):
+        raise PermissionDenied
+    
+
+    if request.method == 'GET':
+        if not settings.CLL_READ_ONLY: 
+            return render(request, 'clinicalcode/adminTemp/admin_mig_phenotypes_dt.html', 
+                          {'url': reverse('admin_mig_phenotypes_dt'),
+                           'action_title': 'Migrate Phenotypes'
+                        })
+    
+    elif request.method == 'POST':
+        if not settings.CLL_READ_ONLY: 
+            code = request.POST.get('code')
+            if code.strip() != "6)r&9hpr_a0_4g(xan5p@=kaz2q_cd(v5n^!#ru*_(+d)#_0-i":
+                raise PermissionDenied
+    
+            phenotype_ids = request.POST.get('phenotype_ids')
+            phenotype_ids = phenotype_ids.strip().upper()
+
+            ph_id_list = []
+            if phenotype_ids:
+                if phenotype_ids == 'ALL':
+                    ph_id_list = list(Phenotype.objects.all().values_list('id',  flat=True))
+                else:
+                    ph_id_list = [i.strip() for i in phenotype_ids.split(",")]
+                
+                            
+            rowsAffected = {}    
+    
+            if ph_id_list:
+                for pk in ph_id_list:
+                    if phenotype_ids != 'ALL':
+                        pk = re.sub(' +', ' ', pk.strip())
+                        id_match = re.search(r"(?i)^PH\d+$", pk)
+                        if id_match:
+                            if id_match.group() == id_match.string: # full match
+                                is_valid_id, err, ret_id = db_utils.chk_valid_id(request, set_class=Phenotype, pk=pk, chk_permission=True)
+                                if is_valid_id:
+                                    pk = str(ret_id)
+                                                    
+                    if Phenotype.objects.filter(pk=pk).exists():
+                        phenotype = Phenotype.objects.get(pk=pk)
+                        
+                        ge = GenericEntity.objects.create(
+                            id = phenotype.id,
+                            name = phenotype.name,
+                            author = phenotype.author,
+                            
+                            layout = LAYOUT_CLINICAL_CODED_PHENOTYPE,
+                            status = ENTITY_STATUS_FINAL,
+
+                            tags = phenotype.tags,
+                            collections = phenotype.collections,  
+
+                            description = phenotype.description,
+                            implementation = phenotype.implementation,
+                            validation = phenotype.validation,
+                            publications = phenotype.publications,
+                            citation_requirements = phenotype.citation_requirements,
+
+                            template_id = Template.objects.get(pk=1),
+                            template_data = [], # include type as ENUM
+                            template_data2 = [],
+                            
+                            internal_comments = 'internal comments',
+                            
+                            created = phenotype.created, 
+                            updated = phenotype.modified, 
+                            created_by = phenotype.created_by, 
+                            updated_by = phenotype.updated_by,
+                            is_deleted = phenotype.is_deleted,
+                            
+                            deleted = phenotype.deleted, 
+                            deleted_by = phenotype.deleted_by, 
+                            owner = phenotype.owner,
+                            group = phenotype.group,
+                            
+                            owner_access = phenotype.owner_access,
+                            group_access = phenotype.group_access,
+                            world_access = phenotype.world_access
+                            )
+                        ge.saveXX(entity = 'phenotype', serial_id = True, override_id = True)
+        
+
+    
+                    #     db_utils.modify_Entity_ChangeReason(Phenotype, pk, "Restored")
+                        
+                        rowsAffected[pk] = "phenotype(" + str(pk) + "): \"" + phenotype.name + "\" is migrated."
+    
+            else:
+                rowsAffected[-1] = "Phenotype IDs NOT correct"
+    
+            return render(request,
+                        'clinicalcode/adminTemp/admin_mig_phenotypes_dt.html',
+                        {   'pk': -10,
+                            'rowsAffected' : rowsAffected,
+                            'action_title': 'Migrate Phenotypes'
                         }
                         )
             

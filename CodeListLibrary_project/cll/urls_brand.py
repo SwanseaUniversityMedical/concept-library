@@ -53,6 +53,10 @@ urlpatterns += [
 urlpatterns += [
     url(r'^' + current_brand + '', include('clinicalcode.urls')),
 ]
+# urls_generic_entity
+urlpatterns += [
+    url(r'^' + current_brand + '', include('clinicalcode.urls_generic_entity')),
+]
 #--------------------------------------------------------------------
 
 # Add django site authentication urls (for login, logout, password management)

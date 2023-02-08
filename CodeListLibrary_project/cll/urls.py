@@ -81,6 +81,10 @@ for brand in brands:
 urlpatterns += [
     url(r'^', include('clinicalcode.urls')),
 ]
+# urls_generic_entity
+urlpatterns += [
+    url(r'^', include('clinicalcode.urls_generic_entity')),
+]
 #--------------------------------------------------------------------
 
 # admin system

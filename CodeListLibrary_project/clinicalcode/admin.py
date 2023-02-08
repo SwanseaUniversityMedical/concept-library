@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group, User
 
-from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource, Operator, Tag)
+from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource, Operator, Tag, Template)
 
 # from forms import GroupAdminForm
 # from django import forms
@@ -63,7 +63,13 @@ class CodingSystemAdmin(admin.ModelAdmin):
     search_fields = ['name', 'codingsystem_id', 'description']
     exclude = []
 
-
+@admin.register(Template)
+class TemplateAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'layout', 'description', 'definition', 'brand']  #'updated_by' 'created_by' , 'created', 'modified'
+    list_filter = ['layout', 'brand']
+    search_fields = ['name']
+    exclude = ['created_by', 'updated_by']
+    
 #admin.site.register(CodingSystem)
 
 # ############################################

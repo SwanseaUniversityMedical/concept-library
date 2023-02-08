@@ -1,4 +1,4 @@
-from .models import *
+from .models import (Tag, CodingSystem, DataSource)
 
 #------------ pagination lims ----------
 page_size_limits = [20, 50, 100]
@@ -84,3 +84,40 @@ PWS_ATTRIBUTE_TYPE_DATATYPE = {
     'FLOAT': float,
     'STRING': str,
 }
+
+
+#####################################
+#####################################
+### Dynamic tTemplates  ###
+ENTITY_STATUS_DRAFT = 1
+ENTITY_STATUS_FINAL = 2
+ENTITY_STATUS = (
+    (ENTITY_STATUS_DRAFT, 'Draft'),
+    (ENTITY_STATUS_FINAL, 'Final'),
+)
+#-----------------------------------
+LAYOUT_CLINICAL_CODED_PHENOTYPE = 1
+LAYOUT_CONCEPT = 2
+LAYOUT_WORKINGSET = 3
+LAYOUT_NLP_PHENOTYPE = 4
+LAYOUT_GENOMiC_PHENOTYPE = 5
+
+ENTITY_LAYOUT = ((LAYOUT_CLINICAL_CODED_PHENOTYPE, 'Clinical-Coded Phenotype'), 
+                 (LAYOUT_CONCEPT, 'Concept'), 
+                 (LAYOUT_WORKINGSET, 'Working Set'), 
+                 (LAYOUT_NLP_PHENOTYPE, 'NLP Phenotype'),
+                 (LAYOUT_GENOMiC_PHENOTYPE, 'Genomic Phenotype')
+                 )
+
+#-----------------------------------
+NONE = 1
+VIEW = 2
+EDIT = 3
+PERMISSION_CHOICES = ((NONE, 'No Access'), (VIEW, 'View'), (EDIT, 'Edit'))
+
+PERMISSION_CHOICES_WORLD_ACCESS = ((NONE, 'No Access'), (VIEW, 'View'))
+
+
+#####################################
+
+

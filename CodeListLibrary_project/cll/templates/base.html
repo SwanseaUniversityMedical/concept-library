@@ -158,7 +158,17 @@
 									</li>	
 								{% endif %}		
 							{% endif %}		
-						{% endif %}								
+						{% endif %}	
+						
+						{% if user.is_authenticated %}
+							{% if IS_DEMO or IS_DEVELOPMENT_PC %}					
+								{% if request.BRAND_OBJECT.allowed_tabs is none or 'generic_entity' in request.BRAND_OBJECT.allowed_tabs %}					
+									<li id="generic_entity_li"  >
+										<a id="generic_entity_a" class="main_menu nav-bar-title" href="{% url 'generic_entity_list' %}">Generic Entity</a>
+									</li>	
+								{% endif %}		
+							{% endif %}		
+						{% endif %}														
 							
 						{% if request.BRAND_OBJECT.allowed_tabs is none or 'api' in request.BRAND_OBJECT.allowed_tabs %}					
 							<li id="api_li"  >

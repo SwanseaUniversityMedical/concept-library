@@ -1,0 +1,25 @@
+# define different data types
+# use YAML or JSON
+# I placed just a holder for now
+# putting here different data_type used in the templates
+
+int=
+date=
+char_inputbox=
+textarea=
+char_list_of_inputboxes=
+
+#ENUM
+layout_char_from_Enum(stored as int)=
+status_char_from_Enum(stored as int)
+type_char_from_Enum(stored as int)=
+sex_char_from_Enum(stored as int)=
+
+
+
+# system defined types (managed by code snippet)
+concept_informations= json of concept ids/ver used in phenotype
+clinical_terminologies= list of coding system ids (calculated from phenotype concepts)
+tags= list of tags ids
+collections = list of collections ids
+data_sources = list of data_sources ids

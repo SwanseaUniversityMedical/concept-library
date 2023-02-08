@@ -1,0 +1,77 @@
+ [{
+     "type": {
+         "order": 5,
+         "active": "1",
+         "mandatory": "1",
+         "data_type": "type_char_from_Enum(stored as int)",
+         "permitted_values": {
+             "biomarker": 1,
+             "disease or syndrome": 2,
+             "drug": 3,
+             "lifestyle risk factor": 4,
+             "musculoskeletal": 5,
+             "surgical procedure": 6
+         }
+     },
+     "concept_informations": {
+         "order": 14,
+         "active": "1",
+         "mandatory": "0",
+         "data_type": "concept_informations"
+     },
+     "clinical_terminologies": {
+         "order": 13,
+         "active": "1",
+         "mandatory": "0",
+         "data_type": "clinical_terminologies"
+     },
+     "data_sources": {
+         "order": 15,
+         "active": "1",
+         "mandatory": "0",
+         "data_type": "data_sources"
+     },
+     "phenoflowid": {
+         "order": 16,
+         "active": "1",
+         "mandatory": "0",
+         "data_type": "int"
+     },
+     "agreement_date": {
+         "order": 17,
+         "active": "1",
+         "mandatory": "0",
+         "data_type": "date",
+         "input_type": "date"
+     },
+     "phenotype_uuid": {
+         "order": 18,
+         "active": "1",
+         "mandatory": "0",
+         "data_type": "char_inputbox"
+     },
+     "valid_event_data_range": {
+         "order": 20,
+         "active": "0",
+         "mandatory": "0",
+         "data_type": "char_inputbox"
+     },
+     "sex": {
+         "order": 21,
+         "active": "1",
+         "mandatory": "1",
+         "data_type": "sex_char_from_Enum(stored as int)",
+         "permitted_values": {
+             "Male": 1,
+             "Female": 2,
+             "Male/Female": 3
+         }
+     },
+     "source_reference": {
+         "order": 19,
+         "active": "0",
+         "mandatory": "0",
+         "data_type": "char_inputbox",
+         "hide_if_empty": true
+     }
+ }]
