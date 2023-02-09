@@ -339,15 +339,7 @@ def get_visible_live_or_published_generic_entity_versions(request,
                            WHERE entity_id=t.id and entity_history_id=t.history_id 
                        ) approval_status,
                        
-                       id, created, modified, name, layout, phenotype_uuid, type, 
-                       validation, valid_event_data_range,  
-                       sex, author, status, hdr_created_date, hdr_modified_date, description, implementation,
-                       concept_informations::json, publication_doi, publication_link, secondary_publication_links, 
-                       source_reference, citation_requirements, is_deleted, deleted, 
-                       owner_access, group_access, world_access, history_id, history_date, 
-                       history_change_reason, history_type, created_by_id, deleted_by_id, 
-                       group_id, history_user_id, owner_id, updated_by_id, validation_performed, 
-                       phenoflowid, tags, collections, clinical_terminologies, publications, data_sources
+                       *
                     FROM clinicalcode_genericentity t
                         """ + brand_filter_cond + """
                     ) r

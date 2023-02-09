@@ -228,8 +228,11 @@ def generic_entity_list(request):
         group_list = list(current_brand.values_list('groups', flat=True))
         filter_cond += " AND group_id IN(" + ', '.join(map(str, group_list)) + ") "
 
-    order_param = generic_entity_db_utils.get_order_from_parameter(des_order).replace(" id,", " REPLACE(id, 'PH', '')::INTEGER,")
-    phenotype_srch = generic_entity_db_utils.get_visible_live_or_published_phenotype_versions(request,
+    order_param = db_utils.get_order_from_parameter(des_order).replace(" id,", " REPLACE(id, 'PH', '')::INTEGER,")
+
+# TO be changed to generic entity search 
+#    phenotype_srch = generic_entity_db_utils.get_visible_live_or_published_generic_entity_versions(request,
+    phenotype_srch = db_utils.get_visible_live_or_published_phenotype_versions(request,
                                                                             get_live_and_or_published_ver=get_live_and_or_published_ver,
                                                                             search=[search, ''][search_by_id],
                                                                             author=author,

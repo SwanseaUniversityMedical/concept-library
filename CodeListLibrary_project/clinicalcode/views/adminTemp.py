@@ -219,164 +219,6 @@ def json_adjust_workingset(request):
             
 """
                         
-# @login_required
-# def moveDataSources(request):
-#     # not needed anymore
-#     raise PermissionDenied
-#
-#     if not request.user.is_superuser:
-#         raise PermissionDenied
-#
-#     if settings.CLL_READ_ONLY:
-#         raise PermissionDenied
-#
-#     if request.method == 'GET':
-#         if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-#             return render(request, 'clinicalcode/adminTemp/moveDataSources.html', {})
-#
-#     elif request.method == 'POST':
-#         if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-#             code = request.POST.get('code')
-#             if code.strip() != "nvd)#_0-i_a05n^5p6az2q_cd(_(+_4g)r&9h!#ru*pr(xa@=k":
-#                 raise PermissionDenied
-#
-#             rowsAffected = {}
-#
-
-
-            ######################################################################
-            # # move phenotype data-sources as an attribute
-            # distinct_phenotypes_with_ds = PhenotypeDataSourceMap.objects.all().distinct('phenotype_id')
-            # for dp in distinct_phenotypes_with_ds:
-            #     #print "*************"
-            #     #print dp.phenotype_id
-            #     hisp = Phenotype.history.filter(id=dp.phenotype_id)
-            #     for hp in hisp:
-            #         #print hp.id, "...", hp.history_id
-            #         ph_DataSources_history = db_utils.getHistoryDataSource_Phenotype(hp.id, hp.history_date)
-            #         if ph_DataSources_history:
-            #             ph_DataSources_list = [i['datasource_id'] for i in ph_DataSources_history if 'datasource_id' in i]
-            #         else:
-            #             ph_DataSources_list = []
-            #         #print ph_DataSources_list
-            #         with connection.cursor() as cursor:
-            #             sql = """ UPDATE clinicalcode_historicalphenotype
-            #                         SET data_sources = '{""" + ','.join([str(i) for i in ph_DataSources_list]) + """}'
-            #                         WHERE id="""+str(hp.id)+""" and history_id="""+str(hp.history_id)+""";
-            #                  """
-            #             cursor.execute(sql)
-            #             if hp.history_id == int(Phenotype.objects.get(pk=hp.id).history.latest().history_id):
-            #                 sql2 = """ UPDATE clinicalcode_phenotype
-            #                         SET data_sources = '{""" + ','.join([str(i) for i in ph_DataSources_list]) + """}'
-            #                         WHERE id="""+str(hp.id)+"""  ;
-            #                  """
-            #                 cursor.execute(sql2)
-            #
-            #                 rowsAffected[hp.id] = "phenotype: " + hp.name + ":: data_sources moved"
-            #
-            #
-            #
-            #
-            #
-            # return render(request,
-            #             'clinicalcode/adminTemp/moveDataSources.html',
-            #             {   'pk': -10,
-            #                 'strSQL': {},
-            #                 'rowsAffected' : rowsAffected
-            #             }
-            #             )
-
-# @login_required
-# def api_remove_longIDfromName(request):
-#     if not request.user.is_superuser:
-#         raise PermissionDenied
-#
-#     if settings.CLL_READ_ONLY:
-#         raise PermissionDenied
-#
-#
-#     if request.method == 'GET':
-#         if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-#             return render(request, 'clinicalcode/adminTemp/api_remove_longIDfromName.html',
-#                           { }
-#                         )
-#
-#     elif request.method == 'POST':
-#         if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-#             code =  request.POST.get('code')
-#             if code.strip()!="nvd)#_0-i_a05n^5p6az2q_cd(_(+_4g)r&9h!#ru*pr(xa@=k":
-#                 raise PermissionDenied
-#
-#             rowsAffected = {}
-#
-#
-#             #######################################################################
-#
-#             from django.db import connection, connections #, transaction
-#
-#             # remove long ID from concept name / title
-#             hisp = Concept.history.all()
-#             for hp in hisp:
-#                 print hp.id, "...", hp.history_id
-#                 print hp.name
-#                 print "..................."
-#                 if hp.name.find(' - ') != -1:
-#                     newname = ' - '.join(hp.name.split(' - ')[1:])
-#                     newname = newname.replace("'", "''")
-#                     print newname
-#                     with connection.cursor() as cursor:
-#                         sql = """ UPDATE clinicalcode_historicalconcept
-#                                     SET  name = '""" + newname + """'
-#                                     WHERE id="""+str(hp.id)+""" and history_id="""+str(hp.history_id)+""";
-#                              """
-#                         cursor.execute(sql)
-#                         if hp.history_id == int(Concept.objects.get(pk=hp.id).history.latest().history_id):
-#                             sql2 = """ UPDATE clinicalcode_concept
-#                                     SET name = '""" + newname + """'
-#                                     WHERE id="""+str(hp.id)+"""  ;
-#                              """
-#                             cursor.execute(sql2)
-#
-#                 print "-------------"
-#
-#             ######################################################################
-#
-#             # remove long ID from phenotype name / title
-#             hisp = Phenotype.history.all()
-#             for hp in hisp:
-#                 print hp.id, "...", hp.history_id
-#                 print hp.name
-#                 print "..................."
-#                 if hp.name.find(' - ') != -1:
-#                     newname = ' - '.join(hp.name.split(' - ')[1:])
-#                     newname = newname.replace("'", "''")
-#                     print newname
-#                     with connection.cursor() as cursor:
-#                         sql = """ UPDATE clinicalcode_historicalphenotype
-#                                     SET title = '""" + newname + """' ,  name = '""" + newname + """'
-#                                     WHERE id="""+str(hp.id)+""" and history_id="""+str(hp.history_id)+""";
-#                              """
-#                         cursor.execute(sql)
-#                         if hp.history_id == int(Phenotype.objects.get(pk=hp.id).history.latest().history_id):
-#                             sql2 = """ UPDATE clinicalcode_phenotype
-#                                     SET title = '""" + newname + """' ,  name = '""" + newname + """'
-#                                     WHERE id="""+str(hp.id)+"""  ;
-#                              """
-#                             cursor.execute(sql2)
-#
-#                     print "-------------"
-#
-#
-#
-#             return render(request,
-#                    'clinicalcode/adminTemp/api_remove_longIDfromName.html',
-#                    {   'pk': -10,
-#                        'strSQL': {},
-#                        'rowsAffected' : rowsAffected
-#                    }
-#                    )
-#
-#
 
 
 def update_concept_tags_from_phenotype_tags():
@@ -723,7 +565,13 @@ def admin_mig_phenotypes_dt(request):
                     if Phenotype.objects.filter(pk=pk).exists():
                         phenotype = Phenotype.objects.get(pk=pk)
                         
+                        # delete if exists                             
+                        if GenericEntity.objects.filter(pk=phenotype.id).exists():
+                            ge0 = GenericEntity.objects.get(pk=phenotype.id)
+                            ge0.delete()
+                        
                         ge = GenericEntity.objects.create(
+                            serial_id = get_serial_id(),
                             id = phenotype.id,
                             name = phenotype.name,
                             author = phenotype.author,
@@ -741,8 +589,8 @@ def admin_mig_phenotypes_dt(request):
                             citation_requirements = phenotype.citation_requirements,
 
                             template_id = Template.objects.get(pk=1),
-                            template_data = [], # include type as ENUM # manage sex, type ....
-                            template_data2 = [],
+                            template_data = get_custom_fields_name_value(phenotype),  # include type as ENUM # manage sex, type ....
+                            template_data2 = get_custom_fields_key_value(phenotype),
                             
                             internal_comments = 'internal comments',
                             
@@ -761,8 +609,23 @@ def admin_mig_phenotypes_dt(request):
                             group_access = phenotype.group_access,
                             world_access = phenotype.world_access
                             )
-                        ge.saveXX(entity = 'phenotype', serial_id = True, override_id = True)
-        
+                        #ge.save_migrate_phenotypes()
+                        ge.save()
+                        
+                        
+                        # publish if phenotype was published at least once                             
+                        if GenericEntity.objects.filter(pk=phenotype.id).exists():
+                            if PublishedPhenotype.objects.filter(phenotype_id=phenotype.id, approval_status=2).count() > 0:
+                                ge1 = GenericEntity.objects.get(pk=phenotype.id)
+                                published_generic_entity = PublishedGenericEntity(
+                                                                            entity = ge1,
+                                                                            entity_history_id = ge1.history.latest().history_id,
+                                                                            created_by = request.user,
+                                                                            approval_status = 2,
+                                                                            moderator = request.user
+                                                                            )
+                                published_generic_entity.save()
+
 
     
                     #     db_utils.modify_Entity_ChangeReason(Phenotype, pk, "Restored")
@@ -781,3 +644,108 @@ def admin_mig_phenotypes_dt(request):
                         )
             
 
+def get_serial_id():
+    count_all = GenericEntity.objects.count()
+    if count_all:
+        count_all += 1 # offset
+    else:
+        count_all = 1
+        
+    print(str(count_all))
+    return count_all
+
+
+
+def get_agreement_date(phenotype):
+    if phenotype.hdr_modified_date:
+        return phenotype.hdr_modified_date
+    else:
+        return phenotype.hdr_created_date
+
+def get_sex(phenotype):
+    sex = str(phenotype.sex).lower().strip()
+    if sex == 'male':
+        return 1
+    elif sex == 'female':
+        return 2
+    else:
+        return 3
+    
+
+def get_type(phenotype):
+    type = str(phenotype.type).lower().strip()
+    if type == "biomarker":
+        return 1
+    elif type == "disease or syndrome":
+        return 2
+    elif type == "drug":
+        return 3
+    elif type == "lifestyle risk factor":
+        return 4
+    elif type == "musculoskeletal":
+        return 5
+    elif type == "surgical procedure":
+        return 6    
+    else:
+        return -1
+
+
+
+def get_custom_fields(phenotype):
+    ret_data = {}
+    
+    ret_data['type'] = get_type(phenotype)
+    ret_data['concept_informations'] = phenotype.concept_informations
+    ret_data['clinical_terminologies'] = phenotype.clinical_terminologies
+    ret_data['data_sources'] = phenotype.data_sources
+    ret_data['phenoflowid'] = phenotype.phenoflowid    
+    ret_data['agreement_date'] = get_agreement_date(phenotype)
+    ret_data['phenotype_uuid'] = phenotype.phenotype_uuid
+    ret_data['valid_event_data_range'] = phenotype.valid_event_data_range
+    ret_data['sex'] = get_sex(phenotype)
+    ret_data['source_reference'] = phenotype.source_reference
+    
+    return ret_data
+    
+def get_custom_fields_key_value(phenotype):
+    """
+    return one dict of col_name/col_value pairs
+    """
+    
+    return get_custom_fields(phenotype)
+    
+    
+def get_custom_fields_name_value(phenotype):
+    """
+    return the format list of dict
+    [{
+        "name": "col title 1",
+        "value": "value 1"
+    }, {
+        "name": "col title 2",
+        "value": "value 2"
+    }, {
+        "name": "col title 3",
+        "value": "value 3"
+    }]
+    """
+    
+    ret_data = []
+    dict1 = {}
+    custom_fields = get_custom_fields(phenotype)
+    for key, value in custom_fields.items(): 
+        dict1 = {}
+        dict1['name'] = key
+        dict1['value'] = value
+        ret_data.append(dict1)
+        
+    return ret_data
+  
+    
+    
+    
+    
+    
+    
+    
+    

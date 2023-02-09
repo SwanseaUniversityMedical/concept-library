@@ -71,7 +71,7 @@ Drug = 2
 Lifestyle_risk_factor = 3
 Musculoskeletal = 4
 Surgical_procedure = 5
-Type_status = ((Disease, 'Disease or syndrome '),
+Type_status = ((Disease, 'Disease or syndrome'),
                (Biomarker,'Biomarker'),
                (Drug,'Drug'),
                (Lifestyle_risk_factor,'Lifestyle risk factor'),
@@ -127,7 +127,22 @@ PERMISSION_CHOICES = ((NONE, 'No Access'), (VIEW, 'View'), (EDIT, 'Edit'))
 PERMISSION_CHOICES_WORLD_ACCESS = ((NONE, 'No Access'), (VIEW, 'View'))
 
 #-----------------------------------
+# types of clinical-coded phenotypes
+BIOMARKER = 1
+DISEASE_OR_SYNDROME = 2
+DRUG = 3
+LIFESTYLE_RISK_FACTOR = 4
+MUSCULOSKELETAL = 5
+SURGICAL_PROCEDURE = 6
+TYPE_CLINICAL_CODED_PHENOTYPE = ((BIOMARKER, 'Biomarker'),
+                                 (DISEASE_OR_SYNDROME, 'Disease or syndrome'),
+                                 (DRUG, 'Drug'),
+                                 (LIFESTYLE_RISK_FACTOR, 'Lifestyle risk factor'),
+                                 (MUSCULOSKELETAL, 'Musculoskeletal'),
+                                 (SURGICAL_PROCEDURE, 'Surgical procedure')
+                                 )
 
+#-----------------------------------
 FIELD_TYPE ={
     "int": {
         "data_type": "int",

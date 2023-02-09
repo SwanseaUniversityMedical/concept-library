@@ -106,8 +106,12 @@ class GenericEntity(models.Model):
         super(GenericEntity, self).save(*args, **kwargs)            
 
 
-    def saveXX(self, entity='phenotype', serial_id=False, override_id=False,  *args, **kwargs):
+    def save_migrate_phenotypes(self, *args, **kwargs):
         # This means that the model isn't saved to the database yet
+        
+        entity = 'phenotype'
+        serial_id = False
+        override_id = False
         
         # if create new, then calculate new ids
         #if (not self.id) or (serial_id):            
@@ -117,28 +121,28 @@ class GenericEntity(models.Model):
         else:
             count_all = 1
         # serial auto-increment field
-        self.serial_id = count_all
+        #self.serial_id = count_all
             
-        #if  (not self.id) or (override_id):   
-        count = None                
-        prefix = ''
-
-        entity = entity.lower()
-        # count only same entity
-        count = GenericEntity.objects.filter(layout__in = [t[0]  for t in ENTITY_LAYOUT if t[1].lower().replace(' ', '').find(entity) != -1] ).count()
-        if entity == 'phenotype':
-            prefix = 'PH'
-        elif entity == 'concept':
-            prefix = 'C'
-        elif entity == 'workingset':
-            prefix = 'WS'
-            
-            
-        if count:
-            count += 1   
-        else:
-            count = 1                   
-        #self.id = prefix + str(count)
+        # #if  (not self.id) or (override_id):   
+        # count = None                
+        # prefix = ''
+        #
+        # entity = entity.lower()
+        # # count only same entity
+        # count = GenericEntity.objects.filter(layout__in = [t[0]  for t in ENTITY_LAYOUT if t[1].lower().replace(' ', '').find(entity) != -1] ).count()
+        # if entity == 'phenotype':
+        #     prefix = 'PH'
+        # elif entity == 'concept':
+        #     prefix = 'C'
+        # elif entity == 'workingset':
+        #     prefix = 'WS'
+        #
+        #
+        # if count:
+        #     count += 1   
+        # else:
+        #     count = 1                   
+        # #self.id = prefix + str(count)
 
         super(GenericEntity, self).save(*args, **kwargs)            
 

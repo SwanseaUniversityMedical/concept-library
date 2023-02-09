@@ -19,7 +19,7 @@ urlpatterns = []
  
 if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
     urlpatterns += [
-        url(r'^ge/$', GenericEntity.generic_entity_list, name='generic_entity_list'),
+        url(r'^search/$', GenericEntity.generic_entity_list, name='generic_entity_list'),
         ]
 
 # for admin(developers) to migrate phenotypes into dynamic template
