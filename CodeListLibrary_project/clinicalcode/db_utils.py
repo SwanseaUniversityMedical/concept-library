@@ -3510,6 +3510,7 @@ def get_CodingSystems_from_Phenotype_concept_informations(concept_informations):
 
 
 def getHistoryDataSource_Phenotype(phenotype_id, phenotype_history_date):
+    # not used any more
     ''' Get historic DataSources attached to a phenotype that were effective from a point in time 
     ( THIS FUNCTION IS NO LONGER USED)
     '''
