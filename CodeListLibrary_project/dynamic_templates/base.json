@@ -1,80 +1,58 @@
- [{
-     "name": {
-         "order": 1,
-         "active": "1",
-         "mandatory": "1",
-         "data_type": "char_inputbox"
-     },
-     "author": {
-         "order": 2,
-         "active": "1",
-         "mandatory": "1",
-         "data_type": "char_inputbox"
-     },
-     "layout": {
-         "order": 3,
-         "active": "0",
-         "mandatory": "0",
-         "data_type": "layout_char_from_Enum(stored as int)",
-         "permitted_values": {
-             "Clinical-Coded Phenotype": 1,
-             "NLP Phenotype": 4,
-             "Genomic Phenotype": 5
+ {
+     "template_version": 1,
+     "base_fields": [{
+         "name": {
+             "active": "1",
+             "mandatory": "1",
+             "field_type": "char_inputbox"
          }
-     },
-     "status": {
-         "order": 4,
-         "active": "1",
-         "mandatory": "1",
-         "data_type": "status_char_from_Enum(stored as int)",
-         "permitted_values": {
-             "draft": 1,
-             "final": 2
+     }, {
+         "author": {
+             "active": "1",
+             "mandatory": "1",
+             "field_type": "char_inputbox"
          }
-     },
-     "tags": {
-         "order": 6,
-         "active": "1",
-         "mandatory": "0",
-         "data_type": "tags"
-     },
-     "collections": {
-         "order": 7,
-         "active": "1",
-         "mandatory": "0",
-         "data_type": "collections"
-     },
-     "description": {
-         "order": 8,
-         "active": "1",
-         "mandatory": "0",
-         "data_type": "textarea",
-         "display_render": "markdown"
-     },
-     "implementation": {
-         "order": 9,
-         "active": "1",
-         "mandatory": "0",
-         "data_type": "textarea",
-         "display_render": "markdown"
-     },
-     "publications": {
-         "order": 10,
-         "active": "1",
-         "mandatory": "0",
-         "data_type": "char_list_of_inputboxes"
-     },
-     "validation": {
-         "order": 11,
-         "active": "1",
-         "mandatory": "0",
-         "data_type": "textarea",
-         "display_render": "markdown"
-     },
-     "citation_requirements": {
-         "order": 12,
-         "active": "0",
-         "mandatory": "0",
-         "data_type": "textarea"
-     }
- }]
+     }, {
+         "tags": {
+             "active": "1",
+             "mandatory": "0",
+             "field_type": "tags"
+         }
+     }, {
+         "collections": {
+             "active": "1",
+             "mandatory": "0",
+             "field_type": "collections"
+         }
+     }, {
+         "description": {
+             "active": "1",
+             "mandatory": "0",
+             "field_type": "textarea_markdown"
+         }
+     }, {
+         "implementation": {
+             "active": "1",
+             "mandatory": "0",
+             "field_type": "textarea_markdown"
+         }
+     }, {
+         "publications": {
+             "active": "1",
+             "mandatory": "0",
+             "field_type": "char_list_of_inputboxes"
+         }
+     }, {
+         "validation": {
+             "active": "1",
+             "mandatory": "0",
+             "field_type": "textarea_markdown"
+         }
+     }, {
+         "citation_requirements": {
+             "active": "0",
+             "mandatory": "0",
+             "field_type": "textarea"
+         }
+     }]
+ }
