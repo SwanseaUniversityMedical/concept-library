@@ -68,16 +68,21 @@ def checkIfPublished(set_class, set_id, set_history_id):
     from .models.Concept import Concept
     from .models.Phenotype import Phenotype
     from .models.PhenotypeWorkingset import PhenotypeWorkingset
+    from .models.GenericEntity import GenericEntity
+    
     from .models.PublishedConcept import PublishedConcept
     from .models.PublishedPhenotype import PublishedPhenotype
     from .models.PublishedWorkingset import PublishedWorkingset
-
+    from .models.PublishedGenericEntity import PublishedGenericEntity
+    
     if (set_class == Concept):
         return PublishedConcept.objects.filter(concept_id=set_id, concept_history_id=set_history_id).exists()
     elif (set_class == Phenotype):
         return PublishedPhenotype.objects.filter(phenotype_id=set_id, phenotype_history_id=set_history_id, approval_status=2).exists()
     elif (set_class == PhenotypeWorkingset):
         return PublishedWorkingset.objects.filter(workingset_id=set_id, workingset_history_id=set_history_id, approval_status=2).exists()
+    elif (set_class == GenericEntity):
+        return PublishedGenericEntity.objects.filter(entity_id=set_id, entity_history_id=set_history_id, approval_status=2).exists()
     else:
         return False
 
@@ -88,9 +93,12 @@ def get_latest_published_version(set_class, set_id):
     from .models.Concept import Concept
     from .models.Phenotype import Phenotype
     from .models.PhenotypeWorkingset import PhenotypeWorkingset
+    from .models.GenericEntity import GenericEntity
+
     from .models.PublishedConcept import PublishedConcept
     from .models.PublishedPhenotype import PublishedPhenotype
     from .models.PublishedWorkingset import PublishedWorkingset
+    from .models.PublishedGenericEntity import PublishedGenericEntity
 
     latest_published_version = None 
     
@@ -105,7 +113,11 @@ def get_latest_published_version(set_class, set_id):
     elif (set_class == PhenotypeWorkingset):
         latest_published_version = PublishedWorkingset.objects.filter(workingset_id=set_id, approval_status=2).order_by('-workingset_history_id').first() 
         if latest_published_version:
-            return latest_published_version.workingset_history_id            
+            return latest_published_version.workingset_history_id  
+    elif (set_class == GenericEntity):          
+        latest_published_version = PublishedGenericEntity.objects.filter(entity_id=set_id, approval_status=2).order_by('-entity_history_id').first() 
+        if latest_published_version:
+            return latest_published_version.entity_history_id
     else:
         return None
 
@@ -113,19 +125,24 @@ def get_latest_published_version(set_class, set_id):
 
 
 def get_publish_approval_status(set_class, set_id, set_history_id):
-    ''' Get the puublish approval status '''
+    ''' Get the publish approval status '''
 
-    from .models.Concept import Concept
+    #from .models.Concept import Concept
     from .models.Phenotype import Phenotype
     from .models.PhenotypeWorkingset import PhenotypeWorkingset
-    from .models.PublishedConcept import PublishedConcept
+    from .models.GenericEntity import GenericEntity
+
+    #from .models.PublishedConcept import PublishedConcept
     from .models.PublishedPhenotype import PublishedPhenotype
     from .models.PublishedWorkingset import PublishedWorkingset
+    from .models.PublishedGenericEntity import PublishedGenericEntity
 
     if (set_class == Phenotype):
         return PublishedPhenotype.objects.filter(phenotype_id = set_id, phenotype_history_id = set_history_id).values_list("approval_status", flat=True).first()
     elif (set_class == PhenotypeWorkingset):
         return PublishedWorkingset.objects.filter(workingset_id = set_id, workingset_history_id = set_history_id).values_list("approval_status", flat=True).first()
+    elif (set_class == GenericEntity):
+        return PublishedGenericEntity.objects.filter(entity_id = set_id, entity_history_id = set_history_id).values_list("approval_status", flat=True).first()
 
     # elif (set_class == Concept):
     #     return PublishedConcept.objects.filter(concept_id = set_id).values_list('approval_status', flat=True).first()
@@ -316,6 +333,7 @@ def allowed_to_view(request,
     from .models.Concept import Concept
     from .models.Phenotype import Phenotype
     from .models.PhenotypeWorkingset import PhenotypeWorkingset
+    from .models.GenericEntity import GenericEntity
 
     # from .models.WorkingSet import WorkingSet
     # check if the entity/version exists
@@ -341,7 +359,7 @@ def allowed_to_view(request,
             is_allowed_to_view = True
         else:
             # if a specific version is published
-            if set_history_id is not None and set_class in (Concept, Phenotype, PhenotypeWorkingset):
+            if set_history_id is not None and set_class in (Concept, Phenotype, PhenotypeWorkingset, GenericEntity):
                 if checkIfPublished(set_class, set_id, set_history_id):
                     is_allowed_to_view = True
 
@@ -1028,6 +1046,7 @@ def is_brand_accessible(request, set_class, set_id, set_history_id=None):
     from .models.Phenotype import Phenotype
     from .models.WorkingSet import WorkingSet
     from .models.PhenotypeWorkingset import PhenotypeWorkingset
+    from .models.GenericEntity import GenericEntity
 
     # setting set_history_id = None,
     # so this permission is always checked from the live obj like other permissions
@@ -1048,7 +1067,7 @@ def is_brand_accessible(request, set_class, set_id, set_history_id=None):
                 history_id = set_class.objects.get(pk=set_id).history.latest().history_id
 
             set_collections = []
-            if set_class in (Concept, Phenotype, PhenotypeWorkingset):
+            if set_class in (Concept, Phenotype, PhenotypeWorkingset, GenericEntity):
                 set_collections = set_class.history.get(id=set_id, history_id=history_id).collections
                 
             elif set_class == WorkingSet:
