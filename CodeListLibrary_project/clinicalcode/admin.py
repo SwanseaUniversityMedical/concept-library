@@ -65,8 +65,8 @@ class CodingSystemAdmin(admin.ModelAdmin):
 
 @admin.register(Template)
 class TemplateAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'layout', 'description', 'definition', 'brand']  #'updated_by' 'created_by' , 'created', 'modified'
-    list_filter = ['layout', 'brand']
+    list_display = ['id', 'name', 'layout', 'description']  #'updated_by' 'created_by' , 'created', 'modified'
+    list_filter = ['layout']
     search_fields = ['name']
     exclude = ['created_by', 'updated_by']
     

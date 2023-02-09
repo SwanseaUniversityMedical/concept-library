@@ -45,6 +45,7 @@ class GenericEntity(models.Model):
 
     #brands = ArrayField(models.IntegerField(), blank=True, null=True)
     
+    # managed by app
     internal_comments = models.TextField(null=True, blank=True) # for create/update forms only, not to be shown elsewhere
         
     created = models.DateTimeField(auto_now_add=True)

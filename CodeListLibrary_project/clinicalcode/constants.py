@@ -72,7 +72,8 @@ Lifestyle_risk_factor = 3
 Musculoskeletal = 4
 Surgical_procedure = 5
 Type_status = ((Disease, 'Disease or syndrome '),
-               (Biomarker,'Biomarker'),(Drug,'Drug'),
+               (Biomarker,'Biomarker'),
+               (Drug,'Drug'),
                (Lifestyle_risk_factor,'Lifestyle risk factor'),
                (Musculoskeletal,'Musculoskeletal'),
                (Surgical_procedure,'Surgical procedure'))
@@ -88,7 +89,11 @@ PWS_ATTRIBUTE_TYPE_DATATYPE = {
 
 #####################################
 #####################################
-### Dynamic tTemplates  ###
+### Dynamic Templates  ###
+#####################################
+#####################################
+
+# Status
 ENTITY_STATUS_DRAFT = 1
 ENTITY_STATUS_FINAL = 2
 ENTITY_STATUS = (
@@ -96,6 +101,8 @@ ENTITY_STATUS = (
     (ENTITY_STATUS_FINAL, 'Final'),
 )
 #-----------------------------------
+
+# Layout
 LAYOUT_CLINICAL_CODED_PHENOTYPE = 1
 LAYOUT_CONCEPT = 2
 LAYOUT_WORKINGSET = 3
@@ -110,6 +117,8 @@ ENTITY_LAYOUT = ((LAYOUT_CLINICAL_CODED_PHENOTYPE, 'Clinical-Coded Phenotype'),
                  )
 
 #-----------------------------------
+
+# Permissions
 NONE = 1
 VIEW = 2
 EDIT = 3
@@ -117,6 +126,75 @@ PERMISSION_CHOICES = ((NONE, 'No Access'), (VIEW, 'View'), (EDIT, 'Edit'))
 
 PERMISSION_CHOICES_WORLD_ACCESS = ((NONE, 'No Access'), (VIEW, 'View'))
 
+#-----------------------------------
+
+FIELD_TYPE ={
+    "int": {
+        "data_type": "int",
+        "input_type": "textinput"
+    },
+    "date": {
+        "data_type": "date",
+        "input_type": "date_picker"
+    },
+    "char_inputbox": {
+        "data_type": "char",
+        "input_type": "textinput",
+        "max_length": 250
+    },
+    "textarea": {
+        "data_type": "char",
+        "input_type": "textarea",
+        "rows": 5
+    },
+    "textarea_markdown": {
+        "data_type": "char",
+        "input_type": "textarea",
+        "rows": 5,
+        "display": "markdown"
+    },
+    "char_list_of_inputboxes": {
+        "data_type": "char",
+        "input_type": "list_of_inputboxes",
+        "max_length": 250,
+    },
+    "char_list_of_inputboxes_markdown": {
+        "data_type": "char",
+        "input_type": "list_of_inputboxes",
+        "max_length": 250,
+        "display": "markdown"
+    },
+
+
+    "concept_informations": {
+        "system_defined": True,
+        "description": "json of concept ids/ver used in phenotype (managed by code snippet)"
+    },
+    "clinical_terminologies": {
+        "system_defined": True,
+        "description": "list of coding system ids (calculated from phenotype concepts) (managed by code snippet)"
+    },
+    "tags": {
+        "system_defined": True,
+        "description": "list of tags ids (managed by code snippet)"
+    },
+    "collections": {
+        "system_defined": True,
+        "description": "list of collections ids (managed by code snippet)"
+    },
+    "data_sources": {
+        "system_defined": True,
+        "description": "list of data_sources ids (managed by code snippet)"
+    },
+
+
+    "enum": {
+        "data_type": "int",
+        "input_type": "dropdown-list",
+        "use_permitted_values": True
+    }
+
+} 
 
 #####################################
 

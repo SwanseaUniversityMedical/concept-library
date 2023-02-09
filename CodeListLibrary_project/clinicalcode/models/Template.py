@@ -17,7 +17,8 @@ class Template(TimeStampedModel):
     
     definition = JSONField(blank=True, null=True)
 
-    brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, related_name="template_brand")
+    # brand/ template will be handled elsewhere 
+    #brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, related_name="template_brand")
     
     # take most recent
     #is_default = models.BooleanField(default=False)

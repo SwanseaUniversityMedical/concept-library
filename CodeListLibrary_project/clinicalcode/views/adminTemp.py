@@ -741,7 +741,7 @@ def admin_mig_phenotypes_dt(request):
                             citation_requirements = phenotype.citation_requirements,
 
                             template_id = Template.objects.get(pk=1),
-                            template_data = [], # include type as ENUM
+                            template_data = [], # include type as ENUM # manage sex, type ....
                             template_data2 = [],
                             
                             internal_comments = 'internal comments',
