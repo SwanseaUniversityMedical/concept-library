@@ -1,7 +1,7 @@
  {
      "template_version": 1,
      "base_template_version": 1,
-     
+
      "base_fields": [{
          "name": {}
      }, {
@@ -26,7 +26,7 @@
          "type": {
              "active": "1",
              "mandatory": "1",
-             "field_type": "type_char_from_Enum(stored as int)",
+             "field_type": "enum",
              "permitted_values": {
                  "biomarker": 1,
                  "disease or syndrome": 2,
@@ -34,7 +34,8 @@
                  "lifestyle risk factor": 4,
                  "musculoskeletal": 5,
                  "surgical procedure": 6
-             }
+             },
+             "filterable": true
          }
      }, {
          "concept_informations": {
@@ -53,7 +54,8 @@
              "active": "1",
              "mandatory": "0",
              "field_type": "data_sources"
-         }
+         },
+         "filterable": true
      }, {
          "phenoflowid": {
              "active": "1",
@@ -85,7 +87,7 @@
          "sex": {
              "active": "1",
              "mandatory": "1",
-             "field_type": "sex_char_from_Enum(stored as int)",
+             "field_type": "enum",
              "permitted_values": {
                  "Male": 1,
                  "Female": 2,
