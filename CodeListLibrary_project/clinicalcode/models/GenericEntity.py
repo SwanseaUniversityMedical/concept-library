@@ -41,7 +41,6 @@ class GenericEntity(models.Model):
 
     template = models.ForeignKey(Template, on_delete=models.SET_NULL, null=True, related_name="entity_template")
     template_data = JSONField(blank=True, null=True)
-    template_data2 = JSONField(blank=True, null=True)
 
     #brands = ArrayField(models.IntegerField(), blank=True, null=True)
     

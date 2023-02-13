@@ -590,7 +590,7 @@ def admin_mig_phenotypes_dt(request):
 
                             template = Template.objects.get(pk=1),
                             template_data =  get_custom_fields_key_value(phenotype), # include type as ENUM # manage sex, type ....
-                            template_data2 = get_custom_fields_name_value(phenotype), 
+                            #template_data2 = get_custom_fields_name_value(phenotype), 
                             
                             internal_comments = 'internal comments',
                             
