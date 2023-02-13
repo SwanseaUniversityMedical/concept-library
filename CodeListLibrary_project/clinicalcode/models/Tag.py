@@ -34,6 +34,7 @@ class Tag(TimeStampedModel):
 
     tag_type = models.IntegerField(choices=TAG_TYPES, default=1)
     collection_brand = models.ForeignKey(Brand,
+                                         blank=True,
                                          on_delete=models.SET_NULL,
                                          null=True,
                                          related_name="tags_collection_brand")
