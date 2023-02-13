@@ -588,9 +588,9 @@ def admin_mig_phenotypes_dt(request):
                             publications = phenotype.publications,
                             citation_requirements = phenotype.citation_requirements,
 
-                            template_id = Template.objects.get(pk=1),
-                            template_data = get_custom_fields_name_value(phenotype),  # include type as ENUM # manage sex, type ....
-                            template_data2 = get_custom_fields_key_value(phenotype),
+                            template = Template.objects.get(pk=1),
+                            template_data =  get_custom_fields_key_value(phenotype), # include type as ENUM # manage sex, type ....
+                            template_data2 = get_custom_fields_name_value(phenotype), 
                             
                             internal_comments = 'internal comments',
                             
@@ -651,7 +651,7 @@ def get_serial_id():
     else:
         count_all = 1
         
-    print(str(count_all))
+    #print(str(count_all))
     return count_all
 
 

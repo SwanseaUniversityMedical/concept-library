@@ -39,7 +39,7 @@ class GenericEntity(models.Model):
     citation_requirements = models.TextField(null=True, blank=True)  # Any request for citation requirements to be honoured
 
 
-    template_id = models.ForeignKey(Template, on_delete=models.SET_NULL, null=True, related_name="entity_template")
+    template = models.ForeignKey(Template, on_delete=models.SET_NULL, null=True, related_name="entity_template")
     template_data = JSONField(blank=True, null=True)
     template_data2 = JSONField(blank=True, null=True)
 
