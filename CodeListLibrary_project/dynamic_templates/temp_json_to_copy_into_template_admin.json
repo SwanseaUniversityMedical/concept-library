@@ -2,63 +2,55 @@
      "template_version": 1,
      "base_template_version": 1,
 
-     "base_fields": [{
+     "base_fields": {
          "name": {
              "active": "1",
              "mandatory": "1",
              "field_type": "char_inputbox"
-         }
-     }, {
+         },
          "author": {
              "active": "1",
              "mandatory": "1",
              "field_type": "char_inputbox"
-         }
-     }, {
+         },
          "tags": {
              "active": "1",
              "mandatory": "0",
              "field_type": "tags"
-         }
-     }, {
+         },
          "collections": {
              "active": "1",
              "mandatory": "0",
              "field_type": "collections"
-         }
-     }, {
+         },
          "description": {
              "active": "1",
              "mandatory": "0",
              "field_type": "textarea_markdown"
-         }
-     }, {
+         },
          "implementation": {
              "active": "1",
              "mandatory": "0",
              "field_type": "textarea_markdown"
-         }
-     }, {
+         },
          "publications": {
              "active": "1",
              "mandatory": "0",
              "field_type": "char_list_of_inputboxes"
-         }
-     }, {
+         },
          "validation": {
              "active": "1",
              "mandatory": "0",
              "field_type": "textarea_markdown"
-         }
-     }, {
+         },
          "citation_requirements": {
              "active": "0",
              "mandatory": "0",
              "field_type": "textarea"
          }
-     }],
+     },
 
-     "custom_fields": [{
+     "custom_fields": {
          "type": {
              "active": "1",
              "mandatory": "1",
@@ -72,54 +64,46 @@
                  "surgical procedure": 6
              },
              "filterable": true
-         }
-     }, {
+         },
          "concept_informations": {
              "active": "1",
              "mandatory": "0",
              "field_type": "concept_informations"
-         }
-     }, {
+         },
          "clinical_terminologies": {
              "active": "1",
              "mandatory": "0",
              "field_type": "clinical_terminologies"
-         }
-     }, {
+         },
          "data_sources": {
              "active": "1",
              "mandatory": "0",
-             "field_type": "data_sources"
-         },
-         "filterable": true
-     }, {
+             "field_type": "data_sources",
+             "filterable": true
+         },         
          "phenoflowid": {
              "active": "1",
              "mandatory": "0",
              "field_type": "int"
-         }
-     }, {
+         },
          "agreement_date": {
              "active": "1",
              "mandatory": "0",
              "field_type": "date",
              "hide_if_empty": true
-         }
-     }, {
+         },
          "phenotype_uuid": {
              "active": "1",
              "mandatory": "0",
              "field_type": "char_inputbox",
              "hide_if_empty": true,
              "display_only_if_user_is_authenticated": true
-         }
-     }, {
+         },
          "valid_event_data_range": {
              "active": "0",
              "mandatory": "0",
              "field_type": "char_inputbox"
-         }
-     }, {
+         },
          "sex": {
              "active": "1",
              "mandatory": "1",
@@ -129,13 +113,12 @@
                  "Female": 2,
                  "Male/Female": 3
              }
-         }
-     }, {
+         },
          "source_reference": {
              "active": "0",
              "mandatory": "0",
              "field_type": "char_inputbox",
              "hide_if_empty": true
          }
-     }]
+     }
  }

@@ -1,58 +1,50 @@
  {
      "template_version": 1,
-     "base_fields": [{
+     "base_fields": {
          "name": {
              "active": "1",
              "mandatory": "1",
              "field_type": "char_inputbox"
-         }
-     }, {
+         },
          "author": {
              "active": "1",
              "mandatory": "1",
              "field_type": "char_inputbox"
-         }
-     }, {
+         },
          "tags": {
              "active": "1",
              "mandatory": "0",
              "field_type": "tags"
-         }
-     }, {
+         },
          "collections": {
              "active": "1",
              "mandatory": "0",
              "field_type": "collections"
-         }
-     }, {
+         },
          "description": {
              "active": "1",
              "mandatory": "0",
              "field_type": "textarea_markdown"
-         }
-     }, {
+         },
          "implementation": {
              "active": "1",
              "mandatory": "0",
              "field_type": "textarea_markdown"
-         }
-     }, {
+         },
          "publications": {
              "active": "1",
              "mandatory": "0",
              "field_type": "char_list_of_inputboxes"
-         }
-     }, {
+         },
          "validation": {
              "active": "1",
              "mandatory": "0",
              "field_type": "textarea_markdown"
-         }
-     }, {
+         },
          "citation_requirements": {
              "active": "0",
              "mandatory": "0",
              "field_type": "textarea"
          }
-     }]
+     }
  }
