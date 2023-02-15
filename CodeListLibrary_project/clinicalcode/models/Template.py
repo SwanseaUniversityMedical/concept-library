@@ -1,5 +1,5 @@
 from django.contrib.auth.models import Group, User
-#from django.contrib.postgres.fields import JSONField
+#from django.contrib.postgres.fields import JSONField as JSON1
 from django.db.models import JSONField
 from django.db import models
 from simple_history.models import HistoricalRecords
@@ -15,7 +15,9 @@ class Template(TimeStampedModel):
     layout = models.IntegerField(choices=ENTITY_LAYOUT) # clinical_phenotype / NLP_phenotype / workingset, ....
     description = models.TextField(blank=True, null=True)
     
-    definition = JSONField(blank=True, null=True)
+    #definition = JSONField(blank=True, null=True)
+    # postgres jsonb does NOT preserve order, so we store it as a string 
+    definition = models.TextField(blank=True, null=True)
 
     # brand/ template will be handled elsewhere 
     #brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, related_name="template_brand")
