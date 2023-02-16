@@ -2,55 +2,19 @@
      "template_version": 1,
      "base_template_version": 1,
 
-     "base_fields": {
+     "fields": {
          "name": {
              "active": "1",
              "mandatory": "1",
-             "field_type": "char_inputbox"
+             "field_type": "char_inputbox",
+             "is_base_field": true
          },
          "author": {
              "active": "1",
              "mandatory": "1",
-             "field_type": "char_inputbox"
+             "field_type": "char_inputbox",
+             "is_base_field": true
          },
-         "tags": {
-             "active": "1",
-             "mandatory": "0",
-             "field_type": "tags"
-         },
-         "collections": {
-             "active": "1",
-             "mandatory": "0",
-             "field_type": "collections"
-         },
-         "description": {
-             "active": "1",
-             "mandatory": "0",
-             "field_type": "textarea_markdown"
-         },
-         "implementation": {
-             "active": "1",
-             "mandatory": "0",
-             "field_type": "textarea_markdown"
-         },
-         "publications": {
-             "active": "1",
-             "mandatory": "0",
-             "field_type": "char_list_of_inputboxes"
-         },
-         "validation": {
-             "active": "1",
-             "mandatory": "0",
-             "field_type": "textarea_markdown"
-         },
-         "citation_requirements": {
-             "active": "0",
-             "mandatory": "0",
-             "field_type": "textarea"
-         }
-     },
-
-     "custom_fields": {
          "phenotype_uuid": {
              "active": "1",
              "mandatory": "0",
@@ -104,10 +68,53 @@
              "mandatory": "0",
              "field_type": "clinical_terminologies"
          },
+
+         "tags": {
+             "active": "1",
+             "mandatory": "0",
+             "field_type": "tags",
+             "is_base_field": true
+         },
+         "collections": {
+             "active": "1",
+             "mandatory": "0",
+             "field_type": "collections",
+             "is_base_field": true
+         },
+         "description": {
+             "active": "1",
+             "mandatory": "0",
+             "field_type": "textarea_markdown",
+             "is_base_field": true
+         },
+         "implementation": {
+             "active": "1",
+             "mandatory": "0",
+             "field_type": "textarea_markdown",
+             "is_base_field": true
+         },
          "phenoflowid": {
              "active": "1",
              "mandatory": "0",
              "field_type": "int"
+         },
+         "publications": {
+             "active": "1",
+             "mandatory": "0",
+             "field_type": "char_list_of_inputboxes",
+             "is_base_field": true
+         },
+         "validation": {
+             "active": "1",
+             "mandatory": "0",
+             "field_type": "textarea_markdown",
+             "is_base_field": true
+         },
+         "citation_requirements": {
+             "active": "0",
+             "mandatory": "0",
+             "field_type": "textarea",
+             "is_base_field": true
          },
          "concept_informations": {
              "active": "1",

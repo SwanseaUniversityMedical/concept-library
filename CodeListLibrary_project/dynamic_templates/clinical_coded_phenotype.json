@@ -2,19 +2,13 @@
      "template_version": 1,
      "base_template_version": 1,
 
-     "base_fields": {
-         "name": {},
-         "author": {},
-         "tags": {},
-         "collections": {},
-         "description": {},
-         "implementation": {},
-         "publications": {},
-         "validation": {},
-         "citation_requirements": {}
-     },
-
-     "custom_fields": {
+     "fields": {
+         "name": {
+             "is_base_field": true
+         },
+         "author": {
+             "is_base_field": true
+         },
          "phenotype_uuid": {
              "active": "1",
              "mandatory": "0",
@@ -68,10 +62,32 @@
              "mandatory": "0",
              "field_type": "clinical_terminologies"
          },
+
+         "tags": {
+             "is_base_field": true
+         },
+         "collections": {
+             "is_base_field": true
+         },
+         "description": {
+             "is_base_field": true
+         },
+         "implementation": {
+             "is_base_field": true
+         },
          "phenoflowid": {
              "active": "1",
              "mandatory": "0",
              "field_type": "int"
+         },
+         "publications": {
+             "is_base_field": true
+         },
+         "validation": {
+             "is_base_field": true
+         },
+         "citation_requirements": {
+             "is_base_field": true
          },
          "concept_informations": {
              "active": "1",
