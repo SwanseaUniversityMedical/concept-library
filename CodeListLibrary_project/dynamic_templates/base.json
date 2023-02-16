@@ -4,7 +4,8 @@
          "name": {
              "active": "1",
              "mandatory": "1",
-             "field_type": "char_inputbox"
+             "field_type": "char_inputbox",
+             "side_menu": "home"
          },
          "author": {
              "active": "1",
@@ -24,22 +25,26 @@
          "description": {
              "active": "1",
              "mandatory": "0",
-             "field_type": "textarea_markdown"
+             "field_type": "textarea_markdown",
+             "side_menu": "Definition"
          },
          "implementation": {
              "active": "1",
              "mandatory": "0",
-             "field_type": "textarea_markdown"
+             "field_type": "textarea_markdown",
+             "side_menu": "Implementation"
          },
          "publications": {
              "active": "1",
              "mandatory": "0",
-             "field_type": "char_list_of_inputboxes"
+             "field_type": "char_list_of_inputboxes",
+             "side_menu": "Publications"
          },
          "validation": {
              "active": "1",
              "mandatory": "0",
-             "field_type": "textarea_markdown"
+             "field_type": "textarea_markdown",
+             "side_menu": "Validation"
          },
          "citation_requirements": {
              "active": "0",

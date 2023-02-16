@@ -51,53 +51,32 @@
      },
 
      "custom_fields": {
-         "type": {
-             "active": "1",
-             "mandatory": "1",
-             "field_type": "enum",
-             "permitted_values": {
-                 "biomarker": 1,
-                 "disease or syndrome": 2,
-                 "drug": 3,
-                 "lifestyle risk factor": 4,
-                 "musculoskeletal": 5,
-                 "surgical procedure": 6
-             },
-             "filterable": true
-         },
-         "concept_informations": {
-             "active": "1",
-             "mandatory": "0",
-             "field_type": "concept_informations"
-         },
-         "clinical_terminologies": {
-             "active": "1",
-             "mandatory": "0",
-             "field_type": "clinical_terminologies"
-         },
-         "data_sources": {
-             "active": "1",
-             "mandatory": "0",
-             "field_type": "data_sources",
-             "filterable": true
-         },         
-         "phenoflowid": {
-             "active": "1",
-             "mandatory": "0",
-             "field_type": "int"
-         },
-         "agreement_date": {
-             "active": "1",
-             "mandatory": "0",
-             "field_type": "date",
-             "hide_if_empty": true
-         },
          "phenotype_uuid": {
              "active": "1",
              "mandatory": "0",
              "field_type": "char_inputbox",
              "hide_if_empty": true,
              "display_only_if_user_is_authenticated": true
+         },
+         "type": {
+             "active": "1",
+             "mandatory": "1",
+             "field_type": "enum",
+             "permitted_values": {
+                 "1": "biomarker",
+                 "2": "disease or syndrome",
+                 "3": "drug",
+                 "4": "lifestyle risk factor",
+                 "5": "musculoskeletal",
+                 "6": "surgical procedure"
+             },
+             "filterable": true
+         },
+         "data_sources": {
+             "active": "1",
+             "mandatory": "0",
+             "field_type": "data_sources",
+             "filterable": true
          },
          "valid_event_data_range": {
              "active": "0",
@@ -109,10 +88,32 @@
              "mandatory": "1",
              "field_type": "enum",
              "permitted_values": {
-                 "Male": 1,
-                 "Female": 2,
-                 "Male/Female": 3
+                 "1": "Male",
+                 "2": "Female",
+                 "3": "Male/Female"
              }
+         },
+         "agreement_date": {
+             "active": "1",
+             "mandatory": "0",
+             "field_type": "date",
+             "hide_if_empty": true
+         },
+         "clinical_terminologies": {
+             "active": "1",
+             "mandatory": "0",
+             "field_type": "clinical_terminologies"
+         },
+         "phenoflowid": {
+             "active": "1",
+             "mandatory": "0",
+             "field_type": "int"
+         },
+         "concept_informations": {
+             "active": "1",
+             "mandatory": "0",
+             "field_type": "concept_informations",
+             "side_menu": "Clinical Code lists"
          },
          "source_reference": {
              "active": "0",
