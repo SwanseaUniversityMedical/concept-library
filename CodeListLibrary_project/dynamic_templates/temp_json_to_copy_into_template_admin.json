@@ -7,7 +7,8 @@
              "active": "1",
              "mandatory": "1",
              "field_type": "char_inputbox",
-             "is_base_field": true
+             "is_base_field": true,
+             "side_menu": "Home"             
          },
          "author": {
              "active": "1",
@@ -85,13 +86,16 @@
              "active": "1",
              "mandatory": "0",
              "field_type": "textarea_markdown",
-             "is_base_field": true
+             "is_base_field": true,
+             "side_menu": "Definition"
          },
          "implementation": {
              "active": "1",
              "mandatory": "0",
              "field_type": "textarea_markdown",
-             "is_base_field": true
+             "is_base_field": true,
+             "hide_if_empty": true,
+             "side_menu": "Implementation"
          },
          "phenoflowid": {
              "active": "1",
@@ -102,13 +106,17 @@
              "active": "1",
              "mandatory": "0",
              "field_type": "char_list_of_inputboxes",
-             "is_base_field": true
+             "is_base_field": true,
+             "side_menu": "Publications"
          },
          "validation": {
              "active": "1",
              "mandatory": "0",
              "field_type": "textarea_markdown",
-             "is_base_field": true
+             "is_base_field": true,
+             "do_not_show_in_production": true,
+             "side_menu": "Validation",
+             "hide_if_empty": true
          },
          "citation_requirements": {
              "active": "0",
