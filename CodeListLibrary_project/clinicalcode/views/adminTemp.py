@@ -582,7 +582,7 @@ def admin_mig_phenotypes_dt(request):
                             tags = phenotype.tags,
                             collections = phenotype.collections,  
 
-                            description = phenotype.description,
+                            definition = phenotype.description,
                             implementation = phenotype.implementation,
                             validation = phenotype.validation,
                             publications = phenotype.publications,
@@ -592,7 +592,7 @@ def admin_mig_phenotypes_dt(request):
                             template_data =  get_custom_fields_key_value(phenotype), # include type as ENUM # manage sex, type ....
                             #template_data2 = get_custom_fields_name_value(phenotype), 
                             
-                            internal_comments = 'internal comments',
+                            internal_comments = '',
                             
                             created = phenotype.created, 
                             updated = phenotype.modified, 
@@ -694,7 +694,7 @@ def get_type(phenotype):
 def get_custom_fields(phenotype):
     ret_data = {}
     
-    ret_data['type'] = get_type(phenotype)
+    ret_data['type'] = str(get_type(phenotype))
     ret_data['concept_informations'] = phenotype.concept_informations
     ret_data['clinical_terminologies'] = phenotype.clinical_terminologies
     ret_data['data_sources'] = phenotype.data_sources
@@ -702,7 +702,7 @@ def get_custom_fields(phenotype):
     ret_data['agreement_date'] = get_agreement_date(phenotype)
     ret_data['phenotype_uuid'] = phenotype.phenotype_uuid
     ret_data['valid_event_data_range'] = phenotype.valid_event_data_range
-    ret_data['sex'] = get_sex(phenotype)
+    ret_data['sex'] = str(get_sex(phenotype))
     ret_data['source_reference'] = phenotype.source_reference
     
     return ret_data

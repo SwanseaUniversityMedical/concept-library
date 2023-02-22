@@ -82,7 +82,7 @@
              "field_type": "collections",
              "is_base_field": true
          },
-         "description": {
+         "definition": {
              "active": "1",
              "mandatory": "0",
              "field_type": "textarea_markdown",

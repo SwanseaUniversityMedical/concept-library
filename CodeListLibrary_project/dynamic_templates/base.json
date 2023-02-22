@@ -22,7 +22,7 @@
              "mandatory": "0",
              "field_type": "collections"
          },
-         "description": {
+         "definition": {
              "active": "1",
              "mandatory": "0",
              "field_type": "textarea_markdown",
