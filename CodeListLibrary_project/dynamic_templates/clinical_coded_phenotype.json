@@ -69,7 +69,7 @@
          "collections": {
              "is_base_field": true
          },
-         "description": {
+         "definition": {
              "is_base_field": true
          },
          "implementation": {
