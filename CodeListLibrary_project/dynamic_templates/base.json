@@ -44,7 +44,9 @@
              "active": "1",
              "mandatory": "0",
              "field_type": "textarea_markdown",
-             "side_menu": "Validation"
+             "do_not_show_in_production": true,
+             "side_menu": "Validation",
+             "hide_if_empty": true
          },
          "citation_requirements": {
              "active": "0",
