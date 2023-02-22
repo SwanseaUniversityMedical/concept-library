@@ -12,16 +12,17 @@
              "mandatory": "1",
              "field_type": "char_inputbox"
          },
-         "tags": {
-             "active": "1",
-             "mandatory": "0",
-             "field_type": "tags"
-         },
          "collections": {
              "active": "1",
              "mandatory": "0",
              "field_type": "collections"
          },
+         "tags": {
+             "active": "1",
+             "mandatory": "0",
+             "field_type": "tags"
+         },
+
          "definition": {
              "active": "1",
              "mandatory": "0",

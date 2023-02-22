@@ -41,7 +41,7 @@
 		"system_defined": true,
 		"description": "json of concept ids/ver used in phenotype (managed by code snippet)"
 	},
-	"clinical_terminologies": {
+	"coding_systems": {
 		"system_defined": true,
 		"description": "list of coding system ids (calculated from phenotype concepts) (managed by code snippet)"
 	},
@@ -56,6 +56,10 @@
 	"data_sources": {
 		"system_defined": true,
 		"description": "list of data_sources ids (managed by code snippet)"
+	},
+	"phenoflowid": {
+		"system_defined": true,
+		"description": "URL for phenoflow (managed by code snippet)"
 	},
 
 
