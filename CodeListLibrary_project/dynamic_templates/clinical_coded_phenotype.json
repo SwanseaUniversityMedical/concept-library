@@ -14,7 +14,8 @@
              "mandatory": "0",
              "field_type": "char_inputbox",
              "hide_if_empty": true,
-             "display_only_if_user_is_authenticated": true
+             "display_only_if_user_is_authenticated": true,
+             "apply_code_style": true
          },
          "type": {
              "active": "1",
@@ -28,7 +29,8 @@
                  "5": "musculoskeletal",
                  "6": "surgical procedure"
              },
-             "filterable": true
+             "filterable": true,
+             "apply_badge_style": true
          },
          "data_sources": {
              "active": "1",
@@ -49,7 +51,8 @@
                  "1": "Male",
                  "2": "Female",
                  "3": "Male/Female"
-             }
+             },
+             "apply_badge_style": true
          },
          "agreement_date": {
              "active": "1",
@@ -57,19 +60,18 @@
              "field_type": "date",
              "hide_if_empty": true
          },
-         "clinical_terminologies": {
+         "coding_systems": {
              "active": "1",
              "mandatory": "0",
-             "field_type": "clinical_terminologies"
-         },
-
-         "tags": {
-             "is_base_field": true
+             "field_type": "coding_systems"
          },
          "collections": {
              "is_base_field": true
          },
-         "description": {
+         "tags": {
+             "is_base_field": true
+         },
+         "definition": {
              "is_base_field": true
          },
          "implementation": {
@@ -78,7 +80,7 @@
          "phenoflowid": {
              "active": "1",
              "mandatory": "0",
-             "field_type": "int"
+             "field_type": "phenoflowid"
          },
          "publications": {
              "is_base_field": true

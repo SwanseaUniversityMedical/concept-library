@@ -20,13 +20,16 @@ urlpatterns = []
 if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
     urlpatterns += [
         url(r'^search/$', GenericEntity.generic_entity_list, name='generic_entity_list'),
+        url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/detail/$',
+            GenericEntity.generic_entity_detail,
+            name='generic_entity_history_detail'),
         ]
 
-# for admin(developers) to migrate phenotypes into dynamic template
-if not settings.CLL_READ_ONLY:
-    urlpatterns += [
-        url(r'^adminTemp/admin_mig_phenotypes_dt/$', adminTemp.admin_mig_phenotypes_dt, name='admin_mig_phenotypes_dt'),
-    ]
+    # for admin(developers) to migrate phenotypes into dynamic template
+    if not settings.CLL_READ_ONLY:
+        urlpatterns += [
+            url(r'^adminTemp/admin_mig_phenotypes_dt/$', adminTemp.admin_mig_phenotypes_dt, name='admin_mig_phenotypes_dt'),
+        ]
 
 
 
@@ -40,9 +43,7 @@ if not settings.CLL_READ_ONLY:
 #         url(r'^ge/(?P<pk>WS\d+)/detail/$',
 #             GenericEntity.WorkingsetDetail_combined,
 #             name='phenotypeworkingset_detail'),
-#         url(r'^ge/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/detail/$',
-#             GenericEntity.WorkingsetDetail_combined,
-#             name='phenotypeworkingset_history_detail'),
+
 #         url(r'^ge/(?P<pk>WS\d+)/export/codes/$',
 #             GenericEntity.history_workingset_codes_to_csv,
 #             name='latestVersion_phenotypeworkingset_codes_to_csv'),

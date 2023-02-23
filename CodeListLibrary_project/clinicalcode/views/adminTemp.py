@@ -568,8 +568,9 @@ def admin_mig_phenotypes_dt(request):
                         # delete if exists                             
                         if GenericEntity.objects.filter(pk=phenotype.id).exists():
                             ge0 = GenericEntity.objects.get(pk=phenotype.id)
+                            ge0.history.filter().delete()
                             ge0.delete()
-                        
+
                         ge = GenericEntity.objects.create(
                             serial_id = get_serial_id(),
                             id = phenotype.id,
@@ -582,7 +583,7 @@ def admin_mig_phenotypes_dt(request):
                             tags = phenotype.tags,
                             collections = phenotype.collections,  
 
-                            description = phenotype.description,
+                            definition = phenotype.description,
                             implementation = phenotype.implementation,
                             validation = phenotype.validation,
                             publications = phenotype.publications,
@@ -592,7 +593,7 @@ def admin_mig_phenotypes_dt(request):
                             template_data =  get_custom_fields_key_value(phenotype), # include type as ENUM # manage sex, type ....
                             #template_data2 = get_custom_fields_name_value(phenotype), 
                             
-                            internal_comments = 'internal comments',
+                            internal_comments = '',
                             
                             created = phenotype.created, 
                             updated = phenotype.modified, 
@@ -617,6 +618,12 @@ def admin_mig_phenotypes_dt(request):
                         if GenericEntity.objects.filter(pk=phenotype.id).exists():
                             if PublishedPhenotype.objects.filter(phenotype_id=phenotype.id, approval_status=2).count() > 0:
                                 ge1 = GenericEntity.objects.get(pk=phenotype.id)
+                                
+                                if PublishedGenericEntity.objects.filter(entity_id=phenotype.id).exists():
+                                    ge_p0 = PublishedGenericEntity.objects.get(entity_id=phenotype.id)
+                                    ge_p0.history.filter().delete()
+                                    ge_p0.delete()
+                                
                                 published_generic_entity = PublishedGenericEntity(
                                                                             entity = ge1,
                                                                             entity_history_id = ge1.history.latest().history_id,
@@ -631,6 +638,19 @@ def admin_mig_phenotypes_dt(request):
                     #     db_utils.modify_Entity_ChangeReason(Phenotype, pk, "Restored")
                         
                         rowsAffected[pk] = "phenotype(" + str(pk) + "): \"" + phenotype.name + "\" is migrated."
+                        
+                        
+                #######
+                with connection.cursor() as cursor:
+                    sql = """ 
+                        DELETE FROM clinicalcode_historicalgenericentity WHERE history_type = '-';
+                        """
+                    cursor.execute(sql)
+                    sql2 = """ 
+                        DELETE FROM clinicalcode_historicalPublishedgenericentity WHERE history_type = '-';
+                        """
+                    cursor.execute(sql2)                            
+                #######
     
             else:
                 rowsAffected[-1] = "Phenotype IDs NOT correct"
@@ -694,15 +714,15 @@ def get_type(phenotype):
 def get_custom_fields(phenotype):
     ret_data = {}
     
-    ret_data['type'] = get_type(phenotype)
+    ret_data['type'] = str(get_type(phenotype))
     ret_data['concept_informations'] = phenotype.concept_informations
-    ret_data['clinical_terminologies'] = phenotype.clinical_terminologies
+    ret_data['coding_systems'] = phenotype.clinical_terminologies
     ret_data['data_sources'] = phenotype.data_sources
     ret_data['phenoflowid'] = phenotype.phenoflowid    
     ret_data['agreement_date'] = get_agreement_date(phenotype)
     ret_data['phenotype_uuid'] = phenotype.phenotype_uuid
     ret_data['valid_event_data_range'] = phenotype.valid_event_data_range
-    ret_data['sex'] = get_sex(phenotype)
+    ret_data['sex'] = str(get_sex(phenotype))
     ret_data['source_reference'] = phenotype.source_reference
     
     return ret_data

@@ -1,5 +1,4 @@
 from django.contrib.auth.models import Group, User
-#from django.contrib.postgres.fields import JSONField as JSON1
 from django.db.models import JSONField
 from django.db import models
 from simple_history.models import HistoricalRecords

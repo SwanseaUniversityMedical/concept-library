@@ -32,7 +32,7 @@ class GenericEntity(models.Model):
     # link brand
     collections = ArrayField(models.IntegerField(), blank=True, null=True)   
     
-    description = models.TextField(null=True, blank=True)
+    definition = models.TextField(null=True, blank=True)
     implementation = models.TextField(null=True, blank=True)
     validation = models.TextField(null=True, blank=True)
     publications = ArrayField(models.CharField(max_length=500), blank=True, null=True)
