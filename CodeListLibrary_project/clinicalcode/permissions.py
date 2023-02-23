@@ -761,7 +761,7 @@ class HasAccessToEditPhenotypeCheckMixin(object):
 
         return super(HasAccessToEditPhenotypeCheckMixin, self).dispatch(request, *args, **kwargs)
 
-
+#TODO change to entity class 
 class HasAccessToViewPhenotypeCheckMixin(object):
     """
         mixin to check if user has view access to a phenotype
