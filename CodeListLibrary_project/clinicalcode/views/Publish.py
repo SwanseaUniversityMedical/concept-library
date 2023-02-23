@@ -55,7 +55,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, 
     template_name = 'clinicalcode/ge/publish.html'
 
 
-    def get(self, request, pk, workingset_history_id):
+    def get(self, request, pk, entity_history_id):
         """
         Get method to generate modal response and pass additional information about working set
         @param request: user request object
@@ -63,16 +63,16 @@ class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, 
         @param workingset_history_id: historical workingset id from database
         @return: render response object to generate on template
         """
-        checks = workingset_db_utils.checkWorkingsetTobePublished(self.request, pk, workingset_history_id)
+        checks = utils_ge_validator.checkEntityTobePublished(self.request, pk, entity_history_id)
 
         if not checks['is_published']:
-            checks = workingset_db_utils.checkWorkingsetTobePublished(self.request, pk, workingset_history_id)
+            checks = utils_ge_validator.checkEntityTobePublished(self.request, pk, entity_history_id)
 
         # --------------------------------------------
         return self.render_to_response({
             'workingset': checks['workingset'],
             'name': checks['name'],
-            'workingset_history_id': workingset_history_id,
+            'workingset_history_id': entity_history_id,
             'is_published': checks['is_published'],
             'allowed_to_publish': checks['allowed_to_publish'],
             'is_owner': checks['is_owner'],
@@ -89,7 +89,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, 
             'errors':checks['errors']
         })
 
-    def post(self, request, pk, workingset_history_id):
+    def post(self, request, pk, entity_history_id):
         """
         Post data containing current state of workingset to backend (published/declined/pending)
         @param request: request user object
@@ -97,10 +97,10 @@ class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, 
         @param workingset_history_id: historical id of workingset
         @return: JsonResponse and status message
         """
-        is_published = checkIfPublished(PhenotypeWorkingset, pk, workingset_history_id)
-        checks = workingset_db_utils.checkWorkingsetTobePublished(request, pk, workingset_history_id)
+        is_published = checkIfPublished(PhenotypeWorkingset, pk, entity_history_id)
+        checks = workingset_db_utils.checkWorkingsetTobePublished(request, pk, entity_history_id)
         if not is_published:
-            checks = workingset_db_utils.checkWorkingsetTobePublished(request, pk, workingset_history_id)
+            checks = workingset_db_utils.checkWorkingsetTobePublished(request, pk, entity_history_id)
 
         data = dict()
 
@@ -124,13 +124,13 @@ class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, 
                                 published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id,
                                                                                           approval_status=2).first()
                                 published_workingset = PublishedWorkingset(workingset=workingset,
-                                                                           workingset_history_id=workingset_history_id,
+                                                                           workingset_history_id=entity_history_id,
                                                                            moderator_id=published_workingset.moderator.id,
                                                                            created_by_id=request.user.id)
                                 published_workingset.approval_status = 2
                                 published_workingset.save()
                             else:
-                                published_workingset = PublishedWorkingset(workingset=workingset, workingset_history_id=workingset_history_id,moderator_id = request.user.id,
+                                published_workingset = PublishedWorkingset(workingset=workingset, workingset_history_id=entity_history_id,moderator_id = request.user.id,
                                                                         created_by_id=PhenotypeWorkingset.objects.get(pk=pk).created_by.id)
                                 published_workingset.approval_status = 2
                                 published_workingset.save()
@@ -173,7 +173,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, 
 
                         data['approval_status'] = 2
                         data['form_is_valid'] = True
-                        data = form_validation(request, data, workingset_history_id, pk, workingset, checks)
+                        data = form_validation(request, data, entity_history_id, pk, workingset, checks)
 
             #check if workingset declined and user is moderator to review again
             elif checks['approval_status'] == 3 and checks['is_moderator']:
@@ -182,7 +182,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, 
 
                     #filter by declined ws
                     published_workingset = PublishedWorkingset.objects.filter(workingset_id=workingset.id,
-                                                                              workingset_history_id=workingset_history_id,approval_status=3).first()
+                                                                              entity_history_id=entity_history_id,approval_status=3).first()
                     published_workingset.approval_status = 2
                     published_workingset.moderator_id=request.user.id
                     published_workingset.save()
@@ -200,7 +200,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, 
                     data['approval_status'] = 2
                     data['form_is_valid'] = True
                     #send message to the client
-                    data = form_validation(request, data, workingset_history_id, pk, workingset, checks)
+                    data = form_validation(request, data, entity_history_id, pk, workingset, checks)
 
 
 
