@@ -77,7 +77,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, 
             'is_published': checks['is_published'],
             'allowed_to_publish': checks['allowed_to_publish'],
             'is_owner': checks['is_owner'],
-            'entity_is_deleted': checks['workingset_is_deleted'],
+            'entity_is_deleted': checks['entity_is_deleted'],
             'approval_status': checks['approval_status'],
             'is_lastapproved': checks['is_lastapproved'],
             'is_latest_pending_version': checks['is_latest_pending_version'], # check if it is latest to approve
@@ -99,9 +99,9 @@ class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, 
         @return: JsonResponse and status message
         """
         is_published = checkIfPublished(GenericEntity, pk, entity_history_id)
-        checks = utils_ge_validator.checkWorkingsetTobePublished(request, pk, entity_history_id)
+        checks = utils_ge_validator.checkEntityTobePublished(request, pk, entity_history_id)
         if not is_published:
-            checks = utils_ge_validator.checkWorkingsetTobePublished(request, pk, entity_history_id)
+            checks = utils_ge_validator.checkEntityTobePublished(request, pk, entity_history_id)
 
         data = dict()
 
@@ -119,7 +119,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, 
                         entity = GenericEntity.objects.get(pk=pk)
 
 
-                        #Check if moderator first and if was already approved to filter by only approved workingsets
+                        #Check if moderator first and if was already approved to filter by only approved entitys
                         if checks['is_moderator']:
                             if checks['is_lastapproved']:
                                 published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,
@@ -138,7 +138,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, 
 
 
 
-                        #Check if was already published by user only to filter workingsets and take the moderator id
+                        #Check if was already published by user only to filter entitys and take the moderator id
                         if checks['is_lastapproved'] and not checks['is_moderator']:
                             published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id, approval_status=2).first()
                             published_entity = PublishedGenericEntity(entity = entity,entity_history_id=entity_history_id,moderator_id=published_entity.moderator.id,created_by_id=request.user.id)
