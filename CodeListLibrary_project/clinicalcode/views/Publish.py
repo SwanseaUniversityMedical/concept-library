@@ -1,52 +1,19 @@
-import csv
-import json
-import logging
-import re
-import time
-from collections import OrderedDict
-from datetime import datetime
 
-from django import forms
-from django.conf import settings
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin  # , UserPassesTestMixin
-from django.contrib.auth.models import Group, User
 # from django.contrib.messages import constants
-from django.core import serializers
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
-from django.core.paginator import EmptyPage, Paginator
 # from django.db.models import Q
 from django.db import transaction  # , models, IntegrityError
 # from django.forms.models import model_to_dict
-from django.http import HttpResponseRedirect  # , StreamingHttpResponse, HttpResponseForbidden
-from django.http import HttpResponseNotFound
-from django.http.response import HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.template import RequestContext
+from django.http.response import JsonResponse
 from django.template.loader import render_to_string
-from django.templatetags.static import static
 # from django.core.urlresolvers import reverse_lazy, reverse
-from django.urls import reverse, reverse_lazy
-from django.views.generic import DetailView
 from django.views.generic.base import TemplateResponseMixin, View
-from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from .. import generic_entity_db_utils, utils
 from view_utils import utils_ge_validator
-from ..models.Brand import Brand
-from ..models.CodingSystem import CodingSystem
-from ..models.DataSource import DataSource
-from ..models.Phenotype import Phenotype
-from ..models.PublishedPhenotype import PublishedPhenotype
-from ..models.Tag import Tag
 from ..permissions import *
 from .View import *
-from clinicalcode.api.views.View import get_canonical_path_by_brand
 from clinicalcode.constants import *
-from django.db.models.functions import Lower
 
-from django.utils.timezone import make_aware
 
 # from rest_framework.permissions import BasePermission
 
@@ -64,10 +31,10 @@ class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, 
         @param entity_history_id: historical entity id from database
         @return: render response object to generate on template
         """
-        checks = utils_ge_validator.checkEntityTobePublished(self.request, pk, entity_history_id)
+        checks = utils_ge_validator.checkEntityTocheck(self.request, pk, entity_history_id)
 
         if not checks['is_published']:
-            checks = utils_ge_validator.checkEntityTobePublished(self.request, pk, entity_history_id)
+            checks = utils_ge_validator.checkEntityTocheck(self.request, pk, entity_history_id)
 
         # --------------------------------------------
         return self.render_to_response({
@@ -99,9 +66,9 @@ class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, 
         @return: JsonResponse and status message
         """
         is_published = checkIfPublished(GenericEntity, pk, entity_history_id)
-        checks = utils_ge_validator.checkEntityTobePublished(request, pk, entity_history_id)
+        checks = utils_ge_validator.checkEntityTocheck(request, pk, entity_history_id)
         if not is_published:
-            checks = utils_ge_validator.checkEntityTobePublished(request, pk, entity_history_id)
+            checks = utils_ge_validator.checkEntityTocheck(request, pk, entity_history_id)
 
         data = dict()
 
