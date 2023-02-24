@@ -1,7 +1,9 @@
 from clinicalcode import generic_entity_db_utils
 from clinicalcode.models.GenericEntity import GenericEntity
 from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
-
+from clinicalcode.permissions import checkIfPublished, get_publish_approval_status
+from django.contrib.auth.models import  User
+from django.template.loader import render_to_string
 
 def form_validation(request, data, entity_history_id, pk,entity,checks):
     """
@@ -149,7 +151,7 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
     other_pending = len(PublishedGenericEntity.objects.filter(workingset=GenericEntity.objects.get(pk=pk).id, approval_status=1)) > 0
 
     # get historical version by querying SQL command from DB
-    workingset = getHistoryGenericEntity(workingset_history_id,
+    workingset = generic_entity_db_utils.getHistoryGenericEntity(workingset_history_id,
                                                                    highlight_result=[False, True][
                                                                        generic_entity_db_utils.is_referred_from_search_page(request)],
                                                                    q_highlight=generic_entity_db_utils.get_q_highlight(request,
@@ -210,3 +212,60 @@ def send_email_decision_entity(entity, approved):
         generic_entity_db_utils.send_review_email(entity,
                                    "Rejected",
                                    "Workingset has been rejected by the moderator. Please consider update changes and try again")
+
+def get_history_table_data(request, pk):
+    """"
+        Get history table data for the template
+        @param request: user request object
+        @param pk: workingset id for database query
+        @return: return historical table data to generate table context
+    """
+
+    versions = GenericEntity.objects.get(pk=pk).history.all()
+    historical_versions = []
+
+    for v in versions:
+        ver = generic_entity_db_utils.getHistoryGenericEntity(v.history_id
+                                                     , highlight_result=[False, True][generic_entity_db_utils.is_referred_from_search_page(request)]
+                                                     , q_highlight=generic_entity_db_utils.get_q_highlight(request, request.session.get('search', ''))
+                                                     )
+
+        if ver['owner_id'] is not None:
+            ver['owner'] = User.objects.get(id=int(ver['owner_id']))
+
+        if ver['created_by_id'] is not None:
+            ver['created_by'] = User.objects.get(id=int(ver['created_by_id']))
+
+        ver['updated_by'] = None
+        if ver['updated_by_id'] is not None:
+            ver['updated_by'] = User.objects.get(pk=ver['updated_by_id'])
+
+        is_this_version_published = False
+        is_this_version_published = checkIfPublished(GenericEntity, ver['id'], ver['history_id'])
+
+        if is_this_version_published:
+            ver['publish_date'] = PublishedGenericEntity.objects.get(workingset_id=ver['id'],
+                                                                  workingset_history_id=ver['history_id'],
+                                                                  approval_status=2).created
+        else:
+            ver['publish_date'] = None
+
+        ver['approval_status'] = -1
+        ver['approval_status_label'] = ''
+        if PublishedGenericEntity.objects.filter(workingset_id=ver['id'],
+                                              workingset_history_id=ver['history_id']).exists():
+            ver['approval_status'] = PublishedGenericEntity.objects.get(workingset_id=ver['id'], workingset_history_id=ver[
+                'history_id']).approval_status
+            ver['approval_status_label'] = APPROVED_STATUS[ver['approval_status']][1]
+
+        if request.user.is_authenticated:
+            if allowed_to_edit(request, GenericEntity, pk) or allowed_to_view(request, GenericEntity, pk):
+                historical_versions.append(ver)
+            else:
+                if is_this_version_published:
+                    historical_versions.append(ver)
+        else:
+            if is_this_version_published:
+                historical_versions.append(ver)
+
+    return historical_versions
