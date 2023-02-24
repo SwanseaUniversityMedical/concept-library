@@ -109,7 +109,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, 
         if not checks['allowed_to_publish'] or is_published:
             data['form_is_valid'] = False
             data['message'] = render_to_string('clinicalcode/error.html', {},
-                                               self.request)
+                                               request)
             return JsonResponse(data)
 
         try:
@@ -150,10 +150,10 @@ class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, 
                         if checks['other_pending']:
                             published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,
                                                                                       approval_status=1)
-                            for ws in published_entity:
-                                ws.approval_status = 2
-                                ws.moderator_id = request.user.id
-                                ws.save()
+                            for en in published_entity:
+                                en.approval_status = 2
+                                en.moderator_id = request.user.id
+                                en.save()
 
                         data['form_is_valid'] = True
                         data['approval_status'] = 2
@@ -167,10 +167,10 @@ class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, 
                         published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,
                                                                                   approval_status=1)
                         #filter and publish all pending ws
-                        for ws in published_entity:
-                            ws.approval_status = 2
-                            ws.moderator_id = request.user.id
-                            ws.save()
+                        for en in published_entity:
+                            en.approval_status = 2
+                            en.moderator_id = request.user.id
+                            en.save()
 
                         data['approval_status'] = 2
                         data['form_is_valid'] = True
@@ -193,10 +193,10 @@ class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, 
                     if checks['other_pending']:
                         published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,
                                                                                   approval_status=1)
-                        for ws in published_entity:
-                            ws.approval_status = 2
-                            ws.moderator_id = request.user.id
-                            ws.save()
+                        for en in published_entity:
+                            en.approval_status = 2
+                            en.moderator_id = request.user.id
+                            en.save()
 
 
                     data['approval_status'] = 2
@@ -212,7 +212,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, 
             data['form_is_valid'] = False
             data['message'] = render_to_string('clinicalcode/error.html',
                                                {},
-                                               self.request)
+                                               request)
 
         return JsonResponse(data)
 
