@@ -94,9 +94,9 @@ def checkEntityTocheck(request,pk,history_id):
     if entity.layout == 1:
         return checkPhenotypeTobePublished(request,pk,history_id)
     elif entity.layout == 2:
-        return checkWorkingsetTobePublished(request,pk,history_id)
+        return checkConceptTobePublished(request,pk,history_id)
     elif entity.layout == 3:
-        return checkConcpetTobePublished(request,pk,history_id)
+        return checkWorkingsetTobePublished(request,pk,history_id)
 
 
 def checkWorkingsetTobePublished(request,pk,workingset_history_id):
