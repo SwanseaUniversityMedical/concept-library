@@ -1,0 +1,435 @@
+/// Helper color palette
+$transparent: rgba(255, 255, 255, 0);
+$transparent_black: rgba(0, 0, 0, 0.4);
+$white: rgb(255, 255, 255);
+$off_white: rgb(251, 251, 250);
+$off_white02: rgb(247, 247, 247);
+$white_smoke: rgb(245, 245, 245);
+$black: rgb(0, 0, 0);
+$near-black: rgb(40, 40, 40);
+$blackish-grey: rgb(82, 82, 82);
+$dark_grey: rgb(140, 140, 140);
+$light_grey: rgb(170, 170, 170);
+$lightest_grey: rgb(220, 220, 220);
+$pixie_green: rgb(196, 223, 170);
+$lime_green: rgb(133,213,126);
+$pastel_red: rgb(255, 135, 135);
+$bright_blue: rgb(0, 0, 255);
+$royal_blue: rgb(62, 119, 232);
+$soft_blue: rgb(140, 192, 222);
+$soft_cyan: rgb(204, 243, 238);
+$solitude: rgb(223, 233, 255);
+
+/// Layout definitions
+$column-min: 1;
+$column-max: 12;
+$column-grid: (
+  xs: false,
+  sm: 768px,
+  md: 992px,
+  lg: 1200px,
+);
+$column-scales: (
+  xs: false,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+);
+
+/// Element modifiers
+$modifiers: (
+  'display': (
+    property: display,
+    values: block flex inline-flex inline inline-block none,
+  ),
+  'position': (
+    property: position,
+    values: static relative absolute fixed sticky,
+  ),
+  'float': (
+    property: float,
+    values: left right none,
+  ),
+  'flex-direction': (
+    property: flex-direction,
+    values: row column row-reverse column-reverse
+  ),
+  'flex-grow': (
+    property: flex-grow,
+    values: 0 1,
+  ),
+  'flex-shrink': (
+    property: flex-shrink,
+    values: 0 1,
+  ),
+  'flex-wrap': (
+    property: flex-wrap,
+    class: flex,
+    values: wrap nowrap wrap-reverse
+  ),
+  'justify-content': (
+    property: justify-content,
+    values: (
+      start: flex-start,
+      end: flex-end,
+      center: center,
+      between: space-between,
+      around: space-around,
+      evenly: space-evenly,
+    )
+  ),
+  'align-items': (
+    property: align-items,
+    values: (
+      start: flex-start,
+      end: flex-end,
+      center: center,
+      baseline: baseline,
+      stretch: stretch,
+    )
+  ),
+  'align-content': (
+    property: align-content,
+    values: (
+      start: flex-start,
+      end: flex-end,
+      center: center,
+      between: space-between,
+      around: space-around,
+      stretch: stretch,
+    )
+  ),
+  'align-self': (
+    property: align-self,
+    values: (
+      auto: auto,
+      start: flex-start,
+      end: flex-end,
+      center: center,
+      baseline: baseline,
+      stretch: stretch,
+    )
+  ),
+  'order': (
+    property: order,
+    values: (
+      first: -1,
+      0: 0,
+      1: 1,
+      2: 2,
+      3: 3,
+      4: 4,
+      5: 5,
+      6: 6,
+      7: 7,
+      8: 8,
+      9: 9,
+      10: 10,
+      11: 11,
+      last: 12,
+    ),
+  ),
+  'text-align': (
+    property: text-align,
+    values: left right center,
+  ),
+  'vertical-align': (
+    property: vertical-align,
+    values: baseline top middle bottom text-bottom text-top,
+  ),
+  'width': (
+    property: width,
+    values: (
+      25: 25%,
+      50: 50%,
+      75: 75%,
+      100: 100%,
+      auto: auto
+    )
+  ),
+  'height': (
+    property: height,
+    values: (
+      25: 25%,
+      50: 50%,
+      75: 75%,
+      100: 100%,
+      auto: auto
+    )
+  ),
+);
+
+/// Per brand variables describing theme of components
+$brand-map-none: (
+  // Brand logo
+  'logo-url': url('/static/img/header_logo.png'),
+
+  // Fonts
+  'font-name': 'Montserrat',
+  'font-family': sans-serif,
+  'font-size': 14px,
+
+  // Color accents
+  'color-bg': $white,
+  'color-clear': $transparent,
+  'color-accent-bright': $white,
+  'color-accent-lightest': $white_smoke,
+  'color-accent-darkish': $light_grey,
+  'color-accent-dark': $dark_grey,
+  'color-accent-washed': $lightest_grey,
+  'color-accent-primary': $soft_blue,
+  'color-accent-secondary': $soft_cyan,
+  'color-accent-tertiary': $pixie_green,
+  'color-accent-highlight': $royal_blue,
+  'color-accent-bubble': $solitude,
+  'color-accent-danger': $pastel_red,
+  'color-accent-anchor': $bright_blue,
+  'color-accent-transparent': $transparent,
+  'color-accent-semi-transparent': rgba($black, 0.05),
+
+  // Text accents
+  'color-text-darkest': $black,
+  'color-text-darker': $near-black,
+  'color-text-dark': $blackish-grey,
+  'color-text-washed': $dark_grey,
+  'color-text-brightest': $white,
+
+  // Icons
+  'icons-name': var(--fa-style-family-classic),
+  'icons-style': var(--fa-font-solid),
+  'icons-size': 1rem,  
+
+  // Navigation
+  'navigation-offset': 1.5rem,
+  'navigation-gutter': 6rem,
+  'navigation-mobile-offset': 1rem,
+  'navigation-mobile-gutter': 1rem,
+  'navigation-hamburger-size': 1.5rem,
+  'navigation-height': 2rem,
+  'navigation-line-width': 0.15rem,
+  'navigation-selection-box': $white,
+  'navigation-item-selector': $soft_cyan,
+  'navigation-scroll-shadow': '0px 2px 5px 0px rgba(0, 0, 0, .3)',
+  'navigation-panel-shadow': '0px 5px 15px -1px rgba(0, 0, 0, 0.5)',
+
+  // Scrollbars
+  'slim-scrollbar-color': $transparent_black,
+  'slim-scrollbar-radius': 6px,
+  'slim-scrollbar-width': 6px,
+
+  // Breadcrumbs
+  'breadcrumb-color': $dark_grey,
+  'breadcrumb-hover-color': $black,
+  'breadcrumb-active-weight': bold,
+
+  // Main page
+  'main-top-padding': 5rem,
+  'main-gutter': 1.25rem,
+  'main-mobile-gutter': 1.75rem,
+
+  // Footer
+  'footer-gutter': 1.25rem,
+  'footer-mobile-gutter': 1.75rem,
+  'footer-page-offset': 2rem,
+  'footer-top-offset': 1rem,
+  'footer-bottom-offset': 1rem,
+  'footer-copyright-size': 10px,
+  'footer-text-size': 12px,
+  'footer-row-gap': 4rem,
+
+  // Item lists
+  'item-list-odd-bg-color': $off_white02,
+  'item-list-even-bg-color': $white,
+
+  /* Inputs */
+  'switch-size': 50px,
+  'switch-thumb-color': $off_white,
+  'switch-bg-color': $lightest_grey,
+  'switch-bg-active-color': $soft_blue,
+
+  /* Articles */
+
+  // Phenotype
+  'phenotype-article-sm-size': 55%,
+  'phenotype-article-lg-size': 100%,
+  'phenotype-article-header-border': $light_grey,
+  'phenotype-article-h1-size': 2em,
+  'phenotype-article-h1-weight': bold,
+  'phenotype-max-codelist-size': 200px,
+
+  'wizard-step-color': $pixie_green,
+  'progress-item-min-step-height': 4rem,
+  'progress-tracker-width': 2px,
+  'progress-tracker-offset': -1.5rem,
+  'progress-tracker-size': 26px,
+  'progress-tracker-bg-color': $white,
+  'progress-tracker-counter-weight': bold,
+  'progress-tracker-counter-color': black,
+  'progress-tracker-color': $light_grey,
+  'progress-tracker-active-color': $pixie_green,
+  'progress-tracker-off-color': $light_grey,
+  'progress-tracker-line-width': 2px,
+
+  'progress-tracker-header-size': 28px,
+  'progress-tracker-header-weight': bold,
+  'progress-tracker-header-color': black,
+  'progress-tracker-description-size': 16px,
+  
+  'ruleset-bg-color': $lightest_grey,
+  'ruleset-icon-normal-color': $dark_grey,
+  'ruleset-include-icon-checked-color': $lime_green,
+  'ruleset-exclude-icon-checked-color': $pastel_red,
+);
+
+$brand-map-ADP: (
+  // Brand logo
+  'logo-url': url('/static/img/brands/ADP/header_logo.png'),
+
+  // Fonts
+  'font-name': 'Montserrat',
+  'font-family': sans-serif,
+  'font-size': 14px,
+
+  // Color accents
+  'color-bg': $white,
+  'color-clear': $transparent,
+
+  // Text accents
+  'color-text-darkest': $black,
+  'color-text-dark': $blackish-grey,
+  'color-text--washed': $dark_grey,
+
+  // Icons
+  'icons-name': var(--fa-style-family-classic),
+  'icons-style': var(--fa-font-solid),
+  'icons-size': 1rem,  
+
+  // Navigation
+  'navigation-offset': 1.5rem,
+  'navigation-gutter': 6rem,
+  'navigation-mobile-offset': 1rem,
+  'navigation-mobile-gutter': 1rem,
+  'navigation-hamburger-size': 1.5rem,
+  'navigation-height': 2rem,
+  'navigation-line-width': 0.15rem,
+  'navigation-selection-box': $white,
+  'navigation-item-selector': $soft_cyan,
+  'navigation-scroll-shadow': '0px 2px 5px 0px rgba(0, 0, 0, .3)',
+  'navigation-panel-shadow': '0px 5px 15px -1px rgba(0, 0, 0, 0.5)',
+
+  // Main page
+  'main-top-padding': 5rem,
+  'main-gutter': 1.25rem,
+  'main-mobile-gutter': 1.75rem,
+
+  // Footer
+  'footer-gutter': 1.25rem,
+  'footer-mobile-gutter': 1.75rem,
+  'footer-top-offset': 1rem,
+  'footer-bottom-offset': 1rem,
+  'footer-copyright-size': 10px,
+  'footer-text-size': 12px,
+  'footer-row-gap': 4rem,
+);
+
+$brand-map-HDRUK: (
+  // Brand logo
+  'logo-url': url('/static/img/brands/HDRUK/header_logo.png'),
+
+  // Fonts
+  'font-name': 'Montserrat',
+  'font-family': sans-serif,
+  'font-size': 14px,
+
+  // Color accents
+  'color-bg': $white,
+  'color-clear': $transparent,
+
+  // Text accents
+  'color-text-darkest': $black,
+  'color-text-dark': $blackish-grey,
+  'color-text--washed': $dark_grey,
+
+  // Icons
+  'icons-name': var(--fa-style-family-classic),
+  'icons-style': var(--fa-font-solid),
+  'icons-size': 1rem,  
+
+  // Navigation
+  'navigation-offset': 1.5rem,
+  'navigation-gutter': 6rem,
+  'navigation-mobile-offset': 1rem,
+  'navigation-mobile-gutter': 1rem,
+  'navigation-hamburger-size': 1.5rem,
+  'navigation-height': 2rem,
+  'navigation-line-width': 0.15rem,
+  'navigation-selection-box': $white,
+  'navigation-item-selector': $soft_cyan,
+  'navigation-scroll-shadow': '0px 2px 5px 0px rgba(0, 0, 0, .3)',
+  'navigation-panel-shadow': '0px 5px 15px -1px rgba(0, 0, 0, 0.5)',
+
+  // Main page
+  'main-top-padding': 5rem,
+  'main-gutter': 1.25rem,
+  'main-mobile-gutter': 1.75rem,
+
+  // Footer
+  'footer-gutter': 1.25rem,
+  'footer-mobile-gutter': 1.75rem,
+  'footer-top-offset': 1rem,
+  'footer-bottom-offset': 1rem,
+  'footer-copyright-size': 10px,
+  'footer-text-size': 12px,
+  'footer-row-gap': 4rem,
+);
+
+$brand-map-SAIL: (
+  // Brand logo
+  'logo-url': url('/static/img/brands/SAIL/header_logo.png'),
+
+  // Fonts
+  'font-name': 'Montserrat',
+  'font-family': sans-serif,
+  'font-size': 14px,
+
+  // Color accents
+  'color-bg': $white,
+  'color-clear': $transparent,
+
+  // Text accents
+  'color-text-darkest': $black,
+  'color-text-dark': $blackish-grey,
+  'color-text--washed': $dark_grey,
+
+  // Icons
+  'icons-name': var(--fa-style-family-classic),
+  'icons-style': var(--fa-font-solid),
+  'icons-size': 1rem,  
+
+  // Navigation
+  'navigation-offset': 1.5rem,
+  'navigation-gutter': 6rem,
+  'navigation-mobile-offset': 1rem,
+  'navigation-mobile-gutter': 1rem,
+  'navigation-hamburger-size': 1.5rem,
+  'navigation-height': 2rem,
+  'navigation-line-width': 0.15rem,
+  'navigation-selection-box': $white,
+  'navigation-item-selector': $soft_cyan,
+  'navigation-scroll-shadow': '0px 2px 5px 0px rgba(0, 0, 0, .3)',
+  'navigation-panel-shadow': '0px 5px 15px -1px rgba(0, 0, 0, 0.5)',
+
+  // Main page
+  'main-top-padding': 5rem,
+  'main-gutter': 1.25rem,
+  'main-mobile-gutter': 1.75rem,
+
+  // Footer
+  'footer-gutter': 1.25rem,
+  'footer-mobile-gutter': 1.75rem,
+  'footer-top-offset': 1rem,
+  'footer-bottom-offset': 1rem,
+  'footer-copyright-size': 10px,
+  'footer-text-size': 12px,
+  'footer-row-gap': 4rem,
+);

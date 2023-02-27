@@ -1,0 +1,27 @@
+@import '_methods';
+@import '_variables';
+
+// Append all brand-specific variables
+:root[data-brand="none"],
+::after,
+::before {
+  @include map-brand($brand-map-none);
+}
+
+:root[data-brand="ADP"],
+::after,
+::before {
+  @include map-brand($brand-map-ADP);
+}
+
+:root[data-brand="HDRUK"],
+::after,
+::before {
+  @include map-brand($brand-map-HDRUK);
+}
+
+:root[data-brand="SAIL"],
+::after,
+::before {
+  @include map-brand($brand-map-SAIL);
+}

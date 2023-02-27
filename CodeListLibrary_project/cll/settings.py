@@ -132,7 +132,15 @@ WSGI_APPLICATION = 'cll.wsgi.application'
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    # SCSS compilation
+    'sass_processor.finders.CssFinder',
 )
+
+# SCSS options
+SASS_PROCESSOR_ENABLED = True
+SASS_PROCESSOR_AUTO_INCLUDE = True
+SASS_PROCESSOR_INCLUDE_FILE_PATTERN = r'^.+\.scss$'
+SASS_OUTPUT_STYLE = 'expanded'
 
 # Binding and connection options
 # LDAP authentication  =======================================================
@@ -200,6 +208,8 @@ INSTALLED_APPS = INSTALLED_APPS + [
     #'rest_framework_swagger',
     'drf_yasg',
     'django.contrib.sitemaps',
+    # SCSS
+    'sass_processor',
 ]
 
 MIDDLEWARE = [
@@ -268,6 +278,9 @@ TEMPLATES = [
                 'cookielaw.context_processors.cookielaw',
                 'cll.context_processors.general_var',
             ],
+            'libraries': {
+                'breadcrumbs': 'clinicalcode.templatetags.breadcrumbs',
+            }
         },
     },
 ]
