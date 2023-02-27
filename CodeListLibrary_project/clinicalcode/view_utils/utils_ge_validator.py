@@ -91,18 +91,10 @@ def send_message( pk, data, entity,entity_history_id,checks):
         return data
 
 
-def checkEntityTocheck(request,pk,history_id):
-    entity = GenericEntity.objects.get(id=pk,history_id=history_id)
-
-    if entity.layout == 1:
-        return checkPhenotypeTobePublished(request,pk,history_id)
-    elif entity.layout == 2:
-        return checkConceptTobePublished(request,pk,history_id)
-    elif entity.layout == 3:
-        return checkWorkingsetTobePublished(request,pk,history_id)
 
 
-def checkWorkingsetTobePublished(request,pk,entity_history_id):
+
+def checkEntityToPublish(request,pk,entity_history_id):
     '''
         Allow to publish if:
         - workingset is not deleted
@@ -159,16 +151,27 @@ def checkWorkingsetTobePublished(request,pk,entity_history_id):
                                                                                                         request.session.get(
                                                                                                             'ph_workingset_search',
                                                                                                             ''))
+                                                                                                            
                                                                    )
-    has_child_phenenotypes, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
-        checkAllChildData4Publish_Historical(request,entity_history_id)
+    
+    if entity.layout == 1:
+         has_childs, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
+        checkChildren(request,generic_entity_db_utils.getHistoryGenericEntity(entity_history_id))
+    elif entity.layout == 2:
+         has_childs, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
+        checkChildren(request,generic_entity_db_utils.getHistoryGenericEntity(entity_history_id))
+    elif entity.layout == 3:
+        has_childs, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
+        checkChildConcept(request,entity_history_id)
+    
+   
 
     if not isOK:
         allow_to_publish = False
 
     #check if table is not empty
-    workingset_has_data = len(GenericEntity.history.get(id=pk, history_id=entity_history_id).phenotypes_concepts_data) > 0
-    if not workingset_has_data:
+    entity_has_data = len(GenericEntity.history.get(id=pk, history_id=entity_history_id).phenotypes_concepts_data) > 0
+    if not entity_has_data:
         allow_to_publish = False
 
 
@@ -183,7 +186,7 @@ def checkWorkingsetTobePublished(request,pk,entity_history_id):
         'approval_status': approval_status,
         'is_lastapproved': is_lastapproved,
         'other_pending':other_pending,
-        'workingset_has_data':workingset_has_data,
+        'entity_has_data':entity_has_data,
         'is_published': is_published,
         'is_latest_pending_version':is_latest_pending_version,
         'is_allowed_view_children':is_allowed_view_children,#to see if child phenotypes of ws is not deleted/not published etc
@@ -192,6 +195,73 @@ def checkWorkingsetTobePublished(request,pk,entity_history_id):
     }
     return checks
 
+def checkChildren(request,entity):
+        """
+        Check if workingset child data is validated
+        @param request: user request object
+        @param workingset_history_id: historical id ws
+        @return: collection of boolean conditions
+        """
+
+        if entity.layout == 1:
+            name_table = 'concept_informations'
+            child_id = 'concept_id'
+            child_version_id = 'concept_version_id'
+            name_child = 'concept'
+        elif entity.layout == 3:
+            name_table = 'workingset_concept_informations'
+            child_id = 'phenotype_id'
+            child_version_id = 'phenotype_version_id'
+            name_child = 'phenotype'
+        
+
+
+        if len(entity['template_data'][name_table]) == 0:
+            has_child_entitys = False
+            child_entitys_versions = ''
+        else:
+            child_entitys_versions = [(x[child_id], x[child_version_id]) for x in entity['template_data'][name_table]]
+
+        # Now check all the child concepts for deletion(from live version) and Publish(from historical version)
+        # we check access(from live version) here.
+
+        errors = {}
+        has_child_entitys = False
+        all_not_deleted = True
+        is_allowed_view_children = True
+        all_are_published = True
+
+        if child_entitys_versions:
+            has_child_entitys = True
+
+
+        for p in child_entitys_versions:
+            isDeleted = (GenericEntity.objects.filter(Q(id=p[0])).exclude(is_deleted=True).count() == 0)
+            if isDeleted:
+                errors[p[0]] = 'Child ' + name_child + '(' + str(p[0]) + ') is deleted'
+                all_not_deleted = False
+
+
+        for p in child_entitys_versions:
+            is_published = checkIfPublished(GenericEntity, p[0], p[1])
+            if not is_published:
+                errors[str(p[0]) + '/' + str(p[1])] = 'Child ' + name_child + '(' + str(p[0]) + '/' + str(p[1]) + ') is not published'
+                all_are_published = False
+
+
+        for p in child_entitys_versions:
+            permitted = allowed_to_view(request,
+                                        GenericEntity,
+                                        set_id=p[0],
+                                        set_history_id=p[1])
+
+            if not permitted:
+                errors[str(p[0]) + '_view'] = 'Child ' + name_child + '(' + str(p[0]) + ') is not permitted.'
+                is_allowed_view_children = False
+
+        isOK = (all_not_deleted and all_are_published and is_allowed_view_children)
+
+        return  has_child_entitys,isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors
 
 
 def send_email_decision_entity(entity, approved):
