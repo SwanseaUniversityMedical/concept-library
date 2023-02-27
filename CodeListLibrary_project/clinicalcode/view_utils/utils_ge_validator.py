@@ -1,7 +1,8 @@
 from clinicalcode import generic_entity_db_utils
+from clinicalcode.constants import APPROVED_STATUS
 from clinicalcode.models.GenericEntity import GenericEntity
 from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
-from clinicalcode.permissions import checkIfPublished, get_publish_approval_status
+from clinicalcode.permissions import allowed_to_edit, allowed_to_view, checkIfPublished, get_publish_approval_status
 from django.contrib.auth.models import  User
 from django.template.loader import render_to_string
 
@@ -46,7 +47,7 @@ def send_message( pk, data, entity,entity_history_id,checks):
     """
     if data['approval_status'] == 2:
         data['message'] = """The entity version has been successfully published.
-                         <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)), pk=pk,history=workingset_history_id)
+                         <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(url=reverse('phenotypeworkingset_history_detail', args=(pk,entity_history_id)), pk=pk,history=entity_history_id)
 
         send_email_decision_workingset(workingset, data['approval_status'])
         return data
@@ -54,8 +55,8 @@ def send_message( pk, data, entity,entity_history_id,checks):
     #publish message if not declined
     elif len(PublishedGenericEntity.objects.filter(workingset=PhenotypeWorkingset.objects.get(pk=pk).id, approval_status=2)) > 0 and not data['approval_status'] == 3:
         data['message'] = """The workingset version has been successfully published.
-                                 <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
-                                                                                                         pk=pk,history=workingset_history_id)
+                                 <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(url=reverse('phenotypeworkingset_history_detail', args=(pk,entity_history_id)),
+                                                                                                         pk=pk,history=entity_history_id)
         send_email_decision_workingset(workingset, data['approval_status'])
 
         return data
@@ -64,8 +65,8 @@ def send_message( pk, data, entity,entity_history_id,checks):
     elif data['approval_status'] == 3:
         data['message'] = """The workingset version has been rejected .
                                                <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(
-            url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
-            pk=pk,history=workingset_history_id)
+            url=reverse('phenotypeworkingset_history_detail', args=(pk,entity_history_id)),
+            pk=pk,history=entity_history_id)
         send_email_decision_workingset(workingset, data['approval_status'])
 
         return data
@@ -74,8 +75,8 @@ def send_message( pk, data, entity,entity_history_id,checks):
     elif data['approval_status'] is None and checks['is_moderator']:
         data['message'] = """The workingset version has been successfully published.
                                                 <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(
-            url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
-            pk=pk,history=workingset_history_id)
+            url=reverse('phenotypeworkingset_history_detail', args=(pk,entity_history_id)),
+            pk=pk,history=entity_history_id)
 
         return data
 
@@ -84,8 +85,8 @@ def send_message( pk, data, entity,entity_history_id,checks):
     elif data['approval_status'] == 1:
         data['message'] = """The workingset version is going to be reviewed by the moderator.
                                                       <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(
-            url=reverse('phenotypeworkingset_history_detail', args=(pk,workingset_history_id)),
-            pk=pk,history=workingset_history_id)
+            url=reverse('phenotypeworkingset_history_detail', args=(pk,entity_history_id)),
+            pk=pk,history=entity_history_id)
 
         return data
 
@@ -101,7 +102,7 @@ def checkEntityTocheck(request,pk,history_id):
         return checkWorkingsetTobePublished(request,pk,history_id)
 
 
-def checkWorkingsetTobePublished(request,pk,workingset_history_id):
+def checkWorkingsetTobePublished(request,pk,entity_history_id):
     '''
         Allow to publish if:
         - workingset is not deleted
@@ -110,7 +111,7 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
         - all conceots are published
         @param request: user request object
         @param pk: workingset id
-        @param workingset_history_id: historical id of workingset
+        @param entity_history_id: historical id of workingset
         @return: dictionary containing all conditions to publish
     '''
     allow_to_publish = True
@@ -140,18 +141,18 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
         is_moderator = True
 
     #check if current version of ws is the latest version to approve
-    if len(PublishedGenericEntity.objects.filter(workingset_id=pk, workingset_history_id=workingset_history_id, approval_status=1)) > 0:
+    if len(PublishedGenericEntity.objects.filter(entity_id=pk, entity_history_id=entity_history_id, approval_status=1)) > 0:
         is_latest_pending_version = True
 
 
-    workingset_ver = GenericEntity.history.get(id=pk, history_id=workingset_history_id)
-    is_published = checkIfPublished(GenericEntity, pk, workingset_history_id)
-    approval_status = get_publish_approval_status(GenericEntity, pk, workingset_history_id)
+    entity_ver = GenericEntity.history.get(id=pk, history_id=entity_history_id)
+    is_published = checkIfPublished(GenericEntity, pk, entity_history_id)
+    approval_status = get_publish_approval_status(GenericEntity, pk, entity_history_id)
     is_lastapproved = len(PublishedGenericEntity.objects.filter(workingset=GenericEntity.objects.get(pk=pk).id, approval_status=2)) > 0
     other_pending = len(PublishedGenericEntity.objects.filter(workingset=GenericEntity.objects.get(pk=pk).id, approval_status=1)) > 0
 
     # get historical version by querying SQL command from DB
-    workingset = generic_entity_db_utils.getHistoryGenericEntity(workingset_history_id,
+    entity = generic_entity_db_utils.getHistoryGenericEntity(entity_history_id,
                                                                    highlight_result=[False, True][
                                                                        generic_entity_db_utils.is_referred_from_search_page(request)],
                                                                    q_highlight=generic_entity_db_utils.get_q_highlight(request,
@@ -160,23 +161,23 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
                                                                                                             ''))
                                                                    )
     has_child_phenenotypes, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
-        checkAllChildData4Publish_Historical(request,workingset_history_id)
+        checkAllChildData4Publish_Historical(request,entity_history_id)
 
     if not isOK:
         allow_to_publish = False
 
     #check if table is not empty
-    workingset_has_data = len(GenericEntity.history.get(id=pk, history_id=workingset_history_id).phenotypes_concepts_data) > 0
+    workingset_has_data = len(GenericEntity.history.get(id=pk, history_id=entity_history_id).phenotypes_concepts_data) > 0
     if not workingset_has_data:
         allow_to_publish = False
 
 
     checks = {
-        'workingset': workingset,
-        'name': workingset_ver.name,
+        'entity': entity,
+        'name': entity_ver.name,
         'errors':errors,
         'allowed_to_publish':allow_to_publish,
-        'workingset_is_deleted':workingset_is_deleted,
+        'entity_is_deleted':workingset_is_deleted,
         'is_owner':is_owner,
         'is_moderator':is_moderator,
         'approval_status': approval_status,
@@ -190,6 +191,8 @@ def checkWorkingsetTobePublished(request,pk,workingset_history_id):
         'all_not_deleted':all_not_deleted
     }
     return checks
+
+
 
 def send_email_decision_entity(entity, approved):
     """
@@ -244,17 +247,17 @@ def get_history_table_data(request, pk):
         is_this_version_published = checkIfPublished(GenericEntity, ver['id'], ver['history_id'])
 
         if is_this_version_published:
-            ver['publish_date'] = PublishedGenericEntity.objects.get(workingset_id=ver['id'],
-                                                                  workingset_history_id=ver['history_id'],
+            ver['publish_date'] = PublishedGenericEntity.objects.get(q=ver['id'],
+                                                                  entity_history_id=ver['history_id'],
                                                                   approval_status=2).created
         else:
             ver['publish_date'] = None
 
         ver['approval_status'] = -1
         ver['approval_status_label'] = ''
-        if PublishedGenericEntity.objects.filter(workingset_id=ver['id'],
-                                              workingset_history_id=ver['history_id']).exists():
-            ver['approval_status'] = PublishedGenericEntity.objects.get(workingset_id=ver['id'], workingset_history_id=ver[
+        if PublishedGenericEntity.objects.filter(entity_id=ver['id'],
+                                              entity_history_id=ver['history_id']).exists():
+            ver['approval_status'] = PublishedGenericEntity.objects.get(entity_id=ver['id'], entity_history_id=ver[
                 'history_id']).approval_status
             ver['approval_status_label'] = APPROVED_STATUS[ver['approval_status']][1]
 
