@@ -301,9 +301,9 @@ def get_html_element(field_data):
         get suitable HTML element, like badge/cod, ..
     '''
     
-    value = field_data['value']
+    value = str(field_data['value'])
     if 'value_highlighted' in field_data:
-        value = field_data['value_highlighted']
+        value = str(field_data['value_highlighted'])
         
     ret_html = value
     

@@ -659,18 +659,18 @@ def get_entity_layout(generic_entity_hitory):
     entity_layout = [t[1] for t in ENTITY_LAYOUT if t[0]==generic_entity_hitory['layout']][0]
     return entity_layout
     
-def get_entity_layout_category(generic_entity_hitory):
+def get_entity_layout_category(generic_entity_history):
     """
     return the category of the entity layout i.e. phenotype, working set, ...
     """
     
-    entity_layout = [t[1] for t in ENTITY_LAYOUT if t[0]==generic_entity_hitory['layout']][0]
+    entity_layout_id = generic_entity_history['layout']
     entity_layout_category = 'unkwon'
-    if entity_layout in [1, 4, 5]:
+    if entity_layout_id in [1, 4, 5]:
         entity_layout_category = 'phenotype'
-    elif entity_layout in [3]:
+    elif entity_layout_id in [3]:
         entity_layout_category = 'working set'
-    elif entity_layout in [2]:
+    elif entity_layout_id in [2]:
         entity_layout_category = 'concept'
     
     return entity_layout_category

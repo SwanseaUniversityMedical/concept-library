@@ -14,7 +14,7 @@ class GenericEntity(models.Model):
     """
         Generic Entity Model
     """
-    serial_id = models.IntegerField()
+    serial_id = models.IntegerField(unique=True)
     
     id = models.CharField(primary_key=True, editable=True, max_length=50)
 

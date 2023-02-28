@@ -50,41 +50,41 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 			<div class="col-sm-12 text-right action-buttons-container">			
 			   <div class="dropdown btn-group">
 				  <button {% if not user_can_export %} disabled
-	                                                               title="Component concept(s) deleted or revoked access!!" {% endif %}
-	                                                               type="button" class="btn btn-primary dropdown-toggle"
-	                                                               data-toggle="dropdown" aria-haspopup="true"
-	                                                               aria-expanded="false" id="export-btn">
+                                                       title="Component concept(s) deleted or revoked access!!" {% endif %}
+                                                       type="button" class="btn btn-primary dropdown-toggle"
+                                                       data-toggle="dropdown" aria-haspopup="true"
+                                                       aria-expanded="false" id="export-btn">
 				    Export {{ entity_layout_category }}
 				    <span class="caret"></span>
 				  </button>
 				  <ul class="dropdown-menu">
 				   <li>
 				   {% if user.is_authenticated %}
-	                               <a {% if user_can_export %}
-	                                   href="{% url 'api:api_phenotype_detail_version' entity.id entity.history_id %}?format=json"
-	                                   target=_blank {% endif %}
-		                           {% else %}
-		                               <a {% if user_can_export %}
-		                               href="{% url 'api:api_phenotype_detail_version_public' entity.id entity.history_id %}?format=json"
-		                               target=_blank {% endif %}
-		                           {% endif %}
-		                               class="dropdown-item">
-		                                   JSON
-	                               </a>
+					   <a {% if user_can_export %}
+					       href="{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=json"
+					       target=_blank {% endif %}
+					{% else %}
+					    <a {% if user_can_export %}
+					    href="{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=json"
+					    target=_blank {% endif %}
+					{% endif %}
+					    class="dropdown-item">
+					        JSON
+					   </a>
 				   </li>
 				   <li>
 				   {% if user.is_authenticated %}
-	                               <a {% if user_can_export %}
-	                                   href="{% url 'api:api_phenotype_detail_version' entity.id entity.history_id %}?format=xml"
-	                                   target=_blank {% endif %}
-	                           {% else %}
-	                               <a {% if user_can_export %}
-	                               href="{% url 'api:api_phenotype_detail_version_public' entity.id entity.history_id %}?format=xml"
-	                               target=_blank {% endif %}
-	                           {% endif %}
-	                               class="dropdown-item">
-	                                   XML
-	                               </a>
+                      <a {% if user_can_export %}
+                          href="{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=xml"
+                          target=_blank {% endif %}
+                  {% else %}
+                      <a {% if user_can_export %}
+                      href="{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=xml"
+                      target=_blank {% endif %}
+                  {% endif %}
+                      class="dropdown-item">
+                          XML
+                      </a>
 				   </li>
 				  </ul>
 				</div>
@@ -331,7 +331,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 						{% endif %}			
 										
 						{% if field_data.field_type == 'concept_informations' %}
-				            {% include '../generic_entity/snippet//phenotype_clinical_code_lists.html' with field_data=field_data field=field %}
+				            {% include '../generic_entity/snippet/phenotype_clinical_code_lists.html' with field_data=field_data field=field %}
 						{% endif %}			
 										
 
@@ -522,11 +522,11 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 		<td>XML</td>
 		<td>
 		{% if user.is_authenticated %}
-                     <a href="{% url 'api:api_phenotype_detail_version' entity.id entity.history_id %}?format=xml"
-                        target=_blank>site_root{% url 'api:api_phenotype_detail_version' entity.id entity.history_id %}?format=xml</a>
+                     <a href="{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=xml"
+                        target=_blank>site_root{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=xml</a>
                  {% else %}
-                     <a href="{% url 'api:api_phenotype_detail_version_public' entity.id entity.history_id %}?format=xml"
-                        target=_blank>site_root{% url 'api:api_phenotype_detail_version_public' entity.id entity.history_id %}?format=xml</a>
+                     <a href="{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=xml"
+                        target=_blank>site_root{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=xml</a>
                  {% endif %}
 		</td>
 	  </tr>
@@ -534,11 +534,11 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 		<td>JSON</td>
 		<td>
 		{% if user.is_authenticated %}
-                     <a href="{% url 'api:api_phenotype_detail_version' entity.id entity.history_id %}?format=json"
-                        target=_blank>site_root{% url 'api:api_phenotype_detail_version' entity.id entity.history_id %}?format=json</a>
+                     <a href="{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=json"
+                        target=_blank>site_root{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=json</a>
                  {% else %}
-                     <a href="{% url 'api:api_phenotype_detail_version_public' entity.id entity.history_id %}?format=json"
-                        target=_blank>site_root{% url 'api:api_phenotype_detail_version_public' entity.id entity.history_id %}?format=json</a>
+                     <a href="{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=json"
+                        target=_blank>site_root{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=json</a>
                  {% endif %}
 		</td>
 	  </tr>

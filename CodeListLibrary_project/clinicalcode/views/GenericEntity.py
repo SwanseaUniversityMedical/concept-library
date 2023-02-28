@@ -641,7 +641,7 @@ def get_side_menu(request, template_data):
                 continue  
             
         if 'hide_if_empty' in field_definition and field_definition['hide_if_empty'] == True:
-            if field_definition['value'].strip() == '':
+            if str(field_definition['value']).strip() == '':
                 continue   
                 
         # if 'is_base_field' in field_definition and field_definition['is_base_field'] == True:
