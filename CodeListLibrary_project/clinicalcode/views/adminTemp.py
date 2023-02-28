@@ -610,8 +610,8 @@ def admin_mig_phenotypes_dt(request):
                             group_access = phenotype.group_access,
                             world_access = phenotype.world_access
                             )
-                        #ge.save_migrate_phenotypes()
-                        ge.save()
+                        ge.save_migrate_phenotypes()
+                        #ge.save()
                         
                         
                         # publish if phenotype was published at least once                             
