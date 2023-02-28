@@ -38,12 +38,7 @@ from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from .. import generic_entity_db_utils, utils
-from ..models.Brand import Brand
-from ..models.CodingSystem import CodingSystem
-from ..models.DataSource import DataSource
-from ..models.Phenotype import Phenotype
-from ..models.PublishedPhenotype import PublishedPhenotype
-from ..models.Tag import Tag
+from ..models import *
 from ..permissions import *
 from .View import *
 from clinicalcode.api.views.View import get_canonical_path_by_brand
@@ -73,7 +68,7 @@ def generic_entity_list(request):
     page_size = utils.get_int_value(request.GET.get('page_size', request.session.get('phenotype_page_size', 20)), request.session.get('phenotype_page_size', 20))
     page_size = page_size if page_size in generic_entity_db_utils.page_size_limits else 20
     page = utils.get_int_value(request.GET.get('page', request.session.get('phenotype_page', 1)), request.session.get('phenotype_page', 1))
-    search = request.GET.get('search', request.session.get('phenotype_search', ''))
+    search = request.GET.get('search', request.session.get('generic_entity_search', ''))
     tag_ids = request.GET.get('tag_ids', request.session.get('phenotype_tag_ids', ''))
     collection_ids = request.GET.get('collection_ids', request.session.get('phenotype_collection_ids', ''))
     owner = request.GET.get('owner', request.session.get('phenotype_owner', ''))
@@ -93,7 +88,7 @@ def generic_entity_list(request):
     show_mod_pending_phenotypes = request.GET.get('show_mod_pending_phenotypes', request.session.get('phenotype_show_mod_pending_phenotypes', 0))
     show_rejected_phenotypes = request.GET.get('show_rejected_phenotypes', request.session.get('phenotype_show_rejected_phenotypes', 0))
    
-    search_form = request.GET.get('search_form', request.session.get('phenotype_search_form', 'basic-form'))
+    search_form = request.GET.get('search_form', request.session.get('generic_entity_search_form', 'basic-form'))
 
     start_date_range = request.GET.get('startdate', request.session.get('phenotype_date_start', ''))
     end_date_range = request.GET.get('enddate', request.session.get('phenotype_date_end', ''))
@@ -109,7 +104,7 @@ def generic_entity_list(request):
     # store page index variables to session
     request.session['phenotype_page_size'] = page_size
     request.session['phenotype_page'] = page
-    request.session['phenotype_search'] = search
+    request.session['generic_entity_search'] = search
     request.session['phenotype_tag_ids'] = tag_ids
     request.session['phenotype_collection_ids'] = collection_ids
     request.session['phenotype_brand'] = phenotype_brand   
@@ -124,7 +119,7 @@ def generic_entity_list(request):
     request.session['phenotype_show_deleted_phenotypes'] = show_deleted_phenotypes
     request.session['show_only_validated_phenotypes'] = show_only_validated_phenotypes
     request.session['phenotype_must_have_published_versions'] = phenotype_must_have_published_versions 
-    request.session['phenotype_search_form'] = search_form
+    request.session['generic_entity_search_form'] = search_form
     request.session['phenotype_show_my_pending_phenotypes'] = show_my_pending_phenotypes    
     request.session['phenotype_show_mod_pending_phenotypes'] = show_mod_pending_phenotypes
     request.session['phenotype_show_rejected_phenotypes'] = show_rejected_phenotypes
@@ -142,7 +137,7 @@ def generic_entity_list(request):
     get_live_and_or_published_ver = 3  # 1= live only, 2= published only, 3= live+published
 
     # available phenotype_types in the DB
-    phenotype_types_list, phenotypes_types_order = generic_entity_db_utils.get_brand_associated_phenotype_types(request, brand=None) #Phenotype.history.annotate(type_lower=Lower('type')).values('type_lower').distinct().order_by('type_lower')
+    phenotype_types_list, phenotypes_types_order = generic_entity_db_utils.get_brand_associated_phenotype_types(request, brand=None) #GenericEntity.history.annotate(type_lower=Lower('type')).values('type_lower').distinct().order_by('type_lower')
     
     # search by ID (only with prefix)
     # chk if the search word is valid ID (with  prefix 'PH' case insensitive)
@@ -150,7 +145,7 @@ def generic_entity_list(request):
     id_match = re.search(r"(?i)^PH\d+$", search)
     if id_match:
         if id_match.group() == id_match.string: # full match
-            is_valid_id, err, ret_id = generic_entity_db_utils.chk_valid_id(request, set_class=Phenotype, pk=search, chk_permission=False)
+            is_valid_id, err, ret_id = generic_entity_db_utils.chk_valid_id(request, set_class=GenericEntity, pk=search, chk_permission=False)
             if is_valid_id:
                 search_by_id = True
                 filter_cond += " AND (id ='" + str(ret_id) + "') "
@@ -158,7 +153,7 @@ def generic_entity_list(request):
     collections, filter_cond = generic_entity_db_utils.apply_filter_condition(query='collections', selected=collection_ids, conditions=filter_cond)
     tags, filter_cond = generic_entity_db_utils.apply_filter_condition(query='tags', selected=tag_ids, conditions=filter_cond)
     
-    coding, filter_cond = generic_entity_db_utils.apply_filter_condition(query='clinical_terminologies', selected=coding_ids, conditions=filter_cond)
+    coding, filter_cond = generic_entity_db_utils.apply_filter_condition(query='coding_systems', selected=coding_ids, conditions=filter_cond)
     sources, filter_cond = generic_entity_db_utils.apply_filter_condition(query='data_sources', selected=data_sources, conditions=filter_cond)
     selected_phenotype_types_list, filter_cond = generic_entity_db_utils.apply_filter_condition(query='phenotype_type', selected=selected_phenotype_types, conditions=filter_cond, data=phenotype_types_list)
     
@@ -363,85 +358,117 @@ def generic_entity_list(request):
         return render(request, 'clinicalcode/phenotype/index.html', context)
 
 
-def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
+def generic_entity_list_temp(request):
+    '''
+        Display the list of phenotypes. 
+    '''
+    
+    page = utils.get_int_value(request.GET.get('page', request.session.get('entity_page', 1)), request.session.get('phenotype_page', 1))
+    page_size = 20    
+ 
+    request.session['entity_page'] = page
+    
+    srch = generic_entity_db_utils.get_visible_live_or_published_generic_entity_versions(request,
+                                                                            get_live_and_or_published_ver=3,
+                                                                            search='',
+                                                                            author='',
+                                                                            exclude_deleted=True,
+                                                                            filter_cond=" 1=1 ",
+                                                                            search_name_only = False,
+                                                                            highlight_result = True
+                                                                            )
+    # create pagination
+    paginator = Paginator(srch,
+                          page_size,
+                          allow_empty_first_page=True)
+    try:
+        p = paginator.page(page)
+    except EmptyPage:
+        p = paginator.page(paginator.num_pages)
+
+    p_btns = utils.get_paginator_pages(paginator, p)
+
+
+    context = {
+        'page': page,
+        'page_size': str(20),
+        'page_obj': p,
+        'search_form': 'basic-form',
+        'p_btns': p_btns,
+        }
+    
+    return render(request, 'clinicalcode/generic_entity/search_temp.html', context)
+
+
+
+def generic_entity_detail(request, pk, history_id=None):
     ''' 
-        Display the detail of a phenotype at a point in time.
+        Display the detail of a generic entity at a point in time.
     '''
     # validate access for login and public site
     validate_access_to_view(request,
-                            Phenotype,
+                            GenericEntity,
                             pk,
-                            set_history_id=phenotype_history_id)
+                            set_history_id=history_id)
 
-    if phenotype_history_id is None:
+    if history_id is None:
         # get the latest version/ or latest published version
-        phenotype_history_id = try_get_valid_history_id(request, Phenotype, pk)
+        history_id = try_get_valid_history_id(request, GenericEntity, pk)
 
-    is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
-    approval_status = get_publish_approval_status(Phenotype, pk, phenotype_history_id)
+    is_published = checkIfPublished(GenericEntity, pk, history_id)
+    approval_status = get_publish_approval_status(GenericEntity, pk, history_id)
 
     # ----------------------------------------------------------------------
 
-    phenotype = generic_entity_db_utils.getHistoryPhenotype(phenotype_history_id
+    generic_entity = generic_entity_db_utils.get_historical_entity(history_id
                                             , highlight_result = [False, True][generic_entity_db_utils.is_referred_from_search_page(request)]
-                                            , q_highlight = generic_entity_db_utils.get_q_highlight(request, request.session.get('phenotype_search', ''))  
+                                            , q_highlight = generic_entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))  
                                             )
-    # The history phenotype contains the owner_id, to provide the owner name, we
-    # need to access the user object with that ID and add that to the phenotype.
-    if phenotype['owner_id'] is not None:
-        phenotype['owner'] = User.objects.get(id=int(phenotype['owner_id']))
+    # The historical entity contains the owner_id, to provide the owner name, we
+    # need to access the user object with that ID and add that to the generic_entity.
+    if generic_entity['owner_id'] is not None:
+        generic_entity['owner'] = User.objects.get(id=int(generic_entity['owner_id']))
         
-    phenotype['group'] = None
-    if phenotype['group_id'] is not None:
-        phenotype['group'] = Group.objects.get(id=int(phenotype['group_id']))
+    generic_entity['group'] = None
+    if generic_entity['group_id'] is not None:
+        generic_entity['group'] = Group.objects.get(id=int(generic_entity['group_id']))
 
-    phenotype_history_date = phenotype['history_date']
-
-    tags = Tag.objects.filter(pk=-1)
-    phenotype_tags = phenotype['tags']
-    has_tags = False    
-    if phenotype_tags:
-        tags = Tag.objects.filter(pk__in=phenotype_tags)
-        has_tags = tags.filter(tag_type=1).count() != 0
-
-    collections = Tag.objects.filter(pk=-1)
-    phenotype_collections = phenotype['collections']
-    has_collections = False
-    if phenotype_collections:
-        collections = Tag.objects.filter(pk__in=phenotype_collections)
-        has_collections = collections.filter(tag_type=2).count() != 0
+    history_date = generic_entity['history_date']
 
 
 
-    data_sources = DataSource.objects.filter(pk=-1)
-    phenotype_data_sources = phenotype['data_sources']  
-    if phenotype_data_sources:
-        data_sources = DataSource.objects.filter(pk__in=phenotype_data_sources)
+################################################
+    entity_layout = generic_entity_db_utils.get_entity_layout(generic_entity)
+    entity_layout_category = generic_entity_db_utils.get_entity_layout_category(generic_entity)
+        
+    side_menu = get_side_menu(request, generic_entity['data'])
 
-    # ------------------------- parse sex ----------------------------------
-    phenotype_gender = generic_entity_db_utils.try_parse_phenotype_gender(phenotype['sex'])
+
+
+
+################################################
+
+
 
     # ----------------------------------------------------------------------
     concept_id_list = []
     concept_hisoryid_list = []
     concepts = Concept.history.filter(pk=-1).values('id', 'history_id', 'name', 'group')
 
-    if phenotype['concept_informations']:
-        concept_id_list = [x['concept_id'] for x in phenotype['concept_informations']]
-        concept_hisoryid_list = [x['concept_version_id'] for x in phenotype['concept_informations']]
+    if generic_entity['data']['concept_informations']:
+        #concept_informations = json.loads(generic_entity['data']['concept_informations'])
+        concept_informations = generic_entity['data']['concept_informations']['value']
+        concept_id_list = [x['concept_id'] for x in concept_informations]
+        concept_hisoryid_list = [x['concept_version_id'] for x in concept_informations]
         concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).values('id', 'history_id', 'name', 'group')
 
     concepts_id_name = json.dumps(list(concepts))
 
-    clinicalTerminologies = CodingSystem.objects.filter(pk=-1)
-    CodingSystem_ids = phenotype['clinical_terminologies']
-    if CodingSystem_ids:
-        clinicalTerminologies = CodingSystem.objects.filter(pk__in=list(CodingSystem_ids))
 
-    is_latest_version = (int(phenotype_history_id) == Phenotype.objects.get(pk=pk).history.latest().history_id)
+    is_latest_version = (int(history_id) == GenericEntity.objects.get(pk=pk).history.latest().history_id)
     is_latest_pending_version = False
 
-    if len(PublishedPhenotype.objects.filter(phenotype_id=pk, phenotype_history_id=phenotype_history_id, approval_status=1)) > 0:
+    if len(PublishedGenericEntity.objects.filter(entity_id=pk, entity_history_id=history_id, approval_status=1)) > 0:
         is_latest_pending_version = True
    # print(is_latest_pending_version)
 
@@ -452,21 +479,22 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
     version_alerts = {}
 
     if request.user.is_authenticated:
-        can_edit = (not Phenotype.objects.get(pk=pk).is_deleted) and allowed_to_edit(request, Phenotype, pk)
+        can_edit = (not GenericEntity.objects.get(pk=pk).is_deleted) and allowed_to_edit(request, GenericEntity, pk)
 
-        user_can_export = (allowed_to_view_children(request, Phenotype, pk, set_history_id=phenotype_history_id)
-                           and generic_entity_db_utils.chk_deleted_children(request,
-                                                           Phenotype,
-                                                           pk,
-                                                           returnErrors=False,
-                                                           set_history_id=phenotype_history_id)
-                           and not Phenotype.objects.get(pk=pk).is_deleted)
+        user_can_export = True 
+         # (allowed_to_view_children(request, GenericEntity, pk, set_history_id=history_id)
+         #                   and generic_entity_db_utils.chk_deleted_children(request,
+         #                                                   GenericEntity,
+         #                                                   pk,
+         #                                                   returnErrors=False,
+         #                                                   set_history_id=history_id)
+         #                   and not GenericEntity.objects.get(pk=pk).is_deleted)
         user_allowed_to_create = allowed_to_create()
 
-        children_permitted_and_not_deleted, error_dic = generic_entity_db_utils.chk_children_permission_and_deletion(request, Phenotype, pk)
+        #children_permitted_and_not_deleted, error_dic = generic_entity_db_utils.chk_children_permission_and_deletion(request, GenericEntity, pk)
 
         if is_latest_version:
-            are_concepts_latest_version, version_alerts = checkConceptVersionIsTheLatest(pk)
+            are_concepts_latest_version, version_alerts = check_concept_version_is_the_latest(pk)
 
     else:
         can_edit = False
@@ -475,13 +503,13 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
 
     publish_date = None
     if is_published:
-        publish_date = PublishedPhenotype.objects.get(phenotype_id=pk, phenotype_history_id=phenotype_history_id).created
+        publish_date = PublishedGenericEntity.objects.get(entity_id=pk, entity_history_id=history_id).created
 
-    if Phenotype.objects.get(pk=pk).is_deleted == True:
-        messages.info(request, "This phenotype has been deleted.")
+    if GenericEntity.objects.get(pk=pk).is_deleted == True:
+        messages.info(request, "This entity has been deleted.")
 
     # published versions
-    published_historical_ids = list(PublishedPhenotype.objects.filter(phenotype_id=pk, approval_status=2).values_list('phenotype_history_id', flat=True))
+    published_historical_ids = list(PublishedGenericEntity.objects.filter(entity_id=pk, approval_status=2).values_list('entity_history_id', flat=True))
 
     # # history
     history = get_history_table_data(request, pk)
@@ -497,22 +525,21 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
         # published
         component_tab_active = "active"  # ""
         codelist_tab_active = ""  # "active"
-        codelist = generic_entity_db_utils.get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id)
+        codelist = generic_entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id) ## change
         codelist_loaded = 1
         
-    # codelist = generic_entity_db_utils.get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id)
+    # codelist = generic_entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id)
     # codelist_loaded = 1        
 
     # rmd
-    if phenotype['implementation'] is None:
-        phenotype['implementation'] = ''
-    if phenotype['secondary_publication_links'] is None:
-        phenotype['secondary_publication_links'] = ''
+    if generic_entity['data']['implementation'] is None:
+        generic_entity['data']['implementation'] = ''
+
             
     conceptBrands = generic_entity_db_utils.getConceptBrands(request, concept_id_list)
     concept_data = []
-    if phenotype['concept_informations']:
-        for c in phenotype['concept_informations']:
+    if concept_informations:
+        for c in concept_informations:
             c['codingsystem'] = CodingSystem.objects.get(pk=Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).coding_system_id).name
             c['code_attribute_header'] = Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).code_attribute_header
 
@@ -544,54 +571,108 @@ def PhenotypeDetail_combined(request, pk, phenotype_history_id=None):
 
 
     context = {
-        'phenotype': phenotype,
-        'concept_informations': json.dumps(phenotype['concept_informations']),
-        'tags': tags,
-        'has_tags': has_tags,
-        'collections': collections,
-        'has_collections': has_collections,
-        'gender': phenotype_gender,        
-        'data_sources': data_sources,
-        'clinicalTerminologies': clinicalTerminologies,
-        'user_can_edit': False,  # for now  #can_edit,
-        'allowed_to_create': False,  # for now  #user_allowed_to_create,    # not settings.CLL_READ_ONLY,
-        'user_can_export': user_can_export,
+        'side_menu': side_menu,  
+        'entity_layout': entity_layout,
+        'entity_layout_category': entity_layout_category,
+        'entity': generic_entity,
+        'entity_data': generic_entity['data'],
         'history': history,
-        'live_ver_is_deleted': Phenotype.objects.get(pk=pk).is_deleted,
-        'published_historical_ids': published_historical_ids,
-        'is_published': is_published,
-        'approval_status': approval_status,
-        'publish_date': publish_date,
-        'is_latest_version': is_latest_version,
-        'is_latest_pending_version':is_latest_pending_version,
-        'current_phenotype_history_id': int(phenotype_history_id),
+
+          
+        
+        #'concept_informations': json.dumps(concept_informations),
         'component_tab_active': component_tab_active,
         'codelist_tab_active': codelist_tab_active,
         'codelist': codelist,  # json.dumps(codelist)
         'codelist_loaded': codelist_loaded,
         'concepts_id_name': concepts_id_name,
         'concept_data': concept_data,
-        'page_canonical_path': get_canonical_path_by_brand(request, Phenotype, pk, phenotype_history_id),
-        'q': generic_entity_db_utils.get_q_highlight(request, request.session.get('phenotype_search', '')),
+        
+        
+        'page_canonical_path': get_canonical_path_by_brand(request, GenericEntity, pk, history_id),
+        
+        
+        #'gender': gender,        
+        #'clinicalTerminologies': clinicalTerminologies,
+        'user_can_edit': False,  # for now  #can_edit,
+        'allowed_to_create': False,  # for now  #user_allowed_to_create,    # not settings.CLL_READ_ONLY,
+        'user_can_export': user_can_export,
+        
+        'live_ver_is_deleted': GenericEntity.objects.get(pk=pk).is_deleted,
+        'published_historical_ids': published_historical_ids,
+        'is_published': is_published,
+        'approval_status': approval_status,
+        'publish_date': publish_date,
+        'is_latest_version': is_latest_version,
+        'is_latest_pending_version':is_latest_pending_version,
+        'current_phenotype_history_id': int(history_id),
+
+        'q': generic_entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', '')),
         'force_highlight_result':  ['0', '1'][generic_entity_db_utils.is_referred_from_search_page(request)]                              
     }
 
     return render(request, 
-                  'clinicalcode/phenotype/detail_combined.html',
+                  'clinicalcode/generic_entity/detail.html',
                   context)
+
+
+def get_side_menu(request, template_data):
+    """
+    return side menu tabs
+    """
+   
+    side_menu = {}
+    
+    field_definitions = template_data
+    for (field_name, field_definition) in field_definitions.items():
+        ##field_name = field_name.replace(' ', '') 
+        is_side_menu = False
+        side_menu_title = ''
+        
+        if field_name.strip().lower() == 'name':
+            continue
+        
+        if 'do_not_show_in_production' in field_definition and field_definition['do_not_show_in_production'] == True:
+            if (not settings.IS_DEMO) and (not settings.IS_DEVELOPMENT_PC):
+                continue  
+                     
+        if 'display_only_if_user_is_authenticated' in field_definition and field_definition['display_only_if_user_is_authenticated'] == True:
+            if not request.user.is_authenticated:
+                continue  
+            
+        if 'hide_if_empty' in field_definition and field_definition['hide_if_empty'] == True:
+            if field_definition['value'].strip() == '':
+                continue   
+                
+        # if 'is_base_field' in field_definition and field_definition['is_base_field'] == True:
+        #     is_side_menu = True
+        #     side_menu_title = field_name 
+
+        if 'side_menu' in field_definition:
+            is_side_menu = True
+            side_menu_title = field_definition['side_menu'] 
+
+
+        if is_side_menu:
+            #field_name = side_menu_title.replace(' ', '')
+            side_menu[field_definition['html_id']] = side_menu_title
+
+    return side_menu
+            
 
 def get_history_table_data(request, pk):
     """"
         get history table data for the template
     """
     
-    versions = Phenotype.objects.get(pk=pk).history.all()
+    versions = GenericEntity.objects.get(pk=pk).history.all()
     historical_versions = []
 
     for v in versions:
-        ver = generic_entity_db_utils.getHistoryPhenotype(v.history_id
+        ver = generic_entity_db_utils.get_historical_entity(v.history_id
                                         , highlight_result = [False, True][generic_entity_db_utils.is_referred_from_search_page(request)]
-                                        , q_highlight = generic_entity_db_utils.get_q_highlight(request, request.session.get('phenotype_search', ''))  
+                                        , q_highlight = generic_entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))
+                                        , include_template_data = False  
                                         )
         
         if ver['owner_id'] is not None:
@@ -605,22 +686,22 @@ def get_history_table_data(request, pk):
             ver['updated_by'] = User.objects.get(pk=ver['updated_by_id'])
 
         is_this_version_published = False
-        is_this_version_published = checkIfPublished(Phenotype, ver['id'], ver['history_id'])
+        is_this_version_published = checkIfPublished(GenericEntity, ver['id'], ver['history_id'])
 
         if is_this_version_published:
-            ver['publish_date'] = PublishedPhenotype.objects.get(phenotype_id=ver['id'], phenotype_history_id=ver['history_id'], approval_status=2).created
+            ver['publish_date'] = PublishedGenericEntity.objects.get(entity_id=ver['id'], entity_history_id=ver['history_id'], approval_status=2).created
         else:
             ver['publish_date'] = None
 
         ver['approval_status'] = -1
         ver['approval_status_label'] = ''
-        if PublishedPhenotype.objects.filter(phenotype_id=ver['id'], phenotype_history_id=ver['history_id']).exists():
-            ver['approval_status'] = PublishedPhenotype.objects.get(phenotype_id=ver['id'], phenotype_history_id=ver['history_id']).approval_status
+        if PublishedGenericEntity.objects.filter(entity_id=ver['id'], entity_history_id=ver['history_id']).exists():
+            ver['approval_status'] = PublishedGenericEntity.objects.get(entity_id=ver['id'], entity_history_id=ver['history_id']).approval_status
             ver['approval_status_label'] = APPROVED_STATUS[ver['approval_status']][1]        
         
         
         if request.user.is_authenticated:
-            if allowed_to_edit(request, Phenotype, pk) or allowed_to_view(request, Phenotype, pk):
+            if allowed_to_edit(request, GenericEntity, pk) or allowed_to_view(request, GenericEntity, pk):
                 historical_versions.append(ver)
             else:
                 if is_this_version_published:
@@ -630,40 +711,15 @@ def get_history_table_data(request, pk):
                 historical_versions.append(ver)
                 
     return historical_versions
-                
-
-def checkConceptVersionIsTheLatest(phenotypeID):
-    # check live version
-
-    phenotype = Phenotype.objects.get(pk=phenotypeID)
-
-    is_ok = True
-    version_alerts = {}
-
-    if not phenotype.concept_informations:
-        return is_ok, version_alerts
-
-    concepts_id_versionID = phenotype.concept_informations
-
-    # loop for concept versions
-    for c in concepts_id_versionID:
-        c_id = c['concept_id']
-        c_ver_id = c['concept_version_id']
-        latest_history_id = Concept.objects.get(pk=c_id).history.latest('history_id').history_id
-        if latest_history_id != c_ver_id:
-            version_alerts[c_ver_id] = "newer version available"
-            is_ok = False
-    #         else:
-    #             version_alerts[c_id] = ""
-    return is_ok, version_alerts
-
-
+   
+   
 @login_required
-def phenotype_conceptcodesByVersion(request,
+# phenotype_conceptcodesByVersion
+def phenotype_concept_codes_by_version(request,
                                     pk,
                                     phenotype_history_id,
-                                    target_concept_id=None,
-                                    target_concept_history_id=None):
+                                    target_concept_id = None,
+                                    target_concept_history_id = None):
     '''
         Get the codes of the phenotype concepts
         for a specific version
@@ -677,15 +733,15 @@ def phenotype_conceptcodesByVersion(request,
     '''
 
     validate_access_to_view(request,
-                            Phenotype,
+                            GenericEntity,
                             pk,
                             set_history_id=phenotype_history_id)
 
     # here, check live version
-    current_ph = Phenotype.objects.get(pk=pk)
+    current_ph = GenericEntity.objects.get(pk=pk)
 
-    #     children_permitted_and_not_deleted, error_dic = generic_entity_db_utils.chk_children_permission_and_deletion(request,
-    #                                                                                                 Phenotype, pk,
+    #     children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(request,
+    #                                                                                                 GenericEntity, pk,
     #                                                                                                 set_history_id=phenotype_history_id)
     #     if not children_permitted_and_not_deleted:
     #         raise PermissionDenied
@@ -695,14 +751,14 @@ def phenotype_conceptcodesByVersion(request,
 
     # --------------------------------------------------
 
-    codes = generic_entity_db_utils.get_phenotype_conceptcodesByVersion(request, pk, phenotype_history_id, target_concept_id, target_concept_history_id)
+    codes = generic_entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, phenotype_history_id, target_concept_id, target_concept_history_id)
 
     data = dict()
     data['form_is_valid'] = True
 
 
     # Get the list of concepts in the phenotype data
-    concept_ids_historyIDs = generic_entity_db_utils.getGroupOfConceptsByPhenotypeId_historical(pk, phenotype_history_id)
+    concept_ids_historyIDs = generic_entity_db_utils.get_concept_ids_versions_of_historical_phenotype(pk, phenotype_history_id)
 
     concept_codes_html = []
     for concept in concept_ids_historyIDs:
@@ -747,84 +803,111 @@ def phenotype_conceptcodesByVersion(request,
     return JsonResponse(data)
 
 
-@login_required
-def phenotype_create(request):
+def check_concept_version_is_the_latest(phenotypeID):
     """
-        create a phenotype
+    check live version of concepts in a phenotype concept_informations
+    """
+
+    phenotype = GenericEntity.objects.get(pk=phenotypeID)
+
+    is_ok = True
+    version_alerts = {}
+
+    if not phenotype.template_data['concept_informations']:
+        return is_ok, version_alerts
+
+    concepts_id_versionID = phenotype.template_data['concept_informations']
+
+    # loop for concept versions
+    for c in concepts_id_versionID:
+        c_id = c['concept_id']
+        c_ver_id = c['concept_version_id']
+        latest_history_id = Concept.objects.get(pk=c_id).history.latest('history_id').history_id
+        if latest_history_id != c_ver_id:
+            version_alerts[c_ver_id] = "newer version available"
+            is_ok = False
+    #         else:
+    #             version_alerts[c_id] = ""
+    return is_ok, version_alerts
+
+
+
+@login_required
+def Entity_Create(request):
+    """
+        create an antity
     """
     # TODO: implement this
     pass
 
 
-class PhenotypeUpdate(LoginRequiredMixin, HasAccessToEditPhenotypeCheckMixin,
-                      UpdateView):
+class Entity_Update(LoginRequiredMixin, HasAccessToEditPhenotypeCheckMixin, UpdateView):
     """
-        Update the current phenotype.
-    """
-    # ToDo
-    pass
-
-
-class PhenotypeDelete(LoginRequiredMixin, HasAccessToEditPhenotypeCheckMixin,
-                      TemplateResponseMixin, View):
-    """
-        Delete a phenotype.
+        Update the current entity.
     """
     # ToDo
     pass
 
 
-def history_phenotype_codes_to_csv(request, pk, phenotype_history_id=None):
+class PhenotypeDelete(LoginRequiredMixin, HasAccessToEditPhenotypeCheckMixin, TemplateResponseMixin, View):
+    """
+        Delete an entity.
+    """
+    # ToDo
+    pass
+
+
+def history_phenotype_codes_to_csv(request, pk, history_id=None):
     """
         Return a csv file of codes for a phenotype for a specific historical version.
     """
-    if phenotype_history_id is None:
+    if history_id is None:
         # get the latest version/ or latest published version
-        phenotype_history_id = try_get_valid_history_id(request, Phenotype, pk)        
+        history_id = try_get_valid_history_id(request, GenericEntity, pk)        
         
     # validate access for login and public site
     validate_access_to_view(request,
-                            Phenotype,
+                            GenericEntity,
                             pk,
-                            set_history_id=phenotype_history_id)
+                            set_history_id=history_id)
 
-    is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
+    is_published = checkIfPublished(GenericEntity, pk, history_id)
 
     # ----------------------------------------------------------------------
 
     # exclude(is_deleted=True)
-    if Phenotype.objects.filter(id=pk).count() == 0:
+    if GenericEntity.objects.filter(id=pk).count() == 0:
         return HttpResponseNotFound("Not found.")
         # raise permission_denied # although 404 is more relevant
 
     # exclude(is_deleted=True)
-    if Phenotype.history.filter(id=pk, history_id=phenotype_history_id).count() == 0:
+    if GenericEntity.history.filter(id=pk, history_id=history_id).count() == 0:
         return HttpResponseNotFound("Not found.")
         # raise permission_denied # although 404 is more relevant
 
     # here, check live version
-    current_ph = Phenotype.objects.get(pk=pk)
+    current_ph = GenericEntity.objects.get(pk=pk)
 
     if not is_published:
-        children_permitted_and_not_deleted, error_dic = generic_entity_db_utils.chk_children_permission_and_deletion(request, Phenotype, pk, set_history_id=phenotype_history_id)
+        children_permitted_and_not_deleted, error_dic = generic_entity_db_utils.chk_children_permission_and_deletion(request, GenericEntity, pk, set_history_id=history_id)
         if not children_permitted_and_not_deleted:
             raise PermissionDenied
 
     if current_ph.is_deleted == True:
         raise PermissionDenied
 
-    current_ph_version = Phenotype.history.get(id=pk, history_id=phenotype_history_id)
+    current_ph_version = GenericEntity.history.get(id=pk, history_id=history_id)
 
     # Get the list of concepts in the phenotype data
-    concept_ids_historyIDs = generic_entity_db_utils.getGroupOfConceptsByPhenotypeId_historical(pk, phenotype_history_id)
+    concept_ids_historyIDs = generic_entity_db_utils.get_concept_ids_versions_of_historical_phenotype(pk, history_id)
 
     my_params = {
         'phenotype_id': pk,
-        'phenotype_history_id': phenotype_history_id,
+        'history_id': history_id,
         'creation_date': time.strftime("%Y%m%dT%H%M%S")
     }
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = ('attachment; filename="phenotype_%(phenotype_id)s_ver_%(phenotype_history_id)s_concepts_%(creation_date)s.csv"' % my_params)
+    response['Content-Disposition'] = ('attachment; filename="phenotype_%(phenotype_id)s_ver_%(history_id)s_concepts_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
 
@@ -849,13 +932,13 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id=None):
         concept_history_date = current_concept_version.history_date
         
         rows_no = 0
-        codes = generic_entity_db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
+        codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
 
         #---------------------------------------------
         #  code attributes  ---
         codes_with_attributes = []
         if code_attribute_header:
-            codes_with_attributes = generic_entity_db_utils.getConceptCodes_withAttributes_HISTORICAL(concept_id=concept_id,
+            codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(concept_id=concept_id,
                                                                                     concept_history_date=concept_history_date,
                                                                                     allCodes=codes,
                                                                                     code_attribute_header=code_attribute_header)
@@ -919,464 +1002,4 @@ def history_phenotype_codes_to_csv(request, pk, phenotype_history_id=None):
     return response
 
 
-class PhenotypePublish(LoginRequiredMixin, HasAccessToViewPhenotypeCheckMixin,
-                       TemplateResponseMixin, View):
-    model = Phenotype
-    template_name = 'clinicalcode/phenotype/publish.html'
-
-    errors = {}
-    allow_to_publish = True
-    phenotype_is_deleted = False
-    is_owner = True
-    is_moderator = True
-    phenotype_has_codes = True
-    AllnotDeleted = True
-    AllarePublished = True
-    isAllowedtoViewChildren = True
-
-    def checkPhenotypeTobePublished(self, request, pk, phenotype_history_id):
-        global errors, allow_to_publish, phenotype_is_deleted, is_owner, is_moderator,is_latest_pending_version
-        global phenotype_has_codes, AllnotDeleted, AllarePublished, isAllowedtoViewChildren
-        '''
-            Allow to publish if:
-            - Phenotype is not deleted
-            - user is an owner
-            - Phenotype contains codes
-            - all conceots are published
-        '''
-        errors = {}
-        allow_to_publish = True
-        phenotype_is_deleted = False
-        is_owner = True
-        is_moderator = False
-        is_latest_pending_version = False
-        phenotype_has_codes = True
-        AllnotDeleted = True
-        AllarePublished = True
-        isAllowedtoViewChildren = True
-
-        if (Phenotype.objects.get(id=pk).is_deleted == True):
-            allow_to_publish = False
-            phenotype_is_deleted = True
-
-        if (Phenotype.objects.filter(Q(id=pk), Q(owner=self.request.user)).count() == 0):
-            allow_to_publish = False
-            is_owner = False
-
-        if (self.request.user.groups.filter(name="Moderators").exists()):
-            allow_to_publish = True
-            is_moderator = True
-
-        if (self.request.user.groups.filter(name="Moderators").exists()
-                and not (Phenotype.objects.filter(Q(id=pk), Q(owner=self.request.user)).count() == 0)):
-            allow_to_publish = True
-            is_owner = True
-            is_moderator = True
-
-        if len(PublishedPhenotype.objects.filter(phenotype_id=pk,phenotype_history_id = phenotype_history_id,approval_status=1)) > 0:
-            is_latest_pending_version = True
-       # print(is_latest_pending_version)
-
-        if (len(generic_entity_db_utils.get_phenotype_conceptcodesByVersion(self.request, pk, phenotype_history_id)) == 0):
-            allow_to_publish = False
-            phenotype_has_codes = False
-
-        has_child_concepts, isOK, AllnotDeleted, AllarePublished, isAllowedtoViewChildren, errors = checkAllChildConcepts4Publish_Historical(request, pk, phenotype_history_id)
-        if not isOK:
-            allow_to_publish = False
-
-    def get(self, request, pk, phenotype_history_id):
-        global errors, allow_to_publish, phenotype_is_deleted, is_owner, approval_status, is_moderator,is_latest_pending_version
-        global phenotype_has_codes, AllnotDeleted, AllarePublished, isAllowedtoViewChildren
-        errors = {}
-        allow_to_publish = True
-        phenotype_is_deleted = False
-        is_owner = True
-        is_moderator = True
-        phenotype_has_codes = True
-        AllnotDeleted = True
-        AllarePublished = True
-        isAllowedtoViewChildren = True
-
-        phenotype_ver = Phenotype.history.get(id=pk, history_id=phenotype_history_id)
-        is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
-        approval_status = get_publish_approval_status(Phenotype, pk, phenotype_history_id)
-        is_lastapproved = len(PublishedPhenotype.objects.filter(phenotype = Phenotype.objects.get(pk=pk).id,approval_status=2))>0
-
-        self.checkPhenotypeTobePublished(request, pk, phenotype_history_id)
-
-        if not is_published:
-            self.checkPhenotypeTobePublished(request, pk, phenotype_history_id)
-
-        # --------------------------------------------
-
-        return self.render_to_response({
-            'pk': pk,
-            'name': phenotype_ver.name,
-            'phenotype_history_id': phenotype_history_id,
-            'is_published': is_published,
-            'allowed_to_publish': allow_to_publish,
-            'is_owner': is_owner,
-            'approval_status': approval_status,
-            'is_lastapproved':is_lastapproved,
-            'is_latest_pending_version':is_latest_pending_version,
-            'is_moderator': is_moderator,
-            'phenotype_is_deleted': phenotype_is_deleted,
-            'phenotype_has_codes': phenotype_has_codes,
-            'AllnotDeleted': AllnotDeleted,
-            'AllarePublished': AllarePublished,
-            'isAllowedtoViewChildren': isAllowedtoViewChildren,
-            'errors': errors
-        })
-
-
-
-    def post(self, request, pk, phenotype_history_id):
-        global errors, allow_to_publish, phenotype_is_deleted, is_owner, phenotype_has_codes, approval_status, is_moderator,\
-            is_latest_pending_version
-        global AllnotDeleted, AllarePublished, isAllowedtoViewChildren
-        errors = {}
-        allow_to_publish = True
-        phenotype_is_deleted = False
-        is_owner = True
-        is_moderator = True
-        phenotype_has_codes = True
-        AllnotDeleted = True
-        AllarePublished = True
-        isAllowedtoViewChildren = True
-
-        is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
-        approval_status = get_publish_approval_status(Phenotype, pk, phenotype_history_id)
-
-        self.checkPhenotypeTobePublished(request, pk, phenotype_history_id)
-
-
-        data = dict()
-
-        submitValue = self.validate_request(request)
-
-
-
-        if 'decline' == submitValue or (approval_status == 3 and is_moderator):
-                return self.update_published(request, pk, phenotype_history_id, submitValue, is_latest_pending_version)
-
-        elif 'publish' == submitValue:
-            if not allow_to_publish or (is_published and approval_status == 2):
-
-                data['form_is_valid'] = False
-                data['message'] = render_to_string('clinicalcode/error.html', {}, self.request)
-                return JsonResponse(data)
-
-            try:
-                if (allow_to_publish and not is_published and approval_status is None) or (approval_status == 2 and not is_published):
-                    # start a transaction
-                    with transaction.atomic():
-                        #if moderator publish automaticaly
-                        if is_moderator:
-                            phenotype = Phenotype.objects.get(pk=pk)
-
-
-                            published_phenotype = PublishedPhenotype(phenotype_id=phenotype.id,
-                                                                    phenotype_history_id=phenotype_history_id,
-                                                                    approval_status = 2,
-                                                                    moderator = request.user,
-                                                                    created_by=Phenotype.objects.get(pk=pk).created_by)
-                            published_phenotype.save()
-
-                            data['approval_status'] = 2
-                            data = self.form_validation(request, data, phenotype_history_id, pk, phenotype)
-
-                        else:
-                            #Check if already published phenotype to publish automatically
-                            if len(PublishedPhenotype.objects.filter(phenotype = Phenotype.objects.get(pk=pk).id,approval_status=2))>0:
-
-                                phenotype = Phenotype.objects.get(pk=pk)
-                                published_phenotype = PublishedPhenotype.objects.filter(phenotype_id=phenotype.id,approval_status=2).first()
-                                published_phenotype_new = PublishedPhenotype(phenotype=phenotype,
-                                                                            phenotype_history_id=phenotype_history_id,
-                                                                            approval_status=2,
-                                                                            moderator = published_phenotype.moderator,
-                                                                            created_by=request.user)
-                                published_phenotype_new.save()
-                                data['approval_status'] = 2
-
-                              #Not for phase 1
-                          #  elif len(PublishedPhenotype.objects.filter(phenotype = Phenotype.objects.get(pk=pk).id,approval_status=1))>0:
-                           #     phenotype = Phenotype.objects.get(pk=pk)
-                           #     published_phenotype = PublishedPhenotype.objects.get(phenotype_id=phenotype.id)
-                            #    published_phenotype.phenotype_history_id = phenotype_history_id
-                           #     published_phenotype.approval_status = 1
-                            #    published_phenotype.created_by = PublishedPhenotype.objects.get(
-                            #        phenotype_id=phenotype.id).created_by
-                           #     published_phenotype.save()
-                           #     data['approval_status'] = 1
-                            else:
-                                # put phenotype version in the pending state
-                                phenotype = Phenotype.objects.get(pk=pk)
-                                published_phenotype = PublishedPhenotype(phenotype=phenotype,
-                                                                        phenotype_history_id=phenotype_history_id,
-                                                                        approval_status=1,
-                                                                        created_by=request.user)
-                                published_phenotype.save()
-                                data['approval_status'] = 1
-
-                            data = self.form_validation(request, data, phenotype_history_id, pk, phenotype)
-                #Publish pending phenotype if mod wants it
-                elif approval_status == 1 and is_moderator:
-                    # start a transaction
-                    with transaction.atomic():
-
-                        phenotype = Phenotype.objects.get(pk=pk)
-                        published_phenotype = PublishedPhenotype.objects.get(phenotype_id=phenotype.id,phenotype_history_id = phenotype_history_id,approval_status=1)
-                        published_phenotype.phenotype_history_id = phenotype_history_id
-                        published_phenotype.approval_status = 2
-                        published_phenotype.moderator = request.user
-                        published_phenotype.created_by = PublishedPhenotype.objects.get(phenotype_id=phenotype.id,phenotype_history_id = phenotype_history_id ,approval_status=1).created_by
-                        published_phenotype.save()
-
-                        data['approval_status'] = 2
-                        data = self.form_validation(request, data, phenotype_history_id, pk, phenotype)
-
-
-
-
-
-
-            except Exception as e:
-               # print(e)
-                data['form_is_valid'] = False
-                data['message'] = render_to_string('clinicalcode/error.html', {}, self.request)
-
-            return JsonResponse(data)
-
-    def form_validation(self, request, data, phenotype_history_id, pk, phenotype):
-        data['form_is_valid'] = True
-        data['latest_history_ID'] = phenotype_history_id  # phenotype.history.latest().pk
-
-
-
-        # update history list
-        data['html_history_list'] = render_to_string(
-            'clinicalcode/phenotype/partial_history_list.html',
-            {
-                'history': get_history_table_data(request, pk), #phenotype.history.all(),
-                'current_phenotype_history_id': int(phenotype_history_id),  # phenotype.history.latest().pk,
-                'published_historical_ids':
-                    list(PublishedPhenotype.objects.filter(phenotype_id=pk,approval_status=2).values_list('phenotype_history_id', flat=True))
-
-            },
-            request=self.request)
-
-        data['message'] = self.send_message(pk, phenotype_history_id, data, phenotype, approval_status, is_moderator)['message']
-        return data
-
-    def send_message(self, pk, phenotype_history_id, data,phenotype, approval_status, is_moderator):
-        if approval_status == 2:
-            data['message'] = render_to_string('clinicalcode/phenotype/published.html', 
-                                               {
-                                                'id': pk,
-                                                'phenotype_history_id': phenotype_history_id
-                                               },
-                                               self.request)
-            self.send_email_decision(phenotype,approval_status)
-            return data
-
-        elif len(PublishedPhenotype.objects.filter(phenotype = Phenotype.objects.get(pk=pk).id,approval_status=2))>0 and not approval_status == 3:
-            data['message'] = render_to_string('clinicalcode/phenotype/published.html', 
-                                               {
-                                                'id': pk,
-                                                'phenotype_history_id': phenotype_history_id
-                                               }, 
-                                               self.request)
-            self.send_email_decision(phenotype, approval_status)
-            return data
-
-
-        elif approval_status == 1:
-            data['message'] = render_to_string('clinicalcode/phenotype/published.html', 
-                                               {
-                                                    'id': pk,
-                                                    'phenotype_history_id': phenotype_history_id
-                                               }, 
-                                               self.request)
-            self.send_email_decision(phenotype, approval_status)
-            return data
-
-        elif approval_status == 3:
-            data['message'] = render_to_string('clinicalcode/phenotype/declined.html', 
-                                               {
-                                                'id': pk,
-                                                'phenotype_history_id': phenotype_history_id
-                                               }, 
-                                               self.request)
-            self.send_email_decision(phenotype, approval_status)
-            return data
-
-        elif approval_status is None and is_moderator:
-            data['message'] = render_to_string('clinicalcode/phenotype/published.html', 
-                                               {
-                                                'id': pk,
-                                                'phenotype_history_id': phenotype_history_id
-                                               }, 
-                                               self.request)
-            return data
-
-        elif approval_status is None:
-            data['message'] = render_to_string('clinicalcode/phenotype/approve.html', 
-                                               {
-                                                'id': pk,
-                                                'phenotype_history_id': phenotype_history_id
-                                                }, 
-                                               self.request)
-            return data
-
-
-    def send_email_decision(self,phenotype,approved):
-
-        if approved == 1:
-           generic_entity_db_utils.send_review_email(phenotype,
-                                      "Published",
-                                      "Phenotype has been successfully approved and published on the website")
-
-        elif approved == 2:
-            # This line for the case when user want to get notification of same phenotype id but different version
-           generic_entity_db_utils.send_review_email(phenotype,
-                                      "Published",
-                                      "Phenotype has been successfully approved and published on the website")
-        elif approved == 3:
-            generic_entity_db_utils.send_review_email(phenotype, 
-                                       "Rejected",
-                                       "Phenotype has been rejected by the moderator. Please consider update changes and try again")
-
-
-
-
-    def validate_request(self,request):
-        
-        if request.method == 'POST':
-            if 'publish' in request.POST['value']:
-                return 'publish'
-            elif 'decline' in request.POST['value']:
-                return 'decline'
-
-
-    def update_published(self, request, pk, phenotype_history_id,submitValue,is_latest_pending_version):
-        errors = {}
-        data = dict()
-
-        try:
-            # start a transaction
-            with transaction.atomic():
-                #If moderator clicks decline put to decline state
-                if submitValue == "decline":
-
-                    approval_status = 3
-                    phenotype = Phenotype.objects.get(pk=pk)
-                    published_phenotype = PublishedPhenotype.objects.get(phenotype_id=phenotype, phenotype_history_id=phenotype_history_id)
-                    published_phenotype.moderator = request.user
-                    published_phenotype.approval_status = approval_status
-                    published_phenotype.save()
-
-
-
-                #Publish previosly declined phenotype
-                elif submitValue == "publish":
-
-                    approval_status = 2
-                    phenotype = Phenotype.objects.get(pk=pk)
-                    published_phenotype = PublishedPhenotype.objects.get(phenotype_id=phenotype, phenotype_history_id=phenotype_history_id)
-                    published_phenotype.moderator = request.user
-                    published_phenotype.approval_status = approval_status
-                    published_phenotype.save()
-
-
-
-
-                data['form_is_valid'] = True
-                data[
-                    'latest_history_ID'] = phenotype_history_id  # phenotype.history.latest().pk
-                data['approval_status'] = approval_status
-
-
-                list_published_id = []
-                if data['approval_status'] == 2:
-                  list_published_id =list(PublishedPhenotype.objects.filter(phenotype_id=pk, approval_status=2).values_list('phenotype_history_id', flat=True))
-
-
-                # update history list
-                data['html_history_list'] = render_to_string(
-                    'clinicalcode/phenotype/partial_history_list.html',
-                    {
-                        'history': get_history_table_data(request, pk),  #phenotype.history.all(),
-                        'current_phenotype_history_id':int(phenotype_history_id),  # phenotype.history.latest().pk,
-                        'published_historical_ids': list_published_id
-                    },
-                    request=self.request)
-
-                data['message'] = self.send_message(pk, phenotype_history_id, data, phenotype, approval_status, is_moderator)['message']
-
-
-
-        except Exception as e:
-            data['form_is_valid'] = False
-           # print(e)
-            data['message'] = render_to_string('clinicalcode/error.html', {}, self.request)
-
-        return JsonResponse(data)
-
-
-# ---------------------------------------------------------------------------
-def checkAllChildConcepts4Publish_Historical(request, phenotype_id,
-                                             phenotype_history_id):
-
-    phenotype = generic_entity_db_utils.getHistoryPhenotype(phenotype_history_id)
-
-
-    if len(phenotype['concept_informations']) == 0:
-        has_child_concepts = False
-        child_concepts_versions = ''
-    else:
-        child_concepts_versions = [(x['concept_id'], x['concept_version_id']) for x in phenotype['concept_informations']]
-
-    # Now check all the child concepts for deletion(from live version) and Publish(from historical version)
-    # we check access(from live version) here.
-
-    errors = {}
-    has_child_concepts = False
-    if child_concepts_versions:
-        has_child_concepts = True
-
-    AllnotDeleted = True
-    for cc in child_concepts_versions:
-        isDeleted = False
-        isDeleted = (Concept.objects.filter(Q(id=cc[0])).exclude(is_deleted=True).count() == 0)
-        if (isDeleted):
-            errors[cc[0]] = 'Child concept (' + str(cc[0]) + ') is deleted'
-            AllnotDeleted = False
-
-    AllarePublished = True
-    for cc in child_concepts_versions:
-        is_published = False
-        is_published = checkIfPublished(Concept, cc[0], cc[1])
-        if (not is_published):
-            errors[str(cc[0]) + '/' + str(cc[1])] = 'Child concept (' + str(cc[0]) + '/' + str(cc[1]) + ') is not published'
-            AllarePublished = False
-
-    # Now check all for access.
-    isAllowedtoViewChildren = True
-
-    for cc in child_concepts_versions:
-        permitted = False
-        permitted = allowed_to_view(request,
-                                    Concept,
-                                    set_id=cc[0],
-                                    set_history_id=cc[1])
-
-        if (not permitted):
-            errors[str(cc[0]) + '_view'] = 'Child concept (' + str(cc[0]) + ') is not permitted.'
-            isAllowedtoViewChildren = False
-
-    isOK = (AllnotDeleted and AllarePublished and isAllowedtoViewChildren)
-
-    return has_child_concepts, isOK, AllnotDeleted, AllarePublished, isAllowedtoViewChildren, errors
 

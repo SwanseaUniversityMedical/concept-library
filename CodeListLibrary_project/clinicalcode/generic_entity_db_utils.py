@@ -32,7 +32,73 @@ from . import utils, tasks
 from .models import *
 from .permissions import *
 from .constants import *
+from clinicalcode.models import Template
+from clinicalcode import db_utils
 
+#--------- Order queries ---------------
+def get_order_from_parameter(parameter):
+    if parameter in concept_order_queries:
+        return concept_order_queries[parameter]
+    return concept_order_default
+
+
+#------------ API data validation-------
+
+parse_ident = lambda x: int(str(x).strip(ascii_letters))
+
+def validate_api_entry(item, data, expected_type=str):
+    """ Attempts to parse the item in data as the expected type
+    
+        Returns:
+            1. any[true, false, none]
+                -> True if successful
+                -> False if unable to parse
+                -> None if item[data] is not indexable
+            2. result
+                -> returns parsed value if successful
+                -> returns a description of the error if failure occurs
+    """
+    if item in data:
+        try:
+            datapoint = data[item]
+            datapoint = expected_type(datapoint)
+            return True, datapoint
+        except Exception as e:
+            return False, f"Item '{item}' with value '{data[item]}' could not be parsed as type {expected_type}"
+    return None, f"Item '{item}' was null"
+
+def apply_entry_if_valid(element, key, data, item, expected_type=str, predicate=None, errors_dict=None):
+    """ If the data[item] is a valid type, will set the attribute of the object
+        If a predicate is given as a parameter, the data[item] must also pass the defined clause
+        If an error_dict is passed, the ValueError will be added to the dict
+
+        Returns:
+            1. boolean
+                -> describes the success state of the method
+            2. any[value, ValueError]
+                -> returns the value if successful
+                -> returns a descriptive value error on failure
+    """
+    success, res = validate_api_entry(item, data, expected_type)
+    if success is True:
+        if predicate is None or predicate(res):
+            setattr(element, key, data[item])
+            return True, res
+        else:
+            issue = ValueError(f"Item '{item}' with value '{data[item]}' failed predicate clause")
+            if errors_dict is not None:
+                errors_dict[key] = str(issue)
+            return False, issue
+    elif success is False:
+        if errors_dict is not None:
+            errors_dict[key] = res
+        return False, ValueError(res)
+    else:
+        if errors_dict is not None:
+            errors_dict[key] = res
+        return False, ValueError(res)
+
+#---------------------------------------
 
 def get_can_edit_subquery(request):
     # check can_edit in SQl - faster way
@@ -90,6 +156,27 @@ def get_list_of_visible_entity_ids(data, return_id_or_history_id="both"):
         return list(set([c['history_id'] for c in data]))
     else:  #    both
         return [(c['id'], c['history_id']) for c in data]
+
+
+def getConceptBrands(request, concept_list):
+    '''
+        return concept brands 
+    '''
+    conceptBrands = {}
+    concepts = Concept.objects.filter(id__in=concept_list).values('id', 'name', 'group')
+
+    for c in concepts:
+        conceptBrands[c['id']] = []  
+        if c['group'] != None:
+            g = Group.objects.get(pk=c['group'])
+            for item in request.BRAND_GROUPS:
+                for brand, groups in item.items():
+                    if g.name in groups:
+                        #conceptBrands[c['id']].append('<img src="{% static "img/brands/' + brand + '/logo.png %}" height="10px" title="' + brand + '" alt="' + brand + '" />')
+                        conceptBrands[c['id']].append(brand)
+
+    return conceptBrands
+
 
 
 #=============================================================================
@@ -340,7 +427,7 @@ def get_visible_live_or_published_generic_entity_versions(request,
                        ) approval_status,
                        
                        *
-                    FROM clinicalcode_genericentity t
+                    FROM clinicalcode_historicalgenericentity t
                         """ + brand_filter_cond + """
                     ) r
                     """ + where_clause + [where_clause_2 , approval_where_clause][approval_where_clause.strip() !=""] + """
@@ -355,103 +442,192 @@ def get_visible_live_or_published_generic_entity_versions(request,
 
 
 
- # TO BE CONVERTED TO THE GENERIC ENTITY  .......
-def getHistoryGenericEntity(phenotype_history_id, highlight_result=False, q_highlight=None):
+def get_entity_full_template_data(entity_record, template_id):
+    """
+    return the entity full data based on the template,
+    Add a 'data' key which has all data based on the template ordered
+    """
+    template = Template.objects.get(pk=template_id)
+    definition = json.loads(template.definition)
+    
+    fields_data = {}
+    
+    field_definitions = definition['fields']
+    for (field_name, field_definition) in field_definitions.items():
+        is_base_field = False
+        if 'is_base_field' in field_definition:
+            if field_definition['is_base_field'] == True:
+                is_base_field = True
+        
+        if is_base_field:
+            fields_data[field_name] = field_definition | {'value': entity_record[field_name]}
+        else: # custom field
+            fields_data[field_name] = field_definition | {'value': entity_record['template_data'][field_name]}
+    
+        if 'permitted_values' in field_definition:
+            fields_data[field_name]['value'] = field_definition['permitted_values'][str(fields_data[field_name]['value'])]
+
+        # html_id, to be used in HTml
+        fields_data[field_name]['html_id'] = field_name.replace(' ', '')
+        
+        # adjust for system_defined types
+        # data sources
+        if field_definition['field_type'] == 'data_sources':
+            data_sources = DataSource.objects.filter(pk=-1)
+            entity_data_sources = fields_data[field_name]['value']
+            if entity_data_sources:
+                data_sources = DataSource.objects.filter(pk__in=entity_data_sources)
+                fields_data[field_name]['value'] = data_sources
+        
+        # tags
+        if field_definition['field_type'] == 'tags':
+            tags = Tag.objects.filter(pk=-1)
+            entity_tags = fields_data[field_name]['value']
+            if entity_tags:
+                tags = Tag.objects.filter(pk__in=entity_tags, tag_type=1)
+                fields_data[field_name]['value'] = tags
+        
+        # collections
+        if field_definition['field_type'] == 'collections':
+            collections = Tag.objects.filter(pk=-1)
+            entity_collections = fields_data[field_name]['value']
+            if entity_collections:
+                collections = Tag.objects.filter(pk__in=entity_collections, tag_type=2)
+                fields_data[field_name]['value'] = collections
+        
+        # coding systems
+        if field_definition['field_type'] == 'coding_systems': 
+            coding_systems = CodingSystem.objects.filter(pk=-1)
+            CodingSystem_ids = fields_data[field_name]['value']
+            if CodingSystem_ids:
+                coding_systems = CodingSystem.objects.filter(pk__in=CodingSystem_ids)
+                fields_data[field_name]['value'] = coding_systems    
+
+
+
+    # merge base & custom dict
+    # entity_record['data'] = base_fields_data | custom_fields_data
+
+    # update base fields for highlighting
+    fields_data['name']['value_highlighted'] = entity_record['name_highlighted']
+    fields_data['author']['value_highlighted'] = entity_record['author_highlighted'] 
+    fields_data['definition']['value_highlighted'] = entity_record['definition_highlighted']
+    fields_data['implementation']['value_highlighted'] = entity_record['implementation_highlighted']
+    fields_data['publications']['value_highlighted'] = entity_record['publications_highlighted']
+    fields_data['validation']['value_highlighted'] = entity_record['validation_highlighted']
+        
+    entity_record['data'] = fields_data
+    
+    # now all data/template def is in entity_record['data']
+    # so, delete unused items
+    #del entity_record['name'] # we need this
+    del entity_record['name_highlighted']
+    del entity_record['author'] 
+    del entity_record['author_highlighted'] 
+    del entity_record['definition']
+    del entity_record['definition_highlighted']
+    del entity_record['implementation']
+    del entity_record['implementation_highlighted']
+    del entity_record['publications']
+    del entity_record['publications_highlighted']
+    del entity_record['validation']
+    del entity_record['validation_highlighted']
+         
+    return entity_record
+
+    
+    
+def get_historical_entity(history_id, highlight_result=False, q_highlight=None, include_template_data=True):
    
-    ''' Get historic phenotype based on a phenotype history id '''
+    ''' Get historical generic entity based on a history id '''
 
     sql_params = []
 
     highlight_columns = ""
-    if highlight_result and q_highlight is not None:
-        # for highlighting
-        if str(q_highlight).strip() != '':
-            sql_params += [str(q_highlight)] * 6
-            highlight_columns += """ 
-                ts_headline('english', coalesce(hph.name, '')
-                        , websearch_to_tsquery('english', %s)
-                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as name_highlighted,  
-
-                ts_headline('english', coalesce(hph.author, '')
-                        , websearch_to_tsquery('english', %s)
-                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as author_highlighted,                                              
-               
-                ts_headline('english', coalesce(hph.description, '')
-                        , websearch_to_tsquery('english', %s)
-                        , 'HighlightAll=TRUE, StartSel="<b class=hightlight-txt > ", StopSel="</b>"') as description_highlighted,                                              
-                               
-                ts_headline('english', coalesce(hph.implementation, '')
-                        , websearch_to_tsquery('english', %s)
-                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as implementation_highlighted,                                              
-                                                              
-                ts_headline('english', coalesce(array_to_string(hph.publications, '^$^'), '')
-                        , websearch_to_tsquery('english', %s)
-                        , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publications_highlighted,    
-                        
-                ts_headline('english', coalesce(hph.validation, '')
-                        , websearch_to_tsquery('english', %s)
-                        , 'HighlightAll=TRUE, StartSel="<b class=hightlight-txt > ", StopSel="</b>"') as validation_highlighted,                                                                     
-             """
+    if include_template_data:
+        if highlight_result and q_highlight is not None:
+            # for highlighting
+            if str(q_highlight).strip() != '':
+                sql_params += [str(q_highlight)] * 6
+                highlight_columns += """ 
+                    ts_headline('english', coalesce(hge.name, '')
+                            , websearch_to_tsquery('english', %s)
+                            , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as name_highlighted,  
+    
+                    ts_headline('english', coalesce(hge.author, '')
+                            , websearch_to_tsquery('english', %s)
+                            , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as author_highlighted,                                              
+                   
+                    ts_headline('english', coalesce(hge.definition, '')
+                            , websearch_to_tsquery('english', %s)
+                            , 'HighlightAll=TRUE, StartSel="<b class=hightlight-txt > ", StopSel="</b>"') as definition_highlighted,                                              
+                                   
+                    ts_headline('english', coalesce(hge.implementation, '')
+                            , websearch_to_tsquery('english', %s)
+                            , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as implementation_highlighted,                                              
+                                                                  
+                    ts_headline('english', coalesce(array_to_string(hge.publications, '^$^'), '')
+                            , websearch_to_tsquery('english', %s)
+                            , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publications_highlighted,    
+                            
+                    ts_headline('english', coalesce(hge.validation, '')
+                            , websearch_to_tsquery('english', %s)
+                            , 'HighlightAll=TRUE, StartSel="<b class=hightlight-txt > ", StopSel="</b>"') as validation_highlighted,                                                                     
+                 """
                      
-    sql_params.append(phenotype_history_id)
-                        
+    sql_params.append(history_id)
+                                      
     with connection.cursor() as cursor:
         cursor.execute("""
         SELECT 
         """ + highlight_columns + """
-        hph.id,
-        hph.created,
-        hph.modified,
-        hph.name,
-        hph.layout,
-        hph.phenotype_uuid,
-        hph.type,
-        hph.validation,
-        hph.valid_event_data_range,
-        hph.sex,
-        hph.author,
-        hph.status,
-        hph.hdr_created_date,
-        hph.hdr_modified_date,
-        hph.description,
-        hph.concept_informations::json,
-        hph.publication_doi,
-        hph.publication_link,
-        hph.secondary_publication_links,
-        hph.source_reference,
-        hph.implementation,
-        hph.citation_requirements,
-        hph.phenoflowid,
-        hph.is_deleted,
-        hph.deleted,
-        hph.owner_access,
-        hph.group_access,
-        hph.world_access,
-        hph.history_id,
-        hph.history_date,
-        hph.history_change_reason,
-        hph.history_type,
-        hph.created_by_id,
-        hph.deleted_by_id,
-        hph.group_id,
-        hph.history_user_id,
-        hph.owner_id,
-        hph.updated_by_id,
-        hph.validation_performed,
-        hph.tags,
-        hph.collections,
-        hph.clinical_terminologies,
-        hph.publications,
-        hph.data_sources,
+        hge.id,
+        hge.serial_id,
+        hge.name,
+        hge.author,
+        hge.layout,
+        hge.status,
+        hge.tags,
+        hge.collections,
+        hge.definition,
+        hge.implementation,
+        hge.validation,
+        hge.publications,        
+        hge.citation_requirements,
+        hge.internal_comments,  
+
+        hge.template_id,
+        hge.template_data::json,
+        
+        hge.created,
+        hge.created_by_id,
+        hge.updated,
+        hge.updated_by_id,
+        hge.is_deleted,
+        hge.deleted,
+        hge.deleted_by_id,      
+        
+        hge.owner_id,       
+        hge.owner_access,
+        hge.group_id,       
+        hge.group_access,
+        hge.world_access,
+        
+        hge.history_id,
+        hge.history_date,
+        hge.history_change_reason,
+        hge.history_type,
+        hge.history_user_id,
+
         ucb.username as created_by_username,
         umb.username as modified_by_username,
         uhu.username as history_user
         
-        FROM clinicalcode_historicalphenotype AS hph
-        LEFT OUTER JOIN auth_user AS ucb on ucb.id = hph.created_by_id
-        LEFT OUTER JOIN auth_user AS umb on umb.id = hph.updated_by_id
-        LEFT OUTER JOIN auth_user AS uhu on uhu.id = hph.history_user_id
-        WHERE (hph.history_id = %s)
+        FROM clinicalcode_historicalgenericentity AS hge
+        LEFT OUTER JOIN auth_user AS ucb on ucb.id = hge.created_by_id
+        LEFT OUTER JOIN auth_user AS umb on umb.id = hge.updated_by_id
+        LEFT OUTER JOIN auth_user AS uhu on uhu.id = hge.history_user_id
+        WHERE (hge.history_id = %s)
         """, sql_params)
 
         col_names = [col[0] for col in cursor.description]
@@ -463,12 +639,42 @@ def getHistoryGenericEntity(phenotype_history_id, highlight_result=False, q_high
         else:
             row_dict['name_highlighted'] = row_dict['name']
             row_dict['author_highlighted'] = row_dict['author']
-            row_dict['description_highlighted'] = row_dict['description']
+            row_dict['definition_highlighted'] = row_dict['definition']
             row_dict['implementation_highlighted'] = row_dict['implementation']
             row_dict['publications_highlighted'] = row_dict['publications']
             row_dict['validation_highlighted'] = row_dict['validation']
             
-        return row_dict
+        # Add a 'data' key which has all data based on the template ordered
+        if include_template_data:
+            full_template_data = get_entity_full_template_data(row_dict, row_dict['template_id'])
+            return full_template_data
+        else:
+            return row_dict
+
+def get_entity_layout(generic_entity_hitory):
+    """
+    return the entity layout title
+    """
+    
+    entity_layout = [t[1] for t in ENTITY_LAYOUT if t[0]==generic_entity_hitory['layout']][0]
+    return entity_layout
+    
+def get_entity_layout_category(generic_entity_hitory):
+    """
+    return the category of the entity layout i.e. phenotype, working set, ...
+    """
+    
+    entity_layout = [t[1] for t in ENTITY_LAYOUT if t[0]==generic_entity_hitory['layout']][0]
+    entity_layout_category = 'unkwon'
+    if entity_layout in [1, 4, 5]:
+        entity_layout_category = 'phenotype'
+    elif entity_layout in [3]:
+        entity_layout_category = 'working set'
+    elif entity_layout in [2]:
+        entity_layout_category = 'concept'
+    
+    return entity_layout_category
+
 
 
 def apply_filter_condition(query, selected=None, conditions='', data=None, is_authenticated_user=True):
@@ -681,9 +887,184 @@ def is_referred_from_search_page(request):
     
     url = HTTP_REFERER.split('?')[0]
     url = url.lower()
-    if url.endswith('/phenotypes/') or url.endswith('/concepts/') or url.endswith('/phenotypeworkingsets/'):
+    if url.endswith('/search/') or url.endswith('/phenotypes/') or url.endswith('/concepts/') or url.endswith('/phenotypeworkingsets/'):
         return True
     else:
         return False
     
     
+# getGroupOfConceptsByPhenotypeId_historical
+def get_concept_ids_versions_of_historical_phenotype(phenotype_id, phenotype_history_id):
+    '''
+        get concept_informations of the specified phenotype 
+        - from a specific version
+
+    '''
+    concept_id_version = []
+    concept_informations = GenericEntity.history.get(id=phenotype_id, history_id=phenotype_history_id).template_data['concept_informations']
+    if concept_informations:
+        for c in concept_informations:
+            concept_id_version.append((c['concept_id'], c['concept_version_id']))
+
+    return concept_id_version
+
+
+def chk_valid_id(request, set_class, pk, chk_permission=False):
+    """
+        check for valid id of Concepts / Phenotypes / working sets
+        (accepts both integers and with prefixes 'C/PH/WS')
+    """
+    pk = str(pk)
+    int_pk = -1
+    
+    is_valid_id = True
+    err = ""
+    ret_id = -1
+
+    if str(pk).strip()=='':
+        is_valid_id = False
+        err = 'ID must be a valid id.'
+        
+    if not utils.isInt(pk):
+        if set_class == Concept and pk[0].upper() == 'C' and utils.isInt(pk[1:]):
+            int_pk = int(pk[1:])
+        elif set_class == Phenotype and pk[0:2].upper() == 'PH' and utils.isInt(pk[2:]):
+            int_pk = int(pk[2:])        
+        elif set_class == WorkingSet and pk[0:2].upper() == 'WS' and utils.isInt(pk[2:]):
+            int_pk = int(pk[2:])
+        elif set_class == PhenotypeWorkingset and pk[0:2].upper() == 'WS' and utils.isInt(pk[2:]):
+            int_pk = int(pk[2:])
+        else:
+            is_valid_id = False
+            err = 'ID must be a valid id.'
+    else:
+        int_pk = int(pk)
+
+    actual_pk = str(pk).upper() if (set_class == PhenotypeWorkingset or set_class == Phenotype) else int_pk
+    if set_class.objects.filter(pk=actual_pk).count() == 0:
+        is_valid_id = False
+        err = 'ID not found.'
+
+    if chk_permission:
+        if not allowed_to_edit(request, set_class, actual_pk):
+            is_valid_id = False
+            err = 'ID must be of a valid accessible entity.'
+
+
+    if is_valid_id:
+        ret_id = set_class.objects.get(pk=actual_pk).id
+
+    return is_valid_id, err, ret_id
+
+
+# get_phenotype_conceptcodesByVersion
+def get_phenotype_concept_codes_by_version(request,
+                                        pk,
+                                        phenotype_history_id,
+                                        target_concept_id=None,
+                                        target_concept_history_id=None):
+    '''
+        Get the codes of the phenotype concepts
+        for a specific version
+        Parameters:     request    The request.
+                        pk         The phenotype id.
+                        phenotype_history_id  The version id
+                        target_concept_id if you need only one concept's code
+                        target_concept_history_id if you need only one concept's code
+        Returns:        list of Dict with the codes. 
+    '''
+
+    # here, check live version
+    current_ph = GenericEntity.objects.get(pk=pk)
+
+    if current_ph.is_deleted == True:
+        raise PermissionDenied
+    #--------------------------------------------------
+
+    current_ph_version = GenericEntity.history.get(id=pk, history_id=phenotype_history_id)
+
+    # Get the list of concepts in the phenotype data
+    concept_ids_historyIDs = get_concept_ids_versions_of_historical_phenotype(pk, phenotype_history_id)
+
+    titles = ([
+        'code', 'description', 'code_attributes', 'coding_system',
+        'concept_id', 'concept_version_id', 'concept_name', 'phenotype_id',
+        'phenotype_version_id', 'phenotype_name'
+    ])
+
+    codes = []
+
+    for concept in concept_ids_historyIDs:
+        concept_id = concept[0]
+        concept_version_id = concept[1]
+        
+        if (target_concept_id is not None and target_concept_history_id is not None):
+            if target_concept_id != str(concept_id) and target_concept_history_id != str(concept_version_id):
+                continue
+        
+        concept_ver_name = Concept.history.get(id=concept_id, history_id=concept_version_id).name
+        concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version_id).coding_system.name
+
+        rows_no = 0
+        concept_codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
+        if concept_codes:
+            #---------
+            code_attribute_header = Concept.history.get(id=concept_id, history_id=concept_version_id).code_attribute_header
+            concept_history_date = Concept.history.get(id=concept_id, history_id=concept_version_id).history_date
+            codes_with_attributes = []
+            if code_attribute_header:
+                codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(concept_id=concept_id,
+                                                                                concept_history_date=concept_history_date,
+                                                                                allCodes=concept_codes,
+                                                                                code_attribute_header=code_attribute_header
+                                                                                )
+
+                concept_codes = codes_with_attributes
+            #---------
+
+            for cc in concept_codes:
+                rows_no += 1
+                attributes_dict = {}
+                if code_attribute_header:
+                    for attr in code_attribute_header:
+                        if request.GET.get('format', '').lower() == 'xml':
+                            # clean attr names/ remove space, etc
+                            attr2 = utils.clean_str_as_db_col_name(attr)
+                        else:
+                            attr2 = attr
+                        attributes_dict[attr2] = cc[attr]
+
+                codes.append(
+                    ordr(
+                        list(
+                            zip(titles, [cc['code']
+                                       , cc['description'].encode('ascii', 'ignore').decode('ascii')
+                                       ] + [attributes_dict] + [
+                                        concept_coding_system 
+                                        , 'C' + str(concept_id)
+                                        , concept_version_id
+                                        , concept_ver_name
+                                        , current_ph_version.id
+                                        , current_ph_version.history_id
+                                        , current_ph_version.name
+                            ]))))
+
+            if rows_no == 0:
+                codes.append(
+                    ordr(
+                        list(
+                            zip(titles, ['', ''] + [attributes_dict] + [
+                                concept_coding_system
+                                , 'C' + str(concept_id)
+                                , concept_version_id
+                                , concept_ver_name
+                                , current_ph_version.id
+                                , current_ph_version.history_id
+                                , current_ph_version.name
+                            ]))))
+
+    return codes
+
+
+
+
