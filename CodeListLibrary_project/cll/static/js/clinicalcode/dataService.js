@@ -89,6 +89,12 @@ var dataService = new function(){
 		});
 	};
 	
+	get_ge_PhenotypeUniqueCodesByVersion = function(phenotype, version, target_concept_id, target_concept_history_id, force_highlight_result, callback){		
+		$.getJSON('/ge/' + phenotype + '/uniquecodesbyversion/'+ version + '/concept/C' + target_concept_id + '/' + target_concept_history_id +'/?highlight=' + force_highlight_result, function(data){
+			callback(data);
+		});
+	};
+	
 	return {
 		getCodesByCodeList: getCodesByCodeList,
 		getCodesByRegex: getCodesByRegex,
@@ -101,5 +107,6 @@ var dataService = new function(){
 		getConceptUniqueCodesByVersion: getConceptUniqueCodesByVersion,
 		getPhenotypeUniqueCodesByVersion: getPhenotypeUniqueCodesByVersion,
 		getWorkingSetUniqueCodesByVersion: getWorkingSetUniqueCodesByVersion,
+		get_ge_PhenotypeUniqueCodesByVersion: get_ge_PhenotypeUniqueCodesByVersion,
 	}
 }

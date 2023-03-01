@@ -13,7 +13,7 @@ from django.urls import re_path as url
 from django.urls import include
 from rest_framework import routers
 
-from .views import Concept, DataSource, Phenotype, View, WorkingSet, PhenotypeWorkingSet
+from .views import Concept, DataSource, Phenotype, View, WorkingSet, PhenotypeWorkingSet, GenericEntity
 
 from rest_framework import permissions
 from drf_yasg.generators import OpenAPISchemaGenerator
@@ -406,3 +406,50 @@ if not settings.CLL_READ_ONLY:
                 PhenotypeWorkingSet.api_phenotypeworkingset_update,
                 name='api_phenotypeworkingset_update'),
         ]
+
+############################################################################
+############################################################################
+# ****************   Generic Entity API   **********************************
+############################################################################
+############################################################################
+if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
+    urlpatterns += [
+    # generic entity detail
+    # if only id is provided, get the latest version
+    url(r'^ge/(?P<pk>PH\d+)/detail/$',
+        GenericEntity.generic_entity_detail,
+        name='api_generic_entity_detail'),
+    url(r'^public/ge/(?P<pk>PH\d+)/detail/$',
+        GenericEntity.generic_entity_detail_PUBLIC,
+        name='api_generic_entity_detail_public'),
+
+    # get specific version
+    url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/detail/$',
+        GenericEntity.generic_entity_detail,
+        name='api_generic_entity_detail_version'),
+    url(r'^public/ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/detail/$',
+        GenericEntity.generic_entity_detail_PUBLIC,
+        name='api_generic_entity_detail_version_public'),
+
+    # show versions
+    url(r'^ge/(?P<pk>PH\d+)/get-versions/$',
+        GenericEntity.generic_entity_detail, {'get_versions_only': '1'},
+        name='get_generic_entity_versions'),
+    url(r'^public/ge/(?P<pk>PH\d+)/get-versions/$',
+        GenericEntity.generic_entity_detail_PUBLIC, {'get_versions_only': '1'},
+        name='get_generic_entity_versions_public'),
+    ]
+
+#======== Generic Entity create/update ===================
+if not settings.CLL_READ_ONLY:    
+    if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
+        urlpatterns += [
+            url(r'^api_genericentity_create/$',
+                GenericEntity.api_genericentity_create,
+                name='api_genericentity_create'),
+            url(r'^api_genericentity_update/$',
+                GenericEntity.api_genericentity_update,
+                name='api_genericentity_update'),
+        ]    
+    
+    

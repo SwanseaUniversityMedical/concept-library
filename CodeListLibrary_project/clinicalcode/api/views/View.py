@@ -29,6 +29,7 @@ from rest_framework.response import Response
 
 from ...db_utils import *
 from ...view_utils import workingset_db_utils
+from ... import generic_entity_db_utils
 from ...models import *
 
 #from django.forms.models import model_to_dict
@@ -711,6 +712,8 @@ def get_visible_versions_list(request,
             ver = getHistoryPhenotype(v.history_id)
         elif set_class == PhenotypeWorkingset:
             ver = workingset_db_utils.getHistoryPhenotypeWorkingset(v.history_id)
+        elif set_class == GenericEntity:
+            ver = generic_entity_db_utils.get_historical_entity(v.history_id, include_template_data = False )            
 
         is_this_version_published = False
         is_this_version_published = checkIfPublished(set_class, ver['id'], ver['history_id'])
