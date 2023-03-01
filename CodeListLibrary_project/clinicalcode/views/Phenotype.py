@@ -33,7 +33,7 @@ from django.template.loader import render_to_string
 from django.templatetags.static import static
 # from django.core.urlresolvers import reverse_lazy, reverse
 from django.urls import reverse, reverse_lazy
-from django.views.generic import DetailView, TemplateView
+from django.views.generic import DetailView
 from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
@@ -55,16 +55,6 @@ from django.utils.timezone import make_aware
 # from rest_framework.permissions import BasePermission
 
 logger = logging.getLogger(__name__)
-
-class CreatePhenotypeView(TemplateView):
-    template_name = 'clinicalcode/phenotype/create.html'
-
-    def get(self, request):
-        ctx = {
-
-        }
-
-        return render(request, self.template_name, context=ctx)
 
 def phenotype_list(request):
     '''

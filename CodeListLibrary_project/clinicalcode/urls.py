@@ -28,7 +28,6 @@ urlpatterns = [
     url(r'^phenotypeworkingsets/select-concepts/$', SelectPhenotype.selection_list, name='selection_list'),
     url(r'^phenotypeworkingsets/$', PhenotypeWorkingSet.workingset_list, name='phenotypeworkingsets_list'),
     url(r'^phenotypes/$', Phenotype.phenotype_list, name='phenotype_list'),
-    url(r'^phenotypes/create/$', Phenotype.CreatePhenotypeView.as_view(), name='create_phenotype'),
     
     url(r'^cookies-settings/$', View.cookies_settings, name='cookies_settings'),
     url(r'^reference-data/$', View.reference_data, name='reference_data'),

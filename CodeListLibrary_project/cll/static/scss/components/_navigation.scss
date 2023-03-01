@@ -114,7 +114,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     justify-content: space-between;
     height: fit-content;
     min-height: var(--navigation-height);
-    margin: var(--navigation-offset);
+    margin: var(--navigation-offset) var(--navigation-gutter);
   }
 
   &__logo {

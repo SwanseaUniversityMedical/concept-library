@@ -224,7 +224,7 @@ $brand-map-none: (
 
   // Main page
   'main-top-padding': 5rem,
-  'main-gutter': 1.25rem,
+  'main-gutter': 6rem,
   'main-mobile-gutter': 1.75rem,
 
   // Footer
@@ -293,11 +293,27 @@ $brand-map-ADP: (
   // Color accents
   'color-bg': $white,
   'color-clear': $transparent,
+  'color-accent-bright': $white,
+  'color-accent-lightest': $white_smoke,
+  'color-accent-darkish': $light_grey,
+  'color-accent-dark': $dark_grey,
+  'color-accent-washed': $lightest_grey,
+  'color-accent-primary': $soft_blue,
+  'color-accent-secondary': $soft_cyan,
+  'color-accent-tertiary': $pixie_green,
+  'color-accent-highlight': $royal_blue,
+  'color-accent-bubble': $solitude,
+  'color-accent-danger': $pastel_red,
+  'color-accent-anchor': $bright_blue,
+  'color-accent-transparent': $transparent,
+  'color-accent-semi-transparent': rgba($black, 0.05),
 
   // Text accents
   'color-text-darkest': $black,
+  'color-text-darker': $near-black,
   'color-text-dark': $blackish-grey,
-  'color-text--washed': $dark_grey,
+  'color-text-washed': $dark_grey,
+  'color-text-brightest': $white,
 
   // Icons
   'icons-name': var(--fa-style-family-classic),
@@ -317,19 +333,73 @@ $brand-map-ADP: (
   'navigation-scroll-shadow': '0px 2px 5px 0px rgba(0, 0, 0, .3)',
   'navigation-panel-shadow': '0px 5px 15px -1px rgba(0, 0, 0, 0.5)',
 
+  // Scrollbars
+  'slim-scrollbar-color': $transparent_black,
+  'slim-scrollbar-radius': 6px,
+  'slim-scrollbar-width': 6px,
+
+  // Breadcrumbs
+  'breadcrumb-color': $dark_grey,
+  'breadcrumb-hover-color': $black,
+  'breadcrumb-active-weight': bold,
+
   // Main page
   'main-top-padding': 5rem,
-  'main-gutter': 1.25rem,
+  'main-gutter': 6rem,
   'main-mobile-gutter': 1.75rem,
 
   // Footer
   'footer-gutter': 1.25rem,
   'footer-mobile-gutter': 1.75rem,
+  'footer-page-offset': 2rem,
   'footer-top-offset': 1rem,
   'footer-bottom-offset': 1rem,
   'footer-copyright-size': 10px,
   'footer-text-size': 12px,
   'footer-row-gap': 4rem,
+
+  // Item lists
+  'item-list-odd-bg-color': $off_white02,
+  'item-list-even-bg-color': $white,
+
+  /* Inputs */
+  'switch-size': 50px,
+  'switch-thumb-color': $off_white,
+  'switch-bg-color': $lightest_grey,
+  'switch-bg-active-color': $soft_blue,
+
+  /* Articles */
+
+  // Phenotype
+  'phenotype-article-sm-size': 55%,
+  'phenotype-article-lg-size': 100%,
+  'phenotype-article-header-border': $light_grey,
+  'phenotype-article-h1-size': 2em,
+  'phenotype-article-h1-weight': bold,
+  'phenotype-max-codelist-size': 200px,
+
+  'wizard-step-color': $pixie_green,
+  'progress-item-min-step-height': 4rem,
+  'progress-tracker-width': 2px,
+  'progress-tracker-offset': -1.5rem,
+  'progress-tracker-size': 26px,
+  'progress-tracker-bg-color': $white,
+  'progress-tracker-counter-weight': bold,
+  'progress-tracker-counter-color': black,
+  'progress-tracker-color': $light_grey,
+  'progress-tracker-active-color': $pixie_green,
+  'progress-tracker-off-color': $light_grey,
+  'progress-tracker-line-width': 2px,
+
+  'progress-tracker-header-size': 28px,
+  'progress-tracker-header-weight': bold,
+  'progress-tracker-header-color': black,
+  'progress-tracker-description-size': 16px,
+  
+  'ruleset-bg-color': $lightest_grey,
+  'ruleset-icon-normal-color': $dark_grey,
+  'ruleset-include-icon-checked-color': $lime_green,
+  'ruleset-exclude-icon-checked-color': $pastel_red,
 );
 
 $brand-map-HDRUK: (
@@ -344,11 +414,27 @@ $brand-map-HDRUK: (
   // Color accents
   'color-bg': $white,
   'color-clear': $transparent,
+  'color-accent-bright': $white,
+  'color-accent-lightest': $white_smoke,
+  'color-accent-darkish': $light_grey,
+  'color-accent-dark': $dark_grey,
+  'color-accent-washed': $lightest_grey,
+  'color-accent-primary': $soft_blue,
+  'color-accent-secondary': $soft_cyan,
+  'color-accent-tertiary': $pixie_green,
+  'color-accent-highlight': $royal_blue,
+  'color-accent-bubble': $solitude,
+  'color-accent-danger': $pastel_red,
+  'color-accent-anchor': $bright_blue,
+  'color-accent-transparent': $transparent,
+  'color-accent-semi-transparent': rgba($black, 0.05),
 
   // Text accents
   'color-text-darkest': $black,
+  'color-text-darker': $near-black,
   'color-text-dark': $blackish-grey,
-  'color-text--washed': $dark_grey,
+  'color-text-washed': $dark_grey,
+  'color-text-brightest': $white,
 
   // Icons
   'icons-name': var(--fa-style-family-classic),
@@ -368,19 +454,73 @@ $brand-map-HDRUK: (
   'navigation-scroll-shadow': '0px 2px 5px 0px rgba(0, 0, 0, .3)',
   'navigation-panel-shadow': '0px 5px 15px -1px rgba(0, 0, 0, 0.5)',
 
+  // Scrollbars
+  'slim-scrollbar-color': $transparent_black,
+  'slim-scrollbar-radius': 6px,
+  'slim-scrollbar-width': 6px,
+
+  // Breadcrumbs
+  'breadcrumb-color': $dark_grey,
+  'breadcrumb-hover-color': $black,
+  'breadcrumb-active-weight': bold,
+
   // Main page
   'main-top-padding': 5rem,
-  'main-gutter': 1.25rem,
+  'main-gutter': 6rem,
   'main-mobile-gutter': 1.75rem,
 
   // Footer
   'footer-gutter': 1.25rem,
   'footer-mobile-gutter': 1.75rem,
+  'footer-page-offset': 2rem,
   'footer-top-offset': 1rem,
   'footer-bottom-offset': 1rem,
   'footer-copyright-size': 10px,
   'footer-text-size': 12px,
   'footer-row-gap': 4rem,
+
+  // Item lists
+  'item-list-odd-bg-color': $off_white02,
+  'item-list-even-bg-color': $white,
+
+  /* Inputs */
+  'switch-size': 50px,
+  'switch-thumb-color': $off_white,
+  'switch-bg-color': $lightest_grey,
+  'switch-bg-active-color': $soft_blue,
+
+  /* Articles */
+
+  // Phenotype
+  'phenotype-article-sm-size': 55%,
+  'phenotype-article-lg-size': 100%,
+  'phenotype-article-header-border': $light_grey,
+  'phenotype-article-h1-size': 2em,
+  'phenotype-article-h1-weight': bold,
+  'phenotype-max-codelist-size': 200px,
+
+  'wizard-step-color': $pixie_green,
+  'progress-item-min-step-height': 4rem,
+  'progress-tracker-width': 2px,
+  'progress-tracker-offset': -1.5rem,
+  'progress-tracker-size': 26px,
+  'progress-tracker-bg-color': $white,
+  'progress-tracker-counter-weight': bold,
+  'progress-tracker-counter-color': black,
+  'progress-tracker-color': $light_grey,
+  'progress-tracker-active-color': $pixie_green,
+  'progress-tracker-off-color': $light_grey,
+  'progress-tracker-line-width': 2px,
+
+  'progress-tracker-header-size': 28px,
+  'progress-tracker-header-weight': bold,
+  'progress-tracker-header-color': black,
+  'progress-tracker-description-size': 16px,
+  
+  'ruleset-bg-color': $lightest_grey,
+  'ruleset-icon-normal-color': $dark_grey,
+  'ruleset-include-icon-checked-color': $lime_green,
+  'ruleset-exclude-icon-checked-color': $pastel_red,
 );
 
 $brand-map-SAIL: (
@@ -395,11 +535,27 @@ $brand-map-SAIL: (
   // Color accents
   'color-bg': $white,
   'color-clear': $transparent,
+  'color-accent-bright': $white,
+  'color-accent-lightest': $white_smoke,
+  'color-accent-darkish': $light_grey,
+  'color-accent-dark': $dark_grey,
+  'color-accent-washed': $lightest_grey,
+  'color-accent-primary': $soft_blue,
+  'color-accent-secondary': $soft_cyan,
+  'color-accent-tertiary': $pixie_green,
+  'color-accent-highlight': $royal_blue,
+  'color-accent-bubble': $solitude,
+  'color-accent-danger': $pastel_red,
+  'color-accent-anchor': $bright_blue,
+  'color-accent-transparent': $transparent,
+  'color-accent-semi-transparent': rgba($black, 0.05),
 
   // Text accents
   'color-text-darkest': $black,
+  'color-text-darker': $near-black,
   'color-text-dark': $blackish-grey,
-  'color-text--washed': $dark_grey,
+  'color-text-washed': $dark_grey,
+  'color-text-brightest': $white,
 
   // Icons
   'icons-name': var(--fa-style-family-classic),
@@ -419,17 +575,71 @@ $brand-map-SAIL: (
   'navigation-scroll-shadow': '0px 2px 5px 0px rgba(0, 0, 0, .3)',
   'navigation-panel-shadow': '0px 5px 15px -1px rgba(0, 0, 0, 0.5)',
 
+  // Scrollbars
+  'slim-scrollbar-color': $transparent_black,
+  'slim-scrollbar-radius': 6px,
+  'slim-scrollbar-width': 6px,
+
+  // Breadcrumbs
+  'breadcrumb-color': $dark_grey,
+  'breadcrumb-hover-color': $black,
+  'breadcrumb-active-weight': bold,
+
   // Main page
   'main-top-padding': 5rem,
-  'main-gutter': 1.25rem,
+  'main-gutter': 6rem,
   'main-mobile-gutter': 1.75rem,
 
   // Footer
   'footer-gutter': 1.25rem,
   'footer-mobile-gutter': 1.75rem,
+  'footer-page-offset': 2rem,
   'footer-top-offset': 1rem,
   'footer-bottom-offset': 1rem,
   'footer-copyright-size': 10px,
   'footer-text-size': 12px,
   'footer-row-gap': 4rem,
+
+  // Item lists
+  'item-list-odd-bg-color': $off_white02,
+  'item-list-even-bg-color': $white,
+
+  /* Inputs */
+  'switch-size': 50px,
+  'switch-thumb-color': $off_white,
+  'switch-bg-color': $lightest_grey,
+  'switch-bg-active-color': $soft_blue,
+
+  /* Articles */
+
+  // Phenotype
+  'phenotype-article-sm-size': 55%,
+  'phenotype-article-lg-size': 100%,
+  'phenotype-article-header-border': $light_grey,
+  'phenotype-article-h1-size': 2em,
+  'phenotype-article-h1-weight': bold,
+  'phenotype-max-codelist-size': 200px,
+
+  'wizard-step-color': $pixie_green,
+  'progress-item-min-step-height': 4rem,
+  'progress-tracker-width': 2px,
+  'progress-tracker-offset': -1.5rem,
+  'progress-tracker-size': 26px,
+  'progress-tracker-bg-color': $white,
+  'progress-tracker-counter-weight': bold,
+  'progress-tracker-counter-color': black,
+  'progress-tracker-color': $light_grey,
+  'progress-tracker-active-color': $pixie_green,
+  'progress-tracker-off-color': $light_grey,
+  'progress-tracker-line-width': 2px,
+
+  'progress-tracker-header-size': 28px,
+  'progress-tracker-header-weight': bold,
+  'progress-tracker-header-color': black,
+  'progress-tracker-description-size': 16px,
+  
+  'ruleset-bg-color': $lightest_grey,
+  'ruleset-icon-normal-color': $dark_grey,
+  'ruleset-include-icon-checked-color': $lime_green,
+  'ruleset-exclude-icon-checked-color': $pastel_red,
 );

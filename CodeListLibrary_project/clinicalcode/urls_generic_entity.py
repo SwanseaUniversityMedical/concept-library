@@ -20,10 +20,12 @@ urlpatterns = []
 if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
     urlpatterns += [
         url(r'^search/$', GenericEntity.generic_entity_list, name='generic_entity_list'),
-        url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/detail/$',
-            GenericEntity.generic_entity_detail,
-            name='generic_entity_history_detail'),
-        ]
+        # url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/detail/$',
+        #     GenericEntity.generic_entity_detail,
+        #     name='generic_entity_history_detail'),
+        url(r'^phenotypes/create/$', GenericEntity.CreatePhenotypeView.as_view(), name='create_phenotype'),
+        url(r'^phenotypes/example/$', GenericEntity.ExampleSASSView.as_view(), name='example_phenotype'),
+     ]
 
     # for admin(developers) to migrate phenotypes into dynamic template
     if not settings.CLL_READ_ONLY:

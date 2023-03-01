@@ -33,7 +33,7 @@
 .box-container-lg {
   display: flex;
   width: 100%;
-  margin: auto;
+  flex-direction: column;
 }
 
 @media (min-width: map-get($column-grid, xs)) {
@@ -71,6 +71,7 @@
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     grid-gap: 20px;
+    width: 100%;
   }
 
   @each $name, $scale in $column-grid {
@@ -102,6 +103,8 @@
   .row {
     display: flex;
     flex-wrap: wrap;
+    width: 100%;
+    flex-direction: row;
 
     & > * {
       box-sizing: border-box;
@@ -111,6 +114,7 @@
     }
 
     &-cols-auto {
+      display: flex;
       flex: 0 0 auto;
       width: auto;
     }
@@ -134,7 +138,9 @@
   }
 
   .col {
+    display: flex;
     flex: 1 0 0%;
+    flex-direction: column;
 
     &-auto {
       flex: 0 0 auto;
