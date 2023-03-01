@@ -21,6 +21,9 @@
 {% load cl_extras %}
 {% load breadcrumbs %}
 
+<!-- Example loading of the entity renderer -->
+{% load entity_renderer %}
+
 {% block title %}| Create a Phenotype{% endblock title %}
 
 {% block container %}
@@ -52,6 +55,9 @@
       </section>
       
       <ol class="phenotype-progress">
+        <!-- Example entity rendering - will be removed, purely for demo purposes -->
+        {% render_entity_details with sayHello=False %}
+
         <!-- Definition -->
         <li class="phenotype-progress__item" id="definition-progress">
           <h2 class="phenotype-progress__item-title">Definition</h2>

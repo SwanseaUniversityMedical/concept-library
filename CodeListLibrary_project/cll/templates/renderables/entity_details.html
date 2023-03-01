@@ -1,0 +1,9 @@
+{% load static %}
+{% load cl_extras %}
+
+<!-- Since we take context, we can decide what to render for each page -->
+{% if hello %}
+{% include "components/component_demo.html" with some_message="Hello" %}
+{% else %}
+{% include "components/component_demo.html" with some_message="Goodbye" %}
+{% endif %}

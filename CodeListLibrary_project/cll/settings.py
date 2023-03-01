@@ -280,6 +280,7 @@ TEMPLATES = [
             ],
             'libraries': {
                 'breadcrumbs': 'clinicalcode.templatetags.breadcrumbs',
+                'entity_renderer': 'clinicalcode.templatetags.entity_renderer',
             }
         },
     },
