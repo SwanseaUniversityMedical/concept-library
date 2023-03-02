@@ -66,8 +66,18 @@ class ExampleSASSView(TemplateView):
 
         return render(request, self.template_name, context=ctx)
 
-class CreatePhenotypeView(TemplateView):
+class CreateEntityView(TemplateView):
     template_name = 'clinicalcode/generic_entity/create.html'
+
+    def get(self, request):
+        ctx = {
+
+        }
+
+        return render(request, self.template_name, context=ctx)
+
+class EntitySearchView(TemplateView):
+    template_name = 'clinicalcode/generic_entity/search.html'
 
     def get(self, request):
         ctx = {

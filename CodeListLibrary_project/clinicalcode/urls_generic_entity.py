@@ -23,8 +23,11 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
         # url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/detail/$',
         #     GenericEntity.generic_entity_detail,
         #     name='generic_entity_history_detail'),
-        url(r'^phenotypes/create/$', GenericEntity.CreatePhenotypeView.as_view(), name='create_phenotype'),
-        url(r'^phenotypes/example/$', GenericEntity.ExampleSASSView.as_view(), name='example_phenotype'),
+        url(r'^entity/$', GenericEntity.EntitySearchView.as_view(), name='search_entity'),
+        url(r'^entity/create/$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
+
+        # Example - remove at production
+        url(r'^entity/example/$', GenericEntity.ExampleSASSView.as_view(), name='example_phenotype'),
      ]
 
     # for admin(developers) to migrate phenotypes into dynamic template

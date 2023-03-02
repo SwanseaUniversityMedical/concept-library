@@ -20,7 +20,7 @@ const updateNavBarStyle = (navbar) => {
   * computeBurgerProperty
   * @desc Computes the --as-burger CSS property, see SCSS for further information
   * @param {node} burger The hamburger element
-  * @returns The value of the computed property
+  * @returns {value} The value of the computed property
   */
 const computeBurgerProperty = (burger) => {
   return window.getComputedStyle(burger, ':after').getPropertyValue('--as-burger').replace(/[^\w!?]/g, '');

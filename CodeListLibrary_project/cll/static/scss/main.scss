@@ -50,11 +50,14 @@ body {
   @include flex-col();
   min-height: fit-content;
   max-width: 100%;
-  padding: var(--main-top-padding) var(--main-gutter) 0 var(--main-gutter);
 
-  @include media("<desktop", "screen") {
-    padding-right: var(--main-mobile-gutter);
-    padding-left: var(--main-mobile-gutter);
+  &__inner-container {
+    padding: var(--main-top-padding) var(--main-gutter) 0 var(--main-gutter);
+  
+    @include media("<desktop", "screen") {
+      padding-right: var(--main-mobile-gutter);
+      padding-left: var(--main-mobile-gutter);
+    }
   }
 }
 
@@ -64,11 +67,14 @@ body {
   flex: 1;
   min-height: fit-content;
   max-width: 100%;
-  padding: 0 var(--main-gutter) 0 var(--main-gutter);
 
-  @include media("<desktop", "screen") {
-    padding-right: var(--main-mobile-gutter);
-    padding-left: var(--main-mobile-gutter);
+  &__inner-container {
+    padding: 0 var(--main-gutter) 0 var(--main-gutter);
+  
+    @include media("<desktop", "screen") {
+      padding-right: var(--main-mobile-gutter);
+      padding-left: var(--main-mobile-gutter);
+    }
   }
 }
 
