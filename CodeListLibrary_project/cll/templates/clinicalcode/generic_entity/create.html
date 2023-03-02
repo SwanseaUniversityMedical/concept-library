@@ -32,11 +32,11 @@
   <!-- Deploy breadcrumbs and/or any other header-related elements -->
   <header class="main-header">
     <div class="main-header__inner-container">
-      <!-- content that's been padded to same width as navigation -->
       {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
       {% endbreadcrumbs %}
     </div>
   </header>
+  
   <main class="main-content">
     <!-- Aside step navigation -->
     <aside class="steps-wizard">
@@ -50,8 +50,8 @@
       </section>
     </aside>
 
+    <!-- Phenotype creation form -->
     <div class="main-content__inner-container">
-      <!-- Phenotype creation form -->
       <article class="phenotype-creation">
         <section class="phenotype-creation__header">
           <h1>Create a new Phenotype:<span>step by step</span></h1>

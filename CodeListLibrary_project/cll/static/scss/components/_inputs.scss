@@ -49,6 +49,52 @@
   position: relative;
 }
 
+.search-container {
+  @include flex-col();
+  position: relative;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  width: 100%;
+  height: fit-content;
+
+  &__field {
+    @include box-shadow(0px, 8px, 15px, var(--search-shadow-inactive-color));
+    box-sizing: border-box;
+    position: relative;
+    border: 0;
+    margin: 0;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border-radius: 0.2rem;
+    transition: all 250ms ease;
+
+    &:focus {
+      @include box-shadow(0px, 10px, 20px, var(--search-shadow-active-color));
+      outline: none;
+    }
+    
+    &.primary-accent {
+      background-color: col(accent-primary);
+    }
+    &.secondary-accent {
+      background-color: col(accent-secondary);
+    }
+    &.tertiary-accent {
+      background-color: col(accent-tertiary);
+    }
+    &.washed-accent {
+      background-color: col(accent-washed);
+    }
+    &.bubble-accent {
+      background-color: col(accent-bubble);
+    }
+    &.bright-accent {
+      background-color: col(accent-bright);
+    }
+  }
+}
+
 .text-input,
 .text-area-input {
   @include remove-appearance();

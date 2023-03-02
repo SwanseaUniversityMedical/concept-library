@@ -8,11 +8,21 @@
 {% block title %}| Create a Phenotype{% endblock title %}
 
 {% block container %}
+<header class="main-header search-banner">
+  <div class="search-banner">
+    <div class="search-banner__header">
+      <h2 class="search-banner__title">Generic Entity</h2>
+    </div>
+    <div class="search-banner__container">
+      <fieldset class="search-container">
+        <input type="text" placeholder="Search..." class="search-container__field bright-accent" />
+      </fieldset>
+    </div>
+  </div>
+</header>
 <header class="main-header">
-  <!-- any other content -->
   <div class="main-header__inner-container">
-    <!-- content that's been padded to same width as navigation -->
-    {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
+    {% breadcrumbs useMap=False includeHome=True includeHeader=True %}
     {% endbreadcrumbs %}
   </div>
 </header>
