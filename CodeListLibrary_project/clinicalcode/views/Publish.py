@@ -17,30 +17,30 @@ from clinicalcode.constants import *
 
 # from rest_framework.permissions import BasePermission
 
-class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
+class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, TemplateResponseMixin, View):
     
     model = GenericEntity
     template_name = 'clinicalcode/generic_entity/publish.html'
 
 
-    def get(self, pk, entity_history_id):
+    def get(self, request, pk, history_id):
         """
         Get method to generate modal response and pass additional information about working set
         @param request: user request object
         @param pk: entity id for database query
-        @param entity_history_id: historical entity id from database
+        @param history_id: historical entity id from database
         @return: render response object to generate on template
         """
-        checks = utils_ge_validator.checkEntityTocheck(self.request, pk, entity_history_id)
+        checks = utils_ge_validator.checkEntityToPublish(self.request, pk, history_id)
 
         if not checks['is_published']:
-            checks = utils_ge_validator.checkEntityTocheck(self.request, pk, entity_history_id)
+            checks = utils_ge_validator.checkEntityToPublish(self.request, pk, history_id)
 
         # --------------------------------------------
         return self.render_to_response({
             'entity': checks['entity'],
             'name': checks['name'],
-            'entity_history_id': entity_history_id,
+            'entity_history_id': history_id,
             'is_published': checks['is_published'],
             'allowed_to_publish': checks['allowed_to_publish'],
             'is_owner': checks['is_owner'],
@@ -66,9 +66,9 @@ class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, 
         @return: JsonResponse and status message
         """
         is_published = checkIfPublished(GenericEntity, pk, entity_history_id)
-        checks = utils_ge_validator.checkEntityTocheck(request, pk, entity_history_id)
+        checks = utils_ge_validator.checkEntityToPublish(request, pk, entity_history_id)
         if not is_published:
-            checks = utils_ge_validator.checkEntityTocheck(request, pk, entity_history_id)
+            checks = utils_ge_validator.checkEntityToPublish(request, pk, entity_history_id)
 
         data = dict()
 
