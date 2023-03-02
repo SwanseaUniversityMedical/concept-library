@@ -6,13 +6,16 @@
 /// Meta chips
 ///   @desc e.g. used for metadata chips/tags etc
 .meta-chip {
-  @include box-shadow(0, 0.1rem, 0.2rem, rgba(0, 0, 0, 0.2));
   @include flex-row();
   align-items: center;
   gap: 0 0.2rem;
   background-color: var(--base-metachip-bg-color);
   border-radius: 0.1rem;
   padding: 0.25rem 0.5rem;
+
+  &-shadow {
+    @include box-shadow(0, 0.1rem, 0.2rem, rgba(0, 0, 0, 0.2));
+  }
 
   &__name {
     color: col(text-brightest);

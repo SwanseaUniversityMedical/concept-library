@@ -23,7 +23,7 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
         # url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/detail/$',
         #     GenericEntity.generic_entity_detail,
         #     name='generic_entity_history_detail'),
-        url(r'^entity/$', GenericEntity.EntitySearchView.as_view(), name='search_entity'),
+        url(r'^entity/$', GenericEntity.EntitySearchView.as_view(), name='entity_search_page'),
         url(r'^entity/create/$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
 
         # Example - remove at production

@@ -18,6 +18,12 @@
         {% endif %}
         {% if user.is_authenticated %}
         {% if IS_DEMO or IS_DEVELOPMENT_PC %}
+        {% url 'entity_search_page' as entity_url %}
+        <a href="{{ entity_url }}" id="WorkingSets">Generic Entity</a>
+        {% endif %}
+        {% endif %}
+        {% if user.is_authenticated %}
+        {% if IS_DEMO or IS_DEVELOPMENT_PC %}
         {% if request.BRAND_OBJECT.allowed_tabs is none or 'phenotypeworkingsets' in request.BRAND_OBJECT.allowed_tabs %}
         {% url 'phenotypeworkingsets_list' as workingset_url %}
         <a href="{{ workingset_url }}" id="WorkingSets">Working Sets</a>
