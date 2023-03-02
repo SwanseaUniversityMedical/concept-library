@@ -741,6 +741,24 @@ class HasAccessToViewPhenotypeWorkingsetCheckMixin(object):
 
         return super(HasAccessToViewPhenotypeWorkingsetCheckMixin, self).dispatch(request, *args, **kwargs)
 
+class HasAccessToViewGenericEntityCheckMixin(object):
+    '''
+        mixin to check if user has view access to a working set
+        this mixin is used within class based views and can be overridden
+    '''
+
+    def has_access_to_view_entity(self, user, entity_id):
+        from .models.GenericEntity import GenericEntity
+        return allowed_to_view(self.request, GenericEntity, entity_id)
+
+    def access_to_view_entity_failed(self, request, *args, **kwargs):
+        raise PermissionDenied
+
+    def dispatch(self, request, *args, **kwargs):
+        if not self.has_access_to_view_entity(request.user, self.kwargs['pk']):
+            return self.access_to_view_entity_failed(request, *args, **kwargs)
+
+        return super(HasAccessToViewGenericEntityCheckMixin, self).dispatch(request, *args, **kwargs)
 
 class HasAccessToEditPhenotypeCheckMixin(object):
     """
