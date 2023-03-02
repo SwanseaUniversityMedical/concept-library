@@ -5,6 +5,7 @@ from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
 from clinicalcode.permissions import allowed_to_edit, allowed_to_view, checkIfPublished, get_publish_approval_status
 from django.contrib.auth.models import  User
 from django.template.loader import render_to_string
+from django.urls import reverse, reverse_lazy
 
 def form_validation(request, data, entity_history_id, pk,entity,checks):
     """
