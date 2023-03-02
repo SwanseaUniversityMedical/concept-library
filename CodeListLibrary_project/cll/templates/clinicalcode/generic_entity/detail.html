@@ -102,16 +102,16 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
                                               {% if not live_ver_is_deleted %}
                                                   {% if approval_status == 1 and is_latest_pending_version %}
                                                       class="js-load-modal btn btn-warning"
-                                                      href="{% url 'phenotype_publish' pk=entity.id phenotype_history_id=entity.history_id %}"
+                                                      href="{% url 'generic_entity_publish' pk=entity.id history_id=entity.history_id %}"
                                                       title="Needs to be approved"
                                                   {% else %}
                                                       {% if approval_status == 3 %}
                                                       class="js-load-modal  btn btn-danger"
-                                                      href="{% url 'phenotype_publish' pk=entity.id phenotype_history_id=entity.history_id %}"
+                                                      href="{% url 'generic_entity_publish' pk=entity.id history_id=entity.history_id %}"
                                                       title="Approve declined entity"
                                                       {% else %}
                                                       class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
-                                                      href="{% url 'phenotype_publish' pk=entity.id phenotype_history_id=entity.history_id %}"
+                                                      href="{% url 'generic_entity_publish' pk=entity.id history_id=entity.history_id %}"
                                                       title="Publish immediately"
                                                       {% endif %}
 
