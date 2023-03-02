@@ -169,7 +169,7 @@ def checkEntityToPublish(request,pk,entity_history_id):
     #check if table is not empty
     table_ofEntity = lambda entity_type:  'concept_informations' if entity_type==1  else 'workingset_concept_informations'
     entity_has_data = len(GenericEntity.history.get(id=pk, history_id=entity_history_id).template_data[table_ofEntity(entity['layout'])]) > 0
-    if not entity_has_data:
+    if not entity_has_data and entity['layout'] == 3:
         allow_to_publish = False
 
 
@@ -201,7 +201,7 @@ def checkChildren(request,entity):
         @return: collection of boolean conditions
         """
 
-        if entity['layout']== 1:
+        if entity['layout'] == 1:
             name_table = 'concept_informations'
             child_id = 'concept_id'
             child_version_id = 'concept_version_id'
@@ -234,14 +234,14 @@ def checkChildren(request,entity):
 
 
         for p in child_entitys_versions:
-            isDeleted = (GenericEntity.objects.filter(Q(id=p[0])).exclude(is_deleted=True).count() == 0)
+            isDeleted = (Concept.objects.filter(Q(id=p[0])).exclude(is_deleted=True).count() == 0) if entity['layout'] == 1 else (GenericEntity.objects.filter(Q(id=p[0])).exclude(is_deleted=True).count() == 0) 
             if isDeleted:
                 errors[p[0]] = 'Child ' + name_child + '(' + str(p[0]) + ') is deleted'
                 all_not_deleted = False
 
 
         for p in child_entitys_versions:
-            is_published = checkIfPublished(GenericEntity, p[0], p[1])
+            is_published = checkIfPublished(Concept, p[0], p[1]) if entity['layout'] == 1 else checkIfPublished(GenericEntity, p[0], p[1])
             if not is_published:
                 errors[str(p[0]) + '/' + str(p[1])] = 'Child ' + name_child + '(' + str(p[0]) + '/' + str(p[1]) + ') is not published'
                 all_are_published = False
@@ -249,9 +249,12 @@ def checkChildren(request,entity):
 
         for p in child_entitys_versions:
             permitted = allowed_to_view(request,
-                                        GenericEntity,
+                                        Concept,
                                         set_id=p[0],
-                                        set_history_id=p[1])
+                                        set_history_id=p[1]) if entity['layout'] == 1 else allowed_to_view(request,
+                                                                                                        GenericEntity,
+                                                                                                        set_id=p[0],
+                                                                                                        set_history_id=p[1])
 
             if not permitted:
                 errors[str(p[0]) + '_view'] = 'Child ' + name_child + '(' + str(p[0]) + ') is not permitted.'
