@@ -1,3 +1,8 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
 /// Horizontal stack of cards
 ///   @desc Stacks cards horizontally
 .hstack-cards {
@@ -22,7 +27,15 @@
   background-clip: border-box;
   min-width: 0;
   height: auto;
-  max-width: 300px;
+  width: auto;
+
+  &-bannerised {
+    max-width: 25%;
+  
+    @include media("<tablet", "screen") {
+      max-width: 300px;
+    }
+  }
 
   &:hover {
     @include prefix(transform, scale(1.05), webkit moz o);
@@ -143,5 +156,79 @@
   }
   &.dark-accent {
     background-color: col(accent-dark);
+  }
+}
+
+/// Entity cards
+///   @desc used exclusively for entity search page
+.entity-card {
+  @include prefix(transition, all 250ms ease, webkit moz o);
+  @include flex-col();
+  cursor: pointer;
+  border-bottom: 1px solid col(accent-dark);
+  padding: 0 0 1.5rem 0;
+
+  &:active {
+    /* Should we animate it? */
+    @include prefix(transform, scale(0.99), webkit moz o);
+  }
+
+  &__header {
+    @include flex-col();
+  }
+
+  &__title {
+    @include flex-row();
+    padding: 0;
+    margin: 0;
+    flex-wrap: nowrap;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1;
+    color: var(--entity-card-anchor-color);
+    width: 100%;
+    word-break: break-all;
+    white-space: normal;
+  }
+
+  &__author {
+    padding: 0;
+    margin: 0.5rem 0 0 0;
+    word-break: break-all;
+    white-space: normal;
+    font-size: 16px;
+  }
+
+  &__snippet {
+    @include flex-col();
+
+    &-metadata {
+      @include flex-row();
+      margin: 0.5rem 0 0 0;
+     
+      &-divider:after {
+        content: '•';
+        margin: 0 0.5rem;
+        font-weight: bold;
+      }
+    }
+
+    &-tags {
+      @include flex-row();
+      justify-content: space-between;
+      align-items: center;
+
+      &-group {
+        @include flex-row($gap: 0.5rem);
+        flex: 1 auto;
+        justify-content: flex-start;
+        align-items: center;
+        margin: 1rem 0 0 0;
+
+        &:last-child {
+          justify-content: flex-end;
+        }
+      }
+    }
   }
 }

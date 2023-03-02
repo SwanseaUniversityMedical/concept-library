@@ -3,6 +3,68 @@
 @import '../_media';
 @import '../_utils';
 
+/// Meta chips
+///   @desc e.g. used for metadata chips/tags etc
+.meta-chip {
+  @include box-shadow(0, 0.1rem, 0.2rem, rgba(0, 0, 0, 0.2));
+  @include flex-row();
+  align-items: center;
+  gap: 0 0.2rem;
+  background-color: var(--base-metachip-bg-color);
+  border-radius: 0.1rem;
+  padding: 0.25rem 0.5rem;
+
+  &__name {
+    color: col(text-brightest);
+
+    &-bold {
+      font-weight: bold;
+    }
+
+    &-text-accent-darkest {
+      color: col(text-darkest);
+    }
+
+    &-text-accent-darker {
+      color: col(text-darker);
+    }
+
+    &-text-accent-dark {
+      color: col(text-dark);
+    }
+
+    &-text-accent-washed {
+      color: col(text-washed);
+    }
+  
+    &-text-accent-brightest {
+      color: col(text-brightest);
+    }
+  }
+
+  &-primary-accent {
+    background-color: col(accent-primary);
+  }
+  &-secondary-accent {
+    background-color: col(accent-secondary);
+  }
+  &-tertiary-accent {
+    background-color: col(accent-tertiary);
+  }
+  &-washed-accent {
+    background-color: col(accent-washed);
+  }
+  &-bubble-accent {
+    background-color: col(accent-bubble);
+  }
+  &-bright-accent {
+    background-color: col(accent-bright);
+  }
+  &-dark-accent {
+    background-color: col(accent-dark);
+  }
+}
+
 /// Chips
 ///   @desc e.g. used to make selections, filter content, trigger actions or present small tag-like information
 .chips-group {
