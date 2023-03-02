@@ -170,7 +170,7 @@ function submitForm(value){
 		e.preventDefault();
 
 		let form = $(this);
-            value === "publish" ? doCall("{% url 'workingset_publish' pk=workingset.id workingset_history_id=workingset.history_id %}",form) : doCall("{% url 'workingset_decline' pk=workingset.id workingset_history_id=workingset.history_id %}",form)
+        doCall("{% url 'generic_entity_publish' pk=entity.id history_id=entity.history_id %}",form)
             });
 
 		return false;
