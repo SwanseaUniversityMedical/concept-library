@@ -9,7 +9,7 @@ from django.template.loader import render_to_string
 # from django.core.urlresolvers import reverse_lazy, reverse
 from django.views.generic.base import TemplateResponseMixin, View
 
-from view_utils import utils_ge_validator
+from ..view_utils import utils_ge_validator
 from ..permissions import *
 from .View import *
 from clinicalcode.constants import *
@@ -20,7 +20,7 @@ from clinicalcode.constants import *
 class Publish(LoginRequiredMixin, HasAccessToViewPhenotypeWorkingsetCheckMixin, TemplateResponseMixin, View):
     
     model = GenericEntity
-    template_name = 'clinicalcode/ge/publish.html'
+    template_name = 'clinicalcode/generic_entity/publish.html'
 
 
     def get(self, pk, entity_history_id):
