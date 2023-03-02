@@ -124,7 +124,8 @@
              "active": "0",
              "mandatory": "0",
              "field_type": "textarea",
-             "is_base_field": true
+             "is_base_field": true,
+             "hide_if_empty": true
          },
          "concept_informations": {
              "active": "1",

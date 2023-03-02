@@ -19,6 +19,7 @@ from django.db.models.functions import Lower
 from django.utils.timezone import make_aware
 
 from ...db_utils import *
+from ... import generic_entity_db_utils
 from ...models import *
 from ...permissions import *
 from ...utils import *
@@ -33,7 +34,7 @@ from drf_yasg.utils import swagger_auto_schema
 # Don't show in Swagger
 @swagger_auto_schema(method='post', auto_schema=None)
 @api_view(['POST'])
-def api_phenotype_create(request):
+def api_genericentity_create(request):
 
     if is_member(request.user, group_name='ReadOnlyUsers'):
         raise PermissionDenied
@@ -197,7 +198,7 @@ def api_phenotype_create(request):
 # Don't show in Swagger
 @swagger_auto_schema(method='put', auto_schema=None)
 @api_view(['PUT'])
-def api_phenotype_update(request):
+def api_genericentity_update(request):
 
     if is_member(request.user, group_name='ReadOnlyUsers'):
         raise PermissionDenied
@@ -762,53 +763,53 @@ def getPhenotypes(request, is_authenticated_user=True, pk=None, set_class=Phenot
         #return Response(rows_to_return, status=status.HTTP_404_NOT_FOUND)
 
 
-# show phenotype detail
+# show generic_entity detail
 #=============================================================
 @api_view(['GET'])
-def phenotype_detail(request,
+def generic_entity_detail(request,
                      pk,
-                     phenotype_history_id=None,
+                     history_id=None,
                      get_versions_only=None):
     ''' 
-        Display the detail of a phenotype at a point in time.
+        Display the detail of a generic entity at a point in time.
     '''
 
-    if Phenotype.objects.filter(id=pk).count() == 0:
+    if GenericEntity.objects.filter(id=pk).count() == 0:
         raise Http404
 
-    if phenotype_history_id is not None:
-        phenotype_ver = Phenotype.history.filter(id=pk, history_id=phenotype_history_id)
-        if phenotype_ver.count() == 0: raise Http404
+    if history_id is not None:
+        generic_entity_ver = GenericEntity.history.filter(id=pk, history_id=history_id)
+        if generic_entity_ver.count() == 0: raise Http404
    
-    if phenotype_history_id is None:
+    if history_id  is None:
         # get the latest version/ or latest published version
-        phenotype_history_id = try_get_valid_history_id(request, Phenotype, pk)   
+        history_id = try_get_valid_history_id(request, GenericEntity, pk)   
         
         
-    # validate access phenotype
-    if not allowed_to_view(request, Phenotype, pk, set_history_id=phenotype_history_id):
+    # validate access generic_entity
+    if not allowed_to_view(request, GenericEntity, pk, set_history_id=history_id):
         raise PermissionDenied
 
-    # we can remove this check as in phenotype-detail
-    #---------------------------------------------------------
-    # validate access to child phenotypes
-    if not (allowed_to_view_children(request, Phenotype, pk, set_history_id=phenotype_history_id)
-            and chk_deleted_children(request,
-                                     Phenotype,
-                                     pk,
-                                     returnErrors=False,
-                                     set_history_id=phenotype_history_id)):
-        raise PermissionDenied
-    #---------------------------------------------------------
+    # # we can remove this check as in generic_entity-detail
+    # #---------------------------------------------------------
+    # # validate access to child generic_entitys
+    # if not (allowed_to_view_children(request, GenericEntity, pk, set_history_id=history_id)
+    #         and chk_deleted_children(request,
+    #                                  GenericEntity,
+    #                                  pk,
+    #                                  returnErrors=False,
+    #                                  set_history_id=history_id)):
+    #     raise PermissionDenied
+    # #---------------------------------------------------------
 
      
 
     return getPhenotypeDetail(request,
                               pk = pk,
-                              history_id = phenotype_history_id,
+                              history_id = history_id,
                               is_authenticated_user = True,
                               get_versions_only = get_versions_only,
-                              set_class = Phenotype)
+                              set_class = GenericEntity)
 
 
 #--------------------------------------------------------------------------
@@ -816,36 +817,36 @@ def phenotype_detail(request,
 @api_view(['GET'])
 @authentication_classes([])
 @permission_classes([])
-def phenotype_detail_PUBLIC(request,
+def generic_entity_detail_PUBLIC(request,
                             pk,
-                            phenotype_history_id=None,
+                            history_id=None,
                             get_versions_only=None):
     ''' 
-        Display the detail of a published phenotype at a point in time.
+        Display the detail of a published generic_entity at a point in time.
     '''
 
-    if Phenotype.objects.filter(id=pk).count() == 0:
+    if GenericEntity.objects.filter(id=pk).count() == 0:
         raise Http404
 
-    if phenotype_history_id is not None:
-        phenotype_ver = Phenotype.history.filter(id=pk, history_id=phenotype_history_id)
-        if phenotype_ver.count() == 0: raise Http404
+    if history_id is not None:
+        generic_entity_ver = GenericEntity.history.filter(id=pk, history_id=history_id)
+        if generic_entity_ver.count() == 0: raise Http404
 
-    if phenotype_history_id is None:
+    if history_id is None:
         # get the latest version/ or latest published version
-        phenotype_history_id = try_get_valid_history_id(request, Phenotype, pk)
+        history_id = try_get_valid_history_id(request, GenericEntity, pk)
 
-    is_published = checkIfPublished(Phenotype, pk, phenotype_history_id)
-    # check if the phenotype version is published
+    is_published = checkIfPublished(GenericEntity, pk, history_id)
+    # check if the generic_entity version is published
     if not is_published and get_versions_only != '1':
         raise PermissionDenied
 
     return getPhenotypeDetail(request,
                               pk = pk,
-                              history_id = phenotype_history_id,
+                              history_id = history_id,
                               is_authenticated_user = False,
                               get_versions_only = get_versions_only,
-                              set_class = Phenotype)
+                              set_class = GenericEntity)
 
 
 #--------------------------------------------------------------------------
@@ -855,29 +856,29 @@ def getPhenotypeDetail(request,
                        history_id=None,
                        is_authenticated_user=True,
                        get_versions_only=None,
-                       set_class=Phenotype):
+                       set_class=GenericEntity):
 
     if get_versions_only is not None:
         if get_versions_only == '1':
             titles = ['versions']
-            ret = [get_visible_versions_list(request, Phenotype, pk, is_authenticated_user)]
+            ret = [get_visible_versions_list(request, GenericEntity, pk, is_authenticated_user)]
             rows_to_return = []
             rows_to_return.append(ordr(list(zip(titles, ret))))
             return Response(rows_to_return, status=status.HTTP_200_OK)
     #--------------------------
 
-    phenotype = getHistoryPhenotype(history_id)
-    # The history phenotype contains the owner_id, to provide the owner name, we
-    # need to access the user object with that ID and add that to the phenotype.
-    phenotype['owner'] = None
-    if phenotype['owner_id'] is not None:
-        phenotype['owner'] = User.objects.get(pk=phenotype['owner_id']).username
+    generic_entity = generic_entity_db_utils.get_historical_entity(history_id)
+    # The history generic_entity contains the owner_id, to provide the owner name, we
+    # need to access the user object with that ID and add that to the generic_entity.
+    generic_entity['owner'] = None
+    if generic_entity['owner_id'] is not None:
+        generic_entity['owner'] = User.objects.get(pk=generic_entity['owner_id']).username
 
-    phenotype['group'] = None
-    if phenotype['group_id'] is not None:
-        phenotype['group'] = Group.objects.get(pk=phenotype['group_id']).name
+    generic_entity['group'] = None
+    if generic_entity['group_id'] is not None:
+        generic_entity['group'] = Group.objects.get(pk=generic_entity['group_id']).name
 
-    phenotype_history_date = phenotype['history_date']
+    generic_entity_history_date = generic_entity['history_date']
     #--------------
 
     #----------------------------------------------------------------------
@@ -885,42 +886,42 @@ def getPhenotypeDetail(request,
     concept_hisoryid_list = []
     concepts = Concept.history.filter(pk=-1)
 
-    if phenotype['concept_informations']:
-        concept_id_list = [x['concept_id'] for x in phenotype['concept_informations']]
-        concept_hisoryid_list = [x['concept_version_id'] for x in phenotype['concept_informations']]
+    if generic_entity['concept_informations']:
+        concept_id_list = [x['concept_id'] for x in generic_entity['concept_informations']]
+        concept_hisoryid_list = [x['concept_version_id'] for x in generic_entity['concept_informations']]
         concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list)
 
     clinicalTerminologies = []  #CodingSystem.objects.filter(pk=-1)
-    CodingSystem_ids = phenotype['clinical_terminologies']
-    if CodingSystem_ids:
-        clinicalTerminologies = list(CodingSystem.objects.filter(pk__in=list(CodingSystem_ids)).values('name', 'id'))
+    # CodingSystem_ids = generic_entity['clinical_terminologies']
+    # if CodingSystem_ids:
+    #     clinicalTerminologies = list(CodingSystem.objects.filter(pk__in=list(CodingSystem_ids)).values('name', 'id'))
 
     #--------------
 
     data_sources = [] 
-    data_sources_comp = phenotype['data_sources']  
-    if data_sources_comp:
-        ds_list = data_sources_comp 
-        data_sources = list(DataSource.objects.filter(pk__in=ds_list).values('id', 'name', 'url', 'datasource_id'))  # , 'uid', 'description'
+    # data_sources_comp = generic_entity['data_sources']  
+    # if data_sources_comp:
+    #     ds_list = data_sources_comp 
+    #     data_sources = list(DataSource.objects.filter(pk__in=ds_list).values('id', 'name', 'url', 'datasource_id'))  # , 'uid', 'description'
 
     tags = []
-    phenotype_tags = phenotype['tags']
-    if phenotype_tags:
-        tags = list(Tag.objects.filter(pk__in=phenotype_tags, tag_type=1).values('description', 'id'))
+    # generic_entity_tags = generic_entity['tags']
+    # if generic_entity_tags:
+    #     tags = list(Tag.objects.filter(pk__in=generic_entity_tags, tag_type=1).values('description', 'id'))
                
 
     collections = []
-    phenotype_collections = phenotype['collections']
-    if phenotype_collections:
-        collections = list(Tag.objects.filter(pk__in=phenotype_collections, tag_type=2).values('description', 'id',  'collection_brand'))
-        if collections:
-            for col in collections:
-                col['collection_brand'] = Brand.objects.get(pk=col['collection_brand']).name                
+    # generic_entity_collections = generic_entity['collections']
+    # if generic_entity_collections:
+    #     collections = list(Tag.objects.filter(pk__in=generic_entity_collections, tag_type=2).values('description', 'id',  'collection_brand'))
+    #     if collections:
+    #         for col in collections:
+    #             col['collection_brand'] = Brand.objects.get(pk=col['collection_brand']).name                
                 
                     
     rows_to_return = []
     titles = [
-        'phenotype_id',
+        'id',
         'version_id'
     ]
     
@@ -928,7 +929,7 @@ def getPhenotypeDetail(request,
         titles += ['UUID']
         
     titles +=[
-        'phenotype_name',
+        'name',
         'type',
         'tags',
         'collections',
@@ -948,7 +949,6 @@ def getPhenotypeDetail(request,
             ]
     
     titles += [
-        'validation_performed',
         #, 'validation_description',
         'publication_doi',
         'publication_link',
@@ -966,7 +966,7 @@ def getPhenotypeDetail(request,
             'group',
             'group_access',
             'world_access',
-            'is_deleted',  # may come from phenotype live version / or history
+            'is_deleted',  # may come from generic_entity live version / or history
             # 'deleted_by', 'deleted_date' # no need here
         ]
     
@@ -978,67 +978,66 @@ def getPhenotypeDetail(request,
     
 
     ret = [
-        phenotype['id'],
-        phenotype['history_id']
+        generic_entity['id'],
+        generic_entity['history_id']
         ]
     if is_authenticated_user:
-        ret += [phenotype['phenotype_uuid']]  #UUID
+        ret += [generic_entity['phenotype_uuid']]  #UUID
         
     ret += [
-        phenotype['name'].encode('ascii', 'ignore').decode('ascii'),
-        phenotype['type'],
+        generic_entity['name'].encode('ascii', 'ignore').decode('ascii'),
+        generic_entity['type'],
         tags,
         collections,
-        phenotype['author'],
-        #phenotype['entry_date'],
+        generic_entity['author'],
+        #generic_entity['entry_date'],
         clinicalTerminologies,
         data_sources,
-        phenotype['description'],
+        generic_entity['description'],
     ]
     
     if is_authenticated_user:
         ret += [
-            phenotype['created_by_username'],
-            phenotype['created']
+            generic_entity['created_by_username'],
+            generic_entity['created']
             ]
-        if phenotype['modified_by_username']:
+        if generic_entity['modified_by_username']:
             ret += [
-                phenotype['modified_by_username'],
-                phenotype['modified']
+                generic_entity['modified_by_username'],
+                generic_entity['modified']
                 ]
         else:
             ret += [None, None]
     
     ret += [
-        phenotype['validation_performed'],
-        #phenotype['validation_description'],
-        phenotype['publication_doi'],
-        phenotype['publication_link'],
-        #phenotype['secondary_publication_links'],
-        phenotype['source_reference'],
-        phenotype['citation_requirements']
+        #generic_entity['validation_description'],
+        generic_entity['publication_doi'],
+        generic_entity['publication_link'],
+        #generic_entity['secondary_publication_links'],
+        generic_entity['source_reference'],
+        generic_entity['citation_requirements']
         ]
     
-    implementation = phenotype['implementation'] 
-    if len(str(phenotype['phenoflowid'])) >0 :
-        implementation += "   " + "PhenoFlow Implementation: https://kclhi.org/phenoflow/phenotype/download/" + str(phenotype['phenoflowid'])
+    implementation = generic_entity['implementation'] 
+    if len(str(generic_entity['phenoflowid'])) >0 :
+        implementation += "   " + "PhenoFlow Implementation: https://kclhi.org/phenoflow/phenotype/download/" + str(generic_entity['phenoflowid'])
         
     ret += [
         implementation,
-        phenotype['publications']
+        generic_entity['publications']
         ]
     
     if is_authenticated_user:    
         ret +=[
-            phenotype['owner'],
-            dict(Permissions.PERMISSION_CHOICES)[phenotype['owner_access']],
-            phenotype['group'],
-            dict(Permissions.PERMISSION_CHOICES)[phenotype['group_access']],
-            dict(Permissions.PERMISSION_CHOICES)[phenotype['world_access']],
+            generic_entity['owner'],
+            dict(Permissions.PERMISSION_CHOICES)[generic_entity['owner_access']],
+            generic_entity['group'],
+            dict(Permissions.PERMISSION_CHOICES)[generic_entity['group_access']],
+            dict(Permissions.PERMISSION_CHOICES)[generic_entity['world_access']],
         ]
     
-        # may come from phenotype live version / or history
-        if (phenotype['is_deleted'] == True or Phenotype.objects.get(pk=pk).is_deleted == True):
+        # may come from generic_entity live version / or history
+        if (generic_entity['is_deleted'] == True or GenericEntity.objects.get(pk=pk).is_deleted == True):
             ret += [True]
         else:
             ret += [None]
@@ -1094,7 +1093,7 @@ def getPhenotypeDetail(request,
     ret += [ret_concepts]
 
     # versions
-    ret += [get_visible_versions_list(request, Phenotype, pk, is_authenticated_user) ]
+    ret += [get_visible_versions_list(request, GenericEntity, pk, is_authenticated_user) ]
 
     rows_to_return.append(ordr(list(zip(titles, ret))))
 

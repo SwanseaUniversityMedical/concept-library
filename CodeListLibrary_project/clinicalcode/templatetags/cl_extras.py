@@ -250,3 +250,74 @@ def get_ws_type_name(type_int):
     return str([t[1] for t in Type_status if t[0]==type_int][0])
     
     
+@register.filter   
+def get_title(txt, makeCapital=''):
+    '''
+        get title case
+    '''
+    txt = txt.replace('_', ' ')
+    txt = txt.title()
+    if makeCapital.strip() != '':
+        txt = txt.replace(makeCapital.title(), makeCapital.upper())
+    
+    return txt
+
+    
+@register.filter   
+def is_in_list(txt, list_values):
+    '''
+        check is value is in list
+    '''
+    return(txt in [i.strip() for i in list_values.split(',')])
+
+    
+@register.filter   
+def can_be_shown(field_data, is_authenticated):
+    '''
+        check is the field can be shown
+    '''
+    show = True
+    if 'active' in field_data and field_data['active'] == '0':
+        show = False
+            
+    if 'hide_if_empty' in field_data and field_data['hide_if_empty'] == True:
+        if field_data['value'] == '':
+            show = False
+            
+    if 'do_not_show_in_production' in field_data and field_data['do_not_show_in_production'] == True:
+        if (not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC):
+            show = False
+
+    if 'display_only_if_user_is_authenticated' in field_data and field_data['display_only_if_user_is_authenticated'] == True:
+        if (not is_authenticated):
+            show = False
+
+    return show
+
+
+@register.filter   
+def get_html_element(field_data):
+    '''
+        get suitable HTML element, like badge/cod, ..
+    '''
+    
+    value = str(field_data['value'])
+    if 'value_highlighted' in field_data:
+        value = str(field_data['value_highlighted'])
+        
+    ret_html = value
+    
+    if 'apply_badge_style' in field_data and field_data['apply_badge_style'] == True:
+        ret_html = "<span class='badge entity-type-badge card-tag-sizing'><i><strong>" + value + "</i></strong></span>"
+        
+    if 'apply_code_style' in field_data and field_data['apply_code_style'] == True:
+        ret_html = "<code>" + value + "</code>"
+   
+    
+    
+    return ret_html
+
+
+
+
+        

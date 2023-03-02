@@ -4,1034 +4,746 @@
 {% load markdownify %}
 {% load cl_extras %}
 
-{% block title %}| phenotype: {{ phenotype.name }}{% endblock title %}
-{% block description %}{{ phenotype.phenotype_uuid }} {{ phenotype.name }}{% endblock description %}
-{% block keywords %}, {{ phenotype.phenotype_uuid }}, {{ phenotype.name }}{% endblock keywords %}
+{% block title %}| {{ entity_layout }}: {{ entity_data.name.value }}{% endblock title %}
+{% block description %}{{ entity_data.name.value }}{% endblock description %}
+{% block keywords %}, {{ entity_data.name.value }}{% endblock keywords %}
 
 {% block canonical_path %}
 	<link rel="canonical" href="{{ page_canonical_path }}" />
 {% endblock canonical_path %}
 
 {% block crumbs %}
-    <a class="nav-bar-title underline" href="{% url 'phenotype_list' %}">Phenotypes</a>
-    > <strong>{{ phenotype.name }}</strong>
+    <a class="nav-bar-title underline" href="{% url 'generic_entity_list' %}">search</a>
+    > <strong>{{ entity_data.name.value }}</strong>
 {% endblock crumbs %}
 
 {% block scrollNav %}
-data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
+data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 {% endblock scrollNav %}
 
 {% block container %}
-    <div class="row">
-        <nav class="col-sm-2 hideleft-navbar" id="PhenotypeMenu"
-             style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;">
-            <ul class=" nav left-navbar "  id='navList'>
-                <li class=" active"><a href="#home" id="Homelinkid">Home</a></li>
-                <li><a href="#definition">Definition</a></li>
+<div class="row">
+	<nav class="col-sm-2 hideleft-navbar" id="SideMenu" style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;">
+	     <ul class=" nav left-navbar "  id='navList'>
+	         <li class=" active"><a href="#home" id="Homelinkid">Home</a></li>
+	                    
+	          {% for key, value in side_menu.items %}
+	         	<li>
+	         		<a href="#{{ key }}" >{{ value }}</a>
+	         	</li>
+			  {% endfor %}
+	         
+	          {% if user.is_authenticated %}
+	          	<li><a href="#permissions">Permissions</a></li>
+	          {% endif %}
+	          
+	         <li><a href="#API">API</a></li>	
+	         <li><a href="#CodeListsVersions">Version History</a></li>
+	     </ul>
+	 </nav>
 
-                {% if phenotype.implementation|length or phenotype.phenoflowid|length %}
-                	<li><a href="#implementation">Implementation</a></li>
-                {% endif %}
-                
-                {% if IS_DEMO or IS_DEVELOPMENT_PC %}
-	                {% if phenotype.validation_highlighted|length %}
-	 						<li><a href="#validation">Validation</a></li>
-	 				{% endif %}
- 				{% endif %}
-                <li><a href="#Publications">Publications</a></li>
-                <li><a href="#CodeLists">Clinical Code Lists</a></li>
-                
-                 {% if user.is_authenticated %}
-                        <li><a href="#permissions">Permissions</a></li>
-                 {% endif %}
-                 
-                <li><a href="#API">API</a></li>
+    <h3><span id="home" style="margin-top: -100px;"></span></h3>
+    <div class="col-sm-10">
 
-                <li><a href="#CodeListsVersions">Version History</a></li>
-            </ul>
-        </nav>
+	<span id="topButtons">			
+		<div class="row" style="margin-left: 2px">
+			<div class="col-sm-12 text-right action-buttons-container">			
+			   <div class="dropdown btn-group">
+				  <button {% if not user_can_export %} disabled
+                                                       title="Component concept(s) deleted or revoked access!!" {% endif %}
+                                                       type="button" class="btn btn-primary dropdown-toggle"
+                                                       data-toggle="dropdown" aria-haspopup="true"
+                                                       aria-expanded="false" id="export-btn">
+				    Export {{ entity_layout_category }}
+				    <span class="caret"></span>
+				  </button>
+				  <ul class="dropdown-menu">
+				   <li>
+				   {% if user.is_authenticated %}
+					   <a {% if user_can_export %}
+					       href="{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=json"
+					       target=_blank {% endif %}
+					{% else %}
+					    <a {% if user_can_export %}
+					    href="{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=json"
+					    target=_blank {% endif %}
+					{% endif %}
+					    class="dropdown-item">
+					        JSON
+					   </a>
+				   </li>
+				   <li>
+				   {% if user.is_authenticated %}
+                      <a {% if user_can_export %}
+                          href="{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=xml"
+                          target=_blank {% endif %}
+                  {% else %}
+                      <a {% if user_can_export %}
+                      href="{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=xml"
+                      target=_blank {% endif %}
+                  {% endif %}
+                      class="dropdown-item">
+                          XML
+                      </a>
+				   </li>
+				  </ul>
+				</div>
 
+                        {% if user.is_authenticated and not CLL_READ_ONLY %}
+                              {% if is_published and approval_status == 2%}
 
-        <h3><span id="home" style="margin-top: -100px;"></span></h3>
-        <div class="col-sm-10">
-			
-			<span id="topButtons">			
-					<div class="row" style="margin-left: 2px">
-						<div class="col-sm-12 text-right action-buttons-container">
-							
-						   <div class="dropdown btn-group">
-							  <button {% if not user_can_export %} disabled
-                                                                   title="Component concept(s) deleted or revoked access!!" {% endif %}
-                                                                   type="button" class="btn btn-primary dropdown-toggle"
-                                                                   data-toggle="dropdown" aria-haspopup="true"
-                                                                   aria-expanded="false" id="export-btn">
-							    Export Phenotype
-							    <span class="caret"></span>
-							  </button>
-							  <ul class="dropdown-menu">
-							   <li>
-							   {% if user.is_authenticated %}
-                                   <a {% if user_can_export %}
-                                       href="{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=json"
-                                       target=_blank {% endif %}
-                               {% else %}
-                                   <a {% if user_can_export %}
-                                   href="{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=json"
-                                   target=_blank {% endif %}
-                               {% endif %}
-                                   class="dropdown-item">
-                                       JSON
-                                   </a>
-							   </li>
-							   <li>
-							   {% if user.is_authenticated %}
-                                   <a {% if user_can_export %}
-                                       href="{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=xml"
-                                       target=_blank {% endif %}
-                               {% else %}
-                                   <a {% if user_can_export %}
-                                   href="{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=xml"
-                                   target=_blank {% endif %}
-                               {% endif %}
-                                   class="dropdown-item">
-                                       XML
-                                   </a>
-							   </li>
-							  </ul>
-							</div>
-
-                            {% if user.is_authenticated and not CLL_READ_ONLY %}
-                                  {% if is_published and approval_status == 2%}
-
-                                      <a class="btn btn-success" disabled title="This version is already published">
-						    	&nbsp;Published&nbsp;
-						    	<span class="glyphicon glyphicon-ok" style="color:green"></span>
-						    </a>
-                                  {% else %}
-                                      <a
-                                              {% if request.user|has_group:"Moderators" %}
-                                                  {% if not live_ver_is_deleted %}
-                                                      {% if approval_status == 1 and is_latest_pending_version %}
-                                                          class="js-load-modal btn btn-warning"
-                                                          href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
-                                                          title="Needs to be approved"
-                                                      {% else %}
-                                                          {% if approval_status == 3 %}
-                                                          class="js-load-modal  btn btn-danger"
-                                                          href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
-                                                          title="Approve declined phenotype"
-                                                          {% else %}
-                                                          class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
-                                                          href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
-                                                          title="Publish immediately"
-                                                          {% endif %}
-
-
-
-                                                      {% endif %}
-
+                                  <a class="btn btn-success" disabled title="This version is already published">
+		    	&nbsp;Published&nbsp;
+		    	<span class="glyphicon glyphicon-ok" style="color:green"></span>
+		    </a>
+                              {% else %}
+                                  <a
+                                          {% if request.user|has_group:"Moderators" %}
+                                              {% if not live_ver_is_deleted %}
+                                                  {% if approval_status == 1 and is_latest_pending_version %}
+                                                      class="js-load-modal btn btn-warning"
+                                                      href="{% url 'phenotype_publish' pk=entity.id phenotype_history_id=entity.history_id %}"
+                                                      title="Needs to be approved"
                                                   {% else %}
-                                                          class="btn btn-primary"
-                                                      {% if is_published and approval_status == 2 %}
-                                                          title="This version is already published"
-                                                      {% elif live_ver_is_deleted %}
-                                                          title="Deleted phenotypes cannot be published !!"
+                                                      {% if approval_status == 3 %}
+                                                      class="js-load-modal  btn btn-danger"
+                                                      href="{% url 'phenotype_publish' pk=entity.id phenotype_history_id=entity.history_id %}"
+                                                      title="Approve declined entity"
+                                                      {% else %}
+                                                      class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
+                                                      href="{% url 'phenotype_publish' pk=entity.id phenotype_history_id=entity.history_id %}"
+                                                      title="Publish immediately"
                                                       {% endif %}
+
+
 
                                                   {% endif %}
-                                                          id="publish2">
-                                                 {% if approval_status == 1 and is_latest_pending_version%}
-                                                     Approve
-                                                 {% else %}
-                                                          Publish
-                                                 {% endif %}
-
 
                                               {% else %}
+                                                      class="btn btn-primary"
+                                                  {% if is_published and approval_status == 2 %}
+                                                      title="This version is already published"
+                                                  {% elif live_ver_is_deleted %}
+                                                      title="Deleted phenotypes cannot be published !!"
+                                                  {% endif %}
+
+                                              {% endif %}
+                                                      id="publish2">
+                                             {% if approval_status == 1 and is_latest_pending_version%}
+                                                 Approve
+                                             {% else %}
+                                                      Publish
+                                             {% endif %}
 
 
-                                                  <a
-                                                          {% if not live_ver_is_deleted and approval_status is None  or approval_status == 2 %}
-                                                              class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
-                                                              href="{% url 'phenotype_publish' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
-                                                          {% else %}
-                                                              {% if is_published and approval_status == 2 %}
-                                                               class="btn btn-primary"
-                                                               title="This version is already published"
-                                                              {% elif live_ver_is_deleted %}
-                                                               class="btn btn-primary"
-                                                               title="Deleted phenotypes cannot be published !!"
-                                                              {% elif approval_status == 3 %}
-                                                               class="btn btn-danger"
-                                                               disabled title="This version is declined"
-                                                              {% elif  approval_status == 1 %}
-                                                               {% if phenotype.owner_id == request.user.id %}
-                                                                class="btn btn-primary btn-warning"
-                                                                disabled title="This version needs to be approved "
-                                                               {% else %}
-                                                                class="btn btn-primary"
-                                                                disabled = true
-                                                                disabled title="Unavailable to publish"
-                                                               {% endif %}
-                                                              {% endif %}
+                                          {% else %}
 
 
-                                                          {% endif %}
-                                                              id="publish2">
-                                                           {% if approval_status == 3 %}
-	                                                       Declined
-	                                                 {% else %}
-                                                           {% if approval_status == 1 %}
-                                                               Pending
+                                              <a
+                                                      {% if not live_ver_is_deleted and approval_status is None  or approval_status == 2 %}
+                                                          class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
+                                                          href="{% url 'phenotype_publish' pk=entity.id phenotype_history_id=entity.history_id %}"
+                                                      {% else %}
+                                                          {% if is_published and approval_status == 2 %}
+                                                           class="btn btn-primary"
+                                                           title="This version is already published"
+                                                          {% elif live_ver_is_deleted %}
+                                                           class="btn btn-primary"
+                                                           title="Deleted phenotypes cannot be published !!"
+                                                          {% elif approval_status == 3 %}
+                                                           class="btn btn-danger"
+                                                           disabled title="This version is declined"
+                                                          {% elif  approval_status == 1 %}
+                                                           {% if entity.owner_id == request.user.id %}
+                                                            class="btn btn-primary btn-warning"
+                                                            disabled title="This version needs to be approved "
                                                            {% else %}
-		
-		                                                    Publish
-		                                                {% endif %}
+                                                            class="btn btn-primary"
+                                                            disabled = true
+                                                            disabled title="Unavailable to publish"
                                                            {% endif %}
+                                                          {% endif %}
+
+
                                                       {% endif %}
+                                                          id="publish2">
+                                                       {% if approval_status == 3 %}
+                                                    Declined
+                                              {% else %}
+                                                       {% if approval_status == 1 %}
+                                                           Pending
+                                                       {% else %}
+
+                                                  Publish
+                                              {% endif %}
+                                                       {% endif %}
+                                                  {% endif %}
 
 
-                                    {% endif %}
-                            {% endif %}
-
-
-                            <a id="printBtn" class="btn btn-outline-primary btn-cl btn-cl-secondary">
-								Print
-							</a>
-							<a href="#" role="button" class="btn popovers" id="help-hist-phenotype"
-                               data-toggle="popover" data-trigger="hover" data-container="body" title=""
-                               data-original-title="" data-placement="left">
-								<i class="fa fa-question-circle" aria-hidden="true"></i>
-							</a>
-						</div>
-					</div>
-			
-					<div class="alert alert-success alert-dismissable" id="success-message" style="display: none;"
-                         role="alert"></div>
-					<div class="alert alert-danger alert-dismissable" id="error-message" style="display: none;"
-                         role="alert"></div>
-				</span>
-
-            <div class="col-md-12">
-                <div classXX="col-md-6" styleXX="margin-left: -10px">
-                    <h2>
-                        <strong>{{ phenotype.name_highlighted|safe }}</strong>
-                        {% for item in request.BRAND_GROUPS %}
-                            {% for brand, groups in item.iteritems %}
-                                {% if phenotype.group.name in groups %}
-                                    <img style="margin-top:-5px;" src="{% static 'img/brands/' %}{{ brand }}/logo.png"
-                                         height="29px" title="{{ brand }}" alt="{{ brand }}"/>
                                 {% endif %}
-                            {% endfor %}
-                        {% endfor %}
-                    </h2>
-                    <span><i>{{ phenotype.author_highlighted|safe }}</i></span>
-                    <br>
-                    <br>
-                </div>
-
-
-                <div class="row"></div>
-                <div class="row" style="margin-top: 10px;">
-                    <div class="col-sm-2">ID</div>
-                    <div class="col-sm-10">
-					<span id="phenotype_id_div" phenotype_id="{{ phenotype.id }}">
-						{{ phenotype.id }}						
-					</span>
-                    </div>
-                </div>
-
-                <div class="row" style="margin-top: 10px;">
-                    <div class="col-sm-2">Version ID</div>
-                    <div class="col-sm-10">
-						<span id="phenotype_history_id_div" phenotype_history_id="{{ phenotype.history_id }}">
-							{{ phenotype.history_id }}
-                            {% if user.is_authenticated %}
-                                &nbsp;&nbsp;
-                                &nbsp;&nbsp;
-                                {% if is_latest_version %}
-                                    <span class="tag label" style='background-color:#F98E2B;'>LATEST VERSION</span>
-                                {% else %}
-                                    <span class="tag label label-default">HISTORICAL VERSION</span>
-                                {% endif %}
-                            {% endif %}
-						</span>
-
-                        <!--{% if phenotype.modified_by_username %}
-							<span>
-								&nbsp;&nbsp;&nbsp;&nbsp;(Modified on: {{ phenotype.modified }})
-							</span>
-						{% endif %}	
-						-->
-                    </div>
-                </div>
-
-                {% if user.is_authenticated %}
-                    <div class="row" style="margin-top: 10px;">
-                        <div class="col-sm-2">UUID:</div>
-                        <div class="col-sm-10">
-								<code>
-									{{ phenotype.phenotype_uuid }}
-                                </code>
-                        </div>
-                    </div>
-                {% endif %}
-
-                <div class="row" style="margin-top: 10px;">
-                    <div class="col-sm-2">Type</div>
-                    <div class="col-sm-10">
-					<span id="phenotype_type_div" phenotype_type="{{ phenotype.type }}">
-                        {% if phenotype.type %}
-						<span class="badge phenotype-type-badge card-tag-sizing"><i><strong>{{ phenotype.type }}</i></strong></span>
-                        {% else %}
-                        <span class="card-no-data">Unknown type</span>
-                        {% endif %}
-					</span>
-                    </div>
-                </div>
-                
-                <div class="row" style="margin-top: 10px;">
-                    <div class="col-sm-2">Data Sources</div>
-                    <div class="col-sm-10">
-                        {% for ds in data_sources %}
-                            {% if ds.url|length %}
-                                <a href="{{ ds.url }}" target=_blank rel="noopener noreferrer">{{ ds.name }}</a>
-                            {% else %}
-                                {{ ds.name }}
-                            {% endif %}
-                            {% if not forloop.last %}
-                                ,
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-		
-				{% if phenotype.valid_event_data_range|length %}
-	                <div class="row" style="margin-top: 10px;">
-	                    <div class="col-sm-2">Valid event data range</div>
-	                    <div class="col-sm-10">
-                            {% if phenotype.valid_event_data_range|length %}
-	                            {{ phenotype.valid_event_data_range }}
-                            {% else %}
-                                <span class="card-no-data">No data available</span>
-                            {% endif %}
-	                    </div>
-	                </div>
-                {% endif %}
-
-                <div class="row" style="margin-top: 10px;">
-                    <div class="col-sm-2">Sex</div>
-                    <div class="col-sm-10">
-                        {% if gender|length %}
-                            {% for sex in gender %}
-                            <span class="badge Xgender-badge-{{ sex }}">
-                                {% if sex == "Male" %}♂{% else %}♀{% endif %}&nbsp;&nbsp;{{ sex }}
-                            </span>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                </div>
-
-
-                <div class="row" style="margin-top: 10px;">
-                    <div class="col-sm-2">Agreement Date</div>
-                    <div class="col-sm-10">
-                    	{%  if phenotype.hdr_modified_date != '' %}
-                        	{{ phenotype.hdr_modified_date }}
-                        {% else %}
-                        	{{ phenotype.hdr_created_date }}
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- 				<div class="row" style="margin-top: 10px;"> -->
-                <!-- 					<div class="col-sm-2">Author</div> -->
-                <!-- 					<div class="col-sm-10"> -->
-                <!-- 						{{ phenotype.author }} -->
-                <!-- 					</div> -->
-                <!-- 				</div> -->
-
-                <div class="row" style="margin-top: 10px;">
-                    <div class="col-sm-2">Coding system</div>
-                    <div class="col-sm-10">
-                        {% if clinicalTerminologies|length %}
-                        {% for ct in clinicalTerminologies %}
-                            <span class="badge">{{ ct.name }}</span>
-                        {% endfor %}
-                        {% else %}
-                        <span class="card-no-data">No associated codes</span>
-                        {% endif %}
-                    </div>
-                </div>
-
-				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-2">Collections</div>
-					<div class="col-sm-10">
-						{% if has_collections %}
-							{% for tag in collections %}
-								<span class="tag label label-{{ tag.get_display_display }} card-edit-sizing">{{ tag.description }}</span>
-							{% endfor %}	
-						{% else %}
-							<span class="card-no-data">No collections</span>
-						{% endif %}		
-					</div>	
-				</div>
-				
-				<div class="row" style="margin-top: 10px;">
-					<div class="col-sm-2">Tags</div>
-					<div class="col-sm-10">
-						{% if has_tags %}
-							{% for tag in tags %}
-								<span class="tag label label-{{ tag.get_display_display }} card-edit-sizing">{{ tag.description }}</span>
-							{% endfor %}	
-						{% else %}
-							<span class="card-no-data">No tags</span>
-						{% endif %}		
-					</div>	
-				</div>	
-
-            </div>
-
-
-            <!--	-------------------------------------------------------------------
-                    DEFINITION
-                    -------------------------------------------------------------------
-              -->
-
-            <div class="col-sm-12 shadow-frame">
-                <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
-                        id="definition"></span><strong>Definition</strong></h3>
-                {% if phenotype.description_highlighted|length %}
-                {{ phenotype.description_highlighted|markdownify }}
-                {% else %}
-                <span class="card-no-data">No data available</span>
-                {% endif %}
-            </div>
-
-
-            <!--	-------------------------------------------------------------------
-                    IMPLEMENTATION
-                    -------------------------------------------------------------------
-              -->
-         {% if phenotype.implementation|length or phenotype.phenoflowid|length %}
-            <div class="col-sm-12 shadow-frame">
-                <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
-                        id="implementation"></span><strong>Implementation</strong></h3>
-
-
-                <div class="markdown-holder">
-                    {{ phenotype.implementation_highlighted|markdownify }}
-                </div>
-
-                <br/>
-                {% if phenotype.phenoflowid|length %}
-                <label class="col-sm-3" style="margin-left: -15px">PhenoFlow Implementation:</label>
-                <div class="col-sm-9" style="margin-left: -15px">
-                    <a href="https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}"
-                        target=_blank>https://kclhi.org/phenoflow/phenotype/download/{{ phenotype.phenoflowid }}</a>
-                </div>
-                {% endif %}
-
-            </div>
-         {% endif %}
-            
-            <!--	-------------------------------------------------------------------
-                    VALIDATION
-                    -------------------------------------------------------------------
-              -->
-              
-            {% if IS_DEMO or IS_DEVELOPMENT_PC %}
-	        	{% if phenotype.validation_highlighted|length %}
-					<div class="col-sm-12 shadow-frame">
-		                <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
-		                        id="validation"></span><strong>Validation</strong></h3>
-		                {% if phenotype.validation_highlighted|length %}
-		                {{ phenotype.validation_highlighted|markdownify }}
-		                {% else %}
-		                <span class="card-no-data">No data available</span>
-		                {% endif %}
-		            </div>
-				{% endif %}
-			{% endif %}			
-
-            <!--	-------------------------------------------------------------------
-                    PUBLICATIONS
-                    -------------------------------------------------------------------
-              -->
-
-            <div class="col-sm-12 shadow-frame">
-                <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
-                        id="Publications"></span><strong>Publications</strong></h3>
-
-
-                <div class="markdown-holder">
-                    {% if phenotype.publications|length %}
-                        <ul>
-                            {% for p in phenotype.publications_highlighted %}
-                                <li>{{ p|markdownify }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                    <span class="card-no-data">No data available</span>
-                    {% endif %}
-                </div>
-
-            </div>
-
-
-            <!--	-------------------------------------------------------------------
-                    CODE-LIST
-                    -------------------------------------------------------------------
-              -->
-
-            <div class="col-sm-12 shadow-frame">
-
-                <h3 class="paneltitle" id="ClinicalCodeLists" style="margin-top:20px; margin-bottom:20px;"><span
-                        id="CodeLists"></span><strong>Clinical Code List</strong>
-                    <div class="dropdown btn-group" style="float: right;">
-
-                        {% if concept_data|length > 0 %}
-                        <button {% if not user_can_export %} disabled
-                                                             title="Component concept(s) deleted or revoked access!!" {% endif %}
-                                                             type="button" class="btn btn-primary dropdown-toggle"
-                                                             data-toggle="dropdown" aria-haspopup="true"
-                                                             aria-expanded="false" id="export-btn-codelist">
-                            Export Code List <i class="caret"></i>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a {% if user_can_export %}
-                                    href="{% url 'history_phenotype_codes_to_csv' pk=phenotype.id phenotype_history_id=phenotype.history_id %}" {% endif %}
-                                    class="dropdown-item">
-                                    CSV
-                                </a>
-                            </li>
-                            <li>
-                                {% if user.is_authenticated %}
-                                    <a {% if user_can_export %}
-                                        href="{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=json"
-                                        target=_blank {% endif %}
-                                {% else %}
-                                    <a {% if user_can_export %}
-                                    href="{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=json"
-                                    target=_blank {% endif %}
-                                {% endif %}
-                                    class="dropdown-item">
-                                    JSON
-                                </a>
-                            </li>
-                            <li>
-                                {% if user.is_authenticated %}
-                                    <a {% if user_can_export %}
-                                        href="{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=xml"
-                                        target=_blank {% endif %}
-                                {% else %}
-                                    <a {% if user_can_export %}
-                                    href="{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=xml"
-                                    target=_blank {% endif %}
-                                {% endif %}
-                                    class="dropdown-item">
-                                    XML
-                                </a>
-                            </li>
-                        </ul>
-                        {% endif %}
-                    </div>
-                </h3>
-
-
-                <div class="tab-content">
-                    <div id="component-tab-div" class="tab-pane {{ component_tab_active }}"
-                         codelist_loaded="{{ codelist_loaded }}">
-                        <!-- component-tab-div -->
-
-
-                        {% if concept_data|length > 0 %}
-                        <div class="accordion-option">
-                            <a href="javascript:void(0)" class="toggle-accordion active" id="Expand_all">Expand All</a>
-                            &nbsp;/&nbsp;
-                            <a href="javascript:void(0)" class="toggle-accordion active" id="Collapse_all">Collapse
-                                All</a>
-                        </div>
                         {% endif %}
 
-                        <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-                            {% for c in concept_data %}
-                                <div class="panel panel-default">
-                                    <div class="panel-heading" role="tab" id="c{{ c.concept_version_id }}">
-                                        <div>
-                                            <h4 class="panel-title " id="panel-title-c{{ c.concept_version_id }}"
-                                                concept_version_id="{{ c.concept_version_id }}">
-                                                <a role="button" data-toggle="collapse"
-                                                   id="sign_c{{ c.concept_version_id }}"
-                                                   data-parent-xxx="#accordion"
-                                                   href="#collapse_c{{ c.concept_version_id }}" aria-expanded="true"
-                                                   aria-controls="collapse_c{{ c.concept_version_id }}">
-                                                    <i class="plus-minus glyphicon glyphicon-plus"
-                                                       id="i-c{{ c.concept_version_id }}"></i>
-                                                    C{{ c.concept_id }}/{{ c.concept_version_id }}
-                                                </a>
-                                                &nbsp;&nbsp;
 
-                                                <span>
-			         <a href="{% url 'concept_history_detail' c.concept_id c.concept_version_id %}"
-                        title="{% url 'concept_history_detail' c.concept_id c.concept_version_id %}"
-                        class="alert-link">
-			         {{ c.name }}&nbsp;{{ c.brands|safe }}
-			         </a>
-			        &nbsp;
-			        - {{ c.codingsystem }}
-			        &nbsp;
-                                                    {% if user.is_authenticated %}
-                                                        {% if c.is_published %}
-                                                            (Published)
-                                                        {% endif %}
-                                                    {% endif %}
-			      </span>
+                        <a id="printBtn" class="btn btn-outline-primary btn-cl btn-cl-secondary">
+				Print
+			</a>
+			<a href="#" role="button" class="btn popovers" id="help-hist-entity"
+                           data-toggle="popover" data-trigger="hover" data-container="body" title=""
+                           data-original-title="" data-placement="left">
+				<i class="fa fa-question-circle" aria-hidden="true"></i>
+			</a>
+		</div>
+	</div>
 
-                                                <span>
-			         {% if c.alerts|length %}
-                         <div class="alert-danger" role="alert" style=" display:inline-block;">
-			            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-			            <span class="sr-only">Error:</span>
-			            {{ c.alerts|safe }}
-			         </div>
+<div class="alert alert-success alert-dismissable" id="success-message" style="display: none;" role="alert"></div>
+<div class="alert alert-danger alert-dismissable" id="error-message" style="display: none;" role="alert"></div>
+
+</span>
+<div class="col-md-12" id="ddd">
+    <div>
+        <h2>
+            <strong>{{ entity_data.name.value_highlighted|safe }}</strong>
+        </h2>
+        <span><i>{{ entity_data.author.value_highlighted|safe }}</i></span>
+        <br>
+        <br>
+    </div>
+
+
+    <div class="row"></div>
+    <div class="row" style="margin-top: 10px;">
+          <div class="col-sm-2">ID</div>
+          <div class="col-sm-10">
+			<span id="entity_id_div" entity_id="{{ entity.id }}">
+				{{ entity.id }}						
+			</span>
+         </div>
+      </div>
+
+      <div class="row" style="margin-top: 10px;">
+             <div class="col-sm-2">Version ID</div>
+             <div class="col-sm-10">
+			<span id="entity_history_id_div" entity_history_id="{{ entity.history_id }}">
+				{{ entity.history_id }}
+                     {% if user.is_authenticated %}
+                         &nbsp;&nbsp;
+                         &nbsp;&nbsp;
+                         {% if is_latest_version %}
+                             <span class="tag label" style='background-color:#F98E2B;'>LATEST VERSION</span>
+                         {% else %}
+                             <span class="tag label label-default">HISTORICAL VERSION</span>
+                         {% endif %}
                      {% endif %}
-			      </span>
-                                            </h4>
-                                        </div>
+			</span>
+             </div>
+      </div>
+       
+       
+       	      
+       	      
+		{% for field, field_data in entity_data.items %}
+			{% if not field_data|can_be_shown:user.is_authenticated or field == 'name' or field == 'author' %}
+				<!-- continue -->
+			{% else %}
+				{% if field_data.field_type|is_in_list:'data_sources,tags,collections,concept_informations,coding_systems,phenoflowid' %}
+						<!-- system defined -->
+						{% if field_data.field_type == 'tags' %}
+							<div class="row" style="margin-top: 10px;">
+								<span id="{{ field_data.html_id }}"></span>
+								<div class="col-sm-2">{{ field|get_title }}</div>
+								<div class="col-sm-10">
+									{% if field_data.value|length %}
+										{% for tag in field_data.value %}
+											<span class="tag label label-{{ tag.get_display_display }} card-edit-sizing">{{ tag.description }}</span>
+										{% endfor %}	
+									{% else %}
+										<span class="card-no-data">No tags</span>
+									{% endif %}		
+								</div>	
+							</div>	
+						{% endif %}
+						
+						{% if field_data.field_type == 'collections' %}
+							<div class="row" style="margin-top: 10px;">
+								<span id="{{ field_data.html_id }}"></span>
+								<div class="col-sm-2">{{ field|get_title }}</div>
+								<div class="col-sm-10">
+									{% if field_data.value|length %}
+										{% for tag in field_data.value %}
+											<span class="tag label label-{{ tag.get_display_display }} card-edit-sizing">{{ tag.description }}</span>
+										{% endfor %}	
+									{% else %}
+										<span class="card-no-data">No collections</span>
+									{% endif %}		
+								</div>	
+							</div>	
+						{% endif %}		
+						
+						{% if field_data.field_type == 'data_sources' %}
+				            <div class="row" style="margin-top: 10px;">
+				            	<span id="{{ field_data.html_id }}"></span>
+				                <div class="col-sm-2">{{ field|get_title }}</div>
+				                <div class="col-sm-10">
+				                    {% for ds in field_data.value %}
+				                        {% if ds.url|length %}
+				                            <a href="{{ ds.url }}" target=_blank rel="noopener noreferrer">{{ ds.name }}</a>
+				                        {% else %}
+				                            {{ ds.name }}
+				                        {% endif %}
+				                        {% if not forloop.last %}
+				                            ,
+				                        {% endif %}
+				                    {% endfor %}
+				                </div>
+				            </div>
+						{% endif %}		
+						
+						{% if field_data.field_type == 'coding_systems' %}
+							<div class="row" style="margin-top: 10px;">
+								<span id="{{ field_data.html_id }}"></span>
+				                <div class="col-sm-2">{{ field|get_title }}</div>
+				                <div class="col-sm-10">
+				                    {% if field_data.value|length %}
+					                    {% for cs in field_data.value %}
+					                        <span class="badge">{{ cs.name }}</span>
+					                    {% endfor %}
+				                    {% else %}
+				                    <span class="card-no-data">No associated codes</span>
+				                    {% endif %}
+				                </div>
+				            </div>
+						{% endif %}	
+						
+						{% if field_data.field_type == 'phenoflowid' %}
+							<div class="row" style="margin-top: 10px;">
+								<span id="{{ field_data.html_id }}"></span>
+				                <div class="col-sm-3"><label>PhenoFlow Implementation</label></div>
+				                <div class="col-sm-9">
+				                    {% if field_data.value|length %}
+						                <a href="https://kclhi.org/phenoflow/phenotype/download/{{ field_data.value }}"
+						                    target=_blank>https://kclhi.org/phenoflow/phenotype/download/{{ field_data.value }}
+						                </a>            
+				                    {% else %}
+				                    <span class="card-no-data">No associated codes</span>
+				                    {% endif %}
+				                </div>
+				            </div>
+						{% endif %}			
+										
+						{% if field_data.field_type == 'concept_informations' %}
+				            {% include '../generic_entity/snippet/phenotype_clinical_code_lists.html' with field_data=field_data field=field %}
+						{% endif %}			
+										
 
-                                    </div>
-                                    <div id="collapse_c{{ c.concept_version_id }}"
-                                         codelist_loaded="{{ codelist_loaded }}" target_concept_id="{{ c.concept_id }}"
-                                         target_concept_history_id="{{ c.concept_version_id }}"
-                                         class="panel-collapse collapse{% if user.is_authenticated %} pre-scrollable{% endif %}"
-                                         role="tabpanel" aria-labelledby="c{{ c.concept_version_id }}">
-                                        <div class="panel-body">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <span id="codesCount_c{{ c.concept_version_id }}"
-                                                          class="codesCount label label-primary">Rows: {{ c.codesCount }}</span>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <table class="table table-striped table-responsive-md display-table"
-                                                       style="width: 100%"
-                                                       id="codelist-tab-table-c{{ c.concept_version_id }}">
-                                                    <thead>
-                                                    <tr>
-                                                        <th>Code</th>
-                                                        <th>Description</th>
-                                                        {% for attr_hdr in c.code_attribute_header %}
-                                                            <th>{{ attr_hdr }}</th>
-                                                        {% endfor %}
-                                                    </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                    {% for code in codelist %}
-                                                        {% if code.concept_id == c.concept_friendly_id and code.concept_version_id == c.concept_version_id %}
-                                                            <tr>
-                                                                <td>{{ code.code }}</td>
-                                                                <td>{{ code.description|highlight:q }}</td>
-                                                                {% if c.code_attribute_header %}
-
-                                                                    {% for attr_hdr in c.code_attribute_header %}
-                                                                        {% for key, value in code.code_attributes.items %}
-                                                                            {% if key == attr_hdr %}
-                                                                                <td>{{ value }}</td>
-                                                                            {% endif %}
-                                                                        {% endfor %}
-                                                                    {% endfor %}
-
-                                                                {% endif %}
-                                                            </tr>
-                                                        {% endif %}
-                                                    {% empty %}
-                                                        <tr>
-                                                            <td colspan="10" class="text-center bg-warning spinner"
-                                                                id="no-codes-td">
-                                                                {% if codelist_loaded == 0 %}
-                                                                    Loading ...
-                                                                {% else %}
-                                                                    No codes
-                                                                {% endif %}
-                                                            </td>
-                                                        </tr>
-                                                    {% endfor %}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% empty %}
-                                <span class="card-no-data">No data available</span>
-                            {% endfor %}
-                        </div>
-
-                        <!-- component-tab-div -->
-                    </div>
+				{% elif field_data.field_type|is_in_list:'char_inputbox,int,enum,date' %}
+					<!-- one row element -->
+					<div class="row" style="margin-top: 10px;">
+						 <span id="{{ field_data.html_id }}"></span>
+		                 <div class="col-sm-2">{{ field|get_title:'uuid' }}</div>
+		                 <div class="col-sm-10">
+		                 	{{ field_data|get_html_element|safe }}
+		                 </div>
+		             </div>
+				{% else %}
+					<!-- textarea/list element -->
+								
+			       <div class="col-sm-12 shadow-frame">
+			            <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;">
+			            	<span id="{{ field_data.html_id }}"></span>
+			            	<strong>{{ field|get_title:'uuid' }}</strong>
+			            </h3>
+			            {% if field_data.field_type|is_in_list:'char_list_of_inputboxes' %}
+			            	{% if field_data.value|length %}
+			                    <ul>
+			                        {% for p in field_data.value %}
+			                            <li>{{ p|markdownify }}</li>
+			                        {% endfor %}
+			                    </ul>
+			                {% else %}
+			                <span class="card-no-data">No data available</span>
+			                {% endif %}
+			            {% else %}
+				            {% if field_data.value_highlighted|length %}
+				            	{{ field_data.value_highlighted|markdownify }}
+				            {% else %}
+				            	{{ field_data.value }}
+				            {% endif %}
+			            {% endif %}
+			        </div>
+			    {% endif %}
+			{% endif %}
+		{% endfor %}
 
 
-                </div>
-
-                <div class="form-group">
-                    <div class="col-xs-offset-3 col-sm-6">
 
 
-                        <!-- 						{% if user.is_authenticated and not CLL_READ_ONLY %} -->
-                            <!-- 							&nbsp;&nbsp; -->
-                            <!-- 							<span> -->
-                            <!-- 								<a {% if user_can_edit %}href="
-                                {% url 'phenotype_update' phenotype.id %}"{% endif %} class="btn btn-primary" -->
-                            <!-- 									{% if not user_can_edit %}
-                                 disabled {% endif %} > -->
-                            <!-- 									<i class="fa fa-edit" aria-hidden="true"></i> Edit phenotype -->
-                            <!-- 								</a> -->
-                            <!-- 							</span>						  -->
-                            <!-- 						{% endif %} -->
-                    </div>
-                </div>
 
 
-            </div>
 
 
-            <!--	-------------------------------------------------------------------
-                    PERMISSIONS
-                    -------------------------------------------------------------------
-              -->
-            {% if user.is_authenticated %}
-                <div class="col-sm-12 shadow-frame">
-                    <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
-                            id="permissions"></span><strong>Permissions</strong></h3>
 
 
-                    <!--					<div class="row" style="margin-top: 10px;">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <!--	-------------------------------------------------------------------
+                PERMISSIONS
+                -------------------------------------------------------------------
+          -->
+        {% if user.is_authenticated %}
+            <div class="col-sm-12 shadow-frame">
+                <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
+                        id="permissions"></span><strong>Permissions</strong></h3>
+
+
+                <!--	<div class="row" style="margin-top: 10px;">
 							<div  class="col-sm-3">Created by</div>
 							<div class="col-sm-3">
-								{{ phenotype.created_by_username }}
+								{{ entity.created_by_username }}
 							</div>
 							<div  class="col-sm-3 ">On</div>
 							<div class="col-sm-3">
-								{{ phenotype.created }}
+								{{ entity.created }}
 							</div>
 						</div>
 						<div class="row">
 							<div  class="col-sm-3">Modified by</div>
 							<div class="col-sm-3">
-								{{ phenotype.modified_by_username }}
+								{{ entity.modified_by_username }}
 							</div>
 							<div  class="col-sm-3">On</div>
 							<div class="col-sm-3">
-								{{ phenotype.modified }}
+								{{ entity.modified }}
 							</div>
 						</div>
 -->
 
-                        <div id="permissions" class="row">
-                            <div  class="col-sm-2">Owner</div>
-                            <div class="col-sm-4">
-                                <span>{{ phenotype.owner.username }}</span>
-                            </div>
-                            <div  class="col-sm-2">Owner access</div>
-                            
-                            <div class="col-sm-4">
-                                {% if phenotype.owner_access == 1 %}	
-                                    <span class="card-noweight">None</span>
-                                {% elif phenotype.owner_access == 2 %}
-                                    <span class="card-noweight">View only</span>
-                                {% elif phenotype.owner_access == 3 %}
-                                    <span class="card-noweight">View and edit</span>
-                                {% else %}
-                                    <span class="card-noweight">Unknown</span>
-                                {% endif %}
-                            </div>
+                    <div id="permissions" class="row">
+                        <div  class="col-sm-2">Owner</div>
+                        <div class="col-sm-4">
+                            <span>{{ entity.owner.username }}</span>
                         </div>
-                        <hr class="small-divider"/>
-                        <div id="permissions" class="row">
-                            <div  class="col-sm-2">Group</div>
-                            <div class="col-sm-4">
-                                {% if phenotype.group %}
-                                <span>{{ phenotype.group }}</span>
-                                {% else %}
-                                <span class="card-no-data">No associated group</span>
-                                {% endif %}
-                            </div>
-                            <div class="col-sm-2">Group access</div>
-                            <div class="col-sm-4">
-                                {% if phenotype.group_access == 1 %}	
-                                    <span class="card-noweight text-right">No Access</span>
-                                {% elif phenotype.group_access == 2 %}
-                                    <span class="card-noweight text-right">View only</span>
-                                {% elif phenotype.group_access == 3 %}
-                                    <span class="card-noweight text-right">View and edit</span>
-                                {% else %}
-                                    <span class="card-noweight text-right">Unknown</span>
-                                {% endif %}
-                            </div>
+                        <div  class="col-sm-2">Owner access</div>
+                        
+                        <div class="col-sm-4">
+                            {% if entity.owner_access == 1 %}	
+                                <span class="card-noweight">None</span>
+                            {% elif entity.owner_access == 2 %}
+                                <span class="card-noweight">View only</span>
+                            {% elif entity.owner_access == 3 %}
+                                <span class="card-noweight">View and edit</span>
+                            {% else %}
+                                <span class="card-noweight">Unknown</span>
+                            {% endif %}
                         </div>
-                        <hr class="small-divider"/>
-                        <div id="permissions" class="row">
-                            <div class="col-sm-2">All other users</div>
-                            <div class="col-sm-10">
-                                {% if phenotype.world_access == 1 %}	
-                                    <span>No access</span>
-                                {% elif phenotype.world_access == 2 %}
-                                    <span>View only</span>
-                                {% elif phenotype.world_access == 3 %}
-                                    <span>View and edit</span>
-                                {% else %}
-                                    
-                                {% endif %}
-                            </div>
+                    </div>
+                    <hr class="small-divider"/>
+                    <div id="permissions" class="row">
+                        <div  class="col-sm-2">Group</div>
+                        <div class="col-sm-4">
+                            {% if entity.group %}
+                            <span>{{ entity.group }}</span>
+                            {% else %}
+                            <span class="card-no-data">No associated group</span>
+                            {% endif %}
                         </div>
-
-                </div>
-            {% endif %}
-
-            <!--	-------------------------------------------------------------------
-                    api
-                    -------------------------------------------------------------------
-              -->
-            <div class="col-sm-12 no-print shadow-frame">
-                <h3 class="paneltitle" id="API_Header" style="margin-top:20px; margin-bottom:20px;"><span
-                        id="API"></span><strong>API</strong></h3>
-
-                <span id="api_id" phenotype_id="{{ phenotype.id }}">
-				<p> To Export Phenotype Details:</p>
-
-				<table class="table table-striped table-responsive-md table-flex-rows">
-				  <tr>
-					<th>Format</th>
-					<th>API</th>
-				  </tr>
-				  <tr>
-					<td>XML</td>
-					<td>
-					{% if user.is_authenticated %}
-                        <a href="{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=xml"
-                           target=_blank>site_root{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=xml</a>
-                    {% else %}
-                        <a href="{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=xml"
-                           target=_blank>site_root{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=xml</a>
-                    {% endif %}
-					</td>
-				  </tr>
-				  <tr>
-					<td>JSON</td>
-					<td>
-					{% if user.is_authenticated %}
-                        <a href="{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=json"
-                           target=_blank>site_root{% url 'api:api_phenotype_detail_version' phenotype.id phenotype.history_id %}?format=json</a>
-                    {% else %}
-                        <a href="{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=json"
-                           target=_blank>site_root{% url 'api:api_phenotype_detail_version_public' phenotype.id phenotype.history_id %}?format=json</a>
-                    {% endif %}
-					</td>
-				  </tr>
-                  <tr>
-                    <td>R Package</td>
-                    <td>
-                        <code class="api-codeblock">
-                            <p class="code-comment-highlight">
-                                # <a href="https://github.com/SwanseaUniversityMedical/ConceptLibraryClient">Download here</a>
-                            </p>
-                            <p class="code-general-highlight">
-                                library(ConceptLibraryClient)
-                            </p>
-                            <br>
-                            <p class="code-comment-highlight">
-                                # Connect to API
-                            </p>
-                            <p class="code-general-highlight">
-                                client = connect_to_API(public=<span class="code-value-highlight">{% if user.is_authenticated %}FALSE{% else %}TRUE{% endif %}</span>)
-                            </p>
-                            <br>
-                            <p class="code-comment-highlight">
-                                # Get details of phenotype
-                            </p>
-                            <p class="code-general-highlight">
-                                details = get_phenotype_detail_by_version(<span class="code-text-highlight">'{{ phenotype.id }}'</span>, 
-                                    <span class="code-text-highlight">'{{ phenotype.history_id }}'</span>, 
-                                    api_client=client)
-                            </p>
-                        </code>
-                    </td>
-                  </tr>
-				</table>
-				<p> To Export Phenotype Code List:</p>
-					<table class="table table-striped table-responsive-md table-flex-rows">
-				  <tr>
-					<th>Format</th>
-					<th>API</th>
-				  </tr>
-
-					  <tr>
-					<td>XML</td>
-					<td>
-					{% if user.is_authenticated %}
-                        <a href="{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=xml"
-                           target=_blank>site_root{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=xml</a>
-                    {% else %}
-                        <a href="{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=xml"
-                           target=_blank>site_root{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=xml</a>
-                    {% endif %}
-					</td>
-				  </tr>
-				  <tr>
-					<td>JSON</td>
-					<td>
-					{% if user.is_authenticated %}
-                        <a href="{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=json"
-                           target=_blank>site_root{% url 'api:api_export_phenotype_codes_byVersionID' phenotype.id phenotype.history_id %}?format=json</a>
-                    {% else %}
-                        <a href="{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=json"
-                           target=_blank>site_root{% url 'api:api_export_published_phenotype_codes' phenotype.id phenotype.history_id %}?format=json</a>
-                    {% endif %}
-					</td>
-
-				  </tr>
-				  <tr>
-					{% if user_can_export %}
-                        <tr>
-                        <td>CSV</td>
-                        <td>
-                        <a href="{% url 'history_phenotype_codes_to_csv' pk=phenotype.id phenotype_history_id=phenotype.history_id %}"
-                           target=_blank>site_root{% url 'history_phenotype_codes_to_csv' phenotype.id phenotype.history_id %}</a>
-                    {% endif %}
-                  </tr>
-                  <tr>
-                    <td>R Package</td>
-                    <td>
-                        <code class="api-codeblock">
-                            <p class="code-comment-highlight">
-                                # <a href="https://github.com/SwanseaUniversityMedical/ConceptLibraryClient">Download here</a>
-                            </p>
-                            <p class="code-general-highlight">
-                                library(ConceptLibraryClient)
-                            </p>
-                            <br>
-                            <p class="code-comment-highlight">
-                                # Connect to API
-                            </p>
-                            <p class="code-general-highlight">
-                                client = connect_to_API(public=<span class="code-value-highlight">{% if user.is_authenticated %}FALSE{% else %}TRUE{% endif %}</span>)
-                            </p>
-                            <br>
-                            <p class="code-comment-highlight">
-                                # Get codelists of phenotype
-                            </p>
-                            <p class="code-general-highlight">
-                                codelists = get_phenotype_code_list(<span class="code-text-highlight">'{{ phenotype.id }}'</span>, 
-                                <span class="code-text-highlight">'{{ phenotype.history_id }}'</span>, 
-                                api_client=client)
-                            </p>
-                        </code>
-                    </td>
-                  </tr>
-				</table>
-			</span>
-            </div>
-            <!--	----------------------------- --------------------------------------
-                    VERSION HISTORY
-                    -------------------------------------------------------------------
-              -->
-            <div class="col-sm-12 no-print shadow-frame" id="history-section">
-                <h3 class="paneltitle" id="ClinicalCodeHistory" style="margin-top:20px; margin-bottom:20px;"><span
-                        id="CodeListsVersions"></span><strong>Version History</strong></h3>
-
-
-                <span>
-	  	  		{% if user.is_authenticated %}
-                    <div class="row">
-					<div class="col-sm-11" id="help-phenotype-history-container">
-						
-					</div>
-					<div class="col-sm-1 text-right">
-						<a href="#" role="button" class="popovers" id="help-phenotype-history"
-                           data-container="#help-phenotype-history-container" data-toggle="popover" data-trigger="hover"
-                           title="" data-original-title="version history" data-placement="left">
-							<i class="fa fa-question-circle" aria-hidden="true"></i>
-						</a>
-					</div>
-				</div>
-                {% endif %}
-                    <div class="pre-scrollable">
-					{% include '../phenotype/partial_history_list.html' %}
-			   	    </div>	
-			</span>
+                        <div class="col-sm-2">Group access</div>
+                        <div class="col-sm-4">
+                            {% if entity.group_access == 1 %}	
+                                <span class="card-noweight text-right">No Access</span>
+                            {% elif entity.group_access == 2 %}
+                                <span class="card-noweight text-right">View only</span>
+                            {% elif entity.group_access == 3 %}
+                                <span class="card-noweight text-right">View and edit</span>
+                            {% else %}
+                                <span class="card-noweight text-right">Unknown</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <hr class="small-divider"/>
+                    <div id="permissions" class="row">
+                        <div class="col-sm-2">All other users</div>
+                        <div class="col-sm-10">
+                            {% if entity.world_access == 1 %}	
+                                <span>No access</span>
+                            {% elif entity.world_access == 2 %}
+                                <span>View only</span>
+                            {% elif entity.world_access == 3 %}
+                                <span>View and edit</span>
+                            {% else %}
+                                
+                            {% endif %}
+                        </div>
+                    </div>
 
             </div>
+        {% endif %}
+
+        <!--	-------------------------------------------------------------------
+                api
+                -------------------------------------------------------------------
+          -->
+        <div class="col-sm-12 no-print shadow-frame">
+            <h3 class="paneltitle" id="API_Header" style="margin-top:20px; margin-bottom:20px;"><span
+                     id="API"></span><strong>API</strong></h3>
+
+             <span id="api_id" entity_id="{{ entity.id }}">
+	<p> To Export Phenotype Details:</p>
+
+	<table class="table table-striped table-responsive-md table-flex-rows">
+	  <tr>
+		<th>Format</th>
+		<th>API</th>
+	  </tr>
+	  <tr>
+		<td>XML</td>
+		<td>
+		{% if user.is_authenticated %}
+                     <a href="{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=xml"
+                        target=_blank>site_root{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=xml</a>
+                 {% else %}
+                     <a href="{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=xml"
+                        target=_blank>site_root{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=xml</a>
+                 {% endif %}
+		</td>
+	  </tr>
+	  <tr>
+		<td>JSON</td>
+		<td>
+		{% if user.is_authenticated %}
+                     <a href="{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=json"
+                        target=_blank>site_root{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=json</a>
+                 {% else %}
+                     <a href="{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=json"
+                        target=_blank>site_root{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=json</a>
+                 {% endif %}
+		</td>
+	  </tr>
+               <tr>
+                 <td>R Package</td>
+                 <td>
+                     <code class="api-codeblock">
+                         <p class="code-comment-highlight">
+                             # <a href="https://github.com/SwanseaUniversityMedical/ConceptLibraryClient">Download here</a>
+                         </p>
+                         <p class="code-general-highlight">
+                             library(ConceptLibraryClient)
+                         </p>
+                         <br>
+                         <p class="code-comment-highlight">
+                             # Connect to API
+                         </p>
+                         <p class="code-general-highlight">
+                             client = connect_to_API(public=<span class="code-value-highlight">{% if user.is_authenticated %}FALSE{% else %}TRUE{% endif %}</span>)
+                         </p>
+                         <br>
+                         <p class="code-comment-highlight">
+                             # Get details of entity
+                         </p>
+                         <p class="code-general-highlight">
+                             details = get_phenotype_detail_by_version(<span class="code-text-highlight">'{{ entity.id }}'</span>, 
+                                 <span class="code-text-highlight">'{{ entity.history_id }}'</span>, 
+                                 api_client=client)
+                         </p>
+                     </code>
+                 </td>
+               </tr>
+	</table>
+	<p> To Export Phenotype Code List:</p>
+		<table class="table table-striped table-responsive-md table-flex-rows">
+	  <tr>
+		<th>Format</th>
+		<th>API</th>
+	  </tr>
+
+		  <tr>
+		<td>XML</td>
+		<td>
+		{% if user.is_authenticated %}
+                     <a href="{% url 'api:api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=xml"
+                        target=_blank>site_root{% url 'api:api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=xml</a>
+                 {% else %}
+                     <a href="{% url 'api:api_export_published_phenotype_codes' entity.id entity.history_id %}?format=xml"
+                        target=_blank>site_root{% url 'api:api_export_published_phenotype_codes' entity.id entity.history_id %}?format=xml</a>
+                 {% endif %}
+		</td>
+	  </tr>
+	  <tr>
+		<td>JSON</td>
+		<td>
+		{% if user.is_authenticated %}
+                     <a href="{% url 'api:api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=json"
+                        target=_blank>site_root{% url 'api:api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=json</a>
+                 {% else %}
+                     <a href="{% url 'api:api_export_published_phenotype_codes' entity.id entity.history_id %}?format=json"
+                        target=_blank>site_root{% url 'api:api_export_published_phenotype_codes' entity.id entity.history_id %}?format=json</a>
+                 {% endif %}
+		</td>
+
+	  </tr>
+	  <tr>
+		{% if user_can_export %}
+                     <tr>
+                     <td>CSV</td>
+                     <td>
+                     <a href="{% url 'history_phenotype_codes_to_csv' pk=entity.id phenotype_history_id=entity.history_id %}"
+                        target=_blank>site_root{% url 'history_phenotype_codes_to_csv' entity.id entity.history_id %}</a>
+                 {% endif %}
+               </tr>
+               <tr>
+                 <td>R Package</td>
+                 <td>
+                     <code class="api-codeblock">
+                         <p class="code-comment-highlight">
+                             # <a href="https://github.com/SwanseaUniversityMedical/ConceptLibraryClient">Download here</a>
+                         </p>
+                         <p class="code-general-highlight">
+                             library(ConceptLibraryClient)
+                         </p>
+                         <br>
+                         <p class="code-comment-highlight">
+                             # Connect to API
+                         </p>
+                         <p class="code-general-highlight">
+                             client = connect_to_API(public=<span class="code-value-highlight">{% if user.is_authenticated %}FALSE{% else %}TRUE{% endif %}</span>)
+                         </p>
+                         <br>
+                         <p class="code-comment-highlight">
+                             # Get codelists of entity
+                         </p>
+                         <p class="code-general-highlight">
+                             codelists = get_phenotype_code_list(<span class="code-text-highlight">'{{ entity.id }}'</span>, 
+                             <span class="code-text-highlight">'{{ entity.history_id }}'</span>, 
+                             api_client=client)
+                         </p>
+                     </code>
+                 </td>
+               </tr>
+	</table>
+</span>
+         </div>
+         <!--	----------------------------- --------------------------------------
+                VERSION HISTORY
+                -------------------------------------------------------------------
+          -->
+        <div class="col-sm-12 no-print shadow-frame" id="history-section">
+            <h3 class="paneltitle" id="ClinicalCodeHistory" style="margin-top:20px; margin-bottom:20px;"><span
+                     id="CodeListsVersions"></span><strong>Version History</strong></h3>
 
 
-            <!--	-------------------------------------------------------------------
-                    HELP POP-UP TEXTS
-                    -------------------------------------------------------------------
-              -->
-            {% if user.is_authenticated %}
-                <div id="popover-content-help-phenotype-history" class="hide popover-lg">
-                    <p>
-                        Every time you make any change to a phenotype it is audited.
-                    </p>
-                    <p>
-                        You can view a phenotype from a specific point in time by clicking the View link at the required
-                        save
-                        point.
-                    </p>
-                    <p>
-                        Within the view you can revert changes and restore a phenotype back to a specific point in time.
-                    </p>
-                    <p>
-                        You can fork and create a new phenotype from a specific point in time.
-                    </p>
-                </div>
-            {% endif %}
+             <span>
+	  		{% if user.is_authenticated %}
+                 <div class="row">
+		<div class="col-sm-11" id="help-entity-history-container">
+			
+		</div>
+		<div class="col-sm-1 text-right">
+			<a href="#" role="button" class="popovers" id="help-entity-history"
+                        data-container="#help-entity-history-container" data-toggle="popover" data-trigger="hover"
+                        title="" data-original-title="version history" data-placement="left">
+				<i class="fa fa-question-circle" aria-hidden="true"></i>
+			</a>
+		</div>
+	</div>
+             {% endif %}
+                 <div class="pre-scrollable">
+		{% include '../generic_entity/partial_history_list.html' %}
+   	    </div>	
+</span>
 
-            <div id="popover-content-help-hist-phenotype" class="hide popover-lg">
+         </div>
+
+
+         <!--	-------------------------------------------------------------------
+                HELP POP-UP TEXTS
+                -------------------------------------------------------------------
+          -->
+        {% if user.is_authenticated %}
+            <div id="popover-content-help-entity-history" class="hide popover-lg">
                 <p>
-                    <strong>Export</strong> - export all codes into a csv file/JSON/XML for the current phenotype
-                    version.
-                    {% if user.is_authenticated and not CLL_READ_ONLY %}
-                        The button will be disabled unless you have permission to view <b>all</b> of the concepts used.
-                    {% endif %}
+                    Every time you make any change to a entity it is audited.
                 </p>
+                <p>
+                    You can view a _entity from a specific point in time by clicking the View link at the required
+                    save
+                    point.
+                </p>
+                <p>
+                    Within the view you can revert changes and restore a entity back to a specific point in time.
+                </p>
+                <p>
+                    You can fork and create a new entity from a specific point in time.
+                </p>
+            </div>
+        {% endif %}
 
+        <div id="popover-content-help-hist-entity" class="hide popover-lg">
+            <p>
+                <strong>Export</strong> - export all codes into a csv file/JSON/XML for the current phenotype
+                version.
                 {% if user.is_authenticated and not CLL_READ_ONLY %}
-                    <!-- 				<p>
-                                        <strong>Edit</strong> - Edit phenotype.
-                                    </p>
-
-                                    <p>
-                                        <strong>Fork</strong> - This will take a copy of the historic phenotype version and create a new phenotype.
-                                    </p>
-
-                                    <p>
-                                        <strong>Revert</strong> - This will restore the phenotype back to this version.
-                                    </p> -->
-
-                    <p>
-                        <strong>Publish</strong> - This will publish the chosen version of the phenotype to the public.
-                        <br>Conditions to publish:
-                    <ul>
-                        <li>The phenotype is not deleted.</li>
-                        <li>You must be the owner.</li>
-                        <li>The phenotype contains exportable codes.</li>
-                        <li>All concepts are published.</li>
-                    </ul>
-                    </p>
-
+                    The button will be disabled unless you have permission to view <b>all</b> of the concepts used.
                 {% endif %}
+            </p>
+
+            {% if user.is_authenticated and not CLL_READ_ONLY %}
+                <!-- 				<p>
+                                    <strong>Edit</strong> - Edit.
+                                </p>
+
+                                <p>
+                                    <strong>Fork</strong> - This will take a copy of the historic phenotype version and create a new phenotype.
+                                </p>
+
+                                <p>
+                                    <strong>Revert</strong> - This will restore the phenotype back to this version.
+                                </p> -->
 
                 <p>
-                    <strong>Print</strong> - Print page.
+                    <strong>Publish</strong> - This will publish the chosen version of the phenotype to the public.
+                    <br>Conditions to publish:
+                <ul>
+                    <li>The entity is not deleted.</li>
+                    <li>You must be the owner.</li>
+                    <li>The entity contains exportable codes.</li>
+                    <li>All concepts are published.</li>
+                </ul>
                 </p>
 
-            </div>
+            {% endif %}
 
+            <p>
+                <strong>Print</strong> - Print page.
+            </p>
 
         </div>
+
+
     </div>
+</div>
 
 {% endblock container %}
 
@@ -1050,11 +762,11 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
 
         function getConceptsCodes(target_concept_id, target_concept_history_id) {
             if ($('#collapse_c' + target_concept_history_id).attr("codelist_loaded") === "0") {
-                // get the unique codes for the phenotype version
-                phenotype_id = $('#phenotype_id_div').attr("phenotype_id");
-                phenotype_history_id = $('#phenotype_history_id_div').attr("phenotype_history_id");
+                // get the unique codes for the entity version
+                phenotype_id = $('#entity_id_div').attr("entity_id");
+                phenotype_history_id = $('#entity_history_id_div').attr("entity_history_id");
 
-                dataService.getPhenotypeUniqueCodesByVersion(phenotype_id, phenotype_history_id, target_concept_id, target_concept_history_id, {{ force_highlight_result }}, function (data) {
+                dataService.get_ge_PhenotypeUniqueCodesByVersion(phenotype_id, phenotype_history_id, target_concept_id, target_concept_history_id, {{ force_highlight_result }}, function (data) {
                     showConceptsCodes(data.concept_codes_html, target_concept_id, target_concept_history_id);
                 });
 
@@ -1062,17 +774,6 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
                 $('#collapse_c' + target_concept_history_id).attr("codelist_loaded", "1");
 
             } else {
-//                 // Generate standard type of table in code list if not login
-//                 {% if not user.is_authenticated %}
-//                 	var table = $('.display-table');
-//                 	table.DataTable().destroy();
-//                     table.DataTable({
-// 			                        "searching": false,
-// 			                        "paging": false,
-//									"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]]
-// 			                    });
-//                 {% endif %}
-
             }
 
 
@@ -1112,7 +813,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
             // before printing hide all unnecessary elements from webpage
             $('.btn').hide();
             //$('#history-section').hide();
-            $('#PhenotypeMenu').hide();
+            $('#SideMenu').hide();
             $('#topButtons').hide();
             $('footer').hide();
             $('.popovers').hide();
@@ -1161,7 +862,7 @@ data-spy="scroll" data-target="#PhenotypeMenu" data-offset = "140"
         function printCallback() {
             // when printing is finished or cancel show all hidden elements
             //$('#history-section').show();
-            $('#PhenotypeMenu').show();
+            $('#SideMenu').show();
             $('#topButtons').show();
             $('footer').show();
             $('.btn').show();

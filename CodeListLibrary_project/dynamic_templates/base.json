@@ -52,7 +52,8 @@
          "citation_requirements": {
              "active": "0",
              "mandatory": "0",
-             "field_type": "textarea"
+             "field_type": "textarea",
+             "hide_if_empty": true
          }
      }
  }
