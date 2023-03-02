@@ -1,3 +1,7 @@
+/**
+  * stickifyTable
+  * @desc A function that makes a row's cells fixed in position (when scrolling) if they include the case '.sticky'
+  */
 const stickifyTable = (table) => {
   const rows = table.querySelectorAll('tr');
   for (let i = 0; i < rows.length; ++i) {

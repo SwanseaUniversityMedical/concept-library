@@ -1,5 +1,10 @@
 import FuzzyQuery from "./fuzzyQuery.js";
 
+/**
+  * updateNavBarStyle
+  * @desc Updates the navigation bar style from transparent to opaque dependent on whether the user has scrolled down the page
+  * @param {node} navbar The navigation bar element
+  */
 const updateNavBarStyle = (navbar) => {
   const y = window.scrollY;
   if (y >= navbar.offsetHeight/2 - navbar.offsetTop) {
@@ -11,10 +16,20 @@ const updateNavBarStyle = (navbar) => {
   }
 }
 
+/**
+  * computeBurgerProperty
+  * @desc Computes the --as-burger CSS property, see SCSS for further information
+  * @param {node} burger The hamburger element
+  * @returns The value of the computed property
+  */
 const computeBurgerProperty = (burger) => {
   return window.getComputedStyle(burger, ':after').getPropertyValue('--as-burger').replace(/[^\w!?]/g, '');
 }
 
+/**
+  * initHamburgerMenu
+  * @desc Initialises the hamburger menu for mobiles on the navigation bar
+  */
 const initHamburgerMenu = () => {
   const burger = document.querySelector('.page-navigation__buttons');
   const panel = burger.querySelector('.page-navigation__items');
@@ -42,6 +57,11 @@ const initHamburgerMenu = () => {
   })
 }
 
+/**
+  * setNavigation
+  * @desc Sets the navigation bar's buttons to active or inactive dependent on the URL of the page
+  * @param {node} navbar The navigation bar element
+  */
 const setNavigation = (navbar) => {
   const links = navbar.querySelectorAll('.page-navigation__items a');
 

@@ -10,17 +10,37 @@ const TAGIFY__KEYCODES = {
 };
 
 const TAGIFY__TAG_OPTIONS = {
-  'autocomplete': false,
-  'useValue': false,
-  'allowDuplicates': false,
-  'restricted': false,
+  /* A predefined list of tags that can be used for autocomplete, or to control the input provided by the user */
   'items': [ ],
+  /* Whether to use the value or the name keys for autocomplete and tag selected components */
+  'useValue': false,
+  /* Whether to perform autocomplete from a predefined list of items */
+  'autocomplete': false,
+  /* Whether to allow users to input duplicate tags */
+  'allowDuplicates': false,
+  /* Determines whether the user is restricted to the items within the predefined items list, or can input their own */
+  'restricted': false,
 };
 
+/**
+  * Tagify
+  * @desc A class that transforms an input field into a tag component
+  * @param {string/node} obj The ID of the input element or the input element itself.
+  * @param {object} options An object that defines any of the optional parameters as described within TAGIFY__TAG_OPTIONS
+  * @return {object} An interface to control the behaviour of the tag component.
+  */
 export default class Tagify {
-  constructor(id, options) {
-    this.id = id;
-    this.element = document.getElementById(id);
+  constructor(obj, options) {
+    if (typeof obj === 'string') {
+      this.id = id;
+      this.element = document.getElementById(id);
+    } else {
+      this.element = document.getElementById(id);
+      
+      if (typeof this.element !== 'undefined') {
+        this.id = this.element.getAttribute('id');
+      }
+    }
     this.isBackspace = false;
     this.tags = [ ];
     this.currentFocus = -1;
@@ -29,7 +49,10 @@ export default class Tagify {
     this.#initialise();
   }
 
-  // Public
+  /* Adds a tag to the current list of tags */
+  /** @param {string} name The name of the tag to add */
+  /** @param {any} value The value of the tag to add */
+  /** @return {object} Returns a tag object */
   addTag(name, value) {
     if (this.options.restricted) {
       const index = this.options.items.map(e => e.name.toLocaleLowerCase()).indexOf(name.toLocaleLowerCase());
@@ -58,6 +81,8 @@ export default class Tagify {
     return tag;
   }
   
+  /* Removes a tag from the current list of tags */
+  /** @param {object} tag The tag to remove */
   removeTag(tag) {
     const name = tag.querySelector('.tag__name');
     this.tagbox.removeChild(tag);
@@ -68,6 +93,7 @@ export default class Tagify {
     this.#updateElement();
   }
 
+  /* Destroys the tagify component, but not the element itself */
   destroy() {
     if (this.tagbox) {
       this.tagbox.parentNode.removeChild(this.tagbox);
@@ -76,7 +102,7 @@ export default class Tagify {
     delete this;
   }
 
-  // Handlers
+  // Private methods
   #onClick(e) {
     e.preventDefault();
 
@@ -174,7 +200,6 @@ export default class Tagify {
 
   }
 
-  // Private
   #createTag(name, value) {
     const tag = createElement('div', {
       'className': 'tag',

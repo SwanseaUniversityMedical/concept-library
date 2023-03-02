@@ -5,6 +5,12 @@ const TRANSITION_METHODS = {
   'MozTransition': 'mozTransitionEnd',
 };
 
+/**
+  * deepCopy
+  * @desc Performs a deep clone of the object i.e. recursive clone
+  * @param {object} obj The object to clone
+  * @returns {object} The cloned object
+  */
 const deepCopy = (obj) => {
   let clone = { };
   for (var i in obj) {
@@ -19,6 +25,13 @@ const deepCopy = (obj) => {
   return clone;
 }
 
+/**
+  * mergeObjects
+  * @desc Merges two objects together where the first object takes precedence (i.e., it's not overriden)
+  * @param {object} a An object to clone that takes precedence
+  * @param {object} b The object to clone
+  * @returns {object} The cloned object
+  */
 const mergeObjects = (a, b) => {
   Object.keys(b).forEach(key => {
     if (!(key in a))
@@ -28,8 +41,17 @@ const mergeObjects = (a, b) => {
   return a;
 }
 
+/**
+  * matchesSelector
+  * @desc Tests whether an element's target matches a selector and calls a callback
+  */
 const matchesSelector = selector => callback => e => e.target.matches(selector) && callback(e);
 
+/**
+  * getTransitionMethod
+  * @desc Finds the relevant transition method of the explorer
+  * @returns {object} The transition method
+  */
 const getTransitionMethod = () => {
   const root = document.documentElement;
   for (let method in TRANSITION_METHODS) {
@@ -41,6 +63,13 @@ const getTransitionMethod = () => {
   return undefined;
 }
 
+/**
+  * createElement
+  * @desc Creates an element
+  * @param {string} tag The node tag e.g. div
+  * @param {object} attributes The object's attributes
+  * @returns {node} The created element
+  */
 const createElement = (tag, attributes) => {
   let element = document.createElement(tag);
   if (attributes != null) {
@@ -56,6 +85,13 @@ const createElement = (tag, attributes) => {
   return element;
 }
 
+/**
+  * isScrolledIntoView
+  * @desc Checks whether an element is scrolled into view
+  * @param {node} elem The element to examine
+  * @param {number} offset An offset modifier (if required)
+  * @returns {boolean}
+  */
 const isScrolledIntoView = (elem, offset = 0) => {
   const rect = elem.getBoundingClientRect();
   const elemTop = rect.top;
@@ -68,6 +104,13 @@ const isScrolledIntoView = (elem, offset = 0) => {
   return (elemTop >= 0) && (elemBottom <= window.innerHeight);
 }
 
+/**
+  * elementScrolledIntoView
+  * @desc A promise that resolves when an element is scrolled into view
+  * @param {node} elem The element to examine
+  * @param {number} offset An offset modifier (if required)
+  * @returns {promise}
+  */
 const elementScrolledIntoView = (elem, offset = 0) => {
   return new Promise(resolve => {
     const handler = (e) => {
@@ -81,6 +124,11 @@ const elementScrolledIntoView = (elem, offset = 0) => {
   });
 }
 
+/**
+  * getCookie
+  * @desc Gets the CSRF token
+  * @reference https://docs.djangoproject.com/en/4.1/howto/csrf/
+  */
 const getCookie = (name) => {
   let cookieValue = null;
   if (document.cookie && document.cookie !== '') {
@@ -97,14 +145,29 @@ const getCookie = (name) => {
   return cookieValue;
 };
 
+/**
+  * getCurrentHost
+  * @desc Returns the current protocol and host
+  * @returns {string} e.g. http://google.com
+  */
 const getCurrentHost = () => window.location.protocol + '//' + window.location.host;
 
+/**
+  * getCurrentPath
+  * @desc Returns the path without the protocol and host e.g. http://google.com/some/location is now /some/location/
+  * @returns {string} e.g. /some/location
+  */
 const getCurrentPath = () => {
   let path = window.location.pathname;
   path = path.replace(/\/$/, '');
   return decodeURIComponent(path);
 }
 
+/**
+  * domReady
+  * @desc A promise that resolves when the DOM is ready
+  * @returns {promise}
+  */
 const domReady = new Promise(resolve => {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', resolve);

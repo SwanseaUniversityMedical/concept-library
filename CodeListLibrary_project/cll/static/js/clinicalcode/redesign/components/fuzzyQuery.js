@@ -1,15 +1,25 @@
+/**
+  * FuzzyQuery
+  * @desc A static class that uses Levenshtein distance to search a haystack.
+  */
 export default class FuzzyQuery {
+  /** @desc Transformers are preprocessors that modify both the haystack and needle prior to fuzzy matching */
   static Transformers = {
     IgnoreCase: (s) => {
       return s.toLocaleLowerCase();
     }
   }
 
+  /** @desc Whether to sort the result items by their score */
   static Results = {
     LIST: 0,
     SORT: 1,
   }
 
+  /* A static method to match a needle in a haystack */
+  /** @param {string} haystack The string to match with */
+  /** @param {string} needle The string to compare */
+  /** @return {boolean} A boolean that represents whether the needle was matched */
   static Match(haystack, needle) {
     const hlen = haystack.length;
     const nlen = needle.length;
@@ -41,6 +51,10 @@ export default class FuzzyQuery {
     return true;
   }
 
+  /* A static method to measure the Levenshtein distance between two strings */
+  /** @param {string} haystack The string to match with */
+  /** @param {string} needle The string to compare */
+  /** @return {number} The distance between the strings */
   static Distance(haystack, needle) {
     const hlen = haystack.length;
     const nlen = needle.length;
@@ -69,6 +83,12 @@ export default class FuzzyQuery {
     return matrix[nlen][hlen];
   }
 
+  /* A static method to measure the Levenshtein distance between two strings */
+  /** @param {array} haystack An array of haystacks to match with */
+  /** @param {string} query The string to compare */
+  /** @param {number} sort Whether to sort, per the FuzzyQuery.Results enum */
+  /** @param {function} transformer The preprocessing function, per the FuzzyQuery.Transformers enum */
+  /** @return {array} An array of matches */
   static Search(haystack = [], query = '', sort = 1, transformer = null) {
     query = String(query);
     sort = Boolean(sort);
