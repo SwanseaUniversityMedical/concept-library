@@ -6,6 +6,8 @@ from clinicalcode.permissions import allowed_to_edit, allowed_to_view, checkIfPu
 from django.contrib.auth.models import  User
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
+from ..models import *
+from ..permissions import *
 
 def form_validation(request, data, entity_history_id, pk,entity,checks):
     """
@@ -141,27 +143,21 @@ def checkEntityToPublish(request,pk,entity_history_id):
     entity_ver = GenericEntity.history.get(id=pk, history_id=entity_history_id)
     is_published = checkIfPublished(GenericEntity, pk, entity_history_id)
     approval_status = get_publish_approval_status(GenericEntity, pk, entity_history_id)
-    is_lastapproved = len(PublishedGenericEntity.objects.filter(workingset=GenericEntity.objects.get(pk=pk).id, approval_status=2)) > 0
-    other_pending = len(PublishedGenericEntity.objects.filter(workingset=GenericEntity.objects.get(pk=pk).id, approval_status=1)) > 0
+    is_lastapproved = len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=2)) > 0
+    other_pending = len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=1)) > 0
 
     # get historical version by querying SQL command from DB
-    entity = generic_entity_db_utils.getHistoryGenericEntity(entity_history_id,
-                                                                   highlight_result=[False, True][
-                                                                       generic_entity_db_utils.is_referred_from_search_page(request)],
-                                                                   q_highlight=generic_entity_db_utils.get_q_highlight(request,
-                                                                                                        request.session.get(
-                                                                                                            'ph_workingset_search',
-                                                                                                            ''))
+    entity = generic_entity_db_utils.get_historical_entity(entity_history_id
+                                            , highlight_result = [False, True][generic_entity_db_utils.is_referred_from_search_page(request)]
+                                            , q_highlight = generic_entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))  
+                                            )
                                                                                                             
-                                                                   )
-    
-    if entity.layout == 1:
+                                                                   
+
+    if entity['layout']== 1 or entity['layout']== 3:
          has_childs, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
-        checkChildren(request,generic_entity_db_utils.getHistoryGenericEntity(entity_history_id))
-    elif entity.layout == 2:
-         has_childs, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
-        checkChildren(request,generic_entity_db_utils.getHistoryGenericEntity(entity_history_id))
-    elif entity.layout == 3:
+        checkChildren(request,generic_entity_db_utils.get_historical_entity(entity_history_id))
+    else:
         has_childs, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
         checkChildConcept(request,entity_history_id)
     
@@ -171,7 +167,8 @@ def checkEntityToPublish(request,pk,entity_history_id):
         allow_to_publish = False
 
     #check if table is not empty
-    entity_has_data = len(GenericEntity.history.get(id=pk, history_id=entity_history_id).phenotypes_concepts_data) > 0
+    table_ofEntity = lambda entity_type:  'concept_informations' if entity_type==1  else 'workingset_concept_informations'
+    entity_has_data = len(GenericEntity.history.get(id=pk, history_id=entity_history_id).template_data[table_ofEntity(entity['layout'])]) > 0
     if not entity_has_data:
         allow_to_publish = False
 
@@ -204,12 +201,12 @@ def checkChildren(request,entity):
         @return: collection of boolean conditions
         """
 
-        if entity.layout == 1:
+        if entity['layout']== 1:
             name_table = 'concept_informations'
             child_id = 'concept_id'
             child_version_id = 'concept_version_id'
             name_child = 'concept'
-        elif entity.layout == 3:
+        elif entity['layout'] == 3:
             name_table = 'workingset_concept_informations'
             child_id = 'phenotype_id'
             child_version_id = 'phenotype_version_id'
@@ -299,10 +296,10 @@ def get_history_table_data(request, pk):
     historical_versions = []
 
     for v in versions:
-        ver = generic_entity_db_utils.getHistoryGenericEntity(v.history_id
-                                                     , highlight_result=[False, True][generic_entity_db_utils.is_referred_from_search_page(request)]
-                                                     , q_highlight=generic_entity_db_utils.get_q_highlight(request, request.session.get('search', ''))
-                                                     )
+        ver = generic_entity_db_utils.get_historical_entity(v.istory_id
+                                            , highlight_result = [False, True][generic_entity_db_utils.is_referred_from_search_page(request)]
+                                            , q_highlight = generic_entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))  
+                                            )
 
         if ver['owner_id'] is not None:
             ver['owner'] = User.objects.get(id=int(ver['owner_id']))
