@@ -74,6 +74,7 @@
       outline: none;
     }
     
+    /* Accent */
     &.primary-accent {
       background-color: col(accent-primary);
     }
@@ -91,6 +92,46 @@
     }
     &.bright-accent {
       background-color: col(accent-bright);
+    }
+    &.dark-accent {
+      background-color: col(accent-dark);
+    }
+
+    /* Outline */
+    &.primary-outline {
+      border-width: 1px;
+      border-style: solid;
+      border-color: col(accent-primary);
+    }
+    &.secondary-outline {
+      border-width: 1px;
+      border-style: solid;
+      border-color: col(accent-secondary);
+    }
+    &.tertiary-outline {
+      border-width: 1px;
+      border-style: solid;
+      border-color: col(accent-tertiary);
+    }
+    &.washed-outline {
+      border-width: 1px;
+      border-style: solid;
+      border-color: col(accent-washed);
+    }
+    &.bubble-outline {
+      border-width: 1px;
+      border-style: solid;
+      border-color: col(accent-bubble);
+    }
+    &.dark-outline {
+      border-width: 1px;
+      border-style: solid;
+      border-color: col(accent-dark);
+    }
+    &.bright-outline {
+      border-width: 1px;
+      border-style: solid;
+      border-color: col(accent-bright);
     }
   }
 }

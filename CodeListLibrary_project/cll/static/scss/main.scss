@@ -8,6 +8,7 @@
 @import 'components/_breadcrumbs';
 @import 'components/_stepsWizard';
 @import 'components/_inputs';
+@import 'components/_cards';
 @import 'components/_buttons';
 @import 'components/_tags';
 @import 'components/_chips';
@@ -87,8 +88,8 @@ body {
   }
 }
 
-/// Phenotype search article
-///   @desc will be moved into a page file later on
+/// Phenotype search article - will be moved into a page file later on, 
+///   @desc currently used by single search page
 .search-banner {
   @include flex-col();
   background-color: var(--phenotype-banner-bg-color);
@@ -119,11 +120,30 @@ body {
 
     @include media("<desktop", "screen") {
       width: 250px;
+      padding: 1rem 0 2rem 0;
     }
 
     /* Override search field size */
     .search-container__field {
-      height: 50px;
+      height: 3rem;
+    }
+  }
+
+  &__cards {
+    @include flex-col();
+    padding: 0 0 2rem;
+    align-self: center;
+
+    @include media(">phone", "screen") {
+      width: 300px;
+    }
+
+    @include media(">=tablet", "screen") {
+      width: 900px;
+    }
+
+    @include media(">=desktop", "screen") {
+      width: 80%;
     }
   }
 }

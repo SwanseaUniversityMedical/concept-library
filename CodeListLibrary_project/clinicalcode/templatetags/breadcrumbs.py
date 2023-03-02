@@ -17,7 +17,7 @@ def generate_breadcrumbs(crumbs, header=False):
     return output
 
   if header:
-    output += '<header>'
+    output += '<header class="breadcrumb-header">'
   
   output += '<section class="breadcrumbs">'
   for i, crumb in enumerate(crumbs):

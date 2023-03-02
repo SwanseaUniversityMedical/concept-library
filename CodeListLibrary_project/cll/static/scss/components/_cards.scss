@@ -1,0 +1,147 @@
+/// Horizontal stack of cards
+///   @desc Stacks cards horizontally
+.hstack-cards {
+  @include flex-row($gap: 0rem);
+  align-items: baseline;
+  flex-flow: row wrap;
+
+  &-justify-content-space-evenly {
+    justify-content: space-evenly;
+  }
+}
+
+/// Referral card
+///   @desc Flexible container used to refer users to other pages and/or content
+.referral-card {
+  @include prefix(transition, all 250ms ease, webkit moz o);
+  @include flex-col();
+  cursor: pointer;
+  word-wrap: break-word;
+  margin: 1rem;
+  padding: 1rem 1rem;
+  background-clip: border-box;
+  min-width: 0;
+  height: auto;
+  max-width: 300px;
+
+  &:hover {
+    @include prefix(transform, scale(1.05), webkit moz o);
+  }
+
+  &:active,
+  &__title:active {
+    @include prefix(transform, scale(0.98), webkit moz o);
+  }
+
+  &__header {
+    @include flex-col();
+    margin: 0;
+  }
+
+  &__title {
+    @include clear-anchor();
+    color: var(--referral-card-anchor-color);
+    font-weight: bold;
+    font-size: 18px;
+
+    &-icon::after {
+      content: '\f061';
+      cursor: pointer;
+      margin-left: 0.25rem;
+      pointer-events: auto;
+      aspect-ratio: 1 / 1;
+      font-family: var(--icons-name);
+      font-style: var(--icons-style);
+      font-size: var(--icons-size);
+      color: var(--referral-card-anchor-color);
+      text-align: center;
+    }
+  }
+
+  &__body {
+    @include flex-col();
+    flex: 1 1 auto;
+  }
+
+  &__footer {
+    @include flex-col();
+    margin: 0 0 1rem 0;
+  }
+  
+  /* Style modifiers */
+  &-fill-area {
+    flex: 1 1 auto;
+  }
+
+  &-fit-content {
+    min-width: fit-content;
+  }
+
+  &-shadow {
+    @include box-shadow(0px, 5px, 10px, var(--card-shadow-color));
+  }
+
+  &-border-radius {
+    border-radius: var(--card-border-radius);
+  }
+
+  /* Outline */
+  &.primary-outline {
+    border-width: 1px;
+    border-style: solid;
+    border-color: col(accent-primary);
+  }
+  &.secondary-outline {
+    border-width: 1px;
+    border-style: solid;
+    border-color: col(accent-secondary);
+  }
+  &.tertiary-outline {
+    border-width: 1px;
+    border-style: solid;
+    border-color: col(accent-tertiary);
+  }
+  &.washed-outline {
+    border-width: 1px;
+    border-style: solid;
+    border-color: col(accent-washed);
+  }
+  &.bubble-outline {
+    border-width: 1px;
+    border-style: solid;
+    border-color: col(accent-bubble);
+  }
+  &.dark-outline {
+    border-width: 1px;
+    border-style: solid;
+    border-color: col(accent-dark);
+  }
+  &.bright-outline {
+    border-width: 1px;
+    border-style: solid;
+    border-color: col(accent-bright);
+  }
+
+  /* Accents */
+  &.primary-accent {
+    background-color: col(accent-primary);
+  }
+  &.secondary-accent {
+    background-color: col(accent-secondary);
+  }
+  &.tertiary-accent {
+    background-color: col(accent-tertiary);
+  }
+  &.washed-accent {
+    background-color: col(accent-washed);
+  }
+  &.bubble-accent {
+    background-color: col(accent-bubble);
+  }
+  &.bright-accent {
+    background-color: col(accent-bright);
+  }
+  &.dark-accent {
+    background-color: col(accent-dark);
+  }
+}

@@ -166,7 +166,7 @@
     &.washed-outline {
       border-color: col(accent-washed);
     }
-    &.purple-outline {
+    &.bubble-outline {
       border-color: col(accent-bubble);
     }
   }
@@ -318,7 +318,7 @@
       --accent-color: var(--color-accent-washed);
       border-color: col(accent-washed);
     }
-    &.purple-outline {
+    &.bubble-outline {
       --accent-color: var(--color-accent-bubble);
       border-color: col(accent-bubble);
     }

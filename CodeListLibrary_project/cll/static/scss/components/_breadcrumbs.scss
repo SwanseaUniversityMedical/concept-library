@@ -2,6 +2,20 @@
 @import '../_variables';
 @import '../_utils';
 
+/// Breadcrumb header
+///   @desc Used when an offset main-header isn't necessary, called by breadcrumbs.py if useHeader=True
+.breadcrumb-header {
+  @include flex-col();
+  min-height: fit-content;
+  max-width: 100%;
+  padding: 0 var(--main-gutter) 0 var(--main-gutter);
+
+  @include media("<desktop", "screen") {
+    padding-right: var(--main-mobile-gutter);
+    padding-left: var(--main-mobile-gutter);
+  }
+}
+
 /// Breadcrumbs
 ///   @desc Used exclusively for breadcrumbs.py to present the breadcrumbs for each individual page
 .breadcrumbs {

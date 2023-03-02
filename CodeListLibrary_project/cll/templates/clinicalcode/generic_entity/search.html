@@ -9,23 +9,47 @@
 
 {% block container %}
 <header class="main-header search-banner">
-  <div class="search-banner">
-    <div class="search-banner__header">
-      <h2 class="search-banner__title">Generic Entity</h2>
-    </div>
-    <div class="search-banner__container">
-      <fieldset class="search-container">
-        <input type="text" placeholder="Search..." class="search-container__field bright-accent" />
-      </fieldset>
+  <div class="search-banner__header">
+    <h2 class="search-banner__title">Generic Entity</h2>
+  </div>
+  <div class="search-banner__container">
+    <fieldset class="search-container">
+      <input type="text" placeholder="Search..." class="search-container__field bright-accent washed-outline" />
+    </fieldset>
+  </div>
+  <div class="search-banner__cards">
+    <div class="hstack-cards hstack-cards-justify-content-space-evenly">
+      <article class="referral-card referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius">
+        <div class="referral-card__header">
+          <a class="referral-card__title" href="#">My Collection <span class="referral-card__title-icon"></span></a>
+        </div>
+        <div class="referral-card__body">
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+        </div>
+      </article>
+      <article class="referral-card referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius">
+        <div class="referral-card__header">
+          <a class="referral-card__title" href="#">Create an Entity <span class="referral-card__title-icon"></span></a>
+        </div>
+        <div class="referral-card__body">
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+        </div>
+      </article>
+      <article class="referral-card referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius">
+        <div class="referral-card__header">
+          <a class="referral-card__title" href="#">Compare Entities <span class="referral-card__title-icon"></span></a>
+        </div>
+        <div class="referral-card__body">
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+        </div>
+      </article>
     </div>
   </div>
 </header>
-<header class="main-header">
-  <div class="main-header__inner-container">
-    {% breadcrumbs useMap=False includeHome=True includeHeader=True %}
-    {% endbreadcrumbs %}
-  </div>
-</header>
+
+{% breadcrumbs useMap=False includeHome=True includeHeader=True %}
+{% endbreadcrumbs %}
+
 <main class="main-content">
   <!-- any other content -->
   <div class="main-content__inner-container">
