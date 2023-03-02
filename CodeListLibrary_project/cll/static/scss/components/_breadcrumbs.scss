@@ -1,0 +1,112 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_utils';
+
+/// Breadcrumb header
+///   @desc Used when an offset main-header isn't necessary, called by breadcrumbs.py if useHeader=True
+.breadcrumb-header {
+  @include flex-col();
+  min-height: fit-content;
+  max-width: 100%;
+  padding: 0 var(--main-gutter) 0 var(--main-gutter);
+
+  @include media("<desktop", "screen") {
+    padding-right: var(--main-mobile-gutter);
+    padding-left: var(--main-mobile-gutter);
+  }
+}
+
+/// Breadcrumbs
+///   @desc Used exclusively for breadcrumbs.py to present the breadcrumbs for each individual page
+.breadcrumbs {
+  @include flex-row($gap: 0.5rem);
+  
+  color: var(--breadcrumb-color);
+  margin: 1rem 0 0.5rem 0;
+  padding: 0.5rem 0.5rem 0rem 0rem;
+  padding: 0;
+
+  a, a:visited {
+    @include clear-anchor();
+    @include app-font-style();
+
+    color: var(--breadcrumb-color);
+    transition: color 250ms ease-in-out, background 250ms ease-in-out;
+  }
+
+  .breadcrumb-item {
+    display: inline-flex;
+    position: relative;
+    flex: 0 auto;
+    flex-shrink: 1000;
+    color: var(--breadcrumb-color);
+    transition: transform 250ms ease-in-out, color 250ms ease;
+
+    .marker {
+      padding-right: 1rem;
+
+      &:after {
+        content: '\f105';
+        position: absolute;
+        top: 0.15rem;
+        color: var(--breadcrumb-color);
+        font-family: var(--icons-name);
+        font-style: var(--icons-style);
+        transition: transform 250ms ease-in-out;
+      }
+    }
+
+    &:hover {
+      opacity: 1;
+      color: var(--breadcrumb-hover-color);
+      transform: translateY(-2px);
+      -webkit-transform: translateY(-2px);
+      
+      a {
+        color: var(--breadcrumb-hover-color);
+        font-weight: bold;
+      }
+
+      .marker:after {
+        transform: translateX(2px);
+        -webkit-transform: translateX(2px);
+        transition: transform 250ms ease-in-out;
+      }
+    }
+
+    &:active {
+      transform: scale(0.99);
+      -webkit-transform: scale(0.99);
+    }
+
+    &:first-child {
+      flex: 0 0 auto;
+      flex-shrink: 0.5;
+      padding-left: 0;
+
+      .marker {
+        display: none;
+      }
+    }
+
+    &:last-child {
+      flex: 1 0 auto;
+      color: var(--breadcrumb-hover-color);
+      
+      a {
+        color: var(--breadcrumb-hover-color);
+        font-weight: var(--breadcrumb-active-weight);
+      }
+
+      .marker:after {
+        color: var(--breadcrumb-hover-color);
+        font-weight: normal;
+      }
+
+      &:hover {
+        transform: none;
+        -webkit-transform: none;
+      }
+    }
+  }
+}

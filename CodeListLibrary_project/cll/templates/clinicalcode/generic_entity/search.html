@@ -1,0 +1,44 @@
+{% extends "base_scss.html" %}
+
+{% load static %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+{% block title %}| Create a Phenotype{% endblock title %}
+
+{% block container %}
+
+<!-- Include search banner component -->
+{% include "components/search/search_banner.html" with query=False %}
+
+<!-- Include breadcrumb component -->
+{% breadcrumbs useMap=False includeHome=True includeHeader=True %}
+{% endbreadcrumbs %}
+
+<main class="main-content">
+  <div class="main-content__inner-container">
+    <!-- Main search page -->
+    <div class="search-page">
+      <!-- Rendered filter components -->
+      <aside class="side-search-filters">
+        <div class="side-search-filters__header">
+          <h3>Filter By</h3>
+        </div>
+        <div class="side-search-filters__container">
+
+        </div>
+      </aside>
+
+      <!-- Rendered cards - will iterate over each entity -->
+      <section class="search-results-list">
+        {% render_entity_card with entity=1 %}
+      </section>
+    </div>
+
+    <!-- Pagination -->
+    
+  </div>
+</main>
+
+{% endblock container %}

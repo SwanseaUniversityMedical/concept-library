@@ -1,0 +1,73 @@
+{% load static %}
+{% load sass_tags %}
+{% load mathfilters %}
+{% load i18n %}
+{% load cl_extras %}
+
+<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}
+{% if request.CURRENT_BRAND|length %}
+<html data-brand="{{ request.CURRENT_BRAND }}" lang="{{ LANGUAGE_CODE }}">
+{% else %}
+<html data-brand="none" lang="{{ LANGUAGE_CODE }}">
+{% endif %}
+  <head>
+    <!-- Metadata incl. robots -->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block description %}{% if not request.CURRENT_BRAND|length %}The concept library is a system for storing, managing, sharing, and documenting clinical code lists in health research.{% endif %}{% endblock description %}">
+    <meta name="keywords" content="Concept Library{% if request.CURRENT_BRAND|length and request.BRAND_OBJECT.site_title is not none %}, {{ request.BRAND_OBJECT.site_title }}{% endif %}{% block keywords %}{% endblock keywords %}">
+    {% block idexing_robots %}
+    {% if IS_DEMO or IS_DEVELOPMENT_PC or IS_HDRUK_EXT == '0' %}
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    {% endif %} 
+    {% endblock idexing_robots %}
+		{% if IS_HDRUK_EXT == '1' %}
+    <meta name="google-site-verification" content="biC6kLWuhP7ueREgE_hr5cRrNySiBakPwmHvEe0L2Xs" />
+    {% endif %} 
+
+    {% block canonical_path %}
+    <link rel="canonical" href="{{ CANONICAL_PATH }}" />
+    {% endblock canonical_path %}
+
+    <link rel="icon" href="data:,">
+
+    <!-- Stylesheets -->
+    <link href="{% sass_src 'scss/main.scss' %}" rel="stylesheet" type="text/css" />
+
+    <!-- Scripts -->
+    <script type="text/javascript" src="{% static "js/clinicalcode/redesign/utils.js" %}"></script>
+
+    <!-- Page details -->
+    <title>
+      {% if request.CURRENT_BRAND|length and request.BRAND_OBJECT.site_title is not none %}
+        {{ request.BRAND_OBJECT.site_title }}
+      {% else %}
+        Concept Library
+      {% endif %} 
+      {% block title %}{% endblock title %}
+    </title>
+
+		{% block head %}{% endblock head %}
+  </head>
+  <body class="{% block bodyclass %}{% endblock bodyclass %}">
+    {% block navigation_wrapper %}
+      {% if not hide_navigation %}
+        {% include "components/base/navigation.html" %}
+      {% endif %}
+    {% endblock navigation_wrapper %}
+
+    {% block container %}
+      <!-- Page Content -->
+
+    {% endblock container %}
+
+    {% block footer_wrapper %}
+      {% if not hide_footer %}
+        {% include "components/base/footer.html" %}
+      {% endif %}
+    {% endblock footer_wrapper %}
+  </body>
+</html>

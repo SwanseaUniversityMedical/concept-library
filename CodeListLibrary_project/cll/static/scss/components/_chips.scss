@@ -1,0 +1,203 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+/// Meta chips
+///   @desc e.g. used for metadata chips/tags etc
+.meta-chip {
+  @include flex-row();
+  align-items: center;
+  gap: 0 0.2rem;
+  background-color: var(--base-metachip-bg-color);
+  border-radius: 0.1rem;
+  padding: 0.25rem 0.5rem;
+
+  &-shadow {
+    @include box-shadow(0, 0.1rem, 0.2rem, rgba(0, 0, 0, 0.2));
+  }
+
+  &__name {
+    color: col(text-brightest);
+
+    &-bold {
+      font-weight: bold;
+    }
+
+    &-text-accent-darkest {
+      color: col(text-darkest);
+    }
+
+    &-text-accent-darker {
+      color: col(text-darker);
+    }
+
+    &-text-accent-dark {
+      color: col(text-dark);
+    }
+
+    &-text-accent-washed {
+      color: col(text-washed);
+    }
+  
+    &-text-accent-brightest {
+      color: col(text-brightest);
+    }
+  }
+
+  &-primary-accent {
+    background-color: col(accent-primary);
+  }
+  &-secondary-accent {
+    background-color: col(accent-secondary);
+  }
+  &-tertiary-accent {
+    background-color: col(accent-tertiary);
+  }
+  &-washed-accent {
+    background-color: col(accent-washed);
+  }
+  &-bubble-accent {
+    background-color: col(accent-bubble);
+  }
+  &-bright-accent {
+    background-color: col(accent-bright);
+  }
+  &-dark-accent {
+    background-color: col(accent-dark);
+  }
+}
+
+/// Chips
+///   @desc e.g. used to make selections, filter content, trigger actions or present small tag-like information
+.chips-group {
+  @include flex-row($gap: 0.5rem);
+
+	margin: 0;
+	padding: 0;
+	list-style-type: none;
+}
+
+.chip {
+  --accent-color: var(--color-accent-washed);
+  --text-color: var(--color-text-darkest);
+  --icon-color: var(--color-text-darkest);
+
+  align-self: center;
+  border-radius: 0.2rem;
+  background: col(accent-transparent);
+  color: var(--text-color);
+  font-weight: bold;
+  margin: 0.25rem 0;
+  transition: background-color 250ms ease, box-shadow 250ms ease;
+	box-shadow: 0 0 0 2px var(--accent-color);
+
+  &.bold {
+    &>a {
+      font-weight: bold;
+    }
+  }
+
+  &>a {
+    @include clear-anchor();
+
+    display: inline-block;
+    position: relative;
+    color: var(--text-color);
+    padding: 0.25rem 1rem 0.25rem 2rem;
+    
+    &[href="#"] {
+      cursor: default;
+      pointer-events: none;
+  
+      &:before {
+        cursor: default;
+        pointer-events: none;
+      }
+    }
+
+    &:before {
+      content: '';
+      cursor: inherit;
+      pointer-events: inherit;
+      position: absolute;
+      top: 50%;
+      left: 1rem;
+      width: .5rem;
+      height: .5rem;
+      border-radius: 100%;
+      background-color: var(--icon-color);
+      transform: translateY(-50%);
+    }
+  }
+
+  &:hover {
+    background-color: var(--accent-color);
+    box-shadow: 0 0 0 calc(2px + .25rem) var(--accent-color);
+  }
+
+  &.codelist-icon {
+    &>a {
+      &:before {
+        @include fontawesome-icon();
+  
+        content: '\f02d';
+        cursor: inherit;
+        pointer-events: inherit;
+        position: absolute;
+        top: 50%;
+        left: 0.75rem;
+        width: .5rem;
+        height: .5rem;
+        color: var(--icon-color);
+        background-color: col(accent-transparent);
+        transform: translateY(-95%);
+      }
+    }
+  }
+
+  &.primary-accent {
+    --accent-color: var(--color-accent-primary);
+  }
+  &.secondary-accent {
+    --accent-color: var(--color-accent-secondary);
+  }
+  &.tertiary-accent {
+    --accent-color: var(--color-accent-tertiary);
+  }
+  &.highlight-accent {
+    --accent-color: var(--color-accent-highlight);
+  }
+  &.washed-accent {
+    --accent-color: var(--color-accent-washed);
+  }
+
+  &.text-accent-darkest {
+    --text-color: var(--color-text-darkest);
+  }
+  &.text-accent-brightest {
+    --text-color: var(--color-text-brightest);
+  }
+
+  &.icon-accent-primary {
+    --icon-color: var(--color-accent-primary);
+  }
+  &.icon-accent-secondary {
+    --icon-color: var(--color-accent-secondary);
+  }
+  &.icon-accent-tertiary {
+    --icon-color: var(--color-accent-tertiary);
+  }
+  &.icon-accent-washed {
+    --icon-color: var(--color-accent-washed);
+  }
+  &.icon-accent-highlight {
+    --icon-color: var(--color-accent-highlight);
+  }
+  &.icon-accent-darkest {
+    --icon-color: var(--color-accent-dark);
+  }
+  &.icon-accent-brightest {
+    --icon-color: var(--color-accent-bright);
+  }
+}

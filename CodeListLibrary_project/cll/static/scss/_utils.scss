@@ -1,0 +1,103 @@
+/// Mixin to apply the application's main font style
+///   @param {Number} $sz - To apply an alternative font size
+@mixin app-font-style($sz: false) {
+  font: var(--font-size) var(--font-name), var(--font-family);
+  color: col(text-dark);
+
+  @if $sz {
+    font-size: $sz;
+  }
+}
+
+/// Mixin to apply a columnn wise flex-box with wrapping
+///   @param {Number} $gap - To apply a flexbox gap
+///   Ref @ https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox
+@mixin flex-col($gap: false) {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+
+  @if $gap {
+    gap: $gap;
+  }
+}
+
+/// Mixin to apply a row wise flex-box with wrapping
+///   @param {Number} $gap - To apply a flexbox gap
+///   Ref @ https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox
+@mixin flex-row($gap: false) {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+
+  @if $gap {
+    gap: $gap;
+  }
+}
+
+/// Mixin to apply fontawesome style to an element
+@mixin fontawesome-icon {
+  cursor: pointer;
+  pointer-events: auto;
+  width: 1rem;
+  height: 1rem;
+  font-family: var(--icons-name);
+  font-style: var(--icons-style);
+  font-size: var(--icons-size);
+  text-align: center;
+  margin-right: 1rem;
+}
+
+/// Mixin to remove the base appearance of an element e.g. an input textarea
+@mixin remove-appearance {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  -o-appearance: none;
+  appearance: none;
+}
+
+/// Mixin to stop users from being able to highlight or drag an element
+@mixin ignore-user {
+  -webkit-user-select: none;     
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/// Mixin to apply a box-shadow with prefixes
+@mixin box-shadow($top, $left, $blur, $color, $inset:"") {
+  -webkit-box-shadow: $top $left $blur $color #{$inset};
+  -moz-box-shadow: $top $left $blur $color #{$inset};
+  box-shadow: $top $left $blur $color #{$inset};
+}
+
+/// Mixin to apply a text-shadow with prefixes
+@mixin text-shadow($off-x, $off-y, $blur, $color) {
+  text-shadow: $off-x $off-y $blur $color;
+}
+
+/// Mixin to clear an <a/>'s text decoration and style
+@mixin clear-anchor {
+  cursor: pointer;
+  text-decoration: inherit;
+  color: inherit;
+}
+
+/// Mixin to create a bottom divider on an element
+@mixin bottom-divider($size_pad: false, $border_col: false) {
+  @if not $border_col {
+    $border_col: black;
+  }
+
+  background-image: linear-gradient(90deg, $border_col 0%, $border_col 100%);
+  background-image: -webkit-linear-gradient(90deg, $border_col 0%, $border_col 100%);
+  background-repeat: no-repeat;
+  background-position: 50% 100%;
+
+  @if $size_pad {
+    background-size: calc(100% - #{$size_pad}) 1px, auto;
+  } @else {
+    background-size: 100% 1px, auto;
+  }
+}

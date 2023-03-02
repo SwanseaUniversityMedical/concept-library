@@ -1,0 +1,443 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+/// Inputs
+///   @desc Defines all input-like elements and their assoc. containers for use across website
+.detailed-input-group {
+  @include flex-col();
+
+  font-family: inherit;
+  margin: 1rem 0 0 0;
+
+  &.fill-width {
+    width: 100%;
+  }
+
+  &__title {
+    padding: 0;
+    margin: 0 0 0.5rem 0;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1;
+
+    &.sm {
+      font-size: 16px;
+    }
+  }
+
+  &__description {
+    margin: 0 0 0.5rem 0;
+    font-size: 14px;
+  }
+}
+
+.hstack-checkbox-group {
+  @include flex-row();
+
+  position: relative;
+  margin: 0.5rem 0;
+  min-height: 20px;
+}
+
+.hstack-radio-group {
+  @include flex-row();
+  @include remove-appearance();
+  
+  border: none;
+  position: relative;
+}
+
+.search-container {
+  @include flex-col();
+  position: relative;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  width: 100%;
+  height: fit-content;
+
+  &__field {
+    @include box-shadow(0px, 8px, 15px, var(--search-shadow-inactive-color));
+    box-sizing: border-box;
+    position: relative;
+    border: 0;
+    margin: 0;
+    width: 100%;
+    padding: 0.5rem 40px 0.5rem 1rem;
+    border-radius: 0.2rem;
+    transition: all 250ms ease;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56.966 56.966' fill='%23687FCB'%3e%3cpath d='M55.146 51.887L41.588 37.786A22.926 22.926 0 0046.984 23c0-12.682-10.318-23-23-23s-23 10.318-23 23 10.318 23 23 23c4.761 0 9.298-1.436 13.177-4.162l13.661 14.208c.571.593 1.339.92 2.162.92.779 0 1.518-.297 2.079-.837a3.004 3.004 0 00.083-4.242zM23.984 6c9.374 0 17 7.626 17 17s-7.626 17-17 17-17-7.626-17-17 7.626-17 17-17z'/%3e%3c/svg%3e");
+    background-size: 20px;
+    background-repeat: no-repeat;
+    background-position: calc(100% - 10px) 48%;
+
+    &:focus {
+      @include box-shadow(0px, 10px, 20px, var(--search-shadow-active-color));
+      outline: none;
+    }
+    
+    /* Accent */
+    &.primary-accent {
+      background-color: col(accent-primary);
+    }
+    &.secondary-accent {
+      background-color: col(accent-secondary);
+    }
+    &.tertiary-accent {
+      background-color: col(accent-tertiary);
+    }
+    &.washed-accent {
+      background-color: col(accent-washed);
+    }
+    &.bubble-accent {
+      background-color: col(accent-bubble);
+    }
+    &.bright-accent {
+      background-color: col(accent-bright);
+    }
+    &.dark-accent {
+      background-color: col(accent-dark);
+    }
+
+    /* Outline */
+    &.primary-outline {
+      border-width: 1px;
+      border-style: solid;
+      border-color: col(accent-primary);
+    }
+    &.secondary-outline {
+      border-width: 1px;
+      border-style: solid;
+      border-color: col(accent-secondary);
+    }
+    &.tertiary-outline {
+      border-width: 1px;
+      border-style: solid;
+      border-color: col(accent-tertiary);
+    }
+    &.washed-outline {
+      border-width: 1px;
+      border-style: solid;
+      border-color: col(accent-washed);
+    }
+    &.bubble-outline {
+      border-width: 1px;
+      border-style: solid;
+      border-color: col(accent-bubble);
+    }
+    &.dark-outline {
+      border-width: 1px;
+      border-style: solid;
+      border-color: col(accent-dark);
+    }
+    &.bright-outline {
+      border-width: 1px;
+      border-style: solid;
+      border-color: col(accent-bright);
+    }
+  }
+}
+
+.text-input,
+.text-area-input {
+  @include remove-appearance();
+
+  font-family: inherit;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  resize: none;
+  border: 1px solid col(accent-dark);
+  border-radius: 2px;
+  padding: 0.5rem;
+  width: auto;
+  transition: border-color 250ms ease;
+
+  &:focus {
+    outline: none;
+    border-color: col(accent-dark);
+  }
+}
+
+.text-area-input {
+  resize: vertical;
+}
+
+.selection-input {
+  font-family: inherit;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  resize: none;
+  border: 1px solid col(accent-dark);
+  border-radius: 2px;
+  padding: 0.5rem;
+  min-width: fit-content;
+  width: fit-content;
+  transition: border-color 250ms ease;
+
+  &:focus {
+    outline: none;
+    border-color: col(accent-dark);
+  }
+}
+
+.radio-input[type="radio"] {
+  @include remove-appearance();
+  font-family: inherit;
+
+  &:checked, &:not(:checked) {
+    position: absolute;
+    left: -9999px;
+  }
+
+  &:checked + label, &:not(:checked) + label {
+    cursor: pointer;
+    display: inline-block;
+    line-height: 20px;
+    padding-left: 28px;
+    margin: 0.5rem 0.5rem 0 0;
+    color: col(text-darker);
+  }
+
+  &:checked + label:before, &:not(:checked) + label:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 18px;
+    height: 18px;
+    border: 1px solid col(accent-washed);
+    border-radius: 100%;
+    background: col(bg);
+  }
+
+  &:checked + label:after, &:not(:checked) + label:after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: col(accent-primary);
+    top: 4px;
+    left: 4px;
+    border-radius: 100%;
+    transition: all 250ms ease;
+  }
+
+  &:not(:checked) + label:after {
+    opacity: 0;
+    transform: scale(0);
+    -webkit-transform: scale(0);
+  }
+
+  &:checked + label:after {
+    opacity: 1;
+    transform: scale(1);
+    -webkit-transform: scale(1);
+  }
+
+  &:hover + label:before {
+    transform: scale(1.15);
+    -webkit-transform: scale(1.15);
+  }
+
+  &:active + label:before {
+    transform: scale(0.9);
+    -webkit-transform: scale(0.9);
+  }
+}
+
+.checkbox-input[type="checkbox"] {
+  &:not(:checked), &:checked {
+    position: absolute;
+    left: 0;
+  }
+
+  &:not(:checked) + label, &:checked + label {
+    cursor: pointer;
+    position: relative;
+    line-height: 20px;
+    padding-left: 28px;
+  }
+
+  &:not(:checked) + label:before, &:checked + label:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 18px;
+    height: 18px;
+    border: 1px solid col(accent-washed);
+    background: col(bg);
+    border-radius: 0.2rem;
+    transition: all 250ms ease;
+  }
+
+  &:not(:checked) + label:after, &:checked + label:after {
+    @include fontawesome-icon();
+
+    content: '\f00c';
+    position: absolute;
+    top: 9px;
+    left: 3px;
+    color: col(accent-primary);
+    line-height: 0;
+    transition: all 250ms ease;
+  }
+
+  &:not(:checked):not(:disabled):focus + label:after,
+  &:not(:checked) + label:after {
+    opacity: 0;
+    transform: scale(0);
+  }
+
+  &:not(:disabled):checked:focus + label:after,
+  &:checked + label:after {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  &:not(:disabled):active + label:after {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+
+  &:disabled:not(:checked) + label:before,
+  &:disabled:checked + label:before {
+    box-shadow: none;
+    border-color: col(accent-washed);
+    background-color: col(accent-washed);
+  }
+
+  &:disabled:checked + label:after {
+    box-shadow: none;
+    border-color: col(accent-washed);
+    background-color: col(accent-washed);
+  }
+
+  &:disabled + label {
+    opacity: 1;
+    color: col(text-darker);
+  }
+}
+
+.switch-input {
+  display: none;
+
+  &:checked + .switch {
+    background-color: var(--switch-bg-active-color);
+    border-color: var(--switch-bg-active-color);
+  }
+
+  &:checked + .switch::before {
+    left: 100%;
+    transform: translateX(-100%);
+  }
+}
+
+.switch {
+  --switch-width: var(--switch-size);
+  --switch-height: calc(var(--switch-width) / 2);
+  --switch-border: calc(var(--switch-height) / 10);
+  --switch-thumb-size: calc(var(--switch-height) - var(--switch-border) * 2);
+  --switch-width-inside: calc(var(--switch-width) - var(--switch-border) * 2);
+
+  cursor: pointer;
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  width: var(--switch-width);
+  height: var(--switch-height);
+  border: var(--switch-border) solid var(--switch-bg-color);
+  border-radius: var(--switch-height);
+  background-color: var(--switch-bg-color);
+  margin: var(--switch-margin) 0;
+  transition: 300ms 100ms;
+
+  &:before {
+    content: '';
+    background-color: var(--switch-thumb-color);
+    height: var(--switch-thumb-size);
+    width: var(--switch-thumb-size);
+    border-radius: var(--switch-thumb-size);
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: width 250ms ease;
+  }
+
+  &:active:before {
+    width: 80%;
+  }
+}
+
+.radio-chips-group {
+  @include flex-row($gap: 0.5rem);
+
+	margin: 0;
+	padding: 0;
+	list-style-type: none;
+}
+
+.radio-chip[type="radio"] {
+  @include flex-row();
+  @include remove-appearance();
+  
+  position: relative;
+  margin: 0.5rem 0;
+  transition: transform 250ms ease;
+
+  &:checked, &:not(:checked) {
+    position: absolute;
+    left: -9999px;
+  }
+
+  &:checked + label, &:not(:checked) + label {
+    cursor: pointer;
+    display: inline-block;
+    position: relative;
+    line-height: 20px;
+    padding: 0.5rem 1rem 0.5rem 2.25rem;
+    margin: 0.5rem 0rem 0 0;
+    border-radius: 0.25rem;
+    border: 1px solid col(accent-washed);
+    color: col(text-darkest);
+  }
+
+  &:checked + label {
+    background-color: col(accent-washed);
+  }
+  &:not(:checked) + label {
+    background-color: col(accent-transparent);
+  }
+
+  &:checked + label:before, &:not(:checked) + label:before {
+    @include fontawesome-icon();
+
+    content: '';
+    cursor: inherit;
+    pointer-events: inherit;
+    position: absolute;
+    top: 50%;
+    left: 0.75rem;
+    width: 1rem;
+    height: 1rem;
+    color: col(text-darkest);
+    background-color: col(accent-transparent);
+    transform: translateY(-75%);
+    -webkit-transform: translateY(-75%);
+  }
+
+  &.table-view:checked + label:before, &.table-view:not(:checked) + label:before {
+    content: '\f03a';
+  }
+
+  &.component-view:checked + label:before, &.component-view:not(:checked) + label:before {
+    content: '\f126';
+  }
+
+  &:hover + label {
+    transform: translateY(-2px);
+    -webkit-transform: translateY(-2px);
+  }
+}

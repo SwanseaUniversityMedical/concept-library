@@ -1,0 +1,109 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+/// Phenotype search banner
+///   @desc currently used by single search page
+.search-banner {
+  @include flex-col();
+  background-color: var(--phenotype-banner-bg-color);
+
+  &__header {
+    @include flex-col();
+    align-items: center;
+  }
+
+  &__title {
+    padding: 0;
+    margin: 2rem 0 0.5rem 0;
+    font-size: var(--phenotype-banner-title-size);
+    font-weight: bold;
+    line-height: 1;
+    color: var(--phenotype-banner-title-color);
+  }
+
+  &__container {
+    @include flex-col();
+    padding: 2rem 0;
+    align-items: center;
+    align-self: center;
+
+    @include media(">desktop", "screen") {
+      width: 400px;
+    }
+
+    @include media("<desktop", "screen") {
+      width: 250px;
+      padding: 1rem 0 2rem 0;
+    }
+
+    /* Override search field size */
+    .search-container__field {
+      height: 3rem;
+    }
+  }
+
+  &__cards {
+    @include flex-col();
+    padding: 0 0 2rem;
+    align-self: center;
+
+    @include media(">phone", "screen") {
+      width: 300px;
+    }
+
+    @include media(">=tablet", "screen") {
+      width: 900px;
+    }
+
+    @include media(">=desktop", "screen") {
+      width: 80%;
+    }
+  }
+}
+
+/// Search page
+///   @desc container for search page
+.search-page {
+  @include flex-row();
+  flex-wrap: nowrap;
+  margin: 2rem 0 0 0;
+}
+
+/// Search filters
+///   @desc Aside search bar
+.side-search-filters {
+  @include flex-col();
+  display: none;
+  flex: 1 auto;
+
+  @include media(">tablet") {
+    display: flex;
+  }
+  
+  &__header {
+    @include flex-col();
+
+    & > h3 {
+      padding: 0;
+      margin: 0;
+      font-size: 18px;
+      font-weight: bold;
+      line-height: 1;
+      color: col(text-darkest);
+    }
+  }
+
+  &__container {
+    @include flex-col();
+  }
+}
+
+/// Search results
+///   @desc list layout for entity search results
+.search-results-list {
+  @include flex-col();
+  flex: 5 auto;
+
+}

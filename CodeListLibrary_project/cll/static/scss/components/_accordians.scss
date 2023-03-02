@@ -1,0 +1,61 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+/// Accordian
+///   @desc Used to control visibility of content
+.accordian {
+  &__input {
+    display: none;
+  }
+
+  &__input:checked + &__label {
+    background-color: col(accent-darkish);
+  }
+
+  &__label {
+    @include prefix(transition, background-color 250ms ease-in-out, webkit moz o);
+    cursor: pointer;
+    display: block;
+    padding: 0.5rem 1rem;
+    background-color: col(accent-lightest);
+
+    &:hover {
+      background-color: col(accent-darkish);
+    }
+
+    &:after {
+      @include prefix(transition, background-color 250ms ease-in-out, webkit moz o);
+      content: '\f107';
+      display: block;
+      position: absolute;
+      font-family: var(--icons-name);
+      font-style: var(--icons-style);
+      font-size: var(--icons-size);
+      right: 0;
+      top: 0;
+      width: 2em;
+      height: 100%;
+      line-height: 2.25em;
+      text-align: center;
+      background-color: col(accent-lightest);
+    }
+  }
+
+  &__input:checked + &__label:after {
+    content: '\f077';
+  }
+
+  &__container {
+    @include prefix(transition, opacity 250ms ease-in-out, webkit moz o);
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+  }
+
+  &__input:checked ~ &__container {
+    opacity: 1;
+    height: auto;
+  }
+}
