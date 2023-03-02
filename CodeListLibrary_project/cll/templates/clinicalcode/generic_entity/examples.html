@@ -29,89 +29,95 @@
 
 <!-- Main header should include breadcrumbs (if required) or include the page title etc -->
 <header class="main-header">
-  {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
-  {% endbreadcrumbs %}
+  <!-- any other content -->
+  <div class="main-header__inner-container">
+    <!-- content that's been padded to same width as navigation -->
+    {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
+    {% endbreadcrumbs %}
+  </div>
 </header>
 
 <!-- Main content of the page -->
 <main class="main-content">
   <!-- Using row/column in a box container -->
-  <div class="box-container">
-    <div class="row">
-      <div class="col-md-12">
-        <h2>Flexbox-based row/column</h2>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-6">Hello</div>
-      <!-- Modifiers can be found within _variables.scss e.g. text-align-right -->
-      <div class="col-md-6 text-align-right">World</div>
-    </div>
-  </div>
-
-  <!-- Using a grid row/column in a box container -->
-  <div class="box-container">
-    <div class="row">
-      <div class="col-md-12">
-        <h2>Grid-based row/column</h2>
-      </div>
-    </div>
-    <div class="grid-row">
-      <div class="grid-col-md-8">Hello</div>
-      <!-- Grid col that aligns text to right, but reorders it so it's the first col instead of last -->
-      <div class="grid-col-md-4 text-align-right order-first">World</div>
-    </div>
-  </div>
-
-  <!-- Some text input box -->
-  <div class="box-container">
-    <div class="row">
-      <div class="col-md-12">
-        <h2>Example input</h2>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-4">Enter your text</div>
-      <div class="col-md-8">
-        <div class="detailed-input-group fill-width">
-          <h2 class="detailed-input-group__title">An input box</h2>
-          <input class="text-input" aria-label="Enter some text" type="text" placeholder="Enter some text">
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Example buttons -->
-  <div class="box-container">
-    <div class="detailed-input-group fill-width">
-      <h2 class="detailed-input-group__title">Buttons</h2>
+  <div class="main-content__inner-container">
+    <div class="box-container">
       <div class="row">
-        <!-- Primary button -->
-        <div class="col-md-3">
-          <!-- Can change icons, accent, whether to bold etc -->
-          <button class="primary-btn text-accent-darkest bold tertiary-accent icon create-icon sweep-left" aria-label="Create Phenotype" id="create-phenotype">Create Phenotype</button>
+        <div class="col-md-12">
+          <h2>Flexbox-based row/column</h2>
         </div>
+      </div>
+      <div class="row">
+        <div class="col-md-6">Hello</div>
+        <!-- Modifiers can be found within _variables.scss e.g. text-align-right -->
+        <div class="col-md-6 text-align-right">World</div>
+      </div>
+    </div>
 
-        <!-- Secondary button -->
-        <div class="col-md-2">
-          <button class="secondary-btn text-accent-darkest bold icon import-icon secondary-accent" aria-label="Create new Concept" id="create-concept-btn">New Concept</button>
+    <!-- Using a grid row/column in a box container -->
+    <div class="box-container">
+      <div class="row">
+        <div class="col-md-12">
+          <h2>Grid-based row/column</h2>
         </div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col-md-8">Hello</div>
+        <!-- Grid col that aligns text to right, but reorders it so it's the first col instead of last -->
+        <div class="grid-col-md-4 text-align-right order-first">World</div>
+      </div>
+    </div>
 
-        <!-- Tertiary button -->
-        <div class="col-md-2">
-          <button class="tertiary-btn text-accent-darkest bold tertiary-accent icon left import-icon" aria-label="Create Phenotype" id="create-phenotype">Create Phenotype</button>
+    <!-- Some text input box -->
+    <div class="box-container">
+      <div class="row">
+        <div class="col-md-12">
+          <h2>Example input</h2>
         </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">Enter your text</div>
+        <div class="col-md-8">
+          <div class="detailed-input-group fill-width">
+            <h2 class="detailed-input-group__title">An input box</h2>
+            <input class="text-input" aria-label="Enter some text" type="text" placeholder="Enter some text">
+          </div>
+        </div>
+      </div>
+    </div>
 
-        <!-- Dropdown -->
-        <div class="col-md-2">
-          <label class="dropdown-btn">
-            <div class="dropdown-btn__label">New Ruleset</div>
-            <input type="checkbox" class="dropdown-btn__input" id="add-inclusion-btn">
-            <ul class="dropdown-btn__menu fall-right">
-              <li>Add Searchterm</li>
-              <li>Import from File</li>
-            </ul>
-          </label>
+    <!-- Example buttons -->
+    <div class="box-container">
+      <div class="detailed-input-group fill-width">
+        <h2 class="detailed-input-group__title">Buttons</h2>
+        <div class="row">
+          <!-- Primary button -->
+          <div class="col-md-3">
+            <!-- Can change icons, accent, whether to bold etc -->
+            <button class="primary-btn text-accent-darkest bold tertiary-accent icon create-icon sweep-left" aria-label="Create Phenotype" id="create-phenotype">Create Phenotype</button>
+          </div>
+
+          <!-- Secondary button -->
+          <div class="col-md-2">
+            <button class="secondary-btn text-accent-darkest bold icon import-icon secondary-accent" aria-label="Create new Concept" id="create-concept-btn">New Concept</button>
+          </div>
+
+          <!-- Tertiary button -->
+          <div class="col-md-2">
+            <button class="tertiary-btn text-accent-darkest bold tertiary-accent icon left import-icon" aria-label="Create Phenotype" id="create-phenotype">Create Phenotype</button>
+          </div>
+
+          <!-- Dropdown -->
+          <div class="col-md-2">
+            <label class="dropdown-btn">
+              <div class="dropdown-btn__label">New Ruleset</div>
+              <input type="checkbox" class="dropdown-btn__input" id="add-inclusion-btn">
+              <ul class="dropdown-btn__menu fall-right">
+                <li>Add Searchterm</li>
+                <li>Import from File</li>
+              </ul>
+            </label>
+          </div>
         </div>
       </div>
     </div>

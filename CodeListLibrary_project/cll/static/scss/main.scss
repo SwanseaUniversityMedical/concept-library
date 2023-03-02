@@ -52,6 +52,9 @@ body {
   max-width: 100%;
 
   &__inner-container {
+    @include flex-col();
+    min-height: fit-content;
+    max-width: 100%;
     padding: var(--main-top-padding) var(--main-gutter) 0 var(--main-gutter);
   
     @include media("<desktop", "screen") {
@@ -69,6 +72,11 @@ body {
   max-width: 100%;
 
   &__inner-container {
+    @include flex-col();
+    position: relative;
+    flex: 1;
+    min-height: fit-content;
+    max-width: 100%;
     padding: 0 var(--main-gutter) 0 var(--main-gutter);
   
     @include media("<desktop", "screen") {

@@ -9,11 +9,11 @@
 
 {% block container %}
 <header class="main-header">
-  {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
-  {% endbreadcrumbs %}
   <!-- any other content -->
   <div class="main-header__inner-container">
     <!-- content that's been padded to same width as navigation -->
+    {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
+    {% endbreadcrumbs %}
   </div>
 </header>
 <main class="main-content">
