@@ -33,7 +33,7 @@ from django.template.loader import render_to_string
 from django.templatetags.static import static
 # from django.core.urlresolvers import reverse_lazy, reverse
 from django.urls import reverse, reverse_lazy
-from django.views.generic import DetailView
+from django.views.generic import DetailView, TemplateView
 from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
@@ -51,6 +51,35 @@ from django.utils.timezone import make_aware
 
 logger = logging.getLogger(__name__)
 
+class ExampleSASSView(TemplateView):
+    template_name = 'clinicalcode/generic_entity/examples.html'
+
+    def get(self, request):
+        ctx = {
+
+        }
+
+        return render(request, self.template_name, context=ctx)
+
+class CreateEntityView(TemplateView):
+    template_name = 'clinicalcode/generic_entity/create.html'
+
+    def get(self, request):
+        ctx = {
+
+        }
+
+        return render(request, self.template_name, context=ctx)
+
+class EntitySearchView(TemplateView):
+    template_name = 'clinicalcode/generic_entity/search.html'
+
+    def get(self, request):
+        ctx = {
+
+        }
+
+        return render(request, self.template_name, context=ctx)
 
 def generic_entity_list(request):
     '''

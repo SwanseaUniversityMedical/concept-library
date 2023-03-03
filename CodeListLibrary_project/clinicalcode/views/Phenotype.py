@@ -56,7 +56,6 @@ from django.utils.timezone import make_aware
 
 logger = logging.getLogger(__name__)
 
-
 def phenotype_list(request):
     '''
         Display the list of phenotypes. This view can be searched and contains paging.

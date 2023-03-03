@@ -1,0 +1,415 @@
+{% extends "base_scss.html" %}
+
+
+<!--
+
+  Todo:
+  
+    1. Finalise ruleset design
+      -> Need to add checkmarks in the codelist for concept view to show whether incl/exclude in case they renamed
+      -> Need to add ruleset windows e.g. where ppl can add search term / look at file name
+      -> Need to make final codelist
+      -> Need to add 'Save' and 'Cancel' button to the concept edit window during accordian
+    3. Complete publication link table
+    4. Complete date range picker
+    5. Modify 'My Profile'
+      -> Should open up a multilevel dropdown that can be used to select either (a) profile + logout for non admin, or (b) the above as well as to change brands
+
+-->
+
+{% load static %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+
+<!-- Example loading of the entity renderer -->
+{% load entity_renderer %}
+
+{% block title %}| Create a Phenotype{% endblock title %}
+
+{% block container %}
+  <!-- Assoc. scripts -->
+  <script type="module" src="{% static "js/clinicalcode/redesign/forms/phenotypeCreation.js" %}"></script>
+  <!-- Deploy breadcrumbs and/or any other header-related elements -->
+  <header class="main-header">
+    <div class="main-header__inner-container">
+      {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
+      {% endbreadcrumbs %}
+    </div>
+  </header>
+  
+  <main class="main-content">
+    <!-- Aside step navigation -->
+    <aside class="steps-wizard">
+      <section class="steps-wizard__panel" onselectstart="return false;">
+        <span class="steps-wizard__header">Skip to step...</span>
+        <span class="steps-wizard__item" id="definition-step" data-value="1" data-target="definition-progress">Definition</span>
+        <span class="steps-wizard__item" id="concept-step" data-value="2" data-target="concept-progress">Concepts</span>
+        <span class="steps-wizard__item" id="publication-step" data-value="3" data-target="publication-progress">Publication</span>
+        <span class="steps-wizard__item" id="validation-step" data-value="4" data-target="validation-progress">Validation</span>
+        <span class="steps-wizard__item" id="permissions-step" data-value="5" data-target="permission-progress">Permissions</span>
+      </section>
+    </aside>
+
+    <!-- Phenotype creation form -->
+    <div class="main-content__inner-container">
+      <article class="phenotype-creation">
+        <section class="phenotype-creation__header">
+          <h1>Create a new Phenotype:<span>step by step</span></h1>
+          <p>Follow the steps below to create and publish your phenotype.</p>
+        </section>
+        
+        <ol class="phenotype-progress">
+          <!-- Example entity rendering - will be removed, purely for demo purposes -->
+          {% render_entity_details with sayHello=True %}
+
+          <!-- Definition -->
+          <li class="phenotype-progress__item" id="definition-progress">
+            <h2 class="phenotype-progress__item-title">Definition</h2>
+            <p class="phenotype-progress__item-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+            
+            <div class="phenotype-progress__item-container">
+              <div class="detailed-input-group fill">
+                <h3 class="detailed-input-group__title">Name</h3>
+                <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                <input class="text-input" aria-label="Phenotype Name" type="text" id="phenotype-name" name="phenotype-name" placeholder="" minlength="3" pattern="w{1,}.*?" required>
+              </div>
+
+              <div class="detailed-input-group fill">
+                <h3 class="detailed-input-group__title">Description</h3>
+                <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                <textarea class="text-area-input" aria-label="Phenotype Description" id="phenotype-description" name="phenotype-description" rows="4" autocorrect="on" autocomplete="off" minlength="5" spellcheck="default" wrap="soft" pattern="w{1,}.*?" required></textarea>
+              </div>
+
+              <div class="detailed-input-group fill">
+                <h3 class="detailed-input-group__title">Author</h3>
+                <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                <input class="text-input" aria-label="Phenotype Author" type="text" id="phenotype-author" name="phenotype-author" placeholder="" minlength="3" pattern="w{1,}.*?" required>
+              </div>
+
+              <div class="detailed-input-group fill">
+                <h3 class="detailed-input-group__title">Event date range</h3>
+                <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                <!-- Date range picker -->
+              </div>
+
+              <div class="detailed-input-group fill">
+                <h3 class="detailed-input-group__title">Sex</h3>
+                <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                <fieldset class="hstack-radio-group">
+                  <input class="radio-input" aria-label="Phenotype gender is Unisex" type="radio" id="unisex-gender" name="phenotype-sex" checked>
+                  <label for="unisex-gender">Male / Female</label>
+                  <input class="radio-input" aria-label="Phenotype gender is Male" type="radio" id="male-gender" name="phenotype-sex">
+                  <label for="male-gender">Male</label>
+                  <input class="radio-input" aria-label="Phenotype gender is Female" type="radio" id="female-gender" name="phenotype-sex">
+                  <label for="female-gender">Phenotype</label>
+                </fieldset>
+              </div>
+
+              <div class="detailed-input-group fill">
+                <h3 class="detailed-input-group__title">Type</h3>
+                <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                <select class="selection-input" aria-label="Select Phenotype Type" name="phenotype-type" id="phenotype-type" required>
+                  <option disabled value="0" selected hidden>Select Phenotype Type</option>
+                  <option value="0">Disease or Syndrome</option>
+                  <option value="1">Drug</option>
+                  <option value="1">Biomarker</option>
+                </select>
+              </div>
+
+              <div class="detailed-input-group fill">
+                <h3 class="detailed-input-group__title">Tags</h3>
+                <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                <input class="text-input" aria-label="Phenotype Tags" type="text" id="phenotype-tags" name="phenotype-tags" placeholder="Add Tag...">
+              </div>
+
+              <div class="detailed-input-group fill">
+                <h3 class="detailed-input-group__title">Collections</h3>
+                <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                <input class="text-input" aria-label="Phenotype Collections" type="text" id="phenotype-collections" name="phenotype-collections" placeholder="Add Collection...">
+              </div>
+              
+              <div class="detailed-input-group fill">
+                <h3 class="detailed-input-group__title">Data Sources</h3>
+                <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                <input class="text-input" aria-label="Phenotype Data Sources" type="text" id="phenotype-datasources" name="phenotype-datasources" placeholder="Add Data Source...">
+              </div>
+            </div>
+          </li>
+
+          <!-- Concepts -->
+          <li class="phenotype-progress__item" id="concept-progress">
+            <h2 class="phenotype-progress__item-title">Concepts</h2>
+            <p class="phenotype-progress__item-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+            
+            <div class="phenotype-progress__item-container">
+              <!-- Current concepts -->
+              <section class="concepts-view" id="concepts-view">
+                <section class="concepts-view__header">
+                  <div class="concepts-view__container">
+                    <p class="concepts-view__title">Your Concepts</p>
+                    <p class="concepts-view__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                  </div>
+                  <div class="concepts-view__container">
+                    <button class="secondary-btn text-accent-darkest bold icon import-icon secondary-accent" aria-label="Create new Concept" id="create-concept-btn">New Concept</button>
+                  </div>
+                </section>
+                <section class="concept-list">                
+                  <!-- When no concepts are available -->
+                  <section class="concept-list__none-available" id="no-available-concepts">
+                    <p class="concept-list__none-available-message">You haven't added any concepts yet</p>
+                  </section>
+
+                  <!-- e.g. a concept's information -->
+                  <section class="concept-list__group show">
+                    <span class="concept-list__group-item is-open">
+                      <span class="contextual-icon"></span>
+                      <label class="concept-name">Some Concept</label>
+                      <span class="concept-buttons">
+                        <span class="edit-icon"></span>
+                        <span class="delete-icon"></span>
+                      </span>
+                    </span>
+                    <section class="concept-group-content">
+                      <!-- Finalised concept content when not editing -->
+                      <section class="concept-group-content__container hide" id="concept-information">
+                        <!-- Header incl. coding system -->
+                        <section class="concept-group-content__details">
+                          <h4>Codelist</h4>
+                          <ul class="chips-group" id="coding-system-chip">
+                            <li class="chip bold washed-accent text-accent-darkest codelist-icon icon-accent-highlight">
+                              <a id="coding-system-info">ICD-10</a>
+                            </li>
+                          </ul>
+                        </section>
+                        <!-- Codelist section -->
+                        <div class="h-scrollable-table" id="codelist-concept-table">
+                          <div class="h-scrollable-table__wrapper slim-scrollbar">
+                            <table>
+                              <thead>
+                                <tr>
+                                  <th class="sticky">Code</th>
+                                  <th class="sticky">Description</th>
+                                  <th>Inclusion 1</th>
+                                  <th>Inclusion 2</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td class="sticky">J43</td>
+                                  <td class="sticky">Emphysema</td>
+                                  <td>Data</td>
+                                  <td>Data</td>
+                                </tr>
+                                <tr>
+                                  <td class="sticky">J44</td>
+                                  <td class="sticky">Other chronic obstructive pulmonary disease</td>
+                                  <td>Data</td>
+                                  <td>Data</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </section>
+
+                      <!-- Editing concept content menu -->
+                      <section class="concept-group-content__container" id="concept-editing">
+                        <!-- Concept information -->
+                        <div class="detailed-input-group fill">
+                          <h3 class="detailed-input-group__title">Name</h3>
+                          <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                          <input class="text-input" aria-label="Concept Name" type="text" id="concept-name" name="concept-name" placeholder="" minlength="3" pattern="w{1,}.*?" required>
+                        </div>
+                        <div class="detailed-input-group fill">
+                          <h3 class="detailed-input-group__title">Coding System</h3>
+                          <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                          <select class="selection-input" aria-label="Select Coding System" name="coding-system" id="coding-system-select" required>
+                            <option disabled value="0" selected hidden>Select Coding System</option>
+                            <option value="0">ICD-10</option>
+                            <option value="1">ICD-11</option>
+                            <option value="2">ReadCodes v2</option>
+                            <option value="3">UK BioBank</option>
+                          </select>
+                        </div>
+
+                        <!-- Inclusion Rulesets -->
+                        <section class="concept-group-content__details">
+                          <div class="concept-group-content__details-explanation">
+                            <h3>Inclusion Rulesets</h3>
+                            <p class="concept-group-content__details-explanation-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                          </div>
+                          <div class="concept-group-content__editor-selection">
+                            <label class="dropdown-btn">
+                              <div class="dropdown-btn__label">New Ruleset</div>
+                              <input type="checkbox" class="dropdown-btn__input" id="add-inclusion-btn">
+                              <ul class="dropdown-btn__menu fall-right">
+                                <li>Add Searchterm</li>
+                                <li>Import from File</li>
+                              </ul>
+                            </label>
+                          </div>
+                        </section>
+                        <section class="ruleset-group" id="inclusion-rulesets">
+                          <section class="ruleset-group__none-available show" id="no-available-inclusion-rules">
+                            <p class="ruleset-group__none-available-message">You haven't added any inclusion rules yet</p>
+                          </section>
+                        </section>
+
+                        <!-- Inclusion Rulesets -->
+                        <section class="concept-group-content__details">
+                          <div class="concept-group-content__details-explanation">
+                            <h3>Exclusion Rulesets</h3>
+                            <p class="concept-group-content__details-explanation-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                          </div>
+                          <div class="concept-group-content__editor-selection">
+                            <label class="dropdown-btn">
+                              <div class="dropdown-btn__label">New Ruleset</div>
+                              <input type="checkbox" class="dropdown-btn__input" id="add-exclusion-btn">
+                              <ul class="dropdown-btn__menu fall-right">
+                                <li>Add Searchterm</li>
+                                <li>Import from File</li>
+                              </ul>
+                            </label>
+                          </div>
+                        </section>
+                        <section class="ruleset-group" id="exclusion-rulesets">
+                          <section class="ruleset-group__none-available" id="no-available-exclusion-rules">
+                            <p class="ruleset-group__none-available-message">You haven't added any exclusion rules yet</p>
+                          </section>
+                          <section class="ruleset-group__container">
+                            <div class="accordian">
+                              <input class="accordian__input" id="ac-1" name="ac-1" type="checkbox" />
+                              <label class="accordian__label" id="ac-1" for="ac-1">Exclusion 1</label>
+                              <article class="accordian__container">
+                                <div class="detailed-input-group fill">
+                                  <h3 class="detailed-input-group__title sm">Searchterm</h3>
+                                  <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                                  <input class="text-input" aria-label="Ruleset Searchterm" type="text" id="searchterm" placeholder="" minlength="3" pattern="w{1,}.*?" required>
+                                </div>
+                              </article>
+                            </div>
+                            <div class="accordian">
+                              <input class="accordian__input" id="ac-2" name="ac-2" type="checkbox" />
+                              <label class="accordian__label" id="ac-2" for="ac-2">Some renamed exclusion</label>
+                              <article class="accordian__container">
+                                <div class="detailed-input-group fill">
+                                  <h3 class="detailed-input-group__title sm">Imported File</h3>
+                                  <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                                  <input class="text-input" aria-label="Imported File" type="text" value="ImportedFile.csv" disabled>
+                                </div>
+                              </article>
+                            </div>
+                          </section>
+                        </section>
+
+                        <!-- Final codelist -->
+                        <section class="concept-group-content__details">
+                          <div class="concept-group-content__details-explanation">
+                            <h3>Codelist</h3>
+                            <p class="concept-group-content__details-explanation-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                          </div>
+                        </section>
+
+                        <!-- Save / Cancel Button(s) -->
+                        
+                      </section>
+                    </section>
+                  </section>
+                </section>
+              </section>
+            </div>
+          </li>
+          
+          <!-- Publication -->
+          <li class="phenotype-progress__item" id="publication-progress">
+            <h2 class="phenotype-progress__item-title">Publication</h2>
+            <p class="phenotype-progress__item-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+            
+            <div class="detailed-input-group fill">
+              <h3 class="detailed-input-group__title">Publications</h3>
+              <p class="detailed-input-group__description">Have you, or your research group, published a paper that uses or defines this phenotype?</p>
+              <fieldset class="hstack-radio-group">
+                <input class="radio-input" aria-label="Yes, I have published" type="radio" id="has-publication" name="phenotype-published">
+                <label for="has-publication">Yes</label>
+                <input class="radio-input" aria-label="No, there are no publications" type="radio" id="no-publication" name="phenotype-published" checked>
+                <label for="no-publication">No</label>
+              </fieldset>
+            </div>
+
+            <div class="detailed-input-group fill">
+              <h3 class="detailed-input-group__title">Publication Links</h3>
+              <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+              <input class="text-input" aria-label="Publication link input" type="text" placeholder="e.g. https://www.doi.org/XX.XXXX/XXXXXXXXXX">
+
+              <!-- Publication list -->
+
+            </div>
+          </li>
+
+          <!-- Validation -->
+          <li class="phenotype-progress__item" id="validation-progress">
+            <h2 class="phenotype-progress__item-title">Validation</h2>
+            <p class="phenotype-progress__item-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+            
+            <div class="detailed-input-group fill">
+              <h3 class="detailed-input-group__title">Has validation been peformed?</h3>
+              <p class="detailed-input-group__description">Have you, or your research group, published a paper that uses or defines this phenotype?</p>
+              <fieldset class="hstack-radio-group">
+                <input class="radio-input" aria-label="Yes, validation has been performd" type="radio" id="has-validation" name="phenotype-validation">
+                <label for="has-validation">Yes</label>
+                <input class="radio-input" aria-label="No validation has been performed" type="radio" id="no-validation" name="phenotype-validation" checked>
+                <label for="no-validation">No</label>
+              </fieldset>
+            </div>
+            
+            <div class="detailed-input-group fill">
+              <h3 class="detailed-input-group__title">Validation description</h3>
+              <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+              <textarea class="text-area-input" aria-label="Phenotype validation description" id="phenotype-validation-description" name="phenotype-validation-description" rows="4" autocorrect="on" autocomplete="off" minlength="5" spellcheck="default" wrap="soft" pattern="w{1,}.*?" required></textarea>
+            </div>
+          </li>
+
+          <!-- Permissions -->
+          <li class="phenotype-progress__item" id="permission-progress">
+            <h2 class="phenotype-progress__item-title">Permissions</h2>
+            <p class="phenotype-progress__item-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+            
+            <div class="detailed-input-group fill">
+              <h3 class="detailed-input-group__title">Assign to Organisation</h3>
+              <p class="detailed-input-group__description">If you assign this phenotype to an organisation the members of that group will control its permissions, including read and write access.</p>
+              <select class="selection-input" aria-label="Select Phenotype Group" name="phenotype-group" id="phenotype-group" required>
+                <option disabled value="0" selected hidden>Select Organisation</option>
+                <option value="0">ADP</option>
+                <option value="1">HDRUK</option>
+                <option value="2">BREATHE</option>
+                <option value="3">SAIL</option>
+              </select>
+            </div>
+
+            <div class="detailed-input-group fill">
+              <h3 class="detailed-input-group__title">User Permissions</h3>
+              <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+              <fieldset class="hstack-radio-group">
+                <input class="radio-input" aria-label="No user access" type="radio" id="user-no-access" name="user-access" checked>
+                <label for="user-no-access">No access</label>
+                <input class="radio-input" aria-label="Users able to view" type="radio" id="user-view-access" name="user-access">
+                <label for="user-view-access">Read</label>
+              </fieldset>
+            </div>
+          </li>
+        </ol>
+
+        <section class="phenotype-creation__completed" id="completed-section">
+          <div class="phenotype-creation__completed-row">
+            <button class="secondary-btn text-accent-darkest bold washed-accent" aria-label="Save draft" id="save-draft">
+              Save as Draft
+            </button>
+            <button class="primary-btn text-accent-darkest bold tertiary-accent icon create-icon sweep-left" aria-label="Create Phenotype" id="create-phenotype">
+              Create Phenotype
+            </button>
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+{% endblock container %}
