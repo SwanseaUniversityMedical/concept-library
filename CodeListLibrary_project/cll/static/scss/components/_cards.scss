@@ -5,13 +5,27 @@
 
 /// Horizontal stack of cards
 ///   @desc Stacks cards horizontally
-.hstack-cards {
+.hstack-cards-banner {
   @include flex-row($gap: 0rem);
   align-items: baseline;
   flex-flow: row wrap;
+  align-items: center;
+  align-self: center;
 
-  &-justify-content-space-evenly {
-    justify-content: space-evenly;
+  @include media('>=tablet', 'screen') {
+    &-justify-content-space-evenly {
+      justify-content: space-evenly;
+    }
+  }
+
+  @include media('<tablet', 'screen') {
+    flex-flow: row nowrap;
+    max-width: 300px;
+    overflow-x: scroll;
+
+    & > .referral-card {
+      min-width: fit-content;
+    }
   }
 }
 
@@ -167,6 +181,7 @@
   cursor: pointer;
   border-bottom: 1px solid col(accent-dark);
   padding: 0 0 1.5rem 0;
+  margin-bottom: 1rem;
 
   &:active {
     /* Should we animate it? */

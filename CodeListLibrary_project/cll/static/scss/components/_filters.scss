@@ -3,3 +3,44 @@
 @import '../_media';
 @import '../_utils';
 
+/// Search filters
+///   @desc Aside search bar
+.side-search-filters {
+  @include flex-col();
+  display: none;
+  flex: 1 auto;
+  margin-right: 1rem;
+  min-width: 175px;
+  max-width: 25%;
+
+  @include media(">desktop") {
+    display: flex;
+    min-width: 225px;
+  }
+  
+  &__header {
+    @include flex-col();
+
+    & > h3 {
+      padding: 0;
+      margin: 0;
+      font-size: 18px;
+      font-weight: bold;
+      line-height: 1;
+      color: col(text-darkest);
+    }
+  }
+
+  &__container {
+    @include flex-col();
+    margin-top: 0.5rem;
+    flex-grow: 1;
+    width: 100%;
+    min-width: 175px;
+  
+    @include media(">desktop") {
+      display: flex;
+      min-width: 225px;
+    }
+  }
+}

@@ -1,22 +1,5 @@
 {% extends "base_scss.html" %}
 
-
-<!--
-
-  Todo:
-  
-    1. Finalise ruleset design
-      -> Need to add checkmarks in the codelist for concept view to show whether incl/exclude in case they renamed
-      -> Need to add ruleset windows e.g. where ppl can add search term / look at file name
-      -> Need to make final codelist
-      -> Need to add 'Save' and 'Cancel' button to the concept edit window during accordian
-    3. Complete publication link table
-    4. Complete date range picker
-    5. Modify 'My Profile'
-      -> Should open up a multilevel dropdown that can be used to select either (a) profile + logout for non admin, or (b) the above as well as to change brands
-
--->
-
 {% load static %}
 {% load cl_extras %}
 {% load breadcrumbs %}
@@ -277,10 +260,10 @@
                             <p class="ruleset-group__none-available-message">You haven't added any exclusion rules yet</p>
                           </section>
                           <section class="ruleset-group__container">
-                            <div class="accordian">
-                              <input class="accordian__input" id="ac-1" name="ac-1" type="checkbox" />
-                              <label class="accordian__label" id="ac-1" for="ac-1">Exclusion 1</label>
-                              <article class="accordian__container">
+                            <div class="fill-accordian">
+                              <input class="fill-accordian__input" id="ac-1" name="ac-1" type="checkbox" />
+                              <label class="fill-accordian__label" id="ac-1" for="ac-1">Exclusion 1</label>
+                              <article class="fill-accordian__container">
                                 <div class="detailed-input-group fill">
                                   <h3 class="detailed-input-group__title sm">Searchterm</h3>
                                   <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
@@ -288,10 +271,10 @@
                                 </div>
                               </article>
                             </div>
-                            <div class="accordian">
-                              <input class="accordian__input" id="ac-2" name="ac-2" type="checkbox" />
-                              <label class="accordian__label" id="ac-2" for="ac-2">Some renamed exclusion</label>
-                              <article class="accordian__container">
+                            <div class="fill-accordian">
+                              <input class="fill-accordian__input" id="ac-2" name="ac-2" type="checkbox" />
+                              <label class="fill-accordian__label" id="ac-2" for="ac-2">Some renamed exclusion</label>
+                              <article class="fill-accordian__container">
                                 <div class="detailed-input-group fill">
                                   <h3 class="detailed-input-group__title sm">Imported File</h3>
                                   <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>

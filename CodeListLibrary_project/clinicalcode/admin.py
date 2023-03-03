@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group, User
 
-from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource, Operator, Tag, Template)
+from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource, Operator, Tag, Template, GenericEntity)
+from .forms.TemplateForm import TemplateAdminForm
 
 # from forms import GroupAdminForm
 # from django import forms
@@ -64,12 +65,33 @@ class CodingSystemAdmin(admin.ModelAdmin):
     exclude = []
 
 @admin.register(Template)
-class TemplateAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'layout', 'description']  #'updated_by' 'created_by' , 'created', 'modified'
-    list_filter = ['layout']
+class Template(admin.ModelAdmin):
+    list_display = ['id', 'name', 'description', 'entity_count']
+    list_filter = ['name']
     search_fields = ['name']
     exclude = ['created_by', 'updated_by']
+    form = TemplateAdminForm
+
+    def save_model(self, request, obj, form, change):
+        '''
+            - Responsible for building and modifying the 'entity_order' field
+                -> Iterates through the template prior to JSONB reordering and stores as array (Postgres stores arrays in semantic order)
+        '''
+        if form.cleaned_data['update_order'] or not change:
+            if obj.definition is not None and 'fields' in obj.definition:
+                order = []
+                for field in obj.definition['fields']:
+                    order.append(field)
+                obj.entity_order = order
+
+        super().save_model(request, obj, form, change)
+
     
+@admin.register(GenericEntity)
+class GenericEntityAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'template', 'entity_prefix', 'entity_id']
+    exclude = []
+
 #admin.site.register(CodingSystem)
 
 # ############################################

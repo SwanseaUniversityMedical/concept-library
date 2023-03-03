@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "card_type": "clinical",
+  "fields": {
+    "phenotype_uuid": {
+      "title": "Phenotype UUID",
+      "active": true,
+      "mandatory": true,
+      "field_type": "string",
+      "desired_input": "inputbox",
+      "hide_if_empty": true,
+      "requires_auth": true
+    },
+    "type": {
+      "title": "Phenotype Type",
+      "active": true,
+      "mandatory": true,
+      "field_type": "enum",
+      "desired_input": "dropdown",
+      "options": {
+        "1": "Biomarker",
+        "2": "Disease or syndrome",
+        "3": "Drug",
+        "4": "Lifestyle risk factor",
+        "5": "Musculoskeletal",
+        "6": "Surgical procedure"
+      },
+      "filterable": true
+    },
+    "data_sources": {
+      "title": "Data Sources",
+      "active": true,
+      "mandatory": true,
+      "field_type": "int_array",
+      "desired_input": "tagbox",
+      "source": "DataSource",
+      "filterable": true
+    },
+    "event_date_range": {
+      "title": "Valid Event Date Range",
+      "active": false,
+      "mandatory": false,
+      "field_type": "string",
+      "desired_input": "datepicker"
+    },
+    "sex": {
+      "title": "Sex",
+      "active": true,
+      "mandatory": true,
+      "field_type": "enum",
+      "options": {
+        "1": "Male",
+        "2": "Female",
+        "3": "Male/Female"
+      },
+      "desired_input": "radioinput"
+    },
+    "agreement_date": {
+      "title": "Agreement Date",
+      "active": true,
+      "mandatory": false,
+      "field_type": "string",
+      "desired_input": "datepicker",
+      "hide_if_empty": true
+    },
+    "coding_system": {
+      "title": "Coding System",
+      "active": true,
+      "mandatory": false,
+      "computed": true,
+      "field_type": "int_array",
+      "source": "CodingSystem",
+      "filterable": true
+    },
+    "phenoflowid": {
+      "title": "Phenoflow ID",
+      "active": true,
+      "mandatory": false,
+      "field_type": "string",
+      "desired_input": "inputbox"
+    },
+    "concept_information": {
+      "title": "Clinical Codes",
+      "active": true,
+      "mandatory": false,
+      "field_type": "object",
+      "desired_input": "conceptsfield"
+    },
+    "source_reference": {
+      "title": "Source Reference",
+      "active": false,
+      "mandatory": false,
+      "field_type": "string",
+      "desired_input": "inputbox",
+      "hide_if_empty": true
+    }
+  }
+}

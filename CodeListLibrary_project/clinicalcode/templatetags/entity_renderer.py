@@ -1,6 +1,7 @@
 from django import template
 from django.conf import settings
 from jinja2.exceptions import TemplateSyntaxError
+from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
 
 register = template.Library()
@@ -15,7 +16,11 @@ def render_details(context, *args, **kwargs):
     should_say_hello = kwargs.get('sayHello', False)
     return {'hello': True} if should_say_hello else { }
 
-@register.inclusion_tag('components/search/entity_card.html', takes_context=True, name='render_entity_card')
-def render_entities(context, *args, **kwargs):
+@register.inclusion_tag('components/search/cards/clinical.html', takes_context=False, name='render_entity_card')
+def render_entity(*args, **kwargs):
+    return { }
+
+@register.inclusion_tag('components/search/pagination.html', takes_context=True, name='render_entity_pagination')
+def render_pagination(context, *args, **kwargs):
     request = context['request']
     return { }
