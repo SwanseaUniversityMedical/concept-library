@@ -1,7 +1,7 @@
 import json
 from functools import cmp_to_key
 from ..models import GenericEntity, Template
-from ..entity_utils import view_utils
+from . import template_utils
 
 '''
     Used to sort filter statistics in descending order
@@ -21,27 +21,27 @@ def sort_by_count(a, b):
 def compute_statistics(layout, entities):
     statistics = { }
     for entity in entities:
-        if not view_utils.is_data_safe(entity):
+        if not template_utils.is_data_safe(entity):
             continue
         
         for field in layout.entity_statistics.keys():
             stats = statistics[field] if field in statistics else { }
-            structure = view_utils.get_layout_field(layout, field)
+            structure = template_utils.get_layout_field(layout, field)
 
             field_type = structure['field_type'] if 'field_type' in structure else None
             if field_type is None:
                 continue
 
-            entity_field = view_utils.get_entity_field(entity, field)
+            entity_field = template_utils.get_entity_field(entity, field)
             if entity_field is None:
                 continue
 
             if field_type == 'enum':
                 value = None
                 if 'options' in structure:
-                    value = view_utils.get_options_value(entity_field, structure)
+                    value = template_utils.get_options_value(entity_field, structure)
                 elif 'source' in structure:
-                    value = view_utils.get_sourced_value(entity_field, structure)
+                    value = template_utils.get_sourced_value(entity_field, structure)
                 
                 if value is not None:
                     if entity_field not in stats:
@@ -54,7 +54,7 @@ def compute_statistics(layout, entities):
             elif field_type == 'int_array':
                 if 'source' in structure:
                     for item in entity_field:
-                        value = view_utils.get_sourced_value(item, structure)
+                        value = template_utils.get_sourced_value(item, structure)
                         if value is not None:
                             if item not in stats:
                                 stats[item] = {
@@ -87,7 +87,7 @@ def compute_statistics(layout, entities):
 def collect_statistics():
     layouts = Template.objects.all()
     for layout in layouts:
-        if layout.entity_statistics is None or not view_utils.is_layout_safe(layout):
+        if layout.entity_statistics is None or not template_utils.is_layout_safe(layout):
             continue
         
         entities = GenericEntity.objects.filter(template=layout)

@@ -3,7 +3,7 @@ from django.conf import settings
 from jinja2.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
-from ..entity_utils import view_utils
+from ..entity_utils import template_utils
 
 register = template.Library()
 
@@ -111,8 +111,8 @@ def truncate(value, lim=0, ending=None):
 '''
 @register.simple_tag(name='render_field_value')
 def render_field_value(entity, layout, field, through=None):
-    data = view_utils.get_entity_field(entity, field)
-    info = view_utils.get_layout_field(layout, field)
+    data = template_utils.get_entity_field(entity, field)
+    info = template_utils.get_layout_field(layout, field)
 
     if not info or not data:
         # Should we try to return data, or maybe some filler?
@@ -122,9 +122,9 @@ def render_field_value(entity, layout, field, through=None):
     if info['field_type'] == 'enum':
         output = None
         if 'options' in info:
-            output = view_utils.get_options_value(data, info)
+            output = template_utils.get_options_value(data, info)
         elif 'source' in info:
-            output = view_utils.get_sourced_value(data, info)
+            output = template_utils.get_sourced_value(data, info)
         
         if output is not None:
             return output
@@ -132,7 +132,7 @@ def render_field_value(entity, layout, field, through=None):
         if 'source' in info:
             values = [ ]
             for item in data:
-                value = view_utils.get_sourced_value(item, info)
+                value = template_utils.get_sourced_value(item, info)
                 if value is not None:
                     values.append({
                         'name': value,
@@ -155,21 +155,21 @@ def render_field_value(entity, layout, field, through=None):
 '''
 @register.simple_tag(name='renderable_field_values')
 def renderable_field_values(entity, layout, field):
-    if view_utils.is_metadata(entity, field):
+    if template_utils.is_metadata(entity, field):
         # handle metadata e.g. collections, tags etc
-        return view_utils.get_metadata_value_from_source(entity, field, default=[])
+        return template_utils.get_metadata_value_from_source(entity, field, default=[])
     
-    data = view_utils.get_entity_field(entity, field)
-    info = view_utils.get_layout_field(layout, field)
+    data = template_utils.get_entity_field(entity, field)
+    info = template_utils.get_layout_field(layout, field)
     if not info or not data:
         return []
     
     if info['field_type'] == 'enum':
         output = None
         if 'options' in info:
-            output = view_utils.get_options_value(data, info)
+            output = template_utils.get_options_value(data, info)
         elif 'source' in info:
-            output = view_utils.get_sourced_value(data, info)
+            output = template_utils.get_sourced_value(data, info)
         
         if output is not None:
             return [{
@@ -180,7 +180,7 @@ def renderable_field_values(entity, layout, field):
         if 'source' in info:
             values = [ ]
             for item in data:
-                value = view_utils.get_sourced_value(item, info)
+                value = template_utils.get_sourced_value(item, info)
                 if value is not None:
                     values.append({
                         'name': value,
@@ -233,11 +233,11 @@ class EntityCardsNode(template.Node):
 
         output = ''
         for entity in entities:
-            layout = view_utils.try_get_content(layouts, entity.entity_prefix)
-            if not view_utils.is_layout_safe(layout):
+            layout = template_utils.try_get_content(layouts, entity.entity_prefix)
+            if not template_utils.is_layout_safe(layout):
                 continue
             
-            card = view_utils.try_get_content(layout['definition'], 'card_type', self.DEFAULT_CARD)
+            card = template_utils.try_get_content(layout['definition'], 'card_type', self.DEFAULT_CARD)
             card = f'{self.CARDS_DIRECTORY}/{card}.html'
 
             try:

@@ -51,7 +51,7 @@ from django.utils.timezone import make_aware
 
 logger = logging.getLogger(__name__)
 
-from ..entity_utils import view_utils
+from ..entity_utils import template_utils
 from ..entity_utils import stats_utils
 
 class EntitySearchView(TemplateView):
@@ -71,8 +71,8 @@ class EntitySearchView(TemplateView):
         context = super(EntitySearchView, self).get_context_data(*args, **kwargs)
         request = self.request
 
-        page = view_utils.try_get_param(request, 'page', 1)
-        entities, layouts = view_utils.get_renderable_entities(request)
+        page = template_utils.try_get_param(request, 'page', 1)
+        entities, layouts = template_utils.get_renderable_entities(request)
         entities = entities.order_by('id')
 
         pagination = Paginator(entities, 20, allow_empty_first_page=True)

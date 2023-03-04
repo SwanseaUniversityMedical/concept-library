@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404
 from ..models import GenericEntity, Template
-from ..entity_utils import constants
+from . import constants
 
 '''
     Attempts to parse an int from a value, if it fails to do so, returns the default value
@@ -75,7 +75,10 @@ def is_layout_safe(layout):
     if layout is None:
         return False
 
-    return isinstance(layout.definition, dict)
+    definition = layout['definition'] if isinstance(layout, dict) else getattr(layout, 'definition')
+    if layout is None:
+        return False
+    return isinstance(definition, dict)
 
 '''
     Determines whether the template data of an entity instance is null
@@ -90,7 +93,7 @@ def is_data_safe(entity):
 '''
 def get_layout_field(layout, field, default=None):
     if is_layout_safe(layout):
-        definition = layout.definition
+        definition = layout['definition'] if isinstance(layout, dict) else getattr(layout, 'definition')
         fields = try_get_content(definition, 'fields')
         if fields is not None:
             return try_get_content(fields, field, default)
