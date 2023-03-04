@@ -5,8 +5,12 @@
     "phenotype_uuid": {
       "title": "Phenotype UUID",
       "active": true,
-      "mandatory": true,
       "field_type": "string",
+      "validation": {
+        "mandatory": false,
+        "unique": true,
+        "length": [0, 250]
+      },
       "desired_input": "inputbox",
       "hide_if_empty": true,
       "requires_auth": true
@@ -14,8 +18,10 @@
     "type": {
       "title": "Phenotype Type",
       "active": true,
-      "mandatory": true,
       "field_type": "enum",
+      "validation": {
+        "mandatory": true
+      },
       "desired_input": "dropdown",
       "options": {
         "1": "Biomarker",
@@ -30,8 +36,10 @@
     "data_sources": {
       "title": "Data Sources",
       "active": true,
-      "mandatory": true,
       "field_type": "int_array",
+      "validation": {
+        "mandatory": true
+      },
       "desired_input": "tagbox",
       "source": "DataSource",
       "filterable": true
@@ -39,15 +47,20 @@
     "event_date_range": {
       "title": "Valid Event Date Range",
       "active": false,
-      "mandatory": false,
       "field_type": "string",
+      "validation": {
+        "mandatory": false,
+        "regex": "(?:\\d+\\/|\\d+)+-(?:\\d+\\/|\\d+)+"
+      },
       "desired_input": "datepicker"
     },
     "sex": {
       "title": "Sex",
       "active": true,
-      "mandatory": true,
       "field_type": "enum",
+      "validation": {
+        "mandatory": true
+      },
       "options": {
         "1": "Male",
         "2": "Female",
@@ -58,39 +71,52 @@
     "agreement_date": {
       "title": "Agreement Date",
       "active": true,
-      "mandatory": false,
       "field_type": "string",
+      "validation": {
+        "mandatory": false,
+        "regex": "(0[1-9]|[12]\\d|30|31)\\/(0[1-9]|1[0-2])\\/(\\d{4})"
+      },
       "desired_input": "datepicker",
       "hide_if_empty": true
     },
     "coding_system": {
       "title": "Coding System",
       "active": true,
-      "mandatory": false,
       "computed": true,
       "field_type": "int_array",
+      "validation": {
+        "mandatory": false
+      },
       "source": "CodingSystem",
       "filterable": true
     },
     "phenoflowid": {
       "title": "Phenoflow ID",
       "active": true,
-      "mandatory": false,
       "field_type": "string",
+      "validation": {
+        "mandatory": false,
+        "regex": "https:\\/\\/kclhi\\.org\\/phenoflow\\/phenotype\\/download\\/\\d+(?:\\/)?"
+      },
       "desired_input": "inputbox"
     },
     "concept_information": {
       "title": "Clinical Codes",
       "active": true,
-      "mandatory": false,
       "field_type": "object",
+      "validation": {
+        "mandatory": false
+      },
       "desired_input": "conceptsfield"
     },
     "source_reference": {
       "title": "Source Reference",
       "active": false,
-      "mandatory": false,
       "field_type": "string",
+      "validation": {
+        "mandatory": false,
+        "length": [0, 250]
+      },
       "desired_input": "inputbox",
       "hide_if_empty": true
     }
