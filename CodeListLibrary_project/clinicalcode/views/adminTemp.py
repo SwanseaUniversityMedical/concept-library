@@ -729,7 +729,7 @@ def get_custom_fields(phenotype):
     
     ret_data['type'] = str(get_type(phenotype))
     ret_data['concept_information'] = phenotype.concept_informations
-    ret_data['coding_systems'] = phenotype.clinical_terminologies
+    ret_data['coding_system'] = phenotype.clinical_terminologies
     ret_data['data_sources'] = phenotype.data_sources
     ret_data['phenoflowid'] = phenotype.phenoflowid    
     ret_data['agreement_date'] = get_agreement_date(phenotype)

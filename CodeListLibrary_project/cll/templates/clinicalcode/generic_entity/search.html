@@ -31,21 +31,7 @@
       </aside>
 
       <!-- Rendered cards - will iterate over each entity -->
-      <section class="entity-search-results">
-        <div class="entity-search-results__header">
-          <div class="entity-search-results__header-results">
-            <h4>Results</h4>
-            <p>1-48 of over 10,000</p>
-          </div>
-          <div class="entity-search-results__header-modifiers">
-            <!-- e.g. 'Order By', 'Results per Page' -->
-          </div>
-        </div>
-        <div class="entity-search-results__container">
-          {% render_entity_card with entity=1 %}
-          {% render_entity_card with entity=1 %}
-        </div>
-      </section>
+      {% include "components/search/results.html" %}
     </div>
 
     <!-- Pagination -->

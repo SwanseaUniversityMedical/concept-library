@@ -1,33 +1,34 @@
 {% load static %}
 {% load cl_extras %}
+{% load entity_renderer %}
 
-<article class="entity-card">
+<article class="entity-card" data-entity-id="{{ entity.entity_id }}" data-layout-id="{{ layout.id }}" aria-label="View {{ entity.name }}">
   <div class="entity-card__header">
-    <h3 class="entity-card__title">PH790 - Heart failure</h3>
-    <p class="entity-card__author">Carr E, Bendayan R, Bean D, O'Gallagher K, Pickles A, Stahl D, Zakeri R, Searle T</p>
+    <h3 class="entity-card__title">{{ entity|get_entity_id }} - {{ entity.name }}</h3>
+    <p class="entity-card__author">{{ entity.author }}</p>
   </div>
   <div class="entity-card__snippet">
     <div class="entity-card__snippet-metadata">
-      <span class="entity-card__snippet-metadata-type">Disease or Syndrome</span>
+      <span class="entity-card__snippet-metadata-type">{% render_field_value entity layout "type" %}</span>
       <span class="entity-card__snippet-metadata-divider"></span>
-      <span class="entity-card__snippet-metadata-date">Published 2023-03-03</span>
+      <span class="entity-card__snippet-metadata-date">Last updated {{ entity.created|stylise_date }}</span>
     </div>
     <div class="entity-card__snippet-tags">
       <div class="entity-card__snippet-tags-group">
+        {% renderable_field_values entity layout "coding_system" as coding_systems %}
+        {% for code in coding_systems|slice:":3" %}
         <div class="meta-chip meta-chip-washed-accent">
-          <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">SNOMED CODES</span>
+          <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">{{ code.name }}</span>
         </div>
-        <div class="meta-chip meta-chip-washed-accent">
-          <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">ICD-10</span>
-        </div>
+        {% endfor %}
       </div>
       <div class="entity-card__snippet-tags-group">
+        {% renderable_field_values entity layout "collections" as collections %}
+        {% for collection in collections|slice:":3" %}
         <div class="meta-chip meta-chip-tertiary-accent">
-          <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">PHENOTYPE LIBRARY</span>
+          <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">{{ collection.name }}</span>
         </div>
-        <div class="meta-chip meta-chip-tertiary-accent">
-          <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">BREATHE</span>
-        </div>
+        {% endfor %}
       </div>
     </div>
   </div>

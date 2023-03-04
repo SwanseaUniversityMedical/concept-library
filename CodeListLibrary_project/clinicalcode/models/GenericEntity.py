@@ -5,8 +5,6 @@ from django.db import models
 from simple_history.models import HistoricalRecords
 from django.core.exceptions import ValidationError
 
-# from ..permissions import Permissions
-# from .DataSource import DataSource
 from .TimeStampedModel import TimeStampedModel
 from .Template import Template
 from clinicalcode.constants import *

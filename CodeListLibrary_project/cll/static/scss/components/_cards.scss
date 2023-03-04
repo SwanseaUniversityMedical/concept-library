@@ -179,9 +179,14 @@
   @include prefix(transition, all 250ms ease, webkit moz o);
   @include flex-col();
   cursor: pointer;
+	font: inherit;
+	background: none;
+	color: inherit;
+  outline: inherit;
+	border: none;
   border-bottom: 1px solid col(accent-dark);
   padding: 0 0 1.5rem 0;
-  margin-bottom: 1rem;
+  margin: 0 0 1rem 0;
 
   &:active {
     /* Should we animate it? */
@@ -239,6 +244,10 @@
         justify-content: flex-start;
         align-items: center;
         margin: 1rem 0 0 0;
+
+        &:not(:first-child):not(:last-child) {
+          justify-content: center;
+        }
 
         &:last-child {
           justify-content: flex-end;

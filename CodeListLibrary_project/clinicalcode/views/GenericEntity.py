@@ -51,15 +51,51 @@ from django.utils.timezone import make_aware
 
 logger = logging.getLogger(__name__)
 
-class ExampleSASSView(TemplateView):
-    template_name = 'clinicalcode/generic_entity/examples.html'
+from ..entity_utils import view_utils
 
-    def get(self, request):
-        ctx = {
+'''
+    Entity single search view
+        - Responsible for:
+            -> Managing context of template and which entities to render
+            -> SSR of entities at initial GET request based on request params
+            -> AJAX-driven update of template based on request params (through JsonResponse)
+'''
+class EntitySearchView(TemplateView):
+    template_name = 'clinicalcode/generic_entity/search.html'
 
+    '''
+        Provides contextful data to template based on request parameters
+    '''
+    def get_context_data(self, *args, **kwargs):
+        context = super(EntitySearchView, self).get_context_data(*args, **kwargs)
+        request = self.request
+
+        page = view_utils.try_get_param(request, 'page', 1)
+        entities, layouts = view_utils.get_renderable_entities(request)
+        entities = entities.order_by('id')
+
+        pagination = Paginator(entities, 20, allow_empty_first_page=True)
+        try:
+            page_obj = pagination.page(page)
+        except EmptyPage:
+            page_obj = pagination.page(pagination.num_pages)
+        
+        return {
+            **context,
+            **{
+                'page_obj': page_obj,
+                'layouts': layouts
+            }
         }
+    
+    '''
+        Used by both filters and search to update the page through AJAX requests
+    '''
+    def post(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
 
-        return render(request, self.template_name, context=ctx)
+        response = { }
+        return JsonResponse(response)
 
 class CreateEntityView(TemplateView):
     template_name = 'clinicalcode/generic_entity/create.html'
@@ -71,15 +107,6 @@ class CreateEntityView(TemplateView):
 
         return render(request, self.template_name, context=ctx)
 
-class EntitySearchView(TemplateView):
-    template_name = 'clinicalcode/generic_entity/search.html'
-
-    def get(self, request):
-        ctx = {
-
-        }
-
-        return render(request, self.template_name, context=ctx)
 
 def generic_entity_list(request):
     '''
