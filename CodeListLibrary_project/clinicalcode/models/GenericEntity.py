@@ -12,26 +12,30 @@ from .Template import Template
 from clinicalcode.constants import *
 from django.db import transaction
 
-@transaction.atomic
-def increment_entity_count(id):
-    try:
-        template = Template.objects.select_for_update().get(pk=id)
-        index = template.entity_count = template.entity_count + 1
-        print(index)
-        template.save()
-        return index
-    except Template.DoesNotExist:
-        return -1
+'''
+    Generic Entity Manager
+        @desc responsible for transfering previous phenotype records to generic entities
+              without using the incremental PK
+'''
+class GenericEntityManager(models.Manager):
+    def transfer_record(self, *args, **kwargs):
+        ignore_increment = kwargs.pop('ignore_increment', False)
+        
+        entity = self.model(**kwargs)
+        entity.save(ignore_increment=ignore_increment)
+        return entity
 
+"""
+    Generic Entity Model
+"""
 class GenericEntity(models.Model):
-    """
-        Generic Entity Model
-    """
+    objects = GenericEntityManager()
+
     id = models.AutoField(primary_key=True)
     
     ''' Entity ID '''
     entity_prefix = models.CharField(null=True, max_length=4, editable=False)
-    entity_id = models.IntegerField(unique=True, null=True, editable=False)
+    entity_id = models.IntegerField(unique=False, null=True, editable=False) # unique for every class, but non-unique across classes
 
     ''' Common metdata '''
     name = models.CharField(max_length=250)
@@ -71,68 +75,27 @@ class GenericEntity(models.Model):
     ''' Historical data '''
     history = HistoricalRecords()
 
-    def save(self,  *args, **kwargs):
-        ''' On creation, increments counter within template and increment's entity ID by count + 1 '''
+    '''
+        On creation, increments counter within template and increment's entity ID by count + 1
+        Otherwise, update model and the template statistics based on our new data
+    '''
+    def save(self, ignore_increment=False, *args, **kwargs):
         if self.pk is None:
             template_layout = self.template
             if template_layout is not None:
-                index = increment_entity_count(template_layout.id)
-                if index < 0:
-                    raise ValidationError('Template layout does not exist')
+                with transaction.atomic():
+                    template = Template.objects.select_for_update().get(pk=template_layout.id)
+                    if not ignore_increment:
+                        index = template.entity_count = template.entity_count + 1
+                        self.entity_id = index
+                        self.entity_prefix = template_layout.entity_prefix
+                        template.save()
+                    else:
+                        if template.entity_count < self.entity_id:
+                            template.entity_count = self.entity_id
+                            template.save()
 
-                self.entity_id = index
-                self.entity_prefix = template_layout.entity_prefix
-
-        ''' Otherwise, update model and the template statistics based on our new data '''
-        
-
-        super(GenericEntity, self).save(*args, **kwargs)            
-
-
-    '''
-        Note to self:
-            - Will need to change this + the admin command to account for changes to model
-    '''
-    def save_migrate_phenotypes(self, *args, **kwargs):
-        # This means that the model isn't saved to the database yet
-        
-        entity = 'phenotype'
-        serial_id = False
-        override_id = False
-        
-        # if create new, then calculate new ids
-        #if (not self.id) or (serial_id):            
-        count_all = GenericEntity.objects.count()
-        if count_all:
-            count_all += 1
-        else:
-            count_all = 1
-        # serial auto-increment field
-        #self.serial_id = count_all
-            
-        # #if  (not self.id) or (override_id):   
-        # count = None                
-        # prefix = ''
-        #
-        # entity = entity.lower()
-        # # count only same entity
-        # count = GenericEntity.objects.filter(layout__in = [t[0]  for t in ENTITY_LAYOUT if t[1].lower().replace(' ', '').find(entity) != -1] ).count()
-        # if entity == 'phenotype':
-        #     prefix = 'PH'
-        # elif entity == 'concept':
-        #     prefix = 'C'
-        # elif entity == 'workingset':
-        #     prefix = 'WS'
-        #
-        #
-        # if count:
-        #     count += 1   
-        # else:
-        #     count = 1                   
-        # #self.id = prefix + str(count)
-
-        super(GenericEntity, self).save(*args, **kwargs)            
-
+        super(GenericEntity, self).save(*args, **kwargs)
 
     def save_without_historical_record(self, *args, **kwargs):
         self.skip_history_when_saving = True
