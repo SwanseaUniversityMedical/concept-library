@@ -1,27 +1,25 @@
 {% load static %}
 {% load cl_extras %}
 
-<aside class="pagination-box">
-  <section class="pagination-container">
-    <div class="pagination-container__details">
-      <p class="pagination-container__details-number">Page <span id="page-number">1</span> of <span id="page-total">9</span></p>
-    </div>
-    <ul class="pagination-container__previous">
-      <li class="disabled"><a href="">Previous</a></li>
-    </ul>
-    <ul class="pagination-container__pages">
+<section class="pagination-container">
+  <div class="pagination-container__details">
+    <p class="pagination-container__details-number">Page <span id="page-number">{{ page }}</span> of <span id="page-total">{{ page_range.1 }}</span></p>
+  </div>
+  <ul class="pagination-container__previous">
+    <li {% if not has_previous %} class="disabled" {% endif %}><a href="">Previous</a></li>
+  </ul>
+  <ul class="pagination-container__pages">
+    {% for page_no in pages %}
+      {% if page_no == "divider" %}
+        <li class="divider"><a></a></li>
+      {% else %}
+        <li {% if page_no == page %} class="is-active" {% endif %}><a href="">{{ page_no }}</a></li>
+      {% endif %}
+    {% empty %}
       <li class="is-active"><a href="">1</a></li>
-      <li><a href="">2</a></li>
-      <li><a href="">3</a></li>
-      <li><a href="">4</a></li>
-      <li class="divider"><a></a></li>
-      <li><a href="">6</a></li>
-      <li><a href="">7</a></li>
-      <li><a href="">8</a></li>
-      <li><a href="">9</a></li>
-    </ul>
-    <ul class="pagination-container__next">
-      <li><a href="">Next</a></li>
-    </ul>
-  </section>
-</aside>
+    {% endfor %}
+  </ul>
+  <ul class="pagination-container__next">
+    <li {% if not has_next %} class="disabled" {% endif %}><a href="">Next</a></li>
+  </ul>
+</section>

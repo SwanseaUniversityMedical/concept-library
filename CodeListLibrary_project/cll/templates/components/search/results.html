@@ -2,18 +2,16 @@
 {% load cl_extras %}
 {% load entity_renderer %}
 
-<section class="entity-search-results">
-  <div class="entity-search-results__header">
-    <div class="entity-search-results__header-results">
-      <h4>Results</h4>
-      <p>{{ page_obj.start_index|stylise_number }}-{{ page_obj.end_index|stylise_number }} of over {{ page_obj.paginator.count|stylise_number }}</p>
-    </div>
-    <div class="entity-search-results__header-modifiers">
-      <!-- e.g. 'Order By', 'Results per Page' -->
-    </div>
+<div class="entity-search-results__header">
+  <div class="entity-search-results__header-results">
+    <h4>Results</h4>
+    <p>{{ page_obj.start_index|stylise_number }}-{{ page_obj.end_index|stylise_number }} of over {{ page_obj.paginator.count|stylise_number }}</p>
   </div>
-  <div class="entity-search-results__container">
-    {% render_entity_cards %}
-    {% endrender_entity_cards %}
+  <div class="entity-search-results__header-modifiers">
+    <!-- e.g. 'Order By', 'Results per Page' -->
   </div>
-</section>
+</div>
+<div class="entity-search-results__container">
+  {% render_entity_cards %}
+  {% endrender_entity_cards %}
+</div>

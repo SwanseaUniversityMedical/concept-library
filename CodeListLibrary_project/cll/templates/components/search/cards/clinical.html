@@ -16,18 +16,18 @@
     <div class="entity-card__snippet-tags">
       <div class="entity-card__snippet-tags-group">
         {% renderable_field_values entity layout "coding_system" as coding_systems %}
-        {% for code in coding_systems|slice:":3" %}
-        <div class="meta-chip meta-chip-washed-accent">
-          <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">{{ code.name }}</span>
-        </div>
+        {% for code in coding_systems %}
+          <div class="meta-chip meta-chip-washed-accent">
+            <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">{{ code.name }}</span>
+          </div>
         {% endfor %}
       </div>
       <div class="entity-card__snippet-tags-group">
         {% renderable_field_values entity layout "collections" as collections %}
-        {% for collection in collections|slice:":3" %}
-        <div class="meta-chip meta-chip-tertiary-accent">
-          <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">{{ collection.name }}</span>
-        </div>
+        {% for collection in collections %}
+          <div class="meta-chip meta-chip-tertiary-accent">
+            <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">{{ collection.name }}</span>
+          </div>
         {% endfor %}
       </div>
     </div>

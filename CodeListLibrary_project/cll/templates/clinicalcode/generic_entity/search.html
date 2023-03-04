@@ -31,11 +31,15 @@
       </aside>
 
       <!-- Rendered cards - will iterate over each entity -->
-      {% include "components/search/results.html" %}
+      <section class="entity-search-results">
+        {% include "components/search/results.html" %}
+      </section>
     </div>
 
     <!-- Pagination -->
-    {% render_entity_pagination %}
+    <aside class="pagination-box">
+      {% render_entity_pagination %}
+    </aside>
   </div>
 </main>
 

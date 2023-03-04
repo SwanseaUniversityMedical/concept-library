@@ -20,7 +20,38 @@ def render_details(context, *args, **kwargs):
 @register.inclusion_tag('components/search/pagination.html', takes_context=True, name='render_entity_pagination')
 def render_pagination(context, *args, **kwargs):
     request = context['request']
-    return { }
+    page_obj = context['page_obj']
+
+    page = page_obj.number
+    num_pages = page_obj.paginator.num_pages
+    page_items = []
+    if num_pages <= 9:
+        page_items = set(range(1, num_pages + 1))
+    else:
+        min_page = page - 1
+        max_page = page + 1
+        if min_page <= 1:
+            min_page = 1
+            max_page = min(page + 2, num_pages)
+        else:
+            page_items += [1, 'divider']
+
+        if max_page > num_pages:
+            min_page = max(page - 2, 1)
+            max_page = min(page, num_pages)
+
+        page_items += list(range(min_page, max_page + 1))
+        
+        if num_pages not in page_items:
+            page_items += ['divider', num_pages]
+
+    return {
+        'page': page,
+        'page_range': [1, num_pages],
+        'has_previous': page_obj.has_previous(),
+        'has_next': page_obj.has_next(),
+        'pages': page_items
+    }
 
 '''
     Returns an entity ID with its prefix e.g. PH1
