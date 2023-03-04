@@ -52,21 +52,22 @@ from django.utils.timezone import make_aware
 logger = logging.getLogger(__name__)
 
 from ..entity_utils import view_utils
+from ..entity_utils import stats_utils
 
-'''
-    Entity single search view
-        - Responsible for:
-            -> Managing context of template and which entities to render
-            -> SSR of entities at initial GET request based on request params
-            -> AJAX-driven update of template based on request params (through JsonResponse)
-'''
 class EntitySearchView(TemplateView):
+    '''
+        Entity single search view
+            - Responsible for:
+                -> Managing context of template and which entities to render
+                -> SSR of entities at initial GET request based on request params
+                -> AJAX-driven update of template based on request params (through JsonResponse)
+    '''
     template_name = 'clinicalcode/generic_entity/search.html'
 
-    '''
-        Provides contextful data to template based on request parameters
-    '''
     def get_context_data(self, *args, **kwargs):
+        '''
+            Provides contextful data to template based on request parameters
+        '''
         context = super(EntitySearchView, self).get_context_data(*args, **kwargs)
         request = self.request
 
@@ -88,10 +89,10 @@ class EntitySearchView(TemplateView):
             }
         }
     
-    '''
-        Used by both filters and search to update the page through AJAX requests
-    '''
     def post(self, request, *args, **kwargs):
+        '''
+            Used by both filters and search to update the page through AJAX requests
+        '''
         context = self.get_context_data(**kwargs)
 
         response = { }
@@ -107,6 +108,23 @@ class CreateEntityView(TemplateView):
 
         return render(request, self.template_name, context=ctx)
 
+class EntityStatisticsView(TemplateView):
+    '''
+        Admin job panel to save statistics for templates across entities
+    '''
+    def get(self, request, *args, **kwargs):
+        if settings.CLL_READ_ONLY:
+            raise PermissionDenied
+        
+        if not request.user.is_superuser:
+            raise PermissionDenied
+        
+        stats_utils.collect_statistics()
+
+        return render(request, 'clinicalcode/admin/run_statistics.html', {
+            'successMsg': ['Filter statistics for Concepts/Phenotypes saved'],
+        })
+    
 
 def generic_entity_list(request):
     '''

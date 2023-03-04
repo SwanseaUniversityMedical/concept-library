@@ -42,9 +42,8 @@ class Template(TimeStampedModel):
             - Responsible for building and modifying the 'entity_filters' field
                 -> Iterates through the template and collects each filterable field for easier access
             - Responsible for building and modifying the 'entity_statistics' field
-                -> Iterates through the template and creates keys for filterable fields so that it can be computed on creation of entities
-        '''
-        
+                -> Iterates through the template and creates keys for filterable fields so that it can be computed during a job
+        '''        
         if self.definition is not None and 'fields' in self.definition:
             filterable = []
             statistics = { }

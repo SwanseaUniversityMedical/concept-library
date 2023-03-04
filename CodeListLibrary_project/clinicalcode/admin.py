@@ -66,7 +66,7 @@ class CodingSystemAdmin(admin.ModelAdmin):
 
 @admin.register(Template)
 class Template(admin.ModelAdmin):
-    list_display = ['id', 'name', 'description', 'entity_count']
+    list_display = ['id', 'name', 'description', 'entity_count', 'entity_statistics']
     list_filter = ['name']
     search_fields = ['name']
     exclude = ['created_by', 'updated_by']

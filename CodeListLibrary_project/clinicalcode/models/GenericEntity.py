@@ -78,6 +78,7 @@ class GenericEntity(models.Model):
         Otherwise, update model and the template statistics based on our new data
     '''
     def save(self, ignore_increment=False, *args, **kwargs):
+        # Update 
         if self.pk is None:
             template_layout = self.template
             if template_layout is not None:
@@ -92,6 +93,9 @@ class GenericEntity(models.Model):
                         if template.entity_count < self.entity_id:
                             template.entity_count = self.entity_id
                             template.save()
+        
+        # Update statistics
+        
 
         super(GenericEntity, self).save(*args, **kwargs)
 

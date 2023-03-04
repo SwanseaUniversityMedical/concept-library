@@ -29,6 +29,7 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
 
         url(r'^ge/$', GenericEntity.EntitySearchView.as_view(), name='entity_search_page'),
         url(r'^ge/create/$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
+        url(r'^ge/run-stats/$', GenericEntity.EntityStatisticsView.as_view(), name='run_entity_statistics'),
 
         url(r'^ge/(?P<pk>PH\d+)/uniquecodesbyversion/(?P<phenotype_history_id>\d+)/concept/C(?P<target_concept_id>\d+)/(?P<target_concept_history_id>\d+)/$',
             GenericEntity.phenotype_concept_codes_by_version,

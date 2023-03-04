@@ -72,10 +72,10 @@ def is_metadata(entity, field):
     Determines whether the definition of a layout is null
 '''
 def is_layout_safe(layout):
-    if layout is None or 'definition' not in layout:
+    if layout is None:
         return False
 
-    return isinstance(layout['definition'], dict)
+    return isinstance(layout.definition, dict)
 
 '''
     Determines whether the template data of an entity instance is null
@@ -90,7 +90,7 @@ def is_data_safe(entity):
 '''
 def get_layout_field(layout, field, default=None):
     if is_layout_safe(layout):
-        definition = layout['definition']
+        definition = layout.definition
         fields = try_get_content(definition, 'fields')
         if fields is not None:
             return try_get_content(fields, field, default)
