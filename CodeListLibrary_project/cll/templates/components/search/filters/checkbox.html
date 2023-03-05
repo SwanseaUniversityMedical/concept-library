@@ -8,7 +8,7 @@
     <h4>{{ filter_info.title }}</h4>
   </label>
   <article class="accordian__container">
-    <div class="constrained-filter-group">
+    <div class="constrained-filter-group filter-scrollbar">
       {% for option in filter_info.options %}
         <div class="checkbox-item-container">
           <input id="{{ filter_info.field }}-{{ option.pk }}" type="checkbox" class="checkbox-item" />

@@ -55,7 +55,8 @@ $brand-map-none: (
   'navigation-panel-shadow': '0px 5px 15px -1px rgba(0, 0, 0, 0.5)',
 
   // Scrollbars
-  'slim-scrollbar-color': $transparent_black,
+  'slim-scrollbar-inactive-color': $lightest_grey,
+  'slim-scrollbar-active-color': $transparent_black,
   'slim-scrollbar-radius': 6px,
   'slim-scrollbar-width': 6px,
 
