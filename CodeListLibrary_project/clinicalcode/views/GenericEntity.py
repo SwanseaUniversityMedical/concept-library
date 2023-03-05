@@ -70,9 +70,12 @@ class EntitySearchView(TemplateView):
         context = super(EntitySearchView, self).get_context_data(*args, **kwargs)
         request = self.request
 
-        page = search_utils.try_get_param(request, 'page', 1)
         entities, layouts = search_utils.get_renderable_entities(request)
 
+        # Page could be moved to the search_utils.get_renderable_entities method
+        #   [!] Either the same method, or this method, needs to determine which entities to query
+        #       e.g. in the case of single search, or a search for one specific entity type
+        page = search_utils.try_get_param(request, 'page', 1)
         pagination = Paginator(entities, 20, allow_empty_first_page=True)
         try:
             page_obj = pagination.page(page)

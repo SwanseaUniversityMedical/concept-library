@@ -44,16 +44,21 @@ def try_get_param(request, key, default=None, method='GET'):
 
     return param
 
-def get_renderable_entities(request, entity_type=None):
+def get_renderable_entities(request, entity_type=None, method='GET'):
     '''
-        Gets searchable, published entities and returns:
-            1. The entity and its data
-            2. The entity's rendering information joined with the template
+        Method gets searchable, published entities and applies filters retrieved from the request param(s)
+
+        Returns:
+            1. The entities and their data
+            2. The template associated with each of the entities
     '''
     if entity_type is None:
         templates = Template.objects.filter(entity_count__gt=0)
     else:
-        templates = Template.objects.filter(id=entity_type)
+        if isinstance(entity_type, list):
+            templates = Template.objects.filter(id__in=entity_type)
+        else:
+            templates = Template.objects.filter(id=entity_type)
     
     layout = { }
     templates = templates.order_by('id')
@@ -66,11 +71,49 @@ def get_renderable_entities(request, entity_type=None):
             'statistics': template.entity_statistics,
         }
 
+    is_single_search = Template.objects.count() > constants.MIN_SINGLE_SEARCH
     template_ids = list(templates.values_list('id', flat=True))
 
+    # Get all entities assoc. with the templates requested
     entities = GenericEntity.objects.filter(template__in=template_ids).all()
-    entities = PublishedGenericEntity.objects.filter(entity__in=entities).order_by('-created').distinct().order_by('id')
-    entities = [x.entity.history.get(history_id=x.entity_history_id) for x in entities.all()]
+    entities = PublishedGenericEntity.objects.filter(entity__in=entities).order_by('-created').distinct()
+    
+    # Gather request params for the filters across all templates
+    #   [!] This probably needs to change, we only render entity_filters for specific search
+    #       so we don't need to merge them across templates
+    template_filters = templates.values_list('entity_filters', flat=True).distinct()
+    filters = set([])
+    for items in template_filters:
+        filters = filters | set(items)
+    
+    filters = list(filters)
+
+    # Gather metadata filter params
+    metadata_filters = [key for key, value in constants.metadata.items() if 'filterable' in value]
+    
+    # Build query based on request params
+    query = { }
+    for param, data in getattr(request, method).items():
+        if param in filters:
+            if not is_single_search:
+                # Handle the filter based on its template type
+                # This will be moved into a utility function
+                print(param, '->', data)
+        elif param in metadata_filters:
+            # Currently used to test the history query method
+            # Will add utility function to perform this for each individual metadata type
+            query[f'{param}__contains'] = [int(x) for x in data.split(',')]
+    
+    # Collect all entities that are (1) published and (2) match request parameters
+    #   [!] Need to add order clause modifier based on request param(s)
+    entities = GenericEntity.history.filter(
+        Q(**query) \
+        & \
+        Q(
+            history_id__in=list(entities.values_list('entity_history_id', flat=True)),
+            entity_id__in=list(entities.values_list('entity_id', flat=True))
+        )
+    ).order_by('id')
 
     return entities, layout
 
