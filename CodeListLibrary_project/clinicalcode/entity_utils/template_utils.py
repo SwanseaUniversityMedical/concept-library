@@ -161,14 +161,14 @@ def get_sourced_value(data, info, default=None):
     except:
         return default
 
-def get_template_data_values(entity, layout, field):
+def get_template_data_values(entity, layout, field, default=[]):
     '''
     
     '''
     data = get_entity_field(entity, field)
     info = get_layout_field(layout, field)
     if not info or not data:
-        return []
+        return default
     
     if info['field_type'] == 'enum':
         output = None
@@ -197,4 +197,4 @@ def get_template_data_values(entity, layout, field):
     elif info['field_type'] == 'concept':
         return []
 
-    return []
+    return default
