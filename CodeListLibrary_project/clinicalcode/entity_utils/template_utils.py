@@ -1,5 +1,7 @@
 from django.apps import apps
 from django.db.models import Q
+
+from . import model_utils
 from . import constants
 
 def try_get_content(body, key, default=None):
@@ -202,5 +204,16 @@ def get_template_data_values(entity, layout, field, default=[]):
                     })
             
             return values
+    elif info['field_type'] == 'concept':
+        values = []
+        for item in data:
+            value = model_utils.get_concept_data(
+                item['concept_id'], item['concept_version_id']
+            )
+
+            if value:
+                values.append(value)
+
+        return values
 
     return default

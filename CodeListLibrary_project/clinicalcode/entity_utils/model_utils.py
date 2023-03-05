@@ -2,6 +2,7 @@ import re
 
 from ..models.GenericEntity import GenericEntity
 from ..models.PublishedGenericEntity import PublishedGenericEntity
+from ..models.Concept import Concept
 
 def try_get_instance(model, **kwargs):
   '''
@@ -9,6 +10,17 @@ def try_get_instance(model, **kwargs):
   '''
   try:
     instance = model.objects.get(**kwargs)
+  except:
+    return None
+  else:
+    return instance
+  
+def try_get_entity_history(entity, history_id):
+  '''
+    
+  '''
+  try:
+    instance = entity.history.get(history_id=history_id)
   except:
     return None
   else:
@@ -66,3 +78,21 @@ def get_latest_entity_historical_id(entity_prefix, entity_id, user_authed=False)
       return int(entity.history.latest().history_id)
     
   return None
+
+def get_concept_data(concept_id, concept_history_id):
+  concept = try_get_instance(
+    Concept, pk=concept_id
+  )
+  if not concept:
+    return None
+  
+  concept = try_get_entity_history(concept, concept_history_id)
+  if not concept:
+    return None
+  
+  return {
+    'concept_id': concept_id,
+    'concept_verion_id': concept_history_id,
+    'coding_system': concept.coding_system.name,
+    'data': {}
+  }
