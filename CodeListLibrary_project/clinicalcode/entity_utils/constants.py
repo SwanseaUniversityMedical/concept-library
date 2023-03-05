@@ -1,5 +1,4 @@
 from enum import Enum
-from django.conf import settings
 
 class APPROVAL_STATUS(int, Enum):
     '''
@@ -38,11 +37,9 @@ FILTER_COMPONENTS = {
 }
 
 '''
-    Controls whether the 'Entity Type' filter is present
-        - in dev, this will always be present
-        - in prod, the entity filter will only be present on single search pages
+    Threshold for layout count in single search pages (__gte)
 '''
-MIN_SINGLE_SEARCH = int(not settings.DEBUG)
+MIN_SINGLE_SEARCH = 1
 
 '''
     Used for:

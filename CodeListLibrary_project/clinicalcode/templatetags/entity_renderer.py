@@ -4,6 +4,7 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 from ..entity_utils import template_utils, search_utils, constants
 from ..models import Statistics
+from django.conf import settings
 
 register = template.Library()
 
@@ -333,12 +334,14 @@ class EntityFiltersNode(template.Node):
         if layouts is None:
             return ''
         
-        is_single_search = len(layouts.keys()) > constants.MIN_SINGLE_SEARCH
+        # When in dev env, 'Entity Type' filter will always be present
+        is_single_search = settings.DEBUG or len(layouts.keys()) > constants.MIN_SINGLE_SEARCH
 
         # Render metadata
         output = self.__generate_metadata_filters(context, is_single_search)
 
         # Render template specific filters
-        output = self.__generate_template_filters(context, output, layouts)
+        if not is_single_search or settings.DEBUG:
+            output = self.__generate_template_filters(context, output, layouts)
 
         return output
