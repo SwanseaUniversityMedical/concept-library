@@ -344,9 +344,17 @@ class EntityFiltersNode(template.Node):
         if not fields:
             return output
         
-        for field, structure in fields.items():
-            if 'filterable' in structure:
-                output += self.__render_template_component(context, field, structure, layout)
+        
+        template_fields = []
+        
+        order = template_utils.try_get_content(layouts, 'order')
+        if order is not None:
+            template_fields = [field for field in order if template_utils.try_get_content(fields.get(field), 'filterable')]
+        else:
+            template_fields = [field for field, structure in fields.items() if 'filterable' in structure]
+
+        for field in template_fields:
+            output += self.__render_template_component(context, field, fields[field], layout)
 
         return output
 

@@ -69,18 +69,21 @@ def get_renderable_entities(request):
 
 def get_metadata_stats_by_field(field):
     '''
-
+        Retrieves the global statistics from metadata fields
     '''
     instance = model_utils.try_get_instance(Statistics, type='metadata')
     if instance is not None:
         stats = instance.stat
         return template_utils.try_get_content(stats, field)
 
-def get_source_references(struct):
+def get_source_references(struct, default=[]):
+    '''
+        Retrieves the refence values from source fields e.g. tags, collections, entity type
+    '''
     relative = template_utils.try_get_content(struct, 'relative')
     query = template_utils.try_get_content(struct, 'query', 'pk')
     if not relative:
-        return []
+        return default
     
     try:
         model = apps.get_model(app_label='clinicalcode', model_name=struct['source'])
@@ -98,9 +101,12 @@ def get_source_references(struct):
         
         return ref
     except:
-        return []
+        return default
 
 def get_filter_info(field, structure, default=None):
+    '''
+        Compiles the filter_info for a given field
+    '''
     field_type = template_utils.try_get_content(structure, 'field_type')
     if field_type is None:
         return default
@@ -112,6 +118,9 @@ def get_filter_info(field, structure, default=None):
     }
 
 def try_get_template_statistics(struct, field, default=None):
+    '''
+        Attempts to retrieve the statistics for a templated field from its parent template
+    '''
     if not template_utils.is_layout_safe(struct):
         return default
 
