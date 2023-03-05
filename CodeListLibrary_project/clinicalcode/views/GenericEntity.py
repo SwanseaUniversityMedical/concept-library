@@ -72,7 +72,6 @@ class EntitySearchView(TemplateView):
 
         page = search_utils.try_get_param(request, 'page', 1)
         entities, layouts = search_utils.get_renderable_entities(request)
-        entities = entities.order_by('id')
 
         pagination = Paginator(entities, 20, allow_empty_first_page=True)
         try:

@@ -50,7 +50,7 @@ def get_renderable_entities(request, entity_type=None):
             1. The entity and its data
             2. The entity's rendering information joined with the template
     '''
-    if entity_type is not None:
+    if entity_type is None:
         templates = Template.objects.filter(entity_count__gt=0)
     else:
         templates = Template.objects.filter(id=entity_type)
@@ -67,7 +67,10 @@ def get_renderable_entities(request, entity_type=None):
         }
 
     template_ids = list(templates.values_list('id', flat=True))
-    entities = PublishedGenericEntity.objects.filter(template__in=template_ids)
+
+    entities = GenericEntity.objects.filter(template__in=template_ids).all()
+    entities = PublishedGenericEntity.objects.filter(entity__in=entities).order_by('-created').distinct().order_by('id')
+    entities = [x.entity.history.get(history_id=x.entity_history_id) for x in entities.all()]
 
     return entities, layout
 
