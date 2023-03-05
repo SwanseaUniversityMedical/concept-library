@@ -10,12 +10,12 @@ from .Template import Template
 from clinicalcode.constants import *
 from django.db import transaction
 
-'''
-    Generic Entity Manager
-        @desc responsible for transfering previous phenotype records to generic entities
-              without using the incremental PK
-'''
 class GenericEntityManager(models.Manager):
+    '''
+        Generic Entity Manager
+            @desc responsible for transfering previous phenotype records to generic entities
+                without using the incremental PK
+    '''
     def transfer_record(self, *args, **kwargs):
         ignore_increment = kwargs.pop('ignore_increment', False)
         
@@ -23,10 +23,10 @@ class GenericEntityManager(models.Manager):
         entity.save(ignore_increment=ignore_increment)
         return entity
 
-"""
-    Generic Entity Model
-"""
 class GenericEntity(models.Model):
+    """
+        Generic Entity Model
+    """
     objects = GenericEntityManager()
 
     id = models.AutoField(primary_key=True)
@@ -73,12 +73,10 @@ class GenericEntity(models.Model):
     ''' Historical data '''
     history = HistoricalRecords()
 
-    '''
-        On creation, increments counter within template and increment's entity ID by count + 1
-        Otherwise, update model and the template statistics based on our new data
-    '''
     def save(self, ignore_increment=False, *args, **kwargs):
-        # Update 
+        '''
+            On creation, increments counter within template and increment's entity ID by count + 1
+        '''
         if self.pk is None:
             template_layout = self.template
             if template_layout is not None:
@@ -92,10 +90,7 @@ class GenericEntity(models.Model):
                     else:
                         if template.entity_count < self.entity_id:
                             template.entity_count = self.entity_id
-                            template.save()
-        
-        # Update statistics
-        
+                            template.save()        
 
         super(GenericEntity, self).save(*args, **kwargs)
 

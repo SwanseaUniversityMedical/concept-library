@@ -19,6 +19,11 @@ def render_details(context, *args, **kwargs):
 
 @register.inclusion_tag('components/search/pagination.html', takes_context=True, name='render_entity_pagination')
 def render_pagination(context, *args, **kwargs):
+    '''
+        Renders pagination button(s) for search pages
+            - Provides page range so that it always includes the first and last page,
+              and if available, provides the page numbers 1 page to the left and the right of the current page
+    '''
     request = context['request']
     page_obj = context['page_obj']
 
@@ -53,11 +58,11 @@ def render_pagination(context, *args, **kwargs):
         'pages': page_items
     }
 
-'''
-    Returns an entity ID with its prefix e.g. PH1
-'''
 @register.filter(name='get_entity_id')
 def get_entity_id(entity, default=''):
+    '''
+        Returns an entity ID with its prefix e.g. PH1
+    '''
     try:
         safe_id = f'{entity.entity_prefix}{entity.entity_id}'
     except:
@@ -65,26 +70,26 @@ def get_entity_id(entity, default=''):
     else:
         return safe_id
 
-'''
-    Stylises a number so that it adds a comma delimiter for numbers greater than 1000
-'''
 @register.filter(name='stylise_number')
 def stylise_number(n):
+    '''
+        Stylises a number so that it adds a comma delimiter for numbers greater than 1000
+    '''
     return '{:,}'.format(n)
 
-'''
-    Stylises a datetime object in the YY-MM-DD format
-'''
 @register.filter(name='stylise_date')
 def stylise_date(date):
+    '''
+        Stylises a datetime object in the YY-MM-DD format
+    '''
     return date.strftime('%Y-%m-%d')
 
-'''
-    Truncates a string if its length is greater than the limit
-        - can append an ending, e.g. an ellipsis, by passing the 'ending' parameter
-'''
 @register.simple_tag(name='truncate')
 def truncate(value, lim=0, ending=None):
+    '''
+        Truncates a string if its length is greater than the limit
+            - can append an ending, e.g. an ellipsis, by passing the 'ending' parameter
+    '''
     if lim <= 0:
         return value
 
@@ -99,18 +104,18 @@ def truncate(value, lim=0, ending=None):
     else:
         return truncated
 
-'''
-    Responsible for rendering fields after transforming them using their respective layouts
-        - in the case of 'type' (in this case, phenotype clinical types) where pk__eq=1 would be 'Disease or Syndrome'
-          instead of returning the pk, it would return the field's string representation from either (a) its source or (b) the options parameter
-        
-        - in the case of 'coding_system', it would read each individual element within the ArrayField, 
-          and return a rendered output based on the 'desired_output' parameter
-              OR
-              it would render output based on the 'through' parameter, which points to a component to be rendered
-'''
 @register.simple_tag(name='render_field_value')
 def render_field_value(entity, layout, field, through=None):
+    '''
+        Responsible for rendering fields after transforming them using their respective layouts
+            - in the case of 'type' (in this case, phenotype clinical types) where pk__eq=1 would be 'Disease or Syndrome'
+            instead of returning the pk, it would return the field's string representation from either (a) its source or (b) the options parameter
+            
+            - in the case of 'coding_system', it would read each individual element within the ArrayField, 
+            and return a rendered output based on the 'desired_output' parameter
+                OR
+                it would render output based on the 'through' parameter, which points to a component to be rendered
+    '''
     data = template_utils.get_entity_field(entity, field)
     info = template_utils.get_layout_field(layout, field)
 
@@ -148,13 +153,13 @@ def render_field_value(entity, layout, field, through=None):
 
     return ''
 
-'''
-    Gets the field's value from an entity, compares it with it's expected layout (per the template), and returns
-    a list of values that relate to that field
-        e.g. in the case of CodingSystems it would return [{name: 'ICD-10', value: 1}] where 'value' is the PK
-'''
 @register.simple_tag(name='renderable_field_values')
 def renderable_field_values(entity, layout, field):
+    '''
+        Gets the field's value from an entity, compares it with it's expected layout (per the template), and returns
+        a list of values that relate to that field
+            e.g. in the case of CodingSystems it would return [{name: 'ICD-10', value: 1}] where 'value' is the PK
+    '''
     if template_utils.is_metadata(entity, field):
         # handle metadata e.g. collections, tags etc
         return template_utils.get_metadata_value_from_source(entity, field, default=[])
@@ -191,13 +196,13 @@ def renderable_field_values(entity, layout, field):
 
     return []
 
-'''
-    Responsible for rendering the entity cards on a search page
-        - Uses the entity's template to determine how to render the card (e.g. which to use)
-        - Each card is rendered with its own context pertaining to that entity
-'''
 @register.tag(name='render_entity_cards')
 def render_entities(parser, token):
+    '''
+        Responsible for rendering the entity cards on a search page
+            - Uses the entity's template to determine how to render the card (e.g. which to use)
+            - Each card is rendered with its own context pertaining to that entity
+    '''
     params = {
         # Any future params that modifies behaviour
     }

@@ -6,21 +6,21 @@ from django.shortcuts import get_object_or_404
 from ..models import GenericEntity, Template
 from . import constants
 
-'''
-    Attempts to parse an int from a value, if it fails to do so, returns the default value
-'''
 def parse_int(value, default=0):
+    '''
+        Attempts to parse an int from a value, if it fails to do so, returns the default value
+    '''
     try:
         return int(value)
     except ValueError:
         return default
 
-'''
-    Attempts to get a param from a request by key
-        - If a default is passed and the key isn't present, the default is returned
-        - If the key is present, and the default is non-null, it tries to parse the value as the default's type
-'''
 def try_get_param(request, key, default=None, method='GET'):
+    '''
+        Attempts to get a param from a request by key
+            - If a default is passed and the key isn't present, the default is returned
+            - If the key is present, and the default is non-null, it tries to parse the value as the default's type
+    '''
     try:
         req = getattr(request, method)
         param = req.get(key, default)
@@ -35,10 +35,10 @@ def try_get_param(request, key, default=None, method='GET'):
 
     return param
 
-'''
-    Decodes the body of a request and attempts to load it as JSON
-'''
 def get_request_body(body):
+    '''
+        Decodes the body of a request and attempts to load it as JSON
+    '''
     try:
         body = body.decode('utf-8');
         body = json.loads(body)
@@ -46,10 +46,10 @@ def get_request_body(body):
     except:
         return None
 
-'''
-    Attempts to get content within a dict by a key, if it fails to do so, returns the default value
-'''
 def try_get_content(body, key, default=None):
+    '''
+        Attempts to get content within a dict by a key, if it fails to do so, returns the default value
+    '''
     try:
         if key in body:
             return body[key]
@@ -57,10 +57,10 @@ def try_get_content(body, key, default=None):
     except:
         return default
 
-'''
-    Checks whether a field is accounted for in the metadata of an entity e.g. name, tags, collections
-'''
 def is_metadata(entity, field):
+    '''
+        Checks whether a field is accounted for in the metadata of an entity e.g. name, tags, collections
+    '''
     try:
         model = type(entity)
         data = model._meta.get_field(field)
@@ -68,10 +68,10 @@ def is_metadata(entity, field):
     except:
         return False
 
-'''
-    Determines whether the definition of a layout is null
-'''
 def is_layout_safe(layout):
+    '''
+        Determines whether the definition of a layout is null
+    '''
     if layout is None:
         return False
 
@@ -80,18 +80,18 @@ def is_layout_safe(layout):
         return False
     return isinstance(definition, dict)
 
-'''
-    Determines whether the template data of an entity instance is null
-'''
 def is_data_safe(entity):
+    '''
+        Determines whether the template data of an entity instance is null
+    '''
     if entity is not None:
         data = getattr(entity, 'template_data')
         return isinstance(data, dict)
 
-'''
-    Safely gets a field from a layout's field within its definition
-'''
 def get_layout_field(layout, field, default=None):
+    '''
+        Safely gets a field from a layout's field within its definition
+    '''
     if is_layout_safe(layout):
         definition = layout['definition'] if isinstance(layout, dict) else getattr(layout, 'definition')
         fields = try_get_content(definition, 'fields')
@@ -100,10 +100,10 @@ def get_layout_field(layout, field, default=None):
     
     return default
 
-'''
-    Safely gets a field from an entity, either at the toplevel (e.g. its name) or from its template data (e.g. some dynamic field)
-'''
 def get_entity_field(entity, field, default=None):
+    '''
+        Safely gets a field from an entity, either at the toplevel (e.g. its name) or from its template data (e.g. some dynamic field)
+    '''
     if not is_data_safe(entity):
         return default
 
@@ -115,10 +115,10 @@ def get_entity_field(entity, field, default=None):
         data = getattr(entity, 'template_data')
         return try_get_content(data, field, default)
 
-'''
-    Safely gets a top-level metadata field
-'''
 def try_get_instance_field(instance, field, default=None):
+    '''
+        Safely gets a top-level metadata field
+    '''
     try:
         data = getattr(instance, field)
     except:
@@ -126,12 +126,12 @@ def try_get_instance_field(instance, field, default=None):
     else:
         return data
 
-'''
-    Tries to get the values from a top-level metadata field
-        - This method assumes it is sourced i.e. has a foreign key (has different names and/or filters)
-          to another table
-'''
 def get_metadata_value_from_source(entity, field, default=None):
+    '''
+        Tries to get the values from a top-level metadata field
+            - This method assumes it is sourced i.e. has a foreign key (has different names and/or filters)
+            to another table
+    '''
     try:
         data = getattr(entity, field)
         if field in constants.sourced_data:
@@ -168,19 +168,19 @@ def get_metadata_value_from_source(entity, field, default=None):
     else:
         return default
 
-'''
-    Tries to get the options parameter from a layout's field entry
-'''
 def get_options_value(data, info, default=None):
+    '''
+        Tries to get the options parameter from a layout's field entry
+    '''
     key = str(data)
     if key in info['options']:
         return info['options'][key]
     return default
 
-'''
-    Tries to get the sourced value of a dynamic field from its layout and/or another model (if sourced)
-'''
 def get_sourced_value(data, info, default=None):
+    '''
+        Tries to get the sourced value of a dynamic field from its layout and/or another model (if sourced)
+    '''
     try:
         model = apps.get_model(app_label='clinicalcode', model_name=info['source'])
         relative = None
@@ -205,12 +205,12 @@ def get_sourced_value(data, info, default=None):
     except:
         return default
 
-'''
-    Gets searchable entities and returns:
-        1. The entity and its data
-        2. The entity's rendering information joined with the template
-'''
 def get_renderable_entities(request):
+    '''
+        Gets searchable entities and returns:
+            1. The entity and its data
+            2. The entity's rendering information joined with the template
+    '''
     prefixes = GenericEntity.objects.order_by().values_list('entity_prefix', flat=True).distinct()
     prefixes = list(prefixes)
     

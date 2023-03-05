@@ -9,17 +9,18 @@ from .Brand import Brand
 from clinicalcode.constants import *
 from ..entity_utils import constants
 
-'''
-    Template
-        @desc describes the structure of the data for that type of generic entity
-              and holds statistics information e.g.
-                - count of each entity within this template
-                - count of tag/collection/datasource/coding system/
-
-              also holds information relating to order of the layout (since JSONB does not preserve order)
-              and represents the filterable fields as a hasmap to improve performance
-'''
 class Template(TimeStampedModel):
+    '''
+        Template
+            @desc describes the structure of the data for that type of generic entity
+                and holds statistics information e.g.
+                    - count of each entity within this template
+                    - count of tag/collection/datasource/coding system/
+
+                also holds information relating to order of the layout (since JSONB does not preserve order)
+                and represents the filterable fields as a hasmap to improve performance
+    '''
+
     ''' Metadata '''
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=250, unique=True)

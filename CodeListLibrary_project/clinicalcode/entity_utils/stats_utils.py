@@ -2,10 +2,10 @@ from functools import cmp_to_key
 from ..models import GenericEntity, Template, Statistics
 from . import template_utils, constants
 
-'''
-    Used to sort filter statistics in descending order
-'''
 def sort_by_count(a, b):
+    '''
+        Used to sort filter statistics in descending order
+    '''
     count0 = a['count']
     count1 = b['count']
     if count0 < count1:
@@ -14,10 +14,10 @@ def sort_by_count(a, b):
         return -1
     return 0
 
-'''
-    Responsible for computing the statistics for a template, across its entities
-'''
 def compute_statistics(layout, entities):
+    '''
+        Responsible for computing the statistics for a template, across its entities
+    '''
     statistics = { }
     for entity in entities:
         if not template_utils.is_data_safe(entity):
@@ -105,11 +105,11 @@ def compute_statistics(layout, entities):
 
     return statistics
 
-'''
-    Responsible for collecting the statistics for each template across each of its entities
-        - Collects information relating to usage of filterable fields
-'''
 def collect_statistics(request):
+    '''
+        Responsible for collecting the statistics for each template across each of its entities
+            - Collects information relating to usage of filterable fields
+    '''
     metadata_stats = { }
     layouts = Template.objects.all()
     for layout in layouts:
