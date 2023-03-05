@@ -49,7 +49,7 @@ def get_layout_field(layout, field, default=None):
         Safely gets a field from a layout's field within its definition
     '''
     if is_layout_safe(layout):
-        definition = layout['definition'] if isinstance(layout, dict) else getattr(layout, 'definition')
+        definition = try_get_content(layout, 'definition') if isinstance(layout, dict) else getattr(layout, 'definition')
         fields = try_get_content(definition, 'fields')
         if fields is not None:
             return try_get_content(fields, field, default)
@@ -97,14 +97,22 @@ def get_metadata_value_from_source(entity, field, default=None):
             column = 'id'
             if 'query' in info:
                 column = info['query']
+
+            if isinstance(data, model):
+                data = getattr(data, column)
             
-            query = {
-                f'{column}__in': data
-            }
+            if isinstance(data, list):
+                query = {
+                    f'{column}__in': data
+                }
+            else:
+                query = {
+                    f'{column}': data
+                }
 
             if 'filter' in info:
                 query = {**query, **info['filter']}
-
+            
             queryset = model.objects.filter(Q(**query))
             if queryset.exists():
                 relative = 'name'
@@ -120,7 +128,7 @@ def get_metadata_value_from_source(entity, field, default=None):
                 
                 return output if len(output) > 0 else default
     except:
-        return default
+        raise
     else:
         return default
 
@@ -194,7 +202,5 @@ def get_template_data_values(entity, layout, field, default=[]):
                     })
             
             return values
-    elif info['field_type'] == 'concept':
-        return []
 
     return default

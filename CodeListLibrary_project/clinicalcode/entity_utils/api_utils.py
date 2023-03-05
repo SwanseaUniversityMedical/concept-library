@@ -105,6 +105,28 @@ def get_entity_version_history(request, entity_prefix, entity_id):
 
 ''' Formatting helpers '''
 
+def get_layout_from_entity(entity):
+  layout = entity.template
+  if not layout:
+    return Response(
+      data={
+        'message': 'Entity template is missing'
+      }, 
+      content_type='json',
+      status=status.HTTP_404_NOT_FOUND
+    )
+  
+  if not template_utils.is_layout_safe(layout):
+    return Response(
+      data={
+        'message': 'Entity layout is empty'
+      }, 
+      content_type='json',
+      status=status.HTTP_204_NO_CONTENT
+    )
+  
+  return layout
+
 def get_verbose_metadata_field(entity, field):
   '''
   
@@ -120,13 +142,17 @@ def get_verbose_metadata_field(entity, field):
     status=status.HTTP_200_OK
   )
 
-def get_verbose_template_field():
+def get_verbose_template_field(entity, layout, field):
   '''
   
   '''
 
+  result = template_utils.get_template_data_values(entity, layout, field, default=None)
+  if not result:
+    result = template_utils.get_entity_field(entity, field)
+
   return Response(
-    data={},
+    data=result,
     content_type='json',
     status=status.HTTP_200_OK
   )
@@ -135,6 +161,11 @@ def export_field(entity, field, user_authed):
   '''
   
   '''
+  layout_response = get_layout_from_entity(entity)
+  if isinstance(layout_response, Response):
+    return layout_response
+  layout = layout_response
+
   base_fields = constants.metadata
   if field in base_fields:
     is_active = template_utils.try_get_content(base_fields[field], 'active')
@@ -150,6 +181,16 @@ def export_field(entity, field, user_authed):
       )
     
     return get_verbose_metadata_field(entity, field)
+  elif template_utils.get_layout_field(layout, field):
+    return get_verbose_template_field(entity, layout, field)
+  
+  return Response(
+    data={
+      'message': 'Entity does not contain field: %s' % field
+    }, 
+    content_type='json',
+    status=status.HTTP_404_NOT_FOUND
+  )
 
 def transform_field_data(layout, data, user_authed):
   '''
@@ -171,25 +212,11 @@ def get_entity_json_detail(request, entity_id, entity, user_authed):
   '''
 
   '''  
-  layout = entity.template
-  if not layout:
-    return Response(
-      data={
-        'message': 'Entity template is missing'
-      }, 
-      content_type='json',
-      status=status.HTTP_404_NOT_FOUND
-    )
-  
-  if not template_utils.is_layout_safe(layout):
-    return Response(
-      data={
-        'message': 'Entity layout is empty'
-      }, 
-      content_type='json',
-      status=status.HTTP_204_NO_CONTENT
-    )
-  
+  layout_response = get_layout_from_entity(entity)
+  if isinstance(layout_response, Response):
+    return layout_response
+  layout = layout_response
+
   if user_authed:
     created_by = model_utils.try_get_instance(User, id=entity.created_by_id)
     created_by = created_by and created_by.username
