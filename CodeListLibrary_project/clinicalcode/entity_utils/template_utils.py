@@ -160,3 +160,41 @@ def get_sourced_value(data, info, default=None):
         return default
     except:
         return default
+
+def get_template_data_values(entity, layout, field):
+    '''
+    
+    '''
+    data = get_entity_field(entity, field)
+    info = get_layout_field(layout, field)
+    if not info or not data:
+        return []
+    
+    if info['field_type'] == 'enum':
+        output = None
+        if 'options' in info:
+            output = get_options_value(data, info)
+        elif 'source' in info:
+            output = get_sourced_value(data, info)
+        
+        if output is not None:
+            return [{
+                'name': output,
+                'value': data
+            }]
+    elif info['field_type'] == 'int_array':
+        if 'source' in info:
+            values = [ ]
+            for item in data:
+                value = get_sourced_value(item, info)
+                if value is not None:
+                    values.append({
+                        'name': value,
+                        'value': item,
+                    })
+            
+            return values
+    elif info['field_type'] == 'concept':
+        return []
+
+    return []

@@ -54,6 +54,7 @@ MIN_SINGLE_SEARCH = int(not settings.DEBUG)
 metadata = {
     'template': {
         'title': 'Entity Type',
+        'active': True,
         'field_type': 'int',
         'source': 'Template',
         'query': 'id',
@@ -61,53 +62,10 @@ metadata = {
         'computed': True,
         'filterable': True,
         'single_search_only': True,
+        "validation": {
+            "mandatory": True
+        }
     },
-    'created': {
-        'title': 'Date',
-        'field_type': 'datetime',
-        'computed': True,
-        'filterable': True,
-    },
-    'author': {
-        'title': 'Author',
-        'field_type': 'string',
-        'desired_input': 'inputbox',
-        'searchable': True,
-    },
-    'collections': {
-        'title': 'Collections',
-        'field_type': 'int_array',
-        'source': 'Tag',
-        'query': 'id',
-        'relative': 'description',
-        'filter': {
-            'tag_type': 2
-        },
-        'desired_input': "tagbox",
-        'desired_output': "taglist",
-        'compute_statistics': True,
-        'filterable': True,
-    },
-    'tags': {
-        'title': 'Tags',
-        'field_type': 'int_array',
-        'source': 'Tag',
-        'query': 'id',
-        'relative': 'description',
-        'filter': {
-            'tag_type': 1
-        },
-        'desired_input': "tagbox",
-        'desired_output': "taglist",
-        'compute_statistics': True,
-        'filterable': True,
-    },
-}
-
-'''
-
-'''
-base_entity_fields = {
     "name": {
         "title": "Name",
         "active": True,
@@ -115,35 +73,6 @@ base_entity_fields = {
         "desired_input": "inputbox",
         "validation": {
             "mandatory": True
-        }
-    },
-    "author": {
-        "title": "Author",
-        "active": True,
-        "field_type": "string",
-        "desired_input": "inputbox",
-        "validation": {
-            "mandatory": True
-        }
-    },
-    "collections": {
-        "title": "Collections",
-        "active": True,
-        "field_type": "int_array",
-        "desired_input": "tagbox",
-        "desired_output": "taglist",
-        "validation": {
-            "mandatory": False
-        }
-    },
-    "tags": {
-        "title": "Tags",
-        "active": True,
-        "field_type": "int_array",
-        "desired_input": "tagbox",
-        "desired_output": "taglist",
-        "validation": {
-            "mandatory": False
         }
     },
     "definition": {
@@ -196,12 +125,60 @@ base_entity_fields = {
             "mandatory": False
         }
     },
-    "created": {
-        "title": "Created",
-        "active": True,
-        "field_type": "datetime",
+    'created': {
+        'title': 'Date',
+        'active': True,
+        'field_type': 'datetime',
+        'computed': True,
+        'filterable': True,
         "validation": {
             "mandatory": True
+        }
+    },
+    'author': {
+        'title': 'Author',
+        'active': True,
+        'field_type': 'string',
+        'desired_input': 'inputbox',
+        'searchable': True,
+        "validation": {
+            "mandatory": True
+        }
+    },
+    'collections': {
+        'title': 'Collections',
+        'active': True,
+        'field_type': 'int_array',
+        'source': 'Tag',
+        'query': 'id',
+        'relative': 'description',
+        'filter': {
+            'tag_type': 2
+        },
+        'desired_input': "tagbox",
+        'desired_output': "taglist",
+        'compute_statistics': True,
+        'filterable': True,
+        "validation": {
+            "mandatory": False
+        }
+    },
+    'tags': {
+        'title': 'Tags',
+        'active': True,
+        'field_type': 'int_array',
+        'source': 'Tag',
+        'query': 'id',
+        'relative': 'description',
+        'filter': {
+            'tag_type': 1
+        },
+        'desired_input': "tagbox",
+        'desired_output': "taglist",
+        'compute_statistics': True,
+        'filterable': True,
+        "validation": {
+            "mandatory": False
         }
     },
     "updated": {

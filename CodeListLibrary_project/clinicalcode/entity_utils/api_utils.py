@@ -109,10 +109,13 @@ def get_verbose_metadata_field(entity, field):
   '''
   
   '''
-  field_value = template_utils.get_metadata_value_from_source(entity, field, default=None)
+  if template_utils.try_get_content(constants.metadata[field], 'source'):
+    result = template_utils.get_metadata_value_from_source(entity, field, default=None)
+  else:
+    result = template_utils.get_entity_field(entity, field)
 
   return Response(
-    data={},
+    data=result or {},
     content_type='json',
     status=status.HTTP_200_OK
   )
@@ -132,7 +135,7 @@ def export_field(entity, field, user_authed):
   '''
   
   '''
-  base_fields = constants.base_entity_fields
+  base_fields = constants.metadata
   if field in base_fields:
     is_active = template_utils.try_get_content(base_fields[field], 'active')
     authed_only = template_utils.try_get_content(base_fields[field], 'requires_auth') and not user_authed
@@ -213,7 +216,7 @@ def get_entity_json_detail(request, entity_id, entity, user_authed):
   result = {
     'id': entity_id,
     'version_id': entity.history_id,
-    'data': transform_field_data(constants.base_entity_fields, base_data, user_authed)
+    'data': transform_field_data(constants.metadata, base_data, user_authed)
   }
 
   result['data'] = result['data'] | transform_field_data(

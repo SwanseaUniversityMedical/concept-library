@@ -109,7 +109,7 @@
     "concept_information": {
       "title": "Clinical Codes",
       "active": true,
-      "field_type": "object",
+      "field_type": "concept",
       "validation": {
         "mandatory": false
       },

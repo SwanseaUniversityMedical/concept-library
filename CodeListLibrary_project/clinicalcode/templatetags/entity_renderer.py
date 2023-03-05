@@ -164,37 +164,7 @@ def renderable_field_values(entity, layout, field):
         # handle metadata e.g. collections, tags etc
         return template_utils.get_metadata_value_from_source(entity, field, default=[])
     
-    data = template_utils.get_entity_field(entity, field)
-    info = template_utils.get_layout_field(layout, field)
-    if not info or not data:
-        return []
-    
-    if info['field_type'] == 'enum':
-        output = None
-        if 'options' in info:
-            output = template_utils.get_options_value(data, info)
-        elif 'source' in info:
-            output = template_utils.get_sourced_value(data, info)
-        
-        if output is not None:
-            return [{
-                'name': output,
-                'value': data
-            }]
-    elif info['field_type'] == 'int_array':
-        if 'source' in info:
-            values = [ ]
-            for item in data:
-                value = template_utils.get_sourced_value(item, info)
-                if value is not None:
-                    values.append({
-                        'name': value,
-                        'value': item,
-                    })
-            
-            return values
-
-    return []
+    return template_utils.get_template_data_values(entity, layout, field)
 
 @register.tag(name='render_entity_cards')
 def render_entities(parser, token):
