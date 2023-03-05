@@ -27,7 +27,7 @@
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
-      max-width: 50%;
+      box-sizing: content-box;
       font-size: 14px;
     }
 

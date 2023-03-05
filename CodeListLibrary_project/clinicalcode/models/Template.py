@@ -7,6 +7,7 @@ from django.contrib.postgres.fields import ArrayField
 from .TimeStampedModel import TimeStampedModel
 from .Brand import Brand
 from clinicalcode.constants import *
+from ..entity_utils import constants
 
 '''
     Template
@@ -56,6 +57,12 @@ class Template(TimeStampedModel):
                             statistics[field] = self.entity_statistics[field]
                         else:
                             statistics[field] = { }
+            
+            for field in constants.sourced_data:
+                if field in self.entity_statistics:
+                    statistics[field] = self.entity_statistics[field]
+                else:
+                    statistics[field] = { }
 
             self.entity_filters = filterable
             self.entity_statistics = statistics

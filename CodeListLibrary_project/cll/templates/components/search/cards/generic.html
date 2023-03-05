@@ -1,31 +1,32 @@
 {% load static %}
 {% load cl_extras %}
+{% load entity_renderer %}
 
 <article class="entity-card">
   <div class="entity-card__header">
-    <h3 class="entity-card__title">PH790 - Heart failure</h3>
-    <p class="entity-card__author">Carr E, Bendayan R, Bean D, O'Gallagher K, Pickles A, Stahl D, Zakeri R, Searle T</p>
+    <h3 class="entity-card__title">{{ entity|get_entity_id }} - {{ entity.name }}</h3>
+    <p class="entity-card__author">{{ entity.author }}</p>
   </div>
   <div class="entity-card__snippet">
     <div class="entity-card__snippet-metadata">
-      <span class="entity-card__snippet-metadata-date">Published 2023-03-03</span>
+      <span class="entity-card__snippet-metadata-date">Last updated {{ entity.created|stylise_date }}</span>
     </div>
     <div class="entity-card__snippet-tags">
       <div class="entity-card__snippet-tags-group">
-        <div class="meta-chip meta-chip-washed-accent">
-          <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">Some tag</span>
-        </div>
-        <div class="meta-chip meta-chip-washed-accent">
-          <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">Some other tag</span>
-        </div>
+        {% renderable_field_values entity layout "tags" as tags %}
+        {% for tag in tags %}
+          <div class="meta-chip meta-chip-washed-accent">
+            <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">{{ tag.name }}</span>
+          </div>
+        {% endfor %}
       </div>
       <div class="entity-card__snippet-tags-group">
-        <div class="meta-chip meta-chip-tertiary-accent">
-          <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">SOME COLLECTION</span>
-        </div>
-        <div class="meta-chip meta-chip-tertiary-accent">
-          <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">SOME OTHER COLLECTION</span>
-        </div>
+        {% renderable_field_values entity layout "collections" as collections %}
+        {% for collection in collections %}
+          <div class="meta-chip meta-chip-tertiary-accent">
+            <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">{{ collection.name }}</span>
+          </div>
+        {% endfor %}
       </div>
     </div>
   </div>
