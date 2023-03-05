@@ -1,6 +1,8 @@
 from . import model_utils
 from .constants import APPROVAL_STATUS, GROUP_PERMISSIONS
 
+''' Status helpers '''
+
 def is_member(user, group_name):
   '''
 
@@ -18,15 +20,18 @@ def has_member_access(user, entity, permissions):
 
 def is_publish_status(entity, status):
   '''
+  
   '''
   approval_status = model_utils.get_entity_approval_status(
-    entity.entity_prefix, entity.entity_id, entity.entity_history_id
+    entity.entity_prefix, entity.entity_id, entity.history_id
   )
 
   if approval_status:
     return approval_status in status
 
   return False
+
+''' General permissions '''
 
 def has_entity_view_permissions(request, entity):
   '''

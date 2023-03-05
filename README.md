@@ -8,7 +8,7 @@ The specific goals of this work are:
 - Provide a mechanism for sharing code lists between projects and organizations.
 
 ## Live Site
-The Concept Library web application is [available here](htttps://conceptlibrary.saildatabank.com).
+The Concept Library web application is [available here](https://conceptlibrary.saildatabank.com).
 
 ## User documentation
 Concept Library documentation is [available here](https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation).
