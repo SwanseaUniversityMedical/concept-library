@@ -164,7 +164,7 @@
 							{% if IS_DEMO or IS_DEVELOPMENT_PC %}					
 								{% if request.BRAND_OBJECT.allowed_tabs is none or 'generic_entity' in request.BRAND_OBJECT.allowed_tabs %}					
 									<li id="generic_entity_li"  >
-										<a id="generic_entity_a" class="main_menu nav-bar-title" href="{% url 'generic_entity_list_temp' %}">Generic Entity</a>
+										<a id="generic_entity_a" class="main_menu nav-bar-title" href="{% url 'entity_search_page' %}">Generic Entity</a>
 									</li>	
 								{% endif %}		
 							{% endif %}		

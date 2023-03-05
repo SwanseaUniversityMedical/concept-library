@@ -18,16 +18,12 @@ urlpatterns = []
  
  
 if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
-    urlpatterns += [
-        url(r'^search/$', GenericEntity.generic_entity_list, name='generic_entity_list'),
-       
-        url(r'^search/temp/$', GenericEntity.generic_entity_list_temp, name='generic_entity_list_temp'),
-       
+    urlpatterns += [       
         url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/detail/$',
             GenericEntity.generic_entity_detail,
             name='generic_entity_history_detail'),
 
-        url(r'^ge/$', GenericEntity.EntitySearchView.as_view(), name='entity_search_page'),
+        url(r'^search/$', GenericEntity.EntitySearchView.as_view(), name='entity_search_page'),
         url(r'^ge/create/$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
         url(r'^ge/run-stats/$', GenericEntity.EntityStatisticsView.as_view(), name='run_entity_statistics'),
 
