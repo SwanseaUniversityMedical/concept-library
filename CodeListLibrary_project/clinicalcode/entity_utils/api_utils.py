@@ -5,7 +5,6 @@ from copy import deepcopy
 import json
 
 from ..models.GenericEntity import GenericEntity
-from ..models.Template import Template
 from . import model_utils
 from . import template_utils
 from . import permission_utils
