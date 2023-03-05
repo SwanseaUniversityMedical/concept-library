@@ -59,7 +59,10 @@ class Template(TimeStampedModel):
                         else:
                             statistics[field] = { }
             
-            for field in constants.sourced_data:
+            for field, info in constants.metadata.items():
+                if 'compute_statistics' not in info:
+                    continue
+
                 if field in self.entity_statistics:
                     statistics[field] = self.entity_statistics[field]
                 else:

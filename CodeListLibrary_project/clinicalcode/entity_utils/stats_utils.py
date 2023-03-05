@@ -68,7 +68,10 @@ def compute_statistics(layout, entities):
         
             statistics[field] = stats
         
-        for field in constants.sourced_data:
+        for field, info in constants.metadata.items():
+            if 'compute_statistics' not in info:
+                continue
+            
             stats = statistics[field] if field in statistics else { }
             
             entity_field = template_utils.get_entity_field(entity, field)
@@ -126,7 +129,7 @@ def collect_statistics(request):
         layout.save()
     
         # Metadata
-        for field in constants.sourced_data:
+        for field in constants.metadata:
             if field in stats:
                 meta_stats = stats[field]
 

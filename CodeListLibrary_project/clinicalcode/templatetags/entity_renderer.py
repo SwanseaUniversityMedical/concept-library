@@ -1,9 +1,9 @@
 from django import template
-from django.conf import settings
 from jinja2.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
-from ..entity_utils import template_utils
+from ..entity_utils import template_utils, search_utils, constants
+from ..models import Statistics
 
 register = template.Library()
 
@@ -210,7 +210,7 @@ def render_entities(parser, token):
     try:
         parsed = token.split_contents()[1:]
         if len(parsed) > 0 and parsed[0] == 'with':
-            parsed = parsed[2:]
+            parsed = parsed[1:]
         
         for param in parsed:
             ctx = param.split('=')
@@ -223,9 +223,6 @@ def render_entities(parser, token):
     return EntityCardsNode(params, nodelist)
 
 class EntityCardsNode(template.Node):
-    DEFAULT_CARD = 'generic'
-    CARDS_DIRECTORY = 'components/search/cards'
-
     def __init__(self, params, nodelist):
         self.request = template.Variable('request')
         self.params = params
@@ -242,8 +239,8 @@ class EntityCardsNode(template.Node):
             if not template_utils.is_layout_safe(layout):
                 continue
             
-            card = template_utils.try_get_content(layout['definition'], 'card_type', self.DEFAULT_CARD)
-            card = f'{self.CARDS_DIRECTORY}/{card}.html'
+            card = template_utils.try_get_content(layout['definition'], 'card_type', constants.DEFAULT_CARD)
+            card = f'{constants.CARDS_DIRECTORY}/{card}.html'
 
             try:
                 html = render_to_string(card, {
@@ -255,4 +252,115 @@ class EntityCardsNode(template.Node):
             else:
                 output += html
         
+        return output
+
+@register.tag(name='render_entity_filters')
+def render_filters(parser, token):
+    '''
+        Responsible for rendering filters for entities on the search pages
+    '''
+    params = {
+        # Any future modifiers
+    }
+
+    try:
+        parsed = token.split_contents()[1:]
+        if len(parsed) > 0 and parsed[0] == 'with':
+            parsed = parsed[1:]
+        
+        for param in parsed:
+            ctx = param.split('=')
+            params[ctx[0]] = eval(ctx[1])
+    except ValueError:
+        raise TemplateSyntaxError('Unable to parse entity filters renderer')
+
+    nodelist = parser.parse(('endrender_entity_filters'))
+    parser.delete_first_token()
+    return EntityFiltersNode(params, nodelist)
+
+class EntityFiltersNode(template.Node):
+    def __init__(self, params, nodelist):
+        self.request = template.Variable('request')
+        self.params = params
+        self.nodelist = nodelist
+    
+    def __render_metadata_component(self, context, field, structure):
+        filter_info = search_utils.get_filter_info(field, structure)
+        if not filter_info:
+            return ''
+    
+        component = template_utils.try_get_content(constants.FILTER_COMPONENTS, filter_info.get('type'))
+        if component is None:
+            return ''
+
+        if 'compute_statistics' in structure:
+            filter_info['options'] = search_utils.get_metadata_stats_by_field(field)
+        else:
+            if 'source' in structure:
+                filter_info['options'] = search_utils.get_source_references(structure)
+        
+        context['filter_info'] = filter_info
+        return render_to_string(f'{constants.FILTER_DIRECTORY}/{component}.html', context.flatten())
+
+    def __render_template_component(self, context, field, structure, layout):
+        filter_info = search_utils.get_filter_info(field, structure)
+        if not filter_info:
+            return ''
+    
+        component = template_utils.try_get_content(constants.FILTER_COMPONENTS, filter_info.get('type'))
+        if component is None:
+            return ''
+        
+        statistics = search_utils.try_get_template_statistics(layout, filter_info.get('field'))
+        if statistics is None:
+            return ''
+        
+        context['filter_info'] = {
+            **filter_info,
+            'options': statistics
+        }
+
+        return render_to_string(f'{constants.FILTER_DIRECTORY}/{component}.html', context.flatten())
+
+    def __generate_metadata_filters(self, context, is_single_search=False):
+        request = self.request.resolve(context)
+
+        output = ''
+        for field, structure in constants.metadata.items():
+            if 'filterable' in structure:
+                if field != 'template' or is_single_search:
+                    output += self.__render_metadata_component(context, field, structure)
+
+        return output
+    
+    def __generate_template_filters(self, context, output, layouts):
+        request = self.request.resolve(context)
+        
+        layout = next((x for x in layouts.values()), None)
+        if not template_utils.is_layout_safe(layout):
+            return output
+
+        fields = template_utils.try_get_content(layout.get('definition'), 'fields')
+        if not fields:
+            return output
+        
+        for field, structure in fields.items():
+            if 'filterable' in structure:
+                output += self.__render_template_component(context, field, structure, layout)
+
+        return output
+
+    def render(self, context):
+        layouts = context.get('layouts', None)
+        if layouts is None:
+            return ''
+        
+        is_single_search = len(layouts.keys()) > constants.MIN_SINGLE_SEARCH
+
+        # Render metadata
+        output = self.__generate_metadata_filters(context, is_single_search)
+
+        # Render template specific filters
+        output = self.__generate_template_filters(context, output, layouts)
+
         return output

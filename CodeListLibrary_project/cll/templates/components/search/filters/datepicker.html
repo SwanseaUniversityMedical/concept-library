@@ -1,0 +1,13 @@
+{% load static %}
+{% load cl_extras %}
+{% load entity_renderer %}
+
+<div class="accordian">
+  <input class="accordian__input" id="filter-{{ filter_info.field }}" name="filter-{{ filter_info.field }}" type="checkbox" />
+  <label class="accordian__label" for="filter-{{ filter_info.field }}">
+    <h4>{{ filter_info.title }}</h4>
+  </label>
+  <article class="accordian__container">
+    <p>Datepicker</p>
+  </article>
+</div>

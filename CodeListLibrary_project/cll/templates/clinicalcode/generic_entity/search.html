@@ -26,7 +26,8 @@
           <h3>Filter By</h3>
         </div>
         <div class="side-search-filters__container">
-          {% include "components/search/filters/checkbox.html" %}
+          {% render_entity_filters %}
+          {% endrender_entity_filters %}
         </div>
       </aside>
 

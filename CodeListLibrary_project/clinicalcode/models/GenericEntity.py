@@ -35,7 +35,7 @@ class GenericEntity(models.Model):
     entity_prefix = models.CharField(null=True, max_length=4, editable=False)
     entity_id = models.IntegerField(unique=False, null=True, editable=False) # unique for every class, but non-unique across classes
 
-    ''' Common metdata '''
+    ''' Common metadata '''
     name = models.CharField(max_length=250)
     status = models.IntegerField(choices=ENTITY_STATUS, default=ENTITY_STATUS_DRAFT)
     author = models.CharField(max_length=1000)

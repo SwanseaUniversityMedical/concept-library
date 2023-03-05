@@ -1,35 +1,20 @@
 {% load static %}
 {% load cl_extras %}
+{% load entity_renderer %}
 
 <div class="accordian">
-  <input class="accordian__input" id="filter-0" name="filter-0" type="checkbox" />
-  <label class="accordian__label" id="filter-0" for="filter-0">
-    <h4>Coding System</h4>
+  <input class="accordian__input" id="filter-{{ filter_info.field }}" name="filter-{{ filter_info.field }}" type="checkbox" />
+  <label class="accordian__label" for="filter-{{ filter_info.field }}">
+    <h4>{{ filter_info.title }}</h4>
   </label>
   <article class="accordian__container">
-    <div class="checkbox-item-container">
-      <input id="checkbox-0" type="checkbox" class="checkbox-item" />
-      <label for="checkbox-0">ICD-10</label>
-    </div>
-    <div class="checkbox-item-container">
-      <input id="checkbox-1" type="checkbox" class="checkbox-item" />
-      <label for="checkbox-1">SNOMED CODES</label>
-    </div>
-  </article>
-</div>
-<div class="accordian">
-  <input class="accordian__input" id="filter-1" name="filter-1" type="checkbox" />
-  <label class="accordian__label" id="filter-1" for="filter-1">
-    <h4>Phenotype Type</h4>
-  </label>
-  <article class="accordian__container">
-    <div class="checkbox-item-container">
-      <input id="checkbox-2" type="checkbox" class="checkbox-item" />
-      <label for="checkbox-2">Biomarker</label>
-    </div>
-    <div class="checkbox-item-container">
-      <input id="checkbox-3" type="checkbox" class="checkbox-item" />
-      <label for="checkbox-3">Disease or Syndrome</label>
+    <div class="constrained-filter-group">
+      {% for option in filter_info.options %}
+        <div class="checkbox-item-container">
+          <input id="{{ filter_info.field }}-{{ option.pk }}" type="checkbox" class="checkbox-item" />
+          <label for="{{ filter_info.field }}-{{ option.pk }}" class="constrained-filter-item">{{ option.value }}</label>
+        </div>
+      {% endfor %}
     </div>
   </article>
 </div>
