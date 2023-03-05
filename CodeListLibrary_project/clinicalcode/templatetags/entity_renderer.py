@@ -121,36 +121,23 @@ def render_field_value(entity, layout, field, through=None):
     info = template_utils.get_layout_field(layout, field)
 
     if not info or not data:
-        # Should we try to return data, or maybe some filler?
         return ''
-    
-    # Probably should be a in hashmap or class
-    if info['field_type'] == 'enum':
-        output = None
-        if 'options' in info:
-            output = template_utils.get_options_value(data, info)
-        elif 'source' in info:
-            output = template_utils.get_sourced_value(data, info)
         
-        if output is not None:
-            return output
+    if info['field_type'] == 'enum':
+        output = template_utils.get_template_data_values(entity, layout, field, default=None)
+        if output is not None and len(output) > 0:
+            return template_utils.try_get_content(output[0], 'name')
     elif info['field_type'] == 'int_array':
         if 'source' in info:
-            values = [ ]
-            for item in data:
-                value = template_utils.get_sourced_value(item, info)
-                if value is not None:
-                    values.append({
-                        'name': value,
-                        'value': data,
-                    })
+            values = template_utils.get_template_data_values(entity, layout, field, default=None)
 
-            if through is not None:
-                # Use override template
-                return ''
-            else:
-                # Use desired output
-                return ''
+            if values is not None:
+                if through is not None:
+                    # Use override template
+                    return ''
+                else:
+                    # Use desired output
+                    return ''
 
     return ''
 

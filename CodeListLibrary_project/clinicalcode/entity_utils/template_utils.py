@@ -171,7 +171,7 @@ def get_sourced_value(data, info, default=None):
 
 def get_template_data_values(entity, layout, field, default=[]):
     '''
-    
+        Retrieves the sourced values from an entity in an array
     '''
     data = get_entity_field(entity, field)
     info = get_layout_field(layout, field)
