@@ -8,6 +8,7 @@ from .GenericEntity import GenericEntity
 class PublishedGenericEntity(models.Model):
     entity = models.ForeignKey(GenericEntity, on_delete=models.CASCADE)
     entity_history_id = models.IntegerField(null=False)
+    entity_prefix = models.CharField(null=True, max_length=4, editable=False)
     code_count = models.IntegerField(null=True) # used for statistics
     
     created = models.DateTimeField(auto_now_add=True)  # date of publication

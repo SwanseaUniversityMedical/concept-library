@@ -640,6 +640,7 @@ def admin_mig_phenotypes_dt(request):
                                 published_generic_entity = PublishedGenericEntity(
                                                                             entity = ge1,
                                                                             entity_history_id = ge1.history.latest().history_id,
+                                                                            entity_prefix=ge1.entity_prefix,
                                                                             created_by = request.user,
                                                                             approval_status = 2,
                                                                             moderator = request.user

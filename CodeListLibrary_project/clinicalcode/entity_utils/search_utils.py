@@ -1,7 +1,7 @@
 import json
 from django.apps import apps
 from django.db.models import Q
-from ..models import GenericEntity, Template, Statistics
+from ..models import PublishedGenericEntity, GenericEntity, Template, Statistics
 from . import model_utils, permission_utils, template_utils, constants
 
 def get_request_body(body):
@@ -44,18 +44,19 @@ def try_get_param(request, key, default=None, method='GET'):
 
     return param
 
-def get_renderable_entities(request):
+def get_renderable_entities(request, entity_type=None):
     '''
-        Gets searchable entities and returns:
+        Gets searchable, published entities and returns:
             1. The entity and its data
             2. The entity's rendering information joined with the template
     '''
-    prefixes = GenericEntity.objects.order_by().values_list('entity_prefix', flat=True).distinct()
-    prefixes = list(prefixes)
-    
-    templates = Template.objects.filter(entity_prefix__in=prefixes)
+    if entity_type is not None:
+        templates = Template.objects.filter(entity_count__gt=0)
+    else:
+        templates = Template.objects.filter(id=entity_type)
     
     layout = { }
+    templates = templates.order_by('id')
     for template in templates:
         layout[template.entity_prefix] = {
             'id': template.id,
@@ -65,7 +66,10 @@ def get_renderable_entities(request):
             'statistics': template.entity_statistics,
         }
 
-    return GenericEntity.objects.all(), layout
+    template_ids = list(templates.values_list('id', flat=True))
+    entities = PublishedGenericEntity.objects.filter(template__in=template_ids)
+
+    return entities, layout
 
 def get_metadata_stats_by_field(field):
     '''
