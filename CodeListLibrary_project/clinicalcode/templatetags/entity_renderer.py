@@ -322,13 +322,13 @@ class EntityFiltersNode(template.Node):
             return ''
         
         # When in dev env, 'Entity Type' filter will always be present
-        is_single_search = settings.DEBUG or len(layouts.keys()) > constants.MIN_SINGLE_SEARCH
+        is_single_search = len(layouts.keys()) > constants.MIN_SINGLE_SEARCH # settings.DEBUG or 
 
         # Render metadata
         output = self.__generate_metadata_filters(context, is_single_search)
 
         # Render template specific filters
-        if not is_single_search or settings.DEBUG:
+        if not is_single_search: # or settings.DEBUG:
             output = self.__generate_template_filters(context, output, layouts)
 
         return output

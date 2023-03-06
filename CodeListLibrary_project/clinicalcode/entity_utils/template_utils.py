@@ -46,6 +46,15 @@ def is_data_safe(entity):
         data = getattr(entity, 'template_data')
         return isinstance(data, dict)
 
+def get_layout_fields(layout, default=None):
+    '''
+        Safely gets the fields from a layout
+    '''
+    if is_layout_safe(layout):
+        definition = try_get_content(layout, 'definition') if isinstance(layout, dict) else getattr(layout, 'definition')
+        return try_get_content(definition, 'fields')
+    return default
+
 def get_layout_field(layout, field, default=None):
     '''
         Safely gets a field from a layout's field within its definition
