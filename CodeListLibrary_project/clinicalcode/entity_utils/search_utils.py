@@ -3,6 +3,7 @@ from django.apps import apps
 from django.db.models import Q
 from ..models import PublishedGenericEntity, GenericEntity, Template, Statistics
 from . import model_utils, permission_utils, template_utils, constants
+from django.core.paginator import EmptyPage, Paginator
 
 def get_request_body(body):
     '''
@@ -181,6 +182,25 @@ def get_renderable_entities(request, entity_type=None, method='GET'):
     ).order_by(search_order.get('clause'))
 
     return entities, layouts
+
+def try_get_paginated_results(request, entities):
+    '''
+        Gets the paginated results based on request params and the given renderable entities
+    '''
+    page = try_get_param(request, 'page', 1)
+    page_size = try_get_param(request, 'page_size', '1')
+    if page_size not in constants.PAGE_RESULTS_SIZE:
+        page_size = constants.PAGE_RESULTS_SIZE.get('1')
+    else:
+        page_size = constants.PAGE_RESULTS_SIZE.get(page_size)
+
+    pagination = Paginator(entities, page_size, allow_empty_first_page=True)
+    
+    try:
+        page_obj = pagination.page(page)
+    except EmptyPage:
+        page_obj = pagination.page(pagination.num_pages)
+    return page_obj
 
 def get_metadata_stats_by_field(field):
     '''

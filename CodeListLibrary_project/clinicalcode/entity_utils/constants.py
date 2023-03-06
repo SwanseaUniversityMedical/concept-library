@@ -68,6 +68,15 @@ ORDER_BY = {
 }
 
 '''
+    Page result limits for search
+'''
+PAGE_RESULTS_SIZE = {
+    '1': 20,
+    '2': 50,
+    '3': 100
+}
+
+'''
     Used for:
         - Hashmap is used to determine how to get values from sourced data e.g. tags, collections
           that are accounted for in the metadata portion of an entity
