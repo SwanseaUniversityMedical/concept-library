@@ -2,10 +2,11 @@ from rest_framework import status
 from rest_framework.decorators import (api_view, authentication_classes, permission_classes)
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
+from django.db.models import Q
 
-from .View import robots, robots2
 from ...models import *
 from ...entity_utils import permission_utils
+from ...entity_utils import search_utils
 from ...entity_utils import api_utils
 
 ''' Create/Update GenericEntity '''
@@ -16,7 +17,6 @@ def create_generic_entity(request):
     '''
     
     '''
-
 
     return Response(data=data,
         content_type="text/json-comment-filtered",
@@ -65,14 +65,68 @@ def get_generic_entity_version_history(request, primary_key=None):
 @api_view(['GET'])
 @authentication_classes([])
 @permission_classes([])
-def get_generic_entities(request, primary_key=None, user_authed=False):
+def get_generic_entities(request):
     '''
     
     '''
+    if request.user:
+        user_authed = True
 
+    # Build query from searchable metadata fields
+    metadata_query = api_utils.build_query_from_template(request, user_authed)
+    if metadata_query:
+        entities = GenericEntity.objects.filter(Q(**metadata_query))
 
-    return Response([], status=status.HTTP_200_OK)
+        # Exit early if metadata queries do not match
+        if not entities:
+            return Response([], status=status.HTTP_200_OK)
+    else:
+        entities = GenericEntity.objects.all()
 
+    # Build query from searchable GenericEntity template fields
+    templates = Template.objects.all()
+    for template in templates:
+        template_query = api_utils.build_query_from_template(
+            request, user_authed, template=template.definition['fields']
+        )
+
+        if template_query:
+            entities = entities.filter(Q(**template_query))
+
+    # Search terms
+    search = request.query_params.get('search', None)
+    if search:
+        entities = search_utils.search_entities(
+            entities, search, fuzzy=False, order_by_relevance=False
+        )
+
+    #TODO: This should really be paginated or limited if no search/filters used...
+    
+    # Only display GenericEntities that are accessible to the user
+    result = []
+    for entity in entities:
+        historical_entity_response = api_utils.exists_historical_entity(
+            entity.entity_prefix, entity.entity_id, user_authed, historical_id=None
+        )
+        if isinstance(historical_entity_response, Response):
+            return historical_entity_response
+        historical_entity = historical_entity_response
+
+        user_can_access = permission_utils.has_entity_view_permissions(
+            request, historical_entity
+        )
+        if user_can_access:
+            result.append({
+                'id': f'{historical_entity.entity_prefix}{historical_entity.entity_id}',
+                'version_id': historical_entity.history_id,
+                'name': historical_entity.name
+            })
+
+    return Response(
+        data=result,
+        content_type='json',
+        status=status.HTTP_200_OK
+    )
 
 ''' Get GenericEntity detail '''
 

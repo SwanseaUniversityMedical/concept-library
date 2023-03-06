@@ -414,6 +414,10 @@ if not settings.CLL_READ_ONLY:
 ############################################################################
 if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
     urlpatterns += [
+        url(r'^ge/$',
+            GenericEntity.get_generic_entities,
+            name='api_generic_entity'),
+
         # generic entity detail
         # if only id is provided, get the latest version
         url(r'^ge/(?P<primary_key>\w+)/detail/$',

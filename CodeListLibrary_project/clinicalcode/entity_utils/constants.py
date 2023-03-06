@@ -105,7 +105,8 @@ metadata = {
         "desired_input": "inputbox",
         "validation": {
             "mandatory": True
-        }
+        },
+        "api_search": True
     },
     "definition": {
         "title": "Definition",
@@ -115,7 +116,8 @@ metadata = {
         "desired_output": "markdown",
         "validation": {
             "mandatory": False
-        }
+        },
+        "api_search": True
     },
     "implementation": {
         "title": "Implementation",
@@ -175,7 +177,8 @@ metadata = {
         'searchable': True,
         "validation": {
             "mandatory": True
-        }
+        },
+        "api_search": True
     },
     'collections': {
         'title': 'Collections',
@@ -193,7 +196,8 @@ metadata = {
         'filterable': True,
         "validation": {
             "mandatory": False
-        }
+        },
+        "api_search": True
     },
     'tags': {
         'title': 'Tags',
@@ -211,7 +215,8 @@ metadata = {
         'filterable': True,
         "validation": {
             "mandatory": False
-        }
+        },
+        "api_search": True
     },
     "updated": {
         "title": "Updated",

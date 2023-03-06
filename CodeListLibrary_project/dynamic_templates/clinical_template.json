@@ -13,7 +13,8 @@
       },
       "desired_input": "inputbox",
       "hide_if_empty": true,
-      "requires_auth": true
+      "requires_auth": true,
+      "api_search": true
     },
     "type": {
       "title": "Phenotype Type",
@@ -31,7 +32,8 @@
         "5": "Musculoskeletal",
         "6": "Surgical procedure"
       },
-      "filterable": true
+      "filterable": true,
+      "api_search": true
     },
     "data_sources": {
       "title": "Data Sources",
@@ -45,7 +47,8 @@
       "source": "DataSource",
       "query": "id",
       "relative": "name",
-      "filterable": true
+      "filterable": true,
+      "api_search": true
     },
     "event_date_range": {
       "title": "Valid Event Date Range",
@@ -69,7 +72,8 @@
         "2": "Female",
         "3": "Male/Female"
       },
-      "desired_input": "radioinput"
+      "desired_input": "radioinput",
+      "api_search": true
     },
     "agreement_date": {
       "title": "Agreement Date",
@@ -94,7 +98,8 @@
       "source": "CodingSystem",
       "query": "id",
       "relative": "name",
-      "filterable": true
+      "filterable": true,
+      "api_search": true
     },
     "phenoflowid": {
       "title": "Phenoflow ID",
@@ -104,7 +109,8 @@
         "mandatory": false,
         "regex": "https:\\/\\/kclhi\\.org\\/phenoflow\\/phenotype\\/download\\/\\d+(?:\\/)?"
       },
-      "desired_input": "inputbox"
+      "desired_input": "inputbox",
+      "api_search": true
     },
     "concept_information": {
       "title": "Clinical Codes",
