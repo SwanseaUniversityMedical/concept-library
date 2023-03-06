@@ -74,7 +74,7 @@ def validate_query_param(template, data, default=None):
                 cleaned.append(value)
         return cleaned if len(cleaned) > 0 else default
 
-def apply_param_to_query(query, template, param, data, is_single_search=False, is_dynamic=False):
+def apply_param_to_query(query, template, param, data, is_dynamic=False):
     '''
         Tries to apply a URL param to a query if its able to resolve and validate the param data
 
@@ -86,9 +86,6 @@ def apply_param_to_query(query, template, param, data, is_single_search=False, i
 
     field_type = template_utils.try_get_content(template_data, 'field_type')
     if field_type is None:
-        return False
-
-    if 'single_search_only' in template_data and not is_single_search:
         return False
     
     if field_type == 'int' or field_type == 'enum':
@@ -166,7 +163,9 @@ def get_renderable_entities(request, entity_type=None, method='GET'):
     query = { }
     for param, data in getattr(request, method).items():
         if param in metadata_filters:
-            apply_param_to_query(query, constants.metadata, param, data, is_single_search=is_single_search)
+            if template_utils.is_single_search_only(constants.metadata, param) and not is_single_search:
+                continue
+            apply_param_to_query(query, constants.metadata, param, data)
         elif param in template_filters and not is_single_search:
             if template_fields is None:
                 continue

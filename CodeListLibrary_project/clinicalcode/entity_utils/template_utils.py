@@ -226,3 +226,13 @@ def get_template_data_values(entity, layout, field, default=[]):
         return values
 
     return default
+
+def is_single_search_only(template, field):
+    '''
+        Checks if the single_search_only attribute is present in a given template's field
+    '''
+    template = try_get_content(template, field)
+    if template is None:
+        return False
+    
+    return try_get_content(template, 'single_search_only')
