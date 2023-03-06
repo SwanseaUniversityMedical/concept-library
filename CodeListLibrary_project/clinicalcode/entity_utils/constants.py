@@ -42,6 +42,32 @@ FILTER_COMPONENTS = {
 MIN_SINGLE_SEARCH = 1
 
 '''
+    Order by clauses for search
+'''
+ORDER_BY = {
+    '1': {
+        'name': 'Relevance',
+        'clause': 'id'
+    },
+    '2': {
+        'name': 'Created (Desc)',
+        'clause': 'created'
+    },
+    '3': {
+        'name': 'Created (Asc)',
+        'clause': '-created'
+    },
+    '4': {
+        'name': 'Updated (Desc)',
+        'clause': 'updated'
+    },
+    '5': {
+        'name': 'Updated (Asc)',
+        'clause': '-updated'
+    }
+}
+
+'''
     Used for:
         - Hashmap is used to determine how to get values from sourced data e.g. tags, collections
           that are accounted for in the metadata portion of an entity

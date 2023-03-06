@@ -46,7 +46,7 @@ def try_get_param(request, key, default=None, method='GET'):
 
 def validate_query_param(template, data, default=None):
     '''
-    
+        Validates the query param based on its field type as defined by the template or metadata by examining its source
     '''
     if 'source' in template:
         try:
@@ -57,7 +57,7 @@ def validate_query_param(template, data, default=None):
 
             if 'filter' in template:
                 query = query | template['filter']
-                
+            
             queryset = model.objects.filter(Q(**query))
             queryset = list(queryset.values_list('id', flat=True))
         except:
@@ -72,9 +72,11 @@ def validate_query_param(template, data, default=None):
                 cleaned.append(item)
         return cleaned if len(cleaned) > 0 else default
 
-def apply_param_to_query(query, template, param, data):
+def apply_param_to_query(query, template, param, data, is_single_search=False):
     '''
-    
+        Tries to apply a URL param to a query if its able to resolve and validate the param data
+
+        [!] Note: Will not apply the 'template' filter param if we're not on a single search page
     '''
     template_data = template_utils.try_get_content(template, param)
     if 'filterable' not in template_data:
@@ -83,17 +85,24 @@ def apply_param_to_query(query, template, param, data):
     field_type = template_utils.try_get_content(template_data, 'field_type')
     if field_type is None:
         return False
+
+    if 'single_search_only' in template_data and not is_single_search:
+        return False
     
     if field_type == 'int' or field_type == 'enum':
-        data = [int(x) for x in data.split(',') if parse_int(x)]
+        data = [int(x) for x in data.split(',') if parse_int(x, default=None)]
         data = validate_query_param(template_data, data)
         if data is not None:
             query[f'{param}__in'] = data
+            return True
     elif field_type == 'int_array':
-        data = [int(x) for x in data.split(',') if parse_int(x)]
+        data = [int(x) for x in data.split(',') if parse_int(x, default=None)]
         data = validate_query_param(template_data, data)
         if data is not None:
             query[f'{param}__overlap'] = data
+            return True
+    
+    return False
 
 def get_renderable_entities(request, entity_type=None, method='GET'):
     '''
@@ -111,6 +120,7 @@ def get_renderable_entities(request, entity_type=None, method='GET'):
         else:
             templates = Template.objects.filter(id=entity_type)
     
+    # Collect the relevant template(s)
     layouts = { }
     templates = templates.order_by('id')
     for template in templates:
@@ -125,7 +135,7 @@ def get_renderable_entities(request, entity_type=None, method='GET'):
     is_single_search = Template.objects.count() > constants.MIN_SINGLE_SEARCH
     template_ids = list(templates.values_list('id', flat=True))
 
-    # Get all entities assoc. with the templates requested
+    # Get all entities assoc. with the template(s) requested
     entities = GenericEntity.objects.filter(template__in=template_ids).all()
     entities = PublishedGenericEntity.objects.filter(entity__in=entities).order_by('-created').distinct()
     
@@ -148,13 +158,19 @@ def get_renderable_entities(request, entity_type=None, method='GET'):
     query = { }
     for param, data in getattr(request, method).items():
         if param in metadata_filters:
-            apply_param_to_query(query, constants.metadata, param, data)
+            apply_param_to_query(query, constants.metadata, param, data, is_single_search=is_single_search)
         elif param in template_filters and not is_single_search:
-            if template_fields is not None:
-                apply_param_to_query(query, template_fields, param, data)
+            if template_fields is None:
+                continue
+            apply_param_to_query(query, template_fields, param, data)
+    
+    # Order by clause
+    search_order = try_get_param(request, 'order_by', '1', method)
+    search_order = template_utils.try_get_content(constants.ORDER_BY, search_order)
+    if search_order is None:
+        search_order = constants.ORDER_BY['1']
     
     # Collect all entities that are (1) published and (2) match request parameters
-    #   [!] Need to add order clause modifier based on request param(s)
     entities = GenericEntity.history.filter(
         Q(**query) \
         & \
@@ -162,7 +178,7 @@ def get_renderable_entities(request, entity_type=None, method='GET'):
             history_id__in=list(entities.values_list('entity_history_id', flat=True)),
             id__in=list(entities.values_list('entity_id', flat=True))
         )
-    ).order_by('id')
+    ).order_by(search_order.get('clause'))
 
     return entities, layouts
 
