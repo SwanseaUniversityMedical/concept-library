@@ -10,6 +10,8 @@ from .EntityClass import EntityClass
 from .TimeStampedModel import TimeStampedModel
 from clinicalcode.constants import *
 from django.db import transaction
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVectorField
 
 class GenericEntityManager(models.Manager):
     '''
@@ -47,6 +49,9 @@ class GenericEntity(models.Model):
     tags = ArrayField(models.IntegerField(), blank=True, null=True) 
     collections = ArrayField(models.IntegerField(), blank=True, null=True)   
     citation_requirements = models.TextField(null=True, blank=True)  # Any request for citation requirements to be honoured
+    
+    ''' Search vector fields '''
+    search_vector = SearchVectorField(null=True)
 
     ''' Model templating '''
     template = models.ForeignKey(Template, on_delete=models.SET_NULL, null=True, related_name="entity_template")
@@ -106,6 +111,24 @@ class GenericEntity(models.Model):
         return ret
 
     class Meta:
+        indexes = [
+            GinIndex(fields=['search_vector']),
+            GinIndex(
+                name='ge_name_ln_gin_idx',
+                fields=['name'],
+                opclasses=['gin_trgm_ops']
+            ),
+            GinIndex(
+                name='ge_definition_ln_gin_idx',
+                fields=['definition'],
+                opclasses=['gin_trgm_ops']
+            ),
+            GinIndex(
+                name='ge_author_ln_gin_idx',
+                fields=['author'],
+                opclasses=['gin_trgm_ops']
+            )
+        ]
         ordering = ('name', )
 
     def __str__(self):

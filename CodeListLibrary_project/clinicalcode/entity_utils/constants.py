@@ -11,7 +11,7 @@ class APPROVAL_STATUS(int, Enum):
 
 class GROUP_PERMISSIONS(int, Enum):
     '''
-
+        
     '''
     NONE = 1
     VIEW = 2

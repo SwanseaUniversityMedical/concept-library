@@ -4,6 +4,7 @@ from django.db.models import Q
 from ..models import PublishedGenericEntity, GenericEntity, Template, Statistics
 from . import model_utils, permission_utils, template_utils, constants
 from django.core.paginator import EmptyPage, Paginator
+from django.contrib.postgres.search import TrigramSimilarity, SearchQuery, SearchRank, SearchVector
 
 def get_request_body(body):
     '''
@@ -44,6 +45,107 @@ def try_get_param(request, key, default=None, method='GET'):
                 # Add other types when necessary
 
     return param
+
+def perform_vector_search(queryset, search_query, min_rank=0.05, order_by_relevance=True, reverse_order=False):
+    '''
+        Performs a search on generic entities' indexed search_vector field, includes the following fields:
+            1. Name
+            2. Definition
+            3. Author
+    '''
+    query = SearchQuery(search_query)
+    if order_by_relevance:
+        vector = SearchVector('name', 'author', 'definition')
+        rank = SearchRank(vector, query)
+        clause = '-rank' if not reverse_order else 'rank'
+
+        return queryset.annotate(
+            search=vector,
+            rank=rank
+        ) \
+        .filter(Q(rank__gte=min_rank) & Q(search=query)) \
+        .order_by(clause)
+
+    return queryset.filter(Q(name__search=query) | Q(author__search=query) | Q(definition__search=query))
+
+def perform_trigram_search(queryset, search_query, min_similarity=0.2, order_by_relevance=True, reverse_order=False):
+    '''
+        Performs trigram fuzzy search on generic entities, includes the following indexed fields:
+            1. Name
+            2. Definition
+            3. Author
+    '''
+    if order_by_relevance:
+        clause = '-similarity' if not reverse_order else 'similarity'
+        return queryset.annotate(
+            similarity=(
+                TrigramSimilarity('name', search_query) + \
+                TrigramSimilarity('definition', search_query) + \
+                TrigramSimilarity('author', search_query)
+            )
+        ) \
+        .filter(Q(similarity__gte=min_similarity)) \
+        .order_by(clause)
+    
+    return queryset.filter(
+        Q(name__trigram_similar=search_query) | \
+        Q(definition__trigram_similar=search_query) | \
+        Q(author__trigram_similar=search_query)
+    )
+
+def search_entities(queryset, search_query, min_threshold=0.05, fuzzy=True, order_by_relevance=True, reverse_order=False):
+    '''
+        Utility method to perform either trigram or vector search
+    '''
+    if fuzzy:
+        return perform_trigram_search(queryset, search_query, min_threshold, order_by_relevance, reverse_order)
+
+    return perform_vector_search(queryset, search_query, min_threshold, order_by_relevance, reverse_order)
+
+def search_entity_fields(queryset, search_query, fields=[], min_threshold=0.05, fuzzy=True, order_by_relevance=True, reverse_order=False):
+    '''
+        Utility method to search one or more fields of a generic entity based on the parameters of this method
+    '''
+
+    if not isinstance(fields, list) or len(fields) < 1:
+        return queryset.none()
+
+    if fuzzy:
+        if order_by_relevance:
+            query = None
+            for field in fields:
+                if query is None:
+                    query = TrigramSimilarity(field, search_query)
+                else:
+                    query = query + TrigramSimilarity(field, search_query)
+
+            clause = '-similarity' if not reverse_order else 'similarity'
+            return queryset.annotate(
+                similarity=query
+            ) \
+            .filter(Q(similarity__gte=min_threshold)) \
+            .order_by(clause)
+        else:
+            query = { }
+            for field in fields:
+                query[f'{field}__trigram_similar'] = search_query
+            
+            return queryset.filter(**query)
+    
+    vector = SearchVector(*fields)
+    query = SearchQuery(search_query)
+    if order_by_relevance:
+        rank = SearchRank(vector, query)
+        clause = '-rank' if not reverse_order else 'rank'
+
+        return queryset.annotate(
+            search=vector,
+            rank=rank
+        ) \
+        .filter(Q(rank__gte=min_threshold) & Q(search=query)) \
+        .order_by(clause)
+
+    return queryset.annotate(search=vector).filter(search=query)
 
 def validate_query_param(template, data, default=None):
     '''
@@ -168,12 +270,6 @@ def get_renderable_entities(request, entity_type=None, method='GET'):
             if template_fields is None:
                 continue
             apply_param_to_query(query, template_fields, param, data, is_dynamic=True)
-
-    # Order by clause
-    search_order = try_get_param(request, 'order_by', '1', method)
-    search_order = template_utils.try_get_content(constants.ORDER_BY, search_order)
-    if search_order is None:
-        search_order = constants.ORDER_BY['1']
     
     # Collect all entities that are (1) published and (2) match request parameters
     entities = GenericEntity.history.filter(
@@ -183,7 +279,23 @@ def get_renderable_entities(request, entity_type=None, method='GET'):
             history_id__in=list(entities.values_list('entity_history_id', flat=True)),
             id__in=list(entities.values_list('entity_id', flat=True))
         )
-    ).order_by(search_order.get('clause'))
+    )
+
+    # Prepare order clause
+    search_order = try_get_param(request, 'order_by', '1', method)
+    should_order_search = search_order == '1'
+    search_order = template_utils.try_get_content(constants.ORDER_BY, search_order)
+    if search_order is None:
+        search_order = constants.ORDER_BY['1']
+    
+    # Apply any search param if present
+    search = try_get_param(request, 'search', None)
+    if search is not None:
+        entities = search_entities(queryset=entities, search_query=search, order_by_relevance=should_order_search, fuzzy=True, min_threshold=0.1)
+
+    # Reorder by user selection
+    if search_order != constants.ORDER_BY['1'] or search is None:
+        entities = entities.order_by(search_order.get('clause'))
 
     return entities, layouts
 

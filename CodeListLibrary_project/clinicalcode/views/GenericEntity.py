@@ -72,7 +72,7 @@ class EntitySearchView(TemplateView):
 
         entities, layouts = search_utils.get_renderable_entities(request)
         page_obj = search_utils.try_get_paginated_results(request, entities)
-        
+
         return context | {
             'page_obj': page_obj,
             'layouts': layouts
