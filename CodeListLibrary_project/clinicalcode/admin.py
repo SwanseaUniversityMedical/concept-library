@@ -1,8 +1,12 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group, User
 
-from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource, Operator, Tag, Template, GenericEntity)
+from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource, Operator, Tag)
 from .forms.TemplateForm import TemplateAdminForm
+
+from .models.EntityClass import EntityClass
+from .models.GenericEntity import GenericEntity
+from .models.Template import Template
 
 # from forms import GroupAdminForm
 # from django import forms
@@ -66,7 +70,7 @@ class CodingSystemAdmin(admin.ModelAdmin):
 
 @admin.register(Template)
 class TemplateAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'description', 'entity_count', 'entity_statistics']
+    list_display = ['id', 'name', 'description', 'entity_statistics']
     list_filter = ['name']
     search_fields = ['name']
     exclude = ['created_by', 'updated_by']
@@ -90,6 +94,11 @@ class TemplateAdmin(admin.ModelAdmin):
 @admin.register(GenericEntity)
 class GenericEntityAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'template', 'entity_prefix', 'entity_id']
+    exclude = []
+
+@admin.register(EntityClass)
+class EntityClassAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'entity_prefix', 'entity_count']
     exclude = []
 
 #admin.site.register(CodingSystem)

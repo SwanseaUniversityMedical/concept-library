@@ -24,9 +24,10 @@ from .. import db_utils, utils
 from ..models import *
 from ..permissions import *
 from .View import *
-from clinicalcode.models.GenericEntity import GenericEntity
 from ..constants import *
-from clinicalcode.models import Template
+
+from ..models.GenericEntity import GenericEntity
+from ..models.Template import Template
 
 logger = logging.getLogger(__name__)
 
@@ -591,7 +592,7 @@ def admin_mig_phenotypes_dt(request):
                             ignore_increment = True,
 
                             entity_id = n_id,
-                            entity_prefix = clinical_template.entity_prefix,
+                            entity_prefix = clinical_template.entity_class.entity_prefix,
 
                             name = phenotype.name,
                             status = ENTITY_STATUS_FINAL,

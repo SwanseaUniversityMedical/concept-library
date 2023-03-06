@@ -8,6 +8,7 @@ from .TimeStampedModel import TimeStampedModel
 from .Brand import Brand
 from clinicalcode.constants import *
 from ..entity_utils import constants
+from .EntityClass import EntityClass
 
 class Template(TimeStampedModel):
     '''
@@ -26,7 +27,7 @@ class Template(TimeStampedModel):
     name = models.CharField(max_length=250, unique=True)
     description = models.TextField(blank=True, null=True)
     definition = JSONField(blank=True, null=True, default=dict)
-    entity_prefix = models.CharField(editable=True, max_length=4)
+    entity_class = models.ForeignKey(EntityClass, on_delete=models.SET_NULL, null=True, related_name="entity_class_type")
 
     ''' Instance data '''
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="template_created")
@@ -34,7 +35,6 @@ class Template(TimeStampedModel):
     history = HistoricalRecords()
 
     ''' Statistics '''
-    entity_count = models.BigIntegerField(default=0, null=False, editable=False)
     entity_filters = ArrayField(models.CharField(max_length=500), blank=True, null=True, editable=False)
     entity_order = ArrayField(models.CharField(max_length=500), blank=True, null=True, editable=False)
     entity_statistics = JSONField(blank=True, null=True, default=dict, editable=False)
@@ -45,7 +45,7 @@ class Template(TimeStampedModel):
                 -> Iterates through the template and collects each filterable field for easier access
             - Responsible for building and modifying the 'entity_statistics' field
                 -> Iterates through the template and creates keys for filterable fields so that it can be computed during a job
-        '''        
+        '''
         if self.definition is not None and 'fields' in self.definition:
             filterable = []
             statistics = { }

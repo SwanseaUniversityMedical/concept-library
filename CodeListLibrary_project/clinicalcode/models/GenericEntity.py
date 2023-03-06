@@ -5,8 +5,9 @@ from django.db import models
 from simple_history.models import HistoricalRecords
 from django.core.exceptions import ValidationError
 
-from .TimeStampedModel import TimeStampedModel
 from .Template import Template
+from .EntityClass import EntityClass
+from .TimeStampedModel import TimeStampedModel
 from clinicalcode.constants import *
 from django.db import transaction
 
@@ -80,17 +81,19 @@ class GenericEntity(models.Model):
         if self.pk is None:
             template_layout = self.template
             if template_layout is not None:
-                with transaction.atomic():
-                    template = Template.objects.select_for_update().get(pk=template_layout.id)
-                    if not ignore_increment:
-                        index = template.entity_count = template.entity_count + 1
-                        self.entity_id = index
-                        self.entity_prefix = template_layout.entity_prefix
-                        template.save()
-                    else:
-                        if template.entity_count < self.entity_id:
-                            template.entity_count = self.entity_id
-                            template.save()        
+                entity_class = getattr(template_layout, 'entity_class')
+                if entity_class is not None:
+                    with transaction.atomic():
+                        entitycls = EntityClass.objects.select_for_update().get(pk=entity_class.id)
+                        if not ignore_increment:
+                            index = entitycls.entity_count = entitycls.entity_count + 1
+                            self.entity_id = index
+                            self.entity_prefix = template_layout.entity_prefix
+                            entitycls.save()
+                        else:
+                            if entitycls.entity_count < self.entity_id:
+                                entitycls.entity_count = self.entity_id
+                                entitycls.save()        
 
         super(GenericEntity, self).save(*args, **kwargs)
 

@@ -77,8 +77,6 @@ def validate_query_param(template, data, default=None):
 def apply_param_to_query(query, template, param, data, is_dynamic=False):
     '''
         Tries to apply a URL param to a query if its able to resolve and validate the param data
-
-        [!] Note: Will not apply the 'template' filter param if we're not on a single search page
     '''
     template_data = template_utils.try_get_content(template, param)
     if 'filterable' not in template_data:
@@ -118,7 +116,7 @@ def get_renderable_entities(request, entity_type=None, method='GET'):
             2. The template associated with each of the entities
     '''
     if entity_type is None:
-        templates = Template.objects.filter(entity_count__gt=0)
+        templates = Template.objects.filter(entity_class__entity_count__gt=0)
     else:
         if isinstance(entity_type, list):
             templates = Template.objects.filter(id__in=entity_type)
@@ -129,7 +127,7 @@ def get_renderable_entities(request, entity_type=None, method='GET'):
     layouts = { }
     templates = templates.order_by('id')
     for template in templates:
-        layouts[template.entity_prefix] = {
+        layouts[template.entity_class.entity_prefix] = {
             'id': template.id,
             'name': template.name,
             'definition': template.definition,
