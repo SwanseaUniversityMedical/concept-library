@@ -65,15 +65,16 @@ def validate_query_param(template, data, default=None):
             return default
         else:
             return queryset if len(queryset) > 0 else default
-    elif 'options' in data:
+    elif 'options' in template:
         options = template['options']
         cleaned = [ ]
         for item in data:
-            if item in options:
-                cleaned.append(item)
+            value = str(item)
+            if value in options:
+                cleaned.append(value)
         return cleaned if len(cleaned) > 0 else default
 
-def apply_param_to_query(query, template, param, data, is_single_search=False):
+def apply_param_to_query(query, template, param, data, is_single_search=False, is_dynamic=False):
     '''
         Tries to apply a URL param to a query if its able to resolve and validate the param data
 
@@ -94,13 +95,19 @@ def apply_param_to_query(query, template, param, data, is_single_search=False):
         data = [int(x) for x in data.split(',') if parse_int(x, default=None)]
         data = validate_query_param(template_data, data)
         if data is not None:
-            query[f'{param}__in'] = data
+            if is_dynamic:
+                query[f'template_data__{param}__in'] = data
+            else:
+                query[f'{param}__in'] = data
             return True
     elif field_type == 'int_array':
         data = [int(x) for x in data.split(',') if parse_int(x, default=None)]
         data = validate_query_param(template_data, data)
         if data is not None:
-            query[f'{param}__overlap'] = data
+            if is_dynamic:
+                query[f'template_data__{param}__contains'] = data
+            else:
+                query[f'{param}__overlap'] = data
             return True
     
     return False
@@ -163,8 +170,8 @@ def get_renderable_entities(request, entity_type=None, method='GET'):
         elif param in template_filters and not is_single_search:
             if template_fields is None:
                 continue
-            apply_param_to_query(query, template_fields, param, data)
-    
+            apply_param_to_query(query, template_fields, param, data, is_dynamic=True)
+
     # Order by clause
     search_order = try_get_param(request, 'order_by', '1', method)
     search_order = template_utils.try_get_content(constants.ORDER_BY, search_order)
