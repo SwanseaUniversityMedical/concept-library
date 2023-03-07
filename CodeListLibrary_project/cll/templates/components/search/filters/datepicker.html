@@ -8,6 +8,8 @@
     <h4>{{ filter_info.title }}</h4>
   </label>
   <article class="accordian__container">
-    <p>Datepicker</p>
+    <fieldset class="date-range-field">
+      <input type="text" class="date-range-picker" aria-label="{{ filter_info.title }}" id="filter-{{ filter_info.field }}-input" name="filter-{{ filter_info.field }}-input" />
+    </fieldset>
   </article>
 </div>
