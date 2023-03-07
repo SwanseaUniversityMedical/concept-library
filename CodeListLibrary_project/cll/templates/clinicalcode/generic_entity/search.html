@@ -16,11 +16,31 @@
 {% breadcrumbs useMap=False includeHome=True includeHeader=True %}
 {% endbreadcrumbs %}
 
+<!-- Include required components -->
+<script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
+<script src="{% static 'js/clinicalcode/redesign/vendor/lightpick.js' %}"></script>
+<script>
+  // Will be incorporated into frontend filter service
+  //  [!] Note to self: Use data field instead of class for selection?
+  domReady.finally(() => {
+    const pickers = document.querySelectorAll('.date-range-picker');
+    for (let i = 0; i < pickers.length; ++i) {
+      const datepicker = new Lightpick({
+        field: pickers[i],
+        singleDate: false,
+        selectForward: true,
+        minDate: moment().startOf('month').subtract(7, 'day'),
+        maxDate: moment(),
+        onSelect: console.log
+      })
+    }
+  });
+</script>
+
+<!-- Main search page -->
 <main class="main-content">
   <div class="main-content__inner-container">
-    <!-- Main search page -->
     <div class="search-page">
-      <!-- Rendered filter components -->
       <aside class="side-search-filters">
         <div class="side-search-filters__header">
           <h3>Filter By</h3>
@@ -31,13 +51,11 @@
         </div>
       </aside>
 
-      <!-- Rendered cards - will iterate over each entity -->
       <section class="entity-search-results">
         {% include "components/search/results.html" %}
       </section>
     </div>
 
-    <!-- Pagination -->
     <aside class="pagination-box">
       {% render_entity_pagination %}
     </aside>

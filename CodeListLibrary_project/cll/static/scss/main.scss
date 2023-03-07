@@ -18,7 +18,10 @@
 @import 'components/_scrollbars';
 @import 'components/_search';
 @import 'components/_filters';
-@import 'components/pagination';
+@import 'components/_pagination';
+
+// Need to add vendor's properties to brand map
+@import 'vendor/_lightpick';
 
 html {
   height: 100%;

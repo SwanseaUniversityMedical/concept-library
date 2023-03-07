@@ -33,6 +33,14 @@
   }
 }
 
+.date-range-field {
+  display: flex;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  width: 100%;
+}
+
 .radio-chips-group {
   @include flex-row($gap: 0.5rem);
 
@@ -153,6 +161,26 @@
       border-style: solid;
       border-color: col(accent-bright);
     }
+  }
+}
+
+.date-range-picker {
+  @include remove-appearance();
+
+  outline: none;
+  width: 100%;
+  font-family: inherit;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  resize: none;
+  border: 1px solid col(accent-dark);
+  border-radius: 2px;
+  padding: 0.5rem;
+  transition: border-color 250ms ease;
+
+  &:focus {
+    outline: none;
+    border-color: col(accent-washed);
   }
 }
 
