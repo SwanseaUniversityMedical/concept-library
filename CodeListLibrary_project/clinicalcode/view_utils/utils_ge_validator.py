@@ -53,7 +53,7 @@ def send_message(pk, data, entity,entity_history_id,checks):
     if data['approval_status'] == 2:
         data['message'] = """The {entity_type} version has been successfully published.<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'], url=reverse('generic_entity_history_detail',  args=(pk,entity_history_id)), pk=pk,history=entity_history_id)
 
-        #send_email_decision_entity(entity,checks['entity_type'], data['approval_status'])
+        send_email_decision_entity(entity,checks['entity_type'], data['approval_status'])
         return data
 
     #publish message if not declined
@@ -293,58 +293,4 @@ def send_email_decision_entity(entity,entity_type,approved):
                                    "Rejected",
                                    f"{entity_type} has been rejected by the moderator. Please consider update changes and try again")
 
-    """"
-        Get history table data for the template
-        @param request: user request object
-        @param pk: workingset id for database query
-        @return: return historical table data to generate table context
-    """
-
-    versions = GenericEntity.objects.get(pk=pk).history.all()
-    historical_versions = []
-
-    for v in versions:
-        ver = generic_entity_db_utils.get_historical_entity(v.history_id
-                                            , highlight_result = [False, True][generic_entity_db_utils.is_referred_from_search_page(request)]
-                                            , q_highlight = generic_entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))  
-                                            )
-
-        if ver['owner_id'] is not None:
-            ver['owner'] = User.objects.get(id=int(ver['owner_id']))
-
-        if ver['created_by_id'] is not None:
-            ver['created_by'] = User.objects.get(id=int(ver['created_by_id']))
-
-        ver['updated_by'] = None
-        if ver['updated_by_id'] is not None:
-            ver['updated_by'] = User.objects.get(pk=ver['updated_by_id'])
-
-        is_this_version_published = False
-        is_this_version_published = checkIfPublished(GenericEntity, ver['id'], ver['history_id'])
-
-        if is_this_version_published:
-            ver['publish_date'] = PublishedGenericEntity.objects.get(q=ver['id'],
-                                                                  entity_history_id=ver['history_id'],
-                                                                  approval_status=2).created
-        else:
-            ver['publish_date'] = None
-
-        ver['approval_status'] = -1
-        ver['approval_status_label'] = ''
-        if PublishedGenericEntity.objects.filter(entity_id=ver['id'],
-                                              entity_history_id=ver['history_id']).exists():
-            ver['approval_status'] = PublishedGenericEntity.objects.get(entity_id=ver['id'], entity_history_id=ver[
-                'history_id']).approval_status
-            ver['approval_status_label'] = APPROVED_STATUS[ver['approval_status']][1]
-
-        if request.user.is_authenticated:
-            if allowed_to_edit(request, GenericEntity, pk) or allowed_to_view(request, GenericEntity, pk):
-                historical_versions.append(ver)
-            else:
-                if is_this_version_published:
-                    historical_versions.append(ver)
-        else:
-            if is_this_version_published:
-                historical_versions.append(ver)
-
-    return historical_versions
+    
