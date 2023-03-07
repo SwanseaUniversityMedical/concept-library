@@ -199,10 +199,9 @@ def transform_field_data(layout, data, user_authed):
   for key, body in layout.items():
     is_active = template_utils.try_get_content(body, 'active')
     authed_only = template_utils.try_get_content(body, 'requires_auth') and not user_authed
-    should_hide = template_utils.try_get_content(body, 'hide_if_empty') and template_utils.try_get_content(result, key) is None
 
     key_exists = key in result
-    if (not is_active or authed_only or should_hide) and key_exists:
+    if (not is_active or authed_only) and key_exists:
       del result[key]
   
   return result
@@ -265,7 +264,10 @@ def build_query_from_template(request, user_authed, template=None):
   for key, value in template.items():
     is_active = template_utils.try_get_content(value, 'active')
     requires_auth = template_utils.try_get_content(value, 'requires_auth')
-    can_search = template_utils.try_get_content(value, 'api_search')
+    
+    can_search = template_utils.try_get_content(value, 'search')
+    if can_search:
+      can_search = template_utils.try_get_content(value['search'], 'api')
 
     if is_active and can_search and (not requires_auth or (requires_auth and user_authed)):
       param = request.query_params.get(key, None)

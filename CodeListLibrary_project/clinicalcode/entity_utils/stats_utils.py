@@ -30,7 +30,8 @@ def compute_statistics(layout, entities):
             if structure is None:
                 continue
 
-            field_type = structure['field_type'] if 'field_type' in structure else None
+            field_type = structure['validation'] if 'validation' in structure else None
+            field_type = field_type['type'] if 'type' in field_type else None
             if field_type is None:
                 continue
 
