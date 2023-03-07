@@ -5,6 +5,7 @@ from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
 from clinicalcode.permissions import allowed_to_edit, allowed_to_view, checkIfPublished, get_publish_approval_status
 from django.contrib.auth.models import  User
 from django.template.loader import render_to_string
+from clinicalcode.views.GenericEntity import get_history_table_data
 from django.urls import reverse, reverse_lazy
 from ..models import *
 from ..permissions import *
@@ -26,7 +27,7 @@ def form_validation(request, data, entity_history_id, pk,entity,checks):
 
     # update history list
     data['html_history_list'] = render_to_string(
-        'clinicalcode/phenotypeworkingset/partial_history_list.html',
+        'clinicalcode/generic_entity/partial_history_list.html',
         {
             'history': get_history_table_data(request, pk),  # entity.history.all(),
             'current_entity_history_id': int(entity_history_id),  # entity.history.latest().pk,
@@ -50,36 +51,36 @@ def send_message( pk, data, entity,entity_history_id,checks):
     @return: updated data dictionary with client side message
     """
     if data['approval_status'] == 2:
-        data['message'] = """The entity version has been successfully published.
-                         <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(url=reverse('phenotypeworkingset_history_detail', args=(pk,entity_history_id)), pk=pk,history=entity_history_id)
+        data['message'] = """The {entity_type} version has been successfully published.
+                         <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'], url=reverse('generic_entity_history_detail',  args=(pk,entity_history_id)), pk=pk,history=entity_history_id)
 
-        send_email_decision_workingset(workingset, data['approval_status'])
+        #send_email_decision_workingset(workingset, data['approval_status'])
         return data
 
     #publish message if not declined
     elif len(PublishedGenericEntity.objects.filter(workingset=PhenotypeWorkingset.objects.get(pk=pk).id, approval_status=2)) > 0 and not data['approval_status'] == 3:
-        data['message'] = """The workingset version has been successfully published.
-                                 <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(url=reverse('phenotypeworkingset_history_detail', args=(pk,entity_history_id)),
+        data['message'] = """The {entity_type} version has been successfully published.
+                                 <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'], url=reverse('generic_entity_history_detail', args=(pk,entity_history_id)),
                                                                                                          pk=pk,history=entity_history_id)
-        send_email_decision_workingset(workingset, data['approval_status'])
+        #send_email_decision_workingset(workingset, data['approval_status'])
 
         return data
 
     #showing rejected message
     elif data['approval_status'] == 3:
-        data['message'] = """The workingset version has been rejected .
-                                               <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(
-            url=reverse('phenotypeworkingset_history_detail', args=(pk,entity_history_id)),
-            pk=pk,history=entity_history_id)
-        send_email_decision_workingset(workingset, data['approval_status'])
+        data['message'] = """The {entity_type} version has been rejected .
+                                               <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'],
+            url=reverse('generic_entity_history_detail', args=(pk,entity_history_id),
+            pk=pk,history=entity_history_id))
+        #send_email_decision_workingset(workingset, data['approval_status'])
 
         return data
 
     # ws is approved by moderator if moderator approved different version
     elif data['approval_status'] is None and checks['is_moderator']:
-        data['message'] = """The workingset version has been successfully published.
-                                                <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(
-            url=reverse('phenotypeworkingset_history_detail', args=(pk,entity_history_id)),
+        data['message'] = """The {entity_type} version has been successfully published.
+                                                <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'],
+            url=reverse('generic_entity_history_detail', args=(pk,entity_history_id)),
             pk=pk,history=entity_history_id)
 
         return data
@@ -87,9 +88,9 @@ def send_message( pk, data, entity,entity_history_id,checks):
 
     #show pending message if user clicks to request review
     elif data['approval_status'] == 1:
-        data['message'] = """The workingset version is going to be reviewed by the moderator.
-                                                      <a href='{url}' class="alert-link">(WORKINGSET ID: {pk}, VERSION ID:{history} )</a>""".format(
-            url=reverse('phenotypeworkingset_history_detail', args=(pk,entity_history_id)),
+        data['message'] = """The {entity_type} version is going to be reviewed by the moderator.
+                                                      <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'],
+            url=reverse('generic_entity_history_detail', args=(pk,entity_history_id)),
             pk=pk,history=entity_history_id)
 
         return data
@@ -291,7 +292,6 @@ def send_email_decision_entity(entity, approved):
                                    "Rejected",
                                    "Workingset has been rejected by the moderator. Please consider update changes and try again")
 
-def get_history_table_data(request, pk):
     """"
         Get history table data for the template
         @param request: user request object
@@ -303,7 +303,7 @@ def get_history_table_data(request, pk):
     historical_versions = []
 
     for v in versions:
-        ver = generic_entity_db_utils.get_historical_entity(v.istory_id
+        ver = generic_entity_db_utils.get_historical_entity(v.history_id
                                             , highlight_result = [False, True][generic_entity_db_utils.is_referred_from_search_page(request)]
                                             , q_highlight = generic_entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))  
                                             )
