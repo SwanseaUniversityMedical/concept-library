@@ -39,6 +39,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, Templa
         # --------------------------------------------
         return self.render_to_response({
             'entity': checks['entity'],
+            'entity_type': checks['entity_type'],
             'name': checks['name'],
             'entity_history_id': history_id,
             'is_published': checks['is_published'],
