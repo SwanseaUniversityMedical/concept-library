@@ -8,6 +8,7 @@ from ..models.GenericEntity import GenericEntity
 from . import model_utils
 from . import template_utils
 from . import permission_utils
+from . import search_utils
 from . import constants
 
 ''' Parameter validation '''
@@ -254,3 +255,24 @@ def get_entity_json_detail(request, entity_id, entity, user_authed):
     content_type='json',
     status=status.HTTP_200_OK
   )
+
+def build_query_from_template(request, user_authed, template=None):
+  is_dynamic = True
+  if not template:
+    template = constants.metadata
+    is_dynamic = False
+
+  terms = {}
+  for key, value in template.items():
+    is_active = template_utils.try_get_content(value, 'active')
+    requires_auth = template_utils.try_get_content(value, 'requires_auth')
+    can_search = template_utils.try_get_content(value, 'api_search')
+
+    if is_active and can_search and (not requires_auth or (requires_auth and user_authed)):
+      param = request.query_params.get(key, None)
+      if param:
+        search_utils.apply_param_to_query(
+          terms, template, key, param, is_dynamic=is_dynamic, force_term=True
+        )
+
+  return terms or None

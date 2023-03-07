@@ -176,7 +176,7 @@ def validate_query_param(template, data, default=None):
                 cleaned.append(value)
         return cleaned if len(cleaned) > 0 else default
 
-def apply_param_to_query(query, template, param, data, is_dynamic=False):
+def apply_param_to_query(query, template, param, data, is_dynamic=False, force_term=False):
     '''
         Tries to apply a URL param to a query if its able to resolve and validate the param data
     '''
@@ -190,7 +190,9 @@ def apply_param_to_query(query, template, param, data, is_dynamic=False):
     
     if field_type == 'int' or field_type == 'enum':
         data = [int(x) for x in data.split(',') if parse_int(x, default=None)]
-        data = validate_query_param(template_data, data)
+        if not force_term:
+            data = validate_query_param(template_data, data)
+
         if data is not None:
             if is_dynamic:
                 query[f'template_data__{param}__in'] = data
@@ -199,7 +201,9 @@ def apply_param_to_query(query, template, param, data, is_dynamic=False):
             return True
     elif field_type == 'int_array':
         data = [int(x) for x in data.split(',') if parse_int(x, default=None)]
-        data = validate_query_param(template_data, data)
+        if not force_term:
+            data = validate_query_param(template_data, data)
+
         if data is not None:
             if is_dynamic:
                 query[f'template_data__{param}__contains'] = data
@@ -299,16 +303,20 @@ def get_renderable_entities(request, entity_type=None, method='GET'):
 
     return entities, layouts
 
-def try_get_paginated_results(request, entities):
+def try_get_paginated_results(request, entities, page=None, page_size=None):
     '''
         Gets the paginated results based on request params and the given renderable entities
     '''
-    page = try_get_param(request, 'page', 1)
-    page_size = try_get_param(request, 'page_size', '1')
-    if page_size not in constants.PAGE_RESULTS_SIZE:
-        page_size = constants.PAGE_RESULTS_SIZE.get('1')
-    else:
-        page_size = constants.PAGE_RESULTS_SIZE.get(page_size)
+    if not page:
+        page = try_get_param(request, 'page', 1)
+
+    if not page_size:
+        page_size = try_get_param(request, 'page_size', '1')
+
+        if page_size not in constants.PAGE_RESULTS_SIZE:
+            page_size = constants.PAGE_RESULTS_SIZE.get('1')
+        else:
+            page_size = constants.PAGE_RESULTS_SIZE.get(page_size)
 
     pagination = Paginator(entities, page_size, allow_empty_first_page=True)
     
