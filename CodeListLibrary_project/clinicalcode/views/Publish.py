@@ -28,7 +28,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, Templa
         Get method to generate modal response and pass additional information about working set
         @param request: user request object
         @param pk: entity id for database query
-        @param history_id: historical entity id from database
+        @param entity_history_id: historical entity id from database
         @return: render response object to generate on template
         """
         checks = utils_ge_validator.checkEntityToPublish(self.request, pk, history_id)
@@ -58,7 +58,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, Templa
             'errors':checks['errors']
         })
 
-    def post(self, request, pk, entity_history_id):
+    def post(self, request, pk, history_id):
         """
         Post data containing current state of entity to backend (published/declined/pending)
         @param request: request user object
@@ -66,10 +66,10 @@ class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, Templa
         @param entity_history_id: historical id of entity
         @return: JsonResponse and status message
         """
-        is_published = checkIfPublished(GenericEntity, pk, entity_history_id)
-        checks = utils_ge_validator.checkEntityToPublish(request, pk, entity_history_id)
+        is_published = checkIfPublished(GenericEntity, pk, history_id)
+        checks = utils_ge_validator.checkEntityToPublish(request, pk, history_id)
         if not is_published:
-            checks = utils_ge_validator.checkEntityToPublish(request, pk, entity_history_id)
+            checks = utils_ge_validator.checkEntityToPublish(request, pk, history_id)
 
         data = dict()
 
@@ -93,13 +93,13 @@ class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, Templa
                                 published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,
                                                                                           approval_status=2).first()
                                 published_entity = PublishedGenericEntity(entity=entity,
-                                                                           entity_history_id=entity_history_id,
+                                                                           entity_history_id=history_id,
                                                                            moderator_id=published_entity.moderator.id,
                                                                            created_by_id=request.user.id)
                                 published_entity.approval_status = 2
                                 published_entity.save()
                             else:
-                                published_entity = PublishedGenericEntity(entity=entity, entity_history_id=entity_history_id,moderator_id = request.user.id,
+                                published_entity = PublishedGenericEntity(entity=entity, entity_history_id=history_id,moderator_id = request.user.id,
                                                                         created_by_id=GenericEntity.objects.get(pk=pk).created_by.id)
                                 published_entity.approval_status = 2
                                 published_entity.save()
@@ -109,7 +109,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, Templa
                         #Check if was already published by user only to filter entitys and take the moderator id
                         if checks['is_lastapproved'] and not checks['is_moderator']:
                             published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id, approval_status=2).first()
-                            published_entity = PublishedGenericEntity(entity = entity,entity_history_id=entity_history_id,moderator_id=published_entity.moderator.id,created_by_id=request.user.id)
+                            published_entity = PublishedGenericEntity(entity = entity,entity_history_id=history_id,moderator_id=published_entity.moderator.id,created_by_id=request.user.id)
                             published_entity.approval_status = 2
                             published_entity.save()
 
@@ -126,7 +126,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, Templa
                         data['form_is_valid'] = True
                         data['approval_status'] = 2
                         #show state message to the client side and send email
-                        data = utils_ge_validator.form_validation(request, data, entity_history_id, pk, entity,checks)
+                        data = utils_ge_validator.form_validation(request, data, history_id, pk, entity,checks)
 
             #check if moderator and current entity is in pending state
             elif checks['approval_status'] == 1 and checks['is_moderator']:
@@ -142,7 +142,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, Templa
 
                         data['approval_status'] = 2
                         data['form_is_valid'] = True
-                        data = utils_ge_validator.form_validation(request, data, entity_history_id, pk, entity, checks)
+                        data = utils_ge_validator.form_validation(request, data, history_id, pk, entity, checks)
 
             #check if entity declined and user is moderator to review again
             elif checks['approval_status'] == 3 and checks['is_moderator']:
@@ -152,7 +152,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, Templa
 
                     #filter by declined ws
                     published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,
-                                                                              entity_history_id=entity_history_id,approval_status=3).first()
+                                                                              entity_history_id=history_id,approval_status=3).first()
                     published_entity.approval_status = 2
                     published_entity.moderator_id=request.user.id
                     published_entity.save()
@@ -170,7 +170,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, Templa
                     data['approval_status'] = 2
                     data['form_is_valid'] = True
                     #send message to the client
-                    data = utils_ge_validator.form_validation(request, data, entity_history_id, pk, entity, checks)
+                    data = utils_ge_validator.form_validation(request, data, history_id, pk, entity, checks)
 
 
 
