@@ -111,7 +111,7 @@ def render_field_value(entity, layout, field, through=None):
     if not info or not data:
         return ''
     
-    validation = template_utils.get_field_item(layout.get('definition').get('fields'), field, 'validation')
+    validation = template_utils.get_field_item(info, field, 'validation')
     if validation is None:
         return ''
     field_type = template_utils.try_get_content(validation, 'type')
