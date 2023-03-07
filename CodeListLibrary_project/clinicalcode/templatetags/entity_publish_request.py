@@ -9,7 +9,7 @@ register = template.Library()
 @register.inclusion_tag('components/publish_request/show_errors_approval.html', takes_context=True, name='render_errors_approval')
 def render_errors_approval(context, *args, **kwargs):
     errors = []
-    if  not context['entity_is_deleted']:
+    if  context['entity_is_deleted']:
         message = "This entity has been deleted and cannot be approved."
         errors.append(message)
         
@@ -22,7 +22,7 @@ def render_errors_approval(context, *args, **kwargs):
         message = 'This entity has no data and cannot be approved.'
         errors.append(message)
     else:
-        if  context['is_allowed_view_children']:
+        if  not context['is_allowed_view_children']:
             message = 'You must have view access to all concepts/phenotypes.'
             errors.append(message)
         
