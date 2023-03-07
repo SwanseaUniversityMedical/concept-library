@@ -59,18 +59,6 @@ def render_pagination(context, *args, **kwargs):
         'pages': page_items
     }
 
-@register.filter(name='get_entity_id')
-def get_entity_id(entity, default=''):
-    '''
-        Returns an entity ID with its prefix e.g. PH1
-    '''
-    try:
-        safe_id = f'{entity.entity_prefix}{entity.entity_id}'
-    except:
-        return default
-    else:
-        return safe_id
-
 @register.filter(name='stylise_number')
 def stylise_number(n):
     '''
@@ -193,7 +181,7 @@ class EntityCardsNode(template.Node):
 
         output = ''
         for entity in entities:
-            layout = template_utils.try_get_content(layouts, entity.entity_prefix)
+            layout = template_utils.try_get_content(layouts, entity.template.entity_class.entity_prefix)
             if not template_utils.is_layout_safe(layout):
                 continue
             

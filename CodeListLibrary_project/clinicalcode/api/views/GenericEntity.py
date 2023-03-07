@@ -9,6 +9,9 @@ from ...entity_utils import permission_utils
 from ...entity_utils import search_utils
 from ...entity_utils import api_utils
 
+#TODO: FIX AUTHENTICATION FUNCTION
+#TODO: REMOVE ENTITY_PREFIX AND ENTITY_ID
+
 ''' Create/Update GenericEntity '''
 
 @swagger_auto_schema(method='post', auto_schema=None)
@@ -17,7 +20,7 @@ def create_generic_entity(request):
     '''
     
     '''
-
+    #TODO
     return Response(data=data,
         content_type="text/json-comment-filtered",
         status=status.HTTP_201_CREATED)
@@ -28,7 +31,7 @@ def update_generic_entity(request):
     '''
     
     '''
-
+    #TODO
     return Response(
         data=data,
         content_type="text/json-comment-filtered",
@@ -48,15 +51,14 @@ def get_generic_entity_version_history(request, primary_key=None):
     entity_id_response = api_utils.is_malformed_entity_id(primary_key)
     if isinstance(entity_id_response, Response):
         return entity_id_response
-    entity_prefix, entity_id = entity_id_response
 
     # Check if entity with prefix and id exists
-    entity_response = api_utils.exists_entity(entity_prefix, entity_id)
+    entity_response = api_utils.exists_entity(primary_key)
     if isinstance(entity_response, Response):
         return entity_response
     
     return Response(
-        api_utils.get_entity_version_history(request, entity_prefix, entity_id), 
+        api_utils.get_entity_version_history(request, primary_key), 
         status=status.HTTP_200_OK
     )
 
@@ -106,7 +108,7 @@ def get_generic_entities(request):
     result = []
     for entity in entities:
         historical_entity_response = api_utils.exists_historical_entity(
-            entity.entity_prefix, entity.entity_id, user_authed, historical_id=None
+            entity.id, user_authed, historical_id=None
         )
         if isinstance(historical_entity_response, Response):
             return historical_entity_response
@@ -117,7 +119,7 @@ def get_generic_entities(request):
         )
         if user_can_access:
             result.append({
-                'id': f'{historical_entity.entity_prefix}{historical_entity.entity_id}',
+                'id': historical_entity.id,
                 'version_id': historical_entity.history_id,
                 'name': historical_entity.name
             })
@@ -144,16 +146,15 @@ def get_entity_detail(request, primary_key, historical_id=None, field=None):
     entity_id_response = api_utils.is_malformed_entity_id(primary_key)
     if isinstance(entity_id_response, Response):
         return entity_id_response
-    entity_prefix, entity_id = entity_id_response
 
     # Check if entity with prefix and id exists
-    entity_response = api_utils.exists_entity(entity_prefix, entity_id)
+    entity_response = api_utils.exists_entity(primary_key)
     if isinstance(entity_response, Response):
         return entity_response
     
     # Find latest historical id if not provided, and get first matching historical entity
     historical_entity_response = api_utils.exists_historical_entity(
-        entity_prefix, entity_id, user_authed, historical_id=historical_id
+        primary_key, user_authed, historical_id=historical_id
     )
     if isinstance(historical_entity_response, Response):
         return historical_entity_response

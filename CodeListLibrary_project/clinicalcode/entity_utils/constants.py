@@ -86,162 +86,170 @@ PAGE_RESULTS_SIZE = {
 metadata = {
     'template': {
         'title': 'Entity Type',
+        'field_type': '???',
         'active': True,
-        'field_type': 'int',
-        'source': 'Template',
-        'query': 'id',
-        'relative': 'name',
-        'computed': True,
-        'filterable': True,
-        'single_search_only': True,
-        "validation": {
-            "mandatory": True
-        }
-    },
-    "name": {
-        "title": "Name",
-        "active": True,
-        "field_type": "string",
-        "desired_input": "inputbox",
-        "validation": {
-            "mandatory": True
+        'validation': {
+            'type': 'int',
+            'mandatory': True,
+            'computed': True,
+            'source': {
+                'table': 'Template',
+                'query': 'id',
+                'relative': 'name'
+            }
         },
-        "api_search": True
-    },
-    "definition": {
-        "title": "Definition",
-        "active": True,
-        "field_type": "string",
-        "desired_input": "markdown",
-        "desired_output": "markdown",
-        "validation": {
-            "mandatory": False
-        },
-        "api_search": True
-    },
-    "implementation": {
-        "title": "Implementation",
-        "active": True,
-        "field_type": "string",
-        "desired_input": "markdown",
-        "desired_output": "markdown",
-        "validation": {
-            "mandatory": False
+        'search': {
+            'filterable': True,
+            'single_search_only': True,
         }
     },
-    "publications": {
-        "title": "Publications",
-        "active": True,
-        "field_type": "string_array",
-        "desired_input": "inputbox",
-        "validation": {
-            "mandatory": False
+    'name': {
+        'title': 'Name',
+        'field_type': '???',
+        'active': True,
+        'validation': {
+            'type': 'string',
+            'mandatory': True
         }
     },
-    "validation": {
-        "title": "Validation",
-        "active": True,
-        "field_type": "string",
-        "desired_input": "markdown",
-        "desired_output": "markdown",
-        "hide_if_empty": True,
-        "validation": {
-            "mandatory": False
+    'definition': {
+        'title': 'Definition',
+        'field_type': '???',
+        'active': True,
+        'validation': {
+            'type': 'string',
+            'mandatory': False
         }
     },
-    "citation_requirements": {
-        "title": "Citation Requirements",
-        "active": True,
-        "field_type": "textarea",
-        "desired_input": "inputbox",
-        "hide_if_empty": True,
-        "validation": {
-            "mandatory": False
+    'implementation': {
+        'title': 'Implementation',
+        'field_type': '???',
+        'active': True,
+        'validation': {
+            'type': 'string',
+            'mandatory': False
+        }
+    },
+    'publications': {
+        'title': 'Publications',
+        'field_type': '???',
+        'active': True,
+        'validation': {
+            'type': 'string_array',
+            'mandatory': False
+        }
+    },
+    'validation': {
+        'title': 'Validation',
+        'field_type': '???',
+        'active': True,
+        'validation': {
+            'type': 'string',
+            'mandatory': False
+        }
+    },
+    'citation_requirements': {
+        'title': 'Citation Requirements',
+        'field_type': '???',
+        'active': True,
+        'validation': {
+            'type': 'string',
+            'mandatory': False
         }
     },
     'created': {
         'title': 'Date',
+        'field_type': '???',
         'active': True,
-        'field_type': 'datetime',
-        'computed': True,
-        'filterable': True,
-        "validation": {
-            "mandatory": True
+        'validation': {
+            'type': 'datetime',
+            'mandatory': True,
+            'computed': True
+        },
+        'search': {
+            'filterable': True
         }
     },
     'author': {
         'title': 'Author',
+        'field_type': '???',
         'active': True,
-        'field_type': 'string',
-        'desired_input': 'inputbox',
-        'searchable': True,
-        "validation": {
-            "mandatory": True
-        },
-        "api_search": True
+        'validation': {
+            'type': 'string',
+            'mandatory': True
+        }
     },
     'collections': {
         'title': 'Collections',
+        'field_type': '???',
         'active': True,
-        'field_type': 'int_array',
-        'source': 'Tag',
-        'query': 'id',
-        'relative': 'description',
-        'filter': {
-            'tag_type': 2
-        },
-        'desired_input': "tagbox",
-        'desired_output': "taglist",
         'compute_statistics': True,
-        'filterable': True,
-        "validation": {
-            "mandatory": False
+        'validation': {
+            'type': 'int_array',
+            'mandatory': False,
+            'source': {
+                'table': 'Tag',
+                'query': 'id',
+                'relative': 'description',
+                'filter': {
+                    'tag_type': 2
+                }
+            }
         },
-        "api_search": True
+        'search': {
+            'filterable': True,
+            'api': True
+        }
     },
     'tags': {
         'title': 'Tags',
+        'field_type': '???',
         'active': True,
-        'field_type': 'int_array',
-        'source': 'Tag',
-        'query': 'id',
-        'relative': 'description',
-        'filter': {
-            'tag_type': 1
-        },
-        'desired_input': "tagbox",
-        'desired_output': "taglist",
         'compute_statistics': True,
-        'filterable': True,
-        "validation": {
-            "mandatory": False
+        'validation': {
+            'type': 'int_array',
+            'mandatory': False,
+            'source': {
+                'table': 'Tag',
+                'query': 'id',
+                'relative': 'description',
+                'filter': {
+                    'tag_type': 1
+                }
+            }
         },
-        "api_search": True
-    },
-    "updated": {
-        "title": "Updated",
-        "active": True,
-        "field_type": "datetime",
-        "validation": {
-            "mandatory": True
+        'search': {
+            'filterable': True,
+            'api': True
         }
     },
-    "created_by": {
-        "title": "Created By",
-        "active": True,
-        "field_type": "string",
-        "validation": {
-            "mandatory": True
-        },
-        "requires_auth": True
+    'updated': {
+        'title': 'Updated',
+        'field_type': '???',
+        'active': True,
+        'validation': {
+            'type': 'datetime',
+            'mandatory': True
+        }
     },
-    "updated_by": {
-        "title": "Updated By",
-        "active": True,
-        "field_type": "string",
-        "validation": {
-            "mandatory": True
-        },
-        "requires_auth": True
+    'created_by': {
+        'title': 'Created By',
+        'field_type': '???',
+        'active': True,
+        'requires_auth': True,
+        'validation': {
+            'type': 'int', 
+            'mandatory': True
+        }
+    },
+    'updated_by': {
+        'title': 'Updated By',
+        'field_type': '???',
+        'active': True,
+        'requires_auth': True,
+        'validation': {
+            'type': 'int', 
+            'mandatory': True
+        }
     }
 }

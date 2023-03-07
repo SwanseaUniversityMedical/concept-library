@@ -1,10 +1,11 @@
-import json
 from django.apps import apps
 from django.db.models import Q
-from ..models import PublishedGenericEntity, GenericEntity, Template, Statistics
-from . import model_utils, permission_utils, template_utils, constants
 from django.core.paginator import EmptyPage, Paginator
 from django.contrib.postgres.search import TrigramSimilarity, SearchQuery, SearchRank, SearchVector
+import json
+
+from ..models import PublishedGenericEntity, GenericEntity, Template, Statistics
+from . import model_utils, permission_utils, template_utils, constants, gen_utils
 
 def get_request_body(body):
     '''
@@ -16,15 +17,6 @@ def get_request_body(body):
         return body
     except:
         return None
-
-def parse_int(value, default=0):
-    '''
-        Attempts to parse an int from a value, if it fails to do so, returns the default value
-    '''
-    try:
-        return int(value)
-    except ValueError:
-        return default
 
 def try_get_param(request, key, default=None, method='GET'):
     '''
@@ -41,7 +33,7 @@ def try_get_param(request, key, default=None, method='GET'):
         if default is not None:
             if type(key) is not type(default):
                 if isinstance(default, int):
-                    return parse_int(param)
+                    return gen_utils.parse_int(param)
                 # Add other types when necessary
 
     return param
@@ -189,7 +181,7 @@ def apply_param_to_query(query, template, param, data, is_dynamic=False, force_t
         return False
     
     if field_type == 'int' or field_type == 'enum':
-        data = [int(x) for x in data.split(',') if parse_int(x, default=None)]
+        data = [int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None)]
         if not force_term:
             data = validate_query_param(template_data, data)
 
@@ -200,7 +192,7 @@ def apply_param_to_query(query, template, param, data, is_dynamic=False, force_t
                 query[f'{param}__in'] = data
             return True
     elif field_type == 'int_array':
-        data = [int(x) for x in data.split(',') if parse_int(x, default=None)]
+        data = [int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None)]
         if not force_term:
             data = validate_query_param(template_data, data)
 
@@ -281,7 +273,7 @@ def get_renderable_entities(request, entity_type=None, method='GET'):
         & \
         Q(
             history_id__in=list(entities.values_list('entity_history_id', flat=True)),
-            id__in=list(entities.values_list('entity_id', flat=True))
+            id__in=list(entities.values_list('id', flat=True))
         )
     )
 

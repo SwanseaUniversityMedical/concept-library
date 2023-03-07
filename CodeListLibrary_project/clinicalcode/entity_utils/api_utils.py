@@ -29,12 +29,12 @@ def is_malformed_entity_id(primary_key):
   
   return entity_id_split
 
-def exists_entity(entity_prefix, entity_id):
+def exists_entity(entity_id):
   '''
   
   '''
   entity = model_utils.try_get_instance(
-    GenericEntity, entity_prefix=entity_prefix, entity_id=entity_id
+    GenericEntity, id=entity_id
   )
 
   if not entity:
@@ -48,19 +48,18 @@ def exists_entity(entity_prefix, entity_id):
   
   return entity
 
-def exists_historical_entity(entity_prefix, entity_id, user_authed, historical_id=None):
+def exists_historical_entity(entity_id, user_authed, historical_id=None):
   '''
   
   '''
   if not historical_id:
     historical_id = model_utils.get_latest_entity_historical_id(
-      entity_prefix, entity_id, user_authed
+      entity_id, user_authed
     )
 
   historical_entity = model_utils.try_get_instance(
     GenericEntity, 
-    entity_prefix=entity_prefix, 
-    entity_id=entity_id
+    id=entity_id
   ).history.filter(history_id=historical_id)
 
   if not historical_entity.exists():
@@ -76,14 +75,14 @@ def exists_historical_entity(entity_prefix, entity_id, user_authed, historical_i
 
 ''' General helpers '''
 
-def get_entity_version_history(request, entity_prefix, entity_id):
+def get_entity_version_history(request, entity_id):
   '''
   
   '''
   result = []
 
   historical_versions = GenericEntity.objects.get(
-    entity_prefix=entity_prefix, entity_id=entity_id
+    id=entity_id
   ).history.all().order_by('-history_id')
 
   latest = historical_versions.first()

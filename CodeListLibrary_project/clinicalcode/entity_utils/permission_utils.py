@@ -23,7 +23,7 @@ def is_publish_status(entity, status):
   
   '''
   approval_status = model_utils.get_entity_approval_status(
-    entity.entity_prefix, entity.entity_id, entity.history_id
+    entity.id, entity.history_id
   )
 
   if approval_status:

@@ -578,21 +578,20 @@ def admin_mig_phenotypes_dt(request):
                                 if is_valid_id:
                                     pk = str(ret_id)
 
-                    n_id = int(pk.replace('PH', ''))
+                    n_id = pk
                     if Phenotype.objects.filter(pk=pk).exists():
                         phenotype = Phenotype.objects.get(pk=pk)
                         
                         # delete if exists
-                        if GenericEntity.objects.filter(entity_id=n_id).exists():
-                            ge0 = GenericEntity.objects.get(entity_id=n_id)
+                        if GenericEntity.objects.filter(id=n_id).exists():
+                            ge0 = GenericEntity.objects.get(id=n_id)
                             ge0.history.filter().delete()
                             ge0.delete()
 
                         ge = GenericEntity.objects.transfer_record(
                             ignore_increment = True,
 
-                            entity_id = n_id,
-                            entity_prefix = clinical_template.entity_class.entity_prefix,
+                            id = n_id,
 
                             name = phenotype.name,
                             status = ENTITY_STATUS_FINAL,
@@ -629,19 +628,18 @@ def admin_mig_phenotypes_dt(request):
                         
                         
                         # publish if phenotype was published at least once                             
-                        if GenericEntity.objects.filter(entity_id=n_id).exists():
+                        if GenericEntity.objects.filter(id=n_id).exists():
                             if PublishedPhenotype.objects.filter(phenotype_id=phenotype.id, approval_status=2).count() > 0:
-                                ge1 = GenericEntity.objects.get(entity_id=n_id)
+                                ge1 = GenericEntity.objects.get(id=n_id)
                                 
-                                if PublishedGenericEntity.objects.filter(entity_id=n_id).exists():
-                                    ge_p0 = PublishedGenericEntity.objects.get(entity_id=n_id)
+                                if PublishedGenericEntity.objects.filter(id=n_id).exists():
+                                    ge_p0 = PublishedGenericEntity.objects.get(id=n_id)
                                     ge_p0.history.filter().delete()
                                     ge_p0.delete()
                                 
                                 published_generic_entity = PublishedGenericEntity(
                                                                             entity = ge1,
                                                                             entity_history_id = ge1.history.latest().history_id,
-                                                                            entity_prefix=ge1.entity_prefix,
                                                                             created_by = request.user,
                                                                             approval_status = 2,
                                                                             moderator = request.user

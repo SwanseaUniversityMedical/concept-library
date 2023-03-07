@@ -93,7 +93,7 @@ class TemplateAdmin(admin.ModelAdmin):
     
 @admin.register(GenericEntity)
 class GenericEntityAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'template', 'entity_prefix', 'entity_id']
+    list_display = ['id', 'name', 'template']
     exclude = []
 
 @admin.register(EntityClass)

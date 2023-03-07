@@ -13,6 +13,8 @@ from django.db import transaction
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
 
+from ..entity_utils import gen_utils
+
 class GenericEntityManager(models.Manager):
     '''
         Generic Entity Manager
@@ -32,11 +34,7 @@ class GenericEntity(models.Model):
     """
     objects = GenericEntityManager()
 
-    id = models.AutoField(primary_key=True)
-    
-    ''' Entity ID '''
-    entity_prefix = models.CharField(null=True, max_length=4, editable=False)
-    entity_id = models.IntegerField(unique=False, null=True, editable=False) # unique for every class, but non-unique across classes
+    id = models.CharField(primary_key=True, editable=False, max_length=50)
 
     ''' Common metadata '''
     name = models.CharField(max_length=250)
@@ -92,12 +90,18 @@ class GenericEntity(models.Model):
                         entitycls = EntityClass.objects.select_for_update().get(pk=entity_class.id)
                         if not ignore_increment:
                             index = entitycls.entity_count = entitycls.entity_count + 1
-                            self.entity_id = index
-                            self.entity_prefix = template_layout.entity_prefix
+                            self.id = f'{entitycls.entity_prefix}{index}'
                             entitycls.save()
                         else:
-                            if entitycls.entity_count < self.entity_id:
-                                entitycls.entity_count = self.entity_id
+                            entity_id = gen_utils.parse_int(
+                                self.id.replace(entitycls.entity_prefix, ''), 
+                                default=None
+                            )
+                            if not entity_id: 
+                                raise ValidationError('Unable to parse entity id')
+
+                            if entitycls.entity_count < entity_id:
+                                entitycls.entity_count = entity_id
                                 entitycls.save()        
 
         super(GenericEntity, self).save(*args, **kwargs)
