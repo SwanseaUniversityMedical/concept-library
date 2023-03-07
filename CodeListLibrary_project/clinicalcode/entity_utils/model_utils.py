@@ -41,7 +41,7 @@ def get_latest_entity_published(entity_id):
     
   '''
   latest_published_entity = PublishedGenericEntity.objects.filter(
-    id=entity_id, approval_status=2
+    entity_id=entity_id, approval_status=2
   ).order_by('-entity_history_id')
   
   if latest_published_entity.exists():
@@ -55,7 +55,7 @@ def get_entity_approval_status(entity_id, historical_id):
   '''
   entity = try_get_instance(
     PublishedGenericEntity,
-    id=entity_id, 
+    entity_id=entity_id, 
     entity_history_id=historical_id
   )
 

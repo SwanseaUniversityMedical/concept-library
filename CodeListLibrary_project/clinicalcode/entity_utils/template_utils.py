@@ -220,7 +220,7 @@ def get_template_data_values(entity, layout, field, default=[]):
     if not info or not data:
         return default
     
-    validation = get_field_item(layout.get('definition').get('fields'), field, 'validation')
+    validation = get_field_item(info, field, 'validation')
     if validation is None:
         return default
 

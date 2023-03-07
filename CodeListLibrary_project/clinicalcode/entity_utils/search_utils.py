@@ -179,9 +179,9 @@ def apply_param_to_query(query, template, param, data, is_dynamic=False, force_t
     '''
     template_data = template_utils.try_get_content(template, param)
     search = template_utils.try_get_content(template_data, 'search')
-    if search is None or not 'filterable' in search:
+    if search is None or (not 'filterable' in search and not 'api' in search):
         return False
-
+    
     validation = template_utils.try_get_content(template_data, 'validation')
     if validation is None:
         return False
@@ -191,12 +191,20 @@ def apply_param_to_query(query, template, param, data, is_dynamic=False, force_t
         return False
     
     if field_type == 'int' or field_type == 'enum':
-        data = [int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None)]
-        clean = validate_query_param(template_data, data, default=None)
-        if clean is None and force_term:
-            clean = data
-        
-        if clean is not None:
+        if 'options' in validation or 'source' in validation:
+            data = [int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None)]
+            clean = validate_query_param(template_data, data, default=None)
+            if clean is None and force_term:
+                clean = data
+            
+            if clean is not None:
+                if is_dynamic:
+                    query[f'template_data__{param}__in'] = clean
+                else:
+                    query[f'{param}__in'] = clean
+                return True
+        else:
+            clean = data.split(',')
             if is_dynamic:
                 query[f'template_data__{param}__in'] = clean
             else:
@@ -214,6 +222,12 @@ def apply_param_to_query(query, template, param, data, is_dynamic=False, force_t
             else:
                 query[f'{param}__overlap'] = clean
             return True
+    elif field_type == 'string':
+        if is_dynamic:
+            query[f'template_data__{param}'] = data
+        else:
+            query[f'{param}'] = data
+        return True
     
     return False
 

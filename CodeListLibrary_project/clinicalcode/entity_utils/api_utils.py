@@ -130,7 +130,8 @@ def get_verbose_metadata_field(entity, field):
   '''
   
   '''
-  if template_utils.try_get_content(constants.metadata[field], 'source'):
+  validation = template_utils.try_get_content(constants.metadata[field], 'validation')
+  if template_utils.try_get_content(validation, 'source'):
     result = template_utils.get_metadata_value_from_source(entity, field, default=None)
   else:
     result = template_utils.get_entity_field(entity, field)
@@ -264,7 +265,7 @@ def build_query_from_template(request, user_authed, template=None):
   for key, value in template.items():
     is_active = template_utils.try_get_content(value, 'active')
     requires_auth = template_utils.try_get_content(value, 'requires_auth')
-    
+
     can_search = template_utils.try_get_content(value, 'search')
     if can_search:
       can_search = template_utils.try_get_content(value['search'], 'api')

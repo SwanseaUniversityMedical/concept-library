@@ -109,7 +109,7 @@
       },
       "search": {
         "filterable": true,
-        "api_search": true
+        "api": true
       }
     },
     "phenoflowid": {
