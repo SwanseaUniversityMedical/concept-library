@@ -82,6 +82,16 @@ def get_entity_field(entity, field, default=None):
         data = getattr(entity, 'template_data')
         return try_get_content(data, field, default)
 
+def get_field_item(layout, field, item, default=None):
+    '''
+        Gets a field item from a layout's field lookup
+    '''
+    field_data = try_get_content(layout, field)
+    if field_data is None:
+        return default
+    
+    return try_get_content(field_data, item, default)  
+
 def try_get_instance_field(instance, field, default=None):
     '''
         Safely gets a top-level metadata field
@@ -93,6 +103,16 @@ def try_get_instance_field(instance, field, default=None):
     else:
         return data
 
+def is_filterable(layout, field):
+    '''
+        Checks if a field is filterable as defined by its layout
+    '''
+    search = get_field_item(layout, field, 'search')
+    if search is None:
+        return False
+    
+    return try_get_content(search, 'filterable')
+
 def get_metadata_value_from_source(entity, field, default=None):
     '''
         Tries to get the values from a top-level metadata field
@@ -102,12 +122,14 @@ def get_metadata_value_from_source(entity, field, default=None):
     try:
         data = getattr(entity, field)
         if field in constants.metadata:
-            info = constants.metadata[field]
-            model = apps.get_model(app_label='clinicalcode', model_name=info['source'])
+            validation = get_field_item(constants.metadata, field, 'validation', { })
+            source_info = validation.get('source')
+
+            model = apps.get_model(app_label='clinicalcode', model_name=source_info.get('table'))
 
             column = 'id'
-            if 'query' in info:
-                column = info['query']
+            if 'query' in source_info:
+                column = source_info['query']
 
             if isinstance(data, model):
                 data = getattr(data, column)
@@ -121,14 +143,14 @@ def get_metadata_value_from_source(entity, field, default=None):
                     f'{column}': data
                 }
 
-            if 'filter' in info:
-                query = {**query, **info['filter']}
+            if 'filter' in source_info:
+                query = {**query, **source_info['filter']}
             
             queryset = model.objects.filter(Q(**query))
             if queryset.exists():
                 relative = 'name'
-                if 'relative' in info:
-                    relative = info['relative']
+                if 'relative' in source_info:
+                    relative = source_info['relative']
                 
                 output = []
                 for instance in queryset:
@@ -147,25 +169,34 @@ def get_options_value(data, info, default=None):
     '''
         Tries to get the options parameter from a layout's field entry
     '''
+    validation = try_get_content(info, 'validation')
+    if validation is None:
+        return False
+    
     key = str(data)
-    if key in info['options']:
-        return info['options'][key]
+    if key in validation['options']:
+        return validation['options'][key]
     return default
 
 def get_sourced_value(data, info, default=None):
     '''
         Tries to get the sourced value of a dynamic field from its layout and/or another model (if sourced)
     '''
+    validation = try_get_content(info, 'validation')
+    if validation is None:
+        return default
+
     try:
-        model = apps.get_model(app_label='clinicalcode', model_name=info['source'])
+        source_info = validation.get('source')
+        model = apps.get_model(app_label='clinicalcode', model_name=source_info.get('table'))
         relative = None
-        if 'relative' in info:
-            relative = info['relative']
+        if 'relative' in source_info:
+            relative = source_info['relative']
 
         query = None
-        if 'query' in info:
+        if 'query' in source_info:
             query = {
-                info['query']: data
+                source_info['query']: data
             }
         else:
             query = {
@@ -189,20 +220,27 @@ def get_template_data_values(entity, layout, field, default=[]):
     if not info or not data:
         return default
     
-    if info['field_type'] == 'enum':
+    validation = get_field_item(layout.get('definition').get('fields'), field, 'validation')
+    if validation is None:
+        return default
+
+    field_type = try_get_content(validation, 'type')
+    if field_type is None:
+        return default
+
+    if field_type == 'enum':
         output = None
-        if 'options' in info:
+        if 'options' in validation:
             output = get_options_value(data, info)
-        elif 'source' in info:
+        elif 'source' in validation:
             output = get_sourced_value(data, info)
-        
         if output is not None:
             return [{
                 'name': output,
                 'value': data
             }]
-    elif info['field_type'] == 'int_array':
-        if 'source' in info:
+    elif field_type == 'int_array':
+        if 'source' in validation:
             values = [ ]
             for item in data:
                 value = get_sourced_value(item, info)
@@ -213,7 +251,7 @@ def get_template_data_values(entity, layout, field, default=[]):
                     })
             
             return values
-    elif info['field_type'] == 'concept':
+    elif field_type == 'concept':
         values = []
         for item in data:
             value = model_utils.get_concept_data(
@@ -235,4 +273,8 @@ def is_single_search_only(template, field):
     if template is None:
         return False
     
-    return try_get_content(template, 'single_search_only')
+    search = get_field_item(template, field, 'search')
+    if search is None:
+        return False
+        
+    return try_get_content(search, 'single_search_only')

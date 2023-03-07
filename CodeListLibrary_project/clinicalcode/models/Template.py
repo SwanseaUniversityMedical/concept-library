@@ -50,7 +50,10 @@ class Template(TimeStampedModel):
             filterable = []
             statistics = { }
             for field, packet in self.definition['fields'].items():
-                if 'filterable' in packet and field not in filterable:
+                if 'search' not in packet:
+                    continue
+
+                if 'filterable' in packet.get('search') and field not in filterable:
                     filterable.append(field)
 
                     if field not in statistics:

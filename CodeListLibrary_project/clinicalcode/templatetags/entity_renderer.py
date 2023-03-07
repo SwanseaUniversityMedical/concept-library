@@ -110,13 +110,20 @@ def render_field_value(entity, layout, field, through=None):
 
     if not info or not data:
         return ''
-        
-    if info['field_type'] == 'enum':
+    
+    validation = template_utils.get_field_item(layout.get('definition').get('fields'), field, 'validation')
+    if validation is None:
+        return ''
+    field_type = template_utils.try_get_content(validation, 'type')
+    if field_type is None:
+        return ''
+    
+    if field_type == 'enum':
         output = template_utils.get_template_data_values(entity, layout, field, default=None)
         if output is not None and len(output) > 0:
             return template_utils.try_get_content(output[0], 'name')
-    elif info['field_type'] == 'int_array':
-        if 'source' in info:
+    elif field_type == 'int_array':
+        if 'source' in validation:
             values = template_utils.get_template_data_values(entity, layout, field, default=None)
 
             if values is not None:
@@ -184,17 +191,15 @@ class EntityCardsNode(template.Node):
             layout = template_utils.try_get_content(layouts, entity.template.entity_class.entity_prefix)
             if not template_utils.is_layout_safe(layout):
                 continue
-            
             card = template_utils.try_get_content(layout['definition'], 'card_type', constants.DEFAULT_CARD)
             card = f'{constants.CARDS_DIRECTORY}/{card}.html'
-
             try:
                 html = render_to_string(card, {
                     'entity': entity,
                     'layout': layout
                 })
             except:
-                continue
+                raise
             else:
                 output += html
         
@@ -242,8 +247,10 @@ class EntityFiltersNode(template.Node):
         if 'compute_statistics' in structure:
             filter_info['options'] = search_utils.get_metadata_stats_by_field(field)
         else:
-            if 'source' in structure:
-                filter_info['options'] = search_utils.get_source_references(structure)
+            validation = template_utils.try_get_content(structure, 'validation')
+            if validation is not None:
+                if 'source' in validation:
+                    filter_info['options'] = search_utils.get_source_references(structure)                
         
         context['filter_info'] = filter_info
         return render_to_string(f'{constants.FILTER_DIRECTORY}/{component}.html', context.flatten())
@@ -273,9 +280,15 @@ class EntityFiltersNode(template.Node):
 
         output = ''
         for field, structure in constants.metadata.items():
-            if 'filterable' in structure:
-                if field != 'template' or is_single_search:
-                    output += self.__render_metadata_component(context, field, structure)
+            search = template_utils.try_get_content(structure, 'search')
+            if search is None:
+                continue
+
+            if 'filterable' not in search:
+                continue
+
+            if field != 'template' or is_single_search:
+                output += self.__render_metadata_component(context, field, structure)
 
         return output
     
@@ -290,17 +303,16 @@ class EntityFiltersNode(template.Node):
         if not fields:
             return output
         
-        
         template_fields = []
         
         order = template_utils.try_get_content(layouts, 'order')
         if order is not None:
-            template_fields = [field for field in order if template_utils.try_get_content(fields.get(field), 'filterable')]
+            template_fields = [field for field in order if template_utils.is_filterable(fields, field)]
         else:
-            template_fields = [field for field, structure in fields.items() if 'filterable' in structure]
+            template_fields = [field for field, structure in fields.items() if template_utils.is_filterable(fields, field)]
 
         for field in template_fields:
-            output += self.__render_template_component(context, field, fields[field], layout)
+            output += self.__render_template_component(context, field, fields.get(field), layout)
 
         return output
 
@@ -310,13 +322,13 @@ class EntityFiltersNode(template.Node):
             return ''
         
         # When in dev env, 'Entity Type' filter will always be present
-        is_single_search = len(layouts.keys()) > constants.MIN_SINGLE_SEARCH # settings.DEBUG or 
+        is_single_search = len(layouts.keys()) > constants.MIN_SINGLE_SEARCH or settings.DEBUG
 
         # Render metadata
         output = self.__generate_metadata_filters(context, is_single_search)
 
         # Render template specific filters
-        if not is_single_search: # or settings.DEBUG:
+        if not is_single_search or settings.DEBUG:
             output = self.__generate_template_filters(context, output, layouts)
 
         return output

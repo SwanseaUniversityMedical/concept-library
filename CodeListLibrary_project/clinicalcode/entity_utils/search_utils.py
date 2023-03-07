@@ -143,40 +143,50 @@ def validate_query_param(template, data, default=None):
     '''
         Validates the query param based on its field type as defined by the template or metadata by examining its source
     '''
-    if 'source' in template:
-        try:
-            model = apps.get_model(app_label='clinicalcode', model_name=template['source'])
-            query = {
-                'pk__in': data
-            }
+    validation = template_utils.try_get_content(template, 'validation')
+    if validation:
+        if 'source' in validation:
+            try:
+                source_info = validation.get('source')
+                model = apps.get_model(app_label='clinicalcode', model_name=source_info.get('table'))
+                query = {
+                    'pk__in': data
+                }
 
-            if 'filter' in template:
-                query = query | template['filter']
-            
-            queryset = model.objects.filter(Q(**query))
-            queryset = list(queryset.values_list('id', flat=True))
-        except:
-            return default
-        else:
-            return queryset if len(queryset) > 0 else default
-    elif 'options' in template:
-        options = template['options']
-        cleaned = [ ]
-        for item in data:
-            value = str(item)
-            if value in options:
-                cleaned.append(value)
-        return cleaned if len(cleaned) > 0 else default
+                if 'filter' in source_info:
+                    query = query | source_info['filter']
+                
+                queryset = model.objects.filter(Q(**query))
+                queryset = list(queryset.values_list('id', flat=True))
+            except:
+                return default
+            else:
+                return queryset if len(queryset) > 0 else default
+        elif 'options' in validation:
+            options = validation['options']
+            cleaned = [ ]
+            for item in data:
+                value = str(item)
+                if value in options:
+                    cleaned.append(value)
+            return cleaned if len(cleaned) > 0 else default
+    
+    return default
 
 def apply_param_to_query(query, template, param, data, is_dynamic=False, force_term=False):
     '''
         Tries to apply a URL param to a query if its able to resolve and validate the param data
     '''
     template_data = template_utils.try_get_content(template, param)
-    if 'filterable' not in template_data:
+    search = template_utils.try_get_content(template_data, 'search')
+    if search is None or not 'filterable' in search:
         return False
 
-    field_type = template_utils.try_get_content(template_data, 'field_type')
+    validation = template_utils.try_get_content(template_data, 'validation')
+    if validation is None:
+        return False
+    
+    field_type = template_utils.try_get_content(validation, 'type')
     if field_type is None:
         return False
     
@@ -253,7 +263,7 @@ def get_renderable_entities(request, entity_type=None, method='GET'):
             template_fields = template_utils.get_layout_fields(template_fields[0])
 
     # Gather metadata filter params
-    metadata_filters = [key for key, value in constants.metadata.items() if 'filterable' in value]
+    metadata_filters = [key for key, value in constants.metadata.items() if 'search' in value and 'filterable' in value.get('search')]
     
     # Build query from filters
     query = { }
@@ -273,7 +283,7 @@ def get_renderable_entities(request, entity_type=None, method='GET'):
         & \
         Q(
             history_id__in=list(entities.values_list('entity_history_id', flat=True)),
-            id__in=list(entities.values_list('id', flat=True))
+            id__in=list(entities.values_list('entity_id', flat=True))
         )
     )
 
@@ -331,15 +341,24 @@ def get_source_references(struct, default=[]):
     '''
         Retrieves the refence values from source fields e.g. tags, collections, entity type
     '''
-    relative = template_utils.try_get_content(struct, 'relative')
-    query = template_utils.try_get_content(struct, 'query', 'pk')
+    validation = template_utils.try_get_content(struct, 'validation')
+    if not validation:
+        return default
+    
+    source_info = template_utils.try_get_content(validation, 'source')
+    if not source_info:
+        return default
+    
+    source = template_utils.try_get_content(source_info, 'table')
+    relative = template_utils.try_get_content(source_info, 'relative')
+    query = template_utils.try_get_content(source_info, 'query', 'pk')
     if not relative:
         return default
     
     try:
-        model = apps.get_model(app_label='clinicalcode', model_name=struct['source'])
+        model = apps.get_model(app_label='clinicalcode', model_name=source)
         objs = model.objects.all()
-        
+
         ref = []
         for obj in objs:
             pk = template_utils.try_get_instance_field(obj, query)
@@ -358,7 +377,11 @@ def get_filter_info(field, structure, default=None):
     '''
         Compiles the filter_info for a given field
     '''
-    field_type = template_utils.try_get_content(structure, 'field_type')
+    validation = template_utils.try_get_content(structure, 'validation')
+    if validation is None:
+        return default
+    
+    field_type = template_utils.try_get_content(validation, 'type')
     if field_type is None:
         return default
     

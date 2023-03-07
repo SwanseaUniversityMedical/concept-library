@@ -81,28 +81,29 @@ class GenericEntity(models.Model):
         '''
             On creation, increments counter within template and increment's entity ID by count + 1
         '''
-        if self.pk is None:
-            template_layout = self.template
-            if template_layout is not None:
-                entity_class = getattr(template_layout, 'entity_class')
-                if entity_class is not None:
+        template_layout = self.template
+        if template_layout is not None:
+            entity_class = getattr(template_layout, 'entity_class')
+            if entity_class is not None:
+                if ignore_increment:
                     with transaction.atomic():
                         entitycls = EntityClass.objects.select_for_update().get(pk=entity_class.id)
-                        if not ignore_increment:
-                            index = entitycls.entity_count = entitycls.entity_count + 1
-                            self.id = f'{entitycls.entity_prefix}{index}'
-                            entitycls.save()
-                        else:
-                            entity_id = gen_utils.parse_int(
-                                self.id.replace(entitycls.entity_prefix, ''), 
-                                default=None
-                            )
-                            if not entity_id: 
-                                raise ValidationError('Unable to parse entity id')
+                        entity_id = gen_utils.parse_int(
+                            self.id.replace(entitycls.entity_prefix, ''), 
+                            default=None
+                        )
+                        if not entity_id: 
+                            raise ValidationError('Unable to parse entity id')
 
-                            if entitycls.entity_count < entity_id:
-                                entitycls.entity_count = entity_id
-                                entitycls.save()        
+                        if entitycls.entity_count < entity_id:
+                            entitycls.entity_count = entity_id
+                            entitycls.save()
+                elif self.pk is None and not ignore_increment:
+                    with transaction.atomic():
+                        entitycls = EntityClass.objects.select_for_update().get(pk=entity_class.id)
+                        index = entitycls.entity_count = entitycls.entity_count + 1
+                        self.id = f'{entitycls.entity_prefix}{index}'
+                        entitycls.save()
 
         super(GenericEntity, self).save(*args, **kwargs)
 

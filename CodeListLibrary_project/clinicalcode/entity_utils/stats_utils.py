@@ -34,16 +34,17 @@ def compute_statistics(layout, entities):
             field_type = field_type['type'] if 'type' in field_type else None
             if field_type is None:
                 continue
-
+            
+            validation = structure.get('validation')
             entity_field = template_utils.get_entity_field(entity, field)
             if entity_field is None:
                 continue
 
             if field_type == 'enum':
                 value = None
-                if 'options' in structure:
+                if 'options' in validation:
                     value = template_utils.get_options_value(entity_field, structure)
-                elif 'source' in structure:
+                elif 'source' in validation:
                     value = template_utils.get_sourced_value(entity_field, structure)
                 
                 if value is not None:
@@ -55,7 +56,7 @@ def compute_statistics(layout, entities):
                     
                     stats[entity_field]['count'] += 1
             elif field_type == 'int_array':
-                if 'source' in structure:
+                if 'source' in validation:
                     for item in entity_field:
                         value = template_utils.get_sourced_value(item, structure)
                         if value is not None:

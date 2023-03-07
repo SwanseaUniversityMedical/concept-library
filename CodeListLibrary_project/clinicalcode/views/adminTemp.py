@@ -632,8 +632,8 @@ def admin_mig_phenotypes_dt(request):
                             if PublishedPhenotype.objects.filter(phenotype_id=phenotype.id, approval_status=2).count() > 0:
                                 ge1 = GenericEntity.objects.get(id=n_id)
                                 
-                                if PublishedGenericEntity.objects.filter(id=n_id).exists():
-                                    ge_p0 = PublishedGenericEntity.objects.get(id=n_id)
+                                if PublishedGenericEntity.objects.filter(entity_id=n_id).exists():
+                                    ge_p0 = PublishedGenericEntity.objects.get(entity_id=n_id)
                                     ge_p0.history.filter().delete()
                                     ge_p0.delete()
                                 

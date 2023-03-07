@@ -101,9 +101,11 @@
         "type": "int_array",
         "mandatory": false,
         "computed": true,
-        "source": "CodingSystem",
-        "query": "id",
-        "relative": "name"
+        "source": {
+          "table": "CodingSystem",
+          "query": "id",
+          "relative": "name"
+        }
       },
       "search": {
         "filterable": true,
