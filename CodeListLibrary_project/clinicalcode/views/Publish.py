@@ -197,3 +197,97 @@ class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, Templa
         if (checks['allowed_to_publish'] and not is_published and checks['approval_status'] is None) or\
                 (checks['approval_status'] == 2 and not is_published):
             return True
+        
+
+class RequestPublish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, TemplateResponseMixin, View):
+    '''
+        User request to publish entity
+    '''
+
+    model = GenericEntity
+    template_name = 'clinicalcode/generic_entity/request_publish.html'
+
+    def get(self, request, pk, history_id):
+        """
+        Get method to generate the modal window template to submit entity
+        @param request: user request object
+        @param pk: entity id for database query
+        @param entity_history_id: historical entity id
+        @return: render the modal to user with an appropriate information
+        """
+        #get additional checks in case if ws is deleted/approved etc
+        checks = utils_ge_validator.checkEntityToPublish(self.request, pk, history_id)
+
+
+        if not checks['is_published']:
+            checks = utils_ge_validator.checkEntityToPublish(self.request, pk, history_id)
+
+
+        # --------------------------------------------
+        return self.render_to_response({
+           'entity': checks['entity'],
+            'entity_type': checks['entity_type'],
+            'name': checks['name'],
+            'entity_history_id': history_id,
+            'is_published': checks['is_published'],
+            'allowed_to_publish': checks['allowed_to_publish'],
+            'is_owner': checks['is_owner'],
+            'entity_is_deleted': checks['entity_is_deleted'],
+            'approval_status': checks['approval_status'],
+            'is_lastapproved': checks['is_lastapproved'],
+            'is_latest_pending_version': checks['is_latest_pending_version'], # check if it is latest to approve
+            'is_moderator': checks['is_moderator'],
+            'entity_has_data': checks['entity_has_data'],#check if table exists to publish ws
+            'is_allowed_view_children': checks['is_allowed_view_children'],
+            'all_are_published': checks['all_are_published'],#see if rest of the phenotypes is published already
+            'other_pending':checks['other_pending'],#data if other pending ws
+            'all_not_deleted': checks['all_not_deleted'],# check if phenotypes is not deleted
+            'errors':checks['errors']
+        })
+    
+
+    def post(self, request, pk, entity_history_id):
+        """
+        Send the request to publish data to the server
+        @param request: user request object
+        @param pk: entity id for database query
+        @param entity_history_id: historical id of entity
+        @return: JSON success body response
+        """
+        is_published = checkIfPublished(GenericEntity, pk, entity_history_id)
+        checks = utils_ge_validator.checkEntityToPublish(request, pk, entity_history_id)
+        if not is_published:
+            checks = utils_ge_validator.checkEntityToPublish(request, pk, entity_history_id)
+
+        data = dict()
+
+        if not checks['allowed_to_publish'] or is_published:
+            data['form_is_valid'] = False
+            data['message'] = render_to_string('clinicalcode/error.html', {},
+                                               self.request)
+            return JsonResponse(data)
+
+        try:
+            # (allowed to permit) AND (ws not published) AND (approval_status not in database) AND (user not moderator)
+            if checks['allowed_to_publish'] and not is_published and checks['approval_status'] is None and not checks['is_moderator']:
+                    # start a transaction
+                    with transaction.atomic():
+                        entity = GenericEntity.objects.get(pk=pk)
+                        published_entity = PublishedGenericEntity(entity=entity, entity_history_id=entity_history_id,
+                                                                    created_by_id=request.user.id,approval_status=1)
+                        published_entity.save()
+                        data['form_is_valid'] = True
+                        data['approval_status'] = 1
+                        data = utils_ge_validator.form_validation(request, data, entity_history_id, pk, entity, checks)
+
+
+        except Exception as e:
+            print(e)
+            data['form_is_valid'] = False
+            data['message'] = render_to_string('clinicalcode/error.html',
+                                               {},
+                                               self.request)
+
+        return JsonResponse(data)
+
+
