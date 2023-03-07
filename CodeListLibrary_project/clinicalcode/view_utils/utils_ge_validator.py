@@ -1,4 +1,4 @@
-from clinicalcode import generic_entity_db_utils
+from clinicalcode import db_utils, generic_entity_db_utils
 from clinicalcode.constants import APPROVED_STATUS
 from clinicalcode.models.GenericEntity import GenericEntity
 from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
@@ -40,7 +40,7 @@ def form_validation(request, data, entity_history_id, pk,entity,checks):
 
     return data
 
-def send_message( pk, data, entity,entity_history_id,checks):
+def send_message(pk, data, entity,entity_history_id,checks):
     """
     Send email message with variational decisions approved/pending/declined and show message to the  client side
     @param pk: entity id
@@ -51,18 +51,18 @@ def send_message( pk, data, entity,entity_history_id,checks):
     @return: updated data dictionary with client side message
     """
     if data['approval_status'] == 2:
-        data['message'] = """The {entity_type} version has been successfully published.
-                         <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'], url=reverse('generic_entity_history_detail',  args=(pk,entity_history_id)), pk=pk,history=entity_history_id)
+        data['message'] = """The {entity_type} version has been successfully published.<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'], url=reverse('generic_entity_history_detail',  args=(pk,entity_history_id)), pk=pk,history=entity_history_id)
 
-        #send_email_decision_workingset(workingset, data['approval_status'])
+        #send_email_decision_entity(entity,checks['entity_type'], data['approval_status'])
         return data
 
     #publish message if not declined
-    elif len(PublishedGenericEntity.objects.filter(workingset=PhenotypeWorkingset.objects.get(pk=pk).id, approval_status=2)) > 0 and not data['approval_status'] == 3:
+    elif len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=2)) > 0 and not data['approval_status'] == 3:
         data['message'] = """The {entity_type} version has been successfully published.
                                  <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'], url=reverse('generic_entity_history_detail', args=(pk,entity_history_id)),
                                                                                                          pk=pk,history=entity_history_id)
-        #send_email_decision_workingset(workingset, data['approval_status'])
+        
+        send_email_decision_entity(entity, checks['entity_type'],data['approval_status'])
 
         return data
 
@@ -72,7 +72,8 @@ def send_message( pk, data, entity,entity_history_id,checks):
                                                <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'],
             url=reverse('generic_entity_history_detail', args=(pk,entity_history_id),
             pk=pk,history=entity_history_id))
-        #send_email_decision_workingset(workingset, data['approval_status'])
+        
+        send_email_decision_entity(entity,checks['entity_type'],data['approval_status'])
 
         return data
 
@@ -270,7 +271,7 @@ def checkChildren(request,entity):
         return  has_child_entitys,isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors
 
 
-def send_email_decision_entity(entity, approved):
+def send_email_decision_entity(entity,entity_type,approved):
     """
     Call util function to send email decision
     @param workingset: workingset object
@@ -278,19 +279,19 @@ def send_email_decision_entity(entity, approved):
     """
     
     if approved == 1:
-        generic_entity_db_utils.send_review_email(entity,
+        db_utils.send_review_email(entity,
                                    "Published",
-                                   "Workingset has been successfully approved and published on the website")
+                                   f"{entity_type} has been successfully approved and published on the website")
 
     elif approved == 2:
         # This line for the case when user want to get notification of same workingset id but different version
-        generic_entity_db_utils.send_review_email(entity,
+        db_utils.send_review_email(entity,
                                    "Published",
-                                   "Workingset has been successfully approved and published on the website")
+                                   f"{entity_type} has been successfully approved and published on the website")
     elif approved == 3:
-        generic_entity_db_utils.send_review_email(entity,
+        db_utils.send_review_email(entity,
                                    "Rejected",
-                                   "Workingset has been rejected by the moderator. Please consider update changes and try again")
+                                   f"{entity_type} has been rejected by the moderator. Please consider update changes and try again")
 
     """"
         Get history table data for the template
