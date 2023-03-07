@@ -7,7 +7,7 @@
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
-        <h4 class="modal-title"> Publish Working Set"<b>{{ name }}</b>"?</h4>
+        <h4 class="modal-title"> Publish {{entity_type}}"<b>{{ name }}</b>"?</h4>
     </div>
     <div class="modal-body">
     {% if is_published and approval_status == 2 %}
@@ -16,7 +16,6 @@
         </div>
     {% else %}
         {%render_errors_approval%}
-
 
         {% if errors %}
             <br><br>
@@ -40,31 +39,14 @@
                 <p>
                     <br>
                     {% if is_published or approval_status == 1%}
-                        {% if is_published and approval_status == 2 %}
+                      
+                        {% if  approval_status == 1 and is_moderator %}
+                            Are you sure you want to approve/decline this version of "{{ name }}"?
                             <br>
-<!--                            This version "{{ name }}" is already published. -->
-                        {% else %}
-                            {% if  approval_status == 1 and is_moderator %}
-                                 Are you sure you want to approve/decline this version of "{{ name }}"?
-                                 <br>
-                                 Published Working Set cannot be undone.
+                        Published Working Set cannot be undone.
                         <br>
-
-
-                        {% else %}
-
-                        {% if  approval_status == 1 and not is_moderator %}
-                            Working Set needs to be approved.
-                            Waiting for moderator to approve
-
-                           <br>
-                            {% else %}
-                             <span class="text-danger">&nbsp; Cannot publish !! </span>
-                            <br>
-
-                        {% endif %}
                             {% endif %}
-                            {% endif %}
+                            
 
                     {% else %}
                         {% if not errors %}
@@ -75,17 +57,9 @@
                         Are you sure you want to publish this version of "{{ name }}"?
                                  {% endif %}
 
-
                         <br>
                         Published Working Set cannot be undone.
-                            {% if not is_moderator and not is_lastapproved %}
-                            <br>
-                            This Working Set is going to be reviewed by the moderator and you will be notified when the Working Set will be published
-
-
-
-                    {% endif %}
-                            {% endif %}
+                        {% endif %}
 
                 {% endif %}
                 {% endif %}
