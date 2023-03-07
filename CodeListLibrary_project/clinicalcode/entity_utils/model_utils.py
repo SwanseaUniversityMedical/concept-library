@@ -1,8 +1,10 @@
+from django.db.models import Q
 import re
 
 from ..models.GenericEntity import GenericEntity
 from ..models.PublishedGenericEntity import PublishedGenericEntity
 from ..models.Concept import Concept
+from .constants import APPROVAL_STATUS, GROUP_PERMISSIONS
 
 def try_get_instance(model, **kwargs):
   '''
@@ -64,18 +66,32 @@ def get_entity_approval_status(entity_id, historical_id):
   
   return None
 
-def get_latest_entity_historical_id(entity_id, user_authed=False):
+def get_latest_entity_historical_id(entity_id, user):
   '''
 
   '''
-  if not user_authed:
-    return get_latest_entity_published(entity_id)
-  else:
-    entity = try_get_instance(GenericEntity, id=entity_id)
-    
-    if entity:
+  entity = try_get_instance(GenericEntity, id=entity_id)
+      
+  if entity:
+    if user.is_superuser:
       return int(entity.history.latest().history_id)
     
+    if user:
+      history = entity.history.filter(
+        Q(owner=user.id) | 
+        Q(
+          group_id__in=user.groups.all(),
+          group_access__in=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]
+        )
+      )
+      
+      if history.exists():
+        return history.history_id
+  
+    published = get_latest_entity_published(entity)
+    if published:
+      return published.history.latest().history_id
+
   return None
 
 def get_concept_data(concept_id, concept_history_id):

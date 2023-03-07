@@ -1,5 +1,6 @@
 from rest_framework import status
 from rest_framework.decorators import (api_view, authentication_classes, permission_classes)
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from django.db.models import Q
@@ -8,9 +9,7 @@ from ...models import *
 from ...entity_utils import permission_utils
 from ...entity_utils import search_utils
 from ...entity_utils import api_utils
-
-#TODO: FIX AUTHENTICATION FUNCTION
-#TODO: REMOVE ENTITY_PREFIX AND ENTITY_ID
+from ...entity_utils import gen_utils
 
 ''' Create/Update GenericEntity '''
 
@@ -41,8 +40,7 @@ def update_generic_entity(request):
 ''' Get GenericEntity version history '''
 
 @api_view(['GET'])
-@authentication_classes([])
-@permission_classes([])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def get_generic_entity_version_history(request, primary_key=None):
     '''
     
@@ -65,25 +63,25 @@ def get_generic_entity_version_history(request, primary_key=None):
 ''' Get GenericEntities '''
 
 @api_view(['GET'])
-@authentication_classes([])
-@permission_classes([])
-def get_generic_entities(request):
+@permission_classes([IsAuthenticatedOrReadOnly])
+def get_generic_entities(request, verbose=True):
     '''
     
     '''
     if request.user:
         user_authed = True
 
+    # Get all accessible entities for this user
+    entities = permission_utils.get_accessible_entities(request)
+
     # Build query from searchable metadata fields
     metadata_query = api_utils.build_query_from_template(request, user_authed)
     if metadata_query:
-        entities = GenericEntity.objects.filter(Q(**metadata_query))
+        entities = entities.filter(Q(**metadata_query))
 
         # Exit early if metadata queries do not match
-        if not entities:
+        if not entities.exists():
             return Response([], status=status.HTTP_200_OK)
-    else:
-        entities = GenericEntity.objects.all()
 
     # Build query from searchable GenericEntity template fields
     templates = Template.objects.all()
@@ -102,27 +100,45 @@ def get_generic_entities(request):
             entities, search, fuzzy=False, order_by_relevance=False
         )
 
-    #TODO: This should really be paginated or limited if no search/filters used...
+    # Exit early if metadata queries do not match
+    if not entities.exists():
+        return Response([], status=status.HTTP_200_OK)
+    
+    ''' Please note, this looks redundant but is *required* due to varchar entity ID '''
+    entities = GenericEntity.history.filter(
+        id__in=entities.values_list('id', flat=True),
+        history_id__in=entities.values_list('history_id', flat=True)
+    )
+    entities = entities.extra(
+        select={'true_id': """CAST(REGEXP_REPLACE(id, '[a-zA-Z]+', '') AS INTEGER)"""}
+    ).order_by('true_id', 'id')
+
+    # Paginate results
+    page = gen_utils.parse_int(request.query_params.get('page', 1), default=1)
+    entities = search_utils.try_get_paginated_results(
+        request, entities, page, page_size=50
+    )
     
     # Only display GenericEntities that are accessible to the user
-    result = []
+    result = {
+        'page': page,
+        'num_pages': entities.paginator.num_pages,
+        'data': []
+    }
     for entity in entities:
-        historical_entity_response = api_utils.exists_historical_entity(
-            entity.id, user_authed, historical_id=None
-        )
-        if isinstance(historical_entity_response, Response):
-            return historical_entity_response
-        historical_entity = historical_entity_response
-
-        user_can_access = permission_utils.has_entity_view_permissions(
-            request, historical_entity
-        )
-        if user_can_access:
-            result.append({
-                'id': historical_entity.id,
-                'version_id': historical_entity.history_id,
-                'name': historical_entity.name
+        if not verbose: 
+            result['data'].append({
+                'id': entity.id,
+                'version_id': entity.history_id,
+                'name': entity.name
             })
+        else:
+            entity_detail = api_utils.get_entity_json_detail(
+                request, entity.id, entity, user_authed, return_data=True
+            )
+
+            if not isinstance(entity_detail, Response):
+                result['data'].append(entity_detail)
 
     return Response(
         data=result,
@@ -133,8 +149,7 @@ def get_generic_entities(request):
 ''' Get GenericEntity detail '''
 
 @api_view(['GET'])
-@authentication_classes([])
-@permission_classes([])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def get_entity_detail(request, primary_key, historical_id=None, field=None):
     '''
 
@@ -154,7 +169,7 @@ def get_entity_detail(request, primary_key, historical_id=None, field=None):
     
     # Find latest historical id if not provided, and get first matching historical entity
     historical_entity_response = api_utils.exists_historical_entity(
-        primary_key, user_authed, historical_id=historical_id
+        primary_key, request.user, historical_id=historical_id
     )
     if isinstance(historical_entity_response, Response):
         return historical_entity_response
