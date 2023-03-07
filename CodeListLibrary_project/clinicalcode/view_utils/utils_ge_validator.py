@@ -8,6 +8,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from ..models import *
 from ..permissions import *
+from ..constants import ENTITY_LAYOUT
 
 def form_validation(request, data, entity_history_id, pk,entity,checks):
     """
@@ -145,6 +146,7 @@ def checkEntityToPublish(request,pk,entity_history_id):
     approval_status = get_publish_approval_status(GenericEntity, pk, entity_history_id)
     is_lastapproved = len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=2)) > 0
     other_pending = len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=1)) > 0
+    
 
     # get historical version by querying SQL command from DB
     entity = generic_entity_db_utils.get_historical_entity(entity_history_id
@@ -169,12 +171,14 @@ def checkEntityToPublish(request,pk,entity_history_id):
     #check if table is not empty
     table_ofEntity = lambda entity_type:  'concept_informations' if entity_type==1  else 'workingset_concept_informations'
     entity_has_data = len(GenericEntity.history.get(id=pk, history_id=entity_history_id).template_data[table_ofEntity(entity['layout'])]) > 0
+    entity_type = ENTITY_LAYOUT[entity['layout']-1][1]
     if not entity_has_data and entity['layout'] == 3:
         allow_to_publish = False
 
 
     checks = {
         'entity': entity,
+        'entity_type': entity_type,
         'name': entity_ver.name,
         'errors':errors,
         'allowed_to_publish':allow_to_publish,
