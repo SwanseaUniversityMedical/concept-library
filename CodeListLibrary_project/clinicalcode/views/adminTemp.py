@@ -588,6 +588,8 @@ def admin_mig_phenotypes_dt(request):
                             ge0.history.filter().delete()
                             ge0.delete()
 
+                        temp_data = get_custom_fields_key_value(phenotype)
+                        temp_data['version'] = 1
                         ge = GenericEntity.objects.transfer_record(
                             ignore_increment = True,
 
@@ -605,7 +607,7 @@ def admin_mig_phenotypes_dt(request):
                             citation_requirements = phenotype.citation_requirements,
 
                             template = clinical_template,
-                            template_data =  get_custom_fields_key_value(phenotype),
+                            template_data =  temp_data,
                             
                             internal_comments = '',
                             

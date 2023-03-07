@@ -70,7 +70,7 @@ class CodingSystemAdmin(admin.ModelAdmin):
 
 @admin.register(Template)
 class TemplateAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'description', 'entity_statistics']
+    list_display = ['id', 'name', 'description', 'template_version']
     list_filter = ['name']
     search_fields = ['name']
     exclude = ['created_by', 'updated_by']
@@ -78,18 +78,25 @@ class TemplateAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         '''
+            - Responsible for history
+                -> Only creates a historical record if the version_id within a template is changed
             - Responsible for building and modifying the 'entity_order' field
                 -> Iterates through the template prior to JSONB reordering and stores as array (Postgres stores arrays in semantic order)
         '''
-        if form.cleaned_data['update_order'] or not change:
-            if obj.definition is not None and 'fields' in obj.definition:
+        if obj.definition is not None and 'fields' in obj.definition:
+            if form.cleaned_data['update_order'] or not change:
                 order = []
                 for field in obj.definition['fields']:
                     order.append(field)
                 obj.entity_order = order
+            
+            version = obj.definition.get('version', None)
+            if version != obj.template_version:
+                obj.template_version = version
+                obj.save()
+                return
 
-        super().save_model(request, obj, form, change)
-
+        obj.save_without_historical_record()
     
 @admin.register(GenericEntity)
 class GenericEntityAdmin(admin.ModelAdmin):

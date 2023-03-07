@@ -28,6 +28,7 @@ class Template(TimeStampedModel):
     description = models.TextField(blank=True, null=True)
     definition = JSONField(blank=True, null=True, default=dict)
     entity_class = models.ForeignKey(EntityClass, on_delete=models.SET_NULL, null=True, related_name="entity_class_type")
+    template_version = models.IntegerField(null=True, editable=False)
 
     ''' Instance data '''
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="template_created")
@@ -41,6 +42,9 @@ class Template(TimeStampedModel):
 
     def save(self,  *args, **kwargs):
         '''
+            [!] Note: Historical records are only created if the 'version' field within the template definition is changed
+                      otherwise, the same row is updated - see ./admin.py for more
+        
             - Responsible for building and modifying the 'entity_filters' field
                 -> Iterates through the template and collects each filterable field for easier access
             - Responsible for building and modifying the 'entity_statistics' field
@@ -73,8 +77,16 @@ class Template(TimeStampedModel):
 
             self.entity_filters = filterable
             self.entity_statistics = statistics
-
+                  
         super(Template, self).save(*args, **kwargs)
+    
+    def save_without_historical_record(self, *args, **kwargs):
+        self.skip_history_when_saving = True
+        try:
+            ret = self.save(*args, **kwargs)
+        finally:
+            del self.skip_history_when_saving
+        return ret
     
     class Meta:
         ordering = ('name', )

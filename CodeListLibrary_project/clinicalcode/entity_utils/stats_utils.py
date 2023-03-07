@@ -128,7 +128,7 @@ def collect_statistics(request):
         
         stats = compute_statistics(layout, entities)
         layout.entity_statistics = stats
-        layout.save()
+        layout.save_without_historical_record()
     
         # Metadata
         for field in constants.metadata:

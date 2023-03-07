@@ -2,7 +2,7 @@ from django import template
 from jinja2.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
-from ..entity_utils import template_utils, search_utils, constants
+from ..entity_utils import template_utils, search_utils, constants, gen_utils
 from ..models import Statistics
 from django.conf import settings
 
@@ -188,7 +188,7 @@ class EntityCardsNode(template.Node):
 
         output = ''
         for entity in entities:
-            layout = template_utils.try_get_content(layouts, entity.template.entity_class.entity_prefix)
+            layout = template_utils.try_get_content(layouts, f'{entity.template.id}/{entity.template_data.get("version")}')
             if not template_utils.is_layout_safe(layout):
                 continue
             card = template_utils.try_get_content(layout['definition'], 'card_type', constants.DEFAULT_CARD)

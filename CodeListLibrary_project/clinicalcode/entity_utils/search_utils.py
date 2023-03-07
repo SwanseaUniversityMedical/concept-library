@@ -231,7 +231,7 @@ def apply_param_to_query(query, template, param, data, is_dynamic=False, force_t
     
     return False
 
-def get_renderable_entities(request, entity_type=None, method='GET', force_term=True):
+def get_renderable_entities(request, entity_types=None, method='GET', force_term=True):
     '''
         Method gets searchable, published entities and applies filters retrieved from the request param(s)
 
@@ -239,32 +239,29 @@ def get_renderable_entities(request, entity_type=None, method='GET', force_term=
             1. The entities and their data
             2. The template associated with each of the entities
     '''
-    if entity_type is None:
-        templates = Template.objects.filter(entity_class__entity_count__gt=0)
+    # Get related entities and templates
+    if entity_types is None:
+        entities = PublishedGenericEntity.objects.filter(
+            approval_status=constants.APPROVAL_STATUS.APPROVED
+        )
     else:
-        if isinstance(entity_type, list):
-            templates = Template.objects.filter(id__in=entity_type)
-        else:
-            templates = Template.objects.filter(id=entity_type)
+        entities = PublishedGenericEntity.objects.filter(
+            entity__template__entity_class__id__in=entity_types,
+            approval_status=constants.APPROVAL_STATUS.APPROVED
+        )
     
-    # Collect the relevant template(s)
-    layouts = { }
-    templates = templates.order_by('id')
-    for template in templates:
-        layouts[template.entity_class.entity_prefix] = {
-            'id': template.id,
-            'name': template.name,
-            'definition': template.definition,
-            'order': template.entity_order,
-            'statistics': template.entity_statistics,
-        }
+    entities = entities.order_by('-created').distinct()
+    entities = GenericEntity.history.filter(
+        id__in=list(entities.values_list('entity_id', flat=True)),
+        history_id__in=list(entities.values_list('entity_history_id', flat=True))
+    )
 
-    is_single_search = Template.objects.count() > constants.MIN_SINGLE_SEARCH
-    template_ids = list(templates.values_list('id', flat=True))
+    templates = Template.history.filter(
+        id__in=list(entities.values_list('template', flat=True)),
+        template_version__in=list(entities.values_list('template_data__version', flat=True))
+    )
 
-    # Get all entities assoc. with the template(s) requested
-    entities = GenericEntity.objects.filter(template__in=template_ids).all()
-    entities = PublishedGenericEntity.objects.filter(entity__in=entities).order_by('-created').distinct()
+    is_single_search = templates.count() > constants.MIN_SINGLE_SEARCH
     
     # Gather request params for the filters across template when not single search
     template_filters = [ ]
@@ -273,10 +270,7 @@ def get_renderable_entities(request, entity_type=None, method='GET', force_term=
         for items in templates.values_list('entity_filters', flat=True).distinct():
             filters = filters | set(items)
         template_filters = list(filters)
-
-        template_fields = list(layouts.values())
-        if len(template_fields) > 0:
-            template_fields = template_utils.get_layout_fields(template_fields[0])
+        template_fields = template_utils.get_layout_fields(templates.first())
 
     # Gather metadata filter params
     metadata_filters = [key for key, value in constants.metadata.items() if 'search' in value and 'filterable' in value.get('search')]
@@ -294,14 +288,7 @@ def get_renderable_entities(request, entity_type=None, method='GET', force_term=
             apply_param_to_query(query, template_fields, param, data, is_dynamic=True, force_term=force_term)
     
     # Collect all entities that are (1) published and (2) match request parameters
-    entities = GenericEntity.history.filter(
-        Q(**query) \
-        & \
-        Q(
-            history_id__in=list(entities.values_list('entity_history_id', flat=True)),
-            id__in=list(entities.values_list('entity_id', flat=True))
-        )
-    )
+    entities = entities.filter(Q(**query))
 
     # Prepare order clause
     search_order = try_get_param(request, 'order_by', '1', method)
@@ -323,6 +310,19 @@ def get_renderable_entities(request, entity_type=None, method='GET', force_term=
             entities = entities.all().extra(
                 select={'true_id': """CAST(REGEXP_REPLACE(id, '[a-zA-Z]+', '') AS INTEGER)"""}
             ).order_by('true_id', 'id')
+
+    # Generate layouts for use in templates
+    layouts = { }
+    for template in templates:
+        statistics = Template.objects.get(id=template.id).entity_statistics
+        layouts[f'{template.id}/{template.template_version}'] = {
+            'id': template.id,
+            'version': template.template_version,
+            'name': template.name,
+            'definition': template.definition,
+            'order': template.entity_order,
+            'statistics': statistics,
+        }
 
     return entities, layouts
 
