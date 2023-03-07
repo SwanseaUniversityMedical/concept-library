@@ -220,7 +220,7 @@ def get_template_data_values(entity, layout, field, default=[]):
     if not info or not data:
         return default
     
-    validation = get_field_item(info, field, 'validation')
+    validation = try_get_content(info, 'validation')
     if validation is None:
         return default
 
@@ -228,7 +228,7 @@ def get_template_data_values(entity, layout, field, default=[]):
     if field_type is None:
         return default
 
-    if field_type == 'enum':
+    if field_type == 'enum' or field_type == 'int':
         output = None
         if 'options' in validation:
             output = get_options_value(data, info)

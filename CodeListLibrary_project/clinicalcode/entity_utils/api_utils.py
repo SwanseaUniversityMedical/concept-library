@@ -274,7 +274,7 @@ def build_query_from_template(request, user_authed, template=None):
       param = request.query_params.get(key, None)
       if param:
         search_utils.apply_param_to_query(
-          terms, template, key, param, is_dynamic=is_dynamic, force_term=True
+          terms, template, key, param, is_dynamic=is_dynamic, force_term=True, is_api=True
         )
 
   return terms or None

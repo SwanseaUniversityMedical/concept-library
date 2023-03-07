@@ -92,6 +92,7 @@ class GenericEntity(models.Model):
                             self.id.replace(entitycls.entity_prefix, ''), 
                             default=None
                         )
+
                         if not entity_id: 
                             raise ValidationError('Unable to parse entity id')
 

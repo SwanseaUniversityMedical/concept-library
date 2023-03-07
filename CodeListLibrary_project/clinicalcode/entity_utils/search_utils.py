@@ -173,13 +173,13 @@ def validate_query_param(template, data, default=None):
     
     return default
 
-def apply_param_to_query(query, template, param, data, is_dynamic=False, force_term=False):
+def apply_param_to_query(query, template, param, data, is_dynamic=False, force_term=False, is_api=False):
     '''
         Tries to apply a URL param to a query if its able to resolve and validate the param data
     '''
     template_data = template_utils.try_get_content(template, param)
     search = template_utils.try_get_content(template_data, 'search')
-    if search is None or (not 'filterable' in search and not 'api' in search):
+    if search is None or (not 'filterable' in search and not is_api):
         return False
     
     validation = template_utils.try_get_content(template_data, 'validation')
@@ -316,8 +316,13 @@ def get_renderable_entities(request, entity_type=None, method='GET', force_term=
         entities = search_entities(queryset=entities, search_query=search, order_by_relevance=should_order_search, fuzzy=True, min_threshold=0.1)
 
     # Reorder by user selection
-    if search_order != constants.ORDER_BY['1'] or search is None:
+    if search_order != constants.ORDER_BY['1']:
         entities = entities.order_by(search_order.get('clause'))
+    else:
+        if search is None:
+            entities = entities.all().extra(
+                select={'true_id': """CAST(REGEXP_REPLACE(id, '[a-zA-Z]+', '') AS INTEGER)"""}
+            ).order_by('true_id', 'id')
 
     return entities, layouts
 
