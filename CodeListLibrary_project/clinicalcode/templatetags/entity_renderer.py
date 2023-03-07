@@ -118,7 +118,7 @@ def render_field_value(entity, layout, field, through=None):
     if field_type is None:
         return ''
     
-    if field_type == 'enum':
+    if field_type == 'enum' or field_type == 'int':
         output = template_utils.get_template_data_values(entity, layout, field, default=None)
         if output is not None and len(output) > 0:
             return template_utils.try_get_content(output[0], 'name')

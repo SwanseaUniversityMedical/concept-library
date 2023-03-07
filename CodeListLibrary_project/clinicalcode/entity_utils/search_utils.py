@@ -192,30 +192,32 @@ def apply_param_to_query(query, template, param, data, is_dynamic=False, force_t
     
     if field_type == 'int' or field_type == 'enum':
         data = [int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None)]
-        if not force_term:
-            data = validate_query_param(template_data, data)
-
-        if data is not None:
+        clean = validate_query_param(template_data, data, default=None)
+        if clean is None and force_term:
+            clean = data
+        
+        if clean is not None:
             if is_dynamic:
-                query[f'template_data__{param}__in'] = data
+                query[f'template_data__{param}__in'] = clean
             else:
-                query[f'{param}__in'] = data
+                query[f'{param}__in'] = clean
             return True
     elif field_type == 'int_array':
         data = [int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None)]
-        if not force_term:
-            data = validate_query_param(template_data, data)
+        clean = validate_query_param(template_data, data, default=None)
+        if clean is None and force_term:
+            clean = data
 
-        if data is not None:
+        if clean is not None:
             if is_dynamic:
-                query[f'template_data__{param}__contains'] = data
+                query[f'template_data__{param}__contains'] = clean
             else:
-                query[f'{param}__overlap'] = data
+                query[f'{param}__overlap'] = clean
             return True
     
     return False
 
-def get_renderable_entities(request, entity_type=None, method='GET'):
+def get_renderable_entities(request, entity_type=None, method='GET', force_term=True):
     '''
         Method gets searchable, published entities and applies filters retrieved from the request param(s)
 
@@ -271,11 +273,11 @@ def get_renderable_entities(request, entity_type=None, method='GET'):
         if param in metadata_filters:
             if template_utils.is_single_search_only(constants.metadata, param) and not is_single_search:
                 continue
-            apply_param_to_query(query, constants.metadata, param, data)
+            apply_param_to_query(query, constants.metadata, param, data, force_term=force_term)
         elif param in template_filters and not is_single_search:
             if template_fields is None:
                 continue
-            apply_param_to_query(query, template_fields, param, data, is_dynamic=True)
+            apply_param_to_query(query, template_fields, param, data, is_dynamic=True, force_term=force_term)
     
     # Collect all entities that are (1) published and (2) match request parameters
     entities = GenericEntity.history.filter(
