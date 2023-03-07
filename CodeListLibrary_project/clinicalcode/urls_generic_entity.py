@@ -8,6 +8,7 @@ from django.contrib.auth import views as auth_views
 
 from clinicalcode.views import Publish
 
+
 from .views import (GenericEntity, adminTemp)
 
 from django.urls import path
@@ -28,9 +29,15 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
         url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/detail/$',
             GenericEntity.generic_entity_detail,
             name='generic_entity_history_detail'),
+
         url(r'^ge/(?P<pk>PH\d+)/(?P<history_id>\d+)/publish/$',
-            Publish.Publish.as_view(),
+            Publish.RequestPublish.as_view(),
             name='generic_entity_publish'),
+
+        url(r'^ge/(?P<pk>PH\d+)/(?P<history_id>\d+)/submit/$',
+            Publish.RequestPublish.as_view(),
+            name='generic_entity_request_publish'),
+            
 
         url(r'^ge/$', GenericEntity.EntitySearchView.as_view(), name='entity_search_page'),
         url(r'^ge/create/$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
