@@ -102,8 +102,11 @@ function submitForm(value){
 		e.preventDefault();
 
 		let form = $(this);
-        doCall("{% url 'generic_entity_publish' pk=entity.id history_id=entity.history_id %}",form)
+        value === "publish" ? doCall("{% url 'generic_entity_publish' pk=entity.id history_id=entity.history_id %}",form): doCall("{% url 'generic_entity_decline' pk=entity.id history_id=entity.history_id %}",form)
             });
+
+
+        
 
 		return false;
 }
