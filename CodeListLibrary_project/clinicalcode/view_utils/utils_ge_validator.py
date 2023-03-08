@@ -93,6 +93,8 @@ def send_message(pk, data, entity,entity_history_id,checks):
                                                       <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'],
             url=reverse('generic_entity_history_detail', args=(pk,entity_history_id)),
             pk=pk,history=entity_history_id)
+        
+        send_email_decision_entity(entity,checks['entity_type'],0)
 
         return data
 
@@ -278,10 +280,16 @@ def send_email_decision_entity(entity,entity_type,approved):
     @param approved: approved status flag
     """
     
+    
     if approved == 1:
         db_utils.send_review_email(entity,
                                    "Published",
                                    f"{entity_type} has been successfully approved and published on the website")
+        
+    elif approved == 0:
+        db_utils.send_review_email(entity,
+                                   "Pending",
+                                   f"{entity_type} has been submitted and waiting moderator to publish on the website")
 
     elif approved == 2:
         # This line for the case when user want to get notification of same workingset id but different version
