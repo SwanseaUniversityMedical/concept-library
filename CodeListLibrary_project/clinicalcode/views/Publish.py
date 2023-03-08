@@ -246,18 +246,18 @@ class RequestPublish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin,
         })
     
 
-    def post(self, request, pk, entity_history_id):
+    def post(self, request, pk, history_id):
         """
         Send the request to publish data to the server
         @param request: user request object
         @param pk: entity id for database query
-        @param entity_history_id: historical id of entity
+        @param history_id: historical id of entity
         @return: JSON success body response
         """
-        is_published = checkIfPublished(GenericEntity, pk, entity_history_id)
-        checks = utils_ge_validator.checkEntityToPublish(request, pk, entity_history_id)
+        is_published = checkIfPublished(GenericEntity, pk, history_id)
+        checks = utils_ge_validator.checkEntityToPublish(request, pk, history_id)
         if not is_published:
-            checks = utils_ge_validator.checkEntityToPublish(request, pk, entity_history_id)
+            checks = utils_ge_validator.checkEntityToPublish(request, pk, history_id)
 
         data = dict()
 
@@ -273,12 +273,12 @@ class RequestPublish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin,
                     # start a transaction
                     with transaction.atomic():
                         entity = GenericEntity.objects.get(pk=pk)
-                        published_entity = PublishedGenericEntity(entity=entity, entity_history_id=entity_history_id,
+                        published_entity = PublishedGenericEntity(entity=entity, entity_history_id=history_id,
                                                                     created_by_id=request.user.id,approval_status=1)
                         published_entity.save()
                         data['form_is_valid'] = True
                         data['approval_status'] = 1
-                        data = utils_ge_validator.form_validation(request, data, entity_history_id, pk, entity, checks)
+                        data = utils_ge_validator.form_validation(request, data, history_id, pk, entity, checks)
 
 
         except Exception as e:
