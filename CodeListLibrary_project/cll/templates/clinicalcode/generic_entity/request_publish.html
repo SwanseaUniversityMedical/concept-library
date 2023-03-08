@@ -1,0 +1,161 @@
+{% load entity_publish_request%}
+<form method="post"
+  id="publish-form"  class="form-horizontal" novalidate enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title"> Publish {{entity_type}}"<b>{{ name }}</b>"?</h4>
+    </div>
+    <div class="modal-body">
+    {% if  approval_status == 1 %}
+        <div class="alert alert-success" role="alert">
+          This version is already submitted.
+        </div>
+    {% else %}
+
+        {%render_errors_approval%}
+
+    
+
+            {% if errors %}
+                <br><br>
+                <div class="bs-example">
+                    <strong><span class="text-danger">&nbsp;Errors:</span></strong>
+                    <br>
+                    <ul>
+                        {% for key, error in errors.items %}
+                            <li><span class="text-danger">&nbsp;{{ error|safe }}</span></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+ 	{% endif %}
+
+        <div class="row">
+            <div class="col-md-12">
+                <p>
+                    <br>
+                        {% if is_owner and not errors and not approval_status == 1 and not approval_status == 3%}
+                        Are you sure you want to publish this version of "<b>{{ name }}</b>"?
+
+                        <br>
+                        Published working set cannot be undone.
+                            {% if not is_lastapproved %}
+                            <br>
+                            This working set is going to be reviewed by the moderator and you will be notified when the working set is published
+
+
+
+                    {% endif %}
+
+                {% endif %}
+
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+    	{% if approval_status == 1 %}
+    		<span class="glyphicon glyphicon-ok" style="color:green"></span>
+		    <span class="text-success">&nbsp;Submitted&nbsp;</span>
+
+            {% elif approval_status == 3 %}
+    		<span class="glyphicon glyphicon-remove" style="color:red"></span>
+		    <span class="text-danger">&nbsp;Rejected&nbsp;</span>
+
+    	{% else %}
+            <button {% if not allowed_to_publish %} disabled {% endif %} id="publishButton"
+	            type="submit" class="btn btn-primary">
+	            Submit
+	        </button>
+        {% endif %}
+
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+    </div>
+
+</form>
+
+<script >
+$(function(){
+	// unattach the submit event
+	$('#modal-section').off('submit', '#publish-form');
+
+	$('#modal-section').on('submit', '#publish-form', function(e){
+
+		e.preventDefault();
+
+		var form = $(this);
+		//=============================================
+	    // post form
+		 $.ajax({
+            url:  "{% url 'generic_entity_request_publish' pk=entity.id history_id=entity.history_id %}",
+            data: form.serialize(),
+            type: "POST",
+            dataType: 'json',
+            beforeSend: function(xhr, opts){
+                //alert('doFormSubmit= b');
+                $(".loader").show();
+            },
+			success: function(data){
+				if(data.form_is_valid){
+					$('#history-table').html(data.html_history_list);
+					$('#latest-history-ID-Div').html(data.latest_history_ID);
+					$('#latest_history_id').val(data.latest_history_ID);
+					form.find('input[name=latest_history_id_shown]').val(data.latest_history_ID);
+
+					// href needs to be updated for publish concept to show latest status
+					if($('#publish2').length){
+						var element = document.getElementById('publish2');
+                        element.setAttribute('disabled', 'disabled');
+
+						$('#publish2').attr("title", "This version is already submitted" );
+						$('#publish2').addClass("btn-warning");
+						$('#publish2').html("Pending");
+
+					}
+
+					if(data.approval_status == 1){
+                        $('#warning-message').show();
+					$('#warning-message').html(data.message);
+                    }
+                    else{
+                        $('#success-message').show();
+					$('#success-message').html(data.message);
+                    }
+
+
+					$('#modal-section').modal('hide');
+					$('#modal-section .modal-content').html('');
+
+				}
+				else{
+					$('#error-message').show();
+					$('#error-message').html(data.message);
+
+					$('#modal-section').modal('hide');
+					$('#modal-section .modal-content').html('');
+				}
+			},
+			complete: function(){
+				//alert('doFormSubmit= cc');
+				$(".loader").hide();
+			}
+		});
+
+		//=============================================
+
+
+		return false;
+	});
+
+});
+
+
+</script>
+
+
