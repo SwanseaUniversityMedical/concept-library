@@ -231,7 +231,6 @@ def apply_param_to_query(query, template, param, data, is_dynamic=False, force_t
     
     return False
 
-@gen_utils.measure_perf
 def get_renderable_entities(request, entity_types=None, method='GET', force_term=True):
     '''
         Method gets searchable, published entities and applies filters retrieved from the request param(s)
@@ -260,7 +259,7 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
     templates = Template.history.filter(
         id__in=list(entities.values_list('template', flat=True)),
         template_version__in=list(entities.values_list('template_data__version', flat=True))
-    )
+    ).order_by('-history_date').distinct()
 
     is_single_search = templates.count() > constants.MIN_SINGLE_SEARCH
     

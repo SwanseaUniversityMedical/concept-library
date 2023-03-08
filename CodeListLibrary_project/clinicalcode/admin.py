@@ -70,6 +70,7 @@ class CodingSystemAdmin(admin.ModelAdmin):
 
 @admin.register(Template)
 class TemplateAdmin(admin.ModelAdmin):
+    readonly_fields = ['template_version']
     list_display = ['id', 'name', 'description', 'template_version']
     list_filter = ['name']
     search_fields = ['name']
@@ -78,8 +79,8 @@ class TemplateAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         '''
-            - Responsible for history
-                -> Only creates a historical record if the version_id within a template is changed
+            - Responsible for version history
+                -> template_version computed from JSONB data, never updated unless dictdiff and/or purposefully changed
             - Responsible for computing the 'layout_order' field within the template definition
                 -> Iterates through the template prior to JSONB reordering and creates a 'layout_order' key [array, def. order] (Postgres stores arrays in semantic order)
                 -> Adds 'order' field to the template's individual fields
@@ -94,10 +95,8 @@ class TemplateAdmin(admin.ModelAdmin):
             version = obj.definition.get('version', None)
             if version != obj.template_version:
                 obj.template_version = version
-                obj.save()
-                return
-
-        obj.save_without_historical_record()
+        
+        obj.save()
     
 @admin.register(GenericEntity)
 class GenericEntityAdmin(admin.ModelAdmin):

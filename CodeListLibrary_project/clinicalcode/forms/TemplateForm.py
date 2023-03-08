@@ -20,11 +20,14 @@ class TemplateAdminForm(forms.ModelForm):
             @desc overrides the Django form to reorder the 'layout_field' and 'order' fields
                   within the template definition
     '''
+    template_version = forms.IntegerField(widget=forms.NumberInput(attrs={'readonly':'readonly'}))
     definition = forms.JSONField(encoder=PrettyPrintOrderedDefinition)
 
     def __init__(self, *args, **kwargs):
         super(TemplateAdminForm, self).__init__(*args, **kwargs)
-        self.initial['definition'] = template_utils.get_ordered_definition(self.instance.definition, clean_fields=True)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            self.initial['definition'] = template_utils.get_ordered_definition(instance.definition, clean_fields=True)
 
     class Meta:
         model = Template
