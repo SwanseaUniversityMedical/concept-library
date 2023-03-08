@@ -175,3 +175,13 @@ const domReady = new Promise(resolve => {
     resolve();
   }
 });
+
+/**
+  * assert
+  * @desc Throws an error message if a condition is not met
+  */
+const assert = (condition, message) => {
+  if (!condition) {
+    throw message;
+  }
+}
