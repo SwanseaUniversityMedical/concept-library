@@ -140,9 +140,15 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 
 
                                               <a
-                                                      {% if not live_ver_is_deleted and approval_status is None  or approval_status == 2 %}
-                                                          class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
-                                                          href="{% url 'phenotype_publish' pk=entity.id phenotype_history_id=entity.history_id %}"
+                                              {% if not is_lastapproved and approval_status is None and not request.user|has_group:"Moderators" %}
+
+                                              class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
+                                              href="{% url 'generic_entity_request_publish' pk=entity.id history_id=entity.history_id %}"
+
+                                            {% elif  is_lastapproved and not live_ver_is_deleted and not approval_status == 3%}
+
+                                              class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
+                                              href="{% url 'generic_entity_request_publish' pk=entity.id history_id=entity.history_id %}"
                                                       {% else %}
                                                           {% if is_published and approval_status == 2 %}
                                                            class="btn btn-primary"
@@ -197,6 +203,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 
 <div class="alert alert-success alert-dismissable" id="success-message" style="display: none;" role="alert"></div>
 <div class="alert alert-danger alert-dismissable" id="error-message" style="display: none;" role="alert"></div>
+<div class="alert alert-warning alert-dismissable" id="warning-message" style="display: none;"role="alert"></div>
 
 </span>
 <div class="col-md-12" id="ddd">
