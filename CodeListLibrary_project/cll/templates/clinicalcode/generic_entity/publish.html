@@ -40,7 +40,7 @@
                     <br>
                     {% if is_published or approval_status == 1%}
                       
-                        {% if  approval_status == 1 and is_moderator %}
+                        {% if approval_status == 1 and is_moderator %}
                             Are you sure you want to approve/decline this version of "{{ name }}"?
                             <br>
                         Published Working Set cannot be undone.
@@ -129,21 +129,13 @@ function doCall(url,form){
 }
 function updateHistoryTable(data,form){
 				if(data.form_is_valid){
-// 					$('#component-table tbody').html(data.html_component_list);
 					$('#history-table').html(data.html_history_list);
 					$('#latest-history-ID-Div').html(data.latest_history_ID);
 					$('#latest_history_id').val(data.latest_history_ID);
-// 					$('#concept-component-form-container').html(data.add_menu_items);
 					form.find('input[name=latest_history_id_shown]').val(data.latest_history_ID);
 
 					// href needs to be updated for publish concept to show latest status
 					if($('#publish2').length){
-// 						var pub_href = $('#publish2').attr("href").split("/");
-// 						pub_href[3] = data.latest_history_ID;
-// 						pub_href = pub_href.join("/")
-// 						$('#publish2').attr("href", pub_href);
-
-						//$('#publish2').prop("disabled", true );
 						var element = document.getElementById('publish2');
                         element.setAttribute('disabled', 'disabled');
 
