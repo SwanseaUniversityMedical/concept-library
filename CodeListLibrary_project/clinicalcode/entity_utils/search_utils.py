@@ -300,7 +300,26 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
     # Apply any search param if present
     search = try_get_param(request, 'search', None)
     if search is not None:
-        entities = search_entities(queryset=entities, search_query=search, order_by_relevance=should_order_search, fuzzy=True, min_threshold=0.1)
+        queryset = GenericEntity.objects.filter(
+            id__in=entities.values_list('id', flat=True)
+        ) \
+        .filter(
+            Q(search_vector=search) |
+            Q(author__search=search)
+        )
+
+        entities = GenericEntity.history \
+            .filter(
+                id__in=queryset.values_list('id', flat=True),
+                history_id__in=entities.values_list('history_id', flat=True)
+            )
+        
+        if should_order_search:
+            entities = entities \
+                .annotate(
+                    similarity=TrigramSimilarity('name', search)
+                ) \
+                .order_by('-similarity')
 
     # Reorder by user selection
     if search_order != constants.ORDER_BY['1']:
