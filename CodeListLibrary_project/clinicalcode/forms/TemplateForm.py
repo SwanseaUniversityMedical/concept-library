@@ -1,13 +1,30 @@
+import json
 from django import forms
+from django.contrib import admin
+
 from ..models.Template import Template
+from ..entity_utils import template_utils
+
+class PrettyPrintOrderedDefinition(json.JSONEncoder):
+    '''
+        PrettyPrintOrderedDefinition
+            @desc Indents and prettyprints the definition field so that it's readable
+                  Preserves order that was given by template_utils.get_ordered_definition
+    '''
+    def __init__(self, *args, indent, sort_keys, **kwargs):
+        super().__init__(*args, indent=2, sort_keys=False, **kwargs)
 
 class TemplateAdminForm(forms.ModelForm):
     '''
         TemplateAdminForm
-            @desc adds a checkbox item to the admin form to forcefully update the JSONB field order
-                  otherwise, ignores order update(s)
+            @desc overrides the Django form to reorder the 'layout_field' and 'order' fields
+                  within the template definition
     '''
-    update_order = forms.BooleanField(required=False)
+    definition = forms.JSONField(encoder=PrettyPrintOrderedDefinition)
+
+    def __init__(self, *args, **kwargs):
+        super(TemplateAdminForm, self).__init__(*args, **kwargs)
+        self.initial['definition'] = template_utils.get_ordered_definition(self.instance.definition, clean_fields=True)
 
     class Meta:
         model = Template

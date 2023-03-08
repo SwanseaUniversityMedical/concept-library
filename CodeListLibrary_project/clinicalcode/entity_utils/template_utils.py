@@ -67,6 +67,35 @@ def get_layout_field(layout, field, default=None):
     
     return default
 
+def get_ordered_definition(definition, clean_fields=False):
+    '''
+        Safely gets the 'layout_order' field from the definition and tries
+        to reorder the JSONB result so that iteration over fields are in the correct
+        order
+    '''
+    layout_order = try_get_content(definition, 'layout_order')
+    if layout_order is None:
+        return definition
+
+    fields = try_get_content(definition, 'fields')
+    if fields is None:
+        return definition
+    
+    ordered_fields = { }
+    for field in layout_order:
+        content = try_get_content(fields, field)
+        if clean_fields:
+            content.pop('order')
+        
+        ordered_fields[field] = content
+
+    definition['fields'] = ordered_fields
+
+    if clean_fields:
+        definition.pop('layout_order')
+
+    return definition
+
 def get_entity_field(entity, field, default=None):
     '''
         Safely gets a field from an entity, either at the toplevel (e.g. its name) or from its template data (e.g. some dynamic field)

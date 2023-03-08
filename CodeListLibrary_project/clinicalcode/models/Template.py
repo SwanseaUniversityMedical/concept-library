@@ -18,8 +18,9 @@ class Template(TimeStampedModel):
                     - count of each entity within this template
                     - count of tag/collection/datasource/coding system/
 
-                also holds information relating to order of the layout (since JSONB does not preserve order)
-                and represents the filterable fields as a hasmap to improve performance
+                also holds information relating to represents the filterable fields as a hasmap to improve performance
+                as well as ensuring order is kept through creating a 'layout_order' field and an 'order' field within
+                the template definition
     '''
 
     ''' Metadata '''
@@ -37,7 +38,6 @@ class Template(TimeStampedModel):
 
     ''' Statistics '''
     entity_filters = ArrayField(models.CharField(max_length=500), blank=True, null=True, editable=False)
-    entity_order = ArrayField(models.CharField(max_length=500), blank=True, null=True, editable=False)
     entity_statistics = JSONField(blank=True, null=True, default=dict, editable=False)
 
     def save(self,  *args, **kwargs):

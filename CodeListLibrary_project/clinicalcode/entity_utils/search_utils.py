@@ -231,6 +231,7 @@ def apply_param_to_query(query, template, param, data, is_dynamic=False, force_t
     
     return False
 
+@gen_utils.measure_perf
 def get_renderable_entities(request, entity_types=None, method='GET', force_term=True):
     '''
         Method gets searchable, published entities and applies filters retrieved from the request param(s)
@@ -339,7 +340,7 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
             'version': template.template_version,
             'name': template.name,
             'definition': template.definition,
-            'order': template.entity_order,
+            'order': template_utils.try_get_content(template.definition, 'layout_order', []),
             'statistics': statistics,
         }
 

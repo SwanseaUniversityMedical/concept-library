@@ -2,11 +2,11 @@ from django.contrib import admin
 from django.contrib.auth.models import Group, User
 
 from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource, Operator, Tag)
-from .forms.TemplateForm import TemplateAdminForm
 
 from .models.EntityClass import EntityClass
 from .models.GenericEntity import GenericEntity
 from .models.Template import Template
+from .forms.TemplateForm import TemplateAdminForm
 
 # from forms import GroupAdminForm
 # from django import forms
@@ -80,15 +80,16 @@ class TemplateAdmin(admin.ModelAdmin):
         '''
             - Responsible for history
                 -> Only creates a historical record if the version_id within a template is changed
-            - Responsible for building and modifying the 'entity_order' field
-                -> Iterates through the template prior to JSONB reordering and stores as array (Postgres stores arrays in semantic order)
+            - Responsible for computing the 'layout_order' field within the template definition
+                -> Iterates through the template prior to JSONB reordering and creates a 'layout_order' key [array, def. order] (Postgres stores arrays in semantic order)
+                -> Adds 'order' field to the template's individual fields
         '''
         if obj.definition is not None and 'fields' in obj.definition:
-            if form.cleaned_data['update_order'] or not change:
-                order = []
-                for field in obj.definition['fields']:
-                    order.append(field)
-                obj.entity_order = order
+            order = []
+            for field in obj.definition['fields']:
+                obj.definition['fields'][field]['order'] = len(order)
+                order.append(field)
+            obj.definition['layout_order'] = order
             
             version = obj.definition.get('version', None)
             if version != obj.template_version:
