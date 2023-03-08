@@ -7,6 +7,8 @@ from django.urls import re_path as url
 from django.contrib.auth import views as auth_views
 
 from clinicalcode.views import Publish
+from clinicalcode.views import Decline
+
 
 
 from .views import (GenericEntity, adminTemp)
@@ -31,8 +33,13 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
             name='generic_entity_history_detail'),
 
         url(r'^ge/(?P<pk>PH\d+)/(?P<history_id>\d+)/publish/$',
-            Publish.RequestPublish.as_view(),
+            Publish.Publish.as_view(),
             name='generic_entity_publish'),
+
+        url(r'^ge/(?P<pk>PH\d+)/(?P<history_id>\d+)/decline/$',
+            Decline.EntityDecline.as_view(),
+            name='generic_entity_decline'),
+
 
         url(r'^ge/(?P<pk>PH\d+)/(?P<history_id>\d+)/submit/$',
             Publish.RequestPublish.as_view(),

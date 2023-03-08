@@ -70,8 +70,8 @@ def send_message(pk, data, entity,entity_history_id,checks):
     elif data['approval_status'] == 3:
         data['message'] = """The {entity_type} version has been rejected .
                                                <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'],
-            url=reverse('generic_entity_history_detail', args=(pk,entity_history_id),
-            pk=pk,history=entity_history_id))
+            url=reverse('generic_entity_history_detail', args=(pk,entity_history_id)),
+            pk=pk,history=entity_history_id)
         
         send_email_decision_entity(entity,checks['entity_type'],data['approval_status'])
 
