@@ -38,6 +38,22 @@ def is_metadata(entity, field):
         return True
     except:
         return False
+    
+def get_base_template_from_entity(entity, default=None):
+    '''
+        Safely gets the base template from an enitity instance
+    '''
+    if not entity or entity.template is None:
+        return default
+    
+    template = entity.template
+    if template.base_template is None:
+        return default
+    
+    if not is_layout_safe(template.base_template):
+        return default
+    
+    return template.base_template.definition
 
 def is_layout_safe(layout):
     '''
@@ -80,7 +96,7 @@ def get_layout_field(layout, field, default=None):
     
     return default
 
-def get_ordered_definition(definition, clean_fields=False):
+def get_ordered_definition(definition, clean_fields=False, is_base=False):
     '''
         Safely gets the 'layout_order' field from the definition and tries
         to reorder the JSONB result so that iteration over fields are in the correct
@@ -90,9 +106,12 @@ def get_ordered_definition(definition, clean_fields=False):
     if layout_order is None:
         return definition
 
-    fields = try_get_content(definition, 'fields')
-    if fields is None:
-        return definition
+    if not is_base:
+        fields = try_get_content(definition, 'fields')
+        if fields is None:
+            return definition
+    else:
+        fields = definition
     
     ordered_fields = { }
     for field in layout_order:
@@ -102,7 +121,10 @@ def get_ordered_definition(definition, clean_fields=False):
         
         ordered_fields[field] = content
 
-    definition['fields'] = ordered_fields
+    if not is_base:
+        definition['fields'] = ordered_fields
+    else:
+        definition = ordered_fields
 
     if clean_fields:
         definition.pop('layout_order')
@@ -163,8 +185,10 @@ def get_metadata_value_from_source(entity, field, default=None):
     '''
     try:
         data = getattr(entity, field)
-        if field in constants.metadata:
-            validation = get_field_item(constants.metadata, field, 'validation', { })
+
+        base_template = get_base_template_from_entity(entity)
+        if field in base_template:
+            validation = get_field_item(base_template, field, 'validation', { })
             source_info = validation.get('source')
 
             model = apps.get_model(app_label='clinicalcode', model_name=source_info.get('table'))

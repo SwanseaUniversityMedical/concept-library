@@ -6,7 +6,8 @@ from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource, Operat
 from .models.EntityClass import EntityClass
 from .models.GenericEntity import GenericEntity
 from .models.Template import Template
-from .forms.TemplateForm import TemplateAdminForm
+from .models.BaseTemplate import BaseTemplate
+from .forms.TemplateForm import TemplateAdminForm, BaseTemplateAdminForm
 
 # from forms import GroupAdminForm
 # from django import forms
@@ -108,6 +109,27 @@ class GenericEntityAdmin(admin.ModelAdmin):
 class EntityClassAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'entity_prefix', 'entity_count']
     exclude = []
+
+@admin.register(BaseTemplate)
+class BaseTemplateAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name']
+    exclude = []
+    form = BaseTemplateAdminForm
+
+    def save_model(self, request, obj, form, change):
+        '''
+            - Responsible for computing the 'layout_order' field within the template definition
+                -> Iterates through the template prior to JSONB reordering and creates a 'layout_order' key [array, def. order] (Postgres stores arrays in semantic order)
+                -> Adds 'order' field to the template's individual fields
+        '''
+        if obj.definition is not None:
+            order = []
+            for field in obj.definition:
+                obj.definition[field]['order'] = len(order)
+                order.append(field)
+            obj.definition['layout_order'] = order
+        
+        obj.save()
 
 #admin.site.register(CodingSystem)
 

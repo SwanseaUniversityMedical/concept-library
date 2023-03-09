@@ -2,8 +2,10 @@ from django import template
 from jinja2.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
-from ..entity_utils import template_utils, search_utils, constants
 from django.templatetags.static import static
+
+from ..models.BaseTemplate import BaseTemplate
+from ..entity_utils import template_utils, search_utils, constants
 
 register = template.Library()
 
@@ -281,8 +283,13 @@ class EntityFiltersNode(template.Node):
         return render_to_string(f'{constants.FILTER_DIRECTORY}/{component}.html', context.flatten())
 
     def __generate_metadata_filters(self, context):
+        base_template = template_utils.get_ordered_definition(
+            BaseTemplate.objects.all().first().definition,
+            is_base=True
+        )
+
         output = ''
-        for field, structure in constants.metadata.items():
+        for field, structure in base_template.items():
             search = template_utils.try_get_content(structure, 'search')
             if search is None:
                 continue

@@ -1,14 +1,12 @@
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import User
 from django.db.models import JSONField
 from django.db import models
 from simple_history.models import HistoricalRecords
-from django.contrib.postgres.fields import ArrayField
 
 from .TimeStampedModel import TimeStampedModel
-from .Brand import Brand
 from clinicalcode.constants import *
-from ..entity_utils import constants
 from .EntityClass import EntityClass
+from .BaseTemplate import BaseTemplate
 
 class Template(TimeStampedModel):
     '''
@@ -29,6 +27,7 @@ class Template(TimeStampedModel):
     description = models.TextField(blank=True, null=True)
     definition = JSONField(blank=True, null=True, default=dict)
     entity_class = models.ForeignKey(EntityClass, on_delete=models.SET_NULL, null=True, related_name="entity_class_type")
+    base_template = models.ForeignKey(BaseTemplate, on_delete=models.SET_NULL, null=True, related_name="template_base")
     template_version = models.IntegerField(null=True, editable=False)
 
     ''' Instance data '''

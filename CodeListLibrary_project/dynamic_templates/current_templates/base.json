@@ -1,0 +1,151 @@
+{
+  "name": {
+    "title": "Name",
+    "active": true,
+    "validation": {
+        "type": "string",
+        "mandatory": true
+    },
+    "is_base_field": true
+  },
+  "definition": {
+    "title": "Definition",
+    "active": true,
+    "validation": {
+        "type": "string",
+        "mandatory": false
+    },
+    "is_base_field": true
+  },
+  "implementation": {
+    "title": "Implementation",
+    "active": true,
+    "validation": {
+        "type": "string",
+        "mandatory": false
+    },
+    "is_base_field": true
+  },
+  "publications": {
+    "title": "Publications",
+    "active": true,
+    "validation": {
+        "type": "string_array",
+        "mandatory": false
+    },
+    "is_base_field": true
+  },
+  "validation": {
+    "title": "Validation",
+    "active": true,
+    "validation": {
+        "type": "string",
+        "mandatory": false
+    },
+    "is_base_field": true
+  },
+  "citation_requirements": {
+    "title": "Citation Requirements",
+    "active": true,
+    "validation": {
+        "type": "string",
+        "mandatory": false
+    },
+    "is_base_field": true
+  },
+  "created": {
+    "title": "Date",
+    "active": true,
+    "validation": {
+        "type": "datetime",
+        "mandatory": true,
+        "computed": true
+    },
+    "search": {
+        "filterable": true
+    },
+    "is_base_field": true
+  },
+  "author": {
+    "title": "Author",
+    "active": true,
+    "validation": {
+        "type": "string",
+        "mandatory": true
+    },
+    "is_base_field": true
+  },
+  "collections": {
+    "title": "Collections",
+    "active": true,
+    "compute_statistics": true,
+    "validation": {
+        "type": "int_array",
+        "mandatory": false,
+        "source": {
+            "table": "Tag",
+            "query": "id",
+            "relative": "description",
+            "filter": {
+                "tag_type": 2
+            }
+        }
+    },
+    "search": {
+        "filterable": true,
+        "api": true
+    },
+    "is_base_field": true
+  },
+  "tags": {
+    "title": "Tags",
+    "active": true,
+    "compute_statistics": true,
+    "validation": {
+        "type": "int_array",
+        "mandatory": false,
+        "source": {
+            "table": "Tag",
+            "query": "id",
+            "relative": "description",
+            "filter": {
+                "tag_type": 1
+            }
+        }
+    },
+    "search": {
+        "filterable": true,
+        "api": true
+    },
+    "is_base_field": true
+  },
+  "updated": {
+    "title": "Updated",
+    "active": true,
+    "validation": {
+        "type": "datetime",
+        "mandatory": true
+    },
+    "is_base_field": true
+  },
+  "created_by": {
+    "title": "Created By",
+    "active": true,
+    "requires_auth": true,
+    "validation": {
+        "type": "int", 
+        "mandatory": true
+    },
+    "is_base_field": true
+  },
+  "updated_by": {
+    "title": "Updated By",
+    "active": true,
+    "requires_auth": true,
+    "validation": {
+        "type": "int", 
+        "mandatory": true
+    },
+    "is_base_field": true
+  }
+}

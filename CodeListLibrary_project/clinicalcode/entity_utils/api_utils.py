@@ -210,7 +210,17 @@ def export_field(entity, field, user_authed):
     is_base_field = template_utils.try_get_content(fields[field], 'is_base_field')
     
     if is_base_field:
-      return get_verbose_metadata_field(entity, constants.metadata, field, user_authed)
+      base_template = template_utils.get_base_template_from_entity(entity)
+      if not base_template:
+        return Response(
+          data={
+            'message': 'Malformed base template'
+          }, 
+          content_type='json',
+          status=status.HTTP_404_NOT_FOUND
+        )
+
+      return get_verbose_metadata_field(entity, base_template, field, user_authed)
     else:
       return get_verbose_template_field(entity, layout, field, user_authed)
   

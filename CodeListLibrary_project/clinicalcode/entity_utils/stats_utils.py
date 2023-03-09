@@ -1,5 +1,6 @@
 from functools import cmp_to_key
 from ..models import GenericEntity, Template, Statistics, PublishedGenericEntity, Brand
+from ..models.BaseTemplate import BaseTemplate
 from . import template_utils, constants
 
 def sort_by_count(a, b):
@@ -16,7 +17,8 @@ def sort_by_count(a, b):
 
 def build_statistics(statistics, entity, field, struct, is_dynamic=False):
     if not is_dynamic:
-        struct = template_utils.try_get_content(constants.metadata, field)
+        base_template = BaseTemplate.objects.all().first().definition
+        struct = template_utils.try_get_content(base_template, field)
     
     if struct is None:
         return

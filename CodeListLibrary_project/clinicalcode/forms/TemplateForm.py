@@ -26,8 +26,28 @@ class TemplateAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(TemplateAdminForm, self).__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
-        if instance and instance.pk:
+        if instance:
             self.initial['definition'] = template_utils.get_ordered_definition(instance.definition, clean_fields=True)
+
+    class Meta:
+        model = Template
+        fields = '__all__'
+
+class BaseTemplateAdminForm(forms.ModelForm):
+    '''
+        BaseTemplateAdminForm
+            @desc overrides the Django form to reorder the 'layout_field' and 'order' fields
+                  within the base template definition
+    '''
+    definition = forms.JSONField(encoder=PrettyPrintOrderedDefinition)
+
+    def __init__(self, *args, **kwargs):
+        super(BaseTemplateAdminForm, self).__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance:
+            self.initial['definition'] = template_utils.get_ordered_definition(
+                instance.definition, clean_fields=True, is_base=True
+            )
 
     class Meta:
         model = Template

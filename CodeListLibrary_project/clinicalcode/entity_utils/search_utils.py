@@ -5,6 +5,7 @@ from django.contrib.postgres.search import TrigramSimilarity, SearchQuery, Searc
 import json
 
 from ..models import PublishedGenericEntity, GenericEntity, Template, Statistics
+from ..models.BaseTemplate import BaseTemplate
 from . import model_utils, permission_utils, template_utils, constants, gen_utils
 
 def get_request_body(body):
@@ -292,15 +293,16 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
         template_fields = template_utils.get_layout_fields(templates.first())
 
     # Gather metadata filter params
-    metadata_filters = [key for key, value in constants.metadata.items() if 'search' in value and 'filterable' in value.get('search')]
-    
+    base_template = BaseTemplate.objects.all().first().definition
+    metadata_filters = [key for key, value in base_template.items() if 'search' in value and 'filterable' in value.get('search')]
+
     # Build query from filters
     query = { }
     for param, data in getattr(request, method).items():
         if param in metadata_filters:
-            if template_utils.is_single_search_only(constants.metadata, param) and not is_single_search:
+            if template_utils.is_single_search_only(base_template, param) and not is_single_search:
                 continue
-            apply_param_to_query(query, constants.metadata, param, data, force_term=force_term)
+            apply_param_to_query(query, base_template, param, data, force_term=force_term)
         elif param in template_filters and not is_single_search:
             if template_fields is None:
                 continue

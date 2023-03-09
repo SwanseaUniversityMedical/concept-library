@@ -1,47 +1,58 @@
 {
   "version": 1,
-  "base_template_version": 1,
-  
   "card_type": "clinical",
   "fields": {
     "name": {
-        "is_base_field": true
+      "field_type": "???",
+      "is_base_field": true
     },
     "definition": {
-        "is_base_field": true
+      "field_type": "???",
+      "is_base_field": true
     },
     "implementation": {
-        "is_base_field": true
+      "field_type": "???",
+      "is_base_field": true
     },
     "publications": {
-        "is_base_field": true
+      "field_type": "???",
+      "is_base_field": true
     },
     "validation": {
-        "is_base_field": true
+      "field_type": "???",
+      "is_base_field": true
     },
     "citation_requirements": {
-        "is_base_field": true
+      "field_type": "???",
+      "is_base_field": true
     },
     "created": {
-        "is_base_field": true
+      "field_type": "???",
+      "is_base_field": true
     },
     "author": {
-        "is_base_field": true
+      "field_type": "???",
+      "is_base_field": true
     },
     "collections": {
-        "is_base_field": true
+      "field_type": "???",
+      "is_base_field": true
     },
     "tags": {
-        "is_base_field": true
+      "field_type": "???",
+      "is_base_field": true
     },
     "updated": {
-        "is_base_field": true
+      "field_type": "???",
+      "is_base_field": true
     },
     "created_by": {
-        "is_base_field": true
+      "field_type": "???",
+      "is_base_field": true
     },
     "updated_by": {
-        "is_base_field": true
+      "field_type": "???",
+      "is_base_field": true
     },
     "phenotype_uuid": {
       "title": "Phenotype UUID",
