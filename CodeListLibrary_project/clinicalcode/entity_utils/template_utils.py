@@ -3,6 +3,8 @@ from django.db.models import Q
 
 from . import model_utils
 from . import constants
+from ..models import Brand
+from ..models import Tag
 
 def try_get_content(body, key, default=None):
     '''
@@ -14,6 +16,17 @@ def try_get_content(body, key, default=None):
         return default
     except:
         return default
+
+def get_brand_collection_ids(brand_name):
+    """
+        Rreturns list of collections (tags) ids associated with the brand
+    """
+    if Brand.objects.all().filter(name__iexact=brand_name).exists():
+        brand = Brand.objects.get(name__iexact=brand_name)
+        brand_collection_ids = list(Tag.objects.filter(collection_brand=brand.id).values_list('id', flat=True))
+        return brand_collection_ids
+    else:
+        return [-1]
 
 def is_metadata(entity, field):
     '''

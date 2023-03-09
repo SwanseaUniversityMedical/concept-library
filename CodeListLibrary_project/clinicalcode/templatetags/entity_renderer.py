@@ -236,6 +236,7 @@ class EntityFiltersNode(template.Node):
         self.nodelist = nodelist
     
     def __render_metadata_component(self, context, field, structure):
+        request = self.request.resolve(context)
         filter_info = search_utils.get_filter_info(field, structure)
         if not filter_info:
             return ''
@@ -244,18 +245,25 @@ class EntityFiltersNode(template.Node):
         if component is None:
             return ''
 
+        options = None
         if 'compute_statistics' in structure:
-            filter_info['options'] = search_utils.get_metadata_stats_by_field(field)
+            current_brand = request.CURRENT_BRAND or 'ALL'
+            options = search_utils.get_metadata_stats_by_field(field, brand=current_brand)
         else:
             validation = template_utils.try_get_content(structure, 'validation')
             if validation is not None:
                 if 'source' in validation:
-                    filter_info['options'] = search_utils.get_source_references(structure)                
+                    options = search_utils.get_source_references(structure)
         
+        if options is None or len(options) < 1:
+            return ''
+        
+        filter_info['options'] = options
         context['filter_info'] = filter_info
         return render_to_string(f'{constants.FILTER_DIRECTORY}/{component}.html', context.flatten())
 
     def __render_template_component(self, context, field, structure, layout):
+        request = self.request.resolve(context)
         filter_info = search_utils.get_filter_info(field, structure)
         if not filter_info:
             return ''
@@ -264,8 +272,9 @@ class EntityFiltersNode(template.Node):
         if component is None:
             return ''
         
-        statistics = search_utils.try_get_template_statistics(filter_info.get('field'), brand='ALL')
-        if statistics is None:
+        current_brand = request.CURRENT_BRAND or 'ALL'
+        statistics = search_utils.try_get_template_statistics(filter_info.get('field'), brand=current_brand)
+        if statistics is None or len(statistics) < 1:
             return ''
         
         context['filter_info'] = {
@@ -276,8 +285,6 @@ class EntityFiltersNode(template.Node):
         return render_to_string(f'{constants.FILTER_DIRECTORY}/{component}.html', context.flatten())
 
     def __generate_metadata_filters(self, context):
-        request = self.request.resolve(context)
-
         output = ''
         for field, structure in constants.metadata.items():
             search = template_utils.try_get_content(structure, 'search')

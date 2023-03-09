@@ -1,5 +1,5 @@
 from functools import cmp_to_key
-from ..models import GenericEntity, Template, Statistics, PublishedGenericEntity, Brand, Tag
+from ..models import GenericEntity, Template, Statistics, PublishedGenericEntity, Brand
 from . import template_utils, constants
 
 def sort_by_count(a, b):
@@ -13,17 +13,6 @@ def sort_by_count(a, b):
     elif count0 > count1:
         return -1
     return 0
-
-def get_brand_collection_ids(brand_name):
-    """
-        returns list of collections (tags) ids associated with the brand
-    """
-    if Brand.objects.all().filter(name__iexact=brand_name).exists():
-        brand = Brand.objects.get(name__iexact=brand_name)
-        brand_collection_ids = list(Tag.objects.filter(collection_brand=brand.id).values_list('id', flat=True))
-        return brand_collection_ids
-    else:
-        return [-1]
 
 def build_statistics(statistics, entity, field, struct, is_dynamic=False):
     if not is_dynamic:
@@ -91,7 +80,7 @@ def compute_statistics(statistics, entity):
         id=entity.template.id,
         template_version=entity.template_version
     ) \
-    .order_by('-history_date') \
+    .latest_of_each() \
     .distinct()
 
     if not template.exists():
@@ -155,7 +144,7 @@ def collect_statistics(request):
     )
 
     for brand in Brand.objects.all():
-        collection_ids = get_brand_collection_ids(brand.name)
+        collection_ids = template_utils.get_brand_collection_ids(brand.name)
         stats = collate_statistics(
             all_entities.filter(collections__overlap=collection_ids),
             published_entities.filter(collections__overlap=collection_ids)

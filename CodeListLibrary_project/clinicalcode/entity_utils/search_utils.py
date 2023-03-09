@@ -239,7 +239,7 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
             1. The entities and their data
             2. The template associated with each of the entities
     '''
-    # Get related entities and templates
+    # Get related published entities
     if entity_types is None:
         entities = PublishedGenericEntity.objects.filter(
             approval_status=constants.APPROVAL_STATUS.APPROVED
@@ -250,16 +250,21 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
             approval_status=constants.APPROVAL_STATUS.APPROVED
         )
     
+    # Join by version of published
     entities = entities.order_by('-created').distinct()
     entities = GenericEntity.history.filter(
         id__in=list(entities.values_list('entity_id', flat=True)),
         history_id__in=list(entities.values_list('entity_history_id', flat=True))
     )
 
+    # Filter by brands
+    if request.CURRENT_BRAND:
+        entities = entities.filter(collections__overlap=template_utils.get_brand_collection_ids(request.CURRENT_BRAND))
+
     templates = Template.history.filter(
         id__in=list(entities.values_list('template', flat=True)),
         template_version__in=list(entities.values_list('template_data__version', flat=True))
-    ).order_by('-history_date').distinct()
+    ).latest_of_each().distinct()
 
     is_single_search = templates.count() > constants.MIN_SINGLE_SEARCH
     
@@ -283,7 +288,7 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
             
             template_filters = template_filters | set(filters)
         
-        template_filters = list(filters)
+        template_filters = list(template_filters)
         template_fields = template_utils.get_layout_fields(templates.first())
 
     # Gather metadata filter params
@@ -434,11 +439,11 @@ def get_filter_info(field, structure, default=None):
         'title': structure.get('title', field),
     }
 
-def get_metadata_stats_by_field(field, published=True):
+def get_metadata_stats_by_field(field, published=True, brand='ALL'):
     '''
         Retrieves the global statistics from metadata fields
     '''
-    instance = model_utils.try_get_instance(Statistics, type='GenericEntity', org='ALL')
+    instance = model_utils.try_get_instance(Statistics, type='GenericEntity', org=brand)
     if instance is not None:
         stats = instance.stat
         if published:
