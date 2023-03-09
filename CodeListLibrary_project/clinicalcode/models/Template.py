@@ -37,7 +37,6 @@ class Template(TimeStampedModel):
     history = HistoricalRecords()
 
     ''' Statistics '''
-    entity_filters = ArrayField(models.CharField(max_length=500), blank=True, null=True, editable=False)
     entity_statistics = JSONField(blank=True, null=True, default=dict, editable=False)
 
     def save(self,  *args, **kwargs):
@@ -45,26 +44,20 @@ class Template(TimeStampedModel):
             [!] Note: Historical records are only created if the 'version' field within the template definition is changed
                       otherwise, the same row is updated - see ./admin.py for more
         
-            - Responsible for building and modifying the 'entity_filters' field
-                -> Iterates through the template and collects each filterable field for easier access
             - Responsible for building and modifying the 'entity_statistics' field
                 -> Iterates through the template and creates keys for filterable fields so that it can be computed during a job
         '''
         if self.definition is not None and 'fields' in self.definition:
-            filterable = []
             statistics = { }
             for field, packet in self.definition['fields'].items():
                 if 'search' not in packet:
                     continue
 
-                if 'filterable' in packet.get('search') and field not in filterable:
-                    filterable.append(field)
-
-                    if field not in statistics:
-                        if field in self.entity_statistics:
-                            statistics[field] = self.entity_statistics[field]
-                        else:
-                            statistics[field] = { }
+                if 'filterable' in packet.get('search') and field not in statistics:
+                    if field in self.entity_statistics:
+                        statistics[field] = self.entity_statistics[field]
+                    else:
+                        statistics[field] = { }
             
             for field, info in constants.metadata.items():
                 if 'compute_statistics' not in info:
@@ -75,7 +68,6 @@ class Template(TimeStampedModel):
                 else:
                     statistics[field] = { }
 
-            self.entity_filters = filterable
             self.entity_statistics = statistics
                   
         super(Template, self).save(*args, **kwargs)

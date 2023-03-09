@@ -142,7 +142,7 @@ def is_filterable(layout, field):
     
     return try_get_content(search, 'filterable')
 
-def get_metadata_value_from_source(entity, field, default=None):
+def get_metadata_value_from_source(layout, entity, field, default=None):
     '''
         Tries to get the values from a top-level metadata field
             - This method assumes it is sourced i.e. has a foreign key (has different names and/or filters)
@@ -150,8 +150,9 @@ def get_metadata_value_from_source(entity, field, default=None):
     '''
     try:
         data = getattr(entity, field)
-        if field in constants.metadata:
-            validation = get_field_item(constants.metadata, field, 'validation', { })
+        fields = try_get_content(layout, 'fields')
+        if field in fields:
+            validation = get_field_item(fields, field, 'validation', { })
             source_info = validation.get('source')
 
             model = apps.get_model(app_label='clinicalcode', model_name=source_info.get('table'))
