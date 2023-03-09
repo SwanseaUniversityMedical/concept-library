@@ -264,7 +264,7 @@ class EntityFiltersNode(template.Node):
         if component is None:
             return ''
         
-        statistics = search_utils.try_get_template_statistics(layout, filter_info.get('field'))
+        statistics = search_utils.try_get_template_statistics(filter_info.get('field'), brand='ALL')
         if statistics is None:
             return ''
         
@@ -275,7 +275,7 @@ class EntityFiltersNode(template.Node):
 
         return render_to_string(f'{constants.FILTER_DIRECTORY}/{component}.html', context.flatten())
 
-    def __generate_metadata_filters(self, context, is_single_search=False):
+    def __generate_metadata_filters(self, context):
         request = self.request.resolve(context)
 
         output = ''
@@ -287,8 +287,7 @@ class EntityFiltersNode(template.Node):
             if 'filterable' not in search:
                 continue
 
-            if field != 'template' or is_single_search:
-                output += self.__render_metadata_component(context, field, structure)
+            output += self.__render_metadata_component(context, field, structure)
 
         return output
     
@@ -325,7 +324,7 @@ class EntityFiltersNode(template.Node):
         is_single_search = len(layouts.keys()) > constants.MIN_SINGLE_SEARCH # or settings.DEBUG
 
         # Render metadata
-        output = self.__generate_metadata_filters(context, is_single_search)
+        output = self.__generate_metadata_filters(context)
 
         # Render template specific filters
         if not is_single_search: # or settings.DEBUG:

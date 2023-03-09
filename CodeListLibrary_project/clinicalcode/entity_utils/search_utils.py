@@ -347,14 +347,12 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
     # Generate layouts for use in templates
     layouts = { }
     for template in templates:
-        statistics = try_get_related_statistics(Template.objects.get(id=template.id))
         layouts[f'{template.id}/{template.template_version}'] = {
             'id': template.id,
             'version': template.template_version,
             'name': template.name,
             'definition': template.definition,
             'order': template_utils.try_get_content(template.definition, 'layout_order', []),
-            'statistics': statistics,
         }
 
     return entities, layouts
@@ -436,39 +434,34 @@ def get_filter_info(field, structure, default=None):
         'title': structure.get('title', field),
     }
 
-def get_metadata_stats_by_field(field):
+def get_metadata_stats_by_field(field, published=True):
     '''
         Retrieves the global statistics from metadata fields
     '''
-    instance = model_utils.try_get_instance(Statistics, type='metadata')
+    instance = model_utils.try_get_instance(Statistics, type='GenericEntity', org='ALL')
     if instance is not None:
         stats = instance.stat
+        if published:
+            stats = stats.get('published', dict)
+        else:
+            stats = stats.get('all', dict)
+        
         return template_utils.try_get_content(stats, field)
 
-def try_get_related_statistics(template, default={}):
+def try_get_template_statistics(field, brand='ALL', published=True, entity_type='GenericEntity', default=None):
     '''
-        Gets the entity's statistics by name
-
-        [!] Needs changing once stat_utils is updated further
+        Attempts to retrieve the the field's statistics by brand, its publication status, and entity type
     '''
-    stats = Statistics.objects.filter(type=template.name)
-    if stats.exists():
-        return stats.first().stat
-    return default
-
-def try_get_template_statistics(struct, field, default=None):
-    '''
-        Attempts to retrieve the statistics for a templated field from its parent template
-    '''
-    if not template_utils.is_layout_safe(struct):
+    obj = model_utils.try_get_instance(Statistics, org=brand, type=entity_type)
+    if obj is None:
         return default
 
-    stats = template_utils.try_get_content(struct, 'statistics') if isinstance(struct, dict) else getattr(struct, 'entity_statistics')
+    if published:
+        stats = template_utils.try_get_content(obj.stat, 'all')
+    else:
+        stats = template_utils.try_get_content(obj.stat, 'published')
+
     if stats is None:
         return default
-    
-    stats = template_utils.try_get_content(stats, field)
-    if stats is None:
-        return default
-    
-    return stats
+
+    return template_utils.try_get_content(stats, field)

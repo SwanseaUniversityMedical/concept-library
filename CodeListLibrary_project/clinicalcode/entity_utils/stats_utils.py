@@ -1,5 +1,5 @@
 from functools import cmp_to_key
-from ..models import GenericEntity, Template, Statistics
+from ..models import GenericEntity, Template, Statistics, PublishedGenericEntity, Brand, Tag
 from . import template_utils, constants
 
 def sort_by_count(a, b):
@@ -14,107 +14,112 @@ def sort_by_count(a, b):
         return -1
     return 0
 
-def compute_statistics(layout, entities):
-    '''
-        Responsible for computing the statistics for a template, across its entities
-    '''
-    statistics = { }
-    for entity in entities:
-        if not template_utils.is_data_safe(entity):
-            continue
+def get_brand_collection_ids(brand_name):
+    """
+        returns list of collections (tags) ids associated with the brand
+    """
+    if Brand.objects.all().filter(name__iexact=brand_name).exists():
+        brand = Brand.objects.get(name__iexact=brand_name)
+        brand_collection_ids = list(Tag.objects.filter(collection_brand=brand.id).values_list('id', flat=True))
+        return brand_collection_ids
+    else:
+        return [-1]
+
+def build_statistics(statistics, entity, field, struct, is_dynamic=False):
+    if not is_dynamic:
+        struct = template_utils.try_get_content(constants.metadata, field)
+    
+    if struct is None:
+        return
+    
+    if 'search' not in struct:
+        return
+
+    if 'filterable' not in struct.get('search'):
+        return
+    
+    validation = template_utils.try_get_content(struct, 'validation')
+    if validation is None:
+        return
+    
+    field_type = template_utils.try_get_content(validation, 'type')
+    if field_type is None:
+        return
+    
+    entity_field = template_utils.get_entity_field(entity, field)
+    if entity_field is None:
+        return
+
+    stats = statistics[field] if field in statistics else { }
+    if field_type == 'enum':
+        value = None
+        if 'options' in validation:
+            value = template_utils.get_options_value(entity_field, struct)
+        elif 'source' in validation:
+            value = template_utils.get_sourced_value(entity_field, struct)
         
-        entity_statistics = [ ]
-        for field, info in constants.metadata.items():
-            if 'compute_statistics' not in info:
-                continue
-            entity_statistics.append(field)
-        
-        template = entity.template
-        if not template_utils.is_layout_safe(template):
-            continue
-
-        for field, struct in template.definition['fields'].items():
-            if not isinstance(struct, dict) or 'search' not in struct or 'filterable' not in struct.get('search'):
-                continue
-            entity_statistics.append(field)
-
-        for field in entity_statistics:
-            stats = statistics[field] if field in statistics else { }
-            structure = template_utils.get_layout_field(layout, field)
-
-            if structure is None:
-                continue
-
-            field_type = structure['validation'] if 'validation' in structure else None
-            if field_type is None:
-                continue
+        if value is not None:
+            if entity_field not in stats:
+                stats[entity_field] = {
+                    'value': value,
+                    'count': 0
+                }
             
-            field_type = field_type['type'] if 'type' in field_type else None
-            if field_type is None:
-                continue
-            
-            validation = structure.get('validation')
-            entity_field = template_utils.get_entity_field(entity, field)
-            if entity_field is None:
-                continue
-
-            if field_type == 'enum':
-                value = None
-                if 'options' in validation:
-                    value = template_utils.get_options_value(entity_field, structure)
-                elif 'source' in validation:
-                    value = template_utils.get_sourced_value(entity_field, structure)
-                
+            stats[entity_field]['count'] += 1
+    elif field_type == 'int_array':
+        if 'source' in validation:
+            for item in entity_field:
+                value = template_utils.get_sourced_value(item, struct)
                 if value is not None:
-                    if entity_field not in stats:
-                        stats[entity_field] = {
+                    if item not in stats:
+                        stats[item] = {
                             'value': value,
                             'count': 0
                         }
                     
-                    stats[entity_field]['count'] += 1
-            elif field_type == 'int_array':
-                if 'source' in validation:
-                    for item in entity_field:
-                        value = template_utils.get_sourced_value(item, structure)
-                        if value is not None:
-                            if item not in stats:
-                                stats[item] = {
-                                    'value': value,
-                                    'count': 0
-                                }
-                            
-                            stats[item]['count'] += 1
-        
-            statistics[field] = stats
-        
-        for field, info in constants.metadata.items():
-            if 'compute_statistics' not in info:
-                continue
-            
-            stats = statistics[field] if field in statistics else { }
-            
-            entity_field = template_utils.get_entity_field(entity, field)
-            if entity_field is None:
-                continue
+                    stats[item]['count'] += 1
+    else:
+        return
+    
+    statistics[field] = stats
 
-            data = template_utils.get_metadata_value_from_source(entity, field)
-            if data is None:
-                continue
-            
-            for item in data:
-                if item['value'] not in stats:
-                    stats[item['value']] = {
-                        'value': item['name'],
-                        'count': 0
-                    }
-                
-                stats[item['value']]['count'] += 1
-            
-            statistics[field] = stats
+def compute_statistics(statistics, entity):
+    if not template_utils.is_data_safe(entity):
+        return
+    
+    template = Template.history.filter(
+        id=entity.template.id,
+        template_version=entity.template_version
+    ) \
+    .order_by('-history_date') \
+    .distinct()
+
+    if not template.exists():
+        return
+    
+    template = template.first()
+    layout = template.definition
+    for field, struct in layout.get('fields').items():
+        if not isinstance(struct, dict):
+            continue
+
+        is_dynamic = 'is_base_field' not in struct
+        build_statistics(statistics, entity, field, struct, is_dynamic=is_dynamic)
+
+def collate_statistics(all_entities, published_entities):
+    statistics = {
+        'published': { },
+        'all': { },
+    }
+
+    for entity in all_entities:
+        compute_statistics(statistics['all'], entity)
+
+    for entity in published_entities:
+        compute_statistics(statistics['published'], entity)
 
     sort_fn = cmp_to_key(sort_by_count)
-    for field, data in statistics.items():
+    for field, data in statistics['all'].items():
         array = [
             {
                 'pk': pk,
@@ -124,58 +129,75 @@ def compute_statistics(layout, entities):
         ]
         array.sort(key=sort_fn)
         
-        statistics[field] = array
-
+        statistics['all'][field] = array
+    
+    for field, data in statistics['published'].items():
+        array = [
+            {
+                'pk': pk,
+                'value': packet['value'],
+                'count': packet['count']
+            } for pk, packet in data.items()
+        ]
+        array.sort(key=sort_fn)
+        
+        statistics['published'][field] = array
+    
     return statistics
 
 def collect_statistics(request):
-    '''
-        Responsible for collecting the statistics for each template across each of its entities
-            - Collects information relating to usage of filterable fields
-    '''
-    metadata_stats = { }
-    layouts = Template.objects.all()
-    for layout in layouts:
-        if not template_utils.is_layout_safe(layout):
-            continue
-        
-        # Layout statistics
-        entities = GenericEntity.objects.filter(template=layout)
-        if entities.count() < 1:
-            continue
-        
-        stats = compute_statistics(layout, entities)
-        obj, created = Statistics.objects.get_or_create(
-            org='dynamic',
-            type=layout.name,
+    all_entities = GenericEntity.objects.all()
+    published_entities = PublishedGenericEntity.objects.filter(approval_status=constants.APPROVAL_STATUS.APPROVED).order_by('-created').distinct()
+
+    published_entities = GenericEntity.history.filter(
+        id__in=list(published_entities.values_list('entity_id', flat=True)),
+        history_id__in=list(published_entities.values_list('entity_history_id', flat=True))
+    )
+
+    for brand in Brand.objects.all():
+        collection_ids = get_brand_collection_ids(brand.name)
+        stats = collate_statistics(
+            all_entities.filter(collections__overlap=collection_ids),
+            published_entities.filter(collections__overlap=collection_ids)
+        )
+
+        obj = Statistics.objects.filter(
+            org=brand.name,
+            type='GenericEntity',
+        )
+
+        if obj.exists():
+            obj = obj.first()
+            obj.stat = stats
+            obj.updated_by = [None, request.user][request.user.is_authenticated]
+            obj.save()
+        else:
+            obj = Statistics.objects.create(
+                org=brand.name,
+                type='GenericEntity',
+                stat=stats,
+                created_by=[None, request.user][request.user.is_authenticated]
+            )
+    
+    stats = collate_statistics(
+        all_entities,
+        published_entities
+    )
+
+    obj = Statistics.objects.filter(
+        org='ALL',
+        type='GenericEntity',
+    )
+
+    if obj.exists():
+        obj = obj.first()
+        obj.stat = stats
+        obj.updated_by = [None, request.user][request.user.is_authenticated]
+        obj.save()
+    else:
+        obj = Statistics.objects.create(
+            org='ALL',
+            type='GenericEntity',
             stat=stats,
             created_by=[None, request.user][request.user.is_authenticated]
         )
-    
-        # Metadata
-        for field in constants.metadata:
-            if field in stats:
-                meta_stats = stats[field]
-
-                if field not in metadata_stats:
-                    metadata_stats[field] = meta_stats
-                else:
-                    for item in meta_stats:
-                        obj = next((x for x in metadata_stats[field] if x['pk'] == item['pk']), None)
-                        if obj is None:
-                            metadata_stats[field].append(item)
-                        else:
-                            obj.count += item.count
-
-    # Compile metadata
-    sort_fn = cmp_to_key(sort_by_count)
-    for field, array in metadata_stats.items():
-        array.sort(key=sort_fn)
-        metadata_stats[field] = array
-    
-    obj, created = Statistics.objects.get_or_create(
-        org='dynamic',
-        type='metadata',
-        stat=metadata_stats,
-        created_by=[None, request.user][request.user.is_authenticated]
-    )
