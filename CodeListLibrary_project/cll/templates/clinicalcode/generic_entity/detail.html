@@ -3,7 +3,7 @@
 {% load static %}
 {% load markdownify %}
 {% load cl_extras %}
-
+{% load entity_publish_request%}
 {% block title %}| {{ entity_layout }}: {{ entity_data.name.value }}{% endblock title %}
 {% block description %}{{ entity_data.name.value }}{% endblock description %}
 {% block keywords %}, {{ entity_data.name.value }}{% endblock keywords %}
@@ -96,100 +96,12 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 		    	&nbsp;Published&nbsp;
 		    	<span class="glyphicon glyphicon-ok" style="color:green"></span>
 		    </a>
-                              {% else %}
-                                  <a
-                                          {% if request.user|has_group:"Moderators" %}
-                                              {% if not live_ver_is_deleted %}
-                                                  {% if approval_status == 1 and is_latest_pending_version %}
-                                                      class="js-load-modal btn btn-warning"
-                                                      href="{% url 'generic_entity_publish' pk=entity.id history_id=entity.history_id %}"
-                                                      title="Needs to be approved"
-                                                  {% else %}
-                                                      {% if approval_status == 3 %}
-                                                      class="js-load-modal  btn btn-danger"
-                                                      href="{% url 'generic_entity_publish' pk=entity.id history_id=entity.history_id %}"
-                                                      title="Approve declined entity"
-                                                      {% else %}
-                                                      class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
-                                                      href="{% url 'generic_entity_publish' pk=entity.id history_id=entity.history_id %}"
-                                                      title="Publish immediately"
-                                                      {% endif %}
-
-
-
-                                                  {% endif %}
-
-                                              {% else %}
-                                                      class="btn btn-primary"
-                                                  {% if is_published and approval_status == 2 %}
-                                                      title="This version is already published"
-                                                  {% elif live_ver_is_deleted %}
-                                                      title="Deleted phenotypes cannot be published !!"
-                                                  {% endif %}
-
-                                              {% endif %}
-                                                      id="publish2">
-                                             {% if approval_status == 1 and is_latest_pending_version%}
-                                                 Approve
-                                             {% else %}
-                                                      Publish
-                                             {% endif %}
-
-
-                                          {% else %}
-                                          
-
-
-                                              <a{% if not is_lastapproved and approval_status is None and not request.user|has_group:"Moderators" %}
-
-                                              class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
-                                              href="{% url 'generic_entity_request_publish' pk=entity.id history_id=entity.history_id %}"
-                                              
-                                                {% elif is_lastapproved and not live_ver_is_deleted and not approval_status == 3%}
-
-                                                        class="js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary"
-                                                        href="{% url 'generic_entity_publish' pk=entity.id history_id=entity.history_id %}"
-                                                      {% else %}
-                                                          {% if is_published and approval_status == 2 %}
-                                                           class="btn btn-primary"
-                                                           title="This version is already published"
-                                                          {% elif live_ver_is_deleted %}
-                                                           class="btn btn-primary"
-                                                           title="Deleted phenotypes cannot be published !!"
-                                                          {% elif approval_status == 3 %}
-                                                           class="btn btn-danger"
-                                                           disabled title="This version is declined"
-                                                          {% elif  approval_status == 1 %}
-                                                           {% if entity.owner_id == request.user.id %}
-                                                            class="btn btn-primary btn-warning"
-                                                            disabled title="This version needs to be approved "
-                                                           {% else %}
-                                                            class="btn btn-primary"
-                                                            disabled = true
-                                                            disabled title="Unavailable to publish"
-                                                           {% endif %}
-                                                          {% endif %}
-
-
-                                                      {% endif %}
-                                                          id="publish2">
-                                                       {% if approval_status == 3 %}
-                                                    Declined
-                                              {% else %}
-                                                       {% if approval_status == 1 %}
-                                                           Pending
-                                                       {% else %}
-
-                                                  Publish
-                                              {% endif %}
-                                                       {% endif %}
-                                                  {% endif %}
-
-
-                                {% endif %}
-                        {% endif %}
-
-
+                              {% else %}    
+                            {%render_publish_button%}
+                            
+                            {% endif %}
+                            {% endif %}
+                                        
                         <a id="printBtn" class="btn btn-outline-primary btn-cl btn-cl-secondary">
 				Print
 			</a>
