@@ -36,39 +36,11 @@ class Template(TimeStampedModel):
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="template_updated")
     history = HistoricalRecords()
 
-    ''' Statistics '''
-    entity_statistics = JSONField(blank=True, null=True, default=dict, editable=False)
-
     def save(self,  *args, **kwargs):
         '''
             [!] Note: Historical records are only created if the 'version' field within the template definition is changed
                       otherwise, the same row is updated - see ./admin.py for more
-        
-            - Responsible for building and modifying the 'entity_statistics' field
-                -> Iterates through the template and creates keys for filterable fields so that it can be computed during a job
         '''
-        if self.definition is not None and 'fields' in self.definition:
-            statistics = { }
-            for field, packet in self.definition['fields'].items():
-                if 'search' not in packet:
-                    continue
-
-                if 'filterable' in packet.get('search') and field not in statistics:
-                    if field in self.entity_statistics:
-                        statistics[field] = self.entity_statistics[field]
-                    else:
-                        statistics[field] = { }
-            
-            for field, info in constants.metadata.items():
-                if 'compute_statistics' not in info:
-                    continue
-
-                if field in self.entity_statistics:
-                    statistics[field] = self.entity_statistics[field]
-                else:
-                    statistics[field] = { }
-
-            self.entity_statistics = statistics
                   
         super(Template, self).save(*args, **kwargs)
     

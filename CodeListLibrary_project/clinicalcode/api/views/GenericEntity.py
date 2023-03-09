@@ -20,9 +20,11 @@ def create_generic_entity(request):
     
     '''
     #TODO
-    return Response(data=data,
-        content_type="text/json-comment-filtered",
-        status=status.HTTP_201_CREATED)
+    return Response(
+        data=[],
+        content_type='json',
+        status=status.HTTP_201_CREATED
+    )
 
 @swagger_auto_schema(method='put', auto_schema=None)
 @api_view(['PUT'])
@@ -32,9 +34,9 @@ def update_generic_entity(request):
     '''
     #TODO
     return Response(
-        data=data,
-        content_type="text/json-comment-filtered",
-        status=status.HTTP_201_CREATED
+        data=[],
+        content_type='json',
+        status=status.HTTP_200_OK
     )
 
 ''' Get GenericEntity version history '''
@@ -73,15 +75,8 @@ def get_generic_entities(request, verbose=True):
 
     # Get all accessible entities for this user
     entities = permission_utils.get_accessible_entities(request)
-
-    # Build query from searchable metadata fields
-    metadata_query = api_utils.build_query_from_template(request, user_authed)
-    if metadata_query:
-        entities = entities.filter(Q(**metadata_query))
-
-        # Exit early if metadata queries do not match
-        if not entities.exists():
-            return Response([], status=status.HTTP_200_OK)
+    if not entities.exists():
+        return Response([], status=status.HTTP_200_OK)
 
     # Build query from searchable GenericEntity template fields
     templates = Template.objects.all()

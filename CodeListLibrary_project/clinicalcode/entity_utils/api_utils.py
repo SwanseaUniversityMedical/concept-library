@@ -2,7 +2,6 @@ from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework import status
 from copy import deepcopy
-import json
 
 from ..models.GenericEntity import GenericEntity
 from ..models.Template import Template
@@ -10,7 +9,6 @@ from . import model_utils
 from . import template_utils
 from . import permission_utils
 from . import search_utils
-from . import constants
 
 ''' Parameter validation '''
 
@@ -133,7 +131,7 @@ def get_layout_from_entity(entity):
     )
 
     if template_version.exists():
-      return template_version.first()
+      return template_version.first().definition
   
   return Response(
     data={
@@ -143,13 +141,13 @@ def get_layout_from_entity(entity):
     status=status.HTTP_404_NOT_FOUND
   )
 
-def get_verbose_metadata_field(entity, field):
+def get_verbose_metadata_field(entity, layout, field):
   '''
   
   '''
-  validation = template_utils.try_get_content(constants.metadata[field], 'validation')
+  validation = template_utils.try_get_content(layout['fields'][field], 'validation')
   if template_utils.try_get_content(validation, 'source'):
-    result = template_utils.get_metadata_value_from_source(entity, field, default=None)
+    result = template_utils.get_metadata_value_from_source(layout, entity, field, default=None)
   else:
     result = template_utils.get_entity_field(entity, field)
 
@@ -183,10 +181,11 @@ def export_field(entity, field, user_authed):
     return layout_response
   layout = layout_response
 
-  base_fields = constants.metadata
-  if field in base_fields:
-    is_active = template_utils.try_get_content(base_fields[field], 'active')
-    authed_only = template_utils.try_get_content(base_fields[field], 'requires_auth') and not user_authed
+  fields = template_utils.try_get_content(layout, 'fields')
+  if fields and field in fields:
+    is_active = template_utils.try_get_content(fields[field], 'active')
+    authed_only = template_utils.try_get_content(fields[field], 'requires_auth') and not user_authed
+    is_base_field = template_utils.try_get_content(fields[field], 'is_base_field')
     
     if not is_active or authed_only:
       return Response(
@@ -197,9 +196,10 @@ def export_field(entity, field, user_authed):
         status=status.HTTP_401_UNAUTHORIZED
       )
     
-    return get_verbose_metadata_field(entity, field)
-  elif template_utils.get_layout_field(layout, field):
-    return get_verbose_template_field(entity, layout, field)
+    if is_base_field:
+      return get_verbose_metadata_field(entity, layout, field)
+    else:
+      return get_verbose_template_field(entity, layout, field)
   
   return Response(
     data={
@@ -260,7 +260,7 @@ def get_entity_json_detail(request, entity_id, entity, user_authed, return_data=
   result = {
     'id': entity_id,
     'version_id': entity.history_id,
-    'data': transform_field_data(constants.metadata, base_data, user_authed)
+    'data': {}
   }
 
   # Transform template fields
@@ -276,9 +276,6 @@ def get_entity_json_detail(request, entity_id, entity, user_authed, return_data=
 
 def build_query_from_template(request, user_authed, template=None):
   is_dynamic = True
-  if not template:
-    template = constants.metadata
-    is_dynamic = False
 
   terms = {}
   for key, value in template.items():
@@ -292,6 +289,9 @@ def build_query_from_template(request, user_authed, template=None):
     if is_active and can_search and (not requires_auth or (requires_auth and user_authed)):
       param = request.query_params.get(key, None)
       if param:
+        if template_utils.try_get_content(value, 'is_base_field'):
+          is_dynamic=False
+
         search_utils.apply_param_to_query(
           terms, template, key, param, is_dynamic=is_dynamic, force_term=True, is_api=True
         )

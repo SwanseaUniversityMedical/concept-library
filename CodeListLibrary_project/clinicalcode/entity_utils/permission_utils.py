@@ -39,7 +39,7 @@ def is_publish_status(entity, status):
 
 def get_accessible_entities(request):  
   user = request.user
-  if user is not None:
+  if not user or not user.is_anonymous:
     entities = GenericEntity.history.all() \
       .order_by('id', '-history_id') \
       .distinct('id')
@@ -65,7 +65,7 @@ def get_accessible_entities(request):
     return entities
   
   entities = PublishedGenericEntity.objects \
-    .filter(APPROVAL_STATUS=APPROVAL_STATUS.APPROVED) \
+    .filter(approval_status=APPROVAL_STATUS.APPROVED) \
     .order_by('-created') \
     .distinct()
   

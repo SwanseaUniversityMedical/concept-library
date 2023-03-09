@@ -2,6 +2,168 @@
   "version": 1,
   "card_type": "clinical",
   "fields": {
+    "name": {
+        "title": "Name",
+        "field_type": "???",
+        "active": true,
+        "validation": {
+            "type": "string",
+            "mandatory": true
+        },
+        "is_base_field": true
+    },
+    "definition": {
+        "title": "Definition",
+        "field_type": "???",
+        "active": true,
+        "validation": {
+            "type": "string",
+            "mandatory": false
+        },
+        "is_base_field": true
+    },
+    "implementation": {
+        "title": "Implementation",
+        "field_type": "???",
+        "active": true,
+        "validation": {
+            "type": "string",
+            "mandatory": false
+        },
+        "is_base_field": true
+    },
+    "publications": {
+        "title": "Publications",
+        "field_type": "???",
+        "active": true,
+        "validation": {
+            "type": "string_array",
+            "mandatory": false
+        },
+        "is_base_field": true
+    },
+    "validation": {
+        "title": "Validation",
+        "field_type": "???",
+        "active": true,
+        "validation": {
+            "type": "string",
+            "mandatory": false
+        },
+        "is_base_field": true
+    },
+    "citation_requirements": {
+        "title": "Citation Requirements",
+        "field_type": "???",
+        "active": true,
+        "validation": {
+            "type": "string",
+            "mandatory": false
+        },
+        "is_base_field": true
+    },
+    "created": {
+        "title": "Date",
+        "field_type": "???",
+        "active": true,
+        "validation": {
+            "type": "datetime",
+            "mandatory": true,
+            "computed": true
+        },
+        "search": {
+            "filterable": true
+        },
+        "is_base_field": true
+    },
+    "author": {
+        "title": "Author",
+        "field_type": "???",
+        "active": true,
+        "validation": {
+            "type": "string",
+            "mandatory": true
+        },
+        "is_base_field": true
+    },
+    "collections": {
+        "title": "Collections",
+        "field_type": "???",
+        "active": true,
+        "compute_statistics": true,
+        "validation": {
+            "type": "int_array",
+            "mandatory": false,
+            "source": {
+                "table": "Tag",
+                "query": "id",
+                "relative": "description",
+                "filter": {
+                    "tag_type": 2
+                }
+            }
+        },
+        "search": {
+            "filterable": true,
+            "api": true
+        },
+        "is_base_field": true
+    },
+    "tags": {
+        "title": "Tags",
+        "field_type": "???",
+        "active": true,
+        "compute_statistics": true,
+        "validation": {
+            "type": "int_array",
+            "mandatory": false,
+            "source": {
+                "table": "Tag",
+                "query": "id",
+                "relative": "description",
+                "filter": {
+                    "tag_type": 1
+                }
+            }
+        },
+        "search": {
+            "filterable": true,
+            "api": true
+        },
+        "is_base_field": true
+    },
+    "updated": {
+        "title": "Updated",
+        "field_type": "???",
+        "active": true,
+        "validation": {
+            "type": "datetime",
+            "mandatory": true
+        },
+        "is_base_field": true
+    },
+    "created_by": {
+        "title": "Created By",
+        "field_type": "???",
+        "active": true,
+        "requires_auth": true,
+        "validation": {
+            "type": "int", 
+            "mandatory": true
+        },
+        "is_base_field": true
+    },
+    "updated_by": {
+        "title": "Updated By",
+        "field_type": "???",
+        "active": true,
+        "requires_auth": true,
+        "validation": {
+            "type": "int", 
+            "mandatory": true
+        },
+        "is_base_field": true
+    },
     "phenotype_uuid": {
       "title": "Phenotype UUID",
       "field_type": "???",
