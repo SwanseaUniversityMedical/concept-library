@@ -43,7 +43,7 @@
                         {% if approval_status == 1 and is_moderator %}
                             Are you sure you want to approve/decline this version of "{{ name }}"?
                             <br>
-                        Published Working Set cannot be undone.
+                        Published {{entity_type|lower}} cannot be undone.
                         <br>
                             {% endif %}
                             
@@ -58,7 +58,7 @@
                                  {% endif %}
 
                         <br>
-                        Published Working Set cannot be undone.
+                        Published {{entity_type|lower}} cannot be undone.
                         {% endif %}
 
                 {% endif %}
