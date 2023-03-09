@@ -4,6 +4,7 @@
     ---------------------------------------------------------------------------
 '''
 import csv
+from html import entities
 import json
 import logging
 import re
@@ -446,6 +447,7 @@ def generic_entity_detail(request, pk, history_id=None):
 
     is_published = checkIfPublished(GenericEntity, pk, history_id)
     approval_status = get_publish_approval_status(GenericEntity, pk, history_id)
+    is_lastapproved = len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=2)) > 0
 
     # ----------------------------------------------------------------------
 
@@ -631,6 +633,7 @@ def generic_entity_detail(request, pk, history_id=None):
         'published_historical_ids': published_historical_ids,
         'is_published': is_published,
         'approval_status': approval_status,
+        'is_lastapproved': is_lastapproved,
         'publish_date': publish_date,
         'is_latest_version': is_latest_version,
         'is_latest_pending_version':is_latest_pending_version,
