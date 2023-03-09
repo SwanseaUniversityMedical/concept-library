@@ -22,8 +22,23 @@ def compute_statistics(layout, entities):
     for entity in entities:
         if not template_utils.is_data_safe(entity):
             continue
-                
-        for field in layout.entity_statistics.keys():
+        
+        entity_statistics = [ ]
+        for field, info in constants.metadata.items():
+            if 'compute_statistics' not in info:
+                continue
+            entity_statistics.append(field)
+        
+        template = entity.template
+        if not template_utils.is_layout_safe(template):
+            continue
+
+        for field, struct in template.definition['fields'].items():
+            if not isinstance(struct, dict) or 'search' not in struct or 'filterable' not in struct.get('search'):
+                continue
+            entity_statistics.append(field)
+
+        for field in entity_statistics:
             stats = statistics[field] if field in statistics else { }
             structure = template_utils.get_layout_field(layout, field)
 
@@ -31,6 +46,9 @@ def compute_statistics(layout, entities):
                 continue
 
             field_type = structure['validation'] if 'validation' in structure else None
+            if field_type is None:
+                continue
+            
             field_type = field_type['type'] if 'type' in field_type else None
             if field_type is None:
                 continue
@@ -118,7 +136,7 @@ def collect_statistics(request):
     metadata_stats = { }
     layouts = Template.objects.all()
     for layout in layouts:
-        if layout.entity_statistics is None or not template_utils.is_layout_safe(layout):
+        if not template_utils.is_layout_safe(layout):
             continue
         
         # Layout statistics
@@ -127,8 +145,12 @@ def collect_statistics(request):
             continue
         
         stats = compute_statistics(layout, entities)
-        layout.entity_statistics = stats
-        layout.save_without_historical_record()
+        obj, created = Statistics.objects.get_or_create(
+            org='dynamic',
+            type=layout.name,
+            stat=stats,
+            created_by=[None, request.user][request.user.is_authenticated]
+        )
     
         # Metadata
         for field in constants.metadata:

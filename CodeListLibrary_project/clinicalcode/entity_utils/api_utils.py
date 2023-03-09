@@ -9,6 +9,7 @@ from . import model_utils
 from . import template_utils
 from . import permission_utils
 from . import search_utils
+from . import constants
 
 ''' Parameter validation '''
 
@@ -141,13 +142,25 @@ def get_layout_from_entity(entity):
     status=status.HTTP_404_NOT_FOUND
   )
 
-def get_verbose_metadata_field(entity, layout, field):
+def get_verbose_metadata_field(entity, layout, field, user_authed):
   '''
   
   '''
-  validation = template_utils.try_get_content(layout['fields'][field], 'validation')
+  is_active = template_utils.try_get_content(layout[field], 'active')
+  authed_only = template_utils.try_get_content(layout[field], 'requires_auth') and not user_authed
+  
+  if not is_active or authed_only:
+    return Response(
+      data={
+        'message': 'You are not authorised to access this field'
+      }, 
+      content_type='json',
+      status=status.HTTP_401_UNAUTHORIZED
+    )
+  
+  validation = template_utils.try_get_content(layout[field], 'validation')
   if template_utils.try_get_content(validation, 'source'):
-    result = template_utils.get_metadata_value_from_source(layout, entity, field, default=None)
+    result = template_utils.get_metadata_value_from_source(entity, field, default=None)
   else:
     result = template_utils.get_entity_field(entity, field)
 
@@ -157,11 +170,22 @@ def get_verbose_metadata_field(entity, layout, field):
     status=status.HTTP_200_OK
   )
 
-def get_verbose_template_field(entity, layout, field):
+def get_verbose_template_field(entity, layout, field, user_authed):
   '''
   
   '''
-
+  is_active = template_utils.try_get_content(layout['fields'][field], 'active')
+  authed_only = template_utils.try_get_content(layout['fields'][field], 'requires_auth') and not user_authed
+  
+  if not is_active or authed_only:
+    return Response(
+      data={
+        'message': 'You are not authorised to access this field'
+      }, 
+      content_type='json',
+      status=status.HTTP_401_UNAUTHORIZED
+    )
+  
   result = template_utils.get_template_data_values(entity, layout, field, default=None)
   if not result:
     result = template_utils.get_entity_field(entity, field)
@@ -183,23 +207,12 @@ def export_field(entity, field, user_authed):
 
   fields = template_utils.try_get_content(layout, 'fields')
   if fields and field in fields:
-    is_active = template_utils.try_get_content(fields[field], 'active')
-    authed_only = template_utils.try_get_content(fields[field], 'requires_auth') and not user_authed
     is_base_field = template_utils.try_get_content(fields[field], 'is_base_field')
     
-    if not is_active or authed_only:
-      return Response(
-        data={
-          'message': 'You are not authorised to access this field'
-        }, 
-        content_type='json',
-        status=status.HTTP_401_UNAUTHORIZED
-      )
-    
     if is_base_field:
-      return get_verbose_metadata_field(entity, layout, field)
+      return get_verbose_metadata_field(entity, constants.metadata, field, user_authed)
     else:
-      return get_verbose_template_field(entity, layout, field)
+      return get_verbose_template_field(entity, layout, field, user_authed)
   
   return Response(
     data={
@@ -265,7 +278,7 @@ def get_entity_json_detail(request, entity_id, entity, user_authed, return_data=
 
   # Transform template fields
   result['data'] = result['data'] | transform_field_data(
-    layout.definition['fields'], entity.template_data, user_authed
+    layout['fields'], entity.template_data, user_authed
   )
 
   return result if return_data else Response(

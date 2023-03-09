@@ -266,9 +266,23 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
     # Gather request params for the filters across template when not single search
     template_filters = [ ]
     if not is_single_search:
-        filters = set([])
-        for items in templates.values_list('entity_filters', flat=True).distinct():
-            filters = filters | set(items)
+        template_filters = set(template_filters)
+        for template in templates:
+            if not template_utils.is_layout_safe(template):
+                continue
+            
+            field_items = template.definition.get('fields')
+            if field_items is None:
+                continue
+            
+            filters = [ ]
+            for key, value in field_items.items():
+                if 'search' not in value or 'filterable' not in value.get('search'):
+                    continue
+                filters.append(key)
+            
+            template_filters = template_filters | set(filters)
+        
         template_filters = list(filters)
         template_fields = template_utils.get_layout_fields(templates.first())
 
@@ -333,7 +347,7 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
     # Generate layouts for use in templates
     layouts = { }
     for template in templates:
-        statistics = Template.objects.get(id=template.id).entity_statistics
+        statistics = try_get_related_statistics(Template.objects.get(id=template.id))
         layouts[f'{template.id}/{template.template_version}'] = {
             'id': template.id,
             'version': template.template_version,
@@ -367,15 +381,6 @@ def try_get_paginated_results(request, entities, page=None, page_size=None):
     except EmptyPage:
         page_obj = pagination.page(pagination.num_pages)
     return page_obj
-
-def get_metadata_stats_by_field(field):
-    '''
-        Retrieves the global statistics from metadata fields
-    '''
-    instance = model_utils.try_get_instance(Statistics, type='metadata')
-    if instance is not None:
-        stats = instance.stat
-        return template_utils.try_get_content(stats, field)
 
 def get_source_references(struct, default=[]):
     '''
@@ -430,6 +435,26 @@ def get_filter_info(field, structure, default=None):
         'type': field_type,
         'title': structure.get('title', field),
     }
+
+def get_metadata_stats_by_field(field):
+    '''
+        Retrieves the global statistics from metadata fields
+    '''
+    instance = model_utils.try_get_instance(Statistics, type='metadata')
+    if instance is not None:
+        stats = instance.stat
+        return template_utils.try_get_content(stats, field)
+
+def try_get_related_statistics(template, default={}):
+    '''
+        Gets the entity's statistics by name
+
+        [!] Needs changing once stat_utils is updated further
+    '''
+    stats = Statistics.objects.filter(type=template.name)
+    if stats.exists():
+        return stats.first().stat
+    return default
 
 def try_get_template_statistics(struct, field, default=None):
     '''

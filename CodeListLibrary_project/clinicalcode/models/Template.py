@@ -38,8 +38,13 @@ class Template(TimeStampedModel):
 
     def save(self,  *args, **kwargs):
         '''
-            [!] Note: Historical records are only created if the 'version' field within the template definition is changed
-                      otherwise, the same row is updated - see ./admin.py for more
+            [!] Note:
+                1. The 'template_version' field is computed from JSONB data - it's non-editable.
+                   When trying to query templates using historical records, the 'template_version' field can be used safely
+                
+                2. 'layout_order' fields are added to the template.definition when saving and can be queried using get_ordered_definition within template_utils
+
+                3. Entity type/prefix can be queried through template.entity_class
         '''
                   
         super(Template, self).save(*args, **kwargs)

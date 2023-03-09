@@ -54,6 +54,7 @@ class GenericEntity(models.Model):
     ''' Model templating '''
     template = models.ForeignKey(Template, on_delete=models.SET_NULL, null=True, related_name="entity_template")
     template_data = JSONField(blank=True, null=True)
+    template_version = models.IntegerField(null=True, editable=False)
 
     ''' Creation information '''
     created = models.DateTimeField(auto_now_add=True)
@@ -79,7 +80,10 @@ class GenericEntity(models.Model):
 
     def save(self, ignore_increment=False, *args, **kwargs):
         '''
-            On creation, increments counter within template and increment's entity ID by count + 1
+            [!] Note:
+                1. On creation, increments counter within template and increment's entity ID by count + 1
+                
+                2. template_version field is computed from the template_data.version field
         '''
         template_layout = self.template
         if template_layout is not None:
@@ -105,6 +109,9 @@ class GenericEntity(models.Model):
                         index = entitycls.entity_count = entitycls.entity_count + 1
                         self.id = f'{entitycls.entity_prefix}{index}'
                         entitycls.save()
+
+        if self.template_data and 'version' in self.template_data:
+            self.template_version = self.template_data.get('version')
 
         super(GenericEntity, self).save(*args, **kwargs)
 
