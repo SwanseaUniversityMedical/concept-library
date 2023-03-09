@@ -1,6 +1,8 @@
 <a
   class="{{class_modal}}"
+  {% if url %}
   href="{{url}}"
+  {% endif %}
   title="{{title}}"
     {% if disabled%}
     disabled
