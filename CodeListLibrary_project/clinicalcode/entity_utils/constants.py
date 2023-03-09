@@ -28,6 +28,7 @@ CARDS_DIRECTORY = 'components/search/cards'
     Filter render modifier(s)
         Used by entity_renderer as defaults
 '''
+FILTER_SERVICE_FILE = 'js/clinicalcode/redesign/services/filterService.js'
 FILTER_DIRECTORY = 'components/search/filters'
 FILTER_COMPONENTS = {
     'int': 'checkbox',

@@ -2,9 +2,8 @@ from django import template
 from jinja2.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
-from ..entity_utils import template_utils, search_utils, constants, gen_utils
-from ..models import Statistics
-from django.conf import settings
+from ..entity_utils import template_utils, search_utils, constants
+from django.templatetags.static import static
 
 register = template.Library()
 
@@ -254,10 +253,7 @@ class EntityFiltersNode(template.Node):
             if validation is not None:
                 if 'source' in validation:
                     options = search_utils.get_source_references(structure)
-        
-        if options is None or len(options) < 1:
-            return ''
-        
+                
         filter_info['options'] = options
         context['filter_info'] = filter_info
         return render_to_string(f'{constants.FILTER_DIRECTORY}/{component}.html', context.flatten())
@@ -299,8 +295,6 @@ class EntityFiltersNode(template.Node):
         return output
     
     def __generate_template_filters(self, context, output, layouts):
-        request = self.request.resolve(context)
-        
         layout = next((x for x in layouts.values()), None)
         if not template_utils.is_layout_safe(layout):
             return output
@@ -336,5 +330,9 @@ class EntityFiltersNode(template.Node):
         # Render template specific filters
         if not is_single_search: # or settings.DEBUG:
             output = self.__generate_template_filters(context, output, layouts)
+
+        # Include filter service
+        filter_service = static(constants.FILTER_SERVICE_FILE)
+        output += f'<script type="module" src="{filter_service}"></script>'
 
         return output
