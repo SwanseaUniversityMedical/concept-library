@@ -58,6 +58,9 @@ const FILTER_PARSERS = {
                                 .filter(date => date.isValid())
                                 .slice(0, 2)
                                 .sort((a, b) => -a.diff(b)),
+  
+  // Parses options e.g. page_size, order_by
+  option: (values) => parseInt(values) || 1,
 };
 
 /**
@@ -70,6 +73,7 @@ const FILTER_CLEANSERS = {
   datepicker: (value) => value.length > 1 ? value.join(',') : null,
   searchbar: (value) => !isStringEmpty(value) ? value : null,
   pagination: (value) => value != 1 ? value : null,
+  option: (value) => value != 1 ? value : null,
 }
 
 /**
@@ -115,6 +119,16 @@ const FILTER_APPLICATORS = {
   searchbar: (filterItem, values) => {
     const input = filterItem.filter.querySelector('input[data-class="searchbar"]');
     input.value = values;
+  },
+
+  // Option e.g. page_size, order_by
+  option: (filterItem, values) => {
+    const input = filterItem.filter;
+    for (let i = 0; i < input.options.length; ++i) {
+      const option = input.options[i];
+      option.selected = option.value == values
+      option.dispatchEvent(new CustomEvent('change', { bubbles: true, detail: { filterSet: true } }));
+    }
   },
 };
 
@@ -285,6 +299,10 @@ class FilterService {
         case 'pagination': {
           this.#setUpPagination(key);
         } break;
+
+        case 'option': {
+          this.#setUpOptions(key);
+        } break;
       }
     }
   }
@@ -339,9 +357,29 @@ class FilterService {
     }
   }
 
+  #setUpOptions(field) {
+    const filterItem = this.filters[field];
+    filterItem.filter.addEventListener('change', this.#handleOptionUpdate.bind(this));
+  }
+
   // Private event handler methods
   #handleHistoryUpdate() {
     window.addEventListener('popstate', () => window.location.reload());
+  }
+
+  #handleOptionUpdate(e) {
+    const field = e.target.getAttribute('data-field');
+    if (isNullOrUndefined(field) || isStringEmpty(field)) {
+      return;
+    }
+
+    if (!isNullOrUndefined(e.detail) && 'filterSet' in e.detail) {
+      return;
+    }
+
+    const filterItem = this.filters[field];
+    this.query[field] = filterItem.filter.value;
+    this.#postQuery();
   }
 
   #handleDateUpdate(field, start, end) {

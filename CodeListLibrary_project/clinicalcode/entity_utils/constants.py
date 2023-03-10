@@ -51,19 +51,19 @@ ORDER_BY = {
         'clause': 'id'
     },
     '2': {
-        'name': 'Created (Desc)',
+        'name': 'Created (Asc)',
         'clause': 'created'
     },
     '3': {
-        'name': 'Created (Asc)',
+        'name': 'Created (Desc)',
         'clause': '-created'
     },
     '4': {
-        'name': 'Updated (Desc)',
+        'name': 'Updated (Asc)',
         'clause': 'updated'
     },
     '5': {
-        'name': 'Updated (Asc)',
+        'name': 'Updated (Desc)',
         'clause': '-updated'
     }
 }

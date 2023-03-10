@@ -473,7 +473,8 @@
 }
 
 /// Dropdown button
-///   @desc similar to <select/> element but based on a button as a stylistic choice
+///   @desc similar to <select/> element but based on a button as
+///         a stylistic choice - driven by CSS
 .dropdown-btn {
   display: inline-block;
   position: relative;
@@ -547,5 +548,106 @@
         border-bottom: 1px solid #cccccc;
       }
     }
+  }
+}
+
+/// Selection group
+///   @desc a container for a selection and a description
+.selection-group {
+  @include flex-row($gap: 0.5rem);
+  align-items: center;
+  
+  &__title {
+    display: inline-block;
+  }
+}
+
+/// Dropdown selection
+///   @desc dropdown selection using <select/> tags, driven by JS
+.dropdown-selection {
+  display: inline-block;
+  max-width: 100%;
+  margin: 0 1rem 0 0;
+
+  &__button {
+    cursor: pointer;
+    width: max-content;
+    background-color: col(bg);
+    color: col(text-dark);
+    text-align: left;
+    border: 1px solid col(accent-washed);
+    border-radius: 0.1rem;
+    padding: 0.5rem 1.75rem 0.5rem 0.5rem;
+
+    &:focus {
+      outline: none;
+    }
+
+    &-icon:after {
+      @include prefix(transition, all 250ms ease-in-out, webkit moz o);
+      content: '\f107';
+      cursor: pointer;
+      right: -1.25rem;
+      position: absolute;
+      pointer-events: auto;
+      aspect-ratio: 1 / 1;
+      font-family: var(--icons-name);
+      font-style: var(--icons-style);
+      font-size: var(--icons-size);
+      color: col(accent-dark);
+      text-align: right;
+      vertical-align: middle;
+    }
+  }
+
+  &__list {
+    @include prefix(transition, all 250ms ease-in-out, webkit moz o);
+    @include prefix(transform, scale(1, 0), webkit moz o);
+    pointer-events: none;
+    display: block;
+    position: absolute;
+    max-height: 300px;
+    overflow: auto;
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    border: 1px solid col(accent-washed);
+    border-top: 0px solid transparent;
+    transform-origin: top left;
+    list-style-type: none;
+    z-index: 2;
+
+    &.active {
+      @include prefix(transform, scale(1, 1), webkit moz o);
+      pointer-events: auto;
+      opacity: 1;
+    }
+
+    &-item {
+      @include prefix(transition, all 250ms ease-in-out, webkit moz o);
+      cursor: pointer;
+      display: block;
+      height: fit-content;
+      padding: 0.5rem 1rem;
+      background: col(bg);
+      border-top: 1px solid col(accent-washed);
+      text-align: left;
+      line-height: 1.4;
+      font-size: 14px;
+      color: col(texst-dark);
+      list-style-type: none;
+
+      &:hover {
+        @include prefix(transition, all 250ms ease-in-out, webkit moz o);
+        background-color: col(accent-primary);
+        color: col(text-brightest);
+      }
+    }
+  }
+
+  &:last-child {
+    margin-right: 0;
   }
 }

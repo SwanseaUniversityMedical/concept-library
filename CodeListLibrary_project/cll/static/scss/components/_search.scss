@@ -102,7 +102,7 @@
     }
 
     &-modifiers {
-      @include flex-row($gap: 0.5rem);
+      @include flex-row($gap: 1rem);
     }
   }
 

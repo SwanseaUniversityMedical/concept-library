@@ -97,10 +97,6 @@ const isScrolledIntoView = (elem, offset = 0) => {
   const elemTop = rect.top;
   const elemBottom = rect.bottom - offset;
 
-  if (offset > 0) {
-    console.log(elemTop, elemBottom, window.innerHeight);
-  }
-
   return (elemTop >= 0) && (elemBottom <= window.innerHeight);
 }
 
