@@ -85,6 +85,25 @@ PAGE_RESULTS_SIZE = {
         - By filter to determine metadata-related filters
 '''
 metadata = {
+    "template": {
+        "title": "Entity Type",
+        "field_type": "???",
+        "active": True,
+        "validation": {
+            "type": "int",
+            "mandatory": True,
+            "computed": True,
+            "source": {
+                "table": "Template",
+                "query": "id",
+                "relative": "name"
+            }
+        },
+        "search": {
+            "filterable": True,
+            "single_search_only": True,
+        }
+    },
     "name": {
         "title": "Name",
         "field_type": "???",

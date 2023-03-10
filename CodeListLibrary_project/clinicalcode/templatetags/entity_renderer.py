@@ -2,8 +2,10 @@ from django import template
 from jinja2.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
-from ..entity_utils import template_utils, search_utils, constants
 from django.templatetags.static import static
+from django.conf import settings
+
+from ..entity_utils import template_utils, search_utils, constants
 
 register = template.Library()
 
@@ -280,7 +282,7 @@ class EntityFiltersNode(template.Node):
 
         return render_to_string(f'{constants.FILTER_DIRECTORY}/{component}.html', context.flatten())
 
-    def __generate_metadata_filters(self, context):
+    def __generate_metadata_filters(self, context, is_single_search=False):
         output = ''
         for field, structure in constants.metadata.items():
             search = template_utils.try_get_content(structure, 'search')
@@ -290,7 +292,8 @@ class EntityFiltersNode(template.Node):
             if 'filterable' not in search:
                 continue
 
-            output += self.__render_metadata_component(context, field, structure)
+            if field != 'template' or is_single_search:
+                output += self.__render_metadata_component(context, field, structure)
 
         return output
     
@@ -322,13 +325,13 @@ class EntityFiltersNode(template.Node):
             return ''
         
         # When in dev env, 'Entity Type' filter will always be present
-        is_single_search = len(layouts.keys()) > constants.MIN_SINGLE_SEARCH # or settings.DEBUG
+        is_single_search = len(layouts.keys()) > constants.MIN_SINGLE_SEARCH or settings.DEBUG
 
         # Render metadata
-        output = self.__generate_metadata_filters(context)
+        output = self.__generate_metadata_filters(context, is_single_search)
 
         # Render template specific filters
-        if not is_single_search: # or settings.DEBUG:
+        if not is_single_search or settings.DEBUG:
             output = self.__generate_template_filters(context, output, layouts)
 
         # Include filter service
