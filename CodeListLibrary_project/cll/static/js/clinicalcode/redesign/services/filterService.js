@@ -1,4 +1,11 @@
 /**
+ * FILTER_SCROLL_TOP_ON_PAGE_CHANGE
+ * @desc Flag to determine whether we scroll to the top of the page when pagination
+ *       buttons are interacted with
+ */
+const FILTER_SCROLL_TOP_ON_PAGE_CHANGE = true;
+
+/**
  * FILTER_DATEPICKER_FORMAT
  * @desc Defines format behaviour of datetime objects for datepicker-related filters
  */
@@ -473,6 +480,10 @@ class FilterService {
       return;
     }
 
+    if (FILTER_SCROLL_TOP_ON_PAGE_CHANGE) {
+      window.scroll({top: 0, left: 0, behavior: 'smooth'});
+    }
+    
     this.query[field] = value;
     this.#postQuery();
   }
