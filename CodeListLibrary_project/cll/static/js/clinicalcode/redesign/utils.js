@@ -97,10 +97,6 @@ const isScrolledIntoView = (elem, offset = 0) => {
   const elemTop = rect.top;
   const elemBottom = rect.bottom - offset;
 
-  if (offset > 0) {
-    console.log(elemTop, elemBottom, window.innerHeight);
-  }
-
   return (elemTop >= 0) && (elemBottom <= window.innerHeight);
 }
 
@@ -164,6 +160,12 @@ const getCurrentPath = () => {
 }
 
 /**
+ * getCurrentURL
+ * @desc Returns the current path without any parameters
+ */
+const getCurrentURL = () => `${getCurrentHost()}${location.pathname}`;
+
+/**
   * domReady
   * @desc A promise that resolves when the DOM is ready
   * @returns {promise}
@@ -175,3 +177,25 @@ const domReady = new Promise(resolve => {
     resolve();
   }
 });
+
+/**
+  * assert
+  * @desc Throws an error message if a condition is not met
+  */
+const assert = (condition, message) => {
+  if (!condition) {
+    throw message;
+  }
+}
+
+/**
+ * isNullOrUndefined
+ * @desc returns true if the parameter is null or undefined
+ */
+const isNullOrUndefined = (value) => typeof value === 'undefined' || value === null;
+
+/**
+ * isStringEmpty
+ * @desc checks if a string is empty
+ */
+const isStringEmpty = (value) => isNullOrUndefined(value) || !value.length;

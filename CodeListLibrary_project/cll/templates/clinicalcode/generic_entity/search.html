@@ -16,28 +16,33 @@
 {% breadcrumbs useMap=False includeHome=True includeHeader=True %}
 {% endbreadcrumbs %}
 
+<!-- Include required components -->
+<script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
+<script src="{% static 'js/clinicalcode/redesign/vendor/lightpick.js' %}"></script>
+<script src="{% static 'js/clinicalcode/redesign/components/dropdown.js' %}"></script>
+
+<!-- Main search page -->
 <main class="main-content">
   <div class="main-content__inner-container">
-    <!-- Main search page -->
     <div class="search-page">
-      <!-- Rendered filter components -->
       <aside class="side-search-filters">
         <div class="side-search-filters__header">
           <h3>Filter By</h3>
         </div>
         <div class="side-search-filters__container">
-
+          {% render_entity_filters %}
+          {% endrender_entity_filters %}
         </div>
       </aside>
 
-      <!-- Rendered cards - will iterate over each entity -->
-      <section class="search-results-list">
-        {% render_entity_card with entity=1 %}
+      <section class="entity-search-results" id="search-results-area">
+        {% include "components/search/results.html" %}
       </section>
     </div>
 
-    <!-- Pagination -->
-    
+    <aside class="pagination-box" id="search-pagination-area">
+      {% include "components/search/pagination_container.html" %}
+    </aside>
   </div>
 </main>
 

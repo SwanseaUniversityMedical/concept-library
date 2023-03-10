@@ -3,9 +3,72 @@
 @import '../_media';
 @import '../_utils';
 
-/// Accordian
-///   @desc Used to control visibility of content
+/// Simple accordian
+///   @desc An accordian that defaults to transparent, can be filled.
+///         Used for filters currently
 .accordian {
+  width: 100%;
+
+  &__input {
+    display: none;
+  }
+
+  &__label {
+    --accordian-accent: col(accent-transparent);
+
+    cursor: pointer;
+    overflow: hidden;
+    display: block;
+    padding: 0.5rem 1rem 0.5rem 0;
+    background-color: var(--accordian-accent);
+
+    & > h4 {
+      margin: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      box-sizing: content-box;
+      font-size: 14px;
+    }
+
+    &:after {
+      @include prefix(transition, transform 250ms ease-in-out, webkit moz o);
+      content: '\f107';
+      display: block;
+      position: absolute;
+      font-family: var(--icons-name);
+      font-style: var(--icons-style);
+      font-size: var(--icons-size);
+      right: 0;
+      top: 0;
+      width: 2em;
+      height: 100%;
+      line-height: 2.25em;
+      text-align: center;
+      background-color: var(--accordian-accent);
+    }
+  }
+
+  &__input:checked + &__label:after {
+    @include prefix(transform, rotate(180deg), webkit moz o);
+  }
+
+  &__container {
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+  }
+
+  &__input:checked ~ &__container {
+    opacity: 1;
+    height: auto;
+  }
+}
+
+/// Fill accordian
+///   @desc A filled, toggleable accordian with stylistic state. 
+///         Used to control visibility of content in the phenotype/create page
+.fill-accordian {
   &__input {
     display: none;
   }

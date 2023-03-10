@@ -1,0 +1,16 @@
+<div class="accordian" data-class="checkbox" data-field="{{ filter_info.field }}" data-type="{{ filter_info.type }}" data-controller="filter">
+  <input class="accordian__input" id="filter-{{ filter_info.field }}" name="filter-{{ filter_info.field }}" type="checkbox" />
+  <label class="accordian__label" for="filter-{{ filter_info.field }}">
+    <h4>{{ filter_info.title }}</h4>
+  </label>
+  <article class="accordian__container">
+    <div class="constrained-filter-group filter-scrollbar">
+      {% for option in filter_info.options %}
+        <div class="checkbox-item-container">
+          <input id="{{ filter_info.field }}-{{ option.pk }}" aria-label="{{ filter_info.title }}" type="checkbox" class="checkbox-item" data-value="{{ option.pk }}" data-name="{{ option.value }}" data-class="checkbox" data-field="{{ filter_info.field }}" />
+          <label for="{{ filter_info.field }}-{{ option.pk }}" class="constrained-filter-item">{{ option.value }}</label>
+        </div>
+      {% endfor %}
+    </div>
+  </article>
+</div>

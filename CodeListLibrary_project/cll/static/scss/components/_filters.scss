@@ -3,3 +3,60 @@
 @import '../_media';
 @import '../_utils';
 
+/// Constrained filter group
+///   @desc Constrained filter group to avoid long overflow on filters e.g. data source
+.constrained-filter-group {
+  flex-direction: column nowrap;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+}
+
+/// Constrained filter item
+///   @desc Constrains a filter item to allow for wordwrap
+.constrained-filter-item {
+  max-width: 75%;
+}
+
+/// Search filters
+///   @desc Aside search bar
+.side-search-filters {
+  @include flex-col();
+  display: none;
+  flex: 1 auto;
+  margin-right: 1rem;
+  min-width: 175px;
+  max-width: 200px;
+
+  @include media(">desktop") {
+    display: flex;
+    min-width: 225px;
+    max-width: 250px;
+  }
+  
+  &__header {
+    @include flex-col();
+
+    & > h3 {
+      padding: 0;
+      margin: 0;
+      font-size: 18px;
+      font-weight: bold;
+      line-height: 1;
+      color: col(text-darkest);
+    }
+  }
+
+  &__container {
+    @include flex-col();
+    margin-top: 0.5rem;
+    flex-grow: 1;
+    width: 100%;
+    min-width: 175px;
+  
+    @include media(">desktop") {
+      display: flex;
+      min-width: 225px;
+    }
+  }
+}

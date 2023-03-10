@@ -32,7 +32,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     justify-content: left;
     background-position: left 50%;
     background-size: var(--navigation-line-width) 0, auto;
-    z-index: 999;
+    z-index: 99999;
 
     &:first-child {
       padding: 0 0.5rem 0.5rem 0.5rem;
@@ -98,7 +98,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
   width: 100%;
   height: auto;
   margin: 0;
-  z-index: 998;
+  z-index: 99998;
 
   &.scrolled {
     box-shadow: var(--navigation-scroll-shadow);
@@ -208,7 +208,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
 
       &.open {
         flex-grow: 0;
-        z-index: 999;
+        z-index: 99998;
         opacity: 1;
         right: 1rem;
         visibility: visible;

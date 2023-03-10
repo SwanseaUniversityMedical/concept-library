@@ -55,7 +55,8 @@ $brand-map-none: (
   'navigation-panel-shadow': '0px 5px 15px -1px rgba(0, 0, 0, 0.5)',
 
   // Scrollbars
-  'slim-scrollbar-color': $transparent_black,
+  'slim-scrollbar-inactive-color': $lightest_grey,
+  'slim-scrollbar-active-color': $transparent_black,
   'slim-scrollbar-radius': 6px,
   'slim-scrollbar-width': 6px,
 
@@ -100,6 +101,11 @@ $brand-map-none: (
   'card-border-radius': 0.1rem,
   'referral-card-anchor-color': $iris,
   'entity-card-anchor-color': $iris,
+
+  /* Pagination */
+  'pagination-inactive-color': $white_smoke,
+  'pagination-active-color': $platinum,
+  'pagination-disabled-color': $boulder,
 
   /* Articles */
 
@@ -227,9 +233,26 @@ $brand-map-ADP: (
   'switch-bg-color': $lightest_grey,
   'switch-bg-active-color': $soft_blue,
 
+  'search-shadow-inactive-color': $cow_black01,
+  'search-shadow-active-color': $cow_black02,
+
+  /* Chips */
+  'base-metachip-bg-color': $pickled_bluewood,
+
+  /* Cards */
+  'card-shadow-color': $cow_black01,
+  'card-border-radius': 0.1rem,
+  'referral-card-anchor-color': $iris,
+  'entity-card-anchor-color': $iris,
+
+  /* Pagination */
+  'pagination-inactive-color': $white_smoke,
+  'pagination-active-color': $platinum,
+  'pagination-disabled-color': $boulder,
+
   /* Articles */
 
-  // Phenotype
+  // Phenotype creation
   'phenotype-article-sm-size': 55%,
   'phenotype-article-lg-size': 100%,
   'phenotype-article-header-border': $light_grey,
@@ -259,6 +282,11 @@ $brand-map-ADP: (
   'ruleset-icon-normal-color': $dark_grey,
   'ruleset-include-icon-checked-color': $lime_green,
   'ruleset-exclude-icon-checked-color': $pastel_red,
+
+  // Phenotype search
+  'phenotype-banner-bg-color': $ghost_white,
+  'phenotype-banner-title-size': 30px,
+  'phenotype-banner-title-color': $black,
 );
 
 $brand-map-HDRUK: (
@@ -348,9 +376,26 @@ $brand-map-HDRUK: (
   'switch-bg-color': $lightest_grey,
   'switch-bg-active-color': $soft_blue,
 
+  'search-shadow-inactive-color': $cow_black01,
+  'search-shadow-active-color': $cow_black02,
+
+  /* Chips */
+  'base-metachip-bg-color': $pickled_bluewood,
+
+  /* Cards */
+  'card-shadow-color': $cow_black01,
+  'card-border-radius': 0.1rem,
+  'referral-card-anchor-color': $iris,
+  'entity-card-anchor-color': $iris,
+
+  /* Pagination */
+  'pagination-inactive-color': $white_smoke,
+  'pagination-active-color': $platinum,
+  'pagination-disabled-color': $boulder,
+
   /* Articles */
 
-  // Phenotype
+  // Phenotype creation
   'phenotype-article-sm-size': 55%,
   'phenotype-article-lg-size': 100%,
   'phenotype-article-header-border': $light_grey,
@@ -380,6 +425,11 @@ $brand-map-HDRUK: (
   'ruleset-icon-normal-color': $dark_grey,
   'ruleset-include-icon-checked-color': $lime_green,
   'ruleset-exclude-icon-checked-color': $pastel_red,
+
+  // Phenotype search
+  'phenotype-banner-bg-color': $ghost_white,
+  'phenotype-banner-title-size': 30px,
+  'phenotype-banner-title-color': $black,
 );
 
 $brand-map-SAIL: (
@@ -469,9 +519,26 @@ $brand-map-SAIL: (
   'switch-bg-color': $lightest_grey,
   'switch-bg-active-color': $soft_blue,
 
+  'search-shadow-inactive-color': $cow_black01,
+  'search-shadow-active-color': $cow_black02,
+
+  /* Chips */
+  'base-metachip-bg-color': $pickled_bluewood,
+
+  /* Cards */
+  'card-shadow-color': $cow_black01,
+  'card-border-radius': 0.1rem,
+  'referral-card-anchor-color': $iris,
+  'entity-card-anchor-color': $iris,
+
+  /* Pagination */
+  'pagination-inactive-color': $white_smoke,
+  'pagination-active-color': $platinum,
+  'pagination-disabled-color': $boulder,
+
   /* Articles */
 
-  // Phenotype
+  // Phenotype creation
   'phenotype-article-sm-size': 55%,
   'phenotype-article-lg-size': 100%,
   'phenotype-article-header-border': $light_grey,
@@ -501,6 +568,11 @@ $brand-map-SAIL: (
   'ruleset-icon-normal-color': $dark_grey,
   'ruleset-include-icon-checked-color': $lime_green,
   'ruleset-exclude-icon-checked-color': $pastel_red,
+
+  // Phenotype search
+  'phenotype-banner-bg-color': $ghost_white,
+  'phenotype-banner-title-size': 30px,
+  'phenotype-banner-title-color': $black,
 );
 
 

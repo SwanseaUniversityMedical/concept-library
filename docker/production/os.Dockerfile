@@ -20,10 +20,8 @@ RUN \
   apt-get install -y -q libapache2-mod-wsgi-py3 && \
   apt-get install -y -q wget && \
   apt-get -y -q install sudo nano && \
-  apt-get install -y -q redis-server
-
-
-
+  apt-get install -y -q redis-server \ 
+  apt-get install -y -q dos2unix
 
 # install this for LDAP to work
 RUN apt-get install -y -q libsasl2-dev python-dev libldap2-dev libssl-dev
@@ -49,7 +47,3 @@ RUN \
 
 RUN mkdir -p /home/config_cll/cll_srvr_logs
 RUN chmod 750 /home/config_cll/cll_srvr_logs
-
-
-
-

@@ -1,0 +1,25 @@
+{% load static %}
+{% load cl_extras %}
+
+<section class="pagination-container" data-controller="filter" data-field="page" data-class="pagination" data-value="{{ page }}">
+  <div class="pagination-container__details">
+    <p class="pagination-container__details-number">Page <span id="page-number">{{ page }}</span> of <span id="page-total">{{ page_range.1 }}</span></p>
+  </div>
+  <ul class="pagination-container__previous">
+    <li {% if not has_previous %} class="disabled" {% endif %}><a data-value="previous" data-field="page">Previous</a></li>
+  </ul>
+  <ul class="pagination-container__pages" id="page-items">
+    {% for page_no in pages %}
+      {% if page_no == "divider" %}
+        <li class="divider"><a data-value="ignore"></a></li>
+      {% else %}
+        <li {% if page_no == page %} class="is-active" {% endif %}><a data-value="{{ page_no }}" data-field="page">{{ page_no }}</a></li>
+      {% endif %}
+    {% empty %}
+      <li class="is-active"><a data-value="ignore">1</a></li>
+    {% endfor %}
+  </ul>
+  <ul class="pagination-container__next">
+    <li {% if not has_next %} class="disabled" {% endif %}><a data-value="next" data-field="page">Next</a></li>
+  </ul>
+</section>

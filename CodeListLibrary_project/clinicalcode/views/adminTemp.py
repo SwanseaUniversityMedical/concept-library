@@ -24,9 +24,10 @@ from .. import db_utils, utils
 from ..models import *
 from ..permissions import *
 from .View import *
-from clinicalcode.models.GenericEntity import GenericEntity
 from ..constants import *
-from clinicalcode.models import Template
+
+from ..models.GenericEntity import GenericEntity
+from ..models.Template import Template
 
 logger = logging.getLogger(__name__)
 
@@ -510,7 +511,16 @@ def admin_restore_phenotypes(request):
 
 
 #### Dynamic Template  ####
-            
+def sort_pk_list(a, b):
+    pk1 = int(a.replace('PH', ''))
+    pk2 = int(b.replace('PH', ''))
+
+    if pk1 > pk2:
+        return 1
+    elif pk1 < pk2:
+        return -1
+    return 0
+
 @login_required
 def admin_mig_phenotypes_dt(request):
     # for admin(developers) to migrate phenotypes into dynamic template
@@ -551,7 +561,13 @@ def admin_mig_phenotypes_dt(request):
                             
             rowsAffected = {}    
     
+            clinical_template = Template.objects.get(pk=1)
             if ph_id_list:
+                from functools import cmp_to_key
+                
+                sort_fn = cmp_to_key(sort_pk_list)
+                ph_id_list.sort(key=sort_fn)
+
                 for pk in ph_id_list:
                     if phenotype_ids != 'ALL':
                         pk = re.sub(' +', ' ', pk.strip())
@@ -561,37 +577,37 @@ def admin_mig_phenotypes_dt(request):
                                 is_valid_id, err, ret_id = db_utils.chk_valid_id(request, set_class=Phenotype, pk=pk, chk_permission=True)
                                 if is_valid_id:
                                     pk = str(ret_id)
-                                                    
+
+                    n_id = pk
                     if Phenotype.objects.filter(pk=pk).exists():
                         phenotype = Phenotype.objects.get(pk=pk)
                         
-                        # delete if exists                             
-                        if GenericEntity.objects.filter(pk=phenotype.id).exists():
-                            ge0 = GenericEntity.objects.get(pk=phenotype.id)
+                        # delete if exists
+                        if GenericEntity.objects.filter(id=n_id).exists():
+                            ge0 = GenericEntity.objects.get(id=n_id)
                             ge0.history.filter().delete()
                             ge0.delete()
 
-                        ge = GenericEntity.objects.create(
-                            serial_id = get_serial_id(),
-                            id = phenotype.id,
+                        temp_data = get_custom_fields_key_value(phenotype)
+                        temp_data['version'] = 1
+                        ge = GenericEntity.objects.transfer_record(
+                            ignore_increment = True,
+
+                            id = n_id,
+
                             name = phenotype.name,
-                            author = phenotype.author,
-                            
-                            layout = LAYOUT_CLINICAL_CODED_PHENOTYPE,
                             status = ENTITY_STATUS_FINAL,
-
-                            tags = phenotype.tags,
-                            collections = phenotype.collections,  
-
+                            author = phenotype.author,
                             definition = phenotype.description,
                             implementation = phenotype.implementation,
                             validation = phenotype.validation,
                             publications = phenotype.publications,
+                            tags = phenotype.tags,
+                            collections = phenotype.collections,  
                             citation_requirements = phenotype.citation_requirements,
 
-                            template = Template.objects.get(pk=1),
-                            template_data =  get_custom_fields_key_value(phenotype), # include type as ENUM # manage sex, type ....
-                            #template_data2 = get_custom_fields_name_value(phenotype), 
+                            template = clinical_template,
+                            template_data =  temp_data,
                             
                             internal_comments = '',
                             
@@ -609,18 +625,17 @@ def admin_mig_phenotypes_dt(request):
                             owner_access = phenotype.owner_access,
                             group_access = phenotype.group_access,
                             world_access = phenotype.world_access
-                            )
-                        ge.save_migrate_phenotypes()
+                        )
                         #ge.save()
                         
                         
                         # publish if phenotype was published at least once                             
-                        if GenericEntity.objects.filter(pk=phenotype.id).exists():
+                        if GenericEntity.objects.filter(id=n_id).exists():
                             if PublishedPhenotype.objects.filter(phenotype_id=phenotype.id, approval_status=2).count() > 0:
-                                ge1 = GenericEntity.objects.get(pk=phenotype.id)
+                                ge1 = GenericEntity.objects.get(id=n_id)
                                 
-                                if PublishedGenericEntity.objects.filter(entity_id=phenotype.id).exists():
-                                    ge_p0 = PublishedGenericEntity.objects.get(entity_id=phenotype.id)
+                                if PublishedGenericEntity.objects.filter(entity_id=n_id).exists():
+                                    ge_p0 = PublishedGenericEntity.objects.get(entity_id=n_id)
                                     ge_p0.history.filter().delete()
                                     ge_p0.delete()
                                 
@@ -715,13 +730,13 @@ def get_custom_fields(phenotype):
     ret_data = {}
     
     ret_data['type'] = str(get_type(phenotype))
-    ret_data['concept_informations'] = phenotype.concept_informations
-    ret_data['coding_systems'] = phenotype.clinical_terminologies
+    ret_data['concept_information'] = phenotype.concept_informations
+    ret_data['coding_system'] = phenotype.clinical_terminologies
     ret_data['data_sources'] = phenotype.data_sources
     ret_data['phenoflowid'] = phenotype.phenoflowid    
     ret_data['agreement_date'] = get_agreement_date(phenotype)
     ret_data['phenotype_uuid'] = phenotype.phenotype_uuid
-    ret_data['valid_event_data_range'] = phenotype.valid_event_data_range
+    ret_data['event_date_range'] = phenotype.valid_event_data_range
     ret_data['sex'] = str(get_sex(phenotype))
     ret_data['source_reference'] = phenotype.source_reference
     
