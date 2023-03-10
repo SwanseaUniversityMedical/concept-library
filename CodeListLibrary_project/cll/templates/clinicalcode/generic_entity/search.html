@@ -34,13 +34,13 @@
         </div>
       </aside>
 
-      <section class="entity-search-results">
+      <section class="entity-search-results" id="search-results-area">
         {% include "components/search/results.html" %}
       </section>
     </div>
 
-    <aside class="pagination-box">
-      {% render_entity_pagination %}
+    <aside class="pagination-box" id="search-pagination-area">
+      {% include "components/search/pagination_container.html" %}
     </aside>
   </div>
 </main>

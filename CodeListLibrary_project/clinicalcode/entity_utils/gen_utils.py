@@ -1,4 +1,6 @@
 from functools import wraps
+from dateutil import parser
+
 import time
 
 def parse_int(value, default=0):
@@ -9,6 +11,17 @@ def parse_int(value, default=0):
         return int(value)
     except ValueError:
         return default
+
+def parse_date(value, default=0):
+    '''
+        Attempts to parse a date from a string value, if it fails to do so, returns the default value
+    '''
+    try:
+        date = parser.parse(value)
+    except:
+        return default
+    else:
+        return date.strftime('%Y-%m-%d')
 
 def measure_perf(func):
     """

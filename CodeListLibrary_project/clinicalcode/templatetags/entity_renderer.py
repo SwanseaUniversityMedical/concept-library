@@ -17,7 +17,7 @@ def render_details(context, *args, **kwargs):
     should_say_hello = kwargs.get('sayHello', False)
     return {'hello': True} if should_say_hello else { }
 
-@register.inclusion_tag('components/search/pagination.html', takes_context=True, name='render_entity_pagination')
+@register.inclusion_tag('components/search/pagination/pagination.html', takes_context=True, name='render_entity_pagination')
 def render_pagination(context, *args, **kwargs):
     '''
         Renders pagination button(s) for search pages

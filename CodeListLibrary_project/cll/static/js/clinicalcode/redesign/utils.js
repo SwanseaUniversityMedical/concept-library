@@ -164,6 +164,12 @@ const getCurrentPath = () => {
 }
 
 /**
+ * getCurrentURL
+ * @desc Returns the current path without any parameters
+ */
+const getCurrentURL = () => `${getCurrentHost()}${location.pathname}`;
+
+/**
   * domReady
   * @desc A promise that resolves when the DOM is ready
   * @returns {promise}
@@ -185,3 +191,15 @@ const assert = (condition, message) => {
     throw message;
   }
 }
+
+/**
+ * isNullOrUndefined
+ * @desc returns true if the parameter is null or undefined
+ */
+const isNullOrUndefined = (value) => typeof value === 'undefined' || value === null;
+
+/**
+ * isStringEmpty
+ * @desc checks if a string is empty
+ */
+const isStringEmpty = (value) => isNullOrUndefined(value) || !value.length;

@@ -1,7 +1,6 @@
 {% load entity_renderer %}
-
 <div class="entity-search-results__header">
-  <div class="entity-search-results__header-results">
+  <div class="entity-search-results__header-results" id="entity-search-response-header">
     <h4>Results</h4>
     <p>{{ page_obj.start_index|stylise_number }}-{{ page_obj.end_index|stylise_number }} of over {{ page_obj.paginator.count|stylise_number }}</p>
   </div>
@@ -9,7 +8,7 @@
     <!-- e.g. 'Order By', 'Results per Page' -->
   </div>
 </div>
-<div class="entity-search-results__container">
+<div class="entity-search-results__container" id="entity-search-response-content">
   {% render_entity_cards %}
   {% endrender_entity_cards %}
 </div>

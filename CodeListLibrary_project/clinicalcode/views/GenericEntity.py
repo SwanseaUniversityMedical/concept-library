@@ -1,6 +1,6 @@
 '''
     ---------------------------------------------------------------------------
-    PHENOTYPE VIEW
+    GENERICENTITY VIEW
     ---------------------------------------------------------------------------
 '''
 import csv
@@ -9,45 +9,27 @@ import logging
 import re
 import time
 from collections import OrderedDict
-from datetime import datetime
-
-from django import forms
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin  # , UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import Group, User
-# from django.contrib.messages import constants
-from django.core import serializers
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
-from django.core.paginator import EmptyPage, Paginator
-# from django.db.models import Q
-from django.db import transaction  # , models, IntegrityError
-# from django.forms.models import model_to_dict
-from django.http import HttpResponseRedirect  # , StreamingHttpResponse, HttpResponseForbidden
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseNotFound
 from django.http.response import HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.template import RequestContext
+from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.templatetags.static import static
-# from django.core.urlresolvers import reverse_lazy, reverse
-from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, TemplateView
 from django.views.generic.base import TemplateResponseMixin, View
-from django.views.generic.edit import CreateView, DeleteView, UpdateView
+from django.views.generic.edit import UpdateView
 
-from .. import generic_entity_db_utils, utils
+from .. import generic_entity_db_utils
 from ..models import *
 from ..permissions import *
 from .View import *
 from clinicalcode.api.views.View import get_canonical_path_by_brand
 from clinicalcode.constants import *
-from django.db.models.functions import Lower
-
-from django.utils.timezone import make_aware
-
-# from rest_framework.permissions import BasePermission
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +44,8 @@ class EntitySearchView(TemplateView):
                 -> AJAX-driven update of template based on request params (through JsonResponse)
     '''
     template_name = 'clinicalcode/generic_entity/search.html'
+    result_template = 'components/search/results.html'
+    pagination_template = 'components/search/pagination_container.html'
 
     def get_context_data(self, *args, **kwargs):
         '''
@@ -78,14 +62,26 @@ class EntitySearchView(TemplateView):
             'layouts': layouts
         }
     
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         '''
-            Used by both filters and search to update the page through AJAX requests
+            Manages get requests to this view
+            
+            [!] Note: if search_filtered is passed as a parameter (through a fetch req),
+                    the GET request will return the pagination and results
+                    for hotreloading relevant search results instead of forcing
+                    a page reload
         '''
-        context = self.get_context_data(**kwargs)
+        context = self.get_context_data(*args, **kwargs)
+        filtered = search_utils.try_get_param(request, 'search_filtered', None)
 
-        response = { }
-        return JsonResponse(response)
+        if filtered is not None and request.headers.get('XMLHttpRequest'):
+            context['request'] = request
+
+            results = render_to_string(self.result_template, context)
+            pagination = render_to_string(self.pagination_template, context)            
+            return HttpResponse(results + pagination, content_type='text/plain')
+            
+        return render(request, self.template_name, context)
 
 class CreateEntityView(TemplateView):
     template_name = 'clinicalcode/generic_entity/create.html'
