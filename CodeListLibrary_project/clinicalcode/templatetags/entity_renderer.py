@@ -4,6 +4,8 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 from django.templatetags.static import static
 from django.conf import settings
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 
 import re
 
@@ -422,7 +424,15 @@ class EntityWizardSections(template.Node):
 
         return value
 
-    def render(self, context):
+    def __try_render_item(self, **kwargs):
+        try:
+            html = render_to_string(**kwargs)
+        except:
+            raise
+        else:
+            return html
+
+    def __generate_wizard(self, request, context):
         output = ''
         template = context.get('template', None)
         entity = context.get('entity', None)
@@ -432,7 +442,8 @@ class EntityWizardSections(template.Node):
         # We should be getting the FieldTypes.json related to the template
         field_types = constants.field_types
         for section in field_types.get('create_sections'):
-            output += render_to_string(constants.CREATE_WIZARD_SECTION_START, { 'section': section })
+            html = self.__try_render_item(template_name=constants.CREATE_WIZARD_SECTION_START, request=request, context=context.flatten() | { 'section': section })
+            output += html
 
             for field in section.get('fields'):
                 component = template_utils.try_get_content(field_types.get('components'), field)
@@ -455,9 +466,17 @@ class EntityWizardSections(template.Node):
 
                 if entity:
                     component['value'] = self.__try_get_entity_value(template, entity, field)
+                else:
+                    component['value'] = ''
                 
                 uri = f'{constants.CREATE_WIZARD_INPUT_DIR}/{component.get("input")}.html'
-                output += render_to_string(uri, { 'component': component })
+                html = self.__try_render_item(template_name=uri, request=request, context=context.flatten() | { 'component': component })
+                output += html
 
-        output += render_to_string(constants.CREATE_WIZARD_SECTION_END, { 'section': section })
+        html = render_to_string(template_name=constants.CREATE_WIZARD_SECTION_END, request=request, context=context.flatten() | { 'section': section })
+        output += html
         return output
+    
+    def render(self, context):
+        request = self.request.resolve(context)
+        return self.__generate_wizard(request, context)

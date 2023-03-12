@@ -10,6 +10,7 @@ import re
 import time
 from collections import OrderedDict
 from django.http import Http404
+from django.core.exceptions import BadRequest
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -25,6 +26,7 @@ from django.views.generic import DetailView, TemplateView
 from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import UpdateView
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 
 from .. import generic_entity_db_utils
 from ..models import *
@@ -86,7 +88,6 @@ class EntitySearchView(TemplateView):
             
         return render(request, self.template_name, context)
 
-@method_decorator(login_required, name='dispatch')
 class CreateEntityView(TemplateView):
     '''
         Entity Create View
@@ -94,7 +95,24 @@ class CreateEntityView(TemplateView):
                   of having a form dynamically created to reflect the dynamic model.
     '''
     template_name = 'clinicalcode/generic_entity/create.html'
+    
+    @method_decorator([never_cache], name='dispatch')
+    def create_form(self, request, context, template):
+        '''
+            @desc Renders the entity create form
+        '''
+        context['template'] = template
+        return render(request, self.template_name, context)
 
+    @method_decorator([never_cache], name='dispatch')
+    def update_form(self, request, context, template, entity):
+        '''
+            @desc Renders the entity update form
+        '''
+        context['template'] = template
+        context['entity'] = entity
+        return render(request, self.template_name, context)
+    
     def get_context_data(self, *args, **kwargs):
         '''
             @desc Provides contextual data
@@ -103,6 +121,7 @@ class CreateEntityView(TemplateView):
 
         return context
 
+    @method_decorator([never_cache, login_required], name='dispatch')
     def get(self, request, *args, **kwargs):
         '''
             @desc Template and entity is tokenised in the URL - providing the latter requires
@@ -114,35 +133,26 @@ class CreateEntityView(TemplateView):
         context = self.get_context_data(*args, **kwargs)
 
         template_id = kwargs.get('template_id')
-        template = model_utils.try_get_instance(Template, pk=template_id)
-        if template is None:
-            raise Http404
+        if template_id is not None:
+            template = model_utils.try_get_instance(Template, pk=template_id)
+            if template is None:
+                raise Http404
+            return self.create_form(request, context, template)
 
         entity_id = kwargs.get('entity_id')
         if entity_id is not None:
             entity = create_utils.try_validate_entity(request, entity_id)
             if not entity:
                 raise PermissionDenied
-        
+            
+            template = entity.template
+            if template is None:
+                raise BadRequest('Invalid request.')
             return self.update_form(request, context, template, entity)
+        
+        raise BadRequest('Invalid request.')
 
-        return self.create_form(request, context, template)
-    
-    def create_form(self, request, context, template):
-        '''
-            @desc Renders the entity create form
-        '''
-        context['template'] = template
-        return render(request, self.template_name, context)
-
-    def update_form(self, request, context, template, entity):
-        '''
-            @desc Renders the entity update form
-        '''
-        context['template'] = template
-        context['entity'] = entity
-        return render(request, self.template_name, context)
-
+    @method_decorator([never_cache, login_required], name='dispatch')
     def post(self, request, *args, **kwargs):
         '''
             @desc Handles form submission on creating or updating an entity

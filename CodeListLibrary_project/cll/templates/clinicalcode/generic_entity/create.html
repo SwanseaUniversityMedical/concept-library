@@ -7,6 +7,11 @@
 
 {% block title %}| Create a Phenotype{% endblock title %}
 
+{% block cache_tags %}
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+{% endblock cache_tags %}
 
 {% block container %}
   <script src="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.js' %}"></script>
@@ -19,7 +24,7 @@
         const toolbar = editor.parentNode.querySelector('#command-bar');
         const textvalue = editor.getAttribute('data-value');
 
-        const tinyMde = new TinyMDE.Editor({ element: editor.id, content: textvalue });
+        const tinyMde = new TinyMDE.Editor({ element: editor.id, content: textvalue || 'Add Definition...' });
         const mdeBar = new TinyMDE.CommandBar({ element: toolbar, editor: tinyMde });
       }
     });
