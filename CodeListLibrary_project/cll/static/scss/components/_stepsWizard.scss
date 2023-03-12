@@ -20,6 +20,7 @@
   top: var(--top-position);
   padding: 1rem 1rem;
   transition: top 250ms ease;
+  z-index: 99;
 
   @include media("<desktop", "screen") {
     display: none;

@@ -9,16 +9,6 @@ from ..entity_utils import template_utils, search_utils, constants
 
 register = template.Library()
 
-@register.inclusion_tag('components/details/entity_details.html', takes_context=True, name='render_entity_details')
-def render_details(context, *args, **kwargs):
-    request = context['request']
-    # Do stuff with the context e.g. the JSON passed from template/entity
-    print(args, kwargs)
-
-    # Do stuff with any args/kwargs e.g. change the context before passing to ./components/results.html
-    should_say_hello = kwargs.get('sayHello', False)
-    return {'hello': True} if should_say_hello else { }
-
 @register.inclusion_tag('components/search/pagination/pagination.html', takes_context=True, name='render_entity_pagination')
 def render_pagination(context, *args, **kwargs):
     '''

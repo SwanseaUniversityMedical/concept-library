@@ -74,9 +74,6 @@ const setNavigation = (navbar) => {
 
     let href = link.getAttribute('href');
     href = href.replace(/\/$/, '').toLocaleLowerCase();
-    if (!FuzzyQuery.Match(path, href)) {
-      continue;
-    }
     
     const dist = FuzzyQuery.Distance(path, href);
     if (typeof closest === 'undefined' || dist < distance) {

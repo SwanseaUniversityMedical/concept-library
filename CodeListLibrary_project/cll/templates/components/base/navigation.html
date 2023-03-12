@@ -20,8 +20,8 @@
 
         {% if user.is_authenticated %}
           {% if IS_DEMO or IS_DEVELOPMENT_PC %}
-            {% url 'entity_search_page' as entity_url %}
-            <a href="{{ entity_url }}" id="WorkingSets">Generic Entity</a>
+            {% url 'search_entity' as entity_url %}
+            <a href="{{ entity_url }}" id="GenericEntity">Generic Entity</a>
           {% endif %}
         {% endif %}
 

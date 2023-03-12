@@ -9,6 +9,7 @@ import logging
 import re
 import time
 from collections import OrderedDict
+from django.http import Http404
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -23,10 +24,12 @@ from django.templatetags.static import static
 from django.views.generic import DetailView, TemplateView
 from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import UpdateView
+from django.utils.decorators import method_decorator
 
 from .. import generic_entity_db_utils
 from ..models import *
 from ..permissions import *
+from ..entity_utils import model_utils, create_utils
 from .View import *
 from clinicalcode.api.views.View import get_canonical_path_by_brand
 from clinicalcode.constants import *
@@ -83,15 +86,67 @@ class EntitySearchView(TemplateView):
             
         return render(request, self.template_name, context)
 
+@method_decorator(login_required, name='dispatch')
 class CreateEntityView(TemplateView):
+    '''
+        Entity Create View
+            @desc Used to create entities - CreateView isn't used due to the requirements
+                  of having a form dynamically created to reflect the dynamic model.
+    '''
     template_name = 'clinicalcode/generic_entity/create.html'
 
-    def get(self, request):
-        ctx = {
+    def get_context_data(self, *args, **kwargs):
+        '''
+            @desc Provides contextual data
+        '''
+        context = super(CreateEntityView, self).get_context_data(*args, **kwargs)
 
-        }
+        return context
 
-        return render(request, self.template_name, context=ctx)
+    def get(self, request, *args, **kwargs):
+        '''
+            @desc Template and entity is tokenised in the URL - providing the latter requires
+                  users to be permitted to modify that particular entity.
+
+                  If no entity_id is passed, a creation form is returned, otherwise the user is
+                  redirected to an update form.
+        '''
+        context = self.get_context_data(*args, **kwargs)
+
+        template_id = kwargs.get('template_id')
+        template = model_utils.try_get_instance(Template, pk=template_id)
+        if template is None:
+            raise Http404
+
+        entity_id = kwargs.get('entity_id')
+        if entity_id is not None:
+            entity = create_utils.try_validate_entity(request, entity_id)
+            if not entity:
+                raise PermissionDenied
+        
+            return self.update_form(request, context, template, entity)
+
+        return self.create_form(request, context, template)
+    
+    def create_form(self, request, context, template):
+        '''
+            @desc Renders the entity create form
+        '''
+        return render(request, self.template_name, context)
+
+    def update_form(self, request, context, template, entity):
+        '''
+            @desc Renders the entity update form
+        '''
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        '''
+            @desc Handles form submission on creating or updating an entity
+        '''
+        context = self.get_context_data(*args, **kwargs)
+
+        return render(request, self.template_name, context)
 
 class EntityStatisticsView(TemplateView):
     '''
