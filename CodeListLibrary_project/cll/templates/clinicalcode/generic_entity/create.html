@@ -7,7 +7,24 @@
 
 {% block title %}| Create a Phenotype{% endblock title %}
 
+
 {% block container %}
+  <script src="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.js' %}"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.css' %}" />
+  <script type="text/javascript">
+    domReady.finally(() => {
+      const editors = document.querySelectorAll('[data-class="mde"]');
+      for (let i = 0; i < editors.length; ++i) {
+        const editor = editors[i];
+        const toolbar = editor.parentNode.querySelector('#command-bar');
+        const textvalue = editor.getAttribute('data-value');
+
+        const tinyMde = new TinyMDE.Editor({ element: editor.id, content: textvalue });
+        const mdeBar = new TinyMDE.CommandBar({ element: toolbar, editor: tinyMde });
+      }
+    });
+  </script>
+
   <header class="main-header">
     <div class="main-header__inner-container">
       {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
