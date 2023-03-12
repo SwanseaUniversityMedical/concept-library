@@ -9,6 +9,7 @@ import logging
 import re
 import time
 from collections import OrderedDict
+from django.http import Http404
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -23,11 +24,13 @@ from django.templatetags.static import static
 from django.views.generic import DetailView, TemplateView
 from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import UpdateView
+from django.utils.decorators import method_decorator
 
 from .. import utils
 from clinicalcode.entity_utils import entity_db_utils
 from ..models import *
 from ..permissions import *
+from ..entity_utils import model_utils, create_utils
 from .View import *
 from clinicalcode.api.views.View import get_canonical_path_by_brand
 from clinicalcode.constants import *
@@ -94,15 +97,67 @@ class ExampleSASSView(TemplateView):
 
         return render(request, self.template_name, context=ctx)
 
+@method_decorator(login_required, name='dispatch')
 class CreateEntityView(TemplateView):
+    '''
+        Entity Create View
+            @desc Used to create entities - CreateView isn't used due to the requirements
+                  of having a form dynamically created to reflect the dynamic model.
+    '''
     template_name = 'clinicalcode/generic_entity/create.html'
 
-    def get(self, request):
-        ctx = {
+    def get_context_data(self, *args, **kwargs):
+        '''
+            @desc Provides contextual data
+        '''
+        context = super(CreateEntityView, self).get_context_data(*args, **kwargs)
 
-        }
+        return context
 
-        return render(request, self.template_name, context=ctx)
+    def get(self, request, *args, **kwargs):
+        '''
+            @desc Template and entity is tokenised in the URL - providing the latter requires
+                  users to be permitted to modify that particular entity.
+
+                  If no entity_id is passed, a creation form is returned, otherwise the user is
+                  redirected to an update form.
+        '''
+        context = self.get_context_data(*args, **kwargs)
+
+        template_id = kwargs.get('template_id')
+        template = model_utils.try_get_instance(Template, pk=template_id)
+        if template is None:
+            raise Http404
+
+        entity_id = kwargs.get('entity_id')
+        if entity_id is not None:
+            entity = create_utils.try_validate_entity(request, entity_id)
+            if not entity:
+                raise PermissionDenied
+        
+            return self.update_form(request, context, template, entity)
+
+        return self.create_form(request, context, template)
+    
+    def create_form(self, request, context, template):
+        '''
+            @desc Renders the entity create form
+        '''
+        return render(request, self.template_name, context)
+
+    def update_form(self, request, context, template, entity):
+        '''
+            @desc Renders the entity update form
+        '''
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        '''
+            @desc Handles form submission on creating or updating an entity
+        '''
+        context = self.get_context_data(*args, **kwargs)
+
+        return render(request, self.template_name, context)
 
 class EntityStatisticsView(TemplateView):
     '''
@@ -265,7 +320,39 @@ def generic_entity_detail(request, pk, history_id=None):
     if generic_entity['fields_data']['implementation'] is None:
         generic_entity['fields_data']['implementation'] = ''
 
+            
+    conceptBrands = generic_entity_db_utils.getConceptBrands(request, concept_id_list)
+    concept_data = []
+    if concept_informations:
+        for c in concept_informations:
+            c['codingsystem'] = CodingSystem.objects.get(pk=Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).coding_system_id).name
+            c['code_attribute_header'] = Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).code_attribute_header
 
+            c['alerts'] = ''
+            if not are_concepts_latest_version:
+                if c['concept_version_id'] in version_alerts:
+                    c['alerts'] = version_alerts[c['concept_version_id']]
+
+            if not children_permitted_and_not_deleted:
+                if c['concept_id'] in error_dic:
+                    c['alerts'] += "<BR>- " + "<BR>- ".join(error_dic[c['concept_id']])
+
+            c['alerts'] = re.sub("Child ", "", c['alerts'], flags=re.IGNORECASE)
+
+            c['brands'] = ''
+            if c['concept_id'] in conceptBrands:
+                for brand in conceptBrands[c['concept_id']]:
+                    c['brands'] += "<img src='" + static('img/brands/' + brand + '/logo.png') + "' height='10px' title='" + brand + "' alt='" + brand + "' /> "
+
+            c['is_published'] = checkIfPublished(Concept, c['concept_id'], c['concept_version_id'])
+            c['name'] = concepts.get(id=c['concept_id'], history_id=c['concept_version_id'])['name']
+
+            c['codesCount'] = 0
+            if codelist:
+                c['codesCount'] = len([x['code'] for x in codelist if x['concept_id'] == 'C' + str(c['concept_id']) and x['concept_version_id'] == c['concept_version_id'] ])
+
+            c['concept_friendly_id'] = 'C' + str(c['concept_id'])
+            concept_data.append(c)
 
 
     context = {

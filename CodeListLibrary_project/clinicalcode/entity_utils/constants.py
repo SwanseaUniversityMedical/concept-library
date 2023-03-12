@@ -85,8 +85,95 @@ PAGE_RESULTS_SIZE = {
 }
 
 '''
-    [!] Note: Will be moved to a table once tooling is finished, accessible through the 'base_template_version'
+    [!] Note: Could be moved once we determine who has responsibility to create/edit FieldTypes.json
+              and where it should be located
+    
+    Used to define:
+        - Hashmap whose value reflects how to display template-related data
+        - By ./create and ./detail pages for field components, how to organise the page, and so forth
+'''
+field_types = {
+    "create_sections": [
+        {
+            "title": "Definition",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            "fields": ["name", "definition", "author", "event_date_range", "sex", "type", "tags", "collections", "data_sources"]
+        },
+        {
+            "title": "Concepts",
+            "description": "",
+            "fields": ["concept_information"]
+        },
+        {
+            "title": "Publication",
+            "description": "",
+            "fields": ["publications"]
+        },
+        {
+            "title": "Validation",
+            "description": "",
+            "fields": ["validation"],
+        },
+        {
+            "title": "Permissions",
+            "description": "",
+            "fields": ["group"]
+        }
+    ],
+    "components": {
+        "name": {
+            "description": "",
+            "input": "inputbox",
+        },
+        "definition": {
+            "description": "",
+            "input": "textarea"
+        },
+        "author": {
+            "description": "",
+            "input": "inputbox"
+        },
+        "event_date_range": {
+            "description": "",
+            "input": "datepicker_range"
+        },
+        "sex": {
+            "description": "",
+            "input": "radiobutton"
+        },
+        "type": {
+            "description": "",
+            "input": "dropdown"
+        },
+        "tags": {
+            "description": "",
+            "input": "tagbox"
+        },
+        "collections": {
+            "description": "",
+            "input": "tagbox"
+        },
+        "data_sources": {
+            "description": "",
+            "input": "tagbox"
+        },
+        "concept_information": {
+            "input": "clinical/concept"
+        },
+        "publications": {
+            "input": "clinical/publication"
+        },
+        "validation": {
+            "input": "clinical/validation"
+        },
+        "group": {
+            "input": "group_select"
+        }
+    }
+}
 
+
+'''
     Used to define:
         - Hashmap for values from sourced data
         - By filter to determine metadata-related filters
