@@ -143,12 +143,15 @@ class CreateEntityView(TemplateView):
         '''
             @desc Renders the entity create form
         '''
+        context['template'] = template
         return render(request, self.template_name, context)
 
     def update_form(self, request, context, template, entity):
         '''
             @desc Renders the entity update form
         '''
+        context['template'] = template
+        context['entity'] = entity
         return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):

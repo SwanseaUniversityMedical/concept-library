@@ -1,0 +1,16 @@
+<div class="detailed-input-group fill">
+  <h3 class="detailed-input-group__title">Has validation been peformed?</h3>
+  <p class="detailed-input-group__description">Have you, or your research group, published a paper that uses or defines this phenotype?</p>
+  <fieldset class="hstack-radio-group">
+    <input class="radio-input" aria-label="Yes, validation has been performd" type="radio" id="has-validation" name="phenotype-validation">
+    <label for="has-validation">Yes</label>
+    <input class="radio-input" aria-label="No validation has been performed" type="radio" id="no-validation" name="phenotype-validation" checked>
+    <label for="no-validation">No</label>
+  </fieldset>
+</div>
+
+<div class="detailed-input-group fill">
+  <h3 class="detailed-input-group__title">Validation description</h3>
+  <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+  <textarea class="text-area-input" aria-label="Phenotype validation description" id="phenotype-validation-description" name="phenotype-validation-description" rows="4" autocorrect="on" autocomplete="off" minlength="5" spellcheck="default" wrap="soft" pattern="w{1,}.*?" required></textarea>
+</div>

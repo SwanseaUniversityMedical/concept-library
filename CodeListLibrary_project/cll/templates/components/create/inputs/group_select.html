@@ -1,0 +1,22 @@
+<div class="detailed-input-group fill">
+  <h3 class="detailed-input-group__title">Assign to Organisation</h3>
+  <p class="detailed-input-group__description">If you assign this phenotype to an organisation the members of that group will control its permissions, including read and write access.</p>
+  <select class="selection-input" aria-label="Select Phenotype Group" name="phenotype-group" id="phenotype-group" required>
+    <option disabled value="0" selected hidden>Select Organisation</option>
+    <option value="0">ADP</option>
+    <option value="1">HDRUK</option>
+    <option value="2">BREATHE</option>
+    <option value="3">SAIL</option>
+  </select>
+</div>
+
+<div class="detailed-input-group fill">
+  <h3 class="detailed-input-group__title">User Permissions</h3>
+  <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+  <fieldset class="hstack-radio-group">
+    <input class="radio-input" aria-label="No user access" type="radio" id="user-no-access" name="user-access" checked>
+    <label for="user-no-access">No access</label>
+    <input class="radio-input" aria-label="Users able to view" type="radio" id="user-view-access" name="user-access">
+    <label for="user-view-access">Read</label>
+  </fieldset>
+</div>
