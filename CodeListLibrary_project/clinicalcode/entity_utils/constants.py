@@ -78,6 +78,14 @@ PAGE_RESULTS_SIZE = {
 }
 
 '''
+    Entity creation related defaults
+'''
+CREATE_WIZARD_ASIDE = 'components/create/aside.html'
+CREATE_WIZARD_SECTION_START = 'components/create/section/section_start.html'
+CREATE_WIZARD_SECTION_END = 'components/create/section/section_end.html'
+CREATE_WIZARD_INPUT_DIR = 'components/create/inputs'
+
+'''
     [!] Note: Could be moved once we determine who has responsibility to create/edit FieldTypes.json
               and where it should be located
     
@@ -94,60 +102,60 @@ field_types = {
         },
         {
             "title": "Concepts",
-            "description": "",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
             "fields": ["concept_information"]
         },
         {
             "title": "Publication",
-            "description": "",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
             "fields": ["publications"]
         },
         {
             "title": "Validation",
-            "description": "",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
             "fields": ["validation"],
         },
         {
             "title": "Permissions",
-            "description": "",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
             "fields": ["group"]
         }
     ],
     "components": {
         "name": {
-            "description": "",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
             "input": "inputbox",
         },
         "definition": {
-            "description": "",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
             "input": "textarea"
         },
         "author": {
-            "description": "",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
             "input": "inputbox"
         },
         "event_date_range": {
-            "description": "",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
             "input": "datepicker_range"
         },
         "sex": {
-            "description": "",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
             "input": "radiobutton"
         },
         "type": {
-            "description": "",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
             "input": "dropdown"
         },
         "tags": {
-            "description": "",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
             "input": "tagbox"
         },
         "collections": {
-            "description": "",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
             "input": "tagbox"
         },
         "data_sources": {
-            "description": "",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
             "input": "tagbox"
         },
         "concept_information": {

@@ -1,0 +1,7 @@
+<div class="detailed-input-group fill">
+  <h3 class="detailed-input-group__title">{{ component.field_data.title }}</h3>
+  <p class="detailed-input-group__description">{{ component.description }}</p>
+  <fieldset class="date-range-field" id="entity-{{ component.field_name }}">
+    <input type="text" class="date-range-picker" aria-label="{{ component.field_data.title }}" data-class="datepicker" data-range="true" id="entity-{{ component.field_name }}-input" data-field="{{ component.field_name }}" />
+  </fieldset>
+</div>

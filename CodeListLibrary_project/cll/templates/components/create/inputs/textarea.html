@@ -1,5 +1,5 @@
 <div class="detailed-input-group fill">
-  <h3 class="detailed-input-group__title">Description</h3>
-  <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-  <textarea class="text-area-input" aria-label="Phenotype Description" id="phenotype-description" name="phenotype-description" rows="4" autocorrect="on" autocomplete="off" minlength="5" spellcheck="default" wrap="soft" pattern="w{1,}.*?" required></textarea>
+  <h3 class="detailed-input-group__title">{{ component.field_data.title }}</h3>
+  <p class="detailed-input-group__description">{{ component.description }}</p>
+  <textarea class="text-area-input" aria-label="{{ component.field.title }}" id="entity-{{ component.field_name }}" name="entity-{{ component.field_name }}" rows="4" autocorrect="on" autocomplete="off" minlength="5" spellcheck="default" wrap="soft" pattern="w{1,}.*?" required></textarea>
 </div>

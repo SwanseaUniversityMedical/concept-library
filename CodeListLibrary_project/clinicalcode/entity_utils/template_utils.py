@@ -33,6 +33,12 @@ def is_metadata(entity, field):
         Checks whether a field is accounted for in the metadata of an entity e.g. name, tags, collections
     '''
     try:
+        try:
+            data = entity._meta.get_field(field)
+            return True
+        except:
+            pass
+
         model = type(entity)
         data = model._meta.get_field(field)
         return True
@@ -203,9 +209,62 @@ def get_metadata_value_from_source(entity, field, default=None):
                 
                 return output if len(output) > 0 else default
     except:
-        raise
+        pass
     else:
         return default
+
+def get_template_sourced_values(template, field, default=None):
+    '''
+        Returns the complete option list of an enum or a sourced field
+    '''
+    struct = get_layout_field(template, field)
+    if struct is None:
+        return default
+
+    validation = try_get_content(struct, 'validation')
+    if validation is None:
+        return default
+
+    if 'options' in validation:
+        output = []
+        for i, v in validation.get('options').items():
+            output.append({
+                'name': v,
+                'value': i
+            })
+        
+        return output
+    elif 'source' in validation:
+        source_info = validation.get('source')
+        try:
+            model = apps.get_model(app_label='clinicalcode', model_name=source_info.get('table'))
+            
+            column = 'id'
+            if 'query' in source_info:
+                column = source_info['query']
+
+            if 'filter' in source_info:
+                query = {**source_info['filter']}
+            
+            queryset = model.objects.filter(Q(**query))
+            if queryset.exists():
+                relative = 'name'
+                if 'relative' in source_info:
+                    relative = source_info['relative']
+                
+                output = []
+                for instance in queryset:
+                    output.append({
+                        'name': getattr(instance, relative),
+                        'value': getattr(instance, column)
+                    })
+                
+                return output if len(output) > 0 else default
+        except:
+            pass
+
+    return default
+
 
 def get_options_value(data, info, default=None):
     '''

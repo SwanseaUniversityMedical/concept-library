@@ -10,4 +10,7 @@ def try_validate_entity(request, entity_id):
     if entity is None:
         return False
     
-    return permission_utils.has_entity_modify_permissions(request, entity)
+    if permission_utils.has_entity_modify_permissions(request, entity):
+        return entity
+    
+    return False
