@@ -28,17 +28,17 @@ from django.views.generic.edit import UpdateView
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 
-from .. import generic_entity_db_utils
-from ..models import *
-from ..permissions import *
-from ..entity_utils import model_utils, create_utils
 from .View import *
 from clinicalcode.api.views.View import get_canonical_path_by_brand
 from clinicalcode.constants import *
 
-logger = logging.getLogger(__name__)
+from .. import generic_entity_db_utils
+from ..models import *
+from ..permissions import *
+from ..entity_utils import model_utils, create_utils, stats_utils, search_utils
+from ..entity_utils.constants import FORM_METHODS
 
-from ..entity_utils import stats_utils, search_utils
+logger = logging.getLogger(__name__)
 
 class EntitySearchView(TemplateView):
     '''
@@ -96,21 +96,21 @@ class CreateEntityView(TemplateView):
     '''
     template_name = 'clinicalcode/generic_entity/create.html'
     
-    @method_decorator([never_cache], name='dispatch')
     def create_form(self, request, context, template):
         '''
             @desc Renders the entity create form
         '''
         context['template'] = template
+        context['form_method'] = FORM_METHODS.CREATE
         return render(request, self.template_name, context)
 
-    @method_decorator([never_cache], name='dispatch')
     def update_form(self, request, context, template, entity):
         '''
             @desc Renders the entity update form
         '''
         context['template'] = template
         context['entity'] = entity
+        context['form_method'] = FORM_METHODS.UPDATE
         return render(request, self.template_name, context)
     
     def get_context_data(self, *args, **kwargs):

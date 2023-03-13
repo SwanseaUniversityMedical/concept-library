@@ -14,21 +14,9 @@
 {% endblock cache_tags %}
 
 {% block container %}
-  <script src="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.js' %}"></script>
   <link rel="stylesheet" type="text/css" href="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.css' %}" />
-  <script type="text/javascript">
-    domReady.finally(() => {
-      const editors = document.querySelectorAll('[data-class="mde"]');
-      for (let i = 0; i < editors.length; ++i) {
-        const editor = editors[i];
-        const toolbar = editor.parentNode.querySelector('#command-bar');
-        const textvalue = editor.getAttribute('data-value');
-
-        const tinyMde = new TinyMDE.Editor({ element: editor.id, content: textvalue || 'Add Definition...' });
-        const mdeBar = new TinyMDE.CommandBar({ element: toolbar, editor: tinyMde });
-      }
-    });
-  </script>
+  <script src="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.js' %}"></script>
+  <script type="module" src="{% static 'js/clinicalcode/redesign/forms/entityCreator.js' %}"></script>
 
   <header class="main-header">
     <div class="main-header__inner-container">
@@ -44,8 +32,13 @@
     <div class="main-content__inner-container">
       <article class="phenotype-creation">
         <section class="phenotype-creation__header">
-          <h1>Create a new Phenotype:<span>step by step</span></h1>
-          <p>Follow the steps below to create and publish your phenotype.</p>
+          {% if form_method.value == '1' %}
+            <h1>Create a new Phenotype:<span>step by step</span></h1>
+            <p>Follow the steps below to create and publish your phenotype.</p>
+          {% else %}
+            <h1>Update your Phenotype:<span>step by step</span></h1>
+            <p>Follow the steps below to update and publish your phenotype.</p>
+          {% endif %}
         </section>
         
         <ol class="phenotype-progress">
@@ -66,4 +59,10 @@
       </article>
     </div>
   </main>
+
+  <data data-owner="entity-creator" id="form-method" name="method" type="int" value="{{ form_method.value }}"></data>
+  <data data-owner="entity-creator" id="template-data" name="template" type="text/json" value='{{ template|jsonify|safe }}'></data>
+  {% if entity is not None %}
+  <data data-owner="entity-creator" id="entity-data" name="entity" type="text/json" value='{{ entity|jsonify|safe }}'></data>
+  {% endif %}
 {% endblock container %}

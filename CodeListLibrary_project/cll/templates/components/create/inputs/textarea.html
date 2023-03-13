@@ -1,6 +1,5 @@
 <div class="detailed-input-group fill">
   <h3 class="detailed-input-group__title">{{ component.field_data.title }}</h3>
   <p class="detailed-input-group__description">{{ component.description }}</p>
-  <div id="command-bar"></div>
-  <div id="entity-{{ component.field_name }}" class="filter-scrollbar" data-class="mde" style="height: 300px; overflow-y: scroll; border: 1px solid var(--color-accent-washed);" data-value="{{ component.value }}"></div>
+  <textarea class="text-area-input" aria-label="{{ component.field_data.title }}" id="entity-{{ component.field_name }}" rows="4" autocorrect="on" autocomplete="off" minlength="5" spellcheck="default" wrap="soft" pattern="w{1,}.*?" data-field="{{ component.field_name }}">{{ component.value }}</textarea>
 </div>

@@ -1,10 +1,15 @@
 from django.db.models import Q
-import re
+from django.forms.models import model_to_dict
+from django.db.models import ForeignKey
 
+import re
+import json
+
+from . import gen_utils
 from ..models.GenericEntity import GenericEntity
 from ..models.PublishedGenericEntity import PublishedGenericEntity
 from ..models.Concept import Concept
-from .constants import APPROVAL_STATUS, GROUP_PERMISSIONS
+from .constants import USERDATA_MODELS, STRIPPED_FIELDS, APPROVAL_STATUS, GROUP_PERMISSIONS
 
 def try_get_instance(model, **kwargs):
   '''
@@ -111,3 +116,32 @@ def get_concept_data(concept_id, concept_history_id):
     'coding_system': concept.coding_system.name,
     'data': {}
   }
+
+def jsonify_object(obj, remove_userdata=True, strip_fields=True, dump=True):
+  '''
+    JSONifies instance of a model
+      - removes userdata related data for safe usage within template
+      - removes specific fields that are unrelated to templates e.g. SearchVectorField
+  '''
+  instance = model_to_dict(obj)
+  
+  if remove_userdata or strip_fields:
+    for field in obj._meta.fields:
+      if strip_fields and field.get_internal_type() in STRIPPED_FIELDS:
+        instance.pop(field.name, None)
+        continue
+
+      if not remove_userdata:
+        continue
+      
+      if not isinstance(field, ForeignKey):
+        continue
+      
+      model = str(field.target_field.model)
+      if model not in USERDATA_MODELS:
+        continue
+      instance.pop(field.name, None)
+
+  if dump:
+    return json.dumps(instance, cls=gen_utils.ModelEncoder)
+  return instance
