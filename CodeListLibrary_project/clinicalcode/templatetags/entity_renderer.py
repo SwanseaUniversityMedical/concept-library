@@ -4,11 +4,9 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 from django.templatetags.static import static
 from django.conf import settings
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import never_cache
-from django.db.models.query import QuerySet
 
 import re
+import json
 
 from ..entity_utils import template_utils, search_utils, model_utils, constants
 from ..models.GenericEntity import GenericEntity
@@ -58,6 +56,11 @@ def render_pagination(context, *args, **kwargs):
 
 @register.filter(name='jsonify')
 def jsonify(value):
+    '''
+        Attempts to dump a value to JSON
+    '''
+    if isinstance(value, (dict, list)):
+        return json.dumps(value)
     return model_utils.jsonify_object(value)
 
 @register.filter(name='trimmed')
@@ -464,7 +467,11 @@ class EntityWizardSections(template.Node):
                 component['field_name'] = field
                 component['field_data'] = field_data
                 
-                options = template_utils.get_template_sourced_values(template, field)
+                if template_utils.is_metadata(GenericEntity, field):
+                    options = template_utils.get_template_sourced_values(constants.metadata, field)
+                else:
+                    options = template_utils.get_template_sourced_values(template, field)
+                
                 if options is not None:
                     component['options'] = options
 

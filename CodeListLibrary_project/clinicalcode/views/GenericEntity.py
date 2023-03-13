@@ -40,8 +40,7 @@ from clinicalcode.constants import *
 from .. import generic_entity_db_utils
 from ..models import *
 from ..permissions import *
-from ..entity_utils import model_utils, create_utils, stats_utils, search_utils
-from ..entity_utils.constants import FORM_METHODS
+from ..entity_utils import model_utils, create_utils, stats_utils, search_utils, constants
 
 logger = logging.getLogger(__name__)
 
@@ -116,17 +115,19 @@ class CreateEntityView(TemplateView):
         '''
             @desc Renders the entity create form
         '''
+        context['metadata'] = constants.metadata
         context['template'] = template
-        context['form_method'] = FORM_METHODS.CREATE
+        context['form_method'] = constants.FORM_METHODS.CREATE
         return render(request, self.template_name, context)
 
     def update_form(self, request, context, template, entity):
         '''
             @desc Renders the entity update form
         '''
+        context['metadata'] = constants.metadata
         context['template'] = template
         context['entity'] = entity
-        context['form_method'] = FORM_METHODS.UPDATE
+        context['form_method'] = constants.FORM_METHODS.UPDATE
         return render(request, self.template_name, context)
     
     def get_context_data(self, *args, **kwargs):
