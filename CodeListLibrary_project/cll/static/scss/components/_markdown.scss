@@ -1,0 +1,23 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+/// Markdown editor
+///   @desc Markdown editor panel for create/update pages
+.markdown-editor {
+  height: 300px;
+  overflow-y: scroll;
+  border: 1px solid col(accent-dark);
+  border-bottom-left-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+}
+
+/// Markdown commandbar
+///   @desc Markdown command bar - used for MDE within create/update pages
+.TMCommandBar {
+  border: 1px solid col(accent-dark) !important;
+  border-bottom: 0px !important;
+  border-top-left-radius: 0.25rem;
+  border-top-right-radius: 0.25rem;
+}

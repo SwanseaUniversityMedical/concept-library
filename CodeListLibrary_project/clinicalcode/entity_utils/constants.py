@@ -1,4 +1,5 @@
 from enum import Enum
+from django.contrib.auth.models import User
 
 class ENTITY_STATUS(int, Enum):
     '''
@@ -23,6 +24,14 @@ class GROUP_PERMISSIONS(int, Enum):
     NONE = 1
     VIEW = 2
     EDIT = 3
+
+class FORM_METHODS(str, Enum):
+    '''
+        Describes form method, i.e. to create or update an entity
+        Used by both template and view to modify behaviour
+    '''
+    CREATE = 1
+    UPDATE = 2
 
 '''
     Entity render modifier(s)
@@ -93,6 +102,13 @@ CREATE_WIZARD_SECTION_END = 'components/create/section/section_end.html'
 CREATE_WIZARD_INPUT_DIR = 'components/create/inputs'
 
 '''
+    Used to strip userdata from models when JSONifying them
+        e.g. user account, user profile, membership
+'''
+USERDATA_MODELS = [str(User)]
+STRIPPED_FIELDS = ['SearchVectorField']
+
+'''
     [!] Note: Could be moved once we determine who has responsibility to create/edit FieldTypes.json
               and where it should be located
     
@@ -135,7 +151,7 @@ field_types = {
         },
         "definition": {
             "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-            "input": "textarea"
+            "input": "markdown"
         },
         "author": {
             "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",

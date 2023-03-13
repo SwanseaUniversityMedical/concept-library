@@ -6,10 +6,11 @@ from django.templatetags.static import static
 from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
+from django.db.models.query import QuerySet
 
 import re
 
-from ..entity_utils import template_utils, search_utils, constants
+from ..entity_utils import template_utils, search_utils, model_utils, constants
 from ..models.GenericEntity import GenericEntity
 
 register = template.Library()
@@ -54,6 +55,10 @@ def render_pagination(context, *args, **kwargs):
         'has_next': page_obj.has_next(),
         'pages': page_items
     }
+
+@register.filter(name='jsonify')
+def jsonify(value):
+    return model_utils.jsonify_object(value)
 
 @register.filter(name='trimmed')
 def trimmed(value):
@@ -428,7 +433,7 @@ class EntityWizardSections(template.Node):
         try:
             html = render_to_string(**kwargs)
         except:
-            raise
+            return ''
         else:
             return html
 
@@ -442,8 +447,7 @@ class EntityWizardSections(template.Node):
         # We should be getting the FieldTypes.json related to the template
         field_types = constants.field_types
         for section in field_types.get('create_sections'):
-            html = self.__try_render_item(template_name=constants.CREATE_WIZARD_SECTION_START, request=request, context=context.flatten() | { 'section': section })
-            output += html
+            output += self.__try_render_item(template_name=constants.CREATE_WIZARD_SECTION_START, request=request, context=context.flatten() | { 'section': section })
 
             for field in section.get('fields'):
                 component = template_utils.try_get_content(field_types.get('components'), field)
@@ -470,11 +474,9 @@ class EntityWizardSections(template.Node):
                     component['value'] = ''
                 
                 uri = f'{constants.CREATE_WIZARD_INPUT_DIR}/{component.get("input")}.html'
-                html = self.__try_render_item(template_name=uri, request=request, context=context.flatten() | { 'component': component })
-                output += html
+                output += self.__try_render_item(template_name=uri, request=request, context=context.flatten() | { 'component': component })
 
-        html = render_to_string(template_name=constants.CREATE_WIZARD_SECTION_END, request=request, context=context.flatten() | { 'section': section })
-        output += html
+        output += render_to_string(template_name=constants.CREATE_WIZARD_SECTION_END, request=request, context=context.flatten() | { 'section': section })
         return output
     
     def render(self, context):
