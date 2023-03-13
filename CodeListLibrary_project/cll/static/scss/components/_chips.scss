@@ -18,6 +18,7 @@
   }
 
   &__name {
+    text-transform: uppercase;
     color: col(text-brightest);
 
     &-bold {

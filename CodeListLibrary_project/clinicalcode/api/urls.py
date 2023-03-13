@@ -414,30 +414,35 @@ if not settings.CLL_READ_ONLY:
 ############################################################################
 if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
     urlpatterns += [
-    # generic entity detail
-    # if only id is provided, get the latest version
-    url(r'^ge/(?P<pk>PH\d+)/detail/$',
-        GenericEntity.generic_entity_detail,
-        name='api_generic_entity_detail'),
-    url(r'^public/ge/(?P<pk>PH\d+)/detail/$',
-        GenericEntity.generic_entity_detail_PUBLIC,
-        name='api_generic_entity_detail_public'),
+        url(r'^ge/$',
+            GenericEntity.get_generic_entities,
+            name='api_generic_entity'),
 
-    # get specific version
-    url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/detail/$',
-        GenericEntity.generic_entity_detail,
-        name='api_generic_entity_detail_version'),
-    url(r'^public/ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/detail/$',
-        GenericEntity.generic_entity_detail_PUBLIC,
-        name='api_generic_entity_detail_version_public'),
+        # generic entity detail
+        # if only id is provided, get the latest version
+        url(r'^ge/(?P<primary_key>\w+)/detail/$',
+            GenericEntity.get_entity_detail,
+            name='api_generic_entity_detail'),
 
-    # show versions
-    url(r'^ge/(?P<pk>PH\d+)/get-versions/$',
-        GenericEntity.generic_entity_detail, {'get_versions_only': '1'},
-        name='get_generic_entity_versions'),
-    url(r'^public/ge/(?P<pk>PH\d+)/get-versions/$',
-        GenericEntity.generic_entity_detail_PUBLIC, {'get_versions_only': '1'},
-        name='get_generic_entity_versions_public'),
+        # get specific version
+        url(r'^ge/(?P<primary_key>PH\d+)/version/(?P<historical_id>\d+)/detail/$',
+            GenericEntity.get_entity_detail,
+            name='api_generic_entity_detail_by_version'),
+
+        # export field
+        url(r'^ge/(?P<primary_key>\w+)/export/(?P<field>\w+)/$',
+            GenericEntity.get_entity_detail,
+            name='get_generic_entity_field'),
+
+        # get specific version
+        url(r'^ge/(?P<primary_key>\w+)/version/(?P<historical_id>\d+)/export/(?P<field>\w+)/$',
+            GenericEntity.get_entity_detail,
+            name='get_generic_entity_field_by_version'),
+
+        # show versions
+        url(r'^ge/(?P<primary_key>\w+)/get-versions/$',
+            GenericEntity.get_generic_entity_version_history,
+            name='get_generic_entity_versions_public'),
     ]
 
 #======== Generic Entity create/update ===================
@@ -445,11 +450,10 @@ if not settings.CLL_READ_ONLY:
     if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
         urlpatterns += [
             url(r'^api_genericentity_create/$',
-                GenericEntity.api_genericentity_create,
+                GenericEntity.create_generic_entity,
                 name='api_genericentity_create'),
             url(r'^api_genericentity_update/$',
-                GenericEntity.api_genericentity_update,
+                GenericEntity.update_generic_entity,
                 name='api_genericentity_update'),
         ]    
-    
     

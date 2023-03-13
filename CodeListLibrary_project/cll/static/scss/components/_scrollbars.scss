@@ -17,13 +17,39 @@
   }
   
   &::-webkit-scrollbar-thumb {
-    background: var(--slim-scrollbar-color);
+    background: var(--slim-scrollbar-inactive-color);
     border-radius: var(--slim-scrollbar-radius);
     -webkit-border-radius: var(--slim-scrollbar-radius);
-    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--slim-scrollbar-active-color);
   }
   
   &::-webkit-scrollbar-thumb:window-inactive {
     background: col(clear);
+  }
+}
+
+/// Filter scrollbar
+///   @desc vertical scrollbar used for filters on search pages
+.filter-scrollbar {
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 12px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: col(accent-transparent);
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background: var(--slim-scrollbar-inactive-color);
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--slim-scrollbar-active-color);
   }
 }

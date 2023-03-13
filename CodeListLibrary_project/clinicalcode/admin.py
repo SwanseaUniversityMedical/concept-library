@@ -1,7 +1,12 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group, User
 
-from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource, Operator, Tag, Template)
+from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource, Operator, Tag)
+
+from .models.EntityClass import EntityClass
+from .models.GenericEntity import GenericEntity
+from .models.Template import Template
+from .forms.TemplateForm import TemplateAdminForm
 
 # from forms import GroupAdminForm
 # from django import forms
@@ -65,11 +70,45 @@ class CodingSystemAdmin(admin.ModelAdmin):
 
 @admin.register(Template)
 class TemplateAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'layout', 'description']  #'updated_by' 'created_by' , 'created', 'modified'
-    list_filter = ['layout']
+    readonly_fields = ['template_version']
+    list_display = ['id', 'name', 'description', 'template_version']
+    list_filter = ['name']
     search_fields = ['name']
     exclude = ['created_by', 'updated_by']
+    form = TemplateAdminForm
+
+    def save_model(self, request, obj, form, change):
+        '''
+            - Responsible for version history
+                -> template_version computed from JSONB data, never updated unless dictdiff and/or purposefully changed
+            - Responsible for computing the 'layout_order' field within the template definition
+                -> Iterates through the template prior to JSONB reordering and creates a 'layout_order' key [array, def. order] (Postgres stores arrays in semantic order)
+                -> Adds 'order' field to the template's individual fields
+        '''
+        if obj.definition is not None and 'fields' in obj.definition:
+            order = []
+            for field in obj.definition['fields']:
+                obj.definition['fields'][field]['order'] = len(order)
+                order.append(field)
+            obj.definition['layout_order'] = order
+            
+            version = obj.definition.get('version', None)
+            if version != obj.template_version:
+                obj.template_version = version
+        
+        obj.save()
     
+@admin.register(GenericEntity)
+class GenericEntityAdmin(admin.ModelAdmin):
+    readonly_fields = ['template_version']
+    list_display = ['id', 'name', 'template', 'template_version']
+    exclude = []
+
+@admin.register(EntityClass)
+class EntityClassAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'entity_prefix', 'entity_count']
+    exclude = []
+
 #admin.site.register(CodingSystem)
 
 # ############################################

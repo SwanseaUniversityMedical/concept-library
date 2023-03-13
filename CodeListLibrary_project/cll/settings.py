@@ -189,6 +189,7 @@ if SHOWADMIN:
     ]
 
 INSTALLED_APPS = INSTALLED_APPS + [
+    'django.contrib.postgres',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',

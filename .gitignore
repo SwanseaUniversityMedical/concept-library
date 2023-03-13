@@ -5,3 +5,8 @@ CodeListLibrary_project/.settings/org.eclipse.core.resources.prefs
 .settings/org.eclipse.ltk.core.refactoring.prefs
 requirements/base - Django2.txt
 docs/~$plication Guide.docx
+**/docker/**/backup
+*.backup
+git.token
+CodeListLibrary_project/debug.log
+.vscode

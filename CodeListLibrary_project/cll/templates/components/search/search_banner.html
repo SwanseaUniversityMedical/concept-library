@@ -1,18 +1,15 @@
-{% load static %}
-{% load cl_extras %}
-
 <header class="main-header search-banner">
   <div class="search-banner__header">
     <h2 class="search-banner__title">Generic Entity</h2>
   </div>
   <div class="search-banner__container">
-    <fieldset class="search-container">
-      <input type="text" placeholder="Search..." value="{{ search_query }}" class="search-container__field bright-accent washed-outline" />
+    <fieldset class="search-container" data-controller="filter" data-class="searchbar" data-field="search">
+      <input type="text" placeholder="Search..." value="{{ search_query }}" id="searchbar" class="search-container__field bright-accent washed-outline" data-class="searchbar" data-field="search" />
     </fieldset>
   </div>
   <div class="search-banner__cards">
-    <div class="hstack-cards hstack-cards-justify-content-space-evenly">
-      <article class="referral-card referral-card-bannerised referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius">
+    <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
+      <article class="referral-card referral-card referral-card-bannerised referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius">
         <div class="referral-card__header">
           <a class="referral-card__title" href="#">My Collection <span class="referral-card__title-icon"></span></a>
         </div>

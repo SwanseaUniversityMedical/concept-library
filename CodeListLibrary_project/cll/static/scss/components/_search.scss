@@ -68,42 +68,46 @@
 .search-page {
   @include flex-row();
   flex-wrap: nowrap;
+  flex-grow: 1;
   margin: 2rem 0 0 0;
 }
 
-/// Search filters
-///   @desc Aside search bar
-.side-search-filters {
+/// Search results
+///   @desc list layout for entity search results
+.entity-search-results {
   @include flex-col();
-  display: none;
-  flex: 1 auto;
+  flex: 5 auto;
 
-  @include media(">tablet") {
-    display: flex;
-  }
-  
   &__header {
-    @include flex-col();
+    @include flex-row();
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
 
-    & > h3 {
-      padding: 0;
-      margin: 0;
-      font-size: 18px;
-      font-weight: bold;
-      line-height: 1;
-      color: col(text-darkest);
+    &-results {
+      @include flex-col();
+      & > h4 {
+        padding: 0;
+        margin: 0;
+        font-size: 18px;
+        font-weight: bold;
+        line-height: 1;
+        color: col(text-darkest);
+      }
+
+      & > p {
+        padding: 0;
+        margin: 0.5rem 0 0 0;
+      }
+    }
+
+    &-modifiers {
+      @include flex-row($gap: 1rem);
     }
   }
 
   &__container {
     @include flex-col();
+    flex-grow: 1;
   }
-}
-
-/// Search results
-///   @desc list layout for entity search results
-.search-results-list {
-  @include flex-col();
-  flex: 5 auto;
-
 }

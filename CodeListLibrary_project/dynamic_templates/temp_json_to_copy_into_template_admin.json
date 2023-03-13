@@ -4,29 +4,33 @@
 
      "fields": {
          "name": {
-             "active": "1",
-             "mandatory": "1",
+             "order": 1,
+             "active": true,
+             "mandatory": true,
              "field_type": "char_inputbox",
              "is_base_field": true,
              "side_menu": "Home"
          },
          "author": {
-             "active": "1",
-             "mandatory": "1",
+            "order": 2,
+             "active": true,
+             "mandatory": true,
              "field_type": "char_inputbox",
              "is_base_field": true
          },
          "phenotype_uuid": {
-             "active": "1",
-             "mandatory": "0",
+            "order": 3,
+             "active": true,
+             "mandatory": false,
              "field_type": "char_inputbox",
              "hide_if_empty": true,
-             "display_only_if_user_is_authenticated": true,
+             "requires_auth": true,
              "apply_code_style": true
          },
          "type": {
-             "active": "1",
-             "mandatory": "1",
+            "order": 4,
+             "active": true,
+             "mandatory": true,
              "field_type": "enum",
              "permitted_values": {
                  "1": "biomarker",
@@ -40,19 +44,22 @@
              "apply_badge_style": true
          },
          "data_sources": {
-             "active": "1",
-             "mandatory": "0",
+            "order": 5,
+             "active": true,
+             "mandatory": false,
              "field_type": "data_sources",
              "filterable": true
          },
          "valid_event_data_range": {
-             "active": "0",
-             "mandatory": "0",
+            "order": 6,
+             "active": false,
+             "mandatory": false,
              "field_type": "char_inputbox"
          },
          "sex": {
-             "active": "1",
-             "mandatory": "1",
+            "order": 7,
+             "active": true,
+             "mandatory": true,
              "field_type": "enum",
              "permitted_values": {
                  "1": "Male",
@@ -62,58 +69,67 @@
              "apply_badge_style": true
          },
          "agreement_date": {
-             "active": "1",
-             "mandatory": "0",
+            "order": 8,
+             "active": true,
+             "mandatory": false,
              "field_type": "date",
              "hide_if_empty": true
          },
          "coding_systems": {
-             "active": "1",
-             "mandatory": "0",
+            "order": 9,
+             "active": true,
+             "mandatory": false,
              "field_type": "coding_systems"
          },
          "collections": {
-             "active": "1",
-             "mandatory": "0",
+            "order": 10,
+             "active": true,
+             "mandatory": false,
              "field_type": "collections",
              "is_base_field": true
          },
          "tags": {
-             "active": "1",
-             "mandatory": "0",
+            "order": 11,
+             "active": true,
+             "mandatory": false,
              "field_type": "tags",
              "is_base_field": true
          },
          "definition": {
-             "active": "1",
-             "mandatory": "0",
+            "order": 12,
+             "active": true,
+             "mandatory": false,
              "field_type": "textarea_markdown",
              "is_base_field": true,
              "side_menu": "Definition"
          },
          "implementation": {
-             "active": "1",
-             "mandatory": "0",
+            "order": 13,
+             "active": true,
+             "mandatory": false,
              "field_type": "textarea_markdown",
              "is_base_field": true,
              "hide_if_empty": true,
              "side_menu": "Implementation"
          },
          "phenoflowid": {
-             "active": "1",
-             "mandatory": "0",
+            "order": 14,
+             "active": true,
+             "mandatory": false,
              "field_type": "phenoflowid"
          },
          "publications": {
-             "active": "1",
-             "mandatory": "0",
+            "order": 15,
+             "active": true,
+             "mandatory": false,
              "field_type": "char_list_of_inputboxes",
              "is_base_field": true,
              "side_menu": "Publications"
          },
          "validation": {
-             "active": "1",
-             "mandatory": "0",
+            "order": 16,
+             "active": true,
+             "mandatory": false,
              "field_type": "textarea_markdown",
              "is_base_field": true,
              "do_not_show_in_production": true,
@@ -121,21 +137,24 @@
              "hide_if_empty": true
          },
          "citation_requirements": {
-             "active": "0",
-             "mandatory": "0",
+            "order": 17,
+             "active": false,
+             "mandatory": false,
              "field_type": "textarea",
              "is_base_field": true,
              "hide_if_empty": true
          },
          "concept_informations": {
-             "active": "1",
-             "mandatory": "0",
+            "order": 18,
+             "active": true,
+             "mandatory": false,
              "field_type": "concept_informations",
              "side_menu": "Clinical Code lists"
          },
          "source_reference": {
-             "active": "0",
-             "mandatory": "0",
+            "order": 19,
+             "active": false,
+             "mandatory": false,
              "field_type": "char_inputbox",
              "hide_if_empty": true
          }
