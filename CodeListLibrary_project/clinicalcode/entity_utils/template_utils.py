@@ -84,7 +84,7 @@ def get_layout_field(layout, field, default=None):
         if fields is not None:
             return try_get_content(fields, field, default)
     
-    return default
+    return try_get_content(layout, field, default)
 
 def get_ordered_definition(definition, clean_fields=False):
     '''
@@ -245,6 +245,9 @@ def get_template_sourced_values(template, field, default=None):
 
             if 'filter' in source_info:
                 query = {**source_info['filter']}
+            else:
+                query = { }
+            
             
             queryset = model.objects.filter(Q(**query))
             if queryset.exists():

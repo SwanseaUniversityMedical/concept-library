@@ -1,18 +1,12 @@
 <div class="detailed-input-group fill">
-  <h3 class="detailed-input-group__title">Publications</h3>
-  <p class="detailed-input-group__description">Have you, or your research group, published a paper that uses or defines this phenotype?</p>
-  <fieldset class="hstack-radio-group">
-    <input class="radio-input" aria-label="Yes, I have published" type="radio" id="has-publication" name="phenotype-published">
-    <label for="has-publication">Yes</label>
-    <input class="radio-input" aria-label="No, there are no publications" type="radio" id="no-publication" name="phenotype-published" checked>
-    <label for="no-publication">No</label>
-  </fieldset>
-</div>
-
-<div class="detailed-input-group fill">
+  {% if not component.hide_input_details %}
   <h3 class="detailed-input-group__title">Publication Links</h3>
   <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-  <input class="text-input" aria-label="Publication link input" type="text" placeholder="e.g. https://www.doi.org/XX.XXXX/XXXXXXXXXX">
+  {% endif %}
+  {% autoescape on %}
+  <data for="{{ component.field_name }}" value="{{ component.value }}"></data>
+  {% endautoescape %}
+  <input class="text-input" aria-label="Publication link input" type="text" placeholder="e.g. https://www.doi.org/XX.XXXX/XXXXXXXXXX" data-class="publication-list" data-field="{{ component.field_name }}">
 
   <!-- Publication list -->
 

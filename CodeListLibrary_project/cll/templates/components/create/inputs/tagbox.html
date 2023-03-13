@@ -1,5 +1,13 @@
+{% load entity_renderer %}
 <div class="detailed-input-group fill">
+  {% if not component.hide_input_details %}
   <h3 class="detailed-input-group__title">{{ component.field_data.title }}</h3>
   <p class="detailed-input-group__description">{{ component.description }}</p>
+  {% endif %}
+  {% if component.options %}
+  {% autoescape on %}
+  <data for="{{ component.field_name }}" value='{{ component.options }}'></data>
+  {% endautoescape %}
+  {% endif %}
   <input class="text-input" aria-label="{{ component.field_data.title }}" type="text" id="entity-{{ component.field_name }}" name="entity-{{ component.field_name }}" placeholder="" data-class="tagify" data-value="{{ component.value|safe }}" data-field="{{ component.field_name }}">
 </div>

@@ -122,14 +122,19 @@ field_types = {
             "fields": ["concept_information"]
         },
         {
-            "title": "Publication",
+            "title": "Implementation",
             "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            "fields": ["publications"]
+            "fields": ["implementation"],
         },
         {
             "title": "Validation",
             "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
             "fields": ["validation"],
+        },
+        {
+            "title": "Publication",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            "fields": ["publications", "citation_requirements"]
         },
         {
             "title": "Permissions",
@@ -178,10 +183,20 @@ field_types = {
             "input": "clinical/concept"
         },
         "publications": {
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
             "input": "clinical/publication"
         },
+        "citation_requirements": {
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+            "input": "markdown"
+        },
+        "implementation": {
+            "input": "markdown",
+            "hide_input_details": True
+        },
         "validation": {
-            "input": "clinical/validation"
+            "input": "markdown",
+            "hide_input_details": True
         },
         "group": {
             "input": "group_select"

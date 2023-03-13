@@ -60,9 +60,12 @@
     </div>
   </main>
 
+  {% autoescape on %}
   <data data-owner="entity-creator" id="form-method" name="method" type="int" value="{{ form_method.value }}"></data>
-  <data data-owner="entity-creator" id="template-data" name="template" type="text/json" value='{{ template|jsonify|safe }}'></data>
+  <data data-owner="entity-creator" id="metadata-data" name="metadata" type="text/json" value='{{ metadata|jsonify }}'></data>
+  <data data-owner="entity-creator" id="template-data" name="template" type="text/json" value='{{ template|jsonify }}'></data>
   {% if entity is not None %}
-  <data data-owner="entity-creator" id="entity-data" name="entity" type="text/json" value='{{ entity|jsonify|safe }}'></data>
+  <data data-owner="entity-creator" id="entity-data" name="entity" type="text/json" value='{{ entity|jsonify }}'></data>
   {% endif %}
+  {% endautoescape %}
 {% endblock container %}
