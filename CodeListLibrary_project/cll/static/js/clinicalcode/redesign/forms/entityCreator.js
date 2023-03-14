@@ -1,8 +1,36 @@
 import Tagify from "../components/tagify.js";
 
+/**
+ * ENTITY_OPTIONS
+ * @desc Defines the ID for the form submission and save draft button(s)
+ */
+const ENTITY_OPTIONS = {
+  // Whether to prompt that the form has been modified when the user tries to leave
+  promptUnsaved: true,
+};
+
+/**
+ * ENTITY_DATEPICKER_FORMAT
+ * @desc Defines how the creator should format dates when producing form values
+ */
 const ENTITY_DATEPICKER_FORMAT = 'YYYY-MM-DD';
 
+/**
+ * ENTITY_FORM_BUTTONS
+ * @desc Defines the ID for the form submission and save draft button(s)
+ */
+const ENTITY_FORM_BUTTONS = {
+  'submit': 'submit-entity-btn',
+  'save': 'save-entity-btn'
+};
+
+/**
+ * ENTITY_HANDLERS
+ * @desc Map of methods to initialise JS-driven components for the form
+ *       as described by their data-class attribute
+ */
 const ENTITY_HANDLERS = {
+  // Generates a tagify component for an element
   'tagify': (element) => {
     const data = element.parentNode.querySelectorAll(`data[for="${element.getAttribute('data-field')}"]`);
     
@@ -46,6 +74,8 @@ const ENTITY_HANDLERS = {
 
     return tagbox;
   },
+
+  // Generates a datepicker (single or range) component for an element
   'datepicker': (element) => {
     const range = element.getAttribute('data-range');
     const datepicker = new Lightpick({
@@ -75,6 +105,8 @@ const ENTITY_HANDLERS = {
 
     return datepicker;
   },
+
+  // Generates a markdown editor component for an element
   'md-editor': (element) => {
     const toolbar = element.parentNode.querySelector(`div[for="${element.getAttribute('data-field')}"]`);
     const data = element.parentNode.querySelector(`data[for="${element.getAttribute('data-field')}"]`);
@@ -94,16 +126,34 @@ const ENTITY_HANDLERS = {
       editor: mde
     });
 
+    element.addEventListener('click', () => {
+      mde.e.focus();
+    });
+
     return {
       editor: mde,
       toolbar: bar,
     };
   },
-  'publication-list': (element) => {
 
+  // Generates a clinical publication list component for an element
+  'clinical-publication': (element) => {
+    console.log(element);
   },
-}
 
+  // Generates a clinical concept component for an element
+  'clinical-concept': (element) => {
+    console.log(element);
+  },
+};
+
+/**
+ * collectFormData
+ * @desc Method that retrieves all relevant <data/> elements with
+ *       its data-owner attribute pointing to the entity creator.
+ * @return {object} An object describing the data, with each key representing
+ *                  the name of the <data/> element
+ */
 const collectFormData = () => {
   const values = document.querySelectorAll('data[data-owner="entity-creator"]');
 
@@ -131,10 +181,23 @@ const collectFormData = () => {
   return result;
 }
 
+/**
+ * getTemplateFields
+ * @desc Attempts to retrieve the template's definition fields
+ * @param {object} template The template object as provided by context
+ * @return {object} The template's fields
+ */
 const getTemplateFields = (template) => {
   return template?.definition?.fields;
 }
 
+/**
+ * createFormHandler
+ * @desc Attempts to retrieve the template's definition fields
+ * @param {node} element The node associated with this handler
+ * @param {string} cls The data-class attribute value of that particular element
+ * @return {object} An interface to control the behaviour of the component
+ */
 const createFormHandler = (element, cls) => {
   if (!ENTITY_HANDLERS.hasOwnProperty(cls)) {
     return;
@@ -144,11 +207,76 @@ const createFormHandler = (element, cls) => {
 }
 
 class EntityCreator {
-  constructor(data) {
+  constructor(data, options) {
     this.data = data;
+    this.formChanged = false;
 
+    this.#buildOptions(options || { });
     this.#collectForm();
     this.#setUpForm();
+    this.#setUpSubmission();
+  }
+
+  /**
+   * getData
+   * @returns {object} the template, metadata, any assoc. entity and the form method
+   */
+  getData() {
+    return this.data;
+  }
+
+  /**
+   * getForm
+   * @returns {object} form describing the key/value pair of the form as defined
+   *                   by its template
+   */
+  getForm() {
+    return this.form;
+  }
+
+  /**
+   * getFormButtons
+   * @returns {object} returns the assoc. buttons i.e. save as draft, submit button
+   */
+  getFormButtons() {
+    return this.buttons;
+  }
+
+  /**
+   * getOptions
+   * @returns {object} the parameters used to build this form
+   */
+  getOptions() {
+    return this.options;
+  }
+
+  /**
+   * isDirty
+   * @returns whether the form has been modified and its data is now dirty
+   */
+  isDirty() {
+    return this.formChanged;
+  }
+
+  /**
+   * submitForm
+   * @returns submits the form to create/update an entity
+   */
+  submitForm() {
+    
+  }
+
+  /**
+   * saveForm
+   * @returns submits the form to save as a draft
+   */
+  saveForm() {
+    
+  }
+
+  // Private methods
+  #buildOptions(options) {
+    this.options = mergeObjects(options, ENTITY_OPTIONS);
   }
 
   #collectForm() {
@@ -183,6 +311,31 @@ class EntityCreator {
       }
 
       this.form[field].handler = createFormHandler(pkg.element, cls);
+    }
+
+    if (this.options.promptUnsaved) {
+      window.addEventListener('beforeunload', this.#handleOnLeaving.bind(this), { capture: true });
+    }
+  }
+
+  #setUpSubmission() {
+    this.formButtons = { }
+
+    const submitBtn = document.querySelector(`#${ENTITY_FORM_BUTTONS['submit']}`);
+    if (submitBtn) {
+      submitBtn.addEventListener('click', this.submitForm.bind(this));
+    }
+
+    const saveBtn = document.querySelector(`#${ENTITY_FORM_BUTTONS['save']}`);
+    if (saveBtn) {
+      saveBtn.addEventListener('click', this.saveForm.bind(this));
+    }
+  }
+
+  #handleOnLeaving(e) {
+    if (this.isDirty()) {
+      e.preventDefault();
+      return e.returnValue = '';
     }
   }
 
@@ -221,6 +374,7 @@ class EntityCreator {
 
 domReady.finally(() => {
   const data = collectFormData();
-  const creator = new EntityCreator(data);
-
+  window.entityForm = new EntityCreator(data, {
+    promptUnsaved: false,
+  });
 });
