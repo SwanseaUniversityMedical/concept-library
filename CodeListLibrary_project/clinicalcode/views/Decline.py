@@ -10,7 +10,7 @@ from django.template.loader import render_to_string
 # from django.core.urlresolvers import reverse_lazy, reverse
 from django.views.generic.base import TemplateResponseMixin, View
 
-from ..view_utils import utils_ge_validator
+from ..entity_utils import utils_ge_validator
 from ..permissions import *
 from .View import *
 from clinicalcode.constants import *
