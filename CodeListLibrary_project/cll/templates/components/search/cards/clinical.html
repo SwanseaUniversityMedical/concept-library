@@ -1,7 +1,7 @@
 {% load static %}
 {% load entity_renderer %}
 
-<article class="entity-card" data-entity-id="{{ entity.id }}" data-layout-id="{{ layout.id }}" aria-label="View {{ entity.name }}">
+<article class="entity-card" data-entity-id="{{ entity.id }}" data-entity-version-id="{{ entity.history_id }}" data-layout-id="{{ layout.id }}" aria-label="View {{ entity.name }}" onclick="displayCardDetails(this);">
   <div class="entity-card__header">
     <h3 class="entity-card__title">{{ entity.id }} - {{ entity.name }}</h3>
     <p class="entity-card__author">{{ entity.author }}</p>
