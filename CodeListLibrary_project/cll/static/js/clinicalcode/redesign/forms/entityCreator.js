@@ -1,38 +1,107 @@
-import FuzzyQuery from "../components/fuzzyQuery.js";
 import Tagify from "../components/tagify.js";
-import { stickifyTable } from "../components/tables.js";
 
-const updateTrackerStyle = (navbar, trackers, headerOffset) => {
-  for (let i = 0; i < trackers.length; i++) {
-    const tracker = trackers[i];
-    const offset = tracker.getBoundingClientRect().y - navbar.getBoundingClientRect().y + headerOffset;
-    const size = tracker.offsetHeight;
+const ENTITY_DATEPICKER_FORMAT = 'YYYY-MM-DD';
 
-    let progress = 0;
-    if (offset < 0) {
-      progress = Math.min((Math.abs(offset) / (size - (size/4))) * 100, 100);
-    }
-    tracker.style.setProperty('--progress-percentage', `${progress}%`);
-  }
-}
+const ENTITY_HANDLERS = {
+  'tagify': (element) => {
+    const data = element.parentNode.querySelectorAll(`data[for="${element.getAttribute('data-field')}"]`);
+    
+    let value = [];
+    let options = [];
+    for (let i = 0; i < data.length; ++i) {
+      const datafield = data[i];
+      const type = datafield.getAttribute('data-type')
+      try {
+        switch (type) {
+          case 'options': {
+            options = JSON.parse(datafield.innerText);
+          } break;
 
-const initStepsWizard = () => {
-  document.querySelectorAll('.steps-wizard__item').forEach(elem => {
-    elem.addEventListener('click', e => {
-      const target = document.querySelector(`#${elem.getAttribute('data-target')}`);
-      if (target) {
-        window.scroll({ top: target.offsetTop, left: 0, behavior: 'smooth' });
+          case 'value': {
+            value = JSON.parse(datafield.innerText);
+          } break;
+        }
       }
+      catch(e) {
+        console.warn(`Unable to parse datafield for Tagify element with target field: ${datafield.getAttribute('for')}`);
+      }
+    }
+
+    const tagbox = new Tagify(element, {
+      'autocomplete': true,
+      'useValue': false,
+      'allowDuplicates': false,
+      'restricted': true,
+      'items': options,
     });
-  });
-  
-  const navbar = document.querySelector('.page-navigation');
-  const header = document.querySelector('.main-header');
-  const trackers = document.querySelectorAll('.phenotype-progress__item');
-  document.addEventListener('scroll', e => {
-    updateTrackerStyle(navbar, trackers, header ? header.getBoundingClientRect().y / 2 : 0);
-  });
-  updateTrackerStyle(navbar, trackers, header ? header.getBoundingClientRect().y / 2 : 0);
+
+    for (let i = 0; i < value.length; ++i) {
+      const item = value[i];
+      if (typeof item !== 'object' || !item.hasOwnProperty('name') || !item.hasOwnProperty('value')) {
+        continue;
+      }
+
+      tagbox.addTag(item.name, item.value);
+    }
+
+    return tagbox;
+  },
+  'datepicker': (element) => {
+    const range = element.getAttribute('data-range');
+    const datepicker = new Lightpick({
+      field: element,
+      singleDate: range != 'true',
+      selectForward: true,
+      maxDate: moment()
+    });
+
+    let value = element.getAttribute('data-value');
+    if (range == 'true') {
+      value = value.split(/[\.\,\-]/)
+                  .map(date => moment(date.trim(), ['DD-MM-YYYY', 'MM-DD-YYYY']))
+                  .filter(date => date.isValid())
+                  .slice(0, 2)
+                  .sort((a, b) => -a.diff(b))
+                  .map(date => date.format(ENTITY_DATEPICKER_FORMAT));
+      
+      const [start, end] = value;
+      datepicker.setDateRange(end, start, true);
+    } else {
+      value = moment(value, ['DD-MM-YYYY', 'MM-DD-YYYY']);
+      value = value.isValid() ? value : moment();
+      value = value.format(ENTITY_DATEPICKER_FORMAT);
+      datepicker.setDate(value, true);
+    }
+
+    return datepicker;
+  },
+  'md-editor': (element) => {
+    const toolbar = element.parentNode.querySelector(`div[for="${element.getAttribute('data-field')}"]`);
+    const data = element.parentNode.querySelector(`data[for="${element.getAttribute('data-field')}"]`);
+
+    let value = data.innerText;
+    if (isStringEmpty(value) || isStringWhitespace(value)) {
+      value = ' ';
+    }
+
+    const mde = new TinyMDE.Editor({
+      element: element,
+      content: value
+    });
+
+    const bar = new TinyMDE.CommandBar({
+      element: toolbar,
+      editor: mde
+    });
+
+    return {
+      editor: mde,
+      toolbar: bar,
+    };
+  },
+  'publication-list': (element) => {
+
+  },
 }
 
 const collectFormData = () => {
@@ -44,7 +113,7 @@ const collectFormData = () => {
     const name = data.getAttribute('name');
     const type = data.getAttribute('type');
 
-    let value = data.getAttribute('value');
+    let value = data.innerText;
     switch (type) {
       case 'text/array':
       case 'text/json': {
@@ -67,7 +136,11 @@ const getTemplateFields = (template) => {
 }
 
 const createFormHandler = (element, cls) => {
-  console.log(cls);
+  if (!ENTITY_HANDLERS.hasOwnProperty(cls)) {
+    return;
+  }
+
+  return ENTITY_HANDLERS[cls](element);
 }
 
 class EntityCreator {
@@ -109,7 +182,7 @@ class EntityCreator {
         continue;
       }
 
-      this.form.handler = createFormHandler(pkg.element, cls);
+      this.form[field].handler = createFormHandler(pkg.element, cls);
     }
   }
 
@@ -130,17 +203,23 @@ class EntityCreator {
 
   #getFieldInitialValue(field) {
     const entity = this.data?.entity;
-    if (!entity || !entity?.definition.hasOwnProperty(field)) {
-      return null;
+    if (!entity) {
+      return;
+    }
+
+    if (entity.hasOwnProperty(field)) {
+      return entity[field];
+    }
+
+    if (!entity?.template_data.hasOwnProperty(field)) {
+      return;
     }
     
-    return entity.definition[field];
+    return entity.template_data[field];
   }
 }
 
 domReady.finally(() => {
-  initStepsWizard();
-
   const data = collectFormData();
   const creator = new EntityCreator(data);
 

@@ -156,7 +156,8 @@ class CreateEntityView(TemplateView):
     @method_decorator([never_cache, login_required], name='dispatch')
     def post(self, request, *args, **kwargs):
         '''
-            @desc Handles form submission on creating or updating an entity
+            @desc Handles:
+                - form submission on creating or updating an entity
         '''
         context = self.get_context_data(*args, **kwargs)
 
