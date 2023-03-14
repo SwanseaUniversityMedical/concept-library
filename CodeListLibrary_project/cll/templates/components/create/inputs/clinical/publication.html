@@ -3,11 +3,8 @@
   <h3 class="detailed-input-group__title">Publication Links</h3>
   <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
   {% endif %}
-  {% autoescape on %}
-  <data for="{{ component.field_name }}" value="{{ component.value }}"></data>
-  {% endautoescape %}
+  <data for="{{ component.field_name }}">{{ component.value }}</data>
   <input class="text-input" aria-label="Publication link input" type="text" placeholder="e.g. https://www.doi.org/XX.XXXX/XXXXXXXXXX" data-class="clinical-publication" data-field="{{ component.field_name }}">
-
-  <!-- Publication list -->
-
+  <div data-controller="clinical-publication-list">
+  </div>
 </div>
