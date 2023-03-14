@@ -52,11 +52,15 @@
 
         <section class="phenotype-creation__completed" id="completed-section">
           <div class="phenotype-creation__completed-row">
-            <button class="secondary-btn text-accent-darkest bold washed-accent" aria-label="Save draft" id="save-draft">
+            <button class="secondary-btn text-accent-darkest bold washed-accent" aria-label="Save Draft" id="save-entity-btn">
               Save as Draft
             </button>
-            <button class="primary-btn text-accent-darkest bold tertiary-accent icon create-icon sweep-left" aria-label="Create Phenotype" id="create-phenotype">
-              Create Phenotype
+            <button class="primary-btn text-accent-darkest bold tertiary-accent icon create-icon sweep-left" aria-label="Create Entity" id="submit-entity-btn">
+              {% if form_method.value == '1' %}
+              Create Entity
+              {% else %}
+              Update Entity
+              {% endif %}
             </button>
           </div>
         </section>

@@ -170,7 +170,7 @@
       "field_type": "concept",
       "active": true,
       "validation": {
-        "type": "int_array",
+        "type": "concept",
         "mandatory": false
       }
     },
