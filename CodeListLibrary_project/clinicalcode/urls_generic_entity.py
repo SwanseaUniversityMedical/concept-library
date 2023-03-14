@@ -24,26 +24,31 @@ urlpatterns = []
  
 if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
     urlpatterns += [       
-        url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/detail/$',
-            GenericEntity.generic_entity_detail,
-            name='generic_entity_history_detail'),
-
-
-        url(r'^ge/(?P<pk>PH\d+)/(?P<history_id>\d+)/publish/$',Publish.Publish.as_view(),name='generic_entity_publish'),
-
-        url(r'^ge/(?P<pk>PH\d+)/(?P<history_id>\d+)/decline/$',Decline.EntityDecline.as_view(),name='generic_entity_decline'),
-
-
-        url(r'^ge/(?P<pk>PH\d+)/(?P<history_id>\d+)/submit/$',Publish.RequestPublish.as_view(),name='generic_entity_request_publish'),
-            
+      
         url(r'^search/$', GenericEntity.EntitySearchView.as_view(), name='entity_search_page'),
 
         url(r'^ge/create/$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
         url(r'^ge/run-stats/$', GenericEntity.EntityStatisticsView.as_view(), name='run_entity_statistics'),
 
-        url(r'^ge/(?P<pk>PH\d+)/uniquecodesbyversion/(?P<phenotype_history_id>\d+)/concept/C(?P<target_concept_id>\d+)/(?P<target_concept_history_id>\d+)/$',
+        
+        url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/detail/$', GenericEntity.generic_entity_detail, name='generic_entity_history_detail'),
+
+        url(r'^ge/(?P<pk>PH\d+)/uniquecodesbyversion/(?P<history_id>\d+)/concept/C(?P<target_concept_id>\d+)/(?P<target_concept_history_id>\d+)/$',
             GenericEntity.phenotype_concept_codes_by_version,
             name='ge_phenotype_concept_codes_by_version'),
+            
+        url(r'^ge/(?P<pk>PH\d+)/(?P<history_id>\d+)/publish/$',Publish.Publish.as_view(),name='generic_entity_publish'),
+        url(r'^ge/(?P<pk>PH\d+)/(?P<history_id>\d+)/decline/$',Decline.EntityDecline.as_view(),name='generic_entity_decline'),
+        url(r'^ge/(?P<pk>PH\d+)/(?P<history_id>\d+)/submit/$',Publish.RequestPublish.as_view(),name='generic_entity_request_publish'),
+        
+        url(r'^he/(?P<pk>PH\d+)/export/codes/$', GenericEntity.history_phenotype_codes_to_csv, name='ge_latestVersion_phenotype_codes_to_csv'),
+        url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/export/codes/$', GenericEntity.history_phenotype_codes_to_csv, name='ge_history_phenotype_codes_to_csv'),   
+
+        # Example - remove at production
+        url(r'^ge/example/$', GenericEntity.ExampleSASSView.as_view(), name='example_phenotype'),
+        url(r'^search/temp/$', GenericEntity.generic_entity_list_temp, name='generic_entity_list_temp'),
+
+
     ]
 
     # for admin(developers) to migrate phenotypes into dynamic template

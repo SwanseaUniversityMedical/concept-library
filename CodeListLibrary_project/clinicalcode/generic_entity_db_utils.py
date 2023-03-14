@@ -32,7 +32,6 @@ from . import utils, tasks
 from .models import *
 from .permissions import *
 from .constants import *
-from clinicalcode.models import Template
 from clinicalcode import db_utils
 
 #--------- Order queries ---------------
@@ -442,17 +441,52 @@ def get_visible_live_or_published_generic_entity_versions(request,
 
 
 
-def get_entity_full_template_data(entity_record, template_id):
+def get_phenoflow_url(pheno_flow_id):
+    """
+    return phenoflow_url combined with the id
+    """
+    return "https://kclhi.org/phenoflow/phenotype/download/" + str(pheno_flow_id)
+
+def get_base_template_definition():
+    """
+    """
+    return BASE_TEMPLATE
+    
+    
+def get_template_definition(template_id, template_version):
+    """
+    """
+    template_obj = Template.objects.get(pk=template_id)
+    template_history = template_obj.history.filter(template_version=template_version).first()
+    template_definition = template_history.definition
+    entity_class = template_history.entity_class.name
+    
+    base_template = get_base_template_definition()['base_fields']
+    
+    field_definitions = template_definition['fields']
+    ordered_field_definitions = {'fields': {}}
+    for f in template_definition['layout_order']:
+        field_name = f
+        field_definition = field_definitions[f]
+        #for (field_name, field_definition) in field_definitions.items():
+        if 'is_base_field' in field_definition and field_definition['is_base_field'] == True:
+            ordered_field_definitions['fields'][field_name] = field_definition | base_template[field_name]
+        else:
+            ordered_field_definitions['fields'][field_name] = field_definition 
+    
+    template_definition['fields'] = ordered_field_definitions['fields']
+    return template_definition, entity_class
+    
+def get_entity_full_template_data(entity_record, template_id, return_queryset_as_list=False):
     """
     return the entity full data based on the template,
     Add a 'data' key which has all data based on the template ordered
     """
-    template = Template.objects.get(pk=template_id)
-    definition = json.loads(template.definition)
+    template_definition, entity_class = get_template_definition(template_id, entity_record['template_version'])
     
     fields_data = {}
     
-    field_definitions = definition['fields']
+    field_definitions = template_definition['fields']
     for (field_name, field_definition) in field_definitions.items():
         is_base_field = False
         if 'is_base_field' in field_definition:
@@ -464,11 +498,15 @@ def get_entity_full_template_data(entity_record, template_id):
         else: # custom field
             fields_data[field_name] = field_definition | {'value': entity_record['template_data'][field_name]}
     
-        if 'permitted_values' in field_definition:
-            fields_data[field_name]['value'] = field_definition['permitted_values'][str(fields_data[field_name]['value'])]
+        if 'validation' in field_definition:
+            if 'options' in field_definition['validation']:
+                fields_data[field_name]['value'] = field_definition['validation']['options'][str(fields_data[field_name]['value'])]
 
         # html_id, to be used in HTml
         fields_data[field_name]['html_id'] = field_name.replace(' ', '')
+        
+        # field-type data
+        fields_data[field_name]['field_type_data'] = FIELD_TYPES[fields_data[field_name]['field_type']]
         
         # adjust for system_defined types
         # data sources
@@ -476,7 +514,10 @@ def get_entity_full_template_data(entity_record, template_id):
             data_sources = DataSource.objects.filter(pk=-1)
             entity_data_sources = fields_data[field_name]['value']
             if entity_data_sources:
-                data_sources = DataSource.objects.filter(pk__in=entity_data_sources)
+                if return_queryset_as_list:
+                    data_sources = list(DataSource.objects.filter(pk__in=entity_data_sources).values('datasource_id', 'name', 'url'))
+                else:
+                    data_sources = DataSource.objects.filter(pk__in=entity_data_sources)
                 fields_data[field_name]['value'] = data_sources
         
         # tags
@@ -484,7 +525,10 @@ def get_entity_full_template_data(entity_record, template_id):
             tags = Tag.objects.filter(pk=-1)
             entity_tags = fields_data[field_name]['value']
             if entity_tags:
-                tags = Tag.objects.filter(pk__in=entity_tags, tag_type=1)
+                if return_queryset_as_list:
+                    tags = list(Tag.objects.filter(pk__in=entity_tags, tag_type=1).values('id', 'description'))
+                else:
+                    tags = Tag.objects.filter(pk__in=entity_tags, tag_type=1)
                 fields_data[field_name]['value'] = tags
         
         # collections
@@ -492,18 +536,27 @@ def get_entity_full_template_data(entity_record, template_id):
             collections = Tag.objects.filter(pk=-1)
             entity_collections = fields_data[field_name]['value']
             if entity_collections:
-                collections = Tag.objects.filter(pk__in=entity_collections, tag_type=2)
+                if return_queryset_as_list:
+                    collections = list(Tag.objects.filter(pk__in=entity_collections, tag_type=2).values('id', 'description'))
+                else:
+                    collections = Tag.objects.filter(pk__in=entity_collections, tag_type=2)
                 fields_data[field_name]['value'] = collections
         
         # coding systems
-        if field_definition['field_type'] == 'coding_systems': 
+        if field_definition['field_type'] == 'coding_system': 
             coding_systems = CodingSystem.objects.filter(pk=-1)
             CodingSystem_ids = fields_data[field_name]['value']
             if CodingSystem_ids:
-                coding_systems = CodingSystem.objects.filter(pk__in=CodingSystem_ids)
+                if return_queryset_as_list:
+                    coding_systems = list(CodingSystem.objects.filter(pk__in=CodingSystem_ids).values('id', 'name'))
+                else:
+                    coding_systems = CodingSystem.objects.filter(pk__in=CodingSystem_ids)
                 fields_data[field_name]['value'] = coding_systems    
-
-
+        
+        # phenoflowid/URL
+        # make value include the URL
+        if field_definition['field_type'] == 'phenoflowid': 
+            fields_data[field_name]['value'] = get_phenoflow_url(entity_record['template_data'][field_name])
 
     # merge base & custom dict
     # entity_record['data'] = base_fields_data | custom_fields_data
@@ -516,7 +569,8 @@ def get_entity_full_template_data(entity_record, template_id):
     fields_data['publications']['value_highlighted'] = entity_record['publications_highlighted']
     fields_data['validation']['value_highlighted'] = entity_record['validation_highlighted']
         
-    entity_record['data'] = fields_data
+    entity_record['fields_data'] = fields_data
+    entity_record['entity_class'] = entity_class
     
     # now all data/template def is in entity_record['data']
     # so, delete unused items
@@ -537,7 +591,7 @@ def get_entity_full_template_data(entity_record, template_id):
 
     
     
-def get_historical_entity(history_id, highlight_result=False, q_highlight=None, include_template_data=True):
+def get_historical_entity(history_id, highlight_result=False, q_highlight=None, include_template_data=True, return_queryset_as_list=False):
    
     ''' Get historical generic entity based on a history id '''
 
@@ -582,23 +636,25 @@ def get_historical_entity(history_id, highlight_result=False, q_highlight=None, 
         SELECT 
         """ + highlight_columns + """
         hge.id,
-        hge.serial_id,
         hge.name,
-        hge.author,
-        hge.layout,
         hge.status,
-        hge.tags,
-        hge.collections,
+        hge.author,
         hge.definition,
         hge.implementation,
         hge.validation,
-        hge.publications,        
+        hge.publications,            
+        hge.tags,
+        hge.collections,    
         hge.citation_requirements,
-        hge.internal_comments,  
+        
 
         hge.template_id,
+        hge.template_version,
         hge.template_data::json,
-        
+         
+         
+        hge.internal_comments, 
+       
         hge.created,
         hge.created_by_id,
         hge.updated,
@@ -620,7 +676,7 @@ def get_historical_entity(history_id, highlight_result=False, q_highlight=None, 
         hge.history_user_id,
 
         ucb.username as created_by_username,
-        umb.username as modified_by_username,
+        umb.username as updated_by_username,
         uhu.username as history_user
         
         FROM clinicalcode_historicalgenericentity AS hge
@@ -646,34 +702,11 @@ def get_historical_entity(history_id, highlight_result=False, q_highlight=None, 
             
         # Add a 'data' key which has all data based on the template ordered
         if include_template_data:
-            full_template_data = get_entity_full_template_data(row_dict, row_dict['template_id'])
+            full_template_data = get_entity_full_template_data(row_dict, row_dict['template_id'], return_queryset_as_list)
             return full_template_data
         else:
             return row_dict
 
-def get_entity_layout(generic_entity_hitory):
-    """
-    return the entity layout title
-    """
-    
-    entity_layout = [t[1] for t in ENTITY_LAYOUT if t[0]==generic_entity_hitory['layout']][0]
-    return entity_layout
-    
-def get_entity_layout_category(generic_entity_history):
-    """
-    return the category of the entity layout i.e. phenotype, working set, ...
-    """
-    
-    entity_layout_id = generic_entity_history['layout']
-    entity_layout_category = 'unkwon'
-    if entity_layout_id in [1, 4, 5]:
-        entity_layout_category = 'phenotype'
-    elif entity_layout_id in [3]:
-        entity_layout_category = 'working set'
-    elif entity_layout_id in [2]:
-        entity_layout_category = 'concept'
-    
-    return entity_layout_category
 
 
 
@@ -896,14 +929,14 @@ def is_referred_from_search_page(request):
 # getGroupOfConceptsByPhenotypeId_historical
 def get_concept_ids_versions_of_historical_phenotype(phenotype_id, phenotype_history_id):
     '''
-        get concept_informations of the specified phenotype 
+        get concept_information of the specified phenotype 
         - from a specific version
 
     '''
     concept_id_version = []
-    concept_informations = GenericEntity.history.get(id=phenotype_id, history_id=phenotype_history_id).template_data['concept_informations']
-    if concept_informations:
-        for c in concept_informations:
+    concept_information = GenericEntity.history.get(id=phenotype_id, history_id=phenotype_history_id).template_data['concept_information']
+    if concept_information:
+        for c in concept_information:
             concept_id_version.append((c['concept_id'], c['concept_version_id']))
 
     return concept_id_version
@@ -1064,6 +1097,38 @@ def get_phenotype_concept_codes_by_version(request,
                             ]))))
 
     return codes
+
+
+
+def can_field_be_shown(field_data, is_authenticated, block_list={}):
+    '''
+        check is the field can be shown.
+        block_list example {"field_type": ["concept_informations"]}
+    '''
+    show = True
+    if 'active' in field_data and field_data['active'] == False:
+        show = False
+            
+    if 'hide_if_empty' in field_data and field_data['hide_if_empty'] == True:
+        if field_data['value'] == '':
+            show = False
+            
+    if 'do_not_show_in_production' in field_data and field_data['do_not_show_in_production'] == True:
+        if (not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC):
+            show = False
+
+    if 'requires_auth' in field_data and field_data['requires_auth'] == True:
+        if (not is_authenticated):
+            show = False
+            
+    if block_list:
+        for (key, block_fields) in block_list.items():
+            if key in field_data:
+                if field_data[key].lower() in [f.lower() for f in block_fields]:
+                    show = False
+        
+    return show
+
 
 
 

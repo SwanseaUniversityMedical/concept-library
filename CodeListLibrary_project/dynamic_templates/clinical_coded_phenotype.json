@@ -1,69 +1,127 @@
  {
-     "template_version": 1,
+     "version": 1,
      "base_template_version": 1,
+     "card_type": "clinical",
 
      "fields": {
          "name": {
-             "is_base_field": true
+             "is_base_field": true,
+             "side_menu": "Home"
          },
          "author": {
              "is_base_field": true
          },
          "phenotype_uuid": {
-             "active": "1",
-             "mandatory": "0",
-             "field_type": "char_inputbox",
-             "hide_if_empty": true,
-             "display_only_if_user_is_authenticated": true,
-             "apply_code_style": true
-         },
-         "type": {
-             "active": "1",
-             "mandatory": "1",
-             "field_type": "enum",
-             "permitted_values": {
-                 "1": "biomarker",
-                 "2": "disease or syndrome",
-                 "3": "drug",
-                 "4": "lifestyle risk factor",
-                 "5": "musculoskeletal",
-                 "6": "surgical procedure"
+             "title": "Phenotype UUID",
+             "field_type": "string_inputbox_code",
+             "active": true,
+             "requires_auth": true,
+             "validation": {
+                 "type": "string",
+                 "mandatory": false,
+                 "unique": true,
+                 "length": [0, 250]
              },
-             "filterable": true,
-             "apply_badge_style": true
-         },
-         "data_sources": {
-             "active": "1",
-             "mandatory": "0",
-             "field_type": "data_sources",
-             "filterable": true
-         },
-         "valid_event_data_range": {
-             "active": "0",
-             "mandatory": "0",
-             "field_type": "char_inputbox"
-         },
-         "sex": {
-             "active": "1",
-             "mandatory": "1",
-             "field_type": "enum",
-             "permitted_values": {
-                 "1": "Male",
-                 "2": "Female",
-                 "3": "Male/Female"
+             "search": {
+                 "api": "true"
              },
-             "apply_badge_style": true
-         },
-         "agreement_date": {
-             "active": "1",
-             "mandatory": "0",
-             "field_type": "date",
              "hide_if_empty": true
          },
-         "coding_systems": {
-             "active": "1",
-             "mandatory": "0",
-             "field_type": "coding_systems"
+         "type": {
+             "title": "Phenotype Type",
+             "field_type": "enum_badge",
+             "active": true,
+             "validation": {
+                 "type": "enum",
+                 "mandatory": true,
+                 "options": {
+                     "1": "Biomarker",
+                     "2": "Disease or syndrome",
+                     "3": "Drug",
+                     "4": "Lifestyle risk factor",
+                     "5": "Musculoskeletal",
+                     "6": "Surgical procedure"
+                 }
+             },
+             "search": {
+                 "filterable": true,
+                 "api": true
+             }
+         },
+         "data_sources": {
+             "title": "Data Sources",
+             "field_type": "data_sources",
+             "active": true,
+             "validation": {
+                 "type": "int_array",
+                 "mandatory": true,
+                 "source": {
+                     "table": "DataSource",
+                     "query": "id",
+                     "relative": "name"
+                 }
+             },
+             "search": {
+                 "filterable": true,
+                 "api": true
+             }
+         },
+         "event_date_range": {
+             "title": "Valid Event Date Range",
+             "field_type": "string_inputbox",
+             "active": false,
+             "validation": {
+                 "type": "string",
+                 "mandatory": false,
+                 "regex": "(?:\\d+\\/|\\d+)+-(?:\\d+\\/|\\d+)+"
+             }
+         },
+         "sex": {
+             "title": "Sex",
+             "field_type": "enum_badge",
+             "active": true,
+             "validation": {
+                 "type": "enum",
+                 "mandatory": true,
+                 "options": {
+                     "1": "Male",
+                     "2": "Female",
+                     "3": "Male/Female"
+                 }
+             },
+             "search": {
+                 "api": true
+             }
+         },
+         "agreement_date": {
+             "title": "Agreement Date",
+             "field_type": "date",
+             "active": true,
+             "validation": {
+                 "type": "string",
+                 "mandatory": false,
+                 "regex": "(0[1-9]|[12]\\d|30|31)\\/(0[1-9]|1[0-2])\\/(\\d{4})"
+             },
+             "hide_if_empty": true
+         },
+         "coding_system": {
+             "title": "Coding System",
+             "field_type": "coding_system",
+             "active": true,
+             "validation": {
+                 "type": "int_array",
+                 "mandatory": false,
+                 "computed": true,
+                 "source": {
+                     "table": "CodingSystem",
+                     "query": "id",
+                     "relative": "name"
+                 }
+             },
+             "search": {
+                 "filterable": true,
+                 "api": true
+             }
          },
          "collections": {
              "is_base_field": true
@@ -78,29 +136,47 @@
              "is_base_field": true
          },
          "phenoflowid": {
-             "active": "1",
-             "mandatory": "0",
-             "field_type": "phenoflowid"
+             "title": "Phenoflow ID",
+             "field_type": "phenoflowid",
+             "active": true,
+             "validation": {
+                 "type": "int",
+                 "mandatory": false
+             },
+             "search": {
+                 "api": true
+             }
          },
          "publications": {
              "is_base_field": true
          },
          "validation": {
-             "is_base_field": true
+             "is_base_field": true,
+             "do_not_show_in_production": true
          },
          "citation_requirements": {
              "is_base_field": true
          },
-         "concept_informations": {
-             "active": "1",
-             "mandatory": "0",
-             "field_type": "concept_informations",
+         "concept_information": {
+             "title": "Clinical Codes",
+             "field_typeXX": "concept",
+             "field_type": "concept_information",
+             "active": true,
+             "validation": {
+                 "type": "int_array",
+                 "mandatory": false
+             },
              "side_menu": "Clinical Code lists"
          },
          "source_reference": {
-             "active": "0",
-             "mandatory": "0",
-             "field_type": "char_inputbox",
+             "title": "Source Reference",
+             "field_type": "string_inputbox",
+             "active": false,
+             "validation": {
+                 "type": "string",
+                 "mandatory": false,
+                 "length": [0, 250]
+             },
              "hide_if_empty": true
          }
      }

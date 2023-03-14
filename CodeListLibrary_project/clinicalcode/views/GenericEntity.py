@@ -1,6 +1,6 @@
 '''
     ---------------------------------------------------------------------------
-    GENERICENTITY VIEW
+    GGENERIC-ENTITY VIEW
     ---------------------------------------------------------------------------
 '''
 import csv
@@ -25,7 +25,7 @@ from django.views.generic import DetailView, TemplateView
 from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import UpdateView
 
-from .. import generic_entity_db_utils
+from .. import generic_entity_db_utils, utils
 from ..models import *
 from ..permissions import *
 from .View import *
@@ -84,6 +84,16 @@ class EntitySearchView(TemplateView):
             
         return render(request, self.template_name, context)
 
+class ExampleSASSView(TemplateView):
+    template_name = 'clinicalcode/generic_entity/examples.html'
+
+    def get(self, request):
+        ctx = {
+
+        }
+
+        return render(request, self.template_name, context=ctx)
+
 class CreateEntityView(TemplateView):
     template_name = 'clinicalcode/generic_entity/create.html'
 
@@ -110,6 +120,50 @@ class EntityStatisticsView(TemplateView):
         return render(request, 'clinicalcode/admin/run_statistics.html', {
             'successMsg': ['Filter statistics for Concepts/Phenotypes saved'],
         })
+
+
+def generic_entity_list_temp(request):
+    '''
+        Display the list of phenotypes. 
+    '''
+    from django.core.paginator import EmptyPage, Paginator
+    
+    page = utils.get_int_value(request.GET.get('page', request.session.get('entity_page', 1)), request.session.get('phenotype_page', 1))
+    page_size = 20    
+ 
+    request.session['entity_page'] = page
+    
+    srch = generic_entity_db_utils.get_visible_live_or_published_generic_entity_versions(request,
+                                                                            get_live_and_or_published_ver=3,
+                                                                            search='',
+                                                                            author='',
+                                                                            exclude_deleted=True,
+                                                                            filter_cond=" 1=1 ",
+                                                                            search_name_only = False,
+                                                                            highlight_result = True
+                                                                            )
+    # create pagination
+    paginator = Paginator(srch,
+                          page_size,
+                          allow_empty_first_page=True)
+    try:
+        p = paginator.page(page)
+    except EmptyPage:
+        p = paginator.page(paginator.num_pages)
+
+    p_btns = utils.get_paginator_pages(paginator, p)
+
+
+    context = {
+        'page': page,
+        'page_size': str(20),
+        'page_obj': p,
+        'search_form': 'basic-form',
+        'p_btns': p_btns,
+        }
+    
+    return render(request, 'clinicalcode/generic_entity/search_temp.html', context)
+
 
 
 def generic_entity_detail(request, pk, history_id=None):
@@ -150,31 +204,14 @@ def generic_entity_detail(request, pk, history_id=None):
 
 
 ################################################
-    entity_layout = generic_entity_db_utils.get_entity_layout(generic_entity)
-    entity_layout_category = generic_entity_db_utils.get_entity_layout_category(generic_entity)
+    entity_class = generic_entity['entity_class']
         
-    side_menu = get_side_menu(request, generic_entity['data'])
+    side_menu = get_side_menu(request, generic_entity['fields_data'])
 
 
 
 
 ################################################
-
-
-
-    # ----------------------------------------------------------------------
-    concept_id_list = []
-    concept_hisoryid_list = []
-    concepts = Concept.history.filter(pk=-1).values('id', 'history_id', 'name', 'group')
-
-    if generic_entity['data']['concept_informations']:
-        #concept_informations = json.loads(generic_entity['data']['concept_informations'])
-        concept_informations = generic_entity['data']['concept_informations']['value']
-        concept_id_list = [x['concept_id'] for x in concept_informations]
-        concept_hisoryid_list = [x['concept_version_id'] for x in concept_informations]
-        concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).values('id', 'history_id', 'name', 'group')
-
-    concepts_id_name = json.dumps(list(concepts))
 
 
     is_latest_version = (int(history_id) == GenericEntity.objects.get(pk=pk).history.latest().history_id)
@@ -186,7 +223,7 @@ def generic_entity_detail(request, pk, history_id=None):
 
 
     children_permitted_and_not_deleted = True
-    error_dic = {}
+    error_dict = {}
     are_concepts_latest_version = True
     version_alerts = {}
 
@@ -203,10 +240,8 @@ def generic_entity_detail(request, pk, history_id=None):
          #                   and not GenericEntity.objects.get(pk=pk).is_deleted)
         user_allowed_to_create = allowed_to_create()
 
-        #children_permitted_and_not_deleted, error_dic = generic_entity_db_utils.chk_children_permission_and_deletion(request, GenericEntity, pk)
+        #children_permitted_and_not_deleted, error_dict = generic_entity_db_utils.chk_children_permission_and_deletion(request, GenericEntity, pk)
 
-        if is_latest_version:
-            are_concepts_latest_version, version_alerts = check_concept_version_is_the_latest(pk)
 
     else:
         can_edit = False
@@ -225,87 +260,25 @@ def generic_entity_detail(request, pk, history_id=None):
 
     # # history
     history = get_history_table_data(request, pk)
+   
+
+    # rmd 
+    if generic_entity['fields_data']['implementation'] is None:
+        generic_entity['fields_data']['implementation'] = ''
 
 
-    # how to show codelist tab
-    if request.user.is_authenticated:
-        component_tab_active = "active"
-        codelist_tab_active = ""
-        codelist = []
-        codelist_loaded = 0
-    else:
-        # published
-        component_tab_active = "active"  # ""
-        codelist_tab_active = ""  # "active"
-        codelist = generic_entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id) ## change
-        codelist_loaded = 1
-        
-    # codelist = generic_entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id)
-    # codelist_loaded = 1        
-
-    # rmd
-    if generic_entity['data']['implementation'] is None:
-        generic_entity['data']['implementation'] = ''
-
-            
-    conceptBrands = generic_entity_db_utils.getConceptBrands(request, concept_id_list)
-    concept_data = []
-    if concept_informations:
-        for c in concept_informations:
-            c['codingsystem'] = CodingSystem.objects.get(pk=Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).coding_system_id).name
-            c['code_attribute_header'] = Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).code_attribute_header
-
-            c['alerts'] = ''
-            if not are_concepts_latest_version:
-                if c['concept_version_id'] in version_alerts:
-                    c['alerts'] = version_alerts[c['concept_version_id']]
-
-            if not children_permitted_and_not_deleted:
-                if c['concept_id'] in error_dic:
-                    c['alerts'] += "<BR>- " + "<BR>- ".join(error_dic[c['concept_id']])
-
-            c['alerts'] = re.sub("Child ", "", c['alerts'], flags=re.IGNORECASE)
-
-            c['brands'] = ''
-            if c['concept_id'] in conceptBrands:
-                for brand in conceptBrands[c['concept_id']]:
-                    c['brands'] += "<img src='" + static('img/brands/' + brand + '/logo.png') + "' height='10px' title='" + brand + "' alt='" + brand + "' /> "
-
-            c['is_published'] = checkIfPublished(Concept, c['concept_id'], c['concept_version_id'])
-            c['name'] = concepts.get(id=c['concept_id'], history_id=c['concept_version_id'])['name']
-
-            c['codesCount'] = 0
-            if codelist:
-                c['codesCount'] = len([x['code'] for x in codelist if x['concept_id'] == 'C' + str(c['concept_id']) and x['concept_version_id'] == c['concept_version_id'] ])
-
-            c['concept_friendly_id'] = 'C' + str(c['concept_id'])
-            concept_data.append(c)
 
 
     context = {
         'side_menu': side_menu,  
-        'entity_layout': entity_layout,
-        'entity_layout_category': entity_layout_category,
+        'entity_class': entity_class,
         'entity': generic_entity,
-        'entity_data': generic_entity['data'],
+        'entity_fields': generic_entity['fields_data'],
         'history': history,
-
-          
-        
-        #'concept_informations': json.dumps(concept_informations),
-        'component_tab_active': component_tab_active,
-        'codelist_tab_active': codelist_tab_active,
-        'codelist': codelist,  # json.dumps(codelist)
-        'codelist_loaded': codelist_loaded,
-        'concepts_id_name': concepts_id_name,
-        'concept_data': concept_data,
-        
         
         'page_canonical_path': get_canonical_path_by_brand(request, GenericEntity, pk, history_id),
         
         
-        #'gender': gender,        
-        #'clinicalTerminologies': clinicalTerminologies,
         'user_can_edit': False,  # for now  #can_edit,
         'allowed_to_create': False,  # for now  #user_allowed_to_create,    # not settings.CLL_READ_ONLY,
         'user_can_export': user_can_export,
@@ -324,9 +297,11 @@ def generic_entity_detail(request, pk, history_id=None):
         'force_highlight_result':  ['0', '1'][generic_entity_db_utils.is_referred_from_search_page(request)]                              
     }
 
+    concept_dict = get_concept_data(request, pk, history_id, generic_entity, is_latest_version, children_permitted_and_not_deleted)
     return render(request, 
                   'clinicalcode/generic_entity/detail.html',
-                  context)
+                  context | concept_dict
+                )
 
 
 def get_side_menu(request, template_data):
@@ -349,7 +324,7 @@ def get_side_menu(request, template_data):
             if (not settings.IS_DEMO) and (not settings.IS_DEVELOPMENT_PC):
                 continue  
                      
-        if 'display_only_if_user_is_authenticated' in field_definition and field_definition['display_only_if_user_is_authenticated'] == True:
+        if 'requires_auth' in field_definition and field_definition['requires_auth'] == True:
             if not request.user.is_authenticated:
                 continue  
             
@@ -426,11 +401,94 @@ def get_history_table_data(request, pk):
     return historical_versions
    
    
+def get_concept_data(request, pk, history_id, generic_entity, is_latest_version, children_permitted_and_not_deleted):
+    """
+    get concept data from concept_informations
+    """
+    error_dict = {}
+    
+    concept_id_list = []
+    concept_hisoryid_list = []
+    concepts = Concept.history.filter(pk=-1).values('id', 'history_id', 'name', 'group')
+
+    if generic_entity['fields_data']['concept_information']:
+        concept_information = generic_entity['fields_data']['concept_information']['value']
+        concept_id_list = [x['concept_id'] for x in concept_information]
+        concept_hisoryid_list = [x['concept_version_id'] for x in concept_information]
+        concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).values('id', 'history_id', 'name', 'group')
+
+    concepts_id_name = json.dumps(list(concepts))
+    
+    if request.user.is_authenticated:
+        if is_latest_version:
+            are_concepts_latest_version, version_alerts = check_concept_version_is_the_latest(pk)
+    
+    # how to show codelist tab
+    if request.user.is_authenticated:
+        component_tab_active = "active"
+        codelist_tab_active = ""
+        codelist = []
+        codelist_loaded = 0
+    else:
+        # published
+        component_tab_active = "active"  # ""
+        codelist_tab_active = ""  # "active"
+        codelist = generic_entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id) ## change
+        codelist_loaded = 1
+        
+    # codelist = generic_entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id)
+    # codelist_loaded = 1    
+    
+    conceptBrands = generic_entity_db_utils.getConceptBrands(request, concept_id_list)
+    concept_data = []
+    if concept_information:
+        for c in concept_information:
+            c['codingsystem'] = CodingSystem.objects.get(pk=Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).coding_system_id).name
+            c['code_attribute_header'] = Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).code_attribute_header
+
+            c['alerts'] = ''
+            if not are_concepts_latest_version:
+                if c['concept_version_id'] in version_alerts:
+                    c['alerts'] = version_alerts[c['concept_version_id']]
+
+            if not children_permitted_and_not_deleted:
+                if c['concept_id'] in error_dict:
+                    c['alerts'] += "<BR>- " + "<BR>- ".join(error_dict[c['concept_id']])
+
+            c['alerts'] = re.sub("Child ", "", c['alerts'], flags=re.IGNORECASE)
+
+            c['brands'] = ''
+            if c['concept_id'] in conceptBrands:
+                for brand in conceptBrands[c['concept_id']]:
+                    c['brands'] += "<img src='" + static('img/brands/' + brand + '/logo.png') + "' height='10px' title='" + brand + "' alt='" + brand + "' /> "
+
+            c['is_published'] = checkIfPublished(Concept, c['concept_id'], c['concept_version_id'])
+            c['name'] = concepts.get(id=c['concept_id'], history_id=c['concept_version_id'])['name']
+
+            c['codesCount'] = 0
+            if codelist:
+                c['codesCount'] = len([x['code'] for x in codelist if x['concept_id'] == 'C' + str(c['concept_id']) and x['concept_version_id'] == c['concept_version_id'] ])
+
+            c['concept_friendly_id'] = 'C' + str(c['concept_id'])
+            concept_data.append(c)
+
+    ret_dict = {        
+        #'concept_information': json.dumps(concept_information),
+        'component_tab_active': component_tab_active,
+        'codelist_tab_active': codelist_tab_active,
+        'codelist': codelist,  # json.dumps(codelist)
+        'codelist_loaded': codelist_loaded,
+        'concepts_id_name': concepts_id_name,
+        'concept_data': concept_data,
+        }
+    
+    return ret_dict
+   
 @login_required
 # phenotype_conceptcodesByVersion
 def phenotype_concept_codes_by_version(request,
                                     pk,
-                                    phenotype_history_id,
+                                    history_id,
                                     target_concept_id = None,
                                     target_concept_history_id = None):
     '''
@@ -439,7 +497,7 @@ def phenotype_concept_codes_by_version(request,
         for a specific concept
         Parameters:     request    The request.
                         pk         The phenotype id.
-                        phenotype_history_id  The version id
+                        history_id  The version id
                         target_concept_id
                         target_concept_history_id
         Returns:        data       Dict with the codes. 
@@ -448,14 +506,14 @@ def phenotype_concept_codes_by_version(request,
     validate_access_to_view(request,
                             GenericEntity,
                             pk,
-                            set_history_id=phenotype_history_id)
+                            set_history_id=history_id)
 
     # here, check live version
     current_ph = GenericEntity.objects.get(pk=pk)
 
-    #     children_permitted_and_not_deleted, error_dic = db_utils.chk_children_permission_and_deletion(request,
+    #     children_permitted_and_not_deleted, error_dict = db_utils.chk_children_permission_and_deletion(request,
     #                                                                                                 GenericEntity, pk,
-    #                                                                                                 set_history_id=phenotype_history_id)
+    #                                                                                                 set_history_id=history_id)
     #     if not children_permitted_and_not_deleted:
     #         raise PermissionDenied
 
@@ -464,14 +522,14 @@ def phenotype_concept_codes_by_version(request,
 
     # --------------------------------------------------
 
-    codes = generic_entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, phenotype_history_id, target_concept_id, target_concept_history_id)
+    codes = generic_entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id, target_concept_id, target_concept_history_id)
 
     data = dict()
     data['form_is_valid'] = True
 
 
     # Get the list of concepts in the phenotype data
-    concept_ids_historyIDs = generic_entity_db_utils.get_concept_ids_versions_of_historical_phenotype(pk, phenotype_history_id)
+    concept_ids_historyIDs = generic_entity_db_utils.get_concept_ids_versions_of_historical_phenotype(pk, history_id)
 
     concept_codes_html = []
     for concept in concept_ids_historyIDs:
@@ -518,7 +576,7 @@ def phenotype_concept_codes_by_version(request,
 
 def check_concept_version_is_the_latest(phenotypeID):
     """
-    check live version of concepts in a phenotype concept_informations
+    check live version of concepts in a phenotype concept_information
     """
 
     phenotype = GenericEntity.objects.get(pk=phenotypeID)
@@ -526,10 +584,10 @@ def check_concept_version_is_the_latest(phenotypeID):
     is_ok = True
     version_alerts = {}
 
-    if not phenotype.template_data['concept_informations']:
+    if not phenotype.template_data['concept_information']:
         return is_ok, version_alerts
 
-    concepts_id_versionID = phenotype.template_data['concept_informations']
+    concepts_id_versionID = phenotype.template_data['concept_information']
 
     # loop for concept versions
     for c in concepts_id_versionID:
@@ -542,6 +600,7 @@ def check_concept_version_is_the_latest(phenotypeID):
     #         else:
     #             version_alerts[c_id] = ""
     return is_ok, version_alerts
+
 
 
 
@@ -568,6 +627,7 @@ class PhenotypeDelete(LoginRequiredMixin, HasAccessToEditPhenotypeCheckMixin, Te
     """
     # ToDo
     pass
+
 
 
 def history_phenotype_codes_to_csv(request, pk, history_id=None):
@@ -601,10 +661,10 @@ def history_phenotype_codes_to_csv(request, pk, history_id=None):
     # here, check live version
     current_ph = GenericEntity.objects.get(pk=pk)
 
-    if not is_published:
-        children_permitted_and_not_deleted, error_dic = generic_entity_db_utils.chk_children_permission_and_deletion(request, GenericEntity, pk, set_history_id=history_id)
-        if not children_permitted_and_not_deleted:
-            raise PermissionDenied
+    # if not is_published:
+    #     children_permitted_and_not_deleted, error_dict = db_utils.chk_children_permission_and_deletion(request, GenericEntity, pk, set_history_id=history_id)
+    #     if not children_permitted_and_not_deleted:
+    #         raise PermissionDenied
 
     if current_ph.is_deleted == True:
         raise PermissionDenied
@@ -713,6 +773,8 @@ def history_phenotype_codes_to_csv(request, pk, history_id=None):
             ])
 
     return response
+
+
 
 
 
