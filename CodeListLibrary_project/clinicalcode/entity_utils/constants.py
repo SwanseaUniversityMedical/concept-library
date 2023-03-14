@@ -206,6 +206,7 @@ field_types = {
             "hide_input_details": True
         },
         "group": {
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
             "input": "group_select"
         }
     }
@@ -364,6 +365,16 @@ metadata = {
         "search": {
             "filterable": True,
             "api": True
+        },
+        "is_base_field": True
+    },
+    "group": {
+        "title": "Group",
+        "field_type": "???",
+        "active": True,
+        "validation": {
+            "type": "int",
+            "mandatory": True
         },
         "is_base_field": True
     },

@@ -57,7 +57,7 @@ const ENTITY_HANDLERS = {
 
     const tagbox = new Tagify(element, {
       'autocomplete': true,
-      'useValue': false,
+      'useValue': true,
       'allowDuplicates': false,
       'restricted': true,
       'items': options,

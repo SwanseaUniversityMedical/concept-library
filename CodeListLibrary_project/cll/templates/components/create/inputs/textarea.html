@@ -4,6 +4,6 @@
   <p class="detailed-input-group__description">{{ component.description }}</p>
   {% endif %}
   {% autoescape on %}
-  <textarea class="text-area-input" aria-label="{{ component.field_data.title }}" id="entity-{{ component.field_name }}" rows="4" autocorrect="on" autocomplete="off" minlength="5" spellcheck="default" wrap="soft" pattern="w{1,}.*?" data-field="{{ component.field_name }}">{{ component.value }}</textarea>
+  <textarea class="text-area-input" aria-label="{{ component.field_data.title }}" id="entity-{{ component.field_name }}" rows="4" autocorrect="on" autocomplete="off" minlength="5" spellcheck="default" wrap="soft" pattern="w{1,}.*?" data-class="textarea" data-field="{{ component.field_name }}">{{ component.value }}</textarea>
   {% endautoescape %}
 </div>
