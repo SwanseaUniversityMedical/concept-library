@@ -463,6 +463,7 @@ class EntityWizardSections(template.Node):
                     field_data = template_utils.get_layout_field(template, field)
                 
                 if field_data is None:
+                    print(field_data)
                     continue
                 component['field_name'] = field
                 component['field_data'] = field_data
