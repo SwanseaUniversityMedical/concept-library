@@ -143,7 +143,7 @@ TYPE_CLINICAL_CODED_PHENOTYPE = ((BIOMARKER, 'Biomarker'),
                                  )
 
 #-----------------------------------
-BASE_TEMPLATE =  {
+BASE_TEMPLATE_XX =  {
      "template_version": 1,
      "base_fields": {
          "name": {
@@ -211,7 +211,7 @@ BASE_TEMPLATE =  {
      }
  }
 
-FIELD_TYPES = {
+FIELD_TYPES_XX = {
 
     "int": {
         "data_type": "int",

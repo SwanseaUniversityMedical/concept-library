@@ -130,10 +130,12 @@
              "is_base_field": true
          },
          "definition": {
-             "is_base_field": true
+             "is_base_field": true,
+             "side_menu": "Definition"
          },
          "implementation": {
-             "is_base_field": true
+             "is_base_field": true,
+             "side_menu": "Implementation"
          },
          "phenoflowid": {
              "title": "Phenoflow ID",
@@ -148,14 +150,18 @@
              }
          },
          "publications": {
-             "is_base_field": true
+             "is_base_field": true,
+             "side_menu": "Publications"
          },
          "validation": {
              "is_base_field": true,
+             "side_menu": "Validation",
+             "hide_if_empty": true,
              "do_not_show_in_production": true
          },
          "citation_requirements": {
-             "is_base_field": true
+             "is_base_field": true,
+             "hide_if_empty": true
          },
          "concept_information": {
              "title": "Clinical Codes",

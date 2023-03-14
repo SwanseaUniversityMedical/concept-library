@@ -2,7 +2,7 @@
     --------------------------------------------------------------------------
     DB Utilities
 
-    --------------------------------------------------------------------------
+    -------------------------------------------------------------------------- generic_entity_db_utils
 '''
 import ast
 import datetime
@@ -28,76 +28,19 @@ from django.core.mail import BadHeaderError, EmailMultiAlternatives
 from django.db.models.functions import Lower
 from string import ascii_letters
 
-from . import utils, tasks
-from .models import *
-from .permissions import *
-from .constants import *
+from clinicalcode import utils
+from clinicalcode.models import *
+from ..permissions import *
 from clinicalcode import db_utils
+from clinicalcode.entity_utils import constants
 
 #--------- Order queries ---------------
 def get_order_from_parameter(parameter):
+    from clinicalcode.constants import concept_order_queries, concept_order_default
     if parameter in concept_order_queries:
         return concept_order_queries[parameter]
     return concept_order_default
 
-
-#------------ API data validation-------
-
-parse_ident = lambda x: int(str(x).strip(ascii_letters))
-
-def validate_api_entry(item, data, expected_type=str):
-    """ Attempts to parse the item in data as the expected type
-    
-        Returns:
-            1. any[true, false, none]
-                -> True if successful
-                -> False if unable to parse
-                -> None if item[data] is not indexable
-            2. result
-                -> returns parsed value if successful
-                -> returns a description of the error if failure occurs
-    """
-    if item in data:
-        try:
-            datapoint = data[item]
-            datapoint = expected_type(datapoint)
-            return True, datapoint
-        except Exception as e:
-            return False, f"Item '{item}' with value '{data[item]}' could not be parsed as type {expected_type}"
-    return None, f"Item '{item}' was null"
-
-def apply_entry_if_valid(element, key, data, item, expected_type=str, predicate=None, errors_dict=None):
-    """ If the data[item] is a valid type, will set the attribute of the object
-        If a predicate is given as a parameter, the data[item] must also pass the defined clause
-        If an error_dict is passed, the ValueError will be added to the dict
-
-        Returns:
-            1. boolean
-                -> describes the success state of the method
-            2. any[value, ValueError]
-                -> returns the value if successful
-                -> returns a descriptive value error on failure
-    """
-    success, res = validate_api_entry(item, data, expected_type)
-    if success is True:
-        if predicate is None or predicate(res):
-            setattr(element, key, data[item])
-            return True, res
-        else:
-            issue = ValueError(f"Item '{item}' with value '{data[item]}' failed predicate clause")
-            if errors_dict is not None:
-                errors_dict[key] = str(issue)
-            return False, issue
-    elif success is False:
-        if errors_dict is not None:
-            errors_dict[key] = res
-        return False, ValueError(res)
-    else:
-        if errors_dict is not None:
-            errors_dict[key] = res
-        return False, ValueError(res)
-
-#---------------------------------------
 
 def get_can_edit_subquery(request):
     # check can_edit in SQl - faster way
@@ -450,7 +393,7 @@ def get_phenoflow_url(pheno_flow_id):
 def get_base_template_definition():
     """
     """
-    return BASE_TEMPLATE
+    return constants.metadata
     
     
 def get_template_definition(template_id, template_version):
@@ -461,16 +404,15 @@ def get_template_definition(template_id, template_version):
     template_definition = template_history.definition
     entity_class = template_history.entity_class.name
     
-    base_template = get_base_template_definition()['base_fields']
+    base_template = get_base_template_definition()
     
     field_definitions = template_definition['fields']
     ordered_field_definitions = {'fields': {}}
     for f in template_definition['layout_order']:
         field_name = f
         field_definition = field_definitions[f]
-        #for (field_name, field_definition) in field_definitions.items():
         if 'is_base_field' in field_definition and field_definition['is_base_field'] == True:
-            ordered_field_definitions['fields'][field_name] = field_definition | base_template[field_name]
+            ordered_field_definitions['fields'][field_name] = base_template[field_name] | field_definition
         else:
             ordered_field_definitions['fields'][field_name] = field_definition 
     
@@ -506,7 +448,7 @@ def get_entity_full_template_data(entity_record, template_id, return_queryset_as
         fields_data[field_name]['html_id'] = field_name.replace(' ', '')
         
         # field-type data
-        fields_data[field_name]['field_type_data'] = FIELD_TYPES[fields_data[field_name]['field_type']]
+        fields_data[field_name]['field_type_data'] = constants.FIELD_TYPES[fields_data[field_name]['field_type']]
         
         # adjust for system_defined types
         # data sources
@@ -558,8 +500,6 @@ def get_entity_full_template_data(entity_record, template_id, return_queryset_as
         if field_definition['field_type'] == 'phenoflowid': 
             fields_data[field_name]['value'] = get_phenoflow_url(entity_record['template_data'][field_name])
 
-    # merge base & custom dict
-    # entity_record['data'] = base_fields_data | custom_fields_data
 
     # update base fields for highlighting
     fields_data['name']['value_highlighted'] = entity_record['name_highlighted']
@@ -709,163 +649,6 @@ def get_historical_entity(history_id, highlight_result=False, q_highlight=None, 
 
 
 
-
-def apply_filter_condition(query, selected=None, conditions='', data=None, is_authenticated_user=True):
-
-    if query not in filter_queries:
-        return None, conditions
-    
-    qcase = filter_queries[query]
-    if qcase == 0:
-        # Tags, Collections, Datasource, Clin. Terms (CodingSystem for Pheno)
-        if query not in filter_query_model:
-            return None, conditions
-
-        sanitised_list = utils.expect_integer_list(selected)
-        search_list = [str(i) for i in sanitised_list]
-        items = filter_query_model[query].objects.filter(id__in=search_list)
-        search_list = list(items.values_list('id', flat=True))
-        search_list = [str(i) for i in search_list]
-
-        if len(search_list) > 0:
-            conditions += " AND " + query + " && '{" + ','.join(search_list) + "}' "
-        return items, conditions
-    elif qcase == 1:
-        # CodingSystem
-        if query not in filter_query_model:
-            return None, conditions
-
-        sanitised_list = utils.expect_integer_list(selected)
-        search_list = [str(i) for i in sanitised_list]
-        items = filter_query_model[query].objects.filter(id__in=search_list)
-        search_list = list(items.values_list('id', flat=True))
-        search_list = [str(i) for i in search_list]
-
-        if len(search_list) > 0:
-            conditions += " AND " + query + " in (" + ','.join(search_list) + ") "
-        return items, conditions
-    elif qcase == 2:
-        # Phenotype type (string field?)
-        if data is None:
-            return [], conditions
-
-        selected_list = [str(t) for t in selected.split(',')]
-        selected_list = list(set(data).intersection(set(selected_list)))
-        if len(selected_list) > 0:
-            conditions += " AND lower(type) IN('" + "', '".join(selected_list) + "') "
-        return selected_list, conditions
-    elif qcase == 3:
-        # Workingset type (enum, as int field?)
-        if data is None:
-            return [], conditions
-        
-        selected_list = utils.expect_integer_list(selected)
-        selected_list = [str(i) for i, v in enumerate(data) if v in selected_list]
-        if len(selected_list) > 0:
-            conditions += " AND type in (" + ','.join(selected_list) + ") "
-        return selected_list, conditions
-    elif qcase == 4:
-        # Daterange
-        if isinstance(selected['start'][0], datetime.datetime) and isinstance(selected['end'][0], datetime.datetime):
-            if is_authenticated_user:
-                date_field = "modified"
-            else:  
-                date_field = "publish_date"
-
-            conditions += " AND (" + date_field + " >= '" + selected['start'][1] + "' AND " + date_field + " <= '" + selected['end'][1] + "') "
-        return selected, conditions
-    
-    return None, conditions
-
-
-#-------------------- Pheno types reference data ------------------------#
-def get_brand_associated_phenotype_types(request, brand=None):
-    """
-        Return all phenotype types assoc. with each brand from the filter statistics model
-    """
-    if brand is None:
-        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
-    
-    source = 'all_data' if request.user.is_authenticated else 'published_data'
-    stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact='phenotype_filters')).stat['phenotype_types']
-    stats = [entry for entry in stats if entry['data_scope'] == source][0]['types']
-
-    available_types = Phenotype.history.annotate(type_lower=Lower('type')).values('type_lower').distinct().order_by('type_lower')    
-    phenotype_types = [entry[0] for entry in stats]
-    phenotype_types = [x for x in phenotype_types if available_types.filter(type_lower=x).exists()]
-    sorted_order = {str(entry[0]): entry[1] for entry in stats}
-
-    return phenotype_types, sorted_order
-
-#---------------------------------------------------------------------------
-
-#-------------------- Data sources reference data ------------------------#
-def get_data_source_reference(request, brand=None):
-    """
-        Return all data sources assoc. with each brand from the filter statistics model
-    """
-    if brand is None:
-        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
-    
-    source = 'all_data' if request.user.is_authenticated else 'published_data'
-    stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact='phenotype_filters')).stat['data_sources']
-    stats = [entry for entry in stats if entry['data_scope'] == source][0]['data_source_ids']
-    data_source_ids = [entry[0] for entry in stats]
-
-    data_sources = [DataSource.objects.get(id=x) for x in data_source_ids if DataSource.objects.filter(id=x).exists()]
-    sorted_order = {str(entry[0]): entry[1] for entry in stats}
-    
-    return data_sources, sorted_order
-
-#-------------------- Coding system reference data ------------------------#
-def get_coding_system_reference(request, brand=None, concept_or_phenotype="concept"):
-    """
-        Return all coding systems assoc. with each brand from the filter statistics model
-    """
-    if brand is None:
-        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
-    
-    source = 'all_data' if request.user.is_authenticated else 'published_data'
-    stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact=f"{concept_or_phenotype}_filters")).stat['coding_systems']
-    stats = [entry for entry in stats if entry['data_scope'] == source]
-
-    stats = stats[0]['coding_system_ids']
-    coding = [entry[0] for entry in stats]
-    coding = [CodingSystem.objects.get(id=x) for x in coding if CodingSystem.objects.filter(id=x).exists()]
-    sorted_order = {str(entry[0]): entry[1] for entry in stats}
-    
-    return coding, sorted_order
-
-#----------------------------- Tag reference ------------------------------#
-def get_brand_associated_tags(request, excluded_tags=None, brand=None, concept_or_phenotype="concept"):
-    """
-        Return all tags assoc. with each brand, and exclude those in our list
-    """
-    if brand is None:
-        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
-    
-    source = 'all_data' if request.user.is_authenticated else 'published_data'
-    stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact=f"{concept_or_phenotype}_filters")).stat['tags']
-    stats = [entry for entry in stats if entry['data_scope'] == source][0]['tag_ids']
-    tags = [entry[0] for entry in stats]
-    
-    if tags is not None and excluded_tags is not None:
-        tags = [x for x in tags if x not in excluded_tags]
-    
-    descriptors = [Tag.objects.get(id=x) for x in tags if Tag.objects.filter(id=x).exists()]
-    sorted_order = {str(entry[0]): entry[1] for entry in stats}
-    
-    if descriptors is not None:
-        result = {}
-        for tag in descriptors:
-            result[tag.description] = tag.id
-
-        return result, sorted_order
-    
-    return {}, sorted_order
-
-#---------------------------------------------------------------------------
-
 def get_brand_collection_ids(brand_name):
     """
         returns list of collections (tags) ids associated with the brand
@@ -878,29 +661,6 @@ def get_brand_collection_ids(brand_name):
         return brand_collection_ids
     else:
         return [-1]
-
-
-def get_brand_associated_collections(request, concept_or_phenotype="concept", brand=None, excluded_collections=None):
-    """
-        If user is authenticated show all collection IDs, including those that are deleted, as filters.
-        If not, show only non-deleted/published entities related collection IDs.
-    """
-    if brand is None:
-        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
-    
-    source = 'all_data' if request.user.is_authenticated else 'published_data'
-    stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact=f"{concept_or_phenotype}_filters")).stat['collections']
-    stats = [entry for entry in stats if entry['data_scope'] == source][0]['collection_ids']
-    collections = [entry[0] for entry in stats]
-    
-    if collections is not None and excluded_collections is not None:
-        collections = [x for x in collections if x not in excluded_collections]
-    
-    collections = [Tag.objects.get(id=x) for x in collections if Tag.objects.filter(id=x).exists()]
-    sorted_order = {str(entry[0]): entry[1] for entry in stats}
-    
-    return collections, sorted_order
-
 
 
 def get_q_highlight(request, q):

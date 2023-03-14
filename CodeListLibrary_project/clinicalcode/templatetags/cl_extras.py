@@ -6,7 +6,7 @@ from django.utils.safestring import mark_safe
 from re import IGNORECASE, compile, escape as rescape
 import re 
 from clinicalcode.constants import Type_status
-from clinicalcode import generic_entity_db_utils
+from clinicalcode.entity_utils import entity_db_utils
 
 
 register = template.Library()
@@ -277,7 +277,7 @@ def can_be_shown(field_data, is_authenticated):
     '''
         check is the field can be shown
     '''
-    return generic_entity_db_utils.can_field_be_shown(field_data, is_authenticated)
+    return entity_db_utils.can_field_be_shown(field_data, is_authenticated)
 
 
 
