@@ -113,7 +113,7 @@ metadata = {
     },
     "name": {
         "title": "Name",
-        "field_type": "???",
+        "field_type": "string_inputbox",
         "active": True,
         "validation": {
             "type": "string",
@@ -123,7 +123,7 @@ metadata = {
     },
     "definition": {
         "title": "Definition",
-        "field_type": "???",
+        "field_type": "textarea_markdown",
         "active": True,
         "validation": {
             "type": "string",
@@ -133,7 +133,7 @@ metadata = {
     },
     "implementation": {
         "title": "Implementation",
-        "field_type": "???",
+        "field_type": "textarea_markdown",
         "active": True,
         "validation": {
             "type": "string",
@@ -143,7 +143,7 @@ metadata = {
     },
     "publications": {
         "title": "Publications",
-        "field_type": "???",
+        "field_type": "string_list_of_inputboxes",
         "active": True,
         "validation": {
             "type": "string_array",
@@ -153,7 +153,7 @@ metadata = {
     },
     "validation": {
         "title": "Validation",
-        "field_type": "???",
+        "field_type": "textarea_markdown",
         "active": True,
         "validation": {
             "type": "string",
@@ -163,7 +163,7 @@ metadata = {
     },
     "citation_requirements": {
         "title": "Citation Requirements",
-        "field_type": "???",
+        "field_type": "textarea",
         "active": True,
         "validation": {
             "type": "string",
@@ -187,7 +187,7 @@ metadata = {
     },
     "author": {
         "title": "Author",
-        "field_type": "???",
+        "field_type": "string_inputbox",
         "active": True,
         "validation": {
             "type": "string",
@@ -197,7 +197,7 @@ metadata = {
     },
     "collections": {
         "title": "Collections",
-        "field_type": "???",
+        "field_type": "collections",
         "active": True,
         "compute_statistics": True,
         "validation": {
@@ -220,7 +220,7 @@ metadata = {
     },
     "tags": {
         "title": "Tags",
-        "field_type": "???",
+        "field_type": "tags",
         "active": True,
         "compute_statistics": True,
         "validation": {
@@ -280,125 +280,8 @@ metadata = {
 
 
 
-#-----------------------------------
-metadataXX =  {
-    "template": {
-        "title": "Entity Type",
-        "field_type": "???",
-        "active": True,
-        "validation": {
-            "type": "int",
-            "mandatory": True,
-            "computed": True,
-            "source": {
-                "table": "Template",
-                "query": "id",
-                "relative": "name"
-            }
-        },
-        "search": {
-            "filterable": True,
-            "single_search_only": True,
-        }
-    },
-         "name": {
-             "title": "Name",
-             "active": True,
-             "mandatory": True,
-             "field_type": "string_inputbox",
-             "side_menu": "home"
-         },
-         "author": {
-             "title": "Author",
-             "active": True,
-             "mandatory": True,
-             "field_type": "string_inputbox"
-         },
-         "collections": {
-             "title": "Collections",
-             "active": True,
-             "mandatory": False,
-             "field_type": "collections"
-         },
-         "tags": {
-             "title": "Tags",
-             "active": True,
-             "mandatory": False,
-             "field_type": "tags"
-         },
-         "definition": {
-             "title": "Definition",
-             "active": True,
-             "mandatory": False,
-             "field_type": "textarea_markdown",
-             "side_menu": "Definition"
-         },
-         "implementation": {
-             "title": "Implementation",
-             "active": True,
-             "mandatory": False,
-             "field_type": "textarea_markdown",
-             "side_menu": "Implementation"
-         },
-         "publications": {
-             "title": "Publications",
-             "active": True,
-             "mandatory": False,
-             "field_type": "string_list_of_inputboxes",
-             "side_menu": "Publications"
-         },
-         "validation": {
-             "title": "Validation",
-             "active": True,
-             "mandatory": False,
-             "field_type": "textarea_markdown",
-             "do_not_show_in_production": True,
-             "side_menu": "Validation",
-             "hide_if_empty": True
-         },
-         "citation_requirements": {
-             "title": "Citation Requirements",
-             "active": True,
-             "mandatory": False,
-             "field_type": "textarea",
-             "hide_if_empty": True
-         },
-         "updated": {
-        "title": "Updated",
-        "field_type": "???",
-        "active": True,
-        "validation": {
-            "type": "datetime",
-            "mandatory": True
-        },
-        "is_base_field": True
-    },
-    "created_by": {
-        "title": "Created By",
-        "field_type": "???",
-        "active": True,
-        "requires_auth": True,
-        "validation": {
-            "type": "int", 
-            "mandatory": True
-        },
-        "is_base_field": True
-    },
-    "updated_by": {
-        "title": "Updated By",
-        "field_type": "???",
-        "active": True,
-        "requires_auth": True,
-        "validation": {
-            "type": "int", 
-            "mandatory": True
-        },
-        "is_base_field": True
-    },
- }
 
 FIELD_TYPES = {
-
     "int": {
         "data_type": "int",
         "input_type": "textinput"
