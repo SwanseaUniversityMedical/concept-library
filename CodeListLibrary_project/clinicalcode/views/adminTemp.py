@@ -45,7 +45,6 @@ def api_remove_data(request):
         raise PermissionDenied
 
     if settings.CLL_READ_ONLY:
-    if settings.CLL_READ_ONLY: 
         raise PermissionDenied
 
     if request.method == 'GET':
