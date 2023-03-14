@@ -157,11 +157,10 @@ def checkEntityToPublish(request,pk,entity_history_id):
                                             , highlight_result = [False, True][generic_entity_db_utils.is_referred_from_search_page(request)]
                                             , q_highlight = generic_entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))  
                                             )
-    print(entity)
                                                                                                             
                                                                    
 
-    if entity['layout']== 1 or entity['layout']== 3:
+    if entity['entity_class'] == "Phenotype" or entity['entity_class'] == "Workingset":
          has_childs, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
         checkChildren(request,generic_entity_db_utils.get_historical_entity(entity_history_id))
     else:
@@ -174,8 +173,8 @@ def checkEntityToPublish(request,pk,entity_history_id):
         allow_to_publish = False
 
     #check if table is not empty
-    table_ofEntity = lambda entity_type:  'concept_information' if entity_type==1  else 'workingset_concept_informations'
-    entity_has_data = len(GenericEntity.history.get(id=pk, history_id=entity_history_id).template_data[table_ofEntity(entity['layout'])]) > 0
+    table_ofEntity = lambda entity_class:  'concept_information' if entity_class== "Phenotype"  else 'workingset_concept_information'
+    entity_has_data = len(GenericEntity.history.get(id=pk, history_id=entity_history_id).template_data[table_ofEntity(entity['entity_class'])]) > 0
     if not entity_has_data and entity['layout'] == 3:
         allow_to_publish = False
 
@@ -209,13 +208,13 @@ def checkChildren(request,entity):
         @return: collection of boolean conditions
         """
 
-        if entity['layout'] == 1:
-            name_table = 'concept_informations'
+        if entity['entity_class'] == "Phenotype":
+            name_table = 'concept_information'
             child_id = 'concept_id'
             child_version_id = 'concept_version_id'
             name_child = 'concept'
-        elif entity['layout'] == 3:
-            name_table = 'workingset_concept_informations'
+        elif entity['entity_class'] == "Workingset":
+            name_table = 'workingset_concept_information'
             child_id = 'phenotype_id'
             child_version_id = 'phenotype_version_id'
             name_child = 'phenotype'
@@ -242,14 +241,14 @@ def checkChildren(request,entity):
 
 
         for p in child_entitys_versions:
-            isDeleted = (Concept.objects.filter(Q(id=p[0])).exclude(is_deleted=True).count() == 0) if entity['layout'] == 1 else (GenericEntity.objects.filter(Q(id=p[0])).exclude(is_deleted=True).count() == 0) 
+            isDeleted = (Concept.objects.filter(Q(id=p[0])).exclude(is_deleted=True).count() == 0) if entity['entity_class'] == "Phenotype" else (GenericEntity.objects.filter(Q(id=p[0])).exclude(is_deleted=True).count() == 0) 
             if isDeleted:
                 errors[p[0]] = 'Child ' + name_child + '(' + str(p[0]) + ') is deleted'
                 all_not_deleted = False
 
 
         for p in child_entitys_versions:
-            is_published = checkIfPublished(Concept, p[0], p[1]) if entity['layout'] == 1 else checkIfPublished(GenericEntity, p[0], p[1])
+            is_published = checkIfPublished(Concept, p[0], p[1]) if entity['entity_class'] == "Phenotype" else checkIfPublished(GenericEntity, p[0], p[1])
             if not is_published:
                 errors[str(p[0]) + '/' + str(p[1])] = 'Child ' + name_child + '(' + str(p[0]) + '/' + str(p[1]) + ') is not published'
                 all_are_published = False
@@ -259,7 +258,7 @@ def checkChildren(request,entity):
             permitted = allowed_to_view(request,
                                         Concept,
                                         set_id=p[0],
-                                        set_history_id=p[1]) if entity['layout'] == 1 else allowed_to_view(request,
+                                        set_history_id=p[1]) if entity['entity_class'] == "Phenotype" else allowed_to_view(request,
                                                                                                         GenericEntity,
                                                                                                         set_id=p[0],
                                                                                                         set_history_id=p[1])
