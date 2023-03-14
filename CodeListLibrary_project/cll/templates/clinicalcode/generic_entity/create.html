@@ -5,7 +5,7 @@
 {% load breadcrumbs %}
 {% load entity_renderer %}
 
-{% block title %}| Create a Phenotype{% endblock title %}
+{% block title %}| Create an Entity{% endblock title %}
 
 {% block cache_tags %}
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -16,7 +16,11 @@
 {% block container %}
   <link rel="stylesheet" type="text/css" href="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.css' %}" />
   <script src="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.js' %}"></script>
+  <script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
+  <script src="{% static 'js/clinicalcode/redesign/vendor/lightpick.js' %}"></script>
+  <script src="{% static 'js/clinicalcode/redesign/components/dropdown.js' %}"></script>
   <script type="module" src="{% static 'js/clinicalcode/redesign/forms/entityCreator.js' %}"></script>
+  <script type="module" src="{% static 'js/clinicalcode/redesign/components/stepsWizard.js' %}"></script>
 
   <header class="main-header">
     <div class="main-header__inner-container">
@@ -33,11 +37,11 @@
       <article class="phenotype-creation">
         <section class="phenotype-creation__header">
           {% if form_method.value == '1' %}
-            <h1>Create a new Phenotype:<span>step by step</span></h1>
-            <p>Follow the steps below to create and publish your phenotype.</p>
+            <h1>Create a new Entity:<span>step by step</span></h1>
+            <p>Follow the steps below to create and publish your entity.</p>
           {% else %}
-            <h1>Update your Phenotype:<span>step by step</span></h1>
-            <p>Follow the steps below to update and publish your phenotype.</p>
+            <h1>Update your Entity:<span>step by step</span></h1>
+            <p>Follow the steps below to update and publish your entity.</p>
           {% endif %}
         </section>
         
@@ -60,12 +64,10 @@
     </div>
   </main>
 
-  {% autoescape on %}
-  <data data-owner="entity-creator" id="form-method" name="method" type="int" value="{{ form_method.value }}"></data>
-  <data data-owner="entity-creator" id="metadata-data" name="metadata" type="text/json" value='{{ metadata|jsonify }}'></data>
-  <data data-owner="entity-creator" id="template-data" name="template" type="text/json" value='{{ template|jsonify }}'></data>
+  <data data-owner="entity-creator" id="form-method" name="method" type="int">{{ form_method.value }}</data>
+  <data data-owner="entity-creator" id="metadata-data" name="metadata" type="text/json">{{ metadata|jsonify|safe }}</data>
+  <data data-owner="entity-creator" id="template-data" name="template" type="text/json">{{ template|jsonify|safe }}</data>
   {% if entity is not None %}
-  <data data-owner="entity-creator" id="entity-data" name="entity" type="text/json" value='{{ entity|jsonify }}'></data>
+  <data data-owner="entity-creator" id="entity-data" name="entity" type="text/json">{{ entity|jsonify|safe }}</data>
   {% endif %}
-  {% endautoescape %}
 {% endblock container %}

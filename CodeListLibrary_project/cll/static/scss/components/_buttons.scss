@@ -641,7 +641,7 @@
 
       &:hover {
         @include prefix(transition, all 250ms ease-in-out, webkit moz o);
-        background-color: col(accent-primary);
+        background-color: col(accent-highlight);
         color: col(text-brightest);
       }
     }

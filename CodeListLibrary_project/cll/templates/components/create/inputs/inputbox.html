@@ -4,6 +4,6 @@
   <p class="detailed-input-group__description">{{ component.description }}</p>
   {% endif %}
   {% autoescape on %}
-  <input class="text-input" aria-label="{{ component.field.title }}" id="entity-{{ component.field_name }}" placeholder="" minlength="3" pattern="w{1,}.*?" data-field="{{ component.field_name }}">
+  <input class="text-input" aria-label="{{ component.field.title }}" id="entity-{{ component.field_name }}" placeholder="" minlength="3" pattern="w{1,}.*?" data-field="{{ component.field_name }}" value="{{ component.value }}">
   {% endautoescape %}
 </div>

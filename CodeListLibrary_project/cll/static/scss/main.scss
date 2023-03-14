@@ -55,6 +55,10 @@ body {
   flex-wrap: nowrap;
 }
 
+data {
+  display: none;
+}
+
 .main-header {
   @include flex-col();
   min-height: fit-content;

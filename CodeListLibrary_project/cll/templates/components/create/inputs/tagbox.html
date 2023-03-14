@@ -5,9 +5,8 @@
   <p class="detailed-input-group__description">{{ component.description }}</p>
   {% endif %}
   {% if component.options %}
-  {% autoescape on %}
-  <data for="{{ component.field_name }}" value='{{ component.options }}'></data>
-  {% endautoescape %}
+  <data data-type="options" for="{{ component.field_name }}">{{ component.options|jsonify|safe }}</data>
   {% endif %}
-  <input class="text-input" aria-label="{{ component.field_data.title }}" type="text" id="entity-{{ component.field_name }}" name="entity-{{ component.field_name }}" placeholder="" data-class="tagify" data-value="{{ component.value|safe }}" data-field="{{ component.field_name }}">
+  <data data-type="value" for="{{ component.field_name }}">{{ component.value|jsonify|safe }}</data>
+  <input class="text-input" aria-label="{{ component.field_data.title }}" type="text" id="entity-{{ component.field_name }}" name="entity-{{ component.field_name }}" placeholder="" data-class="tagify" data-field="{{ component.field_name }}">
 </div>

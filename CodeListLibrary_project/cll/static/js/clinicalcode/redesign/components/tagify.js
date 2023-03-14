@@ -35,7 +35,7 @@ export default class Tagify {
       this.id = id;
       this.element = document.getElementById(id);
     } else {
-      this.element = document.getElementById(id);
+      this.element = obj;
       
       if (typeof this.element !== 'undefined') {
         this.id = this.element.getAttribute('id');
@@ -311,6 +311,8 @@ export default class Tagify {
     if (this.currentFocus < childLength) {
       const element = children[this.currentFocus];
       element.classList.add('autocomplete-item__highlighted');
+
+      this.autocomplete.scrollTop = element.offsetTop;
     }
   }
 
@@ -380,7 +382,7 @@ export default class Tagify {
     });
 
     this.autocomplete = createElement('div', {
-      'className': 'tags-autocomplete-container',
+      'className': 'tags-autocomplete-container filter-scrollbar',
     });
 
     this.field = createElement('input', {
