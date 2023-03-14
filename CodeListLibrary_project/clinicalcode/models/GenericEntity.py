@@ -2,18 +2,18 @@ from django.contrib.auth.models import Group, User
 from django.contrib.postgres.fields import ArrayField
 from django.db.models import JSONField
 from django.db import models
-from simple_history.models import HistoricalRecords
+from django.db import transaction
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVectorField
 from django.core.exceptions import ValidationError
+from simple_history.models import HistoricalRecords
 
 from .Template import Template
 from .EntityClass import EntityClass
 from .TimeStampedModel import TimeStampedModel
 from clinicalcode.constants import *
-from django.db import transaction
-from django.contrib.postgres.indexes import GinIndex
-from django.contrib.postgres.search import SearchVectorField
 
-from ..entity_utils import gen_utils
+from ..entity_utils import gen_utils, constants
 
 class GenericEntityManager(models.Manager):
     '''
@@ -38,7 +38,7 @@ class GenericEntity(models.Model):
 
     ''' Common metadata '''
     name = models.CharField(max_length=250)
-    status = models.IntegerField(choices=ENTITY_STATUS, default=ENTITY_STATUS_DRAFT)
+    status = models.IntegerField(choices=[(e.name, e.value) for e in constants.ENTITY_STATUS], default=constants.ENTITY_STATUS.DRAFT)
     author = models.CharField(max_length=1000)
     definition = models.TextField(null=True, blank=True)
     implementation = models.TextField(null=True, blank=True)
@@ -71,9 +71,9 @@ class GenericEntity(models.Model):
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="entity_owned")
     group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True, blank=True)
 
-    owner_access = models.IntegerField(choices=PERMISSION_CHOICES, default=EDIT)
-    group_access = models.IntegerField(choices=PERMISSION_CHOICES, default=NONE)
-    world_access = models.IntegerField(choices=PERMISSION_CHOICES, default=NONE)
+    owner_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.GROUP_PERMISSIONS], default=constants.GROUP_PERMISSIONS.EDIT)
+    group_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.GROUP_PERMISSIONS], default=constants.GROUP_PERMISSIONS.NONE)
+    world_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.GROUP_PERMISSIONS], default=constants.GROUP_PERMISSIONS.NONE)
 
     ''' Historical data '''
     history = HistoricalRecords()

@@ -1,8 +1,15 @@
 from enum import Enum
 
+class ENTITY_STATUS(int, Enum):
+    '''
+        Status of an entity
+    '''
+    DRAFT = 1
+    FINAL = 2
+
 class APPROVAL_STATUS(int, Enum):
     '''
-        
+        Approval status of a published entity
     '''
     REQUESTED = 0
     PENDING   = 1
@@ -11,7 +18,7 @@ class APPROVAL_STATUS(int, Enum):
 
 class GROUP_PERMISSIONS(int, Enum):
     '''
-        
+        Permission groups
     '''
     NONE = 1
     VIEW = 2
@@ -240,7 +247,8 @@ metadata = {
         "active": True,
         "validation": {
             "type": "datetime",
-            "mandatory": True
+            "mandatory": True,
+            "computed": True
         },
         "is_base_field": True
     },
@@ -251,7 +259,8 @@ metadata = {
         "requires_auth": True,
         "validation": {
             "type": "int", 
-            "mandatory": True
+            "mandatory": True,
+            "computed": True
         },
         "is_base_field": True
     },
@@ -262,7 +271,8 @@ metadata = {
         "requires_auth": True,
         "validation": {
             "type": "int", 
-            "mandatory": True
+            "mandatory": True,
+            "computed": True
         },
         "is_base_field": True
     },
