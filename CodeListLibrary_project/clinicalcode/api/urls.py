@@ -444,6 +444,51 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
             GenericEntity.get_generic_entity_version_history,
             name='get_generic_entity_versions_public'),
     ]
+####### M Elmessary ################
+if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
+    urlpatterns += [
+    # generic entity detail
+    # if only id is provided, get the latest version
+    url(r'^ge0/(?P<pk>\w+)/detail/$',
+        GenericEntity.generic_entity_detail,
+        name='api_generic_entity_detail'),
+    url(r'^public/ge0/(?P<pk>\w+)/detail/$',
+        GenericEntity.generic_entity_detail_PUBLIC,
+        name='api_generic_entity_detail_public'),
+
+    # get specific version
+    url(r'^ge0/(?P<pk>\w+)/version/(?P<history_id>\d+)/detail/$',
+        GenericEntity.generic_entity_detail,
+        name='api_generic_entity_detail_version'),
+    url(r'^public/ge0/(?P<pk>\w+)/version/(?P<history_id>\d+)/detail/$',
+        GenericEntity.generic_entity_detail_PUBLIC,
+        name='api_generic_entity_detail_version_public'),
+
+    # show versions
+    url(r'^ge0/(?P<pk>\w+)/get-versions/$',
+        GenericEntity.generic_entity_detail, {'get_versions_only': '1'},
+        name='get_generic_entity_versions'),
+    url(r'^public/ge0/(?P<pk>\w+)/get-versions/$',
+        GenericEntity.generic_entity_detail_PUBLIC, {'get_versions_only': '1'},
+        name='get_generic_entity_versions_public'),
+    
+        #----------------------------------------------------------
+    url(r'^ge0/(?P<pk>\w+)/export/codes/$',
+        GenericEntity.export_phenotype_codes_byVersionID,
+        name='ge_api_export_phenotype_codes_latestVersion'),
+    url(r'^ge0/(?P<pk>\w+)/version/(?P<history_id>\d+)/export/codes/$',
+        GenericEntity.export_phenotype_codes_byVersionID,
+        name='ge_api_export_phenotype_codes_byVersionID'),
+        
+    url(r'^public/ge0/(?P<pk>\w+)/export/codes/$',
+        GenericEntity.export_published_phenotype_codes,
+        name='ge_api_export_published_phenotype_codes_latestVersion'),
+    url(r'^public/ge0/(?P<pk>\w+)/version/(?P<history_id>\d+)/export/codes/$',
+        GenericEntity.export_published_phenotype_codes,
+        name='ge_api_export_published_phenotype_codes'),
+    
+    ]
+    
 
 #======== Generic Entity create/update ===================
 if not settings.CLL_READ_ONLY:    

@@ -32,7 +32,7 @@
              "active": true,
              "mandatory": true,
              "field_type": "enum",
-             "permitted_values": {
+             "options": {
                  "1": "biomarker",
                  "2": "disease or syndrome",
                  "3": "drug",
@@ -61,7 +61,7 @@
              "active": true,
              "mandatory": true,
              "field_type": "enum",
-             "permitted_values": {
+             "options": {
                  "1": "Male",
                  "2": "Female",
                  "3": "Male/Female"
