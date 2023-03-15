@@ -1,3 +1,4 @@
+@use 'sass:color';
 @import '../_methods';
 @import '../_variables';
 @import '../_media';
@@ -61,9 +62,51 @@
       }
 
       &-btn {
-        display: flex;
-        aspect-ratio: 1 / 1;
+        @include flex-row();
+        @include prefix(transition, all 250ms ease, webkit moz o ms);
+        flex-wrap: none;
+        width: fit-content;
+        height: fit-content;
+        padding: 0.5rem 0.5rem;
         vertical-align: middle;
+        align-items: center;
+        justify-content: space-evenly;
+        color: col(text-brightest);
+        background-color: col(accent-danger);
+        border-radius: 0.25rem;
+        border: none;
+        outline: none;
+
+        & > span {
+          font-weight: bold;
+        }
+        
+        & > .delete-icon {
+          margin-right: 0.5rem;
+          &:after {
+            content: '\f057';
+            cursor: pointer;
+            pointer-events: auto;
+            aspect-ratio: 1 / 1;
+            font-family: var(--icons-name);
+            font-style: var(--icons-style);
+            font-size: var(--icons-size);
+            color: col(accent-brightest);
+            text-align: center;
+          }
+        }
+
+        &:focus {
+          outline: none;
+        }
+
+        &:hover {
+          @include prefix(filter, brightness(80%), webkit moz o ms);
+        }
+
+        &:active {
+          @include prefix(transform, scale(0.95), webkit moz o ms);
+        }
       }
 
       &:not(:last-child) {

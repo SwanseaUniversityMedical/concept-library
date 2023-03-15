@@ -4,8 +4,8 @@
   {% if not component.hide_input_details %}
   <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
   {% endif %}
-  <data type="value" for="{{ component.field_name }}">{{ component.value }}</data>
   <div data-controller="clinical-publication-list" class="publication-list-group">
+    <data type="value" for="{{ component.field_name }}">{{ component.value }}</data>
     <input class="text-input" aria-label="Publication link input" type="text" placeholder="e.g. https://www.doi.org/XX.XXXX/XXXXXXXXXX" data-class="clinical-publication" data-field="{{ component.field_name }}">
   
     <section class="publication-list-group__none-available" id="no-available-publications">
@@ -22,7 +22,8 @@
             <a href="https://kclhi.org/phenoflow/phenotype/download/1">https://kclhi.org/phenoflow/phenotype/download/1</a>
           </div>
           <button class="publication-list-group__list-item-btn">
-            X
+            <span class="delete-icon"></span>
+            <span>Remove</span>
           </button>         
         </div>
         <div class="publication-list-group__list-item">
@@ -30,7 +31,8 @@
             <a href="https://kclhi.org/phenoflow/phenotype/download/1">https://kclhi.org/phenoflow/phenotype/download/1</a>
           </div>
           <button class="publication-list-group__list-item-btn">
-            X
+            <span class="delete-icon"></span>
+            <span>Remove</span>
           </button>         
         </div>
       </div>

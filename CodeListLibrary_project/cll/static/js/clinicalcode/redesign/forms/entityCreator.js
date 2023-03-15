@@ -1,4 +1,6 @@
 import Tagify from "../components/tagify.js";
+import PublicationCreator from "./clinical/publicationCreator.js";
+import ConceptCreator from "./clinical/conceptCreator.js";
 
 /**
  * ENTITY_OPTIONS
@@ -42,7 +44,7 @@ const ENTITY_HANDLERS = {
       if (!datafield.innerText.trim().length) {
         continue;
       }
-      
+
       try {
         switch (type) {
           case 'options': {
@@ -165,12 +167,23 @@ const ENTITY_HANDLERS = {
 
   // Generates a clinical publication list component for an element
   'clinical-publication': (element) => {
-    console.log(element);
+    const data = element.parentNode.querySelector(`data[for="${element.getAttribute('data-field')}"]`);
+    
+    let parsed;
+    try {
+      parsed = JSON.parse(data.innerText);
+    }
+    catch {
+      parsed = [];
+    }
+
+    return new PublicationCreator(parsed)
   },
 
   // Generates a clinical concept component for an element
   'clinical-concept': (element) => {
-    console.log(element);
+    const data = element.querySelector(`data[for="${element.getAttribute('data-field')}"]`);
+
   },
 };
 
