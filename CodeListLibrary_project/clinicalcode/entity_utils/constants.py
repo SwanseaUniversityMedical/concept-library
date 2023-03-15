@@ -1,4 +1,5 @@
 from enum import Enum
+from django.contrib.auth.models import User
 
 class ENTITY_STATUS(int, Enum):
     '''
@@ -23,6 +24,14 @@ class GROUP_PERMISSIONS(int, Enum):
     NONE = 1
     VIEW = 2
     EDIT = 3
+
+class FORM_METHODS(str, Enum):
+    '''
+        Describes form method, i.e. to create or update an entity
+        Used by both template and view to modify behaviour
+    '''
+    CREATE = 1
+    UPDATE = 2
 
 '''
     Entity render modifier(s)
@@ -85,6 +94,21 @@ PAGE_RESULTS_SIZE = {
 }
 
 '''
+    Entity creation related defaults
+'''
+CREATE_WIZARD_ASIDE = 'components/create/aside.html'
+CREATE_WIZARD_SECTION_START = 'components/create/section/section_start.html'
+CREATE_WIZARD_SECTION_END = 'components/create/section/section_end.html'
+CREATE_WIZARD_INPUT_DIR = 'components/create/inputs'
+
+'''
+    Used to strip userdata from models when JSONifying them
+        e.g. user account, user profile, membership
+'''
+USERDATA_MODELS = [str(User)]
+STRIPPED_FIELDS = ['SearchVectorField']
+
+'''
     [!] Note: Will be moved to a table once tooling is finished, accessible through the 'base_template_version'
 
     Used to define:
@@ -113,6 +137,7 @@ metadata = {
     },
     "name": {
         "title": "Name",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
         "field_type": "string_inputbox",
         "active": True,
         "validation": {
@@ -123,6 +148,7 @@ metadata = {
     },
     "definition": {
         "title": "Definition",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
         "field_type": "textarea_markdown",
         "active": True,
         "validation": {
@@ -143,6 +169,7 @@ metadata = {
     },
     "publications": {
         "title": "Publications",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
         "field_type": "string_list_of_inputboxes",
         "active": True,
         "validation": {
@@ -163,7 +190,8 @@ metadata = {
     },
     "citation_requirements": {
         "title": "Citation Requirements",
-        "field_type": "textarea",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "field_type": "textarea_markdown",
         "active": True,
         "validation": {
             "type": "string",
@@ -183,10 +211,12 @@ metadata = {
         "search": {
             "filterable": True
         },
+        "hide_on_create": True,
         "is_base_field": True
     },
     "author": {
         "title": "Author",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
         "field_type": "string_inputbox",
         "active": True,
         "validation": {
@@ -197,6 +227,7 @@ metadata = {
     },
     "collections": {
         "title": "Collections",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
         "field_type": "collections",
         "active": True,
         "compute_statistics": True,
@@ -220,6 +251,7 @@ metadata = {
     },
     "tags": {
         "title": "Tags",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
         "field_type": "tags",
         "active": True,
         "compute_statistics": True,
@@ -241,6 +273,16 @@ metadata = {
         },
         "is_base_field": True
     },
+    "group": {
+        "title": "Group",
+        "field_type": "group_field",
+        "active": True,
+        "validation": {
+            "type": "int",
+            "mandatory": True
+        },
+        "is_base_field": True
+    },
     "updated": {
         "title": "Updated",
         "field_type": "???",
@@ -250,6 +292,7 @@ metadata = {
             "mandatory": True,
             "computed": True
         },
+        "hide_on_create": True,
         "is_base_field": True
     },
     "created_by": {
@@ -262,6 +305,7 @@ metadata = {
             "mandatory": True,
             "computed": True
         },
+        "hide_on_create": True,
         "is_base_field": True
     },
     "updated_by": {
@@ -274,30 +318,36 @@ metadata = {
             "mandatory": True,
             "computed": True
         },
+        "hide_on_create": True,
         "is_base_field": True
     },
 }
 
-
-
-
+'''
+    Describes the input and output presentation of common and dynamic fields
+    through components and modifiers
+'''
 FIELD_TYPES = {
     "int": {
         "data_type": "int",
-        "input_type": "textinput"
+        "input_type": "inputbox"
     },
     "date": {
         "data_type": "date",
-        "input_type": "date_picker"
+        "input_type": "datepicker"
+    },
+    "daterange": {
+        "data_type": "date",
+        "input_type": "datepicker_range"
     },
     "string_inputbox": {
         "data_type": "string",
-        "input_type": "textinput",
+        "input_type": "inputbox",
         "max_length": 250
     },
     "string_inputbox_code": {
         "data_type": "string",
-        "input_type": "textinput",
+        "input_type": "inputbox",
         "max_length": 250,
         "apply_code_style": True
     },
@@ -308,13 +358,13 @@ FIELD_TYPES = {
     },
     "textarea_markdown": {
         "data_type": "string",
-        "input_type": "textarea",
+        "input_type": "markdown",
         "rows": 5,
         "display": "markdown"
     },
     "string_list_of_inputboxes": {
         "data_type": "string",
-        "input_type": "list_of_inputboxes",
+        "input_type": "clinical/publication",
         "max_length": 250
     },
     "string_list_of_inputboxes_markdown": {
@@ -330,16 +380,24 @@ FIELD_TYPES = {
         "use_permitted_values": True
     },
 
-    "enum_badge": {
+    "enum_radio_badge": {
         "data_type": "int",
-        "input_type": "dropdown-list",
+        "input_type": "radiobutton",
+        "use_permitted_values": True,
+        "apply_badge_style": True
+    },
+
+    "enum_dropdown_badge": {
+        "data_type": "int",
+        "input_type": "dropdown",
         "use_permitted_values": True,
         "apply_badge_style": True
     },
 
     "concept_information": {
         "system_defined": True,
-        "description": "json of concept ids/ver used in phenotype (managed by code snippet)"
+        "description": "json of concept ids/ver used in phenotype (managed by code snippet)",
+        "input_type": "clinical/concept"
     },
     "coding_system": {
         "system_defined": True,
@@ -347,21 +405,27 @@ FIELD_TYPES = {
     },
     "tags": {
         "system_defined": True,
-        "description": "list of tags ids (managed by code snippet)"
+        "description": "list of tags ids (managed by code snippet)",
+        "input_type": "tagbox"
     },
     "collections": {
         "system_defined": True,
-        "description": "list of collections ids (managed by code snippet)"
+        "description": "list of collections ids (managed by code snippet)",
+        "input_type": "tagbox"
     },
     "data_sources": {
         "system_defined": True,
-        "description": "list of data_sources ids (managed by code snippet)"
+        "description": "list of data_sources ids (managed by code snippet)",
+        "input_type": "tagbox"
     },
     "phenoflowid": {
         "system_defined": True,
         "description": "URL for phenoflow (managed by code snippet)"
-    }
+    },
 
+    "group_field": {
+        "input_type": "group_select",
+    },
 }
 
 #####################################

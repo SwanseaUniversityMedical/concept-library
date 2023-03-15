@@ -1,5 +1,3 @@
-import { stickifyTable } from "../components/tables.js";
-
 const updateTrackerStyle = (navbar, trackers, headerOffset) => {
   for (let i = 0; i < trackers.length; i++) {
     const tracker = trackers[i];
@@ -8,7 +6,7 @@ const updateTrackerStyle = (navbar, trackers, headerOffset) => {
 
     let progress = 0;
     if (offset < 0) {
-      progress = Math.min((Math.abs(offset) / (size - (size/1.25))) * 100, 100);
+      progress = Math.min((Math.abs(offset) / (size - (size/4))) * 100, 100);
     }
     tracker.style.setProperty('--progress-percentage', `${progress}%`);
   }
@@ -35,11 +33,4 @@ const initStepsWizard = () => {
 
 domReady.finally(() => {
   initStepsWizard();
-  
-  // Stickify codelist table(s)
-  const tables = document.querySelectorAll('#codelist-concept-table');
-  Object.values(tables).forEach(e => stickifyTable(e));
-
-  // 
 });
-

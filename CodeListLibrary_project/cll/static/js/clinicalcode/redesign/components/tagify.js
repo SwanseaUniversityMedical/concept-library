@@ -1,24 +1,47 @@
 import FuzzyQuery from "./fuzzyQuery.js";
 
+/**
+ * TAGIFY__DELAY
+ * @desc Delay for keydown events
+ */
 const TAGIFY__DELAY = 1;
+
+/**
+ * TAGIFY__TIMEOUT
+ * @desc Timeout after a tag has been added by pressing enter
+ */
 const TAGIFY__TIMEOUT = 10;
+
+/**
+ * TAGIFY__KEYCODES
+ * @desc Keycodes used to navigate through the tag dropdown, and to add/remove tags
+ */
 const TAGIFY__KEYCODES = {
+  // Add tag
   'ENTER': 13,
+  // Remove tag
   'BACK': 8,
+  // Navigate tag dropdown
   'DOWN': 40,
   'UP': 38,
 };
 
+/**
+ * TAGIFY__TAG_OPTIONS
+ * @desc Available options for the tagify component.
+ *       These options are used as defaults and automatically added to the component
+ *       if they are not overriden by the options parameter.
+ */
 const TAGIFY__TAG_OPTIONS = {
-  /* A predefined list of tags that can be used for autocomplete, or to control the input provided by the user */
+  // A predefined list of tags that can be used for autocomplete, or to control the input provided by the user
   'items': [ ],
-  /* Whether to use the value or the name keys for autocomplete and tag selected components */
+  // Whether to use the value or the name keys for autocomplete and tag selected components
   'useValue': false,
-  /* Whether to perform autocomplete from a predefined list of items */
+  // Whether to perform autocomplete from a predefined list of items
   'autocomplete': false,
-  /* Whether to allow users to input duplicate tags */
+  // Whether to allow users to input duplicate tags
   'allowDuplicates': false,
-  /* Determines whether the user is restricted to the items within the predefined items list, or can input their own */
+  // Determines whether the user is restricted to the items within the predefined items list, or can input their own
   'restricted': false,
 };
 
@@ -35,7 +58,7 @@ export default class Tagify {
       this.id = id;
       this.element = document.getElementById(id);
     } else {
-      this.element = document.getElementById(id);
+      this.element = obj;
       
       if (typeof this.element !== 'undefined') {
         this.id = this.element.getAttribute('id');
@@ -311,6 +334,8 @@ export default class Tagify {
     if (this.currentFocus < childLength) {
       const element = children[this.currentFocus];
       element.classList.add('autocomplete-item__highlighted');
+
+      this.autocomplete.scrollTop = element.offsetTop;
     }
   }
 
@@ -380,7 +405,7 @@ export default class Tagify {
     });
 
     this.autocomplete = createElement('div', {
-      'className': 'tags-autocomplete-container',
+      'className': 'tags-autocomplete-container filter-scrollbar',
     });
 
     this.field = createElement('input', {
