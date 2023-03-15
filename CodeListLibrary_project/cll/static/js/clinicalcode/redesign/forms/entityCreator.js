@@ -20,8 +20,8 @@ const ENTITY_DATEPICKER_FORMAT = 'YYYY-MM-DD';
  * @desc Defines the ID for the form submission and save draft button(s)
  */
 const ENTITY_FORM_BUTTONS = {
+  'save': 'save-entity-btn',
   'submit': 'submit-entity-btn',
-  'save': 'save-entity-btn'
 };
 
 /**
@@ -82,7 +82,30 @@ const ENTITY_HANDLERS = {
       field: element,
       singleDate: range != 'true',
       selectForward: true,
-      maxDate: moment()
+      maxDate: moment(),
+      onSelect: (start, end) => {
+        if (isNullOrUndefined(start)) {
+          return;
+        }
+    
+        if (!start.isValid()) {
+          return;
+        }
+
+        if (range == 'true') {
+          if (isNullOrUndefined(end)) {
+            return;
+          }
+      
+          if (!end.isValid()) {
+            return;
+          }
+
+          element.setAttribute('data-value', [start.format(ENTITY_DATEPICKER_FORMAT), end.format(ENTITY_DATEPICKER_FORMAT)].join(','));
+          return;
+        }
+        element.setAttribute('data-value', start.format(ENTITY_DATEPICKER_FORMAT));
+      },
     });
 
     let value = element.getAttribute('data-value');
@@ -206,6 +229,11 @@ const createFormHandler = (element, cls) => {
   return ENTITY_HANDLERS[cls](element);
 }
 
+/**
+ * EntityCreator
+ * @desc A class that can be used to control forms for templated dynamic content
+ * 
+ */
 class EntityCreator {
   constructor(data, options) {
     this.data = data;
@@ -372,8 +400,10 @@ class EntityCreator {
   }
 }
 
+// Form initialisation
 domReady.finally(() => {
   const data = collectFormData();
+
   window.entityForm = new EntityCreator(data, {
     promptUnsaved: false,
   });

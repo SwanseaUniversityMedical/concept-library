@@ -5,5 +5,5 @@ class PublicationCreator {
 }
 
 domReady.finally(() => {
-
+  
 });
