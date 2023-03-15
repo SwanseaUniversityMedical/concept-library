@@ -39,6 +39,10 @@ const ENTITY_HANDLERS = {
     for (let i = 0; i < data.length; ++i) {
       const datafield = data[i];
       const type = datafield.getAttribute('data-type')
+      if (!datafield.innerText.trim().length) {
+        continue;
+      }
+      
       try {
         switch (type) {
           case 'options': {

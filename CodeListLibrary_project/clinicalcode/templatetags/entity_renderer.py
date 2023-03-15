@@ -462,6 +462,9 @@ class EntityWizardSections(template.Node):
                 if not template_field:
                     continue
 
+                if template_field.get('hide_on_create'):
+                    continue
+                
                 if template_field.get('is_base_field'):
                     template_field = constants.metadata.get(field) | template_field
 
