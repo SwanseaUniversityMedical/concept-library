@@ -92,15 +92,81 @@ class EntitySearchView(TemplateView):
             
         return render(request, self.template_name, context)
 
-class ExampleSASSView(TemplateView):
-    template_name = 'clinicalcode/generic_entity/examples.html'
+class CreateEntityView(TemplateView):
+    '''
+        Entity Create View
+            @desc Used to create entities - CreateView isn't used due to the requirements
+                  of having a form dynamically created to reflect the dynamic model.
+    '''
+    template_name = 'clinicalcode/generic_entity/create.html'
+    
+    def create_form(self, request, context, template):
+        '''
+            @desc Renders the entity create form
+        '''
+        context['metadata'] = constants.metadata
+        context['template'] = template
+        context['form_method'] = constants.FORM_METHODS.CREATE
+        return render(request, self.template_name, context)
 
-    def get(self, request):
-        ctx = {
+    def update_form(self, request, context, template, entity):
+        '''
+            @desc Renders the entity update form
+        '''
+        context['metadata'] = constants.metadata
+        context['template'] = template
+        context['entity'] = entity
+        context['form_method'] = constants.FORM_METHODS.UPDATE
+        return render(request, self.template_name, context)
+    
+    def get_context_data(self, *args, **kwargs):
+        '''
+            @desc Provides contextual data
+        '''
+        context = super(CreateEntityView, self).get_context_data(*args, **kwargs)
 
-        }
+        return context
 
-        return render(request, self.template_name, context=ctx)
+    @method_decorator([never_cache, login_required], name='dispatch')
+    def get(self, request, *args, **kwargs):
+        '''
+            @desc Template and entity is tokenised in the URL - providing the latter requires
+                  users to be permitted to modify that particular entity.
+
+                  If no entity_id is passed, a creation form is returned, otherwise the user is
+                  redirected to an update form.
+        '''
+        context = self.get_context_data(*args, **kwargs)
+
+        template_id = kwargs.get('template_id')
+        if template_id is not None:
+            template = model_utils.try_get_instance(Template, pk=template_id)
+            if template is None:
+                raise Http404
+            return self.create_form(request, context, template)
+
+        entity_id = kwargs.get('entity_id')
+        if entity_id is not None:
+            entity = create_utils.try_validate_entity(request, entity_id)
+            if not entity:
+                raise PermissionDenied
+            
+            template = entity.template
+            if template is None:
+                raise BadRequest('Invalid request.')
+            return self.update_form(request, context, template, entity)
+        
+        raise BadRequest('Invalid request.')
+
+    @method_decorator([never_cache, login_required], name='dispatch')
+    def post(self, request, *args, **kwargs):
+        '''
+            @desc Handles:
+                - form submission on creating or updating an entity
+        '''
+        context = self.get_context_data(*args, **kwargs)
+
+        return render(request, self.template_name, context)
 
 @method_decorator(login_required, name='dispatch')
 class CreateEntityView(TemplateView):
