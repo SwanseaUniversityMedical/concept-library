@@ -66,7 +66,7 @@
       "field_type": "enum_dropdown_badge",
       "active": true,
       "validation": {
-        "type": "enum_dropdown_badge",
+        "type": "enum",
         "mandatory": true,
         "options": {
           "1": "Biomarker",
@@ -118,7 +118,7 @@
       "field_type": "enum_radio_badge",
       "active": true,
       "validation": {
-        "type": "enum_radio_badge",
+        "type": "enum",
         "mandatory": true,
         "options": {
           "1": "Male",
