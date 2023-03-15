@@ -55,10 +55,13 @@ def render_pagination(context, *args, **kwargs):
     }
 
 @register.filter(name='jsonify')
-def jsonify(value):
+def jsonify(value, should_print=False):
     '''
         Attempts to dump a value to JSON
     '''
+    if should_print:
+        print(type(value), value)
+    
     if isinstance(value, (dict, list)):
         return json.dumps(value)
     return model_utils.jsonify_object(value)
@@ -463,7 +466,6 @@ class EntityWizardSections(template.Node):
                     field_data = template_utils.get_layout_field(template, field)
                 
                 if field_data is None:
-                    print(field_data)
                     continue
                 component['field_name'] = field
                 component['field_data'] = field_data

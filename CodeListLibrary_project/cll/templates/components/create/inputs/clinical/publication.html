@@ -1,10 +1,39 @@
+{% load entity_renderer %}
 <div class="detailed-input-group fill">
   {% if not component.hide_input_details %}
   <h3 class="detailed-input-group__title">Publication Links</h3>
   <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
   {% endif %}
-  <data for="{{ component.field_name }}">{{ component.value }}</data>
-  <input class="text-input" aria-label="Publication link input" type="text" placeholder="e.g. https://www.doi.org/XX.XXXX/XXXXXXXXXX" data-class="clinical-publication" data-field="{{ component.field_name }}">
-  <div data-controller="clinical-publication-list">
+  <data type="value" for="{{ component.field_name }}">{{ component.value }}</data>
+  <div data-controller="clinical-publication-list" class="publication-list-group">
+    <input class="text-input" aria-label="Publication link input" type="text" placeholder="e.g. https://www.doi.org/XX.XXXX/XXXXXXXXXX" data-class="clinical-publication" data-field="{{ component.field_name }}">
+  
+    <section class="publication-list-group__none-available" id="no-available-publications">
+      <p class="publication-list-group__none-available-message">You haven't added any publications yet</p>
+    </section>
+
+    <section class="publication-list-group__list show" id="publication-list">
+      <div class="publication-list-group__list-header">
+        <h3>Your publications</h3>
+      </div>
+      <div class="publication-list-group__list-container slim-scrollbar">
+        <div class="publication-list-group__list-item">
+          <div class="publication-list-group__list-item-url">
+            <a href="https://kclhi.org/phenoflow/phenotype/download/1">https://kclhi.org/phenoflow/phenotype/download/1</a>
+          </div>
+          <button class="publication-list-group__list-item-btn">
+            X
+          </button>         
+        </div>
+        <div class="publication-list-group__list-item">
+          <div class="publication-list-group__list-item-url">
+            <a href="https://kclhi.org/phenoflow/phenotype/download/1">https://kclhi.org/phenoflow/phenotype/download/1</a>
+          </div>
+          <button class="publication-list-group__list-item-btn">
+            X
+          </button>         
+        </div>
+      </div>
+    </section>
   </div>
 </div>
