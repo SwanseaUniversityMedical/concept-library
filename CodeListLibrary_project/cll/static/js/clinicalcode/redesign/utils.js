@@ -199,3 +199,9 @@ const isNullOrUndefined = (value) => typeof value === 'undefined' || value === n
  * @desc checks if a string is empty
  */
 const isStringEmpty = (value) => isNullOrUndefined(value) || !value.length;
+
+/**
+ * isStringWhitespace
+ * @desc checks if a string is compose of only whitespace
+ */
+const isStringWhitespace = (value) => !value.replace(/\s/g, '').length;

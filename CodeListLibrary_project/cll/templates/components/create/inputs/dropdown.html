@@ -1,0 +1,12 @@
+<div class="detailed-input-group fill">
+  {% if not component.hide_input_details %}
+  <h3 class="detailed-input-group__title">{{ component.field_data.title }}</h3>
+  <p class="detailed-input-group__description">{{ component.description }}</p>
+  {% endif %}
+  <select class="selection-input" aria-label="{{ component.field_data.title }}" name="entity-{{ component.field_name }}" id="entity-{{ component.field_name }}" data-field="{{ component.field_name }}" data-class="dropdown">
+    <option disabled value="-1" {% if component.value|length == 0 %} selected {% endif %} hidden>{{ component.field_data.title }}</option>
+    {% for option in component.options %}
+      <option value="{{ option.value }}" {% if component.value|length > 0 and component.value.0.value == option.value %} selected{% endif %}>{{ option.name }}</option>
+    {% endfor %}
+  </select>
+</div>

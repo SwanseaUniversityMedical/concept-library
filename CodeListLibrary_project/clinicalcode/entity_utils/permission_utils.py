@@ -26,8 +26,12 @@ def is_publish_status(entity, status):
   '''
   
   '''
+  history_id = getattr(entity, 'history_id', None)
+  if history_id is None:
+    history_id = entity.history.latest().history_id
+  
   approval_status = model_utils.get_entity_approval_status(
-    entity.id, entity.history_id
+    entity.id, history_id
   )
 
   if approval_status:
@@ -98,3 +102,22 @@ def has_entity_view_permissions(request, entity):
     return True
   
   return has_member_access(user, entity, [GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT])
+
+def has_entity_modify_permissions(request, entity):
+  '''
+    Checks whether a user has the permissions to modify an entity
+  '''
+  user = request.user
+  if user.is_superuser:
+    return True
+  
+  moderation_required = is_publish_status(
+    entity, [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING]
+  )
+  if is_member(user, "Moderators") and moderation_required:
+    return True
+  
+  if entity.owner == user:
+    return True
+
+  return has_member_access(user, entity, [GROUP_PERMISSIONS.EDIT])

@@ -5,19 +5,13 @@ from django.utils.translation import gettext_lazy as _
 from django.templatetags.static import static
 from django.conf import settings
 
-from ..entity_utils import template_utils, search_utils, constants
+import re
+import json
+
+from ..entity_utils import template_utils, search_utils, model_utils, constants
+from ..models.GenericEntity import GenericEntity
 
 register = template.Library()
-
-@register.inclusion_tag('components/details/entity_details.html', takes_context=True, name='render_entity_details')
-def render_details(context, *args, **kwargs):
-    request = context['request']
-    # Do stuff with the context e.g. the JSON passed from template/entity
-    print(args, kwargs)
-
-    # Do stuff with any args/kwargs e.g. change the context before passing to ./components/results.html
-    should_say_hello = kwargs.get('sayHello', False)
-    return {'hello': True} if should_say_hello else { }
 
 @register.inclusion_tag('components/search/pagination/pagination.html', takes_context=True, name='render_entity_pagination')
 def render_pagination(context, *args, **kwargs):
@@ -59,6 +53,22 @@ def render_pagination(context, *args, **kwargs):
         'has_next': page_obj.has_next(),
         'pages': page_items
     }
+
+@register.filter(name='jsonify')
+def jsonify(value, should_print=False):
+    '''
+        Attempts to dump a value to JSON
+    '''
+    if should_print:
+        print(type(value), value)
+    
+    if isinstance(value, (dict, list)):
+        return json.dumps(value)
+    return model_utils.jsonify_object(value)
+
+@register.filter(name='trimmed')
+def trimmed(value):
+    return re.sub(r'\s+', '_', value).lower()
 
 @register.filter(name='stylise_number')
 def stylise_number(n):
@@ -339,3 +349,162 @@ class EntityFiltersNode(template.Node):
         output += f'<script type="module" src="{filter_service}"></script>'
 
         return output
+
+@register.tag(name='render_wizard_navigation')
+def render_aside_wizard(parser, token):
+    '''
+        Responsible for rendering the <aside/> navigation item for create pages
+    '''
+    params = {
+        # Any future modifiers
+    }
+
+    try:
+        parsed = token.split_contents()[1:]
+        if len(parsed) > 0 and parsed[0] == 'with':
+            parsed = parsed[1:]
+        
+        for param in parsed:
+            ctx = param.split('=')
+            params[ctx[0]] = eval(ctx[1])
+    except ValueError:
+        raise TemplateSyntaxError('Unable to parse wizard aside renderer tag')
+
+    nodelist = parser.parse(('endrender_wizard_navigation'))
+    parser.delete_first_token()
+    return EntityWizardAside(params, nodelist)
+
+class EntityWizardAside(template.Node):
+    def __init__(self, params, nodelist):
+        self.request = template.Variable('request')
+        self.params = params
+        self.nodelist = nodelist
+    
+    def render(self, context):
+        output = ''
+        template = context.get('template', None)
+        if template is None:
+            return output
+
+        # We should be getting the FieldTypes.json related to the template
+        output = render_to_string(constants.CREATE_WIZARD_ASIDE, {
+            'create_sections': template.definition.get('sections')
+        })
+
+        return output
+
+@register.tag(name='render_wizard_sections')
+def render_steps_wizard(parser, token):
+    '''
+        Responsible for rendering the <li/> sections for create pages
+    '''
+    params = {
+        # Any future modifiers
+    }
+
+    try:
+        parsed = token.split_contents()[1:]
+        if len(parsed) > 0 and parsed[0] == 'with':
+            parsed = parsed[1:]
+        
+        for param in parsed:
+            ctx = param.split('=')
+            params[ctx[0]] = eval(ctx[1])
+    except ValueError:
+        raise TemplateSyntaxError('Unable to parse wizard aside renderer tag')
+
+    nodelist = parser.parse(('endrender_wizard_sections'))
+    parser.delete_first_token()
+    return EntityWizardSections(params, nodelist)
+
+class EntityWizardSections(template.Node):
+    def __init__(self, params, nodelist):
+        self.request = template.Variable('request')
+        self.params = params
+        self.nodelist = nodelist
+    
+    def __try_get_entity_value(self, template, entity, field):
+        if template_utils.is_metadata(entity, field):
+            value = template_utils.get_metadata_value_from_source(entity, field, default=None)
+        else:
+            value = template_utils.get_template_data_values(entity, template, field, default=None)
+
+        if value is None:
+            return template_utils.get_entity_field(entity, field)
+
+        return value
+
+    def __try_render_item(self, **kwargs):
+        try:
+            html = render_to_string(**kwargs)
+        except:
+            return ''
+        else:
+            return html
+
+    def __generate_wizard(self, request, context):
+        output = ''
+        template = context.get('template', None)
+        entity = context.get('entity', None)
+        if template is None:
+            return output
+
+        # We should be getting the FieldTypes.json related to the template
+        field_types = constants.FIELD_TYPES
+        for section in template.definition.get('sections'):
+            output += self.__try_render_item(template_name=constants.CREATE_WIZARD_SECTION_START, request=request, context=context.flatten() | { 'section': section })
+
+            for field in section.get('fields'):
+                template_field = template_utils.get_field_item(template.definition, 'fields', field)
+                if not template_field:
+                    template_field = template_utils.try_get_content(constants.metadata, field)
+
+                if not template_field:
+                    continue
+
+                if template_field.get('is_base_field'):
+                    template_field = constants.metadata.get(field) | template_field
+
+                component = template_utils.try_get_content(field_types, template_field.get('field_type'))                
+                if component is None:
+                    continue
+
+                if template_utils.is_metadata(GenericEntity, field):
+                    field_data = template_utils.try_get_content(constants.metadata, field)
+                else:
+                    field_data = template_utils.get_layout_field(template, field)
+                
+                if field_data is None:
+                    continue
+                component['field_name'] = field
+                component['field_data'] = field_data
+
+                desc = template_utils.try_get_content(template_field, 'description')
+                if desc is not None:
+                    component['description'] = desc
+                    component['hide_input_details'] = False
+                else:
+                    component['hide_input_details'] = True
+                
+                if template_utils.is_metadata(GenericEntity, field):
+                    options = template_utils.get_template_sourced_values(constants.metadata, field)
+                else:
+                    options = template_utils.get_template_sourced_values(template, field)
+                
+                if options is not None:
+                    component['options'] = options
+
+                if entity:
+                    component['value'] = self.__try_get_entity_value(template, entity, field)
+                else:
+                    component['value'] = ''
+                
+                uri = f'{constants.CREATE_WIZARD_INPUT_DIR}/{component.get("input_type")}.html'
+                output += self.__try_render_item(template_name=uri, request=request, context=context.flatten() | { 'component': component })
+
+        output += render_to_string(template_name=constants.CREATE_WIZARD_SECTION_END, request=request, context=context.flatten() | { 'section': section })
+        return output
+    
+    def render(self, context):
+        request = self.request.resolve(context)
+        return self.__generate_wizard(request, context)

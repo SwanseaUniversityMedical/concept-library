@@ -23,6 +23,9 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
         url(r'^ge/create/$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
         url(r'^ge/run-stats/$', GenericEntity.EntityStatisticsView.as_view(), name='run_entity_statistics'),
 
+        url(r'^entity/$', GenericEntity.EntitySearchView.as_view(), name='search_entity'),
+        url(r'^entity/create/(?P<template_id>[\d]+)/?$', GenericEntity.CreateEntityView.as_view(), name='create_entity'),
+        url(r'^entity/update/(?P<entity_id>\w+)/?$', GenericEntity.CreateEntityView.as_view(), name='update_entity'),
         
         url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/detail/$', GenericEntity.generic_entity_detail, name='generic_entity_history_detail'),
 
