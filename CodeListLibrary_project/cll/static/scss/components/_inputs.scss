@@ -8,7 +8,9 @@
 ///   @desc Defines all input-like elements and their assoc. containers for use across website
 .publication-list-group {
   @include flex-col();
+  position: relative;
   width: 100%;
+  max-width: 100%;
 
   &__none-available {
     padding: 1rem;
@@ -27,6 +29,7 @@
 
   &__list {
     @include flex-col();
+    position: relative;
     width: 100%;
     margin-top: 1rem;
 
@@ -43,6 +46,7 @@
     &-container {
       @include flex-col();
       width: 100%;
+      max-width: 100%;
       max-height: 200px;
       overflow-y: auto;
       overflow-x: none;
@@ -50,21 +54,38 @@
 
     &-item {
       @include flex-row();
-      flex-wrap: nowrap;
       align-items: center;
       justify-content: space-between;
       padding: 0.5rem 0;
 
       &-url {
         display: flex;
-        flex-grow: 1;
         vertical-align: middle;
+        max-width: 70%;
+
+        @include media("<desktop", "screen") {
+          max-width: 175px;
+        }
+
+        @include media("<tablet", "screen") {
+          max-width: 125px;
+        }
+
+        @include media("<=phone", "screen") {
+          max-width: 100px;
+        }
+        
+        a {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
       }
 
       &-btn {
         @include flex-row();
         @include prefix(transition, all 250ms ease, webkit moz o ms);
-        flex-wrap: none;
+        flex-wrap: nowrap;
         width: fit-content;
         height: fit-content;
         padding: 0.5rem 0.5rem;
