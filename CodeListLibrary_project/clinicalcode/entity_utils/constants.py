@@ -1,9 +1,16 @@
 from enum import Enum
 from django.contrib.auth.models import User
 
+class ENTITY_STATUS(int, Enum):
+    '''
+        Status of an entity
+    '''
+    DRAFT = 1
+    FINAL = 2
+
 class APPROVAL_STATUS(int, Enum):
     '''
-        
+        Approval status of a published entity
     '''
     REQUESTED = 0
     PENDING   = 1
@@ -12,7 +19,7 @@ class APPROVAL_STATUS(int, Enum):
 
 class GROUP_PERMISSIONS(int, Enum):
     '''
-        
+        Permission groups
     '''
     NONE = 1
     VIEW = 2
@@ -233,7 +240,7 @@ metadata = {
     },
     "name": {
         "title": "Name",
-        "field_type": "???",
+        "field_type": "string_inputbox",
         "active": True,
         "validation": {
             "type": "string",
@@ -243,7 +250,7 @@ metadata = {
     },
     "definition": {
         "title": "Definition",
-        "field_type": "???",
+        "field_type": "textarea_markdown",
         "active": True,
         "validation": {
             "type": "string",
@@ -253,7 +260,7 @@ metadata = {
     },
     "implementation": {
         "title": "Implementation",
-        "field_type": "???",
+        "field_type": "textarea_markdown",
         "active": True,
         "validation": {
             "type": "string",
@@ -263,7 +270,7 @@ metadata = {
     },
     "publications": {
         "title": "Publications",
-        "field_type": "???",
+        "field_type": "string_list_of_inputboxes",
         "active": True,
         "validation": {
             "type": "string_array",
@@ -273,7 +280,7 @@ metadata = {
     },
     "validation": {
         "title": "Validation",
-        "field_type": "???",
+        "field_type": "textarea_markdown",
         "active": True,
         "validation": {
             "type": "string",
@@ -283,7 +290,7 @@ metadata = {
     },
     "citation_requirements": {
         "title": "Citation Requirements",
-        "field_type": "???",
+        "field_type": "textarea",
         "active": True,
         "validation": {
             "type": "string",
@@ -307,7 +314,7 @@ metadata = {
     },
     "author": {
         "title": "Author",
-        "field_type": "???",
+        "field_type": "string_inputbox",
         "active": True,
         "validation": {
             "type": "string",
@@ -317,7 +324,7 @@ metadata = {
     },
     "collections": {
         "title": "Collections",
-        "field_type": "???",
+        "field_type": "collections",
         "active": True,
         "compute_statistics": True,
         "validation": {
@@ -340,7 +347,7 @@ metadata = {
     },
     "tags": {
         "title": "Tags",
-        "field_type": "???",
+        "field_type": "tags",
         "active": True,
         "compute_statistics": True,
         "validation": {
@@ -377,7 +384,8 @@ metadata = {
         "active": True,
         "validation": {
             "type": "datetime",
-            "mandatory": True
+            "mandatory": True,
+            "computed": True
         },
         "is_base_field": True
     },
@@ -388,7 +396,8 @@ metadata = {
         "requires_auth": True,
         "validation": {
             "type": "int", 
-            "mandatory": True
+            "mandatory": True,
+            "computed": True
         },
         "is_base_field": True
     },
@@ -399,8 +408,99 @@ metadata = {
         "requires_auth": True,
         "validation": {
             "type": "int", 
-            "mandatory": True
+            "mandatory": True,
+            "computed": True
         },
         "is_base_field": True
     },
 }
+
+
+
+
+FIELD_TYPES = {
+    "int": {
+        "data_type": "int",
+        "input_type": "textinput"
+    },
+    "date": {
+        "data_type": "date",
+        "input_type": "date_picker"
+    },
+    "string_inputbox": {
+        "data_type": "string",
+        "input_type": "textinput",
+        "max_length": 250
+    },
+    "string_inputbox_code": {
+        "data_type": "string",
+        "input_type": "textinput",
+        "max_length": 250,
+        "apply_code_style": True
+    },
+    "textarea": {
+        "data_type": "string",
+        "input_type": "textarea",
+        "rows": 5
+    },
+    "textarea_markdown": {
+        "data_type": "string",
+        "input_type": "textarea",
+        "rows": 5,
+        "display": "markdown"
+    },
+    "string_list_of_inputboxes": {
+        "data_type": "string",
+        "input_type": "list_of_inputboxes",
+        "max_length": 250
+    },
+    "string_list_of_inputboxes_markdown": {
+        "data_type": "string",
+        "input_type": "list_of_inputboxes",
+        "max_length": 250,
+        "display": "markdown"
+    },
+
+    "enum": {
+        "data_type": "int",
+        "input_type": "dropdown-list",
+        "use_permitted_values": True
+    },
+
+    "enum_badge": {
+        "data_type": "int",
+        "input_type": "dropdown-list",
+        "use_permitted_values": True,
+        "apply_badge_style": True
+    },
+
+    "concept_information": {
+        "system_defined": True,
+        "description": "json of concept ids/ver used in phenotype (managed by code snippet)"
+    },
+    "coding_system": {
+        "system_defined": True,
+        "description": "list of coding system ids (calculated from phenotype concepts) (managed by code snippet)"
+    },
+    "tags": {
+        "system_defined": True,
+        "description": "list of tags ids (managed by code snippet)"
+    },
+    "collections": {
+        "system_defined": True,
+        "description": "list of collections ids (managed by code snippet)"
+    },
+    "data_sources": {
+        "system_defined": True,
+        "description": "list of data_sources ids (managed by code snippet)"
+    },
+    "phenoflowid": {
+        "system_defined": True,
+        "description": "URL for phenoflow (managed by code snippet)"
+    }
+
+}
+
+#####################################
+
+

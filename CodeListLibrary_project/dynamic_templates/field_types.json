@@ -8,40 +8,58 @@
 		"data_type": "date",
 		"input_type": "date_picker"
 	},
-	"char_inputbox": {
-		"data_type": "char",
+	"string_inputbox": {
+		"data_type": "string",
 		"input_type": "textinput",
 		"max_length": 250
 	},
+	"string_inputbox_code": {
+		"data_type": "string",
+		"input_type": "textinput",
+		"max_length": 250,
+		"apply_code_style": true
+	},
 	"textarea": {
-		"data_type": "char",
+		"data_type": "string",
 		"input_type": "textarea",
 		"rows": 5
 	},
 	"textarea_markdown": {
-		"data_type": "char",
+		"data_type": "string",
 		"input_type": "textarea",
 		"rows": 5,
 		"display": "markdown"
 	},
-	"char_list_of_inputboxes": {
-		"data_type": "char",
+	"string_list_of_inputboxes": {
+		"data_type": "string",
 		"input_type": "list_of_inputboxes",
-		"max_length": 250,
+		"max_length": 250
 	},
-	"char_list_of_inputboxes_markdown": {
-		"data_type": "char",
+	"string_list_of_inputboxes_markdown": {
+		"data_type": "string",
 		"input_type": "list_of_inputboxes",
 		"max_length": 250,
 		"display": "markdown"
 	},
 
+	"enum": {
+		"data_type": "int",
+		"input_type": "dropdown-list",
+		"use_permitted_values": true
+	},
 
-	"concept_informations": {
+	"enum_badge": {
+		"data_type": "int",
+		"input_type": "dropdown-list",
+		"use_permitted_values": true,
+		"apply_badge_style": true
+	},
+
+	"concept_information": {
 		"system_defined": true,
 		"description": "json of concept ids/ver used in phenotype (managed by code snippet)"
 	},
-	"coding_systems": {
+	"coding_system": {
 		"system_defined": true,
 		"description": "list of coding system ids (calculated from phenotype concepts) (managed by code snippet)"
 	},
@@ -60,13 +78,8 @@
 	"phenoflowid": {
 		"system_defined": true,
 		"description": "URL for phenoflow (managed by code snippet)"
-	},
-
-
-	"enum": {
-		"data_type": "int",
-		"input_type": "dropdown-list",
-		"use_permitted_values": true
 	}
+
+
 
 }

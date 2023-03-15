@@ -50,7 +50,7 @@ def api_remove_data(request):
     if request.method == 'GET':
         if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
             return render(request, 'clinicalcode/adminTemp/adminTemp.html', 
-                          {'url': reverse('json_adjust_phenotype'),
+                          {'url': reverse('api_remove_data'),
                            'action_title': 'Delete API Data'
                         }
                         )

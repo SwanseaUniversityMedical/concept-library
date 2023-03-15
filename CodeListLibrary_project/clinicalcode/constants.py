@@ -143,7 +143,76 @@ TYPE_CLINICAL_CODED_PHENOTYPE = ((BIOMARKER, 'Biomarker'),
                                  )
 
 #-----------------------------------
-FIELD_TYPE ={
+BASE_TEMPLATE_XX =  {
+     "template_version": 1,
+     "base_fields": {
+         "name": {
+             "title": "Name",
+             "active": True,
+             "mandatory": True,
+             "field_type": "string_inputbox",
+             "side_menu": "home"
+         },
+         "author": {
+             "title": "Author",
+             "active": True,
+             "mandatory": True,
+             "field_type": "string_inputbox"
+         },
+         "collections": {
+             "title": "Collections",
+             "active": True,
+             "mandatory": False,
+             "field_type": "collections"
+         },
+         "tags": {
+             "title": "Tags",
+             "active": True,
+             "mandatory": False,
+             "field_type": "tags"
+         },
+         "definition": {
+             "title": "Definition",
+             "active": True,
+             "mandatory": False,
+             "field_type": "textarea_markdown",
+             "side_menu": "Definition"
+         },
+         "implementation": {
+             "title": "Implementation",
+             "active": True,
+             "mandatory": False,
+             "field_type": "textarea_markdown",
+             "side_menu": "Implementation"
+         },
+         "publications": {
+             "title": "Publications",
+             "active": True,
+             "mandatory": False,
+             "field_type": "string_list_of_inputboxes",
+             "side_menu": "Publications"
+         },
+         "validation": {
+             "title": "Validation",
+             "active": True,
+             "mandatory": False,
+             "field_type": "textarea_markdown",
+             "do_not_show_in_production": True,
+             "side_menu": "Validation",
+             "hide_if_empty": True
+         },
+         "citation_requirements": {
+             "title": "Citation Requirements",
+             "active": True,
+             "mandatory": False,
+             "field_type": "textarea",
+             "hide_if_empty": True
+         }
+     }
+ }
+
+FIELD_TYPES_XX = {
+
     "int": {
         "data_type": "int",
         "input_type": "textinput"
@@ -152,40 +221,58 @@ FIELD_TYPE ={
         "data_type": "date",
         "input_type": "date_picker"
     },
-    "char_inputbox": {
-        "data_type": "char",
+    "string_inputbox": {
+        "data_type": "string",
         "input_type": "textinput",
         "max_length": 250
     },
+    "string_inputbox_code": {
+        "data_type": "string",
+        "input_type": "textinput",
+        "max_length": 250,
+        "apply_code_style": True
+    },
     "textarea": {
-        "data_type": "char",
+        "data_type": "string",
         "input_type": "textarea",
         "rows": 5
     },
     "textarea_markdown": {
-        "data_type": "char",
+        "data_type": "string",
         "input_type": "textarea",
         "rows": 5,
         "display": "markdown"
     },
-    "char_list_of_inputboxes": {
-        "data_type": "char",
+    "string_list_of_inputboxes": {
+        "data_type": "string",
         "input_type": "list_of_inputboxes",
-        "max_length": 250,
+        "max_length": 250
     },
-    "char_list_of_inputboxes_markdown": {
-        "data_type": "char",
+    "string_list_of_inputboxes_markdown": {
+        "data_type": "string",
         "input_type": "list_of_inputboxes",
         "max_length": 250,
         "display": "markdown"
     },
 
+    "enum": {
+        "data_type": "int",
+        "input_type": "dropdown-list",
+        "use_permitted_values": True
+    },
 
-    "concept_informations": {
+    "enum_badge": {
+        "data_type": "int",
+        "input_type": "dropdown-list",
+        "use_permitted_values": True,
+        "apply_badge_style": True
+    },
+
+    "concept_information": {
         "system_defined": True,
         "description": "json of concept ids/ver used in phenotype (managed by code snippet)"
     },
-    "clinical_terminologies": {
+    "coding_system": {
         "system_defined": True,
         "description": "list of coding system ids (calculated from phenotype concepts) (managed by code snippet)"
     },
@@ -201,15 +288,12 @@ FIELD_TYPE ={
         "system_defined": True,
         "description": "list of data_sources ids (managed by code snippet)"
     },
-
-
-    "enum": {
-        "data_type": "int",
-        "input_type": "dropdown-list",
-        "use_permitted_values": True
+    "phenoflowid": {
+        "system_defined": True,
+        "description": "URL for phenoflow (managed by code snippet)"
     }
 
-} 
+}
 
 #####################################
 

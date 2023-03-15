@@ -2,7 +2,7 @@
     --------------------------------------------------------------------------
     DB Utilities
 
-    --------------------------------------------------------------------------
+    -------------------------------------------------------------------------- generic_entity_db_utils
 '''
 import ast
 import datetime
@@ -28,77 +28,19 @@ from django.core.mail import BadHeaderError, EmailMultiAlternatives
 from django.db.models.functions import Lower
 from string import ascii_letters
 
-from . import utils, tasks
-from .models import *
-from .permissions import *
-from .constants import *
-from clinicalcode.models import Template
+from clinicalcode import utils
+from clinicalcode.models import *
+from ..permissions import *
 from clinicalcode import db_utils
+from clinicalcode.entity_utils import constants
 
 #--------- Order queries ---------------
 def get_order_from_parameter(parameter):
+    from clinicalcode.constants import concept_order_queries, concept_order_default
     if parameter in concept_order_queries:
         return concept_order_queries[parameter]
     return concept_order_default
 
-
-#------------ API data validation-------
-
-parse_ident = lambda x: int(str(x).strip(ascii_letters))
-
-def validate_api_entry(item, data, expected_type=str):
-    """ Attempts to parse the item in data as the expected type
-    
-        Returns:
-            1. any[true, false, none]
-                -> True if successful
-                -> False if unable to parse
-                -> None if item[data] is not indexable
-            2. result
-                -> returns parsed value if successful
-                -> returns a description of the error if failure occurs
-    """
-    if item in data:
-        try:
-            datapoint = data[item]
-            datapoint = expected_type(datapoint)
-            return True, datapoint
-        except Exception as e:
-            return False, f"Item '{item}' with value '{data[item]}' could not be parsed as type {expected_type}"
-    return None, f"Item '{item}' was null"
-
-def apply_entry_if_valid(element, key, data, item, expected_type=str, predicate=None, errors_dict=None):
-    """ If the data[item] is a valid type, will set the attribute of the object
-        If a predicate is given as a parameter, the data[item] must also pass the defined clause
-        If an error_dict is passed, the ValueError will be added to the dict
-
-        Returns:
-            1. boolean
-                -> describes the success state of the method
-            2. any[value, ValueError]
-                -> returns the value if successful
-                -> returns a descriptive value error on failure
-    """
-    success, res = validate_api_entry(item, data, expected_type)
-    if success is True:
-        if predicate is None or predicate(res):
-            setattr(element, key, data[item])
-            return True, res
-        else:
-            issue = ValueError(f"Item '{item}' with value '{data[item]}' failed predicate clause")
-            if errors_dict is not None:
-                errors_dict[key] = str(issue)
-            return False, issue
-    elif success is False:
-        if errors_dict is not None:
-            errors_dict[key] = res
-        return False, ValueError(res)
-    else:
-        if errors_dict is not None:
-            errors_dict[key] = res
-        return False, ValueError(res)
-
-#---------------------------------------
 
 def get_can_edit_subquery(request):
     # check can_edit in SQl - faster way
@@ -442,17 +384,51 @@ def get_visible_live_or_published_generic_entity_versions(request,
 
 
 
-def get_entity_full_template_data(entity_record, template_id):
+def get_phenoflow_url(pheno_flow_id):
+    """
+    return phenoflow_url combined with the id
+    """
+    return "https://kclhi.org/phenoflow/phenotype/download/" + str(pheno_flow_id)
+
+def get_base_template_definition():
+    """
+    """
+    return constants.metadata
+    
+    
+def get_template_definition(template_id, template_version):
+    """
+    """
+    template_obj = Template.objects.get(pk=template_id)
+    template_history = template_obj.history.filter(template_version=template_version).first()
+    template_definition = template_history.definition
+    entity_class = template_history.entity_class.name
+    
+    base_template = get_base_template_definition()
+    
+    field_definitions = template_definition['fields']
+    ordered_field_definitions = {'fields': {}}
+    for f in template_definition['layout_order']:
+        field_name = f
+        field_definition = field_definitions[f]
+        if 'is_base_field' in field_definition and field_definition['is_base_field'] == True:
+            ordered_field_definitions['fields'][field_name] = base_template[field_name] | field_definition
+        else:
+            ordered_field_definitions['fields'][field_name] = field_definition 
+    
+    template_definition['fields'] = ordered_field_definitions['fields']
+    return template_definition, entity_class
+    
+def get_entity_full_template_data(entity_record, template_id, return_queryset_as_list=False):
     """
     return the entity full data based on the template,
     Add a 'data' key which has all data based on the template ordered
     """
-    template = Template.objects.get(pk=template_id)
-    definition = json.loads(template.definition)
+    template_definition, entity_class = get_template_definition(template_id, entity_record['template_version'])
     
     fields_data = {}
     
-    field_definitions = definition['fields']
+    field_definitions = template_definition['fields']
     for (field_name, field_definition) in field_definitions.items():
         is_base_field = False
         if 'is_base_field' in field_definition:
@@ -464,11 +440,15 @@ def get_entity_full_template_data(entity_record, template_id):
         else: # custom field
             fields_data[field_name] = field_definition | {'value': entity_record['template_data'][field_name]}
     
-        if 'permitted_values' in field_definition:
-            fields_data[field_name]['value'] = field_definition['permitted_values'][str(fields_data[field_name]['value'])]
+        if 'validation' in field_definition:
+            if 'options' in field_definition['validation']:
+                fields_data[field_name]['value'] = field_definition['validation']['options'][str(fields_data[field_name]['value'])]
 
         # html_id, to be used in HTml
         fields_data[field_name]['html_id'] = field_name.replace(' ', '')
+        
+        # field-type data
+        fields_data[field_name]['field_type_data'] = constants.FIELD_TYPES[fields_data[field_name]['field_type']]
         
         # adjust for system_defined types
         # data sources
@@ -476,7 +456,10 @@ def get_entity_full_template_data(entity_record, template_id):
             data_sources = DataSource.objects.filter(pk=-1)
             entity_data_sources = fields_data[field_name]['value']
             if entity_data_sources:
-                data_sources = DataSource.objects.filter(pk__in=entity_data_sources)
+                if return_queryset_as_list:
+                    data_sources = list(DataSource.objects.filter(pk__in=entity_data_sources).values('datasource_id', 'name', 'url'))
+                else:
+                    data_sources = DataSource.objects.filter(pk__in=entity_data_sources)
                 fields_data[field_name]['value'] = data_sources
         
         # tags
@@ -484,7 +467,10 @@ def get_entity_full_template_data(entity_record, template_id):
             tags = Tag.objects.filter(pk=-1)
             entity_tags = fields_data[field_name]['value']
             if entity_tags:
-                tags = Tag.objects.filter(pk__in=entity_tags, tag_type=1)
+                if return_queryset_as_list:
+                    tags = list(Tag.objects.filter(pk__in=entity_tags, tag_type=1).values('id', 'description'))
+                else:
+                    tags = Tag.objects.filter(pk__in=entity_tags, tag_type=1)
                 fields_data[field_name]['value'] = tags
         
         # collections
@@ -492,21 +478,28 @@ def get_entity_full_template_data(entity_record, template_id):
             collections = Tag.objects.filter(pk=-1)
             entity_collections = fields_data[field_name]['value']
             if entity_collections:
-                collections = Tag.objects.filter(pk__in=entity_collections, tag_type=2)
+                if return_queryset_as_list:
+                    collections = list(Tag.objects.filter(pk__in=entity_collections, tag_type=2).values('id', 'description'))
+                else:
+                    collections = Tag.objects.filter(pk__in=entity_collections, tag_type=2)
                 fields_data[field_name]['value'] = collections
         
         # coding systems
-        if field_definition['field_type'] == 'coding_systems': 
+        if field_definition['field_type'] == 'coding_system': 
             coding_systems = CodingSystem.objects.filter(pk=-1)
             CodingSystem_ids = fields_data[field_name]['value']
             if CodingSystem_ids:
-                coding_systems = CodingSystem.objects.filter(pk__in=CodingSystem_ids)
+                if return_queryset_as_list:
+                    coding_systems = list(CodingSystem.objects.filter(pk__in=CodingSystem_ids).values('id', 'name'))
+                else:
+                    coding_systems = CodingSystem.objects.filter(pk__in=CodingSystem_ids)
                 fields_data[field_name]['value'] = coding_systems    
+        
+        # phenoflowid/URL
+        # make value include the URL
+        if field_definition['field_type'] == 'phenoflowid': 
+            fields_data[field_name]['value'] = get_phenoflow_url(entity_record['template_data'][field_name])
 
-
-
-    # merge base & custom dict
-    # entity_record['data'] = base_fields_data | custom_fields_data
 
     # update base fields for highlighting
     fields_data['name']['value_highlighted'] = entity_record['name_highlighted']
@@ -516,7 +509,8 @@ def get_entity_full_template_data(entity_record, template_id):
     fields_data['publications']['value_highlighted'] = entity_record['publications_highlighted']
     fields_data['validation']['value_highlighted'] = entity_record['validation_highlighted']
         
-    entity_record['data'] = fields_data
+    entity_record['fields_data'] = fields_data
+    entity_record['entity_class'] = entity_class
     
     # now all data/template def is in entity_record['data']
     # so, delete unused items
@@ -537,7 +531,7 @@ def get_entity_full_template_data(entity_record, template_id):
 
     
     
-def get_historical_entity(history_id, highlight_result=False, q_highlight=None, include_template_data=True):
+def get_historical_entity(history_id, highlight_result=False, q_highlight=None, include_template_data=True, return_queryset_as_list=False):
    
     ''' Get historical generic entity based on a history id '''
 
@@ -582,23 +576,25 @@ def get_historical_entity(history_id, highlight_result=False, q_highlight=None, 
         SELECT 
         """ + highlight_columns + """
         hge.id,
-        hge.serial_id,
         hge.name,
-        hge.author,
-        hge.layout,
         hge.status,
-        hge.tags,
-        hge.collections,
+        hge.author,
         hge.definition,
         hge.implementation,
         hge.validation,
-        hge.publications,        
+        hge.publications,            
+        hge.tags,
+        hge.collections,    
         hge.citation_requirements,
-        hge.internal_comments,  
+        
 
         hge.template_id,
+        hge.template_version,
         hge.template_data::json,
-        
+         
+         
+        hge.internal_comments, 
+       
         hge.created,
         hge.created_by_id,
         hge.updated,
@@ -620,7 +616,7 @@ def get_historical_entity(history_id, highlight_result=False, q_highlight=None, 
         hge.history_user_id,
 
         ucb.username as created_by_username,
-        umb.username as modified_by_username,
+        umb.username as updated_by_username,
         uhu.username as history_user
         
         FROM clinicalcode_historicalgenericentity AS hge
@@ -646,192 +642,12 @@ def get_historical_entity(history_id, highlight_result=False, q_highlight=None, 
             
         # Add a 'data' key which has all data based on the template ordered
         if include_template_data:
-            full_template_data = get_entity_full_template_data(row_dict, row_dict['template_id'])
+            full_template_data = get_entity_full_template_data(row_dict, row_dict['template_id'], return_queryset_as_list)
             return full_template_data
         else:
             return row_dict
 
-def get_entity_layout(generic_entity_hitory):
-    """
-    return the entity layout title
-    """
-    
-    entity_layout = [t[1] for t in ENTITY_LAYOUT if t[0]==generic_entity_hitory['layout']][0]
-    return entity_layout
-    
-def get_entity_layout_category(generic_entity_history):
-    """
-    return the category of the entity layout i.e. phenotype, working set, ...
-    """
-    
-    entity_layout_id = generic_entity_history['layout']
-    entity_layout_category = 'unkwon'
-    if entity_layout_id in [1, 4, 5]:
-        entity_layout_category = 'phenotype'
-    elif entity_layout_id in [3]:
-        entity_layout_category = 'working set'
-    elif entity_layout_id in [2]:
-        entity_layout_category = 'concept'
-    
-    return entity_layout_category
 
-
-
-def apply_filter_condition(query, selected=None, conditions='', data=None, is_authenticated_user=True):
-
-    if query not in filter_queries:
-        return None, conditions
-    
-    qcase = filter_queries[query]
-    if qcase == 0:
-        # Tags, Collections, Datasource, Clin. Terms (CodingSystem for Pheno)
-        if query not in filter_query_model:
-            return None, conditions
-
-        sanitised_list = utils.expect_integer_list(selected)
-        search_list = [str(i) for i in sanitised_list]
-        items = filter_query_model[query].objects.filter(id__in=search_list)
-        search_list = list(items.values_list('id', flat=True))
-        search_list = [str(i) for i in search_list]
-
-        if len(search_list) > 0:
-            conditions += " AND " + query + " && '{" + ','.join(search_list) + "}' "
-        return items, conditions
-    elif qcase == 1:
-        # CodingSystem
-        if query not in filter_query_model:
-            return None, conditions
-
-        sanitised_list = utils.expect_integer_list(selected)
-        search_list = [str(i) for i in sanitised_list]
-        items = filter_query_model[query].objects.filter(id__in=search_list)
-        search_list = list(items.values_list('id', flat=True))
-        search_list = [str(i) for i in search_list]
-
-        if len(search_list) > 0:
-            conditions += " AND " + query + " in (" + ','.join(search_list) + ") "
-        return items, conditions
-    elif qcase == 2:
-        # Phenotype type (string field?)
-        if data is None:
-            return [], conditions
-
-        selected_list = [str(t) for t in selected.split(',')]
-        selected_list = list(set(data).intersection(set(selected_list)))
-        if len(selected_list) > 0:
-            conditions += " AND lower(type) IN('" + "', '".join(selected_list) + "') "
-        return selected_list, conditions
-    elif qcase == 3:
-        # Workingset type (enum, as int field?)
-        if data is None:
-            return [], conditions
-        
-        selected_list = utils.expect_integer_list(selected)
-        selected_list = [str(i) for i, v in enumerate(data) if v in selected_list]
-        if len(selected_list) > 0:
-            conditions += " AND type in (" + ','.join(selected_list) + ") "
-        return selected_list, conditions
-    elif qcase == 4:
-        # Daterange
-        if isinstance(selected['start'][0], datetime.datetime) and isinstance(selected['end'][0], datetime.datetime):
-            if is_authenticated_user:
-                date_field = "modified"
-            else:  
-                date_field = "publish_date"
-
-            conditions += " AND (" + date_field + " >= '" + selected['start'][1] + "' AND " + date_field + " <= '" + selected['end'][1] + "') "
-        return selected, conditions
-    
-    return None, conditions
-
-
-#-------------------- Pheno types reference data ------------------------#
-def get_brand_associated_phenotype_types(request, brand=None):
-    """
-        Return all phenotype types assoc. with each brand from the filter statistics model
-    """
-    if brand is None:
-        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
-    
-    source = 'all_data' if request.user.is_authenticated else 'published_data'
-    stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact='phenotype_filters')).stat['phenotype_types']
-    stats = [entry for entry in stats if entry['data_scope'] == source][0]['types']
-
-    available_types = Phenotype.history.annotate(type_lower=Lower('type')).values('type_lower').distinct().order_by('type_lower')    
-    phenotype_types = [entry[0] for entry in stats]
-    phenotype_types = [x for x in phenotype_types if available_types.filter(type_lower=x).exists()]
-    sorted_order = {str(entry[0]): entry[1] for entry in stats}
-
-    return phenotype_types, sorted_order
-
-#---------------------------------------------------------------------------
-
-#-------------------- Data sources reference data ------------------------#
-def get_data_source_reference(request, brand=None):
-    """
-        Return all data sources assoc. with each brand from the filter statistics model
-    """
-    if brand is None:
-        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
-    
-    source = 'all_data' if request.user.is_authenticated else 'published_data'
-    stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact='phenotype_filters')).stat['data_sources']
-    stats = [entry for entry in stats if entry['data_scope'] == source][0]['data_source_ids']
-    data_source_ids = [entry[0] for entry in stats]
-
-    data_sources = [DataSource.objects.get(id=x) for x in data_source_ids if DataSource.objects.filter(id=x).exists()]
-    sorted_order = {str(entry[0]): entry[1] for entry in stats}
-    
-    return data_sources, sorted_order
-
-#-------------------- Coding system reference data ------------------------#
-def get_coding_system_reference(request, brand=None, concept_or_phenotype="concept"):
-    """
-        Return all coding systems assoc. with each brand from the filter statistics model
-    """
-    if brand is None:
-        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
-    
-    source = 'all_data' if request.user.is_authenticated else 'published_data'
-    stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact=f"{concept_or_phenotype}_filters")).stat['coding_systems']
-    stats = [entry for entry in stats if entry['data_scope'] == source]
-
-    stats = stats[0]['coding_system_ids']
-    coding = [entry[0] for entry in stats]
-    coding = [CodingSystem.objects.get(id=x) for x in coding if CodingSystem.objects.filter(id=x).exists()]
-    sorted_order = {str(entry[0]): entry[1] for entry in stats}
-    
-    return coding, sorted_order
-
-#----------------------------- Tag reference ------------------------------#
-def get_brand_associated_tags(request, excluded_tags=None, brand=None, concept_or_phenotype="concept"):
-    """
-        Return all tags assoc. with each brand, and exclude those in our list
-    """
-    if brand is None:
-        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
-    
-    source = 'all_data' if request.user.is_authenticated else 'published_data'
-    stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact=f"{concept_or_phenotype}_filters")).stat['tags']
-    stats = [entry for entry in stats if entry['data_scope'] == source][0]['tag_ids']
-    tags = [entry[0] for entry in stats]
-    
-    if tags is not None and excluded_tags is not None:
-        tags = [x for x in tags if x not in excluded_tags]
-    
-    descriptors = [Tag.objects.get(id=x) for x in tags if Tag.objects.filter(id=x).exists()]
-    sorted_order = {str(entry[0]): entry[1] for entry in stats}
-    
-    if descriptors is not None:
-        result = {}
-        for tag in descriptors:
-            result[tag.description] = tag.id
-
-        return result, sorted_order
-    
-    return {}, sorted_order
-
-#---------------------------------------------------------------------------
 
 def get_brand_collection_ids(brand_name):
     """
@@ -845,29 +661,6 @@ def get_brand_collection_ids(brand_name):
         return brand_collection_ids
     else:
         return [-1]
-
-
-def get_brand_associated_collections(request, concept_or_phenotype="concept", brand=None, excluded_collections=None):
-    """
-        If user is authenticated show all collection IDs, including those that are deleted, as filters.
-        If not, show only non-deleted/published entities related collection IDs.
-    """
-    if brand is None:
-        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
-    
-    source = 'all_data' if request.user.is_authenticated else 'published_data'
-    stats = Statistics.objects.get(Q(org__iexact=brand) & Q(type__iexact=f"{concept_or_phenotype}_filters")).stat['collections']
-    stats = [entry for entry in stats if entry['data_scope'] == source][0]['collection_ids']
-    collections = [entry[0] for entry in stats]
-    
-    if collections is not None and excluded_collections is not None:
-        collections = [x for x in collections if x not in excluded_collections]
-    
-    collections = [Tag.objects.get(id=x) for x in collections if Tag.objects.filter(id=x).exists()]
-    sorted_order = {str(entry[0]): entry[1] for entry in stats}
-    
-    return collections, sorted_order
-
 
 
 def get_q_highlight(request, q):
@@ -896,14 +689,14 @@ def is_referred_from_search_page(request):
 # getGroupOfConceptsByPhenotypeId_historical
 def get_concept_ids_versions_of_historical_phenotype(phenotype_id, phenotype_history_id):
     '''
-        get concept_informations of the specified phenotype 
+        get concept_information of the specified phenotype 
         - from a specific version
 
     '''
     concept_id_version = []
-    concept_informations = GenericEntity.history.get(id=phenotype_id, history_id=phenotype_history_id).template_data['concept_informations']
-    if concept_informations:
-        for c in concept_informations:
+    concept_information = GenericEntity.history.get(id=phenotype_id, history_id=phenotype_history_id).template_data['concept_information']
+    if concept_information:
+        for c in concept_information:
             concept_id_version.append((c['concept_id'], c['concept_version_id']))
 
     return concept_id_version
@@ -1064,6 +857,38 @@ def get_phenotype_concept_codes_by_version(request,
                             ]))))
 
     return codes
+
+
+
+def can_field_be_shown(field_data, is_authenticated, block_list={}):
+    '''
+        check is the field can be shown.
+        block_list example {"field_type": ["concept_informations"]}
+    '''
+    show = True
+    if 'active' in field_data and field_data['active'] == False:
+        show = False
+            
+    if 'hide_if_empty' in field_data and field_data['hide_if_empty'] == True:
+        if field_data['value'] == '':
+            show = False
+            
+    if 'do_not_show_in_production' in field_data and field_data['do_not_show_in_production'] == True:
+        if (not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC):
+            show = False
+
+    if 'requires_auth' in field_data and field_data['requires_auth'] == True:
+        if (not is_authenticated):
+            show = False
+            
+    if block_list:
+        for (key, block_fields) in block_list.items():
+            if key in field_data:
+                if field_data[key].lower() in [f.lower() for f in block_fields]:
+                    show = False
+        
+    return show
+
 
 
 

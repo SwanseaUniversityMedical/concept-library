@@ -4,9 +4,9 @@
 {% load markdownify %}
 {% load cl_extras %}
 
-{% block title %}| {{ entity_layout }}: {{ entity_data.name.value }}{% endblock title %}
-{% block description %}{{ entity_data.name.value }}{% endblock description %}
-{% block keywords %}, {{ entity_data.name.value }}{% endblock keywords %}
+{% block title %}| {{ entity_class }}: {{ entity_fields.name.value }}{% endblock title %}
+{% block description %}{{ entity_fields.name.value }}{% endblock description %}
+{% block keywords %}, {{ entity_fields.name.value }}{% endblock keywords %}
 
 {% block canonical_path %}
 	<link rel="canonical" href="{{ page_canonical_path }}" />
@@ -54,7 +54,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
                                                        type="button" class="btn btn-primary dropdown-toggle"
                                                        data-toggle="dropdown" aria-haspopup="true"
                                                        aria-expanded="false" id="export-btn">
-				    Export {{ entity_layout_category }}
+				    Export {{ entity_class }}
 				    <span class="caret"></span>
 				  </button>
 				  <ul class="dropdown-menu">
@@ -202,9 +202,9 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 <div class="col-md-12" id="ddd">
     <div>
         <h2>
-            <strong>{{ entity_data.name.value_highlighted|safe }}</strong>
+            <strong>{{ entity_fields.name.value_highlighted|safe }}</strong>
         </h2>
-        <span><i>{{ entity_data.author.value_highlighted|safe }}</i></span>
+        <span><i>{{ entity_fields.author.value_highlighted|safe }}</i></span>
         <br>
         <br>
     </div>
@@ -241,16 +241,16 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
        
        	      
        	      
-		{% for field, field_data in entity_data.items %}
+		{% for field, field_data in entity_fields.items %}
 			{% if not field_data|can_be_shown:user.is_authenticated or field == 'name' or field == 'author' %}
 				<!-- continue -->
 			{% else %}
-				{% if field_data.field_type|is_in_list:'data_sources,tags,collections,concept_informations,coding_systems,phenoflowid' %}
+				{% if field_data.field_type|is_in_list:'data_sources,tags,collections,concept_information,coding_system,phenoflowid' %}
 						<!-- system defined -->
 						{% if field_data.field_type == 'tags' %}
 							<div class="row" style="margin-top: 10px;">
 								<span id="{{ field_data.html_id }}"></span>
-								<div class="col-sm-2">{{ field|get_title }}</div>
+								<div class="col-sm-2">{{ field_data.title }}</div>
 								<div class="col-sm-10">
 									{% if field_data.value|length %}
 										{% for tag in field_data.value %}
@@ -266,7 +266,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 						{% if field_data.field_type == 'collections' %}
 							<div class="row" style="margin-top: 10px;">
 								<span id="{{ field_data.html_id }}"></span>
-								<div class="col-sm-2">{{ field|get_title }}</div>
+								<div class="col-sm-2">{{ field_data.title }}</div>
 								<div class="col-sm-10">
 									{% if field_data.value|length %}
 										{% for tag in field_data.value %}
@@ -282,7 +282,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 						{% if field_data.field_type == 'data_sources' %}
 				            <div class="row" style="margin-top: 10px;">
 				            	<span id="{{ field_data.html_id }}"></span>
-				                <div class="col-sm-2">{{ field|get_title }}</div>
+				                <div class="col-sm-2">{{ field_data.title }}</div>
 				                <div class="col-sm-10">
 				                    {% for ds in field_data.value %}
 				                        {% if ds.url|length %}
@@ -298,10 +298,10 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 				            </div>
 						{% endif %}		
 						
-						{% if field_data.field_type == 'coding_systems' %}
+						{% if field_data.field_type == 'coding_system' %}
 							<div class="row" style="margin-top: 10px;">
 								<span id="{{ field_data.html_id }}"></span>
-				                <div class="col-sm-2">{{ field|get_title }}</div>
+				                <div class="col-sm-2">{{ field_data.title }}</div>
 				                <div class="col-sm-10">
 				                    {% if field_data.value|length %}
 					                    {% for cs in field_data.value %}
@@ -319,9 +319,10 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 								<span id="{{ field_data.html_id }}"></span>
 				                <div class="col-sm-3"><label>PhenoFlow Implementation</label></div>
 				                <div class="col-sm-9">
+				                	<!-- value includes the URL -->
 				                    {% if field_data.value|length %}
-						                <a href="https://kclhi.org/phenoflow/phenotype/download/{{ field_data.value }}"
-						                    target=_blank>https://kclhi.org/phenoflow/phenotype/download/{{ field_data.value }}
+						                <a href="{{ field_data.value }}"
+						                    target=_blank>{{ field_data.value }}
 						                </a>            
 				                    {% else %}
 				                    <span class="card-no-data">No associated codes</span>
@@ -330,16 +331,16 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 				            </div>
 						{% endif %}			
 										
-						{% if field_data.field_type == 'concept_informations' %}
+						{% if field_data.field_type == 'concept_information' %}
 				            {% include '../generic_entity/snippet/phenotype_clinical_code_lists.html' with field_data=field_data field=field %}
 						{% endif %}			
 										
 
-				{% elif field_data.field_type|is_in_list:'char_inputbox,int,enum,date' %}
+				{% elif field_data.field_type|is_in_list:'string_inputbox,int,enum,enum_badge,string_inputbox_code,date' %}
 					<!-- one row element -->
 					<div class="row" style="margin-top: 10px;">
 						 <span id="{{ field_data.html_id }}"></span>
-		                 <div class="col-sm-2">{{ field|get_title:'uuid' }}</div>
+		                 <div class="col-sm-2">{{ field_data.title }}</div>
 		                 <div class="col-sm-10">
 		                 	{{ field_data|get_html_element|safe }}
 		                 </div>
@@ -350,9 +351,9 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 			       <div class="col-sm-12 shadow-frame">
 			            <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;">
 			            	<span id="{{ field_data.html_id }}"></span>
-			            	<strong>{{ field|get_title:'uuid' }}</strong>
+			            	<strong>{{ field_data.title }}</strong>
 			            </h3>
-			            {% if field_data.field_type|is_in_list:'char_list_of_inputboxes' %}
+			            {% if field_data.field_type|is_in_list:'string_list_of_inputboxes' %}
 			            	{% if field_data.value|length %}
 			                    <ul>
 			                        {% for p in field_data.value %}
@@ -432,7 +433,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 						<div class="row">
 							<div  class="col-sm-3">Modified by</div>
 							<div class="col-sm-3">
-								{{ entity.modified_by_username }}
+								{{ entity.updated_by_username }}
 							</div>
 							<div  class="col-sm-3">On</div>
 							<div class="col-sm-3">
@@ -583,8 +584,8 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 		<td>XML</td>
 		<td>
 		{% if user.is_authenticated %}
-                     <a href="{% url 'api:api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=xml"
-                        target=_blank>site_root{% url 'api:api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=xml</a>
+                     <a href="{% url 'api:ge_api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=xml"
+                        target=_blank>site_root{% url 'api:ge_api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=xml</a>
                  {% else %}
                      <a href="{% url 'api:api_export_published_phenotype_codes' entity.id entity.history_id %}?format=xml"
                         target=_blank>site_root{% url 'api:api_export_published_phenotype_codes' entity.id entity.history_id %}?format=xml</a>
@@ -595,11 +596,11 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 		<td>JSON</td>
 		<td>
 		{% if user.is_authenticated %}
-                     <a href="{% url 'api:api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=json"
-                        target=_blank>site_root{% url 'api:api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=json</a>
+                     <a href="{% url 'api:ge_api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=json"
+                        target=_blank>site_root{% url 'api:ge_api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=json</a>
                  {% else %}
-                     <a href="{% url 'api:api_export_published_phenotype_codes' entity.id entity.history_id %}?format=json"
-                        target=_blank>site_root{% url 'api:api_export_published_phenotype_codes' entity.id entity.history_id %}?format=json</a>
+                     <a href="{% url 'api:ge_api_export_published_phenotype_codes' entity.id entity.history_id %}?format=json"
+                        target=_blank>site_root{% url 'api:ge_api_export_published_phenotype_codes' entity.id entity.history_id %}?format=json</a>
                  {% endif %}
 		</td>
 
@@ -609,8 +610,8 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
                      <tr>
                      <td>CSV</td>
                      <td>
-                     <a href="{% url 'history_phenotype_codes_to_csv' pk=entity.id phenotype_history_id=entity.history_id %}"
-                        target=_blank>site_root{% url 'history_phenotype_codes_to_csv' entity.id entity.history_id %}</a>
+                     <a href="{% url 'ge_history_phenotype_codes_to_csv' pk=entity.id history_id=entity.history_id %}"
+                        target=_blank>site_root{% url 'ge_history_phenotype_codes_to_csv' entity.id entity.history_id %}</a>
                  {% endif %}
                </tr>
                <tr>
