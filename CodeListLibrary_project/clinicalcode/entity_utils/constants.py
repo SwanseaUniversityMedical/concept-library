@@ -279,7 +279,8 @@ metadata = {
         "active": True,
         "validation": {
             "type": "int",
-            "mandatory": True
+            "mandatory": True,
+            "computed": True
         },
         "is_base_field": True
     },
