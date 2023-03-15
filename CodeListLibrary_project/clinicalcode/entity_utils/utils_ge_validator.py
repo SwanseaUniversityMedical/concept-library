@@ -9,7 +9,7 @@ from clinicalcode.views.GenericEntity import get_history_table_data
 from django.urls import reverse, reverse_lazy
 from ..models import *
 from ..permissions import *
-from ..constants import ENTITY_LAYOUT
+from ..constants import APPROVED, ENTITY_LAYOUT, PENDING, REJECTED
 
 def form_validation(request, data, entity_history_id, pk,entity,checks):
     """
@@ -32,7 +32,7 @@ def form_validation(request, data, entity_history_id, pk,entity,checks):
             'history': get_history_table_data(request, pk),  # entity.history.all(),
             'current_entity_history_id': int(entity_history_id),  # entity.history.latest().pk,
             'published_historical_ids':
-                list(PublishedGenericEntity.objects.filter(entity_id=pk, approval_status=2).values_list('entity_history_id', flat=True))
+                list(PublishedGenericEntity.objects.filter(entity_id=pk, approval_status=APPROVED_STATUS[APPROVED][0]).values_list('entity_history_id', flat=True))
         },
         request=request)
     #send email message state and client side message
@@ -50,14 +50,14 @@ def send_message(pk, data, entity,entity_history_id,checks):
     @param checks: additional checks of entity
     @return: updated data dictionary with client side message
     """
-    if data['approval_status'] == 2:
+    if data['approval_status'] == APPROVED_STATUS[APPROVED][0]:
         data['message'] = """The {entity_type} version has been successfully published.<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'], url=reverse('generic_entity_history_detail',  args=(pk,entity_history_id)), pk=pk,history=entity_history_id)
 
         send_email_decision_entity(entity,checks['entity_type'], data['approval_status'])
         return data
 
     #publish message if not declined
-    elif len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=2)) > 0 and not data['approval_status'] == 3:
+    elif len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=APPROVED_STATUS[APPROVED][0])) > 0 and not data['approval_status'] == APPROVED_STATUS[REJECTED][0]:
         data['message'] = """The {entity_type} version has been successfully published.
                                  <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'], url=reverse('generic_entity_history_detail', args=(pk,entity_history_id)),
                                                                                                          pk=pk,history=entity_history_id)
@@ -67,7 +67,7 @@ def send_message(pk, data, entity,entity_history_id,checks):
         return data
 
     #showing rejected message
-    elif data['approval_status'] == 3:
+    elif data['approval_status'] == APPROVED_STATUS[REJECTED][0]:
         data['message'] = """The {entity_type} version has been rejected .
                                                <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'],
             url=reverse('generic_entity_history_detail', args=(pk,entity_history_id)),
@@ -88,7 +88,7 @@ def send_message(pk, data, entity,entity_history_id,checks):
 
 
     #show pending message if user clicks to request review
-    elif data['approval_status'] == 1:
+    elif data['approval_status'] == APPROVED_STATUS[PENDING][0]:
         data['message'] = """The {entity_type} version is going to be reviewed by the moderator.
                                                       <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'],
             url=reverse('generic_entity_history_detail', args=(pk,entity_history_id)),
@@ -141,15 +141,15 @@ def checkEntityToPublish(request,pk,entity_history_id):
         is_moderator = True
 
     #check if current version of ws is the latest version to approve
-    if len(PublishedGenericEntity.objects.filter(entity_id=pk, entity_history_id=entity_history_id, approval_status=1)) > 0:
+    if len(PublishedGenericEntity.objects.filter(entity_id=pk, entity_history_id=entity_history_id, approval_status=APPROVED_STATUS[PENDING][0])) > 0:
         is_latest_pending_version = True
 
 
     entity_ver = GenericEntity.history.get(id=pk, history_id=entity_history_id)
     is_published = checkIfPublished(GenericEntity, pk, entity_history_id)
     approval_status = get_publish_approval_status(GenericEntity, pk, entity_history_id)
-    is_lastapproved = len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=2)) > 0
-    other_pending = len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=1)) > 0
+    is_lastapproved = len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=APPROVED_STATUS[APPROVED][0])) > 0
+    other_pending = len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=APPROVED_STATUS[PENDING][0])) > 0
     
 
     # get historical version by querying SQL command from DB
@@ -175,7 +175,8 @@ def checkEntityToPublish(request,pk,entity_history_id):
     #check if table is not empty
     table_ofEntity = lambda entity_class:  'concept_information' if entity_class== "Phenotype"  else 'workingset_concept_information'
     entity_has_data = len(GenericEntity.history.get(id=pk, history_id=entity_history_id).template_data[table_ofEntity(entity['entity_class'])]) > 0
-    if not entity_has_data and entity['layout'] == 3:
+
+    if not entity_has_data and entity['entity_class'] == "Workingset":
         allow_to_publish = False
 
 
