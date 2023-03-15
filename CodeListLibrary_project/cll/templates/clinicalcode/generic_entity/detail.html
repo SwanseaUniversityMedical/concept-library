@@ -336,7 +336,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 						{% endif %}			
 										
 
-				{% elif field_data.field_type|is_in_list:'string_inputbox,int,enum,enum_badge,string_inputbox_code,date' %}
+				{% elif field_data.field_type|is_in_list:'string_inputbox,int,enum,enum_radio_badge,enum_dropdown_badge,string_inputbox_code,date' %}
 					<!-- one row element -->
 					<div class="row" style="margin-top: 10px;">
 						 <span id="{{ field_data.html_id }}"></span>
