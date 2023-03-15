@@ -27,7 +27,8 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
         url(r'^entity/create/(?P<template_id>[\d]+)/?$', GenericEntity.CreateEntityView.as_view(), name='create_entity'),
         url(r'^entity/update/(?P<entity_id>\w+)/?$', GenericEntity.CreateEntityView.as_view(), name='update_entity'),
         
-        url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/detail/$', GenericEntity.generic_entity_detail, name='generic_entity_history_detail'),
+        url(r'^ge/(?P<pk>PH\d+)/detail/$', GenericEntity.generic_entity_detail, name='entity_detail'),
+        url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/detail/$', GenericEntity.generic_entity_detail, name='entity_history_detail'),
 
         url(r'^ge/(?P<pk>PH\d+)/uniquecodesbyversion/(?P<history_id>\d+)/concept/C(?P<target_concept_id>\d+)/(?P<target_concept_history_id>\d+)/$',
             GenericEntity.phenotype_concept_codes_by_version,

@@ -28,7 +28,7 @@
 		<tr>
 			<td>{{ h.history_id }}</td>
 			<td>
-				<a class="" href="{% url 'generic_entity_history_detail' pk=h.id history_id=h.history_id %}">	
+				<a class="" href="{% url 'entity_history_detail' pk=h.id history_id=h.history_id %}">	
 				{% if h.name_highlighted|length %}
 					{{ h.name_highlighted|safe }}
 				{% else %}
