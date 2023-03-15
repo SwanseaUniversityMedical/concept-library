@@ -52,12 +52,12 @@ class EntityDecline(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, 
             with transaction.atomic():
                 entity = GenericEntity.objects.get(pk=pk)
                 #if moderator and in pending state
-                if checks['is_moderator'] and checks['approval_status'] == 1:
-                    published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id, approval_status=1).first()#find first record
-                    published_entity.approval_status = 3
+                if checks['is_moderator'] and checks['approval_status'] == APPROVED_STATUS[PENDING][0]:
+                    published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id, approval_status=APPROVED_STATUS[PENDING][0]).first()#find first record
+                    published_entity.approval_status = APPROVED_STATUS[REJECTED][0]
                     published_entity.save()
                     data['form_is_valid'] = True
-                    data['approval_status'] = 3
+                    data['approval_status'] = APPROVED_STATUS[REJECTED][0]
 
                     data = utils_ge_validator.form_validation(request, data, history_id, pk, entity, checks)
                     
