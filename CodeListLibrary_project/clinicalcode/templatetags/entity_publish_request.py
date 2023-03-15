@@ -104,7 +104,7 @@ def render_publish_button(context, *args, **kwargs):
                             'title': "Unavailable to publish"}
         
         if context["approval_status"] == 3:
-            button_context["Button_type"] = "Declined"
+            button_context["Button_type"] = "Rejected"
             return button_context
         elif context["approval_status"] == 1:
             button_context["Button_type"] = "Pending"
