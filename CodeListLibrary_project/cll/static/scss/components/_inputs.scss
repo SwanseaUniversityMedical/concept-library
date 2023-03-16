@@ -100,14 +100,15 @@
 
         & > span {
           font-weight: bold;
+          pointer-events: none;
         }
         
         & > .delete-icon {
+          pointer-events: none;
           margin-right: 0.5rem;
           &:after {
             content: '\f057';
-            cursor: pointer;
-            pointer-events: auto;
+            pointer-events: none;
             aspect-ratio: 1 / 1;
             font-family: var(--icons-name);
             font-style: var(--icons-style);

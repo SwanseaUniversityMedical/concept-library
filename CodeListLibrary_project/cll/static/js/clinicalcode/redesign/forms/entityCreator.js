@@ -177,13 +177,13 @@ const ENTITY_HANDLERS = {
       parsed = [];
     }
 
-    return new PublicationCreator(parsed)
+    return new PublicationCreator(element, parsed)
   },
 
   // Generates a clinical concept component for an element
   'clinical-concept': (element) => {
     const data = element.querySelector(`data[for="${element.getAttribute('data-field')}"]`);
-
+    
   },
 };
 

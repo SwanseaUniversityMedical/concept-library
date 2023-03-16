@@ -205,3 +205,18 @@ const isStringEmpty = (value) => isNullOrUndefined(value) || !value.length;
  * @desc checks if a string is compose of only whitespace
  */
 const isStringWhitespace = (value) => !value.replace(/\s/g, '').length;
+
+/**
+ * clearAllChildren
+ * @desc removes all children from a node
+ * @param {node} element the node to remove
+ * @param {fn} cond conditional to determine fate of elem
+ */
+const clearAllChildren = (element, cond) => {
+  for (const [index, child] of Object.entries(element.children)) {
+    if (child.nodeType == 1 && cond && cond(child)) {
+      continue;
+    }
+    element.removeChild(child);
+  }
+}
