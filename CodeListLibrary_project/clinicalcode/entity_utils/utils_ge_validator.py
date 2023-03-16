@@ -6,6 +6,7 @@ from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
 from clinicalcode.permissions import allowed_to_edit, allowed_to_view, checkIfPublished, get_publish_approval_status
 from django.contrib.auth.models import  User
 from django.template.loader import render_to_string
+from clinicalcode.tasks import send_review_email
 from clinicalcode.views.GenericEntity import get_history_table_data
 from django.urls import reverse, reverse_lazy
 from ..models import *
@@ -283,22 +284,22 @@ def send_email_decision_entity(entity,entity_type,approved):
     
     
     if approved == 1:
-        db_utils.send_review_email(entity,
+        send_review_email.delay(entity.id,entity.name,entity.owner_id,
                                    "Published",
                                    f"{entity_type} has been successfully approved and published on the website")
         
     elif approved == 0:
-        db_utils.send_review_email(entity,
+        send_review_email.delay(entity.id,entity.name,entity.owner_id,
                                    "Pending",
                                    f"{entity_type} has been submitted and waiting moderator to publish on the website")
 
     elif approved == 2:
         # This line for the case when user want to get notification of same workingset id but different version
-        db_utils.send_review_email(entity,
+        send_review_email.delay(entity.id,entity.name,entity.owner_id,
                                    "Published",
                                    f"{entity_type} has been successfully approved and published on the website")
     elif approved == 3:
-        db_utils.send_review_email(entity,
+        send_review_email.delay(entity.id,entity.name,entity.owner_id,
                                    "Rejected",
                                    f"{entity_type} has been rejected by the moderator. Please consider update changes and try again")
 
