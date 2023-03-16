@@ -1,0 +1,22 @@
+{% load entity_renderer %}
+<section class="concepts-view" id="concepts-view" data-field="{{ component.field_name }}" data-class="clinical-concept">
+  <data type="value" for="{{ component.field_name }}"></data>
+  <section class="concepts-view__header">
+    <div class="concepts-view__container">
+      <p class="concepts-view__title">Your Concepts</p>
+      <p class="concepts-view__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+    </div>
+    <div class="concepts-view__container">
+      <button class="secondary-btn text-accent-darkest bold icon import-icon secondary-accent" aria-label="Create new Concept" id="create-concept-btn">New Concept</button>
+    </div>
+  </section>
+  <section class="concept-list">
+    <!-- When no concepts are available -->
+    <section class="concept-list__none-available show" id="no-available-concepts">
+      <p class="concept-list__none-available-message">You haven't added any concepts yet</p>
+    </section>
+
+    <!-- Concept list items -->
+    
+  </section>
+</section>

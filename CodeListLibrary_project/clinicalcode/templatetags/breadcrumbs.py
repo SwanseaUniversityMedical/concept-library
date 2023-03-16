@@ -5,6 +5,9 @@ from django import urls
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
+import re
+import difflib
+
 register = template.Library()
 
 def try_add_crumb(crumbs, crumb):
@@ -52,13 +55,28 @@ def find_matching_url(items, desired):
 def get_url(desired):
     desired = 'concept_library_home' if desired == '' else desired
     url_resolver = urls.get_resolver(urls.get_urlconf())
+    matching = find_matching_url(url_resolver.url_patterns, desired)
+    if matching is not None:
+        return matching, False
     
-    return find_matching_url(url_resolver.url_patterns, desired)
+    resolver_items = {v[1].replace(re.sub('(\w+(?:$|\/))+', '', v[1]), ''):[k, v[1]] for k, v in urls.get_resolver(None).reverse_dict.items()}
+    resolvers = [k for k in resolver_items]
+    resolvers = difflib.get_close_matches(desired, resolvers, cutoff=0.3)
+    
+    if len(resolvers) > 0:
+        resolvers = resolver_items.get(resolvers[0])
+        token = re.sub('(\w+(?:$|\/))+', '', resolvers[1])
+        matched_url = find_matching_url(url_resolver.url_patterns, resolvers[0])
+        
+        return matched_url, len(token) > 1
+
+    return None, False
 
 @register.tag
 def breadcrumbs(parser, token):
     params = {
         'useMap': False,
+        'useName': True,
         'includeHome': False,
         'includeHeader': False,
     }
@@ -85,6 +103,12 @@ class BreadcrumbsNode(template.Node):
         self.params = params
         self.nodelist = nodelist
 
+    def get_crumb(self, crumb, url):
+        if self.params['useName']:
+            return re.sub('(\-|\_)+', ' ', url.name).title()
+
+        return crumb.title()
+
     def map_path(self, path, rqst):
         crumbs = []
         for i, crumb in enumerate(path):
@@ -107,16 +131,20 @@ class BreadcrumbsNode(template.Node):
         if self.params['includeHome']:
             crumbs.append({ 'url': '/', 'title': 'Home' })
         
+        token_next = False
         for i, crumb in enumerate(path):
+            if token_next:
+                break
+            
             if crumb != '':
-                url = get_url(crumb)
+                url, token_next = get_url(crumb)
                 if url:
                     root = ''
                     look_up = url.lookup_str.split('.')
                     if look_up[0] == 'apps':
                         root = f'{look_up[1]}:'
                 
-                    crumbs.append({ 'url': root + url.name, 'title': 'Home' if crumb == '' else crumb.replace('-', ' ').title() })
+                    crumbs.append({ 'url': root + url.name, 'title': 'Home' if crumb == '' else self.get_crumb(crumb, url) })
 
         if len(crumbs) > 0 and crumbs[-1]['title'] != 'Home':
             crumbs[-1]['url'] = rqst.get_full_path()

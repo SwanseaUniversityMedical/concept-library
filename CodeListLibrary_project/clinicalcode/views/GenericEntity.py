@@ -12,6 +12,7 @@ import time
 from collections import OrderedDict
 from django.conf import settings
 from django.contrib import messages
+from django.core.exceptions import BadRequest
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import Group, User
@@ -24,17 +25,20 @@ from django.templatetags.static import static
 from django.views.generic import DetailView, TemplateView
 from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import UpdateView
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 
-from .. import generic_entity_db_utils, utils
+from .. import utils
+from clinicalcode.entity_utils import entity_db_utils
 from ..models import *
 from ..permissions import *
 from .View import *
 from clinicalcode.api.views.View import get_canonical_path_by_brand
 from clinicalcode.constants import *
 
-logger = logging.getLogger(__name__)
+from ..entity_utils import model_utils, create_utils, stats_utils, search_utils, constants
 
-from ..entity_utils import stats_utils, search_utils
+logger = logging.getLogger(__name__)
 
 class EntitySearchView(TemplateView):
     '''
@@ -84,25 +88,158 @@ class EntitySearchView(TemplateView):
             
         return render(request, self.template_name, context)
 
-class ExampleSASSView(TemplateView):
-    template_name = 'clinicalcode/generic_entity/examples.html'
-
-    def get(self, request):
-        ctx = {
-
-        }
-
-        return render(request, self.template_name, context=ctx)
-
 class CreateEntityView(TemplateView):
+    '''
+        Entity Create View
+            @desc Used to create entities - CreateView isn't used due to the requirements
+                  of having a form dynamically created to reflect the dynamic model.
+    '''
     template_name = 'clinicalcode/generic_entity/create.html'
+    
+    def create_form(self, request, context, template):
+        '''
+            @desc Renders the entity create form
+        '''
+        context['metadata'] = constants.metadata
+        context['template'] = template
+        context['form_method'] = constants.FORM_METHODS.CREATE
+        return render(request, self.template_name, context)
 
-    def get(self, request):
-        ctx = {
+    def update_form(self, request, context, template, entity):
+        '''
+            @desc Renders the entity update form
+        '''
+        context['metadata'] = constants.metadata
+        context['template'] = template
+        context['entity'] = entity
+        context['form_method'] = constants.FORM_METHODS.UPDATE
+        return render(request, self.template_name, context)
+    
+    def get_context_data(self, *args, **kwargs):
+        '''
+            @desc Provides contextual data
+        '''
+        context = super(CreateEntityView, self).get_context_data(*args, **kwargs)
 
-        }
+        return context
 
-        return render(request, self.template_name, context=ctx)
+    @method_decorator([never_cache, login_required], name='dispatch')
+    def get(self, request, *args, **kwargs):
+        '''
+            @desc Template and entity is tokenised in the URL - providing the latter requires
+                  users to be permitted to modify that particular entity.
+
+                  If no entity_id is passed, a creation form is returned, otherwise the user is
+                  redirected to an update form.
+        '''
+        context = self.get_context_data(*args, **kwargs)
+
+        template_id = kwargs.get('template_id')
+        if template_id is not None:
+            template = model_utils.try_get_instance(Template, pk=template_id)
+            if template is None:
+                raise Http404
+            return self.create_form(request, context, template)
+
+        entity_id = kwargs.get('entity_id')
+        if entity_id is not None:
+            entity = create_utils.try_validate_entity(request, entity_id)
+            if not entity:
+                raise PermissionDenied
+            
+            template = entity.template
+            if template is None:
+                raise BadRequest('Invalid request.')
+            return self.update_form(request, context, template, entity)
+        
+        raise BadRequest('Invalid request.')
+
+    @method_decorator([never_cache, login_required], name='dispatch')
+    def post(self, request, *args, **kwargs):
+        '''
+            @desc Handles:
+                - form submission on creating or updating an entity
+        '''
+        context = self.get_context_data(*args, **kwargs)
+
+        return render(request, self.template_name, context)
+
+@method_decorator(login_required, name='dispatch')
+class CreateEntityView(TemplateView):
+    '''
+        Entity Create View
+            @desc Used to create entities - CreateView isn't used due to the requirements
+                  of having a form dynamically created to reflect the dynamic model.
+    '''
+    template_name = 'clinicalcode/generic_entity/create.html'
+    
+    def create_form(self, request, context, template):
+        '''
+            @desc Renders the entity create form
+        '''
+        context['metadata'] = constants.metadata
+        context['template'] = template
+        context['form_method'] = constants.FORM_METHODS.CREATE
+        return render(request, self.template_name, context)
+
+    def update_form(self, request, context, template, entity):
+        '''
+            @desc Renders the entity update form
+        '''
+        context['metadata'] = constants.metadata
+        context['template'] = template
+        context['entity'] = entity
+        context['form_method'] = constants.FORM_METHODS.UPDATE
+        return render(request, self.template_name, context)
+    
+    def get_context_data(self, *args, **kwargs):
+        '''
+            @desc Provides contextual data
+        '''
+        context = super(CreateEntityView, self).get_context_data(*args, **kwargs)
+
+        return context
+
+    @method_decorator([never_cache, login_required], name='dispatch')
+    def get(self, request, *args, **kwargs):
+        '''
+            @desc Template and entity is tokenised in the URL - providing the latter requires
+                  users to be permitted to modify that particular entity.
+
+                  If no entity_id is passed, a creation form is returned, otherwise the user is
+                  redirected to an update form.
+        '''
+        context = self.get_context_data(*args, **kwargs)
+
+        template_id = kwargs.get('template_id')
+        if template_id is not None:
+            template = model_utils.try_get_instance(Template, pk=template_id)
+            if template is None:
+                raise Http404
+            return self.create_form(request, context, template)
+
+        entity_id = kwargs.get('entity_id')
+        if entity_id is not None:
+            entity = create_utils.try_validate_entity(request, entity_id)
+            if not entity:
+                raise PermissionDenied
+            
+            template = entity.template
+            if template is None:
+                raise BadRequest('Invalid request.')
+            return self.update_form(request, context, template, entity)
+        
+        raise BadRequest('Invalid request.')
+
+    @method_decorator([never_cache, login_required], name='dispatch')
+    def post(self, request, *args, **kwargs):
+        '''
+            @desc Handles:
+                - form submission on creating or updating an entity
+        '''
+        context = self.get_context_data(*args, **kwargs)
+
+        return render(request, self.template_name, context)
 
 class EntityStatisticsView(TemplateView):
     '''
@@ -121,6 +258,15 @@ class EntityStatisticsView(TemplateView):
             'successMsg': ['Filter statistics for Concepts/Phenotypes saved'],
         })
 
+class ExampleSASSView(TemplateView):
+    template_name = 'clinicalcode/generic_entity/examples.html'
+
+    def get(self, request):
+        ctx = {
+
+        }
+
+        return render(request, self.template_name, context=ctx)
 
 def generic_entity_list_temp(request):
     '''
@@ -133,7 +279,7 @@ def generic_entity_list_temp(request):
  
     request.session['entity_page'] = page
     
-    srch = generic_entity_db_utils.get_visible_live_or_published_generic_entity_versions(request,
+    srch = entity_db_utils.get_visible_live_or_published_generic_entity_versions(request,
                                                                             get_live_and_or_published_ver=3,
                                                                             search='',
                                                                             author='',
@@ -186,9 +332,9 @@ def generic_entity_detail(request, pk, history_id=None):
 
     # ----------------------------------------------------------------------
 
-    generic_entity = generic_entity_db_utils.get_historical_entity(history_id
-                                            , highlight_result = [False, True][generic_entity_db_utils.is_referred_from_search_page(request)]
-                                            , q_highlight = generic_entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))  
+    generic_entity = entity_db_utils.get_historical_entity(history_id
+                                            , highlight_result = [False, True][entity_db_utils.is_referred_from_search_page(request)]
+                                            , q_highlight = entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))  
                                             )
     # The historical entity contains the owner_id, to provide the owner name, we
     # need to access the user object with that ID and add that to the generic_entity.
@@ -232,7 +378,7 @@ def generic_entity_detail(request, pk, history_id=None):
 
         user_can_export = True 
          # (allowed_to_view_children(request, GenericEntity, pk, set_history_id=history_id)
-         #                   and generic_entity_db_utils.chk_deleted_children(request,
+         #                   and entity_db_utils.chk_deleted_children(request,
          #                                                   GenericEntity,
          #                                                   pk,
          #                                                   returnErrors=False,
@@ -240,7 +386,7 @@ def generic_entity_detail(request, pk, history_id=None):
          #                   and not GenericEntity.objects.get(pk=pk).is_deleted)
         user_allowed_to_create = allowed_to_create()
 
-        #children_permitted_and_not_deleted, error_dict = generic_entity_db_utils.chk_children_permission_and_deletion(request, GenericEntity, pk)
+        #children_permitted_and_not_deleted, error_dict = entity_db_utils.chk_children_permission_and_deletion(request, GenericEntity, pk)
 
 
     else:
@@ -293,8 +439,8 @@ def generic_entity_detail(request, pk, history_id=None):
         'is_latest_pending_version':is_latest_pending_version,
         'current_phenotype_history_id': int(history_id),
 
-        'q': generic_entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', '')),
-        'force_highlight_result':  ['0', '1'][generic_entity_db_utils.is_referred_from_search_page(request)]                              
+        'q': entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', '')),
+        'force_highlight_result':  ['0', '1'][entity_db_utils.is_referred_from_search_page(request)]                              
     }
 
     concept_dict = get_concept_data(request, pk, history_id, generic_entity, is_latest_version, children_permitted_and_not_deleted)
@@ -357,9 +503,9 @@ def get_history_table_data(request, pk):
     historical_versions = []
 
     for v in versions:
-        ver = generic_entity_db_utils.get_historical_entity(v.history_id
-                                        , highlight_result = [False, True][generic_entity_db_utils.is_referred_from_search_page(request)]
-                                        , q_highlight = generic_entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))
+        ver = entity_db_utils.get_historical_entity(v.history_id
+                                        , highlight_result = [False, True][entity_db_utils.is_referred_from_search_page(request)]
+                                        , q_highlight = entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))
                                         , include_template_data = False  
                                         )
         
@@ -433,13 +579,13 @@ def get_concept_data(request, pk, history_id, generic_entity, is_latest_version,
         # published
         component_tab_active = "active"  # ""
         codelist_tab_active = ""  # "active"
-        codelist = generic_entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id) ## change
+        codelist = entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id) ## change
         codelist_loaded = 1
         
-    # codelist = generic_entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id)
+    # codelist = entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id)
     # codelist_loaded = 1    
     
-    conceptBrands = generic_entity_db_utils.getConceptBrands(request, concept_id_list)
+    conceptBrands = entity_db_utils.getConceptBrands(request, concept_id_list)
     concept_data = []
     if concept_information:
         for c in concept_information:
@@ -522,14 +668,14 @@ def phenotype_concept_codes_by_version(request,
 
     # --------------------------------------------------
 
-    codes = generic_entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id, target_concept_id, target_concept_history_id)
+    codes = entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id, target_concept_id, target_concept_history_id)
 
     data = dict()
     data['form_is_valid'] = True
 
 
     # Get the list of concepts in the phenotype data
-    concept_ids_historyIDs = generic_entity_db_utils.get_concept_ids_versions_of_historical_phenotype(pk, history_id)
+    concept_ids_historyIDs = entity_db_utils.get_concept_ids_versions_of_historical_phenotype(pk, history_id)
 
     concept_codes_html = []
     for concept in concept_ids_historyIDs:
@@ -672,7 +818,7 @@ def history_phenotype_codes_to_csv(request, pk, history_id=None):
     current_ph_version = GenericEntity.history.get(id=pk, history_id=history_id)
 
     # Get the list of concepts in the phenotype data
-    concept_ids_historyIDs = generic_entity_db_utils.get_concept_ids_versions_of_historical_phenotype(pk, history_id)
+    concept_ids_historyIDs = entity_db_utils.get_concept_ids_versions_of_historical_phenotype(pk, history_id)
 
     my_params = {
         'phenotype_id': pk,

@@ -1,7 +1,9 @@
 from functools import wraps
 from dateutil import parser
+from json import JSONEncoder
 
 import time
+import datetime
 
 def parse_int(value, default=0):
     '''
@@ -37,3 +39,8 @@ def measure_perf(func):
         print('view {} takes {:.2f} ms'.format(func.__name__, duration))
         return result
     return wrapper
+
+class ModelEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, (datetime.date, datetime.datetime)):
+            return obj.isoformat()

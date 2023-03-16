@@ -108,7 +108,7 @@
 .tags-autocomplete-container {
   @include flex-col();
 
-  position: relative;
+  position: absolute;
   flex-wrap: nowrap;
   height: auto;
   width: calc(100% - 2px);
@@ -118,6 +118,10 @@
   border-top-left-radius: 0px;
   border-top-right-radius: 0px;
   border-top: 0px;
+  top: 100%;
+  z-index: 99;
+  max-height: 200px;
+  overflow-y: auto;
 
   &:not(.show) {
     display: none;
@@ -131,6 +135,7 @@
     background-color: col(bg);
     transition: background-color 250ms ease;
     text-align: left;
+    border: none;
     
     &__title {
       color: col(text-darkest);

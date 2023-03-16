@@ -13,7 +13,7 @@ from ...entity_utils import gen_utils
 
 
 from ...db_utils import *
-from ... import generic_entity_db_utils
+from clinicalcode.entity_utils import entity_db_utils
 from ...permissions import *
 from ...utils import *
 from ..serializers import *
@@ -306,7 +306,7 @@ def get_generic_entity_detail(request,
             return Response(rows_to_return, status=status.HTTP_200_OK)
     #--------------------------
 
-    generic_entity = generic_entity_db_utils.get_historical_entity(history_id, return_queryset_as_list=True)
+    generic_entity = entity_db_utils.get_historical_entity(history_id, return_queryset_as_list=True)
     # The history generic_entity contains the owner_id, to provide the owner name, we
     # need to access the user object with that ID and add that to the generic_entity.
     generic_entity['owner'] = None
@@ -339,7 +339,7 @@ def get_generic_entity_detail(request,
     
     # loop through data
     for (field_name, field_data) in template_data.items():
-        if generic_entity_db_utils.can_field_be_shown(field_data
+        if entity_db_utils.can_field_be_shown(field_data
                                                       , is_authenticated_user
                                                       , block_list={"field_type": ["concept_information"]}):
             titles += [field_name]
@@ -513,7 +513,7 @@ def export_published_phenotype_codes(request, pk, history_id=None):
 
     #----------------------------------------------------------------------
     if request.method == 'GET':
-        rows_to_return = generic_entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id)
+        rows_to_return = entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id)
         return Response(rows_to_return, status=status.HTTP_200_OK)
 
 
@@ -555,7 +555,7 @@ def export_phenotype_codes_byVersionID(request, pk, history_id=None):
     #----------------------------------------------------------------------
 
     if request.method == 'GET':
-        rows_to_return = generic_entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id)
+        rows_to_return = entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id)
         return Response(rows_to_return, status=status.HTTP_200_OK)
 
 

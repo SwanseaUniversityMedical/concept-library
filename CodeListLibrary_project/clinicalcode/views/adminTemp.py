@@ -50,7 +50,7 @@ def api_remove_data(request):
     if request.method == 'GET':
         if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
             return render(request, 'clinicalcode/adminTemp/adminTemp.html', 
-                          {'url': reverse('json_adjust_phenotype'),
+                          {'url': reverse('api_remove_data'),
                            'action_title': 'Delete API Data'
                         }
                         )
@@ -749,36 +749,7 @@ def get_custom_fields_key_value(phenotype):
     
     return get_custom_fields(phenotype)
     
-    
-def get_custom_fields_name_value(phenotype):
-    """
-    return the format list of dict
-    [{
-        "name": "col title 1",
-        "value": "value 1"
-    }, {
-        "name": "col title 2",
-        "value": "value 2"
-    }, {
-        "name": "col title 3",
-        "value": "value 3"
-    }]
-    """
-    
-    ret_data = []
-    dict1 = {}
-    custom_fields = get_custom_fields(phenotype)
-    for key, value in custom_fields.items(): 
-        dict1 = {}
-        dict1['name'] = key
-        dict1['value'] = value
-        ret_data.append(dict1)
-        
-    return ret_data
-  
-    
-    
-    
+
     
     
     

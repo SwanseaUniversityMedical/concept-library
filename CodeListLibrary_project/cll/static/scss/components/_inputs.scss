@@ -1,3 +1,4 @@
+@use 'sass:color';
 @import '../_methods';
 @import '../_variables';
 @import '../_media';
@@ -5,6 +6,141 @@
 
 /// Inputs
 ///   @desc Defines all input-like elements and their assoc. containers for use across website
+.publication-list-group {
+  @include flex-col();
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+
+  &__none-available {
+    padding: 1rem;
+    border-radius: 0.1rem;
+    background-color: col(accent-semi-transparent);
+    margin-bottom: 0.5rem;
+
+    &-message {
+      text-align: center;
+    }
+
+    &:not(.show) {
+      display: none;
+    }
+  }
+
+  &__list {
+    @include flex-col();
+    position: relative;
+    width: 100%;
+    margin-top: 1rem;
+
+    &-header {
+      width: 100%;
+      border-bottom: 1px solid col(accent-dark);
+
+      h3 {
+        padding: 0;
+        margin: 0 0 0.25rem 0;
+      }
+    }
+
+    &-container {
+      @include flex-col();
+      width: 100%;
+      max-width: 100%;
+      max-height: 200px;
+      overflow-y: auto;
+      overflow-x: none;
+    }
+
+    &-item {
+      @include flex-row();
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+
+      &-url {
+        display: flex;
+        vertical-align: middle;
+        max-width: 70%;
+
+        @include media("<desktop", "screen") {
+          max-width: 175px;
+        }
+
+        @include media("<tablet", "screen") {
+          max-width: 125px;
+        }
+
+        @include media("<=phone", "screen") {
+          max-width: 100px;
+        }
+        
+        a {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+
+      &-btn {
+        @include flex-row();
+        @include prefix(transition, all 250ms ease, webkit moz o ms);
+        flex-wrap: nowrap;
+        width: fit-content;
+        height: fit-content;
+        padding: 0.5rem 0.5rem;
+        vertical-align: middle;
+        align-items: center;
+        justify-content: space-evenly;
+        color: col(text-brightest);
+        background-color: col(accent-danger);
+        border-radius: 0.25rem;
+        border: none;
+        outline: none;
+
+        & > span {
+          font-weight: bold;
+        }
+        
+        & > .delete-icon {
+          margin-right: 0.5rem;
+          &:after {
+            content: '\f057';
+            cursor: pointer;
+            pointer-events: auto;
+            aspect-ratio: 1 / 1;
+            font-family: var(--icons-name);
+            font-style: var(--icons-style);
+            font-size: var(--icons-size);
+            color: col(accent-brightest);
+            text-align: center;
+          }
+        }
+
+        &:focus {
+          outline: none;
+        }
+
+        &:hover {
+          @include prefix(filter, brightness(80%), webkit moz o ms);
+        }
+
+        &:active {
+          @include prefix(transform, scale(0.95), webkit moz o ms);
+        }
+      }
+
+      &:not(:last-child) {
+        border-bottom: 1px solid col(accent-washed);
+      }
+    }
+
+    &:not(.show) {
+      display: none;
+    }
+  }
+}
+
 .detailed-input-group {
   @include flex-col();
 
