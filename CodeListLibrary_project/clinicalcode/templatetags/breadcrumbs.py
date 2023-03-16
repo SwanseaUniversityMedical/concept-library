@@ -8,6 +8,8 @@ from django.utils.translation import gettext_lazy as _
 import re
 import difflib
 
+from ..models.Brand import Brand
+
 register = template.Library()
 
 def try_add_crumb(crumbs, crumb):
@@ -102,6 +104,9 @@ class BreadcrumbsNode(template.Node):
         self.request = template.Variable('request')
         self.params = params
         self.nodelist = nodelist
+    
+    def __is_brand_token(self, token):
+        return Brand.objects.filter(name__iexact=token).exists()
 
     def get_crumb(self, crumb, url):
         if self.params['useName']:
@@ -112,6 +117,9 @@ class BreadcrumbsNode(template.Node):
     def map_path(self, path, rqst):
         crumbs = []
         for i, crumb in enumerate(path):
+            if self.__is_brand_token(crumb):
+                continue
+
             if crumb == '':
                 if self.params['includeHome']:
                     try_add_crumb(crumbs, 'concept_library_home')
@@ -135,6 +143,9 @@ class BreadcrumbsNode(template.Node):
         for i, crumb in enumerate(path):
             if token_next:
                 break
+            
+            if self.__is_brand_token(crumb):
+                continue
             
             if crumb != '':
                 url, token_next = get_url(crumb)

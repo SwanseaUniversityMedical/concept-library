@@ -220,3 +220,17 @@ const clearAllChildren = (element, cond) => {
     element.removeChild(child);
   }
 }
+
+/**
+ * displayCardDetails
+ * @desc onClick handler for content cards, primarily used for ./search page - referral to detail page
+ * @param {node} element the clicked node
+ */
+const displayCardDetails = (elem) => {
+  const target = elem.getAttribute('data-target');
+  if (!target) {
+    return;
+  }
+  
+  window.location.href = target;
+}
