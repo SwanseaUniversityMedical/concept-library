@@ -150,7 +150,8 @@ const getCurrentHost = () => window.location.protocol + '//' + window.location.h
 
 /**
   * getCurrentPath
-  * @desc Returns the path without the protocol and host e.g. http://google.com/some/location is now /some/location/
+  * @desc Returns the path without the protocol and host
+  *       e.g. http://google.com/some/location is now /some/location/
   * @returns {string} e.g. /some/location
   */
 const getCurrentPath = () => {
@@ -162,6 +163,7 @@ const getCurrentPath = () => {
 /**
  * getCurrentURL
  * @desc Returns the current path without any parameters
+ *       e.g. http://google.com/some/location?parameter=value is now http://google.com/some/location
  */
 const getCurrentURL = () => `${getCurrentHost()}${location.pathname}`;
 

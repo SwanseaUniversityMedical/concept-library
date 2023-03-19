@@ -173,7 +173,7 @@ def validate_query_param(template, data, default=None):
     
     return default
 
-def apply_param_to_query(query, template, param, data, is_dynamic=False, force_term=False, is_api=False):
+def apply_param_to_query(query, where, template, param, data, is_dynamic=False, force_term=False, is_api=False):
     '''
         Tries to apply a URL param to a query if its able to resolve and validate the param data
     '''
@@ -218,7 +218,12 @@ def apply_param_to_query(query, template, param, data, is_dynamic=False, force_t
 
         if clean is not None:
             if is_dynamic:
-                query[f'template_data__{param}__contains'] = clean
+                q = ','.join([f"'{str(x)}'" for x in clean])
+                where.append("exists(select 1 " + \
+                    f"from jsonb_array_elements(template_data->'{param}') as val " + \
+                    f"where val in ({q})" + \
+                    ")"
+                )
             else:
                 query[f'{param}__overlap'] = clean
             return True
@@ -301,18 +306,20 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
     
     # Build query from filters
     query = { }
+    where = [ ]
     for param, data in getattr(request, method).items():
         if param in metadata_filters:
             if template_utils.is_single_search_only(constants.metadata, param) and not is_single_search:
                 continue
-            apply_param_to_query(query, constants.metadata, param, data, force_term=force_term)
+            apply_param_to_query(query, where, constants.metadata, param, data, force_term=force_term)
         elif param in template_filters and not is_single_search:
             if template_fields is None:
                 continue
-            apply_param_to_query(query, template_fields, param, data, is_dynamic=True, force_term=force_term)
+            apply_param_to_query(query, where, template_fields, param, data, is_dynamic=True, force_term=force_term)
     
     # Collect all entities that are (1) published and (2) match request parameters
     entities = entities.filter(Q(**query))
+    entities = entities.extra(where=where)
 
     # Prepare order clause
     search_order = try_get_param(request, 'order_by', '1', method)

@@ -6,12 +6,12 @@
     {
       "title": "Definition",
       "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      "fields": ["name", "definition", "author", "event_date_range", "sex", "type", "tags", "collections", "data_sources" ]
+      "fields": ["name", "definition", "author", "event_date_range", "sex", "type", "tags", "collections", "data_sources"]
     },
     {
       "title": "Clinical Code List",
       "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      "fields": ["concept_information" ]
+      "fields": ["concept_information"]
     },
     {
       "title": "Implementation",
@@ -208,7 +208,7 @@
       "field_type": "concept_information",
       "active": true,
       "validation": {
-        "type": "int_array",
+        "type": "concept",
         "mandatory": false
       },
       "side_menu": "Clinical Code lists"

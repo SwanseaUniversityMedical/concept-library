@@ -167,7 +167,7 @@ class BreadcrumbsNode(template.Node):
 
     def render(self, context):
         rqst = self.request.resolve(context)
-        path = rqst.get_full_path().split('/')
+        path = rqst.path.split('/')
 
         if len(path) > 0:
             if self.params['useMap']:

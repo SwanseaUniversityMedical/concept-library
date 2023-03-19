@@ -1,5 +1,38 @@
 from enum import Enum
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
+
+class TAG_TYPE(int, Enum):
+    '''
+        Tag types used for differentiate Collections & Tags
+        within the Tag table
+    '''
+    TAG = 1
+    COLLECTION = 2
+
+class CLINICAL_RULE_TYPE(int, Enum):
+    '''
+        Ruleset type for clinical concept
+    '''
+    INCLUDE = 1
+    EXCLUDE = 2
+
+class CLINICAL_CODE_REVIEW(int, Enum):
+    '''
+        Review status for a code within a clinical concept
+    '''
+    INCLUDE = 1
+    EXCLUDE = 2
+
+class CLINICAL_CODE_SOURCE(int, Enum):
+    '''
+        Audit source of a clinical code within a clinical concept
+    '''
+    CONCEPT = 1
+    QUERY_BUILDER = 2
+    EXPRESSION = 3
+    SELECT_IMPORT = 4
+    FILE_IMPORT = 5
+    SEARCH_TERM = 6
 
 class ENTITY_STATUS(int, Enum):
     '''
@@ -22,8 +55,8 @@ class GROUP_PERMISSIONS(int, Enum):
         Permission groups
     '''
     NONE = 1
-    VIEW = 2
-    EDIT = 3
+    EDIT = 2
+    VIEW = 3
 
 class FORM_METHODS(str, Enum):
     '''
@@ -105,8 +138,13 @@ CREATE_WIZARD_INPUT_DIR = 'components/create/inputs'
     Used to strip userdata from models when JSONifying them
         e.g. user account, user profile, membership
 '''
-USERDATA_MODELS = [str(User)]
+USERDATA_MODELS = [str(User), str(Group)]
 STRIPPED_FIELDS = ['SearchVectorField']
+
+'''
+    Describes fields that should be stripped from historical concepts
+'''
+HISTORICAL_CONCEPT_HIDDEN_FIELDS = ['id', 'history_id', 'history_date', 'history_change_reason', 'history_type', 'history_user']
 
 '''
     [!] Note: Will be moved to a table once tooling is finished, accessible through the 'base_template_version'

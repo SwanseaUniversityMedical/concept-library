@@ -173,7 +173,7 @@ const ENTITY_HANDLERS = {
     try {
       parsed = JSON.parse(data.innerText);
     }
-    catch {
+    catch (e) {
       parsed = [];
     }
 
@@ -183,7 +183,7 @@ const ENTITY_HANDLERS = {
   // Generates a clinical concept component for an element
   'clinical-concept': (element) => {
     const data = element.querySelector(`data[for="${element.getAttribute('data-field')}"]`);
-    
+
   },
 };
 

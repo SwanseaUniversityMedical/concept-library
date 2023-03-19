@@ -121,3 +121,9 @@ def has_entity_modify_permissions(request, entity):
     return True
 
   return has_member_access(user, entity, [GROUP_PERMISSIONS.EDIT])
+
+def get_latest_accessible_concept(request, concept_id):
+  '''
+  
+  '''
+  return False

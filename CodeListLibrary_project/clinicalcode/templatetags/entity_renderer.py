@@ -8,7 +8,7 @@ from django.conf import settings
 import re
 import json
 
-from ..entity_utils import template_utils, search_utils, model_utils, constants
+from ..entity_utils import template_utils, search_utils, model_utils, create_utils, constants
 from ..models.GenericEntity import GenericEntity
 
 register = template.Library()
@@ -424,10 +424,7 @@ class EntityWizardSections(template.Node):
         self.nodelist = nodelist
     
     def __try_get_entity_value(self, template, entity, field):
-        if template_utils.is_metadata(entity, field):
-            value = template_utils.get_metadata_value_from_source(entity, field, default=None)
-        else:
-            value = template_utils.get_template_data_values(entity, template, field, default=None)
+        value = create_utils.get_template_creation_data(entity, template, field, default=None)
 
         if value is None:
             return template_utils.get_entity_field(entity, field)

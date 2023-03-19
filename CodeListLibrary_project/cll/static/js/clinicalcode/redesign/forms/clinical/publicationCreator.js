@@ -25,11 +25,11 @@ export default class PublicationCreator {
     return this.data;
   }
 
-  #drawItem(index, url) {
+  #drawItem(index, publication) {
     return `
     <div class="publication-list-group__list-item" data-target="${index}">
       <div class="publication-list-group__list-item-url">
-        <a href="${url}">${url}</a>
+        <p>${publication}</p>
       </div>
       <button class="publication-list-group__list-item-btn" data-target="${index}">
         <span class="delete-icon"></span>

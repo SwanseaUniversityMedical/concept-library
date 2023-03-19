@@ -1,12 +1,12 @@
 {% load entity_renderer %}
 <div class="detailed-input-group fill">
-  <h3 class="detailed-input-group__title">Publication Links</h3>
+  <h3 class="detailed-input-group__title">Publications</h3>
   {% if not component.hide_input_details %}
   <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
   {% endif %}
   <div class="publication-list-group">
-    <data type="value" for="{{ component.field_name }}">{{ component.value }}</data>
-    <input class="text-input" aria-label="Publication link input" type="text" placeholder="e.g. https://www.doi.org/XX.XXXX/XXXXXXXXXX" data-class="clinical-publication" data-field="{{ component.field_name }}">
+    <data type="value" for="{{ component.field_name }}">{{ component.value|jsonify|safe }}</data>
+    <input class="text-input" aria-label="Publication link input" type="text" placeholder="e.g. Doe J. et al. Publication. Publisher - DOI 10.111" data-class="clinical-publication" data-field="{{ component.field_name }}">
   
     <section class="publication-list-group__none-available " id="no-available-publications">
       <p class="publication-list-group__none-available-message">You haven't added any publications yet</p>
