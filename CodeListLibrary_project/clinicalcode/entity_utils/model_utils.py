@@ -420,7 +420,8 @@ def get_clinical_concept_data(request, concept_id, concept_history_id, include_f
     for collection in concept_data['collections']
   ]
 
-  concept_data['coding_system'] = get_coding_system_details(concept_data['coding_system'])
+  # Clean coding system for top level field use
+  concept_data.pop('coding_system')
   
   # If userdata is requested, try to grab all related 
   if not remove_userdata:
@@ -460,7 +461,7 @@ def get_clinical_concept_data(request, concept_id, concept_history_id, include_f
   result = {
     'concept_id': concept_id,
     'concept_verion_id': concept_history_id,
-    'coding_system': concept.coding_system.name,
+    'coding_system': get_coding_system_details(historical_concept.coding_system),
     'data': concept_data,
     'components': components_data
   }
