@@ -623,6 +623,7 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
       concept_id {number}: The concept ID of interest
       concept_history_id {number}: The concept's historical id of interest
 
+      include_reviewed_codes {boolean}: When building the data, should we pull the finalised reviewed codes?
       aggregate_component_codes {boolean}: When building the codelist, should we aggregate across components?
       include_component_codes {boolean}: When building the components, should we incl. a codelist for each component?
 

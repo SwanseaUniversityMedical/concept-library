@@ -8,7 +8,7 @@ from django.conf import settings
 import re
 import json
 
-from ..entity_utils import template_utils, search_utils, model_utils, create_utils, constants
+from ..entity_utils import template_utils, search_utils, model_utils, create_utils, gen_utils, constants
 from ..models.GenericEntity import GenericEntity
 
 register = template.Library()
@@ -62,8 +62,11 @@ def jsonify(value, should_print=False):
     if should_print:
         print(type(value), value)
     
+    if value is None:
+        value = { }
+    
     if isinstance(value, (dict, list)):
-        return json.dumps(value)
+        return json.dumps(value, cls=gen_utils.ModelEncoder)
     return model_utils.jsonify_object(value)
 
 @register.filter(name='trimmed')
