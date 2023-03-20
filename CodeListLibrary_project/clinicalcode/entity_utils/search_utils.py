@@ -1,10 +1,13 @@
 from django.apps import apps
-from django.db.models import Q
+from django.db.models import Q, F
 from django.core.paginator import EmptyPage, Paginator
 from django.contrib.postgres.search import TrigramSimilarity, SearchQuery, SearchRank, SearchVector
+
+import re
 import json
 
 from ..models import PublishedGenericEntity, GenericEntity, Template, Statistics
+from ..models.CodingSystem import CodingSystem
 from . import model_utils, permission_utils, template_utils, constants, gen_utils
 
 def get_request_body(body):
@@ -482,3 +485,144 @@ def try_get_template_statistics(field, brand='ALL', published=True, entity_type=
         return default
 
     return template_utils.try_get_content(stats, field)
+
+def search_codelist_by_pattern(coding_system, pattern, include_desc=True):
+    '''
+        Tries to match a coding system's codes by a valid regex pattern
+
+        Args:
+            coding_system {obj}: The coding system of interest
+            pattern {str}: The regex pattern
+            include_desc {boolean}: Whether to incl. the description in the match or not
+        
+        Returns:
+            A queryset containing all related codes of that particular coding system
+    '''
+    if not isinstance(coding_system, CodingSystem) or not isinstance(pattern, str):
+        return None
+    
+    # Validate the pattern before allowing it to be used in search
+    valid_pattern = False
+    try:
+        re.compile(pattern)
+    except re.error:
+        valid_pattern = False
+    else:
+        valid_pattern = True
+    
+    if not valid_pattern:
+        return None
+
+    # Match codes to pattern of that coding system
+    table = coding_system.table_name.replace('clinicalcode_', '')
+    codelist = apps.get_model(app_label='clinicalcode', model_name=table)
+
+    code_query = {
+        f'{coding_system.code_column_name.lower()}__regex': pattern
+    }
+
+    if include_desc:
+        codes = codelist.objects.filter(Q(**code_query) | Q(**{
+            f'{coding_system.desc_column_name.lower()}__regex': pattern
+        }))
+    else:
+        codes = codelist.objects.filter(**code_query)
+
+    '''
+        Required because:
+            1. Annotation needed to make naming structure consistent since the code tables aren't consistently named...
+            2. Distinct required because there are duplicate entires...
+    '''
+    codes = codes.extra(
+        select={
+            'code': coding_system.code_column_name,
+            'desc': coding_system.desc_column_name,
+        }
+    ) \
+    .order_by(coding_system.code_column_name.lower()) \
+    .distinct(coding_system.code_column_name.lower())
+
+    return codes
+
+def search_codelist_by_term(coding_system, search_term, include_desc=True):
+    '''
+        Fuzzy match codes in a coding system by a search term
+
+        Args:
+            coding_system {obj}: The coding system of interest
+            search_term {str}: The search term of interest
+            include_desc {boolean}: Whether to incl. the description in the search or not
+        
+        Returns:
+            A queryset containing all related codes of that particular coding system
+    '''
+    if not isinstance(coding_system, CodingSystem) or not isinstance(search_term, str):
+        return None
+
+    table = coding_system.table_name.replace('clinicalcode_', '')
+    codelist = apps.get_model(app_label='clinicalcode', model_name=table)
+
+    code_query = {
+        f'{coding_system.code_column_name.lower()}__icontains': search_term 
+    }
+
+    if include_desc:
+        codes = codelist.objects.filter(Q(**code_query) | Q(**{
+            f'{coding_system.desc_column_name.lower()}__icontains': search_term
+        })) \
+        .annotate(
+            similarity=(
+                TrigramSimilarity(f'{coding_system.code_column_name.lower()}', search_term) + \
+                TrigramSimilarity(f'{coding_system.desc_column_name.lower()}', search_term)
+            )
+        )
+    else:
+        codes = codelist.objects.filter(**code_query) \
+                                .annotate(
+                                    similarity=TrigramSimilarity(f'{coding_system.desc_column_name.lower()}', search_term)
+                                )
+
+    '''
+        Required because:
+            1. Annotation needed to make naming structure consistent since the code tables aren't consistently named...
+            2. Distinct required because there are duplicate entires...
+    '''
+    codes = codes.extra(
+        select={
+            'code': coding_system.code_column_name,
+            'desc': coding_system.desc_column_name,
+        }
+    ) \
+    .order_by(coding_system.code_column_name.lower(), '-similarity') \
+    .distinct(coding_system.code_column_name.lower())
+
+    return codes
+
+def search_codelist(coding_system, search_term, include_desc=True, allow_wildcard=True):
+    '''
+        Attempts to search a codelist by a search term, given its coding system
+
+        Args:
+            coding_system {obj}: The assoc. coding system that is to be searched
+
+            search_term {str}: The search term used to query the table
+            
+            include_desc {boolean}: Whether to search by description
+
+            allow_wildcard {boolean}: Whether to check for, and apply, regex patterns
+                                    through the 'wildcard:' prefix
+        
+        Returns:
+            The QuerySet of codes (assoc. with the given codingsystem) that match the
+            search term
+        
+    '''
+    if not isinstance(coding_system, CodingSystem) or not isinstance(search_term, str):
+        return None
+    
+    if allow_wildcard and search_term.lower().startswith('wildcard:'):
+        matches = re.search('^wildcard:(.*)', search_term)
+        matches = matches.group(1).lstrip()
+        return search_codelist_by_pattern(coding_system, matches, include_desc)
+    
+    return search_codelist_by_term(coding_system, search_term, include_desc)
