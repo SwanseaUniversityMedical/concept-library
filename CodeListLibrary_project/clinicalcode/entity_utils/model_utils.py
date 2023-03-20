@@ -108,32 +108,13 @@ def get_latest_entity_historical_id(entity_id, user):
 
   return None
 
-def get_concept_data(concept_id, concept_history_id):
-  '''
-  
-  '''
-  concept = try_get_instance(
-    Concept, pk=concept_id
-  )
-  if not concept:
-    return None
-  
-  concept = try_get_entity_history(concept, concept_history_id)
-  if not concept:
-    return None
-  
-  return {
-    'concept_id': concept_id,
-    'concept_verion_id': concept_history_id,
-    'coding_system': concept.coding_system.name,
-    'data': {}
-  }
-
 def jsonify_object(obj, remove_userdata=True, strip_fields=True, strippable_fields=None, dump=True):
   '''
     JSONifies instance of a model
       - removes userdata related data for safe usage within template
       - removes specific fields that are unrelated to templates e.g. SearchVectorField
+      - able to strip fields from a model, given a list of field names to strip
+      - able to dump to json if requested
   '''
   instance = model_to_dict(obj)
   
@@ -216,13 +197,30 @@ def get_userdata_details(model, **kwargs):
   
   return details
 
-def get_concept_component_details(concept_id, concept_history_id, include_codes=True, attribute_headers=None):
+def get_concept_component_details(concept_id, concept_history_id, aggregate_codes=False, include_codes=True, attribute_headers=None):
   '''
+    [!] Note: This method ignores permissions - it should only be called from a
+              a method that has previously considered accessibility
+
     Attempts to get all component, codelist and code data assoc.
     with a historical concept
 
-    [!] Note: This method ignores permissions - it should only be called from a
-              a method that has previously considered accessibility
+    Args:
+      concept_id {number}: The concept ID of interest
+      concept_history_id {number}: The concept's historical id of interest
+
+      aggregate_codes {boolean}: If true, will return a 'codelist' key-value pair in the result dict that
+                                  describes the distinct, aggregated codes across all components
+
+      include_codes {boolean}: If true, will return a 'codes' key-value pair within each component
+                                that describes each code included in a component
+
+      attribute_headers {list}: If a non-null list is passed, the method will attempt to find the attributes
+                                associated with each code within every component (and codelist)
+
+    Returns:
+      A dict that describes the components and their details associated with this historical concept,
+      and if aggregate_codes was passed, will return the distinct codelist across components
   '''
 
   # Try to get the Concept and its historical counterpart
@@ -247,6 +245,8 @@ def get_concept_component_details(concept_id, concept_history_id, include_codes=
     return None
   
   components_data = [ ]
+  codelist_data = [ ]
+  seen_codes = set()
   for component in components:
     component_data = {
       'name': component.name,
@@ -276,33 +276,68 @@ def get_concept_component_details(concept_id, concept_history_id, include_codes=
 
     component_data['code_count'] = codes.count()
 
-    if include_codes:
-      if attribute_headers is None:
-        # Add each code
-        component_data['codes'] = list(codes.values('code', 'description'))
-      else:
-        # Annotate each code with its list of attribute values based on the code_attribute_headers
-        codes = codes.annotate(
-          attributes=Subquery(
-            ConceptCodeAttribute.history.exclude(history_type='-') \
-                                        .filter(
-                                          concept__id=historical_concept.id,
-                                          history_date__lte=historical_concept.history_date,
-                                          code=OuterRef('code')
-                                        )
-                                        .values('attributes')
-          )
+    if attribute_headers is None:
+      # Add each code
+      codes = codes.values('code', 'description')
+    else:
+      # Annotate each code with its list of attribute values based on the code_attribute_headers
+      codes = codes.annotate(
+        attributes=Subquery(
+          ConceptCodeAttribute.history.exclude(history_type='-') \
+                                      .filter(
+                                        concept__id=historical_concept.id,
+                                        history_date__lte=historical_concept.history_date,
+                                        code=OuterRef('code')
+                                      ) \
+                                      .values('attributes')
         )
-        component_data['codes'] = list(codes.values('code', 'description', 'attributes'))
+      ) \
+      .values('code', 'description', 'attributes')
     
+    codes = list(codes)
+    # Append codes to component if required
+    if include_codes:
+      component_data['codes'] = codes
+    
+    # Append aggregated codes if required
+    if aggregate_codes:
+      codes = [
+        seen_codes.add(obj.get('code')) or obj
+        for obj in codes
+        if obj.get('code') not in seen_codes
+      ]
+      codelist_data += codes
+
     components_data.append(component_data)
   
-  return components_data
+  if aggregate_codes:
+    return {
+      'components': components_data,
+      'codelist': codelist_data
+    }
+  
+  return {
+    'components': components_data
+  }
 
-def get_final_concept_codelist(concept_id, concept_history_id):
+def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None):
   '''
-    Builds the final codelist from every component associated
+    [!] Note: This method ignores permissions - it should only be called from a
+              a method that has previously considered accessibility
+    
+    Builds the distinct, aggregated codelist from every component associated
     with a concept, given its ID and historical id
+
+    Args:
+      concept_id {number}: The concept ID of interest
+      concept_history_id {number}: The concept's historical id of interest
+
+      incl_logical_types {int[]}: Whether to include only codes that stem from Components
+                                  with that logical type
+    
+    Returns:
+      A list of distinct codes associated with a concept across each of its components
+
   '''
   
   # Try to find the associated concept and its historical counterpart
@@ -332,8 +367,8 @@ def get_final_concept_codelist(concept_id, concept_history_id):
   
   final_codelist = []
   for component in components:
-    # Ignore exclusion components
-    if component.logical_type != CLINICAL_RULE_TYPE.INCLUDE.value:
+    # Ignore logical types if not matched within the logical type lookup parameter
+    if isinstance(incl_logical_types, list) and component.logical_type not in incl_logical_types:
       continue
 
     # Find the codelist associated with this component
@@ -379,11 +414,32 @@ def get_final_concept_codelist(concept_id, concept_history_id):
 
   return final_codelist
 
-def get_clinical_concept_data(request, concept_id, concept_history_id, include_final_codes=False, include_codes=True, strippable_fields=None, remove_userdata=False):
+def get_clinical_concept_data(concept_id, concept_history_id, aggregate_component_codes=False,
+                              include_component_codes=True, strippable_fields=None, remove_userdata=False):
   '''
+    [!] Note: This method ignores permissions - it should only be called from a
+              a method that has previously considered accessibility
+
     Retrieves all data associated with a HistoricConcept,
     incl. a list of codes assoc. with each component, or the
     final codelist, if requested
+
+    Args:
+      concept_id {number}: The concept ID of interest
+      concept_history_id {number}: The concept's historical id of interest
+
+      aggregate_component_codes {boolean}: When building the codelist, should we aggregate across components?
+      include_component_codes {boolean}: When building the components, should we incl. a codelist for each component?
+
+      strippable_fields {list}: Whether to strip any fields from the Concept model when
+                                building the concept's data result
+
+      remove_userdata {boolean}: Whether to remove userdata related fields from the result (assoc. with each Concept)
+    
+    Returns:
+      A dictionary that describes the concept, its components, and associated codes; constrained
+      by the method parameters
+
   '''
 
   # Try to find the associated concept and its historical counterpart
@@ -444,13 +500,14 @@ def get_clinical_concept_data(request, concept_id, concept_history_id, include_f
     concept_data.pop('deleted_by')
     concept_data.pop('deleted')
 
-  # Build codelist and components from concept  
+  # Build codelist and components from concept (modified by params)
   attribute_headers = concept_data.pop('code_attribute_header', None)
   attribute_headers = attribute_headers if isinstance(attribute_headers, list) and len(attribute_headers) > 0 else None
   components_data = get_concept_component_details(
     concept_id,
     concept_history_id,
-    include_codes=include_codes,
+    aggregate_codes=aggregate_component_codes,
+    include_codes=include_component_codes,
     attribute_headers=attribute_headers
   )
 
@@ -465,9 +522,5 @@ def get_clinical_concept_data(request, concept_id, concept_history_id, include_f
     'data': concept_data,
     'components': components_data
   }
-
-  # Only append final codelist if required
-  if include_final_codes:
-    result['codelist'] = get_final_concept_codelist(concept_id, concept_history_id)
-    
+  
   return result

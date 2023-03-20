@@ -358,7 +358,7 @@ def get_template_data_values(entity, layout, field, default=[]):
     elif field_type == 'concept':
         values = []
         for item in data:
-            value = model_utils.get_concept_data(
+            value = model_utils.get_clinical_concept_data(
                 item['concept_id'], item['concept_version_id']
             )
 
