@@ -184,6 +184,15 @@ const ENTITY_HANDLERS = {
   'clinical-concept': (element) => {
     const data = element.querySelector(`data[for="${element.getAttribute('data-field')}"]`);
 
+    let parsed;
+    try {
+      parsed = JSON.parse(data.innerText);
+    }
+    catch (e) {
+      parsed = [];
+    }
+
+    return new ConceptCreator(element, parsed)
   },
 };
 
