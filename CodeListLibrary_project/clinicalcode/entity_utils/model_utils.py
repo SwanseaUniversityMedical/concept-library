@@ -11,6 +11,7 @@ from ..models.PublishedGenericEntity import PublishedGenericEntity
 from ..models.Tag import Tag
 from ..models.CodingSystem import CodingSystem
 from ..models.Concept import Concept
+from ..models.ConceptReviewStatus import ConceptReviewStatus
 from ..models.PublishedConcept import PublishedConcept
 from ..models.Component import Component
 from ..models.CodeList import CodeList
@@ -247,7 +248,9 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
                                       history_date__lte=historical_concept.history_date,
                                       history_type='-'
                                     ) \
-                                    .values('name')
+                                    .order_by('id', '-history_id') \
+                                    .distinct('id') \
+                                    .values('id')
                                   )
                                 ) \
                                 .exclude(was_deleted__isnull=False) \
@@ -293,6 +296,8 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
                               history_date__lte=historical_concept.history_date,
                               history_type='-'
                             ) \
+                            .order_by('code', '-history_id') \
+                            .distinct('code') \
                             .values('id')
                           )
                         ) \
@@ -304,7 +309,7 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
 
     if attribute_headers is None:
       # Add each code
-      codes = codes.values('code', 'description')
+      codes = codes.values('id', 'code', 'description')
     else:
       # Annotate each code with its list of attribute values based on the code_attribute_headers
       codes = codes.annotate(
@@ -322,6 +327,8 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
                                             code=OuterRef('code'),
                                             history_type='-'
                                           ) \
+                                          .order_by('code', '-history_id') \
+                                          .distinct('code') \
                                           .values('id')
                                         )
                                       )
@@ -331,9 +338,10 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
                                       .values('attributes')
         )
       ) \
-      .values('code', 'description', 'attributes')
+      .values('id', 'code', 'description', 'attributes')
     
     codes = list(codes)
+    
     # Append codes to component if required
     if include_codes:
       component_data['codes'] = codes
@@ -351,8 +359,8 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
   
   if aggregate_codes:
     return {
+      'codelist': codelist_data,
       'components': components_data,
-      'codelist': codelist_data
     }
   
   return {
@@ -408,7 +416,9 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
                                       history_date__lte=historical_concept.history_date,
                                       history_type='-'
                                     ) \
-                                    .values('name')
+                                    .order_by('id', '-history_id') \
+                                    .distinct('id') \
+                                    .values('id')
                                   )
                                 ) \
                                 .exclude(was_deleted__isnull=False) \
@@ -449,6 +459,8 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
                               history_date__lte=historical_concept.history_date,
                               history_type='-'
                             ) \
+                            .order_by('code', '-history_id') \
+                            .distinct('code') \
                             .values('id')
                           )
                         ) \
@@ -472,17 +484,21 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
                                             code=OuterRef('code'),
                                             history_type='-'
                                           ) \
+                                          .order_by('code', '-history_id') \
+                                          .distinct('code') \
                                           .values('id')
                                         )
                                       )
                                       .exclude(was_deleted__isnull=False) \
-                                      .order_by('id', '-history_id') \
-                                      .distinct('id') \
+                                      .order_by('code', '-history_id') \
+                                      .distinct('code') \
                                       .values('attributes')
         )
       )
     
-    final_codelist += list(codes.values('code', 'description', 'attributes'))
+      final_codelist += list(codes.values('id', 'code', 'description', 'attributes'))
+    else:
+      final_codelist += list(codes.values('id', 'code', 'description'))
   
   seen_codes = set()
   final_codelist = [
@@ -493,8 +509,109 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
 
   return final_codelist
 
-def get_clinical_concept_data(concept_id, concept_history_id, aggregate_component_codes=False,
-                              include_component_codes=True, strippable_fields=None, remove_userdata=False):
+def get_associated_concept_codes(concept_id, concept_history_id, code_ids):
+  '''
+    [!] Note: This method ignores permissions - it should only be called from a
+              a method that has previously considered accessibility
+    
+    Retrieves the concept codes associated with the code_ids list
+
+    Args:
+      concept_id {number}: The concept ID of interest
+      concept_history_id {number}: The concept's historical id of interest
+      code_ids {list}: The code ids filter
+    
+    Returns:
+      The codes that are present in the code ids list
+    
+  '''
+  codelist = get_concept_codelist(concept_id, concept_history_id)
+  codelist = [code for code in codelist if code.get('id', -1) in code_ids]
+  return codelist
+
+def get_final_reviewed_codelist(concept_id, concept_history_id):
+  '''
+    [!] Note: This method ignores permissions - it should only be called from a
+              a method that has previously considered accessibility
+    
+    Retrieves the final, reviewed codelist from a HistoricConcept
+
+    Args:
+      concept_id {number}: The concept ID of interest
+      concept_history_id {number}: The concept's historical id of interest
+    
+    Returns:
+      A QuerySet containing the final inclusionary codelist of a concept
+  '''
+
+  # Try to find the associated concept and its historical counterpart
+  concept = try_get_instance(
+    Concept, pk=concept_id
+  )
+  if not concept:
+    return None
+  
+  historical_concept = try_get_entity_history(concept, concept_history_id)
+  if not historical_concept:
+    return None
+
+  # Return the inclusionary list if legacy
+  if historical_concept.is_legacy:
+    return get_concept_codelist(concept_id, concept_history_id, incl_logical_types=[CLINICAL_RULE_TYPE.INCLUDE.value])
+
+  # Get the reviewed concept list
+  reviewed_concept = try_get_instance(
+    ConceptReviewStatus,
+    concept_id=historical_concept.id,
+    history_id=historical_concept.history_id
+  )
+
+  if reviewed_concept is None:
+    return None
+
+  # Get the reviewed, inclusionary codelist
+  included_codes = get_associated_concept_codes(concept_id, concept_history_id, reviewed_concept.included_codes)
+  return {
+    'review_submitted': reviewed_concept.review_submitted,
+    'last_reviewed_by': get_userdata_details(User, pk=reviewed_concept.last_reviewed_by.pk),
+    'codes': included_codes,
+  }
+
+def get_review_concept(concept_id, concept_history_id):
+  '''
+    [!] Note: This method ignores permissions - it should only be called from a
+              a method that has previously considered accessibility
+
+    Retrieves the ConceptReviewStatus instance assoc. with a Concept
+    given its id and historical id
+
+    Args:
+      concept_id {number}: The concept ID of interest
+      concept_history_id {number}: The concept's historical id of interest
+    
+    Returns:
+      The associated ConceptReviewStatus instance
+        
+  '''
+  concept = try_get_instance(
+    Concept, pk=concept_id
+  )
+  if not concept:
+    return None
+  
+  historical_concept = try_get_entity_history(concept, concept_history_id)
+  if not historical_concept:
+    return None
+
+  return try_get_instance(
+    ConceptReviewStatus,
+    concept_id=historical_concept.id,
+    history_id=historical_concept.history_id
+  )
+
+def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_codes=False,
+                              aggregate_component_codes=False, include_component_codes=True,
+                              strippable_fields=None, remove_userdata=False):
   '''
     [!] Note: This method ignores permissions - it should only be called from a
               a method that has previously considered accessibility
@@ -601,5 +718,9 @@ def get_clinical_concept_data(concept_id, concept_history_id, aggregate_componen
     'data': concept_data,
     'components': components_data
   }
+
+  # Build the final, reviewed codelist if required
+  if include_reviewed_codes:
+    result['codelist'] = get_final_reviewed_codelist(concept_id, concept_history_id)
   
   return result

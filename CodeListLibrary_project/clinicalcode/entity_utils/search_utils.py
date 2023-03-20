@@ -6,7 +6,10 @@ from django.contrib.postgres.search import TrigramSimilarity, SearchQuery, Searc
 import re
 import json
 
-from ..models import PublishedGenericEntity, GenericEntity, Template, Statistics
+from ..models.PublishedGenericEntity import PublishedGenericEntity
+from ..models.GenericEntity import GenericEntity
+from ..models.Template import Template
+from ..models.Statistics import Statistics
 from ..models.CodingSystem import CodingSystem
 from . import model_utils, permission_utils, template_utils, constants, gen_utils
 

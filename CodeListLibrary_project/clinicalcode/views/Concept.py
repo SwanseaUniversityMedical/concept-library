@@ -184,17 +184,17 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
         Display the detail of a concept at a point in time.
     '''
     from ..entity_utils import model_utils, gen_utils, search_utils
-    # testing = model_utils.get_clinical_concept_data(716, 2571)
-    # print(json.dumps(testing, indent=2, cls=gen_utils.ModelEncoder))
+    testing = model_utils.get_final_reviewed_codelist(716, 2571)
+    print(json.dumps(testing, indent=2, cls=gen_utils.ModelEncoder))
 
-    testing = search_utils.search_codelist(
-        # Test ICD-10 codes
-        CodingSystem.objects.get(id=4),
-        # Test query
-        'wildcard:A\d+'
-    )
+    # testing = search_utils.search_codelist(
+    #     # Test ICD-10 codes
+    #     CodingSystem.objects.get(id=4),
+    #     # Test query
+    #     'wildcard:A\d+'
+    # )
 
-    print(testing.values('id', 'code', 'desc'))
+    # print(testing.values('id', 'code', 'desc'))
 
     # validate access for login and public site
     validate_access_to_view(request,
