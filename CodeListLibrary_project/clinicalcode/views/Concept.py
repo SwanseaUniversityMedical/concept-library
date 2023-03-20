@@ -183,9 +183,11 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
     ''' 
         Display the detail of a concept at a point in time.
     '''
-    from ..entity_utils import model_utils, gen_utils, search_utils
-    testing = model_utils.get_final_reviewed_codelist(716, 2571)
-    print(json.dumps(testing, indent=2, cls=gen_utils.ModelEncoder))
+    from ..entity_utils import model_utils, gen_utils, search_utils, permission_utils
+    # testing = model_utils.get_clinical_concept_data(716, 2571)
+    # testing = model_utils.get_final_reviewed_codelist(716, 2571)
+    # print(json.dumps(testing, indent=2, cls=gen_utils.ModelEncoder))
+    # print(permission_utils.can_user_edit_concept(request, 716, 2571))
 
     # testing = search_utils.search_codelist(
     #     # Test ICD-10 codes

@@ -12,7 +12,6 @@ from ..models.Tag import Tag
 from ..models.CodingSystem import CodingSystem
 from ..models.Concept import Concept
 from ..models.ConceptReviewStatus import ConceptReviewStatus
-from ..models.PublishedConcept import PublishedConcept
 from ..models.Component import Component
 from ..models.CodeList import CodeList
 from ..models.ConceptCodeAttribute import ConceptCodeAttribute

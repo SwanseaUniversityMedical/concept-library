@@ -13,10 +13,11 @@ class ConceptReviewStatus(models.Model):
     comment = models.TextField(null=True, blank=True)
 
     '''
-        Once we move to V2 we need to modify this struct.
-        
+        Once we move to V2 we need to modify and/or even just
+        remove this struct (assuming we can modify base model of Concept).
+
         Instead of ArrayFields, we need to utilise ManyToMany fields
-        to reduce complexity & computational time
+        to reduce complexity & computation time
     '''
     included_codes = ArrayField(models.IntegerField(), blank=True, null=True)
     excluded_codes = ArrayField(models.IntegerField(), blank=True, null=True)
