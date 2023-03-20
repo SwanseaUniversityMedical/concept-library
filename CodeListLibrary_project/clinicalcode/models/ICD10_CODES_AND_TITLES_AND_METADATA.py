@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.postgres.indexes import GinIndex
 
 class ICD10_CODES_AND_TITLES_AND_METADATA(models.Model):
     code = models.CharField(max_length=6, null=True, blank=True)
@@ -37,3 +37,17 @@ class ICD10_CODES_AND_TITLES_AND_METADATA(models.Model):
     effective_from = models.DateTimeField(null=True, blank=True)
     effective_to = models.DateField(null=True, blank=True)
     avail_from_dt = models.DateField(null=True, blank=True)
+
+    class Meta:
+        indexes = [
+            GinIndex(
+                name='icd10_code_ln_gin_idx',
+                fields=['alt_code'],
+                opclasses=['gin_trgm_ops']
+            ),
+            GinIndex(
+                name='icd10_desc_ln_gin_idx',
+                fields=['description'],
+                opclasses=['gin_trgm_ops']
+            ),
+        ]
