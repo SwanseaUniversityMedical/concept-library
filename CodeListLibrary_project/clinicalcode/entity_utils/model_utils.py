@@ -714,9 +714,13 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
     'concept_id': concept_id,
     'concept_verion_id': concept_history_id,
     'coding_system': get_coding_system_details(historical_concept.coding_system),
-    'data': concept_data,
-    'components': components_data
+    'details': concept_data,
+    'components': components_data.get('components'),
   }
+
+  # Apply aggregated codes if required
+  if aggregate_component_codes:
+    result['aggregated_component_codes'] = components_data.get('codelist')
 
   # Build the final, reviewed codelist if required
   if include_reviewed_codes:
