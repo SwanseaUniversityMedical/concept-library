@@ -1,0 +1,102 @@
+{% load cl_extras %}
+
+<!-- ----------------------------------------------------------------------
+	 The table of history entries.
+	 This is the content of the history table. 
+	 ---------------------------------------------------------------------- 
+-->
+
+<div class="col-sm-12 no-print shadow-frame" id="history-section">
+	<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;">
+		<span id="versionhistory"></span><strong>Version History</strong>
+	</h3>
+
+    <span>
+	 	{% if user.is_authenticated %}
+	     	<div class="row">
+				<div class="col-sm-11" id="help-entity-history-container"></div>
+				<div class="col-sm-1 text-right">
+					<a href="#" role="button" class="popovers" id="help-entity-history"
+		                        data-container="#help-entity-history-container" data-toggle="popover" data-trigger="hover"
+		                        title="" data-original-title="version history" data-placement="left">
+						<i class="fa fa-question-circle" aria-hidden="true"></i>
+					</a>
+				</div>
+			</div>
+	    {% endif %}
+	    <div class="pre-scrollable">
+	    <!-- table start -->
+			<table class="table table-striped small-table table-hover" id="history-table" >
+				<thead>
+					<tr>
+						<th>Version<br> ID</th>
+						<th>Name</th>
+						{% if user.is_authenticated %}
+							<th>Date</th>
+							<th>Change reason</th>
+							<th>User</th>
+							<th>Is Published?</th>
+						{% else %}
+							<th>Owner</th>
+							<th>Publish date</th>
+						{% endif %}
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>	 
+				{% for h in history %}
+					<tr>
+						<td>{{ h.history_id }}</td>
+						<td>
+							<a class="" href="{% url 'entity_history_detail' pk=h.id history_id=h.history_id %}">	
+							{% if h.name_highlighted|length %}
+								{{ h.name_highlighted|safe }}
+							{% else %}
+								{{ h.name }}
+							{% endif %}
+							</a>
+						</td>
+						{% if user.is_authenticated %}
+							<td>{{ h.history_date}}</td>
+							<td>{{ h.history_change_reason }}</td>
+							<td>
+								{% if h.updated_by is not None %}
+									{{ h.updated_by }}
+								{% else %}
+									{{ h.created_by }}
+								{% endif %}
+							</td>
+							<td classXX="text-center">
+								{% if h.history_id in published_historical_ids%}
+									<span>&#10004;</span>
+								{% else %}
+									{{ h.approval_status_label }}
+								{% endif %}
+							</td>
+						{% else %}
+							<td>{{ h.owner }}</td>
+							<td>{{ h.publish_date|date:"Y-m-d" }}</td>
+						{% endif %}			
+						<td class="text-right">
+							{% if current_phenotype_history_id == h.history_id %}
+								<span class="help-block-no-break" style="font-size: 10px;">currently shown</span>
+							{% endif %}
+						</td>
+					</tr>
+				{% empty %}
+					<tr>
+						<td colspan="7" class="text-center bg-warning">
+							No history
+						</td>
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		<!-- table end -->
+	 	</div>	
+	</span>
+
+</div>
+	     
+
+   

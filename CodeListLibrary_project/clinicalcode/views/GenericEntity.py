@@ -368,7 +368,7 @@ def generic_entity_detail(request, pk, history_id=None):
 
     children_permitted_and_not_deleted = True
     error_dict = {}
-    are_concepts_latest_version = True
+    #are_concepts_latest_version = True
     version_alerts = {}
 
     if request.user.is_authenticated:
@@ -549,6 +549,7 @@ def get_concept_data(request, pk, history_id, generic_entity, is_latest_version,
     get concept data from concept_informations
     """
     error_dict = {}
+    are_concepts_latest_version = True
     
     concept_id_list = []
     concept_hisoryid_list = []
