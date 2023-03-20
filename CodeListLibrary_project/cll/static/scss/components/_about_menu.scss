@@ -1,0 +1,45 @@
+@import "../_methods";
+@import "../_variables";
+@import "../_media";
+@import "../_utils";
+
+.dropdown {
+  float: left;
+  overflow: hidden;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  width: 100%;
+  right:0px;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  
+}
+
+/* Dropdown button */
+.dropdown {
+  @include prefix(transition, all 250ms ease-in, webkit moz o);
+  .dropbtn {
+    font-size: 16px;
+    border: none;
+    outline: none;
+    color: white;
+    padding: 14px 16px;
+    background-color: inherit;
+    font: inherit; /* Important for vertical align on mobile phones */
+    margin: 0; /* Important for vertical align on mobile phones */
+  }
+}
+
+.dropdown {
+  &:hover {
+    .dropdown-content {
+      display: flex;
+    }
+  }
+}
+
+
