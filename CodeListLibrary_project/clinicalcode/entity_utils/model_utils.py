@@ -235,11 +235,24 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
     return None
   
   # Find the associated components (or now, rulesets) given the concept and its historical date
-  components = Component.history.exclude(history_type='-') \
-                                .filter(
+  components = Component.history.filter(
                                   concept__id=historical_concept.id,
                                   history_date__lte=historical_concept.history_date
-                                )
+                                ) \
+                                .annotate(
+                                  was_deleted=Subquery(
+                                    Component.history.filter(
+                                      id=OuterRef('id'),
+                                      concept__id=historical_concept.id,
+                                      history_date__lte=historical_concept.history_date,
+                                      history_type='-'
+                                    ) \
+                                    .values('name')
+                                  )
+                                ) \
+                                .exclude(was_deleted__isnull=False) \
+                                .order_by('id', '-history_id') \
+                                .distinct('id')
   
   if not components.exists():
     return None
@@ -268,11 +281,24 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
     codelist = codelist.first()
 
     # Find the codes associated with this codelist
-    codes = Code.history.exclude(history_type='-') \
-                        .filter(
+    codes = Code.history.filter(
                           code_list__id=codelist.id,
                           history_date__lte=historical_concept.history_date
-                        )
+                        ) \
+                        .annotate(
+                          was_deleted=Subquery(
+                            Code.history.filter(
+                              id=OuterRef('id'),
+                              code_list__id=codelist.id,
+                              history_date__lte=historical_concept.history_date,
+                              history_type='-'
+                            ) \
+                            .values('id')
+                          )
+                        ) \
+                        .exclude(was_deleted__isnull=False) \
+                        .order_by('id', '-history_id') \
+                        .distinct('id')
 
     component_data['code_count'] = codes.count()
 
@@ -283,12 +309,25 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
       # Annotate each code with its list of attribute values based on the code_attribute_headers
       codes = codes.annotate(
         attributes=Subquery(
-          ConceptCodeAttribute.history.exclude(history_type='-') \
-                                      .filter(
+          ConceptCodeAttribute.history.filter(
                                         concept__id=historical_concept.id,
                                         history_date__lte=historical_concept.history_date,
                                         code=OuterRef('code')
-                                      ) \
+                                      )
+                                      .annotate(
+                                        was_deleted=Subquery(
+                                          ConceptCodeAttribute.history.filter(
+                                            concept__id=historical_concept.id,
+                                            history_date__lte=historical_concept.history_date,
+                                            code=OuterRef('code'),
+                                            history_type='-'
+                                          ) \
+                                          .values('id')
+                                        )
+                                      )
+                                      .exclude(was_deleted__isnull=False) \
+                                      .order_by('id', '-history_id') \
+                                      .distinct('id') \
                                       .values('attributes')
         )
       ) \
@@ -360,7 +399,21 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
                                 .filter(
                                   concept__id=historical_concept.id,
                                   history_date__lte=historical_concept.history_date
-                                )
+                                ) \
+                                .annotate(
+                                  was_deleted=Subquery(
+                                    Component.history.filter(
+                                      id=OuterRef('id'),
+                                      concept__id=historical_concept.id,
+                                      history_date__lte=historical_concept.history_date,
+                                      history_type='-'
+                                    ) \
+                                    .values('name')
+                                  )
+                                ) \
+                                .exclude(was_deleted__isnull=False) \
+                                .order_by('id', '-history_id') \
+                                .distinct('id')
   
   if not components.exists():
     return [ ]
@@ -384,21 +437,47 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
     codelist = codelist.first()
 
     # Find the codes associated with this codelist
-    codes = Code.history.exclude(history_type='-') \
-                        .filter(
+    codes = Code.history.filter(
                           code_list__id=codelist.id,
                           history_date__lte=historical_concept.history_date
-                        )
+                        ) \
+                        .annotate(
+                          was_deleted=Subquery(
+                            Code.history.filter(
+                              id=OuterRef('id'),
+                              code_list__id=codelist.id,
+                              history_date__lte=historical_concept.history_date,
+                              history_type='-'
+                            ) \
+                            .values('id')
+                          )
+                        ) \
+                        .exclude(was_deleted__isnull=False) \
+                        .order_by('id', '-history_id') \
+                        .distinct('id')
 
     if attribute_header:
       codes = codes.annotate(
         attributes=Subquery(
-          ConceptCodeAttribute.history.exclude(history_type='-') \
-                                      .filter(
+          ConceptCodeAttribute.history.filter(
                                         concept__id=historical_concept.id,
                                         history_date__lte=historical_concept.history_date,
                                         code=OuterRef('code')
                                       )
+                                      .annotate(
+                                        was_deleted=Subquery(
+                                          ConceptCodeAttribute.history.filter(
+                                            concept__id=historical_concept.id,
+                                            history_date__lte=historical_concept.history_date,
+                                            code=OuterRef('code'),
+                                            history_type='-'
+                                          ) \
+                                          .values('id')
+                                        )
+                                      )
+                                      .exclude(was_deleted__isnull=False) \
+                                      .order_by('id', '-history_id') \
+                                      .distinct('id') \
                                       .values('attributes')
         )
       )
