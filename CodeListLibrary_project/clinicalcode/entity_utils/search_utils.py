@@ -517,13 +517,16 @@ def search_codelist_by_pattern(coding_system, pattern, include_desc=True):
     table = coding_system.table_name.replace('clinicalcode_', '')
     codelist = apps.get_model(app_label='clinicalcode', model_name=table)
 
+    code_column = coding_system.code_column_name.lower()
+    desc_column = coding_system.desc_column_name.lower()
+
     code_query = {
-        f'{coding_system.code_column_name.lower()}__regex': pattern
+        f'{code_column}__regex': pattern
     }
 
     if include_desc:
         codes = codelist.objects.filter(Q(**code_query) | Q(**{
-            f'{coding_system.desc_column_name.lower()}__regex': pattern
+            f'{desc_column}__regex': pattern
         }))
     else:
         codes = codelist.objects.filter(**code_query)
@@ -535,12 +538,12 @@ def search_codelist_by_pattern(coding_system, pattern, include_desc=True):
     '''
     codes = codes.extra(
         select={
-            'code': coding_system.code_column_name,
-            'desc': coding_system.desc_column_name,
+            'code': code_column,
+            'desc': desc_column,
         }
     ) \
-    .order_by(coding_system.code_column_name.lower()) \
-    .distinct(coding_system.code_column_name.lower())
+    .order_by(code_column) \
+    .distinct(code_column)
 
     return codes
 
@@ -562,24 +565,27 @@ def search_codelist_by_term(coding_system, search_term, include_desc=True):
     table = coding_system.table_name.replace('clinicalcode_', '')
     codelist = apps.get_model(app_label='clinicalcode', model_name=table)
 
+    code_column = coding_system.code_column_name.lower()
+    desc_column = coding_system.desc_column_name.lower()
+
     code_query = {
-        f'{coding_system.code_column_name.lower()}__icontains': search_term 
+        f'{code_column}__icontains': search_term 
     }
 
     if include_desc:
         codes = codelist.objects.filter(Q(**code_query) | Q(**{
-            f'{coding_system.desc_column_name.lower()}__icontains': search_term
+            f'{desc_column}__icontains': search_term
         })) \
         .annotate(
             similarity=(
-                TrigramSimilarity(f'{coding_system.code_column_name.lower()}', search_term) + \
-                TrigramSimilarity(f'{coding_system.desc_column_name.lower()}', search_term)
+                TrigramSimilarity(f'{code_column}', search_term) + \
+                TrigramSimilarity(f'{desc_column}', search_term)
             )
         )
     else:
         codes = codelist.objects.filter(**code_query) \
                                 .annotate(
-                                    similarity=TrigramSimilarity(f'{coding_system.desc_column_name.lower()}', search_term)
+                                    similarity=TrigramSimilarity(f'{desc_column}', search_term)
                                 )
 
     '''
@@ -589,12 +595,12 @@ def search_codelist_by_term(coding_system, search_term, include_desc=True):
     '''
     codes = codes.extra(
         select={
-            'code': coding_system.code_column_name,
-            'desc': coding_system.desc_column_name,
+            'code': code_column,
+            'desc': desc_column,
         }
     ) \
-    .order_by(coding_system.code_column_name.lower(), '-similarity') \
-    .distinct(coding_system.code_column_name.lower())
+    .order_by(code_column, '-similarity') \
+    .distinct(code_column)
 
     return codes
 
