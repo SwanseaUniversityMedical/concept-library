@@ -4,7 +4,7 @@
     ---------------------------------------------------------------------------
 '''
 import csv
-from html import entities
+#from html import entities
 import json
 import logging
 import re

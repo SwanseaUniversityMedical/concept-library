@@ -89,20 +89,19 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 				  </ul>
 				</div>
 
-                        {% if user.is_authenticated and not CLL_READ_ONLY %}
-                              {% if is_published and approval_status == 2%}
-
-                                  <a class="btn btn-success" disabled title="This version is already published">
-		    	&nbsp;Published&nbsp;
-		    	<span class="glyphicon glyphicon-ok" style="color:green"></span>
-		    </a>
-                              {% else %}    
-                            {%render_publish_button%}
-                            
-                            {% endif %}
-                            {% endif %}
-                                        
-                        <a id="printBtn" class="btn btn-outline-primary btn-cl btn-cl-secondary">
+               {% if user.is_authenticated and not CLL_READ_ONLY %}
+                     {% if is_published and approval_status == 2%}
+                         <a class="btn btn-success" disabled title="This version is already published">
+						  	&nbsp;Published&nbsp;
+						  	<span class="glyphicon glyphicon-ok" style="color:green"></span>
+					     </a>
+                     {% else %}    
+                   	    {%render_publish_button%}
+                   
+                   {% endif %}
+               {% endif %}
+                               
+               <a id="printBtn" class="btn btn-outline-primary btn-cl btn-cl-secondary">
 				Print
 			</a>
 			<a href="#" role="button" class="btn popovers" id="help-hist-entity"
