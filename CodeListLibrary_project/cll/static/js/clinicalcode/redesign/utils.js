@@ -270,13 +270,3 @@ const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callbac
 
   input.click();
 }
-
-const simulateClick = (elem) => {
-	let evt = new MouseEvent('click', {
-		bubbles: true,
-		cancelable: true,
-		view: window
-	});
-
-	let canceled = !elem.dispatchEvent(evt);
-}

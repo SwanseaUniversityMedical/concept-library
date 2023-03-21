@@ -22,7 +22,6 @@ domReady.finally(() => {
       elem.checked = !elem.checked;
     } else if (elem.matches('[role="collapsible"]')) {
       const collapsible = elem.querySelector('input[type="checkbox"]');
-      console.log(collapsible);
       if (collapsible) {
         collapsible.checked = !collapsible.checked;
       }
