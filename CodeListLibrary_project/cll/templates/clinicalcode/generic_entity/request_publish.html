@@ -103,7 +103,7 @@ $(function(){
             },
 			success: function(data){
 				if(data.form_is_valid){
-					$('#history-table').html(data.html_history_list);
+					$('#history-section').replaceWith(data.html_history_list);
 					$('#latest-history-ID-Div').html(data.latest_history_ID);
 					$('#latest_history_id').val(data.latest_history_ID);
 					form.find('input[name=latest_history_id_shown]').val(data.latest_history_ID);
