@@ -424,6 +424,11 @@
     transform: scale(0.9);
     -webkit-transform: scale(0.9);
   }
+
+  &:focus-visible + label {
+    outline: 1px solid black;
+    border-radius: 2pt;
+  }
 }
 
 .checkbox-item[type="checkbox"] {
@@ -452,6 +457,7 @@
 
   &:focus-visible + label {
     outline: 1px solid black;
+    border-radius: 2pt;
   }
 
   &:after {

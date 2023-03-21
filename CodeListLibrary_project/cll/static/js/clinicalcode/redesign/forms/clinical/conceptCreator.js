@@ -79,6 +79,10 @@ export default class ConceptCreator {
   constructor(element, data) {
     this.data = data || [ ];
     this.element = element;
+    this.state = {
+      editing: false,
+      data: null,
+    };
 
     this.#collectTemplates();
     this.#setUp();
