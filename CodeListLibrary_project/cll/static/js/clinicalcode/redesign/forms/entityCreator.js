@@ -272,6 +272,15 @@ class EntityCreator {
   }
 
   /**
+   * getFormMethod
+   * @desc describes whether the form is a create or an update form, where 1 = create & 2 = update
+   * @returns {int} int representation of the form method enum
+   */
+  getFormMethod() {
+    return this.data?.method;
+  }
+
+  /**
    * getData
    * @returns {object} the template, metadata, any assoc. entity and the form method
    */

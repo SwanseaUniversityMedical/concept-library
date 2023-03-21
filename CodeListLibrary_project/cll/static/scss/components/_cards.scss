@@ -193,6 +193,10 @@
     @include prefix(transform, scale(0.99), webkit moz o);
   }
 
+  &:focus-visible {
+    outline: 1px solid black;
+  }
+
   &__header {
     @include flex-col();
   }

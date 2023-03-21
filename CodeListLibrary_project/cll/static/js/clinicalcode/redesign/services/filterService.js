@@ -435,7 +435,8 @@ class FilterService {
   }
 
   #handleSearchbarUpdate(e) {
-    if (e.keyCode != FILTER_KEYCODES.ENTER) {
+    const code = e.keyIdentifier || e.which || e.keyCode;
+    if (code != FILTER_KEYCODES.ENTER) {
       return;
     }
 

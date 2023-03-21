@@ -583,6 +583,10 @@
       outline: none;
     }
 
+    &:focus-visible {
+      outline: 1px solid black;
+    }
+
     &-icon:after {
       @include prefix(transition, all 250ms ease-in-out, webkit moz o);
       content: '\f107';

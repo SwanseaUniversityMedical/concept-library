@@ -28,7 +28,7 @@
     {% block cache_tags %}
     {% endblock cache_tags %}
 
-		{% if IS_HDRUK_EXT == '1' %}
+    {% if IS_HDRUK_EXT == '1' %}
       <meta name="google-site-verification" content="biC6kLWuhP7ueREgE_hr5cRrNySiBakPwmHvEe0L2Xs" />
     {% endif %} 
 
@@ -43,6 +43,7 @@
 
     <!-- Scripts -->
     <script type="text/javascript" src="{% static "js/clinicalcode/redesign/utils.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/clinicalcode/redesign/accessibility.js" %}"></script>
 
     <!-- Page details -->
     <title>
@@ -50,7 +51,7 @@
         {{ request.BRAND_OBJECT.site_title }}
       {% else %}
         Concept Library
-      {% endif %} 
+      {% endif %}
       {% block title %}{% endblock title %}
     </title>
 

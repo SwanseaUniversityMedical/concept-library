@@ -785,10 +785,20 @@
 
       self._onInputFocus = function(e)
       {
-          var target = e.target || e.srcElement;
-
-          self.show(target);
+        //   var target = e.target || e.srcElement;
+        //   self.show(target);
       };
+
+      self._onInputDown = function (e)
+      {
+        const code = e.keyIdentifier || e.which || e.keyCode;
+        if (code != 13) {
+            return;
+        }
+        
+        var target = e.target || e.srcElement;
+        self.show(target);
+      }
 
       self._onInputClick = function(e)
       {
@@ -864,6 +874,7 @@
       opts.field.addEventListener('change', self._onInputChange);
       opts.field.addEventListener('click', self._onInputClick);
       opts.field.addEventListener('focus', self._onInputFocus);
+      opts.field.addEventListener('keyup', self._onInputDown);
 
       if (opts.secondField) {
           opts.secondField.addEventListener('change', self._onInputChange);

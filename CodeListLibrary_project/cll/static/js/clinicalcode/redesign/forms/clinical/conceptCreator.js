@@ -78,10 +78,17 @@ const tryParseCodingCSVFile = (file) => {
 export default class ConceptCreator {
   constructor(element, data) {
     this.data = data || [ ];
+    this.element = element;
 
-    // Test csv lib & utils
-    const box = element.querySelector('#no-available-concepts');
-    box.addEventListener('click', (e) => {
+    this.#setUp();
+  }
+
+  getData() {
+    return this.data;
+  }
+
+  tryPromptUpload() {
+    return new Promise((resolve, reject) => {
       tryOpenFileDialogue({
         allowMultiple: false,
         extensions: ['.csv', '.tsv'],
@@ -89,17 +96,17 @@ export default class ConceptCreator {
           if (!selected) {
             return;
           }
-
+  
           const file = files[0];
           tryParseCodingCSVFile(file)
-            .then(res => console.log(res))
-            .catch(e => console.warn(e));
+            .then(res => resolve(res))
+            .catch(e => reject);
         }
       });
-    });
+    })
   }
 
-  getData() {
-    return this.data;
+  #setUp() {
+    console.log(JSON.stringify(this.data, null, 2));
   }
 }

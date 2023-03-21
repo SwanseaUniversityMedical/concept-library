@@ -59,6 +59,12 @@
     overflow: hidden;
   }
 
+  &__input:not(:checked) ~ &__container {
+    * {
+      display: none;
+    }
+  }
+
   &__input:checked ~ &__container {
     opacity: 1;
     height: auto;

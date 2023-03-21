@@ -450,6 +450,10 @@
   background: var(--bg-color, var(--background-accent));
   box-sizing: inherit;
 
+  &:focus-visible + label {
+    outline: 1px solid black;
+  }
+
   &:after {
     @include prefix(transform, rotate(40deg), webkit moz o);
     @include prefix(transition, all 250ms ease-in-out, webkit moz o);

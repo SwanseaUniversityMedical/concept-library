@@ -62,10 +62,13 @@ export default class PublicationCreator {
   }
 
   #handleInput(e) {
-    const code = e.which || e.keyCode;
+    const code = e.keyIdentifier || e.which || e.keyCode;
     if (code != PUBLICATION_KEYCODES.ENTER) {
       return;
     }
+
+    e.preventDefault();
+    e.stopPropagation();
 
     const input = this.element.value;
     if (isNullOrUndefined(input) || isStringEmpty(input)) {

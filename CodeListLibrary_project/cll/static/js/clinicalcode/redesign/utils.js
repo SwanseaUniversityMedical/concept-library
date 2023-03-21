@@ -42,12 +42,6 @@ const mergeObjects = (a, b) => {
 }
 
 /**
-  * matchesSelector
-  * @desc Tests whether an element's target matches a selector and calls a callback
-  */
-const matchesSelector = selector => callback => e => e.target.matches(selector) && callback(e);
-
-/**
   * getTransitionMethod
   * @desc Finds the relevant transition method of the explorer
   * @returns {object} The transition method
@@ -275,4 +269,14 @@ const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callbac
   });
 
   input.click();
+}
+
+const simulateClick = (elem) => {
+	let evt = new MouseEvent('click', {
+		bubbles: true,
+		cancelable: true,
+		view: window
+	});
+
+	let canceled = !elem.dispatchEvent(evt);
 }

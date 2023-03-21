@@ -158,6 +158,9 @@ export default class Tagify {
         const code = e.which || e.keyCode;
         switch (code) {
           case TAGIFY__KEYCODES.ENTER: {
+            e.preventDefault();
+            e.stopPropagation();
+
             if (this.currentFocus >= 0) {
               name = this.#getFocusedName();
             }
@@ -182,6 +185,7 @@ export default class Tagify {
           } break;
   
           case TAGIFY__KEYCODES.BACK: {
+
             if (name === '') {
               this.#clearAutocomplete(true);
   
