@@ -608,7 +608,7 @@
     @include prefix(transition, all 250ms ease-in-out, webkit moz o);
     @include prefix(transform, scale(1, 0), webkit moz o);
     pointer-events: none;
-    display: block;
+    display: none;
     position: absolute;
     max-height: 300px;
     overflow: auto;
@@ -627,6 +627,7 @@
       @include prefix(transform, scale(1, 1), webkit moz o);
       pointer-events: auto;
       opacity: 1;
+      display: block;
     }
 
     &-item {

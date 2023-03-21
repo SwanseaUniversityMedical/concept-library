@@ -1,3 +1,18 @@
+/**
+ * DROPDOWN_KEYS
+ * @desc Keycodes used to navigate through dropdown
+ */
+const DROPDOWN_KEYS = {
+  // Navigate dropdown
+  'DOWN': 40,
+  'UP': 38,
+};
+
+/**
+ * createDropdownSelectionElement
+ * @desc Creates an accessible dropdown element
+ * @param {node} element the element to apply a dropdown element to
+ */
 const createDropdownSelectionElement = (element) => {
   const container = createElement('div', {
     'className': 'dropdown-selection',
@@ -39,6 +54,9 @@ const createDropdownSelectionElement = (element) => {
       'className': 'dropdown-selection__list-item',
       'data-value': option.value,
       'innerText': option.text,
+      'aria-label': option.text,
+      'tabindex': 0,
+      'role': 'button',
     });
 
     if (option.selected) {
@@ -58,6 +76,35 @@ const createDropdownSelectionElement = (element) => {
       element.dispatchEvent(new CustomEvent('change', { bubbles: true, detail: { ignore: true } }));
     });
   }
+
+  const handleKeySelection = (e) => {
+    if (!list.classList.contains('active')) {
+      return;
+    }
+
+    const code = e.keyIdentifier || e.which || e.keyCode;
+    if (code != DROPDOWN_KEYS.UP && code != DROPDOWN_KEYS.DOWN) {
+      return;
+    }
+
+    let target = e.target;
+    if (container.contains(target)) {
+      e.stopPropagation();
+      e.preventDefault();
+
+      const children = Array.from(list.children);
+      if (!list.contains(target)) {
+        target = children[0];
+      }
+
+      let index = children.indexOf(target) + (DROPDOWN_KEYS.UP == code ? -1 : 1);
+      index = index > children.length - 1 ? 0 : (index < 0 ? children.length - 1 : index);
+      children[index].focus();
+    }
+  }
+
+  list.onkeyup = handleKeySelection;
+  btn.onkeyup = handleKeySelection;
 
   element.addEventListener('change', e => {
     if (!isNullOrUndefined(e.detail) && 'ignore' in e.detail) {
