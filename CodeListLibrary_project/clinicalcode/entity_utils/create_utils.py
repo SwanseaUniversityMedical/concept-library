@@ -3,18 +3,14 @@ from . import model_utils
 from . import permission_utils
 from . import template_utils
 
-def try_validate_entity(request, entity_id):
+def try_validate_entity(request, entity_id, entity_history_id):
     '''
       Validates existence of an entity and whether the user has permissions to modify it
     '''
-    entity = model_utils.try_get_instance(GenericEntity, pk=entity_id)
-    if entity is None:
+    if not permission_utils.can_user_edit_entity(request, entity_id, entity_history_id):
         return False
     
-    if permission_utils.has_entity_modify_permissions(request, entity):
-        return entity
-    
-    return False
+    return GenericEntity.history.get(id=entity_id, history_id=entity_history_id)
 
 def get_template_creation_data(entity, layout, field, default=[]):
     '''

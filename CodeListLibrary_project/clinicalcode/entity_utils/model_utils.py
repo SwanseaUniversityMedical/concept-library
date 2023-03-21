@@ -22,7 +22,7 @@ from .constants import (USERDATA_MODELS, STRIPPED_FIELDS, APPROVAL_STATUS,
 
 def try_get_instance(model, **kwargs):
   '''
-    
+    Safely attempts to get an instance
   '''
   try:
     instance = model.objects.get(**kwargs)
@@ -33,7 +33,8 @@ def try_get_instance(model, **kwargs):
   
 def try_get_entity_history(entity, history_id):
   '''
-    
+    Safely attempts to get an entity's historical record given an entity
+    and a history id
   '''
   try:
     instance = entity.history.get(history_id=history_id)
@@ -44,7 +45,7 @@ def try_get_entity_history(entity, history_id):
 
 def get_entity_id(primary_key):
   '''
-    
+    Splits an entity's varchar primary key into its numerical component
   '''
   entity_id = re.split('(\d.*)', primary_key)
   if len(entity_id) >= 2 and entity_id[0].isalpha() and entity_id[1].isdigit():
@@ -54,11 +55,12 @@ def get_entity_id(primary_key):
 
 def get_latest_entity_published(entity_id):
   '''
-    
+    Gets latest published entity given an entity id
   '''
   latest_published_entity = PublishedGenericEntity.objects.filter(
     entity_id=entity_id, approval_status=2
-  ).order_by('-entity_history_id')
+  ) \
+  .order_by('-entity_history_id')
   
   if latest_published_entity.exists():
     return latest_published_entity.first()
@@ -67,7 +69,7 @@ def get_latest_entity_published(entity_id):
 
 def get_entity_approval_status(entity_id, historical_id):
   '''
-    
+    Gets the entity's approval status, given an entity id and historical id
   '''
   entity = try_get_instance(
     PublishedGenericEntity,
@@ -82,7 +84,9 @@ def get_entity_approval_status(entity_id, historical_id):
 
 def get_latest_entity_historical_id(entity_id, user):
   '''
-
+    Gets the latest entity history id for a given entity
+    and user, given the user has the permissions to access that
+    particular entity
   '''
   entity = try_get_instance(GenericEntity, id=entity_id)
       
@@ -97,10 +101,11 @@ def get_latest_entity_historical_id(entity_id, user):
           group_id__in=user.groups.all(),
           group_access__in=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]
         )
-      )
+      ) \
+      .order_by('-history_id')
       
       if history.exists():
-        return history.history_id
+        return history.first().history_id
   
     published = get_latest_entity_published(entity)
     if published:
@@ -110,7 +115,7 @@ def get_latest_entity_historical_id(entity_id, user):
 
 def jsonify_object(obj, remove_userdata=True, strip_fields=True, strippable_fields=None, dump=True):
   '''
-    JSONifies instance of a model
+    JSONifies/Dictifies instance of a model
       - removes userdata related data for safe usage within template
       - removes specific fields that are unrelated to templates e.g. SearchVectorField
       - able to strip fields from a model, given a list of field names to strip

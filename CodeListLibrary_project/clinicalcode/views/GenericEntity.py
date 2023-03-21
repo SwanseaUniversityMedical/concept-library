@@ -35,7 +35,7 @@ from .View import *
 from clinicalcode.api.views.View import get_canonical_path_by_brand
 from clinicalcode.constants import *
 
-from ..entity_utils import model_utils, create_utils, stats_utils, search_utils, constants
+from ..entity_utils import gen_utils, model_utils, create_utils, stats_utils, search_utils, constants
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +134,7 @@ class CreateEntityView(TemplateView):
         '''
         context = self.get_context_data(*args, **kwargs)
 
-        template_id = kwargs.get('template_id')
+        template_id = gen_utils.parse_int(kwargs.get('template_id'), default=None)
         if template_id is not None:
             template = model_utils.try_get_instance(Template, pk=template_id)
             if template is None:
@@ -142,14 +142,26 @@ class CreateEntityView(TemplateView):
             return self.create_form(request, context, template)
 
         entity_id = kwargs.get('entity_id')
-        if entity_id is not None:
-            entity = create_utils.try_validate_entity(request, entity_id)
+        entity_history_id = gen_utils.parse_int(kwargs.get('entity_history_id'), default=None)
+        if entity_id is not None and entity_history_id is not None:
+            entity = create_utils.try_validate_entity(request, entity_id, entity_history_id)
             if not entity:
                 raise PermissionDenied
             
             template = entity.template
             if template is None:
                 raise BadRequest('Invalid request.')
+            
+            template = Template.history.filter(
+                id=template.id,
+                template_version=entity.template_version
+            ) \
+            .order_by('-history_id')
+            
+            if not template.exists():
+                raise BadRequest('Invalid request.')
+            
+            template = template.first()
             return self.update_form(request, context, template, entity)
         
         raise BadRequest('Invalid request.')

@@ -9,10 +9,15 @@ def parse_int(value, default=0):
     '''
         Attempts to parse an int from a value, if it fails to do so, returns the default value
     '''
+    if value is None:
+        return default
+    
     try:
-        return int(value)
+        value = int(value)
     except ValueError:
         return default
+    else:
+        return value
 
 def parse_date(value, default=0):
     '''

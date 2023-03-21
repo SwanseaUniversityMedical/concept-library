@@ -124,6 +124,48 @@ def has_entity_modify_permissions(request, entity):
 
   return has_member_access(user, entity, [GROUP_PERMISSIONS.EDIT])
 
+def can_user_edit_entity(request, entity_id, entity_history_id):
+  '''
+    Checks whether a user has the permissions to modify an entity
+
+    Args:
+      concept_id {number}: The concept ID of interest
+      concept_history_id {number}: The concept's historical id of interest
+    
+    Returns:
+      A boolean value reflecting whether the user is able to modify an entity
+  '''
+  
+  entity = model_utils.try_get_instance(
+    GenericEntity,
+    pk=entity_id
+  )
+  if entity is None:
+    return False
+  
+  historical_entity = model_utils.try_get_entity_history(entity, entity_history_id)
+  if historical_entity is None:
+    return False
+  
+  user = request.user
+  if user.is_superuser:
+    return True
+  
+  if is_member(user, 'moderator'):
+    published_entity = model_utils.try_get_instance(
+      PublishedGenericEntity,
+      entity_id=entity_id,
+      entity_history_id=entity_history_id
+    )
+  
+    if published_entity is not None and published_entity.approval_status in [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING]:
+      return True
+  
+  if historical_entity.owner == user:
+    return True
+  
+  return has_member_access(user, historical_entity, [GROUP_PERMISSIONS.EDIT])
+
 def is_concept_published(concept_id, concept_history_id):
   '''
     Checks whether a concept is published, and if so, returns the PublishedConcept
@@ -144,13 +186,9 @@ def is_concept_published(concept_id, concept_history_id):
   
   return published_concept
 
-def get_latest_accessible_concept(request, concept_id):
+def get_latest_publicly_accessible_concept():
   '''
-    Finds the latest accessible published concept
-
-    Args:
-      request {RequestContext}: The HTTP Request context
-      concept_id {number}: The concept ID of interest
+    Finds the latest publicly accessible published concept
     
     Returns:
       HistoricalConcept {obj} that is accessible by the user
@@ -187,11 +225,7 @@ def can_user_edit_concept(request, concept_id, concept_history_id):
     Returns:
       Boolean value that reflects whether is it able to be edited
       by the user
-  '''
-  user = request.user
-  if user.is_superuser:
-    return True
-  
+  '''  
   concept = model_utils.try_get_instance(
     Concept, pk=concept_id
   )
@@ -202,6 +236,11 @@ def can_user_edit_concept(request, concept_id, concept_history_id):
   if not historical_concept:
     return False
   
+  user = request.user
+  if user.is_superuser:
+    return True
+  
+  # Concept doesn't have approval status?
   published_concept = is_concept_published(concept_id, concept_history_id)
   if published_concept and is_member(user, [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING]):
     return True
