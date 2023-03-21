@@ -9,7 +9,6 @@
 }
 
 .dropdown-content {
-  display: none;
   position: fixed;
   background-color: #f9f9f9;
   width: 100%;
@@ -18,7 +17,7 @@
   z-index: 1;
 
   .sub-menu {
-    position: absolute;
+    position: fixed;
     top: 7em;
     color: rgba(0, 0, 0, 0.5);
     border-radius: 10px;
@@ -40,6 +39,14 @@
   }
 }
 
+.dropdown {
+  &:hover {
+    .dropdown-content {
+      display: flex;
+    }
+  }
+}
+
 .dropdown-content {
   &:hover {
     .sub-menu {
@@ -50,7 +57,7 @@
 }
 
 #sub-menu-container {
-  position: absolute;
+  position: fixed;
   z-index: -1;
   min-width: 100%;
   top: 2.5em;
@@ -130,7 +137,7 @@ menu-text {
     transition: bottom 0.25s ease-out, opacity 0.01s ease-out 0.01s;
     opacity: 0;
     content: "";
-    position: absolute;
+    position: fixed;
     pointer-events: none;
     bottom: -5em;
     left: calc(50% - 10px);
@@ -160,5 +167,53 @@ menu-text {
         }
       }
     }
+  }
+}
+
+/* Menu specific */
+.menu-item {
+  .title {
+    font-weight: 500;
+    margin: 0 0 0.25em 0;
+  }
+  .icon-box {
+    * {
+      transition: all 0.1s ease-out;
+      position: relative;
+    }
+    cursor: pointer;
+    float: left;
+    width: 100%;
+    margin: 0;
+    height: 4em;
+    row-gap: 0;
+    line-height: 1em;
+    &:hover {
+      .text {
+        i {
+          clip-path: inset(0 0 0 0);
+          transition: clip-path 0.1s ease-out;
+        }
+      }
+     
+    }
+  }
+  .icon-box.space {
+    margin-bottom: 1.25em;
+  }
+  .icon-box.flat {
+    height: 1.5em;
+    margin-bottom: 0.5em;
+  }
+  .icon {
+    float: left;
+    color: #9ea9af;
+
+    font-size: 1.25em;
+    margin: 0 1em 0 0;
+  }
+  .text {
+    float: left;
+    color: #9ea9af;
   }
 }
