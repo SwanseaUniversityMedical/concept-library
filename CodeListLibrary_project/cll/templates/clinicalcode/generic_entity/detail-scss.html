@@ -1,0 +1,490 @@
+{% extends "base_scss.html" %}
+
+{% load static %}
+{% load markdownify %}
+{% load cl_extras %}
+{% load entity_publish_request %}
+
+<!-- To access breadcrumbs template -->
+{% load breadcrumbs %}
+
+<!-- To access entity renderables -->
+{% load entity_renderer %}
+
+{% block title %}| {{ entity_class }}: {{ entity_fields.name.value }}{% endblock title %}
+{% block description %}{{ entity_fields.name.value }}{% endblock description %}
+{% block keywords %}, {{ entity_fields.name.value }}{% endblock keywords %}
+
+{% block canonical_path %}
+	<link rel="canonical" href="{{ page_canonical_path }}" />
+{% endblock canonical_path %}
+
+{% block bodyclass %}
+" data-spy="scroll" data-target="#SideMenu" data-offset = "140
+{% endblock bodyclass %}
+
+{% block container %}
+	<link href="{% static 'scss/temp.css' %}" rel="stylesheet" />
+	<link href="{% static 'css/datatable/jquery.dataTables.min.css' %}" rel="stylesheet" />
+	<link href="{% static 'css/datatables.min.css' %}" rel="stylesheet" />
+	
+	<script src="{% static 'js/lib/jquery/jquery-3.1.1.min.js' %}" type="text/javascript"></script>	
+	<script src="{% static 'js/lib/DataTables/datatables.min.js' %}" type="text/javascript"></script>
+	
+<header class="main-header">
+  <!-- any other content -->
+  <div class="main-header__inner-container">
+    <!-- content that's been padded to same width as navigation -->
+    {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
+    {% endbreadcrumbs %}
+  </div>
+</header>
+<!-- Main content of the page -->
+<main class="main-content">
+  <!-- Using row/column in a box container -->
+  <div class="main-content__inner-container">
+  
+  
+<div class="box-container"><div class="row">
+<!-- container -->
+	<nav class="col-sm-2 hideleft-navbar" id="SideMenu" style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;">
+	     <ul class="nav left-navbar "  id='navList'>
+	         <li class=" active"><a href="#home" id="Homelinkid">Home</a></li>
+	                    
+	          {% for key, value in side_menu.items %}
+	         	<li>
+	         		<a href="#{{ key }}" >{{ value }}</a>
+	         	</li>
+			  {% endfor %}
+	         
+	          {% if user.is_authenticated %}
+	          	<li><a href="#permissions_sec">Permissions</a></li>
+	          {% endif %}
+	          
+	         <li><a href="#API">API</a></li>	
+	         <li><a href="#versionhistory">Version History</a></li>
+	     </ul>
+	 </nav>
+
+    <h3><span id="home" style="margin-top: -100px;"></span></h3>
+    <div class="col-sm-10">
+	<!-- main -->
+	<span id="topButtons">			
+		<div class="box-container"><div class="row" style="margin-left: 2px">
+			<div class="col-sm-12 text-right action-buttons-container">			
+			   <div class="dropdown btn-group">
+				  <button {% if not user_can_export %} disabled
+                                                       title="Component concept(s) deleted or revoked access!!" {% endif %}
+                                                       type="button" class="btn btn-primary dropdown-toggle"
+                                                       data-toggle="dropdown" aria-haspopup="true"
+                                                       aria-expanded="false" id="export-btn">
+				    Export {{ entity_class }}
+				    <span class="caret"></span>
+				  </button>
+				  <ul class="dropdown-menu">
+				   <li>
+				   {% if user.is_authenticated %}
+					   <a {% if user_can_export %}
+					       href="{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=json"
+					       target=_blank {% endif %}
+					{% else %}
+					    <a {% if user_can_export %}
+					    href="{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=json"
+					    target=_blank {% endif %}
+					{% endif %}
+					    class="dropdown-item">
+					        JSON
+					   </a>
+				   </li>
+				   <li>
+				   {% if user.is_authenticated %}
+                      <a {% if user_can_export %}
+                          href="{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=xml"
+                          target=_blank {% endif %}
+                  {% else %}
+                      <a {% if user_can_export %}
+                      href="{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=xml"
+                      target=_blank {% endif %}
+                  {% endif %}
+                      class="dropdown-item">
+                          XML
+                      </a>
+				   </li>
+				  </ul>
+				</div>
+
+               {% if user.is_authenticated and not CLL_READ_ONLY %}
+                     {% if is_published and approval_status == 2%}
+                         <a class="btn btn-success" disabled title="This version is already published">
+						  	&nbsp;Published&nbsp;
+						  	<span class="glyphicon glyphicon-ok" style="color:green"></span>
+					     </a>
+                     {% else %}    
+                   	    {%render_publish_button%}
+                   
+                   {% endif %}
+               {% endif %}
+                               
+               <a id="printBtn" class="btn btn-outline-primary btn-cl btn-cl-secondary">
+				Print
+			</a>
+			<a href="#" role="button" class="btn popovers" id="help-hist-entity"
+                           data-toggle="popover" data-trigger="hover" data-container="body" title=""
+                           data-original-title="" data-placement="left">
+				<i class="fa fa-question-circle" aria-hidden="true"></i>
+			</a>
+		</div>
+	</div></div>
+
+<div class="alert alert-success alert-dismissable" id="success-message" style="display: none;" role="alert"></div>
+<div class="alert alert-danger alert-dismissable" id="error-message" style="display: none;" role="alert"></div>
+<div class="alert alert-warning alert-dismissable" id="warning-message" style="display: none;"role="alert"></div>
+
+</span>
+<div class="col-md-12" id="ddd" >
+    <div>
+        <h2>
+            <strong>{{ entity_fields.name.value_highlighted|safe }}</strong>
+        </h2>
+        <span><i>{{ entity_fields.author.value_highlighted|safe }}</i></span>
+        <br>
+        <br>
+    </div>
+
+
+	    <div class="box-container"><div class="row" style="margin-top: 10px;">
+	          <div class="col-sm-2">ID</div>
+	          <div class="col-sm-10">
+				<span id="entity_id_div" entity_id="{{ entity.id }}">
+					{{ entity.id }}						
+				</span>
+	         </div>
+	      </div></div>
+	
+	      <div class="box-container"><div class="row" style="margin-top: 10px;">
+	             <div class="col-sm-2">Version ID</div>
+	             <div class="col-sm-10">
+				   <span id="entity_history_id_div" entity_history_id="{{ entity.history_id }}">
+					{{ entity.history_id }}
+	                     {% if user.is_authenticated %}
+	                         &nbsp;&nbsp;
+	                         &nbsp;&nbsp;
+	                         {% if is_latest_version %}
+	                             <span class="tag label" style='background-color:#F98E2B;'>LATEST VERSION</span>
+	                         {% else %}
+	                             <span class="tag label label-default">HISTORICAL VERSION</span>
+	                         {% endif %}
+	                     {% endif %}
+				   </span>
+	             </div>
+	      </div></div>
+	       
+       
+       	      
+       	      
+		{% for field, field_data in entity_fields.items %}
+			{% if not field_data|can_be_shown:user.is_authenticated or field == 'name' or field == 'author' %}
+				<!-- continue -->
+			{% else %}
+				{% if field_data.field_type|is_in_list:'data_sources,tags,collections,concept_information,coding_system,phenoflowid' %}
+						<!-- system defined -->
+						{% if field_data.field_type|is_in_list:'tags,collections' %}
+							<div class="box-container"><div class="row" style="margin-top: 10px;">
+								<span id="{{ field_data.html_id }}"></span>
+								<div class="col-sm-2">{{ field_data.title }}</div>
+								<div class="col-sm-10">
+									{% if field_data.value|length %}
+										{% for tag in field_data.value %}
+											<span class="tag label label-{{ tag.get_display_display }} card-edit-sizing">{{ tag.description }}</span>
+										{% endfor %}	
+									{% else %}
+										<span class="card-no-data">No {{ field_data.title|lower }}</span>
+									{% endif %}		
+								</div>	
+							</div></div>
+						{% endif %}
+												
+						{% if field_data.field_type == 'data_sources' %}
+				            <div class="box-container"><div class="row" style="margin-top: 10px;">
+				            	<span id="{{ field_data.html_id }}"></span>
+				                <div class="col-sm-2">{{ field_data.title }}</div>
+				                <div class="col-sm-10">
+				                    {% for ds in field_data.value %}
+				                        {% if ds.url|length %}
+				                            <a href="{{ ds.url }}" target=_blank rel="noopener noreferrer">{{ ds.name }}</a>
+				                        {% else %}
+				                            {{ ds.name }}
+				                        {% endif %}
+				                        {% if not forloop.last %}
+				                            ,
+				                        {% endif %}
+				                    {% endfor %}
+				                </div>
+				            </div></div>
+						{% endif %}		
+						
+						{% if field_data.field_type == 'coding_system' %}
+							<div class="box-container"><div class="row" style="margin-top: 10px;">
+								<span id="{{ field_data.html_id }}"></span>
+				                <div class="col-sm-2">{{ field_data.title }}</div>
+				                <div class="col-sm-10">
+				                    {% if field_data.value|length %}
+					                    {% for cs in field_data.value %}
+					                        <span class="badge">{{ cs.name }}</span>
+					                    {% endfor %}
+				                    {% else %}
+				                    <span class="card-no-data">No data</span>
+				                    {% endif %}
+				                </div>
+				            </div></div>
+						{% endif %}	
+						
+						{% if field_data.field_type == 'phenoflowid' %}
+							<div class="box-container"><div class="row" style="margin-top: 10px;">
+								<span id="{{ field_data.html_id }}"></span>
+				                <div class="col-sm-3"><label>PhenoFlow Implementation</label></div>
+				                <div class="col-sm-9">
+				                	<!-- value includes the URL -->
+				                    {% if field_data.value|length %}
+						                <a href="{{ field_data.value }}"
+						                    target=_blank>{{ field_data.value }}
+						                </a>            
+				                    {% else %}
+				                    <span class="card-no-data">No data</span>
+				                    {% endif %}
+				                </div>
+				            </div></div>
+						{% endif %}			
+										
+						{% if field_data.field_type == 'concept_information' %}
+				            {% include 'components/details/phenotype_clinical_code_lists.html' with field_data=field_data field=field %}
+						{% endif %}			
+										
+
+				{% elif field_data.field_type|is_in_list:'string_inputbox,int,enum,enum_radio_badge,enum_dropdown_badge,string_inputbox_code,date' %}
+					<!-- one row element -->
+					<div class="box-container"><div class="row" style="margin-top: 10px;">
+						 <span id="{{ field_data.html_id }}"></span>
+		                 <div class="col-sm-2">{{ field_data.title }}</div>
+		                 <div class="col-sm-10">
+		                 	{{ field_data|get_html_element|safe }}
+		                 </div>
+		             </div></div>
+				{% else %}
+					<!-- textarea/list element -->
+								
+			       <div class="col-sm-12 shadow-frame">
+			            <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;">
+			            	<span id="{{ field_data.html_id }}"></span>
+			            	<strong>{{ field_data.title }}</strong>
+			            </h3>
+			            {% if field_data.field_type|is_in_list:'string_list_of_inputboxes' %}
+			            	{% if field_data.value|length %}
+			                    <ul>
+			                        {% for p in field_data.value %}
+			                            <li>{{ p|markdownify }}</li>
+			                        {% endfor %}
+			                    </ul>
+			                {% else %}
+			                <span class="card-no-data">No data available</span>
+			                {% endif %}
+			            {% else %}
+				            {% if field_data.value_highlighted|length %}
+				            	{{ field_data.value_highlighted|markdownify }}
+				            {% else %}
+				            	{{ field_data.value }} &nbsp;
+				            {% endif %}
+			            {% endif %}
+			        </div>
+			    {% endif %}
+			{% endif %}
+		{% endfor %}
+
+
+
+
+        <!--   PERMISSIONS   -->
+		{% include 'components/details/permissions.html' %}
+
+		<!--   API   -->
+		{% include 'components/details/api_section.html' %}
+
+         <!--  VERSION HISTORY   -->
+		{% include 'components/details/version_history.html' %}
+
+
+
+         <!--	-------------------------------------------------------------------
+                HELP POP-UP TEXTS
+                -------------------------------------------------------------------
+          -->
+        {% if user.is_authenticated %}
+            <div id="popover-content-help-entity-history" class="hide popover-lg">
+                <p>
+                    Every time you make any change to a {{ entity_class }} it is audited.
+                </p>
+                <p>
+                    You can view a {{ entity_class }} from a specific point in time by clicking the View link at the required
+                    save
+                    point.
+                </p>
+                <p>
+                    Within the view you can revert changes and restore a {{ entity_class }} back to a specific point in time.
+                </p>
+                <p>
+                    You can fork and create a new {{ entity_class }} from a specific point in time.
+                </p>
+            </div>
+        {% endif %}
+
+        <div id="popover-content-help-hist-entity" class="hide popover-lg">
+            <p>
+                <strong>Export</strong> - export all codes into a csv file/JSON/XML for the current {{ entity_class }}
+                version.
+                {% if user.is_authenticated and not CLL_READ_ONLY %}
+                    The button will be disabled unless you have permission to view <b>all</b> of the concepts used.
+                {% endif %}
+            </p>
+
+            {% if user.is_authenticated and not CLL_READ_ONLY %}
+                <!-- 				<p>
+                                    <strong>Edit</strong> - Edit.
+                                </p>
+
+                                <p>
+                                    <strong>Fork</strong> - This will take a copy of the historic {{ entity_class }} version and create a new {{ entity_class }}.
+                                </p>
+
+                                <p>
+                                    <strong>Revert</strong> - This will restore the {{ entity_class }} back to this version.
+                                </p> -->
+
+                <p>
+                    <strong>Publish</strong> - This will publish the chosen version of the {{ entity_class }} to the public.
+                    <br>Conditions to publish:
+                <ul>
+                    <li>The {{ entity_class }} is not deleted.</li>
+                    <li>You must be the owner.</li>
+                    <li>The {{ entity_class }} contains exportable codes.</li>
+                    <li>All concepts are published.</li>
+                </ul>
+                </p>
+
+            {% endif %}
+
+            <p>
+                <strong>Print</strong> - Print page.
+            </p>
+
+        </div>
+
+     </div>
+
+	<!-- main -->
+    </div>
+    
+<!-- container -->    
+</div></div>
+
+</div>
+</main>
+
+
+    <script src="{% static 'js/clinicalcode/component.js' %}"></script>
+    <script src="{% static 'js/clinicalcode/dataService.js' %}"></script>
+
+
+    <script type="text/javascript">
+        $("#printBtn").click(function () {
+            //window.print();
+            printPage(printCallback);
+        })
+
+        function printPage(callback) {
+            // before printing hide all unnecessary elements from webpage
+            $('.btn').hide();
+            //$('#history-section').hide();
+            $('#SideMenu').hide();
+            $('#topButtons').hide();
+            $('footer').hide();
+            $('.popovers').hide();
+
+			// Hide elements of table for printing
+            {% if not user.is_authenticated %}
+                var table = $('.code-list-display-table');
+                table.DataTable().destroy();
+                table.DataTable({
+                    "searching":false,
+                    "paging":false,
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]]
+                });
+            {% endif %}
+
+
+
+
+            {% if user.is_authenticated %}
+                $('#codelist-div-container').removeClass('pre-scrollable');
+            {% endif%}
+			
+            // change paper orientation to landscape
+            var css = '@page { size: landscape; }',
+            head = document.head || document.getElementsByTagName('head')[0],
+            style = document.createElement('style');
+
+	        style.type = 'text/css';
+	        style.media = 'print';
+	
+	        if (style.styleSheet){
+	          style.styleSheet.cssText = css;
+	        } else {
+	          style.appendChild(document.createTextNode(css));
+	        }
+	
+	        head.appendChild(style);
+        
+
+            window.print();
+
+            // call printCallback function which shows back hidden elements
+            callback();
+        }
+
+        function printCallback() {
+            // when printing is finished or cancel show all hidden elements
+            //$('#history-section').show();
+            $('#SideMenu').show();
+            $('#topButtons').show();
+            $('footer').show();
+            $('.btn').show();
+            $('.popovers').show();
+
+			// restore the table if user not login when printing finished
+			{% if not user.is_authenticated %}
+                 var table = $('.code-list-display-table');
+                table.DataTable().destroy();
+                table.DataTable({
+                	"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]]
+                });
+            {% endif %}
+
+
+            {% if user.is_authenticated %}
+                $('#codelist-div-container').addClass('pre-scrollable');
+            {% endif%}
+        }
+
+    </script>
+
+    <script type="text/javascript">
+
+    // make api urls with site name
+        $(function () {
+            var v = $('#api_id').html();
+            v = v.replace(/site_root/g, 'http://' + document.location.host);
+            $('#api_id').html(v);
+        });
+    </script>
+
+{% endblock container %}
+
