@@ -152,16 +152,6 @@ class CreateEntityView(TemplateView):
             if template is None:
                 raise BadRequest('Invalid request.')
             
-            template = Template.history.filter(
-                id=template.id,
-                template_version=entity.template_version
-            ) \
-            .order_by('-history_id')
-            
-            if not template.exists():
-                raise BadRequest('Invalid request.')
-            
-            template = template.first()
             return self.update_form(request, context, template, entity)
         
         raise BadRequest('Invalid request.')
