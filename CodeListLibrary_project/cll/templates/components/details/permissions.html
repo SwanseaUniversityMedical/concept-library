@@ -6,7 +6,7 @@
       	<span id="permissions_sec"></span><strong>Permissions</strong>
       </h3>
 
-      <div class="row">
+      <div class="box-container"><div class="row">
           <div  class="col-sm-2">Owner</div>
           <div class="col-sm-4">
               <span>{{ entity.owner.username }}</span>
@@ -24,9 +24,9 @@
                   <span class="card-noweight">Unknown</span>
               {% endif %}
           </div>
-      </div>
+      </div></div>
       <hr class="small-divider"/>
-      <div class="row">
+      <div class="box-container"><div class="row">
           <div  class="col-sm-2">Group</div>
           <div class="col-sm-4">
               {% if entity.group %}
@@ -47,9 +47,9 @@
                   <span class="card-noweight text-right">Unknown</span>
               {% endif %}
           </div>
-      </div>
+      </div></div>
       <hr class="small-divider"/>
-      <div  class="row">
+      <div class="box-container"><div  class="row">
           <div class="col-sm-2">All other users</div>
           <div class="col-sm-10">
               {% if entity.world_access == 1 %}	
@@ -62,7 +62,7 @@
                   
               {% endif %}
           </div>
-      </div>
+      </div></div>
 
     </div>
 {% endif %}

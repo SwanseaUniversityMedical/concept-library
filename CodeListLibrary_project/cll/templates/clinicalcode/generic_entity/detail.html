@@ -3,7 +3,8 @@
 {% load static %}
 {% load markdownify %}
 {% load cl_extras %}
-{% load entity_publish_request%}
+{% load entity_publish_request %}
+
 {% block title %}| {{ entity_class }}: {{ entity_fields.name.value }}{% endblock title %}
 {% block description %}{{ entity_fields.name.value }}{% endblock description %}
 {% block keywords %}, {{ entity_fields.name.value }}{% endblock keywords %}
@@ -23,6 +24,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 
 {% block container %}
 <div class="row">
+<!-- container -->
 	<nav class="col-sm-2 hideleft-navbar" id="SideMenu" style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;">
 	     <ul class=" nav left-navbar "  id='navList'>
 	         <li class=" active"><a href="#home" id="Homelinkid">Home</a></li>
@@ -44,7 +46,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 
     <h3><span id="home" style="margin-top: -100px;"></span></h3>
     <div class="col-sm-10">
-
+	<!-- main -->
 	<span id="topButtons">			
 		<div class="row" style="margin-left: 2px">
 			<div class="col-sm-12 text-right action-buttons-container">			
@@ -117,7 +119,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 <div class="alert alert-warning alert-dismissable" id="warning-message" style="display: none;"role="alert"></div>
 
 </span>
-<div class="col-md-12" id="ddd">
+<div class="col-md-12" id="ddd" >
     <div>
         <h2>
             <strong>{{ entity_fields.name.value_highlighted|safe }}</strong>
@@ -128,34 +130,33 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
     </div>
 
 
-    <div class="row"></div>
-    <div class="row" style="margin-top: 10px;">
-          <div class="col-sm-2">ID</div>
-          <div class="col-sm-10">
-			<span id="entity_id_div" entity_id="{{ entity.id }}">
-				{{ entity.id }}						
-			</span>
-         </div>
-      </div>
-
-      <div class="row" style="margin-top: 10px;">
-             <div class="col-sm-2">Version ID</div>
-             <div class="col-sm-10">
-			<span id="entity_history_id_div" entity_history_id="{{ entity.history_id }}">
-				{{ entity.history_id }}
-                     {% if user.is_authenticated %}
-                         &nbsp;&nbsp;
-                         &nbsp;&nbsp;
-                         {% if is_latest_version %}
-                             <span class="tag label" style='background-color:#F98E2B;'>LATEST VERSION</span>
-                         {% else %}
-                             <span class="tag label label-default">HISTORICAL VERSION</span>
-                         {% endif %}
-                     {% endif %}
-			</span>
-             </div>
-      </div>
-       
+	    <div class="row" style="margin-top: 10px;">
+	          <div class="col-sm-2">ID</div>
+	          <div class="col-sm-10">
+				<span id="entity_id_div" entity_id="{{ entity.id }}">
+					{{ entity.id }}						
+				</span>
+	         </div>
+	      </div>
+	
+	      <div class="row" style="margin-top: 10px;">
+	             <div class="col-sm-2">Version ID</div>
+	             <div class="col-sm-10">
+				   <span id="entity_history_id_div" entity_history_id="{{ entity.history_id }}">
+					{{ entity.history_id }}
+	                     {% if user.is_authenticated %}
+	                         &nbsp;&nbsp;
+	                         &nbsp;&nbsp;
+	                         {% if is_latest_version %}
+	                             <span class="tag label" style='background-color:#F98E2B;'>LATEST VERSION</span>
+	                         {% else %}
+	                             <span class="tag label label-default">HISTORICAL VERSION</span>
+	                         {% endif %}
+	                     {% endif %}
+				   </span>
+	             </div>
+	      </div>
+	       
        
        	      
        	      
@@ -165,7 +166,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 			{% else %}
 				{% if field_data.field_type|is_in_list:'data_sources,tags,collections,concept_information,coding_system,phenoflowid' %}
 						<!-- system defined -->
-						{% if field_data.field_type == 'tags' %}
+						{% if field_data.field_type|is_in_list:'tags,collections' %}
 							<div class="row" style="margin-top: 10px;">
 								<span id="{{ field_data.html_id }}"></span>
 								<div class="col-sm-2">{{ field_data.title }}</div>
@@ -175,28 +176,12 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 											<span class="tag label label-{{ tag.get_display_display }} card-edit-sizing">{{ tag.description }}</span>
 										{% endfor %}	
 									{% else %}
-										<span class="card-no-data">No tags</span>
+										<span class="card-no-data">No {{ field_data.title|lower }}</span>
 									{% endif %}		
 								</div>	
 							</div>	
 						{% endif %}
-						
-						{% if field_data.field_type == 'collections' %}
-							<div class="row" style="margin-top: 10px;">
-								<span id="{{ field_data.html_id }}"></span>
-								<div class="col-sm-2">{{ field_data.title }}</div>
-								<div class="col-sm-10">
-									{% if field_data.value|length %}
-										{% for tag in field_data.value %}
-											<span class="tag label label-{{ tag.get_display_display }} card-edit-sizing">{{ tag.description }}</span>
-										{% endfor %}	
-									{% else %}
-										<span class="card-no-data">No collections</span>
-									{% endif %}		
-								</div>	
-							</div>	
-						{% endif %}		
-						
+												
 						{% if field_data.field_type == 'data_sources' %}
 				            <div class="row" style="margin-top: 10px;">
 				            	<span id="{{ field_data.html_id }}"></span>
@@ -226,7 +211,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 					                        <span class="badge">{{ cs.name }}</span>
 					                    {% endfor %}
 				                    {% else %}
-				                    <span class="card-no-data">No associated codes</span>
+				                    <span class="card-no-data">No data</span>
 				                    {% endif %}
 				                </div>
 				            </div>
@@ -243,7 +228,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 						                    target=_blank>{{ field_data.value }}
 						                </a>            
 				                    {% else %}
-				                    <span class="card-no-data">No associated codes</span>
+				                    <span class="card-no-data">No data</span>
 				                    {% endif %}
 				                </div>
 				            </div>
@@ -285,7 +270,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 				            {% if field_data.value_highlighted|length %}
 				            	{{ field_data.value_highlighted|markdownify }}
 				            {% else %}
-				            	{{ field_data.value }}
+				            	{{ field_data.value }} &nbsp;
 				            {% endif %}
 			            {% endif %}
 			        </div>
@@ -296,45 +281,13 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         <!--   PERMISSIONS   -->
 		{% include 'components/details/permissions.html' %}
 
 		<!--   API   -->
 		{% include 'components/details/api_section.html' %}
 
-         <!--   VERSION HISTORY   -->
+         <!--  VERSION HISTORY   -->
 		{% include 'components/details/version_history.html' %}
 
 
@@ -364,7 +317,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 
         <div id="popover-content-help-hist-entity" class="hide popover-lg">
             <p>
-                <strong>Export</strong> - export all codes into a csv file/JSON/XML for the current phenotype
+                <strong>Export</strong> - export all codes into a csv file/JSON/XML for the current {{ entity_class }}
                 version.
                 {% if user.is_authenticated and not CLL_READ_ONLY %}
                     The button will be disabled unless you have permission to view <b>all</b> of the concepts used.
@@ -377,15 +330,15 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
                                 </p>
 
                                 <p>
-                                    <strong>Fork</strong> - This will take a copy of the historic phenotype version and create a new phenotype.
+                                    <strong>Fork</strong> - This will take a copy of the historic {{ entity_class }} version and create a new {{ entity_class }}.
                                 </p>
 
                                 <p>
-                                    <strong>Revert</strong> - This will restore the phenotype back to this version.
+                                    <strong>Revert</strong> - This will restore the {{ entity_class }} back to this version.
                                 </p> -->
 
                 <p>
-                    <strong>Publish</strong> - This will publish the chosen version of the phenotype to the public.
+                    <strong>Publish</strong> - This will publish the chosen version of the {{ entity_class }} to the public.
                     <br>Conditions to publish:
                 <ul>
                     <li>The {{ entity_class }} is not deleted.</li>
@@ -403,8 +356,12 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 
         </div>
 
+     </div>
 
+	<!-- main -->
     </div>
+    
+<!-- container -->    
 </div>
 
 {% endblock container %}

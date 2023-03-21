@@ -45,7 +45,7 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
         url(r'^ge/(?P<pk>PH\d+)/(?P<history_id>\d+)/decline/$',Decline.EntityDecline.as_view(),name='generic_entity_decline'),
         url(r'^ge/(?P<pk>PH\d+)/(?P<history_id>\d+)/submit/$',Publish.RequestPublish.as_view(),name='generic_entity_request_publish'),
         
-        url(r'^he/(?P<pk>PH\d+)/export/codes/$', GenericEntity.history_phenotype_codes_to_csv, name='ge_latestVersion_phenotype_codes_to_csv'),
+        url(r'^ge/(?P<pk>PH\d+)/export/codes/$', GenericEntity.history_phenotype_codes_to_csv, name='ge_latestVersion_phenotype_codes_to_csv'),
         url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/export/codes/$', GenericEntity.history_phenotype_codes_to_csv, name='ge_history_phenotype_codes_to_csv'),   
 
         # Example - remove at production

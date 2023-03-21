@@ -127,13 +127,13 @@
                               class="panel-collapse collapse{% if user.is_authenticated %} pre-scrollable{% endif %}"
                               role="tabpanel" aria-labelledby="c{{ c.concept_version_id }}">
                              <div class="panel-body">
-                                 <div class="row">
+                                 <div class="box-container"><div class="row">
                                      <div class="col-md-6">
                                          <span id="codesCount_c{{ c.concept_version_id }}"
                                                class="codesCount label label-primary">Rows: {{ c.codesCount }}
                                          </span>
                                      </div>
-                                 </div>
+                                 </div></div>
                                  <div>
                                      <table class="table table-striped table-responsive-md code-list-display-table"
                                             style="width: 100%"
