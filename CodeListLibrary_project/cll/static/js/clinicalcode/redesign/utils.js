@@ -236,3 +236,43 @@ const displayCardDetails = (elem) => {
   
   window.location.href = target;
 }
+
+/**
+ * tryOpenFileDialogue
+ * @desc attempts to open a file dialogue and returns the resulting file(s) through a callback
+ * @param {object} options This method utilises ES6 destructing for setting default params
+ *  -> @param {boolean} allowMultiple whether to allow multiple file uploads, if blank or false,
+ *                                will only allow a single file to be uploaded
+ *  -> @param {null, list} extensions the expected file extensions (leave null for all file types)
+ *  -> @param {null, function(selected[bool], files[list])} callback the callback function for when a file is selected
+ * 
+ * e.g. usage:
+ * 
+ * const files = tryOpenFileDialogue({ extensions: ['.csv', '.tsv'], callback: (selected, files) => {
+ *  if (!selected) {
+ *    return;
+ *  }
+ *  console.log(files); --> [file_1, ..., file_n]
+ * }});
+ */
+const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callback = null } = {}) => {
+  const input = document.createElement('input');
+  input.type = 'file';
+
+  if (allowMultiple) {
+    input.multiple = true;
+  }
+
+  if (!isNullOrUndefined(extensions)) {
+    input.accept = extensions.join(',');
+  }
+
+  input.addEventListener('change', (e) => {
+    if (!isNullOrUndefined(callback)) {
+      callback(e.target.files.length > 0, e.target.files);
+    }
+    input.remove();
+  });
+
+  input.click();
+}
