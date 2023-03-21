@@ -307,6 +307,7 @@ data {
   overflow: hidden;
 
   &__none-available {
+    display: block;
     padding: 1rem;
     border-radius: 0.1rem;
     background-color: col(accent-semi-transparent);
@@ -315,10 +316,10 @@ data {
     &-message {
       text-align: center;
     }
+  }
 
-    &:not(.show) {
-      display: none;
-    }
+  &:has(.concept-list__group) &__none-available {
+    display: none;
   }
 
   &__group {
@@ -334,10 +335,6 @@ data {
       background-color: var(--item-list-even-bg-color);
     }
 
-    &:not(.show) {
-      display: none;
-    }
-
     &-item {
       @include flex-row();
       
@@ -351,6 +348,12 @@ data {
 
       &.is-open {
         border-bottom: 1px solid col(accent-washed);
+      }
+
+      &:not(.is-open) + .concept-group-content {
+        * {
+          display: none;
+        }
       }
   
       .contextual-icon:after {

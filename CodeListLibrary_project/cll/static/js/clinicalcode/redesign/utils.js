@@ -270,3 +270,26 @@ const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callbac
 
   input.click();
 }
+
+/**
+ * Get a template from a string
+ * https://stackoverflow.com/posts/41015840/revisions
+ * @param  {str} str The string to interpolate
+ * @param  {object} params The parameters
+ * @return {str} The interpolated string
+ */
+const interpolateHTML = (str, params) => {
+  let names = Object.keys(params);
+  let values = Object.values(params);
+  return new Function(...names, `return \`${str}\`;`)(...values);
+}
+
+/**
+ * parseHTMLFromString
+ * @param {str} str The string to parse as DOM elem
+ * @returns {DOM} the parsed html
+ */
+const parseHTMLFromString = (str) => {
+  const parser = new DOMParser();
+  return parser.parseFromString(str, 'text/html');
+}

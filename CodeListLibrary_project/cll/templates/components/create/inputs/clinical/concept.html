@@ -11,13 +11,50 @@
     </div>
   </section>
 
-  <section class="concept-list">
+  <section class="concept-list" id="concept-content-list">
     <!-- When no concepts are available -->
-    <section class="concept-list__none-available show" id="no-available-concepts">
+    <section class="concept-list__none-available" id="no-available-concepts">
       <p class="concept-list__none-available-message">You haven't added any concepts yet</p>
     </section>
 
     <!-- Concept list items -->
     
   </section>
+
+  <template id="concept-item">
+    <section class="concept-list__group" data-concept-id="${concept_id}" data-concept-history-id="${concept_history_id}">
+      <span class="concept-list__group-item" id="concept-accordian-header">
+        <span class="contextual-icon" tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open"></span>
+        <span class="concept-name" tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open">${concept_name}</span>
+        <span class="concept-buttons">
+          <span class="edit-icon" tabindex="0" aria-label="Edit Concept" role="button" data-target="edit"></span>
+          <span class="delete-icon" tabindex="0" aria-label="Delete Concept" role="button" data-target="delete"></span>
+        </span>
+      </span>
+
+      <section class="concept-group-content">
+        <!-- Finalised concept content when not editing -->
+        <section class="concept-group-content__container" id="concept-information">
+          <section class="concept-group-content__details">
+            <h4>Codelist</h4>
+            <ul class="chips-group" id="coding-system-chip">
+              <li class="chip bold washed-accent text-accent-darkest codelist-icon icon-accent-highlight">
+                <a id="coding-system-info" data-coding-id="${coding_id}">${coding_system}</a>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Codelist section -->
+          <div class="h-scrollable-table" id="codelist-concept-table">
+            
+          </div>
+        </section>
+
+        <!-- Editing concept content menu -->
+        <section class="concept-group-content__container" id="concept-editing">
+          
+        </section>
+      </section>
+    </section>
+  </template>
 </section>

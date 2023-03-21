@@ -80,9 +80,11 @@ export default class ConceptCreator {
     this.data = data || [ ];
     this.element = element;
 
+    this.#collectTemplates();
     this.#setUp();
   }
 
+  // Getters
   getData() {
     return this.data;
   }
@@ -106,7 +108,78 @@ export default class ConceptCreator {
     })
   }
 
+  // Initialisation
+  #collectTemplates() {
+    this.templates = { };
+    
+    const templates = this.element.querySelectorAll('template');
+    for (let i = 0; i < templates.length; ++i) {
+      let template = templates[i];
+      this.templates[template.getAttribute('id')] = Array.prototype.reduce.call(
+        template.content.childNodes,
+        (result, node) => result + (node.outerHTML || node.nodeValue),
+        ''
+      );
+    }
+  }
+
   #setUp() {
-    console.log(JSON.stringify(this.data, null, 2));
+    for (let i = 0; i < this.data.length; ++i) {
+      const concept = this.data[i];
+      this.#tryRenderConceptComponent(concept);
+    }
+  }
+
+  // Renderables
+  #tryRenderConceptComponent(concept) {
+    const template = this.templates['concept-item'];
+    const html = interpolateHTML(template, {
+      'concept_name': concept?.details?.name,
+      'concept_id': concept?.concept_id,
+      'concept_history_id': concept?.concept_history_id,
+      'coding_id': concept?.coding_system?.id,
+      'coding_system': concept?.coding_system?.description,
+    });
+
+    const containerList = this.element.querySelector('#concept-content-list');
+    const doc = parseHTMLFromString(html);
+    const conceptItem = containerList.appendChild(doc.body.children[0]);
+    const headerButtons = conceptItem.querySelectorAll('#concept-accordian-header span[role="button"]');
+    for (let i = 0; i < headerButtons.length; ++i) {
+      headerButtons[i].addEventListener('click', this.#handleConceptHeaderButton.bind(this));
+    }
+  }
+
+  // Handlers
+  #toggleConcept(target) {
+    const parent = target.parentNode
+    parent.classList.toggle('is-open');
+
+    if (parent.contains('is-open')) {
+      // Render codelist
+    }
+
+    // Hide codelist
+
+  }
+
+  #handleConceptHeaderButton(e) {
+    const target = e.target;
+    const method = target.getAttribute('data-target');
+    switch (method) {
+      case 'is-open': {
+        this.#toggleConcept(target);
+      } break;
+
+      case 'edit': {
+
+      } break;
+      
+      case 'delete': {
+
+      } break;
+
+      default: break;
+    }
   }
 }
