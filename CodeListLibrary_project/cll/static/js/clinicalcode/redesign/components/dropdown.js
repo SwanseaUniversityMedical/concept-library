@@ -6,6 +6,8 @@ const DROPDOWN_KEYS = {
   // Navigate dropdown
   'DOWN': 40,
   'UP': 38,
+  // Exit component
+  'ESC': 27,
 };
 
 /**
@@ -83,24 +85,32 @@ const createDropdownSelectionElement = (element) => {
     }
 
     const code = e.keyIdentifier || e.which || e.keyCode;
-    if (code != DROPDOWN_KEYS.UP && code != DROPDOWN_KEYS.DOWN) {
-      return;
+    switch (code) {
+      case DROPDOWN_KEYS.UP:
+      case DROPDOWN_KEYS.DOWN:
+        let target = e.target;
+        if (container.contains(target)) {
+          e.stopPropagation();
+          e.preventDefault();
+    
+          const children = Array.from(list.children);
+          if (!list.contains(target)) {
+            target = children[0];
+          }
+    
+          let index = children.indexOf(target) + (DROPDOWN_KEYS.UP == code ? -1 : 1);
+          index = index > children.length - 1 ? 0 : (index < 0 ? children.length - 1 : index);
+          children[index].focus();
+        }
+        break;
+
+      case DROPDOWN_KEYS.ESC:
+        list.classList.remove('active');
+        break;
+
+      default: break;
     }
 
-    let target = e.target;
-    if (container.contains(target)) {
-      e.stopPropagation();
-      e.preventDefault();
-
-      const children = Array.from(list.children);
-      if (!list.contains(target)) {
-        target = children[0];
-      }
-
-      let index = children.indexOf(target) + (DROPDOWN_KEYS.UP == code ? -1 : 1);
-      index = index > children.length - 1 ? 0 : (index < 0 ? children.length - 1 : index);
-      children[index].focus();
-    }
   }
 
   list.onkeyup = handleKeySelection;
