@@ -11,47 +11,90 @@
 .dropdown-content {
   display: none;
   position: fixed;
-  width: 100%;
   padding: 1em 1.5em;
   box-sizing: border-box;
   perspective: 200px;
   z-index: 1;
-
 }
 
-.row{
+.row {
   z-index: 999;
   background-color: white;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   border-radius: 1em;
-  padding-left: 1.5em;
-  padding: 1em;
-  @include prefix(transition, all 250ms ease-in, webkit moz o);
+  padding: 1.5em;
+  margin: 0 5em 0 -5em;
+
+ 
   position: absolute;
-  top:0.5em;
-  left: 0;
+  top: 0.5em;
   box-sizing: border-box;
+  -webkit-box-shadow: 0px 10px 70px rgba(0,0,0,0.15);
+      box-shadow: 0px 10px 70px rgba(0,0,0,0.15);
 
+  .content-container{
+    list-style: none;
+    .item-dropdown{
+      display: flex;
+      justify-content: flex-start;
+      padding: 0.5em 0;
+      margin: 0 22px;
+      text-decoration: none;
+      flex-direction: row;
+ 
+
+      &__icon{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        margin-right: 16px;
+        border-radius: 1em;
+        border-radius: 6px;
+        background: #f2f2f2;
+        @include prefix(transition, all 250ms ease-in, webkit moz o);
+        
+      }
+
+      &__text{
+        @include prefix(transition, all 250ms ease-in, webkit moz o);
+        flex-grow: 1;
+        
+      }
+
+      &__title{
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        line-height: 14px;
+        font-weight: 500;
+        color: black
+
+      }
+
+      &__description {
+        word-break: break-word;
+        color: #6e6d7a;
+        line-height: 16px;
+        font-size: 12px;
+        font-weight: 400;
+      }
+
+    }
+
+  }
 }
 
 
-
-
-/* Dropdown button */
-.dropdown {
-  @include prefix(transition, all 250ms ease-in, webkit moz o);
-}
 
 .dropdown {
   &:hover {
     .dropdown-content {
       display: flex;
-    }
-    .dropdown-text{
-      opacity: 1;
-      content: '';
-      @include prefix(transition, all 250ms ease-in, webkit moz o);
+      justify-content: center;
+      align-items: flex-start;
     }
   }
 }
-
-
