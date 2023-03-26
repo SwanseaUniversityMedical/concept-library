@@ -490,6 +490,7 @@ export default class ConceptCreator {
       const obj = this.data.find(item => item.concept_id == id && item.concept_history_id == history_id);
       if (!obj) {
         element.remove();
+        this.#toggleNoConceptBox(this.data.length > 0);
         return [id, history_id];
       }
 
@@ -546,9 +547,12 @@ export default class ConceptCreator {
    * @desc main entry point which initialises the ConceptCreator
    */
   #setUp() {
-    for (let i = 0; i < this.data.length; ++i) {
-      const concept = this.data[i];
-      this.#tryRenderConceptComponent(concept);
+    this.#toggleNoConceptBox(this.data.length > 0);
+    if (this.data.length > 0) {
+      for (let i = 0; i < this.data.length; ++i) {
+        const concept = this.data[i];
+        this.#tryRenderConceptComponent(concept);
+      }
     }
 
     const createBtn = this.element.querySelector('#create-concept-btn');
@@ -634,6 +638,17 @@ export default class ConceptCreator {
   }
 
   /**
+   * toggleNoConceptBox
+   * @desc toggles the "No available concepts" box visibility
+   * @param {boolean} whether to hide the no available concept box
+   */
+  #toggleNoConceptBox(hide) {
+    const noConcepts = this.element.querySelector('#no-available-concepts');
+    console.log(noConcepts, hide, hide ? 'remove' : 'add');
+    noConcepts.classList[hide ? 'remove' : 'add']('show');
+  }
+
+  /**
    * collapseConcepts
    * @desc method to collapse all concept accordians
    */
@@ -694,9 +709,13 @@ export default class ConceptCreator {
     const containerList = this.element.querySelector('#concept-content-list');
     containerList.innerHTML = '';
     
-    for (let i = 0; i < this.data.length; ++i) {
-      const concept = this.data[i];
-      this.#tryRenderConceptComponent(concept);
+    this.#toggleNoConceptBox(this.data.length > 0);
+
+    if (this.data.length > 0) {
+      for (let i = 0; i < this.data.length; ++i) {
+        const concept = this.data[i];
+        this.#tryRenderConceptComponent(concept);
+      }
     }
 
     // Repoen the concept if given ID and history ID
@@ -886,8 +905,10 @@ export default class ConceptCreator {
       return;
     }
 
-    datatable.data.headings[CONCEPT_CREATOR_OFFSET + index].data = value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE);
-    datatable.update();
+    if (datatable?.data?.headings && datatable.data.headings[CONCEPT_CREATOR_OFFSET + index]) {
+      datatable.data.headings[CONCEPT_CREATOR_OFFSET + index].data = value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE);
+      datatable.update();
+    }
   }
 
   /**
@@ -1545,6 +1566,7 @@ export default class ConceptCreator {
 
         const conceptGroup = this.#tryRenderConceptComponent(concept);
         this.#tryRenderEditor(conceptGroup, concept);
+        this.#toggleNoConceptBox(true);
       })
       .catch(() => { /* User does not want to lose progress, sink edit request */ })
   }

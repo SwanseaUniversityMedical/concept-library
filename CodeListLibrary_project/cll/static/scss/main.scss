@@ -326,10 +326,10 @@ data {
     &-message {
       text-align: center;
     }
-  }
 
-  &:has(.concept-list__group) &__none-available {
-    display: none;
+    &:not(.show) {
+      display: none;
+    }
   }
 
   &__group {
