@@ -67,7 +67,7 @@
 .datatable-bottom > nav:last-child,
 .datatable-bottom > div:last-child {
 	@include flex-row();
-  margin-left: auto;
+	margin-left: auto;
 }
 
 .datatable-selector {
