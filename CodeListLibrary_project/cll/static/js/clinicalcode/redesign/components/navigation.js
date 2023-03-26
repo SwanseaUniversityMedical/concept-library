@@ -1,4 +1,4 @@
-import FuzzyQuery from "./fuzzyQuery.js";
+import FuzzyQuery from './fuzzyQuery.js';
 
 /**
   * updateNavBarStyle

@@ -1,3 +1,10 @@
+/**
+ * updateTrackerStyle
+ * @desc updates the progress-percentage property of a progress-item dependent on scroll position
+ * @param {node} navbar the navbar node
+ * @param {list} trackers the list of tracker elements to update
+ * @param {int} headerOffset the offset of the <header/> element, incl. navigation
+ */
 const updateTrackerStyle = (navbar, trackers, headerOffset) => {
   for (let i = 0; i < trackers.length; i++) {
     const tracker = trackers[i];
@@ -6,12 +13,16 @@ const updateTrackerStyle = (navbar, trackers, headerOffset) => {
 
     let progress = 0;
     if (offset < 0) {
-      progress = Math.min((Math.abs(offset) / (size - (size/4))) * 100, 100);
+      progress = Math.min((Math.abs(offset) / (size - (size/1.5))) * 100, 100);
     }
     tracker.style.setProperty('--progress-percentage', `${progress}%`);
   }
 }
 
+/**
+ * initStepsWizard
+ * @desc initialises the wizard steps form
+ */
 const initStepsWizard = () => {
   document.querySelectorAll('.steps-wizard__item').forEach(elem => {
     elem.addEventListener('click', e => {

@@ -1,0 +1,108 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+/// Tooltips
+///   @desc used on actionable elements to display related information
+/// 
+/// e.g.
+/// <span tooltip="This does something" direction="right">
+///   <button class="some-button">
+///     Do something!
+///   </button>
+/// </span>
+
+[tooltip] {
+  position: relative;
+
+  &:before,
+  &:after {
+    @include ignore-user();
+    display: none;
+    position: absolute;
+    font-size: 0.9em;
+    line-height: 1;
+  }
+
+  &:before {
+    @include box-shadow(0, 5px 10px, -2.5px, rgba(0, 0, 0, 0.5));
+    content: '';
+    border: 5px solid transparent;
+    z-index: 9999999;
+  }
+
+  &:after {
+    @include app-font-style();
+    @include box-shadow(0, 5px 10px, -2.5px, rgba(0, 0, 0, 0.5));
+    content: attr(tooltip);
+    min-width: 3em;
+    max-width: 21em;
+    padding: 1ch 1.5ch;
+    border-radius: 0.25rem;
+    background: col(accent-dark);
+    color: col(text-brightest);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    z-index: 9999998;
+  }
+
+  &:hover:before,
+  &:hover:after {
+    display: block;
+  }
+
+  &[direction^="up"]:before {
+    @include prefix(transform, translate(-50%, -0.5em), webkit moz o ms);
+    left: 50%;
+    bottom: 100%;
+    border-bottom-width: 0;
+    border-top-color: col(accent-dark);
+  }
+  &[direction^="up"]:after {
+    @include prefix(transform, translate(-50%, -0.5em), webkit moz o ms);
+    left: 50%;
+    bottom: calc(100% + 5px);
+  }
+
+  &[direction^="right"]:before {
+    @include prefix(transform, translate(0.5em, -50%), webkit moz o ms);
+    right: calc(0em - 5px);
+    top: 50%;
+    border-left-width: 0;
+    border-right-color: col(accent-dark);
+  }
+  &[direction^="right"]:after {
+    @include prefix(transform, translate(0.5em, -50%), webkit moz o ms);
+    left: calc(100% + 5px);
+    top: 50%;
+  }
+
+  &[direction^="down"]:before {
+    @include prefix(transform, translate(-50%, 0.5em), webkit moz o ms);
+    left: 50%;
+    top: 100%;
+    border-top-width: 0;
+    border-bottom-color: col(accent-dark);
+  }
+  &[direction^="down"]:after {
+    @include prefix(transform, translate(-50%, 0.5em), webkit moz o ms);
+    left: 50%;
+    top: calc(100% + 5px);
+  }
+  
+  &[direction^="left"]:before {
+    @include prefix(transform, translate(-0.5em, -50%), webkit moz o ms);
+    left: calc(0em - 5px);
+    top: 50%;
+    border-right-width: 0;
+    border-left-color: col(accent-dark);
+  }
+  &[direction^="left"]:after {
+    @include prefix(transform, translate(-0.5em, -50%), webkit moz o ms);
+    top: 50%;
+    right: calc(100% + 5px);
+  }
+}

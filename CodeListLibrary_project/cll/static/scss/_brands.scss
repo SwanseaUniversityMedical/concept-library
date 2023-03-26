@@ -24,7 +24,9 @@ $brand-map-none: (
   'color-accent-tertiary': $pixie_green,
   'color-accent-highlight': $royal_blue,
   'color-accent-bubble': $solitude,
+  'color-accent-success': $light_grey_green,
   'color-accent-danger': $pastel_red,
+  'color-accent-warning': $wax_flower,
   'color-accent-anchor': $bright_blue,
   'color-accent-transparent': $transparent,
   'color-accent-semi-transparent': rgba($black, 0.05),
@@ -111,7 +113,7 @@ $brand-map-none: (
 
   // Phenotype creation
   'phenotype-article-sm-size': 55%,
-  'phenotype-article-lg-size': 100%,
+  'phenotype-article-lg-size': 90%,
   'phenotype-article-header-border': $light_grey,
   'phenotype-article-h1-size': 2em,
   'phenotype-article-h1-weight': bold,
@@ -168,7 +170,9 @@ $brand-map-ADP: (
   'color-accent-tertiary': $pixie_green,
   'color-accent-highlight': $royal_blue,
   'color-accent-bubble': $solitude,
+  'color-accent-success': $light_grey_green,
   'color-accent-danger': $pastel_red,
+  'color-accent-warning': $wax_flower,
   'color-accent-anchor': $bright_blue,
   'color-accent-transparent': $transparent,
   'color-accent-semi-transparent': rgba($black, 0.05),
@@ -199,7 +203,8 @@ $brand-map-ADP: (
   'navigation-panel-shadow': '0px 5px 15px -1px rgba(0, 0, 0, 0.5)',
 
   // Scrollbars
-  'slim-scrollbar-color': $transparent_black,
+  'slim-scrollbar-inactive-color': $lightest_grey,
+  'slim-scrollbar-active-color': $transparent_black,
   'slim-scrollbar-radius': 6px,
   'slim-scrollbar-width': 6px,
 
@@ -254,7 +259,7 @@ $brand-map-ADP: (
 
   // Phenotype creation
   'phenotype-article-sm-size': 55%,
-  'phenotype-article-lg-size': 100%,
+  'phenotype-article-lg-size': 90%,
   'phenotype-article-header-border': $light_grey,
   'phenotype-article-h1-size': 2em,
   'phenotype-article-h1-weight': bold,
@@ -311,7 +316,9 @@ $brand-map-HDRUK: (
   'color-accent-tertiary': $pixie_green,
   'color-accent-highlight': $royal_blue,
   'color-accent-bubble': $solitude,
+  'color-accent-success': $light_grey_green,
   'color-accent-danger': $pastel_red,
+  'color-accent-warning': $wax_flower,
   'color-accent-anchor': $bright_blue,
   'color-accent-transparent': $transparent,
   'color-accent-semi-transparent': rgba($black, 0.05),
@@ -342,7 +349,8 @@ $brand-map-HDRUK: (
   'navigation-panel-shadow': '0px 5px 15px -1px rgba(0, 0, 0, 0.5)',
 
   // Scrollbars
-  'slim-scrollbar-color': $transparent_black,
+  'slim-scrollbar-inactive-color': $lightest_grey,
+  'slim-scrollbar-active-color': $transparent_black,
   'slim-scrollbar-radius': 6px,
   'slim-scrollbar-width': 6px,
 
@@ -397,7 +405,7 @@ $brand-map-HDRUK: (
 
   // Phenotype creation
   'phenotype-article-sm-size': 55%,
-  'phenotype-article-lg-size': 100%,
+  'phenotype-article-lg-size': 90%,
   'phenotype-article-header-border': $light_grey,
   'phenotype-article-h1-size': 2em,
   'phenotype-article-h1-weight': bold,
@@ -454,7 +462,9 @@ $brand-map-SAIL: (
   'color-accent-tertiary': $pixie_green,
   'color-accent-highlight': $royal_blue,
   'color-accent-bubble': $solitude,
+  'color-accent-success': $light_grey_green,
   'color-accent-danger': $pastel_red,
+  'color-accent-warning': $wax_flower,
   'color-accent-anchor': $bright_blue,
   'color-accent-transparent': $transparent,
   'color-accent-semi-transparent': rgba($black, 0.05),
@@ -485,7 +495,8 @@ $brand-map-SAIL: (
   'navigation-panel-shadow': '0px 5px 15px -1px rgba(0, 0, 0, 0.5)',
 
   // Scrollbars
-  'slim-scrollbar-color': $transparent_black,
+  'slim-scrollbar-inactive-color': $lightest_grey,
+  'slim-scrollbar-active-color': $transparent_black,
   'slim-scrollbar-radius': 6px,
   'slim-scrollbar-width': 6px,
 
@@ -540,7 +551,7 @@ $brand-map-SAIL: (
 
   // Phenotype creation
   'phenotype-article-sm-size': 55%,
-  'phenotype-article-lg-size': 100%,
+  'phenotype-article-lg-size': 90%,
   'phenotype-article-header-border': $light_grey,
   'phenotype-article-h1-size': 2em,
   'phenotype-article-h1-weight': bold,

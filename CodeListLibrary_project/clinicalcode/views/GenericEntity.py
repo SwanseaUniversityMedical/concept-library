@@ -3,11 +3,6 @@
     GGENERIC-ENTITY VIEW
     ---------------------------------------------------------------------------
 '''
-import csv
-import json
-import logging
-import re
-import time
 from collections import OrderedDict
 from django.conf import settings
 from django.contrib import messages
@@ -25,7 +20,12 @@ from django.views.generic import DetailView, TemplateView
 from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import UpdateView
 from django.utils.decorators import method_decorator
-from django.views.decorators.cache import never_cache
+
+import csv
+import json
+import logging
+import re
+import time
 
 from .. import utils
 from clinicalcode.entity_utils import entity_db_utils
@@ -35,7 +35,7 @@ from .View import *
 from clinicalcode.api.views.View import get_canonical_path_by_brand
 from clinicalcode.constants import *
 
-from ..entity_utils import gen_utils, model_utils, create_utils, stats_utils, search_utils, constants
+from ..entity_utils import template_utils, gen_utils, model_utils, create_utils, stats_utils, search_utils, constants
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +78,7 @@ class EntitySearchView(TemplateView):
         context = self.get_context_data(*args, **kwargs)
         filtered = search_utils.try_get_param(request, 'search_filtered', None)
 
-        if filtered is not None and request.headers.get('XMLHttpRequest'):
+        if filtered is not None and request.headers.get('X-Requested-With'):
             context['request'] = request
 
             results = render_to_string(self.result_template, context)
@@ -87,44 +87,54 @@ class EntitySearchView(TemplateView):
             
         return render(request, self.template_name, context)
 
-@method_decorator(login_required, name='dispatch')
 class CreateEntityView(TemplateView):
     '''
         Entity Create View
             @desc Used to create entities - CreateView isn't used due to the requirements
                   of having a form dynamically created to reflect the dynamic model.
     '''
+    fetch_methods = ['search_codes', 'get_options']
     template_name = 'clinicalcode/generic_entity/create.html'
     
-    def create_form(self, request, context, template):
+    ''' View methods '''
+    @method_decorator([login_required])
+    def dispatch(self, request, *args, **kwargs):
         '''
-            @desc Renders the entity create form
+            @desc Dispatch view
         '''
-        context['metadata'] = constants.metadata
-        context['template'] = template
-        context['form_method'] = constants.FORM_METHODS.CREATE
-        return render(request, self.template_name, context)
+        return super(CreateEntityView, self).dispatch(request, *args, **kwargs)
 
-    def update_form(self, request, context, template, entity):
-        '''
-            @desc Renders the entity update form
-        '''
-        context['metadata'] = constants.metadata
-        context['template'] = template
-        context['entity'] = entity
-        context['form_method'] = constants.FORM_METHODS.UPDATE
-        return render(request, self.template_name, context)
-    
     def get_context_data(self, *args, **kwargs):
         '''
             @desc Provides contextual data
         '''
         context = super(CreateEntityView, self).get_context_data(*args, **kwargs)
-
         return context
-
-    @method_decorator([never_cache, login_required], name='dispatch')
+    
     def get(self, request, *args, **kwargs):
+        '''
+            @desc Handles get requests by determining whether it was made
+                  through the fetch method, or accessed via a browser.
+                  
+                  If requested via browser, will render a view. Otherwise
+                  will respond with appropriate method, if applicable.
+        '''
+        if gen_utils.is_fetch_request(request):
+            return self.fetch_response(request, *args, **kwargs)
+        
+        return self.render_view(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        '''
+            @desc Handles:
+                - form submission on creating or updating an entity
+        '''
+        context = self.get_context_data(*args, **kwargs)
+
+        return render(request, self.template_name, context)
+
+    ''' Main view render '''
+    def render_view(self, request, *args, **kwargs):
         '''
             @desc Template and entity is tokenised in the URL - providing the latter requires
                   users to be permitted to modify that particular entity.
@@ -155,16 +165,104 @@ class CreateEntityView(TemplateView):
             return self.update_form(request, context, template, entity)
         
         raise BadRequest('Invalid request.')
-
-    @method_decorator([never_cache, login_required], name='dispatch')
-    def post(self, request, *args, **kwargs):
+    
+    ''' Forms '''
+    def create_form(self, request, context, template):
         '''
-            @desc Handles:
-                - form submission on creating or updating an entity
+            @desc Renders the entity create form
         '''
-        context = self.get_context_data(*args, **kwargs)
-
+        context['metadata'] = constants.metadata
+        context['template'] = template
+        context['form_method'] = constants.FORM_METHODS.CREATE
         return render(request, self.template_name, context)
+
+    def update_form(self, request, context, template, entity):
+        '''
+            @desc Renders the entity update form
+        '''
+        context['metadata'] = constants.metadata
+        context['template'] = template
+        context['entity'] = entity
+        context['form_method'] = constants.FORM_METHODS.UPDATE
+        return render(request, self.template_name, context)
+
+    ''' Fetch methods '''
+    def fetch_response(self, request, *args, **kwargs):
+        '''
+            @desc Parses the X-Target header to determine which GET method
+                  to respond with
+        '''
+        target = request.headers.get('X-Target', None)
+        if target is None or target not in self.fetch_methods:
+            raise BadRequest('No such target')
+        
+        return getattr(self, target)(request, *args, **kwargs)
+    
+    def get_options(self, request, *args, **kwargs):
+        '''
+            @desc GET request made by client to retrieve all available
+                  options for a given field within its template
+
+        '''
+        template_id = gen_utils.parse_int(search_utils.try_get_param(request, 'template'), default=None)
+        if not template_id:
+            return gen_utils.jsonify_response(message='Invalid template parameter', code=400, status='false')
+        
+        template = model_utils.try_get_instance(Template, pk=template_id)
+        if template is None:
+            return gen_utils.jsonify_response(message='Invalid template parameter, template does not exist', code=400, status='false')
+        
+        field = search_utils.try_get_param(request, 'parameter')
+        if field is None or gen_utils.is_empty_string(field):
+            return gen_utils.jsonify_response(message='Invalid field parameter', code=400, status='false')
+
+        if template_utils.is_metadata(GenericEntity, field):
+            options = template_utils.get_template_sourced_values(constants.metadata, field)
+        else:
+            options = template_utils.get_template_sourced_values(template, field)
+        
+        if options is None:
+            return gen_utils.jsonify_response(message='Invalid field parameter, does not exist or is not an optional parameter', code=400, status='false')
+
+        options = model_utils.append_coding_system_data(options)
+        return JsonResponse({
+            'result': options
+        })
+
+    def search_codes(self, request, *args, **kwargs):
+        '''
+            @desc GET request made by client to search a codelist given its coding id,
+                  a search term, and the relevant template
+            
+                  e.g. entity/{update|create}/?search=C1&coding_system=4&template=1
+        '''
+        template_id = gen_utils.parse_int(search_utils.try_get_param(request, 'template'), default=None)
+        if not template_id:
+            return gen_utils.jsonify_response(message='Invalid template parameter', code=400, status='false')
+        
+        template = model_utils.try_get_instance(Template, pk=template_id)
+        if template is None:
+            return gen_utils.jsonify_response(message='Invalid template parameter, template does not exist', code=400, status='false')
+        
+        search_term = search_utils.try_get_param(request, 'search', '')
+        search_term = gen_utils.decode_uri_parameter(search_term)
+        if not search_term or gen_utils.is_empty_string(search_term):
+            return gen_utils.jsonify_response(message='Invalid search term parameter', code=400, status='false')
+        
+        coding_system = gen_utils.parse_int(search_utils.try_get_param(request, 'coding_system'), None)
+        coding_system = model_utils.try_get_instance(CodingSystem, codingsystem_id=coding_system)
+        if not coding_system:
+            return gen_utils.jsonify_response(message='Invalid coding system parameter', code=400, status='false')
+
+        codelist = search_utils.search_codelist(coding_system, search_term)
+        if codelist is not None:
+            codelist = list(codelist.values('id', 'code', 'description'))
+        else:
+            codelist = [ ]
+        
+        return JsonResponse({
+            'result': codelist
+        })
 
 class EntityStatisticsView(TemplateView):
     '''
@@ -178,7 +276,6 @@ class EntityStatisticsView(TemplateView):
             raise PermissionDenied
         
         stats_utils.collect_statistics(request)
-
         return render(request, 'clinicalcode/admin/run_statistics.html', {
             'successMsg': ['Filter statistics for Concepts/Phenotypes saved'],
         })

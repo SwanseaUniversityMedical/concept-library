@@ -156,16 +156,65 @@ class FilterService {
     this.#handleHistoryUpdate();
   }
 
-  // Public getter methods
+  /*************************************
+   *                                   *
+   *               Getter              *
+   *                                   *
+   *************************************/
+  /**
+   * getAllFilters
+   * @desc gets all filters, their components & associated data
+   * @returns {dict} a dict of all filters employed on this page
+   */
   getAllFilters() {
     return this.filters;
   }
 
+  /**
+   * getCurrentParameters
+   * @desc gets the current query parameters used by the filters + pagination
+   * @returns {dict} the current query parameters that are applied (prior to cleaning)
+   */
   getCurrentParameters() {
     return this.query;
   }
 
-  // Private request methods
+  /*************************************
+   *                                   *
+   *               Private             *
+   *                                   *
+   *************************************/
+  /**
+   * fetchURLParameters
+   * @desc fetches the current URL parameters and applies it to this.query
+   *       so that it can be used in future queries.
+   * 
+   *       required so that we can build expected query data based on the URL
+   *       the user used to load this page
+   */
+  #fetchURLParameters(location) {
+    const params = new URL(location == undefined ? window.location.href : location);
+    params.searchParams.forEach((value, key) => {
+      if (key in this.filters) {
+        const filterItem = this.filters[key];
+        const parser = FILTER_PARSERS[filterItem.filterClass];
+        value = parser(value);
+
+        if (FILTER_APPLICATORS.hasOwnProperty(filterItem.filterClass)) {
+          const applicator = FILTER_APPLICATORS[filterItem.filterClass];
+          applicator(filterItem, value);
+        }
+        this.query[key] = value;
+      }
+    });
+  }
+
+  /**
+   * cleanQuery
+   * @desc collects the data associated with each filter and cleans it
+   *       through applying the assoc. filter cleaner (if applicable)
+   * @returns {dict} the cleaned query
+   */
   #cleanQuery() {
     const cleaned = { }
     for (let key in this.query) {
@@ -194,38 +243,12 @@ class FilterService {
     return cleaned;
   }
 
-  #renderResponse(html) {
-    const parser = new DOMParser();
-    const response = parser.parseFromString(html, 'text/html');
-
-    const resultsHeader = response.querySelector(FILTER_RESPONSE_CONTENT_IDS.HEADER);
-    if (!isNullOrUndefined(resultsHeader)) {
-      const header = document.querySelector(FILTER_RESPONSE_CONTENT_IDS.HEADER);
-      if (!isNullOrUndefined(header)) {
-        header.replaceWith(resultsHeader);
-      }
-    }
-
-    const resultsContainer = response.querySelector(FILTER_RESPONSE_CONTENT_IDS.RESULTS);
-    if (!isNullOrUndefined(resultsContainer)) {
-      const results = document.querySelector(FILTER_RESPONSE_CONTENT_IDS.RESULTS);
-      if (!isNullOrUndefined(results)) {
-        results.replaceWith(resultsContainer);
-      }
-    }
-
-    const paginationContainer = response.querySelector(FILTER_RESPONSE_CONTENT_IDS.PAGINATION);
-    if (!isNullOrUndefined(paginationContainer)) {
-      const pagination = document.querySelector(FILTER_RESPONSE_CONTENT_IDS.PAGINATION);
-      if (!isNullOrUndefined(pagination)) {
-        pagination.replaceWith(paginationContainer);
-
-        const filter = document.querySelector('[data-class="pagination"]');
-        this.filters['page'].filter = filter;
-      }
-    }
-  }
-
+  /**
+   * applyURLParameters
+   * @desc appends the query data to the current URL and pushes the state so
+   *       that it can be used as a historical state (allows forward/backward page navigation)
+   * @param {dict} query the query that was used to retrieve the current page data
+   */
   #applyURLParameters(query) {
     delete query.search_filtered;
 
@@ -234,6 +257,13 @@ class FilterService {
     window.history.pushState({}, document.title, url);
   }
 
+  /**
+   * postQuery
+   * @desc Sends a GET request to the server with all of the current
+   *       parameters the user has set through interfacing with the filters.
+   * 
+   *       Responsible for rerendering the page if successful.
+   */
   #postQuery() {
     let query = this.#cleanQuery();
     query = mergeObjects(query, {'search_filtered': true});
@@ -242,7 +272,10 @@ class FilterService {
     fetch(
       `${getCurrentURL()}?` + parameters,
       {
-        'X-Requested-With': 'XMLHttpRequest',
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        }
       }
     )
       .then(response => response.text())
@@ -252,7 +285,15 @@ class FilterService {
       .catch(error => console.error(error));
   }
 
-  // Private initialisation methods
+  /*************************************
+   *                                   *
+   *                Init               *
+   *                                   *
+   *************************************/
+  /**
+   * collectFilters
+   * @desc collects all filters found within the page's DOM
+   */
   #collectFilters() {
     const filters = document.querySelectorAll('[data-controller="filter"]');
     for (let i = 0; i < filters.length; ++i) {
@@ -266,23 +307,11 @@ class FilterService {
     }
   }
 
-  #fetchURLParameters(location) {
-    const params = new URL(location == undefined ? window.location.href : location);
-    params.searchParams.forEach((value, key) => {
-      if (key in this.filters) {
-        const filterItem = this.filters[key];
-        const parser = FILTER_PARSERS[filterItem.filterClass];
-        value = parser(value);
-
-        if (FILTER_APPLICATORS.hasOwnProperty(filterItem.filterClass)) {
-          const applicator = FILTER_APPLICATORS[filterItem.filterClass];
-          applicator(filterItem, value);
-        }
-        this.query[key] = value;
-      }
-    });
-  }
-
+  /**
+   * setUpFilters
+   * @desc the main initialiser for filterable fields - determines
+   *       which component to initialise based on the validated filters
+   */
   #setUpFilters() {
     for (let key in this.filters) {
       if (!this.filters.hasOwnProperty(key)) {
@@ -314,7 +343,11 @@ class FilterService {
     }
   }
 
-  // Private interface setup methods
+  /**
+   * setUpDatepicker
+   * @desc initialises the datepicker component event handlers
+   * @param {string} field the filter field
+   */
   #setUpDatepicker(field) {
     const input = this.filters[field].filter.querySelector('.date-range-picker');
     const datepicker = new Lightpick({
@@ -330,6 +363,11 @@ class FilterService {
     this.filters[field].datepicker = datepicker;
   }
 
+  /**
+   * setUpCheckbox
+   * @desc initialises the checkbox component event handlers
+   * @param {string} field the filter field
+   */
   #setUpCheckbox(field) {
     const filterItem = this.filters[field];
     const checkboxes = filterItem.filter.querySelectorAll('input[data-class="checkbox"]');
@@ -339,12 +377,22 @@ class FilterService {
     }
   }
 
+  /**
+   * setUpSearchbar
+   * @desc initialises the search component event handlers
+   * @param {string} field the filter field
+   */
   #setUpSearchbar(field) {
     const filterItem = this.filters[field];
     const searchbar = filterItem.filter.querySelector('input[data-class="searchbar"]');
     searchbar.addEventListener('keyup', this.#handleSearchbarUpdate.bind(this));
   }
   
+  /**
+   * setUpPagination
+   * @desc initialises the pagination component event handlers
+   * @param {string} field the filter field
+   */
   #setUpPagination(field) {
     if (!this.filters.hasOwnProperty(field)) {
       return;
@@ -364,16 +412,34 @@ class FilterService {
     }
   }
 
+  /**
+   * setUpOptions
+   * @desc initialises the event handler for the dropdown option component
+   * @param {string} field the filter field
+   */
   #setUpOptions(field) {
     const filterItem = this.filters[field];
     filterItem.filter.addEventListener('change', this.#handleOptionUpdate.bind(this));
   }
 
-  // Private event handler methods
+  /*************************************
+   *                                   *
+   *               Events              *
+   *                                   *
+   *************************************/
+  /**
+   * handleHistoryUpdate
+   * @desc Instantiates an event handler to listen when the page is redirected
+   */
   #handleHistoryUpdate() {
     window.addEventListener('popstate', () => window.location.reload());
   }
 
+  /**
+   * handleOptionUpdate
+   * @desc Handles the dropdown change event fired by the items like the order by/page size components
+   * @param {event} e the associated event
+   */
   #handleOptionUpdate(e) {
     const field = e.target.getAttribute('data-field');
     if (isNullOrUndefined(field) || isStringEmpty(field)) {
@@ -389,6 +455,11 @@ class FilterService {
     this.#postQuery();
   }
 
+  /**
+   * handleDateUpdate
+   * @desc Handles the custom event fired by the datepicker when a user submits a date change
+   * @param {event} e the associated event
+   */
   #handleDateUpdate(field, start, end) {
     if (isNullOrUndefined(start) || isNullOrUndefined(end)) {
       return;
@@ -402,6 +473,11 @@ class FilterService {
     this.#postQuery();
   }
 
+  /**
+   * handleCheckboxUpdate
+   * @desc Click event that handles interactions with any of the checkbox components
+   * @param {event} e the associated event
+   */
   #handleCheckboxUpdate(e) {
     const target = e.target;
     const field = target.getAttribute('data-field');
@@ -434,6 +510,11 @@ class FilterService {
     return;
   }
 
+  /**
+   * handleSearchbarUpdate
+   * @desc Key event that handles attempts to search for entities
+   * @param {event} e the associated event
+   */
   #handleSearchbarUpdate(e) {
     const code = e.keyIdentifier || e.which || e.keyCode;
     if (code != FILTER_KEYCODES.ENTER) {
@@ -456,6 +537,11 @@ class FilterService {
     this.#postQuery();
   }
 
+  /**
+   * handlePaginationUpdate
+   * @desc Click event that handles the pagination button events
+   * @param {event} e the associated event
+   */
   #handlePaginationUpdate(e) {
     e.preventDefault();
 
@@ -488,6 +574,51 @@ class FilterService {
     this.query[field] = value;
     this.#postQuery();
   }
+  
+  /*************************************
+   *                                   *
+   *               Render              *
+   *                                   *
+   *************************************/
+  /**
+   * renderResponse
+   * @desc Renders the response from the server after a query is made, either by a filter or by pagination.
+   *       Only specific sections of this response are used to rebuild the page to avoid having to recreate,
+   *       or update, the assoc. components
+   * @param {string} html the html to render to the page
+   */
+  #renderResponse(html) {
+    const parser = new DOMParser();
+    const response = parser.parseFromString(html, 'text/html');
+
+    const resultsHeader = response.querySelector(FILTER_RESPONSE_CONTENT_IDS.HEADER);
+    if (!isNullOrUndefined(resultsHeader)) {
+      const header = document.querySelector(FILTER_RESPONSE_CONTENT_IDS.HEADER);
+      if (!isNullOrUndefined(header)) {
+        header.replaceWith(resultsHeader);
+      }
+    }
+
+    const resultsContainer = response.querySelector(FILTER_RESPONSE_CONTENT_IDS.RESULTS);
+    if (!isNullOrUndefined(resultsContainer)) {
+      const results = document.querySelector(FILTER_RESPONSE_CONTENT_IDS.RESULTS);
+      if (!isNullOrUndefined(results)) {
+        results.replaceWith(resultsContainer);
+      }
+    }
+
+    const paginationContainer = response.querySelector(FILTER_RESPONSE_CONTENT_IDS.PAGINATION);
+    if (!isNullOrUndefined(paginationContainer)) {
+      const pagination = document.querySelector(FILTER_RESPONSE_CONTENT_IDS.PAGINATION);
+      if (!isNullOrUndefined(pagination)) {
+        pagination.replaceWith(paginationContainer);
+
+        const filter = document.querySelector('[data-class="pagination"]');
+        this.filters['page'].filter = filter;
+      }
+    }
+  }
+
 }
 
 domReady.finally(() => {

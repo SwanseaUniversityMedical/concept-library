@@ -542,7 +542,7 @@ def search_codelist_by_pattern(coding_system, pattern, include_desc=True):
     codes = codes.extra(
         select={
             'code': code_column,
-            'desc': desc_column,
+            'description': desc_column,
         }
     ) \
     .order_by(code_column) \
@@ -599,7 +599,7 @@ def search_codelist_by_term(coding_system, search_term, include_desc=True):
     codes = codes.extra(
         select={
             'code': code_column,
-            'desc': desc_column,
+            'description': desc_column,
         }
     ) \
     .order_by(code_column, '-similarity') \

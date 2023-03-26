@@ -14,13 +14,19 @@
 {% endblock cache_tags %}
 
 {% block container %}
+  <!-- Vendor -->
   <link rel="stylesheet" type="text/css" href="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.css' %}" />
+  <script src="{% static 'js/clinicalcode/redesign/vendor/simple-datatables/simple-datatables.min.js' %}"></script>
   <script src="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.js' %}"></script>
   <script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
   <script src="{% static 'js/clinicalcode/redesign/vendor/lightpick.js' %}"></script>
+
+  <!-- Dependencies -->
   <script type="module" src="{% static 'js/clinicalcode/redesign/forms/entityCreator.js' %}"></script>
   <script type="module" src="{% static 'js/clinicalcode/redesign/components/stepsWizard.js' %}"></script>
+  <script type="module" src="{% static 'js/clinicalcode/redesign/components/toastNotification.js' %}"></script>
 
+  <!-- Form -->
   <header class="main-header">
     <div class="main-header__inner-container">
       {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
@@ -51,10 +57,10 @@
 
         <section class="phenotype-creation__completed" id="completed-section">
           <div class="phenotype-creation__completed-row">
-            <button class="secondary-btn text-accent-darkest bold washed-accent" aria-label="Save Draft" id="save-entity-btn">
-              Save as Draft
+            <button class="secondary-btn text-accent-darkest bold washed-accent" aria-label="Save Draft" id="cancel-entity-btn">
+              Cancel
             </button>
-            <button class="primary-btn text-accent-darkest bold tertiary-accent icon create-icon sweep-left" aria-label="Create Entity" id="submit-entity-btn">
+            <button class="primary-btn text-accent-darkest bold tertiary-accent icon create-icon sweep-left" aria-label="Create or Update Entity" id="submit-entity-btn">
               {% if form_method.value == '1' %}
               Create Entity
               {% else %}

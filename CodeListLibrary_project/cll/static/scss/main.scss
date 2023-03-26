@@ -20,9 +20,13 @@
 @import 'components/_filters';
 @import 'components/_pagination';
 @import 'components/_markdown';
+@import 'components/_modals';
+@import 'components/_tooltips';
+@import 'components/_toast';
 
 // Need to add vendor's properties to brand map
 @import 'vendor/_lightpick';
+@import 'vendor/_datatables';
 
 html {
   height: 100%;
@@ -92,6 +96,9 @@ data {
     flex: 1;
     min-height: fit-content;
     max-width: 100%;
+  }
+  
+  &--inner-padding {
     padding: 0 var(--main-gutter) 0 var(--main-gutter);
   
     @include media("<desktop", "screen") {
@@ -125,6 +132,7 @@ data {
 
     position: relative;
     width: 100%;
+    max-width: 100%;
     height: auto;
     margin-top: 1rem;
     padding: 0.5rem 0.5rem 1rem 0;
@@ -254,6 +262,7 @@ data {
       @include flex-col();
       position: relative;
       width: 100%;
+      max-width: 100%;
       height: fit-content;
     }
   }
@@ -263,10 +272,10 @@ data {
   @include flex-col();
 
   position: relative;
-  width: 100%;
   padding: 0;
   margin: 1rem 0 0 0;
   width: 100%;
+  max-width: 100%;
   
   &__header {
     @include flex-row();
@@ -299,6 +308,7 @@ data {
 
   position: relative;
   width: 100%;
+  max-width: 100%;
   height: auto;
   padding: 0;
   margin: 0;
@@ -323,6 +333,7 @@ data {
   }
 
   &__group {
+    @include flex-col();
     position: relative;
     width: 100%;
     max-width: 100%;
@@ -392,6 +403,12 @@ data {
         margin-left: auto;
       }
     }
+
+    &[editing="true"] {
+      .concept-list__group-item .edit-icon:after {
+        content: '\f00d';
+      }
+    }
   }
 }
 
@@ -418,9 +435,32 @@ data {
     }
   }
 
+  &__no-codes {
+    padding: 1rem;
+    border-radius: 0.1rem;
+    background-color: col(accent-semi-transparent);
+    margin-bottom: 0.5rem;
+
+    &-message {
+      text-align: center;
+    }
+
+    &:not(.show) {
+      display: none;
+    }
+  }
+
   &__editor-selection {
     @include flex-row();
-    justify-self: flex-end;
+    align-content: center;
+    position: relative;
+    margin-left: auto;
+  }
+
+  &__editor-buttons {
+    @include flex-row($gap: 1rem);
+    margin-top: 1rem;
+    justify-content: flex-end;
     align-content: center;
     position: relative;
   }
@@ -431,6 +471,11 @@ data {
     height: auto;
     padding: 0.5rem;
     margin-bottom: 0.5rem;
+    max-width: calc(100% - 1rem);
+
+    &:not(.show) {
+      display: none;
+    }
   }
 }
 
@@ -451,5 +496,51 @@ data {
       display: none;
     }
   }
+  
+  &__container {
+    @include flex-col();
+    position: relative;
+    height: auto;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
 
+    &:not(.show) {
+      display: none;
+    }
+  }
+}
+
+.ruleset-icon {
+  @include flex-row();
+  width: 2rem;
+  aspect-ratio: 1 / 1;
+
+  &--align-center {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  &:after {
+    @include fontawesome-icon();
+  }
+
+  &--present-icon:after {
+    content: '\f058';
+    color: col(text-dark);
+  }
+  
+  &--absent-icon:after {
+    content: '\f057';
+    color: col(text-dark);
+  }
+
+  &--include-icon:after {
+    content: '\f055';
+    color: col(accent-success);
+  }
+
+  &--exclude-icon:after {
+    content: '\f056';
+    color: col(accent-danger);
+  }
 }

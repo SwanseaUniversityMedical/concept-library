@@ -8,6 +8,12 @@ const CL_ACCESSIBILITY_KEYS = {
   'ENTER': 13,
 }
 
+/**
+ * Main thread
+ * @desc listens to key events to see if the user has utilised any accessibility keys,
+ *       and uses contextual information related to both the element & the keyCode to
+ *       determine whether to initialise an interaction with that component
+ */
 domReady.finally(() => {
   document.addEventListener('keydown', e => {
     const elem = document.activeElement;

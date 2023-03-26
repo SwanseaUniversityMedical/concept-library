@@ -67,6 +67,11 @@ class FORM_METHODS(str, Enum):
     UPDATE = 2
 
 '''
+    The excepted X-Requested-With header if a fetch request is made
+'''
+FETCH_REQUEST_HEADER = 'XMLHttpRequest'
+
+'''
     Entity render modifier(s)
         Used by entity_renderer as defaults
 '''
@@ -313,7 +318,32 @@ metadata = {
     },
     "group": {
         "title": "Group",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
         "field_type": "group_field",
+        "active": True,
+        "validation": {
+            "type": "int",
+            "mandatory": False,
+            "computed": True
+        },
+        "is_base_field": True
+    },
+    "group_access": {
+        "title": "Group Access",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "field_type": "access_field_editable",
+        "active": True,
+        "validation": {
+            "type": "int",
+            "mandatory": True,
+            "computed": True
+        },
+        "is_base_field": True
+    },
+    "world_access": {
+        "title": "World Access",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "field_type": "access_field",
         "active": True,
         "validation": {
             "type": "int",
@@ -464,6 +494,12 @@ FIELD_TYPES = {
 
     "group_field": {
         "input_type": "group_select",
+    },
+    "access_field": {
+        "input_type": "access_select",
+    },
+    "access_field_editable": {
+        "input_type": "access_select_editable",
     },
 }
 

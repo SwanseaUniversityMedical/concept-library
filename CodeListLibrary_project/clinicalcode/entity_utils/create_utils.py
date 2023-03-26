@@ -33,7 +33,11 @@ def get_template_creation_data(entity, layout, field, default=[]):
     if field_type == 'concept':
         values = []
         for item in data:
-            value = model_utils.get_clinical_concept_data(item['concept_id'], item['concept_version_id'])
+            value = model_utils.get_clinical_concept_data(
+                item['concept_id'],
+                item['concept_version_id'],
+                aggregate_component_codes=True
+            )
 
             if value:
                 values.append(value)

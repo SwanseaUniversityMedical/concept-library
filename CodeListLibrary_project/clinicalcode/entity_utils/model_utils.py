@@ -1,3 +1,4 @@
+from django.apps import apps
 from django.db.models import Q, ForeignKey, Subquery, OuterRef
 from django.forms.models import model_to_dict
 from django.contrib.auth.models import User, Group
@@ -269,6 +270,7 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
   seen_codes = set()
   for component in components:
     component_data = {
+      'id': component.id,
       'name': component.name,
       'logical_type': CLINICAL_RULE_TYPE(component.logical_type).name,
       'source_type': CLINICAL_CODE_SOURCE(component.component_type).name,
@@ -733,3 +735,31 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
     result['codelist'] = get_final_reviewed_codelist(concept_id, concept_history_id)
   
   return result
+
+def append_coding_system_data(systems):
+  '''
+    Appends the number of available codes within a Coding System's
+    codelist as well as whether it is searchable
+      - This is used primarily for the create/update page to determine
+        whether a search rule is applicable
+    
+    Args:
+      systems {list[dict]} A list of dicts that contains the coding systems of interest
+                            e.g. {name: (str), value: (int)} where value is the pk
+      
+    Returns:
+      A list of dicts that has the number of codes/searchable status appended,
+      as defined by their code reference tables
+  '''
+  for i, system in enumerate(systems):
+    try:
+      coding_system = CodingSystem.objects.get(codingsystem_id=system.get('value'))
+      table = coding_system.table_name.replace('clinicalcode_', '')
+      codes = apps.get_model(app_label='clinicalcode', model_name=table)
+      count = codes.objects.count() > 0
+      systems[i]['code_count'] = count
+      systems[i]['can_search'] = count
+    except:
+      continue
+  
+  return systems

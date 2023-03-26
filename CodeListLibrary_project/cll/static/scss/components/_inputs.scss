@@ -29,8 +29,10 @@
 
   &__list {
     @include flex-col();
+    flex-wrap: nowrap;
     position: relative;
     width: 100%;
+    max-width: 100%;
     margin-top: 1rem;
 
     &-header {
@@ -45,11 +47,16 @@
 
     &-container {
       @include flex-col();
-      width: 100%;
-      max-width: 100%;
+      align-self: center;
+      flex-wrap: nowrap;
+      position: relative;
+      width: calc(100% - 0.5rem);
+      max-width: calc(100% - 0.5rem);
+      margin-top: 1rem;
       max-height: 200px;
       overflow-y: auto;
       overflow-x: none;
+      padding: 0.5rem;
     }
 
     &-item {
@@ -165,6 +172,16 @@
   &__description {
     margin: 0 0 0.5rem 0;
     font-size: 14px;
+  }
+
+  &__header {
+    @include flex-row();
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__header-item {
+    @include flex-col();
   }
 }
 
