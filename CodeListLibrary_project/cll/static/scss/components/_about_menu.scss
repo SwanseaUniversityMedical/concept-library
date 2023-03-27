@@ -3,6 +3,9 @@
 @import "../_media";
 @import "../_utils";
 
+
+
+
 .dropdown {
   float: left;
   overflow: hidden;
@@ -96,5 +99,28 @@
       justify-content: center;
       align-items: flex-start;
     }
+
+    .dropdown-text::after {
+      opacity: 1;
+    }
+  
   }
+
+  .dropdown-text::after {
+    left: calc(50% - 10px);
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid #ffffff;
+    border-left: 10px solid transparent;
+    content: "";
+    opacity: 0;
+    z-index: 999;
+    bottom: 0;
+    position: absolute;
+  }
+
+  
+
+
+  
+
 }
