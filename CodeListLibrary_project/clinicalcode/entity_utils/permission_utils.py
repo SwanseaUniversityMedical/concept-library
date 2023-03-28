@@ -1,5 +1,5 @@
 from django.db.models import Q, F, Subquery, OuterRef
-
+from django.contrib.auth.models import Group, User
 from ..models import GenericEntity
 from ..models import PublishedGenericEntity
 from ..models.Concept import Concept
@@ -42,6 +42,14 @@ def is_publish_status(entity, status):
   return False
 
 ''' General permissions '''
+def get_user_groups(request):
+  user = request.user
+  if not user:
+    return []
+
+  if user.is_superuser:
+    return list(Group.objects.all().exclude(name='ReadOnlyUsers').values('id', 'name'))
+  return list(user.groups.all().exclude(name='ReadOnlyUsers').values('id', 'name'))
 
 def get_accessible_entities(request):  
   user = request.user

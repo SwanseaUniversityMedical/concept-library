@@ -8,7 +8,7 @@ from django.conf import settings
 import re
 import json
 
-from ..entity_utils import template_utils, search_utils, model_utils, create_utils, gen_utils, constants
+from ..entity_utils import permission_utils, template_utils, search_utils, model_utils, create_utils, gen_utils, constants
 from ..models.GenericEntity import GenericEntity
 
 register = template.Library()
@@ -441,6 +441,21 @@ class EntityWizardSections(template.Node):
             return ''
         else:
             return html
+    
+    def __try_get_computed(self, request, field):
+        struct = template_utils.get_layout_field(constants.metadata, field)
+        if struct is None:
+            return
+
+        validation = template_utils.try_get_content(struct, 'validation')
+        if validation is None:
+            return
+        
+        if not validation.get('computed'):
+            return
+        
+        if field == 'group':
+            return permission_utils.get_user_groups(request)
 
     def __generate_wizard(self, request, context):
         output = ''
@@ -491,6 +506,9 @@ class EntityWizardSections(template.Node):
                 
                 if template_utils.is_metadata(GenericEntity, field):
                     options = template_utils.get_template_sourced_values(constants.metadata, field)
+
+                    if options is None:
+                        options = self.__try_get_computed(request, field)
                 else:
                     options = template_utils.get_template_sourced_values(template, field)
                 
@@ -501,7 +519,7 @@ class EntityWizardSections(template.Node):
                     component['value'] = self.__try_get_entity_value(template, entity, field)
                 else:
                     component['value'] = ''
-                
+
                 uri = f'{constants.CREATE_WIZARD_INPUT_DIR}/{component.get("input_type")}.html'
                 output += self.__try_render_item(template_name=uri, request=request, context=context.flatten() | { 'component': component })
 

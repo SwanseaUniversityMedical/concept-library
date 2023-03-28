@@ -400,32 +400,17 @@ const ENTITY_FIELD_COLLECTOR = {
   // Retrieves and validates group select components (internally they are radiobuttons)
   'group-select': (field, packet) => {
     const element = packet.element;
-    
-    let selected;
-    for (let i = 0; i < element.children.length; ++i) {
-      const option = element.children[i];
-      if (option.nodeName != 'INPUT') {
-        continue;
-      }
-
-      if (!option.checked) {
-        continue;
-      }
-
-      selected = option;
-      break;
-    }
-
+    const selected = element.options[element.selectedIndex];
     if (isMandatoryField(packet)) {
-      if (!element.checkValidity() || isNullOrUndefined(selected)) {
+      if (!element.checkValidity() || isNullOrUndefined(selected) || element.selectedIndex < 0) {
         return {
           valid: false,
-          value: selected,
-          message: (isNullOrUndefined(selected) || isNullOrUndefined(selected.getAttribute('data-value'))) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
+          value: selected.value,
+          message: (isNullOrUndefined(selected) || element.selectedIndex < 0) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
         }
       }
     }
-
+    
     if (isNullOrUndefined(selected) || !element.checkValidity()) {
       return {
         valid: true,
@@ -433,16 +418,15 @@ const ENTITY_FIELD_COLLECTOR = {
       }
     }
 
-    const dataValue = selected.getAttribute('data-value');
-    const parsedValue = parseAsFieldType(packet, dataValue);
+    const parsedValue = parseAsFieldType(packet, selected.value);
     if (!parsedValue || !parsedValue?.success) {
       return {
         valid: false,
-        value: dataValue,
+        value: selected.value,
         message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
       }
     }
-    
+
     return {
       valid: true,
       value: parsedValue?.value

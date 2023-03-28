@@ -267,17 +267,17 @@ def validate_computed_field(request, field, field_data, value, errors=[]):
         if field_value is None:
             return None
         
-        group = model_utils.try_get_instance(id=field_value)
+        group = model_utils.try_get_instance(Group, id=field_value)
         if group is None:
             errors.append(f'"{field}" is invalid')
             return None
         
-        is_member = user.groups.filter(name__iexact=group.name).exists()
+        is_member = user.is_superuser or user.groups.filter(name__iexact=group.name).exists()
         if not is_member:
             errors.append(f'Tried to set {field} without being a member of that group.')
             return None
         
-        return value
+        return group
     
     return value
 
