@@ -4,8 +4,6 @@ from django.contrib.auth.models import Group, User
 from django.utils.timezone import make_aware
 from datetime import datetime
 
-import json
-
 from ..models.Template import Template
 from ..models.GenericEntity import GenericEntity
 from ..models.CodingSystem import CodingSystem

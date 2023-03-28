@@ -4,7 +4,6 @@ from django.core.paginator import EmptyPage, Paginator
 from django.contrib.postgres.search import TrigramSimilarity, SearchQuery, SearchRank, SearchVector
 
 import re
-import json
 
 from ..models.PublishedGenericEntity import PublishedGenericEntity
 from ..models.GenericEntity import GenericEntity
@@ -15,14 +14,11 @@ from . import model_utils, permission_utils, template_utils, constants, gen_util
 
 def perform_vector_search(queryset, search_query, min_rank=0.05, order_by_relevance=True, reverse_order=False):
     '''
-        Performs a search on generic entities' indexed search_vector field, includes the following fields:
-            1. Name
-            2. Definition
-            3. Author
+        Performs a search on generic entities' indexed search_vector field
     '''
     query = SearchQuery(search_query)
     if order_by_relevance:
-        vector = SearchVector('name', 'author', 'definition')
+        vector = SearchVector('search_vector')
         rank = SearchRank(vector, query)
         clause = '-rank' if not reverse_order else 'rank'
 
@@ -37,28 +33,21 @@ def perform_vector_search(queryset, search_query, min_rank=0.05, order_by_releva
 
 def perform_trigram_search(queryset, search_query, min_similarity=0.2, order_by_relevance=True, reverse_order=False):
     '''
-        Performs trigram fuzzy search on generic entities, includes the following indexed fields:
-            1. Name
-            2. Definition
-            3. Author
+        Performs trigram fuzzy search on generic entities
     '''
     if order_by_relevance:
         clause = '-similarity' if not reverse_order else 'similarity'
-        return queryset.annotate(
-            similarity=(
-                TrigramSimilarity('name', search_query) + \
-                TrigramSimilarity('definition', search_query) + \
-                TrigramSimilarity('author', search_query)
-            )
-        ) \
-        .filter(Q(similarity__gte=min_similarity)) \
-        .order_by(clause)
+        return queryset.filter(search_vector__icontains=search_query) \
+            .annotate(
+                similarity=(
+                    TrigramSimilarity('id', search_query) + \
+                    TrigramSimilarity('name', search_query)
+                )
+            ) \
+            .filter(Q(similarity__gte=min_similarity)) \
+            .order_by(clause)
     
-    return queryset.filter(
-        Q(name__trigram_similar=search_query) | \
-        Q(definition__trigram_similar=search_query) | \
-        Q(author__trigram_similar=search_query)
-    )
+    return queryset.filter(search_vector__icontains=search_query)
 
 def search_entities(queryset, search_query, min_threshold=0.05, fuzzy=True, order_by_relevance=True, reverse_order=False):
     '''
@@ -306,24 +295,17 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
     # Apply any search param if present
     search = gen_utils.try_get_param(request, 'search', None)
     if search is not None:
-        queryset = GenericEntity.objects.filter(
+        entities = entities.filter(
             id__in=entities.values_list('id', flat=True)
         ) \
         .filter(
-            Q(search_vector=search) |
-            Q(author__search=search)
+            Q(search_vector__icontains=search)
         )
-
-        entities = GenericEntity.history \
-            .filter(
-                id__in=queryset.values_list('id', flat=True),
-                history_id__in=entities.values_list('history_id', flat=True)
-            )
         
         if should_order_search:
             entities = entities \
                 .annotate(
-                    similarity=TrigramSimilarity('name', search)
+                    similarity=(TrigramSimilarity('id', search) + TrigramSimilarity('name', search))
                 ) \
                 .order_by('-similarity')
 

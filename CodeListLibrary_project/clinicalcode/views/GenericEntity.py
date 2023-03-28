@@ -62,6 +62,9 @@ class EntitySearchView(TemplateView):
         entities, layouts = search_utils.get_renderable_entities(request)
         page_obj = search_utils.try_get_paginated_results(request, entities)
 
+        # For detail referral highlighting
+        request.session['searchterm'] = gen_utils.try_get_param(request, 'search', None)
+
         return context | {
             'page_obj': page_obj,
             'layouts': layouts
