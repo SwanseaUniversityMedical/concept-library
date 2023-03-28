@@ -5,6 +5,7 @@ from django.contrib.auth.models import User, Group
 
 import re
 import json
+import simple_history
 
 from . import gen_utils
 from ..models.GenericEntity import GenericEntity
@@ -37,6 +38,9 @@ def try_get_entity_history(entity, history_id):
     Safely attempts to get an entity's historical record given an entity
     and a history id
   '''
+  if not entity:
+    return None
+  
   try:
     instance = entity.history.get(history_id=history_id)
   except:
@@ -126,7 +130,8 @@ def jsonify_object(obj, remove_userdata=True, strip_fields=True, strippable_fiel
   
   if remove_userdata or strip_fields:
     for field in obj._meta.fields:
-      if strip_fields and field.get_internal_type() in STRIPPED_FIELDS:
+      field_type = field.get_internal_type()
+      if strip_fields and field_type and field.get_internal_type() in STRIPPED_FIELDS:
         instance.pop(field.name, None)
         continue
 
@@ -145,7 +150,7 @@ def jsonify_object(obj, remove_userdata=True, strip_fields=True, strippable_fiel
       if model not in USERDATA_MODELS:
         continue
       instance.pop(field.name, None)
-
+  
   if dump:
     return json.dumps(instance, cls=gen_utils.ModelEncoder)
   return instance
@@ -669,15 +674,17 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
   )
   
   # Retrieve human readable data for our tags, collections & coding systems
-  concept_data['tags'] = [
-    get_tag_attribute(tag, tag_type=TAG_TYPE.TAG)
-    for tag in concept_data['tags']
-  ]
+  if concept_data.get('tags'):
+    concept_data['tags'] = [
+      get_tag_attribute(tag, tag_type=TAG_TYPE.TAG)
+      for tag in concept_data['tags']
+    ]
 
-  concept_data['collections'] = [
-    get_tag_attribute(collection, tag_type=TAG_TYPE.COLLECTION)
-    for collection in concept_data['collections']
-  ]
+  if concept_data.get('collections'):
+    concept_data['collections'] = [
+      get_tag_attribute(collection, tag_type=TAG_TYPE.COLLECTION)
+      for collection in concept_data['collections']
+    ]
 
   # Clean coding system for top level field use
   concept_data.pop('coding_system')
@@ -763,3 +770,13 @@ def append_coding_system_data(systems):
       continue
   
   return systems
+
+def modify_entity_change_reason(entity, reason):
+  '''
+    Modify an entity's HistoricalRecord to reflect the change reason on update
+  '''
+  if entity is None:
+    return
+  
+  reason = (reason[:98] + '..') if len(reason) > 98 else reason
+  simple_history.utils.update_change_reason(entity, reason)

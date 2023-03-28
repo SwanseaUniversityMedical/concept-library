@@ -11,6 +11,12 @@ const PUBLICATION_KEYCODES = {
  * PublicationCreator
  * @desc A class that can be used to control publication lists
  * 
+ * e.g.
+ * 
+ * const startValue = ['Publication 1', 'Publication 2'];
+ * const element = document.querySelector('#publication-component');
+ * const creator = new PublicationCreator(element, startValue);
+ * 
  */
 export default class PublicationCreator {
   constructor(element, data) {
@@ -174,6 +180,10 @@ export default class PublicationCreator {
   #handleClick(e) {
     const target = e.target;
     if (!target || !this.renderables.list.contains(target)) {
+      return;
+    }
+
+    if (target.nodeName != 'BUTTON') {
       return;
     }
 

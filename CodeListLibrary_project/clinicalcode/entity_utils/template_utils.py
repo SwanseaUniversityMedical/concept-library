@@ -268,7 +268,6 @@ def get_template_sourced_values(template, field, default=None):
 
     return default
 
-
 def get_options_value(data, info, default=None):
     '''
         Tries to get the options parameter from a layout's field entry

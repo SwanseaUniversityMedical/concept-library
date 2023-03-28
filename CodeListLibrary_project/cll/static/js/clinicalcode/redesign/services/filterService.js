@@ -568,7 +568,7 @@ class FilterService {
     }
 
     if (FILTER_SCROLL_TOP_ON_PAGE_CHANGE) {
-      window.scroll({top: 0, left: 0, behavior: 'smooth'});
+      window.scrollTo({top: 0, left: 0, behavior: 'smooth'});
     }
     
     this.query[field] = value;

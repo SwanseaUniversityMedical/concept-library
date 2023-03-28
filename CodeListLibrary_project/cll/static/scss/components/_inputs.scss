@@ -90,6 +90,8 @@
       &-btn {
         @include flex-row();
         @include prefix(transition, all 250ms ease, webkit moz o ms);
+        cursor: pointer;
+        pointer-events: auto;
         flex-wrap: nowrap;
         width: fit-content;
         height: fit-content;
@@ -172,6 +174,12 @@
   &__description {
     margin: 0 0 0.5rem 0;
     font-size: 14px;
+  }
+
+  &__error {
+    margin: 0 0 0.5rem 0;
+    font-size: 14px;
+    color: col(text-danger);
   }
 
   &__header {

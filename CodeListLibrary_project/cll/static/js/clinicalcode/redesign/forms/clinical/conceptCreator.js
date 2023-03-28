@@ -79,6 +79,7 @@ const tryParseCodingCSVFile = (file) => {
 const toCodeObjects = (csv) => {
   csv.data = csv?.data.reduce((filtered, value) => {
     filtered.push({
+      is_new: true,
       id: generateUUID(),
       code: value[0],
       description: value[1],
@@ -88,29 +89,6 @@ const toCodeObjects = (csv) => {
   }, []);
 
   return csv;
-}
-
-/**
- * tryGetRootConcept
- * @desc Iterates through the parent of an element until it either
- *      (a) lapses by not finding a concept element
- *      (b) finds the parent concept element
- * @param {node} item the item to recursively examine
- * @return {node|none} the parent concept, if found
- */
-const tryGetRootConcept = (item) => {
-  if (item.classList.contains('concept-list__group')) {
-    return item;
-  }
-
-  while (item.parentNode) {
-    item = item.parentNode;
-    if (item.classList.contains('concept-list__group')) {
-      return item;
-    }
-  }
-
-  return null;
 }
 
 /**
@@ -316,10 +294,30 @@ export default class ConceptCreator {
     const cleaned = [];
     for (let i = 0; i < this.data.length; ++i) {
       const concept = deepCopy(this.data[i]);
+
+      // Only consider Concepts that have a coding id
       if (isNullOrUndefined(concept?.coding_system?.id)) {
         continue;
       }
 
+      // Clean prev. attributes from our code(s)
+      if (concept.details?.code_attribute_headers) {
+        concept.components.map(component => {
+          const codes = component.codes.map(item => {
+            const code = { id: item.id, code: item.code, description: item.description };
+            if (item.hasOwnProperty('is_new')) {
+              code.is_new = true;
+            }
+
+            return code;
+          })
+
+          component.codes = codes;
+          return component;
+        });
+      }
+
+      // Clean prev. metadata for new concept(s)
       const codingSystem = concept.coding_system.id;
       delete concept.aggregated_component_codes;
       delete concept.coding_system;
@@ -343,6 +341,22 @@ export default class ConceptCreator {
     return this.dirty;
   }
 
+  /**
+   * getTitle
+   * @returns {string|boolean} returns the title of this component if present, otherwise returns false
+   */
+  getTitle() {
+    const group = tryGetRootElement(this.element, 'phenotype-progress__item');
+    if (!isNullOrUndefined(group)) {
+      const title = group.querySelector('.phenotype-progress__item-title');
+      if (!isNullOrUndefined(title)) {
+        return title.innerText.trim();
+      }
+    }
+    
+    return false;
+  }
+
   /*************************************
    *                                   *
    *               Setter              *
@@ -352,12 +366,50 @@ export default class ConceptCreator {
    * makeDirty
    * @desc informs the top-level parent that we're dirty
    *       and updates our internal dirty state
+   * @param {int|null} id optional - the id of the concept that is now dirty
+   * @param {int|null} historyId optional - the history id of the concept that is now dirty
    * @return {object} return this for chaining
    */
-  makeDirty() {
+  makeDirty(id, historyId) {
     window.entityForm.makeDirty();
     this.dirty = true;
+
+    if (!isNullOrUndefined(id) && !isNullOrUndefined(historyId)) {
+      const concept = this.data.find(item => item.concept_id == id && item.concept_history_id == historyId);
+      if (!isNullOrUndefined(concept)) {
+        concept.is_dirty = true;
+      }
+    }
+
     return this;
+  }
+
+  /**
+   * clearErrorMessages
+   * @desc clears the error messages associated with this component
+   */
+  clearErrorMessage() {
+    const messages = this.element.querySelectorAll('.concepts-view__error');
+    for (let i = 0; i < messages.length; ++i) {
+      messages[i].remove();
+    }
+  }
+
+  /**
+   * displayError
+   * @param {object} error an object describing the error message
+   * @returns {node} the error element
+   */
+  displayError(error) {
+    const titleNode = this.element.querySelector('.concepts-view__title');
+    const errorNode = createElement('p', {
+      'aria-live': 'true',
+      'className': 'concepts-view__error',
+      'innerText': error.message,
+    });
+    titleNode.after(errorNode);
+
+    return errorNode;
   }
 
   /*************************************
@@ -644,7 +696,6 @@ export default class ConceptCreator {
    */
   #toggleNoConceptBox(hide) {
     const noConcepts = this.element.querySelector('#no-available-concepts');
-    console.log(noConcepts, hide, hide ? 'remove' : 'add');
     noConcepts.classList[hide ? 'remove' : 'add']('show');
   }
 
@@ -672,7 +723,7 @@ export default class ConceptCreator {
    * @param {node} target the concept group element
    */
   #toggleConcept(target) {
-    const conceptGroup = tryGetRootConcept(target);
+    const conceptGroup = tryGetRootElement(target, 'concept-list__group');
     const conceptId = conceptGroup.getAttribute('data-concept-id');
     const historyId = conceptGroup.getAttribute('data-concept-history-id');
 
@@ -1393,7 +1444,11 @@ export default class ConceptCreator {
 
       this.tryQueryCodelist(value, this.state.data?.coding_system?.id)
         .then(response => {
-          const codes = response?.result;
+          const codes = response?.result.map(item => {
+            item.is_new = true;
+            return item;
+          });
+
           if (codes.length < 1) {
             this.#pushToast({
               type: 'danger',
@@ -1489,7 +1544,7 @@ export default class ConceptCreator {
    * @param {event} e the associated event
    */
   #handleCancelEditor(e) {
-    const conceptGroup = tryGetRootConcept(e.target);
+    const conceptGroup = tryGetRootElement(e.target, 'concept-list__group');
     this.tryCloseEditor()
       .then((res) => {
         this.#toggleConcept(conceptGroup);
@@ -1542,7 +1597,7 @@ export default class ConceptCreator {
     this.#tryUpdateRenderConceptComponents(data.concept_id, data.concept_history_id);
 
     // Inform the parent form we're dirty
-    this.makeDirty();
+    this.makeDirty(data?.concept_id, data?.concept_history_id);
   }
   
   /**
@@ -1574,14 +1629,14 @@ export default class ConceptCreator {
   /**
    * handleEditing
    * @desc transitions the user into the editor mode, and prompts the user to confirm if they're already editing
-   * @param {*} target the target concept group
+   * @param {node} target the target concept group
    */
   #handleEditing(target) {
     // If editing, prompt before continuing
     this.tryCloseEditor()
       .then((res) => {
         const [id, history_id] = res || [ ];
-        const conceptGroup = tryGetRootConcept(target);
+        const conceptGroup = tryGetRootElement(target, 'concept-list__group');
         const conceptId = conceptGroup.getAttribute('data-concept-id');
         const historyId = conceptGroup.getAttribute('data-concept-history-id');
 
@@ -1602,7 +1657,7 @@ export default class ConceptCreator {
   /**
    * handleDeletion
    * @desc prompts & handles the deletion of concepts when the user interacts with the trash icon
-   * @param {*} target the target concept group
+   * @param {node} target the target concept group
    * @returns {promise} that resolves if the user deletes the concept
    */
   #handleDeletion(target) {
@@ -1617,7 +1672,7 @@ export default class ConceptCreator {
       .catch(reject);
     })
     .then(() => {
-      const conceptGroup = tryGetRootConcept(target);
+      const conceptGroup = tryGetRootElement(target, 'concept-list__group');
       const conceptId = conceptGroup.getAttribute('data-concept-id');
       const historyId = conceptGroup.getAttribute('data-concept-history-id');
 

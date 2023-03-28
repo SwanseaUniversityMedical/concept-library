@@ -129,8 +129,8 @@ def can_user_edit_entity(request, entity_id, entity_history_id):
     Checks whether a user has the permissions to modify an entity
 
     Args:
-      concept_id {number}: The concept ID of interest
-      concept_history_id {number}: The concept's historical id of interest
+      entity_id {number}: The entity ID of interest
+      entity_history_id {number}: The entity's historical id of interest
     
     Returns:
       A boolean value reflecting whether the user is able to modify an entity
@@ -245,6 +245,26 @@ def can_user_edit_concept(request, concept_id, concept_history_id):
   if published_concept and is_member(user, [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING]):
     return True
     
+  if concept.owner == user:
+    return True
+  
+  return has_member_access(user, concept, [GROUP_PERMISSIONS.EDIT])
+
+def user_has_concept_ownership(user, concept):
+  '''
+    Determines whether the user has top-level access to the Concept,
+    and can therefore modify it
+
+    Args:
+      user {User()} - the user instance
+      concept {Concept()} the concept instance
+    
+    Returns:
+      {boolean} that reflects whether the user has top-level access
+  '''
+  if user is None or concept is None:
+    return False
+
   if concept.owner == user:
     return True
   

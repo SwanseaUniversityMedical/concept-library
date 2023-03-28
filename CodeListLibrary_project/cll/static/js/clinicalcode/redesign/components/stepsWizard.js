@@ -28,7 +28,7 @@ const initStepsWizard = () => {
     elem.addEventListener('click', e => {
       const target = document.querySelector(`#${elem.getAttribute('data-target')}`);
       if (target) {
-        window.scroll({ top: target.offsetTop, left: 0, behavior: 'smooth' });
+        window.scrollTo({ top: target.offsetTop, left: 0, behavior: 'smooth' });
       }
     });
   });

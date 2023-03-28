@@ -1,7 +1,21 @@
-from enum import Enum
 from django.contrib.auth.models import User, Group
 
-class TAG_TYPE(int, Enum):
+import enum
+
+class IterableMeta(enum.EnumMeta):
+    def from_name(cls, name):
+        if name in cls:
+            return getattr(cls, name)
+    
+    def __contains__(cls, lhs):
+        try:
+            cls(lhs)
+        except ValueError:
+            return lhs in cls.__members__.keys()
+        else:
+            return True
+
+class TAG_TYPE(int, enum.Enum):
     '''
         Tag types used for differentiate Collections & Tags
         within the Tag table
@@ -9,21 +23,21 @@ class TAG_TYPE(int, Enum):
     TAG = 1
     COLLECTION = 2
 
-class CLINICAL_RULE_TYPE(int, Enum):
+class CLINICAL_RULE_TYPE(int, enum.Enum, metaclass=IterableMeta):
     '''
         Ruleset type for clinical concept
     '''
     INCLUDE = 1
     EXCLUDE = 2
 
-class CLINICAL_CODE_REVIEW(int, Enum):
+class CLINICAL_CODE_REVIEW(int, enum.Enum, metaclass=IterableMeta):
     '''
         Review status for a code within a clinical concept
     '''
     INCLUDE = 1
     EXCLUDE = 2
 
-class CLINICAL_CODE_SOURCE(int, Enum):
+class CLINICAL_CODE_SOURCE(int, enum.Enum, metaclass=IterableMeta):
     '''
         Audit source of a clinical code within a clinical concept
     '''
@@ -34,14 +48,14 @@ class CLINICAL_CODE_SOURCE(int, Enum):
     FILE_IMPORT = 5
     SEARCH_TERM = 6
 
-class ENTITY_STATUS(int, Enum):
+class ENTITY_STATUS(int, enum.Enum):
     '''
         Status of an entity
     '''
     DRAFT = 1
     FINAL = 2
 
-class APPROVAL_STATUS(int, Enum):
+class APPROVAL_STATUS(int, enum.Enum):
     '''
         Approval status of a published entity
     '''
@@ -50,15 +64,23 @@ class APPROVAL_STATUS(int, Enum):
     APPROVED  = 2
     REJECTED  = 3
 
-class GROUP_PERMISSIONS(int, Enum):
+class OWNER_PERMISSIONS(int, enum.Enum):
     '''
-        Permission groups
+        Owner permissions
     '''
     NONE = 1
     EDIT = 2
     VIEW = 3
 
-class FORM_METHODS(str, Enum):
+class GROUP_PERMISSIONS(int, enum.Enum):
+    '''
+        Group permissions
+    '''
+    NONE = 1
+    EDIT = 2
+    VIEW = 3
+
+class FORM_METHODS(int, enum.Enum, metaclass=IterableMeta):
     '''
         Describes form method, i.e. to create or update an entity
         Used by both template and view to modify behaviour
@@ -336,7 +358,7 @@ metadata = {
         "validation": {
             "type": "int",
             "mandatory": True,
-            "computed": True
+            "range": [1, 3]
         },
         "is_base_field": True
     },
@@ -348,7 +370,7 @@ metadata = {
         "validation": {
             "type": "int",
             "mandatory": True,
-            "computed": True
+            "range": [1, 3]
         },
         "is_base_field": True
     },

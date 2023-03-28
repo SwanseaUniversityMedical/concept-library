@@ -72,12 +72,12 @@
       <div class="detailed-input-group fill">
         <h3 class="detailed-input-group__title">Name</h3>
         <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-        <input class="text-input" aria-label="Concept Name" type="text" id="concept-name" name="concept-name" placeholder="" minlength="3" pattern="^[a-zA-Z]{1,}.*?" value="${concept_name}">
+        <input class="text-input" aria-label="Concept Name" type="text" id="concept-name" name="concept-name" placeholder="" minlength="3" pattern="^[a-zA-Z]{1,}.*?" value="${concept_name}" aria-required="true">
       </div>
       <div class="detailed-input-group fill">
         <h3 class="detailed-input-group__title">Coding System</h3>
         <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-        <select class="selection-input" name="coding-system" id="coding-system-select" aria-label="Select Coding System" data-value="${coding_system_id}">
+        <select class="selection-input" name="coding-system" id="coding-system-select" aria-label="Select Coding System" data-value="${coding_system_id}" aria-required="true">
           ${coding_system_options}
         </select>
       </div>

@@ -221,7 +221,7 @@ export default class Tagify {
     e.preventDefault();
 
     if (e.target.className == 'tag__remove') {
-      this.removeTag(e.target.parentNode);
+      this.removeTag(e.target.parentNode.parentNode);
     }
 
     this.field.focus();

@@ -9,6 +9,8 @@ import ConceptCreator from './clinical/conceptCreator.js';
 const ENTITY_OPTIONS = {
   // Whether to prompt that the form has been modified when the user tries to leave
   promptUnsaved: true,
+  // Whether to force toast errors instead of using the field group
+  forceErrorToasts: false,
 };
 
 /**
@@ -18,6 +20,12 @@ const ENTITY_OPTIONS = {
 const ENTITY_DATEPICKER_FORMAT = 'YYYY-MM-DD';
 
 /**
+ * ENTITY_TOAST_MIN_DURATION
+ * @desc the minimum message time for a toast notification
+ */
+const ENTITY_TOAST_MIN_DURATION = 2000; // ms, or 2s
+
+/**
  * ENTITY_FORM_BUTTONS
  * @desc Defines the ID for the form submission and save draft button(s)
  */
@@ -25,6 +33,30 @@ const ENTITY_FORM_BUTTONS = {
   'cancel': 'cancel-entity-btn',
   'submit': 'submit-entity-btn',
 };
+
+/**
+ * ENTITY_TEXT_PROMPTS
+ * @desc any text that is used throughout the enjtity creator & presented to the user
+ */
+const ENTITY_TEXT_PROMPTS = {
+  // Prompt when cancellation is requested and the data is dirty
+  CANCEL_PROMPT: {
+    title: 'Are you sure?',
+    content: '<p>Are you sure you want to exit this form?</p>'
+  },
+  // Validation error when a field is null
+  REQUIRED_FIELD: '${field} field is required, it cannot be empty',
+  // Validation error when a field is empty
+  INVALID_FIELD: '${field} field is invalid',
+  // Message when form is invalid
+  FORM_IS_INVALID: 'You need to fix the highlighted fields before saving',
+  // Message when user attempts to POST without changing the form
+  NO_FORM_CHANGES: 'You need to update the form before saving',
+  // Message when POST submission fails due to server error
+  SERVER_ERROR_MESSAGE: 'It looks like we couldn\'t save. Please try again',
+  // Message when the API fails
+  API_ERROR_INFORM: 'We can\'t seem to process your form. Please context an Admin'
+}
 
 /**
  * ENTITY_HANDLERS
@@ -214,7 +246,7 @@ const ENTITY_FIELD_COLLECTOR = {
         return {
           valid: false,
           value: value,
-          message: `${field} field is required`
+          message: (isNullOrUndefined(value) || isStringEmpty(value)) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
         }
       }
     }
@@ -231,7 +263,7 @@ const ENTITY_FIELD_COLLECTOR = {
       return {
         valid: false,
         value: value,
-        message: `${field} field is invalid`
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
       }
     }
 
@@ -250,7 +282,7 @@ const ENTITY_FIELD_COLLECTOR = {
         return {
           valid: false,
           value: selected.value,
-          message: `${field} field is required`
+          message: (isNullOrUndefined(selected) || element.selectedIndex < 0) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
         }
       }
     }
@@ -267,7 +299,7 @@ const ENTITY_FIELD_COLLECTOR = {
       return {
         valid: false,
         value: selected.value,
-        message: `${field} field is invalid`
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
       }
     }
 
@@ -301,7 +333,7 @@ const ENTITY_FIELD_COLLECTOR = {
         return {
           valid: false,
           value: selected,
-          message: `${field} field is required`
+          message: (isNullOrUndefined(selected) || !element.checkValidity()) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
         }
       }
     }
@@ -319,7 +351,7 @@ const ENTITY_FIELD_COLLECTOR = {
       return {
         valid: false,
         value: dataValue,
-        message: `${field} field is invalid`
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
       }
     }
     
@@ -338,7 +370,7 @@ const ENTITY_FIELD_COLLECTOR = {
         return {
           valid: false,
           value: value,
-          message: `${field} field is required`
+          message: (isNullOrUndefined(value) || isStringEmpty(value)) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
         }
       }
     }
@@ -355,7 +387,7 @@ const ENTITY_FIELD_COLLECTOR = {
       return {
         valid: false,
         value: value,
-        message: `${field} field is invalid`
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
       }
     }
 
@@ -389,7 +421,7 @@ const ENTITY_FIELD_COLLECTOR = {
         return {
           valid: false,
           value: selected,
-          message: `${field} field is required`
+          message: (isNullOrUndefined(selected) || isNullOrUndefined(selected.getAttribute('data-value'))) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
         }
       }
     }
@@ -407,7 +439,7 @@ const ENTITY_FIELD_COLLECTOR = {
       return {
         valid: false,
         value: dataValue,
-        message: `${field} field is invalid`
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
       }
     }
     
@@ -427,7 +459,7 @@ const ENTITY_FIELD_COLLECTOR = {
         return {
           valid: false,
           value: tags,
-          message: `${field} field is required`
+          message: (isNullOrUndefined(tags) || tags.length < 1) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
         }
       }
     }
@@ -437,7 +469,7 @@ const ENTITY_FIELD_COLLECTOR = {
       return {
         valid: false,
         value: tags,
-        message: `${field} field is invalid`
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
       }
     }
     
@@ -451,13 +483,13 @@ const ENTITY_FIELD_COLLECTOR = {
   'clinical-publication': (field, packet) => {
     const handler = packet.handler;
     const publications = handler.getData();
-    
+
     if (isMandatoryField(packet)) {
       if (isNullOrUndefined(publications) || publications.length < 1) {
         return {
           valid: false,
           value: publications,
-          message: `${field} field is required`
+          message: (isNullOrUndefined(publications) || publications.length < 1) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
         }
       }
     }
@@ -467,7 +499,7 @@ const ENTITY_FIELD_COLLECTOR = {
       return {
         valid: false,
         value: publications,
-        message: `${field} field is invalid`
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
       }
     }
     
@@ -487,7 +519,7 @@ const ENTITY_FIELD_COLLECTOR = {
         return {
           valid: false,
           value: value,
-          message: `${field} field is required`
+          message: (isNullOrUndefined(value) || isStringEmpty(value)) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
         }
       }
     }
@@ -504,7 +536,7 @@ const ENTITY_FIELD_COLLECTOR = {
       return {
         valid: false,
         value: value,
-        message: `${field} field is invalid`
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
       }
     }
 
@@ -515,11 +547,21 @@ const ENTITY_FIELD_COLLECTOR = {
   },
 
   // No validation required for concept as it's handled in the ConceptCreator
+  // We only need to check length
   'clinical-concept': (field, packet) => {
     const handler = packet.handler;
+    const data = handler.getCleanedData();
+    if (data.length < 1) {
+      return {
+        valid: false,
+        value: data,
+        message: ENTITY_TEXT_PROMPTS.REQUIRED_FIELD
+      }
+    }
+
     return {
       valid: true,
-      value: handler.getCleanedData()
+      value: data,
     }
   },
 };
@@ -541,18 +583,25 @@ const collectFormData = () => {
     const type = data.getAttribute('type');
 
     let value = data.innerText;
-    switch (type) {
-      case 'text/array':
-      case 'text/json': {
-        value = JSON.parse(value);
-      } break;
+    if (!isNullOrUndefined(value) && !isStringEmpty(value.trim())) {
+      switch (type) {
+        case 'text/array':
+        case 'text/json': {
+          value = JSON.parse(value);
+        } break;
 
-      case 'int': {
-        value = parseInt(value);
-      } break;
+        case 'int': {
+          value = parseInt(value);
+        } break;
+      }
     }
 
-    result[name] = value;
+    result[name] = value || { };
+
+    const referral = data.getAttribute('referral-url');
+    if (!isNullOrUndefined(referral)) {
+      result[name].referralURL = referral;
+    }
   }
 
   return result;
@@ -624,14 +673,10 @@ const parseAsFieldType = (packet, value) => {
 
   let valid = true;
   switch (type) {
+    case 'int':
     case 'enum': {
       value = parseInt(value);
       valid = !isNaN(value);
-    } break;
-
-    case 'int': {
-      value = parseInt(value);
-      valid = !isNaN(value);      
     } break;
 
     case 'string': {
@@ -682,6 +727,34 @@ const parseAsFieldType = (packet, value) => {
     success: valid,
     value: value
   }
+}
+
+/**
+ * tryGetFieldTitle
+ * @desc given a field and its template data, will attempt to find
+ *       the associated title from its root element group.
+ * 
+ *       If not found, will transform its field name into a human 
+ *       readable format.
+ * @param {string} field the name of the field
+ * @param {object} packet the field's associated template data
+ * @return {string} the title of this field
+ */
+const tryGetFieldTitle = (field, packet) => {
+  const group = tryGetRootElement(packet.element, 'detailed-input-group');
+  const title = !isNullOrUndefined(group) ? group.querySelector('.detailed-input-group__title') : null;
+  if (!isNullOrUndefined(title)) {
+    return title.innerText.trim();
+  }
+
+  if (packet.handler && typeof packet.handler?.getTitle == 'function') {
+    const handle = packet.handler.getTitle();
+    if (handle) {
+      return handle;
+    }
+  }
+
+  return transformTitleCase(field.replace('_', ' '));
 }
 
 /**
@@ -775,8 +848,80 @@ class EntityCreator {
    * @desc submits the form to create/update an entity
    */
   submitForm() {
-    const form = this.#collectFieldData();
-    console.log(form);
+    // Clear prev. error messages
+    this.#clearErrorMessages();
+
+    // Collect form data & validate
+    const { data, errors } = this.#collectFieldData();
+
+    // If there are errors, update the assoc. fields & prompt the user
+    if (errors.length > 0) {
+      let minimumScrollY;
+      for (let i = 0; i < errors.length; ++i) {
+        const error = errors[i];
+        const packet = this.form?.[error.field];
+        if (isNullOrUndefined(packet)) {
+          continue;
+        }
+
+        const elem = this.#displayError(packet, error);
+        if (!isNullOrUndefined(elem)) {
+          if (isNullOrUndefined(minimumScrollY) || elem.offsetTop < minimumScrollY) {
+            minimumScrollY = elem.offsetTop;
+          }
+        }
+      }
+
+      minimumScrollY = !isNullOrUndefined(minimumScrollY) ? minimumScrollY : 0;
+      window.scrollTo({ top: minimumScrollY, behavior: 'smooth' });
+      
+      return window.ToastFactory.push({
+        type: 'danger',
+        message: ENTITY_TEXT_PROMPTS.FORM_IS_INVALID,
+        duration: ENTITY_TOAST_MIN_DURATION,
+      });
+    }
+
+    // Peform dict diff to see if any changes, if not, inform the user to do so
+    if (!this.isDirty() && !hasDeltaDiff(this.initialisedData, data)) {
+      return window.ToastFactory.push({
+        type: 'warning',
+        message: ENTITY_TEXT_PROMPTS.NO_FORM_CHANGES,
+        duration: ENTITY_TOAST_MIN_DURATION,
+      });
+    }
+
+    // If no errors and it is different, then attempt to POST
+    const token = getCookie('csrftoken');
+    const request = {
+      method: 'POST',
+      cache: 'no-cache',
+      credentials: 'same-origin',
+      withCredentials: true,
+      headers: {
+        'X-CSRFToken': token,
+        'Authorization': `Bearer ${token}`
+      },
+      body: this.#generateSubmissionData(data),
+    };
+
+    fetch('', request)
+      .then(response => {
+        if (!response.ok) {
+          return Promise.reject(response);
+        }
+        return response.json();
+      })
+      .then(content => {
+        this.#redirectFormClosure(content);
+      })
+      .catch(error => {
+        if (typeof error.json === 'function') {
+          this.#handleAPIError(error);
+        } else {
+          this.#handleServerError(error);
+        }
+      });
   }
 
   /**
@@ -794,14 +939,11 @@ class EntityCreator {
       return;
     }
 
-    promptClientModal({
-      title: 'Are you sure?',
-      content: '<p>Are you sure you want to exit this form?</p>'
-    })
-    .then(() => {
-      this.#redirectFormClosure();
-    })
-    .catch(() => { /* SINK */ });
+    promptClientModal(ENTITY_TEXT_PROMPTS.CANCEL_PROMPT)
+      .then(() => {
+        this.#redirectFormClosure();
+      })
+      .catch(() => { /* SINK */ });
   }
 
   /*************************************
@@ -810,12 +952,97 @@ class EntityCreator {
    *                                   *
    *************************************/
   /**
+   * handleAPIError
+   * @desc handles error responses from the POST request
+   * @param {*} error the API error response
+   */
+  #handleAPIError(error) {
+    error.json()
+      .then(e => {
+        const message = e?.message;
+        if (!message) {
+          this.#handleServerError(e);
+        }
+
+        const { type: errorType, errors } = message;
+        console.error(`API Error<${errorType}> occurred:`, errors);
+
+        window.ToastFactory.push({
+          type: 'danger',
+          message: ENTITY_TEXT_PROMPTS.API_ERROR_INFORM,
+          duration: ENTITY_TOAST_MIN_DURATION,
+        });
+      })
+      .catch(e => this.#handleServerError);
+  }
+
+  /**
+   * handleServerError
+   * @desc handles server errors when POSTing data
+   * @param {*} error the server error response
+   */
+  #handleServerError(error) {
+    if (error?.statusText) {
+      console.error(error.statusText);
+    } else {
+      console.error(error);
+    }
+    
+    window.ToastFactory.push({
+      type: 'danger',
+      message: ENTITY_TEXT_PROMPTS.SERVER_ERROR_MESSAGE,
+      duration: ENTITY_TOAST_MIN_DURATION,
+    });
+  }
+
+  /**
+   * generateSubmissionData
+   * @desc packages & jsonifies the form data for POST submission
+   * @param {object} data the data we wish to submit
+   * @returns {string} jsonified data packet
+   */
+  #generateSubmissionData(data) {
+    const packet = {
+      method: this.getFormMethod(),
+      data: data,
+    };
+
+    if (this.data?.object) {
+      const { id, history_id } = this.data.object;
+      packet.entity = { id: id, history_id: history_id };
+    }
+
+    if (this.data?.template) {
+      packet.template = {
+        id: this.data.template.id,
+        version: this.data.template?.definition.version
+      }
+    }
+
+    return JSON.stringify(packet);
+  }
+
+  /**
    * redirectFormClosure
    * @desc redirection after canellation or submission of a form
    * @param {object|null} reference optional parameter to redirect to newly created entity
    */
   #redirectFormClosure(reference = null) {
-    
+    // Redirect to newly created object if available
+    if (!isNullOrUndefined(reference)) {
+      window.location.href = reference.redirect;
+      return;
+    }
+
+    // Redirect to previous entity if available
+    const object = this.data?.object;
+    if (object?.referralURL) {
+      window.location.href = object.referralURL;
+      return;
+    }
+
+    // Redirect to search page
+    window.location.href = this.data.links.referralURL;
   }
 
   /**
@@ -839,6 +1066,9 @@ class EntityCreator {
       }
 
       // Validation has failed, append the error message
+      const title = tryGetFieldTitle(field, packet);
+      result.field = field;
+      result.message = interpolateHTML(result.message, { field: title });
       errors.push(result);
     }
     
@@ -955,6 +1185,9 @@ class EntityCreator {
     if (this.options.promptUnsaved) {
       window.addEventListener('beforeunload', this.#handleOnLeaving.bind(this), { capture: true });
     }
+
+    const { data, errors } = this.#collectFieldData();
+    this.initialisedData = data;
   }
 
   /**
@@ -973,6 +1206,86 @@ class EntityCreator {
     if (cancelBtn) {
       cancelBtn.addEventListener('click', this.cancelForm.bind(this));
     }
+  }
+
+  /**
+   * setAriaErrorLabels
+   * @desc appends aria attributes to the element input field
+   *       so that screen readers / accessibility tools are
+   *       able to inform the user of the field error
+   * @param {node} element the element to append aria attributes
+   * @param {object} error the error object as generated by the validation method
+   */
+  #setAriaErrorLabels(element, error) {
+    element.setAttribute('aria-invalid', true);
+    element.setAttribute('aria-description', error.message);
+  }
+
+  /**
+   * clearErrorMessages
+   * @desc clears all error messages currently rendered within the input groups
+   */
+  #clearErrorMessages() {
+    // Remove appended error messages
+    const items = document.querySelectorAll('.detailed-input-group__error');
+    for (let i = 0; i < items.length; ++i) {
+      const item = items[i];
+      item.remove();
+    }
+
+    for (const [field, packet] of Object.entries(this.form)) {
+      // Remove aria labels
+      const element = packet.element;
+      element.setAttribute('aria-invalid', false);
+      element.setAttribute('aria-description', null);
+
+      // Remove component error messages
+      if (!isNullOrUndefined(packet.handler) && typeof packet.handler?.clearErrorMessages == 'function') {
+        packet.handler.clearErrorMessages();
+      }
+    }
+  }
+
+  /**
+   * displayError
+   * @desc displays the error packets for individual fields as generated by
+   *       the field validation methods
+   * @param {object} packet the field's template packet
+   * @param {object} error the generated error object
+   * @returns {node|null} returns the error element if applicable
+   */
+  #displayError(packet, error) {
+    const element = packet.element;
+    this.#setAriaErrorLabels(element, error);
+
+    // Add __error class below title if available & the forceErrorToasts parameter was not passed
+    if (!this.options.forceErrorToasts) {
+      const inputGroup = tryGetRootElement(element, 'detailed-input-group');
+      if (!isNullOrUndefined(inputGroup)) {
+        const titleNode = inputGroup.querySelector('.detailed-input-group__title');
+        const errorNode = createElement('p', {
+          'aria-live': 'true',
+          'className': 'detailed-input-group__error',
+          'innerText': error.message,
+        });
+
+        titleNode.after(errorNode);
+        return errorNode;
+      }
+
+      if (packet.handler && typeof packet.handler?.displayError == 'function') {
+        return packet.handler.displayError(error);
+      }
+    }
+
+    // Display error toast if no appropriate input group
+    window.ToastFactory.push({
+      type: 'danger',
+      message: error.message,
+      duration: ENTITY_TOAST_MIN_DURATION,
+    });
+
+    return null;
   }
 
   /*************************************

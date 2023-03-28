@@ -5,7 +5,11 @@
   <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
   {% endif %}
   <div class="publication-list-group">
-    <data type="value" for="{{ component.field_name }}">{{ component.value|jsonify|safe }}</data>
+    <data type="value" for="{{ component.field_name }}">
+      {% if component.value %}
+        {{ component.value|jsonify|safe }}
+      {% endif %}
+    </data>
     <input class="text-input" aria-label="Publication link input" type="text"
       placeholder="e.g. Doe J. et al. Publication. Publisher - DOI 10.111"
       minlength="3" pattern="^[a-zA-Z]{1,}.*?"

@@ -296,6 +296,12 @@ data {
     font-weight: bold;
     line-height: 1;
   }
+  
+  &__error {
+    margin: 0 0 0.5rem 0;
+    font-size: 14px;
+    color: col(text-danger);
+  }
 
   &__description {
     margin: 0 0 0.5rem 0;

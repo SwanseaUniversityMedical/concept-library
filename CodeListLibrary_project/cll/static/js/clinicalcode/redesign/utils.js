@@ -389,7 +389,7 @@ const promptClientModal = ({ id = 'modal-dialog', title = 'Modal', content = '',
   const showModal = () => {
     const currentHeight = window.scrollY;
     createElement('a', { href: `#${id}` }).click();
-    window.scroll({ top: currentHeight, left: window.scrollX, behaviour: 'instant'});
+    window.scrollTo({ top: currentHeight, left: window.scrollX, behaviour: 'instant'});
 
     // Inform screen readers of alert
     modal.setAttribute('aria-hidden', false);
@@ -420,4 +420,90 @@ const promptClientModal = ({ id = 'modal-dialog', title = 'Modal', content = '',
 
     showModal();
   });
+}
+
+/**
+ * transformTitleCase
+ * @desc transforms a string to TitleCase
+ * @param {string} str the string to transform
+ * @returns {string} the resultant, transformed string
+ */
+const transformTitleCase = (str) => {
+  return str.replace(/\w\S*/g, (text) => text.charAt(0).toLocaleUpperCase() + text.substring(1).toLocaleLowerCase());
+}
+
+/**
+ * tryGetRootElement
+ * @desc Iterates through the parent of an element until it either
+ *      (a) lapses by not finding an element that matches the class
+ *      (b) finds the parent element that matches the class
+ * @param {node} item the item to recursively examine
+ * @return {node|none} the parent element, if found
+ */
+const tryGetRootElement = (item, expectedClass) => {
+  if (isNullOrUndefined(item)) {
+    return null;
+  }
+
+  if (item.classList.contains(expectedClass)) {
+    return item;
+  }
+
+  while (!isNullOrUndefined(item.parentNode) && item.parentNode.classList) {
+    item = item.parentNode;
+    if (item.classList.contains(expectedClass)) {
+      return item;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * getDifference
+ * @desc gets the delta diff between two objects
+ * @param {*} lhs the original object
+ * @param {*} rhs the object to compare it with
+ * @returns {array} an array where the rows reflect the diff between both objects
+ */
+const getDeltaDiff = (lhs, rhs) => {
+  return [...new Set([...Object.keys(lhs), ...Object.keys(rhs)])].reduce((filtered, key) => {
+    if (lhs?.[key] && rhs?.[key] && typeof lhs[key] === 'object' && typeof rhs[key] === 'object') {
+      let diff = getDeltaDiff(lhs[key], rhs[key]);
+      if (diff.length > 0) {
+        filtered.push(...diff.map(([i, ...val]) => [`${key} ${i}`, ...val]));
+      }
+      
+      return filtered;
+    }
+
+    if (key in rhs && !(key in lhs)) {
+      filtered.push([key, 'created', rhs[key]]);
+      return filtered;
+    }
+    
+    if (key in lhs && !(key in rhs)) {
+      filtered.push([key, 'deleted', lhs[key]]);
+      return filtered;
+    }
+
+    if (lhs[key] === rhs[key]) {
+      return filtered;
+    }
+
+    filtered.push([key, 'modified', lhs[key], rhs[key]]);
+    return filtered;
+  }, []);
+}
+
+/**
+ * hasDeltaDiff
+ * @desc tests whether two objects have been changed
+ * @param {object} lhs the original object
+ * @param {object} rhs the object to compare it with
+ * @returns {boolean} reflects whether the object has been changed
+ */
+const hasDeltaDiff = (lhs, rhs) => {
+  let diff = getDeltaDiff(lhs, rhs);
+  return !!diff.length;
 }

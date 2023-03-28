@@ -3,7 +3,7 @@
     GGENERIC-ENTITY VIEW
     ---------------------------------------------------------------------------
 '''
-from collections import OrderedDict
+from django.urls import reverse
 from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import BadRequest
@@ -20,6 +20,7 @@ from django.views.generic import DetailView, TemplateView
 from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import UpdateView
 from django.utils.decorators import method_decorator
+from collections import OrderedDict
 
 import csv
 import json
@@ -76,7 +77,7 @@ class EntitySearchView(TemplateView):
                     a page reload
         '''
         context = self.get_context_data(*args, **kwargs)
-        filtered = search_utils.try_get_param(request, 'search_filtered', None)
+        filtered = gen_utils.try_get_param(request, 'search_filtered', None)
 
         if filtered is not None and request.headers.get('X-Requested-With'):
             context['request'] = request
@@ -111,6 +112,7 @@ class CreateEntityView(TemplateView):
         context = super(CreateEntityView, self).get_context_data(*args, **kwargs)
         return context
     
+    @method_decorator([login_required])
     def get(self, request, *args, **kwargs):
         '''
             @desc Handles get requests by determining whether it was made
@@ -124,14 +126,45 @@ class CreateEntityView(TemplateView):
         
         return self.render_view(request, *args, **kwargs)
 
+    @method_decorator([login_required])
     def post(self, request, *args, **kwargs):
         '''
             @desc Handles:
                 - form submission on creating or updating an entity
         '''
-        context = self.get_context_data(*args, **kwargs)
+        form_errors = []
+        form = gen_utils.get_request_body(request)
+        form = create_utils.validate_entity_form(request, form, form_errors)
 
-        return render(request, self.template_name, context)
+        if form is None:
+            # Errors occurred - use the validation errors to generate a comprehensive response
+            return gen_utils.jsonify_response(
+                code=400,
+                status='false',
+                message={
+                    'type': 'INVALID_FORM',
+                    'errors': form_errors
+                }
+            )
+        
+        form_errors = []
+        entity = create_utils.create_or_update_entity_from_form(request, form, form_errors)
+        if entity is None:
+            # Errors occurred when building - report the error list
+            return gen_utils.jsonify_response(
+                code=400,
+                status='false',
+                message={
+                    'type': 'SUBMISSION_ERROR',
+                    'errors': form_errors
+                }
+            )
+
+        return JsonResponse({
+            'success': True,
+            'entity': { 'id': entity.id, 'history_id': entity.history_id },
+            'redirect': reverse('generic_entity_history_detail', kwargs={ 'pk': entity.id, 'history_id': entity.history_id })
+        })        
 
     ''' Main view render '''
     def render_view(self, request, *args, **kwargs):
@@ -183,6 +216,7 @@ class CreateEntityView(TemplateView):
         context['metadata'] = constants.metadata
         context['template'] = template
         context['entity'] = entity
+        context['object_reference'] = { 'id': entity.id, 'history_id': entity.history_id }
         context['form_method'] = constants.FORM_METHODS.UPDATE
         return render(request, self.template_name, context)
 
@@ -204,7 +238,7 @@ class CreateEntityView(TemplateView):
                   options for a given field within its template
 
         '''
-        template_id = gen_utils.parse_int(search_utils.try_get_param(request, 'template'), default=None)
+        template_id = gen_utils.parse_int(gen_utils.try_get_param(request, 'template'), default=None)
         if not template_id:
             return gen_utils.jsonify_response(message='Invalid template parameter', code=400, status='false')
         
@@ -212,7 +246,7 @@ class CreateEntityView(TemplateView):
         if template is None:
             return gen_utils.jsonify_response(message='Invalid template parameter, template does not exist', code=400, status='false')
         
-        field = search_utils.try_get_param(request, 'parameter')
+        field = gen_utils.try_get_param(request, 'parameter')
         if field is None or gen_utils.is_empty_string(field):
             return gen_utils.jsonify_response(message='Invalid field parameter', code=400, status='false')
 
@@ -236,7 +270,7 @@ class CreateEntityView(TemplateView):
             
                   e.g. entity/{update|create}/?search=C1&coding_system=4&template=1
         '''
-        template_id = gen_utils.parse_int(search_utils.try_get_param(request, 'template'), default=None)
+        template_id = gen_utils.parse_int(gen_utils.try_get_param(request, 'template'), default=None)
         if not template_id:
             return gen_utils.jsonify_response(message='Invalid template parameter', code=400, status='false')
         
@@ -244,12 +278,12 @@ class CreateEntityView(TemplateView):
         if template is None:
             return gen_utils.jsonify_response(message='Invalid template parameter, template does not exist', code=400, status='false')
         
-        search_term = search_utils.try_get_param(request, 'search', '')
+        search_term = gen_utils.try_get_param(request, 'search', '')
         search_term = gen_utils.decode_uri_parameter(search_term)
         if not search_term or gen_utils.is_empty_string(search_term):
             return gen_utils.jsonify_response(message='Invalid search term parameter', code=400, status='false')
         
-        coding_system = gen_utils.parse_int(search_utils.try_get_param(request, 'coding_system'), None)
+        coding_system = gen_utils.parse_int(gen_utils.try_get_param(request, 'coding_system'), None)
         coding_system = model_utils.try_get_instance(CodingSystem, codingsystem_id=coding_system)
         if not coding_system:
             return gen_utils.jsonify_response(message='Invalid coding system parameter', code=400, status='false')

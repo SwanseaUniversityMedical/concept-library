@@ -448,7 +448,7 @@ class EntityWizardSections(template.Node):
         entity = context.get('entity', None)
         if template is None:
             return output
-
+        
         # We should be getting the FieldTypes.json related to the template
         field_types = constants.FIELD_TYPES
         for section in template.definition.get('sections'):

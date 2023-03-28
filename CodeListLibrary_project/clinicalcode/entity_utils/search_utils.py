@@ -1,5 +1,5 @@
 from django.apps import apps
-from django.db.models import Q, F
+from django.db.models import Q
 from django.core.paginator import EmptyPage, Paginator
 from django.contrib.postgres.search import TrigramSimilarity, SearchQuery, SearchRank, SearchVector
 
@@ -12,37 +12,6 @@ from ..models.Template import Template
 from ..models.Statistics import Statistics
 from ..models.CodingSystem import CodingSystem
 from . import model_utils, permission_utils, template_utils, constants, gen_utils
-
-def get_request_body(body):
-    '''
-        Decodes the body of a request and attempts to load it as JSON
-    '''
-    try:
-        body = body.decode('utf-8');
-        body = json.loads(body)
-        return body
-    except:
-        return None
-
-def try_get_param(request, key, default=None, method='GET'):
-    '''
-        Attempts to get a param from a request by key
-            - If a default is passed and the key isn't present, the default is returned
-            - If the key is present, and the default is non-null, it tries to parse the value as the default's type
-    '''
-    try:
-        req = getattr(request, method)
-        param = req.get(key, default)
-    except:
-        return default
-    else:
-        if default is not None:
-            if type(key) is not type(default):
-                if isinstance(default, int):
-                    return gen_utils.parse_int(param)
-                # Add other types when necessary
-
-    return param
 
 def perform_vector_search(queryset, search_query, min_rank=0.05, order_by_relevance=True, reverse_order=False):
     '''
@@ -328,14 +297,14 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
     entities = entities.extra(where=where)
 
     # Prepare order clause
-    search_order = try_get_param(request, 'order_by', '1', method)
+    search_order = gen_utils.try_get_param(request, 'order_by', '1', method)
     should_order_search = search_order == '1'
     search_order = template_utils.try_get_content(constants.ORDER_BY, search_order)
     if search_order is None:
         search_order = constants.ORDER_BY['1']
     
     # Apply any search param if present
-    search = try_get_param(request, 'search', None)
+    search = gen_utils.try_get_param(request, 'search', None)
     if search is not None:
         queryset = GenericEntity.objects.filter(
             id__in=entities.values_list('id', flat=True)
@@ -385,10 +354,10 @@ def try_get_paginated_results(request, entities, page=None, page_size=None):
         Gets the paginated results based on request params and the given renderable entities
     '''
     if not page:
-        page = try_get_param(request, 'page', 1)
+        page = gen_utils.try_get_param(request, 'page', 1)
 
     if not page_size:
-        page_size = try_get_param(request, 'page_size', '1')
+        page_size = gen_utils.try_get_param(request, 'page_size', '1')
 
         if page_size not in constants.PAGE_RESULTS_SIZE:
             page_size = constants.PAGE_RESULTS_SIZE.get('1')
