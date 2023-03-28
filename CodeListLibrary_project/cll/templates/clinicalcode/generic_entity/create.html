@@ -1,6 +1,7 @@
 {% extends "base_scss.html" %}
 
 {% load static %}
+{% load compress %}
 {% load cl_extras %}
 {% load breadcrumbs %}
 {% load entity_renderer %}
@@ -19,12 +20,13 @@
   <script src="{% static 'js/clinicalcode/redesign/vendor/simple-datatables/simple-datatables.min.js' %}"></script>
   <script src="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.js' %}"></script>
   <script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
-  <script src="{% static 'js/clinicalcode/redesign/vendor/lightpick.js' %}"></script>
 
-  <!-- Dependencies -->
+  {% compress js file %}
+  <script src="{% static 'js/clinicalcode/redesign/vendor/lightpick.js' %}"></script>
   <script type="module" src="{% static 'js/clinicalcode/redesign/forms/entityCreator.js' %}"></script>
   <script type="module" src="{% static 'js/clinicalcode/redesign/components/stepsWizard.js' %}"></script>
   <script type="module" src="{% static 'js/clinicalcode/redesign/components/toastNotification.js' %}"></script>
+  {% endcompress %}
 
   <!-- Form -->
   <header class="main-header">

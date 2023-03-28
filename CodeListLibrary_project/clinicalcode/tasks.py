@@ -1,13 +1,14 @@
 import time
 
 from celery import shared_task
+from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.mail import EmailMultiAlternatives, BadHeaderError
 
 from clinicalcode import db_utils
 from clinicalcode.models import Phenotype
-
+from clinicalcode.entity_utils import stats_utils
 
 @shared_task(bind=True)
 def send_message_test(self):
@@ -46,5 +47,16 @@ def send_scheduled_email(self):
                 return False
     return True, overal_result
 
-
-
+@shared_task(bind=True)
+def run_daily_statistics(self):
+    '''
+        Daily cronjob to update statistics for entities
+    '''
+    logger = get_task_logger('cll')
+    try:
+        stats_utils.collect_statistics()
+    except Exception as e:
+        logger.warning(f'Unable to run daily statistics job, got error {e}')
+    else:
+        logger.info(f'Successfully updated statistics')
+    return True

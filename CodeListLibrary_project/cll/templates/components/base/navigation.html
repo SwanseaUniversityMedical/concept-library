@@ -1,8 +1,11 @@
 {% load static %}
+{% load compress %}
 {% load i18n %}
 
 {% block content %}
+{% compress js file %}
 <script type="module" src="{% static "js/clinicalcode/redesign/components/navigation.js" %}"></script>
+{% endcompress %}
 <nav class="page-navigation">
   <div class="page-navigation__container">
     <div class="page-navigation__logo"></div>

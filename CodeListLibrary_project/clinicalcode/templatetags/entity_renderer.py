@@ -347,10 +347,6 @@ class EntityFiltersNode(template.Node):
         if not is_single_search or settings.DEBUG:
             output = self.__generate_template_filters(context, output, layouts)
 
-        # Include filter service
-        filter_service = static(constants.FILTER_SERVICE_FILE)
-        output += f'<script type="module" src="{filter_service}"></script>'
-
         return output
 
 @register.tag(name='render_wizard_navigation')

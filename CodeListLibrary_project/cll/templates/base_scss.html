@@ -1,4 +1,5 @@
 {% load static %}
+{% load compress %}
 {% load sass_tags %}
 {% load mathfilters %}
 {% load i18n %}
@@ -42,8 +43,10 @@
     <link href="{% sass_src 'scss/main.scss' %}" rel="stylesheet" type="text/css" />
 
     <!-- Scripts -->
-    <script type="text/javascript" src="{% static "js/clinicalcode/redesign/utils.js" %}"></script>
-    <script type="text/javascript" src="{% static "js/clinicalcode/redesign/accessibility.js" %}"></script>
+    {% compress js file %}
+      <script type="text/javascript" src="{% static "js/clinicalcode/redesign/utils.js" %}"></script>
+      <script type="text/javascript" src="{% static "js/clinicalcode/redesign/accessibility.js" %}"></script>
+    {% endcompress %}
 
     <!-- Page details -->
     <title>
