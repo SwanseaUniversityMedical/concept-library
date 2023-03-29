@@ -222,6 +222,9 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
         if not isinstance(field_value, list):
             return default
         return field_value
+    elif field_type == 'publication':
+        if not isinstance(field_value, list):
+            return default
     
     return field_value
 

@@ -705,6 +705,13 @@ const parseAsFieldType = (packet, value) => {
       }
       value = output;
     } break;
+
+    case 'publication': {
+      if (!Array.isArray(value)) {
+        valid = false;
+      }
+      break;
+    }
   }
 
   return {
@@ -1283,7 +1290,8 @@ class EntityCreator {
    * @param {event} e the associated event
    */
   #handleOnLeaving(e) {
-    if (this.isDirty()) {
+    const { data, errors } = this.#collectFieldData();
+    if (this.isDirty() || hasDeltaDiff(this.initialisedData, data)) {
       e.preventDefault();
       return e.returnValue = '';
     }
@@ -1298,6 +1306,6 @@ domReady.finally(() => {
   const data = collectFormData();
 
   window.entityForm = new EntityCreator(data, {
-    promptUnsaved: false,
+    promptUnsaved: true,
   });
 });

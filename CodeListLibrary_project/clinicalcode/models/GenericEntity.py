@@ -43,9 +43,9 @@ class GenericEntity(models.Model):
     definition = models.TextField(null=True, blank=True)
     implementation = models.TextField(null=True, blank=True)
     validation = models.TextField(null=True, blank=True)
-    publications = ArrayField(models.CharField(max_length=500), blank=True, null=True)
-    tags = ArrayField(models.IntegerField(), blank=True, null=True) 
-    collections = ArrayField(models.IntegerField(), blank=True, null=True)   
+    publications = JSONField(blank=True, null=True)
+    tags = ArrayField(models.IntegerField(), blank=True, null=True)
+    collections = ArrayField(models.IntegerField(), blank=True, null=True)
     citation_requirements = models.TextField(null=True, blank=True)  # Any request for citation requirements to be honoured
     
     ''' Search vector fields '''

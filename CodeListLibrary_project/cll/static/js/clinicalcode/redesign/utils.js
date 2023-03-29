@@ -6,6 +6,12 @@ const TRANSITION_METHODS = {
 };
 
 /**
+ * DOI_PATTERN
+ * Regex pattern to match DOI
+ */
+const DOI_PATTERN = /\b(10[.][0-9]{4,}(?:[.][0-9]+)*\/(?:(?![\"&\'<>])\S)+)\b/gm;
+
+/**
   * deepCopy
   * @desc Performs a deep clone of the object i.e. recursive clone
   * @param {object} obj The object to clone
@@ -460,7 +466,7 @@ const tryGetRootElement = (item, expectedClass) => {
 }
 
 /**
- * getDifference
+ * getDeltaDiff
  * @desc gets the delta diff between two objects
  * @param {*} lhs the original object
  * @param {*} rhs the object to compare it with
@@ -506,4 +512,14 @@ const getDeltaDiff = (lhs, rhs) => {
 const hasDeltaDiff = (lhs, rhs) => {
   let diff = getDeltaDiff(lhs, rhs);
   return !!diff.length;
+}
+
+/**
+ * parseDOI
+ * @desc attempts to match a DOI in a string (.*\/gm)
+ * @param {string} value the string to match
+ * @returns {list} a list of matches
+ */
+const parseDOI = (value) => {
+  return value.match(DOI_PATTERN);
 }

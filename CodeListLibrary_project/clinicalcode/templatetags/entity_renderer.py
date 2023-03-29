@@ -56,6 +56,16 @@ def render_pagination(context, *args, **kwargs):
 
 @register.filter(name='is_member')
 def is_member(user, args):
+    '''
+        Det. whether has a group membership
+
+        Args:
+            user {RequestContext.user()} - the user model
+            args {string} - a string, can be deliminated by ',' to confirm membership in multiple groups
+        
+        Returns:
+            {boolean} that reflects membership status
+    '''
     if args is None:
         return False
     

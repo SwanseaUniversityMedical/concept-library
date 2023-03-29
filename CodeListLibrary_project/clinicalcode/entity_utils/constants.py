@@ -235,10 +235,10 @@ metadata = {
     "publications": {
         "title": "Publications",
         "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-        "field_type": "string_list_of_inputboxes",
+        "field_type": "publications",
         "active": True,
         "validation": {
-            "type": "string_array",
+            "type": "publication",
             "mandatory": False
         },
         "is_base_field": True
@@ -455,7 +455,6 @@ FIELD_TYPES = {
     },
     "string_list_of_inputboxes": {
         "data_type": "string",
-        "input_type": "clinical/publication",
         "max_length": 250
     },
     "string_list_of_inputboxes_markdown": {
@@ -489,6 +488,9 @@ FIELD_TYPES = {
         "system_defined": True,
         "description": "json of concept ids/ver used in phenotype (managed by code snippet)",
         "input_type": "clinical/concept"
+    },
+    "publications": {
+        "input_type": "clinical/publication",
     },
     "coding_system": {
         "system_defined": True,

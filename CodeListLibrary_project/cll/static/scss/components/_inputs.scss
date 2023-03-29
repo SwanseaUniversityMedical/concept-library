@@ -68,7 +68,7 @@
       &-url {
         display: flex;
         vertical-align: middle;
-        max-width: 70%;
+        max-width: 60%;
 
         @include media("<desktop", "screen") {
           max-width: 175px;
@@ -84,6 +84,10 @@
         
         p {
           word-wrap: break-word;
+        }
+        
+        a {
+          text-align: right;
         }
       }
 

@@ -85,11 +85,12 @@ export default class PublicationCreator {
    * @param {string} publication the publication name 
    * @returns {string} html string representing the element
    */
-  #drawItem(index, publication) {
+  #drawItem(index, doi, publication) {
+    const interp = (!isNullOrUndefined(doi) && !isStringEmpty(doi)) ? `<br/><br/><a href="https://doi.org/${doi}">${doi}</a>` : '';
     return `
     <div class="publication-list-group__list-item" data-target="${index}">
       <div class="publication-list-group__list-item-url">
-        <p>${publication}</p>
+        <p>${publication}${interp}</p>
       </div>
       <button class="publication-list-group__list-item-btn" data-target="${index}">
         <span class="delete-icon"></span>
@@ -111,7 +112,7 @@ export default class PublicationCreator {
       this.renderables.none.classList.remove('show');
 
       for (let i = 0; i < this.data.length; ++i) {
-        const node = this.#drawItem(i, this.data[i]);
+        const node = this.#drawItem(i, this.data[i]?.doi, this.data[i]?.details);
         this.renderables.list.insertAdjacentHTML('beforeend', node);
       }
 
@@ -165,8 +166,13 @@ export default class PublicationCreator {
     if (!e.target.checkValidity() || isNullOrUndefined(input) || isStringEmpty(input)) {
       return;
     }
+
+    const matches = parseDOI(input);
     this.element.value = '';
-    this.data.push(input);
+    this.data.push({
+      details: input,
+      doi: matches?.[0],
+    });
     this.makeDirty();
     
     this.#redrawPublications();
