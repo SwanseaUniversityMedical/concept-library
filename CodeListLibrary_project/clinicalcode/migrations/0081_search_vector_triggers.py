@@ -3,7 +3,16 @@ from django.contrib.postgres.search import SearchVector
 
 def compute_search_vectors(apps, schema_editor):
     GenericEntity = apps.get_model('clinicalcode', 'GenericEntity')
-    GenericEntity.objects.update(search_vector=SearchVector('name', 'definition', 'author'))
+    GenericEntity.objects.update(search_vector=SearchVector(
+        'id',
+        'name',
+        'definition',
+        'author',
+        'definition',
+        'implementation',
+        'validation',
+        'publications'
+    ))
 
 class Migration(migrations.Migration):
 
@@ -23,9 +32,10 @@ class Migration(migrations.Migration):
                     setweight(to_tsvector('pg_catalog.english', coalesce(new.author,'')), 'B') ||
                     setweight(to_tsvector('pg_catalog.english', coalesce(new.definition,'')), 'B') ||
                     setweight(to_tsvector('pg_catalog.english', coalesce(new.implementation,'')), 'D') ||
-                    setweight(to_tsvector('pg_catalog.english', coalesce(new.validation,'')), 'D');
-                return new;
-            end;
+                    setweight(to_tsvector('pg_catalog.english', coalesce(new.validation,'')), 'D') ||
+                    setweight(to_tsvector('pg_catalog.english', array_to_string(new.publications,' ')), 'D');
+                RETURN new;
+            END;
             $$;
 
             CREATE TRIGGER ge_search_vec_tr BEFORE INSERT OR UPDATE
