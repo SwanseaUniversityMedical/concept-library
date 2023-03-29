@@ -60,8 +60,12 @@ class EntitySearchView(TemplateView):
         request = self.request
 
         # Get the renderable, published entities that match our request params & the selected entity_type (optional)
-        entity_type = kwargs.get('entity_type')
-        entity_type = search_utils.try_derive_entity_type(entity_type)
+        entity_type_param = kwargs.get('entity_type')
+        entity_type = search_utils.try_derive_entity_type(entity_type_param)
+
+        # Raise 404 when trying to access an entity class that does not exist
+        if entity_type_param is not None and entity_type is None:
+            raise Http404
 
         entities, layouts = search_utils.get_renderable_entities(
             request,
@@ -108,7 +112,10 @@ class CreateEntityView(TemplateView):
                   of having a form dynamically created to reflect the dynamic model.
     '''
     fetch_methods = ['search_codes', 'get_options']
-    template_name = 'clinicalcode/generic_entity/create.html'
+    templates = {
+        'form': 'clinicalcode/generic_entity/creation/create.html',
+        'select': 'clinicalcode/generic_entity/creation/select.html'
+    }
     
     ''' View methods '''
     @method_decorator([login_required])
@@ -190,14 +197,21 @@ class CreateEntityView(TemplateView):
         '''
         context = self.get_context_data(*args, **kwargs)
 
-        template_id = gen_utils.parse_int(kwargs.get('template_id'), default=None)
+        # Send to selection page if no template_id and entity_id
+        template_id = kwargs.get('template_id')
+        entity_id = kwargs.get('entity_id')
+        if template_id is None and entity_id is None:
+            return self.select_form(request, context)
+
+        # Send to create form if template_id is selected
+        template_id = gen_utils.parse_int(template_id, default=None)
         if template_id is not None:
             template = model_utils.try_get_instance(Template, pk=template_id)
             if template is None:
                 raise Http404
             return self.create_form(request, context, template)
 
-        entity_id = kwargs.get('entity_id')
+        # Send to update form if entity_id is selected
         entity_history_id = gen_utils.parse_int(kwargs.get('entity_history_id'), default=None)
         if entity_id is not None and entity_history_id is not None:
             entity = create_utils.try_validate_entity(request, entity_id, entity_history_id)
@@ -210,9 +224,16 @@ class CreateEntityView(TemplateView):
             
             return self.update_form(request, context, template, entity)
         
-        raise BadRequest('Invalid request.')
+        # Raise 404 if no param matches views
+        raise Http404
     
     ''' Forms '''
+    def select_form(self, request, context):
+        '''
+            @desc Renders the template selection form
+        '''
+        return render(request, self.templates.get('select'))
+
     def create_form(self, request, context, template):
         '''
             @desc Renders the entity create form
@@ -220,7 +241,7 @@ class CreateEntityView(TemplateView):
         context['metadata'] = constants.metadata
         context['template'] = template
         context['form_method'] = constants.FORM_METHODS.CREATE
-        return render(request, self.template_name, context)
+        return render(request, self.templates.get('form'), context)
 
     def update_form(self, request, context, template, entity):
         '''
@@ -231,7 +252,7 @@ class CreateEntityView(TemplateView):
         context['entity'] = entity
         context['object_reference'] = { 'id': entity.id, 'history_id': entity.history_id }
         context['form_method'] = constants.FORM_METHODS.UPDATE
-        return render(request, self.template_name, context)
+        return render(request, self.templates.get('form'), context)
 
     ''' Fetch methods '''
     def fetch_response(self, request, *args, **kwargs):

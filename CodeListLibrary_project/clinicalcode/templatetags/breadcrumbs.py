@@ -1,12 +1,12 @@
-from django import template
+from django import urls, template
 from django.conf import settings
-from jinja2.exceptions import TemplateSyntaxError
-from django import urls
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from jinja2.exceptions import TemplateSyntaxError
+from difflib import SequenceMatcher
+from functools import cmp_to_key
 
 import re
-import difflib
 
 from ..models.Brand import Brand
 
@@ -49,12 +49,23 @@ def find_matching_url(items, desired):
             if match:
                 return match
         elif isinstance(item, urls.URLPattern):
-            if item.name == desired or str(item.pattern).replace('/', '') == desired:
+            if SequenceMatcher(None, str(item.pattern), desired).ratio() > 0.8:
                 return item
-  
+            if item.name == desired:
+                return item
     return None
 
-def get_url(desired):
+def sort_ratio_list(a, b):
+    v1 = a.get('ratio')
+    v2 = b.get('ratio')
+
+    if v1 < v2:
+        return 1
+    elif v1 > v2:
+        return -1
+    return 0
+
+def get_url(desired, ref):
     desired = 'concept_library_home' if desired == '' else desired
     url_resolver = urls.get_resolver(urls.get_urlconf())
     matching = find_matching_url(url_resolver.url_patterns, desired)
@@ -62,13 +73,13 @@ def get_url(desired):
         return matching, False
     
     resolver_items = {v[1].replace(re.sub('(\w+(?:$|\/))+', '', v[1]), ''):[k, v[1]] for k, v in urls.get_resolver(None).reverse_dict.items()}
-    resolvers = [k for k in resolver_items]
-    resolvers = difflib.get_close_matches(desired, resolvers, cutoff=0.3)
-    
+    resolvers = [{'key': k, 'ratio': SequenceMatcher(None, k, ref).ratio()} for k in resolver_items]
+    sort_fn = cmp_to_key(sort_ratio_list)
+    resolvers.sort(key=sort_fn)
     if len(resolvers) > 0:
-        resolvers = resolver_items.get(resolvers[0])
+        resolvers = resolver_items.get(resolvers[0].get('key'))
         token = re.sub('(\w+(?:$|\/))+', '', resolvers[1])
-        matched_url = find_matching_url(url_resolver.url_patterns, resolvers[0])
+        matched_url = find_matching_url(url_resolver.url_patterns, resolvers[1])
         
         return matched_url, len(token) > 1
 
@@ -108,6 +119,11 @@ class BreadcrumbsNode(template.Node):
     def __is_brand_token(self, token):
         return Brand.objects.filter(name__iexact=token).exists()
 
+    def __is_valid_token(self, token):
+        if self.__is_brand_token(token):
+            return False
+        return token.isalpha()
+
     def get_crumb(self, crumb, url):
         if self.params['useName']:
             return re.sub('(\-|\_)+', ' ', url.name).title()
@@ -140,15 +156,17 @@ class BreadcrumbsNode(template.Node):
             crumbs.append({ 'url': '/', 'title': 'Home' })
         
         token_next = False
+        previous = None
         for i, crumb in enumerate(path):
             if token_next:
                 break
             
-            if self.__is_brand_token(crumb):
+            if not self.__is_valid_token(crumb):
                 continue
             
-            if crumb != '':
-                url, token_next = get_url(crumb)
+            previous = previous + f'{crumb}/' if previous else (previous if not crumb else f'{crumb}/')
+            if previous != '':
+                url, token_next = get_url(crumb, previous)
                 if url:
                     root = ''
                     look_up = url.lookup_str.split('.')
@@ -157,10 +175,10 @@ class BreadcrumbsNode(template.Node):
                 
                     crumbs.append({ 'url': root + url.name, 'title': 'Home' if crumb == '' else self.get_crumb(crumb, url) })
 
-        if len(crumbs) > 0 and crumbs[-1]['title'] != 'Home':
+        if len(crumbs) > 0:
             crumbs[-1]['url'] = rqst.get_full_path()
         
-        if len(crumbs) > 1:
+        if len(crumbs) >= 1:
             return generate_breadcrumbs(crumbs, header=self.params['includeHeader'])
         else:
             return ''

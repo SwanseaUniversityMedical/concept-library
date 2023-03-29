@@ -1,0 +1,24 @@
+{% extends "base_scss.html" %}
+
+{% load static %}
+{% load compress %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+{% block title %}| Create Entity {% endblock title %}
+
+{% block container %}
+  <header class="main-header">
+    <div class="main-header__inner-container">
+    </div>
+    {% breadcrumbs useMap=False includeHome=True includeHeader=True %}
+    {% endbreadcrumbs %}
+  </header>
+  
+  <main class="main-content">
+    <div class="main-content__inner-container">
+      
+    </div>
+  </main>
+{% endblock container %}
