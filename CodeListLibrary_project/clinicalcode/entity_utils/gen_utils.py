@@ -66,6 +66,10 @@ def is_empty_string(value):
         Returns:
             boolean
     '''
+    if value is None:
+        return False
+    
+    value = str(value).strip()
     return len(value) < 1 or value.isspace()
 
 def is_fetch_request(request):

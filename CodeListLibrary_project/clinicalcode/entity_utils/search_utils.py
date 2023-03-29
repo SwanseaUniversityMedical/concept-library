@@ -1,16 +1,44 @@
 from django.apps import apps
 from django.db.models import Q
+from django.db.models.functions import Lower
 from django.core.paginator import EmptyPage, Paginator
 from django.contrib.postgres.search import TrigramSimilarity, SearchQuery, SearchRank, SearchVector
 
 import re
 
+from ..models.EntityClass import EntityClass
+from ..models.Template import Template
 from ..models.PublishedGenericEntity import PublishedGenericEntity
 from ..models.GenericEntity import GenericEntity
-from ..models.Template import Template
 from ..models.Statistics import Statistics
 from ..models.CodingSystem import CodingSystem
 from . import model_utils, permission_utils, template_utils, constants, gen_utils
+
+def try_derive_entity_type(entity_type):
+    '''
+        Attempts to derive the entity type passed as a kwarg to the search view
+
+        Args:
+            entity_type {string}: the entity_type parameter
+        
+        Returns:
+            {list} containing the EntityClass ID if successful, otherwise returns None
+    '''
+    if gen_utils.is_empty_string(entity_type):
+        return None
+    
+    # If we've passed an ID, return it without checking
+    entity_id = gen_utils.parse_int(entity_type, default=None)
+    if entity_id is not None:
+        return [entity_id]
+
+    # Try to match by name (need to replace URI encoding to spaces)
+    entity_type = entity_type.replace('-', ' ')
+    entity_cls = EntityClass.objects.annotate(name_lower=Lower('name')).filter(name_lower=entity_type)
+    if entity_cls.exists():
+        return entity_cls.first().id
+    return None
+
 
 def perform_vector_search(queryset, search_query, min_rank=0.05, order_by_relevance=True, reverse_order=False):
     '''
@@ -214,13 +242,13 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
             2. The template associated with each of the entities
     '''
     # Get related published entities
-    if entity_types is None:
+    if isinstance(entity_types, list) and len(entity_types) > 0:
         entities = PublishedGenericEntity.objects.filter(
+            entity__template__entity_class__id__in=entity_types,
             approval_status=constants.APPROVAL_STATUS.APPROVED
         )
     else:
         entities = PublishedGenericEntity.objects.filter(
-            entity__template__entity_class__id__in=entity_types,
             approval_status=constants.APPROVAL_STATUS.APPROVED
         )
     

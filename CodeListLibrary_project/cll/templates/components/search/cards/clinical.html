@@ -3,7 +3,7 @@
 
 <article class="entity-card" data-target="{% url 'generic_entity_history_detail' pk=entity.id history_id=entity.history_id %}"
   data-entity-id="{{ entity.id }}" data-entity-version-id="{{ entity.history_id }}" data-layout-id="{{ layout.id }}"
-  aria-label="View {{ entity.name }}" role="button" tabindex="0" onclick="displayCardDetails(this);">
+  aria-label="View {{ entity.name }}" role="button" tabindex="0" onclick="redirectToTarget(this);">
   
   <div class="entity-card__header">
     <h3 class="entity-card__title">{{ entity.id }} - {{ entity.name }}</h3>

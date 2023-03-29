@@ -54,6 +54,17 @@ def render_pagination(context, *args, **kwargs):
         'pages': page_items
     }
 
+@register.filter(name='is_member')
+def is_member(user, args):
+    if args is None:
+        return False
+    
+    args = [arg.strip() for arg in args.split(',')]
+    for arg in args:
+        if permission_utils.is_member(user, arg):
+            return True
+    return False
+
 @register.filter(name='jsonify')
 def jsonify(value, should_print=False):
     '''

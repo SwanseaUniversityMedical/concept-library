@@ -59,13 +59,23 @@ class EntitySearchView(TemplateView):
         context = super(EntitySearchView, self).get_context_data(*args, **kwargs)
         request = self.request
 
-        entities, layouts = search_utils.get_renderable_entities(request)
+        # Get the renderable, published entities that match our request params & the selected entity_type (optional)
+        entity_type = kwargs.get('entity_type')
+        entity_type = search_utils.try_derive_entity_type(entity_type)
+
+        entities, layouts = search_utils.get_renderable_entities(
+            request,
+            entity_types=entity_type
+        )
+
+        # Paginate reponse
         page_obj = search_utils.try_get_paginated_results(request, entities)
 
         # For detail referral highlighting
         request.session['searchterm'] = gen_utils.try_get_param(request, 'search', None)
 
         return context | {
+            'entity_type': entity_type,
             'page_obj': page_obj,
             'layouts': layouts
         }

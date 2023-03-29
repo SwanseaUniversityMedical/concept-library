@@ -222,11 +222,11 @@ const clearAllChildren = (element, cond) => {
 }
 
 /**
- * displayCardDetails
+ * redirectToTarget
  * @desc onClick handler for content cards, primarily used for ./search page - referral to detail page
  * @param {node} element the clicked node
  */
-const displayCardDetails = (elem) => {
+const redirectToTarget = (elem) => {
   const target = elem.getAttribute('data-target');
   if (!target) {
     return;
