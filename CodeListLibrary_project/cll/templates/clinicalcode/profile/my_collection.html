@@ -1,6 +1,7 @@
 {% extends "base_scss.html" %}
 
 {% load static %}
+{% load compress %}
 {% load cl_extras %}
 {% load breadcrumbs %}
 {% load entity_renderer %}
@@ -13,8 +14,10 @@
   <script src="{% static 'js/clinicalcode/redesign/vendor/simple-datatables/simple-datatables.min.js' %}"></script>
 
   <!-- Dependencies -->
-  <script type="module" src="{% static 'js/clinicalcode/redesign/services/collectionService.js' %}"></script>
-  
+  {% compress js file %}
+    <script type="module" src="{% static 'js/clinicalcode/redesign/services/collectionService.js' %}"></script>
+  {% endcompress %}
+
   <!-- Main -->
   <header class="main-header banner">
     <div class="banner__container">
