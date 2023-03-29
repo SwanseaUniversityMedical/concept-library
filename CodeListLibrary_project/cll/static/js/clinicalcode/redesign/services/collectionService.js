@@ -105,7 +105,7 @@ const renderNameAnchor = (data, id, version_id) => {
  * @param {*} is_deleted 
  * @returns 
  */
-const renderStatusTag = (pk, data, is_deleted) => {
+const renderStatusTag = (data, is_deleted) => {
   const tagData = (is_deleted === true) ? PUBLISH_STATUS_TAGS[4] : (PUBLISH_STATUS_TAGS?.[data] || PUBLISH_STATUS_TAGS[5]);
   
   return `
@@ -170,7 +170,7 @@ const renderCollectionComponent = (pageType, key, container, data) => {
         render: (value, id, rowIndex) => {
           const entity = data[rowIndex];
 
-          return renderStatusTag(entity.name, value, entity.is_deleted);
+          return renderStatusTag(value, entity.is_deleted);
         } 
       },
     ],
