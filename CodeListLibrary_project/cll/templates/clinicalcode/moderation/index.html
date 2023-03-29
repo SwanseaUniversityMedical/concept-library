@@ -1,0 +1,71 @@
+{% extends "base_scss.html" %}
+
+{% load static %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+{% block title %}| Entity Moderation {% endblock title %}
+
+{% block container %}
+  <!-- Vendor -->
+  <script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
+  <script src="{% static 'js/clinicalcode/redesign/vendor/simple-datatables/simple-datatables.min.js' %}"></script>
+
+  <!-- Dependencies -->
+  <script type="module" src="{% static 'js/clinicalcode/redesign/services/collectionService.js' %}"></script>
+  
+  <!-- Main -->
+  <header class="main-header banner">
+    <div class="banner__container">
+      <h2 class="banner__title">Entity Moderation</h2>
+      <p class="banner__description">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.
+      </p>
+      <div class="banner__cards">
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="main-content__inner-container">
+      <article class="profile-collection">
+        <section class="profile-collection__inner-container" id="requested">
+          <data data-owner="collection-service" page-type="MODERATION_COLLECTIONS" name="requested" type="text/json">
+            {% if requested_content %}
+              {{ requested_content|jsonify|safe }}
+            {% endif %}
+          </data>
+          <h3>1. Entities to be Reviewed</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          <section class="profile-collection__none-available show" id="empty-collection">
+            <p class="profile-collection__none-available-message">
+              There are no review requests at the moment
+            </p>
+          </section>
+          <div class="profile-collection__table-container" id="requested-area">
+
+          </div>
+        </section>
+        <section class="profile-collection__inner-container" id="pending">
+          <data data-owner="collection-service" page-type="MODERATION_COLLECTIONS" name="pending" type="text/json">
+            {% if pending_content %}
+              {{ pending_content|jsonify|safe }}
+            {% endif %}
+          </data>
+          <h3>2. Entities under Review</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          <section class="profile-collection__none-available show" id="empty-collection">
+            <p class="profile-collection__none-available-message">
+              There are no pending reviews at the moment
+            </p>
+          </section>
+          <div class="profile-collection__table-container" id="pending-area">
+
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+
+{% endblock container %}

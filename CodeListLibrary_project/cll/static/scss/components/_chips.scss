@@ -17,6 +17,10 @@
     @include box-shadow(0, 0.1rem, 0.2rem, rgba(0, 0, 0, 0.2));
   }
 
+  &-center-text {
+    justify-content: center;
+  }
+
   &__name {
     text-transform: uppercase;
     color: col(text-brightest);
@@ -66,6 +70,9 @@
   }
   &-dark-accent {
     background-color: col(accent-dark);
+  }
+  &-danger-accent {
+    background-color: col(accent-danger);
   }
 }
 
