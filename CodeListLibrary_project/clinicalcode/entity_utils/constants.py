@@ -59,6 +59,7 @@ class APPROVAL_STATUS(int, enum.Enum):
     '''
         Approval status of a published entity
     '''
+    ANY       = -1
     REQUESTED = 0
     PENDING   = 1
     APPROVED  = 2

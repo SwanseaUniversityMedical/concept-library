@@ -33,8 +33,9 @@
     @include flex-col();
     padding: 1rem 0 2rem 0;
     align-self: center;
+    overflow: none;
 
-    @include media(">=tablet", "screen") {
+    @include media(">phone", "screen") {
       width: 300px;
     }
 

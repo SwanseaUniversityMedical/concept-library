@@ -82,7 +82,7 @@ class MyCollection(TemplateView):
     
     archived_content = self.__annotate_fields(
       permission_utils.get_accessible_entities(
-        request, consider_user_perms=False, only_deleted=True
+        request, consider_user_perms=False, status=[APPROVAL_STATUS.ANY], only_deleted=True
       )
     )
 

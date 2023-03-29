@@ -72,16 +72,17 @@ def get_accessible_entities(
       status += [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING, APPROVAL_STATUS.REJECTED]
       
     query = Q(owner=user.id) 
-    if status:
-      published_entities = PublishedGenericEntity.objects.filter(approval_status__in=status)
-      entities = entities.filter(
-        id__in=published_entities.values_list('entity_id', flat=True)
-      )
-    else:
-      published_entities = PublishedGenericEntity.objects.all()
-      entities = entities.exclude(
-        id__in=list(published_entities.values_list('entity_id', flat=True))
-      )
+    if not status or APPROVAL_STATUS.ANY not in status:
+      if status:
+        published_entities = PublishedGenericEntity.objects.filter(approval_status__in=status)
+        entities = entities.filter(
+          id__in=published_entities.values_list('entity_id', flat=True)
+        )
+      else:
+        published_entities = PublishedGenericEntity.objects.all()
+        entities = entities.exclude(
+          id__in=list(published_entities.values_list('entity_id', flat=True))
+        )
     
     if group_permissions:
       query |= Q(
@@ -90,10 +91,11 @@ def get_accessible_entities(
       )
       
     entities = entities.filter(query)
+
     if only_deleted:
-      entities = entities.filter(
-        is_deleted=True
-      )
+      entities = entities.exclude(Q(is_deleted=False) | Q(is_deleted__isnull=True) | Q(is_deleted=None))
+    else:
+      entities = entities.exclude(Q(is_deleted=True))
 
     return entities
   
@@ -107,7 +109,7 @@ def get_accessible_entities(
     history_id__in=list(entities.values_list('entity_history_id', flat=True))
   )
   
-  return entities.filter(Q(is_deleted=False) | Q(is_deleted__isnull=True))
+  return entities.filter(Q(is_deleted=False) | Q(is_deleted=None))
 
 def has_entity_view_permissions(request, entity):
   '''
