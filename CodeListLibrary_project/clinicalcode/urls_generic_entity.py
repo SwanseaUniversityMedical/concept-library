@@ -6,7 +6,7 @@ from django.conf import settings
 from django.urls import re_path as url
 from django.contrib.auth import views as auth_views
 
-from .views import (GenericEntity, adminTemp)
+from .views import (GenericEntity, adminTemp, Profile, Moderation)
 
 from django.urls import path
 from django.views.generic.base import TemplateView
@@ -40,7 +40,11 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
         url(r'^ge/example/$', GenericEntity.ExampleSASSView.as_view(), name='example_phenotype'),
         url(r'^search/temp/$', GenericEntity.generic_entity_list_temp, name='generic_entity_list_temp'),
 
+        # Profile
+        url(r'profile/$', Profile.MyProfile.as_view(), name='my_profile'),
+        url(r'profile/collection/$', Profile.MyCollection.as_view(), name='my_collection'),
 
+        url(r'moderation/$', Moderation.EntityModeration.as_view(), name='my_collection'),
     ]
 
     # for admin(developers) to migrate phenotypes into dynamic template

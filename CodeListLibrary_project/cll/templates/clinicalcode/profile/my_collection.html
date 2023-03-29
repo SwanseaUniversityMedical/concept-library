@@ -1,0 +1,123 @@
+{% extends "base_scss.html" %}
+
+{% load static %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+{% block title %}| My Collection {% endblock title %}
+
+{% block container %}
+  <!-- Vendor -->
+  <script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
+  <script src="{% static 'js/clinicalcode/redesign/vendor/simple-datatables/simple-datatables.min.js' %}"></script>
+
+  <!-- Dependencies -->
+  <script type="module" src="{% static 'js/clinicalcode/redesign/services/collectionService.js' %}"></script>
+  
+  <!-- Main -->
+  <header class="main-header banner">
+    <div class="banner__container">
+      <h2 class="banner__title">My Collection</h2>
+      <p class="banner__description">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.
+      </p>
+      <div class="banner__cards">
+        <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
+          <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+            <div class="referral-card__header">
+              <a class="referral-card__title" href="#">Create an Entity<span class="referral-card__title-icon"></span></a>
+            </div>
+            <div class="referral-card__body">
+              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+            </div>
+          </article>
+          <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+            <div class="referral-card__header">
+              <a class="referral-card__title" href="#">Search Entities<span class="referral-card__title-icon"></span></a>
+            </div>
+            <div class="referral-card__body">
+              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="main-content__inner-container">
+      <article class="profile-collection">
+        <section class="profile-collection__inner-container" id="published">
+          <data data-owner="collection-service" page-type="PROFILE_COLLECTIONS" name="published" type="text/json">
+            {% if published_content %}
+              {{ published_content|jsonify|safe }}
+            {% endif %}
+          </data>
+          <h3>1. Published Entities</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          <section class="profile-collection__none-available show" id="empty-collection">
+            <p class="profile-collection__none-available-message">
+              You haven't published anything yet
+            </p>
+          </section>
+          <div class="profile-collection__table-container" id="published-area">
+
+          </div>
+        </section>
+        <section class="profile-collection__inner-container" id="published">
+          <data data-owner="collection-service" page-type="PROFILE_COLLECTIONS" name="progress" type="text/json">
+            {% if progress_content %}
+              {{ progress_content|jsonify|safe }}
+            {% endif %}
+          </data>
+          <h3>2. Reviews in Progress</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          <section class="profile-collection__none-available show" id="empty-collection">
+            <p class="profile-collection__none-available-message">
+              You haven't made any requests to publish yet
+            </p>
+          </section>
+          <div class="profile-collection__table-container" id="progress-area">
+
+          </div>
+        </section>
+        <section class="profile-collection__inner-container" id="draft">
+          <data data-owner="collection-service" page-type="PROFILE_COLLECTIONS" name="draft" type="text/json">
+            {% if draft_content %}
+              {{ draft_content|jsonify|safe }}
+            {% endif %}
+          </data>
+          <h3>3. Entities in Progress</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          <section class="profile-collection__none-available show" id="empty-collection">
+            <p class="profile-collection__none-available-message">
+              You have no drafts yet
+            </p>
+          </section>
+          <div class="profile-collection__table-container" id="draft-area">
+
+          </div>
+        </section>
+        <section class="profile-collection__inner-container" id="archived">
+          <data data-owner="collection-service" page-type="PROFILE_COLLECTIONS" name="archived" type="text/json">
+            {% if archived_content %}
+              {{ archived_content|jsonify|safe }}
+            {% endif %}
+          </data>
+          <h3>4. Archived Entities</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          <section class="profile-collection__none-available show" id="empty-collection">
+            <p class="profile-collection__none-available-message">
+              You haven't archived any content yet
+            </p>
+          </section>
+          <div class="profile-collection__table-container" id="archived-area">
+            
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+
+{% endblock container %}

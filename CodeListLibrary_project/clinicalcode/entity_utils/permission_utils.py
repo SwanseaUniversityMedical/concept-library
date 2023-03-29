@@ -1,4 +1,5 @@
 from django.db.models import Q, F, Subquery, OuterRef
+
 from django.contrib.auth.models import Group, User
 from ..models import GenericEntity
 from ..models import PublishedGenericEntity
@@ -51,30 +52,48 @@ def get_user_groups(request):
     return list(Group.objects.all().exclude(name='ReadOnlyUsers').values('id', 'name'))
   return list(user.groups.all().exclude(name='ReadOnlyUsers').values('id', 'name'))
 
-def get_accessible_entities(request):  
+def get_accessible_entities(
+    request, 
+    consider_user_perms=True,
+    only_deleted=False,
+    status=[APPROVAL_STATUS.APPROVED],
+    group_permissions=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]
+  ):  
   user = request.user
-  if not user or not user.is_anonymous:
+  if user and not user.is_anonymous:
     entities = GenericEntity.history.all() \
       .order_by('id', '-history_id') \
       .distinct('id')
   
-    if user.is_superuser:
+    if consider_user_perms and user.is_superuser:
       return entities
     
-    status = [APPROVAL_STATUS.APPROVED]
-    if is_member(user, "Moderators"):
+    if consider_user_perms and is_member(user, "Moderators"):
       status += [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING, APPROVAL_STATUS.REJECTED]
       
-    published_entities = PublishedGenericEntity.objects.filter(approval_status__in=status)
-
-    entities = entities.filter(
-      Q(owner=user.id) | 
-      Q(
+    query = Q(owner=user.id) 
+    if status:
+      published_entities = PublishedGenericEntity.objects.filter(approval_status__in=status)
+      entities = entities.filter(
+        id__in=published_entities.values_list('entity_id', flat=True)
+      )
+    else:
+      published_entities = PublishedGenericEntity.objects.all()
+      entities = entities.exclude(
+        id__in=list(published_entities.values_list('entity_id', flat=True))
+      )
+    
+    if group_permissions:
+      query |= Q(
         group_id__in=user.groups.all(), 
-        group_access__in=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]
-      ) |
-      Q(id__in=list(published_entities.values_list('entity_id', flat=True)))
-    )
+        group_access__in=group_permissions
+      )
+      
+    entities = entities.filter(query)
+    if only_deleted:
+      entities = entities.filter(
+        is_deleted=True
+      )
 
     return entities
   
@@ -88,7 +107,7 @@ def get_accessible_entities(request):
     history_id__in=list(entities.values_list('entity_history_id', flat=True))
   )
   
-  return entities
+  return entities.filter(Q(is_deleted=False) | Q(is_deleted__isnull=True))
 
 def has_entity_view_permissions(request, entity):
   '''

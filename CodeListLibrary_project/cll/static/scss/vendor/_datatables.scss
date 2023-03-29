@@ -144,7 +144,11 @@
   position: relative;
   width: 100%;
   border-spacing: 0;
-  border-collapse: separate;
+  border-collapse: collapse;
+}
+
+.datatable-table > tbody > tr {
+  border-bottom: 1px solid col(accent-washed);
 }
 
 .datatable-table > tbody > tr > td:has(.ruleset-icon) {
