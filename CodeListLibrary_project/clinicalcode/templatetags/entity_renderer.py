@@ -316,8 +316,7 @@ class EntityFiltersNode(template.Node):
             if 'filterable' not in search:
                 continue
 
-            if field != 'template' or is_single_search:
-                output += self.__render_metadata_component(context, field, structure)
+            output += self.__render_metadata_component(context, field, structure)
 
         return output
     
@@ -344,18 +343,18 @@ class EntityFiltersNode(template.Node):
         return output
 
     def render(self, context):
+        entity_type = context.get('entity_type', None)
         layouts = context.get('layouts', None)
         if layouts is None:
             return ''
         
-        # When in dev env, 'Entity Type' filter will always be present
-        is_single_search = len(layouts.keys()) > constants.MIN_SINGLE_SEARCH or settings.DEBUG
+        is_single_search = entity_type is None
 
         # Render metadata
         output = self.__generate_metadata_filters(context, is_single_search)
 
         # Render template specific filters
-        if not is_single_search or settings.DEBUG:
+        if not is_single_search:
             output = self.__generate_template_filters(context, output, layouts)
 
         return output

@@ -24,7 +24,7 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
         url(r'^ge/run-stats/$', GenericEntity.EntityStatisticsView.as_view(), name='run_entity_statistics'),
 
         url(r'^entity/$', GenericEntity.EntitySearchView.as_view(), name='search_entity'),
-        url(r'^entity/(?P<entity_type>([A-Za-z0-9\-]+))$', GenericEntity.EntitySearchView.as_view(), name='search_entity'),
+        url(r'^entity/(?P<entity_type>([A-Za-z0-9\-]+))/?$', GenericEntity.EntitySearchView.as_view(), name='search_entity'),
         url(r'^entity/create/(?P<template_id>[\d]+)/?$', GenericEntity.CreateEntityView.as_view(), name='create_entity'),
         url(r'^entity/update/(?P<entity_id>\w+)/(?P<entity_history_id>\d+)/?$', GenericEntity.CreateEntityView.as_view(), name='update_entity'),
         

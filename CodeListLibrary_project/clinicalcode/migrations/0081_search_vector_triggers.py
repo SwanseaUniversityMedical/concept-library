@@ -10,8 +10,7 @@ def compute_search_vectors(apps, schema_editor):
         'author',
         'definition',
         'implementation',
-        'validation',
-        'publications'
+        'validation'
     ))
 
 class Migration(migrations.Migration):
@@ -32,8 +31,7 @@ class Migration(migrations.Migration):
                     setweight(to_tsvector('pg_catalog.english', coalesce(new.author,'')), 'B') ||
                     setweight(to_tsvector('pg_catalog.english', coalesce(new.definition,'')), 'B') ||
                     setweight(to_tsvector('pg_catalog.english', coalesce(new.implementation,'')), 'D') ||
-                    setweight(to_tsvector('pg_catalog.english', coalesce(new.validation,'')), 'D') ||
-                    setweight(to_tsvector('pg_catalog.english', array_to_string(new.publications,' ')), 'D');
+                    setweight(to_tsvector('pg_catalog.english', coalesce(new.validation,'')), 'D');
                 RETURN new;
             END;
             $$;

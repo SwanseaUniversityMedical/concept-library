@@ -13,10 +13,6 @@
 <!-- Include search banner component -->
 {% include "components/search/search_banner.html" with query=False %}
 
-<!-- Include breadcrumb component -->
-{% breadcrumbs useMap=False includeHome=True includeHeader=True %}
-{% endbreadcrumbs %}
-
 <!-- Include required components -->
 <script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
 {% compress js file %}
