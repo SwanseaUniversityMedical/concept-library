@@ -67,7 +67,7 @@ def is_empty_string(value):
             boolean
     '''
     if value is None:
-        return False
+        return True
     
     value = str(value).strip()
     return len(value) < 1 or value.isspace()

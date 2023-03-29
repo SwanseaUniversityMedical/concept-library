@@ -134,6 +134,11 @@ def collate_statistics(all_entities, published_entities):
     
     return statistics
 
+'''
+    Need to change this for several reasons:
+        1. We can utilise receivers and signals so we don't do this as a cronjob
+        2. Big O notation for this implementation is not great
+'''
 def collect_statistics(request):
     user = request.user if request else None
 
