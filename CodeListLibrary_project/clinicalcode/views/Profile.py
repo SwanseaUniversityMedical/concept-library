@@ -73,7 +73,6 @@ class MyCollection(TemplateView):
         ]
       )
     )
-    print(progress_content)
 
     draft_content = self.__annotate_fields(
       permission_utils.get_accessible_entities(
