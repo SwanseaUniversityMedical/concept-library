@@ -46,7 +46,7 @@
 	                        {% if phenotype.approval_status == 1 and phenotype.owner_id == request.user.id or request.user|has_group:"Moderators" and phenotype.approval_status == 1 %}title="Waiting for approval"{% endif %}>
 					<div class="row form-group">
 						<div class="col-sm-8">
-							<a class="" href="{% url 'generic_entity_history_detail' phenotype.id phenotype.history_id %}">
+							<a class="" href="{% url 'entity_history_detail' phenotype.id phenotype.history_id %}">
 							<span style='font-size: 22px;margin-top:0;'>{{ phenotype.id }} - {{ phenotype.name_highlighted|safe }}</span>
 							</a>				
 						</div>

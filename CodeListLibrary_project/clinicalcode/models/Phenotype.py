@@ -1,3 +1,4 @@
+import datetime
 from django.contrib.auth.models import Group, User
 from django.contrib.postgres.fields import ArrayField
 from django.db.models import JSONField
@@ -66,11 +67,17 @@ class Phenotype(TimeStampedModel):
 
 
     def save(self, *args, **kwargs):
-        count = Phenotype.objects.count()
-        if count:
-            count += 35   # we needed offset here because count != last int id
+        count = Phenotype.objects.extra(
+            select={
+                'true_id': '''CAST(SUBSTRING(id, 3, LENGTH(id)) AS INTEGER)'''
+            }
+        ).order_by('-true_id', 'id').first()
+
+        if count and count.true_id:
+            count = count.true_id + 1
         else:
             count = 1
+
         if not self.id:
             self.id = "PH" + str(count)
 
