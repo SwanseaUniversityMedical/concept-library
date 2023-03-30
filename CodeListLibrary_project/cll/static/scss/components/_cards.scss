@@ -218,6 +218,11 @@
     border-radius: 2pt;
   }
 
+  &__click {
+    @include clear-anchor();
+    display: block;
+  }
+
   &__header {
     @include flex-col();
   }

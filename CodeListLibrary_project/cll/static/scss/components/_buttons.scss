@@ -52,6 +52,10 @@
     transform: translateY(0.2rem);
     -webkit-transform: translateY(0.2rem);
   }
+
+  &:disabled {
+    opacity: 0.5;
+  }
   
   /* Icon style */
   &.save-icon:after {
@@ -89,6 +93,21 @@
     pointer-events: auto;
     height: 100%;
     top: 1.1rem;
+    aspect-ratio: 1 / 1;
+    font-family: var(--icons-name);
+    font-style: var(--icons-style);
+    font-size: var(--icons-size);
+    text-align: center;
+  }
+  
+  &.r-arrow-icon:after {
+    content: '\f061';
+    cursor: pointer;
+    pointer-events: auto;
+    position: absolute;
+    right: 0;
+    height: 100%;
+    top: 0.65rem;
     aspect-ratio: 1 / 1;
     font-family: var(--icons-name);
     font-style: var(--icons-style);

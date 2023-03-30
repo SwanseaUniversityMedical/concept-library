@@ -2,23 +2,81 @@
 
 {% load static %}
 {% load compress %}
+{% load sass_tags %}
 {% load cl_extras %}
 {% load breadcrumbs %}
 {% load entity_renderer %}
 
-{% block title %}| Create Entity {% endblock title %}
+{% block title %}| Create an Entity {% endblock title %}
+
+{% block bodyclass %}{% endblock bodyclass %}
 
 {% block container %}
-  <header class="main-header">
-    <div class="main-header__inner-container">
+  <!-- Page Stylesheets -->
+  <link href="{% sass_src 'scss/pages/select.scss' %}" rel="stylesheet" type="text/css" />
+
+  <!-- Main -->
+  <header class="main-header banner">
+    <div class="banner__container">
+      <h2 class="banner__title">Create an Entity</h2>
+      <p class="banner__description">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.
+      </p>
+      <div class="banner__cards"></div>
     </div>
-    {% breadcrumbs useMap=False includeHome=True includeHeader=True %}
-    {% endbreadcrumbs %}
   </header>
   
   <main class="main-content">
     <div class="main-content__inner-container">
-      
+      <article class="entity-panel">
+        <!-- Select entity type -->
+        <section class="entity-panel__group">
+          <h3 class="entity-panel__title">1. Select an Entity</h3>
+          <p class="entity-panel__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          <div class="entity-panel__container slim-scrollbar">
+            
+          </div>
+        </section>
+        
+        <!-- Contextual entity templates -->
+        <section class="entity-panel__group hide">
+          <h3 class="entity-panel__title">2. Select a Template</h3>
+          <p class="entity-panel__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          <div class="entity-panel__container slim-scrollbar">
+            
+          </div>
+        </section>
+
+        <!-- Confirmation -->
+        <section class="entity-panel__interaction">
+          <button class="primary-btn text-accent-darkest bold secondary-accent icon r-arrow-icon sweep-left"
+            aria-label="Go Next" id="next-btn" disabled>
+            Next
+          </button>
+        </section>
+      </article>
     </div>
   </main>
+
+  <!-- Card template -->
+  <template for="entity-card">
+    <article class="entity-panel__card" data-type="${type}">
+      <div class="entity-panel__card-body">
+        <span class="entity-panel__card-hint">${hint}</span>
+        <h3 class="entity-panel__card-title">${title}</h3>
+        <p class="entity-panel__card-description">${description}</p>
+        <div class="entity-panel__card-interface">
+          <button class="primary-btn text-accent-darkest bold tertiary-accent"
+            aria-label="Select Item" id="select-btn">
+            Select
+          </button>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <!-- Entity data -->
+  <data for="entity-selection" type="text/json">
+
+  </data>
 {% endblock container %}

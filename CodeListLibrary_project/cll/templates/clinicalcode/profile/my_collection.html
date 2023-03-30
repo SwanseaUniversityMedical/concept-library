@@ -2,6 +2,7 @@
 
 {% load static %}
 {% load compress %}
+{% load sass_tags %}
 {% load cl_extras %}
 {% load breadcrumbs %}
 {% load entity_renderer %}
@@ -17,6 +18,9 @@
   {% compress js file %}
     <script type="module" src="{% static 'js/clinicalcode/redesign/services/collectionService.js' %}"></script>
   {% endcompress %}
+
+  <!-- Page Stylesheets -->
+  <link href="{% sass_src 'scss/pages/profile.scss' %}" rel="stylesheet" type="text/css" />
 
   <!-- Main -->
   <header class="main-header banner">

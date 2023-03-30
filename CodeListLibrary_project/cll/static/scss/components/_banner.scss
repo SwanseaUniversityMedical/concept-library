@@ -10,10 +10,20 @@
   &__container {
     @include flex-col();
     padding: 0.5rem 0 0.5rem 0;
-    width: var(--phenotype-article-sm-size);
-    max-width: var(--phenotype-article-sm-size);
+    width: var(--phenotype-article-lg-size);
+    max-width: var(--phenotype-article-lg-size);
     align-items: flex-start;
     align-self: center;
+  
+    @include media(">desktop", "screen") {
+      width: var(--phenotype-article-sm-size);
+      max-width: var(--phenotype-article-sm-size);
+    }
+  
+    @include media("<desktop", "screen") {
+      width: var(--phenotype-article-lg-size);
+      max-width: var(--phenotype-article-lg-size);
+    }
   }
 
   &__title {
