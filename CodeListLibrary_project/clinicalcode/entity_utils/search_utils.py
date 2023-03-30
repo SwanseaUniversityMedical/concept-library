@@ -212,7 +212,7 @@ def apply_param_to_query(query, where, template, param, data, is_dynamic=False, 
             if is_dynamic:
                 q = ','.join([f"'{str(x)}'" for x in clean])
                 where.append("exists(select 1 " + \
-                    f"from jsonb_array_elements(template_data->'{param}') as val " + \
+                    f"from jsonb_array_elements(case jsonb_typeof(template_data->'{param}') when 'array' then template_data->'{param}' else '[]' end) as val " + \
                     f"where val in ({q})" + \
                     ")"
                 )
