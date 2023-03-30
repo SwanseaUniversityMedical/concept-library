@@ -35,6 +35,17 @@
   }
 }
 
+@mixin grid-template($gap: false,$col: 2, $fr: 1fr) {
+  display: grid;
+  grid-template-columns: repeat($col, $fr);
+  flex-wrap: wrap;
+
+  @if $gap {
+    gap: $gap;
+  }
+}
+
+
 /// Mixin to apply fontawesome style to an element
 @mixin fontawesome-icon {
   cursor: pointer;
