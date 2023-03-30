@@ -1,0 +1,60 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+.banner {
+  @include flex-col();
+  background-color: var(--phenotype-banner-bg-color);
+
+  &__container {
+    @include flex-col();
+    padding: 0.5rem 0 0.5rem 0;
+    width: var(--phenotype-article-lg-size);
+    max-width: var(--phenotype-article-lg-size);
+    align-items: flex-start;
+    align-self: center;
+  
+    @include media(">desktop", "screen") {
+      width: var(--phenotype-article-sm-size);
+      max-width: var(--phenotype-article-sm-size);
+    }
+  
+    @include media("<desktop", "screen") {
+      width: var(--phenotype-article-lg-size);
+      max-width: var(--phenotype-article-lg-size);
+    }
+  }
+
+  &__title {
+    padding: 0;
+    margin: 2rem 0 0.5rem 0;
+    font-size: var(--phenotype-banner-title-size);
+    font-weight: bold;
+    line-height: 1;
+    color: var(--phenotype-banner-title-color);
+  }
+
+  &__description {
+    margin: 1rem 0 0.5rem 0;
+  }
+
+  &__cards {
+    @include flex-col();
+    padding: 1rem 0 2rem 0;
+    align-self: center;
+    overflow: none;
+
+    @include media(">phone", "screen") {
+      width: 300px;
+    }
+
+    @include media(">=tablet", "screen") {
+      width: 600px;
+    }
+
+    @include media(">=desktop", "screen") {
+      width: 100%;
+    }
+  }
+}

@@ -4,10 +4,9 @@
   <p class="detailed-input-group__description">{{ component.description }}</p>
   {% endif %}
   <select class="selection-input" aria-label="Select Entity Group" name="entity-group" id="entity-{{ component.field_name }}" data-class="group-select" data-field="{{ component.field_name }}">
-    <option disabled value="0" selected hidden>Select Organisation</option>
-    <option value="0">ADP</option>
-    <option value="1">HDRUK</option>
-    <option value="2">BREATHE</option>
-    <option value="3">SAIL</option>
+    <option disabled value="-1" {% if component.value %} selected {% endif %} hidden>Select Organisation</option>
+    {% for option in component.options %}
+    <option value="{{ option.id }}" {% if component.value and component.value.name == option.name %} selected{% endif %}>{{ option.name }}</option>
+    {% endfor %}
   </select>
 </div>

@@ -43,9 +43,9 @@ class GenericEntity(models.Model):
     definition = models.TextField(null=True, blank=True)
     implementation = models.TextField(null=True, blank=True)
     validation = models.TextField(null=True, blank=True)
-    publications = ArrayField(models.CharField(max_length=500), blank=True, null=True)
-    tags = ArrayField(models.IntegerField(), blank=True, null=True) 
-    collections = ArrayField(models.IntegerField(), blank=True, null=True)   
+    publications = JSONField(blank=True, null=True)
+    tags = ArrayField(models.IntegerField(), blank=True, null=True)
+    collections = ArrayField(models.IntegerField(), blank=True, null=True)
     citation_requirements = models.TextField(null=True, blank=True)  # Any request for citation requirements to be honoured
     
     ''' Search vector fields '''
@@ -127,6 +127,11 @@ class GenericEntity(models.Model):
         indexes = [
             GinIndex(fields=['search_vector']),
             GinIndex(
+                name='ge_id_ln_gin_idx',
+                fields=['id'],
+                opclasses=['gin_trgm_ops']
+            ),
+            GinIndex(
                 name='ge_name_ln_gin_idx',
                 fields=['name'],
                 opclasses=['gin_trgm_ops']
@@ -139,6 +144,16 @@ class GenericEntity(models.Model):
             GinIndex(
                 name='ge_author_ln_gin_idx',
                 fields=['author'],
+                opclasses=['gin_trgm_ops']
+            ),
+            GinIndex(
+                name='ge_impl_ln_gin_idx',
+                fields=['implementation'],
+                opclasses=['gin_trgm_ops']
+            ),
+            GinIndex(
+                name='ge_val_ln_gin_idx',
+                fields=['validation'],
                 opclasses=['gin_trgm_ops']
             )
         ]

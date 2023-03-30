@@ -3,6 +3,31 @@
 @import '../_media';
 @import '../_utils';
 
+/// Contrained codelist table
+///   @desc Used to constrain codelist tables in phenotype creation
+.constrained-codelist-table {
+
+  @include flex-col();
+  position: relative;
+  width: 100%;
+	max-width: 100%;
+  border: 1px solid col(accent-washed);
+  overflow: hidden;
+
+  &__wrapper {
+    position: relative;
+    width: 100%;
+    padding: 0.5rem;
+  }
+
+  .overflow-table-constraint {
+    padding: 0.5rem;
+    position: relative;
+    width: calc(100% - 1rem);
+    max-width: 100%;
+  }
+}
+
 /// Horizontal scrollable table
 ///   @desc Used for codelists in phenotype creation -> columns can be stickified
 .h-scrollable-table {
@@ -12,6 +37,7 @@
   overflow: hidden;
   border: 1px solid col(accent-washed);
   max-width: 100%;
+  max-height: 300px;
 
   &__wrapper {
     width: 100%;
@@ -49,7 +75,6 @@
     background: col(accent-secondary);
   }
 
-  th.sticky,
   td.sticky {
     --column-offset: 0px;
 
@@ -57,5 +82,14 @@
     position: sticky;
     left: var(--column-offset);
     z-index: 2;
+  }
+  
+  th.sticky {
+    --column-offset: 0px;
+    position: -webkit-sticky;
+    position: sticky;
+    left: var(--column-offset);
+    top: 0;
+    z-index: 3;
   }
 }

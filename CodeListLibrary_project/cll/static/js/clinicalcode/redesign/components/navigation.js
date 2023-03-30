@@ -1,4 +1,4 @@
-import FuzzyQuery from "./fuzzyQuery.js";
+import FuzzyQuery from './fuzzyQuery.js';
 
 /**
   * updateNavBarStyle
@@ -66,6 +66,12 @@ const setNavigation = (navbar) => {
   const links = navbar.querySelectorAll('.page-navigation__items a');
 
   let path = getCurrentPath();
+  let brand = document.documentElement.getAttribute('data-brand');
+  if (brand != 'none') {
+    path = path.split('/')
+              .filter(token => !isStringEmpty(token) && token !== brand)
+              .join('/');
+  }
   path = path.toLocaleLowerCase();
 
   let distance, closest;

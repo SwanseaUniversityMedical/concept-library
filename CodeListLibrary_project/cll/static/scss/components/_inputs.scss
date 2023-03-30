@@ -29,8 +29,10 @@
 
   &__list {
     @include flex-col();
+    flex-wrap: nowrap;
     position: relative;
     width: 100%;
+    max-width: 100%;
     margin-top: 1rem;
 
     &-header {
@@ -45,11 +47,16 @@
 
     &-container {
       @include flex-col();
-      width: 100%;
-      max-width: 100%;
+      align-self: center;
+      flex-wrap: nowrap;
+      position: relative;
+      width: calc(100% - 0.5rem);
+      max-width: calc(100% - 0.5rem);
+      margin-top: 1rem;
       max-height: 200px;
       overflow-y: auto;
       overflow-x: none;
+      padding: 0.5rem;
     }
 
     &-item {
@@ -61,7 +68,7 @@
       &-url {
         display: flex;
         vertical-align: middle;
-        max-width: 70%;
+        max-width: 60%;
 
         @include media("<desktop", "screen") {
           max-width: 175px;
@@ -75,16 +82,20 @@
           max-width: 100px;
         }
         
+        p {
+          word-wrap: break-word;
+        }
+        
         a {
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+          text-align: right;
         }
       }
 
       &-btn {
         @include flex-row();
         @include prefix(transition, all 250ms ease, webkit moz o ms);
+        cursor: pointer;
+        pointer-events: auto;
         flex-wrap: nowrap;
         width: fit-content;
         height: fit-content;
@@ -100,14 +111,15 @@
 
         & > span {
           font-weight: bold;
+          pointer-events: none;
         }
         
         & > .delete-icon {
+          pointer-events: none;
           margin-right: 0.5rem;
           &:after {
             content: '\f057';
-            cursor: pointer;
-            pointer-events: auto;
+            pointer-events: none;
             aspect-ratio: 1 / 1;
             font-family: var(--icons-name);
             font-style: var(--icons-style);
@@ -166,6 +178,22 @@
   &__description {
     margin: 0 0 0.5rem 0;
     font-size: 14px;
+  }
+
+  &__error {
+    margin: 0 0 0.5rem 0;
+    font-size: 14px;
+    color: col(text-danger);
+  }
+
+  &__header {
+    @include flex-row();
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__header-item {
+    @include flex-col();
   }
 }
 
@@ -425,6 +453,11 @@
     transform: scale(0.9);
     -webkit-transform: scale(0.9);
   }
+
+  &:focus-visible + label {
+    outline: 1px solid black;
+    border-radius: 2pt;
+  }
 }
 
 .checkbox-item[type="checkbox"] {
@@ -450,6 +483,11 @@
   border: 1px solid var(--border-color, var(--border-accent));
   background: var(--bg-color, var(--background-accent));
   box-sizing: inherit;
+
+  &:focus-visible + label {
+    outline: 1px solid black;
+    border-radius: 2pt;
+  }
 
   &:after {
     @include prefix(transform, rotate(40deg), webkit moz o);

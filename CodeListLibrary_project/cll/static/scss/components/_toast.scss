@@ -1,0 +1,149 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+/// Snackbar/Toast notification popup (bottom right)
+/// @desc used by ToastNotification.js for popups - check script for example usage
+@keyframes toast-begin {
+  from {
+    @include prefix(transform, translateY(50%), webkit moz o ms);
+    opacity: 0;
+  }
+  to {
+    @include prefix(transform, translateY(0%), webkit moz o ms);
+    opacity: 1;
+  }
+}
+
+@keyframes toast-end {
+  0% {
+    transform: translateY(0%);
+    opacity: 1;
+  }
+
+  75% {
+    @include prefix(transform, translateX(75%), webkit moz o ms);
+    opacity: 0;
+  }
+
+  100% {
+    @include prefix(transform, translateX(100%), webkit moz o ms);
+  }
+}
+
+@keyframes toast-progress {
+  to {
+    @include prefix(transform, scaleX(0%), webkit moz o ms);
+  }
+}
+
+.toast-container {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  box-sizing: border-box;
+  z-index: 999997;
+
+  &__list {
+    @include flex-col($gap: 1rem);
+    flex-wrap: nowrap;
+    flex-direction: column-reverse;
+  }
+
+  .toast {
+    $self: '.toast';
+
+    @include prefix(transform, translateX(100%), webkit moz o ms);
+    @include box-shadow(0, 0, 10px, rgba(33, 33, 33, 0.5));
+    @include flex-row($gap: 1.5rem);
+    display: flex;
+    position: relative;
+    justify-content: space-between;
+    align-items: center;
+    min-width: 25%;
+    padding: 1rem 1rem 1rem 1.5rem;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    background-color: col(accent-dark);
+    border-radius: 0.25rem;
+    animation: toast-begin 250ms ease-in-out forwards;
+    opacity: 0;
+
+    &:not(#{$self}--active) {
+      animation-name: toast-end;
+      animation-duration: 250ms;
+    }
+
+    &__message {
+      @include app-font-style();
+      color: col(text-brightest);
+      line-height: 1rem;
+    }
+
+    &__close {
+      @include prefix(transition, opacity 250ms ease, webkit moz o ms);
+      cursor: pointer;
+      position: relative;
+      width: 1rem;
+      aspect-ratio: 1 / 1;
+
+      &:after {
+        content: '\f00d';
+        cursor: pointer;
+        position: absolute;
+        pointer-events: auto;
+        font-family: var(--icons-name);
+        font-style: var(--icons-style);
+        font-size: var(--icons-size);
+        color: col(text-brightest);
+        text-align: center;
+        transition: all 250ms ease;
+      }
+
+      &:hover:after {
+        opacity: 0.5;
+      }
+    }
+
+    &__progress {
+      --progress-color: var(--color-accent-washed);
+      --toast-duration: 2000ms;
+
+      display: block;
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      height: 4px;
+      width: 100%;
+      border-radius: 0 0 0 0.5rem;
+      background-color: var(--progress-color);
+      animation: toast-progress var(--toast-duration) ease-in-out backwards;
+      transform-origin: left;
+    }
+
+    &--information {
+      #{$self}__progress {
+        --progress-color: var(--color-accent-bubble);
+      }
+    }
+
+    &--success {
+      #{$self}__progress {
+        --progress-color: var(--color-accent-success);
+      }
+    }
+
+    &--warning {
+      #{$self}__progress {
+        --progress-color: var(--color-accent-warning);
+      }
+    }
+
+    &--danger {
+      #{$self}__progress {
+        --progress-color: var(--color-accent-danger);
+      }
+    }
+  }
+}

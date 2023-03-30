@@ -183,6 +183,7 @@ def ConceptDetail_combined(request, pk, concept_history_id=None):
     ''' 
         Display the detail of a concept at a point in time.
     '''
+
     # validate access for login and public site
     validate_access_to_view(request,
                             Concept,

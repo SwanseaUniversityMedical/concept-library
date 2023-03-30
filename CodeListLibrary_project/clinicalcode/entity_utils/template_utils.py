@@ -268,7 +268,6 @@ def get_template_sourced_values(template, field, default=None):
 
     return default
 
-
 def get_options_value(data, info, default=None):
     '''
         Tries to get the options parameter from a layout's field entry
@@ -358,7 +357,7 @@ def get_template_data_values(entity, layout, field, default=[]):
     elif field_type == 'concept':
         values = []
         for item in data:
-            value = model_utils.get_concept_data(
+            value = model_utils.get_clinical_concept_data(
                 item['concept_id'], item['concept_version_id']
             )
 

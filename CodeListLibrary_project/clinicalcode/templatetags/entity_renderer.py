@@ -8,7 +8,7 @@ from django.conf import settings
 import re
 import json
 
-from ..entity_utils import template_utils, search_utils, model_utils, constants
+from ..entity_utils import permission_utils, template_utils, search_utils, model_utils, create_utils, gen_utils, constants
 from ..models.GenericEntity import GenericEntity
 
 register = template.Library()
@@ -54,6 +54,27 @@ def render_pagination(context, *args, **kwargs):
         'pages': page_items
     }
 
+@register.filter(name='is_member')
+def is_member(user, args):
+    '''
+        Det. whether has a group membership
+
+        Args:
+            user {RequestContext.user()} - the user model
+            args {string} - a string, can be deliminated by ',' to confirm membership in multiple groups
+        
+        Returns:
+            {boolean} that reflects membership status
+    '''
+    if args is None:
+        return False
+    
+    args = [arg.strip() for arg in args.split(',')]
+    for arg in args:
+        if permission_utils.is_member(user, arg):
+            return True
+    return False
+
 @register.filter(name='jsonify')
 def jsonify(value, should_print=False):
     '''
@@ -62,8 +83,11 @@ def jsonify(value, should_print=False):
     if should_print:
         print(type(value), value)
     
+    if value is None:
+        value = { }
+    
     if isinstance(value, (dict, list)):
-        return json.dumps(value)
+        return json.dumps(value, cls=gen_utils.ModelEncoder)
     return model_utils.jsonify_object(value)
 
 @register.filter(name='trimmed')
@@ -302,8 +326,7 @@ class EntityFiltersNode(template.Node):
             if 'filterable' not in search:
                 continue
 
-            if field != 'template' or is_single_search:
-                output += self.__render_metadata_component(context, field, structure)
+            output += self.__render_metadata_component(context, field, structure)
 
         return output
     
@@ -330,23 +353,19 @@ class EntityFiltersNode(template.Node):
         return output
 
     def render(self, context):
+        entity_type = context.get('entity_type', None)
         layouts = context.get('layouts', None)
         if layouts is None:
             return ''
         
-        # When in dev env, 'Entity Type' filter will always be present
-        is_single_search = len(layouts.keys()) > constants.MIN_SINGLE_SEARCH or settings.DEBUG
+        is_single_search = entity_type is None
 
         # Render metadata
         output = self.__generate_metadata_filters(context, is_single_search)
 
         # Render template specific filters
-        if not is_single_search or settings.DEBUG:
+        if not is_single_search:
             output = self.__generate_template_filters(context, output, layouts)
-
-        # Include filter service
-        filter_service = static(constants.FILTER_SERVICE_FILE)
-        output += f'<script type="module" src="{filter_service}"></script>'
 
         return output
 
@@ -424,10 +443,7 @@ class EntityWizardSections(template.Node):
         self.nodelist = nodelist
     
     def __try_get_entity_value(self, template, entity, field):
-        if template_utils.is_metadata(entity, field):
-            value = template_utils.get_metadata_value_from_source(entity, field, default=None)
-        else:
-            value = template_utils.get_template_data_values(entity, template, field, default=None)
+        value = create_utils.get_template_creation_data(entity, template, field, default=None)
 
         if value is None:
             return template_utils.get_entity_field(entity, field)
@@ -441,6 +457,21 @@ class EntityWizardSections(template.Node):
             return ''
         else:
             return html
+    
+    def __try_get_computed(self, request, field):
+        struct = template_utils.get_layout_field(constants.metadata, field)
+        if struct is None:
+            return
+
+        validation = template_utils.try_get_content(struct, 'validation')
+        if validation is None:
+            return
+        
+        if not validation.get('computed'):
+            return
+        
+        if field == 'group':
+            return permission_utils.get_user_groups(request)
 
     def __generate_wizard(self, request, context):
         output = ''
@@ -448,7 +479,7 @@ class EntityWizardSections(template.Node):
         entity = context.get('entity', None)
         if template is None:
             return output
-
+        
         # We should be getting the FieldTypes.json related to the template
         field_types = constants.FIELD_TYPES
         for section in template.definition.get('sections'):
@@ -491,6 +522,9 @@ class EntityWizardSections(template.Node):
                 
                 if template_utils.is_metadata(GenericEntity, field):
                     options = template_utils.get_template_sourced_values(constants.metadata, field)
+
+                    if options is None:
+                        options = self.__try_get_computed(request, field)
                 else:
                     options = template_utils.get_template_sourced_values(template, field)
                 
@@ -501,7 +535,7 @@ class EntityWizardSections(template.Node):
                     component['value'] = self.__try_get_entity_value(template, entity, field)
                 else:
                     component['value'] = ''
-                
+
                 uri = f'{constants.CREATE_WIZARD_INPUT_DIR}/{component.get("input_type")}.html'
                 output += self.__try_render_item(template_name=uri, request=request, context=context.flatten() | { 'component': component })
 
