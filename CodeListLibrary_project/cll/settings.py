@@ -134,13 +134,18 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     # SCSS compilation
     'sass_processor.finders.CssFinder',
+    # Compressor
+    'compressor.finders.CompressorFinder',
 )
+
+# Compressor options
+COMPRESS_ENABLED = not DEBUG
 
 # SCSS options
 SASS_PROCESSOR_ENABLED = True
 SASS_PROCESSOR_AUTO_INCLUDE = True
 SASS_PROCESSOR_INCLUDE_FILE_PATTERN = r'^.+\.scss$'
-SASS_OUTPUT_STYLE = 'expanded'
+SASS_OUTPUT_STYLE = 'expanded' if DEBUG else 'compressed'
 
 # Binding and connection options
 # LDAP authentication  =======================================================
@@ -211,6 +216,8 @@ INSTALLED_APPS = INSTALLED_APPS + [
     'django.contrib.sitemaps',
     # SCSS
     'sass_processor',
+    # Compressor - asset management
+    'compressor'
 ]
 
 MIDDLEWARE = [

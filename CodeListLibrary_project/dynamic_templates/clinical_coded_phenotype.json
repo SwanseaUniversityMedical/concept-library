@@ -6,12 +6,12 @@
     {
       "title": "Definition",
       "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      "fields": ["name", "definition", "author", "event_date_range", "sex", "type", "tags", "collections", "data_sources" ]
+      "fields": ["name", "definition", "author", "event_date_range", "sex", "type", "tags", "collections", "data_sources"]
     },
     {
       "title": "Clinical Code List",
       "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      "fields": ["concept_information" ]
+      "fields": ["concept_information"]
     },
     {
       "title": "Implementation",
@@ -31,7 +31,7 @@
     {
       "title": "Permissions",
       "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      "fields": ["group"]
+      "fields": ["group", "group_access", "world_access"]
     }
   ],
 
@@ -89,7 +89,7 @@
       "active": true,
       "validation": {
         "type": "int_array",
-        "mandatory": true,
+        "mandatory": false,
         "source": {
           "table": "DataSource",
           "query": "id",
@@ -109,7 +109,7 @@
       "validation": {
         "type": "string",
         "mandatory": false,
-        "regex": "(?:\\d+\\/|\\d+)+-(?:\\d+\\/|\\d+)+"
+        "regex": "(?:\\d+\/|\\d+)+[\\s+]?-[\\s+]?(?:\\d+\/|\\d+)+"
       }
     },
     "sex": {
@@ -152,7 +152,7 @@
         "computed": true,
         "source": {
           "table": "CodingSystem",
-          "query": "id",
+          "query": "codingsystem_id",
           "relative": "name"
         }
       },
@@ -208,8 +208,9 @@
       "field_type": "concept_information",
       "active": true,
       "validation": {
-        "type": "int_array",
-        "mandatory": false
+        "type": "concept",
+        "mandatory": true,
+        "has_children": true
       },
       "side_menu": "Clinical Code lists"
     },
@@ -224,6 +225,15 @@
       },
       "hide_on_create": true,
       "hide_if_empty": true
+    },
+    "group": {
+      "is_base_field": true
+    },
+    "world_access": {
+      "is_base_field": true
+    },
+    "group_access": {
+      "is_base_field": true
     }
   }
 }

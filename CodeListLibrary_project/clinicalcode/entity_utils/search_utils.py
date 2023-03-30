@@ -1,53 +1,52 @@
 from django.apps import apps
 from django.db.models import Q
+from django.db.models.functions import Lower
 from django.core.paginator import EmptyPage, Paginator
 from django.contrib.postgres.search import TrigramSimilarity, SearchQuery, SearchRank, SearchVector
-import json
 
-from ..models import PublishedGenericEntity, GenericEntity, Template, Statistics
+import re
+
+from ..models.EntityClass import EntityClass
+from ..models.Template import Template
+from ..models.PublishedGenericEntity import PublishedGenericEntity
+from ..models.GenericEntity import GenericEntity
+from ..models.Statistics import Statistics
+from ..models.CodingSystem import CodingSystem
 from . import model_utils, permission_utils, template_utils, constants, gen_utils
 
-def get_request_body(body):
+def try_derive_entity_type(entity_type):
     '''
-        Decodes the body of a request and attempts to load it as JSON
+        Attempts to derive the entity type passed as a kwarg to the search view
+
+        Args:
+            entity_type {string}: the entity_type parameter
+        
+        Returns:
+            {list} containing the EntityClass ID if successful, otherwise returns None
     '''
-    try:
-        body = body.decode('utf-8');
-        body = json.loads(body)
-        return body
-    except:
+    if gen_utils.is_empty_string(entity_type):
         return None
+    
+    # If we've passed an ID, return it without checking
+    entity_id = gen_utils.parse_int(entity_type, default=None)
+    if entity_id is not None:
+        return [entity_id]
 
-def try_get_param(request, key, default=None, method='GET'):
-    '''
-        Attempts to get a param from a request by key
-            - If a default is passed and the key isn't present, the default is returned
-            - If the key is present, and the default is non-null, it tries to parse the value as the default's type
-    '''
-    try:
-        req = getattr(request, method)
-        param = req.get(key, default)
-    except:
-        return default
-    else:
-        if default is not None:
-            if type(key) is not type(default):
-                if isinstance(default, int):
-                    return gen_utils.parse_int(param)
-                # Add other types when necessary
+    # Try to match by name (need to replace URI encoding to spaces)
+    entity_type = entity_type.replace('-', ' ')
+    entity_cls = EntityClass.objects.annotate(name_lower=Lower('name')).filter(name_lower=entity_type)
+    if entity_cls.exists():
+        return entity_cls.first().id
+    return None
 
-    return param
 
 def perform_vector_search(queryset, search_query, min_rank=0.05, order_by_relevance=True, reverse_order=False):
     '''
-        Performs a search on generic entities' indexed search_vector field, includes the following fields:
-            1. Name
-            2. Definition
-            3. Author
+        Performs a search on generic entities' indexed search_vector field
     '''
     query = SearchQuery(search_query)
     if order_by_relevance:
-        vector = SearchVector('name', 'author', 'definition')
+        vector = SearchVector('search_vector')
         rank = SearchRank(vector, query)
         clause = '-rank' if not reverse_order else 'rank'
 
@@ -62,28 +61,21 @@ def perform_vector_search(queryset, search_query, min_rank=0.05, order_by_releva
 
 def perform_trigram_search(queryset, search_query, min_similarity=0.2, order_by_relevance=True, reverse_order=False):
     '''
-        Performs trigram fuzzy search on generic entities, includes the following indexed fields:
-            1. Name
-            2. Definition
-            3. Author
+        Performs trigram fuzzy search on generic entities
     '''
     if order_by_relevance:
         clause = '-similarity' if not reverse_order else 'similarity'
-        return queryset.annotate(
-            similarity=(
-                TrigramSimilarity('name', search_query) + \
-                TrigramSimilarity('definition', search_query) + \
-                TrigramSimilarity('author', search_query)
-            )
-        ) \
-        .filter(Q(similarity__gte=min_similarity)) \
-        .order_by(clause)
+        return queryset.filter(search_vector__icontains=search_query) \
+            .annotate(
+                similarity=(
+                    TrigramSimilarity('id', search_query) + \
+                    TrigramSimilarity('name', search_query)
+                )
+            ) \
+            .filter(Q(similarity__gte=min_similarity)) \
+            .order_by(clause)
     
-    return queryset.filter(
-        Q(name__trigram_similar=search_query) | \
-        Q(definition__trigram_similar=search_query) | \
-        Q(author__trigram_similar=search_query)
-    )
+    return queryset.filter(search_vector__icontains=search_query)
 
 def search_entities(queryset, search_query, min_threshold=0.05, fuzzy=True, order_by_relevance=True, reverse_order=False):
     '''
@@ -173,7 +165,7 @@ def validate_query_param(template, data, default=None):
     
     return default
 
-def apply_param_to_query(query, template, param, data, is_dynamic=False, force_term=False, is_api=False):
+def apply_param_to_query(query, where, template, param, data, is_dynamic=False, force_term=False, is_api=False):
     '''
         Tries to apply a URL param to a query if its able to resolve and validate the param data
     '''
@@ -218,7 +210,12 @@ def apply_param_to_query(query, template, param, data, is_dynamic=False, force_t
 
         if clean is not None:
             if is_dynamic:
-                query[f'template_data__{param}__contains'] = clean
+                q = ','.join([f"'{str(x)}'" for x in clean])
+                where.append("exists(select 1 " + \
+                    f"from jsonb_array_elements(case jsonb_typeof(template_data->'{param}') when 'array' then template_data->'{param}' else '[]' end) as val " + \
+                    f"where val in ({q})" + \
+                    ")"
+                )
             else:
                 query[f'{param}__overlap'] = clean
             return True
@@ -245,13 +242,13 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
             2. The template associated with each of the entities
     '''
     # Get related published entities
-    if entity_types is None:
+    if isinstance(entity_types, list) and len(entity_types) > 0:
         entities = PublishedGenericEntity.objects.filter(
+            entity__template__entity_class__id__in=entity_types,
             approval_status=constants.APPROVAL_STATUS.APPROVED
         )
     else:
         entities = PublishedGenericEntity.objects.filter(
-            entity__template__entity_class__id__in=entity_types,
             approval_status=constants.APPROVAL_STATUS.APPROVED
         )
     
@@ -301,47 +298,42 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
     
     # Build query from filters
     query = { }
+    where = [ ]
     for param, data in getattr(request, method).items():
         if param in metadata_filters:
             if template_utils.is_single_search_only(constants.metadata, param) and not is_single_search:
                 continue
-            apply_param_to_query(query, constants.metadata, param, data, force_term=force_term)
+            apply_param_to_query(query, where, constants.metadata, param, data, force_term=force_term)
         elif param in template_filters and not is_single_search:
             if template_fields is None:
                 continue
-            apply_param_to_query(query, template_fields, param, data, is_dynamic=True, force_term=force_term)
+            apply_param_to_query(query, where, template_fields, param, data, is_dynamic=True, force_term=force_term)
     
     # Collect all entities that are (1) published and (2) match request parameters
     entities = entities.filter(Q(**query))
+    entities = entities.extra(where=where)
 
     # Prepare order clause
-    search_order = try_get_param(request, 'order_by', '1', method)
+    search_order = gen_utils.try_get_param(request, 'order_by', '1', method)
     should_order_search = search_order == '1'
     search_order = template_utils.try_get_content(constants.ORDER_BY, search_order)
     if search_order is None:
         search_order = constants.ORDER_BY['1']
     
     # Apply any search param if present
-    search = try_get_param(request, 'search', None)
+    search = gen_utils.try_get_param(request, 'search', None)
     if search is not None:
-        queryset = GenericEntity.objects.filter(
+        entities = entities.filter(
             id__in=entities.values_list('id', flat=True)
         ) \
         .filter(
-            Q(search_vector=search) |
-            Q(author__search=search)
+            Q(search_vector__icontains=search)
         )
-
-        entities = GenericEntity.history \
-            .filter(
-                id__in=queryset.values_list('id', flat=True),
-                history_id__in=entities.values_list('history_id', flat=True)
-            )
         
         if should_order_search:
             entities = entities \
                 .annotate(
-                    similarity=TrigramSimilarity('name', search)
+                    similarity=(TrigramSimilarity('id', search) + TrigramSimilarity('name', search))
                 ) \
                 .order_by('-similarity')
 
@@ -372,10 +364,10 @@ def try_get_paginated_results(request, entities, page=None, page_size=None):
         Gets the paginated results based on request params and the given renderable entities
     '''
     if not page:
-        page = try_get_param(request, 'page', 1)
+        page = gen_utils.try_get_param(request, 'page', 1)
 
     if not page_size:
-        page_size = try_get_param(request, 'page_size', '1')
+        page_size = gen_utils.try_get_param(request, 'page_size', '1')
 
         if page_size not in constants.PAGE_RESULTS_SIZE:
             page_size = constants.PAGE_RESULTS_SIZE.get('1')
@@ -475,3 +467,150 @@ def try_get_template_statistics(field, brand='ALL', published=True, entity_type=
         return default
 
     return template_utils.try_get_content(stats, field)
+
+def search_codelist_by_pattern(coding_system, pattern, include_desc=True):
+    '''
+        Tries to match a coding system's codes by a valid regex pattern
+
+        Args:
+            coding_system {obj}: The coding system of interest
+            pattern {str}: The regex pattern
+            include_desc {boolean}: Whether to incl. the description in the match or not
+        
+        Returns:
+            A queryset containing all related codes of that particular coding system
+    '''
+    if not isinstance(coding_system, CodingSystem) or not isinstance(pattern, str):
+        return None
+    
+    # Validate the pattern before allowing it to be used in search
+    valid_pattern = False
+    try:
+        re.compile(pattern)
+    except re.error:
+        valid_pattern = False
+    else:
+        valid_pattern = True
+    
+    if not valid_pattern:
+        return None
+
+    # Match codes to pattern of that coding system
+    table = coding_system.table_name.replace('clinicalcode_', '')
+    codelist = apps.get_model(app_label='clinicalcode', model_name=table)
+
+    code_column = coding_system.code_column_name.lower()
+    desc_column = coding_system.desc_column_name.lower()
+
+    code_query = {
+        f'{code_column}__regex': pattern
+    }
+
+    if include_desc:
+        codes = codelist.objects.filter(Q(**code_query) | Q(**{
+            f'{desc_column}__regex': pattern
+        }))
+    else:
+        codes = codelist.objects.filter(**code_query)
+
+    '''
+        Required because:
+            1. Annotation needed to make naming structure consistent since the code tables aren't consistently named...
+            2. Distinct required because there are duplicate entires...
+    '''
+    codes = codes.extra(
+        select={
+            'code': code_column,
+            'description': desc_column,
+        }
+    ) \
+    .order_by(code_column) \
+    .distinct(code_column)
+
+    return codes
+
+def search_codelist_by_term(coding_system, search_term, include_desc=True):
+    '''
+        Fuzzy match codes in a coding system by a search term
+
+        Args:
+            coding_system {obj}: The coding system of interest
+            search_term {str}: The search term of interest
+            include_desc {boolean}: Whether to incl. the description in the search or not
+        
+        Returns:
+            A queryset containing all related codes of that particular coding system
+    '''
+    if not isinstance(coding_system, CodingSystem) or not isinstance(search_term, str):
+        return None
+
+    table = coding_system.table_name.replace('clinicalcode_', '')
+    codelist = apps.get_model(app_label='clinicalcode', model_name=table)
+
+    code_column = coding_system.code_column_name.lower()
+    desc_column = coding_system.desc_column_name.lower()
+
+    code_query = {
+        f'{code_column}__icontains': search_term 
+    }
+
+    if include_desc:
+        codes = codelist.objects.filter(Q(**code_query) | Q(**{
+            f'{desc_column}__icontains': search_term
+        })) \
+        .annotate(
+            similarity=(
+                TrigramSimilarity(f'{code_column}', search_term) + \
+                TrigramSimilarity(f'{desc_column}', search_term)
+            )
+        )
+    else:
+        codes = codelist.objects.filter(**code_query) \
+                                .annotate(
+                                    similarity=TrigramSimilarity(f'{desc_column}', search_term)
+                                )
+
+    '''
+        Required because:
+            1. Annotation needed to make naming structure consistent since the code tables aren't consistently named...
+            2. Distinct required because there are duplicate entires...
+    '''
+    codes = codes.extra(
+        select={
+            'code': code_column,
+            'description': desc_column,
+        }
+    ) \
+    .order_by(code_column, '-similarity') \
+    .distinct(code_column)
+
+    return codes
+
+def search_codelist(coding_system, search_term, include_desc=True, allow_wildcard=True):
+    '''
+        Attempts to search a codelist by a search term, given its coding system
+
+        Args:
+            coding_system {obj}: The assoc. coding system that is to be searched
+
+            search_term {str}: The search term used to query the table
+            
+            include_desc {boolean}: Whether to search by description
+
+            allow_wildcard {boolean}: Whether to check for, and apply, regex patterns
+                                    through the 'wildcard:' prefix
+        
+        Returns:
+            The QuerySet of codes (assoc. with the given codingsystem) that match the
+            search term
+        
+    '''
+    if not isinstance(coding_system, CodingSystem) or not isinstance(search_term, str):
+        return None
+    
+    if allow_wildcard and search_term.lower().startswith('wildcard:'):
+        matches = re.search('^wildcard:(.*)', search_term)
+        matches = matches.group(1).lstrip()
+        return search_codelist_by_pattern(coding_system, matches, include_desc)
+    
+    return search_codelist_by_term(coding_system, search_term, include_desc)

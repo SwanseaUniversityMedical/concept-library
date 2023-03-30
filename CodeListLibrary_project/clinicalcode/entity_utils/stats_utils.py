@@ -134,7 +134,14 @@ def collate_statistics(all_entities, published_entities):
     
     return statistics
 
+'''
+    Need to change this for several reasons:
+        1. We can utilise receivers and signals so we don't do this as a cronjob
+        2. Big O notation for this implementation is not great
+'''
 def collect_statistics(request):
+    user = request.user if request else None
+
     all_entities = GenericEntity.objects.all()
     published_entities = PublishedGenericEntity.objects.filter(approval_status=constants.APPROVAL_STATUS.APPROVED).order_by('-created').distinct()
 
@@ -158,14 +165,14 @@ def collect_statistics(request):
         if obj.exists():
             obj = obj.first()
             obj.stat = stats
-            obj.updated_by = [None, request.user][request.user.is_authenticated]
+            obj.updated_by = user
             obj.save()
         else:
             obj = Statistics.objects.create(
                 org=brand.name,
                 type='GenericEntity',
                 stat=stats,
-                created_by=[None, request.user][request.user.is_authenticated]
+                created_by=user
             )
     
     stats = collate_statistics(
@@ -181,12 +188,12 @@ def collect_statistics(request):
     if obj.exists():
         obj = obj.first()
         obj.stat = stats
-        obj.updated_by = [None, request.user][request.user.is_authenticated]
+        obj.updated_by = user
         obj.save()
     else:
         obj = Statistics.objects.create(
             org='ALL',
             type='GenericEntity',
             stat=stats,
-            created_by=[None, request.user][request.user.is_authenticated]
+            created_by=user
         )

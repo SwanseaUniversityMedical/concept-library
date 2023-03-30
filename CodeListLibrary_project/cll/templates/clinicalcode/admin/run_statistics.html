@@ -9,13 +9,13 @@
 {% endblock indexing_robots %}
 
 {% block title %}
-	Run Statistics - Admin Only
+	{% if pageName %} {{ pageName }} {% else %} Run Statistics {% endif %} - Admin Only
 {% endblock title %}
 
 {% block container %}
 
 {% if request.user.is_superuser %}
-	<h2><i class="fa fa-file-text-o" aria-hidden="true"></i> Run Statistics</h2>
+	<h2><i class="fa fa-file-text-o" aria-hidden="true"></i>{% if pageName %} {{ pageName }} {% else %} Run Statistics {% endif %}</h2>
 	{% if errorMsg %}
 		<div class="bs-example">
 		    <div class="alert alert-danger fade in">
