@@ -6,6 +6,7 @@
 
 @import 'components/_navigation';
 @import 'components/_about_menu';
+@import 'components/_profile_menu';
 @import 'components/_footer';
 @import 'components/_breadcrumbs';
 @import 'components/_stepsWizard';
@@ -21,6 +22,7 @@
 @import 'components/_filters';
 @import 'components/_pagination';
 @import 'components/_markdown';
+@import 'components/_dropdown';
 
 // Need to add vendor's properties to brand map
 @import 'vendor/_lightpick';

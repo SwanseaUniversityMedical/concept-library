@@ -3,51 +3,47 @@
 @import "../_media";
 @import "../_utils";
 
-
-
-
-.dropdown {
-  float: left;
-  overflow: hidden;
-}
-
-.dropdown-content {
-  display: none;
-  position: fixed;
-  padding: 1em 1.5em;
-  box-sizing: border-box;
-  perspective: 200px;
-  z-index: 1;
-}
-
 .row {
-  z-index: 999;
-  background-color: white;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  border-radius: 1em;
-  padding: 1.5em;
-  margin: 0 5em 0 -5em;
+  &__about {
 
- 
-  position: absolute;
-  top: 0.5em;
-  box-sizing: border-box;
-  -webkit-box-shadow: 0px 10px 70px rgba(0,0,0,0.15);
-      box-shadow: 0px 10px 70px rgba(0,0,0,0.15);
+    background-color: white;
 
-  .content-container{
-    list-style: none;
-    .item-dropdown{
+    @include grid-template(false, 2, 1fr);
+
+    border-radius: 1em;
+    padding: 1.5em;
+    margin: 0 5em 0 -5em;
+
+    position: absolute;
+    top: 0;
+    box-sizing: border-box;
+    -webkit-box-shadow: 0px 10px 70px rgba(0, 0, 0, 0.15);
+    box-shadow: 0px 10px 70px rgba(0, 0, 0, 0.15);
+
+    .content-container {
+      list-style: none;
+      
+
+      &__full{
+        grid-column: 1 / span 2;
+        list-style: none;
+      }
+
+     
+
+    }
+
+  
+
+    .item-dropdown {
       display: flex;
       justify-content: flex-start;
       padding: 0.5em 0;
       margin: 0 22px;
       text-decoration: none;
       flex-direction: row;
- 
 
-      &__icon{
+      &__icon {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -58,23 +54,20 @@
         border-radius: 6px;
         background: #f2f2f2;
         @include prefix(transition, all 250ms ease-in, webkit moz o);
-        
       }
 
-      &__text{
+      &__text {
         @include prefix(transition, all 250ms ease-in, webkit moz o);
         flex-grow: 1;
-        
       }
 
-      &__title{
+      &__title {
         display: flex;
         align-items: center;
         font-size: 14px;
         line-height: 14px;
         font-weight: 500;
-        color: black
-
+        color: black;
       }
 
       &__description {
@@ -84,43 +77,19 @@
         font-size: 12px;
         font-weight: 400;
       }
-
     }
 
-  }
-}
-
-
-
-.dropdown {
-  &:hover {
-    .dropdown-content {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
+    hr {
+      display: block;
+      height: 1px;
+      border: 0;
+      margin-right: 1.5em;
+      margin-left: 1.5em;
+      background: #e7e7e9;
     }
 
-    .dropdown-text::after {
-      opacity: 1;
-    }
-  
+
+
+ 
   }
-
-  .dropdown-text::after {
-    left: calc(50% - 10px);
-    border-right: 10px solid transparent;
-    border-bottom: 10px solid #ffffff;
-    border-left: 10px solid transparent;
-    content: "";
-    opacity: 0;
-    z-index: 999;
-    bottom: 0;
-    position: absolute;
-  }
-
-  
-
-
-  
-
 }

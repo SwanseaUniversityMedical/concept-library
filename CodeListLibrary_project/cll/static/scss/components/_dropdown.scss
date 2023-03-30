@@ -1,0 +1,60 @@
+@import "../_methods";
+@import "../_variables";
+@import "../_media";
+@import "../_utils";
+
+
+
+
+.dropdown {
+  float: left;
+  overflow: hidden;
+}
+
+.dropdown-content {
+  display: none;
+  position: fixed;
+  padding: 1em 1.5em;
+  box-sizing: border-box;
+  z-index: 1;
+}
+
+.support-field{
+  z-index: 999;
+}
+
+
+.dropdown {
+  &:hover {
+    .dropdown-content {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      -webkit-box-shadow: 0px 10px 70px rgba(0, 0, 0, 0.15);
+      box-shadow: 0px 10px 70px rgba(0, 0, 0, 0.15);
+    }
+
+    .dropdown-text::after {
+      opacity: 1;
+    }
+  
+  }
+
+  .dropdown-text::after {
+    left: calc(50% - 10px);
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid #ffffff;
+    border-left: 10px solid transparent;
+    content: "";
+    opacity: 0;
+    z-index: 999;
+    bottom: 0;
+    position: absolute;
+  }
+
+  
+
+
+  
+
+}

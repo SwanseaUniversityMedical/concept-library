@@ -47,9 +47,12 @@
         {% url 'login' as login_url %}
         {% if not user.is_authenticated %}
           <!-- Need to change to profile later -->
-          <a href="{{ login_url }}" id="Profile" role="profile">My Profile</a>
-        {% else %}
           <a href="{{ login_url }}" id="Login" role="login">Login</a>
+        {% else %}
+        {% block profile_wrapper %}
+          {% include "components/base/profile_menu.html" %}
+        {% endblock profile_wrapper %}
+          
         {% endif %}
       </div>
     </div>
