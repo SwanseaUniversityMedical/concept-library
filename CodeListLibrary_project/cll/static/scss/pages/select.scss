@@ -6,18 +6,6 @@
 /// Select template
 ///   @desc Stylesheet relating to page that allows selection of which entity/template to create
 
-/*
-
-  Todo:
-    1. Selection UI
-      - Select entity type
-      - Once card is active, show entity templates
-      - 'Next' button disable/enable based on whether active
-
-    2. Fix the anchors for cards + remove anim for search items
-
-*/
-
 .entity-panel {
   @include flex-col();
   position: relative;

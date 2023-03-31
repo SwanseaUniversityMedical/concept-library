@@ -1,9 +1,9 @@
 from django.apps import apps
-from django.db.models import Q
-from django.contrib.auth.models import Group, User
+from django.db.models import Q, F
 from django.utils.timezone import make_aware
 from datetime import datetime
 
+from ..models.EntityClass import EntityClass
 from ..models.Template import Template
 from ..models.GenericEntity import GenericEntity
 from ..models.CodingSystem import CodingSystem
@@ -25,6 +25,22 @@ def try_validate_entity(request, entity_id, entity_history_id):
         return False
     
     return GenericEntity.history.get(id=entity_id, history_id=entity_history_id)
+
+def get_createable_entities(request):
+    '''
+        Used to retrieve information relating to the entities that can
+        be created and their associated templates
+    '''
+    entities = EntityClass.objects.all().values('id', 'name', 'description', 'entity_prefix')
+    templates = Template.objects.filter(
+        entity_class__id__in=entities.values_list('id', flat=True)
+    ) \
+    .values('id', 'template_version', 'entity_class__id', 'name', 'description')
+    
+    return {
+        'entities': list(entities),
+        'templates': list(templates)
+    }
 
 def get_template_creation_data(entity, layout, field, default=[]):
     '''
@@ -260,22 +276,32 @@ def validate_computed_field(request, field, field_data, value, errors=[]):
     if field_type is None:
         return value
     
-    if field == 'group':
+    field_info = GenericEntity._meta.get_field(field)
+    if not field_info:
+        return
+    
+    field_type = field_info.get_internal_type()
+    if field_type != 'ForeignKey':
+        return
+    
+    model = field_info.target_field.model
+    if model is not None:
         field_value = gen_utils.try_value_as_type(value, field_type, validation)
         if field_value is None:
             return None
         
-        group = model_utils.try_get_instance(Group, id=field_value)
-        if group is None:
+        instance = model_utils.try_get_instance(model, pk=field_value)
+        if instance is None:
             errors.append(f'"{field}" is invalid')
             return None
         
-        is_member = user.is_superuser or user.groups.filter(name__iexact=group.name).exists()
-        if not is_member:
-            errors.append(f'Tried to set {field} without being a member of that group.')
-            return None
+        if field == 'group':
+            is_member = user.is_superuser or user.groups.filter(name__iexact=instance.name).exists()
+            if not is_member:
+                errors.append(f'Tried to set {field} without being a member of that group.')
+                return None
         
-        return group
+        return instance
     
     return value
 

@@ -15,6 +15,12 @@
 <meta http-equiv="Expires" content="0" />
 {% endblock cache_tags %}
 
+{% block indexing_robots %}
+  {% with stop_robot_indexing=True %}
+    {{ block.super }}
+  {% endwith %}
+{% endblock indexing_robots %}
+
 {% block container %}
   <!-- Vendor -->
   <link rel="stylesheet" type="text/css" href="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.css' %}" />

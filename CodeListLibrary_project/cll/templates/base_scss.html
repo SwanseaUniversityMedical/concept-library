@@ -20,10 +20,10 @@
     <meta name="description" content="{% block description %}{% if not request.CURRENT_BRAND|length %}The concept library is a system for storing, managing, sharing, and documenting clinical code lists in health research.{% endif %}{% endblock description %}">
     <meta name="keywords" content="Concept Library{% if request.CURRENT_BRAND|length and request.BRAND_OBJECT.site_title is not none %}, {{ request.BRAND_OBJECT.site_title }}{% endif %}{% block keywords %}{% endblock keywords %}">
     {% block indexing_robots %}
-      {% if IS_DEMO or IS_DEVELOPMENT_PC or IS_HDRUK_EXT == '0' %}
+      {% if IS_DEMO or IS_DEVELOPMENT_PC or IS_HDRUK_EXT == '0' or stop_robot_indexing %}
         <meta name="robots" content="noindex, nofollow">
         <meta name="googlebot" content="noindex, nofollow">
-      {% endif %} 
+      {% endif %}
     {% endblock indexing_robots %}
 
     {% block cache_tags %}
