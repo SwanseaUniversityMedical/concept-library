@@ -27,13 +27,17 @@
       &__full{
         grid-column: 1 / span 2;
         list-style: none;
+
+        a{
+          background-image: none;
+        }
+
       }
 
      
 
     }
 
-  
 
     .item-dropdown {
       display: flex;
@@ -68,6 +72,15 @@
         line-height: 14px;
         font-weight: 500;
         color: black;
+      }
+
+      &__dropdownlink{
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        line-height: 14px;
+        font-weight: 500;
+        color: blue;
       }
 
       &__description {
