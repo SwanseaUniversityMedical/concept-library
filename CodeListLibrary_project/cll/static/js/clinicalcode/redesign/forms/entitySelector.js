@@ -1,4 +1,9 @@
-
+/**
+ * collectEntityData
+ * @desc Method that retrieves all relevant <data/> and <template/> elements with
+ *       its data-owner attribute pointing to the entity selector
+ * @return {object} An object describing the data collected
+ */
 const collectEntityData = () => {
   const output = {
     templates: { },
@@ -32,6 +37,18 @@ const collectEntityData = () => {
   return output;
 }
 
+/**
+ * createCard
+ * @desc method to interpolate a card using a template
+ * @param {node} container the container element
+ * @param {string} template the template fragment
+ * @param {*} id any data value
+ * @param {*} type any data value
+ * @param {*} hint any data value
+ * @param {*} title any data value
+ * @param {*} description any data value
+ * @returns {node} the interpolated element after appending to the container node
+ */
 const createCard = (container, template, id, type, hint, title, description) => {
   const html = interpolateHTML(template, {
     'type': type,
@@ -45,6 +62,11 @@ const createCard = (container, template, id, type, hint, title, description) => 
   return container.appendChild(doc.body.children[0]);
 }
 
+/**
+ * redrawConfirmation
+ * @desc toggles the disabled state of the 'next-btn' element
+ * @param {object} currentOptions the current state of the selector
+ */
 const redrawConfirmation = (currentOptions) => {
   const { entity, template } = currentOptions;
 
@@ -52,6 +74,13 @@ const redrawConfirmation = (currentOptions) => {
   continueButton.disabled = isNullOrUndefined(entity) || isNullOrUndefined(template);
 }
 
+/**
+ * redrawTemplate
+ * @desc redraws the template cards
+ * @param {object} templates describes all the template fragments as returned by collectEntityData
+ * @param {object} datasets describes all the dataset information as returned by collectEntityData
+ * @param {object} currentOptions describes the current selector state
+ */
 const redrawTemplate = (templates, datasets, currentOptions) => {
   const templateOptions = document.querySelector('#entity-templates');
   const root = tryGetRootElement(templateOptions, 'entity-panel__group');
@@ -84,6 +113,11 @@ const redrawTemplate = (templates, datasets, currentOptions) => {
   root.classList.remove('hide');
 }
 
+/**
+ * initialiseSelector
+ * @desc initialises the selector form, creates the initial entity cards and handles user interaction
+ * @param {*} formData 
+ */
 const initialiseSelector = (formData) => {
   const { templates, datasets } = formData;
   const continueButton = document.querySelector('#next-btn');
@@ -125,6 +159,7 @@ const initialiseSelector = (formData) => {
   });
 }
 
+// Main
 domReady.finally(() => {
   const formData = collectEntityData();
   initialiseSelector(formData);
