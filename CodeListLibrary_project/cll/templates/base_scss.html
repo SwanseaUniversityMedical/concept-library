@@ -5,6 +5,10 @@
 {% load i18n %}
 {% load cl_extras %}
 
+{% if SHOW_COOKIE_ALERT %}
+  {% load cookielaw_tags %}
+{% endif %}
+
 <!DOCTYPE html>
 {% get_current_language as LANGUAGE_CODE %}
 {% if request.CURRENT_BRAND|length %}
@@ -48,6 +52,10 @@
       <script type="text/javascript" src="{% static "js/clinicalcode/redesign/accessibility.js" %}"></script>
     {% endcompress %}
 
+    {% block jquery %}
+      <script src="{% static 'js/lib/jquery/jquery-3.1.1.min.js' %}" type="text/javascript"></script>
+    {% endblock jquery %}
+	
     <!-- Page details -->
     <title>
       {% if request.CURRENT_BRAND|length and request.BRAND_OBJECT.site_title is not none %}
@@ -58,9 +66,9 @@
       {% block title %}{% endblock title %}
     </title>
 
-		{% block head %}{% endblock head %}
+     {% block head %}{% endblock head %}
   </head>
-  <body class="{% block bodyclass %}{% endblock bodyclass %}">
+  <body class="{% block bodyclass %}{% endblock bodyclass %}" {% block bodyattr %}{% endblock bodyattr %} >
     {% block navigation_wrapper %}
       {% if not hide_navigation %}
         {% include "components/base/navigation.html" %}
@@ -77,5 +85,15 @@
         {% include "components/base/footer.html" %}
       {% endif %}
     {% endblock footer_wrapper %}
+    
+    
+    {% block scripts %}
+      <!-- script -->
+	{% endblock scripts %}
+
+	{% if SHOW_COOKIE_ALERT %}
+	    {% cookielaw_banner %}
+	{% endif %}		
+	
   </body>
 </html>

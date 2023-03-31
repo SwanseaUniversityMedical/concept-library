@@ -7,6 +7,8 @@ from django.urls import re_path as url
 from django.contrib.auth import views as auth_views
 
 from .views import (GenericEntity, adminTemp, Profile, Moderation)
+from clinicalcode.views import Publish
+from clinicalcode.views import Decline
 
 from django.urls import path
 from django.views.generic.base import TemplateView
@@ -28,13 +30,18 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
         url(r'^create/(?P<template_id>[\d]+)/?$', GenericEntity.CreateEntityView.as_view(), name='create_entity'),
         url(r'^update/(?P<entity_id>\w+)/(?P<entity_history_id>\d+)/?$', GenericEntity.CreateEntityView.as_view(), name='update_entity'),
         
-        url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/detail/$', GenericEntity.generic_entity_detail, name='generic_entity_history_detail'),
+        url(r'^ge/(?P<pk>PH\d+)/detail/$', GenericEntity.generic_entity_detail, name='entity_detail'),
+        url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/detail/$', GenericEntity.generic_entity_detail, name='entity_history_detail'),
 
         url(r'^ge/(?P<pk>PH\d+)/uniquecodesbyversion/(?P<history_id>\d+)/concept/C(?P<target_concept_id>\d+)/(?P<target_concept_history_id>\d+)/$',
             GenericEntity.phenotype_concept_codes_by_version,
             name='ge_phenotype_concept_codes_by_version'),
+            
+        url(r'^ge/(?P<pk>PH\d+)/(?P<history_id>\d+)/publish/$',Publish.Publish.as_view(),name='generic_entity_publish'),
+        url(r'^ge/(?P<pk>PH\d+)/(?P<history_id>\d+)/decline/$',Decline.EntityDecline.as_view(),name='generic_entity_decline'),
+        url(r'^ge/(?P<pk>PH\d+)/(?P<history_id>\d+)/submit/$',Publish.RequestPublish.as_view(),name='generic_entity_request_publish'),
         
-        url(r'^he/(?P<pk>PH\d+)/export/codes/$', GenericEntity.history_phenotype_codes_to_csv, name='ge_latestVersion_phenotype_codes_to_csv'),
+        url(r'^ge/(?P<pk>PH\d+)/export/codes/$', GenericEntity.history_phenotype_codes_to_csv, name='ge_latestVersion_phenotype_codes_to_csv'),
         url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/export/codes/$', GenericEntity.history_phenotype_codes_to_csv, name='ge_history_phenotype_codes_to_csv'),   
 
         # Example - remove at production
@@ -107,5 +114,6 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
 #                 name='phenotypeworkingset_create_restore'),
 #         ]
 
+       
 
 
