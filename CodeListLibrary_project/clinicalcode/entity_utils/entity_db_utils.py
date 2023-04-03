@@ -563,9 +563,11 @@ def get_historical_entity(history_id, highlight_result=False, q_highlight=None, 
                             , websearch_to_tsquery('english', %s)
                             , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as implementation_highlighted,                                              
                                                                   
+                    /*
                     ts_headline('english', coalesce(array_to_string(hge.publications, '^$^'), '')
                             , websearch_to_tsquery('english', %s)
-                            , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publications_highlighted,    
+                            , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publications_highlighted, 
+                    */   
                             
                     ts_headline('english', coalesce(hge.validation, '')
                             , websearch_to_tsquery('english', %s)
@@ -585,7 +587,7 @@ def get_historical_entity(history_id, highlight_result=False, q_highlight=None, 
         hge.definition,
         hge.implementation,
         hge.validation,
-        hge.publications,            
+        hge.publications::json,            
         hge.tags,
         hge.collections,    
         hge.citation_requirements,
@@ -634,7 +636,8 @@ def get_historical_entity(history_id, highlight_result=False, q_highlight=None, 
         row_dict = dict(zip(col_names, row))
 
         if highlight_columns != '':
-            row_dict['publications_highlighted'] = row_dict['publications_highlighted'].split('^$^')
+            #row_dict['publications_highlighted'] = row_dict['publications_highlighted'].split('^$^')
+            row_dict['publications_highlighted'] = row_dict['publications']
         else:
             row_dict['name_highlighted'] = row_dict['name']
             row_dict['author_highlighted'] = row_dict['author']

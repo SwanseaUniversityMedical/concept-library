@@ -34,6 +34,39 @@
       "fields": ["group", "group_access", "world_access"]
     }
   ],
+  
+  "detail_page_sections": [
+    {
+      "title": "Home",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "fields": ["name", "author", "id", "version_id", "phenotype_uuid", "type", "data_sources", "sex", "event_date_range", "coding_system", "collections", "tags"]
+    },
+    {
+      "title": "Definition",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "fields": ["definition"]
+    },
+    {
+      "title": "Implementation",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "fields": ["implementation"]
+    },
+    {
+      "title": "Publications",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "fields": ["publications","citation_requirements"]
+    },
+     {
+      "title": "Validation",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "fields": ["validation"]
+    },   
+    {
+      "title": "Clinical Code List",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "fields": ["concept_information"]
+    }
+  ],  
 
   "fields": {
     "name": {

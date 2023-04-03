@@ -52,7 +52,7 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
 
         # Example - remove at production
         url(r'^ge/example/$', GenericEntity.ExampleSASSView.as_view(), name='example_phenotype'),
-        url(r'^search/temp/$', GenericEntity.generic_entity_list_temp, name='generic_entity_list_temp'),
+        url(r'^ge/search/temp/$', GenericEntity.generic_entity_list_temp, name='generic_entity_list_temp'),
 
         # Profile
         url(r'profile/$', Profile.MyProfile.as_view(), name='my_profile'),

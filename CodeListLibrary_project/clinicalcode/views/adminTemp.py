@@ -37,7 +37,7 @@ import os
 from django.core.exceptions import PermissionDenied
 from django.db import connection, connections  # , transaction
 from rest_framework.reverse import reverse
-        
+from django.db.models import Q        
         
 @login_required
 def api_remove_data(request):
@@ -539,7 +539,7 @@ def try_parse_doi(publications):
     return output
 
 @login_required
-def admin_mig_phenotypes_dt(request):
+def admin_mig_phenotypes_dt_XXX(request):
     # for admin(developers) to migrate phenotypes into dynamic template
    
     if settings.CLL_READ_ONLY: 
@@ -767,9 +767,170 @@ def get_custom_fields_key_value(phenotype):
     
     return get_custom_fields(phenotype)
     
+    
 
     
     
     
     
     
+    
+    
+    
+    
+@login_required
+def admin_mig_phenotypes_dt(request):
+    # for admin(developers) to migrate phenotypes into dynamic template
+   
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not is_member(request.user, 'system developers'):
+        raise PermissionDenied
+    
+
+    if request.method == 'GET':
+        if not settings.CLL_READ_ONLY: 
+            return render(request, 'clinicalcode/adminTemp/admin_mig_phenotypes_dt.html', 
+                          {'url': reverse('admin_mig_phenotypes_dt'),
+                           'action_title': 'Migrate Phenotypes'
+                        })
+    
+    elif request.method == 'POST':
+        if not settings.CLL_READ_ONLY: 
+            code = request.POST.get('code')
+            if code.strip() != "6)r&9hpr_a0_4g(xan5p@=kaz2q_cd(v5n^!#ru*_(+d)#_0-i":
+                raise PermissionDenied
+    
+            phenotype_ids = request.POST.get('phenotype_ids')
+            phenotype_ids = phenotype_ids.strip().upper()
+
+            rowsAffected = {} 
+            
+            if phenotype_ids:
+                if phenotype_ids == 'ALL': # mig ALL                    
+                    with connection.cursor() as cursor:
+                        sql = "truncate table clinicalcode_historicalgenericentity restart identity; "
+                        cursor.execute(sql)
+                        sql2 = "truncate table clinicalcode_historicalpublishedgenericentity restart identity; "
+                        cursor.execute(sql2)   
+                        sql3 = "truncate table clinicalcode_genericentity,public.clinicalcode_publishedgenericentity restart identity; "
+                        cursor.execute(sql3)           
+                    
+                    
+                        mig_h_pheno = """
+                        INSERT INTO clinicalcode_historicalgenericentity(
+                            id, name, author, status, tags, collections, definition
+                            , implementation, validation, citation_requirements
+                            , template_data, template_id, template_version, internal_comments
+                            , created, updated, is_deleted, deleted, owner_access, group_access, world_access
+                            , history_id, history_date, history_change_reason, history_type, history_user_id
+                            , created_by_id, deleted_by_id, group_id, owner_id, updated_by_id
+                            )
+                        SELECT id, name, author, 2 status, tags, collections, description definition
+                            , implementation, validation, citation_requirements
+                            , '{}' template_data, 1 template_id, 1 template_version, '' internal_comments
+                            , created, modified updated, is_deleted, deleted, owner_access, group_access, world_access
+                            , history_id, history_date, history_change_reason, history_type, history_user_id
+                            , created_by_id, deleted_by_id, group_id, owner_id, updated_by_id
+                        FROM clinicalcode_historicalphenotype;
+                        """
+                        cursor.execute(mig_h_pheno) 
+                    
+                        mig_pheno = """
+                        INSERT INTO clinicalcode_genericentity(
+                            id, name, author, status, tags, collections, definition
+                            , implementation, validation, citation_requirements
+                            , template_data, template_id, template_version, internal_comments
+                            , created, updated, is_deleted, deleted, owner_access, group_access, world_access
+                            , created_by_id, deleted_by_id, group_id, owner_id, updated_by_id
+                            )
+                        SELECT id, name, author, 2 status, tags, collections, description definition                       
+                            , implementation, validation, citation_requirements
+                            , '{}' template_data, 1 template_id, 1 template_version, '' internal_comments
+                            , created, modified updated, is_deleted, deleted, owner_access, group_access, world_access
+                            , created_by_id, deleted_by_id, group_id, owner_id, updated_by_id
+                        FROM clinicalcode_phenotype;
+                        """
+                        cursor.execute(mig_pheno)
+                    
+                        mig_h_published_records = """
+                        insert into clinicalcode_historicalpublishedgenericentity(
+                            id, entity_id, entity_history_id, code_count
+                            , moderator_id, approval_status
+                            , created, created_by_id, modified, modified_by_id
+                            , history_id, history_date, history_change_reason, history_type, history_user_id
+                            )    
+                        SELECT id, phenotype_id, phenotype_history_id, null code_count
+                            , moderator_id, approval_status
+                            , created, created_by_id, modified, modified_by_id
+                            , history_id, history_date, history_change_reason, history_type, history_user_id
+                            FROM clinicalcode_historicalpublishedphenotype
+                            where phenotype_id like 'PH%';
+                        """
+                        cursor.execute(mig_h_published_records)
+                    
+                        mig_published_records = """
+                        insert into clinicalcode_publishedgenericentity(
+                            id, entity_id, entity_history_id, code_count
+                            , moderator_id, approval_status
+                            , created, created_by_id, modified, modified_by_id
+                            )    
+                        SELECT id, phenotype_id, phenotype_history_id, null code_count
+                            , moderator_id, approval_status
+                            , created, created_by_id, modified, modified_by_id
+                            FROM clinicalcode_publishedphenotype
+                            where phenotype_id like 'PH%';
+                        """
+                        cursor.execute(mig_published_records)                           
+                    
+                    ######################################
+                    live_pheno = Phenotype.objects.all()
+                    for p in live_pheno:
+                        temp_data = get_custom_fields_key_value(p)
+                        publication_items = try_parse_doi([i.replace("'", "''") for i in p.publications])
+                        with connection.cursor() as cursor:
+                            sql_p = """ update  clinicalcode_genericentity  
+                                    set template_data = '"""+json.dumps(temp_data)+"""'
+                                        , publications= '"""+json.dumps(publication_items)+"""'
+                                    where id ='"""+p.id+"""' ;
+                                    """
+                            cursor.execute(sql_p)
+                            
+                            sql_entity_count = "update clinicalcode_entityclass set entity_count ="+str(live_pheno.count())+";"
+                            cursor.execute(sql_entity_count)
+
+                    historical_pheno = Phenotype.history.filter(~Q(id='x'))
+                    for p in historical_pheno:
+                        temp_data = get_custom_fields_key_value(p)
+                        publication_items = try_parse_doi([i.replace("'", "''") for i in p.publications])
+                        with connection.cursor() as cursor:
+                            sql_p = """ update  clinicalcode_historicalgenericentity  
+                                    set template_data = '"""+json.dumps(temp_data)+"""'
+                                        , publications= '"""+json.dumps(publication_items)+"""'
+                                    where id ='"""+p.id+"""' and history_id='"""+str(p.history_id)+"""';
+                                    """
+                            cursor.execute(sql_p)
+                                                      
+                    ######################################
+                    rowsAffected[1] = "phenotypes migrated."
+                        
+                        
+             
+    
+            else:
+                rowsAffected[-1] = "Phenotype IDs NOT correct"
+    
+            return render(request,
+                        'clinicalcode/adminTemp/admin_mig_phenotypes_dt.html',
+                        {   'pk': -10,
+                            'rowsAffected' : rowsAffected,
+                            'action_title': 'Migrate Phenotypes'
+                        }
+                        )
+            
+
+
