@@ -8,6 +8,7 @@
 
 
   <!-- about tab -->
+  <script type="module" src="{% static "js/clinicalcode/redesign/components/brandurls.js" %}"></script>
   <div class="dropdown">
     <div class="dropdown-text">
         <a href="{{ login_url }}" id="Profile" role="profile">My Profile</a>
@@ -28,18 +29,20 @@
           </a>
         </li>
         <hr>
+        {% if request.user.is_superuser  and request.session.all_brands %}
+        {% include "components/search/cards/dropdown_image_listitem.html" with  currentBrand="" image="/static/img/header_logo.png" title="Concept Library" %}
+        {% endif %}
 
-        <li class="content-container">
-          <a href="#" class="item-dropdown">
-            <div class="item-dropdown__icon"><img alt="Logo" src="/static/img/header_logo.png">
-              </div>
+       
 
-              <div class="item-dropdown__title">Concept Library</div>
-          </a>
-        </li>
+        {% for brand in request.session.all_brands %}
+        {% include "components/search/cards/dropdown_image_listitem.html" with  currentBrand=brand|upper  image="/static/img/header_logo.png" title=brand|upper %}
+								{% endfor %}
 
 
-        <li class="content-container">
+
+<!--
+ <li class="content-container">
           <a href="#" class="item-dropdown">
             <div class="item-dropdown__icon"><img   alt="HDRUK Logo" src="/static/img/brands/HDRUK/header_logo.png">
               </div>
@@ -66,6 +69,9 @@
 
           </a>
         </li>
+
+-->
+       
 
         <hr> 
 
