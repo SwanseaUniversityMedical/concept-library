@@ -1,14 +1,18 @@
 from django.contrib.auth.models import User
 from rest_framework.response import Response
+from django.db.models import ForeignKey
 from rest_framework import status
 from copy import deepcopy
 
 from ..models.GenericEntity import GenericEntity
 from ..models.Template import Template
+from ..models.Concept import Concept
 from . import model_utils
 from . import template_utils
 from . import permission_utils
 from . import search_utils
+from . import create_utils
+from . import gen_utils
 from . import constants
 
 ''' Parameter validation '''
@@ -105,6 +109,9 @@ def get_entity_version_history(request, entity_id):
 ''' Formatting helpers '''
 
 def get_layout_from_entity(entity):
+  '''
+
+  '''
   layout = entity.template
   if not layout:
     return Response(
@@ -125,14 +132,17 @@ def get_layout_from_entity(entity):
     )
   
   version = template_utils.try_get_content(entity.template_data, 'version')
+  if not version:
+    version = getattr(entity, 'template_version')
+
   if version:
-    template_version = Template.history.filter(
+    template_version = Template.history.get(
       id=entity.template.id,
       template_version=version
     )
 
-    if template_version.exists():
-      return template_version.first().definition
+    if template_version:
+      return template_version
   
   return Response(
     data={
@@ -142,155 +152,14 @@ def get_layout_from_entity(entity):
     status=status.HTTP_404_NOT_FOUND
   )
 
-def get_verbose_metadata_field(entity, layout, field, user_authed):
-  '''
-  
-  '''
-  is_active = template_utils.try_get_content(layout[field], 'active')
-  authed_only = template_utils.try_get_content(layout[field], 'requires_auth') and not user_authed
-  
-  if not is_active or authed_only:
-    return Response(
-      data={
-        'message': 'You are not authorised to access this field'
-      }, 
-      content_type='json',
-      status=status.HTTP_401_UNAUTHORIZED
-    )
-  
-  validation = template_utils.try_get_content(layout[field], 'validation')
-  if template_utils.try_get_content(validation, 'source'):
-    result = template_utils.get_metadata_value_from_source(entity, field, default=None)
-  else:
-    result = template_utils.get_entity_field(entity, field)
-
-  return Response(
-    data=result or {},
-    content_type='json',
-    status=status.HTTP_200_OK
-  )
-
-def get_verbose_template_field(entity, layout, field, user_authed):
-  '''
-  
-  '''
-  is_active = template_utils.try_get_content(layout['fields'][field], 'active')
-  authed_only = template_utils.try_get_content(layout['fields'][field], 'requires_auth') and not user_authed
-  
-  if not is_active or authed_only:
-    return Response(
-      data={
-        'message': 'You are not authorised to access this field'
-      }, 
-      content_type='json',
-      status=status.HTTP_401_UNAUTHORIZED
-    )
-  
-  result = template_utils.get_template_data_values(entity, layout, field, default=None)
-  if not result:
-    result = template_utils.get_entity_field(entity, field)
-
-  return Response(
-    data=result,
-    content_type='json',
-    status=status.HTTP_200_OK
-  )
-
-def export_field(entity, field, user_authed):
-  '''
-  
-  '''
-  layout_response = get_layout_from_entity(entity)
-  if isinstance(layout_response, Response):
-    return layout_response
-  layout = layout_response
-
-  fields = template_utils.try_get_content(layout, 'fields')
-  if fields and field in fields:
-    is_base_field = template_utils.try_get_content(fields[field], 'is_base_field')
-    
-    if is_base_field:
-      return get_verbose_metadata_field(entity, constants.metadata, field, user_authed)
-    else:
-      return get_verbose_template_field(entity, layout, field, user_authed)
-  
-  return Response(
-    data={
-      'message': 'Entity does not contain field: %s' % field
-    }, 
-    content_type='json',
-    status=status.HTTP_404_NOT_FOUND
-  )
-
-def transform_field_data(layout, data, user_authed):
-  '''
-  
-  '''
-  result = deepcopy(data)
-  for key, body in layout.items():
-    is_active = template_utils.try_get_content(body, 'active')
-    authed_only = template_utils.try_get_content(body, 'requires_auth') and not user_authed
-
-    key_exists = key in result
-    if (not is_active or authed_only) and key_exists:
-      del result[key]
-  
-  return result
-
-def get_entity_json_detail(request, entity_id, entity, user_authed, return_data=False):
-  '''
-
-  '''  
-  layout_response = get_layout_from_entity(entity)
-  if isinstance(layout_response, Response):
-    return layout_response
-  layout = layout_response
-  
-  base_data = {
-    'name': entity.name,
-    'author': entity.author,
-    'tags': entity.tags,
-    'collections': entity.collections,
-    'created': entity.created,
-    'updated': entity.updated,
-    'definition': entity.definition,
-    'implementation': entity.implementation,
-    'validation': entity.validation,
-    'publications': entity.publications,
-    'citation_requirements': entity.citation_requirements
-  }
-
-  if user_authed:
-    created_by = model_utils.try_get_instance(User, id=entity.created_by_id)
-    created_by = created_by and created_by.username
-    base_data['created_by'] = created_by
-
-    updated_by = model_utils.try_get_instance(User, id=entity.updated_by_id)
-    updated_by = updated_by and updated_by.username
-    base_data['updated_by'] = created_by
-
-  # Transform base fields
-  result = {
-    'id': entity_id,
-    'version_id': entity.history_id,
-    'data': {}
-  }
-
-  # Transform template fields
-  result['data'] = result['data'] | transform_field_data(
-    layout['fields'], entity.template_data, user_authed
-  )
-
-  return result if return_data else Response(
-    data=result,
-    content_type='json',
-    status=status.HTTP_200_OK
-  )
-
 def build_query_from_template(request, user_authed, template=None):
+  '''
+
+  '''
   is_dynamic = True
 
   terms = {}
+  where = []
   for key, value in template.items():
     is_active = template_utils.try_get_content(value, 'active')
     requires_auth = template_utils.try_get_content(value, 'requires_auth')
@@ -306,7 +175,274 @@ def build_query_from_template(request, user_authed, template=None):
           is_dynamic=False
 
         search_utils.apply_param_to_query(
-          terms, template, key, param, is_dynamic=is_dynamic, force_term=True, is_api=True
+          terms, where, template, key, param, is_dynamic=is_dynamic, force_term=True, is_api=True
         )
 
-  return terms or None
+  return terms, where
+
+def get_entity_detail_from_layout(
+    entity, fields, user_authed, fields_to_ignore=[], target_field=None
+  ):
+  '''
+
+  '''
+  result = {}
+  for field, field_definition in fields.items():
+    if target_field is not None and target_field.lower() != field.lower():
+      continue
+
+    if field.lower() in fields_to_ignore:
+      continue
+
+    is_active = template_utils.try_get_content(field_definition, 'active')
+    if is_active == False:
+      continue
+
+    requires_auth = template_utils.try_get_content(field_definition, 'requires_auth')
+    if requires_auth and not user_authed:
+      continue
+
+    if template_utils.is_metadata(entity, field):
+      validation = template_utils.get_field_item(
+        constants.metadata, field, 'validation', { }
+      )
+      is_source = validation.get('source')
+      
+      if is_source:
+        result[field] = template_utils.get_metadata_value_from_source(
+          entity, field, default=None
+        )
+      continue
+    
+    result[field] = template_utils.get_template_data_values(
+      entity, fields, field, default=None, hide_user_details=True
+    )
+  
+  return result
+
+def get_entity_detail_from_meta(entity, data, fields_to_ignore=[], target_field=None):
+  '''
+
+  '''
+  result = {}
+  for field in entity._meta.fields:
+    field_name = field.name
+    if target_field is not None and target_field.lower() != field_name.lower():
+      continue
+
+    if field_name.lower() in data or field_name.lower() in fields_to_ignore:
+      continue
+
+    field_type = field.get_internal_type()
+    if field_type and field_type in constants.STRIPPED_FIELDS:
+      continue
+
+    if field_name in constants.API_HIDDEN_FIELDS:
+      continue
+
+    field_value = template_utils.get_entity_field(entity, field_name)
+    if field_value is None:
+      result[field_name] = None
+      continue
+    
+    if isinstance(field, ForeignKey):
+      model = field.target_field.model
+      model_type = str(model)
+      if model_type in constants.USERDATA_MODELS:
+        result[field_name] = {
+          'id': field_value.id,
+          'name': template_utils.get_one_of_field(field_value, ['username', 'name'])
+        }
+        continue
+    
+    result[field_name] = field_value
+  
+  return result
+
+def get_ordered_entity_detail(fields, layout, layout_version, entity_versions, data):
+  '''
+  
+  '''
+  ordered_keys = list(fields.keys())
+  ordered_keys.extend(key for key in data.keys() if key not in ordered_keys)
+  ordered_result = { }
+  for key in ordered_keys:
+    if key in data:
+      ordered_result[key] = data[key]
+    
+  ordered_result = ordered_result | {
+    'template': {
+      'id': layout.id,
+      'name': layout.name,
+      'description': layout.description,
+      'version': layout_version
+    },
+    'versions': entity_versions
+  }
+
+  return ordered_result
+
+def get_entity_detail(
+    request, 
+    entity_id, 
+    entity, 
+    user_authed, 
+    fields_to_ignore=[], 
+    target_field=None, 
+    return_data=False
+  ):
+  '''
+
+  '''
+  layout_response = get_layout_from_entity(entity)
+  if isinstance(layout_response, Response):
+    return layout_response
+  
+  layout = layout_response
+  layout_definition = template_utils.get_ordered_definition(layout.definition)
+  layout_version = layout.template_version
+
+  fields = template_utils.try_get_content(layout_definition, 'fields')
+  if fields is None:
+    return None
+    
+  result = get_entity_detail_from_layout(
+    entity, fields, user_authed, fields_to_ignore=fields_to_ignore, target_field=target_field
+  )
+
+  result = result | get_entity_detail_from_meta(
+    entity, result, fields_to_ignore=fields_to_ignore, target_field=target_field
+  )
+
+  entity_versions = get_entity_version_history(request, entity_id)
+  if target_field is None:
+    result = get_ordered_entity_detail(fields, layout, layout_version, entity_versions, result)
+
+  if return_data:
+    return result
+  
+  return Response(
+    data=result,
+    status=status.HTTP_200_OK
+  )
+
+def build_final_codelist_from_concepts(entity, concept_information):
+  '''
+  
+  '''
+  result = []
+  for concept in concept_information:
+    concept_id = concept['concept_id']
+    concept_version = concept['concept_version_id']
+
+    # Get concept entity for additional data, skip if we're not able to find it
+    concept_entity = Concept.history.get(
+      id=concept_id, history_id=concept_version
+    )
+    if not concept_entity:
+      continue
+    
+    concept_data = {
+      'concept_id': concept_id,
+      'concept_version_id': concept_version,
+      'concept_name': concept_entity.name,
+      'coding_system': concept_entity.coding_system,
+      'entity_id': entity.id,
+      'entity_version_id': entity.history_id,
+      'entity_name': entity.name
+    }
+
+    # Get codes
+    concept_codes = model_utils.get_final_reviewed_codelist(
+      concept_id, concept_version, hide_user_details=True
+    )
+    concept_codes = [data | concept_data for data in concept_codes]
+
+    result += concept_codes
+  
+  return result
+
+def get_codelist_from_entity(entity):
+  '''
+  
+  '''
+  layout_response = get_layout_from_entity(entity)
+  if isinstance(layout_response, Response):
+    return layout_response
+  layout = layout_response
+  fields = template_utils.try_get_content(layout.definition, 'fields')
+
+  concept_field = None
+  for field, definition in fields.items():
+    validation = template_utils.try_get_content(definition, 'validation')
+    if validation is None:
+      continue
+
+    field_type = template_utils.try_get_content(validation, 'type')
+    if field_type is None or field_type != 'concept':
+      continue
+
+    concept_field = field
+    break
+  
+  if not concept_field:
+    return Response(
+      data={
+        'message': 'Entity template does not contain a codelist'
+      },
+      content_type='json',
+      status=status.HTTP_400_BAD_REQUEST
+    )
+  
+  concept_information = template_utils.try_get_content(
+    entity.template_data, 'concept_information'
+  )
+  if not concept_information:
+    return Response(
+      data={
+        'message': 'Entity does not contain a codelist'
+      },
+      content_type='json',
+      status=status.HTTP_404_NOT_FOUND
+    )
+  
+  codes = build_final_codelist_from_concepts(entity, concept_information)
+  
+  return Response(
+    data=codes,
+    status=status.HTTP_200_OK
+  )
+
+def validate_api_create_update_form(request, method):
+  form_errors = []
+  form = gen_utils.get_request_body(request)
+  form = create_utils.validate_entity_form(
+    request, form, form_errors, method=method
+  )
+
+  if form is None:
+    return Response(
+      data={
+        'message': 'Invalid form',
+        'errors': form_errors
+      }, 
+      content_type='json',
+      status=status.HTTP_400_BAD_REQUEST
+    )
+  
+  return form
+
+def create_update_from_api_form(request, form):
+  form_errors = []
+  entity = create_utils.create_or_update_entity_from_form(request, form, form_errors)
+  if entity is None:
+      return Response(
+        data={
+          'message': 'Data submission is invalid',
+          'errors': form_errors
+        }, 
+        content_type='json',
+        status=status.HTTP_400_BAD_REQUEST
+      )
+  
+  return entity

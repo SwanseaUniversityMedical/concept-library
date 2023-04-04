@@ -165,7 +165,9 @@ def validate_query_param(template, data, default=None):
     
     return default
 
-def apply_param_to_query(query, where, template, param, data, is_dynamic=False, force_term=False, is_api=False):
+def apply_param_to_query(
+        query, where, template, param, data, is_dynamic=False, force_term=False, is_api=False
+    ):
     '''
         Tries to apply a URL param to a query if its able to resolve and validate the param data
     '''

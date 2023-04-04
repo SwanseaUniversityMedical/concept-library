@@ -103,7 +103,7 @@ class GenericEntity(models.Model):
                         if entitycls.entity_count < entity_id:
                             entitycls.entity_count = entity_id
                             entitycls.save()
-                elif self.pk is None and not ignore_increment:
+                elif not self.pk and not ignore_increment:
                     with transaction.atomic():
                         entitycls = EntityClass.objects.select_for_update().get(pk=entity_class.id)
                         index = entitycls.entity_count = entitycls.entity_count + 1
