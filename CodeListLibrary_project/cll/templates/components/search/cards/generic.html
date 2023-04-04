@@ -1,11 +1,11 @@
 {% load static %}
 {% load entity_renderer %}
 
-<article class="entity-card" data-target="{% url 'generic_entity_history_detail' pk=entity.id history_id=entity.history_id %}"
+<article class="entity-card" data-target="{% url 'entity_history_detail' pk=entity.id history_id=entity.history_id %}"
   data-entity-id="{{ entity.id }}" data-entity-version-id="{{ entity.history_id }}" data-layout-id="{{ layout.id }}"
   aria-label="View {{ entity.name }}">
 
-  <a class="entity-card__click" href="{% url 'generic_entity_history_detail' pk=entity.id history_id=entity.history_id %}">
+  <a class="entity-card__click" href="{% url 'entity_history_detail' pk=entity.id history_id=entity.history_id %}">
     <div class="entity-card__header">
       <h3 class="entity-card__title">{{ entity.id }} - {{ entity.name }}</h3>
       <p class="entity-card__author">{{ entity.author }}</p>

@@ -183,7 +183,7 @@ class CreateEntityView(TemplateView):
         return JsonResponse({
             'success': True,
             'entity': { 'id': entity.id, 'history_id': entity.history_id },
-            'redirect': reverse('generic_entity_history_detail', kwargs={ 'pk': entity.id, 'history_id': entity.history_id })
+            'redirect': reverse('entity_history_detail', kwargs={ 'pk': entity.id, 'history_id': entity.history_id })
         })        
 
     ''' Main view render '''
