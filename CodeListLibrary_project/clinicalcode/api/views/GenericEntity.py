@@ -4,13 +4,16 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from django.db.models import Q
+from django.conf import settings
 
 from ...models import *
 from ...entity_utils import permission_utils
+from ...entity_utils import template_utils
 from ...entity_utils import search_utils
+from ...entity_utils import create_utils
 from ...entity_utils import api_utils
 from ...entity_utils import gen_utils
-
+from ...entity_utils import constants
 
 from ...db_utils import *
 from clinicalcode.entity_utils import entity_db_utils
@@ -28,10 +31,28 @@ def create_generic_entity(request):
     '''
     
     '''
-    #TODO
+    if is_member(request.user, group_name='ReadOnlyUsers') or settings.CLL_READ_ONLY:
+        return Response(
+            data={
+                'message': 'Permission denied'
+            },
+            content_type='json',
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    form = api_utils.validate_api_create_update_form(
+        request, method=constants.FORM_METHODS.CREATE.value
+    )
+    
+    entity = api_utils.create_update_from_api_form(request, form)
     return Response(
-        data=[],
-        content_type='json',
+        data={
+            'message': 'Successfully created entity',
+            'entity': {
+                'id': entity.id,
+                'version_id': entity.history_id
+            }
+        },
         status=status.HTTP_201_CREATED
     )
 
@@ -41,11 +62,29 @@ def update_generic_entity(request):
     '''
     
     '''
-    #TODO
+    if is_member(request.user, group_name='ReadOnlyUsers') or settings.CLL_READ_ONLY:
+        return Response(
+            data={
+                'message': 'Permission denied'
+            },
+            content_type='json',
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    form = api_utils.validate_api_create_update_form(
+        request, method=constants.FORM_METHODS.UPDATE.value
+    )
+
+    entity = api_utils.create_update_from_api_form(request, form)
     return Response(
-        data=[],
-        content_type='json',
-        status=status.HTTP_200_OK
+        data={
+            'message': 'Successfully updated entity',
+            'entity': {
+                'id': entity.id,
+                'version_id': entity.history_id
+            }
+        },
+        status=status.HTTP_201_CREATED
     )
 
 ''' Get GenericEntity version history '''
@@ -67,7 +106,7 @@ def get_generic_entity_version_history(request, primary_key=None):
         return entity_response
     
     return Response(
-        api_utils.get_entity_version_history(request, primary_key), 
+        data=api_utils.get_entity_version_history(request, primary_key), 
         status=status.HTTP_200_OK
     )
 
@@ -75,11 +114,11 @@ def get_generic_entity_version_history(request, primary_key=None):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
-def get_generic_entities(request, verbose=True):
+def get_generic_entities(request, should_paginate=True):
     '''
     
     '''
-    if request.user:
+    if request.user and not request.user.is_anonymous:
         user_authed = True
 
     # Get all accessible entities for this user
@@ -90,12 +129,12 @@ def get_generic_entities(request, verbose=True):
     # Build query from searchable GenericEntity template fields
     templates = Template.objects.all()
     for template in templates:
-        template_query = api_utils.build_query_from_template(
+        template_query, where_clause = api_utils.build_query_from_template(
             request, user_authed, template=template.definition['fields']
         )
 
-        if template_query:
-            entities = entities.filter(Q(**template_query))
+        entities = entities.filter(Q(**template_query))
+        entities = entities.extra(where=where_clause)
 
     # Search terms
     search = request.query_params.get('search', None)
@@ -118,35 +157,38 @@ def get_generic_entities(request, verbose=True):
     ).order_by('true_id', 'id')
 
     # Paginate results
-    page = gen_utils.parse_int(request.query_params.get('page', 1), default=1)
-    entities = search_utils.try_get_paginated_results(
-        request, entities, page, page_size=50
-    )
+    if should_paginate:
+        page = gen_utils.parse_int(request.query_params.get('page', 1), default=1)
+        entities = search_utils.try_get_paginated_results(
+            request, entities, page, page_size=50
+        )
     
-    # Only display GenericEntities that are accessible to the user
-    result = {
-        'page': page,
-        'num_pages': entities.paginator.num_pages,
-        'data': []
-    }
+    # Get details of each entity
+    formatted_entities = []
     for entity in entities:
-        if not verbose: 
-            result['data'].append({
-                'id': entity.id,
-                'version_id': entity.history_id,
-                'name': entity.name
-            })
-        else:
-            entity_detail = api_utils.get_entity_json_detail(
-                request, entity.id, entity, user_authed, return_data=True
-            )
+        entity_detail = api_utils.get_entity_detail(
+            request, 
+            entity.id, 
+            entity, 
+            user_authed, 
+            fields_to_ignore=constants.ENTITY_LIST_API_HIDDEN_FIELDS, 
+            return_data=True
+        )
 
-            if not isinstance(entity_detail, Response):
-                result['data'].append(entity_detail)
+        if not isinstance(entity_detail, Response):
+            formatted_entities.append(entity_detail)
+
+    if should_paginate:
+        result = {
+            'page': page,
+            'num_pages': entities.paginator.num_pages,
+            'data': formatted_entities
+        }
+    else:
+        result = formatted_entities
 
     return Response(
         data=result,
-        content_type='json',
         status=status.HTTP_200_OK
     )
 
@@ -158,7 +200,7 @@ def get_entity_detail(request, primary_key, historical_id=None, field=None):
     '''
 
     '''
-    if request.user:
+    if request.user and not request.user.is_anonymous:
         user_authed = True
 
     # Check if primary_key is valid, i.e. matches regex '^[a-zA-Z]\d+'
@@ -191,14 +233,32 @@ def get_entity_detail(request, primary_key, historical_id=None, field=None):
             content_type='json',
             status=status.HTTP_401_UNAUTHORIZED
         )
-
-    if field:
-        return api_utils.export_field(historical_entity, field, user_authed)
-
-    return api_utils.get_entity_json_detail(
+    
+    if field is not None:
+        if template_utils.is_valid_field(historical_entity, field):
+            return api_utils.get_entity_detail(
+                request, 
+                primary_key, 
+                historical_entity, 
+                user_authed, 
+                target_field=field, 
+                return_data=True
+            )
+        
+        if field == 'codes':
+            return api_utils.get_codelist_from_entity(historical_entity)
+        
+        return Response(
+            data={
+                'message': 'Field does not exist'
+            }, 
+            content_type='json',
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    return api_utils.get_entity_detail(
         request, primary_key, historical_entity, user_authed
     )
-
 
 ### M. Elmessary  ############
 
