@@ -8,7 +8,7 @@
 
 
   <!-- about tab -->
-  <script type="module" src="{% static "js/clinicalcode/redesign/components/brandurls.js" %}"></script>
+  <script type="text/javascript" src="{% static "js/clinicalcode/redesign/components/brandurls.js" %}"></script>
   <div class="dropdown">
     <div class="dropdown-text">
         <a href="{{ login_url }}" id="Profile" role="profile">My Profile</a>
@@ -31,13 +31,13 @@
         <hr>
         {% if request.user.is_superuser  and request.session.all_brands %}
         {% include "components/search/cards/dropdown_image_listitem.html" with  currentBrand="" image="/static/img/header_logo.png" title="Concept Library" %}
-        {% endif %}
-
-       
+        
 
         {% for brand in request.session.all_brands %}
         {% include "components/search/cards/dropdown_image_listitem.html" with  currentBrand=brand|upper  image="/static/img/header_logo.png" title=brand|upper %}
-								{% endfor %}
+							{% endfor %}
+        
+              {% endif %}
 
 
 
@@ -93,6 +93,7 @@
 
 
   </div>
+ 
  
 
 

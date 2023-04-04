@@ -5,16 +5,20 @@
 {% load cl_extras %}
 
 {% block content %}
-<script type="text/javascript"src="{% static "js/clinicalcode/redesign/components/brandurls.js" %}"></script>
 <li class="content-container">
-  <a href="javascript:void(null)" value="{{currentBrand}}" class="item-dropdown" id="userBrand">
+  <a href='javascript:log()'  class="item-dropdown userBrand" >
     <div class="item-dropdown__icon"><img alt="Logo" src="{{image}}" /></div>
 
     <div class="item-dropdown__title">{{title}}</div>
   </a>
 </li>
 
-<script>
-    brandUrlsgen("{{request.session.all_brands}}","{{IS_PRODUCTION_SERVER}}","{{currentBrand}}","userBrand")
+<script>    
+    function log(){
+        brandUrlsgen("{{request.session.all_brands}}","{{IS_PRODUCTION_SERVER}}","{{currentBrand}}")
+    }
 </script>
+
+
+
 {%endblock content%}
