@@ -249,10 +249,13 @@ def get_entity_detail_from_meta(entity, data, fields_to_ignore=[], target_field=
       model = field.target_field.model
       model_type = str(model)
       if model_type in constants.USERDATA_MODELS:
-        result[field_name] = {
-          'id': field_value.id,
-          'name': template_utils.get_one_of_field(field_value, ['username', 'name'])
-        }
+        if model_type == str(User):
+          result[field_name] = template_utils.get_one_of_field(field_value, ['username', 'name'])
+        else:
+          result[field_name] = {
+            'id': field_value.id,
+            'name': template_utils.get_one_of_field(field_value, ['username', 'name'])
+          }
         continue
     
     result[field_name] = field_value

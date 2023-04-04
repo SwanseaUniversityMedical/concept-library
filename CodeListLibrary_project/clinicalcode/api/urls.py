@@ -214,18 +214,18 @@ urlpatterns += [
 
     #==== search concepts/published phenotypes =====
     url(r'^phenotypes/$', 
-        GenericEntity.get_generic_entities, 
+        GenericEntity.get_generic_entities, { 'should_paginate': False },
         name='phenotypes'),
     url(r'^phenotypes/(?P<primary_key>PH\d+)/$', 
-        GenericEntity.get_generic_entities,
+        GenericEntity.get_entity_detail, 
         name='phenotype_by_id'),
 
     # search published phenotypes
     url(r'^public/phenotypes/$',
-        GenericEntity.get_generic_entities, 
+        GenericEntity.get_generic_entities, { 'should_paginate': False },
         name='api_published_phenotypes'),
     url(r'^public/phenotypes/(?P<primary_key>PH\d+)/$',
-        GenericEntity.get_generic_entities, 
+        GenericEntity.get_entity_detail, 
         name='api_published_phenotype_by_id'),
     #===============================================
 
