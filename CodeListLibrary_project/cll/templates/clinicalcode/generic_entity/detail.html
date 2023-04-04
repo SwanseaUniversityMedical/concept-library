@@ -4,7 +4,7 @@
 {% load markdownify %}
 {% load cl_extras %}
 {% load breadcrumbs %}
-{% load entity_renderer %}
+{% load detail_pg_renderer %}
 {% load entity_publish_request %}
 {% load compress %}
 {% load sass_tags %}
@@ -19,8 +19,20 @@
 
 
 {% block container %}
-  <!-- Page Stylesheets -->
-  <link href="{% sass_src 'scss/pages/create.scss' %}" rel="stylesheet" type="text/css" />
+<!-- Vendor -->
+<script src="{% static 'js/clinicalcode/redesign/vendor/simple-datatables/simple-datatables.min.js' %}"></script>
+<script src="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.js' %}"></script>
+<script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
+
+<!-- Dependencies -->
+{% compress js file %}
+<script src="{% static 'js/clinicalcode/redesign/vendor/lightpick.js' %}"></script>
+<script type="module" src="{% static 'js/clinicalcode/redesign/components/stepsWizard.js' %}"></script>
+<script type="module" src="{% static 'js/clinicalcode/redesign/components/toastNotification.js' %}"></script>
+{% endcompress %}
+
+<!-- Page Stylesheets -->
+<link href="{% sass_src 'scss/pages/create.scss' %}" rel="stylesheet" type="text/css" />
 
   <!-- Form -->
   <header class="main-header">
@@ -43,43 +55,20 @@
   </header>
   
   <main class="main-content">
-    {% render_wizard_navigation with section_name="detail_page_sections" %}
-    {% endrender_wizard_navigation %}
+    {% render_wizard_sidemenu %}
+    {% endrender_wizard_sidemenu %}
     
-<aside class="steps-wizard">
-  <section class="steps-wizard__panel" onselectstart="return false;">
-    <span class="steps-wizard__header">Skip to step...</span>
-    
-      <span class="steps-wizard__item" id="definition-step" data-value="1" data-target="definition-progress">Definition</span>
-    
-      <span class="steps-wizard__item" id="clinical_code_list-step" data-value="2" data-target="clinical_code_list-progress">Clinical Code List</span>
-    
-      <span class="steps-wizard__item" id="implementation-step" data-value="3" data-target="implementation-progress">Implementation</span>
-    
-      <span class="steps-wizard__item" id="validation-step" data-value="4" data-target="validation-progress">Validation</span>
-    
-      <span class="steps-wizard__item" id="publication-step" data-value="5" data-target="publication-progress">Publication</span>
-    
-      <span class="steps-wizard__item" id="permissions-step" data-value="6" data-target="permissions-progress">Permissions</span>
-    
-  </section>
-</aside>
+
 
     <div class="main-content__inner-container">
       <article class="phenotype-creation">
         <section class="phenotype-creation__header">
-          {% if form_method.value == '1' %}
-            <h1>Create a new Entity:<span>step by step</span></h1>
-            <p>Follow the steps below to create and publish your entity.</p>
-          {% else %}
-            <h1>Update your Entity:<span>step by step</span></h1>
-            <p>Follow the steps below to update and publish your entity.</p>
-          {% endif %}
+          <h1>{{ entity_fields.name.value }}</h1>
         </section>
         
         <ol class="phenotype-progress">
-          {% render_wizard_sections %}
-          {% endrender_wizard_sections %}
+          {% render_wizard_sections_detail_pg %}
+          {% endrender_wizard_sections_detail_pg %}
         </ol>
 
         <section class="phenotype-creation__completed" id="completed-section">
@@ -96,6 +85,7 @@
             </button>
           </div>
         </section>
+        
       </article>
     </div>
   </main>

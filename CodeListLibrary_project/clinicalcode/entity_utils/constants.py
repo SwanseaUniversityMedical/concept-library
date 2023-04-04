@@ -162,6 +162,14 @@ CREATE_WIZARD_SECTION_END = 'components/create/section/section_end.html'
 CREATE_WIZARD_INPUT_DIR = 'components/create/inputs'
 
 '''
+    Entity detail page related defaults
+'''
+DETAIL_WIZARD_ASIDE = 'components/details/aside.html'
+DETAIL_WIZARD_SECTION_START = 'components/details/section/section_start.html'
+DETAIL_WIZARD_SECTION_END = 'components/details/section/section_end.html'
+DETAIL_WIZARD_INPUT_DIR = 'components/details/inputs'
+
+'''
     Used to strip userdata from models when JSONifying them
         e.g. user account, user profile, membership
 '''

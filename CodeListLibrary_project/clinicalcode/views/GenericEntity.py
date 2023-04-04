@@ -183,7 +183,7 @@ class CreateEntityView(TemplateView):
         return JsonResponse({
             'success': True,
             'entity': { 'id': entity.id, 'history_id': entity.history_id },
-            'redirect': reverse('generic_entity_history_detail', kwargs={ 'pk': entity.id, 'history_id': entity.history_id })
+            'redirect': reverse('entity_history_detail', kwargs={ 'pk': entity.id, 'history_id': entity.history_id })
         })        
 
     ''' Main view render '''
@@ -402,7 +402,7 @@ def generic_entity_list_temp(request):
 
 
 
-def generic_entity_detail(request, pk, history_id=None):
+def generic_entity_detailXXX(request, pk, history_id=None):
     ''' 
         Display the detail of a generic entity at a point in time.
     '''
@@ -511,7 +511,11 @@ def generic_entity_detail(request, pk, history_id=None):
         'entity': generic_entity,
         'entity_fields': generic_entity['fields_data'],
         'history': history,
-        
+
+        ##### ???  #######
+        'template': Template.objects.get(id=1), #??? fix
+        'entity2': GenericEntity.objects.get(id=pk),
+        ###################
         'page_canonical_path': get_canonical_path_by_brand(request, GenericEntity, pk, history_id),
         
         
@@ -593,7 +597,7 @@ def get_history_table_data(request, pk):
     historical_versions = []
 
     for v in versions:
-        ver = entity_db_utils.get_historical_entity(v.history_id
+        ver = entity_db_utils.get_historical_entity(pk, v.history_id
                                         , highlight_result = [False, True][entity_db_utils.is_referred_from_search_page(request)]
                                         , q_highlight = entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))
                                         , include_template_data = False  
@@ -1015,3 +1019,294 @@ def history_phenotype_codes_to_csv(request, pk, history_id=None):
 
 
 
+
+def generic_entity_detail(request, pk, history_id=None):
+    ''' 
+        Display the detail of a generic entity at a point in time.
+    '''
+    # validate access for login and public site
+    validate_access_to_view(request,
+                            GenericEntity,
+                            pk,
+                            set_history_id=history_id)
+
+    if history_id is None:
+        # get the latest version/ or latest published version
+        history_id = try_get_valid_history_id(request, GenericEntity, pk)
+
+    is_published = checkIfPublished(GenericEntity, pk, history_id)
+    approval_status = get_publish_approval_status(GenericEntity, pk, history_id)
+    is_lastapproved = len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=2)) > 0
+
+    # ----------------------------------------------------------------------
+
+    #entity = GenericEntity.objects.get(pk=pk).history.filter(history_id=history_id)
+
+    #########################################################################
+    generic_entity = entity_db_utils.get_historical_entity(pk, history_id
+                                            , highlight_result = [False, True][entity_db_utils.is_referred_from_search_page(request)]
+                                            , q_highlight = entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))  
+                                            )
+    # # The historical entity contains the owner_id, to provide the owner name, we
+    # # need to access the user object with that ID and add that to the generic_entity.
+    # if generic_entity['owner_id'] is not None:
+    #     generic_entity['owner'] = User.objects.get(id=int(generic_entity['owner_id']))
+        
+    # generic_entity['group'] = None
+    # if generic_entity['group_id'] is not None:
+    #     generic_entity['group'] = Group.objects.get(id=int(generic_entity['group_id']))
+
+    history_date = generic_entity.history_date
+
+
+
+################################################
+    template_obj = Template.objects.get(pk=generic_entity.template.id)
+    template = template_obj.history.filter(template_version=generic_entity.template_version).latest()
+    template_definition = template.definition
+    entity_class = template.entity_class.name
+
+        
+    side_menu = {} # get_side_menu(request, generic_entity['fields_data'])
+
+
+
+
+################################################
+
+
+    is_latest_version = (int(history_id) == GenericEntity.objects.get(pk=pk).history.latest().history_id)
+    is_latest_pending_version = False
+
+    if len(PublishedGenericEntity.objects.filter(entity_id=pk, entity_history_id=history_id, approval_status=1)) > 0:
+        is_latest_pending_version = True
+   # print(is_latest_pending_version)
+
+
+    children_permitted_and_not_deleted = True
+    error_dict = {}
+    #are_concepts_latest_version = True
+    version_alerts = {}
+
+    if request.user.is_authenticated:
+        can_edit = (not GenericEntity.objects.get(pk=pk).is_deleted) and allowed_to_edit(request, GenericEntity, pk)
+
+        user_can_export = True 
+         # (allowed_to_view_children(request, GenericEntity, pk, set_history_id=history_id)
+         #                   and entity_db_utils.chk_deleted_children(request,
+         #                                                   GenericEntity,
+         #                                                   pk,
+         #                                                   returnErrors=False,
+         #                                                   set_history_id=history_id)
+         #                   and not GenericEntity.objects.get(pk=pk).is_deleted)
+        user_allowed_to_create = allowed_to_create()
+
+        #children_permitted_and_not_deleted, error_dict = entity_db_utils.chk_children_permission_and_deletion(request, GenericEntity, pk)
+
+
+    else:
+        can_edit = False
+        user_can_export = is_published
+        user_allowed_to_create = False
+
+    publish_date = None
+    if is_published:
+        publish_date = PublishedGenericEntity.objects.get(entity_id=pk, entity_history_id=history_id).created
+
+    if GenericEntity.objects.get(pk=pk).is_deleted == True:
+        messages.info(request, "This entity has been deleted.")
+
+    # published versions
+    published_historical_ids = list(PublishedGenericEntity.objects.filter(entity_id=pk, approval_status=2).values_list('entity_history_id', flat=True))
+
+    # # history
+    history = get_history_table_data2(request, pk)
+   
+
+    # # rmd 
+    # if generic_entity['fields_data']['implementation'] is None:
+    #     generic_entity['fields_data']['implementation'] = ''
+
+
+
+
+    context = {
+        'side_menu': side_menu,  
+        'entity_class': entity_class,
+        'entity': generic_entity,
+        #'entity_fields': generic_entity['fields_data'],
+        'history': history,
+
+        ##### ???  #######
+        'template': template,
+        ###################
+        'page_canonical_path': get_canonical_path_by_brand(request, GenericEntity, pk, history_id),
+        
+        
+        'user_can_edit': False,  # for now  #can_edit,
+        'allowed_to_create': False,  # for now  #user_allowed_to_create,    # not settings.CLL_READ_ONLY,
+        'user_can_export': user_can_export,
+        
+        'live_ver_is_deleted': GenericEntity.objects.get(pk=pk).is_deleted,
+        'published_historical_ids': published_historical_ids,
+        'is_published': is_published,
+        'approval_status': approval_status,
+        'is_lastapproved': is_lastapproved,
+        'publish_date': publish_date,
+        'is_latest_version': is_latest_version,
+        'is_latest_pending_version':is_latest_pending_version,
+        'current_phenotype_history_id': int(history_id),
+
+        'q': entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', '')),
+        'force_highlight_result':  ['0', '1'][entity_db_utils.is_referred_from_search_page(request)]                              
+    }
+
+    if 'concept_information' in template.definition:
+        concept_dict = get_concept_data2(request, pk, history_id, generic_entity, is_latest_version, children_permitted_and_not_deleted)
+        context = context | concept_dict
+
+
+    
+    return render(request, 
+                  'clinicalcode/generic_entity/detail.html',
+                  context 
+                )
+
+
+def get_concept_data2(request, pk, history_id, generic_entity, is_latest_version, children_permitted_and_not_deleted):
+    """
+    get concept data from concept_informations
+    """
+    error_dict = {}
+    are_concepts_latest_version = True
+    
+    concept_id_list = []
+    concept_hisoryid_list = []
+    concepts = Concept.history.filter(pk=-1).values('id', 'history_id', 'name', 'group')
+
+    if 'concept_information' in generic_entity.template_data:
+        concept_information = generic_entity.template_data['concept_information']['value']
+        concept_id_list = [x['concept_id'] for x in concept_information]
+        concept_hisoryid_list = [x['concept_version_id'] for x in concept_information]
+        concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).values('id', 'history_id', 'name', 'group')
+
+    concepts_id_name = json.dumps(list(concepts))
+    
+    if request.user.is_authenticated:
+        if is_latest_version:
+            are_concepts_latest_version, version_alerts = check_concept_version_is_the_latest(pk)
+    
+    # how to show codelist tab
+    if request.user.is_authenticated:
+        component_tab_active = "active"
+        codelist_tab_active = ""
+        codelist = []
+        codelist_loaded = 0
+    else:
+        # published
+        component_tab_active = "active"  # ""
+        codelist_tab_active = ""  # "active"
+        codelist = entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id) ## change
+        codelist_loaded = 1
+        
+    # codelist = entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id)
+    # codelist_loaded = 1    
+    
+    conceptBrands = entity_db_utils.getConceptBrands(request, concept_id_list)
+    concept_data = []
+    if concept_information:
+        for c in concept_information:
+            c['codingsystem'] = CodingSystem.objects.get(pk=Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).coding_system_id).name
+            c['code_attribute_header'] = Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).code_attribute_header
+
+            c['alerts'] = ''
+            if not are_concepts_latest_version:
+                if c['concept_version_id'] in version_alerts:
+                    c['alerts'] = version_alerts[c['concept_version_id']]
+
+            if not children_permitted_and_not_deleted:
+                if c['concept_id'] in error_dict:
+                    c['alerts'] += "<BR>- " + "<BR>- ".join(error_dict[c['concept_id']])
+
+            c['alerts'] = re.sub("Child ", "", c['alerts'], flags=re.IGNORECASE)
+
+            c['brands'] = ''
+            if c['concept_id'] in conceptBrands:
+                for brand in conceptBrands[c['concept_id']]:
+                    c['brands'] += "<img src='" + static('img/brands/' + brand + '/logo.png') + "' height='10px' title='" + brand + "' alt='" + brand + "' /> "
+
+            c['is_published'] = checkIfPublished(Concept, c['concept_id'], c['concept_version_id'])
+            c['name'] = concepts.get(id=c['concept_id'], history_id=c['concept_version_id'])['name']
+
+            c['codesCount'] = 0
+            if codelist:
+                c['codesCount'] = len([x['code'] for x in codelist if x['concept_id'] == 'C' + str(c['concept_id']) and x['concept_version_id'] == c['concept_version_id'] ])
+
+            c['concept_friendly_id'] = 'C' + str(c['concept_id'])
+            concept_data.append(c)
+
+    ret_dict = {        
+        #'concept_information': json.dumps(concept_information),
+        'component_tab_active': component_tab_active,
+        'codelist_tab_active': codelist_tab_active,
+        'codelist': codelist,  # json.dumps(codelist)
+        'codelist_loaded': codelist_loaded,
+        'concepts_id_name': concepts_id_name,
+        'concept_data': concept_data,
+        }
+    
+    return ret_dict
+
+def get_history_table_data2(request, pk):
+    """"
+        get history table data for the template
+    """
+    
+    versions = GenericEntity.objects.get(pk=pk).history.all()
+    historical_versions = []
+
+    for v in versions:
+        ver = entity_db_utils.get_historical_entity(pk, v.history_id
+                                        , highlight_result = [False, True][entity_db_utils.is_referred_from_search_page(request)]
+                                        , q_highlight = entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))
+                                        , include_template_data = False  
+                                        )
+        
+        # if ver['owner_id'] is not None:
+        #     ver['owner'] = User.objects.get(id=int(ver['owner_id']))
+
+        # if ver['created_by_id'] is not None:
+        #     ver['created_by'] = User.objects.get(id=int(ver['created_by_id']))
+
+        # ver['updated_by'] = None
+        # if ver['updated_by_id'] is not None:
+        #     ver['updated_by'] = User.objects.get(pk=ver['updated_by_id'])
+
+        is_this_version_published = False
+        is_this_version_published = checkIfPublished(GenericEntity, ver.id, ver.history_id)
+
+        if is_this_version_published:
+            verpublish_date = PublishedGenericEntity.objects.get(entity_id=ver.id, entity_history_id=ver.history_id, approval_status=2).created
+        else:
+            ver.publish_date = None
+
+        ver.approval_status = -1
+        ver.approval_status_label = ''
+        if PublishedGenericEntity.objects.filter(entity_id=ver.id, entity_history_id=ver.history_id).exists():
+            ver.approval_status = PublishedGenericEntity.objects.get(entity_id=ver.id, entity_history_id=ver.history_id).approval_status
+            ver.approval_status_label = APPROVED_STATUS[ver.approval_status][1]        
+        
+        
+        if request.user.is_authenticated:
+            if allowed_to_edit(request, GenericEntity, pk) or allowed_to_view(request, GenericEntity, pk):
+                historical_versions.append(ver)
+            else:
+                if is_this_version_published:
+                    historical_versions.append(ver)
+        else:
+            if is_this_version_published:
+                historical_versions.append(ver)
+                
+    return historical_versions
+   
+   

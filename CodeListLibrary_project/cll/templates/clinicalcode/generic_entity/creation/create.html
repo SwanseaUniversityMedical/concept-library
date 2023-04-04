@@ -88,7 +88,7 @@
   <data data-owner="entity-creator" id="entity-data" name="entity" type="text/json">{{ entity|jsonify|safe }}</data>
   {% endif %}
   {% if object_reference is not None %}
-  <data data-owner="entity-creator"id="entity-object" name="object" type="text/json" referral-url="{% url 'generic_entity_history_detail' pk=object_reference.id history_id=object_reference.history_id %}">
+  <data data-owner="entity-creator"id="entity-object" name="object" type="text/json" referral-url="{% url 'entity_history_detail' pk=object_reference.id history_id=object_reference.history_id %}">
     {{ object_reference|jsonify|safe }}
   </data>
   {% endif %}

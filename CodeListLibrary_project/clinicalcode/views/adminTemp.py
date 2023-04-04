@@ -539,7 +539,7 @@ def try_parse_doi(publications):
     return output
 
 @login_required
-def admin_mig_phenotypes_dt_XXX(request):
+def admin_mig_phenotypes_dt(request):
     # for admin(developers) to migrate phenotypes into dynamic template
    
     if settings.CLL_READ_ONLY: 
@@ -779,7 +779,7 @@ def get_custom_fields_key_value(phenotype):
     
     
 @login_required
-def admin_mig_phenotypes_dt(request):
+def admin_mig_phenotypes_dtXXX(request):
     # for admin(developers) to migrate phenotypes into dynamic template
    
     if settings.CLL_READ_ONLY: 
