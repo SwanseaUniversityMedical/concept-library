@@ -3,6 +3,7 @@
 
 {% load mathfilters %}
 {% load cl_extras %}
+{% load cards_dropdown_render%}
 
 {% block content %}
 
@@ -18,12 +19,11 @@
     <ul class="row__about">
       {% if request.BRAND_OBJECT.about_menu is not none %}
 									{% for lnk in request.BRAND_OBJECT.about_menu %}
-											{% for header, view_pg_name in lnk.items %}
-                      {% url 'about_page' pg_name=view_pg_name as url_drop%}
-												    
-                          {% include "components/search/cards/dropdown_list_item.html" with url=url_drop title=header %}
-										
-											{% endfor %}
+                    
+
+                    {% card_render %}
+
+						
 									{% endfor %}
 
 								{% else %}		
