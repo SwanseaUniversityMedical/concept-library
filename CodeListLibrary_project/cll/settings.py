@@ -123,6 +123,8 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'cll/static'),
 ]
 
+
+
 STATIC_URL = '/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticroot')
@@ -209,6 +211,7 @@ INSTALLED_APPS = INSTALLED_APPS + [
     #'rest_framework_swagger',
     'drf_yasg',
     'django.contrib.sitemaps',
+    'svg',
     # SCSS
     'sass_processor',
 ]
