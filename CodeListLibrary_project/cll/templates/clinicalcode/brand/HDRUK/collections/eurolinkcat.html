@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{% endblock title %}
+{% block description %} HDR-UK BREATHE {% endblock description %}
+{% block keywords %}, HDR-UK, Phenotype, Phenotypes, EUROCAT, EUROlinkCAT, Data Science Centre, Health Data, Research Hub
+{% endblock keywords %}
+{% block head %}
+<link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
+{% endblock head %}
+{% block container %}
+<div class="row">
+   <nav class="col-sm-2 hideleft-navbar" id="eurolinkcatMenu"
+      style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;">
+      <div class="leftnavbar-position">
+         <ul class="nav left-navbar text-rubric-design pointer" onclick="showSelection(event)" id='navList'>
+            <li> <a href="#eurolinkcat" id="eurolinkcatHeader">EUROlinkCAT
+               </a>
+            </li>
+            <li><a href="#phenos">
+                  Phenotypes
+               </a>
+            </li>
+         </ul>
+      </div>
+   </nav>
+   <h3><span id="eurolinkcat"></span></h3>
+   <div style="width:70%;" class="column">
+      <div class="big-banner_eurolinkcat"> </div>
+
+      <div class="medium-header-design"">
+         What is EUROlinkCAT?
+      </div>
+      <div class="sm-header-design">
+         <p> EUROlinkCAT is a pan-European project investigating the health and educational outcomes of children born
+            with congenital anomalies. 22 registries from 14 countries have linked congenital anomaly data from the
+            EUROCAT surveillance network to routinely collected health and educational data sources, creating a rich
+            data resource and large population size to further our understanding of these conditions.
+         </p>
+
+         <p>Visit the official <a href="https://eurolinkcat.eu" target=_blank rel="noopener noreferrer"> EUROlinkCAT
+               website </a> for more information.</p>
+
+         <div class="big-banner_eurocat"> </div>
+
+
+         <div class="sm-header-design">
+            <p> EUROCAT is a European network of population-based registries for the epidemiological surveillance of
+               congenital anomalies. It was established in 1979. Currently, with 36 full and 5 associate members in 20
+               European countries the network surveys more than 1.5 million births per year.
+            </p>
+
+            <p>Visit the official <a href="https://eu-rd-platform.jrc.ec.europa.eu/eurocat_en" target=_blank
+                  rel="noopener noreferrer"> EUROCAT network </a> for more information.</p>
+         </div>
+
+
+         <div class="medium-header-design" id="phenos">
+            Phenotypes
+         </div>
+
+         <div style="display: flex; flex-wrap:nowrap; ">
+            <form class="row" style="padding-left:12px;" action="{% url 'phenotype_list' %}" method="GET">
+               <div style="height:0;width:0;overflow:hidden;">
+                  <input class="form-control" type="hidden" name="collection_ids" data-role="tagsinput" value="30">
+               </div>
+               <div style="display: flex; flex-wrap: nowrap;">
+                  <button class="btn-link" name="page" value="1">
+                     Browse EUROlinkCAT Phenotypes
+                  </button>
+               </div>
+            </form>
+         </div>
+      </div>
+   </div>
+</div>
+{% endblock container %}
+{% block scripts  %}
+<script type="text/javascript">
+   function showSelection(e) {
+      if (document.querySelector('#navList a.active') !== null) {
+         document.querySelector('#navList a.active').classList.remove('active');
+      }
+      e.target.className = "active";
+   }
+</script>
+<script type="text/javascript">
+   window.onload = function () {
+      document.getElementById("eurolinkcatHeader").click();
+   };
+</script>
+{% endblock scripts %}
