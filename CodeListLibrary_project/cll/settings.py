@@ -146,6 +146,8 @@ SASS_PROCESSOR_ENABLED = True
 SASS_PROCESSOR_AUTO_INCLUDE = True
 SASS_PROCESSOR_INCLUDE_FILE_PATTERN = r'^.+\.scss$'
 SASS_OUTPUT_STYLE = 'expanded' if DEBUG else 'compressed'
+SASS_PROCESSOR_ROOT = STATIC_URL
+
 
 # Binding and connection options
 # LDAP authentication  =======================================================
