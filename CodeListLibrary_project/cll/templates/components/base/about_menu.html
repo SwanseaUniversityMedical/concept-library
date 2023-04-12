@@ -30,19 +30,10 @@
 								{% endif %}
 								
 								{% if not CLL_READ_ONLY %}
-                <li class="content-container__full">
-                  <hr>
-                  <a href="{% url 'contact_us' %}" class="item-dropdown">
-                    <div class="item-dropdown__icon"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M29 23C29 23.5304 28.7893 24.0391 28.4142 24.4142C28.0391 24.7893 27.5304 25 27 25H15L11 29V13C11 12.4696 11.2107 11.9609 11.5858 11.5858C11.9609 11.2107 12.4696 11 13 11H27C27.5304 11 28.0391 11.2107 28.4142 11.5858C28.7893 11.9609 29 12.4696 29 13V23Z" fill="#CCF3EE" stroke="#5C5C5C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
-                      
-                      </div>
-                    
-                      <div class="item-dropdown__title">Contact us</div>
-                    
-                  </a>
-                </li>
+               
+                {% url 'contact_us' as contact_us%}
+                {% include "components/search/cards/dropdown_list_item_full.html" with icon='message_icon' separator=True url=contact_us title="Contact us" %}
+						
 	                                
 								{% endif %}
 
