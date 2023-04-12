@@ -20,9 +20,14 @@
 @import 'components/_filters';
 @import 'components/_pagination';
 @import 'components/_markdown';
+@import 'components/_modals';
+@import 'components/_tooltips';
+@import 'components/_toast';
+@import 'components/_banner';
 
 // Need to add vendor's properties to brand map
 @import 'vendor/_lightpick';
+@import 'vendor/_datatables';
 
 html {
   height: 100%;
@@ -37,11 +42,6 @@ html {
   &.hide {
     display: none;
   }
-}
-
-.d-grey {
-  background-color: rgba(39,41,43,0.03);
-  border: 1px solid rgba(39,41,43,0.1);
 }
 
 body {
@@ -85,6 +85,7 @@ data {
   flex: 1;
   min-height: fit-content;
   max-width: 100%;
+  flex-wrap: nowrap;
 
   &__inner-container {
     @include flex-col();
@@ -92,6 +93,9 @@ data {
     flex: 1;
     min-height: fit-content;
     max-width: 100%;
+  }
+  
+  &--inner-padding {
     padding: 0 var(--main-gutter) 0 var(--main-gutter);
   
     @include media("<desktop", "screen") {
@@ -99,354 +103,4 @@ data {
       padding-left: var(--main-mobile-gutter);
     }
   }
-}
-
-/// Phenotype creation article
-///   @desc will be moved into a page file later on
-.phenotype-creation {
-  @include flex-col();
-  position: relative;
-  align-self: center;
-  width: var(--phenotype-article-lg-size);
-  max-width: var(--phenotype-article-lg-size);
-
-  @include media(">desktop", "screen") {
-    width: var(--phenotype-article-sm-size);
-    max-width: var(--phenotype-article-sm-size);
-  }
-
-  @include media("<desktop", "screen") {
-    width: var(--phenotype-article-lg-size);
-    max-width: var(--phenotype-article-lg-size);
-  }
-
-  &__completed {
-    @include flex-col();
-
-    position: relative;
-    width: 100%;
-    height: auto;
-    margin-top: 1rem;
-    padding: 0.5rem 0.5rem 1rem 0;
-    
-    &-row {
-      @include flex-row($gap: 0.5rem);
-
-      justify-content: center;
-      @include media(">phone", "screen") {
-        & {
-          justify-content: right;
-        }
-      }
-    }
-  }
-  
-  &__header {
-    @include app-font-style();
-    @include bottom-divider(2rem);
-  
-    padding: 0.5rem 1rem 1rem 1rem;
-  
-    h1 {
-      font-size: var(--phenotype-article-h1-size);
-      font-weight: var(--phenotype-article-h1-weight);
-      color: col(text-darkest);
-      line-height: 1;
-      margin: 1rem auto;
-    }
-  
-    span {
-      padding-left: 1rem;
-      color: col(text-dark);
-      font-weight: normal;
-      line-height: 1;
-      margin: 1rem auto;
-    }
-  
-    p {
-      line-height: 1;
-      padding: 0.5rem 0.2rem;
-    }
-  }
-}
-
-.phenotype-progress {
-  @include app-font-style();
-  @include flex-col($gap: 1rem);
-  position: relative;
-  width: 100%;
-  max-width: 100%;
-  height: auto;
-  margin-top: 1rem;
-  padding: 0.5rem 1rem 0 1rem;
-  counter-reset: item;
-  list-style-type: none;
-
-  &__item {
-    --progress-percentage: 0%;
-
-    @include flex-col();
-    position: relative;
-    padding: 0 0rem 0.5rem 0.5rem;
-    width: 100%;
-    max-width: 100%;
-    min-height: var(--progress-item-min-step-height);
-    counter-increment: item;
-
-    &:not(:last-child):before {
-      content: "";
-      position: absolute;
-      height: 100%;
-      width: var(--progress-tracker-width);
-      left: calc(var(--progress-tracker-offset) - var(--progress-tracker-width)/2);
-      top: var(--progress-tracker-size);
-      background-image: linear-gradient(to bottom, var(--progress-tracker-active-color) var(--progress-percentage), var(--progress-tracker-color) var(--progress-percentage));
-      background-image: -webkit-linear-gradient(top, var(--progress-tracker-active-color) var(--progress-percentage), var(--progress-tracker-color) var(--progress-percentage));
-      z-index: 1;
-    }
-
-    &:after {
-      content: counter(item);
-      position: absolute;
-      top: 2px;
-      left: calc(var(--progress-tracker-offset) - var(--progress-tracker-size)/2 - 0.15rem);
-      width: var(--progress-tracker-size);
-      height: var(--progress-tracker-size);
-      background-color: var(--progress-tracker-bg-color);
-      color: var(--progress-tracker-counter-color);
-      font-weight: var(--progress-tracker-counter-weight);
-      font-size: calc(var(--progress-tracker-size) * 0.5);
-      border: 1px solid var(--progress-tracker-off-color);
-      border-width: var(--progress-tracker-line-width);
-      border-radius: 50%;
-      text-align: center;
-      line-height: 2;
-      z-index: 2;
-    }
-    
-    &-title {
-      padding: 0;
-      margin: 0 0 0.5rem 0;
-      font-weight: var(--progress-tracker-header-weight);
-      font-size: var(--progress-tracker-header-size);
-      color: var(--progress-tracker-header-color);
-      line-height: 1;
-    }
-
-    @include media("<desktop", "screen") {
-      &:not(:last-child):before {
-        left: calc(var(--progress-tracker-offset) - var(--progress-tracker-width)/2 + 0.7rem);
-      }
-
-      &:after {
-        left: calc(var(--progress-tracker-offset) - var(--progress-tracker-size)/2 + 0.55rem);
-      }
-    }
-
-    &-description {
-      padding: 0;
-      margin: 0;
-      font-size: var(--progress-tracker-description-size);
-      color: col(text-washed);
-    }
-
-    &-container {
-      @include flex-col();
-      position: relative;
-      width: 100%;
-      height: fit-content;
-    }
-  }
-}
-
-.concepts-view {
-  @include flex-col();
-
-  position: relative;
-  width: 100%;
-  padding: 0;
-  margin: 1rem 0 0 0;
-  width: 100%;
-  
-  &__header {
-    @include flex-row();
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  &__container {
-    @include flex-col();
-    width: fit-content;
-    justify-content: center;
-  }
-
-  &__title {
-    padding: 0;
-    margin: 0 0 0.5rem 0;
-    font-size: 18px;
-    font-weight: bold;
-    line-height: 1;
-  }
-
-  &__description {
-    margin: 0 0 0.5rem 0;
-    font-size: 14px;
-  }
-}
-
-.concept-list {
-  @include flex-col();
-
-  position: relative;
-  width: 100%;
-  height: auto;
-  padding: 0;
-  margin: 0;
-  padding-top: 1rem;
-  margin-bottom: 0.5rem;
-  overflow: hidden;
-
-  &__none-available {
-    padding: 1rem;
-    border-radius: 0.1rem;
-    background-color: col(accent-semi-transparent);
-    margin-bottom: 0.5rem;
-
-    &-message {
-      text-align: center;
-    }
-
-    &:not(.show) {
-      display: none;
-    }
-  }
-
-  &__group {
-    position: relative;
-    width: 100%;
-    max-width: 100%;
-    border-bottom: 1px solid col(accent-washed);
-  
-    &:nth-child(odd) &-item {
-      background-color: var(--item-list-odd-bg-color);
-    }
-    &:nth-child(even) &-item {
-      background-color: var(--item-list-even-bg-color);
-    }
-
-    &:not(.show) {
-      display: none;
-    }
-
-    &-item {
-      @include flex-row();
-      
-      position: relative;
-      color: col(text-darkest);
-      padding: 0.5rem 0.25rem 0.5rem 0.5rem;
-  
-      &.is-open + .concept-group-content {
-        height: auto;
-      }
-
-      &.is-open {
-        border-bottom: 1px solid col(accent-washed);
-      }
-  
-      .contextual-icon:after {
-        @include fontawesome-icon();
-        content: '\f105';
-      }
-  
-      &.is-open .contextual-icon:after {
-        @include fontawesome-icon();
-        content: '\f107';
-      }
-
-      .edit-icon:after {
-        @include fontawesome-icon();
-        content: '\f304';
-        color: col(accent-primary);
-      }
-    
-      .delete-icon:after {
-        @include fontawesome-icon();
-        content: '\f1f8';
-        color: col(accent-danger);
-      }
-    
-      .concept-name {
-        cursor: pointer;
-        pointer-events: auto;
-        font-weight: normal;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-      }
-    
-      .concept-buttons {
-        @include flex-row($gap: 1rem);
-        margin-left: auto;
-      }
-    }
-  }
-}
-
-.concept-group-content {
-  position: relative;
-  width: 100%;
-  max-width: 100%;
-  height: 0;
-  transition: all 250ms ease;
-
-  &__details {
-    @include flex-row();
-    position: relative;
-    width: 100%;
-    justify-content: space-between;
-
-    &-explanation {
-      @include flex-col();
-
-      &-description {
-        margin: 0 0 0.5rem 0;
-        font-size: 14px;
-      }
-    }
-  }
-
-  &__editor-selection {
-    @include flex-row();
-    justify-self: flex-end;
-    align-content: center;
-    position: relative;
-  }
-
-  &__container {
-    @include flex-col();
-    position: relative;
-    height: auto;
-    padding: 0.5rem;
-    margin-bottom: 0.5rem;
-  }
-}
-
-.ruleset-group {
-  @include flex-col();
-
-  &__none-available {
-    padding: 1rem;
-    border-radius: 0.1rem;
-    background-color: col(accent-semi-transparent);
-    margin-bottom: 0.5rem;
-
-    &-message {
-      text-align: center;
-    }
-
-    &:not(.show) {
-      display: none;
-    }
-  }
-
 }

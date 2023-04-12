@@ -59,6 +59,12 @@
     overflow: hidden;
   }
 
+  &__input:not(:checked) ~ &__container {
+    * {
+      display: none;
+    }
+  }
+
   &__input:checked ~ &__container {
     opacity: 1;
     height: auto;
@@ -69,6 +75,11 @@
 ///   @desc A filled, toggleable accordian with stylistic state. 
 ///         Used to control visibility of content in the phenotype/create page
 .fill-accordian {
+  @include flex-col();
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+
   &__input {
     display: none;
   }
@@ -80,9 +91,19 @@
   &__label {
     @include prefix(transition, background-color 250ms ease-in-out, webkit moz o);
     cursor: pointer;
-    display: block;
+    display: flex;
+    position: relative;
     padding: 0.5rem 1rem;
     background-color: col(accent-lightest);
+    max-width: calc(100% - 2em);
+
+    span {
+      position: relative;
+      width: 20ch;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
     &:hover {
       background-color: col(accent-darkish);
@@ -112,8 +133,12 @@
 
   &__container {
     @include prefix(transition, opacity 250ms ease-in-out, webkit moz o);
+    @include flex-col();
+    flex-wrap: nowrap;
+    position: relative;
     opacity: 0;
     height: 0;
+    max-width: 100%;
     overflow: hidden;
   }
 

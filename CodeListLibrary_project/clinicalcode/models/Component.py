@@ -33,13 +33,22 @@ class Component(TimeStampedModel):
     COMPONENT_TYPE_QUERY_BUILDER = 2
     COMPONENT_TYPE_EXPRESSION = 3
     COMPONENT_TYPE_EXPRESSION_SELECT = 4
+    COMPONENT_TYPE_EXPRESSION_PH_SEARCH = 5
+    COMPONENT_TYPE_EXPRESSION_PH_FILE = 6
+    COMPONENT_TYPE_EXPRESSION_PH_POINTER = 7
 
     COMPONENT_TYPES = (
         (COMPONENT_TYPE_CONCEPT, 'Concept'),
         (COMPONENT_TYPE_QUERY_BUILDER, 'Query Builder'),
         (COMPONENT_TYPE_EXPRESSION, 'Expression'),
         (COMPONENT_TYPE_EXPRESSION_SELECT, 'Select/Import'),
+        (COMPONENT_TYPE_EXPRESSION_PH_SEARCH, 'Searchterm'),
+        (COMPONENT_TYPE_EXPRESSION_PH_FILE, 'File Upload'),
+        (COMPONENT_TYPE_EXPRESSION_PH_POINTER, 'Concept'),
     )
+
+    # Only used for rulesets
+    source = models.CharField(max_length=250, blank=True, null=True)
 
     comment = models.TextField()
     component_type = models.IntegerField(choices=COMPONENT_TYPES)

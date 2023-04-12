@@ -1,25 +1,46 @@
 /**
   * FuzzyQuery
   * @desc A static class that uses Levenshtein distance to search a haystack.
+  * 
+  * e.g.
+  *   import FuzzyQuery from '../components/fuzzyQuery.js'
+  *   const haystack = [
+  *     'some_item1',
+  *     'some_item2',
+  *     'another_thing',
+  *     'another_thing_1',
+  *   ];
+  * 
+  *   const query = 'some_item';
+  *   const results = FuzzyQuery.Search(haystack, query, FuzzyQuery.Results.Sort, FuzzyQuery.Transformers.IgnoreCase);
+  *   console.log(results); // Will return ['some_item1', 'some_item2']
+  * 
   */
 export default class FuzzyQuery {
-  /** @desc Transformers are preprocessors that modify both the haystack and needle prior to fuzzy matching */
+  /**
+   * @desc transformers are preprocessors that modify both the haystack and the needle prior to fuzzy matching
+   */
   static Transformers = {
     IgnoreCase: (s) => {
       return s.toLocaleLowerCase();
     }
   }
 
-  /** @desc Whether to sort the result items by their score */
+  /**
+   * @desc enum to det. whether to sort result items by their score or not
+   */
   static Results = {
     LIST: 0,
     SORT: 1,
   }
 
-  /* A static method to match a needle in a haystack */
-  /** @param {string} haystack The string to match with */
-  /** @param {string} needle The string to compare */
-  /** @return {boolean} A boolean that represents whether the needle was matched */
+  /**
+   * Match
+   * @desc a static method to match a needle in a haystack
+   * @param {string} haystack the string to match with
+   * @param {string} needle the string to compare
+   * @return {boolean} a boolean that reflects whether the needle matched the haystack
+   */
   static Match(haystack, needle) {
     const hlen = haystack.length;
     const nlen = needle.length;
@@ -51,10 +72,13 @@ export default class FuzzyQuery {
     return true;
   }
 
-  /* A static method to measure the Levenshtein distance between two strings */
-  /** @param {string} haystack The string to match with */
-  /** @param {string} needle The string to compare */
-  /** @return {number} The distance between the strings */
+  /**
+   * Distance
+   * @desc A static method to measure the Levenshtein distance between two strings
+   * @param {string} haystack the string to match with
+   * @param {string} needle the string to compare
+   * @return {number} the distance between the strings
+   */
   static Distance(haystack, needle) {
     const hlen = haystack.length;
     const nlen = needle.length;
@@ -83,12 +107,15 @@ export default class FuzzyQuery {
     return matrix[nlen][hlen];
   }
 
-  /* A static method to measure the Levenshtein distance between two strings */
-  /** @param {array} haystack An array of haystacks to match with */
-  /** @param {string} query The string to compare */
-  /** @param {number} sort Whether to sort, per the FuzzyQuery.Results enum */
-  /** @param {function} transformer The preprocessing function, per the FuzzyQuery.Transformers enum */
-  /** @return {array} An array of matches */
+  /**
+   * Search
+   * @desc A static method to measure the Levenshtein distance between two strings
+   * @param {array} haystack An array of haystacks to match with
+   * @param {string} query The string to compare
+   * @param {number} sort Whether to sort, per the FuzzyQuery.Results enum
+   * @param {function} transformer The preprocessing function, per the FuzzyQuery.Transformers enum
+   * @return {array} An array of matches
+   */
   static Search(haystack = [], query = '', sort = 1, transformer = null) {
     query = String(query);
     sort = Boolean(sort);

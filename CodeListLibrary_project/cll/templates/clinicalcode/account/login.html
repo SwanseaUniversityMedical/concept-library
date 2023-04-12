@@ -1,0 +1,49 @@
+{% extends "base_scss.html" %}
+
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+{% block title %}| Login {% endblock title %}
+
+{% block bodyclass %}{% endblock bodyclass %}
+
+{% block container %}
+  <!-- Page Stylesheets -->
+  <link href="{% sass_src 'scss/pages/login.scss' %}" rel="stylesheet" type="text/css" />
+
+  <!-- Main -->
+  <header class="main-header">
+    <div class="main-header__inner-container"></div>
+  </header>
+  
+  <main class="main-content">
+    <div class="main-content__inner-container">
+      <article class="login-panel">
+        <section class="login-panel__left-container">
+          <!-- Logo etc -->
+        </section>
+        <section class="login-panel__right-container">
+          <!-- Login form related -->
+          <form method="post">
+            {{ form.non_field_errors }}
+            <div class="form-group">
+              <label for="{{ form.username.id_for_label }}">Username:</label>
+              {{ form.username }}
+              {{ form.username.errors }}
+            </div>
+            <div class="form-group">
+              <label for="{{ form.password.id_for_label }}">Password:</label>
+              {{ form.password }}
+              {{ form.password.errors }}
+            </div>
+            <button type="submit">Login</button>
+          </form>
+        </section>
+      </article>
+    </div>
+  </main>
+{% endblock container %}

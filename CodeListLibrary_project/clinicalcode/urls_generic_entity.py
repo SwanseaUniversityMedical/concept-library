@@ -6,12 +6,9 @@ from django.conf import settings
 from django.urls import re_path as url
 from django.contrib.auth import views as auth_views
 
+from .views import (GenericEntity, adminTemp, Profile, Moderation)
 from clinicalcode.views import Publish
 from clinicalcode.views import Decline
-
-
-
-from .views import (GenericEntity, adminTemp)
 
 from django.urls import path
 from django.views.generic.base import TemplateView
@@ -23,16 +20,15 @@ urlpatterns = []
  
  
 if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
-    urlpatterns += [       
-      
-        url(r'^search/$', GenericEntity.EntitySearchView.as_view(), name='entity_search_page'),
-
-        url(r'^ge/create/$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
+    urlpatterns += [
         url(r'^ge/run-stats/$', GenericEntity.EntityStatisticsView.as_view(), name='run_entity_statistics'),
 
-        url(r'^entity/$', GenericEntity.EntitySearchView.as_view(), name='search_entity'),
-        url(r'^entity/create/(?P<template_id>[\d]+)/?$', GenericEntity.CreateEntityView.as_view(), name='create_entity'),
-        url(r'^entity/update/(?P<entity_id>\w+)/?$', GenericEntity.CreateEntityView.as_view(), name='update_entity'),
+        url(r'^search/$', GenericEntity.EntitySearchView.as_view(), name='search_entity'),
+        url(r'^search/(?P<entity_type>([A-Za-z0-9\-]+))/?$', GenericEntity.EntitySearchView.as_view(), name='search_entity'),
+        
+        url(r'^create/$', GenericEntity.CreateEntityView.as_view(), name='create_entity'),
+        url(r'^create/(?P<template_id>[\d]+)/?$', GenericEntity.CreateEntityView.as_view(), name='create_entity'),
+        url(r'^update/(?P<entity_id>\w+)/(?P<entity_history_id>\d+)/?$', GenericEntity.CreateEntityView.as_view(), name='update_entity'),
         
         url(r'^ge/(?P<pk>PH\d+)/detail/$', GenericEntity.generic_entity_detail, name='entity_detail'),
         url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/detail/$', GenericEntity.generic_entity_detail, name='entity_history_detail'),
@@ -52,7 +48,11 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
         url(r'^ge/example/$', GenericEntity.ExampleSASSView.as_view(), name='example_phenotype'),
         url(r'^search/temp/$', GenericEntity.generic_entity_list_temp, name='generic_entity_list_temp'),
 
+        # Profile
+        url(r'profile/$', Profile.MyProfile.as_view(), name='my_profile'),
+        url(r'profile/collection/$', Profile.MyCollection.as_view(), name='my_collection'),
 
+        url(r'moderation/$', Moderation.EntityModeration.as_view(), name='moderation_page'),
     ]
 
     # for admin(developers) to migrate phenotypes into dynamic template

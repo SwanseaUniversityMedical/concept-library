@@ -436,7 +436,10 @@ def get_entity_full_template_data(entity_record, template_id, return_queryset_as
                 is_base_field = True
         
         if is_base_field:
-            fields_data[field_name] = field_definition | {'value': entity_record[field_name]}
+            if field_name in entity_record:
+                fields_data[field_name] = field_definition | {'value': entity_record[field_name]}
+            else:
+                fields_data[field_name] = field_definition
         else: # custom field
             fields_data[field_name] = field_definition | {'value': entity_record['template_data'][field_name]}
     

@@ -1,0 +1,78 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+/// Profile template
+///   @desc Stylesheet relating to profile, my collection and moderation page
+
+.profile-collection {
+  @include flex-col();
+  align-self: center;
+  width: var(--phenotype-article-lg-size);
+  max-width: var(--phenotype-article-lg-size);
+
+  @include media(">desktop", "screen") {
+    width: var(--phenotype-article-sm-size);
+    max-width: var(--phenotype-article-sm-size);
+  }
+
+  @include media("<desktop", "screen") {
+    width: var(--phenotype-article-lg-size);
+    max-width: var(--phenotype-article-lg-size);
+  }
+
+  &__inner-container {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  &__none-available {
+    display: block;
+    padding: 1rem;
+    border-radius: 0.1rem;
+    background-color: col(accent-semi-transparent);
+    margin-bottom: 0.5rem;
+
+    &-message {
+      text-align: center;
+    }
+
+    &:not(.show) {
+      display: none;
+    }
+  }
+
+  &__table-container {
+    @include flex-col();
+    position: relative;
+    height: auto;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    max-width: calc(100% - 1rem);
+  }
+
+  &__tag {
+    padding: 0.2rem 1rem;
+    border-radius: 0.2rem;
+
+    &.REQUESTED { background-color: var(--publication-requested-bg-color); };
+    &.PENDING   { background-color: var(--publication-pending-bg-color);   };
+    &.APPROVED  { background-color: var(--publication-approved-bg-color);  };
+    &.REJECTED  { background-color: var(--publication-rejected-bg-color);  };
+    &.NaN       { background-color: var(--publication-undefined-bg-color); };
+  }
+
+  .overflow-table-constraint {
+    padding: 0.5rem;
+    position: relative;
+    width: calc(100% - 1rem);
+    max-width: 100%;
+  }
+
+  &-table{
+    &__wrapper > tbody > tr {
+      border-bottom: 1px solid col(accent-washed);
+    }
+  }
+}

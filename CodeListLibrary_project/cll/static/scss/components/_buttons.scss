@@ -25,6 +25,15 @@
     transition: all 250ms ease;
   } 
 
+  &:disabled {
+    opacity: 0.5;
+  }
+
+  &:focus-visible:after {
+    outline: 1px solid black;
+    border-radius: 2pt;
+  }
+
   &:hover:after {
     color: col(accent-danger);
   }
@@ -51,6 +60,15 @@
     transition: all 250ms ease;
     transform: translateY(0.2rem);
     -webkit-transform: translateY(0.2rem);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+
+  &:focus-visible {
+    outline: 1px solid black;
+    border-radius: 2pt;
   }
   
   /* Icon style */
@@ -89,6 +107,21 @@
     pointer-events: auto;
     height: 100%;
     top: 1.1rem;
+    aspect-ratio: 1 / 1;
+    font-family: var(--icons-name);
+    font-style: var(--icons-style);
+    font-size: var(--icons-size);
+    text-align: center;
+  }
+  
+  &.r-arrow-icon:after {
+    content: '\f061';
+    cursor: pointer;
+    pointer-events: auto;
+    position: absolute;
+    right: 0;
+    height: 100%;
+    top: 32.75%;
     aspect-ratio: 1 / 1;
     font-family: var(--icons-name);
     font-style: var(--icons-style);
@@ -204,6 +237,15 @@
   padding: 1rem 2rem;
   text-align: center;
   border: none;
+
+  &:focus-visible {
+    outline: 1px solid black;
+    border-radius: 2pt;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
 
   /* Icon style */
   &.icon {
@@ -374,6 +416,15 @@
   text-align: center;
   margin: 0;
 
+  &:disabled {
+    opacity: 0.5;
+  }
+  
+  &:focus-visible {
+    outline: 1px solid black;
+    border-radius: 2pt;
+  }
+
   &:not(:disabled):active {
     transition: all 250ms ease;
     transform: translateY(0.2rem);
@@ -490,10 +541,6 @@
     padding: 0.5rem 1rem;
     background-color: col(bg);
     white-space: nowrap;
-
-    &:hover {
-      background-color: col(accent-washed);
-    }
   }
 
   &__input {
@@ -549,6 +596,19 @@
       }
     }
   }
+
+  &__input:disabled ~ &__label,
+  &__input:disabled ~ &__menu {
+    cursor: default;
+    color: col(text-washed);
+    opacity: 0.5;
+  }
+
+  &__input:not(:disabled) ~ &__label {
+    &:hover {
+      background-color: col(accent-washed);
+    }
+  }
 }
 
 /// Selection group
@@ -583,6 +643,15 @@
       outline: none;
     }
 
+    &:focus-visible {
+      outline: 1px solid black;
+      border-radius: 2pt;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+    }
+
     &-icon:after {
       @include prefix(transition, all 250ms ease-in-out, webkit moz o);
       content: '\f107';
@@ -604,7 +673,7 @@
     @include prefix(transition, all 250ms ease-in-out, webkit moz o);
     @include prefix(transform, scale(1, 0), webkit moz o);
     pointer-events: none;
-    display: block;
+    display: none;
     position: absolute;
     max-height: 300px;
     overflow: auto;
@@ -623,6 +692,7 @@
       @include prefix(transform, scale(1, 1), webkit moz o);
       pointer-events: auto;
       opacity: 1;
+      display: block;
     }
 
     &-item {

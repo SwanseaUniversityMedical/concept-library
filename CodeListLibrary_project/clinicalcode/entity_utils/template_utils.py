@@ -1,5 +1,6 @@
 from django.apps import apps
-from django.db.models import Q
+from django.db.models import Q, ForeignKey
+from django.contrib.auth.models import User, Group
 
 from . import model_utils
 from . import constants
@@ -33,12 +34,12 @@ def is_metadata(entity, field):
         Checks whether a field is accounted for in the metadata of an entity e.g. name, tags, collections
     '''
     try:
-        try:
-            data = entity._meta.get_field(field)
-            return True
-        except:
-            pass
+        data = entity._meta.get_field(field)
+        return True
+    except:
+        pass
 
+    try:
         model = type(entity)
         data = model._meta.get_field(field)
         return True
@@ -115,6 +116,21 @@ def get_ordered_definition(definition, clean_fields=False):
 
     return definition
 
+def get_one_of_field(entity, entity_fields, default=None):
+    '''
+    '''
+    for field in entity_fields:
+        value = None
+        try:
+            value = getattr(entity, field)
+        except:
+            pass
+
+        if value:
+            return value
+
+    return default
+
 def get_entity_field(entity, field, default=None):
     '''
         Safely gets a field from an entity, either at the toplevel (e.g. its name) or from its template data (e.g. some dynamic field)
@@ -127,8 +143,28 @@ def get_entity_field(entity, field, default=None):
         if data is not None:
             return data
     except:
+        pass
+    
+    try:
         data = getattr(entity, 'template_data')
         return try_get_content(data, field, default)
+    except:
+        pass
+
+    return default
+
+def is_valid_field(entity, field):
+    if is_metadata(entity, field):
+        return True
+    
+    template = entity.template
+    if template is None:
+        return False
+    
+    if get_layout_field(template, field):
+        return True
+    
+    return False
 
 def get_field_item(layout, field, item, default=None):
     '''
@@ -161,6 +197,32 @@ def is_filterable(layout, field):
     
     return try_get_content(search, 'filterable')
 
+def get_metadata_field_value(entity, field_name, default=None):
+    '''
+    '''
+    field = entity._meta.get_field(field_name)
+    if not field:
+        return default
+    
+    field_type = field.get_internal_type()
+    if field_type in constants.STRIPPED_FIELDS or field_type in constants.HISTORICAL_HIDDEN_FIELDS:
+        return default
+    
+    field_value = get_entity_field(entity, field_name)
+    if field_value is None:
+        return default
+    
+    if isinstance(field, ForeignKey):
+        model = field.target_field.model
+        model_type = str(model)
+        if model_type in constants.USERDATA_MODELS:
+            return {
+                'id': field_value.id,
+                'name': get_one_of_field(field_value, ['username', 'name'])
+            }
+
+    return field_value
+
 def get_metadata_value_from_source(entity, field, default=None):
     '''
         Tries to get the values from a top-level metadata field
@@ -172,8 +234,10 @@ def get_metadata_value_from_source(entity, field, default=None):
         if field in constants.metadata:
             validation = get_field_item(constants.metadata, field, 'validation', { })
             source_info = validation.get('source')
-
-            model = apps.get_model(app_label='clinicalcode', model_name=source_info.get('table'))
+            
+            model = apps.get_model(
+                app_label='clinicalcode', model_name=source_info.get('table')
+            )
 
             column = 'id'
             if 'query' in source_info:
@@ -268,7 +332,6 @@ def get_template_sourced_values(template, field, default=None):
 
     return default
 
-
 def get_options_value(data, info, default=None):
     '''
         Tries to get the options parameter from a layout's field entry
@@ -315,7 +378,7 @@ def get_sourced_value(data, info, default=None):
     except:
         return default
 
-def get_template_data_values(entity, layout, field, default=[]):
+def get_template_data_values(entity, layout, field, hide_user_details=False, default=[]):
     '''
         Retrieves the sourced values from an entity in an array
     '''
@@ -358,8 +421,10 @@ def get_template_data_values(entity, layout, field, default=[]):
     elif field_type == 'concept':
         values = []
         for item in data:
-            value = model_utils.get_concept_data(
-                item['concept_id'], item['concept_version_id']
+            value = model_utils.get_clinical_concept_data(
+                item['concept_id'], 
+                item['concept_version_id'], 
+                hide_user_details=hide_user_details
             )
 
             if value:

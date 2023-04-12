@@ -100,6 +100,10 @@
     flex: 1 1 auto;
   }
 
+  &-fill-area-evenly {
+    flex: 1 1 0;
+  }
+
   &-fit-content {
     min-width: fit-content;
   }
@@ -110,6 +114,22 @@
 
   &-border-radius {
     border-radius: var(--card-border-radius);
+  }
+
+  &-no-margin {
+    margin: 1rem 2rem 1rem 0;
+
+    &:last-child {
+      margin: 1rem 0 1rem;
+    }
+
+    @include media('<tablet', 'screen') {
+      margin: 1rem;
+
+      &:last-child {
+        margin: 1rem;
+      }
+    }
   }
 
   /* Outline */
@@ -191,6 +211,16 @@
   &:active {
     /* Should we animate it? */
     @include prefix(transform, scale(0.99), webkit moz o);
+  }
+
+  &:focus-visible {
+    outline: 1px solid black;
+    border-radius: 2pt;
+  }
+
+  &__click {
+    @include clear-anchor();
+    display: block;
   }
 
   &__header {

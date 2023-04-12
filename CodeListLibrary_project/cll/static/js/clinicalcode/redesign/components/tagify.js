@@ -1,4 +1,4 @@
-import FuzzyQuery from "./fuzzyQuery.js";
+import FuzzyQuery from './fuzzyQuery.js';
 
 /**
  * TAGIFY__DELAY
@@ -51,6 +51,32 @@ const TAGIFY__TAG_OPTIONS = {
   * @param {string/node} obj The ID of the input element or the input element itself.
   * @param {object} options An object that defines any of the optional parameters as described within TAGIFY__TAG_OPTIONS
   * @return {object} An interface to control the behaviour of the tag component.
+  * 
+  * [!] Note: After the addition or removal of a tag, a custom event is dispatched to
+  *           a the Tagify instance's element through the 'TagChanged' hook
+  * 
+  * e.g.
+  *   import Tagify from '../components/tagify.js'
+  * 
+  *   const tags = [
+  *     {
+  *       name: 'SomeTagName',
+  *       value: 'SomeTagValue',
+  *     },
+  *     {
+  *       name: 'SomeTagName',
+  *       value: 'SomeTagValue',
+  *     }
+  *   ];
+  * 
+  *   const tagComponent = new Tagify('phenotype-tags', {
+  *     'autocomplete': true,
+  *     'useValue': false,
+  *     'allowDuplicates': false,
+  *     'restricted': true,
+  *     'items': tags,
+  *   });
+  * 
   */
 export default class Tagify {
   constructor(obj, options) {
@@ -72,10 +98,32 @@ export default class Tagify {
     this.#initialise();
   }
 
-  /* Adds a tag to the current list of tags */
-  /** @param {string} name The name of the tag to add */
-  /** @param {any} value The value of the tag to add */
-  /** @return {object} Returns a tag object */
+  /*************************************
+   *                                   *
+   *               Getter              *
+   *                                   *
+   *************************************/  
+  /**
+   * getActiveTags
+   * @desc method to retrieve current tag data
+   * @returns {list} a list of objects describing active tags
+   */
+  getActiveTags() {
+    return this.tags;
+  }
+
+  /*************************************
+   *                                   *
+   *               Setter              *
+   *                                   *
+   *************************************/  
+  /**
+   * addTag
+   * @desc Adds a tag to the current list of tags
+   * @param {string} name The name of the tag to add
+   * @param {any} value The value of the tag to add
+   * @return {object} Returns a tag object
+   */
   addTag(name, value) {
     if (this.options.restricted) {
       const index = this.options.items.map(e => e.name.toLocaleLowerCase()).indexOf(name.toLocaleLowerCase());
@@ -101,11 +149,23 @@ export default class Tagify {
     }
 
     const tag = this.#createTag(name, value);
+    this.element.dispatchEvent(
+      new CustomEvent('TagChanged', {
+        detail: {
+          controller: this,
+          type: 'addition',
+        }
+      })
+    );
+
     return tag;
   }
   
-  /* Removes a tag from the current list of tags */
-  /** @param {object} tag The tag to remove */
+  /**
+   * removeTag
+   * @desc removes a tag from the current list of tags
+   * @param {object} tag the tag to remove
+   */
   removeTag(tag) {
     const name = tag.querySelector('.tag__name');
     this.tagbox.removeChild(tag);
@@ -114,9 +174,21 @@ export default class Tagify {
     this.tags.splice(index, 1);
 
     this.#updateElement();
+    this.element.dispatchEvent(
+      new CustomEvent('TagChanged', {
+        detail: {
+          controller: this,
+          type: 'removal',
+        }
+      })
+    );
   }
 
-  /* Destroys the tagify component, but not the element itself */
+  /**
+   * destroy
+   * @desc
+   * Destroys the tagify component, but not the element itself 
+   */
   destroy() {
     if (this.tagbox) {
       this.tagbox.parentNode.removeChild(this.tagbox);
@@ -125,17 +197,41 @@ export default class Tagify {
     delete this;
   }
 
-  // Private methods
+  /**
+   * getElement
+   * @desc returns this instance's target element, which can be used to determine whether a tag
+   *       has been removed/added at runtime through the 'TagChanged' hook
+   * @returns {node} this instance's target element
+   */
+  getElement() {
+    return this.element;
+  }
+
+  /*************************************
+   *                                   *
+   *               Events              *
+   *                                   *
+   *************************************/
+  /**
+   * onClick
+   * @desc handles removing of elements through the remove button click event
+   * @param {event} e the associated event
+   */
   #onClick(e) {
     e.preventDefault();
 
     if (e.target.className == 'tag__remove') {
-      this.removeTag(e.target.parentNode);
+      this.removeTag(tryGetRootElement(e.target, 'tag'));
     }
 
     this.field.focus();
   }
 
+  /**
+   * onFocusLost
+   * @desc when the input box loses focus
+   * @param {event} e the associated event
+   */
   #onFocusLost(e) {
     this.#deselectHighlighted();
     
@@ -150,6 +246,11 @@ export default class Tagify {
     this.autocomplete.classList.remove('show');
   }
 
+  /**
+   * onKeyDown
+   * @desc handles events assoc. with the input box receiving a key down event
+   * @param {event} e the associated event
+   */
   #onKeyDown(e) {
     setTimeout(() => {
       const target = e.target;
@@ -158,6 +259,9 @@ export default class Tagify {
         const code = e.which || e.keyCode;
         switch (code) {
           case TAGIFY__KEYCODES.ENTER: {
+            e.preventDefault();
+            e.stopPropagation();
+
             if (this.currentFocus >= 0) {
               name = this.#getFocusedName();
             }
@@ -182,6 +286,7 @@ export default class Tagify {
           } break;
   
           case TAGIFY__KEYCODES.BACK: {
+
             if (name === '') {
               this.#clearAutocomplete(true);
   
@@ -219,29 +324,58 @@ export default class Tagify {
     }, TAGIFY__DELAY)
   }
 
+  /**
+   * onKeyUp
+   * @desc handles events assoc. with the input box receiving a key up event
+   * @param {event} e the associated event
+   */
   #onKeyUp(e) {
 
   }
 
-  #createTag(name, value) {
-    const tag = createElement('div', {
-      'className': 'tag',
-      'data-value': value,
-      'innerHTML': `<span class="tag__name">${name}</span><button class="tag__remove" aria-label="Remove Tag ${name}">&times;</button>`
+  /*************************************
+   *                                   *
+   *              Private              *
+   *                                   *
+   *************************************/
+  /**
+   * initialise
+   * @desc responsible for the main initialisation & render of this component
+   */
+  #initialise() {
+    this.container = createElement('div', {
+      'className': 'tags-root-container',
     });
 
-    this.tagbox.insertBefore(tag, this.field);
-    this.tags.push({
-      'element': tag,
-      'name': name,
-      'value': value,
+    this.tagbox = createElement('div', {
+      'className': 'tags-container',
     });
 
-    this.#updateElement();
-    
-    return tag;
+    this.autocomplete = createElement('div', {
+      'className': 'tags-autocomplete-container filter-scrollbar',
+    });
+
+    this.field = createElement('input', {
+      'type': 'text',
+      'className': 'tags-input-field',
+      'id': 'tag-field',
+      'placeholder': this.element.placeholder || '',
+    });
+
+    this.tagbox.appendChild(this.field);
+    this.container.appendChild(this.tagbox);
+    this.container.appendChild(this.autocomplete);
+    this.element.type = 'hidden';
+    this.element.parentNode.insertBefore(this.container, this.element.nextSibling);
+
+    this.#bindEvents();
   }
 
+  /**
+   * popTag
+   * @desc responsible for popping the tag & rerendering when the user attempts to delete a tag
+   *       through the input box using the backspace key
+   */
   #popTag() {
     if (this.isBackspace)
       return;
@@ -261,12 +395,10 @@ export default class Tagify {
     this.tagbox.removeChild(tag.element);
   }
 
-  #deselectHighlighted() {
-    if (this.field.previousSibling) {
-      this.field.previousSibling.classList.remove('tag__highlighted');
-    }
-  }
-
+  /**
+   * bindEvents
+   * @desc binds the associated events to the rendered components
+   */
   #bindEvents() {
     this.container.addEventListener('click', this.#onClick.bind(this), false);
     this.tagbox.addEventListener('focusout', this.#onFocusLost.bind(this), false);
@@ -274,15 +406,85 @@ export default class Tagify {
     this.tagbox.addEventListener('keyup', this.#onKeyUp.bind(this), false);
   }
 
+  /**
+   * updateElement
+   * @desc updates the element's value to maintain consistent relationship with class data
+   */
   #updateElement() {
     const target = this.options.useValue ? 'value' : 'name';
     this.element.value = this.tags.map(e => e[target]).join(',');
   }
 
+  /**
+   * buildOptions
+   * @desc private method to merge the expected options with the passed options - passed takes priority
+   * @param {dict} options the option parameter 
+   */
   #buildOptions(options) {
     this.options = mergeObjects(options, TAGIFY__TAG_OPTIONS);
   }
 
+  /**
+   * getFocusedName
+   * @desc gets the name of the currently focused element
+   * @return {string} focused element name
+   */
+  #getFocusedName() {
+    const children = this.autocomplete.children;
+    if (this.currentFocus < children.length) {
+      return children[this.currentFocus].getAttribute('data-name');
+    }
+
+    return '';
+  }
+
+  /*************************************
+   *                                   *
+   *               Render              *
+   *                                   *
+   *************************************/
+  /**
+   * createTag
+   * @desc creates a renderable tag component
+   * @param {string} name 
+   * @param {*} value 
+   * @returns {node} the tag
+   */
+  #createTag(name, value) {
+    const tag = createElement('div', {
+      'className': 'tag',
+      'data-value': value,
+      'innerHTML': `<span class="tag__name">${name}</span><span tooltip="Remove Tag" direction="left"><button class="tag__remove" aria-label="Remove Tag ${name}">&times;</button></span>`
+    });
+
+    this.tagbox.insertBefore(tag, this.field);
+    this.tags.push({
+      'element': tag,
+      'name': name,
+      'value': value,
+    });
+
+    this.#updateElement();
+    
+    return tag;
+  }
+
+  /**
+   * deselectHighlighted
+   * @desc deselects the currently selected autocomplete item
+   */
+  #deselectHighlighted() {
+    if (this.field.previousSibling) {
+      this.field.previousSibling.classList.remove('tag__highlighted');
+    }
+  }
+
+  /**
+   * wobbleElement
+   * @desc used to enact a wobble animation on a tag if it has been previously entered
+   *       and the user is trying to add another instance of it
+   * @param {node} elem the element to wobble
+   */
   #wobbleElement(elem) {
     const method = getTransitionMethod();
     if (typeof method === 'undefined')
@@ -296,6 +498,11 @@ export default class Tagify {
     elem.classList.add('tag__wobble');
   }
 
+  /**
+   * clearAutocomplete
+   * @desc clears the autocomplete list
+   * @param {boolean} hide whether to hide the autocomplete box
+   */
   #clearAutocomplete(hide) {
     this.currentFocus = -1;
 
@@ -308,15 +515,10 @@ export default class Tagify {
     }
   }
 
-  #getFocusedName() {
-    const children = this.autocomplete.children;
-    if (this.currentFocus < children.length) {
-      return children[this.currentFocus].getAttribute('data-name');
-    }
-
-    return '';
-  }
-
+  /**
+   * popFocusedElement
+   * @desc pops the currently focused element by removing all __highlighted classes from each element
+   */
   #popFocusedElement() {
     const children = this.autocomplete.children;
     for (let i = 0; i < children.length; ++i) {
@@ -324,6 +526,10 @@ export default class Tagify {
     }
   }
   
+  /**
+   * focusAutoCompleteElement
+   * @desc focuses an element in the autocomplete list by selecting the element by its index (based on sel id)
+   */
   #focusAutocompleteElement() {
     this.#popFocusedElement();
     
@@ -339,6 +545,11 @@ export default class Tagify {
     }
   }
 
+  /**
+   * generateAutocompleteElements
+   * @desc generates all elements within the autocomplete container
+   * @param {array} results the results to render
+   */
   #generateAutocompleteElements(results) {
     for (let i = 0; i < results.length; ++i) {
       const data = results[i];
@@ -358,6 +569,13 @@ export default class Tagify {
     }
   }
 
+  /**
+   * tryPopulateAutocomplete
+   * @desc tries to determine which elements need to be rendered through fuzzymatching,
+   *       and then renders the autocomplete elements
+   * @param {string} value the search term to consider
+   * @returns 
+   */
   #tryPopulateAutocomplete(value) {
     if (value === '' || this.options.items.length <= 0) {
       this.#clearAutocomplete(true);
@@ -393,34 +611,5 @@ export default class Tagify {
     }
 
     this.#clearAutocomplete(true);
-  }
-
-  #initialise() {
-    this.container = createElement('div', {
-      'className': 'tags-root-container',
-    });
-
-    this.tagbox = createElement('div', {
-      'className': 'tags-container',
-    });
-
-    this.autocomplete = createElement('div', {
-      'className': 'tags-autocomplete-container filter-scrollbar',
-    });
-
-    this.field = createElement('input', {
-      'type': 'text',
-      'className': 'tags-input-field',
-      'id': 'tag-field',
-      'placeholder': this.element.placeholder || '',
-    });
-
-    this.tagbox.appendChild(this.field);
-    this.container.appendChild(this.tagbox);
-    this.container.appendChild(this.autocomplete);
-    this.element.type = 'hidden';
-    this.element.parentNode.insertBefore(this.container, this.element.nextSibling);
-
-    this.#bindEvents();
   }
 }
