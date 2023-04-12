@@ -14,16 +14,16 @@ WORKDIR /var/www/
 RUN mkdir -p /var/www/concept_lib_sites/v1
 
 
-COPY ../requirements /var/www/concept_lib_sites/v1/requirements
+COPY ./docker/requirements /var/www/concept_lib_sites/v1/requirements
 #COPY CodeListLibrary_project /var/www/concept_lib_sites/v1/CodeListLibrary_project
 
-COPY ../../CodeListLibrary_project/clinicalcode /var/www/concept_lib_sites/v1/CodeListLibrary_project/clinicalcode
-COPY ../../CodeListLibrary_project/cll /var/www/concept_lib_sites/v1/CodeListLibrary_project/cll
-COPY ../../CodeListLibrary_project/manage.py /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py
+COPY CodeListLibrary_project/clinicalcode /var/www/concept_lib_sites/v1/CodeListLibrary_project/clinicalcode
+COPY CodeListLibrary_project/cll /var/www/concept_lib_sites/v1/CodeListLibrary_project/cll
+COPY CodeListLibrary_project/manage.py /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py
 
 #########################################
 # config apache
-COPY cll.conf /etc/apache2/sites-available/cll.conf
+COPY ./docker/production/cll.conf /etc/apache2/sites-available/cll.conf
 
 RUN a2enmod wsgi
 
@@ -43,11 +43,11 @@ RUN \
 
 
 # Deploy script
-COPY scripts/deploy_script_main.sh /home/config_cll/deploy_script_main.sh
-COPY scripts/deploy_script_DB_mig.sh /home/config_cll/deploy_script_DB_mig.sh
-COPY scripts/deploy_script_DB_mig_ro.sh /home/config_cll/deploy_script_DB_mig_ro.sh
-COPY scripts/worker_start.sh /home/config_cll/worker_start.sh
-COPY scripts/beat_start.sh /home/config_cll/beat_start.sh
+COPY ./docker/production/scripts/deploy_script_main.sh /home/config_cll/deploy_script_main.sh
+COPY ./docker/production/scripts/deploy_script_DB_mig.sh /home/config_cll/deploy_script_DB_mig.sh
+COPY ./docker/production/scripts/deploy_script_DB_mig_ro.sh /home/config_cll/deploy_script_DB_mig_ro.sh
+COPY ./docker/production/scripts/worker_start.sh /home/config_cll/worker_start.sh
+COPY ./docker/production/scripts/beat_start.sh /home/config_cll/beat_start.sh
 
 # Make file executable:
 RUN ["chmod" , "+x" , "/home/config_cll/deploy_script_main.sh"]
