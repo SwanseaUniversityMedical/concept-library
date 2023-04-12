@@ -30,6 +30,7 @@
       
       echo ">>>>> collectstatic <<<<<<<<<<<<<<<<<<<"
       python manage.py compilescss
+      chown -R www-data:www-data /var/www/
       python manage.py collectstatic --noinput 1> /dev/null
 
 #      echo ">>>>> makemigrations <<<<<<<<<<<<<<<<<<<"
