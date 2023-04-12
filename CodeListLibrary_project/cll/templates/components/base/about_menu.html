@@ -33,6 +33,9 @@
                
                 {% url 'contact_us' as contact_us%}
                 {% include "components/search/cards/dropdown_list_item_full.html" with icon='message_icon' separator=True url=contact_us title="Contact us" %}
+                {% url 'reference_data' as reference_data%}
+                {% include "components/search/cards/dropdown_list_item_full.html" with icon='folder_icon'  url=reference_data title="Reference data" %}
+						
 						
 	                                
 								{% endif %}
