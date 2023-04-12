@@ -29,8 +29,8 @@ echo `pwd`
 cd /var/www/concept_lib_sites/v1/CodeListLibrary_project
 
 echo ">>>>> collectstatic <<<<<<<<<<<<<<<<<<<"
-python manage.py collectstatic --noinput 1> /dev/null
 python manage.py compilescss
+python manage.py collectstatic --noinput 1> /dev/null
 
 echo ">>>>> makemigrations <<<<<<<<<<<<<<<<<<<"
 python manage.py makemigrations
