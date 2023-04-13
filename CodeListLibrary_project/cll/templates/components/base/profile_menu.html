@@ -30,11 +30,11 @@
         </li>
         <hr>
         {% if request.user.is_superuser  and request.session.all_brands %}
-        {% include "components/search/cards/dropdown_image_listitem.html" with  currentBrand="" image="/static/img/header_logo.png" title="Concept Library" %}
+        {% include "components/search/cards/dropdown_profile_item.html" with  currentBrand="" image="/static/img/header_logo.png" title="Concept Library" %}
         
 
         {% for brand in request.session.all_brands %}
-        {% include "components/search/cards/dropdown_image_listitem.html" with  currentBrand=brand|upper  image="/static/img/header_logo.png" title=brand|upper %}
+        {% include "components/search/cards/dropdown_profile_item.html" with  currentBrand=brand|upper  image="/static/img/header_logo.png" title=brand|upper %}
 							{% endfor %}
         
               {% endif %}
