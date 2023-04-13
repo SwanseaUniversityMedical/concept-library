@@ -17,7 +17,7 @@
     <div class="dropdown-content">
     <ul class="row__profile">
         <li class="content-container">
-          <a href="#" class="item-dropdown">
+          <a href="{% url 'admin:index' %}" target=_blank class="item-dropdown">
             <div class="item-dropdown__icon"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M28 29V27C28 25.9391 27.5786 24.9217 26.8284 24.1716C26.0783 23.4214 25.0609 23 24 23H16C14.9391 23 13.9217 23.4214 13.1716 24.1716C12.4214 24.9217 12 25.9391 12 27V29" fill="#CCF3EE"/>
                 <path d="M28 29V27C28 25.9391 27.5786 24.9217 26.8284 24.1716C26.0783 23.4214 25.0609 23 24 23H16C14.9391 23 13.9217 23.4214 13.1716 24.1716C12.4214 24.9217 12 25.9391 12 27V29" stroke="#5C5C5C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -76,7 +76,7 @@
         <hr> 
 
         <li class="content-container">
-          <a href="#" class="item-dropdown">
+          <a href="{% url 'logout' %}?next={% url 'phenotype_list' %}" class="item-dropdown">
             <div class="item-dropdown__icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M18 9L21 12M21 12L18 15M21 12H9" stroke="#FF0101" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M15 7.5V7C15 4.79086 13.2091 3 11 3H7C4.79086 3 3 4.79086 3 7V17C3 19.2091 4.79086 21 7 21H11C13.2091 21 15 19.2091 15 17V16.5" stroke="#F4001D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -94,6 +94,88 @@
 
   </div>
  
+  <script>
+  
+    const elements = document.querySelectorAll(".userBrand");
+
+// Loop through the elements and add a click event listener to each one
+elements.forEach(function(element) {
+  element.addEventListener("click", function() {
+    var lTrimRegex = new RegExp("^/");
+  var lTrim = function (input) {
+    return input.replace(lTrimRegex, "");
+  };
+
+  var all_brands = [];
+  {% for brand in request.session.all_brands %}
+					all_brands.push('{{ brand|upper }}');
+			    {% endfor %}
+
+
+
+  var path = window.location.pathname;
+  path = lTrim(path);
+  old_root = path.split("/")[0];
+
+  console.log(path)
+
+ 
+  new_root = "";
+
+  if (element.getAttribute('value') != '') {
+    new_root = "/" + element.getAttribute('value');
+  }
+
+  indx = 1;
+  if (all_brands.indexOf(old_root.toUpperCase()) == -1) {
+    indx = 0;
+  }
+
+  {% if IS_PRODUCTION_SERVER %}
+    if (
+      window.location.href
+        .toLowerCase()
+        .includes("phenotypes.healthdatagateway".toLowerCase())
+    ) {
+      if (new_root == "/HDRUK") {
+        // do nothing
+      } else {
+        window.location.href =
+          "https://conceptlibrary.saildatabank.com" +
+          new_root +
+          "/" +
+          path.split("/").slice(indx).join("/");
+          
+        }
+      } else {
+        if (new_root == "/HDRUK") {
+          new_root = "";
+          window.location.href =
+            "https://phenotypes.healthdatagateway.org" +
+            new_root +
+            "/" +
+            path.split("/").slice(indx).join("/");
+          
+        } else {
+          window.location.href =
+            "https://conceptlibrary.saildatabank.com" +
+            new_root +
+            "/" +
+            path.split("/").slice(indx).join("/");
+          
+        }
+      }
+      {% else %}
+						console.log(document.location.origin );
+						window.location.href = document.location.origin + new_root + '/' + path.split('/').slice(indx).join('/');
+						
+					{% endif %}
+  });
+});
+
+
+    
+  </script>
  
 
 
