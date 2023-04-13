@@ -6,18 +6,13 @@
 
 {% block content %}
 <li class="content-container">
-  <a href='javascript:log()'  class="item-dropdown userBrand" >
+  <a href="javascript:void(null);" value="{{currentBrand}}" class="item-dropdown userBrand" >
     <div class="item-dropdown__icon"><img alt="Logo" src="{{image}}" /></div>
 
     <div class="item-dropdown__title">{{title}}</div>
   </a>
 </li>
 
-<script>    
-    function log(){
-        brandUrlsgen("{{request.session.all_brands}}","{{IS_PRODUCTION_SERVER}}","{{currentBrand}}")
-    }
-</script>
 
 
 
