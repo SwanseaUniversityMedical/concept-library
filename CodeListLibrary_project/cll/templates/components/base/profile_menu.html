@@ -34,7 +34,8 @@
         
 
         {% for brand in request.session.all_brands %}
-        {% include "components/search/cards/dropdown_profile_item.html" with  currentBrand=brand|upper  image="/static/img/header_logo.png" title=brand|upper %}
+
+        {% include "components/search/cards/dropdown_profile_item.html" with  currentBrand=brand|upper  image=brand|getBrandLogo title=brand|upper %}
 							{% endfor %}
         
               {% endif %}
