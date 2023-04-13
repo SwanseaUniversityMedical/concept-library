@@ -94,82 +94,13 @@
 
   </div>
  
-  <script>
+  <script type="text/javascript">
   
-    const elements = document.querySelectorAll(".userBrand");
-
-// Loop through the elements and add a click event listener to each one
+const elements = document.querySelectorAll(".userBrand");
 elements.forEach(function(element) {
   element.addEventListener("click", function() {
-    var lTrimRegex = new RegExp("^/");
-  var lTrim = function (input) {
-    return input.replace(lTrimRegex, "");
-  };
-
-  var all_brands = [];
-  {% for brand in request.session.all_brands %}
-					all_brands.push('{{ brand|upper }}');
-			    {% endfor %}
-
-
-
-  var path = window.location.pathname;
-  path = lTrim(path);
-  old_root = path.split("/")[0];
-
-  console.log(path)
-
- 
-  new_root = "";
-
-  if (element.getAttribute('value') != '') {
-    new_root = "/" + element.getAttribute('value');
-  }
-
-  indx = 1;
-  if (all_brands.indexOf(old_root.toUpperCase()) == -1) {
-    indx = 0;
-  }
-
-  {% if IS_PRODUCTION_SERVER %}
-    if (
-      window.location.href
-        .toLowerCase()
-        .includes("phenotypes.healthdatagateway".toLowerCase())
-    ) {
-      if (new_root == "/HDRUK") {
-        // do nothing
-      } else {
-        window.location.href =
-          "https://conceptlibrary.saildatabank.com" +
-          new_root +
-          "/" +
-          path.split("/").slice(indx).join("/");
-          
-        }
-      } else {
-        if (new_root == "/HDRUK") {
-          new_root = "";
-          window.location.href =
-            "https://phenotypes.healthdatagateway.org" +
-            new_root +
-            "/" +
-            path.split("/").slice(indx).join("/");
-          
-        } else {
-          window.location.href =
-            "https://conceptlibrary.saildatabank.com" +
-            new_root +
-            "/" +
-            path.split("/").slice(indx).join("/");
-          
-        }
-      }
-      {% else %}
-						console.log(document.location.origin );
-						window.location.href = document.location.origin + new_root + '/' + path.split('/').slice(indx).join('/');
-						
-					{% endif %}
+    const [path,old_root] = generateOldPathRoot();
+    brandUrlsgen("{{request.session.all_brands}}","{{IS_PRODUCTION_SERVER}}",element,old_root,path);  
   });
 });
 
