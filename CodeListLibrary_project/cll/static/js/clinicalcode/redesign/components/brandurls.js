@@ -1,26 +1,8 @@
-function brandUrlsgen(all_brands, prod,currentBrand) {
-  var lTrimRegex = new RegExp("^/");
-  var lTrim = function (input) {
-    return input.replace(lTrimRegex, "");
-  };
-
-  var all_brands = [];
-  for (var brand in all_brands) {
-    all_brands.push(brand.toUpperCase());
-  }
-
-
-  var path = window.location.pathname;
-  path = lTrim(path);
-  old_root = path.split("/")[0];
-
- 
-
-
+const brandUrlsgen = (all_brands,prod,element,old_root,path) =>{
+  
   new_root = "";
-  console.log(currentBrand);
-  if (currentBrand != "") {
-    new_root = "/" + currentBrand;
+  if (element.getAttribute('value') != '') {
+    new_root = "/" + element.getAttribute('value');
   }
 
   indx = 1;
@@ -42,26 +24,26 @@ function brandUrlsgen(all_brands, prod,currentBrand) {
           new_root +
           "/" +
           path.split("/").slice(indx).join("/");
-        return window.location.href;
-      }
-    } else {
-      if (new_root == "/HDRUK") {
-        new_root = "";
-        window.location.href =
-          "https://phenotypes.healthdatagateway.org" +
-          new_root +
-          "/" +
-          path.split("/").slice(indx).join("/");
-        return window.location.href;
+          
+        }
       } else {
-        window.location.href =
-          "https://conceptlibrary.saildatabank.com" +
-          new_root +
-          "/" +
-          path.split("/").slice(indx).join("/");
-        return window.location.href;
+        if (new_root == "/HDRUK") {
+          new_root = "";
+          window.location.href =
+            "https://phenotypes.healthdatagateway.org" +
+            new_root +
+            "/" +
+            path.split("/").slice(indx).join("/");
+          
+        } else {
+          window.location.href =
+            "https://conceptlibrary.saildatabank.com" +
+            new_root +
+            "/" +
+            path.split("/").slice(indx).join("/");
+          
+        }
       }
-    }
   } else {
     window.location.href =
       document.location.origin +
@@ -69,4 +51,23 @@ function brandUrlsgen(all_brands, prod,currentBrand) {
       "/" +
       path.split("/").slice(indx).join("/");
   }
+}
+
+const generateOldPathRoot = () =>{
+  var lTrimRegex = new RegExp("^/");
+  var lTrim = function (input) {
+    return input.replace(lTrimRegex, "");
+  };
+
+  var all_brands = [];
+  for (var brand in all_brands) {
+    all_brands.push(brand.toUpperCase());
+  }
+
+
+  var path = window.location.pathname;
+  path = lTrim(path);
+  old_root = path.split("/")[0];
+
+  return [path,old_root];
 }
