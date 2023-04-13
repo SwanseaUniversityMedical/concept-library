@@ -14,8 +14,8 @@
     position: absolute;
     top: 0;
     box-sizing: border-box;
-    -webkit-box-shadow: 0px 10px 70px rgba(0, 0, 0, 0.15);
-    box-shadow: 0px 10px 70px rgba(0, 0, 0, 0.15);
+    -webkit-box-shadow: var(--dropdown-shadow);
+    box-shadow: var(--dropdown-shadow);
 
     .content-container {
       list-style: none;
@@ -58,7 +58,6 @@
           font-size: 14px;
           line-height: 14px;
           font-weight: 500;
-          color: black;
         }
 
         &__description {
