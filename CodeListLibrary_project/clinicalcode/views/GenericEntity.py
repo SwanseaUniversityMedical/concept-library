@@ -1161,7 +1161,8 @@ def generic_entity_detail(request, pk, history_id=None):
         'force_highlight_result':  ['0', '1'][entity_db_utils.is_referred_from_search_page(request)]                              
     }
 
-    if 'concept_information' in template.definition:
+    if 'concept_information' in template.definition['fields']:
+        print('hhhhhhhhhhhhhhhhhhhh')
         concept_dict = get_concept_data2(request, pk, history_id, generic_entity, is_latest_version, children_permitted_and_not_deleted)
         context = context | concept_dict
 
@@ -1185,7 +1186,7 @@ def get_concept_data2(request, pk, history_id, generic_entity, is_latest_version
     concepts = Concept.history.filter(pk=-1).values('id', 'history_id', 'name', 'group')
 
     if 'concept_information' in generic_entity.template_data:
-        concept_information = generic_entity.template_data['concept_information']['value']
+        concept_information = generic_entity.template_data['concept_information']#['value']
         concept_id_list = [x['concept_id'] for x in concept_information]
         concept_hisoryid_list = [x['concept_version_id'] for x in concept_information]
         concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).values('id', 'history_id', 'name', 'group')
@@ -1254,7 +1255,8 @@ def get_concept_data2(request, pk, history_id, generic_entity, is_latest_version
         'concepts_id_name': concepts_id_name,
         'concept_data': concept_data,
         }
-    
+    print('jjjjjjjjjjjjjjjjjj')
+    print(str(ret_dict))
     return ret_dict
 
 def get_history_table_data2(request, pk):

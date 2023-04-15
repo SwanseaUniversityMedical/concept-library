@@ -9,14 +9,19 @@
 {% load compress %}
 {% load sass_tags %}
 
-{% block title %}| {{ entity_class }}: {{ entity_fields.name.value }}{% endblock title %}
-{% block description %}{{ entity_fields.name.value }}{% endblock description %}
-{% block keywords %}, {{ entity_fields.name.value }}{% endblock keywords %}
+{% block title %}| {{ entity_class }}: {{ entity.name }}{% endblock title %}
+{% block description %}{{ entity.name }}{% endblock description %}
+{% block keywords %}, {{ entity.name }}{% endblock keywords %}
 
 {% block canonical_path %}
 	<link rel="canonical" href="{{ page_canonical_path }}" />
 {% endblock canonical_path %}
 
+{% block head %}
+  <!-- <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/bootstrap-theme.min.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/datatables.min.css' %}" rel="stylesheet" /> -->
+  {% endblock head %}
 
 {% block container %}
 <!-- Vendor -->
@@ -47,7 +52,7 @@
 			</span>
 			<span class="breadcrumb-item">
 				<span class="marker"></span>
-				<span class="breadcrumb">{{ entity_fields.name.value }}</span>
+				<span class="breadcrumb">{{ entity.name }}</span>
 			</span>
 		</section>
     
@@ -63,7 +68,7 @@
     <div class="main-content__inner-container">
       <article class="phenotype-creation">
         <section class="phenotype-creation__header">
-          <h1>{{ entity_fields.name.value }}</h1>
+          <h1>{{ entity.name }}</h1>
         </section>
         
         <ol class="phenotype-progress">
@@ -71,7 +76,7 @@
           {% endrender_wizard_sections_detail_pg %}
         </ol>
 
-        <section class="phenotype-creation__completed" id="completed-section">
+        <!-- <section class="phenotype-creation__completed" id="completed-section">
           <div class="phenotype-creation__completed-row">
             <button class="secondary-btn text-accent-darkest bold washed-accent" aria-label="Save Draft" id="cancel-entity-btn">
               Cancel
@@ -84,7 +89,7 @@
               {% endif %}
             </button>
           </div>
-        </section>
+        </section> -->
         
       </article>
     </div>

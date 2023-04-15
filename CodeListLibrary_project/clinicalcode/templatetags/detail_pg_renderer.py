@@ -388,7 +388,7 @@ def render_aside_wizard(parser, token):
             params[ctx[0]] = eval(ctx[1])
     except ValueError:
         raise TemplateSyntaxError('Unable to parse wizard aside renderer tag')
-    print('ffffff')
+
     nodelist = parser.parse(('endrender_wizard_sidemenu'))
     parser.delete_first_token()
     return EntityWizardAside(params, nodelist)
@@ -406,8 +406,9 @@ class EntityWizardAside(template.Node):
             return output
 
         # We should be getting the FieldTypes.json related to the template
+        detail_page_sections = template.definition.get('detail_page_sections') + constants.DETAIL_ASIDE_DEFAULT
         output = render_to_string(constants.DETAIL_WIZARD_ASIDE, {
-            'create_sections': template.definition.get('detail_page_sections')
+            'detail_page_sections': detail_page_sections
         })
 
         return output
@@ -482,20 +483,20 @@ class EntityWizardSections(template.Node):
         
         # We should be getting the FieldTypes.json related to the template
         field_types = constants.FIELD_TYPES
-        for section in template.definition.get('detail_page_sections'):
+        detail_page_sections = template.definition.get('detail_page_sections') + constants.DETAIL_ASIDE_DEFAULT
+        for section in detail_page_sections:
             output += self.__try_render_item(template_name=constants.DETAIL_WIZARD_SECTION_START
                                              , request=request
-                                             , context=context.flatten() | { 'section': section | {'hide_description': True}})
+                                             , context=context.flatten() | { 'section': section })
 
             for field in section.get('fields'):
+                print('field==== '+str(field))
                 template_field = template_utils.get_field_item(template.definition, 'fields', field)
                 if not template_field:
                     template_field = template_utils.try_get_content(constants.metadata, field)
 
                 if not template_field:
-                    continue
-
-                if template_field.get('hide_on_create'):
+                    print('not template_field')
                     continue
                 
                 if template_field.get('is_base_field'):
@@ -503,6 +504,7 @@ class EntityWizardSections(template.Node):
 
                 component = template_utils.try_get_content(field_types, template_field.get('field_type'))                
                 if component is None:
+                    print('component is None')
                     continue
 
                 if template_utils.is_metadata(GenericEntity, field):
@@ -510,8 +512,17 @@ class EntityWizardSections(template.Node):
                 else:
                     field_data = template_utils.get_layout_field(template, field)
                 
+                if template_field.get('hide_if_empty'):
+                    if field_data is None:
+                        print('hide_if_empty')
+                        continue
+
                 if field_data is None:
-                    continue
+                    print('field_data is None ==>> str()')
+                    field_data = ''
+                    #continue
+
+
                 component['field_name'] = field
                 component['field_data'] = field_data
 
@@ -541,7 +552,14 @@ class EntityWizardSections(template.Node):
                 else:
                     component['value'] = ''
 
-                uri = f'{constants.DETAIL_WIZARD_INPUT_DIR}/{component.get("input_type")}.html'
+                output_type = component.get("output_type")
+                print('output_type=1== ' + str(output_type))
+                # print('ll='+str([s['fields'][0] for s in constants.DETAIL_ASIDE_DEFAULT]))
+                # if field in [s['fields'][0] for s in constants.DETAIL_ASIDE_DEFAULT]:
+                #     output_type = field
+                # print('output_type=2== ' + output_type)
+
+                uri = f'{constants.DETAIL_WIZARD_OUTPUT_DIR}/{output_type}.html'
                 output += self.__try_render_item(template_name=uri, request=request, context=context.flatten() | { 'component': component })
 
         output += render_to_string(template_name=constants.DETAIL_WIZARD_SECTION_END, request=request, context=context.flatten() | { 'section': section })

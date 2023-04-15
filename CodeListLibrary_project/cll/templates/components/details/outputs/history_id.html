@@ -1,0 +1,20 @@
+<div class="detailed-input-group fill-width">
+  <!-- {% if not component.hide_input_details %}
+  <h3 class="detailed-input-group__title">{{ component.field_data.title }}</h3>
+  <p class="detailed-input-group__description">{{ component.description }}</p>
+  {% endif %}
+  -->
+
+<div class="box-container">
+  <div class="row" >
+    <div class="col-sm-2">{{ component.field_data.title }}</div>
+    <div class="col-sm-10">
+      <span id="entity-{{ component.field_name }}">
+        {{ component.value }}						
+      </span>
+    </div>
+  </div>
+</div>
+
+
+</div>

@@ -1,3 +1,7 @@
+{% load static %}
+{% load markdownify %}
+{% load cl_extras %}
+
 <div class="detailed-input-group fill">
   <!-- {% if not component.hide_input_details %}
   <h3 class="detailed-input-group__title">{{ component.field_data.title }}</h3>
@@ -9,7 +13,7 @@
       <span id="entity-{{ component.field_name }}"></span>
       <strong>{{ component.field_data.title }}</strong>
     </h3>
-    {{ component.value }}
+    {{ component.value|markdownify }}
     
 </div>
 

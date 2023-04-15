@@ -6,11 +6,15 @@
   -->
 
 <div class="box-container">
-  <div class="row" style="margin-top: 10px;">
+  <div class="row">
     <div class="col-sm-2">{{ component.field_data.title }}</div>
     <div class="col-sm-10">
       <span id="entity-{{ component.field_name }}">
-        {{ component.value }}						
+        {% if component.value|length %}
+        <a href="https://kclhi.org/phenoflow/phenotype/download/{{ component.value }}	" target="_blank">
+          https://kclhi.org/phenoflow/phenotype/download/{{ component.value }}
+        </a>         		
+        {% endif %}			
       </span>
     </div>
   </div>
