@@ -16,7 +16,7 @@
     {
       "title": "Implementation",
       "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      "fields": ["implementation"]
+      "fields": ["implementation", "phenoflowid"]
     },
     {
       "title": "Validation",
@@ -34,6 +34,54 @@
       "fields": ["group", "group_access", "world_access"]
     }
   ],
+  
+  "detail_page_sections": [
+    {
+      "title": "Home",
+      "description": "",
+      "fields": ["name", "author", "pk", "history_id", "phenotype_uuid", "type", "data_sources", "sex", "event_date_range", "coding_system", "collections", "tags"]
+    },
+    {
+      "title": "Definition",
+      "description": "",
+      "fields": ["definition"]
+    },
+    {
+      "title": "Implementation",
+      "description": "",
+      "fields": ["implementation", "phenoflowid"]
+    },
+    {
+      "title": "Publications",
+      "description": "",
+      "fields": ["publications","citation_requirements"]
+    },
+     {
+      "title": "Validation",
+      "description": "",
+      "fields": ["validation"]
+    },   
+    {
+      "title": "Clinical Code List",
+      "description": "",
+      "fields": ["concept_information"]
+    },
+    {
+      "title": "Permissions",
+      "description": "",
+      "fields": ["permissions"]
+    },
+    {
+      "title": "API",
+      "description": "",
+      "fields": ["api"]
+    },
+    {
+      "title": "Version History",
+      "description": "",
+      "fields": ["version_history"]
+    }
+  ],  
 
   "fields": {
     "name": {
@@ -187,7 +235,8 @@
       "search": {
         "api": true
       },
-      "hide_on_create": true
+      "hide_on_create": true,
+      "hide_if_empty": true
     },
     "publications": {
       "is_base_field": true,
@@ -234,6 +283,34 @@
     },
     "group_access": {
       "is_base_field": true
+    },
+
+    "permissions":{
+      "title": "Permissions",
+      "field_type": "permissions",
+      "hide_on_create": true
+    },
+    "api":{
+      "title": "API",
+      "field_type": "api",
+      "hide_on_create": true
+    },
+    "version_history":{
+      "title": "Version History",
+      "field_type": "version_history",
+      "hide_on_create": true
+    },
+    "pk": {
+      "title": "ID",
+      "field_type": "id",
+      "hide_on_create": true
+    },
+    "history_id":{
+      "title": "Version ID",
+      "field_type": "history_id",
+      "hide_on_create": true
+
     }
+
   }
 }

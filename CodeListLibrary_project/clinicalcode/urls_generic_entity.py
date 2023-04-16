@@ -20,7 +20,12 @@ urlpatterns = []
  
  
 if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
-    urlpatterns += [
+    urlpatterns += [       
+      
+        url(r'^search/$', GenericEntity.EntitySearchView.as_view(), name='entity_search_page'),
+
+        url(r'^ge/create/$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
+
         url(r'^ge/run-stats/$', GenericEntity.EntityStatisticsView.as_view(), name='run_entity_statistics'),
 
         url(r'^search/$', GenericEntity.EntitySearchView.as_view(), name='search_entity'),
@@ -46,7 +51,7 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
 
         # Example - remove at production
         url(r'^ge/example/$', GenericEntity.ExampleSASSView.as_view(), name='example_phenotype'),
-        url(r'^search/temp/$', GenericEntity.generic_entity_list_temp, name='generic_entity_list_temp'),
+        url(r'^ge/search/temp/$', GenericEntity.generic_entity_list_temp, name='generic_entity_list_temp'),
 
         # Profile
         url(r'profile/$', Profile.MyProfile.as_view(), name='my_profile'),

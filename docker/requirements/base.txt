@@ -21,15 +21,18 @@ cryptography==39.0.1
 defusedxml==0.7.1
 Deprecated==1.2.13
 Django==4.0.10
+django-appconf==1.0.5
 django-auth-ldap==4.1.0
 django-celery-beat==2.3.0
 django-celery-results==2.4.0
 django-classy-tags==3.0.1
+django-compressor==4.3.1
 django-cookie-law==2.2.0
 django-extensions==3.2.0
 django-markdownify==0.9.1
 django-mathfilters==1.0.0
 django-rest-swagger==2.2.0
+django-sass-processor==1.2.2
 django-simple-history==3.1.1
 django-timezone-field==5.0
 djangorestframework==3.13.1
@@ -51,6 +54,7 @@ itypes==1.2.0
 Jinja2==3.1.2
 jsonschema==4.15.0
 kombu==5.2.4
+libsass==0.21.0
 Markdown==3.4.1
 MarkupSafe==2.1.1
 numpy==1.23.2
@@ -75,8 +79,10 @@ python-dateutil==2.8.2
 python-decouple==3.6
 pytz==2022.2.1
 PyYAML==6.0
+rcssmin==1.1.1
 redis==4.5.3
 requests==2.28.1
+rjsmin==1.2.1
 ruamel.yaml==0.17.21
 ruamel.yaml.clib==0.2.6
 selenium==4.4.3
@@ -102,6 +108,3 @@ wget==3.2
 wrapt==1.14.1
 wsproto==1.2.0
 zipp==3.8.1
-django-compressor==4.3.1
-libsass==0.21.0
-django-sass-processor==1.2.2

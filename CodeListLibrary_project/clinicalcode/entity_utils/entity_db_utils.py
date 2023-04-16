@@ -396,7 +396,7 @@ def get_base_template_definition():
     return constants.metadata
     
     
-def get_template_definition(template_id, template_version):
+def get_template_definitionXXX(template_id, template_version):
     """
     """
     template_obj = Template.objects.get(pk=template_id)
@@ -419,7 +419,8 @@ def get_template_definition(template_id, template_version):
     template_definition['fields'] = ordered_field_definitions['fields']
     return template_definition, entity_class
     
-def get_entity_full_template_data(entity_record, template_id, return_queryset_as_list=False):
+
+def get_entity_full_template_dataXXX(entity_record, template_id, return_queryset_as_list=False):
     """
     return the entity full data based on the template,
     Add a 'data' key which has all data based on the template ordered
@@ -532,9 +533,172 @@ def get_entity_full_template_data(entity_record, template_id, return_queryset_as
          
     return entity_record
 
+def get_template_definition(template_id, template_version):
+    """
+    """
+    template_obj = Template.objects.get(pk=template_id)
+    template_history = template_obj.history.filter(template_version=template_version).latest()
+    template_definition = template_history.definition
+    entity_class = template_history.entity_class.name
+    
+    base_template = get_base_template_definition()
+    
+    field_definitions = template_definition['fields']
+    ordered_field_definitions = {'fields': {}}
+    for f in template_definition['layout_order']:
+        field_name = f
+        field_definition = field_definitions[f]
+        if 'is_base_field' in field_definition and field_definition['is_base_field'] == True:
+            ordered_field_definitions['fields'][field_name] = base_template[field_name] | field_definition
+        else:
+            ordered_field_definitions['fields'][field_name] = field_definition 
+    
+    template_definition['fields'] = ordered_field_definitions['fields']
+    return template_definition, entity_class
+    
+def get_entity_full_template_data(entity_record, template_id, return_queryset_as_list=False):
+    """
+    return the entity full data based on the template,
+    Add a 'data' key which has all data based on the template ordered
+    """
+    template_definition, entity_class = get_template_definition(template_id, entity_record.template_version)
+    
+    fields_data = {}
+    
+    field_definitions = template_definition['fields']
+    for (field_name, field_definition) in field_definitions.items():
+        is_base_field = False
+        if 'is_base_field' in field_definition:
+            if field_definition['is_base_field'] == True:
+                is_base_field = True
+        
+        if is_base_field:
+            if field_name in entity_record:
+                fields_data[field_name] = field_definition | {'value': entity_record[field_name]}
+            else:
+                fields_data[field_name] = field_definition
+        else: # custom field
+            fields_data[field_name] = field_definition | {'value': entity_record['template_data'][field_name]}
+    
+        if 'validation' in field_definition:
+            if 'options' in field_definition['validation']:
+                fields_data[field_name]['value'] = field_definition['validation']['options'][str(fields_data[field_name]['value'])]
+
+        # html_id, to be used in HTml
+        fields_data[field_name]['html_id'] = field_name.replace(' ', '')
+        
+        # field-type data
+        fields_data[field_name]['field_type_data'] = constants.FIELD_TYPES[fields_data[field_name]['field_type']]
+        
+        # adjust for system_defined types
+        # data sources
+        if field_definition['field_type'] == 'data_sources':
+            data_sources = DataSource.objects.filter(pk=-1)
+            entity_data_sources = fields_data[field_name]['value']
+            if entity_data_sources:
+                if return_queryset_as_list:
+                    data_sources = list(DataSource.objects.filter(pk__in=entity_data_sources).values('datasource_id', 'name', 'url'))
+                else:
+                    data_sources = DataSource.objects.filter(pk__in=entity_data_sources)
+                fields_data[field_name]['value'] = data_sources
+        
+        # tags
+        if field_definition['field_type'] == 'tags':
+            tags = Tag.objects.filter(pk=-1)
+            entity_tags = fields_data[field_name]['value']
+            if entity_tags:
+                if return_queryset_as_list:
+                    tags = list(Tag.objects.filter(pk__in=entity_tags, tag_type=1).values('id', 'description'))
+                else:
+                    tags = Tag.objects.filter(pk__in=entity_tags, tag_type=1)
+                fields_data[field_name]['value'] = tags
+        
+        # collections
+        if field_definition['field_type'] == 'collections':
+            collections = Tag.objects.filter(pk=-1)
+            entity_collections = fields_data[field_name]['value']
+            if entity_collections:
+                if return_queryset_as_list:
+                    collections = list(Tag.objects.filter(pk__in=entity_collections, tag_type=2).values('id', 'description'))
+                else:
+                    collections = Tag.objects.filter(pk__in=entity_collections, tag_type=2)
+                fields_data[field_name]['value'] = collections
+        
+        # coding systems
+        if field_definition['field_type'] == 'coding_system': 
+            coding_systems = CodingSystem.objects.filter(pk=-1)
+            CodingSystem_ids = fields_data[field_name]['value']
+            if CodingSystem_ids:
+                if return_queryset_as_list:
+                    coding_systems = list(CodingSystem.objects.filter(pk__in=CodingSystem_ids).values('id', 'name'))
+                else:
+                    coding_systems = CodingSystem.objects.filter(pk__in=CodingSystem_ids)
+                fields_data[field_name]['value'] = coding_systems    
+        
+        # phenoflowid/URL
+        # make value include the URL
+        if field_definition['field_type'] == 'phenoflowid': 
+            fields_data[field_name]['value'] = get_phenoflow_url(entity_record['template_data'][field_name])
+
+
+    # update base fields for highlighting
+    fields_data['name']['value_highlighted'] = entity_record['name_highlighted']
+    fields_data['author']['value_highlighted'] = entity_record['author_highlighted'] 
+    fields_data['definition']['value_highlighted'] = entity_record['definition_highlighted']
+    fields_data['implementation']['value_highlighted'] = entity_record['implementation_highlighted']
+    fields_data['publications']['value_highlighted'] = entity_record['publications_highlighted']
+    fields_data['validation']['value_highlighted'] = entity_record['validation_highlighted']
+        
+    entity_record['fields_data'] = fields_data
+    entity_record['entity_class'] = entity_class
+    
+    # now all data/template def is in entity_record['data']
+    # so, delete unused items
+    #del entity_record['name'] # we need this
+    del entity_record['name_highlighted']
+    del entity_record['author'] 
+    del entity_record['author_highlighted'] 
+    del entity_record['definition']
+    del entity_record['definition_highlighted']
+    del entity_record['implementation']
+    del entity_record['implementation_highlighted']
+    del entity_record['publications']
+    del entity_record['publications_highlighted']
+    del entity_record['validation']
+    del entity_record['validation_highlighted']
+         
+    return entity_record
+
+        
+def get_historical_entity(pk, history_id, highlight_result=False, q_highlight=None, include_template_data=True, return_queryset_as_list=False):
+   
+    ''' Get historical generic entity based on a history id '''
+
+    # IGNORE HIGHTLIGHTENING FOR NOW
+    entity = GenericEntity.objects.get(pk=pk).history.filter(history_id=history_id).first()
+            
+    entity.name_highlighted = entity.name
+    entity.author_highlighted = entity.author
+    entity.definition_highlighted = entity.definition
+    entity.implementation_highlighted = entity.implementation
+    entity.publications_highlighted = entity.publications
+    entity.validation_highlighted = entity.validation
+
+    return entity
+    
+    # # Add a 'data' key which has all data based on the template ordered
+    # if include_template_data:
+    #     full_template_data = get_entity_full_template_data(entity, entity.template.id, return_queryset_as_list)
+    #     return full_template_data
+    # else:
+    #     return entity
+
+
+
+
     
     
-def get_historical_entity(history_id, highlight_result=False, q_highlight=None, include_template_data=True, return_queryset_as_list=False):
+def get_historical_entityXXX(history_id, highlight_result=False, q_highlight=None, include_template_data=True, return_queryset_as_list=False):
    
     ''' Get historical generic entity based on a history id '''
 
@@ -563,9 +727,11 @@ def get_historical_entity(history_id, highlight_result=False, q_highlight=None, 
                             , websearch_to_tsquery('english', %s)
                             , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as implementation_highlighted,                                              
                                                                   
+                    /*
                     ts_headline('english', coalesce(array_to_string(hge.publications, '^$^'), '')
                             , websearch_to_tsquery('english', %s)
-                            , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publications_highlighted,    
+                            , 'HighlightAll=TRUE, StartSel="<b class=''hightlight-txt''>", StopSel="</b>"') as publications_highlighted, 
+                    */   
                             
                     ts_headline('english', coalesce(hge.validation, '')
                             , websearch_to_tsquery('english', %s)
@@ -585,7 +751,7 @@ def get_historical_entity(history_id, highlight_result=False, q_highlight=None, 
         hge.definition,
         hge.implementation,
         hge.validation,
-        hge.publications,            
+        hge.publications::json,            
         hge.tags,
         hge.collections,    
         hge.citation_requirements,
@@ -634,7 +800,8 @@ def get_historical_entity(history_id, highlight_result=False, q_highlight=None, 
         row_dict = dict(zip(col_names, row))
 
         if highlight_columns != '':
-            row_dict['publications_highlighted'] = row_dict['publications_highlighted'].split('^$^')
+            #row_dict['publications_highlighted'] = row_dict['publications_highlighted'].split('^$^')
+            row_dict['publications_highlighted'] = row_dict['publications']
         else:
             row_dict['name_highlighted'] = row_dict['name']
             row_dict['author_highlighted'] = row_dict['author']

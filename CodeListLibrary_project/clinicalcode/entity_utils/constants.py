@@ -162,6 +162,18 @@ CREATE_WIZARD_SECTION_END = 'components/create/section/section_end.html'
 CREATE_WIZARD_INPUT_DIR = 'components/create/inputs'
 
 '''
+    Entity detail page related defaults
+'''
+DETAIL_WIZARD_ASIDE = 'components/details/aside.html'
+DETAIL_WIZARD_SECTION_START = 'components/details/section/section_start.html'
+DETAIL_WIZARD_SECTION_END = 'components/details/section/section_end.html'
+DETAIL_WIZARD_OUTPUT_DIR = 'components/details/outputs'
+
+DETAIL_ASIDE_DEFAULT =  [
+    
+]
+
+'''
     Used to strip userdata from models when JSONifying them
         e.g. user account, user profile, membership
 '''
@@ -438,35 +450,42 @@ metadata = {
 FIELD_TYPES = {
     "int": {
         "data_type": "int",
-        "input_type": "inputbox"
+        "input_type": "inputbox",
+        "output_type": "inputbox"
     },
     "date": {
         "data_type": "date",
-        "input_type": "datepicker"
+        "input_type": "datepicker",
+        "output_type": "datepicker"
     },
     "daterange": {
         "data_type": "date",
-        "input_type": "datepicker_range"
+        "input_type": "datepicker_range",
+        "output_type": "datepicker_range"
     },
     "string_inputbox": {
         "data_type": "string",
         "input_type": "inputbox",
+        "output_type": "inputbox",
         "max_length": 250
     },
     "string_inputbox_code": {
         "data_type": "string",
         "input_type": "inputbox",
+        "output_type": "inputbox",
         "max_length": 250,
         "apply_code_style": True
     },
     "textarea": {
         "data_type": "string",
         "input_type": "textarea",
+        "output_type": "textarea",
         "rows": 5
     },
     "textarea_markdown": {
         "data_type": "string",
         "input_type": "markdown",
+        "output_type": "markdown",
         "rows": 5,
         "display": "markdown"
     },
@@ -477,6 +496,7 @@ FIELD_TYPES = {
     "string_list_of_inputboxes_markdown": {
         "data_type": "string",
         "input_type": "list_of_inputboxes",
+        "output_type": "list_of_inputboxes",
         "max_length": 250,
         "display": "markdown"
     },
@@ -484,12 +504,14 @@ FIELD_TYPES = {
     "enum": {
         "data_type": "int",
         "input_type": "dropdown-list",
+        "output_type": "dropdown-list",
         "use_permitted_values": True
     },
 
     "enum_radio_badge": {
         "data_type": "int",
         "input_type": "radiobutton",
+        "output_type": "radiobutton",
         "use_permitted_values": True,
         "apply_badge_style": True
     },
@@ -497,6 +519,7 @@ FIELD_TYPES = {
     "enum_dropdown_badge": {
         "data_type": "int",
         "input_type": "dropdown",
+        "output_type": "dropdown",
         "use_permitted_values": True,
         "apply_badge_style": True
     },
@@ -504,33 +527,45 @@ FIELD_TYPES = {
     "concept_information": {
         "system_defined": True,
         "description": "json of concept ids/ver used in phenotype (managed by code snippet)",
-        "input_type": "clinical/concept"
+        "input_type": "clinical/concept",
+        "output_type": "phenotype_clinical_code_lists"
+    },
+    "publications": {
+        "input_type": "clinical/publication",
+        "output_type": "clinical/publication",
     },
     "publications": {
         "input_type": "clinical/publication",
     },
     "coding_system": {
         "system_defined": True,
-        "description": "list of coding system ids (calculated from phenotype concepts) (managed by code snippet)"
+        "description": "list of coding system ids (calculated from phenotype concepts) (managed by code snippet)",
+        "input_type": "tagbox",
+        "output_type": "tagbox"
     },
     "tags": {
         "system_defined": True,
         "description": "list of tags ids (managed by code snippet)",
-        "input_type": "tagbox"
+        "input_type": "tagbox",
+        "output_type": "tagbox"
     },
     "collections": {
         "system_defined": True,
         "description": "list of collections ids (managed by code snippet)",
-        "input_type": "tagbox"
+        "input_type": "tagbox",
+        "output_type": "tagbox"
     },
     "data_sources": {
         "system_defined": True,
         "description": "list of data_sources ids (managed by code snippet)",
-        "input_type": "tagbox"
+        "input_type": "tagbox",
+        "output_type": "tagbox"
     },
     "phenoflowid": {
         "system_defined": True,
-        "description": "URL for phenoflow (managed by code snippet)"
+        "description": "URL for phenoflow (managed by code snippet)",
+        "input_type": "phenoflowid",
+        "output_type": "phenoflowid",
     },
 
     "group_field": {
@@ -542,6 +577,27 @@ FIELD_TYPES = {
     "access_field_editable": {
         "input_type": "access_select_editable",
     },
+
+    "permissions":{
+        "system_defined": True,
+        "output_type": "permissions"
+    },
+    "api": {
+        "system_defined": True,
+        "output_type": "api"
+    },
+    "version_history": {
+        "system_defined": True,
+        "output_type": "version_history"
+    },
+    "id": {
+        "system_defined": True,
+        "output_type": "id"
+    },
+    "history_id": {
+        "system_defined": True,
+        "output_type": "history_id"
+    }
 }
 
 #####################################
