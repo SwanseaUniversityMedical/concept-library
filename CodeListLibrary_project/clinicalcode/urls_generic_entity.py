@@ -10,7 +10,6 @@ from .views import (GenericEntity, adminTemp, Profile, Moderation)
 from clinicalcode.views import Publish
 from clinicalcode.views import Decline
 
-
 from django.urls import path
 from django.views.generic.base import TemplateView
 

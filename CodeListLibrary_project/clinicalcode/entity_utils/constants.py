@@ -181,9 +181,26 @@ USERDATA_MODELS = [str(User), str(Group)]
 STRIPPED_FIELDS = ['SearchVectorField']
 
 '''
-    Describes fields that should be stripped from historical concepts
+    Describes fields that should be stripped from historical objects
 '''
-HISTORICAL_CONCEPT_HIDDEN_FIELDS = ['id', 'history_id', 'history_date', 'history_change_reason', 'history_type', 'history_user']
+HISTORICAL_HIDDEN_FIELDS = [
+    'id', 'history_id', 'history_date', 'history_change_reason', 'history_type', 'history_user'
+]
+
+'''
+    Describes fields that should be stripped from api response
+'''
+API_HIDDEN_FIELDS = [
+    'history_id', 'history_date', 'history_change_reason', 'history_type', 'history_user', 
+    'template', 'template_data', 'template_version', 'internal_comments'
+]
+
+'''
+    Describes fields that should be stripped from entity list api response
+'''
+ENTITY_LIST_API_HIDDEN_FIELDS = [
+    'concept_information', 'definition', 'implementation'
+]
 
 '''
     [!] Note: Will be moved to a table once tooling is finished, accessible through the 'base_template_version'
@@ -516,6 +533,9 @@ FIELD_TYPES = {
     "publications": {
         "input_type": "clinical/publication",
         "output_type": "clinical/publication",
+    },
+    "publications": {
+        "input_type": "clinical/publication",
     },
     "coding_system": {
         "system_defined": True,

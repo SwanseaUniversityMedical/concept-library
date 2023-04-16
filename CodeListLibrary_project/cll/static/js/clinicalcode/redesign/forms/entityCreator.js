@@ -904,6 +904,11 @@ class EntityCreator {
         return response.json();
       })
       .then(content => {
+        this.formChanged = false;
+        this.initialisedData = data;
+        return content;
+      })
+      .then(content => {
         this.#redirectFormClosure(content);
       })
       .catch(error => {

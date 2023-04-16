@@ -198,60 +198,60 @@ urlpatterns += [
     #----------------------------------------------------------
     # --- phenotypes   ----------------------------------------
     #----------------------------------------------------------
-    url(r'^phenotypes/(?P<pk>PH\d+)/export/codes/$',
-        Phenotype.export_phenotype_codes_byVersionID,
+    url(r'^phenotypes/(?P<primary_key>PH\d+)/export/codes/$',
+        GenericEntity.get_entity_detail, { 'field': 'codes' },
         name='api_export_phenotype_codes_latestVersion'),
-    url(r'^phenotypes/(?P<pk>PH\d+)/version/(?P<phenotype_history_id>\d+)/export/codes/$',
-        Phenotype.export_phenotype_codes_byVersionID,
+    url(r'^phenotypes/(?P<primary_key>PH\d+)/version/(?P<historical_id>\d+)/export/codes/$',
+        GenericEntity.get_entity_detail, { 'field': 'codes' },
         name='api_export_phenotype_codes_byVersionID'),
         
-    url(r'^public/phenotypes/(?P<pk>PH\d+)/export/codes/$',
-        Phenotype.export_published_phenotype_codes,
+    url(r'^public/phenotypes/(?P<primary_key>PH\d+)/export/codes/$',
+        GenericEntity.get_entity_detail, { 'field': 'codes' },
         name='api_export_published_phenotype_codes_latestVersion'),
-    url(r'^public/phenotypes/(?P<pk>PH\d+)/version/(?P<phenotype_history_id>\d+)/export/codes/$',
-        Phenotype.export_published_phenotype_codes,
+    url(r'^public/phenotypes/(?P<primary_key>PH\d+)/version/(?P<historical_id>\d+)/export/codes/$',
+        GenericEntity.get_entity_detail, { 'field': 'codes' },
         name='api_export_published_phenotype_codes'),
 
     #==== search concepts/published phenotypes =====
     url(r'^phenotypes/$', 
-        Phenotype.phenotypes,
+        GenericEntity.get_generic_entities, { 'should_paginate': False },
         name='phenotypes'),
-    url(r'^phenotypes/(?P<pk>PH\d+)/$',
-        Phenotype.phenotypes,
+    url(r'^phenotypes/(?P<primary_key>PH\d+)/$', 
+        GenericEntity.get_entity_detail, 
         name='phenotype_by_id'),
 
     # search published phenotypes
     url(r'^public/phenotypes/$',
-        Phenotype.published_phenotypes,
+        GenericEntity.get_generic_entities, { 'should_paginate': False },
         name='api_published_phenotypes'),
-    url(r'^public/phenotypes/(?P<pk>PH\d+)/$',
-        Phenotype.published_phenotypes,
+    url(r'^public/phenotypes/(?P<primary_key>PH\d+)/$',
+        GenericEntity.get_entity_detail, 
         name='api_published_phenotype_by_id'),
     #===============================================
 
     # my phenotype detail
     # if only phenotype_id is provided, get the latest version
-    url(r'^phenotypes/(?P<pk>PH\d+)/detail/$',
-        Phenotype.phenotype_detail,
+    url(r'^phenotypes/(?P<primary_key>PH\d+)/detail/$',
+        GenericEntity.get_entity_detail, 
         name='api_phenotype_detail'),
-    url(r'^public/phenotypes/(?P<pk>PH\d+)/detail/$',
-        Phenotype.phenotype_detail_PUBLIC,
+    url(r'^public/phenotypes/(?P<primary_key>PH\d+)/detail/$',
+        GenericEntity.get_entity_detail, 
         name='api_phenotype_detail_public'),
 
     # get specific version
-    url(r'^phenotypes/(?P<pk>PH\d+)/version/(?P<phenotype_history_id>\d+)/detail/$',
-        Phenotype.phenotype_detail,
+    url(r'^phenotypes/(?P<primary_key>PH\d+)/version/(?P<historical_id>\d+)/detail/$',
+        GenericEntity.get_entity_detail, 
         name='api_phenotype_detail_version'),
-    url(r'^public/phenotypes/(?P<pk>PH\d+)/version/(?P<phenotype_history_id>\d+)/detail/$',
-        Phenotype.phenotype_detail_PUBLIC,
+    url(r'^public/phenotypes/(?P<primary_key>PH\d+)/version/(?P<historical_id>\d+)/detail/$',
+        GenericEntity.get_entity_detail, 
         name='api_phenotype_detail_version_public'),
 
     # show versions
-    url(r'^phenotypes/(?P<pk>PH\d+)/get-versions/$',
-        Phenotype.phenotype_detail, {'get_versions_only': '1'},
+    url(r'^phenotypes/(?P<primary_key>PH\d+)/get-versions/$',
+        GenericEntity.get_generic_entity_version_history,
         name='get_phenotype_versions'),
-    url(r'^public/phenotypes/(?P<pk>PH\d+)/get-versions/$',
-        Phenotype.phenotype_detail_PUBLIC, {'get_versions_only': '1'},
+    url(r'^public/phenotypes/(?P<primary_key>PH\d+)/get-versions/$',
+        GenericEntity.get_generic_entity_version_history,
         name='get_phenotype_versions_public'),
 
     # ---------------------------------------------------------
@@ -414,36 +414,47 @@ if not settings.CLL_READ_ONLY:
 ############################################################################
 if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
     urlpatterns += [
-        url(r'^ge/$',
+        # List all entities
+        url(r'^entity/$',
             GenericEntity.get_generic_entities,
             name='api_generic_entity'),
 
-        # generic entity detail
-        # if only id is provided, get the latest version
-        url(r'^ge/(?P<primary_key>\w+)/detail/$',
+        # Generic entity detail
+        url(r'^entity/(?P<primary_key>\w+)/detail/$',
             GenericEntity.get_entity_detail,
             name='api_generic_entity_detail'),
 
-        # get specific version
-        url(r'^ge/(?P<primary_key>PH\d+)/version/(?P<historical_id>\d+)/detail/$',
+        # Get specific entity version
+        url(r'^entity/(?P<primary_key>PH\d+)/version/(?P<historical_id>\d+)/detail/$',
             GenericEntity.get_entity_detail,
             name='api_generic_entity_detail_by_version'),
 
-        # export field
-        url(r'^ge/(?P<primary_key>\w+)/export/(?P<field>\w+)/$',
+        # Export specific entity field
+        url(r'^entity/(?P<primary_key>\w+)/export/(?P<field>\w+)/$',
             GenericEntity.get_entity_detail,
             name='get_generic_entity_field'),
 
-        # get specific version
-        url(r'^ge/(?P<primary_key>\w+)/version/(?P<historical_id>\d+)/export/(?P<field>\w+)/$',
+        # Get specific entity version
+        url(r'^entity/(?P<primary_key>\w+)/version/(?P<historical_id>\d+)/export/(?P<field>\w+)/$',
             GenericEntity.get_entity_detail,
             name='get_generic_entity_field_by_version'),
 
-        # show versions
-        url(r'^ge/(?P<primary_key>\w+)/get-versions/$',
+        # Show entity versions
+        url(r'^entity/(?P<primary_key>\w+)/get-versions/$',
             GenericEntity.get_generic_entity_version_history,
             name='get_generic_entity_versions_public'),
+
+        # Create entity
+        url(r'^entity/create/$',
+            GenericEntity.create_generic_entity,
+            name='create_generic_entity'),
+
+        # Update entity
+        url(r'^entity/update/$',
+            GenericEntity.update_generic_entity,
+            name='update_generic_entity'),
     ]
+
 ####### M Elmessary ################
 if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
     urlpatterns += [

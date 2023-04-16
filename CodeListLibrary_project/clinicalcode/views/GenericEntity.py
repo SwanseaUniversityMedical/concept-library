@@ -1,6 +1,6 @@
 '''
     ---------------------------------------------------------------------------
-    GGENERIC-ENTITY VIEW
+    GENERIC-ENTITY VIEW
     ---------------------------------------------------------------------------
 '''
 from django.urls import reverse
@@ -232,7 +232,9 @@ class CreateEntityView(TemplateView):
         '''
             @desc Renders the template selection form
         '''
-        return render(request, self.templates.get('select'))
+
+        context['entity_data'] = create_utils.get_createable_entities(request)
+        return render(request, self.templates.get('select'), context)
 
     def create_form(self, request, context, template):
         '''

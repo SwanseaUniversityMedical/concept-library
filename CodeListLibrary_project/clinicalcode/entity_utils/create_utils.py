@@ -1,9 +1,9 @@
 from django.apps import apps
-from django.db.models import Q
-from django.contrib.auth.models import Group, User
+from django.db.models import Q, F
 from django.utils.timezone import make_aware
 from datetime import datetime
 
+from ..models.EntityClass import EntityClass
 from ..models.Template import Template
 from ..models.GenericEntity import GenericEntity
 from ..models.CodingSystem import CodingSystem
@@ -25,6 +25,22 @@ def try_validate_entity(request, entity_id, entity_history_id):
         return False
     
     return GenericEntity.history.get(id=entity_id, history_id=entity_history_id)
+
+def get_createable_entities(request):
+    '''
+        Used to retrieve information relating to the entities that can
+        be created and their associated templates
+    '''
+    entities = EntityClass.objects.all().values('id', 'name', 'description', 'entity_prefix')
+    templates = Template.objects.filter(
+        entity_class__id__in=entities.values_list('id', flat=True)
+    ) \
+    .values('id', 'template_version', 'entity_class__id', 'name', 'description')
+    
+    return {
+        'entities': list(entities),
+        'templates': list(templates)
+    }
 
 def get_template_creation_data(entity, layout, field, default=[]):
     '''
@@ -206,7 +222,7 @@ def validate_form_entity(form_entity, form_method, errors=[], default=None):
         return
     
     if form_method == constants.FORM_METHODS.CREATE:
-        return form_method
+        return default
 
     if form_entity is None:
         errors.append('No entity parameter was provided when submitting an update form.')
@@ -260,22 +276,32 @@ def validate_computed_field(request, field, field_data, value, errors=[]):
     if field_type is None:
         return value
     
-    if field == 'group':
+    field_info = GenericEntity._meta.get_field(field)
+    if not field_info:
+        return
+    
+    field_type = field_info.get_internal_type()
+    if field_type != 'ForeignKey':
+        return
+    
+    model = field_info.target_field.model
+    if model is not None:
         field_value = gen_utils.try_value_as_type(value, field_type, validation)
         if field_value is None:
             return None
         
-        group = model_utils.try_get_instance(Group, id=field_value)
-        if group is None:
+        instance = model_utils.try_get_instance(model, pk=field_value)
+        if instance is None:
             errors.append(f'"{field}" is invalid')
             return None
         
-        is_member = user.is_superuser or user.groups.filter(name__iexact=group.name).exists()
-        if not is_member:
-            errors.append(f'Tried to set {field} without being a member of that group.')
-            return None
+        if field == 'group':
+            is_member = user.is_superuser or user.groups.filter(name__iexact=instance.name).exists()
+            if not is_member:
+                errors.append(f'Tried to set {field} without being a member of that group.')
+                return None
         
-        return group
+        return instance
     
     return value
 
@@ -293,7 +319,7 @@ def validate_concept_form(form, errors):
         'components': [ ],
     }
 
-    if not is_new_concept:
+    if not is_new_concept and concept_id is not None and concept_history_id is not None:
         concept = model_utils.try_get_instance(Concept, id=concept_id)
         concept = model_utils.try_get_entity_history(concept, history_id=concept_history_id)
         if concept is None:
@@ -301,6 +327,8 @@ def validate_concept_form(form, errors):
             return None
         field_value['concept']['id'] = concept_id
         field_value['concept']['history_id'] = concept_history_id
+    else:
+        is_new_concept = True
     
     concept_details = form.get('details')
     if concept_details is None or not isinstance(concept_details, dict):
@@ -328,13 +356,15 @@ def validate_concept_form(form, errors):
         component = { }
 
         is_new_component = concept_component.get('is_new')
-        if not is_new_component:
-            component_id = gen_utils.parse_int(concept_component.get('id'), None)
+        component_id = gen_utils.parse_int(concept_component.get('id'), None)
+        if not is_new_component and component_id is not None:
             historical_component = Component.history.filter(id=component_id)
             if not historical_component.exists():
                 errors.append(f'Invalid concept with ID {concept_id} - component is not valid')
                 return None
             component['id'] = component_id
+        else:
+            is_new_component = True
         
         component_name = gen_utils.try_value_as_type(concept_component.get('name'), 'string')
         if component_name is None:
@@ -371,13 +401,15 @@ def validate_concept_form(form, errors):
                 return None
             
             is_new_code = component_code.get('is_new')
-            if not is_new_code:
-                code_id = gen_utils.parse_int(component_code.get('id'), None)
+            code_id = gen_utils.parse_int(component_code.get('id'), None)
+            if not is_new_code and code_id is not None:
                 historical_code = Code.history.filter(id=code_id)
                 if not historical_code.exists():
                     errors.append(f'Invalid concept with ID {concept_id} - Code is not valid')
                     return None
                 code['id'] = code_id
+            else:
+                is_new_code = True
             
             code_name = gen_utils.try_value_as_type(component_code.get('code'), 'string')
             if gen_utils.is_empty_string(code_name):
@@ -537,7 +569,7 @@ def validate_template_value(request, field, form_template, value, errors=[]):
 
     return field_value, True
 
-def validate_entity_form(request, content, errors=[]):
+def validate_entity_form(request, content, errors=[], method=None):
     '''
         Validates & Cleans the entity create/update form
 
@@ -551,8 +583,11 @@ def validate_entity_form(request, content, errors=[]):
     '''
 
     # Early exit if any of the base form data is invalid
-    form_method = content.get('method')
-    form_method = validate_form_method(form_method, errors)
+    if method is None:
+        form_method = content.get('method')
+        form_method = validate_form_method(form_method, errors)
+    else:
+        form_method = validate_form_method(method, errors)
     
     form_template = content.get('template')
     form_template = validate_form_template(form_template, errors)
@@ -562,7 +597,7 @@ def validate_entity_form(request, content, errors=[]):
     
     form_entity = content.get('entity')
     form_entity = validate_form_entity(form_entity, form_method, errors)
-    
+
     if len(errors) > 0:
         return
     
@@ -872,6 +907,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
             template_data=template_data,
             created_by=user
         )
+        entity.save()
     elif form_method == constants.FORM_METHODS.UPDATE:
         entity = form_entity
         entity.name = metadata.get('name')
@@ -893,5 +929,5 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
         entity.updated = make_aware(datetime.now())
         entity.updated_by = user
         entity.save()
-
+    
     return entity.history.latest()

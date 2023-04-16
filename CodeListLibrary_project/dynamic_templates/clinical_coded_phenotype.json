@@ -309,6 +309,7 @@
       "title": "Version ID",
       "field_type": "history_id",
       "hide_on_create": true
+
     }
 
   }

@@ -19,7 +19,7 @@ from ..models.CodeList import CodeList
 from ..models.ConceptCodeAttribute import ConceptCodeAttribute
 from ..models.Code import Code
 from .constants import (USERDATA_MODELS, STRIPPED_FIELDS, APPROVAL_STATUS,
-                        GROUP_PERMISSIONS, TAG_TYPE, HISTORICAL_CONCEPT_HIDDEN_FIELDS,
+                        GROUP_PERMISSIONS, TAG_TYPE, HISTORICAL_HIDDEN_FIELDS,
                         CLINICAL_RULE_TYPE, CLINICAL_CODE_SOURCE)
 
 def try_get_instance(model, **kwargs):
@@ -196,14 +196,22 @@ def get_userdata_details(model, **kwargs):
     Attempts to return a dict that describes a userdata field e.g. a user, or a group
     in a human readable format
   '''
+  hide_user_id = False
+  if kwargs.get('hide_user_details'):
+    hide_user_id = kwargs.pop('hide_user_details')
+    
   instance = try_get_instance(model, **kwargs)
   if not instance:
     return None
   
-  details = {'id': instance.pk}
   if isinstance(instance, Group):
-    return details | {'name': instance.name}
+    return {'id': instance.pk, 'name': instance.name}
   elif isinstance(instance, User):
+    if hide_user_id:
+      details = { }
+    else:
+      details = {'id': instance.pk}
+
     return details | {'username': instance.username}
   
   return details
@@ -540,7 +548,7 @@ def get_associated_concept_codes(concept_id, concept_history_id, code_ids):
   codelist = [code for code in codelist if code.get('id', -1) in code_ids]
   return codelist
 
-def get_final_reviewed_codelist(concept_id, concept_history_id):
+def get_final_reviewed_codelist(concept_id, concept_history_id, hide_user_details=False):
   '''
     [!] Note: This method ignores permissions - it should only be called from a
               a method that has previously considered accessibility
@@ -584,7 +592,11 @@ def get_final_reviewed_codelist(concept_id, concept_history_id):
   included_codes = get_associated_concept_codes(concept_id, concept_history_id, reviewed_concept.included_codes)
   return {
     'review_submitted': reviewed_concept.review_submitted,
-    'last_reviewed_by': get_userdata_details(User, pk=reviewed_concept.last_reviewed_by.pk),
+    'last_reviewed_by': get_userdata_details(
+      User, 
+      pk=reviewed_concept.last_reviewed_by.pk, 
+      hide_user_details=hide_user_details
+    ),
     'codes': included_codes,
   }
 
@@ -622,7 +634,7 @@ def get_review_concept(concept_id, concept_history_id):
 
 def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_codes=False,
                               aggregate_component_codes=False, include_component_codes=True,
-                              strippable_fields=None, remove_userdata=False):
+                              strippable_fields=None, remove_userdata=False, hide_user_details=False):
   '''
     [!] Note: This method ignores permissions - it should only be called from a
               a method that has previously considered accessibility
@@ -664,7 +676,7 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
   # Dictify our concept
   if not strippable_fields:
     strippable_fields = [ ]
-  strippable_fields += HISTORICAL_CONCEPT_HIDDEN_FIELDS
+  strippable_fields += HISTORICAL_HIDDEN_FIELDS
 
   concept_data = jsonify_object(
     historical_concept,
@@ -702,7 +714,9 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
       if str(model) not in USERDATA_MODELS:
         continue
 
-      concept_data[field.name] = get_userdata_details(model, pk=concept_data[field.name])
+      concept_data[field.name] = get_userdata_details(
+        model, pk=concept_data[field.name], hide_user_details=hide_user_details
+      )
   
   # Clean data if required
   if not concept_data.get('is_deleted'):
@@ -739,7 +753,9 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
 
   # Build the final, reviewed codelist if required
   if include_reviewed_codes:
-    result['codelist'] = get_final_reviewed_codelist(concept_id, concept_history_id)
+    result['codelist'] = get_final_reviewed_codelist(
+      concept_id, concept_history_id, hide_user_details=hide_user_details
+    )
   
   return result
 
