@@ -406,9 +406,8 @@ class EntityWizardAside(template.Node):
             return output
 
         # We should be getting the FieldTypes.json related to the template
-        detail_page_sections = template.definition.get('detail_page_sections') + constants.DETAIL_ASIDE_DEFAULT
         output = render_to_string(constants.DETAIL_WIZARD_ASIDE, {
-            'detail_page_sections': detail_page_sections
+            'detail_page_sections': template.definition.get('detail_page_sections')
         })
 
         return output
@@ -483,8 +482,7 @@ class EntityWizardSections(template.Node):
         
         # We should be getting the FieldTypes.json related to the template
         field_types = constants.FIELD_TYPES
-        detail_page_sections = template.definition.get('detail_page_sections') + constants.DETAIL_ASIDE_DEFAULT
-        for section in detail_page_sections:
+        for section in template.definition.get('detail_page_sections'):
             output += self.__try_render_item(template_name=constants.DETAIL_WIZARD_SECTION_START
                                              , request=request
                                              , context=context.flatten() | { 'section': section })

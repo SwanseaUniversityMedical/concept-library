@@ -169,9 +169,6 @@ DETAIL_WIZARD_SECTION_START = 'components/details/section/section_start.html'
 DETAIL_WIZARD_SECTION_END = 'components/details/section/section_end.html'
 DETAIL_WIZARD_OUTPUT_DIR = 'components/details/outputs'
 
-DETAIL_ASIDE_DEFAULT =  [
-    
-]
 
 '''
     Used to strip userdata from models when JSONifying them
