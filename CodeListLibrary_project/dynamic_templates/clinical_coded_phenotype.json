@@ -49,7 +49,8 @@
     {
       "title": "Implementation",
       "description": "",
-      "fields": ["implementation", "phenoflowid"]
+      "fields": ["implementation", "phenoflowid"],
+      "hide_if_empty": true
     },
     {
       "title": "Publications",
@@ -59,7 +60,8 @@
      {
       "title": "Validation",
       "description": "",
-      "fields": ["validation"]
+      "fields": ["validation"],
+      "hide_if_empty": true
     },   
     {
       "title": "Clinical Code List",
