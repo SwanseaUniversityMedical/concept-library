@@ -17,6 +17,9 @@
     <div class="dropdown-content">
     <ul class="row__profile">
         <li class="content-container">
+
+          {% if request.user.is_superuser and SHOWADMIN and not CLL_READ_ONLY %}
+          <!--admin-->
           <a href="{% url 'admin:index' %}" target=_blank class="item-dropdown">
             <div class="item-dropdown__icon" id="admin_icon">
              {% svg "person_icon" %}
@@ -26,6 +29,9 @@
           </a>
         </li>
         <hr>
+        {% endif %}
+        
+        <!--Brands-->
         {% if request.user.is_superuser  and request.session.all_brands %}
         {% include "components/search/cards/dropdown_profile_item.html" with  currentBrand="" image="/static/img/header_logo.png" title="Concept Library" %}
         
@@ -35,8 +41,11 @@
         {% include "components/search/cards/dropdown_profile_item.html" with  currentBrand=brand|upper  image=brand|getBrandLogo title=brand|upper %}
 							{% endfor %}
         
-              {% endif %}
+              
         <hr> 
+        {% endif %}
+
+        <!--logout-->
 
         <li class="content-container">
           <a href="{% url 'logout' %}?next={% url 'phenotype_list' %}" class="item-dropdown">
