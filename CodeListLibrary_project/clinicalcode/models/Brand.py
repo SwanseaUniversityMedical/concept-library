@@ -24,6 +24,7 @@ class Brand(TimeStampedModel):
     site_title = models.CharField(max_length=50, blank=True, null=True)
     about_menu = JSONField(blank=True, null=True)
     allowed_tabs = JSONField(blank=True, null=True)
+    footer_images = JSONField(blank=True, null=True)
     collections_excluded_from_filters = ArrayField(models.IntegerField(), blank=True, null=True)
 
     history = HistoricalRecords()
