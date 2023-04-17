@@ -11,11 +11,8 @@
     background: #fff;
     -webkit-box-shadow: var(--dropdown-shadow);
     box-shadow: var(--dropdown-shadow);
-    pointer-events: none;
     z-index: 999;
-    -webkit-transform: translate(-100%, -50%);
-    -ms-transform: translate(-100%, -50%);
-    transform: translate(-100%, -50%);
+    @include prefix(transform, translate(-100%,-50%), webkit moz o);
     position: absolute;
     width: 100%;
     padding: 1rem;
