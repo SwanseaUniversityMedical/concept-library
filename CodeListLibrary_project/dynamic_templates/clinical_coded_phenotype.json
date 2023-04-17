@@ -71,7 +71,8 @@
     {
       "title": "Permissions",
       "description": "",
-      "fields": ["permissions"]
+      "fields": ["permissions"],
+      "requires_auth": true
     },
     {
       "title": "API",
