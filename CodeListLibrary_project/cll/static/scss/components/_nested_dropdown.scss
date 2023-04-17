@@ -12,11 +12,11 @@
     -webkit-box-shadow: var(--dropdown-shadow);
     box-shadow: var(--dropdown-shadow);
     z-index: 999;
-    @include prefix(transform, translate(-100%,-50%), webkit moz o);
+    @include prefix(transform, translate(-20%,-12%), webkit moz o);
     position: absolute;
     width: 100%;
     padding: 1rem;
-    top: 50%;
+
 
    
    
@@ -28,20 +28,22 @@
     &:hover{
     .nested-menu{
         display: block;
+
+        &::after {
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid #ffffff;
+            border-right: 10px solid transparent;
+            border-left: 10px solid transparent;
+            top: -19%;
+            z-index: 999;
+            left: calc(50% - 48px);
+            content: "";
+            position: absolute;
+          }
+        
+        
+        }
     }
 }
 
-&::after {
-    border-top: 10px solid transparent;
-    border-bottom: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-left: 10px solid #ffffff;
 
-    bottom: 60%;
-    z-index: 999;
-    content: "";
-    position: absolute;
-  }
-
-
-}
