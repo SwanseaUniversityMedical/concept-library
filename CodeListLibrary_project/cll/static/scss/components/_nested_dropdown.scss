@@ -1,0 +1,50 @@
+@import "../_methods";
+@import "../_variables";
+@import "../_media";
+@import "../_utils";
+
+.nested-menu{
+    
+    border-radius: 1em;
+    display: none;
+    list-style: none;
+    background: #fff;
+    -webkit-box-shadow: var(--dropdown-shadow);
+    box-shadow: var(--dropdown-shadow);
+    pointer-events: none;
+    z-index: 999;
+    -webkit-transform: translate(-100%, -50%);
+    -ms-transform: translate(-100%, -50%);
+    transform: translate(-100%, -50%);
+    position: absolute;
+    width: 100%;
+    padding: 1rem;
+    top: 50%;
+
+   
+   
+}    
+
+
+.content-container{
+ 
+    &:hover{
+    .nested-menu{
+        display: block;
+    }
+}
+
+&::after {
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-left: 10px solid #ffffff;
+
+    bottom: 60%;
+    z-index: 999;
+    content: "";
+    position: absolute;
+  }
+
+
+}
