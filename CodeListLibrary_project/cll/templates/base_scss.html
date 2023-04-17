@@ -1,8 +1,13 @@
 {% load static %}
+{% load compress %}
 {% load sass_tags %}
 {% load mathfilters %}
 {% load i18n %}
 {% load cl_extras %}
+
+{% if SHOW_COOKIE_ALERT %}
+  {% load cookielaw_tags %}
+{% endif %}
 
 <!DOCTYPE html>
 {% get_current_language as LANGUAGE_CODE %}
@@ -19,16 +24,16 @@
     <meta name="description" content="{% block description %}{% if not request.CURRENT_BRAND|length %}The concept library is a system for storing, managing, sharing, and documenting clinical code lists in health research.{% endif %}{% endblock description %}">
     <meta name="keywords" content="Concept Library{% if request.CURRENT_BRAND|length and request.BRAND_OBJECT.site_title is not none %}, {{ request.BRAND_OBJECT.site_title }}{% endif %}{% block keywords %}{% endblock keywords %}">
     {% block indexing_robots %}
-      {% if IS_DEMO or IS_DEVELOPMENT_PC or IS_HDRUK_EXT == '0' %}
+      {% if IS_DEMO or IS_DEVELOPMENT_PC or IS_HDRUK_EXT == '0' or stop_robot_indexing %}
         <meta name="robots" content="noindex, nofollow">
         <meta name="googlebot" content="noindex, nofollow">
-      {% endif %} 
+      {% endif %}
     {% endblock indexing_robots %}
 
     {% block cache_tags %}
     {% endblock cache_tags %}
 
-		{% if IS_HDRUK_EXT == '1' %}
+    {% if IS_HDRUK_EXT == '1' %}
       <meta name="google-site-verification" content="biC6kLWuhP7ueREgE_hr5cRrNySiBakPwmHvEe0L2Xs" />
     {% endif %} 
 
@@ -42,21 +47,28 @@
     <link href="{% sass_src 'scss/main.scss' %}" rel="stylesheet" type="text/css" />
 
     <!-- Scripts -->
-    <script type="text/javascript" src="{% static "js/clinicalcode/redesign/utils.js" %}"></script>
+    {% compress js file %}
+      <script type="text/javascript" src="{% static "js/clinicalcode/redesign/utils.js" %}"></script>
+      <script type="text/javascript" src="{% static "js/clinicalcode/redesign/accessibility.js" %}"></script>
+    {% endcompress %}
 
+    {% block jquery %}
+      <script src="{% static 'js/lib/jquery/jquery-3.1.1.min.js' %}" type="text/javascript"></script>
+    {% endblock jquery %}
+	
     <!-- Page details -->
     <title>
       {% if request.CURRENT_BRAND|length and request.BRAND_OBJECT.site_title is not none %}
         {{ request.BRAND_OBJECT.site_title }}
       {% else %}
         Concept Library
-      {% endif %} 
+      {% endif %}
       {% block title %}{% endblock title %}
     </title>
 
-		{% block head %}{% endblock head %}
+     {% block head %}{% endblock head %}
   </head>
-  <body class="{% block bodyclass %}{% endblock bodyclass %}">
+  <body class="{% block bodyclass %}{% endblock bodyclass %}" {% block bodyattr %}{% endblock bodyattr %} >
     {% block navigation_wrapper %}
       {% if not hide_navigation %}
         {% include "components/base/navigation.html" %}
@@ -73,5 +85,15 @@
         {% include "components/base/footer.html" %}
       {% endif %}
     {% endblock footer_wrapper %}
+    
+    
+    {% block scripts %}
+      <!-- script -->
+	{% endblock scripts %}
+
+	{% if SHOW_COOKIE_ALERT %}
+	    {% cookielaw_banner %}
+	{% endif %}		
+	
   </body>
 </html>

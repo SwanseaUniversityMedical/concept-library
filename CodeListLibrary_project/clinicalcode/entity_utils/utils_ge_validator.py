@@ -29,7 +29,7 @@ def form_validation(request, data, entity_history_id, pk,entity,checks):
 
     # update history list
     data['html_history_list'] = render_to_string(
-        'clinicalcode/generic_entity/partial_history_list.html',
+        'components/details/version_history.html',
         {
             'history': get_history_table_data(request, pk),  # entity.history.all(),
             'current_entity_history_id': int(entity_history_id),  # entity.history.latest().pk,

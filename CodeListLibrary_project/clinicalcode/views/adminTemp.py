@@ -521,6 +521,23 @@ def sort_pk_list(a, b):
         return -1
     return 0
 
+def try_parse_doi(publications):
+    import re
+    pattern = re.compile(r'\b(10[.][0-9]{4,}(?:[.][0-9]+)*\/(?:(?![\"&\'<>])\S)+)\b')
+
+    output = [ ]
+    for publication in publications:
+        if publication is None or len(str(publication).strip()) < 1:
+            continue
+
+        doi = pattern.findall(publication)
+        output.append({
+            'details': publication,
+            'doi': doi[0] if len(doi) > 0 else None
+        })
+    
+    return output
+
 @login_required
 def admin_mig_phenotypes_dt(request):
     # for admin(developers) to migrate phenotypes into dynamic template
@@ -581,6 +598,7 @@ def admin_mig_phenotypes_dt(request):
                     n_id = pk
                     if Phenotype.objects.filter(pk=pk).exists():
                         phenotype = Phenotype.objects.get(pk=pk)
+                        publication_items = try_parse_doi(phenotype.publications)
                         
                         # delete if exists
                         if GenericEntity.objects.filter(id=n_id).exists():
@@ -601,7 +619,7 @@ def admin_mig_phenotypes_dt(request):
                             definition = phenotype.description,
                             implementation = phenotype.implementation,
                             validation = phenotype.validation,
-                            publications = phenotype.publications,
+                            publications = publication_items,
                             tags = phenotype.tags,
                             collections = phenotype.collections,  
                             citation_requirements = phenotype.citation_requirements,

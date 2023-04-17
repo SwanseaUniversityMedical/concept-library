@@ -1,3 +1,4 @@
+{% load entity_renderer %}
 <header class="main-header search-banner">
   <div class="search-banner__header">
     <h2 class="search-banner__title">Generic Entity</h2>
@@ -9,30 +10,53 @@
   </div>
   <div class="search-banner__cards">
     <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
-      <article class="referral-card referral-card referral-card-bannerised referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius">
+      {% url 'my_collection' as collections_url %}
+      <article class="referral-card referral-card referral-card-bannerised referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius"
+          data-target="{{ collections_url }}" onclick="redirectToTarget(this);">
+        
         <div class="referral-card__header">
-          <a class="referral-card__title" href="#">My Collection <span class="referral-card__title-icon"></span></a>
+          <a class="referral-card__title" href="{{ collections_url }}">My Collection <span class="referral-card__title-icon"></span></a>
         </div>
         <div class="referral-card__body">
           <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
         </div>
       </article>
-      <article class="referral-card referral-card-bannerised referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius">
+      {% url 'create_entity' as create_url %}
+      <article class="referral-card referral-card-bannerised referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius"
+          data-target="{{ create_url }}" onclick="redirectToTarget(this);">
+        
         <div class="referral-card__header">
-          <a class="referral-card__title" href="#">Create an Entity <span class="referral-card__title-icon"></span></a>
+          <a class="referral-card__title" href="{{ create_url }}">Create an Entity <span class="referral-card__title-icon"></span></a>
         </div>
         <div class="referral-card__body">
           <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
         </div>
       </article>
-      <article class="referral-card referral-card-bannerised referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius">
-        <div class="referral-card__header">
-          <a class="referral-card__title" href="#">Compare Entities <span class="referral-card__title-icon"></span></a>
-        </div>
-        <div class="referral-card__body">
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
-        </div>
-      </article>
+      {% if user|is_member:"Moderators" %}
+        {% url 'moderation_page' as moderator_url %}
+        <article class="referral-card referral-card-bannerised referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius"
+            data-target="{{ moderator_url }}" onclick="redirectToTarget(this);">
+          
+          <div class="referral-card__header">
+            <a class="referral-card__title" href="{{ moderator_url }}">View Moderation <span class="referral-card__title-icon"></span></a>
+          </div>
+          <div class="referral-card__body">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          </div>
+        </article>
+      {% else %}
+        {% url 'reference_data' as reference_url %}
+        <article class="referral-card referral-card-bannerised referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius"
+            data-target="{{ reference_url }}" onclick="redirectToTarget(this);">
+          
+          <div class="referral-card__header">
+            <a class="referral-card__title" href="{{ reference_url }}">Reference Data <span class="referral-card__title-icon"></span></a>
+          </div>
+          <div class="referral-card__body">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          </div>
+        </article>
+      {% endif %}
     </div>
   </div>
 </header>

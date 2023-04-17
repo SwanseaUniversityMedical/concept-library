@@ -1,0 +1,59 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+/// Login template override
+///   @desc Stylesheet relating to login form
+
+.login-panel {
+  display: flex;
+  flex-flow: column nowrpa;
+  align-items: stretch;
+  margin: auto;
+  width: 800px;
+  min-height: 400px;
+	overflow: hidden;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+  background: transparent;
+
+  @include media('<desktop', 'screen') {
+    width: 600px;
+  }
+
+  @include media('<tablet', 'screen') {
+    width: 320px;
+  }
+
+  @include media('<phone', 'screen') {
+    width: 250px;
+  }
+
+  &__left-container {
+    display: flex;
+    flex: 0 0 40%;
+    background-color: rgba(140, 192, 222, 0.35);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-right: 0;
+
+    @include media('<desktop', 'screen') {
+      display: none;
+    }
+  }
+
+  &__right-container {
+    display: flex;
+    flex-flow: column nowrap;
+    flex: 0 0 60%;
+    padding: 1rem;
+    background-color: white;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-left: 0;
+
+    @include media('<desktop', 'screen') {
+      flex: 0 0 100%;
+      border-left: 1px solid rgba(255, 255, 255, 0.18);
+    }
+  }
+}

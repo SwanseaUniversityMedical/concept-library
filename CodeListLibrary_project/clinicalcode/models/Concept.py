@@ -45,6 +45,10 @@ class Concept(TimeStampedModel):
     collections = ArrayField(models.IntegerField(), blank=True, null=True)
     code_attribute_header = ArrayField(models.CharField(max_length=100), blank=True, null=True)
     friendly_id = models.CharField(max_length=50, default='', editable=False)
+    
+    ''' To be removed once Concept is cleaned up in V2 '''
+    is_legacy = models.BooleanField(default=True)
+    ''' ---------------------------------------------- '''
 
     history = HistoricalRecords()
 

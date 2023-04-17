@@ -1,37 +1,98 @@
-from enum import Enum
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 
-class ENTITY_STATUS(int, Enum):
+import enum
+
+class IterableMeta(enum.EnumMeta):
+    def from_name(cls, name):
+        if name in cls:
+            return getattr(cls, name)
+    
+    def __contains__(cls, lhs):
+        try:
+            cls(lhs)
+        except ValueError:
+            return lhs in cls.__members__.keys()
+        else:
+            return True
+
+class TAG_TYPE(int, enum.Enum):
+    '''
+        Tag types used for differentiate Collections & Tags
+        within the Tag table
+    '''
+    TAG = 1
+    COLLECTION = 2
+
+class CLINICAL_RULE_TYPE(int, enum.Enum, metaclass=IterableMeta):
+    '''
+        Ruleset type for clinical concept
+    '''
+    INCLUDE = 1
+    EXCLUDE = 2
+
+class CLINICAL_CODE_REVIEW(int, enum.Enum, metaclass=IterableMeta):
+    '''
+        Review status for a code within a clinical concept
+    '''
+    INCLUDE = 1
+    EXCLUDE = 2
+
+class CLINICAL_CODE_SOURCE(int, enum.Enum, metaclass=IterableMeta):
+    '''
+        Audit source of a clinical code within a clinical concept
+    '''
+    CONCEPT = 1
+    QUERY_BUILDER = 2
+    EXPRESSION = 3
+    SELECT_IMPORT = 4
+    FILE_IMPORT = 5
+    SEARCH_TERM = 6
+
+class ENTITY_STATUS(int, enum.Enum):
     '''
         Status of an entity
     '''
     DRAFT = 1
     FINAL = 2
 
-class APPROVAL_STATUS(int, Enum):
+class APPROVAL_STATUS(int, enum.Enum):
     '''
         Approval status of a published entity
     '''
+    ANY       = -1
     REQUESTED = 0
     PENDING   = 1
     APPROVED  = 2
     REJECTED  = 3
 
-class GROUP_PERMISSIONS(int, Enum):
+class OWNER_PERMISSIONS(int, enum.Enum):
     '''
-        Permission groups
+        Owner permissions
     '''
     NONE = 1
-    VIEW = 2
-    EDIT = 3
+    EDIT = 2
+    VIEW = 3
 
-class FORM_METHODS(str, Enum):
+class GROUP_PERMISSIONS(int, enum.Enum):
+    '''
+        Group permissions
+    '''
+    NONE = 1
+    EDIT = 2
+    VIEW = 3
+
+class FORM_METHODS(int, enum.Enum, metaclass=IterableMeta):
     '''
         Describes form method, i.e. to create or update an entity
         Used by both template and view to modify behaviour
     '''
     CREATE = 1
     UPDATE = 2
+
+'''
+    The excepted X-Requested-With header if a fetch request is made
+'''
+FETCH_REQUEST_HEADER = 'XMLHttpRequest'
 
 '''
     Entity render modifier(s)
@@ -44,7 +105,6 @@ CARDS_DIRECTORY = 'components/search/cards'
     Filter render modifier(s)
         Used by entity_renderer as defaults
 '''
-FILTER_SERVICE_FILE = 'js/clinicalcode/redesign/services/filterService.js'
 FILTER_DIRECTORY = 'components/search/filters'
 FILTER_COMPONENTS = {
     'int': 'checkbox',
@@ -105,8 +165,30 @@ CREATE_WIZARD_INPUT_DIR = 'components/create/inputs'
     Used to strip userdata from models when JSONifying them
         e.g. user account, user profile, membership
 '''
-USERDATA_MODELS = [str(User)]
+USERDATA_MODELS = [str(User), str(Group)]
 STRIPPED_FIELDS = ['SearchVectorField']
+
+'''
+    Describes fields that should be stripped from historical objects
+'''
+HISTORICAL_HIDDEN_FIELDS = [
+    'id', 'history_id', 'history_date', 'history_change_reason', 'history_type', 'history_user'
+]
+
+'''
+    Describes fields that should be stripped from api response
+'''
+API_HIDDEN_FIELDS = [
+    'history_id', 'history_date', 'history_change_reason', 'history_type', 'history_user', 
+    'template', 'template_data', 'template_version', 'internal_comments'
+]
+
+'''
+    Describes fields that should be stripped from entity list api response
+'''
+ENTITY_LIST_API_HIDDEN_FIELDS = [
+    'concept_information', 'definition', 'implementation'
+]
 
 '''
     [!] Note: Will be moved to a table once tooling is finished, accessible through the 'base_template_version'
@@ -170,10 +252,10 @@ metadata = {
     "publications": {
         "title": "Publications",
         "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-        "field_type": "string_list_of_inputboxes",
+        "field_type": "publications",
         "active": True,
         "validation": {
-            "type": "string_array",
+            "type": "publication",
             "mandatory": False
         },
         "is_base_field": True
@@ -275,11 +357,37 @@ metadata = {
     },
     "group": {
         "title": "Group",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
         "field_type": "group_field",
         "active": True,
         "validation": {
             "type": "int",
-            "mandatory": True
+            "mandatory": False,
+            "computed": True
+        },
+        "is_base_field": True
+    },
+    "group_access": {
+        "title": "Group Access",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "field_type": "access_field_editable",
+        "active": True,
+        "validation": {
+            "type": "int",
+            "mandatory": True,
+            "range": [1, 3]
+        },
+        "is_base_field": True
+    },
+    "world_access": {
+        "title": "World Access",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "field_type": "access_field",
+        "active": True,
+        "validation": {
+            "type": "int",
+            "mandatory": True,
+            "range": [1, 3]
         },
         "is_base_field": True
     },
@@ -364,7 +472,6 @@ FIELD_TYPES = {
     },
     "string_list_of_inputboxes": {
         "data_type": "string",
-        "input_type": "clinical/publication",
         "max_length": 250
     },
     "string_list_of_inputboxes_markdown": {
@@ -399,6 +506,9 @@ FIELD_TYPES = {
         "description": "json of concept ids/ver used in phenotype (managed by code snippet)",
         "input_type": "clinical/concept"
     },
+    "publications": {
+        "input_type": "clinical/publication",
+    },
     "coding_system": {
         "system_defined": True,
         "description": "list of coding system ids (calculated from phenotype concepts) (managed by code snippet)"
@@ -425,6 +535,12 @@ FIELD_TYPES = {
 
     "group_field": {
         "input_type": "group_select",
+    },
+    "access_field": {
+        "input_type": "access_select",
+    },
+    "access_field_editable": {
+        "input_type": "access_select_editable",
     },
 }
 

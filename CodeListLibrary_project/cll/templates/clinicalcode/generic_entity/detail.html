@@ -3,7 +3,8 @@
 {% load static %}
 {% load markdownify %}
 {% load cl_extras %}
-{% load entity_publish_request%}
+{% load entity_publish_request %}
+
 {% block title %}| {{ entity_class }}: {{ entity_fields.name.value }}{% endblock title %}
 {% block description %}{{ entity_fields.name.value }}{% endblock description %}
 {% block keywords %}, {{ entity_fields.name.value }}{% endblock keywords %}
@@ -13,7 +14,7 @@
 {% endblock canonical_path %}
 
 {% block crumbs %}
-    <a class="nav-bar-title underline" href="{% url 'entity_search_page' %}">search</a>
+    <a class="nav-bar-title underline" href="{% url 'search_entity' %}">search</a>
     > <strong>{{ entity_fields.name.value }}</strong>
 {% endblock crumbs %}
 
@@ -23,6 +24,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 
 {% block container %}
 <div class="row">
+<!-- container -->
 	<nav class="col-sm-2 hideleft-navbar" id="SideMenu" style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;">
 	     <ul class=" nav left-navbar "  id='navList'>
 	         <li class=" active"><a href="#home" id="Homelinkid">Home</a></li>
@@ -34,17 +36,17 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 			  {% endfor %}
 	         
 	          {% if user.is_authenticated %}
-	          	<li><a href="#permissions">Permissions</a></li>
+	          	<li><a href="#permissions_sec">Permissions</a></li>
 	          {% endif %}
 	          
 	         <li><a href="#API">API</a></li>	
-	         <li><a href="#CodeListsVersions">Version History</a></li>
+	         <li><a href="#versionhistory">Version History</a></li>
 	     </ul>
 	 </nav>
 
     <h3><span id="home" style="margin-top: -100px;"></span></h3>
     <div class="col-sm-10">
-
+	<!-- main -->
 	<span id="topButtons">			
 		<div class="row" style="margin-left: 2px">
 			<div class="col-sm-12 text-right action-buttons-container">			
@@ -89,20 +91,19 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 				  </ul>
 				</div>
 
-                        {% if user.is_authenticated and not CLL_READ_ONLY %}
-                              {% if is_published and approval_status == 2%}
-
-                                  <a class="btn btn-success" disabled title="This version is already published">
-		    	&nbsp;Published&nbsp;
-		    	<span class="glyphicon glyphicon-ok" style="color:green"></span>
-		    </a>
-                              {% else %}    
-                            {%render_publish_button%}
-                            
-                            {% endif %}
-                            {% endif %}
-                                        
-                        <a id="printBtn" class="btn btn-outline-primary btn-cl btn-cl-secondary">
+               {% if user.is_authenticated and not CLL_READ_ONLY %}
+                     {% if is_published and approval_status == 2%}
+                         <a class="btn btn-success" disabled title="This version is already published">
+						  	&nbsp;Published&nbsp;
+						  	<span class="glyphicon glyphicon-ok" style="color:green"></span>
+					     </a>
+                     {% else %}    
+                   	    {%render_publish_button%}
+                   
+                   {% endif %}
+               {% endif %}
+                               
+               <a id="printBtn" class="btn btn-outline-primary btn-cl btn-cl-secondary">
 				Print
 			</a>
 			<a href="#" role="button" class="btn popovers" id="help-hist-entity"
@@ -118,7 +119,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 <div class="alert alert-warning alert-dismissable" id="warning-message" style="display: none;"role="alert"></div>
 
 </span>
-<div class="col-md-12" id="ddd">
+<div class="col-md-12" id="ddd" >
     <div>
         <h2>
             <strong>{{ entity_fields.name.value_highlighted|safe }}</strong>
@@ -129,34 +130,33 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
     </div>
 
 
-    <div class="row"></div>
-    <div class="row" style="margin-top: 10px;">
-          <div class="col-sm-2">ID</div>
-          <div class="col-sm-10">
-			<span id="entity_id_div" entity_id="{{ entity.id }}">
-				{{ entity.id }}						
-			</span>
-         </div>
-      </div>
-
-      <div class="row" style="margin-top: 10px;">
-             <div class="col-sm-2">Version ID</div>
-             <div class="col-sm-10">
-			<span id="entity_history_id_div" entity_history_id="{{ entity.history_id }}">
-				{{ entity.history_id }}
-                     {% if user.is_authenticated %}
-                         &nbsp;&nbsp;
-                         &nbsp;&nbsp;
-                         {% if is_latest_version %}
-                             <span class="tag label" style='background-color:#F98E2B;'>LATEST VERSION</span>
-                         {% else %}
-                             <span class="tag label label-default">HISTORICAL VERSION</span>
-                         {% endif %}
-                     {% endif %}
-			</span>
-             </div>
-      </div>
-       
+	    <div class="row" style="margin-top: 10px;">
+	          <div class="col-sm-2">ID</div>
+	          <div class="col-sm-10">
+				<span id="entity_id_div" entity_id="{{ entity.id }}">
+					{{ entity.id }}						
+				</span>
+	         </div>
+	      </div>
+	
+	      <div class="row" style="margin-top: 10px;">
+	             <div class="col-sm-2">Version ID</div>
+	             <div class="col-sm-10">
+				   <span id="entity_history_id_div" entity_history_id="{{ entity.history_id }}">
+					{{ entity.history_id }}
+	                     {% if user.is_authenticated %}
+	                         &nbsp;&nbsp;
+	                         &nbsp;&nbsp;
+	                         {% if is_latest_version %}
+	                             <span class="tag label" style='background-color:#F98E2B;'>LATEST VERSION</span>
+	                         {% else %}
+	                             <span class="tag label label-default">HISTORICAL VERSION</span>
+	                         {% endif %}
+	                     {% endif %}
+				   </span>
+	             </div>
+	      </div>
+	       
        
        	      
        	      
@@ -166,7 +166,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 			{% else %}
 				{% if field_data.field_type|is_in_list:'data_sources,tags,collections,concept_information,coding_system,phenoflowid' %}
 						<!-- system defined -->
-						{% if field_data.field_type == 'tags' %}
+						{% if field_data.field_type|is_in_list:'tags,collections' %}
 							<div class="row" style="margin-top: 10px;">
 								<span id="{{ field_data.html_id }}"></span>
 								<div class="col-sm-2">{{ field_data.title }}</div>
@@ -176,28 +176,12 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 											<span class="tag label label-{{ tag.get_display_display }} card-edit-sizing">{{ tag.description }}</span>
 										{% endfor %}	
 									{% else %}
-										<span class="card-no-data">No tags</span>
+										<span class="card-no-data">No {{ field_data.title|lower }}</span>
 									{% endif %}		
 								</div>	
 							</div>	
 						{% endif %}
-						
-						{% if field_data.field_type == 'collections' %}
-							<div class="row" style="margin-top: 10px;">
-								<span id="{{ field_data.html_id }}"></span>
-								<div class="col-sm-2">{{ field_data.title }}</div>
-								<div class="col-sm-10">
-									{% if field_data.value|length %}
-										{% for tag in field_data.value %}
-											<span class="tag label label-{{ tag.get_display_display }} card-edit-sizing">{{ tag.description }}</span>
-										{% endfor %}	
-									{% else %}
-										<span class="card-no-data">No collections</span>
-									{% endif %}		
-								</div>	
-							</div>	
-						{% endif %}		
-						
+												
 						{% if field_data.field_type == 'data_sources' %}
 				            <div class="row" style="margin-top: 10px;">
 				            	<span id="{{ field_data.html_id }}"></span>
@@ -227,7 +211,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 					                        <span class="badge">{{ cs.name }}</span>
 					                    {% endfor %}
 				                    {% else %}
-				                    <span class="card-no-data">No associated codes</span>
+				                    <span class="card-no-data">No data</span>
 				                    {% endif %}
 				                </div>
 				            </div>
@@ -244,14 +228,14 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 						                    target=_blank>{{ field_data.value }}
 						                </a>            
 				                    {% else %}
-				                    <span class="card-no-data">No associated codes</span>
+				                    <span class="card-no-data">No data</span>
 				                    {% endif %}
 				                </div>
 				            </div>
 						{% endif %}			
 										
 						{% if field_data.field_type == 'concept_information' %}
-				            {% include '../generic_entity/snippet/phenotype_clinical_code_lists.html' with field_data=field_data field=field %}
+				            {% include 'components/details/phenotype_clinical_code_lists.html' with field_data=field_data field=field %}
 						{% endif %}			
 										
 
@@ -286,7 +270,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 				            {% if field_data.value_highlighted|length %}
 				            	{{ field_data.value_highlighted|markdownify }}
 				            {% else %}
-				            	{{ field_data.value }}
+				            	{{ field_data.value }} &nbsp;
 				            {% endif %}
 			            {% endif %}
 			        </div>
@@ -297,304 +281,15 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 
 
 
+        <!--   PERMISSIONS   -->
+		{% include 'components/details/permissions.html' %}
 
+		<!--   API   -->
+		{% include 'components/details/api_section.html' %}
 
+         <!--  VERSION HISTORY   -->
+		{% include 'components/details/version_history.html' %}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        <!--	-------------------------------------------------------------------
-                PERMISSIONS
-                -------------------------------------------------------------------
-          -->
-        {% if user.is_authenticated %}
-            <div class="col-sm-12 shadow-frame">
-                <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;"><span
-                        id="permissions"></span><strong>Permissions</strong></h3>
-
-
-                <!--	<div class="row" style="margin-top: 10px;">
-							<div  class="col-sm-3">Created by</div>
-							<div class="col-sm-3">
-								{{ entity.created_by_username }}
-							</div>
-							<div  class="col-sm-3 ">On</div>
-							<div class="col-sm-3">
-								{{ entity.created }}
-							</div>
-						</div>
-						<div class="row">
-							<div  class="col-sm-3">Modified by</div>
-							<div class="col-sm-3">
-								{{ entity.updated_by_username }}
-							</div>
-							<div  class="col-sm-3">On</div>
-							<div class="col-sm-3">
-								{{ entity.modified }}
-							</div>
-						</div>
--->
-
-                    <div id="permissions" class="row">
-                        <div  class="col-sm-2">Owner</div>
-                        <div class="col-sm-4">
-                            <span>{{ entity.owner.username }}</span>
-                        </div>
-                        <div  class="col-sm-2">Owner access</div>
-                        
-                        <div class="col-sm-4">
-                            {% if entity.owner_access == 1 %}	
-                                <span class="card-noweight">None</span>
-                            {% elif entity.owner_access == 2 %}
-                                <span class="card-noweight">View only</span>
-                            {% elif entity.owner_access == 3 %}
-                                <span class="card-noweight">View and edit</span>
-                            {% else %}
-                                <span class="card-noweight">Unknown</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <hr class="small-divider"/>
-                    <div id="permissions" class="row">
-                        <div  class="col-sm-2">Group</div>
-                        <div class="col-sm-4">
-                            {% if entity.group %}
-                            <span>{{ entity.group }}</span>
-                            {% else %}
-                            <span class="card-no-data">No associated group</span>
-                            {% endif %}
-                        </div>
-                        <div class="col-sm-2">Group access</div>
-                        <div class="col-sm-4">
-                            {% if entity.group_access == 1 %}	
-                                <span class="card-noweight text-right">No Access</span>
-                            {% elif entity.group_access == 2 %}
-                                <span class="card-noweight text-right">View only</span>
-                            {% elif entity.group_access == 3 %}
-                                <span class="card-noweight text-right">View and edit</span>
-                            {% else %}
-                                <span class="card-noweight text-right">Unknown</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <hr class="small-divider"/>
-                    <div id="permissions" class="row">
-                        <div class="col-sm-2">All other users</div>
-                        <div class="col-sm-10">
-                            {% if entity.world_access == 1 %}	
-                                <span>No access</span>
-                            {% elif entity.world_access == 2 %}
-                                <span>View only</span>
-                            {% elif entity.world_access == 3 %}
-                                <span>View and edit</span>
-                            {% else %}
-                                
-                            {% endif %}
-                        </div>
-                    </div>
-
-            </div>
-        {% endif %}
-
-        <!--	-------------------------------------------------------------------
-                api
-                -------------------------------------------------------------------
-          -->
-        <div class="col-sm-12 no-print shadow-frame">
-            <h3 class="paneltitle" id="API_Header" style="margin-top:20px; margin-bottom:20px;"><span
-                     id="API"></span><strong>API</strong></h3>
-
-             <span id="api_id" entity_id="{{ entity.id }}">
-	<p> To Export Phenotype Details:</p>
-
-	<table class="table table-striped table-responsive-md table-flex-rows">
-	  <tr>
-		<th>Format</th>
-		<th>API</th>
-	  </tr>
-	  <tr>
-		<td>XML</td>
-		<td>
-		{% if user.is_authenticated %}
-                     <a href="{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=xml"
-                        target=_blank>site_root{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=xml</a>
-                 {% else %}
-                     <a href="{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=xml"
-                        target=_blank>site_root{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=xml</a>
-                 {% endif %}
-		</td>
-	  </tr>
-	  <tr>
-		<td>JSON</td>
-		<td>
-		{% if user.is_authenticated %}
-                     <a href="{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=json"
-                        target=_blank>site_root{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=json</a>
-                 {% else %}
-                     <a href="{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=json"
-                        target=_blank>site_root{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=json</a>
-                 {% endif %}
-		</td>
-	  </tr>
-               <tr>
-                 <td>R Package</td>
-                 <td>
-                     <code class="api-codeblock">
-                         <p class="code-comment-highlight">
-                             # <a href="https://github.com/SwanseaUniversityMedical/ConceptLibraryClient">Download here</a>
-                         </p>
-                         <p class="code-general-highlight">
-                             library(ConceptLibraryClient)
-                         </p>
-                         <br>
-                         <p class="code-comment-highlight">
-                             # Connect to API
-                         </p>
-                         <p class="code-general-highlight">
-                             client = connect_to_API(public=<span class="code-value-highlight">{% if user.is_authenticated %}FALSE{% else %}TRUE{% endif %}</span>)
-                         </p>
-                         <br>
-                         <p class="code-comment-highlight">
-                             # Get details of entity
-                         </p>
-                         <p class="code-general-highlight">
-                             details = get_phenotype_detail_by_version(<span class="code-text-highlight">'{{ entity.id }}'</span>, 
-                                 <span class="code-text-highlight">'{{ entity.history_id }}'</span>, 
-                                 api_client=client)
-                         </p>
-                     </code>
-                 </td>
-               </tr>
-	</table>
-	<p> To Export Phenotype Code List:</p>
-		<table class="table table-striped table-responsive-md table-flex-rows">
-	  <tr>
-		<th>Format</th>
-		<th>API</th>
-	  </tr>
-
-		  <tr>
-		<td>XML</td>
-		<td>
-		{% if user.is_authenticated %}
-                     <a href="{% url 'api:ge_api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=xml"
-                        target=_blank>site_root{% url 'api:ge_api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=xml</a>
-                 {% else %}
-                     <a href="{% url 'api:api_export_published_phenotype_codes' entity.id entity.history_id %}?format=xml"
-                        target=_blank>site_root{% url 'api:api_export_published_phenotype_codes' entity.id entity.history_id %}?format=xml</a>
-                 {% endif %}
-		</td>
-	  </tr>
-	  <tr>
-		<td>JSON</td>
-		<td>
-		{% if user.is_authenticated %}
-                     <a href="{% url 'api:ge_api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=json"
-                        target=_blank>site_root{% url 'api:ge_api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=json</a>
-                 {% else %}
-                     <a href="{% url 'api:ge_api_export_published_phenotype_codes' entity.id entity.history_id %}?format=json"
-                        target=_blank>site_root{% url 'api:ge_api_export_published_phenotype_codes' entity.id entity.history_id %}?format=json</a>
-                 {% endif %}
-		</td>
-
-	  </tr>
-	  <tr>
-		{% if user_can_export %}
-                     <tr>
-                     <td>CSV</td>
-                     <td>
-                     <a href="{% url 'ge_history_phenotype_codes_to_csv' pk=entity.id history_id=entity.history_id %}"
-                        target=_blank>site_root{% url 'ge_history_phenotype_codes_to_csv' entity.id entity.history_id %}</a>
-                 {% endif %}
-               </tr>
-               <tr>
-                 <td>R Package</td>
-                 <td>
-                     <code class="api-codeblock">
-                         <p class="code-comment-highlight">
-                             # <a href="https://github.com/SwanseaUniversityMedical/ConceptLibraryClient">Download here</a>
-                         </p>
-                         <p class="code-general-highlight">
-                             library(ConceptLibraryClient)
-                         </p>
-                         <br>
-                         <p class="code-comment-highlight">
-                             # Connect to API
-                         </p>
-                         <p class="code-general-highlight">
-                             client = connect_to_API(public=<span class="code-value-highlight">{% if user.is_authenticated %}FALSE{% else %}TRUE{% endif %}</span>)
-                         </p>
-                         <br>
-                         <p class="code-comment-highlight">
-                             # Get codelists of entity
-                         </p>
-                         <p class="code-general-highlight">
-                             codelists = get_phenotype_code_list(<span class="code-text-highlight">'{{ entity.id }}'</span>, 
-                             <span class="code-text-highlight">'{{ entity.history_id }}'</span>, 
-                             api_client=client)
-                         </p>
-                     </code>
-                 </td>
-               </tr>
-	</table>
-</span>
-         </div>
-         <!--	----------------------------- --------------------------------------
-                VERSION HISTORY
-                -------------------------------------------------------------------
-          -->
-        <div class="col-sm-12 no-print shadow-frame" id="history-section">
-            <h3 class="paneltitle" id="ClinicalCodeHistory" style="margin-top:20px; margin-bottom:20px;"><span
-                     id="CodeListsVersions"></span><strong>Version History</strong></h3>
-
-
-             <span>
-	  		{% if user.is_authenticated %}
-                 <div class="row">
-		<div class="col-sm-11" id="help-entity-history-container">
-			
-		</div>
-		<div class="col-sm-1 text-right">
-			<a href="#" role="button" class="popovers" id="help-entity-history"
-                        data-container="#help-entity-history-container" data-toggle="popover" data-trigger="hover"
-                        title="" data-original-title="version history" data-placement="left">
-				<i class="fa fa-question-circle" aria-hidden="true"></i>
-			</a>
-		</div>
-	</div>
-             {% endif %}
-                 <div class="pre-scrollable">
-		{% include '../generic_entity/partial_history_list.html' %}
-   	    </div>	
-</span>
-
-         </div>
 
 
          <!--	-------------------------------------------------------------------
@@ -604,25 +299,25 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
         {% if user.is_authenticated %}
             <div id="popover-content-help-entity-history" class="hide popover-lg">
                 <p>
-                    Every time you make any change to a entity it is audited.
+                    Every time you make any change to a {{ entity_class }} it is audited.
                 </p>
                 <p>
-                    You can view a _entity from a specific point in time by clicking the View link at the required
+                    You can view a {{ entity_class }} from a specific point in time by clicking the View link at the required
                     save
                     point.
                 </p>
                 <p>
-                    Within the view you can revert changes and restore a entity back to a specific point in time.
+                    Within the view you can revert changes and restore a {{ entity_class }} back to a specific point in time.
                 </p>
                 <p>
-                    You can fork and create a new entity from a specific point in time.
+                    You can fork and create a new {{ entity_class }} from a specific point in time.
                 </p>
             </div>
         {% endif %}
 
         <div id="popover-content-help-hist-entity" class="hide popover-lg">
             <p>
-                <strong>Export</strong> - export all codes into a csv file/JSON/XML for the current phenotype
+                <strong>Export</strong> - export all codes into a csv file/JSON/XML for the current {{ entity_class }}
                 version.
                 {% if user.is_authenticated and not CLL_READ_ONLY %}
                     The button will be disabled unless you have permission to view <b>all</b> of the concepts used.
@@ -635,20 +330,20 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
                                 </p>
 
                                 <p>
-                                    <strong>Fork</strong> - This will take a copy of the historic phenotype version and create a new phenotype.
+                                    <strong>Fork</strong> - This will take a copy of the historic {{ entity_class }} version and create a new {{ entity_class }}.
                                 </p>
 
                                 <p>
-                                    <strong>Revert</strong> - This will restore the phenotype back to this version.
+                                    <strong>Revert</strong> - This will restore the {{ entity_class }} back to this version.
                                 </p> -->
 
                 <p>
-                    <strong>Publish</strong> - This will publish the chosen version of the phenotype to the public.
+                    <strong>Publish</strong> - This will publish the chosen version of the {{ entity_class }} to the public.
                     <br>Conditions to publish:
                 <ul>
-                    <li>The entity is not deleted.</li>
+                    <li>The {{ entity_class }} is not deleted.</li>
                     <li>You must be the owner.</li>
-                    <li>The entity contains exportable codes.</li>
+                    <li>The {{ entity_class }} contains exportable codes.</li>
                     <li>All concepts are published.</li>
                 </ul>
                 </p>
@@ -661,8 +356,12 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 
         </div>
 
+     </div>
 
+	<!-- main -->
     </div>
+    
+<!-- container -->    
 </div>
 
 {% endblock container %}
@@ -674,56 +373,10 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 
 {% block scripts %}
     <script src="{% static 'js/clinicalcode/component.js' %}"></script>
-    <script src="{% static 'js/clinicalcode/concept.js' %}"></script>
     <script src="{% static 'js/clinicalcode/dataService.js' %}"></script>
 
 
     <script type="text/javascript">
-
-        function getConceptsCodes(target_concept_id, target_concept_history_id) {
-            if ($('#collapse_c' + target_concept_history_id).attr("codelist_loaded") === "0") {
-                // get the unique codes for the entity version
-                phenotype_id = $('#entity_id_div').attr("entity_id");
-                phenotype_history_id = $('#entity_history_id_div').attr("entity_history_id");
-
-                dataService.get_ge_PhenotypeUniqueCodesByVersion(phenotype_id, phenotype_history_id, target_concept_id, target_concept_history_id, {{ force_highlight_result }}, function (data) {
-                    showConceptsCodes(data.concept_codes_html, target_concept_id, target_concept_history_id);
-                });
-
-
-                $('#collapse_c' + target_concept_history_id).attr("codelist_loaded", "1");
-
-            } else {
-            }
-
-
-        }
-
-
-        function showConceptsCodes(concept_codes_html_list, target_concept_id, target_concept_history_id) {
-            $.each(concept_codes_html_list, function (i, v) {
-                $('#codelist-tab-table-c' + v.concept_version_id + ' tbody').html(v.c_html);
-                $('#codesCount_c' + v.concept_version_id).text('Rows: ' + v.c_codes_count);
-                
-                var table = $('#codelist-tab-table-c' + v.concept_version_id).DataTable({
-                    "initComplete": function () {
-                        $('#codelist-tab-table-c' + v.concept_version_id).addClass("specific_tablist")
-                    },
-                    "scrollX": true,
-                    "scrollY": "700px",
-                    "scrollCollapse": true,
-                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-                    "colReorder": true,
-                    "rowReorder": true,
-                    //"fixedHeader": true
-                });
-
-            });
-
-
-        }
-
-
         $("#printBtn").click(function () {
             //window.print();
             printPage(printCallback);
@@ -740,7 +393,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 
 			// Hide elements of table for printing
             {% if not user.is_authenticated %}
-                var table = $('.display-table');
+                var table = $('.code-list-display-table');
                 table.DataTable().destroy();
                 table.DataTable({
                     "searching":false,
@@ -790,7 +443,7 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
 
 			// restore the table if user not login when printing finished
 			{% if not user.is_authenticated %}
-                 var table = $('.display-table');
+                 var table = $('.code-list-display-table');
                 table.DataTable().destroy();
                 table.DataTable({
                 	"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]]
@@ -804,52 +457,6 @@ data-spy="scroll" data-target="#SideMenu" data-offset = "140"
         }
 
     </script>
-
-    <script type="text/javascript">
-        $(function () {
-
-            $("#Expand_all").on("click", function () {
-                $('#accordion .panel-collapse:not(".in")').collapse('show');
-                //$('#accordion .panel-collapse').collapse('show');
-            });
-
-            $("#Collapse_all").on("click", function () {
-                $('#accordion .panel-collapse.in').collapse('hide');
-                //$('#accordion .panel-collapse').collapse('hide');
-            });
-
-            function toggleIcon(e) {
-                getConceptsCodes($(e.target).attr("target_concept_id"), $(e.target).attr("target_concept_history_id"));
-
-                $(e.target)
-                    .prev('.panel-heading')
-                    .find(".plus-minus")
-                    .toggleClass('glyphicon-plus glyphicon-minus');
-            }
-
-            $('.panel-group').on('hidden.bs.collapse', toggleIcon);
-            $('.panel-group').on('shown.bs.collapse', toggleIcon);
-
-
-            //$('#accordion .panel-collapse.in').collapse('hide');
-
-            {% if not user.is_authenticated %}
-                $('#accordion .panel-collapse:not(".in")').collapse('show');
-                
-                // Generate standard type of table in code list if not login
-                var table = $('.display-table');
-                table.DataTable().destroy();
-                table.DataTable({
-                	"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]]
-                });
-            {% endif%}
-
-
-        });
-    </script>
-
-
-
 
     <script type="text/javascript">
 

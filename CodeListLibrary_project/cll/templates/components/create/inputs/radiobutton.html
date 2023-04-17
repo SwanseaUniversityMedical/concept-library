@@ -5,7 +5,7 @@
   {% endif %}
   <fieldset class="hstack-radio-group" id="entity-{{ component.field_name }}" data-class="radiobutton" data-field="{{ component.field_name }}">
     {% for option in component.options %}
-      <input class="radio-input" aria-label="{{ option.name }}" type="radio" id="{{ component.field_name }}-{{ option.value }}" name="entity-radio-{{ component.field_name }}" {% if component.value.0.value == option.value %} checked {% endif %}>
+      <input class="radio-input" data-value="{{ option.value }}" aria-label="{{ option.name }}" type="radio" id="{{ component.field_name }}-{{ option.value }}" name="entity-radio-{{ component.field_name }}" {% if component.value.0.value == option.value %} checked {% endif %}>
       <label for="{{ component.field_name }}-{{ option.value }}">{{ option.name }}</label>
     {% endfor %}
   </fieldset>

@@ -1,6 +1,7 @@
 {% extends "base_scss.html" %}
 
 {% load static %}
+{% load compress %}
 {% load cl_extras %}
 {% load breadcrumbs %}
 {% load entity_renderer %}
@@ -12,21 +13,21 @@
 <!-- Include search banner component -->
 {% include "components/search/search_banner.html" with query=False %}
 
-<!-- Include breadcrumb component -->
-{% breadcrumbs useMap=False includeHome=True includeHeader=True %}
-{% endbreadcrumbs %}
-
 <!-- Include required components -->
 <script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
+{% compress js file %}
 <script src="{% static 'js/clinicalcode/redesign/vendor/lightpick.js' %}"></script>
 <script src="{% static 'js/clinicalcode/redesign/components/dropdown.js' %}"></script>
-<script src="{% static 'js/clinicalcode/redesign/components/detailCards.js' %}"></script>
+{% endcompress %}
 
 <!-- Main search page -->
 <main class="main-content">
-  <div class="main-content__inner-container">
+  <div class="main-content__inner-container main-content--inner-padding">
     <div class="search-page">
       <aside class="side-search-filters">
+        {% compress js file %}
+          <script type="module" src="{% static 'js/clinicalcode/redesign/services/filterService.js' %}"></script>
+        {% endcompress %}
         <div class="side-search-filters__header">
           <h3>Filter By</h3>
         </div>

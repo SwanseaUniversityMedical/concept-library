@@ -4,6 +4,7 @@ import os
 from celery import Celery
 from celery.schedules import crontab
 from django.conf import settings
+from datetime import timedelta
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cll.settings')
@@ -31,8 +32,13 @@ app.conf.beat_schedule = {
     },'celery_run_data_sync':{
         'task': 'clinicalcode.views.Admin.run_celery_datasource',
         'schedule': crontab(minute='*/5') if settings.IS_DEVELOPMENT_PC else crontab(minute=0, hour='9,18')
-    }
+    },
 
+    # Statistics
+    'celery_run_daily_stats': {
+        'task': 'clinicalcode.tasks.run_daily_statistics',
+        'schedule': crontab(minute=0, hour=0)
+    },
 }
 
 app.autodiscover_tasks()

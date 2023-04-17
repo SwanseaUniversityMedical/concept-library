@@ -1,6 +1,8 @@
 {% extends "base_scss.html" %}
 
 {% load static %}
+{% load compress %}
+{% load sass_tags %}
 {% load cl_extras %}
 {% load breadcrumbs %}
 {% load entity_renderer %}
@@ -13,14 +15,33 @@
 <meta http-equiv="Expires" content="0" />
 {% endblock cache_tags %}
 
+{% block indexing_robots %}
+  {% with stop_robot_indexing=True %}
+    {{ block.super }}
+  {% endwith %}
+{% endblock indexing_robots %}
+
 {% block container %}
+  <!-- Vendor -->
   <link rel="stylesheet" type="text/css" href="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.css' %}" />
+  <script src="{% static 'js/clinicalcode/redesign/vendor/simple-datatables/simple-datatables.min.js' %}"></script>
   <script src="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.js' %}"></script>
   <script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
+
+  <!-- Dependencies -->
+  {% compress js file %}
   <script src="{% static 'js/clinicalcode/redesign/vendor/lightpick.js' %}"></script>
   <script type="module" src="{% static 'js/clinicalcode/redesign/forms/entityCreator.js' %}"></script>
   <script type="module" src="{% static 'js/clinicalcode/redesign/components/stepsWizard.js' %}"></script>
+  <script type="module" src="{% static 'js/clinicalcode/redesign/components/toastNotification.js' %}"></script>
+  {% endcompress %}
 
+  {% block jquery %}{% endblock jquery %}
+
+  <!-- Page Stylesheets -->
+  <link href="{% sass_src 'scss/pages/create.scss' %}" rel="stylesheet" type="text/css" />
+
+  <!-- Form -->
   <header class="main-header">
     <div class="main-header__inner-container">
       {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
@@ -51,10 +72,10 @@
 
         <section class="phenotype-creation__completed" id="completed-section">
           <div class="phenotype-creation__completed-row">
-            <button class="secondary-btn text-accent-darkest bold washed-accent" aria-label="Save Draft" id="save-entity-btn">
-              Save as Draft
+            <button class="secondary-btn text-accent-darkest bold washed-accent" aria-label="Save Draft" id="cancel-entity-btn">
+              Cancel
             </button>
-            <button class="primary-btn text-accent-darkest bold tertiary-accent icon create-icon sweep-left" aria-label="Create Entity" id="submit-entity-btn">
+            <button class="primary-btn text-accent-darkest bold tertiary-accent icon create-icon sweep-left" aria-label="Create or Update Entity" id="submit-entity-btn">
               {% if form_method.value == '1' %}
               Create Entity
               {% else %}
@@ -67,10 +88,16 @@
     </div>
   </main>
 
+  <data data-owner="entity-creator" id="referral-links" name="links" type="text/json" referral-url="{% url 'search_entity' %}"></data>
   <data data-owner="entity-creator" id="form-method" name="method" type="int">{{ form_method.value }}</data>
   <data data-owner="entity-creator" id="metadata-data" name="metadata" type="text/json">{{ metadata|jsonify|safe }}</data>
   <data data-owner="entity-creator" id="template-data" name="template" type="text/json">{{ template|jsonify|safe }}</data>
   {% if entity is not None %}
   <data data-owner="entity-creator" id="entity-data" name="entity" type="text/json">{{ entity|jsonify|safe }}</data>
+  {% endif %}
+  {% if object_reference is not None %}
+  <data data-owner="entity-creator"id="entity-object" name="object" type="text/json" referral-url="{% url 'entity_history_detail' pk=object_reference.id history_id=object_reference.history_id %}">
+    {{ object_reference|jsonify|safe }}
+  </data>
   {% endif %}
 {% endblock container %}
