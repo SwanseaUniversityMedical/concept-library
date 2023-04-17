@@ -3,7 +3,7 @@
 
 {% load mathfilters %}
 {% load cl_extras %}
-
+{% load svg %}
 {% block content %}
 
 
@@ -18,12 +18,9 @@
     <ul class="row__profile">
         <li class="content-container">
           <a href="{% url 'admin:index' %}" target=_blank class="item-dropdown">
-            <div class="item-dropdown__icon"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M28 29V27C28 25.9391 27.5786 24.9217 26.8284 24.1716C26.0783 23.4214 25.0609 23 24 23H16C14.9391 23 13.9217 23.4214 13.1716 24.1716C12.4214 24.9217 12 25.9391 12 27V29" fill="#CCF3EE"/>
-                <path d="M28 29V27C28 25.9391 27.5786 24.9217 26.8284 24.1716C26.0783 23.4214 25.0609 23 24 23H16C14.9391 23 13.9217 23.4214 13.1716 24.1716C12.4214 24.9217 12 25.9391 12 27V29" stroke="#5C5C5C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M20 19C22.2091 19 24 17.2091 24 15C24 12.7909 22.2091 11 20 11C17.7909 11 16 12.7909 16 15C16 17.2091 17.7909 19 20 19Z" fill="#CCF3EE" stroke="#5C5C5C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                
+            <div class="item-dropdown__icon" id="admin_icon">
+             {% svg "person_icon" %}
+
               </div>
               <div class="item-dropdown__title">Admin</div> 
           </a>
@@ -39,20 +36,12 @@
 							{% endfor %}
         
               {% endif %}
-
-
-
-
-       
-
         <hr> 
 
         <li class="content-container">
           <a href="{% url 'logout' %}?next={% url 'phenotype_list' %}" class="item-dropdown">
-            <div class="item-dropdown__icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18 9L21 12M21 12L18 15M21 12H9" stroke="#FF0101" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M15 7.5V7C15 4.79086 13.2091 3 11 3H7C4.79086 3 3 4.79086 3 7V17C3 19.2091 4.79086 21 7 21H11C13.2091 21 15 19.2091 15 17V16.5" stroke="#F4001D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+            <div class="item-dropdown__icon">
+              {% svg "exit_icon" %}
                 
               </div>
             
