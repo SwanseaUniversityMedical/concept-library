@@ -36,6 +36,28 @@
     @include flex-row($gap: 1.5rem);
     flex: 3;
     margin-right: var(--footer-row-gap);
+    margin-left: var(--footer-row-gap);;
+
+    a, a:visited {
+      @include clear-anchor();
+      @include app-font-style();
+      color: col(text-washed);
+    }
+    
+    a:hover {
+      color: col(text-darkest);
+    }
+
+    a:active {
+      font-weight: bold;
+    }
+  }
+
+  &__listimages {
+    @include flex-row($gap: 1.5rem);
+    flex: 0;
+    margin-right: var(--footer-row-gap);
+    margin-left: var(--footer-row-gap);;
 
     a, a:visited {
       @include clear-anchor();

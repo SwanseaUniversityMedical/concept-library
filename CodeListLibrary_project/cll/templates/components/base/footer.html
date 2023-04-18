@@ -4,12 +4,31 @@
 {% block content %}
   <footer class="page-footer">
     <section class="page-footer__row">
+      {% if request.BRAND_OBJECT.footer_links %}
+      <div class="page-footer__listimages">
+        <a href="#">Terms & Conditions</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Contact Us</a>
+        <a href="https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation" target=_blank  >Support & Documentation</a>
+      {% block footer_links %}
+      {% include "components/details/footer_linksimg.html" %}
+      {% endblock footer_links %}
+      </div>
+      {% else %}
       <div class="page-footer__items">
         <a href="#">Terms & Conditions</a>
         <a href="#">Privacy Policy</a>
         <a href="#">Contact Us</a>
-      </div>
-      <p class="page-footer__copyright">Copyright © 2022 - SAIL Databank - Swansea University. All rights reserved.</p>
+        <a href="https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation" target=_blank  >Support & Documentation</a>
+        </div>
+      {% endif %}
+      
+      
+    <div class="page-footer__copyright">
+    <p class="page-footer__copyright">Copyright © 2022 - SAIL Databank - Swansea University. All rights reserved.</p>
+
+    </div>
+      
     </section>
   </footer>
 {% endblock content %}
