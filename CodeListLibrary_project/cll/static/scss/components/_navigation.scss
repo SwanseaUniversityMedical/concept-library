@@ -119,7 +119,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
 
   &__logo {
     height: var(--navigation-height);
-    aspect-ratio: 3 / 1;
+    aspect-ratio: 8 / 1;
     background-color: col(clear);
     background-image: var(--logo-url);
     background-repeat: no-repeat;
