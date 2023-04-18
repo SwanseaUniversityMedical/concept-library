@@ -6,9 +6,9 @@
     <section class="page-footer__row">
       {% if request.BRAND_OBJECT.footer_links %}
       <div class="page-footer__listimages">
-        <a href="#">Terms & Conditions</a>
-        <a href="#">Privacy Policy</a>
-        <a href="#">Contact Us</a>
+        <a href="{% url 'terms' %}">Terms & Conditions</a>
+        <a href="{% url 'privacy_and_cookie_policy' %}">Privacy Policy</a>
+        <a href="{% url 'contact_us' %}" >Contact Us</a>
         <a href="https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation" target=_blank  >Support & Documentation</a>
       {% block footer_links %}
       {% include "components/details/footer_linksimg.html" %}
@@ -16,9 +16,9 @@
       </div>
       {% else %}
       <div class="page-footer__items">
-        <a href="#">Terms & Conditions</a>
-        <a href="#">Privacy Policy</a>
-        <a href="#">Contact Us</a>
+        <a href="{% url 'terms' %}">Terms & Conditions</a>
+        <a href="{% url 'privacy_and_cookie_policy' %}">Privacy Policy</a>
+        <a href="{% url 'contact_us' %}" >Contact Us</a>
         <a href="https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation" target=_blank  >Support & Documentation</a>
         </div>
       {% endif %}
