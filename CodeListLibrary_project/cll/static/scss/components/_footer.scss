@@ -33,10 +33,12 @@
   }
 
   &__items {
-    @include flex-row($gap: 1.5rem);
-    flex: 3;
+    display: grid;
+    grid-template-columns: repeat(2,2fr);
+    flex: 1;
     margin-right: var(--footer-row-gap);
-    margin-left: var(--footer-row-gap);;
+    margin-left: var(--footer-row-gap);
+
 
     a, a:visited {
       @include clear-anchor();
@@ -53,11 +55,13 @@
     }
   }
 
-  &__listimages {
-    @include flex-row($gap: 1.5rem);
-    flex: 0;
+
+  &__listlinks {
+    display: grid;
+    gap: 1.5rem;
+    flex: 1;
     margin-right: var(--footer-row-gap);
-    margin-left: var(--footer-row-gap);;
+    margin-left: var(--footer-row-gap);
 
     a, a:visited {
       @include clear-anchor();
