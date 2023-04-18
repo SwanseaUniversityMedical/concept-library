@@ -269,7 +269,7 @@ const ENTITY_FIELD_COLLECTOR = {
 
     return {
       valid: true,
-      value: parsedValue?.value.trim()
+      value: typeof parsedValue?.value == 'string' ? parsedValue?.value.trim() : parsedValue?.value
     }
   },
 
@@ -411,7 +411,7 @@ const ENTITY_FIELD_COLLECTOR = {
       }
     }
     
-    if (isNullOrUndefined(selected) || !element.checkValidity()) {
+    if (isNullOrUndefined(selected)) {
       return {
         valid: true,
         value: null
@@ -429,7 +429,7 @@ const ENTITY_FIELD_COLLECTOR = {
 
     return {
       valid: true,
-      value: parsedValue?.value
+      value: parsedValue?.value < 0 ? null : parsedValue?.value
     }
   },
 

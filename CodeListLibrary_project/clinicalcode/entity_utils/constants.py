@@ -70,16 +70,16 @@ class OWNER_PERMISSIONS(int, enum.Enum):
         Owner permissions
     '''
     NONE = 1
-    EDIT = 2
-    VIEW = 3
+    VIEW = 2
+    EDIT = 3
 
 class GROUP_PERMISSIONS(int, enum.Enum):
     '''
         Group permissions
     '''
     NONE = 1
-    EDIT = 2
-    VIEW = 3
+    VIEW = 2
+    EDIT = 3
 
 class FORM_METHODS(int, enum.Enum, metaclass=IterableMeta):
     '''
@@ -241,6 +241,7 @@ metadata = {
     },
     "implementation": {
         "title": "Implementation",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
         "field_type": "textarea_markdown",
         "active": True,
         "validation": {
@@ -530,6 +531,7 @@ FIELD_TYPES = {
     },
     "phenoflowid": {
         "system_defined": True,
+        "input_type": "inputbox",
         "description": "URL for phenoflow (managed by code snippet)"
     },
 

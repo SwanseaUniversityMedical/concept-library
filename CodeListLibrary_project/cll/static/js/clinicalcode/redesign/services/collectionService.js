@@ -1,8 +1,8 @@
 const DETAIL_URL = '/ge/${id}/version/${version_id}/detail/';
 
 const COLLECTION_HEADINGS = {
-  PROFILE_COLLECTIONS: ['Name', 'Version ID', 'Updated', 'Owner', 'Status'],
-  MODERATION_COLLECTIONS: ['Name', 'Version ID', 'Requested', 'Owner', 'Status']
+  PROFILE_COLLECTIONS: ['Name', 'ID', 'Version ID', 'Updated', 'Owner', 'Status'],
+  MODERATION_COLLECTIONS: ['Name', 'ID', 'Version ID', 'Requested', 'Owner', 'Status']
 };
 
 const COLLECTION_TABLE_LIMITS = {
@@ -13,22 +13,24 @@ const COLLECTION_TABLE_LIMITS = {
 const MAX_NAME_LENGTH = 50;
 
 const COLLECTION_MAP = {
-  PROFILE_COLLECTIONS: (item) => {
+  PROFILE_COLLECTIONS: (item, index) => {
     return [
-      `${item.id} - ${item.name}`, 
-      item.history_id, 
+      index,
+      item.id,
+      item.history_id,
       new Date(item.updated), 
       item.group_name || item.owner_name,
-      item.publish_status
+      item.is_deleted ? -1 : item.publish_status
     ];
   },
-  MODERATION_COLLECTIONS: (item) => {
+  MODERATION_COLLECTIONS: (item, index) => {
     return [
-      `${item.id} - ${item.name}`, 
-      item.history_id, 
-      new Date(item.created), 
+      index,
+      item.id,
+      item.history_id,
+      new Date(item.updated),
       item.group_name || item.owner_name,
-      item.publish_status
+      item.is_deleted ? -1 : item.publish_status
     ];
   }
 }
@@ -84,18 +86,21 @@ const getCollectionData = () => {
  * @param {*} version_id 
  * @returns 
  */
-const renderNameAnchor = (data, id, version_id) => {
-  const name = data.length > MAX_NAME_LENGTH 
-    ? `${data.substring(0, MAX_NAME_LENGTH).trim()}...` 
-    : data;
+const renderNameAnchor = (entity) => {
+  const { id, history_id, name } = entity;
+
+  let text = `${id} - ${name}`;
+  text = text.length > MAX_NAME_LENGTH 
+    ? `${text.substring(0, MAX_NAME_LENGTH).trim()}...` 
+    : text;
 
   const url = interpolateHTML(DETAIL_URL, {
     id: id,
-    version_id: version_id
+    version_id: history_id
   });
 
   return `
-    <a href='${url}'>${name}</a>
+    <a href='${url}'>${text}</a>
   `;
 };
 
@@ -105,9 +110,8 @@ const renderNameAnchor = (data, id, version_id) => {
  * @param {*} is_deleted 
  * @returns 
  */
-const renderStatusTag = (data, is_deleted) => {
-  const tagData = (is_deleted === true) ? PUBLISH_STATUS_TAGS[4] : (PUBLISH_STATUS_TAGS?.[data] || PUBLISH_STATUS_TAGS[5]);
-  
+const renderStatusTag = (data) => {
+  const tagData = (data === -1) ? PUBLISH_STATUS_TAGS[4] : (PUBLISH_STATUS_TAGS?.[data] || PUBLISH_STATUS_TAGS[5]);
   return `
     <div class="meta-chip meta-chip-${tagData.bg_colour} meta-chip-center-text">
       <span class="meta-chip__name meta-chip__name-text-${tagData.text_colour} meta-chip__name-bold">
@@ -137,6 +141,12 @@ const renderCollectionComponent = (pageType, key, container, data) => {
     'class': 'profile-collection-table__wrapper',
   }));
 
+  data.sort((a, b) => {
+    let id0 = parseInt(a.id.match(/\d+/)[0]);
+    let id1 = parseInt(b.id.match(/\d+/)[0]);
+    return id0 - id1;
+  });
+
   const datatable = new window.simpleDatatables.DataTable(table, {
     perPage: COLLECTION_TABLE_LIMITS.PER_PAGE,
     perPageSelect: COLLECTION_TABLE_LIMITS.PER_PAGE_SELECT,
@@ -147,36 +157,34 @@ const renderCollectionComponent = (pageType, key, container, data) => {
     columns: [
       {
         select: 0,
-        type: 'string',
-        render: (value, id, rowIndex) => {
-          const entity = data[rowIndex];
-          
-          return renderNameAnchor(value, entity.id, entity.history_id);
+        type: 'number',
+        render: (value, cell, rowIndex) => {
+          const entity = data[value];
+          return renderNameAnchor(entity);
         },
       },
-      { select: 1, type: 'number' },
+      { select: 1, type: 'number', hidden: true },
+      { select: 2, type: 'number' },
       { 
-        select: 2, 
+        select: 3, 
         type: 'date', 
         format: 'YYYY-MM-DD',
-        render: (value, id, rowIndex) => {
+        render: (value, cell, rowIndex) => {
           return moment(value).format('YYYY-MM-DD');
         }
       },
-      { select: 3, type: 'string' },
+      { select: 4, type: 'string' },
       { 
-        select: 4, 
+        select: 5,
         type: 'number',
-        render: (value, id, rowIndex) => {
-          const entity = data[rowIndex];
-
-          return renderStatusTag(value, entity.is_deleted);
-        } 
+        render: (value, cell, rowIndex) => {
+          return renderStatusTag(value);
+        }
       },
     ],
     data: {
       headings: COLLECTION_HEADINGS?.[pageType],
-      data: data.map(item => COLLECTION_MAP?.[pageType](item)),
+      data: data.map((item, index) => COLLECTION_MAP?.[pageType](item, index)),
     },
   });
 

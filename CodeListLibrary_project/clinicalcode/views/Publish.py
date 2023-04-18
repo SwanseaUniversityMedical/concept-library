@@ -1,30 +1,21 @@
-
-from django.contrib.auth.mixins import LoginRequiredMixin  # , UserPassesTestMixin
-# from django.contrib.messages import constants
-# from django.db.models import Q
-from django.db import transaction  # , models, IntegrityError
-# from django.forms.models import model_to_dict
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import transaction
 from django.http.response import JsonResponse
 from django.template.loader import render_to_string
-# from django.core.urlresolvers import reverse_lazy, reverse
 from django.views.generic.base import TemplateResponseMixin, View
-from clinicalcode.constants import *
-
+from django.utils.decorators import method_decorator
 
 from ..entity_utils import utils_ge_validator
+from ..entity_utils import permission_utils
 from ..permissions import *
 from .View import *
 from clinicalcode.constants import *
 
-
-# from rest_framework.permissions import BasePermission
-
 class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, TemplateResponseMixin, View):
-    
     model = GenericEntity
     template_name = 'clinicalcode/generic_entity/publish.html'
 
-
+    @method_decorator([login_required, permission_utils.redirect_readonly])
     def get(self, request, pk, history_id):
         """
         Get method to generate modal response and pass additional information about working set
@@ -38,8 +29,6 @@ class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, Templa
         if not checks['is_published']:
             checks = utils_ge_validator.checkEntityToPublish(self.request, pk, history_id)
         
-        
-
         # --------------------------------------------
         return self.render_to_response({
             'entity': checks['entity'],
@@ -62,6 +51,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, Templa
             'errors':checks['errors']
         })
 
+    @method_decorator([login_required, permission_utils.redirect_readonly])
     def post(self, request, pk, history_id):
         """
         Post data containing current state of entity to backend (published/declined/pending)
@@ -80,8 +70,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, Templa
         #check if entity could be published if not show error
         if not checks['allowed_to_publish'] or is_published:
             data['form_is_valid'] = False
-            data['message'] = render_to_string('clinicalcode/error.html', {},
-                                               request)
+            data['message'] = render_to_string('clinicalcode/error.html', {}, request)
             return JsonResponse(data)
 
         try:
@@ -89,7 +78,6 @@ class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, Templa
                     # start a transaction
                     with transaction.atomic():
                         entity = GenericEntity.objects.get(pk=pk)
-
 
                         #Check if moderator first and if was already approved to filter by only approved entitys
                         if checks['is_moderator']:
@@ -108,15 +96,12 @@ class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, Templa
                                 published_entity.approval_status = APPROVED_STATUS[APPROVED][0]
                                 published_entity.save()
 
-
-
                         #Check if was already published by user only to filter entitys and take the moderator id
                         if checks['is_lastapproved'] and not checks['is_moderator']:
                             published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id, approval_status=APPROVED_STATUS[APPROVED][0]).first()
                             published_entity = PublishedGenericEntity(entity = entity,entity_history_id=history_id,moderator_id=published_entity.moderator.id,created_by_id=request.user.id)
                             published_entity.approval_status = APPROVED_STATUS[APPROVED][0]
                             published_entity.save()
-
 
                         #Approve other pending entity if available to publish
                         if checks['other_pending']:
@@ -175,10 +160,6 @@ class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, Templa
                     data['form_is_valid'] = True
                     #send message to the client
                     data = utils_ge_validator.form_validation(request, data, history_id, pk, entity, checks)
-
-
-
-
         except Exception as e:
             print(e)
             data['form_is_valid'] = False
@@ -207,10 +188,10 @@ class RequestPublish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin,
     '''
         User request to publish entity
     '''
-
     model = GenericEntity
     template_name = 'clinicalcode/generic_entity/request_publish.html'
 
+    @method_decorator([login_required, permission_utils.redirect_readonly])
     def get(self, request, pk, history_id):
         """
         Get method to generate the modal window template to submit entity
@@ -221,7 +202,6 @@ class RequestPublish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin,
         """
         #get additional checks in case if ws is deleted/approved etc
         checks = utils_ge_validator.checkEntityToPublish(self.request, pk, history_id)
-
 
         if not checks['is_published']:
             checks = utils_ge_validator.checkEntityToPublish(self.request, pk, history_id)
@@ -249,7 +229,7 @@ class RequestPublish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin,
             'errors':checks['errors']
         })
     
-
+    @method_decorator([login_required, permission_utils.redirect_readonly])
     def post(self, request, pk, history_id):
         """
         Send the request to publish data to the server
@@ -264,11 +244,9 @@ class RequestPublish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin,
             checks = utils_ge_validator.checkEntityToPublish(request, pk, history_id)
 
         data = dict()
-
         if not checks['allowed_to_publish'] or is_published:
             data['form_is_valid'] = False
-            data['message'] = render_to_string('clinicalcode/error.html', {},
-                                               self.request)
+            data['message'] = render_to_string('clinicalcode/error.html', {}, self.request)
             return JsonResponse(data)
 
         try:
@@ -293,5 +271,3 @@ class RequestPublish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin,
                                                self.request)
 
         return JsonResponse(data)
-
-

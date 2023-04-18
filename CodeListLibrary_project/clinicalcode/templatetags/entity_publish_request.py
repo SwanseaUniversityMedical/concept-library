@@ -113,20 +113,3 @@ def render_publish_button(context, *args, **kwargs):
         else:
             button_context["Button_type"] = "Publish"
             return button_context
-                    
-
-            
-
-            
-        
-    
-
-
-
-
-    
-
-
-
-    
-

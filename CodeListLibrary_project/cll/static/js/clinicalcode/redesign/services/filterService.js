@@ -386,6 +386,11 @@ class FilterService {
     const filterItem = this.filters[field];
     const searchbar = filterItem.filter.querySelector('input[data-class="searchbar"]');
     searchbar.addEventListener('keyup', this.#handleSearchbarUpdate.bind(this));
+    
+    const searchBtn = filterItem.filter.querySelector('#searchbar-icon-btn');
+    if (!isNullOrUndefined(searchBtn)) {
+      searchBtn.addEventListener('click', this.#handleSearchbarClick.bind(this));
+    }
   }
   
   /**
@@ -524,6 +529,37 @@ class FilterService {
     const target = e.target;
     const field = target.getAttribute('data-field');
     const value = target.value;
+    if (isNullOrUndefined(field) || isNullOrUndefined(value)) {
+      return;
+    }
+
+    const current = this.query.hasOwnProperty(field) ? this.query[field] : '';
+    if (current === value) {
+      return;
+    }
+
+    this.query[field] = value;
+    this.#postQuery();
+  }
+
+  /**
+   * handleSearchbarClick
+   * @desc Click event that handles attempts to search for entities through clicking the search icon
+   * @param {event} e the associated event
+   */
+  #handleSearchbarClick(e) {
+    const parent = e.target.parentNode;
+    if (isNullOrUndefined(parent)) {
+      return;
+    }
+
+    const searchbar = parent.querySelector('input');
+    if (isNullOrUndefined(parent)) {
+      return;
+    }
+
+    const field = searchbar.getAttribute('data-field');
+    const value = searchbar.value;
     if (isNullOrUndefined(field) || isNullOrUndefined(value)) {
       return;
     }

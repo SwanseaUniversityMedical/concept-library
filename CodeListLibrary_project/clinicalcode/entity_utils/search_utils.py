@@ -255,10 +255,10 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
         )
     
     # Join by version of published
-    entities = entities.order_by('-created').distinct()
+    entities = entities.distinct('entity_id')
     entities = GenericEntity.history.filter(
-        id__in=list(entities.values_list('entity_id', flat=True)),
-        history_id__in=list(entities.values_list('entity_history_id', flat=True))
+        id__in=entities.values_list('entity_id', flat=True),
+        history_id__in=entities.values_list('entity_history_id', flat=True)
     )
 
     # Filter by brands
@@ -268,7 +268,7 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
     templates = Template.history.filter(
         id__in=list(entities.values_list('template', flat=True)),
         template_version__in=list(entities.values_list('template_data__version', flat=True))
-    ).latest_of_each().distinct()
+    ).latest_of_each()
 
     is_single_search = templates.count() > constants.MIN_SINGLE_SEARCH
     
@@ -358,6 +358,7 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
             'definition': template.definition,
             'order': template_utils.try_get_content(template.definition, 'layout_order', []),
         }
+    
 
     return entities, layouts
 
