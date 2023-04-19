@@ -22,8 +22,6 @@ urlpatterns = []
 if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
     urlpatterns += [       
       
-        url(r'^search/$', GenericEntity.EntitySearchView.as_view(), name='entity_search_page'),
-
         url(r'^ge/create/$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
 
         url(r'^ge/run-stats/$', GenericEntity.EntityStatisticsView.as_view(), name='run_entity_statistics'),
