@@ -26,11 +26,13 @@
 	    {% endif %}
 	    <div class="pre-scrollable">
 	    <!-- table start -->
-			<table class="constrained-codelist-table__wrapper  table table-striped small-table table-hover" id="history-table" >
-				<thead>
+		<div class="h-scrollable-table">
+			<div class="h-scrollable-table__wrapper">
+			<table class000="h-scrollable-table" id="history-table" >
+				<thead class="primary-accent">
 					<tr>
-						<th>Version<br> ID</th>
-						<th>Name</th>
+						<th >Version<br> ID</th>
+						<th >Name</th>
 						{% if user.is_authenticated %}
 							<th>Date</th>
 							<th>Change reason</th>
@@ -92,6 +94,7 @@
 				{% endfor %}
 				</tbody>
 			</table>
+			</div></div>
 		<!-- table end -->
 	 	</div>	
 	</span>

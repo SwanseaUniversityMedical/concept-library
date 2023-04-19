@@ -539,7 +539,7 @@ def try_parse_doi(publications):
     return output
 
 @login_required
-def admin_mig_phenotypes_dt(request):
+def admin_mig_phenotypes_dt000(request):
     # for admin(developers) to migrate phenotypes into dynamic template
    
     if settings.CLL_READ_ONLY: 
@@ -779,7 +779,7 @@ def get_custom_fields_key_value(phenotype):
     
     
 @login_required
-def admin_mig_phenotypes_dtXXX(request):
+def admin_mig_phenotypes_dt(request):
     # for admin(developers) to migrate phenotypes into dynamic template
    
     if settings.CLL_READ_ONLY: 
@@ -900,7 +900,7 @@ def admin_mig_phenotypes_dtXXX(request):
                                     """
                             cursor.execute(sql_p)
                             
-                            sql_entity_count = "update clinicalcode_entityclass set entity_count ="+str(live_pheno.count())+";"
+                            sql_entity_count = "update clinicalcode_entityclass set entity_count =100000;" #"+str(live_pheno.count())+"
                             cursor.execute(sql_entity_count)
 
                     historical_pheno = Phenotype.history.filter(~Q(id='x'))

@@ -1257,8 +1257,8 @@ def get_concept_data2(request, pk, history_id, generic_entity, is_latest_version
         'concepts_id_name': concepts_id_name,
         'concept_data': concept_data,
         }
-    print('jjjjjjjjjjjjjjjjjj')
-    print(str(ret_dict))
+    # print('jjjjjjjjjjjjjjjjjj')
+    # print(str(ret_dict))
     return ret_dict
 
 def get_history_table_data2(request, pk):
