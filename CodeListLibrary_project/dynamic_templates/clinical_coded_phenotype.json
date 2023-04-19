@@ -39,7 +39,7 @@
     {
       "title": "Home",
       "description": "",
-      "fields": ["name", "author", "pk", "history_id", "phenotype_uuid", "type", "data_sources", "sex", "event_date_range", "coding_system", "collections", "tags"]
+      "fields": ["name", "author", "id", "history_id", "phenotype_uuid", "type", "data_sources", "sex", "event_date_range", "coding_system", "collections", "tags"]
     },
     {
       "title": "Definition",
@@ -61,6 +61,7 @@
       "title": "Validation",
       "description": "",
       "fields": ["validation"],
+      "do_not_show_in_production": true,
       "hide_if_empty": true
     },   
     {
@@ -290,29 +291,27 @@
 
     "permissions":{
       "title": "Permissions",
-      "field_type": "permissions",
+      "field_type": "permissions_section",
+      "active": true,
       "hide_on_create": true
     },
     "api":{
       "title": "API",
-      "field_type": "api",
+      "field_type": "api_section",
+      "active": true,
       "hide_on_create": true
     },
     "version_history":{
       "title": "Version History",
-      "field_type": "version_history",
-      "hide_on_create": true
-    },
-    "pk": {
-      "title": "ID",
-      "field_type": "id",
+      "field_type": "version_history_section",
+      "active": true,
       "hide_on_create": true
     },
     "history_id":{
       "title": "Version ID",
       "field_type": "history_id",
+      "active": true,
       "hide_on_create": true
-
     }
 
   }

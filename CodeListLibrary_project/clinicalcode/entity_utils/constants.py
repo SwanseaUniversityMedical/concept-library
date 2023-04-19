@@ -438,6 +438,13 @@ metadata = {
         "hide_on_create": True,
         "is_base_field": True
     },
+    "id": {
+        "title": "ID",
+        "field_type": "id",
+        "active": True,
+        "hide_on_create": True
+    },
+
 }
 
 '''
@@ -575,15 +582,15 @@ FIELD_TYPES = {
         "input_type": "access_select_editable",
     },
 
-    "permissions":{
+    "permissions_section":{
         "system_defined": True,
         "output_type": "permissions"
     },
-    "api": {
+    "api_section": {
         "system_defined": True,
         "output_type": "api"
     },
-    "version_history": {
+    "version_history_section": {
         "system_defined": True,
         "output_type": "version_history"
     },
