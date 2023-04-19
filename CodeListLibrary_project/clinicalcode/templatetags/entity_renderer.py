@@ -512,7 +512,7 @@ class EntityWizardSections(template.Node):
                     continue
                 component['field_name'] = field
                 component['field_data'] = field_data
-
+                
                 desc = template_utils.try_get_content(template_field, 'description')
                 if desc is not None:
                     component['description'] = desc
@@ -530,7 +530,7 @@ class EntityWizardSections(template.Node):
                 
                 if options is not None:
                     component['options'] = options
-
+                
                 if entity:
                     component['value'] = self.__try_get_entity_value(template, entity, field)
                 else:

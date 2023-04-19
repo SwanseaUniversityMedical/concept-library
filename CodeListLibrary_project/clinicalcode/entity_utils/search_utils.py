@@ -255,10 +255,10 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
         )
     
     # Join by version of published
-    entities = entities.order_by('-created').distinct()
+    entities = entities.distinct('entity_id')
     entities = GenericEntity.history.filter(
-        id__in=list(entities.values_list('entity_id', flat=True)),
-        history_id__in=list(entities.values_list('entity_history_id', flat=True))
+        id__in=entities.values_list('entity_id', flat=True),
+        history_id__in=entities.values_list('entity_history_id', flat=True)
     )
 
     # Filter by brands
@@ -268,7 +268,7 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
     templates = Template.history.filter(
         id__in=list(entities.values_list('template', flat=True)),
         template_version__in=list(entities.values_list('template_data__version', flat=True))
-    ).latest_of_each().distinct()
+    ).latest_of_each()
 
     is_single_search = templates.count() > constants.MIN_SINGLE_SEARCH
     
@@ -358,6 +358,7 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
             'definition': template.definition,
             'order': template_utils.try_get_content(template.definition, 'layout_order', []),
         }
+    
 
     return entities, layouts
 
@@ -501,20 +502,27 @@ def search_codelist_by_pattern(coding_system, pattern, include_desc=True):
     table = coding_system.table_name.replace('clinicalcode_', '')
     codelist = apps.get_model(app_label='clinicalcode', model_name=table)
 
+    codes = codelist.objects
     code_column = coding_system.code_column_name.lower()
     desc_column = coding_system.desc_column_name.lower()
 
+    # Filter by filter clause held in coding system
+    select_filter = coding_system.filter if coding_system.filter is not None else None
+    if select_filter:
+        codes = codes.extra(where=[select_filter])
+
+    # Match by code/desc
     code_query = {
         f'{code_column}__regex': pattern
     }
 
     if include_desc:
-        codes = codelist.objects.filter(Q(**code_query) | Q(**{
+        codes = codes.filter(Q(**code_query) | Q(**{
             f'{desc_column}__regex': pattern
         }))
     else:
-        codes = codelist.objects.filter(**code_query)
-
+        codes = codes.filter(**code_query)
+    
     '''
         Required because:
             1. Annotation needed to make naming structure consistent since the code tables aren't consistently named...
@@ -525,10 +533,9 @@ def search_codelist_by_pattern(coding_system, pattern, include_desc=True):
             'code': code_column,
             'description': desc_column,
         }
-    ) \
-    .order_by(code_column) \
-    .distinct(code_column)
-
+    )
+    
+    codes = codes.order_by(code_column).distinct(code_column)
     return codes
 
 def search_codelist_by_term(coding_system, search_term, include_desc=True):
@@ -546,18 +553,26 @@ def search_codelist_by_term(coding_system, search_term, include_desc=True):
     if not isinstance(coding_system, CodingSystem) or not isinstance(search_term, str):
         return None
 
+    # Collect table info
     table = coding_system.table_name.replace('clinicalcode_', '')
     codelist = apps.get_model(app_label='clinicalcode', model_name=table)
 
+    codes = codelist.objects
     code_column = coding_system.code_column_name.lower()
     desc_column = coding_system.desc_column_name.lower()
 
+    # Filter by filter clause held in coding system
+    select_filter = coding_system.filter if coding_system.filter is not None else None
+    if select_filter:
+        codes = codes.extra(where=[select_filter])
+
+    # Search by code/desc
     code_query = {
         f'{code_column}__icontains': search_term 
     }
 
     if include_desc:
-        codes = codelist.objects.filter(Q(**code_query) | Q(**{
+        codes = codes.filter(Q(**code_query) | Q(**{
             f'{desc_column}__icontains': search_term
         })) \
         .annotate(
@@ -567,7 +582,7 @@ def search_codelist_by_term(coding_system, search_term, include_desc=True):
             )
         )
     else:
-        codes = codelist.objects.filter(**code_query) \
+        codes = codes.filter(**code_query) \
                                 .annotate(
                                     similarity=TrigramSimilarity(f'{desc_column}', search_term)
                                 )
@@ -582,10 +597,9 @@ def search_codelist_by_term(coding_system, search_term, include_desc=True):
             'code': code_column,
             'description': desc_column,
         }
-    ) \
-    .order_by(code_column, '-similarity') \
-    .distinct(code_column)
-
+    )
+    
+    codes = codes.order_by(code_column, '-similarity').distinct(code_column)
     return codes
 
 def search_codelist(coding_system, search_term, include_desc=True, allow_wildcard=True):
