@@ -10,12 +10,7 @@
   <!-- about tab -->
   <script type="text/javascript" src="{% static "js/clinicalcode/redesign/components/brandurls.js" %}"></script>
   <div class="dropdown">
-    <div class="dropdown-username-content">
-      <div class="dropdown-text">
-        <a href="#"  data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ user.get_username }}</a>
-      </div>
-      {% svg "person_icon" %}
-    </div>
+    {% include "components/search/cards/avatar_component.html"  %}
    
     
     <div class="dropdown-content">
