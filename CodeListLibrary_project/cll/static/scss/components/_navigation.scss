@@ -170,8 +170,8 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
   @include media(">=desktop", "screen") {
     &__items {
       @include flex-row($gap: 1rem);
-
       height: var(--navigation-height);
+      align-items: center;
 
       a {
         @include navigation-item();

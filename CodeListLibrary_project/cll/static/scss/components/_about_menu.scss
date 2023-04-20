@@ -55,7 +55,6 @@
         width: var(--icon-width);
         height: var(--icon-height);
         margin-right: 16px;
-        border-radius: 1em;
         border-radius: 6px;
         background: var(--icon-background-color);
         @include prefix(transition, all 250ms ease-in, webkit moz o);
