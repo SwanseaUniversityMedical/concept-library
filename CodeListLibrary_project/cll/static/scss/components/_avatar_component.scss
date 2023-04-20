@@ -1,0 +1,29 @@
+@import "../_methods";
+@import "../_variables";
+@import "../_media";
+@import "../_utils";
+
+
+.avatar-content{
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #f7f7f7;
+    border-radius: 7px;
+      svg {
+        width: 35px;
+        height: 35px;
+        border-radius: 6px;
+        background: var(--item-icon-color);
+        @include prefix(transition, all 250ms ease-in, webkit moz o);
+        path {
+          fill: var(--item-icon-color);
+          stroke: var(--stroke-icon);
+        }
+      }
+
+    
+  }
+
+
+
+  
