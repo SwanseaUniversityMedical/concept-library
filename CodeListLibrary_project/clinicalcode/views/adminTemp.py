@@ -37,7 +37,7 @@ import os
 from django.core.exceptions import PermissionDenied
 from django.db import connection, connections  # , transaction
 from rest_framework.reverse import reverse
-from django.db.models import Q        
+        
         
 @login_required
 def api_remove_data(request):
@@ -539,7 +539,7 @@ def try_parse_doi(publications):
     return output
 
 @login_required
-def admin_mig_phenotypes_dt000(request):
+def admin_mig_phenotypes_dtXXX(request):
     # for admin(developers) to migrate phenotypes into dynamic template
    
     if settings.CLL_READ_ONLY: 
@@ -695,89 +695,7 @@ def admin_mig_phenotypes_dt000(request):
                             'action_title': 'Migrate Phenotypes'
                         }
                         )
-            
 
-def get_serial_id():
-    count_all = GenericEntity.objects.count()
-    if count_all:
-        count_all += 1 # offset
-    else:
-        count_all = 1
-        
-    #print(str(count_all))
-    return count_all
-
-
-
-def get_agreement_date(phenotype):
-    if phenotype.hdr_modified_date:
-        return phenotype.hdr_modified_date
-    else:
-        return phenotype.hdr_created_date
-
-def get_sex(phenotype):
-    sex = str(phenotype.sex).lower().strip()
-    if sex == 'male':
-        return 1
-    elif sex == 'female':
-        return 2
-    else:
-        return 3
-    
-
-def get_type(phenotype):
-    type = str(phenotype.type).lower().strip()
-    if type == "biomarker":
-        return 1
-    elif type == "disease or syndrome":
-        return 2
-    elif type == "drug":
-        return 3
-    elif type == "lifestyle risk factor":
-        return 4
-    elif type == "musculoskeletal":
-        return 5
-    elif type == "surgical procedure":
-        return 6    
-    else:
-        return -1
-
-
-
-def get_custom_fields(phenotype):
-    ret_data = {}
-    
-    ret_data['type'] = str(get_type(phenotype))
-    ret_data['concept_information'] = phenotype.concept_informations
-    ret_data['coding_system'] = phenotype.clinical_terminologies
-    ret_data['data_sources'] = phenotype.data_sources
-    ret_data['phenoflowid'] = phenotype.phenoflowid    
-    ret_data['agreement_date'] = get_agreement_date(phenotype)
-    ret_data['phenotype_uuid'] = phenotype.phenotype_uuid
-    ret_data['event_date_range'] = phenotype.valid_event_data_range
-    ret_data['sex'] = str(get_sex(phenotype))
-    ret_data['source_reference'] = phenotype.source_reference
-    
-    return ret_data
-    
-def get_custom_fields_key_value(phenotype):
-    """
-    return one dict of col_name/col_value pairs
-    """
-    
-    return get_custom_fields(phenotype)
-    
-    
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
 @login_required
 def admin_mig_phenotypes_dt(request):
     # for admin(developers) to migrate phenotypes into dynamic template
@@ -818,7 +736,7 @@ def admin_mig_phenotypes_dt(request):
                         sql2 = "truncate table clinicalcode_historicalpublishedgenericentity restart identity; "
                         cursor.execute(sql2)   
                         sql3 = "truncate table clinicalcode_genericentity,public.clinicalcode_publishedgenericentity restart identity; "
-                        cursor.execute(sql3)           
+                        cursor.execute(sql3)
                     
                     
                         mig_h_pheno = """
@@ -891,6 +809,7 @@ def admin_mig_phenotypes_dt(request):
                     live_pheno = Phenotype.objects.all()
                     for p in live_pheno:
                         temp_data = get_custom_fields_key_value(p)
+                        temp_data['version'] = 1
                         publication_items = try_parse_doi([i.replace("'", "''") for i in p.publications])
                         with connection.cursor() as cursor:
                             sql_p = """ update  clinicalcode_genericentity  
@@ -900,12 +819,13 @@ def admin_mig_phenotypes_dt(request):
                                     """
                             cursor.execute(sql_p)
                             
-                            sql_entity_count = "update clinicalcode_entityclass set entity_count =100000;" #"+str(live_pheno.count())+"
+                            sql_entity_count = "update clinicalcode_entityclass set entity_count ="+str(live_pheno.count()+150)+";"
                             cursor.execute(sql_entity_count)
 
                     historical_pheno = Phenotype.history.filter(~Q(id='x'))
                     for p in historical_pheno:
                         temp_data = get_custom_fields_key_value(p)
+                        temp_data['version'] = 1
                         publication_items = try_parse_doi([i.replace("'", "''") for i in p.publications])
                         with connection.cursor() as cursor:
                             sql_p = """ update  clinicalcode_historicalgenericentity  
@@ -931,6 +851,80 @@ def admin_mig_phenotypes_dt(request):
                             'action_title': 'Migrate Phenotypes'
                         }
                         )
-            
+
+def get_serial_id():
+    count_all = GenericEntity.objects.count()
+    if count_all:
+        count_all += 1 # offset
+    else:
+        count_all = 1
+        
+    #print(str(count_all))
+    return count_all
 
 
+
+def get_agreement_date(phenotype):
+    if phenotype.hdr_modified_date:
+        return phenotype.hdr_modified_date
+    else:
+        return phenotype.hdr_created_date
+
+def get_sex(phenotype):
+    sex = str(phenotype.sex).lower().strip()
+    if sex == 'male':
+        return 1
+    elif sex == 'female':
+        return 2
+    else:
+        return 3
+    
+
+def get_type(phenotype):
+    type = str(phenotype.type).lower().strip()
+    if type == "biomarker":
+        return 1
+    elif type == "disease or syndrome":
+        return 2
+    elif type == "drug":
+        return 3
+    elif type == "lifestyle risk factor":
+        return 4
+    elif type == "musculoskeletal":
+        return 5
+    elif type == "surgical procedure":
+        return 6    
+    else:
+        return -1
+
+
+
+def get_custom_fields(phenotype):
+    ret_data = {}
+    
+    ret_data['type'] = str(get_type(phenotype))
+    ret_data['concept_information'] = phenotype.concept_informations
+    ret_data['coding_system'] = phenotype.clinical_terminologies
+    ret_data['data_sources'] = phenotype.data_sources
+    ret_data['phenoflowid'] = phenotype.phenoflowid    
+    ret_data['agreement_date'] = get_agreement_date(phenotype)
+    ret_data['phenotype_uuid'] = phenotype.phenotype_uuid
+    ret_data['event_date_range'] = phenotype.valid_event_data_range
+    ret_data['sex'] = str(get_sex(phenotype))
+    ret_data['source_reference'] = phenotype.source_reference
+    
+    return ret_data
+    
+def get_custom_fields_key_value(phenotype):
+    """
+    return one dict of col_name/col_value pairs
+    """
+    
+    return get_custom_fields(phenotype)
+    
+
+    
+    
+    
+    
+    

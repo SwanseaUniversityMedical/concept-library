@@ -2,10 +2,15 @@
 {% load markdownify %}
 {% load cl_extras %}
 
+{% comment %} <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" />
+<link href="{% static 'css/bootstrap-theme.min.css' %}" rel="stylesheet" />
+<link href="{% static 'lib/font-awesome-4.7.0/css/font-awesome.min.css' %}" rel="stylesheet" />
+<link href="{% static 'css/datatables.min.css' %}" rel="stylesheet" /> {% endcomment %}
+
 <!--   phenotype_clinical_code_lists   -->
   
 <div class="col-sm-12 shadow-frame">
-	<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;">
+	<h3 class="paneltitle" styleXX="margin-top:20px; margin-bottom:20px;">
 		<span id="{{ field_data.html_id }}"></span>
 	  	<strong>Clinical Code List</strong>
 		<div class="dropdown btn-group" style="float: right;">

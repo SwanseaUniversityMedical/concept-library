@@ -2,9 +2,11 @@
         
 {% if user.is_authenticated %}
     <div class="col-sm-12 shadow-frame">
-      <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;">
+        <span>
+            <p></p>
+      {% comment %} <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;">
       	<span id="permissions_sec"></span><strong>Permissions</strong>
-      </h3>
+      </h3> {% endcomment %}
 
       <div class="box-container"><div class="row">
           <div  class="col-sm-2">Owner</div>
@@ -64,6 +66,7 @@
           </div>
       </div></div>
 
+    </span>
     </div>
 {% endif %}
 
