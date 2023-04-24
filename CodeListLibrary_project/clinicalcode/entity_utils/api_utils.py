@@ -136,12 +136,13 @@ def get_layout_from_entity(entity):
     version = getattr(entity, 'template_version')
 
   if version:
-    template_version = Template.history.get(
+    template_version = Template.history.filter(
       id=entity.template.id,
       template_version=version
-    )
+    ).order_by('-history_id')
 
     if template_version:
+      template_version = template_version.first()
       return template_version
   
   return Response(
