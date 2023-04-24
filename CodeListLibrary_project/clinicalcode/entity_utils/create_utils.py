@@ -11,6 +11,7 @@ from ..models.Concept import Concept
 from ..models.Component import Component
 from ..models.CodeList import CodeList
 from ..models.Code import Code
+from ..models.PublishedGenericEntity import PublishedGenericEntity
 from . import gen_utils
 from . import model_utils
 from . import permission_utils
@@ -818,7 +819,7 @@ def build_related_entities(request, field_data, packet, override_dirty=False):
 
     return None
 
-def create_or_update_entity_from_form(request, form, errors=[], override_dirty=False):
+def create_or_update_entity_from_form(request, form, errors=[], override_dirty=False, auto_publish_debug=False):
     '''
         Used to create or update entities - this method assumes you have
         previously validated the content of the form using the validate_entity_form method
@@ -899,6 +900,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
 
     # Create or update the entity
     entity = None
+    template_data['version'] = template_instance.template_version
     if form_method == constants.FORM_METHODS.CREATE:
         entity = GenericEntity(
             **metadata,
@@ -908,6 +910,17 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
             created_by=user
         )
         entity.save()
+
+        # Will be removed, just for testing
+        if auto_publish_debug:
+            published_entity = PublishedGenericEntity(
+                entity=entity,
+                entity_history_id=entity.history.latest().history_id,
+                created_by=user,
+                approval_status=2,
+                moderator=user
+            )
+            published_entity.save()
     elif form_method == constants.FORM_METHODS.UPDATE:
         entity = form_entity
         entity.name = metadata.get('name')

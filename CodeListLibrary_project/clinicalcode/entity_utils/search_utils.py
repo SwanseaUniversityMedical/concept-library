@@ -36,7 +36,7 @@ def try_derive_entity_type(entity_type):
     entity_type = entity_type.replace('-', ' ')
     entity_cls = EntityClass.objects.annotate(name_lower=Lower('name')).filter(name_lower=entity_type)
     if entity_cls.exists():
-        return entity_cls.first().id
+        return [entity_cls.first().id]
     return None
 
 
@@ -267,7 +267,7 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
 
     templates = Template.history.filter(
         id__in=list(entities.values_list('template', flat=True)),
-        template_version__in=list(entities.values_list('template_data__version', flat=True))
+        template_version__in=list(entities.values_list('template_version', flat=True))
     ).latest_of_each()
 
     is_single_search = templates.count() > constants.MIN_SINGLE_SEARCH
@@ -358,7 +358,6 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
             'definition': template.definition,
             'order': template_utils.try_get_content(template.definition, 'layout_order', []),
         }
-    
 
     return entities, layouts
 
@@ -385,7 +384,7 @@ def try_get_paginated_results(request, entities, page=None, page_size=None):
         page_obj = pagination.page(pagination.num_pages)
     return page_obj
 
-def get_source_references(struct, default=[]):
+def get_source_references(struct, default=[], modifier=None):
     '''
         Retrieves the refence values from source fields e.g. tags, collections, entity type
     '''
@@ -406,6 +405,9 @@ def get_source_references(struct, default=[]):
     try:
         model = apps.get_model(app_label='clinicalcode', model_name=source)
         objs = model.objects.all()
+
+        if isinstance(modifier, dict):
+            objs = objs.filter(**modifier)
 
         ref = []
         for obj in objs:
