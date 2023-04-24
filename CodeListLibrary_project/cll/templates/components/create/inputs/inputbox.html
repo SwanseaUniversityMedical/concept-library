@@ -4,6 +4,6 @@
   <p class="detailed-input-group__description">{{ component.description }}</p>
   {% endif %}
   <input class="text-input" aria-label="{{ component.field.title }}" id="entity-{{ component.field_name }}"
-    placeholder="" minlength="3" pattern="^[a-zA-Z]{1,}.*?" data-class="inputbox"
+    placeholder=""  {% if component.field_data.validation and component.field_data.validation == 'string' %} minlength="3" pattern="^[a-zA-Z]{1,}.*?" {% endif %} data-class="inputbox"
     data-field="{{ component.field_name }}" value="{{ component.value }}">
 </div>

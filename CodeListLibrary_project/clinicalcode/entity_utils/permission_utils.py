@@ -1,12 +1,37 @@
 from django.db.models import Q, F, Subquery, OuterRef
-
+from django.conf import settings
 from django.contrib.auth.models import Group, User
+from django.core.exceptions import PermissionDenied
+
+from functools import wraps
+
 from ..models import GenericEntity
 from ..models import PublishedGenericEntity
 from ..models.Concept import Concept
 from ..models.PublishedConcept import PublishedConcept
 from . import model_utils
 from .constants import APPROVAL_STATUS, GROUP_PERMISSIONS
+
+''' Permission decorators '''
+def redirect_readonly(fn):
+  '''
+    Method decorator to raise 403 if we're on the read only site
+    to avoid insert / update methods via UI
+
+    e.g. 
+    
+    @permission_utils.redirect_readonly
+    def some_view_func(request):
+      # stuff
+    
+  '''
+  @wraps(fn)
+  def wrap(request, *args, **kwargs):
+    if settings.CLL_READ_ONLY:
+      raise PermissionDenied
+    return fn(request, *args, **kwargs)
+  
+  return wrap
 
 ''' Status helpers '''
 

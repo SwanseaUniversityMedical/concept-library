@@ -75,6 +75,7 @@
   }
 
   &__card {
+    display: flex;
     width: auto;
     height: auto;
     border: 1px solid #ccc;
@@ -91,6 +92,7 @@
     &-body {
       @include flex-col();
       padding: 1rem;
+      flex-grow: 1;
     }
 
     &-hint {
@@ -118,10 +120,10 @@
 
     &-interface {
       @include flex-row();
-      justify-content: center;
+      justify-content: flex-end;
       align-items: center;
       width: 100%;
-      margin-top: 1rem;
+      margin-top: auto;
 
       & > * {
         flex: 1 1 auto;

@@ -1,16 +1,12 @@
-
-
-from django.contrib.auth.mixins import LoginRequiredMixin  # , UserPassesTestMixin
-# from django.contrib.messages import constants
-# from django.db.models import Q
-from django.db import transaction  # , models, IntegrityError
-# from django.forms.models import model_to_dict
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import transaction
 from django.http.response import JsonResponse
 from django.template.loader import render_to_string
-# from django.core.urlresolvers import reverse_lazy, reverse
 from django.views.generic.base import TemplateResponseMixin, View
+from django.utils.decorators import method_decorator
 
 from ..entity_utils import utils_ge_validator
+from ..entity_utils import permission_utils
 from ..permissions import *
 from .View import *
 from clinicalcode.constants import *
@@ -19,13 +15,11 @@ class EntityDecline(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, 
     '''
         Decline the current working set.
     '''
-
     model = GenericEntity
     #use same template as we have two buttons publish and decline
     template_name = 'clinicalcode/generic_entity/publish.html'
 
-
-    
+    @method_decorator([login_required, permission_utils.redirect_readonly])
     def post(self, request, pk, history_id):
         """
         Send request to server to  decline entity
@@ -40,11 +34,9 @@ class EntityDecline(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, 
             checks = utils_ge_validator.checkEntityToPublish(request, pk, history_id)
 
         data = dict()
-
         if not checks['allowed_to_publish'] or is_published:
             data['form_is_valid'] = False
-            data['message'] = render_to_string('clinicalcode/error.html', {},
-                                               self.request)
+            data['message'] = render_to_string('clinicalcode/error.html', {}, self.request)
             return JsonResponse(data)
 
         try:
@@ -60,16 +52,10 @@ class EntityDecline(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, 
                     data['approval_status'] = APPROVED_STATUS[REJECTED][0]
 
                     data = utils_ge_validator.form_validation(request, data, history_id, pk, entity, checks)
-                    
-
-
-
         except Exception as e:
             print(e)
             data['form_is_valid'] = False
-            data['message'] = render_to_string('clinicalcode/error.html',
-                                               {},
-                                               self.request)
+            data['message'] = render_to_string('clinicalcode/error.html', {}, self.request)
 
         return JsonResponse(data)
 

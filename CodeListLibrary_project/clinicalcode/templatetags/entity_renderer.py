@@ -270,6 +270,17 @@ class EntityFiltersNode(template.Node):
         self.params = params
         self.nodelist = nodelist
     
+    def __try_compile_reference(self, context, field, structure):
+        if field == 'template':
+            layouts = context.get('layouts', None)
+            modifier = {
+                'entity_class__id__in': [layout['id'] for key, layout in layouts.items()]
+            }
+        else:
+            modifier = None
+
+        return search_utils.get_source_references(structure, modifier=modifier)
+
     def __render_metadata_component(self, context, field, structure):
         request = self.request.resolve(context)
         filter_info = search_utils.get_filter_info(field, structure)
@@ -284,11 +295,12 @@ class EntityFiltersNode(template.Node):
         if 'compute_statistics' in structure:
             current_brand = request.CURRENT_BRAND or 'ALL'
             options = search_utils.get_metadata_stats_by_field(field, brand=current_brand)
-        else:
+
+        if options is None:
             validation = template_utils.try_get_content(structure, 'validation')
             if validation is not None:
                 if 'source' in validation:
-                    options = search_utils.get_source_references(structure)
+                    options = self.__try_compile_reference(context, field, structure)
                 
         filter_info['options'] = options
         context['filter_info'] = filter_info
@@ -325,7 +337,7 @@ class EntityFiltersNode(template.Node):
 
             if 'filterable' not in search:
                 continue
-
+            
             output += self.__render_metadata_component(context, field, structure)
 
         return output
@@ -512,7 +524,7 @@ class EntityWizardSections(template.Node):
                     continue
                 component['field_name'] = field
                 component['field_data'] = field_data
-
+                
                 desc = template_utils.try_get_content(template_field, 'description')
                 if desc is not None:
                     component['description'] = desc
@@ -530,7 +542,7 @@ class EntityWizardSections(template.Node):
                 
                 if options is not None:
                     component['options'] = options
-
+                
                 if entity:
                     component['value'] = self.__try_get_entity_value(template, entity, field)
                 else:
