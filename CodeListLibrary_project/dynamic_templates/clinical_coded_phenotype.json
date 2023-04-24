@@ -55,7 +55,7 @@
         "length": [0, 250]
       },
       "search": {
-        "api": "true"
+        "api": true
       },
       "hide_on_create": true,
       "hide_if_empty": true

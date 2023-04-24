@@ -819,7 +819,7 @@ def build_related_entities(request, field_data, packet, override_dirty=False):
 
     return None
 
-def create_or_update_entity_from_form(request, form, errors=[], override_dirty=False, auto_publish_debug=False):
+def create_or_update_entity_from_form(request, form, errors=[], override_dirty=False):
     '''
         Used to create or update entities - this method assumes you have
         previously validated the content of the form using the validate_entity_form method
@@ -910,17 +910,6 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
             created_by=user
         )
         entity.save()
-
-        # Will be removed, just for testing
-        if auto_publish_debug:
-            published_entity = PublishedGenericEntity(
-                entity=entity,
-                entity_history_id=entity.history.latest().history_id,
-                created_by=user,
-                approval_status=2,
-                moderator=user
-            )
-            published_entity.save()
     elif form_method == constants.FORM_METHODS.UPDATE:
         entity = form_entity
         entity.name = metadata.get('name')

@@ -807,6 +807,14 @@ def admin_mig_phenotypes_dt(request):
                     
                     ######################################
                     live_pheno = Phenotype.objects.all()
+
+                    live_pheno_count = Phenotype.objects.extra(
+                        select={
+                            'true_id': '''CAST(SUBSTRING(id, 3, LENGTH(id)) AS INTEGER)'''
+                        }
+                    ).order_by('-true_id', 'id').first()
+                    live_pheno_count = live_pheno_count.true_id
+
                     for p in live_pheno:
                         temp_data = get_custom_fields_key_value(p)
                         temp_data['version'] = 1
@@ -818,9 +826,10 @@ def admin_mig_phenotypes_dt(request):
                                     where id ='"""+p.id+"""' ;
                                     """
                             cursor.execute(sql_p)
-                            
-                            sql_entity_count = "update clinicalcode_entityclass set entity_count ="+str(live_pheno.count())+";"
-                            cursor.execute(sql_entity_count)
+                    
+                    with connection.cursor() as cursor:
+                        sql_entity_count = "update clinicalcode_entityclass set entity_count ="+str(live_pheno_count)+";"
+                        cursor.execute(sql_entity_count)
 
                     historical_pheno = Phenotype.history.filter(~Q(id='x'))
                     for p in historical_pheno:
@@ -834,7 +843,13 @@ def admin_mig_phenotypes_dt(request):
                                     where id ='"""+p.id+"""' and history_id='"""+str(p.history_id)+"""';
                                     """
                             cursor.execute(sql_p)
-                                                      
+                    
+                    with connection.cursor() as cursor:
+                        cursor.execute("""SELECT SETVAL(
+                            pg_get_serial_sequence('clinicalcode_historicalgenericentity', 'history_id'),
+                            (SELECT MAX(history_id) FROM public.clinicalcode_historicalgenericentity)
+                        );""")
+
                     ######################################
                     rowsAffected[1] = "phenotypes migrated."
                         

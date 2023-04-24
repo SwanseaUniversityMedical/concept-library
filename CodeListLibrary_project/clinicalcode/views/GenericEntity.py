@@ -169,8 +169,7 @@ class CreateEntityView(TemplateView):
         
         form_errors = []
 
-        # Auto_publish_debug field will be removed before merge
-        entity = create_utils.create_or_update_entity_from_form(request, form, form_errors, auto_publish_debug=False)
+        entity = create_utils.create_or_update_entity_from_form(request, form, form_errors)
         if entity is None:
             # Errors occurred when building - report the error list
             return gen_utils.jsonify_response(
