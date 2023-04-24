@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('clinicalcode', '0095_hge_indexing'),
+        ('clinicalcode', '0097_entityclass_created_entityclass_modified_and_more'),
     ]
 
     operations = [
