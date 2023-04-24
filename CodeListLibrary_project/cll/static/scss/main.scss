@@ -5,6 +5,8 @@
 @import '_layout';
 
 @import 'components/_navigation';
+@import 'components/_about_menu';
+@import 'components/_profile_menu';
 @import 'components/_footer';
 @import 'components/_breadcrumbs';
 @import 'components/_stepsWizard';
@@ -20,11 +22,14 @@
 @import 'components/_filters';
 @import 'components/_pagination';
 @import 'components/_markdown';
+@import 'components/_dropdown';
+@import 'components/_nested_dropdown';
 @import 'components/_modals';
 @import 'components/_tooltips';
 @import 'components/_toast';
 @import 'components/_banner';
-
+@import 'components/_footer_imgs';
+@import 'components/_avatar_component';
 // Need to add vendor's properties to brand map
 @import 'vendor/_lightpick';
 @import 'vendor/_datatables';
