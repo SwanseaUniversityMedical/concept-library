@@ -168,6 +168,7 @@ class CreateEntityView(TemplateView):
             )
         
         form_errors = []
+
         entity = create_utils.create_or_update_entity_from_form(request, form, form_errors)
         if entity is None:
             # Errors occurred when building - report the error list
@@ -208,7 +209,7 @@ class CreateEntityView(TemplateView):
         if template_id is not None:
             template = model_utils.try_get_instance(Template, pk=template_id)
             if template is None:
-                raise Http404
+                raise BadRequest('Invalid request.')
             return self.create_form(request, context, template)
 
         # Send to update form if entity_id is selected
@@ -224,8 +225,8 @@ class CreateEntityView(TemplateView):
             
             return self.update_form(request, context, template, entity)
         
-        # Raise 404 if no param matches views
-        raise Http404
+        # Raise 400 if no param matches views
+        raise BadRequest('Invalid request.')
     
     ''' Forms '''
     def select_form(self, request, context):

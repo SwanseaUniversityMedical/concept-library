@@ -136,12 +136,13 @@ def get_layout_from_entity(entity):
     version = getattr(entity, 'template_version')
 
   if version:
-    template_version = Template.history.get(
+    template_version = Template.history.filter(
       id=entity.template.id,
       template_version=version
-    )
+    ).order_by('-history_id')
 
     if template_version:
+      template_version = template_version.first()
       return template_version
   
   return Response(
@@ -356,9 +357,7 @@ def build_final_codelist_from_concepts(entity, concept_information):
     }
 
     # Get codes
-    concept_codes = model_utils.get_final_reviewed_codelist(
-      concept_id, concept_version, hide_user_details=True
-    )
+    concept_codes = model_utils.get_concept_codelist(concept_id, concept_version, incl_logical_types=[constants.CLINICAL_RULE_TYPE.INCLUDE.value], incl_attributes=False)
     concept_codes = [data | concept_data for data in concept_codes]
 
     result += concept_codes

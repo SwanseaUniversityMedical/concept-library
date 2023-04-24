@@ -763,9 +763,7 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
 
   # Build the final, reviewed codelist if required
   if include_reviewed_codes:
-    result['codelist'] = get_final_reviewed_codelist(
-      concept_id, concept_history_id, hide_user_details=hide_user_details
-    )
+    result['codelist'] = get_concept_codelist(concept_id, concept_history_id, incl_logical_types=[CLINICAL_RULE_TYPE.INCLUDE.value], incl_attributes=include_attributes)
   
   return result
 

@@ -1,6 +1,6 @@
-import json
 from django import forms
-from django.contrib import admin
+
+import json
 
 from ..models.Template import Template
 from ..entity_utils import template_utils
