@@ -1,0 +1,96 @@
+@import "../_methods";
+@import "../_variables";
+@import "../_media";
+@import "../_utils";
+
+.row {
+
+  &__profile {
+    z-index: 999;
+    background-color: white;
+    border-radius: 1em;
+    padding: 1.5em;
+    left: calc(5% - 10px);
+    margin: 0 5em 0 -5em;
+
+    position: absolute;
+    top: 0;
+    box-sizing: border-box;
+    -webkit-box-shadow: var(--dropdown-shadow);
+    box-shadow: var(--dropdown-shadow);
+
+    .content-container {
+      list-style: none;
+      .item-dropdown {
+        display: flex;
+        justify-content: flex-start;
+        padding: 0.5em 0;
+        margin: 0 22px;
+        text-decoration: none;
+        flex-direction: row;
+
+        &__icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          margin-right: 16px;
+          border-radius: 1em;
+          border-radius: 6px;
+          background: var(--phenotype-banner-bg-color);
+          @include prefix(transition, all 250ms ease-in, webkit moz o);
+
+          
+
+          img {
+            object-fit: cover;
+            width: 70%;
+            object-position: left;
+            height: 55%;
+          }
+        }
+
+        &__text {
+          @include prefix(transition, all 250ms ease-in, webkit moz o);
+          flex-grow: 1;
+        }
+
+        &__title {
+          display: flex;
+          align-items: center;
+          font-size: 14px;
+          line-height: 14px;
+          font-weight: 500;
+        }
+
+        &__description {
+          word-break: break-word;
+          color: #6e6d7a;
+          line-height: 16px;
+          font-size: 12px;
+          font-weight: 400;
+        }
+      }
+    }
+    hr {
+      display: block;
+      height: 1px;
+      border: 0;
+      margin-right: 1.5em;
+      margin-left: 1.5em;
+      background: #e7e7e9;
+    }
+  }
+}
+
+#admin_icon {
+  svg {
+    path {
+      fill: var(--item-icon-color);
+      stroke: var(--stroke-icon);
+    }
+  }
+}
+
+

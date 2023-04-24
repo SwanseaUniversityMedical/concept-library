@@ -64,6 +64,10 @@ def addStr(value, arg):
     """concatenate value & arg"""
     return str(value) + str(arg)
 
+@register.filter
+def getBrandLogo(value):
+    """get brand logos"""
+    return f'/static/img/brands/{value}/header_logo.png'
 
 @register.filter
 def markdownify00(text):

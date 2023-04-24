@@ -11,6 +11,7 @@ from ..models.Concept import Concept
 from ..models.Component import Component
 from ..models.CodeList import CodeList
 from ..models.Code import Code
+from ..models.PublishedGenericEntity import PublishedGenericEntity
 from . import gen_utils
 from . import model_utils
 from . import permission_utils
@@ -899,6 +900,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
 
     # Create or update the entity
     entity = None
+    template_data['version'] = template_instance.template_version
     if form_method == constants.FORM_METHODS.CREATE:
         entity = GenericEntity(
             **metadata,

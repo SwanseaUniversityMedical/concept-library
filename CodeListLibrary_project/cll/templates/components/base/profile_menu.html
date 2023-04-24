@@ -1,0 +1,82 @@
+{% load static %}
+{% load i18n %}
+
+{% load mathfilters %}
+{% load cl_extras %}
+{% load svg %}
+{% block content %}
+
+
+  <!-- about tab -->
+  <script type="text/javascript" src="{% static "js/clinicalcode/redesign/components/brandurls.js" %}"></script>
+  <div class="dropdown">
+    {% include "components/search/cards/avatar_component.html"  %}
+   
+    
+    <div class="dropdown-content">
+    <ul class="row__profile">
+        <li class="content-container">
+
+          {% if request.user.is_superuser and SHOWADMIN and not CLL_READ_ONLY %}
+          <!--admin-->
+          <a href="{% url 'admin:index' %}" target=_blank class="item-dropdown">
+            <div class="item-dropdown__icon" id="admin_icon">
+             {% svg "person_icon" %}
+
+              </div>
+              <div class="item-dropdown__title">Admin</div> 
+          </a>
+        </li>
+        <hr>
+        {% endif %}
+        
+        <!--Brands-->
+        {% if request.user.is_superuser  and request.session.all_brands %}
+        {% include "components/search/cards/dropdown_profile_item.html" with  currentBrand="" image="/static/img/header_logo.png" title="Concept Library" %}
+        
+
+        {% for brand in request.session.all_brands %}
+
+        {% include "components/search/cards/dropdown_profile_item.html" with  currentBrand=brand|upper  image=brand|getBrandLogo title=brand|upper %}
+							{% endfor %}
+        
+              
+        <hr> 
+        {% endif %}
+
+        <!--logout-->
+
+        <li class="content-container">
+          <a href="{% url 'logout' %}?next={% url 'phenotype_list' %}" class="item-dropdown">
+            <div class="item-dropdown__icon">
+              {% svg "exit_icon" %}
+                
+              </div>
+            
+              <div class="item-dropdown__title">Log out</div>
+            
+          </a>
+        </li>
+      </ul>
+    </div>
+
+
+  </div>
+ 
+  <script type="text/javascript">
+  
+const elements = document.querySelectorAll(".userBrand");
+elements.forEach(function(element) {
+  element.addEventListener("click", function() {
+    const [path,old_root] = generateOldPathRoot();
+    brandUrlsgen("{{request.session.all_brands}}","{{IS_PRODUCTION_SERVER}}",element,old_root,path);  
+  });
+});
+
+
+    
+  </script>
+ 
+
+
+{% endblock content %}

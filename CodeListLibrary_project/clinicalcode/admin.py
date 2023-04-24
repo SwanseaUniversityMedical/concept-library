@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group, User
+from django.utils import timezone
 
 from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource, Operator, Tag)
 
@@ -7,10 +8,7 @@ from .models.EntityClass import EntityClass
 from .models.GenericEntity import GenericEntity
 from .models.Template import Template
 from .forms.TemplateForm import TemplateAdminForm
-
-# from forms import GroupAdminForm
-# from django import forms
-# from django.forms.models import inlineformset_factory, ModelChoiceField
+from .forms.EntityClassForm import EntityAdminForm
 
 # Register your models here.
 
@@ -106,8 +104,16 @@ class GenericEntityAdmin(admin.ModelAdmin):
 
 @admin.register(EntityClass)
 class EntityClassAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'entity_prefix', 'entity_count']
+    list_display = ['id', 'name', 'entity_prefix', 'entity_count', 'modified_by', 'modified']
     exclude = []
+    form = EntityAdminForm
+
+    def save_model(self, request, obj, form, change):
+        if not obj.created_by or not obj.created_by.id:
+            obj.created_by = request.user
+        obj.modified_by = request.user
+        obj.modified = timezone.now()
+        obj.save()
 
 #admin.site.register(CodingSystem)
 

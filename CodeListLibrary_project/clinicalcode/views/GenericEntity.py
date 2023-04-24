@@ -36,7 +36,7 @@ from .View import *
 from clinicalcode.api.views.View import get_canonical_path_by_brand
 from clinicalcode.constants import *
 
-from ..entity_utils import template_utils, gen_utils, model_utils, create_utils, stats_utils, search_utils, constants
+from ..entity_utils import permission_utils, template_utils, gen_utils, model_utils, create_utils, stats_utils, search_utils, constants
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +100,7 @@ class EntitySearchView(TemplateView):
             context['request'] = request
 
             results = render_to_string(self.result_template, context)
-            pagination = render_to_string(self.pagination_template, context)            
+            pagination = render_to_string(self.pagination_template, context)
             return HttpResponse(results + pagination, content_type='text/plain')
             
         return render(request, self.template_name, context)
@@ -118,7 +118,7 @@ class CreateEntityView(TemplateView):
     }
     
     ''' View methods '''
-    @method_decorator([login_required])
+    @method_decorator([login_required, permission_utils.redirect_readonly])
     def dispatch(self, request, *args, **kwargs):
         '''
             @desc Dispatch view
@@ -132,7 +132,7 @@ class CreateEntityView(TemplateView):
         context = super(CreateEntityView, self).get_context_data(*args, **kwargs)
         return context
     
-    @method_decorator([login_required])
+    @method_decorator([login_required, permission_utils.redirect_readonly])
     def get(self, request, *args, **kwargs):
         '''
             @desc Handles get requests by determining whether it was made
@@ -146,7 +146,7 @@ class CreateEntityView(TemplateView):
         
         return self.render_view(request, *args, **kwargs)
 
-    @method_decorator([login_required])
+    @method_decorator([login_required, permission_utils.redirect_readonly])
     def post(self, request, *args, **kwargs):
         '''
             @desc Handles:
@@ -168,6 +168,7 @@ class CreateEntityView(TemplateView):
             )
         
         form_errors = []
+
         entity = create_utils.create_or_update_entity_from_form(request, form, form_errors)
         if entity is None:
             # Errors occurred when building - report the error list
@@ -208,7 +209,7 @@ class CreateEntityView(TemplateView):
         if template_id is not None:
             template = model_utils.try_get_instance(Template, pk=template_id)
             if template is None:
-                raise Http404
+                raise BadRequest('Invalid request.')
             return self.create_form(request, context, template)
 
         # Send to update form if entity_id is selected
@@ -224,8 +225,8 @@ class CreateEntityView(TemplateView):
             
             return self.update_form(request, context, template, entity)
         
-        # Raise 404 if no param matches views
-        raise Http404
+        # Raise 400 if no param matches views
+        raise BadRequest('Invalid request.')
     
     ''' Forms '''
     def select_form(self, request, context):
@@ -338,10 +339,8 @@ class EntityStatisticsView(TemplateView):
     '''
         Admin job panel to save statistics for templates across entities
     '''
+    @method_decorator([login_required, permission_utils.redirect_readonly])
     def get(self, request, *args, **kwargs):
-        if settings.CLL_READ_ONLY:
-            raise PermissionDenied
-        
         if not request.user.is_superuser:
             raise PermissionDenied
         

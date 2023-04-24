@@ -1,0 +1,114 @@
+@import "../_methods";
+@import "../_variables";
+@import "../_media";
+@import "../_utils";
+
+
+.row {
+  &__about {
+
+    background-color: white;
+
+    @include grid-template(false, 2, 1fr);
+
+    border-radius: 1em;
+    padding: 1.5em;
+    margin: 0 5em 0 -5em;
+
+    position: absolute;
+    top: 0;
+    box-sizing: border-box;
+    -webkit-box-shadow: var(--dropdown-shadow);
+    box-shadow: var(--dropdown-shadow);
+
+    .content-container {
+      list-style: none;
+      
+
+      &__full{
+        grid-column: 1 / span 2;
+        list-style: none;
+
+        a{
+          background-image: none;
+        }
+
+      }
+
+     
+
+    }
+
+
+    .item-dropdown {
+      display: flex;
+      justify-content: flex-start;
+      padding: 0.5em 0;
+      margin: 0 22px;
+      text-decoration: none;
+      flex-direction: row;
+
+      &__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--icon-width);
+        height: var(--icon-height);
+        margin-right: 16px;
+        border-radius: 6px;
+        background: var(--icon-background-color);
+        @include prefix(transition, all 250ms ease-in, webkit moz o);
+        svg{
+          path{
+            fill: var(--item-icon-color);
+            stroke: var(--stroke-icon);
+          }
+          
+          
+        }
+      }
+
+      &__text {
+        @include prefix(transition, all 250ms ease-in, webkit moz o);
+        flex-grow: 1;
+      }
+
+      &__title {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        line-height: 14px;
+        font-weight: 500;
+      }
+
+      &__dropdownlink{
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        line-height: 14px;
+        font-weight: 500;
+      }
+
+      &__description {
+        word-break: break-word;
+        color: var(--description-text-color);
+        line-height: 16px;
+        font-size: 12px;
+        font-weight: 400;
+      }
+    }
+
+    hr {
+      display: block;
+      height: 1px;
+      border: 0;
+      margin-right: 1.5em;
+      margin-left: 1.5em;
+      background: #e7e7e9;
+    }
+
+
+
+ 
+  }
+}

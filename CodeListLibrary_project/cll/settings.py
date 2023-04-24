@@ -92,11 +92,7 @@ if IS_DEVELOPMENT_PC:
 SECRET_KEY = get_env_value('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-#DEBUG = get_env_value('DEBUG', cast='bool')
-if IS_DEVELOPMENT_PC:
-    DEBUG = True
-else:
-    DEBUG = get_env_value('DEBUG', cast='bool')
+DEBUG = get_env_value('DEBUG', cast='bool')
 
 ADMIN = [('Muhammad', 'Muhammad.Elmessary@Swansea.ac.uk'),
          ('Dan', 'd.s.thayer@swansea.ac.uk')]
@@ -126,6 +122,8 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "cll.settings"
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'cll/static'),
 ]
+
+
 
 STATIC_URL = '/static/'
 
@@ -220,6 +218,7 @@ INSTALLED_APPS = INSTALLED_APPS + [
     #'rest_framework_swagger',
     'drf_yasg',
     'django.contrib.sitemaps',
+    'svg',
     # SCSS
     'sass_processor',
     # Compressor - asset management

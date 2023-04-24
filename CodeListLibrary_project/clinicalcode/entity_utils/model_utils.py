@@ -386,7 +386,7 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
     'components': components_data
   }
 
-def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None):
+def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None, incl_attributes=False):
   '''
     [!] Note: This method ignores permissions - it should only be called from a
               a method that has previously considered accessibility
@@ -400,6 +400,8 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
 
       incl_logical_types {int[]}: Whether to include only codes that stem from Components
                                   with that logical type
+
+      incl_attributes {bool}: Whether to include code attributes
     
     Returns:
       A list of distinct codes associated with a concept across each of its components
@@ -418,7 +420,7 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
     return None
 
   attribute_header = historical_concept.code_attribute_header
-  if not isinstance(attribute_header, list) or len(attribute_header) < 1:
+  if not incl_attributes or not isinstance(attribute_header, list) or len(attribute_header) < 1:
     attribute_header = None
   
   # Find the components associated with this concept
@@ -528,7 +530,7 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
 
   return final_codelist
 
-def get_associated_concept_codes(concept_id, concept_history_id, code_ids):
+def get_associated_concept_codes(concept_id, concept_history_id, code_ids, incl_attributes=False):
   '''
     [!] Note: This method ignores permissions - it should only be called from a
               a method that has previously considered accessibility
@@ -539,16 +541,17 @@ def get_associated_concept_codes(concept_id, concept_history_id, code_ids):
       concept_id {number}: The concept ID of interest
       concept_history_id {number}: The concept's historical id of interest
       code_ids {list}: The code ids filter
+      incl_attributes {bool}: Whether to include code attributes
     
     Returns:
       The codes that are present in the code ids list
     
   '''
-  codelist = get_concept_codelist(concept_id, concept_history_id)
+  codelist = get_concept_codelist(concept_id, concept_history_id, incl_attributes=incl_attributes)
   codelist = [code for code in codelist if code.get('id', -1) in code_ids]
   return codelist
 
-def get_final_reviewed_codelist(concept_id, concept_history_id, hide_user_details=False):
+def get_final_reviewed_codelist(concept_id, concept_history_id, hide_user_details=False, incl_attributes=False):
   '''
     [!] Note: This method ignores permissions - it should only be called from a
               a method that has previously considered accessibility
@@ -558,6 +561,7 @@ def get_final_reviewed_codelist(concept_id, concept_history_id, hide_user_detail
     Args:
       concept_id {number}: The concept ID of interest
       concept_history_id {number}: The concept's historical id of interest
+      incl_attributes {bool}: Whether to include code attributes
     
     Returns:
       A QuerySet containing the final inclusionary codelist of a concept
@@ -576,7 +580,7 @@ def get_final_reviewed_codelist(concept_id, concept_history_id, hide_user_detail
 
   # Return the inclusionary list if legacy
   if historical_concept.is_legacy:
-    return get_concept_codelist(concept_id, concept_history_id, incl_logical_types=[CLINICAL_RULE_TYPE.INCLUDE.value])
+    return get_concept_codelist(concept_id, concept_history_id, incl_logical_types=[CLINICAL_RULE_TYPE.INCLUDE.value], incl_attributes=incl_attributes)
 
   # Get the reviewed concept list
   reviewed_concept = try_get_instance(
@@ -634,7 +638,8 @@ def get_review_concept(concept_id, concept_history_id):
 
 def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_codes=False,
                               aggregate_component_codes=False, include_component_codes=True,
-                              strippable_fields=None, remove_userdata=False, hide_user_details=False):
+                              include_attributes=False, strippable_fields=None,
+                              remove_userdata=False, hide_user_details=False):
   '''
     [!] Note: This method ignores permissions - it should only be called from a
               a method that has previously considered accessibility
@@ -645,11 +650,16 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
 
     Args:
       concept_id {number}: The concept ID of interest
+      
       concept_history_id {number}: The concept's historical id of interest
 
       include_reviewed_codes {boolean}: When building the data, should we pull the finalised reviewed codes?
+
       aggregate_component_codes {boolean}: When building the codelist, should we aggregate across components?
+
       include_component_codes {boolean}: When building the components, should we incl. a codelist for each component?
+
+      include_attributes {boolean}: Should we include attributes?
 
       strippable_fields {list}: Whether to strip any fields from the Concept model when
                                 building the concept's data result
@@ -725,7 +735,7 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
     concept_data.pop('deleted')
 
   # Build codelist and components from concept (modified by params)
-  attribute_headers = concept_data.pop('code_attribute_header', None)
+  attribute_headers = concept_data.pop('code_attribute_header', None) if include_attributes else None
   attribute_headers = attribute_headers if isinstance(attribute_headers, list) and len(attribute_headers) > 0 else None
   components_data = get_concept_component_details(
     concept_id,
@@ -753,9 +763,7 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
 
   # Build the final, reviewed codelist if required
   if include_reviewed_codes:
-    result['codelist'] = get_final_reviewed_codelist(
-      concept_id, concept_history_id, hide_user_details=hide_user_details
-    )
+    result['codelist'] = get_concept_codelist(concept_id, concept_history_id, incl_logical_types=[CLINICAL_RULE_TYPE.INCLUDE.value], incl_attributes=include_attributes)
   
   return result
 

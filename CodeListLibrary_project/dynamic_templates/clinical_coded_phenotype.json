@@ -16,7 +16,7 @@
     {
       "title": "Implementation",
       "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      "fields": ["implementation", "phenoflowid"]
+      "fields": ["phenoflowid", "implementation"]
     },
     {
       "title": "Validation",
@@ -26,7 +26,7 @@
     {
       "title": "Publication",
       "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      "fields": ["publications","citation_requirements"]
+      "fields": ["publications", "citation_requirements"]
     },
     {
       "title": "Permissions",
@@ -107,7 +107,7 @@
         "length": [0, 250]
       },
       "search": {
-        "api": "true"
+        "api": true
       },
       "hide_on_create": true,
       "hide_if_empty": true
@@ -230,6 +230,7 @@
     },
     "phenoflowid": {
       "title": "Phenoflow ID",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
       "field_type": "phenoflowid",
       "active": true,
       "validation": {
