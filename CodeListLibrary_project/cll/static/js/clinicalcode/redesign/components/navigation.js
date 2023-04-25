@@ -73,11 +73,25 @@ const setNavigation = (navbar) => {
               .join('/');
   }
   path = path.toLocaleLowerCase();
+  
+  let root = path.match(/^\/(\w+)/);
+  root = !isNullOrUndefined(root) ? root[1] : null;
 
   let distance, closest;
   for (let i = 0; i < links.length; ++i) {
     const link = links[i];
 
+    // match by data-root attribute
+    let roots = link.getAttribute('data-root');
+    if (root && !isNullOrUndefined(roots)) {
+      roots = roots.split(',');
+      if (roots.includes(root)) {
+        closest = link;
+        break;
+      }
+    }
+
+    // match by link
     let href = link.getAttribute('href');
     href = href.replace(/\/$/, '').toLocaleLowerCase();
     
