@@ -24,7 +24,7 @@
         {% if user.is_authenticated %}
           {% if IS_DEMO or IS_DEVELOPMENT_PC %}
             {% url 'search_entity' as entity_url %}
-            <a href="{{ entity_url }}" id="GenericEntity">Generic Entity</a>
+            <a href="{{ entity_url }}" id="GenericEntity" data-root="search,update,create">Generic Entity</a>
           {% endif %}
         {% endif %}
 
