@@ -16,36 +16,27 @@
           <a href="{{ home_url }}" id="Home">Home</a>
         {% endif %}
 
-        {% if request.BRAND_OBJECT.allowed_tabs is none or 'phenotypes' in request.BRAND_OBJECT.allowed_tabs %}
+        {% comment %} {% if request.BRAND_OBJECT.allowed_tabs is none or 'phenotypes' in request.BRAND_OBJECT.allowed_tabs %}
           {% url 'phenotype_list' as phenotype_url %}
           <a href="{{ phenotype_url }}" id="Phenotypes">Phenotypes</a>
-        {% endif %}
+        {% endif %} {% endcomment %}
 
         {% if user.is_authenticated %}
           {% if IS_DEMO or IS_DEVELOPMENT_PC %}
             {% url 'search_entity' as entity_url %}
-            <a href="{{ entity_url }}" id="GenericEntity" data-root="search,update,create">Generic Entity</a>
+            <a href="{{ entity_url }}" id="GenericEntity" data-root="search,update,create">Search</a>
           {% endif %}
         {% endif %}
-
-        {% if user.is_authenticated %}
-          {% if IS_DEMO or IS_DEVELOPMENT_PC %}
-            {% if request.BRAND_OBJECT.allowed_tabs is none or 'phenotypeworkingsets' in request.BRAND_OBJECT.allowed_tabs %}
-              {% url 'phenotypeworkingsets_list' as workingset_url %}
-              <a href="{{ workingset_url }}" id="WorkingSets">Working Sets</a>
-            {% endif %}
-          {% endif %}
-        {% endif %}
-
-        {% block about_wrapper %}
-          {% include "components/base/about_menu.html" %}
-        {% endblock about_wrapper %}
 
 
         {% if request.BRAND_OBJECT.allowed_tabs is none or 'api' in request.BRAND_OBJECT.allowed_tabs %}
           {% url 'api:root' as api_url %}
           <a href="{{ api_url }}" id="API">API</a>
         {% endif %}
+
+        {% block about_wrapper %}
+          {% include "components/base/about_menu.html" %}
+        {% endblock about_wrapper %}
 
         {% url 'login' as login_url %}
         {% if not user.is_authenticated %}
