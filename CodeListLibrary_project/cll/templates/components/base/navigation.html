@@ -16,16 +16,9 @@
           <a href="{{ home_url }}" id="Home">Home</a>
         {% endif %}
 
-        {% comment %} {% if request.BRAND_OBJECT.allowed_tabs is none or 'phenotypes' in request.BRAND_OBJECT.allowed_tabs %}
-          {% url 'phenotype_list' as phenotype_url %}
-          <a href="{{ phenotype_url }}" id="Phenotypes">Phenotypes</a>
-        {% endif %} {% endcomment %}
-
-        {% if user.is_authenticated %}
-          {% if IS_DEMO or IS_DEVELOPMENT_PC %}
-            {% url 'search_entity' as entity_url %}
-            <a href="{{ entity_url }}" id="GenericEntity" data-root="search,update,create">Search</a>
-          {% endif %}
+        {% if IS_DEMO or IS_DEVELOPMENT_PC %}
+          {% url 'search_entity' as entity_url %}
+          <a href="{{ entity_url }}" id="GenericEntity" data-root="search,update,create">Phenotypes</a>
         {% endif %}
 
 
