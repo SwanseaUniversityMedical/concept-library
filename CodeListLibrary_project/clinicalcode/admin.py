@@ -115,19 +115,10 @@ class EntityClassAdmin(admin.ModelAdmin):
         obj.modified = timezone.now()
         obj.save()
 
-#admin.site.register(CodingSystem)
+# Tests
+from .models.ClinicalConcept import ClinicalConcept
 
-# ############################################
-# # Unregister the original Group admin.
-# admin.site.unregister(Group)
-#
-# # Create a new Group admin.
-# class GroupAdmin(admin.ModelAdmin):
-#     # Use our custom form.
-#     form = GroupAdminForm
-#     #form_class = GroupAdminForm
-#     # Filter permissions horizontal as well.
-#     filter_horizontal = ['permissions']
-#
-# # Register the new Group ModelAdmin.
-# admin.site.register(Group, GroupAdmin)
+@admin.register(ClinicalConcept)
+class ClinicalConceptAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name']
+    exclude = []
