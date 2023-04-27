@@ -485,6 +485,14 @@ class EntityWizardSections(template.Node):
         if field == 'group':
             return permission_utils.get_user_groups(request)
 
+    def __apply_mandatory_property(self, template, field):
+        validation = template_utils.try_get_content(template, 'validation')
+        if validation is None:
+            return False
+        
+        mandatory = template_utils.try_get_content(validation, 'mandatory')
+        return mandatory if isinstance(mandatory, bool) else False
+
     def __generate_wizard(self, request, context):
         output = ''
         template = context.get('template', None)
@@ -547,6 +555,7 @@ class EntityWizardSections(template.Node):
                     component['value'] = self.__try_get_entity_value(template, entity, field)
                 else:
                     component['value'] = ''
+                component['mandatory'] = self.__apply_mandatory_property(template_field, field)
 
                 uri = f'{constants.CREATE_WIZARD_INPUT_DIR}/{component.get("input_type")}.html'
                 output += self.__try_render_item(template_name=uri, request=request, context=context.flatten() | { 'component': component })

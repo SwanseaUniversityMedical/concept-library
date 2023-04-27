@@ -23,7 +23,7 @@ const ENTITY_DATEPICKER_FORMAT = 'YYYY-MM-DD';
  * ENTITY_TOAST_MIN_DURATION
  * @desc the minimum message time for a toast notification
  */
-const ENTITY_TOAST_MIN_DURATION = 2000; // ms, or 2s
+const ENTITY_TOAST_MIN_DURATION = 5000; // ms, or 5s
 
 /**
  * ENTITY_FORM_BUTTONS
@@ -531,11 +531,11 @@ const ENTITY_FIELD_COLLECTOR = {
   },
 
   // No validation required for concept as it's handled in the ConceptCreator
-  // We only need to check length
+  // We only need to check length if mandatory
   'clinical-concept': (field, packet) => {
     const handler = packet.handler;
     const data = handler.getCleanedData();
-    if (data.length < 1) {
+    if (isMandatoryField(packet) && data.length < 1) {
       return {
         valid: false,
         value: data,
