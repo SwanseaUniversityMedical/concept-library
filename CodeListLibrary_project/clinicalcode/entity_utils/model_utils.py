@@ -551,58 +551,11 @@ def get_associated_concept_codes(concept_id, concept_history_id, code_ids, incl_
   codelist = [code for code in codelist if code.get('id', -1) in code_ids]
   return codelist
 
-def get_final_reviewed_codelist(concept_id, concept_history_id, hide_user_details=False, incl_attributes=False):
+def get_reviewable_concept(concept_id, concept_history_id, hide_user_details=False, incl_attributes=False):
   '''
-    [!] Note: This method ignores permissions - it should only be called from a
-              a method that has previously considered accessibility
-    
-    Retrieves the final, reviewed codelist from a HistoricConcept
-
-    Args:
-      concept_id {number}: The concept ID of interest
-      concept_history_id {number}: The concept's historical id of interest
-      incl_attributes {bool}: Whether to include code attributes
-    
-    Returns:
-      A QuerySet containing the final inclusionary codelist of a concept
+    Intended to get the reviewed / reviewable codes for a Concept
   '''
-
-  # Try to find the associated concept and its historical counterpart
-  concept = try_get_instance(
-    Concept, pk=concept_id
-  )
-  if not concept:
-    return None
-  
-  historical_concept = try_get_entity_history(concept, concept_history_id)
-  if not historical_concept:
-    return None
-
-  # Return the inclusionary list if legacy
-  if historical_concept.is_legacy:
-    return get_concept_codelist(concept_id, concept_history_id, incl_logical_types=[CLINICAL_RULE_TYPE.INCLUDE.value], incl_attributes=incl_attributes)
-
-  # Get the reviewed concept list
-  reviewed_concept = try_get_instance(
-    ConceptReviewStatus,
-    concept_id=historical_concept.id,
-    history_id=historical_concept.history_id
-  )
-
-  if reviewed_concept is None:
-    return None
-
-  # Get the reviewed, inclusionary codelist
-  included_codes = get_associated_concept_codes(concept_id, concept_history_id, reviewed_concept.included_codes)
-  return {
-    'review_submitted': reviewed_concept.review_submitted,
-    'last_reviewed_by': get_userdata_details(
-      User, 
-      pk=reviewed_concept.last_reviewed_by.pk, 
-      hide_user_details=hide_user_details
-    ),
-    'codes': included_codes,
-  }
+  return
 
 def get_review_concept(concept_id, concept_history_id):
   '''
