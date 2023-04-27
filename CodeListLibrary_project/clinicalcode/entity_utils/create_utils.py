@@ -632,13 +632,14 @@ def validate_entity_form(request, content, errors=[], method=None):
         }
     }
 
-def try_update_concept(request, item):
+def try_update_concept(request, item, entity=None):
     '''
         Updates a concept, given the item data validated from the Phentoype builder form
 
         Args:
             request {RequestContext}: the request context of the form
             item {dict}: the data computed from the concept validation method
+            entity {GenericEntity: an associated entity, if applicable
         
         Returns:
             {Concept()} - the resulting, updated Concept entity
@@ -661,7 +662,7 @@ def try_update_concept(request, item):
     if concept is None:
         return None
     
-    if not permission_utils.user_has_concept_ownership(user, concept):
+    if (entity is not None and not permission_utils.user_can_edit_via_entity(request, concept)) and permission_utils.user_has_concept_ownership(user, concept):
         return None
 
     # Update concept fields
@@ -669,16 +670,52 @@ def try_update_concept(request, item):
     concept.coding_system = concept_data.get('coding_system')
     concept.modified = make_aware(datetime.now())
     concept.modified_by = request.user
+    
+    req_component_ids = set([obj.get('id') for obj in components_data if not obj.get('is_new')])
+    prev_component_ids = set(list(concept.component_set.all().values_list('id', flat=True)))
+    
+    removed_components = list(set(prev_component_ids) - set(req_component_ids))
+    for component_id in removed_components:
+        component = model_utils.try_get_instance(Component, pk=component_id)
+        if component is None:
+            continue
+        component.delete()
+    
+    # Update exiting components, codelists and associated codes
+    new_components = []
+    existing_components = [obj for obj in components_data if not obj.get('is_new') and obj.get('id') not in removed_components]
+    for component_data in existing_components:
+        component_id = component_data.get('id')
+        component = model_utils.try_get_instance(Component, pk=component_id)
+        if component is None:
+            new_components.append(component_data)
+            continue
+        codelist = CodeList.objects.get(component=component)
 
-    # Clear existing components
-    for obj in concept.component_set.all():
-        obj.delete()
-    
-    for obj in concept.conceptcodeattribute_set.all():
-        obj.delete()
-    
+        new_codes = component_data.get('codes') or list()
+        prev_codes = set(list(codelist.codes.values_list('code', flat=True)))
+        req_codes = set([obj.get('code') for obj in new_codes])
+
+        added_codes = list(req_codes - prev_codes)
+        deleted_codes = list(prev_codes - req_codes)
+        
+        for code_item in deleted_codes:
+            deleted_codes = Code.objects.filter(code_list_id=codelist.pk, code=code_item)
+            for code in deleted_codes:
+                try:
+                    code.delete()
+                except:
+                    pass
+
+        for code_item in added_codes:
+            codes = Code.objects.filter(code_list_id=codelist.pk, code=code_item)
+            if codes.exists():
+                continue
+            Code.objects.create(code_list=codelist, code=code_item, description=next(item for item in new_codes if item['code'] == code).get('description'))
+
     # Create new components, codelists and associated codes
-    for obj in components_data:
+    new_components += [obj for obj in components_data if obj.get('is_new')]
+    for obj in new_components:
         component = Component.objects.create(
             name=obj.get('name'),
             logical_type=obj.get('logical_type'),
@@ -699,7 +736,7 @@ def try_update_concept(request, item):
     concept.save()
     return concept
 
-def try_create_concept(request, item):
+def try_create_concept(request, item, entity=None):
     '''
         Creates a concept, given the item data validated from the Phentoype builder form
 
@@ -707,6 +744,7 @@ def try_create_concept(request, item):
             request {RequestContext}: the request context of the form
             concept_id {integer}: the id of the concept
             item {dict}: the data computed from the concept validation method
+            entity {GenericEntity: an associated entity, if applicable
         
         Returns:
             {Concept()} - the resulting, created Concept entity
@@ -752,10 +790,13 @@ def try_create_concept(request, item):
                 description=code.get('description')
             )
 
+    if entity is not None:
+        concept.phenotype_owner = entity
+
     concept.save()
     return concept
 
-def build_related_entities(request, field_data, packet, override_dirty=False):
+def build_related_entities(request, field_data, packet, override_dirty=False, entity=None):
     '''
         Used to build related entities, e.g. concepts, for entities
 
@@ -765,17 +806,18 @@ def build_related_entities(request, field_data, packet, override_dirty=False):
             field_data {dict}: the associated template layout field
             packet {*}: the field data value
             override_dirty {boolean}: overrides the is_dirty check for entity creation
+            entity {GenericEntity: an associated entity, if applicable
 
         Returns:
-            {list|null} - list of entity dicts (id, hid) created/updated, or null value is returned if this method fails
+            {boolean}, {list|null} - success state, list of entity dicts (id, hid) created/updated, or null value is returned if this method fails
     '''
     validation = template_utils.try_get_content(field_data, 'validation')
     if validation is None:
-        return None
+        return False, None
 
     field_type = template_utils.try_get_content(validation, 'type')
     if field_type is None:
-        return None
+        return False, None
     
     if field_type == 'concept':
         entities = [ ]
@@ -790,7 +832,7 @@ def build_related_entities(request, field_data, packet, override_dirty=False):
                 if override_dirty or concept.get('is_dirty'):
                     result = try_update_concept(request, item)
                     if result is not None:
-                        entities.append(result.history.latest())
+                        entities.append({'method': 'update', 'entity': result.history.latest()})
                         continue
                 
                 # If we're not dirty, append the current concept
@@ -799,25 +841,23 @@ def build_related_entities(request, field_data, packet, override_dirty=False):
                     result = model_utils.try_get_instance(Concept, id=concept_id)
                     result = model_utils.try_get_entity_history(result, history_id=concept_history_id)
                     if result is not None:
-                        entities.append(result)
-                        continue            
+                        entities.append({'method': 'set', 'entity': result})
+                        continue
             
             # Create new concept & components
-            result = try_create_concept(request, item)
+            result = try_create_concept(request, item, entity=entity)
             if result is None:
                 continue
-            entities.append(result.history.latest())
+            entities.append({'method': 'create', 'entity': result.history.latest()})
 
-        # Build { id, history_id } concept list
-        return [
-            {
-                'concept_id': obj.id,
-                'concept_version_id': obj.history_id
-            }
-            for obj in entities
+        # Build concept list
+        return True, [
+            'phenotype_owner',
+            [obj.get('entity') for obj in entities if obj.get('method') == 'create'],
+            [{ 'concept_id': obj.get('entity').id, 'concept_version_id': obj.get('entity').history_id } for obj in entities]
         ]
 
-    return None
+    return False, None
 
 def create_or_update_entity_from_form(request, form, errors=[], override_dirty=False):
     '''
@@ -873,6 +913,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
     
     # Build any validated children
     template_data = { }
+    new_entities = [ ]
     for field, packet in template.items():
         field_data = template_utils.get_layout_field(form_template, field)
         if field_data is None:
@@ -883,10 +924,13 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
             template_data[field] = packet
             continue
         
-        field_value = build_related_entities(request, field_data, packet, override_dirty)
-        if field_value is None:
+        success, res = build_related_entities(request, field_data, packet, override_dirty, entity=form_entity)
+        if not success or not res:
             continue
+
+        ownership_key, created_entities, field_value = res
         template_data[field] = field_value
+        new_entities.append({'field': ownership_key, 'entities': created_entities})
     
     # Add any missing nullable fields from the template
     for field, packet in template_fields.items():
@@ -931,5 +975,12 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
         entity.updated = make_aware(datetime.now())
         entity.updated_by = user
         entity.save()
-    
+
+    # Update child related entities with entity object    
+    for group in new_entities:
+        field = group.get('field')
+        instances = group.get('entities')
+        for instance in instances:
+            setattr(instance, field, entity)
+
     return entity.history.latest()
