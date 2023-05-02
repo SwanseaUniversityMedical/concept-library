@@ -66,13 +66,13 @@ const setNavigation = (navbar) => {
   const links = navbar.querySelectorAll('.page-navigation__items a');
 
   let path = getCurrentPath();
-  let brand = document.documentElement.getAttribute('data-brand');
-  if (brand != 'none') {
-    path = path.split('/')
-              .filter(token => !isStringEmpty(token) && token !== brand)
-              .join('/');
-  }
   path = path.toLocaleLowerCase();
+
+  let currentBrand = document.documentElement.getAttribute('data-brand');
+  if (!isNullOrUndefined(currentBrand)) {
+    currentBrand = currentBrand.toLocaleLowerCase();
+    path = path.replace(`${currentBrand}\/`, '');
+  }
   
   let root = path.match(/^\/(\w+)/);
   root = !isNullOrUndefined(root) ? root[1] : null;
