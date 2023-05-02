@@ -161,23 +161,36 @@ def build_query_from_template(request, user_authed, template=None):
 
   terms = {}
   where = []
-  for key, value in template.items():
-    is_active = template_utils.try_get_content(value, 'active')
-    requires_auth = template_utils.try_get_content(value, 'requires_auth')
+  for key, value in request.GET.items():
+    is_dynamic = True
+    layout = template
 
-    can_search = template_utils.try_get_content(value, 'search')
-    if can_search:
-      can_search = template_utils.try_get_content(value['search'], 'api')
+    field_data = template_utils.try_get_content(template, key)
+    if field_data is not None:
+      is_base_field = template_utils.try_get_content(field_data, 'is_base_field')
+      if not is_base_field:
+        is_active = template_utils.try_get_content(field_data, 'active')
+        if not is_active:
+          continue
 
-    if is_active and can_search and (not requires_auth or (requires_auth and user_authed)):
-      param = request.query_params.get(key, None)
-      if param:
-        if template_utils.try_get_content(value, 'is_base_field'):
-          is_dynamic=False
+        requires_auth = template_utils.try_get_content(field_data, 'requires_auth')
+        if requires_auth and not user_authed:
+          continue
 
-        search_utils.apply_param_to_query(
-          terms, where, template, key, param, is_dynamic=is_dynamic, force_term=True, is_api=True
-        )
+        can_search = template_utils.try_get_content(field_data, 'search')
+        if can_search:
+          can_search = template_utils.try_get_content(field_data['search'], 'api')
+          if not can_search:
+            continue
+        else:
+          continue
+      else:
+        is_dynamic = False
+        layout = constants.metadata
+      
+      search_utils.apply_param_to_query(
+        terms, where, layout, key, value, is_dynamic=is_dynamic, force_term=True, is_api=True
+      )
 
   return terms, where
 
@@ -215,9 +228,16 @@ def get_entity_detail_from_layout(
         )
       continue
     
-    result[field] = template_utils.get_template_data_values(
-      entity, fields, field, default=None, hide_user_details=True
-    )
+    if field == 'concept_information':
+      value = template_utils.get_entity_field(entity, field)
+      if value:
+        result[field] = build_final_codelist_from_concepts(
+          entity, concept_information=value, inline=False
+        )
+    else:
+      result[field] = template_utils.get_template_data_values(
+        entity, fields, field, default=None, hide_user_details=True
+      )
   
   return result
 
@@ -259,6 +279,9 @@ def get_entity_detail_from_meta(entity, data, fields_to_ignore=[], target_field=
           }
         continue
     
+    if field_name in constants.API_MAP_FIELD_NAMES:
+      field_name = constants.API_MAP_FIELD_NAMES.get(field_name)
+
     result[field_name] = field_value
   
   return result
@@ -279,7 +302,7 @@ def get_ordered_entity_detail(fields, layout, layout_version, entity_versions, d
       'id': layout.id,
       'name': layout.name,
       'description': layout.description,
-      'version': layout_version
+      'version_id': layout_version
     },
     'versions': entity_versions
   }
@@ -291,7 +314,7 @@ def get_entity_detail(
     entity_id, 
     entity, 
     user_authed, 
-    fields_to_ignore=[], 
+    fields_to_ignore=['deleted', 'created_by', 'updated_by', 'deleted_by'], 
     target_field=None, 
     return_data=False
   ):
@@ -326,11 +349,11 @@ def get_entity_detail(
     return result
   
   return Response(
-    data=result,
+    data=[result | { 'phenotype_version_id': entity.history_id }],
     status=status.HTTP_200_OK
   )
 
-def build_final_codelist_from_concepts(entity, concept_information):
+def build_final_codelist_from_concepts(entity, concept_information, inline=True):
   '''
   
   '''
@@ -350,17 +373,24 @@ def build_final_codelist_from_concepts(entity, concept_information):
       'concept_id': concept_id,
       'concept_version_id': concept_version,
       'concept_name': concept_entity.name,
-      'coding_system': concept_entity.coding_system,
+      'coding_system': model_utils.get_coding_system_details(concept_entity.coding_system),
       'entity_id': entity.id,
       'entity_version_id': entity.history_id,
       'entity_name': entity.name
     }
 
     # Get codes
-    concept_codes = model_utils.get_concept_codelist(concept_id, concept_version, incl_logical_types=[constants.CLINICAL_RULE_TYPE.INCLUDE.value], incl_attributes=False)
-    concept_codes = [data | concept_data for data in concept_codes]
-
-    result += concept_codes
+    concept_codes = model_utils.get_concept_codelist(
+      concept_id, 
+      concept_version, 
+      incl_logical_types=[constants.CLINICAL_RULE_TYPE.INCLUDE.value], 
+      incl_attributes=False
+    )
+    if inline:
+      concept_codes = [data | concept_data for data in concept_codes]
+      result += concept_codes
+    else:
+      result += [concept_data | { 'codes': concept_codes }]
   
   return result
 
@@ -421,7 +451,7 @@ def validate_api_create_update_form(request, method):
   form = create_utils.validate_entity_form(
     request, form, form_errors, method=method
   )
-
+  
   if form is None:
     return Response(
       data={
@@ -448,3 +478,38 @@ def create_update_from_api_form(request, form):
       )
   
   return entity
+
+def get_concept_versions_from_entity(entity):
+  result = {}
+
+  concept_information = template_utils.try_get_content(
+    entity.template_data, 'concept_information'
+  )
+  for concept in concept_information:
+    concept_id = concept['concept_id']
+    concept_version_id = concept['concept_version_id']
+
+    concept_entity = Concept.history.get(
+      id=concept_id, history_id=concept_version_id
+    )
+    if not concept_entity:
+        continue
+
+    result[concept_entity.name] = {
+      'id': concept_id,
+      'version_id': concept_version_id
+    }
+  
+  return result
+
+def get_template_versions(template_id):
+  '''
+  
+  '''
+  template_versions = Template.objects.get(
+    id=template_id
+  ).history.all().order_by('-template_version')
+
+  template_versions = list(template_versions.values('template_version'))
+
+  return list(set([version['template_version'] for version in template_versions]))

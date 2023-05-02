@@ -199,7 +199,7 @@ def validate_form_template(form_template, errors=[], default=None):
         errors.append(f'Unable to find form template with an ID of {template_id} and a version of {template_version}')
         return default
     
-    return template.first()
+    return template.latest()
 
 def validate_form_data_type(form_data, errors=[], default=None):
     '''
@@ -313,7 +313,7 @@ def validate_concept_form(form, errors):
     is_new_concept = form.get('is_new')
     is_dirty_concept = form.get('is_dirty')
     concept_id = gen_utils.parse_int(form.get('concept_id'), None)
-    concept_history_id = gen_utils.parse_int(form.get('concept_history_id'), None)
+    concept_history_id = gen_utils.parse_int(form.get('concept_version_id'), None)
 
     field_value = {
         'concept': { },
@@ -332,26 +332,32 @@ def validate_concept_form(form, errors):
         is_new_concept = True
     
     concept_details = form.get('details')
-    if concept_details is None or not isinstance(concept_details, dict):
+    if is_new_concept and (concept_details is None or not isinstance(concept_details, dict)):
         errors.append(f'Invalid concept with ID {concept_id} - details is a non-nullable dict field.')
         return None
 
-    concept_name = gen_utils.try_value_as_type(concept_details.get('name'), 'string')
-    if concept_name is None:
-        errors.append(f'Invalid concept with ID {concept_id} - name is non-nullable, string field.')
-        return None
-    
-    concept_coding = gen_utils.parse_int(concept_details.get('coding_system'), None)
-    concept_coding = model_utils.try_get_instance(CodingSystem, pk=concept_coding)
-    if concept_coding is None:
-        errors.append(f'Invalid concept with ID {concept_id} - coding_system is non-nullable int field.')
-        return None
+    if isinstance(concept_details, dict):
+        concept_name = gen_utils.try_value_as_type(concept_details.get('name'), 'string')
+        if is_new_concept and concept_name is None:
+            errors.append(f'Invalid concept with ID {concept_id} - name is non-nullable, string field.')
+            return None
+        
+        concept_coding = gen_utils.parse_int(concept_details.get('coding_system'), None)
+        concept_coding = model_utils.try_get_instance(CodingSystem, pk=concept_coding)
+        if is_new_concept and concept_coding is None:
+            errors.append(f'Invalid concept with ID {concept_id} - coding_system is non-nullable int field.')
+            return None
 
     concept_components = form.get('components')
-    if concept_components is None or not isinstance(concept_components, list):
+    if is_new_concept and (concept_components is None or not isinstance(concept_components, list)):
         errors.append(f'Invalid concept with ID {concept_id} - components is a non-nullable list field.')
         return None
     
+    if not is_new_concept:
+        field_value['concept']['is_new'] = is_new_concept
+        field_value['concept']['is_dirty'] = False
+        return field_value
+
     components = [ ]
     for concept_component in concept_components:
         component = { }
@@ -497,8 +503,10 @@ def validate_metadata_value(request, field, value, errors=[]):
         errors.append(f'"{field}" is a non-nullable, required field')
         return value, False
     
+    field_type = template_utils.try_get_content(validation, 'type')
     if 'source' in validation or 'options' in validation:
-        field_value = try_validate_sourced_value(field_data, value)
+        field_value = gen_utils.try_value_as_type(value, field_type, validation)
+        field_value = try_validate_sourced_value(field_data, field_value)
         if field_value is None and field_required:
             errors.append(f'"{field}" is invalid')
             return field_value, False
@@ -512,7 +520,6 @@ def validate_metadata_value(request, field, value, errors=[]):
             return field_value, False
         return field_value, True
     
-    field_type = template_utils.try_get_content(validation, 'type')
     field_value = gen_utils.try_value_as_type(value, field_type, validation)
     if field_type is not None and field_value is None:
         errors.append(f'"{field}" is invalid')
@@ -539,8 +546,10 @@ def validate_template_value(request, field, form_template, value, errors=[]):
         errors.append(f'"{field}" is a non-nullable, required field')
         return value, False
     
+    field_type = template_utils.try_get_content(validation, 'type')
     if 'source' in validation or 'options' in validation:
-        field_value = try_validate_sourced_value(field_data, value)
+        field_value = gen_utils.try_value_as_type(value, field_type, validation)
+        field_value = try_validate_sourced_value(field_data, field_value)
         if field_value is None and field_required:
             errors.append(f'"{field}" is invalid')
             return field_value, False
@@ -562,7 +571,6 @@ def validate_template_value(request, field, form_template, value, errors=[]):
             return field_value, False
         return field_value, True
     
-    field_type = template_utils.try_get_content(validation, 'type')
     field_value = gen_utils.try_value_as_type(value, field_type, validation)
     if field_type is not None and field_value is None:
         errors.append(f'"{field}" is invalid')
@@ -851,7 +859,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
         errors.append('Form template parent was null')
         return
     
-    template_fields = template_utils.get_layout_fields(template_instance, None)
+    template_fields = template_utils.get_layout_fields(form_template, None)
     if template_fields is None:
         errors.append('Form template is invalid because it is not safe')
         return
@@ -900,7 +908,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
 
     # Create or update the entity
     entity = None
-    template_data['version'] = template_instance.template_version
+    template_data['version'] = form_template.template_version
     if form_method == constants.FORM_METHODS.CREATE:
         entity = GenericEntity(
             **metadata,
@@ -931,5 +939,5 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
         entity.updated = make_aware(datetime.now())
         entity.updated_by = user
         entity.save()
-    
+
     return entity.history.latest()

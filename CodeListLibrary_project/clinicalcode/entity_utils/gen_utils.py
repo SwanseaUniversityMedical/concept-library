@@ -168,6 +168,9 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
                 return default
         return parse_int(field_value, default)
     elif field_type == 'int_array':
+        if isinstance(field_value, int):
+            return [field_value]
+        
         if not isinstance(field_value, list):
             return default
         
@@ -201,6 +204,9 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
         else:
             return value
     elif field_type == 'string_array':
+        if isinstance(field_value, str):
+            return [field_value]
+        
         if not isinstance(field_value, list):
             return default
         

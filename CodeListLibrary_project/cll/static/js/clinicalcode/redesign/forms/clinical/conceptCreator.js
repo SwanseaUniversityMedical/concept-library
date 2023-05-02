@@ -375,7 +375,7 @@ export default class ConceptCreator {
     this.dirty = true;
 
     if (!isNullOrUndefined(id) && !isNullOrUndefined(historyId)) {
-      const concept = this.data.find(item => item.concept_id == id && item.concept_history_id == historyId);
+      const concept = this.data.find(item => item.concept_id == id && item.concept_version_id == historyId);
       if (!isNullOrUndefined(concept)) {
         concept.is_dirty = true;
       }
@@ -539,7 +539,7 @@ export default class ConceptCreator {
       this.state.data = null;
 
       // Remove unaltered, new component if not saved to data
-      const obj = this.data.find(item => item.concept_id == id && item.concept_history_id == history_id);
+      const obj = this.data.find(item => item.concept_id == id && item.concept_version_id == history_id);
       if (!obj) {
         element.remove();
         this.#toggleNoConceptBox(this.data.length > 0);
@@ -740,7 +740,7 @@ export default class ConceptCreator {
     const container = conceptGroup.querySelector('#concept-codelist-table');
     if (item.classList.contains('is-open')) {
       // Render codelist
-      let dataset = this.data.filter(concept => concept.concept_history_id == historyId && concept.concept_id == conceptId);
+      let dataset = this.data.filter(concept => concept.concept_version_id == historyId && concept.concept_id == conceptId);
       dataset = deepCopy(dataset.shift());
 
       return this.#tryRenderCodelist(container, dataset);
@@ -790,7 +790,7 @@ export default class ConceptCreator {
     const html = interpolateHTML(template, {
       'concept_name': concept?.details?.name,
       'concept_id': concept?.concept_id,
-      'concept_history_id': concept?.concept_history_id,
+      'concept_version_id': concept?.concept_version_id,
       'coding_id': concept?.coding_system?.id,
       'coding_system': concept?.coding_system?.description,
     });
@@ -1585,7 +1585,7 @@ export default class ConceptCreator {
     this.state.data = null;
     
     // Create or update the concept given the editor data
-    let index = this.data.findIndex(item => item.concept_id == data.concept_id && item.concept_history_id == data.concept_history_id);
+    let index = this.data.findIndex(item => item.concept_id == data.concept_id && item.concept_version_id == data.concept_version_id);
     let isNew = index < 0;
     if (isNew) {
       this.data.push(data);
@@ -1594,10 +1594,10 @@ export default class ConceptCreator {
     }
 
     // Reset the interface
-    this.#tryUpdateRenderConceptComponents(data.concept_id, data.concept_history_id);
+    this.#tryUpdateRenderConceptComponents(data.concept_id, data.concept_version_id);
 
     // Inform the parent form we're dirty
-    this.makeDirty(data?.concept_id, data?.concept_history_id);
+    this.makeDirty(data?.concept_id, data?.concept_version_id);
   }
   
   /**
@@ -1611,7 +1611,7 @@ export default class ConceptCreator {
         const concept = {
           is_new: true,
           concept_id: generateUUID(),
-          concept_history_id: generateUUID(),
+          concept_version_id: generateUUID(),
           components: [ ],
           aggregated_component_codes: [ ],
           details: {
@@ -1646,7 +1646,7 @@ export default class ConceptCreator {
         }
 
         // Render the editor
-        let dataset = this.data.filter(concept => concept.concept_history_id == historyId && concept.concept_id == conceptId);
+        let dataset = this.data.filter(concept => concept.concept_version_id == historyId && concept.concept_id == conceptId);
         dataset = deepCopy(dataset.shift());
 
         this.#tryRenderEditor(conceptGroup, dataset);
@@ -1677,7 +1677,7 @@ export default class ConceptCreator {
       const historyId = conceptGroup.getAttribute('data-concept-history-id');
 
       // Remove if it's a concept that's in our dataset
-      const index = this.data.findIndex(item => item.concept_id == conceptId && item.concept_history_id == historyId);
+      const index = this.data.findIndex(item => item.concept_id == conceptId && item.concept_version_id == historyId);
       if (index < 0) {
         return;
       }
