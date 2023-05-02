@@ -459,6 +459,9 @@ def validate_related_entities(field, field_data, value, errors):
     
     field_type = template_utils.try_get_content(validation, 'type')
     if field_type == 'concept':
+        if not field_required and (value is None or (not isinstance(value, list) or len(value) < 1)):
+            return list()
+        
         if not isinstance(value, list) or len(value) < 1:
             errors.append(f'Expected {field} as list, got {type(value)}')
             return None
@@ -900,7 +903,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
 
     # Create or update the entity
     entity = None
-    template_data['version'] = template_instance.template_version
+    template_data['version'] = form_template.template_version
     if form_method == constants.FORM_METHODS.CREATE:
         entity = GenericEntity(
             **metadata,

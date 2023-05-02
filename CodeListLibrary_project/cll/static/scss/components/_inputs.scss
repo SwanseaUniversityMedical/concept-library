@@ -12,6 +12,33 @@
   width: 100%;
   max-width: 100%;
 
+  &__interface {
+    display: flex;
+    flex-flow: column nowrap;
+    height: min-content;
+
+    &-children{
+      display: flex;
+      flex-flow: row wrap;
+      align-items: center;
+
+      input {
+        flex: 1;
+        margin-right: 1rem;
+      }
+      input:first-child {
+        flex: 2;
+        margin-right: 0.25rem;
+      }
+      button {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        font-weight: normal;
+        margin-bottom: 0.25rem;
+      }
+    }
+  }
+
   &__none-available {
     padding: 1rem;
     border-radius: 0.1rem;
@@ -171,6 +198,12 @@
 
   &.fill-width {
     width: 100%;
+  }
+
+  &__mandatory {
+    float: right;
+    color: col(text-danger);
+    font-weight: bold;
   }
 
   &__title {
