@@ -23,6 +23,27 @@
 	margin: 0;
 }
 
+
+
+.big-banner_eurolinkcat {
+	height: 185px;
+	width: 100%;
+	background-image: url("../../../img/brands/EUROCAT/eurolinkcat.png");
+	background-repeat: no-repeat;
+  	background-size: 100%;
+	margin: 0;
+}
+
+
+.big-banner_eurocat {
+	height: 185px;
+	width: 100%;
+	background-image: url("../../../img/brands/EUROCAT/eurocat.png");
+	background-repeat: no-repeat;
+  	background-size: 100%;
+	margin: 0;
+}
+
 .header-breathe{
 	background-color: #333f48;
 	color: white;
