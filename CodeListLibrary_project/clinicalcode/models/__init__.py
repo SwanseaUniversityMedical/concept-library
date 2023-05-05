@@ -39,4 +39,5 @@ from .GPRD_PRODUCT_CODES import GPRD_PRODUCT_CODES
 from .Template import Template
 from .GenericEntity import GenericEntity
 from .PublishedGenericEntity import PublishedGenericEntity
-
+from .EMIS_CODES import EMIS_CODES
+from .VISION_CODES import VISION_CODES
