@@ -19,7 +19,7 @@
           <ul class="dropdown-btn__menu fall-right">
             <li>
               <a {% if user_can_export %}
-                  href="{% url 'api:api_phenotype_detail_version' entity.id entity.history_id %}?format=json"
+                  href="{% url 'api:api_generic_entity_detail_by_version' entity.id entity.history_id %}?format=json"
                   target=_blank 
                   {% endif %}
                 class="dropdown-item">
@@ -28,7 +28,7 @@
             </li>
             <li>
               <a {% if user_can_export %}
-                  href="{% url 'api:api_phenotype_detail_version' entity.id entity.history_id %}?format=xml"
+                  href="{% url 'api:api_generic_entity_detail_by_version' entity.id entity.history_id %}?format=xml"
                   target=_blank 
                   {% endif %}
                 class="dropdown-item">
