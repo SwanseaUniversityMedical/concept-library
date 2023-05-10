@@ -17,11 +17,11 @@
 			<td>XML</td>
 			<td>
 			   {% if user.is_authenticated %}
-              <a href="{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=xml"
-                target=_blank>site_root{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=xml</a>
+              <a href="{% url 'api:api_generic_entity_detail_by_version' entity.id entity.history_id %}?format=xml"
+                target=_blank>site_root{% url 'api:api_generic_entity_detail_by_version' entity.id entity.history_id %}?format=xml</a>
           {% else %}
-              <a href="{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=xml"
-                target=_blank>site_root{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=xml</a>
+              <a href="{% url 'api:api_generic_entity_detail_by_version_public' entity.id entity.history_id %}?format=xml"
+                target=_blank>site_root{% url 'api:api_generic_entity_detail_by_version_public' entity.id entity.history_id %}?format=xml</a>
           {% endif %}
 			</td>
 		  </tr>
@@ -29,11 +29,11 @@
 			<td>JSON</td>
 			<td>
 				{% if user.is_authenticated %}
-            <a href="{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=json"
-                target=_blank>site_root{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=json</a>
+            <a href="{% url 'api:api_generic_entity_detail_by_version' entity.id entity.history_id %}?format=json"
+                target=_blank>site_root{% url 'api:api_generic_entity_detail_by_version' entity.id entity.history_id %}?format=json</a>
         {% else %}
-            <a href="{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=json"
-                target=_blank>site_root{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=json</a>
+            <a href="{% url 'api:api_generic_entity_detail_by_version_public' entity.id entity.history_id %}?format=json"
+                target=_blank>site_root{% url 'api:api_generic_entity_detail_by_version_public' entity.id entity.history_id %}?format=json</a>
         {% endif %}
 			</td>
 		  </tr>
