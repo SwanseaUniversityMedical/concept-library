@@ -109,18 +109,18 @@
 
           <!-- Dropdown -->
           <div class="col-md-2">
-            <form class="dropdown-btn">
-              <label aria-label="Add Ruleset Selection" role="dropdown" tabindex="0" id="add-ruleset" data-type="EXCLUDE" for="open-excl-ruleset">
-                <input type="radio" class="dropdown-btn__input" name="excl-ruleset-btn" id="open-excl-ruleset">
+            <fieldset class="dropdown-btn">
+              <label aria-label="Add Ruleset Selection" role="dropdown" tabindex="0" id="add-ruleset" data-type="INCLUDE" for="open-incl-ruleset">
+                <input type="radio" class="dropdown-btn__input" name="incl-ruleset-btn" id="open-incl-ruleset">
                 <div class="dropdown-btn__label">Add Ruleset</div>
-                <input type="radio" class="dropdown-btn__close" id="close-excl-ruleset" name="excl-ruleset-btn" checked>
-                <label aria-label="Close Ruleset Selection" role="button" tabindex="0" id="close-ruleset-selection" class="dropdown-btn__close-label" for="close-excl-ruleset"></label>
+                <input type="radio" class="dropdown-btn__close" id="close-incl-ruleset" name="incl-ruleset-btn">
+                <label aria-label="Close Ruleset Selection" role="button" tabindex="0" id="close-ruleset-selection" class="dropdown-btn__close-label" for="close-incl-ruleset"></label>
                 <ul class="dropdown-btn__menu fall-right">
                   <li aria-label="Add Searchterm Rule" role="button" tabindex="0" data-source="SEARCH_TERM">Add Searchterm</li>
                   <li aria-label="Add Import File Rule" role="button" tabindex="0" data-source="FILE_IMPORT">Import from File</li>
                 </ul>
               </label>
-            </form>
+            </fieldset>
           </div>
         </div>
       </div>

@@ -974,7 +974,7 @@ export default class ConceptCreator {
 
     // Disable ruleset addition if no coding system present
     const hasCodingSystem = !isNullOrUndefined(id);
-    const rulesetBtns = editor.querySelectorAll('.dropdown-btn > input[type="checkbox"]');
+    const rulesetBtns = editor.querySelectorAll('.dropdown-btn input[type="radio"]');
     for (let i = 0; i < rulesetBtns.length; ++i) {
       rulesetBtns[i].disabled = !hasCodingSystem;
     }
@@ -1525,7 +1525,7 @@ export default class ConceptCreator {
 
       default: break;
     }
-    
+
     setTimeout(() => {
       let inputs = dropdown.querySelector('#close-ruleset-selection');
       inputs.click();

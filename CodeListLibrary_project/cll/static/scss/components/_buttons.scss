@@ -530,6 +530,8 @@
   display: inline-block;
   position: relative;
   width: fit-content;
+  outline: none;
+  border: 0px;
 
   &__label {
     cursor: pointer;
