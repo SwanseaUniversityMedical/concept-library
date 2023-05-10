@@ -340,26 +340,3 @@ def concat_doi(details, doi):
 
 
 
-
-
-@register.filter   
-def can_section_be_shown(section, is_authenticated):
-    '''
-       check if section can be shown in aside menu
-    '''
-    print('section='+str(section))
-    print('---')
-    print('is_authenticated=' + str(is_authenticated))
-    # if section.get('requires_auth', False):
-    #     if not is_authenticated:
-    #         return False
-        
-
-    # if section.get('do_not_show_in_production', False):
-    #     if (not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC):
-    #         return False
-
-    return True
-
-
-        
