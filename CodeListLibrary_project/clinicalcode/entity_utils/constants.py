@@ -15,6 +15,14 @@ class IterableMeta(enum.EnumMeta):
         else:
             return True
 
+class HISTORICAL_CHANGE_TYPE(int, enum.Enum):
+    '''
+        Historical change type for History Mixin
+    '''
+    CREATED = 1
+    EDITED = 2
+    DELETED = 3
+
 class TAG_TYPE(int, enum.Enum):
     '''
         Tag types used for differentiate Collections & Tags

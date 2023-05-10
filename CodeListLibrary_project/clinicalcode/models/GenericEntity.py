@@ -10,7 +10,7 @@ from simple_history.models import HistoricalRecords
 
 from .Template import Template
 from .EntityClass import EntityClass
-from .TimeStampedModel import TimeStampedModel
+from .ContentPermission import ContentPermission
 from clinicalcode.constants import *
 
 from ..entity_utils import gen_utils, constants
@@ -75,6 +75,9 @@ class GenericEntity(models.Model):
     group_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.GROUP_PERMISSIONS], default=constants.GROUP_PERMISSIONS.NONE)
     world_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.GROUP_PERMISSIONS], default=constants.GROUP_PERMISSIONS.NONE)
 
+    ''' Permission '''
+    permissions = models.ForeignKey(ContentPermission, on_delete=models.CASCADE, null=True, blank=True, related_name='permitted_entities')
+
     ''' Historical data '''
     history = HistoricalRecords()
 
@@ -82,7 +85,6 @@ class GenericEntity(models.Model):
         '''
             [!] Note:
                 1. On creation, increments counter within template and increment's entity ID by count + 1
-                
                 2. template_version field is computed from the template_data.version field
         '''
         template_layout = self.template
