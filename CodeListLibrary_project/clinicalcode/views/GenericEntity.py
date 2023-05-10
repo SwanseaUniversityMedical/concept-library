@@ -255,6 +255,7 @@ class CreateEntityView(TemplateView):
         context['entity'] = entity
         context['object_reference'] = { 'id': entity.id, 'history_id': entity.history_id }
         context['form_method'] = constants.FORM_METHODS.UPDATE
+        context['is_historical'] = model_utils.is_legacy_entity(entity.id, entity.history_id)
         return render(request, self.templates.get('form'), context)
 
     ''' Fetch methods '''

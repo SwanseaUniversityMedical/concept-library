@@ -68,6 +68,18 @@
           {% endif %}
         </section>
         
+        {% if is_historical %}
+          <section class="phenotype-creation__alert">
+            <div class="phenotype-creation__alert-content">
+              <div class="phenotype-creation__alert-icon"></div>
+              <div class="text">
+                <h3>Legacy Phenotype</h3>
+                <p>You are editing a historical version of this Phenotype.</p>
+              </div>
+            </div>
+          </section>
+        {% endif %}
+        
         <ol class="phenotype-progress">
           {% render_wizard_sections %}
           {% endrender_wizard_sections %}

@@ -118,6 +118,18 @@ def get_latest_entity_historical_id(entity_id, user):
 
   return None
 
+def is_legacy_entity(entity_id, entity_history_id):
+  '''
+    Checks whether this entity_id and entity_history_id match the latest record
+    to determine whether a historical entity is legacy or not
+  '''
+  latest_entity = GenericEntity.history.filter(id=entity_id)
+  if not latest_entity.exists():
+    return False
+  
+  latest_entity = latest_entity.latest()
+  return latest_entity.history_id != entity_history_id
+
 def jsonify_object(obj, remove_userdata=True, strip_fields=True, strippable_fields=None, dump=True):
   '''
     JSONifies/Dictifies instance of a model
