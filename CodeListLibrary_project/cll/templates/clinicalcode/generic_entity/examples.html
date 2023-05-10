@@ -110,14 +110,21 @@
           <!-- Dropdown -->
           <div class="col-md-2">
             <fieldset class="dropdown-btn">
-              <label aria-label="Add Ruleset Selection" role="dropdown" tabindex="0" id="add-ruleset" data-type="INCLUDE" for="open-incl-ruleset">
-                <input type="radio" class="dropdown-btn__input" name="incl-ruleset-btn" id="open-incl-ruleset">
-                <div class="dropdown-btn__label">Add Ruleset</div>
-                <input type="radio" class="dropdown-btn__close" id="close-incl-ruleset" name="incl-ruleset-btn">
-                <label aria-label="Close Ruleset Selection" role="button" tabindex="0" id="close-ruleset-selection" class="dropdown-btn__close-label" for="close-incl-ruleset"></label>
+              <label aria-label="Info about dropdown" role="dropdown" tabindex="0" id="dropdown-label" for="dropdown-opener">
+                <!-- ignore this -->
+                <input type="radio" class="dropdown-btn__input" name="dropdown-item" id="dropdown-opener">
+            
+                <!-- dropdown title -->
+                <div class="dropdown-btn__label">The button text</div>
+            
+                <!-- ignore this -->
+                <input type="radio" class="dropdown-btn__close" name="dropdown-item" id="dropdown-closer">
+                <label aria-label="Close dropdown info" role="button" tabindex="0" id="close-dropdown-btn" class="dropdown-btn__close-label" for="dropdown-closer"></label>
+            
+                <!-- dropdown menu content -->
                 <ul class="dropdown-btn__menu fall-right">
-                  <li aria-label="Add Searchterm Rule" role="button" tabindex="0" data-source="SEARCH_TERM">Add Searchterm</li>
-                  <li aria-label="Add Import File Rule" role="button" tabindex="0" data-source="FILE_IMPORT">Import from File</li>
+                  <li aria-label="Info about this button" role="button" tabindex="0">Do something</li>
+                  <li aria-label="Info about this button" role="button" tabindex="0">Do something else</li>
                 </ul>
               </label>
             </fieldset>
