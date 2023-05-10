@@ -550,7 +550,7 @@
   }
 
   &__close:checked + &__close-label {
-		display: none;
+    display: none;
   }
 
   &__close:checked ~ &__menu {
@@ -559,11 +559,11 @@
 
   &__close-label {
     display: none;
-		position: fixed;
-		width: 100vw;
-		height: 100vh;
-		top: 0;
-		left: 0;
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
   }
 
   &__input {
