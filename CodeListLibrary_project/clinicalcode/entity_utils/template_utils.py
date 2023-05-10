@@ -410,7 +410,7 @@ def get_template_data_values(entity, layout, field, hide_user_details=False, def
         if 'source' in validation:
             values = [ ]
             for item in data:
-                value = get_sourced_value(item, info) #???
+                value = get_sourced_value(item, info) 
                 if value is not None:
                     values.append({
                         'name': value,
