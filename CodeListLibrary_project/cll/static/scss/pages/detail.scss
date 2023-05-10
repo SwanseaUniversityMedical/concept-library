@@ -476,3 +476,256 @@
     border-radius: 0.25em;
     box-sizing: border-box;
 }
+
+.caret {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  vertical-align: middle;
+  border-top: 4px dashed;
+  border-top: 4px solid\9;
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent
+}
+
+
+
+/* Modifiers */
+.card-coding-block {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  background-color: #CCDAE1;
+  padding: 2px;
+  border-radius: 0.25rem;
+}
+
+.card-coding-item {
+  margin: 0 0.5rem 0 0;
+}
+
+.phenotype-type-badge {
+  background-color: #f9f2f4;
+  border-radius: 0.25rem;
+}
+
+.card-date-badge {
+  background-color: #BED8D4;
+  border-radius: 0.25rem;
+}
+
+.card-date-block {
+  display: inline-flex;
+  margin: 0 5px 0 0;
+}
+
+.card-noweight {
+  font-weight: normal;
+}
+
+.card-tag-sizing {
+  padding: 5px;
+  line-height: 1;
+  display: inline-block;
+  margin: 0;
+}
+
+.card-edit-sizing {
+  padding: 5px 10px 5px 10px ;
+  line-height: 1;
+  display: inline-block;
+  margin: 0;
+}
+
+.card-no-data {
+  color:rgba(109, 109, 109, 0.5);
+}
+
+.justified-label {
+  display: inline-flex;
+  min-width: 18rem;
+  justify-content: space-between;
+}
+
+.small-divider {
+  margin: 5px 0 5px 0;
+}
+
+.top-heavy-divider {
+  margin: 10px 0 10px 0;
+}
+
+.gender-badge-Male {
+  background-color:#E2F0CB
+}
+
+.gender-badge-Female {
+  background-color: #FFB7B2
+}
+
+.cl-card-with-buttons {
+  padding: 20px 20px 5px 20px;
+}
+
+/* Workingset datable modifiers */
+.foldout-data-table {
+  padding-left: 5px;
+}
+
+
+
+.table-responsive-md {
+  overflow-x: scroll;
+  overflow-y: auto;
+  border-collapse: collapse;
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.table {
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 20px;
+  background-color: transparent;
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+table {
+  display: table;
+  border-collapse: separate;
+  box-sizing: border-box;
+  text-indent: initial;
+  border-spacing: 2px;
+  border-color: gray;
+}
+
+.table-striped>tbody>tr:nth-of-type(odd) {
+  background-color: #f9f9f9
+}
+
+
+.table-flex-rows tr {
+  display: flex;
+}
+
+.table-flex-rows * {
+  margin: 0 !important;
+  word-break: break-all;
+}
+
+.table-flex-rows tr td:first-child, .table-flex-rows tr th:first-child {
+  min-width: 100px;
+}
+
+.table-flex-rows tr td:last-child, .table-flex-rows tr th:last-child {
+  flex-grow: 1;
+}
+
+.table-responsive-md{
+  overflow-x:scroll;
+  overflow-y:auto;
+  border-collapse: collapse;
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0;
+  width: 100%;
+}
+.table td {
+  white-space: normal;
+  padding: 8px;
+}
+
+.table-responsive-md thead th, .table-responsive-md thead th.sorting {
+  position:sticky;
+  top: 0px;
+  background: white;
+}
+
+.component-tab-container {
+  overflow-x: scroll;
+}
+
+
+
+
+.table-responsive-md  thead>tr>th:first-child{
+  z-index: 1;
+}
+.table-responsive-md  thead>tr>th:nth-child(2){
+  z-index: 1;
+}
+
+.table-responsive-md  thead>tr>th:first-child,
+.table-responsive-md  tbody>tr>td:first-child {
+  position: sticky;
+  left: 0px;
+  background:white;
+  color: #373737;
+  margin: 5px;
+}
+
+.table-responsive-md  tbody>tr>td:first-child {
+  background:#ededed ;
+}
+
+
+
+
+.table-responsive-md  thead>tr>th:nth-child(2),
+.table-responsive-md  tbody>tr>td:nth-child(2) {
+  position: sticky;
+  left: 70px;
+  background:white;
+  color: #373737; 
+
+  margin: 5px;
+}
+
+
+
+.label-primary{
+  display: -webkit-inline-box;
+} 
+
+
+
+.hightlight-txt{
+	background-color: yellow
+}
+
+/* Code blocks */
+code.api-codeblock {
+  background: #f4f4f4;
+  border: 1px solid #dfdfdf;
+  color: #6a6a6a;
+  display: block;
+  word-wrap: break-word;
+}
+
+code.api-codeblock .code-general-highlight {
+  color: #6a6a6a;
+}
+
+code.api-codeblock .code-syntax-highlight {
+  color: #005780;
+}
+
+code.api-codeblock .code-value-highlight {
+  color: #800080;
+}
+
+code.api-codeblock .code-text-highlight, .code-comment-highlight {
+  color: #009700;
+}
+
+

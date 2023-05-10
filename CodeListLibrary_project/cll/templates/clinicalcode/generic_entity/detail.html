@@ -26,9 +26,11 @@
 
 {% block container %}
 <!-- Vendor -->
-<script src="{% static 'js/clinicalcode/redesign/vendor/simple-datatables/simple-datatables.min.js' %}"></script>
-<!-- <script src="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.js' %}"></script> -->
-<script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.css' %}" />
+  <script src="{% static 'js/clinicalcode/redesign/vendor/simple-datatables/simple-datatables.min.js' %}"></script>
+  <script src="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.js' %}"></script>
+  <script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
+
 
 <!-- Dependencies -->
 {% compress js file %}
@@ -43,8 +45,8 @@
   <!-- Form -->
   <header class="main-header">
     <div class="main-header__inner-container">
-      {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
-      {% endbreadcrumbs %}
+      {% comment %} {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
+      {% endbreadcrumbs %} {% endcomment %}
 
 		<section class="breadcrumbs">
 			<span class="breadcrumb-item">
@@ -68,29 +70,20 @@
 
     <div class="main-content__inner-container">
       <article class="phenotype-creation">
-        <section class="phenotype-creation__header">
-          <h1>{{ entity.name }}</h1>
-        </section>
-        
-        <ol class="phenotype-progress">
-          {% render_wizard_sections_detail_pg %}
-          {% endrender_wizard_sections_detail_pg %}
-        </ol>
 
-        <!-- <section class="phenotype-creation__completed" id="completed-section">
-          <div class="phenotype-creation__completed-row">
-            <button class="secondary-btn text-accent-darkest bold washed-accent" aria-label="Save Draft" id="cancel-entity-btn">
-              Cancel
-            </button>
-            <button class="primary-btn text-accent-darkest bold tertiary-accent icon create-icon sweep-left" aria-label="Create or Update Entity" id="submit-entity-btn">
-              {% if form_method.value == '1' %}
-              Create Entity
-              {% else %}
-              Update Entity
-              {% endif %}
-            </button>
-          </div>
-        </section> -->
+        {% include './detail_buttons.html' %}
+        
+ 
+          <section class="phenotype-creation__header">
+            <h1>{{ entity.name }}</h1>
+            <p><i>{{ entity.author }}</i></p>
+          </section>
+
+          
+          <ol class="phenotype-progress">
+            {% render_wizard_sections_detail_pg %}
+            {% endrender_wizard_sections_detail_pg %}
+          </ol>
         
       </article>
     </div>

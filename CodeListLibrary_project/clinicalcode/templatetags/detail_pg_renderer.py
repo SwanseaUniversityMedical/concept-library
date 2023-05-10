@@ -1,3 +1,4 @@
+from django.apps import apps
 from django import template
 from jinja2.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
@@ -409,10 +410,15 @@ class EntityWizardAside(template.Node):
         # We should be getting the FieldTypes.json related to the template
         detail_page_sections = []
         for section in template.definition.get('detail_page_sections'):
-            if section.get('requires_auth'):
+            if section.get('requires_auth', False):
                 if not request.user.is_authenticated:
-                    print('SECTION: requires_auth')
+                    #print('SECTION: requires_auth')
                     continue   
+                
+            if section.get('do_not_show_in_production', False):
+                if (not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC):
+                    #print('SECTION: do_not_show_in_production')
+                    continue  
             
             detail_page_sections.append(section)
 
@@ -448,6 +454,87 @@ def render_steps_wizard(parser, token):
     parser.delete_first_token()
     return EntityWizardSections(params, nodelist)
 
+def get_data_sources(ds_ids, info, default=None):
+    '''
+        Tries to get the sourced value of data_sources id/name/url
+    '''
+    validation = template_utils.try_get_content(info, 'validation')
+    if validation is None:
+        return default
+
+    try:
+        source_info = validation.get('source')
+        model = apps.get_model(app_label='clinicalcode', model_name=source_info.get('table'))
+        # relative = None
+        # if 'relative' in source_info:
+        #     relative = source_info['relative']
+
+        # query = None
+        # if 'query' in source_info:
+        #     query = {
+        #         source_info['query']: data
+        #     }
+        # else:
+        #     query = {
+        #         'pk': data
+        #     }
+
+        if ds_ids:
+            queryset = model.objects.filter(id__in = ds_ids)
+            if queryset.exists():
+                #queryset = model.objects.get(id__in = ds_ids)
+                return queryset
+        
+        return default
+    except:
+        return default
+    
+def get_template_creation_data(entity, layout, field, default=[]):
+    '''
+        Used to retrieve assoc. data values for specific keys, e.g.
+        concepts, in its expanded format for use with create/update pages
+    '''
+    data = template_utils.get_entity_field(entity, field)
+    info = template_utils.get_layout_field(layout, field)
+    if not info or not data:
+        return default
+    
+    if info.get('is_base_field'):
+        info = template_utils.try_get_content(constants.metadata, field)
+
+    validation = template_utils.try_get_content(info, 'validation')
+    if validation is None:
+        return default
+
+    field_type = template_utils.try_get_content(validation, 'type')
+    if field_type is None:
+        return default
+    
+    if field_type == 'concept':
+        values = []
+        for item in data:
+            value = model_utils.get_clinical_concept_data(
+                item['concept_id'],
+                item['concept_version_id'],
+                include_component_codes=False, 
+                include_attributes=True, 
+                include_reviewed_codes=True)
+
+
+            if value:
+                values.append(value)
+        
+        return values
+    
+    if info.get('field_type') == 'data_sources':
+        return get_data_sources(data, info, default=default)
+    
+    if template_utils.is_metadata(entity, field):
+        return template_utils.get_metadata_value_from_source(entity, field, default=default)
+    
+    return template_utils.get_template_data_values(entity, layout, field, default=default)
+
+
 class EntityWizardSections(template.Node):
     def __init__(self, params, nodelist):
         self.request = template.Variable('request')
@@ -455,9 +542,10 @@ class EntityWizardSections(template.Node):
         self.nodelist = nodelist
     
     def __try_get_entity_value(self, template, entity, field):
-        value = create_utils.get_template_creation_data(entity, template, field, default=None)
-        print('value========='+str(value))
+        value = get_template_creation_data(entity, template, field, default=None)
+        #print('value===11======'+str(value))
         if value is None:
+            #print('value===22======'+str(template_utils.get_entity_field(entity, field)))
             return template_utils.get_entity_field(entity, field)
 
         return value
@@ -491,19 +579,22 @@ class EntityWizardSections(template.Node):
         entity = context.get('entity', None)
         if template is None:
             return output
-        
-        print('vvvvvvv  entity  vvvvvvvvv')
-        print(str(entity))
+
         
         # We should be getting the FieldTypes.json related to the template
         field_types = constants.FIELD_TYPES
         for section in template.definition.get('detail_page_sections'):
-            if section.get('requires_auth'):
+            if section.get('requires_auth', False):
                 #if not request.user.is_authenticated:
                 if not context.get('user').is_authenticated:
-                    print('SECTION: requires_auth22')
+                    #print('SECTION: requires_auth22')
                     continue   
-
+                
+            if section.get('do_not_show_in_production', False):
+                if (not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC):
+                    #print('SECTION: do_not_show_in_production')
+                    continue    
+                    
             # still need to handle: section 'hide_if_empty' ??? 
         
             output += self.__try_render_item(template_name=constants.DETAIL_WIZARD_SECTION_START
@@ -511,23 +602,23 @@ class EntityWizardSections(template.Node):
                                              , context=context.flatten() | { 'section': section })
 
             for field in section.get('fields'):
-                print('field==== '+str(field))
+                #print('field==== '+str(field))
                 template_field = template_utils.get_field_item(template.definition, 'fields', field)
-                print('template_field-temp='+ str(template_field) )
+                #print('template_field-temp='+ str(template_field) )
                 if not template_field:
                     template_field = template_utils.try_get_content(constants.metadata, field)
-                    print('template_field-base='+ str(template_field) )
+                    #print('template_field-base='+ str(template_field) )
 
                 if not template_field:
-                    print('not template_field')
+                    #print('not template_field')
                     continue
                 
-                if template_field.get('is_base_field'):
+                if template_field.get('is_base_field', False):
                     template_field = constants.metadata.get(field) | template_field
 
                 component = template_utils.try_get_content(field_types, template_field.get('field_type'))                
                 if component is None:
-                    print('component is None')
+                    #print('component is None')
                     continue
 
                 if template_utils.is_metadata(GenericEntity, field):
@@ -535,29 +626,25 @@ class EntityWizardSections(template.Node):
                 else:
                     field_data = template_utils.get_layout_field(template, field)
 
-                print('field_data===****==='+str(field_data))
+                #print('field_data===****==='+str(field_data))
                 
-                if template_field.get('hide_if_empty'):
-                    if field_data is None or str(field_data) == '':
-                        print('hide_if_empty')
-                        continue
 
-                if template_field.get('requires_auth'):
+                if template_field.get('requires_auth', False):
                     if not request.user.is_authenticated:
-                        print('requires_auth')
+                        #print('requires_auth')
                         continue    
 
                 if not template_field.get('active', False):
-                    print('NOT active')
+                    #print('NOT active')
                     continue       
 
-                if not template_field.get('do_not_show_in_production'):
+                if template_field.get('do_not_show_in_production', False):
                     if (not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC):
-                        print('do_not_show_in_production')
+                        #print('do_not_show_in_production')
                         continue                                                  
 
                 if field_data is None:
-                    print('field_data is None ==>> str()')
+                    #print('field_data is None ==>> str()')
                     field_data = ''
                     #continue
 
@@ -590,14 +677,14 @@ class EntityWizardSections(template.Node):
                     component['value'] = self.__try_get_entity_value(template, entity, field)
                 else:
                     component['value'] = ''
+                    
+                if template_field.get('hide_if_empty', False):
+                    if component['value'] is None or str(component['value']) == '':
+                        #print('hide_if_empty')
+                        continue    
+                                    
 
                 output_type = component.get("output_type")
-                #print('output_type=1== ' + str(output_type))
-                # print('ll='+str([s['fields'][0] for s in constants.DETAIL_ASIDE_DEFAULT]))
-                # if field in [s['fields'][0] for s in constants.DETAIL_ASIDE_DEFAULT]:
-                #     output_type = field
-                # print('output_type=2== ' + output_type)
-
                 uri = f'{constants.DETAIL_WIZARD_OUTPUT_DIR}/{output_type}.html'
                 output += self.__try_render_item(template_name=uri, request=request, context=context.flatten() | { 'component': component })
 

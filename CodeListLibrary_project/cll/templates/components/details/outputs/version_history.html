@@ -7,9 +7,9 @@
 -->
 
 <div class="col-sm-12 no-print" id="history-section">
-	<h3 class="paneltitle" >
+	{% comment %} <h3 class="paneltitle" >
 		<span id="versionhistory"></span><strong>Version History</strong>
-	</h3>
+	</h3> {% endcomment %}
 
     <span>
 	 	{% if user.is_authenticated %}
@@ -29,9 +29,9 @@
 		<div class="h-scrollable-table">
 			<div class="h-scrollable-table__wrapper">
 			<table class000="h-scrollable-table" id="history-table" >
-				<thead class="primary-accent">
+				<thead class="tertairy-accent">
 					<tr>
-						<th >Version<br> ID</th>
+						<th >Version ID</th>
 						<th >Name</th>
 						{% if user.is_authenticated %}
 							<th>Date</th>

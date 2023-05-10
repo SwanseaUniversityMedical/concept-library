@@ -1163,7 +1163,6 @@ def generic_entity_detail(request, pk, history_id=None):
     }
 
     if 'concept_information' in template.definition['fields']:
-        print('hhhhhhhhhhhhhhhhhhhh')
         concept_dict = get_concept_data2(request, pk, history_id, generic_entity, is_latest_version, children_permitted_and_not_deleted)
         context = context | concept_dict
 
@@ -1208,7 +1207,7 @@ def get_concept_data2(request, pk, history_id, generic_entity, is_latest_version
         # published
         component_tab_active = "active"  # ""
         codelist_tab_active = ""  # "active"
-        codelist = entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id) ## change
+        codelist = [] # entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id) ## change
         codelist_loaded = 1
         
     # codelist = entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id)

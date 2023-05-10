@@ -6,7 +6,7 @@ from django import template
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse_lazy, reverse
-from ..constants import APPROVED, APPROVED_STATUS, ENTITY_LAYOUT, PENDING, REJECTED
+from ..entity_utils import permission_utils, constants
 
 register = template.Library()
 
@@ -43,72 +43,81 @@ def render_errors_approval(context, *args, **kwargs):
 
 @register.inclusion_tag('components/publish_request/publish_button.html', takes_context=True, name='render_publish_button')
 def render_publish_button(context, *args, **kwargs):
-    user_group = context['request'].user.groups.filter(name='Moderators').exists()
+    user_is_moderator = permission_utils.is_member(context['request'].user, "Moderators")
     button_context = {}
-    if user_group:
+    if user_is_moderator:
         if not context['live_ver_is_deleted']:
-            if context["approval_status"]== APPROVED_STATUS[PENDING][0] and context["is_latest_pending_version"]:
+            if context["approval_status"]== constants.APPROVAL_STATUS.PENDING and context["is_latest_pending_version"]:
                 button_context = {'class_modal':"js-load-modal btn btn-warning",
-                        'url':reverse('generic_entity_publish', kwargs={'pk': context['entity']['id'], 'history_id': context['entity']['history_id']}),
-                        'title': "Needs to be approved"}
+                                  'url':reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
+                                  'title': "Needs to be approved"
+                                  }
                         
             else:
-                if context['approval_status'] == APPROVED_STATUS[REJECTED][0]:
+                if context['approval_status'] == constants.APPROVAL_STATUS.REJECTED:
                     button_context = {'class_modal':"js-load-modal  btn btn-danger",
-                        'url':reverse('generic_entity_publish', kwargs={'pk': context['entity']['id'], 'history_id': context['entity']['history_id']}),
-                        'title': "Approve declined entity"
-                        }
+                                      'url':reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
+                                      'title': "Approve declined entity"
+                                      }
                 else:
                     button_context = {'class_modal':"js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary",
-                        'url':reverse('generic_entity_publish', kwargs={'pk': context['entity']['id'], 'history_id': context['entity']['history_id']}),
-                        'title': "Publish immediately"
-                        }
+                                      'url':reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
+                                      'title': "Publish immediately"
+                                      }
         else:
             button_context =  {'class_modal':"btn btn-primary",
-                        'title': "This version is already published" if context["is_published"] and context["approval_status"] == APPROVED_STATUS[APPROVED][0]  
-                        else  "Deleted phenotypes cannot be published !!" if context["live_ver_is_deleted"] else ""
-                        }
+                               'title': "This version is already published" if context["is_published"] and context["approval_status"] == constants.APPROVAL_STATUS.APPROVED  
+                               else  "Deleted phenotypes cannot be published !!" if context["live_ver_is_deleted"] else ""
+                               }
         
-        if context["approval_status"] == APPROVED_STATUS[PENDING][0] and context["is_latest_pending_version"]:
+        if context["approval_status"] == constants.APPROVAL_STATUS.PENDING and context["is_latest_pending_version"]:
             button_context["Button_type"] = "Approve"
             return button_context
         else:
             button_context["Button_type"] = "Publish"
             return button_context
     else:
-        if not context["is_lastapproved"] and context["approval_status"] is None and not user_group:
+        if not context["is_lastapproved"] and context["approval_status"] is None and not user_is_moderator:
             button_context = {'class_modal':"js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary",
-                        'url':reverse('generic_entity_request_publish', kwargs={'pk': context['entity']['id'], 'history_id': context['entity']['history_id']}),
-                        'title': "Needs to be approved"}
-        elif  context["is_lastapproved"] and not context["live_ver_is_deleted"] and not context["approval_status"] == APPROVED_STATUS[REJECTED][0]:
+                              'url':reverse('generic_entity_request_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
+                              'title': "Needs to be approved"
+                              }
+        elif  context["is_lastapproved"] and not context["live_ver_is_deleted"] and not context["approval_status"] == constants.APPROVAL_STATUS.REJECTED:
             button_context = {'class_modal':"js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary",
-                        'url':reverse('generic_entity_publish', kwargs={'pk': context['entity']['id'], 'history_id': context['entity']['history_id']}),
-                        'title': "Publish immediately"}
+                              'url':reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
+                              'title': "Publish immediately"
+                              }
         else:
-            if context["is_published"] and context["approval_status"] == APPROVED_STATUS[APPROVED][0]:
+            if context["is_published"] and context["approval_status"] == constants.APPROVAL_STATUS.APPROVED:
                 button_context = {'class_modal':"btn btn-primary",
-                            'title': f"This version is already {APPROVED_STATUS[APPROVED][1].lower()} "}
+                                  'title': f"This version is already {constants.APPROVAL_STATUS.APPROVED.name.lower()} "
+                                  }
             elif context["live_ver_is_deleted"]:
                 button_context = {'class_modal':"btn btn-primary",
-                            'title': "Deleted phenotypes cannot be published !!"}
-            elif context["approval_status"] == APPROVED_STATUS[REJECTED][0]:
+                                  'title': "Deleted phenotypes cannot be published !!"
+                                  }
+            elif context["approval_status"] == constants.APPROVAL_STATUS.REJECTED:
                 button_context = {'class_modal':"btn btn-danger",
                                   'disabled': 'true',
-                            'title': f"This version has been {APPROVED_STATUS[REJECTED][1].lower()}"}
-            elif context["approval_status"] == APPROVED_STATUS[PENDING][0]:
+                                  'title': f"This version has been {constants.APPROVAL_STATUS.REJECTED.name.lower()}"
+                                  }
+            elif context["approval_status"] == constants.APPROVAL_STATUS.PENDING:
                 if context["entity"]["owner_id"] == context["request"].user.id:
                     button_context = {'class_modal':"btn btn-warning",
                                       'disabled': 'true',
-                            'title': "This version is pending approval"}
+                                      'title': "This version is pending approval"
+                                      }
                 else:
-                    button_context = {'class_modal':"btn btn-primary",'disabled': 'true',
-                            'title': "Unavailable to publish"}
+                    button_context = {'class_modal':"btn btn-primary",
+                                      'disabled': 'true',
+                                      'title': "Unavailable to publish"
+                                      }
         
-        if context["approval_status"] == APPROVED_STATUS[REJECTED][0]:
-            button_context["Button_type"] = APPROVED_STATUS[REJECTED][1]
+        if context["approval_status"] == constants.APPROVAL_STATUS.REJECTED:
+            button_context["Button_type"] = constants.APPROVAL_STATUS.REJECTED.name.capitalize()
             return button_context
-        elif context["approval_status"] == APPROVED_STATUS[PENDING][0]:
-            button_context["Button_type"] = APPROVED_STATUS[PENDING][1]
+        elif context["approval_status"] == constants.APPROVAL_STATUS.PENDING:
+            button_context["Button_type"] = constants.APPROVAL_STATUS.PENDING.name.capitalize()
             return button_context
         else:
             button_context["Button_type"] = "Publish"

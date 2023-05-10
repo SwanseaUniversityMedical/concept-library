@@ -1,9 +1,9 @@
 <!--   API   -->
 
 <div class="col-sm-12 no-print shadow-frame">
-	<h3 class="paneltitle" id="API_Header" style="margin-top:20px; margin-bottom:20px;">
+	{% comment %} <h3 class="paneltitle" id="API_Header" style="margin-top:20px; margin-bottom:20px;">
 		<span id="API"></span><strong>API</strong>
-	</h3>
+	</h3> {% endcomment %}
 
 	<span id="api_id" entity_id="{{ entity.id }}">
 		<p> To Export {{ entity_class }} Details:</p>
@@ -17,24 +17,24 @@
 			<td>XML</td>
 			<td>
 			   {% if user.is_authenticated %}
-	               <a href="{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=xml"
-	                  target=_blank>site_root{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=xml</a>
-	           {% else %}
-	               <a href="{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=xml"
-	                  target=_blank>site_root{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=xml</a>
-	           {% endif %}
+              <a href="{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=xml"
+                target=_blank>site_root{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=xml</a>
+          {% else %}
+              <a href="{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=xml"
+                target=_blank>site_root{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=xml</a>
+          {% endif %}
 			</td>
 		  </tr>
 		  <tr>
 			<td>JSON</td>
 			<td>
 				{% if user.is_authenticated %}
-                    <a href="{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=json"
-                       target=_blank>site_root{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=json</a>
-                {% else %}
-                    <a href="{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=json"
-                       target=_blank>site_root{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=json</a>
-                {% endif %}
+            <a href="{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=json"
+                target=_blank>site_root{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=json</a>
+        {% else %}
+            <a href="{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=json"
+                target=_blank>site_root{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=json</a>
+        {% endif %}
 			</td>
 		  </tr>
           <tr>
@@ -79,24 +79,24 @@
 			<td>XML</td>
 			<td>
 				{% if user.is_authenticated %}
-                    <a href="{% url 'api:ge_api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=xml"
-                       target=_blank>site_root{% url 'api:ge_api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=xml</a>
-                {% else %}
-                    <a href="{% url 'api:api_export_published_phenotype_codes' entity.id entity.history_id %}?format=xml"
-                       target=_blank>site_root{% url 'api:api_export_published_phenotype_codes' entity.id entity.history_id %}?format=xml</a>
-                {% endif %}
+            <a href="{% url 'api:ge_api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=xml"
+                target=_blank>site_root{% url 'api:ge_api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=xml</a>
+        {% else %}
+            <a href="{% url 'api:api_export_published_phenotype_codes' entity.id entity.history_id %}?format=xml"
+                target=_blank>site_root{% url 'api:api_export_published_phenotype_codes' entity.id entity.history_id %}?format=xml</a>
+        {% endif %}
 			</td>
 		  </tr>
 		  <tr>
 			<td>JSON</td>
 			<td>
 				{% if user.is_authenticated %}
-                    <a href="{% url 'api:ge_api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=json"
-                       target=_blank>site_root{% url 'api:ge_api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=json</a>
-                {% else %}
-                    <a href="{% url 'api:ge_api_export_published_phenotype_codes' entity.id entity.history_id %}?format=json"
-                       target=_blank>site_root{% url 'api:ge_api_export_published_phenotype_codes' entity.id entity.history_id %}?format=json</a>
-                {% endif %}
+            <a href="{% url 'api:ge_api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=json"
+                target=_blank>site_root{% url 'api:ge_api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=json</a>
+        {% else %}
+            <a href="{% url 'api:ge_api_export_published_phenotype_codes' entity.id entity.history_id %}?format=json"
+                target=_blank>site_root{% url 'api:ge_api_export_published_phenotype_codes' entity.id entity.history_id %}?format=json</a>
+        {% endif %}
 			</td>
 	
 		  </tr>
@@ -108,38 +108,47 @@
 				     target=_blank>site_root{% url 'ge_history_phenotype_codes_to_csv' entity.id entity.history_id %}</a>
 			  </td>
 			</tr>
-	      {% endif %}
-          <tr>
-            <td>R Package</td>
-            <td>
-                <code class="api-codeblock">
-                    <p class="code-comment-highlight">
-                        # <a href="https://github.com/SwanseaUniversityMedical/ConceptLibraryClient">Download here</a>
-                    </p>
-                    <p class="code-general-highlight">
-                        library(ConceptLibraryClient)
-                    </p>
-                    <br>
-                    <p class="code-comment-highlight">
-                        # Connect to API
-                    </p>
-                    <p class="code-general-highlight">
-                        client = connect_to_API(public=<span class="code-value-highlight">{% if user.is_authenticated %}FALSE{% else %}TRUE{% endif %}</span>)
-                    </p>
-                    <br>
-                    <p class="code-comment-highlight">
-                        # Get codelists of entity
-                    </p>
-                    <p class="code-general-highlight">
-                        codelists = get_phenotype_code_list(<span class="code-text-highlight">'{{ entity.id }}'</span>, 
-                        <span class="code-text-highlight">'{{ entity.history_id }}'</span>, 
-                        api_client=client)
-                    </p>
-                </code>
-            </td>
-          </tr>
+	    {% endif %}
+      <tr>
+        <td>R Package</td>
+        <td>
+            <code class="api-codeblock">
+                <p class="code-comment-highlight">
+                    # <a href="https://github.com/SwanseaUniversityMedical/ConceptLibraryClient">Download here</a>
+                </p>
+                <p class="code-general-highlight">
+                    library(ConceptLibraryClient)
+                </p>
+                <br>
+                <p class="code-comment-highlight">
+                    # Connect to API
+                </p>
+                <p class="code-general-highlight">
+                    client = connect_to_API(public=<span class="code-value-highlight">{% if user.is_authenticated %}FALSE{% else %}TRUE{% endif %}</span>)
+                </p>
+                <br>
+                <p class="code-comment-highlight">
+                    # Get codelists of entity
+                </p>
+                <p class="code-general-highlight">
+                    codelists = get_phenotype_code_list(<span class="code-text-highlight">'{{ entity.id }}'</span>, 
+                    <span class="code-text-highlight">'{{ entity.history_id }}'</span>, 
+                    api_client=client)
+                </p>
+            </code>
+        </td>
+      </tr>
 		</table>
 	
 	</span>
 </div>
 
+
+<script type="text/javascript">
+  // make api urls with site name
+  $(function () {
+      var v = $('#api_id').html();
+      v = v.replace(/site_root/g, 'http://' + document.location.host);
+      $('#api_id').html(v);
+  });
+</script>

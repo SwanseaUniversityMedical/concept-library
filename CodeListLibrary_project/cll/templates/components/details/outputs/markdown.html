@@ -3,18 +3,14 @@
 {% load cl_extras %}
 
 <div class="detailed-input-group fill">
-  <!-- {% if not component.hide_input_details %}
-  <h3 class="detailed-input-group__title">{{ component.field_data.title }}</h3>
-  <p class="detailed-input-group__description">{{ component.description }}</p>
-  {% endif %} -->
 
   <div class="col-sm-12 shadow-frame">
-    <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;">
+    <h3 class="paneltitle">
       <span id="entity-{{ component.field_name }}"></span>
-      <strong>{{ component.field_data.title }}</strong>
+      {% comment %} <strong>{{ component.field_data.title }}</strong> {% endcomment %}
     </h3>
     {{ component.value|markdownify }}
     
-</div>
+  </div>
 
 </div>

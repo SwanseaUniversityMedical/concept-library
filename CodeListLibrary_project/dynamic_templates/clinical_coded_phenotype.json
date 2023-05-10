@@ -39,7 +39,7 @@
     {
       "title": "Home",
       "description": "",
-      "fields": ["name", "author", "id", "history_id", "phenotype_uuid", "type", "data_sources", "sex", "event_date_range", "coding_system", "collections", "tags"]
+      "fields": ["id", "history_id", "phenotype_uuid", "type", "data_sources", "sex", "event_date_range", "coding_system", "collections", "tags"]
     },
     {
       "title": "Definition",
