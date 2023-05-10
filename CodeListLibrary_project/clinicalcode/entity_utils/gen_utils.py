@@ -168,6 +168,9 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
                 return default
         return parse_int(field_value, default)
     elif field_type == 'int_array':
+        if isinstance(field_value, int):
+            return [field_value]
+        
         if not isinstance(field_value, list):
             return default
         
@@ -187,16 +190,23 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
         return cleaned if valid else default
     elif field_type == 'string':
         try:
-            value = str(field_value)
+            value = str(field_value) if field_value is not None else ''
             if validation is not None:
                 pattern = validation.get('regex')
+                mandatory = validation.get('mandatory')
                 if pattern is not None and not try_match_pattern(value, pattern):
-                    return default
+                    if mandatory:
+                        return default
+                    else:
+                        return value if is_empty_string(value) else default
         except:
             return default
         else:
             return value
     elif field_type == 'string_array':
+        if isinstance(field_value, str):
+            return [field_value]
+        
         if not isinstance(field_value, list):
             return default
         

@@ -40,3 +40,6 @@ from .Template import Template
 from .GenericEntity import GenericEntity
 from .PublishedGenericEntity import PublishedGenericEntity
 
+# need to restore EMIS/Vision when deploy. to prod.
+#from .EMIS_CODES import EMIS_CODES
+#from .VISION_CODES import VISION_CODES

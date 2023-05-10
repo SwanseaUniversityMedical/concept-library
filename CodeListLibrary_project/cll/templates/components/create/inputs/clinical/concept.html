@@ -5,7 +5,7 @@
   <data type="value" for="{{ component.field_name }}">{% if component.value %}{{ component.value|jsonify|safe }}{% endif %}</data>
   <section class="concepts-view__header">
     <div class="concepts-view__container">
-      <p class="concepts-view__title">Your Concepts</p>
+      <p class="concepts-view__title">Your Concepts {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>
       <p class="concepts-view__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
     </div>
     <div class="concepts-view__container">
@@ -27,7 +27,7 @@
   </section>
 
   <template id="concept-item">
-    <section class="concept-list__group" data-concept-id="${concept_id}" data-concept-history-id="${concept_history_id}">
+    <section class="concept-list__group" data-concept-id="${concept_id}" data-concept-history-id="${concept_version_id}">
       <span class="concept-list__group-item" id="concept-accordian-header">
         <span class="contextual-icon" tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open"></span>
         <span class="concept-name" tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open">${concept_name}</span>

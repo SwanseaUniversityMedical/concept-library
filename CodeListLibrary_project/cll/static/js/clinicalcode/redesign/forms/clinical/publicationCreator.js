@@ -23,7 +23,7 @@ export default class PublicationCreator {
     this.data = data || [ ];
     this.element = element;
     this.dirty = false;
-  
+ 
     this.#setUp();
     this.#redrawPublications();
   }
@@ -128,7 +128,10 @@ export default class PublicationCreator {
    * @desc initialises the publication component
    */
   #setUp() {
-    this.element.addEventListener('keyup', this.#handleInput.bind(this));
+    this.publicationInput = this.element.querySelector('#publication-input-box');
+    this.doiInput = this.element.querySelector('#doi-input-box');
+    this.addButton = this.element.querySelector('#add-input-btn');
+    this.addButton.addEventListener('click', this.#handleInput.bind(this));
     window.addEventListener('click', this.#handleClick.bind(this));
 
     const noneAvailable = this.element.parentNode.querySelector('#no-available-publications');
@@ -154,23 +157,21 @@ export default class PublicationCreator {
    * @param {event} e the event of the input 
    */
   #handleInput(e) {
-    const code = e.keyIdentifier || e.which || e.keyCode;
-    if (code != PUBLICATION_KEYCODES.ENTER) {
-      return;
-    }
-
+    console.log('CLICK')
     e.preventDefault();
     e.stopPropagation();
 
-    const input = this.element.value;
-    if (!e.target.checkValidity() || isNullOrUndefined(input) || isStringEmpty(input)) {
+    const publication = this.publicationInput.value;
+    const doi = this.doiInput.value;
+    if (!this.publicationInput.checkValidity() || isNullOrUndefined(publication) || isStringEmpty(publication)) {
       return;
     }
 
-    const matches = parseDOI(input);
-    this.element.value = '';
+    const matches = parseDOI(doi);
+    this.doiInput.value = '';
+    this.publicationInput.value = '';
     this.data.push({
-      details: input,
+      details: publication,
       doi: matches?.[0],
     });
     this.makeDirty();

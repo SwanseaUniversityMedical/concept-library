@@ -66,18 +66,32 @@ const setNavigation = (navbar) => {
   const links = navbar.querySelectorAll('.page-navigation__items a');
 
   let path = getCurrentPath();
-  let brand = document.documentElement.getAttribute('data-brand');
-  if (brand != 'none') {
-    path = path.split('/')
-              .filter(token => !isStringEmpty(token) && token !== brand)
-              .join('/');
-  }
   path = path.toLocaleLowerCase();
+
+  let currentBrand = document.documentElement.getAttribute('data-brand');
+  if (!isNullOrUndefined(currentBrand)) {
+    currentBrand = currentBrand.toLocaleLowerCase();
+    path = path.replace(`${currentBrand}\/`, '');
+  }
+  
+  let root = path.match(/^\/(\w+)/);
+  root = !isNullOrUndefined(root) ? root[1] : null;
 
   let distance, closest;
   for (let i = 0; i < links.length; ++i) {
     const link = links[i];
 
+    // match by data-root attribute
+    let roots = link.getAttribute('data-root');
+    if (root && !isNullOrUndefined(roots)) {
+      roots = roots.split(',');
+      if (roots.includes(root)) {
+        closest = link;
+        break;
+      }
+    }
+
+    // match by link
     let href = link.getAttribute('href');
     href = href.replace(/\/$/, '').toLocaleLowerCase();
     
