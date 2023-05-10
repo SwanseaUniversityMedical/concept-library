@@ -308,6 +308,35 @@ def get_html_element(field_data):
     return ret_html
 
 
-
-
+@register.filter   
+def concat_str(txt, txt2):
+    '''
+        concat 2 strings
+    '''
+    ret_str = ''
+    if txt:
+        ret_str = txt
         
+    if txt2:
+        ret_str += ' ' + txt2
+        
+    return ret_str
+
+
+
+@register.filter   
+def concat_doi(details, doi):
+    '''
+        concat publications details + doi
+    '''
+    ret_str = ''
+    if details:
+        ret_str = details
+        
+    if doi:
+        ret_str += ' (DOI:' + doi + ')'
+        
+    return ret_str
+
+
+

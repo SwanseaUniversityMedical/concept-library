@@ -46,8 +46,13 @@
 
   table {
     width: 100%;
-    border-collapse: separate;
+    border-collapse: collapse;
     border-spacing: 0;
+
+    max-width: 100%;
+    background-color: transparent;
+    display: table;
+    // margin-bottom: 20px;
   }
 
   th,
@@ -70,9 +75,28 @@
     background: col(bg);
   }
 
-  th,
   thead {
-    background: col(accent-secondary);
+    background: col(accent-tertiary);
+    
+    &.primary-accent {
+      background-color: col(accent-primary);
+    }
+    &.secondary-accent {
+      background-color: col(accent-secondary);
+    }
+    &.tertiary-accent {
+      background-color: col(accent-tertiary);
+    }
+    &.washed-accent {
+      background-color: col(accent-washed);
+    }
+    &.bubble-accent {
+      background-color: col(accent-bubble);
+    }
+  }
+
+  th {
+    background-color: inherit;
   }
 
   td.sticky {

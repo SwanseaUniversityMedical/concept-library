@@ -1,0 +1,55 @@
+{% load static %}
+{% load cl_extras %}
+{% load entity_publish_request %}
+
+
+
+<div id="topButtons" class="box-container action-buttons-container">
+
+  <div class="row">
+    <div class="col-md-6">
+    </div>
+    <div class="col-md-6 text-align-right">
+        <label class="dropdown-btn" >
+          <div class="dropdown-btn__label">
+            Export {{ entity_class }}
+            <span class="caret"></span>
+          </div>
+          <input type="checkbox" class="dropdown-btn__input"  {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %}>
+          <ul class="dropdown-btn__menu fall-right">
+            <li>
+              <a {% if user_can_export %}
+                  href="{% url 'api:api_phenotype_detail_version' entity.id entity.history_id %}?format=json"
+                  target=_blank 
+                  {% endif %}
+                class="dropdown-item">
+                  JSON
+              </a>
+            </li>
+            <li>
+              <a {% if user_can_export %}
+                  href="{% url 'api:api_phenotype_detail_version' entity.id entity.history_id %}?format=xml"
+                  target=_blank 
+                  {% endif %}
+                class="dropdown-item">
+                  XML
+              </a>
+            </li>
+          </ul>
+        </label>
+
+      {% if user.is_authenticated and not CLL_READ_ONLY %}
+        {% if is_published and approval_status == 2%}
+            <button class="primary-btn dropdown-btn__label" disabled title="This version is already published" style='color: green;'>
+              &nbsp;<strong>Published</strong>&nbsp;
+            </button>
+        {% else %}    
+            {% render_publish_button %}          
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+  
+</div>
+
+

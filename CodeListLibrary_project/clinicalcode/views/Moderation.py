@@ -7,8 +7,7 @@ from django.utils.decorators import method_decorator
 from django.core.exceptions import PermissionDenied
 
 from ..models import PublishedGenericEntity
-from ..entity_utils import permission_utils
-from ..entity_utils.constants import APPROVAL_STATUS
+from ..entity_utils import permission_utils, constants
 
 class EntityModeration(TemplateView):
   template_name = 'clinicalcode/moderation/index.html'
@@ -48,13 +47,13 @@ class EntityModeration(TemplateView):
 
     requested_content = self.__annotate_fields(
       permission_utils.get_accessible_entities(
-        request, consider_user_perms=False, status=[APPROVAL_STATUS.REQUESTED]
+        request, consider_user_perms=False, status=[constants.APPROVAL_STATUS.REQUESTED]
       )
     )
 
     pending_content = self.__annotate_fields(
       permission_utils.get_accessible_entities(
-        request, consider_user_perms=False, status=[APPROVAL_STATUS.PENDING]
+        request, consider_user_perms=False, status=[constants.APPROVAL_STATUS.PENDING]
       )
     )
 

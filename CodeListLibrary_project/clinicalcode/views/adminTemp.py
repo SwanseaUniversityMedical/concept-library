@@ -819,10 +819,20 @@ def admin_mig_phenotypes_dt(request):
                         temp_data = get_custom_fields_key_value(p)
                         temp_data['version'] = 1
                         publication_items = try_parse_doi([i.replace("'", "''") for i in p.publications])
+                        
+                        ''' update publish status in live generic entity '''
+                        publish_status_str = ""
+                        approval_status = ""
+                        p_latest_history_id =  p.history.latest().history_id
+                        if PublishedPhenotype.objects.filter(phenotype_id=p.id, phenotype_history_id=p_latest_history_id).exists():
+                            approval_status = str(PublishedPhenotype.objects.get(phenotype_id=p.id, phenotype_history_id=p_latest_history_id).approval_status)
+                            publish_status_str = " , publish_status = " + approval_status + " "
+                            
                         with connection.cursor() as cursor:
                             sql_p = """ update  clinicalcode_genericentity  
                                     set template_data = '"""+json.dumps(temp_data)+"""'
                                         , publications= '"""+json.dumps(publication_items)+"""'
+                                        """+publish_status_str+"""
                                     where id ='"""+p.id+"""' ;
                                     """
                             cursor.execute(sql_p)
@@ -843,7 +853,18 @@ def admin_mig_phenotypes_dt(request):
                                     where id ='"""+p.id+"""' and history_id='"""+str(p.history_id)+"""';
                                     """
                             cursor.execute(sql_p)
-                    
+                            
+                    ''' update publish status in historical generic entity '''
+                    with connection.cursor() as cursor:
+                        sql_publish_status = """
+                                                UPDATE public.clinicalcode_historicalgenericentity AS hg
+                                                SET publish_status = p.approval_status
+                                                FROM public.clinicalcode_historicalpublishedgenericentity AS p
+                                                WHERE hg.id = p.entity_id and hg.history_id = p.entity_history_id ;
+                                            """
+                        cursor.execute(sql_publish_status)
+                        
+
                     with connection.cursor() as cursor:
                         cursor.execute("""SELECT SETVAL(
                             pg_get_serial_sequence('clinicalcode_historicalgenericentity', 'history_id'),

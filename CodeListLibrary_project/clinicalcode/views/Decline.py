@@ -5,11 +5,9 @@ from django.template.loader import render_to_string
 from django.views.generic.base import TemplateResponseMixin, View
 from django.utils.decorators import method_decorator
 
-from ..entity_utils import utils_ge_validator
-from ..entity_utils import permission_utils
+from ..entity_utils import permission_utils, constants, utils_ge_validator
 from ..permissions import *
 from .View import *
-from clinicalcode.constants import *
 
 class EntityDecline(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, TemplateResponseMixin, View):
     '''
@@ -44,12 +42,12 @@ class EntityDecline(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, 
             with transaction.atomic():
                 entity = GenericEntity.objects.get(pk=pk)
                 #if moderator and in pending state
-                if checks['is_moderator'] and checks['approval_status'] == APPROVED_STATUS[PENDING][0]:
-                    published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id, approval_status=APPROVED_STATUS[PENDING][0]).first()#find first record
-                    published_entity.approval_status = APPROVED_STATUS[REJECTED][0]
+                if checks['is_moderator'] and checks['approval_status'] == constants.APPROVAL_STATUS.PENDING:
+                    published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id, approval_status=constants.APPROVAL_STATUS.PENDING).first() #find first record
+                    published_entity.approval_status = constants.APPROVAL_STATUS.REJECTED
                     published_entity.save()
                     data['form_is_valid'] = True
-                    data['approval_status'] = APPROVED_STATUS[REJECTED][0]
+                    data['approval_status'] = constants.APPROVAL_STATUS.REJECTED
 
                     data = utils_ge_validator.form_validation(request, data, history_id, pk, entity, checks)
         except Exception as e:

@@ -5,11 +5,9 @@ from django.template.loader import render_to_string
 from django.views.generic.base import TemplateResponseMixin, View
 from django.utils.decorators import method_decorator
 
-from ..entity_utils import utils_ge_validator
-from ..entity_utils import permission_utils
+from ..entity_utils import utils_ge_validator, permission_utils, constants
 from ..permissions import *
 from .View import *
-from clinicalcode.constants import *
 
 class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, TemplateResponseMixin, View):
     model = GenericEntity
@@ -46,7 +44,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, Templa
             'entity_has_data': checks['entity_has_data'],#check if table exists to publish ws
             'is_allowed_view_children': checks['is_allowed_view_children'],
             'all_are_published': checks['all_are_published'],#see if rest of the phenotypes is published already
-            'other_pending':checks['other_pending'],#data if other pending ws
+            'other_pending': checks['other_pending'],#data if other pending ws
             'all_not_deleted': checks['all_not_deleted'],# check if phenotypes is not deleted
             'errors':checks['errors']
         })
@@ -83,80 +81,80 @@ class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, Templa
                         if checks['is_moderator']:
                             if checks['is_lastapproved']:
                                 published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,
-                                                                                          approval_status=APPROVED_STATUS[APPROVED][0]).first()
+                                                                                          approval_status=constants.APPROVAL_STATUS.APPROVED).first()
                                 published_entity = PublishedGenericEntity(entity=entity,
                                                                            entity_history_id=history_id,
                                                                            moderator_id=published_entity.moderator.id,
                                                                            created_by_id=request.user.id)
-                                published_entity.approval_status = APPROVED_STATUS[APPROVED][0]
+                                published_entity.approval_status = constants.APPROVAL_STATUS.APPROVED
                                 published_entity.save()
                             else:
                                 published_entity = PublishedGenericEntity(entity=entity, entity_history_id=history_id,moderator_id = request.user.id,
                                                                         created_by_id=GenericEntity.objects.get(pk=pk).created_by.id)
-                                published_entity.approval_status = APPROVED_STATUS[APPROVED][0]
+                                published_entity.approval_status = constants.APPROVAL_STATUS.APPROVED
                                 published_entity.save()
 
                         #Check if was already published by user only to filter entitys and take the moderator id
                         if checks['is_lastapproved'] and not checks['is_moderator']:
-                            published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id, approval_status=APPROVED_STATUS[APPROVED][0]).first()
+                            published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id, approval_status=constants.APPROVAL_STATUS.APPROVED).first()
                             published_entity = PublishedGenericEntity(entity = entity,entity_history_id=history_id,moderator_id=published_entity.moderator.id,created_by_id=request.user.id)
-                            published_entity.approval_status = APPROVED_STATUS[APPROVED][0]
+                            published_entity.approval_status = constants.APPROVAL_STATUS.APPROVED
                             published_entity.save()
 
                         #Approve other pending entity if available to publish
                         if checks['other_pending']:
                             published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,
-                                                                                      approval_status=APPROVED_STATUS[PENDING][0])
+                                                                                      approval_status=constants.APPROVAL_STATUS.PENDING)
                             for en in published_entity:
-                                en.approval_status = APPROVED_STATUS[APPROVED][0]
+                                en.approval_status = constants.APPROVAL_STATUS.APPROVED
                                 en.moderator_id = request.user.id
                                 en.save()
 
                         data['form_is_valid'] = True
-                        data['approval_status'] = APPROVED_STATUS[APPROVED][0]
+                        data['approval_status'] = constants.APPROVAL_STATUS.APPROVED
                         #show state message to the client side and send email
                         data = utils_ge_validator.form_validation(request, data, history_id, pk, entity,checks)
 
             #check if moderator and current entity is in pending state
-            elif checks['approval_status'] == APPROVED_STATUS[PENDING][0] and checks['is_moderator']:
+            elif checks['approval_status'] == constants.APPROVAL_STATUS.PENDING and checks['is_moderator']:
                     with transaction.atomic():
                         entity = GenericEntity.objects.get(pk=pk)
                         published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,
-                                                                                  approval_status=APPROVED_STATUS[PENDING][0])
+                                                                                  approval_status=constants.APPROVAL_STATUS.PENDING)
                         #filter and publish all pending ws
                         for en in published_entity:
-                            en.approval_status = APPROVED_STATUS[APPROVED][0]
+                            en.approval_status = constants.APPROVAL_STATUS.APPROVED
                             en.moderator_id = request.user.id
                             en.save()
 
-                        data['approval_status'] = APPROVED_STATUS[APPROVED][0]
+                        data['approval_status'] = constants.APPROVAL_STATUS.APPROVED
                         data['form_is_valid'] = True
                         data = utils_ge_validator.form_validation(request, data, history_id, pk, entity, checks)
 
             #check if entity declined and user is moderator to review again
-            elif checks['approval_status'] == APPROVED_STATUS[REJECTED][0] and checks['is_moderator']:
+            elif checks['approval_status'] == constants.APPROVAL_STATUS.REJECTED and checks['is_moderator']:
                 with transaction.atomic():
                     entity = GenericEntity.objects.get(pk=pk)
                     
 
                     #filter by declined ws
                     published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,
-                                                                              entity_history_id=history_id,approval_status=APPROVED_STATUS[REJECTED][0]).first()
-                    published_entity.approval_status = APPROVED_STATUS[APPROVED][0]
+                                                                              entity_history_id=history_id,approval_status=constants.APPROVAL_STATUS.REJECTED).first()
+                    published_entity.approval_status = constants.APPROVAL_STATUS.APPROVED
                     published_entity.moderator_id=request.user.id
                     published_entity.save()
 
                     #check if other pending exist to approve this ws automatically
                     if checks['other_pending']:
                         published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,
-                                                                                  approval_status=APPROVED_STATUS[PENDING][0])
+                                                                                  approval_status=constants.APPROVAL_STATUS.PENDING)
                         for en in published_entity:
-                            en.approval_status = APPROVED_STATUS[APPROVED][0]
+                            en.approval_status = constants.APPROVAL_STATUS.APPROVED
                             en.moderator_id = request.user.id
                             en.save()
 
 
-                    data['approval_status'] = APPROVED_STATUS[APPROVED][0]
+                    data['approval_status'] = constants.APPROVAL_STATUS.APPROVED
                     data['form_is_valid'] = True
                     #send message to the client
                     data = utils_ge_validator.form_validation(request, data, history_id, pk, entity, checks)
@@ -180,7 +178,7 @@ class Publish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, Templa
         """
 
         if (checks['allowed_to_publish'] and not is_published and checks['approval_status'] is None) or\
-                (checks['approval_status'] == APPROVED_STATUS[APPROVED][0] and not is_published):
+                (checks['approval_status'] == constants.APPROVAL_STATUS.APPROVED and not is_published):
             return True
         
 
@@ -256,10 +254,10 @@ class RequestPublish(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin,
                     with transaction.atomic():
                         entity = GenericEntity.objects.get(pk=pk)
                         published_entity = PublishedGenericEntity(entity=entity, entity_history_id=history_id,
-                                                                    created_by_id=request.user.id,approval_status=APPROVED_STATUS[PENDING][0])
+                                                                    created_by_id=request.user.id,approval_status=constants.APPROVAL_STATUS.PENDING)
                         published_entity.save()
                         data['form_is_valid'] = True
-                        data['approval_status'] = APPROVED_STATUS[PENDING][0]
+                        data['approval_status'] = constants.APPROVAL_STATUS.PENDING
                         data = utils_ge_validator.form_validation(request, data, history_id, pk, entity, checks)
 
 

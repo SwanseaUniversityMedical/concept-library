@@ -294,6 +294,7 @@ TEMPLATES = [
             'libraries': {
                 'breadcrumbs': 'clinicalcode.templatetags.breadcrumbs',
                 'entity_renderer': 'clinicalcode.templatetags.entity_renderer',
+                'detail_pg_renderer': 'clinicalcode.templatetags.detail_pg_renderer',
             }
         },
     },
