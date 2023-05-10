@@ -81,6 +81,13 @@ class GROUP_PERMISSIONS(int, enum.Enum):
     VIEW = 2
     EDIT = 3
 
+class WORLD_ACCESS_PERMISSIONS(int, enum.Enum):
+    '''
+        Everyone else permissions
+    '''
+    NONE = 1
+    VIEW = 2
+    
 class FORM_METHODS(int, enum.Enum, metaclass=IterableMeta):
     '''
         Describes form method, i.e. to create or update an entity
@@ -539,9 +546,6 @@ FIELD_TYPES = {
         "input_type": "clinical/publication",
         "output_type": "clinical/publication",
     },
-    "publications": {
-        "input_type": "clinical/publication",
-    },
     "coding_system": {
         "system_defined": True,
         "description": "list of coding system ids (calculated from phenotype concepts) (managed by code snippet)",
@@ -564,7 +568,7 @@ FIELD_TYPES = {
         "system_defined": True,
         "description": "list of data_sources ids (managed by code snippet)",
         "input_type": "tagbox",
-        "output_type": "tagbox"
+        "output_type": "data_source"
     },
     "phenoflowid": {
         "system_defined": True,
