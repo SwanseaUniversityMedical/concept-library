@@ -112,22 +112,13 @@ def update_generic_entity(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
-def get_generic_entity_version_history(request, primary_key=None, public=False):
+def get_generic_entity_version_history(request, primary_key=None):
     '''
     
     '''
     user_authed = False
     if request.user and not request.user.is_anonymous:
         user_authed = True
-    
-    if not public and not user_authed:
-        return Response(
-            data={
-                'message': 'Permission denied'
-            },
-            content_type='json',
-            status=status.HTTP_403_FORBIDDEN
-        )
     
     # Check if primary_key is valid, i.e. matches regex '^[a-zA-Z]\d+'
     entity_id_response = api_utils.is_malformed_entity_id(primary_key)
@@ -148,7 +139,7 @@ def get_generic_entity_version_history(request, primary_key=None, public=False):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
-def get_generic_entities(request, should_paginate=False, public=False):
+def get_generic_entities(request, should_paginate=False):
     '''
     
     '''
@@ -156,17 +147,12 @@ def get_generic_entities(request, should_paginate=False, public=False):
     if request.user and not request.user.is_anonymous:
         user_authed = True
 
-    if not public and not user_authed:
-        return Response(
-            data={
-                'message': 'Permission denied'
-            },
-            content_type='json',
-            status=status.HTTP_403_FORBIDDEN
-        )
-
     # Get all accessible entities for this user
-    entities = permission_utils.get_accessible_entities(request)
+    entities = permission_utils.get_accessible_entities(
+        request, 
+        consider_user_perms=False, 
+        status=[constants.APPROVAL_STATUS.ANY]
+    )
     if not entities.exists():
         return Response([], status=status.HTTP_200_OK)
     
@@ -275,27 +261,13 @@ def get_generic_entities(request, should_paginate=False, public=False):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
-def get_entity_detail(
-    request, 
-    primary_key, 
-    historical_id=None, 
-    field=None, 
-    public=False):
+def get_entity_detail(request, primary_key, historical_id=None, field=None):
     '''
 
     '''
     user_authed = False
     if request.user and not request.user.is_anonymous:
         user_authed = True
-    
-    if not public and not user_authed:
-        return Response(
-            data={
-                'message': 'Permission denied'
-            },
-            content_type='json',
-            status=status.HTTP_403_FORBIDDEN
-        )
 
     # Check if primary_key is valid, i.e. matches regex '^[a-zA-Z]\d+'
     entity_id_response = api_utils.is_malformed_entity_id(primary_key)

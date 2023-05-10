@@ -445,9 +445,23 @@ def get_codelist_from_entity(entity):
     status=status.HTTP_200_OK
   )
 
+def populate_entity_version_id(form):
+  form_entity = form.get('entity')
+  if form_entity is not None:
+    form['entity']['version_id'] = None
+
+    entity = GenericEntity.objects.get(id=form_entity['id'])
+    if entity is not None:
+      historical_version = entity.history.all().order_by('-history_id')
+      historical_version = historical_version.first()
+      form['entity']['version_id'] = historical_version.history_id
+
+  return form
+
 def validate_api_create_update_form(request, method):
   form_errors = []
   form = gen_utils.get_request_body(request)
+  form = populate_entity_version_id(form)
   form = create_utils.validate_entity_form(
     request, form, form_errors, method=method
   )

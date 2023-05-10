@@ -418,49 +418,31 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
         url(r'^phenotypes/$',
             GenericEntity.get_generic_entities,
             name='api_generic_entity'),
-        url(r'^public/phenotypes/$',
-            GenericEntity.get_generic_entities, { 'public': True },
-            name='api_generic_entity_public'),
 
         # Generic entity detail
         url(r'^phenotypes/(?P<primary_key>\w+)/detail/$',
             GenericEntity.get_entity_detail,
             name='api_generic_entity_detail'),
-        url(r'^public/phenotypes/(?P<primary_key>\w+)/detail/$',
-            GenericEntity.get_entity_detail, { 'public': True },
-            name='api_generic_entity_detail_public'),
 
         # Get specific entity version
         url(r'^phenotypes/(?P<primary_key>PH\d+)/version/(?P<historical_id>\d+)/detail/$',
             GenericEntity.get_entity_detail,
             name='api_generic_entity_detail_by_version'),
-        url(r'^public/phenotypes/(?P<primary_key>PH\d+)/version/(?P<historical_id>\d+)/detail/$',
-            GenericEntity.get_entity_detail, { 'public': True },
-            name='api_generic_entity_detail_by_version_public'),
 
         # Export specific entity field
         url(r'^phenotypes/(?P<primary_key>\w+)/export/(?P<field>\w+)/$',
             GenericEntity.get_entity_detail,
             name='get_generic_entity_field'),
-        url(r'^public/phenotypes/(?P<primary_key>\w+)/export/(?P<field>\w+)/$',
-            GenericEntity.get_entity_detail, { 'public': True },
-            name='get_generic_entity_field_public'),
 
         # Export specific entity field from specific entity version
         url(r'^phenotypes/(?P<primary_key>\w+)/version/(?P<historical_id>\d+)/export/(?P<field>\w+)/$',
             GenericEntity.get_entity_detail,
             name='get_generic_entity_field_by_version'),
-        url(r'^public/phenotypes/(?P<primary_key>\w+)/version/(?P<historical_id>\d+)/export/(?P<field>\w+)/$',
-            GenericEntity.get_entity_detail, { 'public': True },
-            name='get_generic_entity_field_by_version_public'),
 
         # Show entity versions
         url(r'^phenotypes/(?P<primary_key>\w+)/get-versions/$',
             GenericEntity.get_generic_entity_version_history,
             name='get_generic_entity_versions'),
-        url(r'^public/phenotypes/(?P<primary_key>\w+)/get-versions/$',
-            GenericEntity.get_generic_entity_version_history, { 'public': True },
-            name='get_generic_entity_versions_public'),
 
         # Create entity
         url(r'^phenotypes/create/$',

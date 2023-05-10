@@ -1005,7 +1005,7 @@ class EntityCreator {
 
     if (this.data?.object) {
       const { id, history_id } = this.data.object;
-      packet.entity = { id: id, history_id: history_id };
+      packet.entity = { id: id, version_id: history_id };
     }
 
     if (this.data?.template) {

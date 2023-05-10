@@ -234,7 +234,7 @@ def validate_form_entity(form_entity, form_method, errors=[], default=None):
         return default
 
     entity_id = form_entity.get('id')
-    history_id = gen_utils.parse_int(form_entity.get('history_id'), None)
+    history_id = gen_utils.parse_int(form_entity.get('version_id'), None)
     if not entity_id or not history_id:
         errors.append('Form entity is invalid, unable to find either the ID or the entity history ID')
         return default
