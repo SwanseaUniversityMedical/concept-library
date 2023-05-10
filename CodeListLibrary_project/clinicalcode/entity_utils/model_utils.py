@@ -704,7 +704,7 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
   
   result = {
     'concept_id': concept_id,
-    'concept_history_id': concept_history_id,
+    'concept_version_id': concept_history_id,
     'coding_system': get_coding_system_details(historical_concept.coding_system),
     'details': concept_data,
     'components': components_data.get('components'),

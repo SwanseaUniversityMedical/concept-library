@@ -1,6 +1,6 @@
 {% load entity_renderer %}
 <div class="detailed-input-group fill">
-  <h3 class="detailed-input-group__title">Publications</h3>
+  <h3 class="detailed-input-group__title">Publications {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>
   {% if not component.hide_input_details %}
   <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
   {% endif %}
@@ -10,10 +10,17 @@
         {{ component.value|jsonify|safe }}
       {% endif %}
     </data>
-    <input class="text-input" aria-label="Publication link input" type="text"
-      placeholder="e.g. Doe J. et al. Publication. Publisher - DOI 10.111"
-      minlength="3" pattern="^[a-zA-Z]{1,}.*?"
-      data-class="clinical-publication" data-field="{{ component.field_name }}">
+    <div class="publication-list-group__interface" data-class="clinical-publication" data-field="{{ component.field_name }}">
+      <p>Add Publication</p>
+      <div class="publication-list-group__interface-children">
+        <input class="text-input" aria-label="Publication details" type="text"
+          placeholder="e.g. Doe J. et al. Publication. Publisher"
+          minlength="3" pattern="^[a-zA-Z]{1,}.*?"
+          id="publication-input-box">
+        <input class="text-input" aria-label"Publication DOI" type="text" placeholder="e.g. DOI 10.111" id="doi-input-box">
+        <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Add Publication" id="add-input-btn">Add</button>
+      </div>
+    </div>
   
     <section class="publication-list-group__none-available " id="no-available-publications">
       <p class="publication-list-group__none-available-message">You haven't added any publications yet</p>

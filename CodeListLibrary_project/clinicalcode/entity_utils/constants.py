@@ -184,6 +184,13 @@ API_HIDDEN_FIELDS = [
 ]
 
 '''
+    Re-maps field names to user readable field names
+'''
+API_MAP_FIELD_NAMES = {
+    'id': 'phenotype_id'
+}
+
+'''
     Describes fields that should be stripped from entity list api response
 '''
 ENTITY_LIST_API_HIDDEN_FIELDS = [

@@ -828,7 +828,7 @@ def admin_mig_phenotypes_dt(request):
                             cursor.execute(sql_p)
                     
                     with connection.cursor() as cursor:
-                        sql_entity_count = "update clinicalcode_entityclass set entity_count ="+str(live_pheno_count)+";"
+                        sql_entity_count = "update clinicalcode_entityclass set entity_count ="+str(live_pheno_count)+" where id = 1;"
                         cursor.execute(sql_entity_count)
 
                     historical_pheno = Phenotype.history.filter(~Q(id='x'))

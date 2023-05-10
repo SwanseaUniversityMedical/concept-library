@@ -209,7 +209,7 @@
       "active": true,
       "validation": {
         "type": "concept",
-        "mandatory": true,
+        "mandatory": false,
         "has_children": true
       },
       "side_menu": "Clinical Code lists"

@@ -1,7 +1,7 @@
-from rest_framework import status
-from rest_framework.decorators import (api_view, authentication_classes, permission_classes)
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.decorators import (api_view, permission_classes)
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from django.db.models import Q
 from django.conf import settings
@@ -10,28 +10,20 @@ from ...models import *
 from ...entity_utils import permission_utils
 from ...entity_utils import template_utils
 from ...entity_utils import search_utils
-from ...entity_utils import create_utils
 from ...entity_utils import api_utils
 from ...entity_utils import gen_utils
 from ...entity_utils import constants
-
-from ...db_utils import *
-from clinicalcode.entity_utils import entity_db_utils
-from ...permissions import *
-from ...utils import *
-from ..serializers import *
-from .View import *
-from drf_yasg.utils import swagger_auto_schema
 
 ''' Create/Update GenericEntity '''
 
 @swagger_auto_schema(method='post', auto_schema=None)
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def create_generic_entity(request):
     '''
     
     '''
-    if is_member(request.user, group_name='ReadOnlyUsers') or settings.CLL_READ_ONLY:
+    if permission_utils.is_member(request.user, 'ReadOnlyUsers') or settings.CLL_READ_ONLY:
         return Response(
             data={
                 'message': 'Permission denied'
@@ -43,26 +35,41 @@ def create_generic_entity(request):
     form = api_utils.validate_api_create_update_form(
         request, method=constants.FORM_METHODS.CREATE.value
     )
-    
+    if isinstance(form, Response):
+        return form
+        
     entity = api_utils.create_update_from_api_form(request, form)
+    if isinstance(entity, Response):
+        return entity
+    
+    entity_data = {
+        'id': entity.id,
+        'version_id': entity.history_id,
+        'created': entity.created,
+        'updated': entity.updated,
+    }
+    if template_utils.get_entity_field(entity, 'concept_information'):
+        concept_data = api_utils.get_concept_versions_from_entity(entity)
+        entity_data = entity_data | {
+            'concepts': concept_data
+        }
+
     return Response(
         data={
             'message': 'Successfully created entity',
-            'entity': {
-                'id': entity.id,
-                'version_id': entity.history_id
-            }
+            'entity': entity_data
         },
         status=status.HTTP_201_CREATED
     )
 
 @swagger_auto_schema(method='put', auto_schema=None)
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def update_generic_entity(request):
     '''
     
     '''
-    if is_member(request.user, group_name='ReadOnlyUsers') or settings.CLL_READ_ONLY:
+    if permission_utils.is_member(request.user, 'ReadOnlyUsers') or settings.CLL_READ_ONLY:
         return Response(
             data={
                 'message': 'Permission denied'
@@ -74,15 +81,29 @@ def update_generic_entity(request):
     form = api_utils.validate_api_create_update_form(
         request, method=constants.FORM_METHODS.UPDATE.value
     )
+    if isinstance(form, Response):
+        return form
 
     entity = api_utils.create_update_from_api_form(request, form)
+    if isinstance(entity, Response):
+        return entity
+    
+    entity_data = {
+        'id': entity.id,
+        'version_id': entity.history_id,
+        'created': entity.created,
+        'updated': entity.updated,
+    }
+    if template_utils.get_entity_field(entity, 'concept_information'):
+        concept_data = api_utils.get_concept_versions_from_entity(entity)
+        entity_data = entity_data | {
+            'concepts': concept_data
+        }
+
     return Response(
         data={
             'message': 'Successfully updated entity',
-            'entity': {
-                'id': entity.id,
-                'version_id': entity.history_id
-            }
+            'entity': entity_data
         },
         status=status.HTTP_201_CREATED
     )
@@ -95,6 +116,10 @@ def get_generic_entity_version_history(request, primary_key=None):
     '''
     
     '''
+    user_authed = False
+    if request.user and not request.user.is_anonymous:
+        user_authed = True
+    
     # Check if primary_key is valid, i.e. matches regex '^[a-zA-Z]\d+'
     entity_id_response = api_utils.is_malformed_entity_id(primary_key)
     if isinstance(entity_id_response, Response):
@@ -114,17 +139,57 @@ def get_generic_entity_version_history(request, primary_key=None):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
-def get_generic_entities(request, should_paginate=True):
+def get_generic_entities(request, should_paginate=False):
     '''
     
     '''
+    user_authed = False
     if request.user and not request.user.is_anonymous:
         user_authed = True
 
     # Get all accessible entities for this user
-    entities = permission_utils.get_accessible_entities(request)
+    entities = permission_utils.get_accessible_entities(
+        request, 
+        consider_user_perms=False, 
+        status=[constants.APPROVAL_STATUS.ANY]
+    )
     if not entities.exists():
         return Response([], status=status.HTTP_200_OK)
+    
+    # Filter by template id and version
+    template_id = request.query_params.get('template_id', None)
+    template_version_id = request.query_params.get('template_version_id', None)
+    if template_id:
+        template = Template.objects.filter(id=template_id)
+        if not template.exists():
+            return Response(
+                data={
+                    'message': 'Template with specified id does not exist'
+                },
+                content_type='json',
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        template = template.first()
+        if template_version_id:
+            template = template.history.filter(template_version=template_version_id)
+            if not template.exists():
+                return Response(
+                    data={
+                        'message': 'Template with specified version id does not exist'
+                    },
+                    content_type='json',
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            template = template.latest()
+            entities = entities.filter(
+                template__id=template.id, template_version=template.template_version
+            )
+        else:
+            entities = entities.filter(
+                template__id=template.id
+            )
 
     # Build query from searchable GenericEntity template fields
     templates = Template.objects.all()
@@ -143,7 +208,7 @@ def get_generic_entities(request, should_paginate=True):
             entities, search, fuzzy=False, order_by_relevance=False
         )
 
-    # Exit early if metadata queries do not match
+    # Exit early if queries do not match
     if not entities.exists():
         return Response([], status=status.HTTP_200_OK)
     
@@ -200,6 +265,7 @@ def get_entity_detail(request, primary_key, historical_id=None, field=None):
     '''
 
     '''
+    user_authed = False
     if request.user and not request.user.is_anonymous:
         user_authed = True
 
@@ -261,6 +327,13 @@ def get_entity_detail(request, primary_key, historical_id=None, field=None):
     )
 
 ### M. Elmessary  ############
+
+from ...db_utils import *
+from clinicalcode.entity_utils import entity_db_utils
+from ...permissions import *
+from ...utils import *
+from ..serializers import *
+from .View import *
 
 # show generic_entity detail
 #=============================================================
@@ -620,5 +693,3 @@ def export_phenotype_codes_byVersionID(request, pk, history_id=None):
 
 
 ##################################################################################
-
-

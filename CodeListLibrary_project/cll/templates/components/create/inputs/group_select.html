@@ -1,6 +1,6 @@
 <div class="detailed-input-group fill">
   {% if not component.hide_input_details %}
-  <h3 class="detailed-input-group__title">Assign to your Organisation</h3>
+  <h3 class="detailed-input-group__title">Assign to your Organisation {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>
   <p class="detailed-input-group__description">{{ component.description }}</p>
   {% endif %}
   <select class="selection-input" aria-label="Select Entity Group" name="entity-group" id="entity-{{ component.field_name }}" data-class="group-select" data-field="{{ component.field_name }}">

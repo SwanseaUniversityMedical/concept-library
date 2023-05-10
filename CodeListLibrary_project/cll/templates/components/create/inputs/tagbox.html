@@ -1,7 +1,7 @@
 {% load entity_renderer %}
 <div class="detailed-input-group fill">
   {% if not component.hide_input_details %}
-  <h3 class="detailed-input-group__title">{{ component.field_data.title }}</h3>
+  <h3 class="detailed-input-group__title">{{ component.field_data.title }} {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>
   <p class="detailed-input-group__description">{{ component.description }}</p>
   {% endif %}
   {% if component.options %}

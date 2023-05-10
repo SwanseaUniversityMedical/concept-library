@@ -1,14 +1,14 @@
 <div class="detailed-input-group fill">
   {% if not component.hide_input_details %}
-  <h3 class="detailed-input-group__title">{{ component.field_data.title }}</h3>
+  <h3 class="detailed-input-group__title">{{ component.field_data.title }} {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>
   <p class="detailed-input-group__description">{{ component.description }}</p>
   {% endif %}
   <fieldset class="hstack-radio-group" id="entity-{{ component.field_name }}" data-class="radiobutton" data-field="{{ component.field_name }}">
-    <input class="radio-input" data-value="1" aria-label="No Access" type="radio" id="{{ component.field_name }}-1" name="entity-radio-{{ component.field_name }}" {% if component.value == 1 %} checked {% endif %}>
+    <input class="radio-input" data-value="1" aria-label="No Access" type="radio" id="{{ component.field_name }}-1" name="entity-radio-{{ component.field_name }}" {% if component.value == 1 or not component.value %} checked {% endif %}>
     <label for="{{ component.field_name }}-1">None</label>
-    <input class="radio-input" data-value="3" aria-label="View Access" type="radio" id="{{ component.field_name }}-3" name="entity-radio-{{ component.field_name }}" {% if component.value == 3 %} checked {% endif %}>
-    <label for="{{ component.field_name }}-3">View</label>
-    <input class="radio-input" data-value="2" aria-label="Edit Access" type="radio" id="{{ component.field_name }}-2" name="entity-radio-{{ component.field_name }}" {% if component.value == 2 %} checked {% endif %}>
-    <label for="{{ component.field_name }}-2">Edit</label>
+    <input class="radio-input" data-value="2" aria-label="View Access" type="radio" id="{{ component.field_name }}-2" name="entity-radio-{{ component.field_name }}" {% if component.value == 2 %} checked {% endif %}>
+    <label for="{{ component.field_name }}-2">View</label>
+    <input class="radio-input" data-value="3" aria-label="Edit Access" type="radio" id="{{ component.field_name }}-3" name="entity-radio-{{ component.field_name }}" {% if component.value == 3 %} checked {% endif %}>
+    <label for="{{ component.field_name }}-3">Edit</label>
   </fieldset>
 </div>
