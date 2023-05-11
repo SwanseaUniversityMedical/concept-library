@@ -79,8 +79,7 @@
 
   "fields": {
     "name": {
-      "is_base_field": true,
-      "side_menu": "Home"
+      "is_base_field": true
     },
     "author": {
       "is_base_field": true
@@ -111,20 +110,16 @@
       "is_base_field": true
     },
     "definition": {
-      "is_base_field": true,
-      "side_menu": "Definition"
+      "is_base_field": true
     },
     "implementation": {
-      "is_base_field": true,
-      "side_menu": "Implementation"
+      "is_base_field": true
     },
     "publications": {
-      "is_base_field": true,
-      "side_menu": "Publications"
+      "is_base_field": true
     },
     "validation": {
       "is_base_field": true,
-      "side_menu": "Validation",
       "hide_if_empty": true,
       "do_not_show_in_production": true
     },

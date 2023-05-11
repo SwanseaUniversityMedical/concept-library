@@ -89,8 +89,7 @@
 
   "fields": {
     "name": {
-      "is_base_field": true,
-      "side_menu": "Home"
+      "is_base_field": true
     },
     "author": {
       "is_base_field": true
@@ -221,12 +220,10 @@
       "is_base_field": true
     },
     "definition": {
-      "is_base_field": true,
-      "side_menu": "Definition"
+      "is_base_field": true
     },
     "implementation": {
-      "is_base_field": true,
-      "side_menu": "Implementation"
+      "is_base_field": true
     },
     "phenoflowid": {
       "title": "Phenoflow ID",
@@ -244,12 +241,10 @@
       "hide_if_empty": true
     },
     "publications": {
-      "is_base_field": true,
-      "side_menu": "Publications"
+      "is_base_field": true
     },
     "validation": {
       "is_base_field": true,
-      "side_menu": "Validation",
       "hide_if_empty": true,
       "do_not_show_in_production": true
     },
@@ -265,8 +260,7 @@
         "type": "concept",
         "mandatory": false,
         "has_children": true
-      },
-      "side_menu": "Clinical Code lists"
+      }
     },
     "source_reference": {
       "title": "Source Reference",
