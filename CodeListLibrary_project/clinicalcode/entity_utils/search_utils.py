@@ -11,7 +11,7 @@ from ..models.Template import Template
 from ..models.GenericEntity import GenericEntity
 from ..models.Statistics import Statistics
 from ..models.CodingSystem import CodingSystem
-from . import model_utils, template_utils, constants, gen_utils
+from . import model_utils, template_utils, constants, gen_utils, permission_utils
 
 def try_derive_entity_type(entity_type):
     '''
@@ -242,13 +242,16 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
             1. The entities and their data
             2. The template associated with each of the entities
     '''
-    # Get related published entities
-    entities = GenericEntity.history.filter(
-        publish_status=constants.APPROVAL_STATUS.APPROVED
+    # Get related relating to the user
+    entities = permission_utils.get_accessible_entities(
+        request,
+        status=[constants.APPROVAL_STATUS.ANY]
     )
 
     if isinstance(entity_types, list) and len(entity_types) > 0:
         entities = entities.filter(entity__template__entity_class__id__in=entity_types)
+    
+    entities = GenericEntity.history.filter(id__in=entities.values_list('id', flat=True), history_id__in=entities.values_list('history_id', flat=True))
 
     # Filter by brands
     if request.CURRENT_BRAND:
@@ -317,9 +320,6 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
     search = gen_utils.try_get_param(request, 'search', None)
     if search is not None:
         entities = entities.filter(
-            id__in=entities.values_list('id', flat=True)
-        ) \
-        .filter(
             Q(search_vector__icontains=search)
         )
         
@@ -332,13 +332,13 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
 
     # Reorder by user selection
     if search_order != constants.ORDER_BY['1']:
-        entities = entities.order_by(search_order.get('clause')).distinct()
+        entities = entities.order_by(search_order.get('clause'))
     else:
         if search is None:
             entities = entities.all().extra(
                 select={'true_id': """CAST(REGEXP_REPLACE(id, '[a-zA-Z]+', '') AS INTEGER)"""}
             ) \
-            .order_by('true_id')
+            .order_by('true_id', 'id')
 
     # Generate layouts for use in templates
     layouts = { }
