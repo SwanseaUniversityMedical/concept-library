@@ -23,11 +23,6 @@ class EntityModeration(TemplateView):
       ),
       owner_name=Subquery(
         User.objects.filter(id=OuterRef('owner')).values('username')
-      ),
-      publish_status=Subquery(
-        PublishedGenericEntity.objects.filter(
-          entity_id=OuterRef('id'), entity_history_id=OuterRef('history_id')
-        ).values('approval_status')
       )
     )
 

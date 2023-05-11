@@ -244,31 +244,23 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
             2. The template associated with each of the entities
     '''
     # Get related published entities
-    if isinstance(entity_types, list) and len(entity_types) > 0:
-        entities = PublishedGenericEntity.objects.filter(
-            entity__template__entity_class__id__in=entity_types,
-            approval_status=constants.APPROVAL_STATUS.APPROVED
-        )
-    else:
-        entities = PublishedGenericEntity.objects.filter(
-            approval_status=constants.APPROVAL_STATUS.APPROVED
-        )
-    
-    # Join by version of published
-    entities = entities.distinct('entity_id')
     entities = GenericEntity.history.filter(
-        id__in=entities.values_list('entity_id', flat=True),
-        history_id__in=entities.values_list('entity_history_id', flat=True)
+        publish_status=constants.APPROVAL_STATUS.APPROVED
     )
+
+    if isinstance(entity_types, list) and len(entity_types) > 0:
+        entities = entities.filter(entity__template__entity_class__id__in=entity_types)
 
     # Filter by brands
     if request.CURRENT_BRAND:
         entities = entities.filter(collections__overlap=template_utils.get_brand_collection_ids(request.CURRENT_BRAND))
 
+    # Get templates for each entity
     templates = Template.history.filter(
-        id__in=list(entities.values_list('template', flat=True)),
-        template_version__in=list(entities.values_list('template_version', flat=True))
-    ).latest_of_each()
+        id__in=entities.values_list('template', flat=True),
+        template_version__in=entities.values_list('template_version', flat=True)
+    ) \
+    .latest_of_each()
 
     is_single_search = templates.count() > constants.MIN_SINGLE_SEARCH
     
@@ -341,12 +333,13 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
 
     # Reorder by user selection
     if search_order != constants.ORDER_BY['1']:
-        entities = entities.order_by(search_order.get('clause'))
+        entities = entities.order_by(search_order.get('clause')).distinct()
     else:
         if search is None:
             entities = entities.all().extra(
                 select={'true_id': """CAST(REGEXP_REPLACE(id, '[a-zA-Z]+', '') AS INTEGER)"""}
-            ).order_by('true_id', 'id')
+            ) \
+            .order_by('true_id')
 
     # Generate layouts for use in templates
     layouts = { }

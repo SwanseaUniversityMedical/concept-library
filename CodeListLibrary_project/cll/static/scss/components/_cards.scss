@@ -224,7 +224,14 @@
   }
 
   &__header {
-    @include flex-col();
+    @include flex-row();
+    flex-wrap: nowrap;
+    justify-content: space-between;
+
+    &__item {
+      @include flex-col();
+      margin: 0;
+    }
   }
 
   &__title {

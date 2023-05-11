@@ -7,8 +7,15 @@
   
   <a class="entity-card__click" href="{% url 'entity_history_detail' pk=entity.id history_id=entity.history_id %}">
     <div class="entity-card__header">
-      <h3 class="entity-card__title">{{ entity.id }} - {{ entity.name }}</h3>
-      <p class="entity-card__author">{{ entity.author }}</p>
+      <div class="entity-card__header-item">
+        <h3 class="entity-card__title">{{ entity.id }} - {{ entity.name }}</h3>
+        <p class="entity-card__author">{{ entity.author }}</p>
+      </div>
+      <div class="entity-card__header-item">
+        <div class="chip bold washed-accent text-accent-darkest codelist-icon icon-accent-highlight">
+          <a id="coding-system-info">chip</a>
+        </div>
+      </div>
     </div>
     <div class="entity-card__snippet">
       <div class="entity-card__snippet-metadata">

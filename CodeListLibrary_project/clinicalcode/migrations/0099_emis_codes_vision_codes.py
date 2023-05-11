@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('clinicalcode', '0099_remove_concept_is_legacy_and_more'),
+        ('clinicalcode', '0098_brand_footer_images_historicalbrand_footer_images'),
     ]
 
     # operations = [

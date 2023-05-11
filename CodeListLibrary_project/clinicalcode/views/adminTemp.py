@@ -735,7 +735,28 @@ def admin_mig_phenotypes_dt(request):
                         cursor.execute(sql)
                         sql2 = "truncate table clinicalcode_historicalpublishedgenericentity restart identity; "
                         cursor.execute(sql2)   
-                        sql3 = "truncate table clinicalcode_genericentity,public.clinicalcode_publishedgenericentity restart identity; "
+                        sql3 = """
+                        DO
+                        $do$
+                        declare CONSTRAINT_NAME text:= (
+                            select quote_ident(conname)
+                            from pg_constraint
+                            where conrelid = 'public.clinicalcode_concept'::regclass
+                            and confrelid = 'public.clinicalcode_genericentity'::regclass
+                            limit 1
+                        );
+
+                        begin
+                            execute 'alter table public.clinicalcode_concept drop constraint ' || CONSTRAINT_NAME;
+
+                            execute 'truncate table public.clinicalcode_genericentity, public.clinicalcode_publishedgenericentity restart identity';
+
+                            execute 'alter table public.clinicalcode_concept
+                                add constraint ' || CONSTRAINT_NAME || ' foreign key (phenotype_owner_id)
+                                references public.clinicalcode_genericentity (id)';
+                        end
+                        $do$
+                        """
                         cursor.execute(sql3)
                     
                     
@@ -860,6 +881,11 @@ def admin_mig_phenotypes_dt(request):
                                                 UPDATE public.clinicalcode_historicalgenericentity AS hg
                                                 SET publish_status = p.approval_status
                                                 FROM public.clinicalcode_historicalpublishedgenericentity AS p
+                                                WHERE hg.id = p.entity_id and hg.history_id = p.entity_history_id ;
+
+                                                UPDATE public.clinicalcode_historicalgenericentity AS hg
+                                                SET publish_status = p.approval_status
+                                                FROM public.clinicalcode_publishedgenericentity AS p
                                                 WHERE hg.id = p.entity_id and hg.history_id = p.entity_history_id ;
                                             """
                         cursor.execute(sql_publish_status)
