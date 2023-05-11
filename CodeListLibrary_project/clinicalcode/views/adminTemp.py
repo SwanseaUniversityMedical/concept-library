@@ -859,7 +859,7 @@ def admin_mig_phenotypes_dt(request):
                         sql_publish_status = """
                                                 UPDATE public.clinicalcode_historicalgenericentity AS hg
                                                 SET publish_status = p.approval_status
-                                                FROM public.clinicalcode_historicalpublishedgenericentity AS p
+                                                FROM public.clinicalcode_publishedgenericentity AS p
                                                 WHERE hg.id = p.entity_id and hg.history_id = p.entity_history_id ;
                                             """
                         cursor.execute(sql_publish_status)
@@ -869,6 +869,12 @@ def admin_mig_phenotypes_dt(request):
                         cursor.execute("""SELECT SETVAL(
                             pg_get_serial_sequence('clinicalcode_historicalgenericentity', 'history_id'),
                             (SELECT MAX(history_id) FROM public.clinicalcode_historicalgenericentity)
+                        );""")
+                        
+                    with connection.cursor() as cursor:
+                        cursor.execute("""SELECT SETVAL(
+                            pg_get_serial_sequence('clinicalcode_historicalpublishedgenericentity', 'history_id'),
+                            (SELECT MAX(history_id) FROM public.clinicalcode_historicalpublishedgenericentity)
                         );""")
 
                     ######################################
