@@ -332,7 +332,8 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
 
     # Reorder by user selection
     if search_order != constants.ORDER_BY['1']:
-        entities = entities.order_by(search_order.get('clause'))
+        search_order = search_order.get('clause')
+        entities = entities.order_by(search_order)
     else:
         if search is None:
             entities = entities.all().extra(
