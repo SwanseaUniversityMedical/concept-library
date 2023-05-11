@@ -899,10 +899,6 @@ def admin_mig_phenotypes_dt(request):
 
                     ######################################
                     rowsAffected[1] = "phenotypes migrated."
-                        
-                        
-             
-    
             else:
                 rowsAffected[-1] = "Phenotype IDs NOT correct"
     

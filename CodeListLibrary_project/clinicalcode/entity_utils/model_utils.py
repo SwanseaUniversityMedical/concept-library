@@ -9,7 +9,6 @@ import simple_history
 
 from . import gen_utils
 from ..models.GenericEntity import GenericEntity
-from ..models.PublishedGenericEntity import PublishedGenericEntity
 from ..models.Tag import Tag
 from ..models.CodingSystem import CodingSystem
 from ..models.Concept import Concept
@@ -62,30 +61,22 @@ def get_latest_entity_published(entity_id):
   '''
     Gets latest published entity given an entity id
   '''
-  latest_published_entity = PublishedGenericEntity.objects.filter(
-    entity_id=entity_id, approval_status=2
-  ) \
-  .order_by('-entity_history_id')
-  
-  if latest_published_entity.exists():
-    return latest_published_entity.first()
 
-  return None
+  entity = GenericEntity.history.filter(id=entity_id, publish_status=APPROVAL_STATUS.APPROVED)
+  if not entity.exists():
+    return None
+  
+  entity = entity.order_by('-history_id')
+  entity = entity.first()
+  return entity
 
 def get_entity_approval_status(entity_id, historical_id):
   '''
     Gets the entity's approval status, given an entity id and historical id
   '''
-  entity = try_get_instance(
-    PublishedGenericEntity,
-    entity_id=entity_id, 
-    entity_history_id=historical_id
-  )
-
-  if entity:
-    return entity.approval_status
-  
-  return None
+  entity = GenericEntity.history.filter(id=entity_id, history_id=historical_id)
+  if entity.exists():
+    return entity.first().publish_status
 
 def get_latest_entity_historical_id(entity_id, user):
   '''

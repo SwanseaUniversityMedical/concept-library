@@ -8,11 +8,10 @@ import re
 
 from ..models.EntityClass import EntityClass
 from ..models.Template import Template
-from ..models.PublishedGenericEntity import PublishedGenericEntity
 from ..models.GenericEntity import GenericEntity
 from ..models.Statistics import Statistics
 from ..models.CodingSystem import CodingSystem
-from . import model_utils, permission_utils, template_utils, constants, gen_utils
+from . import model_utils, template_utils, constants, gen_utils
 
 def try_derive_entity_type(entity_type):
     '''

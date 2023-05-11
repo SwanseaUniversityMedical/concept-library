@@ -6,7 +6,6 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.core.exceptions import PermissionDenied
 
-from ..models import PublishedGenericEntity
 from ..entity_utils import permission_utils, constants
 
 class EntityModeration(TemplateView):

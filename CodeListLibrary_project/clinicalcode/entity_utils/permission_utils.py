@@ -6,7 +6,6 @@ from django.core.exceptions import PermissionDenied
 from functools import wraps
 
 from ..models import GenericEntity
-from ..models import PublishedGenericEntity
 from ..models.Concept import Concept
 from ..models.PublishedConcept import PublishedConcept
 from . import model_utils
@@ -99,15 +98,9 @@ def get_accessible_entities(
     query = Q(owner=user.id) 
     if not status or APPROVAL_STATUS.ANY not in status:
       if status:
-        published_entities = PublishedGenericEntity.objects.filter(approval_status__in=status)
-        entities = entities.filter(
-          id__in=published_entities.values_list('entity_id', flat=True)
-        )
+        entities = entities.filter(publish_status__in=status)
       else:
-        published_entities = PublishedGenericEntity.objects.all()
-        entities = entities.exclude(
-          id__in=list(published_entities.values_list('entity_id', flat=True))
-        )
+        entities = entities.exclude(publish_status=APPROVAL_STATUS.PENDING)
     
     if group_permissions:
       query |= Q(
@@ -124,15 +117,13 @@ def get_accessible_entities(
 
     return entities
   
-  entities = PublishedGenericEntity.objects \
-    .filter(approval_status=APPROVAL_STATUS.APPROVED) \
-    .order_by('-created') \
-    .distinct()
-  
   entities = GenericEntity.history.filter(
     id__in=list(entities.values_list('entity_id', flat=True)),
-    history_id__in=list(entities.values_list('entity_history_id', flat=True))
-  )
+    history_id__in=list(entities.values_list('entity_history_id', flat=True)),
+    approval_status=APPROVAL_STATUS.APPROVED
+  ) \
+  .order_by('-history_date') \
+  .distinct()
   
   return entities.filter(Q(is_deleted=False) | Q(is_deleted=None))
 
@@ -210,13 +201,8 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
     return True
   
   if is_member(user, 'moderator'):
-    published_entity = model_utils.try_get_instance(
-      PublishedGenericEntity,
-      entity_id=entity_id,
-      entity_history_id=entity_history_id
-    )
-  
-    if published_entity is not None and published_entity.approval_status in [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING]:
+    status = entity.publish_status  
+    if status is not None and status in [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING]:
       return True
   
   if historical_entity.owner == user:

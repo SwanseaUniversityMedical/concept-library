@@ -1,5 +1,5 @@
 from functools import cmp_to_key
-from ..models import GenericEntity, Template, Statistics, PublishedGenericEntity, Brand
+from ..models import GenericEntity, Template, Statistics, Brand
 from . import template_utils, constants, gen_utils
 
 def sort_by_count(a, b):

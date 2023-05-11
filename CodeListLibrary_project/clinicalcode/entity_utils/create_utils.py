@@ -11,7 +11,6 @@ from ..models.Concept import Concept
 from ..models.Component import Component
 from ..models.CodeList import CodeList
 from ..models.Code import Code
-from ..models.PublishedGenericEntity import PublishedGenericEntity
 from . import gen_utils
 from . import model_utils
 from . import permission_utils

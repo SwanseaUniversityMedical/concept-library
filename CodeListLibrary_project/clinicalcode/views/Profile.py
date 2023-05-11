@@ -5,7 +5,6 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
-from ..models import PublishedGenericEntity
 from ..entity_utils import permission_utils
 from ..entity_utils.constants import APPROVAL_STATUS
 
