@@ -6,7 +6,6 @@ from django.core.exceptions import PermissionDenied
 from functools import wraps
 
 from ..models import GenericEntity
-from ..models import PublishedGenericEntity
 from ..models.Concept import Concept
 from ..models.PublishedConcept import PublishedConcept
 from . import model_utils
@@ -99,15 +98,9 @@ def get_accessible_entities(
     query = Q(owner=user.id) 
     if not status or APPROVAL_STATUS.ANY not in status:
       if status:
-        published_entities = PublishedGenericEntity.objects.filter(approval_status__in=status)
-        entities = entities.filter(
-          id__in=published_entities.values_list('entity_id', flat=True)
-        )
+        entities = entities.filter(publish_status__in=status)
       else:
-        published_entities = PublishedGenericEntity.objects.all()
-        entities = entities.exclude(
-          id__in=list(published_entities.values_list('entity_id', flat=True))
-        )
+        entities = entities.exclude(publish_status=APPROVAL_STATUS.PENDING)
     
     if group_permissions:
       query |= Q(
@@ -124,15 +117,13 @@ def get_accessible_entities(
 
     return entities
   
-  entities = PublishedGenericEntity.objects \
-    .filter(approval_status=APPROVAL_STATUS.APPROVED) \
-    .order_by('-created') \
-    .distinct()
-  
   entities = GenericEntity.history.filter(
     id__in=list(entities.values_list('entity_id', flat=True)),
-    history_id__in=list(entities.values_list('entity_history_id', flat=True))
-  )
+    history_id__in=list(entities.values_list('entity_history_id', flat=True)),
+    approval_status=APPROVAL_STATUS.APPROVED
+  ) \
+  .order_by('-history_date') \
+  .distinct()
   
   return entities.filter(Q(is_deleted=False) | Q(is_deleted=None))
 
@@ -178,13 +169,13 @@ def has_entity_modify_permissions(request, entity):
 
   return has_member_access(user, entity, [GROUP_PERMISSIONS.EDIT])
 
-def can_user_edit_entity(request, entity_id, entity_history_id):
+def can_user_edit_entity(request, entity_id, entity_history_id=None):
   '''
     Checks whether a user has the permissions to modify an entity
 
     Args:
       entity_id {number}: The entity ID of interest
-      entity_history_id {number}: The entity's historical id of interest
+      entity_history_id {number} (optional): The entity's historical id of interest
     
     Returns:
       A boolean value reflecting whether the user is able to modify an entity
@@ -197,22 +188,21 @@ def can_user_edit_entity(request, entity_id, entity_history_id):
   if entity is None:
     return False
   
-  historical_entity = model_utils.try_get_entity_history(entity, entity_history_id)
-  if historical_entity is None:
-    return False
+  if entity_history_id is not None:
+    historical_entity = model_utils.try_get_entity_history(entity, entity_history_id)
+    if historical_entity is None:
+      return False
+    entity = historical_entity
+  else:
+    entity = entity.history.latest()
   
   user = request.user
   if user.is_superuser:
     return True
   
   if is_member(user, 'moderator'):
-    published_entity = model_utils.try_get_instance(
-      PublishedGenericEntity,
-      entity_id=entity_id,
-      entity_history_id=entity_history_id
-    )
-  
-    if published_entity is not None and published_entity.approval_status in [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING]:
+    status = entity.publish_status  
+    if status is not None and status in [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING]:
       return True
   
   if historical_entity.owner == user:
@@ -263,8 +253,20 @@ def get_latest_publicly_accessible_concept():
 
   return concepts.first() if concepts.exists() else None
 
+def user_can_edit_via_entity(request, concept):
+  '''
+    Checks to see if a user can edit a child concept via it's phenotype owner's permissions
+  '''
+  entity = concept.phenotype_owner
+  if entity is None:
+    return True
+  
+  return can_user_edit_entity(request, entity)
+
 def can_user_edit_concept(request, concept_id, concept_history_id):
   '''
+    [!] Legacy permissions method
+
     Checks whether a user can edit with a concept, e.g. in the case that:
       1. If they are a superuser
       2. If they are a moderator and its in the approval process
@@ -306,6 +308,8 @@ def can_user_edit_concept(request, concept_id, concept_history_id):
 
 def user_has_concept_ownership(user, concept):
   '''
+    [!] Legacy permissions method
+
     Determines whether the user has top-level access to the Concept,
     and can therefore modify it
 

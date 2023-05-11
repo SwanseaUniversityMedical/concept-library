@@ -754,6 +754,8 @@ const tryGetFieldTitle = (field, packet) => {
  * 
  */
 class EntityCreator {
+  #locked = false;
+
   constructor(data, options) {
     this.data = data;
     this.formChanged = false;
@@ -769,6 +771,15 @@ class EntityCreator {
    *               Getter              *
    *                                   *
    *************************************/
+  /**
+   * isLocked
+   * @desc whether we're still awaiting the promise to resolve
+   * @returns {boolean} represents status of promise
+   */
+  isLocked() {
+    return this.#locked;
+  }
+
   /**
    * getFormMethod
    * @desc describes whether the form is a create or an update form, where 1 = create & 2 = update
@@ -883,41 +894,54 @@ class EntityCreator {
     }
 
     // If no errors and it is different, then attempt to POST
-    const token = getCookie('csrftoken');
-    const request = {
-      method: 'POST',
-      cache: 'no-cache',
-      credentials: 'same-origin',
-      withCredentials: true,
-      headers: {
-        'X-CSRFToken': token,
-        'Authorization': `Bearer ${token}`
-      },
-      body: this.#generateSubmissionData(data),
-    };
+    if (this.#locked) {
+      return;
+    }
+    this.#locked = true;
 
-    fetch('', request)
-      .then(response => {
-        if (!response.ok) {
-          return Promise.reject(response);
-        }
-        return response.json();
-      })
-      .then(content => {
-        this.formChanged = false;
-        this.initialisedData = data;
-        return content;
-      })
-      .then(content => {
-        this.#redirectFormClosure(content);
-      })
-      .catch(error => {
-        if (typeof error.json === 'function') {
-          this.#handleAPIError(error);
-        } else {
-          this.#handleServerError(error);
-        }
-      });
+    try {
+      const token = getCookie('csrftoken');
+      const request = {
+        method: 'POST',
+        cache: 'no-cache',
+        credentials: 'same-origin',
+        withCredentials: true,
+        headers: {
+          'X-CSRFToken': token,
+          'Authorization': `Bearer ${token}`
+        },
+        body: this.#generateSubmissionData(data),
+      };
+  
+      fetch('', request)
+        .then(response => {
+          if (!response.ok) {
+            return Promise.reject(response);
+          }
+          return response.json();
+        })
+        .then(content => {
+          this.formChanged = false;
+          this.initialisedData = data;
+          return content;
+        })
+        .then(content => {
+          this.#redirectFormClosure(content);
+        })
+        .catch(error => {
+          if (typeof error.json === 'function') {
+            this.#handleAPIError(error);
+          } else {
+            this.#handleServerError(error);
+          }
+        })
+        .finally(() => {
+          this.#locked = false;
+        });
+    }
+    catch {
+      this.#locked = false;
+    }
   }
 
   /**

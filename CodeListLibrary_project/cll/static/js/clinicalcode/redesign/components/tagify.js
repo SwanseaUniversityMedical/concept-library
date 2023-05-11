@@ -43,6 +43,9 @@ const TAGIFY__TAG_OPTIONS = {
   'allowDuplicates': false,
   // Determines whether the user is restricted to the items within the predefined items list, or can input their own
   'restricted': false,
+  // Determines whether to show tooltips
+  //  [!] Note: This option requires tooltipFactory.js as a dependency
+  'showTooltips': true,
 };
 
 /**
@@ -168,6 +171,9 @@ export default class Tagify {
    */
   removeTag(tag) {
     const name = tag.querySelector('.tag__name');
+    if (this.options.showTooltips) {
+      window.TooltipFactory.clearTooltips(tag.querySelector('button'));
+    }
     this.tagbox.removeChild(tag);
 
     const index = this.tags.map(e => e.name).indexOf(name.textContent.trim());
@@ -454,7 +460,7 @@ export default class Tagify {
     const tag = createElement('div', {
       'className': 'tag',
       'data-value': value,
-      'innerHTML': `<span class="tag__name">${name}</span><span tooltip="Remove Tag" direction="left"><button class="tag__remove" aria-label="Remove Tag ${name}">&times;</button></span>`
+      'innerHTML': `<span class="tag__name">${name}</span><button class="tag__remove" aria-label="Remove Tag ${name}">&times;</button>`
     });
 
     this.tagbox.insertBefore(tag, this.field);
@@ -463,6 +469,10 @@ export default class Tagify {
       'name': name,
       'value': value,
     });
+
+    if (this.options.showTooltips) {
+      window.TooltipFactory.addTooltip(tag.querySelector('button'), 'Remove Tag', 'left');
+    }
 
     this.#updateElement();
     

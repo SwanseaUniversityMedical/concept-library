@@ -5,7 +5,6 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
-from ..models import PublishedGenericEntity
 from ..entity_utils import permission_utils
 from ..entity_utils.constants import APPROVAL_STATUS
 
@@ -40,11 +39,6 @@ class MyCollection(TemplateView):
       ),
       owner_name=Subquery(
         User.objects.filter(id=OuterRef('owner')).values('username')
-      ),
-      publish_status=Subquery(
-        PublishedGenericEntity.objects.filter(
-          entity_id=OuterRef('id'), entity_history_id=OuterRef('history_id')
-        ).values('approval_status')
       )
     )
 

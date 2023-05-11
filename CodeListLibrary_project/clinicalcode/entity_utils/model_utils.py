@@ -9,7 +9,6 @@ import simple_history
 
 from . import gen_utils
 from ..models.GenericEntity import GenericEntity
-from ..models.PublishedGenericEntity import PublishedGenericEntity
 from ..models.Tag import Tag
 from ..models.CodingSystem import CodingSystem
 from ..models.Concept import Concept
@@ -62,30 +61,22 @@ def get_latest_entity_published(entity_id):
   '''
     Gets latest published entity given an entity id
   '''
-  latest_published_entity = PublishedGenericEntity.objects.filter(
-    entity_id=entity_id, approval_status=2
-  ) \
-  .order_by('-entity_history_id')
-  
-  if latest_published_entity.exists():
-    return latest_published_entity.first()
 
-  return None
+  entity = GenericEntity.history.filter(id=entity_id, publish_status=APPROVAL_STATUS.APPROVED)
+  if not entity.exists():
+    return None
+  
+  entity = entity.order_by('-history_id')
+  entity = entity.first()
+  return entity
 
 def get_entity_approval_status(entity_id, historical_id):
   '''
     Gets the entity's approval status, given an entity id and historical id
   '''
-  entity = try_get_instance(
-    PublishedGenericEntity,
-    entity_id=entity_id, 
-    entity_history_id=historical_id
-  )
-
-  if entity:
-    return entity.approval_status
-  
-  return None
+  entity = GenericEntity.history.filter(id=entity_id, history_id=historical_id)
+  if entity.exists():
+    return entity.first().publish_status
 
 def get_latest_entity_historical_id(entity_id, user):
   '''
@@ -117,6 +108,18 @@ def get_latest_entity_historical_id(entity_id, user):
       return published.history.latest().history_id
 
   return None
+
+def is_legacy_entity(entity_id, entity_history_id):
+  '''
+    Checks whether this entity_id and entity_history_id match the latest record
+    to determine whether a historical entity is legacy or not
+  '''
+  latest_entity = GenericEntity.history.filter(id=entity_id)
+  if not latest_entity.exists():
+    return False
+  
+  latest_entity = latest_entity.latest()
+  return latest_entity.history_id != entity_history_id
 
 def jsonify_object(obj, remove_userdata=True, strip_fields=True, strippable_fields=None, dump=True):
   '''
@@ -551,58 +554,11 @@ def get_associated_concept_codes(concept_id, concept_history_id, code_ids, incl_
   codelist = [code for code in codelist if code.get('id', -1) in code_ids]
   return codelist
 
-def get_final_reviewed_codelist(concept_id, concept_history_id, hide_user_details=False, incl_attributes=False):
+def get_reviewable_concept(concept_id, concept_history_id, hide_user_details=False, incl_attributes=False):
   '''
-    [!] Note: This method ignores permissions - it should only be called from a
-              a method that has previously considered accessibility
-    
-    Retrieves the final, reviewed codelist from a HistoricConcept
-
-    Args:
-      concept_id {number}: The concept ID of interest
-      concept_history_id {number}: The concept's historical id of interest
-      incl_attributes {bool}: Whether to include code attributes
-    
-    Returns:
-      A QuerySet containing the final inclusionary codelist of a concept
+    Intended to get the reviewed / reviewable codes for a Concept
   '''
-
-  # Try to find the associated concept and its historical counterpart
-  concept = try_get_instance(
-    Concept, pk=concept_id
-  )
-  if not concept:
-    return None
-  
-  historical_concept = try_get_entity_history(concept, concept_history_id)
-  if not historical_concept:
-    return None
-
-  # Return the inclusionary list if legacy
-  if historical_concept.is_legacy:
-    return get_concept_codelist(concept_id, concept_history_id, incl_logical_types=[CLINICAL_RULE_TYPE.INCLUDE.value], incl_attributes=incl_attributes)
-
-  # Get the reviewed concept list
-  reviewed_concept = try_get_instance(
-    ConceptReviewStatus,
-    concept_id=historical_concept.id,
-    history_id=historical_concept.history_id
-  )
-
-  if reviewed_concept is None:
-    return None
-
-  # Get the reviewed, inclusionary codelist
-  included_codes = get_associated_concept_codes(concept_id, concept_history_id, reviewed_concept.included_codes)
-  return {
-    'review_submitted': reviewed_concept.review_submitted,
-    'last_reviewed_by': get_userdata_details(
-      User, 
-      pk=reviewed_concept.last_reviewed_by.pk, 
-      hide_user_details=hide_user_details
-    ),
-    'codes': included_codes,
-  }
+  return
 
 def get_review_concept(concept_id, concept_history_id):
   '''

@@ -7,8 +7,17 @@
   
   <a class="entity-card__click" href="{% url 'entity_history_detail' pk=entity.id history_id=entity.history_id %}">
     <div class="entity-card__header">
-      <h3 class="entity-card__title">{{ entity.id }} - {{ entity.name }}</h3>
-      <p class="entity-card__author">{{ entity.author }}</p>
+      <div class="entity-card__header-item">
+        <h3 class="entity-card__title">{{ entity.id }} - {{ entity.name }}</h3>
+        <p class="entity-card__author">{{ entity.author }}</p>
+      </div>
+      {% if entity.publish_status != 2 %}
+      <div class="entity-card__header-item">
+        <div class="chip bold washed-accent text-accent-darkest draft-icon icon-accent-highlight">
+          <a class="chip-text" href="#">DRAFT</a>
+        </div>
+      </div>
+      {% endif %}
     </div>
     <div class="entity-card__snippet">
       <div class="entity-card__snippet-metadata">

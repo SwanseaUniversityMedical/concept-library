@@ -48,7 +48,7 @@
             <h4>Codelist</h4>
             <ul class="chips-group" id="coding-system-chip">
               <li class="chip bold washed-accent text-accent-darkest codelist-icon icon-accent-highlight">
-                <a id="coding-system-info" data-coding-id="${coding_id}">${coding_system}</a>
+                <a id="coding-system-info" class="chip-text" data-coding-id="${coding_id}">${coding_system}</a>
               </li>
             </ul>
           </section>
@@ -89,14 +89,18 @@
           <p class="concept-group-content__details-explanation-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
         </div>
         <div class="concept-group-content__editor-selection">
-          <label class="dropdown-btn" aria-label="Add Ruleset Selection" role="button" tabindex="0" id="add-ruleset" data-type="INCLUDE">
-            <input type="checkbox" class="dropdown-btn__input">
-            <div class="dropdown-btn__label">Add Ruleset</div>
-            <ul class="dropdown-btn__menu fall-right">
-              <li aria-label="Add Searchterm Rule" role="button" tabindex="0" data-source="SEARCH_TERM">Add Searchterm</li>
-              <li aria-label="Add Import File Rule" role="button" tabindex="0" data-source="FILE_IMPORT">Import from File</li>
-            </ul>
-          </label>
+          <fieldset class="dropdown-btn">
+            <label aria-label="Add Ruleset Selection" role="dropdown" tabindex="0" id="add-ruleset" data-type="INCLUDE" for="open-incl-ruleset">
+              <input type="radio" class="dropdown-btn__input" name="incl-ruleset-btn" id="open-incl-ruleset">
+              <div class="dropdown-btn__label">Add Ruleset</div>
+              <input type="radio" class="dropdown-btn__close" id="close-incl-ruleset" name="incl-ruleset-btn">
+              <label aria-label="Close Ruleset Selection" role="button" tabindex="0" id="close-ruleset-selection" class="dropdown-btn__close-label" for="close-incl-ruleset"></label>
+              <ul class="dropdown-btn__menu fall-right">
+                <li aria-label="Add Searchterm Rule" role="button" tabindex="0" data-source="SEARCH_TERM">Add Searchterm</li>
+                <li aria-label="Add Import File Rule" role="button" tabindex="0" data-source="FILE_IMPORT">Import from File</li>
+              </ul>
+            </label>
+          </fieldset>
         </div>
       </section>
 
@@ -116,14 +120,18 @@
           <p class="concept-group-content__details-explanation-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
         </div>
         <div class="concept-group-content__editor-selection">
-          <label class="dropdown-btn" aria-label="Add Ruleset Selection" role="button" tabindex="0" id="add-ruleset" data-type="EXCLUDE">
-            <input type="checkbox" class="dropdown-btn__input">
-            <div class="dropdown-btn__label">Add Ruleset</div>
-            <ul class="dropdown-btn__menu fall-right">
-              <li aria-label="Add Searchterm Rule" role="button" tabindex="0" data-source="SEARCH_TERM">Add Searchterm</li>
-              <li aria-label="Add Import File Rule" role="button" tabindex="0" data-source="FILE_IMPORT">Import from File</li>
-            </ul>
-          </label>
+          <fieldset class="dropdown-btn">
+            <label aria-label="Add Ruleset Selection" role="dropdown" tabindex="0" id="add-ruleset" data-type="EXCLUDE" for="open-excl-ruleset">
+              <input type="radio" class="dropdown-btn__input" name="excl-ruleset-btn" id="open-excl-ruleset">
+              <div class="dropdown-btn__label">Add Ruleset</div>
+              <input type="radio" class="dropdown-btn__close" id="close-excl-ruleset" name="excl-ruleset-btn" checked>
+              <label aria-label="Close Ruleset Selection" role="button" tabindex="0" id="close-ruleset-selection" class="dropdown-btn__close-label" for="close-excl-ruleset"></label>
+              <ul class="dropdown-btn__menu fall-right">
+                <li aria-label="Add Searchterm Rule" role="button" tabindex="0" data-source="SEARCH_TERM">Add Searchterm</li>
+                <li aria-label="Add Import File Rule" role="button" tabindex="0" data-source="FILE_IMPORT">Import from File</li>
+              </ul>
+            </label>
+          </fieldset>
         </div>
       </section>
       
@@ -185,9 +193,12 @@
         <div class="detailed-input-group fill">
           <h3 class="detailed-input-group__title sm">Searchterm Rule</h3>
           <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-          <input class="text-input" aria-label="Ruleset Searchterm" type="text" 
-              id="searchterm" placeholder="Add searchterm..." minlength="3"
-              value="${source}" data-item="rule">
+          <fieldset class="code-search-group">
+            <input class="code-text-input" aria-label="Ruleset Searchterm" type="text" 
+                id="searchterm" placeholder="Add searchterm..." minlength="3"
+                value="${source}" data-item="rule">
+            <span class="code-text-input__icon" id="code-search-icon"></span>
+          </fieldset>
         </div>
       </article>
     </div>
