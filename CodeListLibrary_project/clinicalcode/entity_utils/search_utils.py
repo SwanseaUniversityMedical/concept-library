@@ -326,7 +326,7 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
                 """
                 select id
                 from clinicalcode_historicalgenericentity
-                where id = ANY(%s) 
+                where id = ANY(%s)
                   and search_vector @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %s)::text || ':*', '<->', '|'))
                 """,
                 [entity_ids, search]
@@ -337,8 +337,7 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
                 """ts_rank_cd(search_vector, websearch_to_tsquery('pg_catalog.english', %s))""",
                 [search]
             )
-        ) \
-        .filter(score__gte=0.1)
+        )
 
         if should_order_search:
             entities = entities.order_by('-score')
