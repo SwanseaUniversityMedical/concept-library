@@ -84,13 +84,13 @@ def get_accessible_entities(
     group_permissions=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]
   ):  
   user = request.user
-  if user and not user.is_anonymous:
-    entities = GenericEntity.history.all() \
-      .order_by('id', '-history_id') \
-      .distinct('id')
+  entities = GenericEntity.history.all() \
+    .order_by('id', '-history_id') \
+    .distinct('id')
   
+  if user and not user.is_anonymous:
     if consider_user_perms and user.is_superuser:
-      return entities
+      return entities.distinct()
     
     if consider_user_perms and is_member(user, "Moderators"):
       status += [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING, APPROVAL_STATUS.REJECTED]
@@ -115,15 +115,11 @@ def get_accessible_entities(
     else:
       entities = entities.exclude(Q(is_deleted=True))
 
-    return entities
+    return entities.distinct()
   
-  entities = GenericEntity.history.filter(
-    id__in=list(entities.values_list('entity_id', flat=True)),
-    history_id__in=list(entities.values_list('entity_history_id', flat=True)),
-    approval_status=APPROVAL_STATUS.APPROVED
-  ) \
-  .order_by('-history_date') \
-  .distinct()
+  entities = entities.filter(
+    publish_status=APPROVAL_STATUS.APPROVED
+  )
   
   return entities.filter(Q(is_deleted=False) | Q(is_deleted=None))
 
