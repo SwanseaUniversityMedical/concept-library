@@ -101,12 +101,12 @@
 	box-shadow: 0 0 0 2px var(--accent-color);
 
   &.bold {
-    &>a.chip-text {
+    &>.chip-text {
       font-weight: bold;
     }
   }
 
-  & a.chip-text {
+  & .chip-text {
     @include clear-anchor();
 
     display: inline-block;
@@ -145,7 +145,7 @@
   }
 
   &.codelist-icon {
-    & a.chip-text {
+    & .chip-text {
       &:before {
         @include fontawesome-icon();
   
@@ -165,7 +165,7 @@
   }
 
   &.draft-icon {
-    & a.chip-text {
+    & .chip-text {
       &:before {
         @include fontawesome-icon();
   

@@ -1,6 +1,7 @@
 from django.apps import apps
-from django.db.models import Q
+from django.db.models import Q, OuterRef
 from django.db.models.functions import Lower
+from django.db.models.expressions import RawSQL
 from django.core.paginator import EmptyPage, Paginator
 from django.contrib.postgres.search import TrigramSimilarity, SearchQuery, SearchRank, SearchVector
 
@@ -242,7 +243,7 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
             1. The entities and their data
             2. The template associated with each of the entities
     '''
-    # Get related relating to the user
+    # Get entities relating to the user
     entities = permission_utils.get_accessible_entities(
         request,
         status=[constants.APPROVAL_STATUS.ANY]
@@ -319,16 +320,27 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
     # Apply any search param if present
     search = gen_utils.try_get_param(request, 'search', None)
     if search is not None:
+        entity_ids = list(entities.values_list('id', flat=True))
         entities = entities.filter(
-            Q(search_vector__icontains=search)
+            id__in=RawSQL(
+                """
+                select id
+                from clinicalcode_historicalgenericentity
+                where id = ANY(%s)
+                  and search_vector @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %s)::text || ':*', '<->', '|'))
+                """,
+                [entity_ids, search]
+            )
+        ) \
+        .annotate(
+            score=RawSQL(
+                """ts_rank_cd(search_vector, websearch_to_tsquery('pg_catalog.english', %s))""",
+                [search]
+            )
         )
-        
+
         if should_order_search:
-            entities = entities \
-                .annotate(
-                    similarity=(TrigramSimilarity('id', search) + TrigramSimilarity('name', search))
-                ) \
-                .order_by('-similarity')
+            entities = entities.order_by('-score')
 
     # Reorder by user selection
     if search_order != constants.ORDER_BY['1']:
