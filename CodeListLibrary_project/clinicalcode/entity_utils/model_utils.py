@@ -90,7 +90,7 @@ def get_latest_entity_historical_id(entity_id, user):
     if user.is_superuser:
       return int(entity.history.latest().history_id)
     
-    if user:
+    if user and not user.is_anonymous:
       history = entity.history.filter(
         Q(owner=user.id) | 
         Q(
@@ -103,9 +103,9 @@ def get_latest_entity_historical_id(entity_id, user):
       if history.exists():
         return history.first().history_id
   
-    published = get_latest_entity_published(entity)
+    published = get_latest_entity_published(entity.id)
     if published:
-      return published.history.latest().history_id
+      return published.history_id
 
   return None
 
