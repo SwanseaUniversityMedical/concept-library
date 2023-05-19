@@ -2,6 +2,7 @@
 {% load compress %}
 {% load sass_tags %}
 {% load mathfilters %}
+{% load entity_renderer %}
 {% load i18n %}
 {% load cl_extras %}
 
@@ -43,6 +44,28 @@
 
     <link rel="icon" href="data:,">
 
+    <!-- URL embedding -->
+    {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
+    {% block embedding_wrapper %}
+      {% if not hide_embedding %}
+        {% get_brand_base_embed_desc request.BRAND_OBJECT as base_desc %}
+        {% get_brand_base_embed_img request.BRAND_OBJECT as base_embed_img %}
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="{{ request.build_absolute_uri }}">
+        <meta property="og:title" content="{{ base_page_title }}">
+        <meta property="og:description" content="{{ base_desc }}">
+        <meta property="og:image" content="{% static base_embed_img %}">
+
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image">
+        <meta property="twitter:url" content="{{ request.build_absolute_uri }}">
+        <meta property="twitter:title" content="{{ base_page_title }}">
+        <meta property="twitter:description" content="{{ base_desc }}">
+        <meta property="twitter:image" content="{% static base_embed_img %}">
+      {% endif %}
+    {% endblock embedding_wrapper %}
+
     <!-- Stylesheets -->
     <link href="{% sass_src 'scss/main.scss' %}" rel="stylesheet" type="text/css" />
 
@@ -56,18 +79,12 @@
       <script src="{% static 'js/lib/jquery/jquery-3.1.1.min.js' %}" type="text/javascript"></script>
     {% endblock jquery %}
 
-	
-    <!-- Page details -->
+    <!-- Page title -->
     <title>
-      {% if request.CURRENT_BRAND|length and request.BRAND_OBJECT.site_title is not none %}
-        {{ request.BRAND_OBJECT.site_title }}
-      {% else %}
-        Concept Library
-      {% endif %}
-      {% block title %}{% endblock title %}
+      {{ base_page_title }} {% block title %}{% endblock title %}
     </title>
 
-     {% block head %}{% endblock head %}
+    {% block head %}{% endblock head %}
   </head>
   <body class="{% block bodyclass %}{% endblock bodyclass %}" {% block bodyattr %}{% endblock bodyattr %} >
     {% block navigation_wrapper %}
