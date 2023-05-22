@@ -95,7 +95,7 @@ def get_entity_version_history(request, entity_id):
       version, [permission_utils.APPROVAL_STATUS.APPROVED]
     )
 
-    if permission_utils.has_entity_view_permissions(request, version):
+    if permission_utils.can_user_view_entity(request, version.id, version.history_id):
       result.append({
         'version_id': version.history_id,
         'version_name': version.name.encode('ascii', 'ignore').decode('ascii'),
