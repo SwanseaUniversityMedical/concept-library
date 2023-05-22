@@ -18,7 +18,8 @@ from ..models.CodeList import CodeList
 from ..models.ConceptCodeAttribute import ConceptCodeAttribute
 from ..models.Code import Code
 from .constants import (USERDATA_MODELS, STRIPPED_FIELDS, APPROVAL_STATUS,
-                        GROUP_PERMISSIONS, TAG_TYPE, HISTORICAL_HIDDEN_FIELDS,
+                        GROUP_PERMISSIONS, WORLD_ACCESS_PERMISSIONS,
+                        TAG_TYPE, HISTORICAL_HIDDEN_FIELDS,
                         CLINICAL_RULE_TYPE, CLINICAL_CODE_SOURCE)
 
 def try_get_instance(model, **kwargs):
@@ -96,6 +97,9 @@ def get_latest_entity_historical_id(entity_id, user):
         Q(
           group_id__in=user.groups.all(),
           group_access__in=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]
+        ) |
+        Q(
+          world_access=WORLD_ACCESS_PERMISSIONS.VIEW
         )
       ) \
       .order_by('-history_id')

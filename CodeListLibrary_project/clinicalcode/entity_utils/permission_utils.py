@@ -2,6 +2,7 @@ from django.db.models import Q, F, Subquery, OuterRef
 from django.conf import settings
 from django.contrib.auth.models import Group, User
 from django.core.exceptions import PermissionDenied
+from rest_framework.response import Response
 
 from functools import wraps
 
@@ -9,7 +10,7 @@ from ..models import GenericEntity
 from ..models.Concept import Concept
 from ..models.PublishedConcept import PublishedConcept
 from . import model_utils
-from .constants import APPROVAL_STATUS, GROUP_PERMISSIONS
+from .constants import APPROVAL_STATUS, GROUP_PERMISSIONS, WORLD_ACCESS_PERMISSIONS
 
 ''' Permission decorators '''
 def redirect_readonly(fn):
@@ -108,6 +109,11 @@ def get_accessible_entities(
         group_access__in=group_permissions
       )
       
+    # get world_access shared entities (if user is authenticated)
+    query |= Q(
+      world_access=WORLD_ACCESS_PERMISSIONS.VIEW
+    )
+      
     entities = entities.filter(query)
 
     if only_deleted:
@@ -123,47 +129,68 @@ def get_accessible_entities(
   
   return entities.filter(Q(is_deleted=False) | Q(is_deleted=None))
 
-def has_entity_view_permissions(request, entity):
-  '''
 
-  '''  
-  user = request.user
-  if user.is_superuser:
-    return True
+def can_user_view_entity(request, entity_id, entity_history_id=None):
+  '''
+    Checks whether a user has the permissions to view an entity
+    
+    Args:
+      entity_id {number}: The entity ID of interest
+      entity_history_id {number} (optional): The entity's historical id of interest
+    
+    Returns:
+      A boolean value reflecting whether the user is able to view an entity
+  '''
   
-  moderation_required = is_publish_status(
-    entity, [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING, APPROVAL_STATUS.REJECTED]
-  )
-  if is_member(user, "Moderators") and moderation_required:
-    return True
+  # since permissions are derived from the live entity (not from historical records),
+  # get live entity  
+  live_entity = model_utils.try_get_instance(GenericEntity, pk=entity_id)
+  if live_entity is None:
+    return False
   
-  if entity.owner == user:
-    return True
-  
-  is_published = is_publish_status(entity, [APPROVAL_STATUS.APPROVED])
+  if entity_history_id is not None:
+    historical_entity = model_utils.try_get_entity_history(live_entity, entity_history_id)
+    if historical_entity is None:
+      return False
+  else:
+    historical_entity = live_entity.history.latest()
+    entity_history_id = historical_entity.history_id
+          
+  is_published = is_publish_status(historical_entity, [APPROVAL_STATUS.APPROVED])
   if is_published:
-    return True
-  
-  return has_member_access(user, entity, [GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT])
-
-def has_entity_modify_permissions(request, entity):
-  '''
-    Checks whether a user has the permissions to modify an entity
-  '''
+    return True   
+               
   user = request.user
   if user.is_superuser:
-    return True
+    return check_brand_access(request, is_published, entity_id, entity_history_id)
   
   moderation_required = is_publish_status(
-    entity, [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING]
+    historical_entity, [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING, APPROVAL_STATUS.REJECTED]
   )
   if is_member(user, "Moderators") and moderation_required:
-    return True
+    return check_brand_access(request, is_published, entity_id, entity_history_id)
   
-  if entity.owner == user:
-    return True
+  if live_entity.owner == user:
+    return check_brand_access(request, is_published, entity_id, entity_history_id)
+    
+  if has_member_access(user, live_entity, [GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]):
+      return check_brand_access(request, is_published, entity_id, entity_history_id)
+  
+  if user and not user.is_anonymous:
+    if live_entity.world_access == WORLD_ACCESS_PERMISSIONS.VIEW:
+      return check_brand_access(request, is_published, entity_id, entity_history_id)
+     
+  return False
+ 
+def check_brand_access(request, is_published, entity_id, entity_history_id=None):
+  # if the entity is published ignore is_brand_accessible() 
+  brand_access = True
+  if not is_published:
+    if not is_brand_accessible(request, entity_id, entity_history_id):
+      brand_access = False            
+    
+  return brand_access
 
-  return has_member_access(user, entity, [GROUP_PERMISSIONS.EDIT])
 
 def can_user_edit_entity(request, entity_id, entity_history_id=None):
   '''
@@ -177,34 +204,43 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
       A boolean value reflecting whether the user is able to modify an entity
   '''
   
-  entity = model_utils.try_get_instance(
-    GenericEntity,
-    pk=entity_id
-  )
-  if entity is None:
+  live_entity = model_utils.try_get_instance(GenericEntity, pk=entity_id)
+  if live_entity is None:
     return False
   
   if entity_history_id is not None:
-    historical_entity = model_utils.try_get_entity_history(entity, entity_history_id)
+    historical_entity = model_utils.try_get_entity_history(live_entity, entity_history_id)
     if historical_entity is None:
       return False
-    entity = historical_entity
   else:
-    entity = entity.history.latest()
-  
+    historical_entity = live_entity.history.latest()
+    entity_history_id = historical_entity.history_id
+
+  is_allowed_to_edit = False
+
   user = request.user
   if user.is_superuser:
-    return True
+    is_allowed_to_edit = True
   
-  if is_member(user, 'moderator'):
-    status = entity.publish_status  
-    if status is not None and status in [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING]:
-      return True
+  ''' Moderator does not have EDIT permission on publish-requests '''
+  # if is_member(user, 'moderator'):
+  #   status = historical_entity.publish_status  
+  #   if status is not None and status in [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING]:
+  #     is_allowed_to_edit = True
   
-  if historical_entity.owner == user:
-    return True
+  if live_entity.owner == user:
+    is_allowed_to_edit = True
   
-  return has_member_access(user, historical_entity, [GROUP_PERMISSIONS.EDIT])
+  if has_member_access(user, live_entity, [GROUP_PERMISSIONS.EDIT]):
+    is_allowed_to_edit = True
+    
+  # check brand access
+    if is_allowed_to_edit:
+      if not is_brand_accessible(request, entity_id):
+          is_allowed_to_edit = False
+            
+  return is_allowed_to_edit 
+
 
 def is_concept_published(concept_id, concept_history_id):
   '''
@@ -323,3 +359,76 @@ def user_has_concept_ownership(user, concept):
     return True
   
   return has_member_access(user, concept, [GROUP_PERMISSIONS.EDIT])
+
+
+def validate_access_to_view(request, entity_id, entity_history_id=None):
+  '''
+  validate access to view the entity
+  '''
+  from clinicalcode.entity_utils import api_utils
+  
+  # Check if entity_id is valid, i.e. matches regex '^[a-zA-Z]\d+'
+  entity_id_response = api_utils.is_malformed_entity_id(entity_id)
+  if isinstance(entity_id_response, Response):
+    raise PermissionDenied
+
+  # Check if the user has the permissions to view this entity version
+  user_can_access = can_user_view_entity(request, entity_id, entity_history_id)
+  if not user_can_access:
+    #message = 'Entity version must be published or you must have permission to access it'
+    raise PermissionDenied
+    
+
+def is_brand_accessible(request, entity_id, entity_history_id=None):
+  """
+      When in a brand, show only this brand's data
+  """
+  from clinicalcode.entity_utils import template_utils
+
+  # setting entity_history_id = None,
+  # so this permission is always checked from the live obj like other permissions
+  entity_history_id = None
+
+  brand = request.CURRENT_BRAND
+  if brand == "":
+    return True
+  else:
+    brand_collection_ids = template_utils.get_brand_collection_ids(brand)
+
+    if not brand_collection_ids:
+      return True
+    else:
+      history_id = entity_history_id
+      if entity_history_id is None:
+        history_id = GenericEntity.objects.get(pk=entity_id).history.latest().history_id
+
+      entity_collections = []
+      entity_collections = GenericEntity.history.get(id=entity_id, history_id=history_id).collections
+
+      if not entity_collections:
+        return False
+      else:
+        # check if the set collections has any of the brand's collection tags
+        return any(c in entity_collections for c in brand_collection_ids)
+
+def allowed_to_create():
+  '''
+      Permit creation unless we have a READ-ONLY application.
+  '''
+  if settings.CLL_READ_ONLY: return False
+  return True
+
+
+def allowed_to_permit(user, entity_id):
+  '''
+      The ability to change the owner of an entity remains with the owner and
+      not with those granted editing permission. And with superusers to get
+      us out of trouble, when necessary.
+
+      Allow user to change permissions if:
+      user is a super-user
+      OR
+      user owns the object.
+  '''
+  if user.is_superuser: return True
+  return GenericEntity.objects.filter(Q(id=entity_id), Q(owner=user)).count() > 0
