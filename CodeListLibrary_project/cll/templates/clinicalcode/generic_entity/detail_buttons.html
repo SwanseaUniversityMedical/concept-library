@@ -8,7 +8,7 @@
   <div class="row">    
     <div class="col-md-12 text-align-right">
       <fieldset class="dropdown-btn">
-        <label aria-label="Info about dropdown" role="dropdown" tabindex="0" id="dropdown-label" for="dropdown-opener">
+        <label aria-label="Export {{ entity_class }}" role="dropdown" tabindex="0" id="dropdown-label" for="dropdown-opener">
           <input type="radio" class="dropdown-btn__input" name="dropdown-item" id="dropdown-opener" {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %}>
       
           <!-- dropdown title -->
@@ -55,7 +55,7 @@
               &nbsp;<strong>Published</strong>&nbsp;
             </button>
         {% else %}    
-            {% render_publish_button %}          
+            {% comment %} {% render_publish_button %}           {% endcomment %}
         {% endif %}
       {% endif %}
     </div>
