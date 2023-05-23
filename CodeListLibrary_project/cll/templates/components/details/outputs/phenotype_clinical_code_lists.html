@@ -17,14 +17,14 @@
       <div class="col-md-6 text-align-right">
 
           <fieldset class="dropdown-btn">
-            <label aria-label="Info about dropdown" role="dropdown" tabindex="0" id="dropdown-label" for="dropdown-opener">
-              <input type="radio" class="dropdown-btn__input" name="dropdown-item" id="dropdown-opener"  {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %}>
+            <label aria-label="Export code list" role="dropdown" tabindex="0" id="dropdown-label-cl" for="dropdown-opener-cl">
+              <input type="radio" class="dropdown-btn__input" name="dropdown-item-cl" id="dropdown-opener-cl"  {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %}>
           
               <!-- dropdown title -->
-              <div class="dropdown-btn__label">Export {{ entity_class }} <span class="caret"></span></div>
+              <div class="dropdown-btn__label">Export Code List <span class="caret"></span></div>
           
-              <input type="radio" class="dropdown-btn__close" name="dropdown-item" id="dropdown-closer">
-              <label aria-label="Close dropdown info" role="button" tabindex="0" id="close-dropdown-btn" class="dropdown-btn__close-label" for="dropdown-closer"></label>
+              <input type="radio" class="dropdown-btn__close" name="dropdown-item-cl" id="dropdown-closer-cl">
+              <label aria-label="Close dropdown info" role="button" tabindex="0" id="close-dropdown-btn-cl" class="dropdown-btn__close-label" for="dropdown-closer-cl"></label>
           
               <!-- dropdown menu content -->
               <ul class="dropdown-btn__menu fall-right">
