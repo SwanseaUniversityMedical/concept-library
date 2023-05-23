@@ -400,7 +400,7 @@ GRAPH_MODELS = {
 }
 
 # Redirect to home URL after login (Default redirects to /accounts/profile/)
-LOGIN_REDIRECT_URL = reverse_lazy('concept_list')
+LOGIN_REDIRECT_URL = reverse_lazy('search_entity')
 LOGIN_URL = reverse_lazy('login')
 LOGOUT_URL = reverse_lazy('logout')
 
