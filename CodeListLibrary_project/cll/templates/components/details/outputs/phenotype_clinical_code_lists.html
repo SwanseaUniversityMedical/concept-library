@@ -6,68 +6,61 @@
 {% load markdownify %}
 <!--   phenotype_clinical_code_lists   -->
 
-{% comment %} <link rel="stylesheet" type="text/css" href="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.css' %}" /> {% endcomment %}
 <script src="{% static 'js/clinicalcode/redesign/vendor/simple-datatables/simple-datatables.min.js' %}"></script>
-<script src="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.js' %}"></script>
-<script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
+
 
 <div class="detailed-input-group fill">
   <div id="export-code-button" class="box-container">
 
     <div class="row">
-      <div class="col-md-6">
-      </div>
+      <div class="col-md-6"></div>
       <div class="col-md-6 text-align-right">
-          <label class="dropdown-btn" >
-            <div class="dropdown-btn__label">
-              Export {{ entity_class }}
-              <span class="caret"></span>
-            </div>
-            <input type="checkbox" class="dropdown-btn__input"  {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %}>
-            <ul class="dropdown-btn__menu fall-right">
-              <li>
-                <a {% if user_can_export %}
-                href="{% url 'ge_history_phenotype_codes_to_csv' pk=entity.id history_id=entity.history_id %}" {% endif %}\ge\PH1\detail\
-                class="dropdown-item">
-                CSV
-                </a>
-              </li>
-              <li>
-                {% if user.is_authenticated %}
-                    <a {% if user_can_export %}
-                        href="{% url 'api:ge_api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=json"
-                        target=_blank {% endif %}
-                {% else %}
-                    <a {% if user_can_export %}
-                    href="{% url 'api:ge_api_export_published_phenotype_codes' entity.id entity.history_id %}?format=json"
-                    target=_blank {% endif %}
-                {% endif %}
+
+          <fieldset class="dropdown-btn">
+            <label aria-label="Info about dropdown" role="dropdown" tabindex="0" id="dropdown-label" for="dropdown-opener">
+              <input type="radio" class="dropdown-btn__input" name="dropdown-item" id="dropdown-opener"  {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %}>
+          
+              <!-- dropdown title -->
+              <div class="dropdown-btn__label">Export {{ entity_class }} <span class="caret"></span></div>
+          
+              <input type="radio" class="dropdown-btn__close" name="dropdown-item" id="dropdown-closer">
+              <label aria-label="Close dropdown info" role="button" tabindex="0" id="close-dropdown-btn" class="dropdown-btn__close-label" for="dropdown-closer"></label>
+          
+              <!-- dropdown menu content -->
+              <ul class="dropdown-btn__menu fall-right">
+                <li aria-label="Export code list as CSV" role="button" tabindex="0">
+                  <a {% if user_can_export %}
+                    href="{% url 'export_entity_version_codes_to_csv' pk=entity.id history_id=entity.history_id %}" {% endif %}
+                    class="dropdown-item">
+                    CSV
+                  </a>
+                </li>
+                <li aria-label="Export code list as Json" role="button" tabindex="0">
+                  <a {% if user_can_export %}
+                      href="{% url 'api:get_generic_entity_field_by_version' entity.id entity.history_id 'codes' %}?format=json"
+                      target=_blank {% endif %}
                     class="dropdown-item">
                     JSON
-                </a>
-              </li>
-              <li>
-                {% if user.is_authenticated %}
-                    <a {% if user_can_export %}
-                        href="{% url 'api:ge_api_export_phenotype_codes_byVersionID' entity.id entity.history_id %}?format=xml"
-                        target=_blank {% endif %}
-                {% else %}
-                    <a {% if user_can_export %}
-                    href="{% url 'api:ge_api_export_published_phenotype_codes' entity.id entity.history_id %}?format=xml"
+                  </a>
+                </li>
+                <li aria-label="Export code list as XML" role="button" tabindex="0">
+                  <a {% if user_can_export %}
+                    href="{% url 'api:get_generic_entity_field_by_version' entity.id entity.history_id 'codes' %}?format=xml"
                     target=_blank {% endif %}
-                {% endif %}
-                    class="dropdown-item">
-                    XML
+                  class="dropdown-item">
+                  XML
                 </a>
-            </li>      
-            </ul>
-          </label>
+                </li>
+              </ul>
+            </label>
+          </fieldset>
 
+        </div>
       </div>
+      
     </div>
-    
   </div>
-</div>
+
 
 <div class="detailed-input-group fill">
 
@@ -79,11 +72,13 @@
               {% for c in component.value %}
                 <li style="padding-top: 15px;">
                   <strong>
-                    C{{ c.concept_id }}/{{ c.concept_history_id }}  &nbsp;-&nbsp;            
+                    C{{ c.concept_id }}/{{ c.concept_version_id }}  &nbsp;-&nbsp;            
                   <span>
                     {{ c.details.name }}
                    &nbsp;
                    - ({{ c.coding_system.name }})
+                   &nbsp;
+                   - ({{c.codelist|length}} codes)
                    &nbsp;
                     {% if user.is_authenticated %}
                         {% if c.is_published %}
@@ -101,7 +96,7 @@
                 <div class="detailed-input-group fill constrained-codelist-table" style='width:880px;' id="concept-codelist-table">
                     <table class="table table-striped table-responsive-md code-list-display-table"
                            style="width: 100%"
-                           id="codelist-tab-table-c{{ c.concept_history_id }}">
+                           id="codelist-tab-table-c{{ c.concept_version_id }}">
                         <thead>
                         <tr>
                             <th>Code</th>

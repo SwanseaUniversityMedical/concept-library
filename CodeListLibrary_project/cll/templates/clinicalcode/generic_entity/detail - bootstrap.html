@@ -3,7 +3,7 @@
 {% load static %}
 {% load markdownify %}
 {% load cl_extras %}
-{% load entity_publish_request %}
+{% load entity_publish_renderer %}
 
 {% block title %}| {{ entity_class }}: {{ entity_fields.name.value }}{% endblock title %}
 {% block description %}{{ entity_fields.name.value }}{% endblock description %}

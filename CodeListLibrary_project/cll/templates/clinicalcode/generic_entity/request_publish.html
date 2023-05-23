@@ -1,6 +1,5 @@
-{% load entity_publish_request%}
-<form method="post"
-  id="publish-form"  class="form-horizontal" novalidate enctype="multipart/form-data">
+{% load entity_publish_renderer %}
+<form method="post" id="publish-form"  class="form-horizontal" novalidate enctype="multipart/form-data">
     {% csrf_token %}
 
     <div class="modal-header">
@@ -16,7 +15,7 @@
         </div>
     {% else %}
 
-        {%render_errors_approval%}
+        {% render_errors_approval %}
 
     
 

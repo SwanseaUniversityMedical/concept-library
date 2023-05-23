@@ -359,7 +359,7 @@ def generic_entity_detail(request,
         
         
     # validate access generic_entity
-    if not allowed_to_view(request, GenericEntity, pk, set_history_id=history_id):
+    if not permission_utils.can_user_view_entity(request, pk, set_history_id=history_id):
         raise PermissionDenied
 
     # # we can remove this check as in generic_entity-detail

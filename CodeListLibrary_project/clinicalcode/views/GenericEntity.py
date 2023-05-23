@@ -29,14 +29,13 @@ import re
 import time
 
 from .. import utils
-from clinicalcode.entity_utils import entity_db_utils
 from ..models import *
 from ..permissions import *
 from .View import *
 from clinicalcode.api.views.View import get_canonical_path_by_brand
 from clinicalcode.constants import *
 
-from ..entity_utils import permission_utils, template_utils, gen_utils, model_utils, create_utils, stats_utils, search_utils, constants
+from ..entity_utils import entity_db_utils, permission_utils, template_utils, gen_utils, model_utils, create_utils, stats_utils, search_utils, constants
 
 logger = logging.getLogger(__name__)
 
@@ -403,193 +402,6 @@ def generic_entity_list_temp(request):
     return render(request, 'clinicalcode/generic_entity/search_temp.html', context)
 
 
-
-def generic_entity_detailXXX(request, pk, history_id=None):
-    ''' 
-        Display the detail of a generic entity at a point in time.
-    '''
-    # validate access for login and public site
-    validate_access_to_view(request,
-                            GenericEntity,
-                            pk,
-                            set_history_id=history_id)
-
-    if history_id is None:
-        # get the latest version/ or latest published version
-        history_id = try_get_valid_history_id(request, GenericEntity, pk)
-
-    is_published = checkIfPublished(GenericEntity, pk, history_id)
-    approval_status = get_publish_approval_status(GenericEntity, pk, history_id)
-    is_lastapproved = len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=2)) > 0
-
-    # ----------------------------------------------------------------------
-
-    generic_entity = entity_db_utils.get_historical_entity(history_id
-                                            , highlight_result = [False, True][entity_db_utils.is_referred_from_search_page(request)]
-                                            , q_highlight = entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))  
-                                            )
-    # The historical entity contains the owner_id, to provide the owner name, we
-    # need to access the user object with that ID and add that to the generic_entity.
-    if generic_entity['owner_id'] is not None:
-        generic_entity['owner'] = User.objects.get(id=int(generic_entity['owner_id']))
-        
-    generic_entity['group'] = None
-    if generic_entity['group_id'] is not None:
-        generic_entity['group'] = Group.objects.get(id=int(generic_entity['group_id']))
-
-    history_date = generic_entity['history_date']
-
-
-
-################################################
-    entity_class = generic_entity['entity_class']
-        
-    side_menu = get_side_menu(request, generic_entity['fields_data'])
-
-
-
-
-################################################
-
-
-    is_latest_version = (int(history_id) == GenericEntity.objects.get(pk=pk).history.latest().history_id)
-    is_latest_pending_version = False
-
-    if len(PublishedGenericEntity.objects.filter(entity_id=pk, entity_history_id=history_id, approval_status=1)) > 0:
-        is_latest_pending_version = True
-   # print(is_latest_pending_version)
-
-
-    children_permitted_and_not_deleted = True
-    error_dict = {}
-    #are_concepts_latest_version = True
-    version_alerts = {}
-
-    if request.user.is_authenticated:
-        can_edit = (not GenericEntity.objects.get(pk=pk).is_deleted) and allowed_to_edit(request, GenericEntity, pk)
-
-        user_can_export = True 
-         # (allowed_to_view_children(request, GenericEntity, pk, set_history_id=history_id)
-         #                   and entity_db_utils.chk_deleted_children(request,
-         #                                                   GenericEntity,
-         #                                                   pk,
-         #                                                   returnErrors=False,
-         #                                                   set_history_id=history_id)
-         #                   and not GenericEntity.objects.get(pk=pk).is_deleted)
-        user_allowed_to_create = allowed_to_create()
-
-        #children_permitted_and_not_deleted, error_dict = entity_db_utils.chk_children_permission_and_deletion(request, GenericEntity, pk)
-
-
-    else:
-        can_edit = False
-        user_can_export = is_published
-        user_allowed_to_create = False
-
-    publish_date = None
-    if is_published:
-        publish_date = PublishedGenericEntity.objects.get(entity_id=pk, entity_history_id=history_id).created
-
-    if GenericEntity.objects.get(pk=pk).is_deleted == True:
-        messages.info(request, "This entity has been deleted.")
-
-    # published versions
-    published_historical_ids = list(PublishedGenericEntity.objects.filter(entity_id=pk, approval_status=2).values_list('entity_history_id', flat=True))
-
-    # # history
-    history = get_history_table_data(request, pk)
-   
-
-    # rmd 
-    if generic_entity['fields_data']['implementation'] is None:
-        generic_entity['fields_data']['implementation'] = ''
-
-
-
-
-    context = {
-        'side_menu': side_menu,  
-        'entity_class': entity_class,
-        'entity': generic_entity,
-        'entity_fields': generic_entity['fields_data'],
-        'history': history,
-
-        ##### ???  #######
-        'template': Template.objects.get(id=1), #??? fix
-        'entity2': GenericEntity.objects.get(id=pk),
-        ###################
-        'page_canonical_path': get_canonical_path_by_brand(request, GenericEntity, pk, history_id),
-        
-        
-        'user_can_edit': False,  # for now  #can_edit,
-        'allowed_to_create': False,  # for now  #user_allowed_to_create,    # not settings.CLL_READ_ONLY,
-        'user_can_export': user_can_export,
-        
-        'live_ver_is_deleted': GenericEntity.objects.get(pk=pk).is_deleted,
-        'published_historical_ids': published_historical_ids,
-        'is_published': is_published,
-        'approval_status': approval_status,
-        'is_lastapproved': is_lastapproved,
-        'publish_date': publish_date,
-        'is_latest_version': is_latest_version,
-        'is_latest_pending_version':is_latest_pending_version,
-        'current_phenotype_history_id': int(history_id),
-
-        'q': entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', '')),
-        'force_highlight_result':  ['0', '1'][entity_db_utils.is_referred_from_search_page(request)]                              
-    }
-
-    concept_dict = get_concept_data(request, pk, history_id, generic_entity, is_latest_version, children_permitted_and_not_deleted)
-    return render(request, 
-                  'clinicalcode/generic_entity/detail.html',
-                  context | concept_dict
-                )
-
-
-def get_side_menu(request, template_data):
-    """
-    return side menu tabs
-    """
-   
-    side_menu = {}
-    
-    field_definitions = template_data
-    for (field_name, field_definition) in field_definitions.items():
-        ##field_name = field_name.replace(' ', '') 
-        is_side_menu = False
-        side_menu_title = ''
-        
-        if field_name.strip().lower() == 'name':
-            continue
-        
-        if 'do_not_show_in_production' in field_definition and field_definition['do_not_show_in_production'] == True:
-            if (not settings.IS_DEMO) and (not settings.IS_DEVELOPMENT_PC):
-                continue  
-                     
-        if 'requires_auth' in field_definition and field_definition['requires_auth'] == True:
-            if not request.user.is_authenticated:
-                continue  
-            
-        if 'hide_if_empty' in field_definition and field_definition['hide_if_empty'] == True:
-            if str(field_definition['value']).strip() == '':
-                continue   
-                
-        # if 'is_base_field' in field_definition and field_definition['is_base_field'] == True:
-        #     is_side_menu = True
-        #     side_menu_title = field_name 
-
-        if 'side_menu' in field_definition:
-            is_side_menu = True
-            side_menu_title = field_definition['side_menu'] 
-
-
-        if is_side_menu:
-            #field_name = side_menu_title.replace(' ', '')
-            side_menu[field_definition['html_id']] = side_menu_title
-
-    return side_menu
-            
-
 def get_history_table_data(request, pk):
     """"
         get history table data for the template
@@ -631,7 +443,7 @@ def get_history_table_data(request, pk):
         
         
         if request.user.is_authenticated:
-            if allowed_to_edit(request, GenericEntity, pk) or allowed_to_view(request, GenericEntity, pk):
+            if permission_utils.can_user_edit_entity(request, pk) or permission_utils.can_user_view_entity(request, pk):
                 historical_versions.append(ver)
             else:
                 if is_this_version_published:
@@ -847,179 +659,6 @@ def check_concept_version_is_the_latest(phenotypeID):
 
 
 
-@login_required
-def Entity_Create(request):
-    """
-        create an antity
-    """
-    # TODO: implement this
-    pass
-
-
-class Entity_Update(LoginRequiredMixin, HasAccessToEditPhenotypeCheckMixin, UpdateView):
-    """
-        Update the current entity.
-    """
-    # ToDo
-    pass
-
-
-class PhenotypeDelete(LoginRequiredMixin, HasAccessToEditPhenotypeCheckMixin, TemplateResponseMixin, View):
-    """
-        Delete an entity.
-    """
-    # ToDo
-    pass
-
-
-
-def history_phenotype_codes_to_csv(request, pk, history_id=None):
-    """
-        Return a csv file of codes for a phenotype for a specific historical version.
-    """
-    if history_id is None:
-        # get the latest version/ or latest published version
-        history_id = try_get_valid_history_id(request, GenericEntity, pk)        
-        
-    # validate access for login and public site
-    validate_access_to_view(request,
-                            GenericEntity,
-                            pk,
-                            set_history_id=history_id)
-
-    is_published = checkIfPublished(GenericEntity, pk, history_id)
-
-    # ----------------------------------------------------------------------
-
-    # exclude(is_deleted=True)
-    if GenericEntity.objects.filter(id=pk).count() == 0:
-        return HttpResponseNotFound("Not found.")
-        # raise permission_denied # although 404 is more relevant
-
-    # exclude(is_deleted=True)
-    if GenericEntity.history.filter(id=pk, history_id=history_id).count() == 0:
-        return HttpResponseNotFound("Not found.")
-        # raise permission_denied # although 404 is more relevant
-
-    # here, check live version
-    current_ph = GenericEntity.objects.get(pk=pk)
-
-    # if not is_published:
-    #     children_permitted_and_not_deleted, error_dict = db_utils.chk_children_permission_and_deletion(request, GenericEntity, pk, set_history_id=history_id)
-    #     if not children_permitted_and_not_deleted:
-    #         raise PermissionDenied
-
-    if current_ph.is_deleted == True:
-        raise PermissionDenied
-
-    current_ph_version = GenericEntity.history.get(id=pk, history_id=history_id)
-
-    # Get the list of concepts in the phenotype data
-    concept_ids_historyIDs = entity_db_utils.get_concept_ids_versions_of_historical_phenotype(pk, history_id)
-
-    my_params = {
-        'phenotype_id': pk,
-        'history_id': history_id,
-        'creation_date': time.strftime("%Y%m%dT%H%M%S")
-    }
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = ('attachment; filename="phenotype_%(phenotype_id)s_ver_%(history_id)s_concepts_%(creation_date)s.csv"' % my_params)
-
-    writer = csv.writer(response)
-
-    final_titles = ([
-        'code', 'description', 'coding_system', 
-        'concept_id', 'concept_version_id', 'concept_name',
-        'phenotype_id', 'phenotype_version_id', 'phenotype_name'
-        ])
-    # if the phenotype contains only one concept, write titles in the loop below
-    if len(concept_ids_historyIDs) != 1:
-        final_titles = final_titles + ["code_attributes"]
-        writer.writerow(final_titles)
-        
-
-    for concept in concept_ids_historyIDs:
-        concept_id = concept[0]
-        concept_version_id = concept[1]
-        current_concept_version = Concept.history.get(id=concept_id, history_id=concept_version_id)
-        concept_coding_system = current_concept_version.coding_system.name
-        concept_name = current_concept_version.name
-        code_attribute_header = current_concept_version.code_attribute_header
-        concept_history_date = current_concept_version.history_date
-        
-        rows_no = 0
-        codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
-
-        #---------------------------------------------
-        #  code attributes  ---
-        codes_with_attributes = []
-        if code_attribute_header:
-            codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(concept_id=concept_id,
-                                                                                    concept_history_date=concept_history_date,
-                                                                                    allCodes=codes,
-                                                                                    code_attribute_header=code_attribute_header)
-        
-            codes = codes_with_attributes
-            
-        # if the phenotype contains only one concept
-        if len(concept_ids_historyIDs) == 1:
-            if code_attribute_header:
-                final_titles = final_titles + code_attribute_header
-                
-            writer.writerow(final_titles)
-    
-        #---------------------------------------------
-
-        
-        for cc in codes:
-            rows_no += 1
-                         
-            #---------------------------------------------   
-            code_attributes = []
-            # if the phenotype contains only one concept
-            if len(concept_ids_historyIDs) == 1:
-                if code_attribute_header:
-                    for a in code_attribute_header:
-                        code_attributes.append(cc[a])
-            else:
-                code_attributes_dict = OrderedDict([])
-                if code_attribute_header:
-                    for a in code_attribute_header:
-                        code_attributes_dict[a] = cc[a]
-                    code_attributes.append(dict(code_attributes_dict))
-            #---------------------------------------------
-            
-            
-            writer.writerow([
-                cc['code'], 
-                cc['description'].encode('ascii', 'ignore').decode('ascii'), 
-                concept_coding_system, 
-                'C' + str(concept_id), 
-                concept_version_id,
-                concept_name,
-                current_ph_version.id, 
-                current_ph_version.history_id,
-                current_ph_version.name
-            ] + code_attributes)
-
-        if rows_no == 0:
-            writer.writerow([
-                '', 
-                '', 
-                concept_coding_system, 
-                'C' + str(concept_id), 
-                concept_version_id,
-                concept_name,
-                current_ph_version.id, 
-                current_ph_version.history_id,
-                current_ph_version.name
-            ])
-
-    return response
-
-
-
-
 
 
 def generic_entity_detail(request, pk, history_id=None):
@@ -1027,22 +666,17 @@ def generic_entity_detail(request, pk, history_id=None):
         Display the detail of a generic entity at a point in time.
     '''
     # validate access for login and public site
-    validate_access_to_view(request,
-                            GenericEntity,
-                            pk,
-                            set_history_id=history_id)
-
+    permission_utils.validate_access_to_view(request, pk, history_id)
+        
     if history_id is None:
         # get the latest version/ or latest published version
         history_id = try_get_valid_history_id(request, GenericEntity, pk)
 
     is_published = checkIfPublished(GenericEntity, pk, history_id)
     approval_status = get_publish_approval_status(GenericEntity, pk, history_id)
-    is_lastapproved = len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=2)) > 0
+    is_lastapproved = len(PublishedGenericEntity.objects.filter(entity_id=pk, approval_status=constants.APPROVAL_STATUS.APPROVED)) > 0
 
     # ----------------------------------------------------------------------
-
-    #entity = GenericEntity.objects.get(pk=pk).history.filter(history_id=history_id)
 
     #########################################################################
     generic_entity = entity_db_utils.get_historical_entity(pk, history_id
@@ -1091,7 +725,7 @@ def generic_entity_detail(request, pk, history_id=None):
     version_alerts = {}
 
     if request.user.is_authenticated:
-        can_edit = (not GenericEntity.objects.get(pk=pk).is_deleted) and allowed_to_edit(request, GenericEntity, pk)
+        can_edit = (not GenericEntity.objects.get(pk=pk).is_deleted) and permission_utils.can_user_edit_entity(request, pk)
 
         user_can_export = True 
          # (allowed_to_view_children(request, GenericEntity, pk, set_history_id=history_id)
@@ -1101,7 +735,7 @@ def generic_entity_detail(request, pk, history_id=None):
          #                                                   returnErrors=False,
          #                                                   set_history_id=history_id)
          #                   and not GenericEntity.objects.get(pk=pk).is_deleted)
-        user_allowed_to_create = allowed_to_create()
+        user_allowed_to_create = permission_utils.allowed_to_create()
 
         #children_permitted_and_not_deleted, error_dict = entity_db_utils.chk_children_permission_and_deletion(request, GenericEntity, pk)
 
@@ -1145,8 +779,8 @@ def generic_entity_detail(request, pk, history_id=None):
         'page_canonical_path': get_canonical_path_by_brand(request, GenericEntity, pk, history_id),
         
         
-        'user_can_edit': False,  # for now  #can_edit,
-        'allowed_to_create': False,  # for now  #user_allowed_to_create,    # not settings.CLL_READ_ONLY,
+        'user_can_edit': can_edit,  
+        'allowed_to_create': user_allowed_to_create,
         'user_can_export': user_can_export,
         
         'live_ver_is_deleted': GenericEntity.objects.get(pk=pk).is_deleted,
@@ -1293,15 +927,16 @@ def get_history_table_data2(request, pk):
         else:
             ver.publish_date = None
 
-        ver.approval_status = -1
+        ver.approval_status = constants.APPROVAL_STATUS.ANY
         ver.approval_status_label = ''
         if PublishedGenericEntity.objects.filter(entity_id=ver.id, entity_history_id=ver.history_id).exists():
             ver.approval_status = PublishedGenericEntity.objects.get(entity_id=ver.id, entity_history_id=ver.history_id).approval_status
-            ver.approval_status_label = APPROVED_STATUS[ver.approval_status][1]        
+            if ver.approval_status != constants.APPROVAL_STATUS.ANY:
+                ver.approval_status_label = [s.name for s in constants.APPROVAL_STATUS if s == ver.approval_status][0]   
         
         
         if request.user.is_authenticated:
-            if allowed_to_edit(request, GenericEntity, pk) or allowed_to_view(request, GenericEntity, pk):
+            if permission_utils.can_user_edit_entity(request, pk) or permission_utils.can_user_view_entity(request, pk):
                 historical_versions.append(ver)
             else:
                 if is_this_version_published:
@@ -1313,3 +948,152 @@ def get_history_table_data2(request, pk):
     return historical_versions
    
    
+def export_entity_codes_to_csv(request, pk, history_id=None):
+    """
+        Return a csv file of codes for a clinical-coded phenotype for a specific historical version.
+    """
+    if history_id is None:
+        # get the latest version/ or latest published version
+        history_id = try_get_valid_history_id(request, GenericEntity, pk)        
+        
+    # validate access for login and public site
+    validate_access_to_view(request,
+                            GenericEntity,
+                            pk,
+                            set_history_id=history_id)
+
+    is_published = checkIfPublished(GenericEntity, pk, history_id)
+
+    # ----------------------------------------------------------------------
+
+    # exclude(is_deleted=True)
+    if GenericEntity.objects.filter(id=pk).count() == 0:
+        return HttpResponseNotFound("Not found.")
+        # raise permission_denied # although 404 is more relevant
+
+    # exclude(is_deleted=True)
+    if GenericEntity.history.filter(id=pk, history_id=history_id).count() == 0:
+        return HttpResponseNotFound("Not found.")
+        # raise permission_denied # although 404 is more relevant
+
+    # here, check live version
+    current_ph = GenericEntity.objects.get(pk=pk)
+
+    # if not is_published:
+    #     children_permitted_and_not_deleted, error_dict = db_utils.chk_children_permission_and_deletion(request, GenericEntity, pk, set_history_id=history_id)
+    #     if not children_permitted_and_not_deleted:
+    #         raise PermissionDenied
+
+    if current_ph.is_deleted == True:
+        raise PermissionDenied
+
+    current_ph_version = GenericEntity.history.get(id=pk, history_id=history_id)
+
+    # Get the list of concepts in the phenotype data
+    concept_ids_historyIDs = entity_db_utils.get_concept_ids_versions_of_historical_phenotype(pk, history_id)
+
+    my_params = {
+        'phenotype_id': pk,
+        'history_id': history_id,
+        'creation_date': time.strftime("%Y%m%dT%H%M%S")
+    }
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = ('attachment; filename="phenotype_%(phenotype_id)s_ver_%(history_id)s_concepts_%(creation_date)s.csv"' % my_params)
+
+    writer = csv.writer(response)
+
+    final_titles = ([
+        'code', 'description', 'coding_system', 
+        'concept_id', 'concept_version_id', 'concept_name',
+        'phenotype_id', 'phenotype_version_id', 'phenotype_name'
+        ])
+    # if the phenotype contains only one concept, write titles in the loop below
+    if len(concept_ids_historyIDs) != 1:
+        final_titles = final_titles + ["code_attributes"]
+        writer.writerow(final_titles)
+        
+
+    for concept in concept_ids_historyIDs:
+        concept_id = concept[0]
+        concept_version_id = concept[1]
+        current_concept_version = Concept.history.get(id=concept_id, history_id=concept_version_id)
+        concept_coding_system = current_concept_version.coding_system.name
+        concept_name = current_concept_version.name
+        code_attribute_header = current_concept_version.code_attribute_header
+        concept_history_date = current_concept_version.history_date
+        
+        rows_no = 0
+        # codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
+
+        # #---------------------------------------------
+        # #  code attributes  ---
+        # codes_with_attributes = []
+        # if code_attribute_header:
+        #     codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(concept_id=concept_id,
+        #                                                                             concept_history_date=concept_history_date,
+        #                                                                             allCodes=codes,
+        #                                                                             code_attribute_header=code_attribute_header)
+        
+        #     codes = codes_with_attributes
+        
+        concept_data = model_utils.get_clinical_concept_data(concept_id,
+                                                      concept_version_id,
+                                                      include_component_codes=False, 
+                                                      include_attributes=True, 
+                                                      include_reviewed_codes=True)
+            
+        # if the phenotype contains only one concept
+        if len(concept_ids_historyIDs) == 1:
+            if code_attribute_header:
+                final_titles = final_titles + code_attribute_header
+                
+            writer.writerow(final_titles)
+    
+        #---------------------------------------------
+
+        
+        for cc in concept_data['codelist']:
+            rows_no += 1
+                         
+            #---------------------------------------------   
+            code_attributes = []
+            # if the phenotype contains only one concept
+            if len(concept_ids_historyIDs) == 1:
+                if code_attribute_header:
+                    code_attributes = cc['attributes']
+            else:
+                code_attributes_dict = OrderedDict([])
+                if code_attribute_header:
+                    code_attributes_dict = OrderedDict(zip(code_attribute_header, cc['attributes']))
+                    code_attributes.append(dict(code_attributes_dict))
+            #---------------------------------------------
+            
+            
+            writer.writerow([
+                cc['code'], 
+                cc['description'].encode('ascii', 'ignore').decode('ascii'), 
+                concept_coding_system, 
+                'C' + str(concept_id), 
+                concept_version_id,
+                concept_name,
+                current_ph_version.id, 
+                current_ph_version.history_id,
+                current_ph_version.name
+            ] + code_attributes)
+
+        if rows_no == 0:
+            writer.writerow([
+                '', 
+                '', 
+                concept_coding_system, 
+                'C' + str(concept_id), 
+                concept_version_id,
+                concept_name,
+                current_ph_version.id, 
+                current_ph_version.history_id,
+                current_ph_version.name
+            ])
+
+    return response
+
+

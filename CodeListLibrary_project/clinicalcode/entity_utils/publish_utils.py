@@ -7,7 +7,8 @@ from clinicalcode.tasks import send_review_email
 from ..models import *
 from ..permissions import *
 from clinicalcode.views.GenericEntity import get_history_table_data
-from clinicalcode.permissions import allowed_to_edit, allowed_to_view, checkIfPublished, get_publish_approval_status
+from clinicalcode.permissions import allowed_to_view, checkIfPublished, get_publish_approval_status
+from clinicalcode.entity_utils import constants, permission_utils
 
 #from clinicalcode.constants import APPROVED_STATUS
 from . import constants
@@ -68,7 +69,7 @@ def send_message(pk, data, entity, entity_history_id, checks):
         return data
 
     #showing rejected message
-    elif data['approval_status'] == APPROVED_STATUS[REJECTED][0]:
+    elif data['approval_status'] == constants.APPROVAL_STATUS.REJECTED:
         data['message'] = """The {entity_type} version has been rejected .
                                                <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'],
             url=reverse('entity_history_detail', args=(pk,entity_history_id)),
@@ -106,13 +107,13 @@ def send_message(pk, data, entity, entity_history_id, checks):
 def checkEntityToPublish(request, pk, entity_history_id):
     '''
         Allow to publish if:
-        - workingset is not deleted
+        - entity is not deleted
         - user is an owner
         - Workingset contains codes
         - all conceots are published
         @param request: user request object
-        @param pk: workingset id
-        @param entity_history_id: historical id of workingset
+        @param pk: entity id
+        @param entity_history_id: historical id of entity
         @return: dictionary containing all conditions to publish
     '''
     allow_to_publish = True
@@ -164,7 +165,7 @@ def checkEntityToPublish(request, pk, entity_history_id):
     if entity_class == "Phenotype" or entity_class == "Workingset":
          has_childs, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
         checkChildren(request, entity)
-    else:
+    else: #???
         has_childs, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
         checkChildConcept(request, entity_history_id)
     
@@ -204,9 +205,9 @@ def checkEntityToPublish(request, pk, entity_history_id):
 
 def checkChildren(request, entity):
         """
-        Check if workingset child data is validated
+        Check if entity child data is validated
         @param request: user request object
-        @param workingset_history_id: historical id ws
+        @param entity: historical entity object
         @return: collection of boolean conditions
         """
 
@@ -258,7 +259,7 @@ def checkChildren(request, entity):
                 all_are_published = False
 
 
-        for p in child_entitys_versions:
+        for p in child_entitys_versions: #??? update to new permission chk
             permitted = allowed_to_view(request,
                                         Concept,
                                         set_id=p[0],
@@ -273,7 +274,7 @@ def checkChildren(request, entity):
 
         isOK = (all_not_deleted and all_are_published and is_allowed_view_children)
 
-        return  has_child_entitys,isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors
+        return  has_child_entitys, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors
 
 
 def send_email_decision_entity(entity, entity_type, approved):
