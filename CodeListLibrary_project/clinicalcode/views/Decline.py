@@ -5,11 +5,11 @@ from django.template.loader import render_to_string
 from django.views.generic.base import TemplateResponseMixin, View
 from django.utils.decorators import method_decorator
 
-from ..entity_utils import permission_utils, constants, utils_ge_validator
+from ..entity_utils import permission_utils, constants, publish_utils
 from ..permissions import *
 from .View import *
 
-class EntityDecline(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, TemplateResponseMixin, View):
+class EntityDecline(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityCheckMixin, TemplateResponseMixin, View):
     '''
         Decline the current working set.
     '''
@@ -20,16 +20,16 @@ class EntityDecline(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, 
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def post(self, request, pk, history_id):
         """
-        Send request to server to  decline entity
+        Send request to server to decline entity
         @param request: user request object
-        @param pk: entity id for database query
-        @param history_id: historical id entity
+        @param pk: entity id 
+        @param history_id: entity historical id 
         @return: JSON response to the page
         """
         is_published = checkIfPublished(GenericEntity, pk, history_id)
-        checks = utils_ge_validator.checkEntityToPublish(request, pk, history_id)
-        if not is_published:
-            checks = utils_ge_validator.checkEntityToPublish(request, pk, history_id)
+        checks = publish_utils.checkEntityToPublish(request, pk, history_id)
+        # if not is_published:
+        #     checks = publish_utils.checkEntityToPublish(request, pk, history_id)
 
         data = dict()
         if not checks['allowed_to_publish'] or is_published:
@@ -49,7 +49,7 @@ class EntityDecline(LoginRequiredMixin, HasAccessToViewGenericEntityCheckMixin, 
                     data['form_is_valid'] = True
                     data['approval_status'] = constants.APPROVAL_STATUS.REJECTED
 
-                    data = utils_ge_validator.form_validation(request, data, history_id, pk, entity, checks)
+                    data = publish_utils.form_validation(request, data, history_id, pk, entity, checks)
         except Exception as e:
             print(e)
             data['form_is_valid'] = False

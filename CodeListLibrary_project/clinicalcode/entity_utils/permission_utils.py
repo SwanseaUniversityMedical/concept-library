@@ -159,7 +159,7 @@ def can_user_view_entity(request, entity_id, entity_history_id=None):
   is_published = is_publish_status(historical_entity, [APPROVAL_STATUS.APPROVED])
   if is_published:
     return True   
-               
+        
   user = request.user
   if user.is_superuser:
     return check_brand_access(request, is_published, entity_id, entity_history_id)
@@ -174,7 +174,7 @@ def can_user_view_entity(request, entity_id, entity_history_id=None):
     return check_brand_access(request, is_published, entity_id, entity_history_id)
     
   if has_member_access(user, live_entity, [GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]):
-      return check_brand_access(request, is_published, entity_id, entity_history_id)
+    return check_brand_access(request, is_published, entity_id, entity_history_id)
   
   if user and not user.is_anonymous:
     if live_entity.world_access == WORLD_ACCESS_PERMISSIONS.VIEW:
@@ -235,9 +235,9 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
     is_allowed_to_edit = True
     
   # check brand access
-    if is_allowed_to_edit:
-      if not is_brand_accessible(request, entity_id):
-          is_allowed_to_edit = False
+  if is_allowed_to_edit:
+    if not is_brand_accessible(request, entity_id):
+        is_allowed_to_edit = False
             
   return is_allowed_to_edit 
 
@@ -432,3 +432,23 @@ def allowed_to_permit(user, entity_id):
   '''
   if user.is_superuser: return True
   return GenericEntity.objects.filter(Q(id=entity_id), Q(owner=user)).count() > 0
+
+
+class HasAccessToViewGenericEntityCheckMixin(object):
+  '''
+      mixin to check if user has view access to a working set
+      this mixin is used within class based views and can be overridden
+  '''
+
+  def has_access_to_view_entity(self, user, entity_id):
+    return can_user_view_entity(self.request, entity_id)
+
+  def access_to_view_entity_failed(self, request, *args, **kwargs):
+    raise PermissionDenied
+
+  def dispatch(self, request, *args, **kwargs):
+    if not self.has_access_to_view_entity(request.user, self.kwargs['pk']):
+        return self.access_to_view_entity_failed(request, *args, **kwargs)
+
+    return super(HasAccessToViewGenericEntityCheckMixin, self).dispatch(request, *args, **kwargs)
+  
