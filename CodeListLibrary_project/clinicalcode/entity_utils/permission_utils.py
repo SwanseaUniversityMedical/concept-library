@@ -119,15 +119,17 @@ def get_accessible_entities(
     if consider_user_perms and user.is_superuser:
       return entities.distinct('id')
     
-    if consider_user_perms and is_member(user, "Moderators"):
+    if consider_user_perms and is_member(user, 'Moderators'):
       status += [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING, APPROVAL_STATUS.REJECTED]
       
     query = Q(owner=user.id) 
     if not status or APPROVAL_STATUS.ANY not in status:
       if status:
-        entities = entities.filter(publish_status__in=status)
+        query |= Q(publish_status__in=status)
       else:
-        entities = entities.exclude(publish_status=APPROVAL_STATUS.PENDING)
+        query |= ~Q(publish_status=APPROVAL_STATUS.PENDING)
+    else:
+      query |= Q(publish_status=APPROVAL_STATUS.APPROVED)
     
     if group_permissions:
       query |= Q(
@@ -139,9 +141,8 @@ def get_accessible_entities(
     query |= Q(
       world_access=WORLD_ACCESS_PERMISSIONS.VIEW
     )
-      
-    entities = entities.filter(query)
 
+    entities = entities.filter(query)
     if only_deleted:
       entities = entities.exclude(Q(is_deleted=False) | Q(is_deleted__isnull=True) | Q(is_deleted=None))
     else:
