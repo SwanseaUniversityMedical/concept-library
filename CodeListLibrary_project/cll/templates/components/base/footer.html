@@ -1,26 +1,47 @@
 {% load static %}
 {% load i18n %}
 
+
 {% block content %}
-  <footer class="page-footer">
+
+  <footer class="page-footer" id="footer_main">  
     <section class="page-footer__row">
+      <div class="page-footer__listlinks">
+        <hr class='footer-hr'>   
+				<p>
+					<a href="{% url 'terms' %}" >Terms & Conditions</a>
+				 	 |
+					<a href="{% url 'privacy_and_cookie_policy' %}" >Privacy & Cookie Policy</a>
+					 | 
+					<a href="https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation" target=_blank  >Support & Documentation</a>
+					{% if not CLL_READ_ONLY %}
+					 |
+					<a href="{% url 'contact_us' %}"  >Contact Us</a>
+					{% endif %}
+				<br>
+          Copyright &copy; {% now 'Y' %} - SAIL Databank - Swansea University. All rights reserved.
+        </p>	
+				
+        {% block footer_links %}
+          {% include "components/base/footer_link_img.html" %}
+        {% endblock footer_links %}
+      </div>
+
       
-   
-      <div class="page-footer__items">
-        <a href="{% url 'terms' %}">Terms & Conditions</a>
-        <a href="{% url 'privacy_and_cookie_policy' %}">Privacy Policy</a>
-        <a href="{% url 'contact_us' %}" >Contact Us</a>
-        <a href="https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation" target=_blank  >Support & Documentation</a>
+      {% if DEV_PRODUCTION|length or CLL_READ_ONLY %}
+      <div class="box-container">
+        <div class="row ">
+          <div class="col-md-12 text-align-right">
+            <span class="alert alert-warning" role="alert">
+            {{ DEV_PRODUCTION|safe }} 
+              {% if CLL_READ_ONLY %}
+               read only 
+            {% endif %}	
+            </span>
+          </div>
         </div>
-      
-      
-      
-    <div class="page-footer__listlinks">
-      <p class="page-footer__copyright">Copyright © 2022 - SAIL Databank - Swansea University. All rights reserved.</p>
-      {% block footer_links %}
-      {% include "components/details/footer_linksimg.html" %}
-      {% endblock footer_links %}
-    </div>
+      </div>
+      {% endif %}
 
       
     </section>

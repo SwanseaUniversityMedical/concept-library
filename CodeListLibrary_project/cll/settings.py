@@ -98,6 +98,8 @@ SECRET_KEY = get_env_value('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = get_env_value('DEBUG', cast='bool')
 
+    
+
 ADMIN = [('Muhammad', 'Muhammad.Elmessary@Swansea.ac.uk'),
          ('Dan', 'd.s.thayer@swansea.ac.uk')]
 
@@ -422,7 +424,7 @@ if not DEBUG:
 
 DEV_PRODUCTION = ""
 if IS_DEMO:  # Demo server
-    DEV_PRODUCTION = "<i class='glyphicon glyphicon-cog'  aria-hidden='true'> </i> DEMO SITE <i class='glyphicon glyphicon-cog'  aria-hidden='true'> </i>"
+    DEV_PRODUCTION = "<i class='glyphicon glyphicon-cog'  aria-hidden='true'>&#9881; </i> DEMO SITE <i class='glyphicon glyphicon-cog'  aria-hidden='true'>&#9881; </i>"
 
 ##EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # Email, contact us page
