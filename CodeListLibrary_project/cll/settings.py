@@ -96,11 +96,8 @@ if IS_DEVELOPMENT_PC:
 SECRET_KEY = get_env_value('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = get_env_value('DEBUG', cast='bool')
-if IS_DEVELOPMENT_PC:
-    DEBUG = True
-else:
-    DEBUG = get_env_value('DEBUG', cast='bool')
+DEBUG = get_env_value('DEBUG', cast='bool')
+
     
 
 ADMIN = [('Muhammad', 'Muhammad.Elmessary@Swansea.ac.uk'),
