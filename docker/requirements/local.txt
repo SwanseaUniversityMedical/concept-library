@@ -1,2 +1,1 @@
 -r base.txt # includes the base.txt requirements file
-debugpy==1.6.2

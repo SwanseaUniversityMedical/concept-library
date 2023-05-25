@@ -22,10 +22,10 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
         @param entity_history_id: historical entity id from database
         @return: render response object to generate on template
         """
-        checks = publish_utils.checkEntityToPublish(self.request, pk, history_id)
+        checks = publish_utils.check_entity_to_publish(self.request, pk, history_id)
 
         if not checks['is_published']:
-            checks = publish_utils.checkEntityToPublish(self.request, pk, history_id)
+            checks = publish_utils.check_entity_to_publish(self.request, pk, history_id)
         
         # --------------------------------------------
         return self.render_to_response({
@@ -59,9 +59,9 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
         @return: JsonResponse and status message
         """
         is_published = checkIfPublished(GenericEntity, pk, history_id)
-        checks = publish_utils.checkEntityToPublish(request, pk, history_id)
+        checks = publish_utils.check_entity_to_publish(request, pk, history_id)
         # if not is_published:
-        #     checks = publish_utils.checkEntityToPublish(request, pk, history_id)
+        #     checks = publish_utils.check_entity_to_publish(request, pk, history_id)
 
         data = dict()
 
@@ -209,10 +209,10 @@ class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGeneric
         @return: render the modal to user with an appropriate information
         """
         #get additional checks in case if ws is deleted/approved etc
-        checks = publish_utils.checkEntityToPublish(self.request, pk, history_id)
+        checks = publish_utils.check_entity_to_publish(self.request, pk, history_id)
 
         # if not checks['is_published']:
-        #     checks = publish_utils.checkEntityToPublish(self.request, pk, history_id)
+        #     checks = publish_utils.check_entity_to_publish(self.request, pk, history_id)
 
 
         # --------------------------------------------
@@ -247,9 +247,9 @@ class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGeneric
         @return: JSON success body response
         """
         is_published = checkIfPublished(GenericEntity, pk, history_id)
-        checks = publish_utils.checkEntityToPublish(request, pk, history_id)
+        checks = publish_utils.check_entity_to_publish(request, pk, history_id)
         if not is_published:
-            checks = publish_utils.checkEntityToPublish(request, pk, history_id)
+            checks = publish_utils.check_entity_to_publish(request, pk, history_id)
 
         data = dict()
         if not checks['allowed_to_publish'] or is_published:

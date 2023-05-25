@@ -222,7 +222,7 @@ ENTITY_LIST_API_HIDDEN_FIELDS = [
 '''
 metadata = {
     "template": {
-        "title": "Entity Type",
+        "title": "Type",
         "field_type": "???",
         "active": True,
         "validation": {

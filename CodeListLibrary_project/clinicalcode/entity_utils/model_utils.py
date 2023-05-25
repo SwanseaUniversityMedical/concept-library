@@ -55,8 +55,7 @@ def get_entity_id(primary_key):
   entity_id = re.split('(\d.*)', primary_key)
   if len(entity_id) >= 2 and entity_id[0].isalpha() and entity_id[1].isdigit():
     return entity_id[:2]
-  else:
-    return False
+  return False
 
 def get_latest_entity_published(entity_id):
   '''

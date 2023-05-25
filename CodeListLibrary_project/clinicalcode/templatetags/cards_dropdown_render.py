@@ -5,7 +5,7 @@ from django.urls import reverse_lazy, reverse
 
 register = template.Library()
 
-@register.inclusion_tag('components/search/cards/dropdown_list_item.html', takes_context=True, name='card_render')
+@register.inclusion_tag('components/navigation/dropdown_list_item.html', takes_context=True, name='card_render')
 def render_card(context,url_drop, *args, **kwargs):
     card_context = {"title": "", "description": "", "icon": "about_icon"}
     

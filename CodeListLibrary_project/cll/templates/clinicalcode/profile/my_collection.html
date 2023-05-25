@@ -31,19 +31,19 @@
       </p>
       <div class="banner__cards">
         <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
-          {% url 'create_entity' as create_url %}
+          {% url 'create_phenotype' as create_url %}
           <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
             <div class="referral-card__header">
-              <a class="referral-card__title" href="{{ create_url }}">Create an Entity<span class="referral-card__title-icon"></span></a>
+              <a class="referral-card__title" href="{{ create_url }}">Create a Phenotype<span class="referral-card__title-icon"></span></a>
             </div>
             <div class="referral-card__body">
               <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
             </div>
           </article>
-          {% url 'search_entity' as search_url %}
+          {% url 'search_phenotypes' as search_url %}
           <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
             <div class="referral-card__header">
-              <a class="referral-card__title" href="{{ search_url }}">Search Entities<span class="referral-card__title-icon"></span></a>
+              <a class="referral-card__title" href="{{ search_url }}">Search Phenotypes<span class="referral-card__title-icon"></span></a>
             </div>
             <div class="referral-card__body">
               <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
@@ -63,7 +63,7 @@
               {{ published_content|jsonify|safe }}
             {% endif %}
           </data>
-          <h3>1. Published Entities</h3>
+          <h3>1. Published Phenotypes</h3>
           <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
           <section class="profile-collection__none-available show" id="empty-collection">
             <p class="profile-collection__none-available-message">
@@ -97,7 +97,7 @@
               {{ draft_content|jsonify|safe }}
             {% endif %}
           </data>
-          <h3>3. Entities in Progress</h3>
+          <h3>3. Phenotypes in Progress</h3>
           <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
           <section class="profile-collection__none-available show" id="empty-collection">
             <p class="profile-collection__none-available-message">
@@ -114,7 +114,7 @@
               {{ archived_content|jsonify|safe }}
             {% endif %}
           </data>
-          <h3>4. Archived Entities</h3>
+          <h3>4. Archived Phenotypes</h3>
           <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
           <section class="profile-collection__none-available show" id="empty-collection">
             <p class="profile-collection__none-available-message">
