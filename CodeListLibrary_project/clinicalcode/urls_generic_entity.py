@@ -63,12 +63,13 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
             url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/publish/$',Publish.Publish.as_view(),name='generic_entity_publish'),
             url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/decline/$',Decline.EntityDecline.as_view(),name='generic_entity_decline'),
             url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/submit/$',Publish.RequestPublish.as_view(),name='generic_entity_request_publish'),
-
-            # run stats
-            url(r'^ge/run-stats/$', GenericEntity.EntityStatisticsView.as_view(), name='run_entity_statistics'),
-
         ]
-        
+
+    # Add admin tools
+    if not settings.CLL_READ_ONLY:
+        urlpatterns += [
+            url(r'^admin/run-stats/$', GenericEntity.EntityStatisticsView.as_view(), name='run_entity_statistics'),
+        ]
 
     # for admin(developers) to migrate phenotypes into dynamic template       
     if not settings.CLL_READ_ONLY:
