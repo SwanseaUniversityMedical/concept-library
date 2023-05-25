@@ -250,7 +250,7 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
     )
 
     if isinstance(entity_types, list) and len(entity_types) > 0:
-        entities = entities.filter(entity__template__entity_class__id__in=entity_types)
+        entities = entities.filter(template__entity_class__id__in=entity_types)
     
     entities = GenericEntity.history.filter(
         id__in=entities.values_list('id', flat=True),

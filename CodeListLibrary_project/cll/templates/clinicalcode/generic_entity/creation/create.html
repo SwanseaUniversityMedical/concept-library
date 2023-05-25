@@ -7,7 +7,7 @@
 {% load breadcrumbs %}
 {% load entity_renderer %}
 
-{% block title %}| Create an Entity{% endblock title %}
+{% block title %}| {% if form_method.value == 1 %} Create your Phenotype {% else %} Update your Phenotype{% endif %}{% endblock title %}
 
 {% block cache_tags %}
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -59,11 +59,11 @@
       <article class="phenotype-creation">
         <section class="phenotype-creation__header">
           {% if form_method.value == 1 %}
-            <h1>Create a new Entity:<span>step by step</span></h1>
-            <p>Follow the steps below to create and publish your entity.</p>
+            <h1>Create a new Phenotype:<span>step by step</span></h1>
+            <p>Follow the steps below to create and publish your Phenotype.</p>
           {% else %}
-            <h1>Update your Entity:<span>step by step</span></h1>
-            <p>Follow the steps below to update and publish your entity.</p>
+            <h1>Update your Phenotype:<span>step by step</span></h1>
+            <p>Follow the steps below to update and publish your Phenotype.</p>
           {% endif %}
         </section>
         
@@ -91,9 +91,9 @@
             </button>
             <button class="primary-btn text-accent-darkest bold tertiary-accent icon create-icon sweep-left" aria-label="Create or Update Entity" id="submit-entity-btn">
               {% if form_method.value == 1 %}
-              Create Entity
+              Create Phenotype
               {% else %}
-              Update Entity
+              Update Phenotype
               {% endif %}
             </button>
           </div>
@@ -102,7 +102,7 @@
     </div>
   </main>
 
-  <data data-owner="entity-creator" id="referral-links" name="links" type="text/json" referral-url="{% url 'search_entity' %}"></data>
+  <data data-owner="entity-creator" id="referral-links" name="links" type="text/json" referral-url="{% url 'search_phenotypes' %}"></data>
   <data data-owner="entity-creator" id="form-method" name="method" type="int">{{ form_method.value }}</data>
   <data data-owner="entity-creator" id="metadata-data" name="metadata" type="text/json">{{ metadata|jsonify|safe }}</data>
   <data data-owner="entity-creator" id="template-data" name="template" type="text/json">{{ template|jsonify|safe }}</data>

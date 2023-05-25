@@ -22,8 +22,8 @@ urlpatterns = []
 if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
     urlpatterns += [  
 
-        url(r'^search/$', GenericEntity.EntitySearchView.as_view(), name='search_entity'),
-        url(r'^search/(?P<entity_type>([A-Za-z0-9\-]+))/?$', GenericEntity.EntitySearchView.as_view(), name='search_entity'),
+        url(r'^search/$', GenericEntity.EntitySearchView.as_view(), name='search_phenotypes'),
+        url(r'^search/(?P<entity_type>([A-Za-z0-9\-]+))/?$', GenericEntity.EntitySearchView.as_view(), name='search_phenotypes'),
         
 
         url(r'^phenotypes/(?P<pk>\w+)/detail/$', GenericEntity.generic_entity_detail, name='entity_detail'),
@@ -55,9 +55,9 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
     # for create/update - not to work in Read-only mode
     if not settings.CLL_READ_ONLY:
         urlpatterns += [
-            url(r'^create/$', GenericEntity.CreateEntityView.as_view(), name='create_entity'),
-            url(r'^create/(?P<template_id>[\d]+)/?$', GenericEntity.CreateEntityView.as_view(), name='create_entity'),
-            url(r'^update/(?P<entity_id>\w+)/(?P<entity_history_id>\d+)/?$', GenericEntity.CreateEntityView.as_view(), name='update_entity'),
+            url(r'^create/$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
+            url(r'^create/(?P<template_id>[\d]+)/?$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
+            url(r'^update/(?P<entity_id>\w+)/(?P<entity_history_id>\d+)/?$', GenericEntity.CreateEntityView.as_view(), name='update_phenotype'),
 
             # publish
             url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/publish/$',Publish.Publish.as_view(),name='generic_entity_publish'),
