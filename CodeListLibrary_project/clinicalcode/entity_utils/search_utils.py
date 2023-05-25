@@ -252,11 +252,10 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
     if isinstance(entity_types, list) and len(entity_types) > 0:
         entities = entities.filter(entity__template__entity_class__id__in=entity_types)
     
-    entities = GenericEntity.history.filter(id__in=entities.values_list('id', flat=True), history_id__in=entities.values_list('history_id', flat=True))
-
-    # Filter by brands
-    if request.CURRENT_BRAND:
-        entities = entities.filter(collections__overlap=template_utils.get_brand_collection_ids(request.CURRENT_BRAND))
+    entities = GenericEntity.history.filter(
+        id__in=entities.values_list('id', flat=True),
+        history_id__in=entities.values_list('history_id', flat=True)
+    )
 
     # Get templates for each entity
     templates = Template.history.filter(
