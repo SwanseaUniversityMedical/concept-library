@@ -17,8 +17,8 @@
         {% endif %}
 
         {% if IS_DEMO or IS_DEVELOPMENT_PC %}
-          {% url 'search_entity' as entity_url %}
-          <a href="{{ entity_url }}" id="GenericEntity" data-root="search,update,create">Phenotypes</a>
+          {% url 'search_phenotypes' as entity_url %}
+          <a href="{{ entity_url }}" id="Phenotypes" data-root="search,update,create">Phenotypes</a>
         {% endif %}
 
 

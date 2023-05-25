@@ -27,9 +27,9 @@ class EntityDecline(LoginRequiredMixin, permission_utils.HasAccessToViewGenericE
         @return: JSON response to the page
         """
         is_published = checkIfPublished(GenericEntity, pk, history_id)
-        checks = publish_utils.checkEntityToPublish(request, pk, history_id)
+        checks = publish_utils.check_entity_to_publish(request, pk, history_id)
         # if not is_published:
-        #     checks = publish_utils.checkEntityToPublish(request, pk, history_id)
+        #     checks = publish_utils.check_entity_to_publish(request, pk, history_id)
 
         data = dict()
         if not checks['allowed_to_publish'] or is_published:

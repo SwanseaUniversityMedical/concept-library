@@ -1,6 +1,7 @@
 from django.apps import apps
 from django.db.models import Q, F
 from django.utils.timezone import make_aware
+from django.db import transaction, IntegrityError
 from datetime import datetime
 
 from ..models.EntityClass import EntityClass
@@ -869,6 +870,7 @@ def build_related_entities(request, field_data, packet, override_dirty=False, en
 
     return False, None
 
+@transaction.atomic
 def create_or_update_entity_from_form(request, form, errors=[], override_dirty=False):
     '''
         Used to create or update entities - this method assumes you have
@@ -921,76 +923,81 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
             return
         form_entity = entity
     
-    # Build any validated children
-    template_data = { }
-    new_entities = [ ]
-    for field, packet in template.items():
-        field_data = template_utils.get_layout_field(form_template, field)
-        if field_data is None:
-            continue
+    try:
+        with transaction.atomic():
+            # Build any validated children
+            template_data = { }
+            new_entities = [ ]
+            for field, packet in template.items():
+                field_data = template_utils.get_layout_field(form_template, field)
+                if field_data is None:
+                    continue
 
-        validation = template_utils.try_get_content(field_data, 'validation')
-        if validation is None or not validation.get('has_children'):
-            template_data[field] = packet
-            continue
-        
-        success, res = build_related_entities(request, field_data, packet, override_dirty, entity=form_entity)
-        if not success or not res:
-            continue
+                validation = template_utils.try_get_content(field_data, 'validation')
+                if validation is None or not validation.get('has_children'):
+                    template_data[field] = packet
+                    continue
+                
+                success, res = build_related_entities(request, field_data, packet, override_dirty, entity=form_entity)
+                if not success or not res:
+                    continue
 
-        ownership_key, created_entities, field_value = res
-        template_data[field] = field_value
-        new_entities.append({'field': ownership_key, 'entities': created_entities})
-    
-    # Add any missing nullable fields from the template
-    for field, packet in template_fields.items():
-        if packet.get('is_base_field'):
-            continue
-        
-        field_value = template_data.get(field)
-        if field_value:
-            continue
-        template_data[field] = None
+                ownership_key, created_entities, field_value = res
+                template_data[field] = field_value
+                new_entities.append({'field': ownership_key, 'entities': created_entities})
+            
+            # Add any missing nullable fields from the template
+            for field, packet in template_fields.items():
+                if packet.get('is_base_field'):
+                    continue
+                
+                field_value = template_data.get(field)
+                if field_value:
+                    continue
+                template_data[field] = None
 
-    # Create or update the entity
-    entity = None
-    template_data['version'] = form_template.template_version
-    if form_method == constants.FORM_METHODS.CREATE:
-        entity = GenericEntity(
-            **metadata,
-            template=template_instance,
-            template_version=form_template.template_version,
-            template_data=template_data,
-            created_by=user
-        )
-        entity.save()
-    elif form_method == constants.FORM_METHODS.UPDATE:
-        entity = form_entity
-        entity.name = metadata.get('name')
-        entity.status = constants.ENTITY_STATUS.DRAFT
-        entity.author = metadata.get('author')
-        entity.definition = metadata.get('definition')
-        entity.validation = metadata.get('validation')
-        entity.implementation = metadata.get('implementation')
-        entity.citation_requirements = metadata.get('citation_requirements')
-        entity.tags = metadata.get('tags')
-        entity.collections = metadata.get('collections')
-        entity.publications = metadata.get('publications')
-        entity.group = metadata.get('group')
-        entity.group_access = metadata.get('group_access')
-        entity.world_access = metadata.get('world_access')
-        entity.template = template_instance
-        entity.template_version = form_template.template_version
-        entity.template_data = template_data
-        entity.updated = make_aware(datetime.now())
-        entity.updated_by = user
-        entity.save()
+            # Create or update the entity
+            entity = None
+            template_data['version'] = form_template.template_version
+            if form_method == constants.FORM_METHODS.CREATE:
+                entity = GenericEntity(
+                    **metadata,
+                    template=template_instance,
+                    template_version=form_template.template_version,
+                    template_data=template_data,
+                    created_by=user
+                )
+                entity.save()
+            elif form_method == constants.FORM_METHODS.UPDATE:
+                entity = form_entity
+                entity.name = metadata.get('name')
+                entity.status = constants.ENTITY_STATUS.DRAFT
+                entity.author = metadata.get('author')
+                entity.definition = metadata.get('definition')
+                entity.validation = metadata.get('validation')
+                entity.implementation = metadata.get('implementation')
+                entity.citation_requirements = metadata.get('citation_requirements')
+                entity.tags = metadata.get('tags')
+                entity.collections = metadata.get('collections')
+                entity.publications = metadata.get('publications')
+                entity.group = metadata.get('group')
+                entity.group_access = metadata.get('group_access')
+                entity.world_access = metadata.get('world_access')
+                entity.template = template_instance
+                entity.template_version = form_template.template_version
+                entity.template_data = template_data
+                entity.updated = make_aware(datetime.now())
+                entity.publish_status = constants.APPROVAL_STATUS.ANY
+                entity.updated_by = user
+                entity.save()
 
-    # Update child related entities with entity object    
-    for group in new_entities:
-        field = group.get('field')
-        instances = group.get('entities')
-        for instance in instances:
-            setattr(instance, field, entity)
-
-    return entity.history.latest()
+            # Update child related entities with entity object    
+            for group in new_entities:
+                field = group.get('field')
+                instances = group.get('entities')
+                for instance in instances:
+                    setattr(instance, field, entity)
+            return entity.history.latest()
+    except IntegrityError:
+        errors.append('Data integrity error when submitting form')
+        return
