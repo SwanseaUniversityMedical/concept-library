@@ -26,15 +26,15 @@
 
 								{% else %}		
                 {% url 'about_page' pg_name='cl_about_page' as url_drop%}
-                {% include "components/search/cards/dropdown_list_item.html" with icon='about_icon' description='Learn more about Concept Library' url=url_drop title="Concept Library" %}
+                {% include "components/navigation/dropdown_list_item.html" with icon='about_icon' description='Learn more about Concept Library' url=url_drop title="Concept Library" %}
 								{% endif %}
 								
 								{% if not CLL_READ_ONLY %}
                
                 {% url 'contact_us' as contact_us%}
-                {% include "components/search/cards/dropdown_list_item_full.html" with icon='message_icon' separator=True url=contact_us title="Contact us" %}
+                {% include "components/navigation/dropdown_list_item_full.html" with icon='message_icon' separator=True url=contact_us title="Contact us" %}
                 {% url 'reference_data' as reference_data%}
-                {% include "components/search/cards/dropdown_list_item_full.html" with icon='folder_icon'  url=reference_data title="Reference data" %}
+                {% include "components/navigation/dropdown_list_item_full.html" with icon='folder_icon'  url=reference_data title="Reference data" %}
 						
 						
 	                                

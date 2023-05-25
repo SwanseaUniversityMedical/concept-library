@@ -125,7 +125,8 @@
           "3": "Drug",
           "4": "Lifestyle risk factor",
           "5": "Musculoskeletal",
-          "6": "Surgical procedure"
+          "6": "Surgical procedure",
+          "7": "Other"
         }
       },
       "search": {
@@ -174,7 +175,8 @@
         "options": {
           "1": "Male",
           "2": "Female",
-          "3": "Male/Female"
+          "3": "Both",
+          "4": "Neither"
         }
       },
       "search": {

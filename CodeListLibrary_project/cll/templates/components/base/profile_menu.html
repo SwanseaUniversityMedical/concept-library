@@ -10,7 +10,7 @@
   <!-- about tab -->
   <script type="text/javascript" src="{% static "js/clinicalcode/redesign/components/brandurls.js" %}"></script>
   <div class="dropdown">
-    {% include "components/search/cards/avatar_component.html"  %}
+    {% include "components/navigation/avatar_component.html"  %}
    
     
     <div class="dropdown-content">
@@ -32,12 +32,12 @@
         
         <!--Brands-->
         {% if request.user.is_superuser  and request.session.all_brands %}
-        {% include "components/search/cards/dropdown_profile_item.html" with  currentBrand="" image="/static/img/header_logo.png" title="Concept Library" %}
+        {% include "components/navigation/dropdown_profile_item.html" with  currentBrand="" image="/static/img/header_logo.png" title="Concept Library" %}
         
 
         {% for brand in request.session.all_brands %}
 
-        {% include "components/search/cards/dropdown_profile_item.html" with  currentBrand=brand|upper  image=brand|getBrandLogo title=brand|upper %}
+        {% include "components/navigation/dropdown_profile_item.html" with  currentBrand=brand|upper  image=brand|getBrandLogo title=brand|upper %}
 							{% endfor %}
         
               
@@ -47,7 +47,7 @@
         <!--logout-->
 
         <li class="content-container">
-          <a href="{% url 'logout' %}?next={% url 'search_entity' %}" class="item-dropdown">
+          <a href="{% url 'logout' %}?next={% url 'search_phenotypes' %}" class="item-dropdown">
             <div class="item-dropdown__icon">
               {% svg "exit_icon" %}
                 

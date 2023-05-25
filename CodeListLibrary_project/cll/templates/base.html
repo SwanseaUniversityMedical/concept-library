@@ -162,7 +162,7 @@
 						
 						{% if IS_DEMO or IS_DEVELOPMENT_PC %}					
 							<li id="generic_entity_li"  >
-								<a id="generic_entity_a" class="main_menu nav-bar-title" href="{% url 'search_entity' %}">Search</a>
+								<a id="generic_entity_a" class="main_menu nav-bar-title" href="{% url 'search_phenotypes' %}">Search</a>
 							</li>	
 						{% endif %}		
 							
@@ -269,7 +269,7 @@
 						
 								<!-- logout -->
 								<li>
-									<a href="{% url 'logout' %}?next={% url 'search_entity' %}">
+									<a href="{% url 'logout' %}?next={% url 'search_phenotypes' %}">
 										<i class="fa fa-sign-out" aria-hidden="true"></i> Log out
 									</a>
 								</li>

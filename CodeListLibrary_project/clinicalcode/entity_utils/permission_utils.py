@@ -9,7 +9,7 @@ from functools import wraps
 from ..models import GenericEntity
 from ..models.Concept import Concept
 from ..models.PublishedConcept import PublishedConcept
-from . import model_utils
+from . import model_utils, template_utils
 from .constants import APPROVAL_STATUS, GROUP_PERMISSIONS, WORLD_ACCESS_PERMISSIONS
 
 ''' Permission decorators '''
@@ -37,13 +37,13 @@ def redirect_readonly(fn):
 
 def is_member(user, group_name):
   '''
-
+    Checks if a User instance is a member of a group
   '''
   return user.groups.filter(name__iexact=group_name).exists()
 
 def has_member_access(user, entity, permissions):
   '''
-
+    Checks if a user has access to an entity via its group membership
   '''
   if entity.group_id in user.groups.all():
     return entity.group_access in permissions
@@ -52,7 +52,7 @@ def has_member_access(user, entity, permissions):
 
 def is_publish_status(entity, status):
   '''
-  
+    Checks the publication status of an entity
   '''
   history_id = getattr(entity, 'history_id', None)
   if history_id is None:
@@ -64,11 +64,13 @@ def is_publish_status(entity, status):
 
   if approval_status:
     return approval_status in status
-
   return False
 
 ''' General permissions '''
 def get_user_groups(request):
+  '''
+    Get the groups related to the requesting user
+  '''
   user = request.user
   if not user:
     return []
@@ -82,53 +84,78 @@ def get_accessible_entities(
     consider_user_perms=True,
     only_deleted=False,
     status=[APPROVAL_STATUS.APPROVED],
-    group_permissions=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]
-  ):  
+    group_permissions=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT],
+    consider_brand=True
+  ):
+  '''
+    Tries to get the all entities that are accessible to a specific user
+
+    Args:
+      consider_user_perms {boolean}: Whether to consider user perms i.e. superuser, moderation status etc
+
+      only_deleted {boolean}: Whether to incl/excl deleted entities
+
+      status {list}: A list of publication statuses to consider
+
+      group_permissions {list}: A list of which group permissions to consider
+
+      consider_brand {boolean}: Whether to consider the request Brand (only applies to Moderators, Non-Auth'd and Auth'd accounts)
+      
+    Returns:
+      List of accessible entities
+    
+  '''
   user = request.user
   entities = GenericEntity.history.all() \
     .order_by('id', '-history_id') \
     .distinct('id')
   
+  brand = request.CURRENT_BRAND if request.CURRENT_BRAND != '' else None
+  if consider_brand and brand:
+    brand_collection_ids = template_utils.get_brand_collection_ids(brand)
+    entities = entities.filter(collections__overlap=brand_collection_ids)
+  
   if user and not user.is_anonymous:
     if consider_user_perms and user.is_superuser:
-      return entities.distinct()
+      return entities.distinct('id')
     
-    if consider_user_perms and is_member(user, "Moderators"):
+    if consider_user_perms and is_member(user, 'Moderators'):
       status += [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING, APPROVAL_STATUS.REJECTED]
       
     query = Q(owner=user.id) 
     if not status or APPROVAL_STATUS.ANY not in status:
       if status:
-        entities = entities.filter(publish_status__in=status)
+        query |= Q(publish_status__in=status)
       else:
-        entities = entities.exclude(publish_status=APPROVAL_STATUS.PENDING)
+        query |= ~Q(publish_status=APPROVAL_STATUS.PENDING)
+    else:
+      query |= Q(publish_status=APPROVAL_STATUS.APPROVED)
     
     if group_permissions:
       query |= Q(
         group_id__in=user.groups.all(), 
         group_access__in=group_permissions
       )
-      
+    
     # get world_access shared entities (if user is authenticated)
     query |= Q(
       world_access=WORLD_ACCESS_PERMISSIONS.VIEW
     )
-      
-    entities = entities.filter(query)
 
+    entities = entities.filter(query)
     if only_deleted:
       entities = entities.exclude(Q(is_deleted=False) | Q(is_deleted__isnull=True) | Q(is_deleted=None))
     else:
       entities = entities.exclude(Q(is_deleted=True))
 
-    return entities.distinct()
+    return entities.distinct('id')
   
   entities = entities.filter(
     publish_status=APPROVAL_STATUS.APPROVED
-  )
+  ) \
+  .filter(Q(is_deleted=False) | Q(is_deleted=None))
   
-  return entities.filter(Q(is_deleted=False) | Q(is_deleted=None))
-
+  return entities.distinct('id')
 
 def can_user_view_entity(request, entity_id, entity_history_id=None):
   '''
@@ -183,14 +210,13 @@ def can_user_view_entity(request, entity_id, entity_history_id=None):
   return False
  
 def check_brand_access(request, is_published, entity_id, entity_history_id=None):
-  # if the entity is published ignore is_brand_accessible() 
-  brand_access = True
+  '''
+    Checks whether an entity is accessible for the request brand,
+    if the entity is published the accessibility via is_brand_accessible() will be ignored
+  '''
   if not is_published:
-    if not is_brand_accessible(request, entity_id, entity_history_id):
-      brand_access = False            
-    
-  return brand_access
-
+    return is_brand_accessible(request, entity_id, entity_history_id)
+  return True
 
 def can_user_edit_entity(request, entity_id, entity_history_id=None):
   '''
@@ -240,7 +266,6 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
         is_allowed_to_edit = False
             
   return is_allowed_to_edit 
-
 
 def is_concept_published(concept_id, concept_history_id):
   '''
@@ -360,16 +385,14 @@ def user_has_concept_ownership(user, concept):
   
   return has_member_access(user, concept, [GROUP_PERMISSIONS.EDIT])
 
-
 def validate_access_to_view(request, entity_id, entity_history_id=None):
   '''
-  validate access to view the entity
+    Validate access to view the entity
   '''
-  from clinicalcode.entity_utils import api_utils
   
   # Check if entity_id is valid, i.e. matches regex '^[a-zA-Z]\d+'
-  entity_id_response = api_utils.is_malformed_entity_id(entity_id)
-  if isinstance(entity_id_response, Response):
+  true_entity_id = model_utils.get_entity_id(entity_id)
+  if not true_entity_id:
     raise PermissionDenied
 
   # Check if the user has the permissions to view this entity version
@@ -377,13 +400,11 @@ def validate_access_to_view(request, entity_id, entity_history_id=None):
   if not user_can_access:
     #message = 'Entity version must be published or you must have permission to access it'
     raise PermissionDenied
-    
 
 def is_brand_accessible(request, entity_id, entity_history_id=None):
   """
-      When in a brand, show only this brand's data
+    When in a brand, show only this brand's data
   """
-  from clinicalcode.entity_utils import template_utils
 
   # setting entity_history_id = None,
   # so this permission is always checked from the live obj like other permissions
@@ -392,63 +413,53 @@ def is_brand_accessible(request, entity_id, entity_history_id=None):
   brand = request.CURRENT_BRAND
   if brand == "":
     return True
-  else:
-    brand_collection_ids = template_utils.get_brand_collection_ids(brand)
+  
+  brand_collection_ids = template_utils.get_brand_collection_ids(brand)
+  if not brand_collection_ids:
+    return True
+  
+  history_id = entity_history_id
+  if entity_history_id is None:
+    history_id = GenericEntity.objects.get(pk=entity_id).history.latest().history_id
 
-    if not brand_collection_ids:
-      return True
-    else:
-      history_id = entity_history_id
-      if entity_history_id is None:
-        history_id = GenericEntity.objects.get(pk=entity_id).history.latest().history_id
+  entity_collections = []
+  entity_collections = GenericEntity.history.get(id=entity_id, history_id=history_id).collections
 
-      entity_collections = []
-      entity_collections = GenericEntity.history.get(id=entity_id, history_id=history_id).collections
-
-      if not entity_collections:
-        return False
-      else:
-        # check if the set collections has any of the brand's collection tags
-        return any(c in entity_collections for c in brand_collection_ids)
+  if not entity_collections:
+    return False
+  
+  # check if the set collections has any of the brand's collection tags
+  return any(c in entity_collections for c in brand_collection_ids)
 
 def allowed_to_create():
   '''
-      Permit creation unless we have a READ-ONLY application.
+    Permit creation unless we have a READ-ONLY application.
   '''
-  if settings.CLL_READ_ONLY: return False
-  return True
-
+  return settings.CLL_READ_ONLY
 
 def allowed_to_permit(user, entity_id):
   '''
-      The ability to change the owner of an entity remains with the owner and
-      not with those granted editing permission. And with superusers to get
-      us out of trouble, when necessary.
+    The ability to change the owner of an entity remains with the owner and
+    not with those granted editing permission. And with superusers to get
+    us out of trouble, when necessary.
 
-      Allow user to change permissions if:
-      user is a super-user
-      OR
-      user owns the object.
+    Allow user to change permissions if:
+    user is a super-user
+    OR
+    user owns the object.
   '''
-  if user.is_superuser: return True
-  return GenericEntity.objects.filter(Q(id=entity_id), Q(owner=user)).count() > 0
-
+  if user.is_superuser:
+    return True
+  
+  return GenericEntity.objects.filter(Q(id=entity_id), Q(owner=user)).exists()
 
 class HasAccessToViewGenericEntityCheckMixin(object):
   '''
-      mixin to check if user has view access to a working set
-      this mixin is used within class based views and can be overridden
+    Mixin to check if user has view access to a working set
+    this mixin is used within class based views and can be overridden
   '''
-
-  def has_access_to_view_entity(self, user, entity_id):
-    return can_user_view_entity(self.request, entity_id)
-
-  def access_to_view_entity_failed(self, request, *args, **kwargs):
-    raise PermissionDenied
-
   def dispatch(self, request, *args, **kwargs):
-    if not self.has_access_to_view_entity(request.user, self.kwargs['pk']):
-        return self.access_to_view_entity_failed(request, *args, **kwargs)
+    if can_user_view_entity(request.user, self.kwargs['pk']):
+      raise PermissionDenied
 
     return super(HasAccessToViewGenericEntityCheckMixin, self).dispatch(request, *args, **kwargs)
-  

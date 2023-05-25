@@ -100,11 +100,7 @@ def send_message(pk, data, entity, entity_history_id, checks):
 
         return data
 
-
-
-
-
-def checkEntityToPublish(request, pk, entity_history_id):
+def check_entity_to_publish(request, pk, entity_history_id):
     '''
         Allow to publish if:
         - entity is not deleted
@@ -164,7 +160,7 @@ def checkEntityToPublish(request, pk, entity_history_id):
 
     if entity_class == "Phenotype" or entity_class == "Workingset":
          has_childs, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
-        checkChildren(request, entity)
+        check_children(request, entity)
     else: #???
         has_childs, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
         checkChildConcept(request, entity_history_id)
@@ -180,7 +176,6 @@ def checkEntityToPublish(request, pk, entity_history_id):
 
     if not entity_has_data and entity_class == "Workingset":
         allow_to_publish = False
-
 
     checks = {
         'entity': entity,
@@ -203,7 +198,7 @@ def checkEntityToPublish(request, pk, entity_history_id):
     }
     return checks
 
-def checkChildren(request, entity):
+def check_children(request, entity):
         """
         Check if entity child data is validated
         @param request: user request object

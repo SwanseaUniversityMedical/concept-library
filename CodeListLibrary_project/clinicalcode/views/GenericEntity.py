@@ -87,10 +87,13 @@ class EntitySearchView(TemplateView):
         '''
             Manages get requests to this view
             
-            [!] Note: if search_filtered is passed as a parameter (through a fetch req),
-                    the GET request will return the pagination and results
-                    for hotreloading relevant search results instead of forcing
-                    a page reload
+            @note if search_filtered is passed as a parameter (through a fetch req),
+                  the GET request will return the pagination and results
+                  for hotreloading relevant search results instead of forcing
+                  a page reload
+
+                  in reality, we should change this to a JSON Response at some point
+                  and make the client render it rather than wasting server resources
         '''
         context = self.get_context_data(*args, **kwargs)
         filtered = gen_utils.try_get_param(request, 'search_filtered', None)
@@ -107,7 +110,9 @@ class EntitySearchView(TemplateView):
 class CreateEntityView(TemplateView):
     '''
         Entity Create View
-            @desc Used to create entities - CreateView isn't used due to the requirements
+            @desc Used to create entities
+            
+            @note CreateView isn't used due to the requirements
                   of having a form dynamically created to reflect the dynamic model.
     '''
     fetch_methods = ['search_codes', 'get_options']
@@ -148,8 +153,9 @@ class CreateEntityView(TemplateView):
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def post(self, request, *args, **kwargs):
         '''
-            @desc Handles:
-                - form submission on creating or updating an entity
+            @desc Handles form submissions for both:
+                - creating
+                - updating
         '''
         form_errors = []
         form = gen_utils.get_request_body(request)
@@ -232,7 +238,6 @@ class CreateEntityView(TemplateView):
         '''
             @desc Renders the template selection form
         '''
-
         context['entity_data'] = create_utils.get_createable_entities(request)
         return render(request, self.templates.get('select'), context)
 
@@ -273,7 +278,6 @@ class CreateEntityView(TemplateView):
         '''
             @desc GET request made by client to retrieve all available
                   options for a given field within its template
-
         '''
         template_id = gen_utils.parse_int(gen_utils.try_get_param(request, 'template'), default=None)
         if not template_id:
