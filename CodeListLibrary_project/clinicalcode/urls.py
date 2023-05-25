@@ -31,7 +31,7 @@ urlpatterns = [
     url(r'^workingsets/$', WorkingSet.workingset_list, name='workingset_list'),
     url(r'^phenotypeworkingsets/select-concepts/$', SelectPhenotype.selection_list, name='selection_list'),
     url(r'^phenotypeworkingsets/$', PhenotypeWorkingSet.workingset_list, name='phenotypeworkingsets_list'),
-    url(r'^phenotypes/$', Phenotype.phenotype_list, name='phenotype_list'),
+    # url(r'^phenotypes/$', Phenotype.phenotype_list, name='phenotype_list'),
     
     
 
