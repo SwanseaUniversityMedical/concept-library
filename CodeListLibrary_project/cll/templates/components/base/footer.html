@@ -28,7 +28,7 @@
       </div>
 
       
-      {% if DEV_PRODUCTION|length or CLL_READ_ONLY %}
+      {% comment %} {% if DEV_PRODUCTION|length or CLL_READ_ONLY %}
       <div class="box-container">
         <div class="row ">
           <div class="col-md-12 text-align-right">
@@ -41,7 +41,7 @@
           </div>
         </div>
       </div>
-      {% endif %}
+      {% endif %} {% endcomment %}
 
       
     </section>
