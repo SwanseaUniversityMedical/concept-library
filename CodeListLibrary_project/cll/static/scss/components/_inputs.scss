@@ -246,6 +246,14 @@
   margin: 0;
   border: 0;
   width: 100%;
+
+  &__label {
+    margin-right: 0.5rem;
+
+    &:last-of-type {
+      margin-left: 0.5rem;
+    }
+  }
 }
 
 .radio-chips-group {

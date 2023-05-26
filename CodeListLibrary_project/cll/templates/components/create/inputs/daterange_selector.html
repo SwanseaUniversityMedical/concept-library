@@ -4,10 +4,10 @@
   <p class="detailed-input-group__description">{{ component.description }}</p>
   {% endif %}
   <fieldset class="date-range-field" id="entity-{{ component.field_name }}" data-class="daterange" data-field="{{ component.field_name }}" data-value="{{ component.value }}">
-    <span>Start:</span>
+    <span class="date-range-field__label">Start:</span>
     <input type="date" value=""
       aria-label="{{ component.field_data.title }} - Select start date" id="entity-{{ component.field_name }}-startdate">
-    <span>End:</span>
+    <span class="date-range-field__label">End:</span>
     <input type="date" value=""
       aria-label="{{ component.field_data.title }} - Select end date" id="entity-{{ component.field_name }}-enddate">
   </fieldset>
