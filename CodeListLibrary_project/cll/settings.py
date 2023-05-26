@@ -22,6 +22,10 @@ from django_auth_ldap.config import (GroupOfNamesType, LDAPSearch,
                                      LDAPSearchUnion,
                                      NestedActiveDirectoryGroupType)
 
+APP_TITLE = 'Concept Library'
+APP_DESC = 'The {app_title} is a system for storing, managing, sharing, and documenting clinical code lists in health research.'
+APP_LOGO_PATH = '/img/'
+APP_EMBED_ICON = '{logo_path}embed_img.png'
 
 def GET_SERVER_IP(TARGET_IP='10.255.255.255', PORT=1):
     """
@@ -93,6 +97,8 @@ SECRET_KEY = get_env_value('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = get_env_value('DEBUG', cast='bool')
+
+    
 
 ADMIN = [('Muhammad', 'Muhammad.Elmessary@Swansea.ac.uk'),
          ('Dan', 'd.s.thayer@swansea.ac.uk')]
@@ -418,7 +424,7 @@ if not DEBUG:
 
 DEV_PRODUCTION = ""
 if IS_DEMO:  # Demo server
-    DEV_PRODUCTION = "<i class='glyphicon glyphicon-cog'  aria-hidden='true'> </i> DEMO SITE <i class='glyphicon glyphicon-cog'  aria-hidden='true'> </i>"
+    DEV_PRODUCTION = "<i class='glyphicon glyphicon-cog'  aria-hidden='true'>&#9881; </i> DEMO SITE <i class='glyphicon glyphicon-cog'  aria-hidden='true'>&#9881; </i>"
 
 ##EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # Email, contact us page

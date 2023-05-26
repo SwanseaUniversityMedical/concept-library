@@ -1,0 +1,31 @@
+{% load static %}
+{% load i18n %}
+
+{% load mathfilters %}
+{% load cl_extras %}
+{% block content %}
+
+<div class="footer-links">
+    {% for items in request.BRAND_OBJECT.footer_images %}
+        <div class="footer-links__item">
+            <a href="{{items.url}}" target=_blank  class="footer-brand" rel="noopener noreferrer">
+                <img style="margin-top: -10px;" src="{% static items.image_src %}" height="30px"  alt="{{items.brand}} Logo" />
+            </a>
+        </div>
+    {% endfor %}
+    
+    {% if request.BRAND_OBJECT.footer_images is none %}
+    <div class="footer-links__item">
+        <a href="https://conceptlibrary.saildatabank.com/" target=_blank  class="footer-brand" rel="noopener noreferrer">
+            <img style="margin-top: -10px;" src="{% static 'img/Footer_logos/concept_library_on_white.png' %}" height="30px"  alt="Concept Library Logo" />
+        </a>
+    </div>
+    <div class="footer-links__item">
+        <a href="http://saildatabank.com" target=_blank  class="navbar-brand" rel="noopener noreferrer">
+            <img style="margin-top: -10px;" src="{% static 'img/Footer_logos/SAIL_alt_logo_on_white.png' %}" height="30px"  alt="SAIL Databank Logo" />
+        </a>
+    </div>
+   {% endif %}
+</div>
+
+{% endblock content %}

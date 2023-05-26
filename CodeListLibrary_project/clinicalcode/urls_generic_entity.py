@@ -22,8 +22,8 @@ urlpatterns = []
 if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
     urlpatterns += [  
 
-        url(r'^search/$', GenericEntity.EntitySearchView.as_view(), name='search_phenotypes'),
-        url(r'^search/(?P<entity_type>([A-Za-z0-9\-]+))/?$', GenericEntity.EntitySearchView.as_view(), name='search_phenotypes'),
+        url(r'^phenotypes/$', GenericEntity.EntitySearchView.as_view(), name='search_phenotypes'),
+        url(r'^phenotypes/(?P<entity_type>([A-Za-z0-9\-]+))/?$', GenericEntity.EntitySearchView.as_view(), name='search_phenotypes'),
         
 
         url(r'^phenotypes/(?P<pk>\w+)/detail/$', GenericEntity.generic_entity_detail, name='entity_detail'),

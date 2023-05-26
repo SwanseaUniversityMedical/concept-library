@@ -13,6 +13,36 @@ from ..models.GenericEntity import GenericEntity
 
 register = template.Library()
 
+@register.simple_tag
+def get_brand_base_title(brand):
+    '''
+        Gets the brand-related site title if available, otherwise returns
+        the APP_TITLE per settings.py
+    '''
+    if not brand or not getattr(brand, 'site_title'):
+        return settings.APP_TITLE
+    return brand.site_title
+
+@register.simple_tag
+def get_brand_base_embed_desc(brand):
+    '''
+        Gets the brand-related site desc if available, otherwise returns
+        the APP_DESC per settings.py
+    '''
+    if not brand or not getattr(brand, 'site_title'):
+        return settings.APP_DESC.format(app_title=settings.APP_TITLE)
+    return settings.APP_DESC.format(app_title=brand.site_title)
+
+@register.simple_tag
+def get_brand_base_embed_img(brand):
+    '''
+        Gets the brand-related site desc if available, otherwise returns
+        the APP_DESC per settings.py
+    '''
+    if not brand or not getattr(brand, 'logo_path'):
+        return settings.APP_EMBED_ICON.format(logo_path=settings.APP_LOGO_PATH)
+    return settings.APP_EMBED_ICON.format(logo_path=brand.logo_path)
+
 @register.inclusion_tag('components/search/pagination/pagination.html', takes_context=True, name='render_entity_pagination')
 def render_pagination(context, *args, **kwargs):
     '''
