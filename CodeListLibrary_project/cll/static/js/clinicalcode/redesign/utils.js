@@ -537,5 +537,5 @@ const isArrayEqual = (a, b, shouldSort = true) => {
     a.sort();
     b.sort();
   }
-  return a.length == b.length && a.every((ti, i) => { return ti == b[i]});
+  return a.length == b.length && a.every((ti, i) => { return ti == b[i]; });
 }
