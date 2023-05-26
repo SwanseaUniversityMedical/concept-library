@@ -873,6 +873,11 @@ def build_related_entities(request, field_data, packet, override_dirty=False, en
     return False, None
 
 def compute_brand_context(request, form_data):
+    '''
+        Computes the brand context given the metadata of an entity,
+        where brand is computed by the RequestContext's brand and its
+        given collections
+    '''
     related_brands = set([])
 
     brand = model_utils.try_get_brand(request)
