@@ -17,6 +17,8 @@ from ..models.Component import Component
 from ..models.CodeList import CodeList
 from ..models.ConceptCodeAttribute import ConceptCodeAttribute
 from ..models.Code import Code
+from ..models import Brand
+from ..models import Tag
 from .constants import (USERDATA_MODELS, STRIPPED_FIELDS, APPROVAL_STATUS,
                         GROUP_PERMISSIONS, WORLD_ACCESS_PERMISSIONS,
                         TAG_TYPE, HISTORICAL_HIDDEN_FIELDS,
@@ -57,11 +59,20 @@ def get_entity_id(primary_key):
     return entity_id[:2]
   return False
 
+def get_brand_collection_ids(brand_name):
+  """
+    Returns list of collections (tags) ids associated with the brand
+  """
+  if Brand.objects.all().filter(name__iexact=brand_name).exists():
+    brand = Brand.objects.get(name__iexact=brand_name)
+    brand_collection_ids = list(Tag.objects.filter(collection_brand=brand.id).values_list('id', flat=True))
+    return brand_collection_ids
+  return [-1]
+
 def get_latest_entity_published(entity_id):
   '''
     Gets latest published entity given an entity id
   '''
-
   entity = GenericEntity.history.filter(id=entity_id, publish_status=APPROVAL_STATUS.APPROVED)
   if not entity.exists():
     return None

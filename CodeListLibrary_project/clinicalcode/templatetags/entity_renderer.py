@@ -20,39 +20,41 @@ def render_pagination(context, *args, **kwargs):
             - Provides page range so that it always includes the first and last page,
               and if available, provides the page numbers 1 page to the left and the right of the current page
     '''
-    request = context['request']
     page_obj = context['page_obj']
 
     page = page_obj.number
     num_pages = page_obj.paginator.num_pages
-    page_items = []
-    if num_pages <= 9:
-        page_items = set(range(1, num_pages + 1))
-    else:
-        min_page = page - 1
-        max_page = page + 1
-        if min_page <= 1:
-            min_page = 1
-            max_page = min(page + 2, num_pages)
-        else:
-            page_items += [1, 'divider']
 
-        if max_page > num_pages:
-            min_page = max(page - 2, 1)
-            max_page = min(page, num_pages)
-
-        page_items += list(range(min_page, max_page + 1))
-        
-        if num_pages not in page_items:
-            page_items += ['divider', num_pages]
-
-    return {
+    packet = {
         'page': page,
         'page_range': [1, num_pages],
         'has_previous': page_obj.has_previous(),
         'has_next': page_obj.has_next(),
-        'pages': page_items
     }
+
+    if num_pages <= 9:
+        packet['pages'] = set(range(1, num_pages + 1))
+        return packet
+
+    page_items = []
+    min_page = page - 1
+    max_page = page + 1
+    if min_page <= 1:
+        min_page = 1
+        max_page = min(page + 2, num_pages)
+    else:
+        page_items += [1, 'divider']
+
+    if max_page > num_pages:
+        min_page = max(page - 2, 1)
+        max_page = min(page, num_pages)
+
+    page_items += list(range(min_page, max_page + 1))
+    if num_pages not in page_items:
+        page_items += ['divider', num_pages]
+
+    packet['pages'] = page_items
+    return packet
 
 @register.filter(name='is_member')
 def is_member(user, args):
@@ -541,12 +543,12 @@ class EntityWizardSections(template.Node):
                     component['hide_input_details'] = True
                 
                 if template_utils.is_metadata(GenericEntity, field):
-                    options = template_utils.get_template_sourced_values(constants.metadata, field)
+                    options = template_utils.get_template_sourced_values(constants.metadata, field, request=request)
 
                     if options is None:
                         options = self.__try_get_computed(request, field)
                 else:
-                    options = template_utils.get_template_sourced_values(template, field)
+                    options = template_utils.get_template_sourced_values(template, field, request=request)
                 
                 if options is not None:
                     component['options'] = options

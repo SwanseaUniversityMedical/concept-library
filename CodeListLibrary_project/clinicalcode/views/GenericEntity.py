@@ -292,9 +292,9 @@ class CreateEntityView(TemplateView):
             return gen_utils.jsonify_response(message='Invalid field parameter', code=400, status='false')
 
         if template_utils.is_metadata(GenericEntity, field):
-            options = template_utils.get_template_sourced_values(constants.metadata, field)
+            options = template_utils.get_template_sourced_values(constants.metadata, field, request=request)
         else:
-            options = template_utils.get_template_sourced_values(template, field)
+            options = template_utils.get_template_sourced_values(template, field, request=request)
         
         if options is None:
             return gen_utils.jsonify_response(message='Invalid field parameter, does not exist or is not an optional parameter', code=400, status='false')

@@ -617,6 +617,27 @@ export default class ConceptCreator {
    *                                   *
    *************************************/
   /**
+   * getNextRuleCount
+   * @desc gets n+1 of current rules
+   */
+  #getNextRuleCount(logicalType) {
+    if (isNullOrUndefined(logicalType)) {
+      return this.state?.data?.components.length + 1;
+    }
+
+    const filtered = this.state?.data?.components.filter(item => item.logical_type == logicalType);
+    return filtered.length + 1;
+  }
+
+  /**
+   * getNextRuleCount
+   * @desc gets n+1 of current concepts
+   */
+  #getNextConceptCount() {
+    return this.data.length + 1;
+  }
+
+  /**
    * isCodeInclusionary
    * @desc determines whether a code is inclusionary by examining its presence in other components
    * @param {list} item the row item of a code
@@ -929,13 +950,17 @@ export default class ConceptCreator {
    * @returns {string} interpolated element html
    */
   #tryRenderRulePresenceIcon(value, index) {
+    const alt = value.logical_type == CONCEPT_CREATOR_LOGICAL_TYPES.INCLUDE ? CONCEPT_CREATOR_ICONS.PRESENT : CONCEPT_CREATOR_ICONS.ABSENT;
     return {
       select: CONCEPT_CREATOR_OFFSET + index,
       type: 'string',
       render: (data, td, rowIndex, cellIndex) => {
         const icon = CONCEPT_CREATOR_CLASSES.DATA_ICON;
-        const alt = data ? CONCEPT_CREATOR_ICONS.PRESENT : CONCEPT_CREATOR_ICONS.ABSENT;
-        return `<span class="${icon} ${icon}--align-center ${icon}${alt}"></span>`
+        if (data) {
+          return `<span class="${icon} ${icon}--align-center ${icon}${alt}"></span>`
+        }
+
+        return ' ';
       }
     }
   }
@@ -1291,10 +1316,11 @@ export default class ConceptCreator {
     }
 
     // Create new rule
+    const ruleIncrement = this.#getNextRuleCount(logicalType);
     const element = this.state.element;
     const rule = {
       id: generateUUID(),
-      name: 'New Rule',
+      name: `Rule ${ruleIncrement}`,
       code_count: 0,
       source_type: sourceType.name,
       logical_type: logicalType,
@@ -1620,6 +1646,7 @@ export default class ConceptCreator {
   #handleConceptCreation(e) {
     this.tryCloseEditor()
       .then(() => {
+        const conceptIncrement = this.#getNextConceptCount();
         const concept = {
           is_new: true,
           concept_id: generateUUID(),
@@ -1627,7 +1654,7 @@ export default class ConceptCreator {
           components: [ ],
           aggregated_component_codes: [ ],
           details: {
-            name: 'New Concept',
+            name: `Concept ${conceptIncrement}`,
           },
         }
 

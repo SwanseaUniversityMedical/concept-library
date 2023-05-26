@@ -167,7 +167,7 @@
     "sex": {
       "title": "Sex",
       "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-      "field_type": "enum_radio_badge",
+      "field_type": "grouped_enum",
       "active": true,
       "validation": {
         "type": "enum",
@@ -177,7 +177,13 @@
           "2": "Female",
           "3": "Both",
           "4": "Neither"
-        }
+        },
+        "enum_groups": [
+          {
+            "when": [1, 2],
+            "output": 3
+          }
+        ]
       },
       "search": {
         "api": true
@@ -285,7 +291,6 @@
     "group_access": {
       "is_base_field": true
     },
-
     "permissions":{
       "title": "Permissions",
       "field_type": "permissions_section",

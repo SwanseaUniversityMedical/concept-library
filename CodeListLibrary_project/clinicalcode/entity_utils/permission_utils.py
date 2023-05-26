@@ -112,7 +112,7 @@ def get_accessible_entities(
   
   brand = request.CURRENT_BRAND if request.CURRENT_BRAND != '' else None
   if consider_brand and brand:
-    brand_collection_ids = template_utils.get_brand_collection_ids(brand)
+    brand_collection_ids = model_utils.get_brand_collection_ids(brand)
     entities = entities.filter(collections__overlap=brand_collection_ids)
   
   if user and not user.is_anonymous:
@@ -414,7 +414,7 @@ def is_brand_accessible(request, entity_id, entity_history_id=None):
   if brand == "":
     return True
   
-  brand_collection_ids = template_utils.get_brand_collection_ids(brand)
+  brand_collection_ids = model_utils.get_brand_collection_ids(brand)
   if not brand_collection_ids:
     return True
   

@@ -17,7 +17,13 @@ const ENTITY_OPTIONS = {
  * ENTITY_DATEPICKER_FORMAT
  * @desc Defines how the creator should format dates when producing form values
  */
-const ENTITY_DATEPICKER_FORMAT = 'YYYY-MM-DD';
+const ENTITY_DATEPICKER_FORMAT = 'YYYY/MM/DD';
+
+/**
+ * ENTITY_ACCEPTABLE_DATE_FORMAT
+ * @desc Defines acceptable date formats
+ */
+const ENTITY_ACCEPTABLE_DATE_FORMAT = ['DD-MM-YYYY', 'MM-DD-YYYY', 'YYYY-MM-DD'];
 
 /**
  * ENTITY_TOAST_MIN_DURATION
@@ -114,6 +120,33 @@ const ENTITY_HANDLERS = {
     return tagbox;
   },
 
+  // Handles data for daterange selectors
+  'daterange': (element) => {
+    const id = element.getAttribute('id');
+    const startDateInput = element.querySelector(`#${id}-startdate`);
+    const endDateInput = element.querySelector(`#${id}-enddate`);
+
+    if (isNullOrUndefined(startDateInput) || isNullOrUndefined(endDateInput)) {
+      return;
+    }
+
+    let value = element.getAttribute('data-value');
+    if (isNullOrUndefined(value)) {
+      return;
+    }
+
+    value = value.split(/[\.\,\-]/)
+      .map(date => moment(date.trim(), ENTITY_ACCEPTABLE_DATE_FORMAT))
+      .filter(date => date.isValid())
+      .slice(0, 2)
+      .sort((a, b) => a.diff(b))
+      .map(date => date.format('YYYY-MM-DD'));
+
+    const [start, end] = value;
+    startDateInput.setAttribute('value', start);
+    endDateInput.setAttribute('value', end);
+  },
+
   // Generates a datepicker (single or range) component for an element
   'datepicker': (element) => {
     const range = element.getAttribute('data-range');
@@ -150,18 +183,18 @@ const ENTITY_HANDLERS = {
     let value = element.getAttribute('data-value');
     if (range == 'true') {
       value = value.split(/[\.\,\-]/)
-                  .map(date => moment(date.trim(), ['DD-MM-YYYY', 'MM-DD-YYYY']))
+                  .map(date => moment(date.trim(), ENTITY_ACCEPTABLE_DATE_FORMAT))
                   .filter(date => date.isValid())
                   .slice(0, 2)
                   .sort((a, b) => -a.diff(b))
-                  .map(date => date.format(ENTITY_DATEPICKER_FORMAT));
+                  .map(date => date.format('YYYY-MM-DD'));
       
       const [start, end] = value;
       datepicker.setDateRange(end, start, true);
     } else {
-      value = moment(value, ['DD-MM-YYYY', 'MM-DD-YYYY']);
+      value = moment(value, ENTITY_ACCEPTABLE_DATE_FORMAT);
       value = value.isValid() ? value : moment();
-      value = value.format(ENTITY_DATEPICKER_FORMAT);
+      value = value.format('YYYY-MM-DD');
       datepicker.setDate(value, true);
     }
 
@@ -355,6 +388,54 @@ const ENTITY_FIELD_COLLECTOR = {
       }
     }
     
+    return {
+      valid: true,
+      value: parsedValue?.value
+    }
+  },
+
+  // Retrieves and validates daterange selector components
+  'daterange': (field, packet) => {
+    const element = packet.element;
+    const id = element.getAttribute('id');
+    const startDateInput = element.querySelector(`#${id}-startdate`);
+    const endDateInput = element.querySelector(`#${id}-enddate`);
+    if (isNullOrUndefined(startDateInput) || isNullOrUndefined(endDateInput)) {
+      return {
+        valid: false,
+        value: null,
+      }
+    }
+
+    let startDate = moment(startDateInput.value, ['YYYY-MM-DD']).format(ENTITY_DATEPICKER_FORMAT);
+    let endDate = moment(endDateInput.value, ['YYYY-MM-DD']).format(ENTITY_DATEPICKER_FORMAT);
+    let value = `${startDate} - ${endDate}`;
+    if (isMandatoryField(packet)) {
+      if (!startDateInput.checkValidity() || !endDateInput.checkValidity() || isNullOrUndefined(value) || isStringEmpty(value)) {
+        return {
+          valid: false,
+          value: value,
+          message: (isNullOrUndefined(value) || isStringEmpty(value)) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
+        }
+      }
+    }
+
+    if (isNullOrUndefined(value) || isStringEmpty(value)) {
+      return {
+        valid: true,
+        value: null,
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, value);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: value,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+
     return {
       valid: true,
       value: parsedValue?.value
