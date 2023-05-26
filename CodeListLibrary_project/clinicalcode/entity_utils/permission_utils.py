@@ -6,10 +6,11 @@ from rest_framework.response import Response
 
 from functools import wraps
 
-from ..models import GenericEntity
+from ..models.Brand import Brand
 from ..models.Concept import Concept
+from ..models.GenericEntity import GenericEntity
 from ..models.PublishedConcept import PublishedConcept
-from . import model_utils, template_utils
+from . import model_utils, template_utils, gen_utils
 from .constants import APPROVAL_STATUS, GROUP_PERMISSIONS, WORLD_ACCESS_PERMISSIONS
 
 ''' Permission decorators '''
@@ -110,10 +111,9 @@ def get_accessible_entities(
     .order_by('id', '-history_id') \
     .distinct('id')
   
-  brand = request.CURRENT_BRAND if request.CURRENT_BRAND != '' else None
+  brand = model_utils.try_get_brand(request)
   if consider_brand and brand:
-    brand_collection_ids = model_utils.get_brand_collection_ids(brand)
-    entities = entities.filter(collections__overlap=brand_collection_ids)
+    entities = entities.filter(Q(brands__overlap=[brand.id]))
   
   if user and not user.is_anonymous:
     if consider_user_perms and user.is_superuser:
@@ -403,33 +403,33 @@ def validate_access_to_view(request, entity_id, entity_history_id=None):
 
 def is_brand_accessible(request, entity_id, entity_history_id=None):
   """
-    When in a brand, show only this brand's data
+    @desc Uses the RequestContext's brand value to det. whether an entity
+          is accessible to a user
+
+    Args:
+      request {RequestContext}: the HTTPRequest
+
+      entity_id {string}: the entity's ID
+
+      entity_history_id {int/null}: the entity's historical id
+
+    Returns:
+      A {boolean} that reflects its accessibility to the request context
+
   """
-
-  # setting entity_history_id = None,
-  # so this permission is always checked from the live obj like other permissions
-  entity_history_id = None
-
-  brand = request.CURRENT_BRAND
-  if brand == "":
-    return True
-  
-  brand_collection_ids = model_utils.get_brand_collection_ids(brand)
-  if not brand_collection_ids:
-    return True
-  
-  history_id = entity_history_id
-  if entity_history_id is None:
-    history_id = GenericEntity.objects.get(pk=entity_id).history.latest().history_id
-
-  entity_collections = []
-  entity_collections = GenericEntity.history.get(id=entity_id, history_id=history_id).collections
-
-  if not entity_collections:
+  entity = model_utils.try_get_instance(GenericEntity, id=entity_id)
+  if entity is None:
     return False
   
-  # check if the set collections has any of the brand's collection tags
-  return any(c in entity_collections for c in brand_collection_ids)
+  brand = model_utils.try_get_brand(request)
+  if brand is None:
+    return True
+  
+  related_brands = entity.brands
+  if not related_brands or len(related_brands) < 1:
+    return False
+
+  return brand.id in related_brands
 
 def allowed_to_create():
   '''
@@ -444,9 +444,9 @@ def allowed_to_permit(user, entity_id):
     us out of trouble, when necessary.
 
     Allow user to change permissions if:
-    user is a super-user
-    OR
-    user owns the object.
+      1. user is a super-user
+      OR
+      2. user owns the object.
   '''
   if user.is_superuser:
     return True

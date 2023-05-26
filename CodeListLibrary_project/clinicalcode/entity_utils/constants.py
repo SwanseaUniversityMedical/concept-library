@@ -294,6 +294,25 @@ metadata = {
             'single_search_only': True,
         }
     },
+    'brand': {
+        'title': 'Brand',
+        'description': 'The brand that this Phenotype is related to.',
+        'field_type': '???',
+        'active': True,
+        'validation': {
+            'type': 'int_array',
+            'mandatory': False,
+            'computed': True,
+            'source': {
+                'table': 'Brand',
+                'query': 'id',
+                'relative': 'name',
+            }
+        },
+        'search': {
+            'filterable': False
+        },
+    },
     'name': {
         'title': 'Name',
         'description': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',

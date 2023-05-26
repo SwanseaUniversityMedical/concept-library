@@ -538,6 +538,25 @@ def try_parse_doi(publications):
     
     return output
 
+def compute_related_brands(pheno, default=''):
+    collections = pheno.collections
+    if not isinstance(collections, list):
+        return default
+    
+    related_brands = set([])
+    for collection_ids in collections:
+        collection = Tag.objects.filter(id=collection_ids)
+        if not collection.exists():
+            continue
+
+        brand = collection.first().collection_brand
+        if brand is None:
+            continue
+        related_brands.add(brand.id)
+    
+    related_brands = ','.join([str(x) for x in list(related_brands)])
+    return "brands='{%s}' " % related_brands
+
 @login_required
 def admin_mig_phenotypes_dtXXX(request):
     # for admin(developers) to migrate phenotypes into dynamic template
@@ -848,13 +867,23 @@ def admin_mig_phenotypes_dt(request):
                         if PublishedPhenotype.objects.filter(phenotype_id=p.id, phenotype_history_id=p_latest_history_id).exists():
                             approval_status = str(PublishedPhenotype.objects.get(phenotype_id=p.id, phenotype_history_id=p_latest_history_id).approval_status)
                             publish_status_str = " , publish_status = " + approval_status + " "
-                            
+                        
+                        brand_status = compute_related_brands(p)
                         with connection.cursor() as cursor:
-                            sql_p = """ update  clinicalcode_genericentity  
-                                    set template_data = '"""+json.dumps(temp_data)+"""'
-                                        , publications= '"""+json.dumps(publication_items)+"""'
+                            sql_p = """
+                                    update clinicalcode_genericentity  
+                                    set template_data = '"""+json.dumps(temp_data)+"""',
+                                        publications= '"""+json.dumps(publication_items)+"""'
                                         """+publish_status_str+"""
+                                        , """+brand_status+"""
                                     where id ='"""+p.id+"""' ;
+                                    """
+                            cursor.execute(sql_p)
+
+                            sql_p = """
+                                    update clinicalcode_historicalgenericentity  
+                                    set """+brand_status+"""
+                                    where id ='"""+p.id+"""';
                                     """
                             cursor.execute(sql_p)
                     

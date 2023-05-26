@@ -87,6 +87,10 @@ class DataTypeFilters:
         if gen_utils.is_empty_string(current_brand):
             return
         
+        current_brand = model_utils.try_get_brand(current_brand)
+        if current_brand is None:
+            return
+        
         return {
-            f'{column_name}__in': model_utils.get_brand_collection_ids(current_brand)
+            f'{column_name}': current_brand.id 
         }

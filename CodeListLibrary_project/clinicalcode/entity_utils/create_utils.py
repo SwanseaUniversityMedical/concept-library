@@ -12,6 +12,7 @@ from ..models.Concept import Concept
 from ..models.Component import Component
 from ..models.CodeList import CodeList
 from ..models.Code import Code
+from ..models.Tag import Tag
 from . import gen_utils
 from . import model_utils
 from . import permission_utils
@@ -111,7 +112,7 @@ def try_add_computed_fields(field, form_data, form_template, data):
             output.append(coding_system)
         data['coding_system'] = output
 
-def try_validate_sourced_value(template, data, default=None):
+def try_validate_sourced_value(field, template, data, default=None, request=None):
     '''
         Validates the query param based on its field type as defined by the template or metadata
         by examining its source and its current datatype
@@ -133,7 +134,8 @@ def try_validate_sourced_value(template, data, default=None):
                     }
 
                 if 'filter' in source_info:
-                    query = query | source_info['filter']
+                    filter_query = template_utils.try_get_filter_query(field, source_info.get('filter'), request=request)
+                    query = {**query, **filter_query}
                 
                 queryset = model.objects.filter(Q(**query))
                 queryset = list(queryset.values_list('id', flat=True))
@@ -509,7 +511,7 @@ def validate_metadata_value(request, field, value, errors=[]):
     field_type = template_utils.try_get_content(validation, 'type')
     if 'source' in validation or 'options' in validation:
         field_value = gen_utils.try_value_as_type(value, field_type, validation)
-        field_value = try_validate_sourced_value(field_data, field_value)
+        field_value = try_validate_sourced_value(field, field_data, field_value, request=request)
         if field_value is None and field_required:
             errors.append(f'"{field}" is invalid')
             return field_value, False
@@ -552,7 +554,7 @@ def validate_template_value(request, field, form_template, value, errors=[]):
     field_type = template_utils.try_get_content(validation, 'type')
     if 'source' in validation or 'options' in validation:
         field_value = gen_utils.try_value_as_type(value, field_type, validation)
-        field_value = try_validate_sourced_value(field_data, field_value)
+        field_value = try_validate_sourced_value(field, field_data, field_value, request=request)
         if field_value is None and field_required:
             errors.append(f'"{field}" is invalid')
             return field_value, False
@@ -870,6 +872,30 @@ def build_related_entities(request, field_data, packet, override_dirty=False, en
 
     return False, None
 
+def compute_brand_context(request, form_data):
+    related_brands = set([])
+
+    brand = model_utils.try_get_brand(request)
+    if brand:
+        related_brands.add(brand.id)
+    
+    metadata = form_data.get('metadata')
+    if not metadata:
+        return list(related_brands)
+    
+    collections = metadata.get('collections')
+    if isinstance(collections, list):
+        for collection_id in collections:
+            collection = Tag.objects.filter(id=collection_id)
+            if not collection.exists():
+                continue
+            
+            brand = collection.first().collection_brand
+            if brand is None:
+                continue
+            related_brands.add(brand.id)
+    return list(related_brands)
+
 @transaction.atomic
 def create_or_update_entity_from_form(request, form, errors=[], override_dirty=False):
     '''
@@ -888,7 +914,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
     user = request.user
     if user is None:
         return
-
+    
     form_method = form.get('method')
     form_template = form.get('template')
     form_data = form.get('data')
@@ -923,6 +949,10 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
             return
         form_entity = entity
     
+    # Build related brand instances
+    related_brands = compute_brand_context(request, form_data)
+
+    # Atomically create the instance and its children
     try:
         with transaction.atomic():
             # Build any validated children
@@ -965,7 +995,8 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                     template=template_instance,
                     template_version=form_template.template_version,
                     template_data=template_data,
-                    created_by=user
+                    created_by=user,
+                    brands=related_brands
                 )
                 entity.save()
             elif form_method == constants.FORM_METHODS.UPDATE:
@@ -989,6 +1020,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                 entity.updated = make_aware(datetime.now())
                 entity.publish_status = constants.APPROVAL_STATUS.ANY
                 entity.updated_by = user
+                entity.brands = related_brands
                 entity.save()
 
             # Update child related entities with entity object    

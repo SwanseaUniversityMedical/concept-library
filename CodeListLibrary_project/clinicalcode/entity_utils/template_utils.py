@@ -249,7 +249,7 @@ def try_get_filter_query(field_name, source, request=None):
             continue
         
         filter_name = filter_packet.get('filter')
-        if not isinstance(filter_name, str):
+        if not isinstance(filter_name, str) or request is None:
             continue
 
         # Apply any filter specific props provided by constants and append the RequestContext
@@ -264,16 +264,17 @@ def try_get_filter_query(field_name, source, request=None):
 
         # Try to generate the filter and update the query if successful
         result = None
+
         try:
             result = filter_utils.DataTypeFilters.try_generate_filter(
                 desired_filter=filter_name,
                 expected_params=filter_packet.get('expected_params'),
                 **filter_props
             )
-        except:
+        except Exception as e:
             pass
 
-        if not isinstance(result, dict):
+        if isinstance(result, dict):
             output = output | result
 
     return output

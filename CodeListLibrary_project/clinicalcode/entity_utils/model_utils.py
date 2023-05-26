@@ -50,6 +50,15 @@ def try_get_entity_history(entity, history_id):
   else:
     return instance
 
+def try_get_brand(request, default=None):
+  '''
+    Safely get the Brand instance from the RequestContext
+  '''
+  current_brand = request.CURRENT_BRAND
+  if gen_utils.is_empty_string(current_brand):
+    return default
+  return try_get_instance(Brand, name=current_brand)
+
 def get_entity_id(primary_key):
   '''
     Splits an entity's varchar primary key into its numerical component

@@ -88,6 +88,10 @@
   ],  
 
   "fields": {
+    "brand": {
+      "is_base_field": true,
+      "hide_on_create": true
+    },
     "name": {
       "is_base_field": true
     },

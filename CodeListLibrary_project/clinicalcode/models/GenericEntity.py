@@ -8,6 +8,7 @@ from django.contrib.postgres.search import SearchVectorField
 from django.core.exceptions import ValidationError
 from simple_history.models import HistoricalRecords
 
+from .Brand import Brand
 from .Template import Template
 from .EntityClass import EntityClass
 from ..entity_utils import gen_utils, constants
@@ -43,7 +44,8 @@ class GenericEntity(models.Model):
     publications = JSONField(blank=True, null=True)
     tags = ArrayField(models.IntegerField(), blank=True, null=True)
     collections = ArrayField(models.IntegerField(), blank=True, null=True)
-    citation_requirements = models.TextField(null=True, blank=True)  # Any request for citation requirements to be honoured
+    citation_requirements = models.TextField(null=True, blank=True)
+    brands = ArrayField(models.IntegerField(), blank=True, null=True)
     
     ''' Search vector fields '''
     search_vector = SearchVectorField(null=True)

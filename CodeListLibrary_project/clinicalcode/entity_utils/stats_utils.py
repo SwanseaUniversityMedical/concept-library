@@ -174,10 +174,9 @@ def collect_statistics(request):
     to_update = [ ]
     to_create = [ ]
     for brand in Brand.objects.all():
-        collection_ids = model_utils.get_brand_collection_ids(brand.name)
         stats = collate_statistics(
-            all_entities.filter(collections__overlap=collection_ids),
-            published_entities.filter(collections__overlap=collection_ids),
+            all_entities.filter(brands__overlap=[brand.id]),
+            published_entities.filter(brands__overlap=[brand.id]),
             data_cache=cache
         )
 
