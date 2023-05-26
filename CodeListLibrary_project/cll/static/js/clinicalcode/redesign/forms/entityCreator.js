@@ -1,6 +1,7 @@
 import Tagify from '../components/tagify.js';
 import PublicationCreator from './clinical/publicationCreator.js';
 import ConceptCreator from './clinical/conceptCreator.js';
+import GroupedEnum from '../components/groupedEnumSelector.js';
 
 /**
  * ENTITY_OPTIONS
@@ -71,6 +72,29 @@ const ENTITY_TEXT_PROMPTS = {
  * 
  */
 const ENTITY_HANDLERS = {
+  // Generates a groupedenum component context
+  'groupedenum': (element) => {
+    const data = element.parentNode.querySelectorAll(`data[for="${element.getAttribute('data-field')}"]`);
+    
+    const packet = { };
+    for (let i = 0; i < data.length; ++i) {
+      let datafield = data[i];
+      if (!datafield.innerText.trim().length) {
+        continue;
+      }
+
+      let type = datafield.getAttribute('data-type');
+      try {
+        packet[type] = JSON.parse(datafield.innerText);
+      }
+      catch (e) {
+        console.warn(`Unable to parse datafield for GroupedEnum element with target field: ${datafield.getAttribute('for')}`);
+      }
+    }
+
+    return new GroupedEnum(element, packet);
+  },
+
   // Generates a tagify component for an element
   'tagify': (element) => {
     const data = element.parentNode.querySelectorAll(`data[for="${element.getAttribute('data-field')}"]`);
@@ -511,6 +535,36 @@ const ENTITY_FIELD_COLLECTOR = {
     return {
       valid: true,
       value: parsedValue?.value < 0 ? null : parsedValue?.value
+    }
+  },
+
+  // Retrieves and validates groupedenum compoonents
+  'groupedenum': (field, packet) => {
+    const handler = packet.handler;
+    const value = handler.getValue();
+
+    if (isMandatoryField(packet)) {
+      if (isNullOrUndefined(value)) {
+        return {
+          valid: false,
+          value: value,
+          message: ENTITY_TEXT_PROMPTS.REQUIRED_FIELD
+        }
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, value);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: value,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+    
+    return {
+      valid: true,
+      value: parsedValue?.value
     }
   },
 

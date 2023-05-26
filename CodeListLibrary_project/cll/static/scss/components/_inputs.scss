@@ -278,6 +278,11 @@
   width: 100%;
   overflow: hidden;
   margin-bottom: 0.5rem;
+  
+  &.min-size {
+    max-width: fit-content;
+    margin-right: 0.5rem;
+  }
 }
 
 .search-container {

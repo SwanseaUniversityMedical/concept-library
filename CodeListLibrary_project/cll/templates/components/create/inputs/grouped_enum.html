@@ -1,12 +1,19 @@
+{% load entity_renderer %}
 <div class="detailed-input-group fill">
   {% if not component.hide_input_details %}
   <h3 class="detailed-input-group__title">{{ component.field_data.title }} {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>
   <p class="detailed-input-group__description">{{ component.description }}</p>
   {% endif %}
-  <fieldset class="hstack-radio-group" id="entity-{{ component.field_name }}" data-class="radiobutton" data-field="{{ component.field_name }}">
-    {% for option in component.options %}
-      <input class="radio-input" data-value="{{ option.value }}" aria-label="{{ option.name }}" type="radio" id="{{ component.field_name }}-{{ option.value }}" name="entity-radio-{{ component.field_name }}" {% if component.value.0.value == option.value %} checked {% endif %}>
-      <label for="{{ component.field_name }}-{{ option.value }}">{{ option.name }}</label>
-    {% endfor %}
+  {% if component.options %}
+  <data data-type="options" for="{{ component.field_name }}">{{ component.options|jsonify|safe }}</data>
+  {% endif %}
+  {% if component.properties %}
+  <data data-type="properties" for="{{ component.field_name }}">{{ component.properties|jsonify|safe }}</data>
+  {% endif %}
+  {% if component.value %}
+  <data data-type="value" for="{{ component.field_name }}">{{ component.value|jsonify|safe }}</data>
+  {% endif %}
+  <fieldset class="hstack-radio-group" id="entity-{{ component.field_name }}" data-class="groupedenum" data-field="{{ component.field_name }}" data-value="">
+
   </fieldset>
 </div>

@@ -182,10 +182,10 @@
           "3": "Both",
           "4": "Neither"
         },
-        "enum_groups": [
+        "properties": [
           {
-            "when": [1, 2],
-            "output": 3
+            "when": ["1", "2"],
+            "result": "3"
           }
         ]
       },

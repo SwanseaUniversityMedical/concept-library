@@ -523,3 +523,19 @@ const hasDeltaDiff = (lhs, rhs) => {
 const parseDOI = (value) => {
   return value.match(DOI_PATTERN);
 }
+
+/**
+ * isArrayEqual
+ * @desc det. whether an array is eq
+ * @param {array} a an array
+ * @param {array} b an array
+ * @param {boolean} shouldSort whether to sort both arrays first
+ * @returns {boolean} that refelects __eq state
+ */
+const isArrayEqual = (a, b, shouldSort = true) => {
+  if (shouldSort) {
+    a.sort();
+    b.sort();
+  }
+  return a.length == b.length && a.every((ti, i) => { return ti == b[i]});
+}

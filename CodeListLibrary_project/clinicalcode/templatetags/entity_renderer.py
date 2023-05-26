@@ -502,6 +502,13 @@ class EntityWizardSections(template.Node):
         else:
             return html
     
+    def __try_get_props(self, template, field):
+        struct = template_utils.get_layout_field(template, field)
+        validation = struct.get('validation')
+        if not validation:
+            return
+        return validation.get('properties')
+    
     def __try_get_computed(self, request, field):
         struct = template_utils.get_layout_field(constants.metadata, field)
         if struct is None:
@@ -582,6 +589,10 @@ class EntityWizardSections(template.Node):
                 
                 if options is not None:
                     component['options'] = options
+                
+                field_properties = self.__try_get_props(template, field)
+                if field_properties is not None:
+                    component['properties'] = field_properties
                 
                 if entity:
                     component['value'] = self.__try_get_entity_value(template, entity, field)
