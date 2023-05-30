@@ -3,11 +3,10 @@
 
 
 {% block content %}
-
-  <footer class="page-footer" id="footer_main">  
+  <footer class="page-footer" id="footer_main">
     <section class="page-footer__row">
       <div class="page-footer__listlinks">
-        <hr class='footer-hr'>   
+        <hr class='footer-hr'>
 				<p>
 					<a href="{% url 'terms' %}" >Terms & Conditions</a>
 				 	 |
@@ -26,13 +25,12 @@
           {% include "components/base/footer_link_img.html" %}
         {% endblock footer_links %}
       </div>
-
       
       {% comment %} {% if DEV_PRODUCTION|length or CLL_READ_ONLY %}
       <div class="box-container">
-        <div class="row ">
+        <div class="row">
           <div class="col-md-12 text-align-right">
-            <span class="alert alert-warning" role="alert">
+            <span class="footer-alert footer-alert-warning" role="alert">
             {{ DEV_PRODUCTION|safe }} 
               {% if CLL_READ_ONLY %}
                read only 
@@ -42,7 +40,6 @@
         </div>
       </div>
       {% endif %} {% endcomment %}
-
       
     </section>
   </footer>
