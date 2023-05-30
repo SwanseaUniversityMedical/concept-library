@@ -9,12 +9,12 @@
 
   <!-- about tab -->
   <script type="text/javascript" src="{% static "js/clinicalcode/redesign/components/brandurls.js" %}"></script>
-  <div class="dropdown">
+  <div class="nav-dropdown">
     {% include "components/navigation/avatar_component.html"  %}
    
     
-    <div class="dropdown-content">
-    <ul class="row__profile">
+    <div class="nav-dropdown__content">
+    <ul class="profile-row">
         <li class="content-container">
 
           {% if request.user.is_superuser and SHOWADMIN and not CLL_READ_ONLY %}
