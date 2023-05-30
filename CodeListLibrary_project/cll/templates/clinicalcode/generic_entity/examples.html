@@ -109,14 +109,25 @@
 
           <!-- Dropdown -->
           <div class="col-md-2">
-            <label class="dropdown-btn">
-              <div class="dropdown-btn__label">New Ruleset</div>
-              <input type="checkbox" class="dropdown-btn__input" id="add-inclusion-btn">
-              <ul class="dropdown-btn__menu fall-right">
-                <li>Add Searchterm</li>
-                <li>Import from File</li>
-              </ul>
-            </label>
+            <fieldset class="dropdown-btn">
+              <label aria-label="Info about dropdown" role="dropdown" tabindex="0" id="dropdown-label" for="dropdown-opener">
+                <!-- ignore this -->
+                <input type="radio" class="dropdown-btn__input" name="dropdown-item" id="dropdown-opener">
+            
+                <!-- dropdown title -->
+                <div class="dropdown-btn__label">The button text</div>
+            
+                <!-- ignore this -->
+                <input type="radio" class="dropdown-btn__close" name="dropdown-item" id="dropdown-closer">
+                <label aria-label="Close dropdown info" role="button" tabindex="0" id="close-dropdown-btn" class="dropdown-btn__close-label" for="dropdown-closer"></label>
+            
+                <!-- dropdown menu content -->
+                <ul class="dropdown-btn__menu fall-right">
+                  <li aria-label="Info about this button" role="button" tabindex="0">Do something</li>
+                  <li aria-label="Info about this button" role="button" tabindex="0">Do something else</li>
+                </ul>
+              </label>
+            </fieldset>
           </div>
         </div>
       </div>

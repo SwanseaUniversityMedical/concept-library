@@ -288,8 +288,8 @@ def get_entity_detail(request, primary_key, historical_id=None, field=None):
     historical_entity = historical_entity_response
 
     # Check if the user has the permissions to view this entity version
-    user_can_access = permission_utils.has_entity_view_permissions(
-        request, historical_entity
+    user_can_access = permission_utils.can_user_view_entity(
+        request, historical_entity.id, historical_entity.history_id
     )
     if not user_can_access:
         return Response(
@@ -359,7 +359,7 @@ def generic_entity_detail(request,
         
         
     # validate access generic_entity
-    if not allowed_to_view(request, GenericEntity, pk, set_history_id=history_id):
+    if not permission_utils.can_user_view_entity(request, pk, set_history_id=history_id):
         raise PermissionDenied
 
     # # we can remove this check as in generic_entity-detail

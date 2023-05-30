@@ -20,100 +20,59 @@ urlpatterns = []
  
  
 if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
-    urlpatterns += [
-        url(r'^ge/run-stats/$', GenericEntity.EntityStatisticsView.as_view(), name='run_entity_statistics'),
+    urlpatterns += [  
 
-        url(r'^search/$', GenericEntity.EntitySearchView.as_view(), name='search_entity'),
-        url(r'^search/(?P<entity_type>([A-Za-z0-9\-]+))/?$', GenericEntity.EntitySearchView.as_view(), name='search_entity'),
+        url(r'^phenotypes/$', GenericEntity.EntitySearchView.as_view(), name='search_phenotypes'),
+        url(r'^phenotypes/(?P<entity_type>([A-Za-z0-9\-]+))/?$', GenericEntity.EntitySearchView.as_view(), name='search_phenotypes'),
         
-        url(r'^create/$', GenericEntity.CreateEntityView.as_view(), name='create_entity'),
-        url(r'^create/(?P<template_id>[\d]+)/?$', GenericEntity.CreateEntityView.as_view(), name='create_entity'),
-        url(r'^update/(?P<entity_id>\w+)/(?P<entity_history_id>\d+)/?$', GenericEntity.CreateEntityView.as_view(), name='update_entity'),
-        
-        url(r'^ge/(?P<pk>\w+)/detail/$', GenericEntity.generic_entity_detail, name='entity_detail'),
-        url(r'^ge/(?P<pk>\w+)/version/(?P<history_id>\d+)/detail/$', GenericEntity.generic_entity_detail, name='entity_history_detail'),
 
-        url(r'^ge/(?P<pk>PH\d+)/uniquecodesbyversion/(?P<history_id>\d+)/concept/C(?P<target_concept_id>\d+)/(?P<target_concept_history_id>\d+)/$',
+        url(r'^phenotypes/(?P<pk>\w+)/detail/$', GenericEntity.generic_entity_detail, name='entity_detail'),
+        url(r'^phenotypes/(?P<pk>\w+)/version/(?P<history_id>\d+)/detail/$', GenericEntity.generic_entity_detail, name='entity_history_detail'),
+
+        url(r'^phenotypes/(?P<pk>\w+)/export/codes/$', GenericEntity.export_entity_codes_to_csv, name='export_entity_latest_version_codes_to_csv'),
+        url(r'^phenotypes/(?P<pk>\w+)/version/(?P<history_id>\d+)/export/codes/$', GenericEntity.export_entity_codes_to_csv, name='export_entity_version_codes_to_csv'),   
+
+        url(r'^phenotypes/(?P<pk>\w+)/uniquecodesbyversion/(?P<history_id>\d+)/concept/C(?P<target_concept_id>\d+)/(?P<target_concept_history_id>\d+)/$',
             GenericEntity.phenotype_concept_codes_by_version,
-            name='ge_phenotype_concept_codes_by_version'),
-            
-        url(r'^ge/(?P<pk>PH\d+)/(?P<history_id>\d+)/publish/$',Publish.Publish.as_view(),name='generic_entity_publish'),
-        url(r'^ge/(?P<pk>PH\d+)/(?P<history_id>\d+)/decline/$',Decline.EntityDecline.as_view(),name='generic_entity_decline'),
-        url(r'^ge/(?P<pk>PH\d+)/(?P<history_id>\d+)/submit/$',Publish.RequestPublish.as_view(),name='generic_entity_request_publish'),
-        
-        url(r'^ge/(?P<pk>PH\d+)/export/codes/$', GenericEntity.history_phenotype_codes_to_csv, name='ge_latestVersion_phenotype_codes_to_csv'),
-        url(r'^ge/(?P<pk>PH\d+)/version/(?P<history_id>\d+)/export/codes/$', GenericEntity.history_phenotype_codes_to_csv, name='ge_history_phenotype_codes_to_csv'),   
-
-        # Example - remove at production
-        url(r'^ge/example/$', GenericEntity.ExampleSASSView.as_view(), name='example_phenotype'),
-        url(r'^search/temp/$', GenericEntity.generic_entity_list_temp, name='generic_entity_list_temp'),
-
+            name='ge_phenotype_concept_codes_by_version'),            
+ 
         # Profile
         url(r'profile/$', Profile.MyProfile.as_view(), name='my_profile'),
         url(r'profile/collection/$', Profile.MyCollection.as_view(), name='my_collection'),
 
-        url(r'moderation/$', Moderation.EntityModeration.as_view(), name='moderation_page'),
+        url(r'moderation/$', Moderation.EntityModeration.as_view(), name='moderation_page'),        
+
+        # Example - remove at production
+        url(r'^ge/example/$', GenericEntity.ExampleSASSView.as_view(), name='example_phenotype'),
+        url(r'^ge/search/temp/$', GenericEntity.generic_entity_list_temp, name='generic_entity_list_temp'),
+
+
     ]
 
-    # for admin(developers) to migrate phenotypes into dynamic template
+
+
+
+    # for create/update - not to work in Read-only mode
+    if not settings.CLL_READ_ONLY:
+        urlpatterns += [
+            url(r'^create/$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
+            url(r'^create/(?P<template_id>[\d]+)/?$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
+            url(r'^update/(?P<entity_id>\w+)/(?P<entity_history_id>\d+)/?$', GenericEntity.CreateEntityView.as_view(), name='update_phenotype'),
+
+            # publish
+            url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/publish/$',Publish.Publish.as_view(),name='generic_entity_publish'),
+            url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/decline/$',Decline.EntityDecline.as_view(),name='generic_entity_decline'),
+            url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/submit/$',Publish.RequestPublish.as_view(),name='generic_entity_request_publish'),
+        ]
+
+    # Add admin tools
+    if not settings.CLL_READ_ONLY:
+        urlpatterns += [
+            url(r'^admin/run-stats/$', GenericEntity.EntityStatisticsView.as_view(), name='run_entity_statistics'),
+        ]
+
+    # for admin(developers) to migrate phenotypes into dynamic template       
     if not settings.CLL_READ_ONLY:
         urlpatterns += [
             url(r'^adminTemp/admin_mig_phenotypes_dt/$', adminTemp.admin_mig_phenotypes_dt, name='admin_mig_phenotypes_dt'),
         ]
-
-
-
-
-
-
-# ======== Generic Entity ==============================================================================
-# if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
-#     # add URLConf to create, update, and delete Phenotypes Working Sets
-#     urlpatterns += [
-#         url(r'^ge/(?P<pk>WS\d+)/detail/$',
-#             GenericEntity.WorkingsetDetail_combined,
-#             name='phenotypeworkingset_detail'),
-
-#         url(r'^ge/(?P<pk>WS\d+)/export/codes/$',
-#             GenericEntity.history_workingset_codes_to_csv,
-#             name='latestVersion_phenotypeworkingset_codes_to_csv'),
-#         url(r'^ge/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/export/codes/$',
-#             GenericEntity.history_workingset_codes_to_csv,
-#             name='history_phenotypeworkingset_codes_to_csv'),    
-#         url(r'^ge/(?P<pk>WS\d+)/uniquecodesbyversion/(?P<workingset_history_id>\d+)/concept/C(?P<target_concept_id>\d+)/(?P<target_concept_history_id>\d+)/$',
-#             GenericEntity.workingset_conceptcodesByVersion,
-#             name='phenotypeworkingset_conceptcodesByVersion'),
-#     ]
-#
-#     if not settings.CLL_READ_ONLY:
-#         urlpatterns += [
-#             url(r'^ge/create/$',
-#                 GenericEntity.WorkingSetCreate.as_view(),
-#                 name='phenotypeworkingset_create'),
-#
-#             # temp create test DB ws
-#             url(r'^ge/create-test-db/$',
-#                 GenericEntity.phenotype_workingset_DB_test_create,
-#                 name='phenotype_workingset_DB_test_create'),
-#
-#
-#             url(r'^ge/(?P<pk>WS\d+)/update/$',
-#                 GenericEntity.WorkingSetUpdate.as_view(),
-#                 name='phenotypeworkingset_update'),
-#
-#             url(r'^ge/(?P<pk>WS\d+)/delete/$',
-#                 GenericEntity.WorkingSetDelete.as_view(),
-#                 name='phenotypeworkingset_delete'),
-#
-#             url(r'^ge/(?P<pk>WS\d+)/version/(?P<workingset_history_id>\d+)/revert/$',
-#                 GenericEntity.workingset_history_revert,
-#                 name='phenotypeworkingset_history_revert'),
-#
-#             url(r'^ge/(?P<pk>WS\d+)/restore/$',
-#                 GenericEntity.WorkingSetRestore.as_view(),
-#                 name='phenotypeworkingset_create_restore'),
-#         ]
-
-       
-
-

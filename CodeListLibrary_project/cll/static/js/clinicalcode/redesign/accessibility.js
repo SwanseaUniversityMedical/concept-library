@@ -24,6 +24,11 @@ domReady.finally(() => {
 
     if (elem.matches('[role="button"]')) {
       elem.click();
+    } else if (elem.matches('[role="dropdown"]')) {
+      const radio = elem.querySelector('input[type="radio"]');
+      if (radio) {
+        radio.checked = !radio.checked;
+      }
     } else if (elem.matches('[type="checkbox"]')) {
       elem.checked = !elem.checked;
     } else if (elem.matches('[role="collapsible"]')) {

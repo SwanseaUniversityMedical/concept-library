@@ -2,6 +2,7 @@
 from clinicalcode.constants import *
 from django.conf import settings
 from clinicalcode.api.views.View import get_canonical_path
+from clinicalcode.entity_utils import constants
 
 def general_var(request):
     return {
@@ -19,7 +20,7 @@ def general_var(request):
         'SHOW_COOKIE_ALERT': settings.SHOW_COOKIE_ALERT,
         'IS_HDRUK_EXT': settings.IS_HDRUK_EXT,
         'CANONICAL_PATH': get_canonical_path(request),
-        'APPROVED_STATUS': APPROVED_STATUS
+        'APPROVED_STATUS_DICT': {e.name: e.value for e in constants.APPROVAL_STATUS}
     }
     
   

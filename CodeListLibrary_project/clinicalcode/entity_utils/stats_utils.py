@@ -1,6 +1,6 @@
 from functools import cmp_to_key
-from ..models import GenericEntity, Template, Statistics, PublishedGenericEntity, Brand
-from . import template_utils, constants
+from ..models import GenericEntity, Template, Statistics, Brand
+from . import template_utils, constants, gen_utils
 
 def sort_by_count(a, b):
     '''
@@ -14,7 +14,30 @@ def sort_by_count(a, b):
         return -1
     return 0
 
-def build_statistics(statistics, entity, field, struct, is_dynamic=False):
+def get_field_values(field, validation, struct):
+    value = None
+    if 'options' in validation:
+        value = template_utils.get_options_value(field, struct)
+    elif 'source' in validation:
+        value = template_utils.get_sourced_value(field, struct)
+    return value
+
+def try_get_cached_data(cache, template, field, validation, struct):
+    if template is None or not isinstance(cache, dict):
+        return get_field_values(field, validation, struct)
+    
+    cache_key = f'{field}__{template.id}__{template.template_version}'
+    if not cache_key in cache:
+        value = get_field_values(field, validation, struct)
+        if value is None:
+            return None
+        
+        cache[cache_key] = value
+        return value
+    
+    return cache[cache_key]
+
+def build_statistics(statistics, entity, field, struct, is_dynamic=False, data_cache=None, template_entity=None):
     if not is_dynamic:
         struct = template_utils.try_get_content(constants.metadata, field)
     
@@ -41,11 +64,7 @@ def build_statistics(statistics, entity, field, struct, is_dynamic=False):
 
     stats = statistics[field] if field in statistics else { }
     if field_type == 'enum':
-        value = None
-        if 'options' in validation:
-            value = template_utils.get_options_value(entity_field, struct)
-        elif 'source' in validation:
-            value = template_utils.get_sourced_value(entity_field, struct)
+        value = try_get_cached_data(data_cache, template_entity, entity_field, validation, struct)
         
         if value is not None:
             if entity_field not in stats:
@@ -58,21 +77,22 @@ def build_statistics(statistics, entity, field, struct, is_dynamic=False):
     elif field_type == 'int_array':
         if 'source' in validation:
             for item in entity_field:
-                value = template_utils.get_sourced_value(item, struct)
-                if value is not None:
-                    if item not in stats:
-                        stats[item] = {
-                            'value': value,
-                            'count': 0
-                        }
-                    
-                    stats[item]['count'] += 1
+                value = try_get_cached_data(data_cache, template_entity, item, validation, struct)
+                if value is None:
+                    continue
+                if item not in stats:
+                    stats[item] = {
+                        'value': value,
+                        'count': 0
+                    }
+                
+                stats[item]['count'] += 1
     else:
         return
     
     statistics[field] = stats
 
-def compute_statistics(statistics, entity):
+def compute_statistics(statistics, entity, data_cache=None):
     if not template_utils.is_data_safe(entity):
         return
     
@@ -93,19 +113,19 @@ def compute_statistics(statistics, entity):
             continue
 
         is_dynamic = 'is_base_field' not in struct
-        build_statistics(statistics, entity, field, struct, is_dynamic=is_dynamic)
+        build_statistics(statistics, entity, field, struct, is_dynamic=is_dynamic, data_cache=None, template_entity=template)
 
-def collate_statistics(all_entities, published_entities):
+def collate_statistics(all_entities, published_entities, data_cache=None):
     statistics = {
         'published': { },
         'all': { },
     }
 
     for entity in all_entities:
-        compute_statistics(statistics['all'], entity)
+        compute_statistics(statistics['all'], entity, data_cache)
 
     for entity in published_entities:
-        compute_statistics(statistics['published'], entity)
+        compute_statistics(statistics['published'], entity, data_cache)
 
     sort_fn = cmp_to_key(sort_by_count)
     for field, data in statistics['all'].items():
@@ -141,20 +161,24 @@ def collate_statistics(all_entities, published_entities):
 '''
 def collect_statistics(request):
     user = request.user if request else None
+    cache = { }
 
     all_entities = GenericEntity.objects.all()
-    published_entities = PublishedGenericEntity.objects.filter(approval_status=constants.APPROVAL_STATUS.APPROVED).order_by('-created').distinct()
 
     published_entities = GenericEntity.history.filter(
-        id__in=list(published_entities.values_list('entity_id', flat=True)),
-        history_id__in=list(published_entities.values_list('entity_history_id', flat=True))
-    )
+        publish_status=constants.APPROVAL_STATUS.APPROVED
+    ) \
+    .order_by('id', '-history_id') \
+    .distinct('id')
 
+    to_update = [ ]
+    to_create = [ ]
     for brand in Brand.objects.all():
         collection_ids = template_utils.get_brand_collection_ids(brand.name)
         stats = collate_statistics(
             all_entities.filter(collections__overlap=collection_ids),
-            published_entities.filter(collections__overlap=collection_ids)
+            published_entities.filter(collections__overlap=collection_ids),
+            data_cache=cache
         )
 
         obj = Statistics.objects.filter(
@@ -166,18 +190,21 @@ def collect_statistics(request):
             obj = obj.first()
             obj.stat = stats
             obj.updated_by = user
-            obj.save()
-        else:
-            obj = Statistics.objects.create(
-                org=brand.name,
-                type='GenericEntity',
-                stat=stats,
-                created_by=user
-            )
+            to_update.append(obj)
+            continue
+
+        obj = Statistics(
+            org=brand.name,
+            type='GenericEntity',
+            stat=stats,
+            created_by=user
+        )
+        to_create.append(obj)
     
     stats = collate_statistics(
         all_entities,
-        published_entities
+        published_entities,
+        data_cache=cache
     )
 
     obj = Statistics.objects.filter(
@@ -189,11 +216,16 @@ def collect_statistics(request):
         obj = obj.first()
         obj.stat = stats
         obj.updated_by = user
-        obj.save()
+        to_update.append(obj)
     else:
-        obj = Statistics.objects.create(
+        obj = Statistics(
             org='ALL',
             type='GenericEntity',
             stat=stats,
             created_by=user
         )
+        to_create.append(obj)
+    
+    # Create / Update stat objs
+    Statistics.objects.bulk_create(to_create)
+    Statistics.objects.bulk_update(to_update, ['stat', 'updated_by'])

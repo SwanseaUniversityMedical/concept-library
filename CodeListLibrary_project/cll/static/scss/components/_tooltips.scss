@@ -3,6 +3,24 @@
 @import '../_media';
 @import '../_utils';
 
+/// Tooltip container
+///   @desc used by tooltipFactory.js for absolute tooltips
+.tooltip-container {
+  position: fixed;
+  pointer-events: none;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999998;
+
+  &__item {
+    position: absolute;
+    width: auto;
+    height: auto;
+  }
+}
+
 /// Tooltips
 ///   @desc used on actionable elements to display related information
 /// 
@@ -51,6 +69,11 @@
 
   &:hover:before,
   &:hover:after {
+    display: block;
+  }
+
+  &.force-active:before,
+  &.force-active:after {
     display: block;
   }
 

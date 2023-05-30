@@ -29,11 +29,57 @@
       "fields": ["group", "group_access", "world_access"]
     }
   ],
+  
+  "detail_page_sections": [
+    {
+      "title": "Home",
+      "description": "",
+      "fields": ["id", "history_id", "data_sources", "collections", "tags"]
+    },
+    {
+      "title": "Definition",
+      "description": "",
+      "fields": ["definition"]
+    },
+    {
+      "title": "Implementation",
+      "description": "",
+      "fields": ["implementation"],
+      "hide_if_empty": true
+    },
+    {
+      "title": "Publications",
+      "description": "",
+      "fields": ["publications","citation_requirements"]
+    },
+     {
+      "title": "Validation",
+      "description": "",
+      "fields": ["validation"],
+      "do_not_show_in_production": true,
+      "hide_if_empty": true
+    },   
+    {
+      "title": "Permissions",
+      "description": "",
+      "fields": ["permissions"],
+      "requires_auth": true
+    },
+    {
+      "title": "API",
+      "description": "",
+      "fields": ["api"]
+    },
+    {
+      "title": "Version History",
+      "description": "",
+      "fields": ["version_history"]
+    }
+  ],  
 
   "fields": {
     "name": {
-      "is_base_field": true,
-      "side_menu": "Home"
+      "is_base_field": true
     },
     "author": {
       "is_base_field": true
@@ -57,26 +103,6 @@
         "api": true
       }
     },
-    "coding_system": {
-      "title": "Coding System",
-      "field_type": "coding_system",
-      "active": true,
-      "validation": {
-        "type": "int_array",
-        "mandatory": false,
-        "computed": true,
-        "source": {
-          "table": "CodingSystem",
-          "query": "codingsystem_id",
-          "relative": "name"
-        }
-      },
-      "search": {
-        "filterable": true,
-        "api": true
-      },
-      "hide_on_create": true
-    },
     "collections": {
       "is_base_field": true
     },
@@ -84,20 +110,16 @@
       "is_base_field": true
     },
     "definition": {
-      "is_base_field": true,
-      "side_menu": "Definition"
+      "is_base_field": true
     },
     "implementation": {
-      "is_base_field": true,
-      "side_menu": "Implementation"
+      "is_base_field": true
     },
     "publications": {
-      "is_base_field": true,
-      "side_menu": "Publications"
+      "is_base_field": true
     },
     "validation": {
       "is_base_field": true,
-      "side_menu": "Validation",
       "hide_if_empty": true,
       "do_not_show_in_production": true
     },
@@ -125,6 +147,31 @@
     },
     "group_access": {
       "is_base_field": true
+    },
+
+    "permissions":{
+      "title": "Permissions",
+      "field_type": "permissions_section",
+      "active": true,
+      "hide_on_create": true
+    },
+    "api":{
+      "title": "API",
+      "field_type": "api_section",
+      "active": true,
+      "hide_on_create": true
+    },
+    "version_history":{
+      "title": "Version History",
+      "field_type": "version_history_section",
+      "active": true,
+      "hide_on_create": true
+    },
+    "history_id":{
+      "title": "Version ID",
+      "field_type": "history_id",
+      "active": true,
+      "hide_on_create": true
     }
   }
 }

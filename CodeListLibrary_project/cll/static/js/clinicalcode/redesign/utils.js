@@ -336,7 +336,7 @@ const countUniqueElements = (iterable) => new Set(iterable).size;
  *    //! User has confirmed prompt !//
  *    // ... do stuff ...
  * })
- * .cancel(() => {
+ * .catch(() => {
  *    //! User has cancelled prompt !//
  *    // ... do other stuff ...
  * })

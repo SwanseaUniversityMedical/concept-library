@@ -13,6 +13,36 @@ from ..models.GenericEntity import GenericEntity
 
 register = template.Library()
 
+@register.simple_tag
+def get_brand_base_title(brand):
+    '''
+        Gets the brand-related site title if available, otherwise returns
+        the APP_TITLE per settings.py
+    '''
+    if not brand or not getattr(brand, 'site_title'):
+        return settings.APP_TITLE
+    return brand.site_title
+
+@register.simple_tag
+def get_brand_base_embed_desc(brand):
+    '''
+        Gets the brand-related site desc if available, otherwise returns
+        the APP_DESC per settings.py
+    '''
+    if not brand or not getattr(brand, 'site_title'):
+        return settings.APP_DESC.format(app_title=settings.APP_TITLE)
+    return settings.APP_DESC.format(app_title=brand.site_title)
+
+@register.simple_tag
+def get_brand_base_embed_img(brand):
+    '''
+        Gets the brand-related site desc if available, otherwise returns
+        the APP_DESC per settings.py
+    '''
+    if not brand or not getattr(brand, 'logo_path'):
+        return settings.APP_EMBED_ICON.format(logo_path=settings.APP_LOGO_PATH)
+    return settings.APP_EMBED_ICON.format(logo_path=brand.logo_path)
+
 @register.inclusion_tag('components/search/pagination/pagination.html', takes_context=True, name='render_entity_pagination')
 def render_pagination(context, *args, **kwargs):
     '''
@@ -485,6 +515,14 @@ class EntityWizardSections(template.Node):
         if field == 'group':
             return permission_utils.get_user_groups(request)
 
+    def __apply_mandatory_property(self, template, field):
+        validation = template_utils.try_get_content(template, 'validation')
+        if validation is None:
+            return False
+        
+        mandatory = template_utils.try_get_content(validation, 'mandatory')
+        return mandatory if isinstance(mandatory, bool) else False
+
     def __generate_wizard(self, request, context):
         output = ''
         template = context.get('template', None)
@@ -547,6 +585,7 @@ class EntityWizardSections(template.Node):
                     component['value'] = self.__try_get_entity_value(template, entity, field)
                 else:
                     component['value'] = ''
+                component['mandatory'] = self.__apply_mandatory_property(template_field, field)
 
                 uri = f'{constants.CREATE_WIZARD_INPUT_DIR}/{component.get("input_type")}.html'
                 output += self.__try_render_item(template_name=uri, request=request, context=context.flatten() | { 'component': component })

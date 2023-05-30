@@ -100,7 +100,7 @@ If you do not have a backup available the application will still run successfull
 
 With an empty database, you will need to run statistics manually for the applciation to work correctly:
   1. After following the steps to start the application in [2.3. Development](#2.3.-Development)
-  2. Navigate to 127.0.0.1/admin/run-stat
+  2. Navigate to 127.0.0.1/admin/run-stats
 
 ## 2.3. Development
 ### 2.3.1. Initial Build

@@ -1,0 +1,16 @@
+{% load static %}
+{% load markdownify %}
+{% load cl_extras %}
+
+<div class="detailed-input-group fill">
+
+  <div class="col-sm-12 shadow-frame">
+    <h3 class="paneltitle">
+      <span id="entity-{{ component.field_name }}"></span>
+      {% comment %} <strong>{{ component.field_data.title }}</strong> {% endcomment %}
+    </h3>
+    {{ component.value|markdownify }}
+    
+  </div>
+
+</div>

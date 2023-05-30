@@ -974,7 +974,7 @@ export default class ConceptCreator {
 
     // Disable ruleset addition if no coding system present
     const hasCodingSystem = !isNullOrUndefined(id);
-    const rulesetBtns = editor.querySelectorAll('.dropdown-btn > input[type="checkbox"]');
+    const rulesetBtns = editor.querySelectorAll('.dropdown-btn input[type="radio"]');
     for (let i = 0; i < rulesetBtns.length; ++i) {
       rulesetBtns[i].disabled = !hasCodingSystem;
     }
@@ -1428,6 +1428,13 @@ export default class ConceptCreator {
    * @param {node} input the search input element
    */
   #handleSearchRule(index, input) {
+    const searchBtn = input.parentNode.querySelector('.code-text-input__icon');
+    if (!isNullOrUndefined(searchBtn)) {
+      searchBtn.addEventListener('click', (e) => {
+        input.dispatchEvent(new KeyboardEvent('keyup', {keyCode: CONCEPT_CREATOR_KEYCODES.ENTER}));
+      });
+    }
+
     input.addEventListener('keyup', (e) => {
       const code = e.keyIdentifier || e.which || e.keyCode;
       if (code != CONCEPT_CREATOR_KEYCODES.ENTER) {
@@ -1518,6 +1525,11 @@ export default class ConceptCreator {
 
       default: break;
     }
+
+    setTimeout(() => {
+      let inputs = dropdown.querySelector('#close-ruleset-selection');
+      inputs.click();
+    }, 50);
   }
 
   /**

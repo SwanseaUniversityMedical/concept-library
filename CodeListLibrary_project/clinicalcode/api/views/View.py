@@ -713,7 +713,7 @@ def get_visible_versions_list(request,
         elif set_class == PhenotypeWorkingset:
             ver = workingset_db_utils.getHistoryPhenotypeWorkingset(v.history_id)
         elif set_class == GenericEntity:
-            ver = entity_db_utils.get_historical_entity(v.history_id, include_template_data = False )            
+            ver = entity_db_utils.get_historical_entity(v.id, v.history_id, include_template_data = False )            
 
         is_this_version_published = False
         is_this_version_published = checkIfPublished(set_class, ver['id'], ver['history_id'])

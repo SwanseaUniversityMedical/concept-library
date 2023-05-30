@@ -530,6 +530,8 @@
   display: inline-block;
   position: relative;
   width: fit-content;
+  outline: none;
+  border: 0px;
 
   &__label {
     cursor: pointer;
@@ -543,19 +545,41 @@
     white-space: nowrap;
   }
 
-  &__input {
+  &__close {
     display: none;
   }
 
-  &__input ~ &__menu {
+  &__close:checked + &__close-label {
     display: none;
-  } 
+  }
+
+  &__close:checked ~ &__menu {
+    display: none;
+  }
+
+  &__close-label {
+    display: none;
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+  }
+
+  &__input {
+    display: none;
+  }
   
   &__input:checked ~ &__menu {
     display: block;
   }
 
+  &__input:checked ~ &__close-label {
+    display: block;
+  }
+
   &__menu {
+    display: none;
     position: absolute;
     border: 1px solid col(accent-washed);
     border-radius: 2px;

@@ -34,11 +34,62 @@
       "fields": ["group", "group_access", "world_access"]
     }
   ],
+  
+  "detail_page_sections": [
+    {
+      "title": "Home",
+      "description": "",
+      "fields": ["id", "history_id", "phenotype_uuid", "type", "data_sources", "sex", "event_date_range", "coding_system", "collections", "tags"]
+    },
+    {
+      "title": "Definition",
+      "description": "",
+      "fields": ["definition"]
+    },
+    {
+      "title": "Implementation",
+      "description": "",
+      "fields": ["implementation", "phenoflowid"],
+      "hide_if_empty": true
+    },
+    {
+      "title": "Publications",
+      "description": "",
+      "fields": ["publications","citation_requirements"]
+    },
+     {
+      "title": "Validation",
+      "description": "",
+      "fields": ["validation"],
+      "do_not_show_in_production": true,
+      "hide_if_empty": true
+    },   
+    {
+      "title": "Clinical Code List",
+      "description": "",
+      "fields": ["concept_information"]
+    },
+    {
+      "title": "Permissions",
+      "description": "",
+      "fields": ["permissions"],
+      "requires_auth": true
+    },
+    {
+      "title": "API",
+      "description": "",
+      "fields": ["api"]
+    },
+    {
+      "title": "Version History",
+      "description": "",
+      "fields": ["version_history"]
+    }
+  ],  
 
   "fields": {
     "name": {
-      "is_base_field": true,
-      "side_menu": "Home"
+      "is_base_field": true
     },
     "author": {
       "is_base_field": true
@@ -74,7 +125,8 @@
           "3": "Drug",
           "4": "Lifestyle risk factor",
           "5": "Musculoskeletal",
-          "6": "Surgical procedure"
+          "6": "Surgical procedure",
+          "7": "Other"
         }
       },
       "search": {
@@ -123,7 +175,8 @@
         "options": {
           "1": "Male",
           "2": "Female",
-          "3": "Male/Female"
+          "3": "Both",
+          "4": "Neither"
         }
       },
       "search": {
@@ -169,12 +222,10 @@
       "is_base_field": true
     },
     "definition": {
-      "is_base_field": true,
-      "side_menu": "Definition"
+      "is_base_field": true
     },
     "implementation": {
-      "is_base_field": true,
-      "side_menu": "Implementation"
+      "is_base_field": true
     },
     "phenoflowid": {
       "title": "Phenoflow ID",
@@ -187,15 +238,15 @@
       },
       "search": {
         "api": true
-      }
+      },
+      "hide_on_create": true,
+      "hide_if_empty": true
     },
     "publications": {
-      "is_base_field": true,
-      "side_menu": "Publications"
+      "is_base_field": true
     },
     "validation": {
       "is_base_field": true,
-      "side_menu": "Validation",
       "hide_if_empty": true,
       "do_not_show_in_production": true
     },
@@ -209,10 +260,9 @@
       "active": true,
       "validation": {
         "type": "concept",
-        "mandatory": true,
+        "mandatory": false,
         "has_children": true
-      },
-      "side_menu": "Clinical Code lists"
+      }
     },
     "source_reference": {
       "title": "Source Reference",
@@ -234,6 +284,31 @@
     },
     "group_access": {
       "is_base_field": true
+    },
+
+    "permissions":{
+      "title": "Permissions",
+      "field_type": "permissions_section",
+      "active": true,
+      "hide_on_create": true
+    },
+    "api":{
+      "title": "API",
+      "field_type": "api_section",
+      "active": true,
+      "hide_on_create": true
+    },
+    "version_history":{
+      "title": "Version History",
+      "field_type": "version_history_section",
+      "active": true,
+      "hide_on_create": true
+    },
+    "history_id":{
+      "title": "Version ID",
+      "field_type": "history_id",
+      "active": true,
+      "hide_on_create": true
     }
   }
 }

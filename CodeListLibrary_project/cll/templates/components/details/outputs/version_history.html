@@ -6,10 +6,10 @@
 	 ---------------------------------------------------------------------- 
 -->
 
-<div class="col-sm-12 no-print shadow-frame" id="history-section">
-	<h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;">
+<div class="col-sm-12 no-print" id="history-section">
+	{% comment %} <h3 class="paneltitle" >
 		<span id="versionhistory"></span><strong>Version History</strong>
-	</h3>
+	</h3> {% endcomment %}
 
     <span>
 	 	{% if user.is_authenticated %}
@@ -26,11 +26,13 @@
 	    {% endif %}
 	    <div class="pre-scrollable">
 	    <!-- table start -->
-			<table class="table table-striped small-table table-hover" id="history-table" >
-				<thead>
+		<div class="h-scrollable-table">
+			<div class="h-scrollable-table__wrapper">
+			<table class000="h-scrollable-table" id="history-table" >
+				<thead class="tertairy-accent">
 					<tr>
-						<th>Version<br> ID</th>
-						<th>Name</th>
+						<th >Version ID</th>
+						<th >Name</th>
 						{% if user.is_authenticated %}
 							<th>Date</th>
 							<th>Change reason</th>
@@ -92,6 +94,7 @@
 				{% endfor %}
 				</tbody>
 			</table>
+			</div></div>
 		<!-- table end -->
 	 	</div>	
 	</span>
