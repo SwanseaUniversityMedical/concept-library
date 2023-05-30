@@ -814,6 +814,7 @@ export default class ConceptCreator {
       'concept_version_id': concept?.concept_version_id,
       'coding_id': concept?.coding_system?.id,
       'coding_system': concept?.coding_system?.description,
+      'can_edit': concept?.details?.has_edit_access,
     });
 
     const containerList = this.element.querySelector('#concept-content-list');

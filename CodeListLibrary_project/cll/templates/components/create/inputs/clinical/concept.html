@@ -32,9 +32,14 @@
         <span class="contextual-icon" tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open"></span>
         <span class="concept-name" tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open">${concept_name}</span>
         <span class="concept-buttons">
-          <span tooltip="Edit Concept" direction="left">
-            <span class="edit-icon" tabindex="0" aria-label="Edit Concept" role="button" data-target="edit"></span>
-          </span>
+          ${can_edit
+            ? `
+            <span tooltip="Edit Concept" direction="left">
+              <span class="edit-icon" tabindex="0" aria-label="Edit Concept" role="button" data-target="edit"></span>
+            </span>
+            `
+            : ``
+          }
           <span tooltip="Delete Concept" direction="left">
             <span class="delete-icon" tabindex="0" aria-label="Delete Concept" role="button" data-target="delete"></span>
           </span>          
