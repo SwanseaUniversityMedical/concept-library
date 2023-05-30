@@ -911,7 +911,17 @@ export default class ConceptCreator {
         let options = interpolateHTML(CONCEPT_CREATOR_DEFAULTS.CODING_DEFAULT_HIDDEN_OPTION, {
           'is_unselected': codingSystems.length  < 1,
         });
+
+        // Sort alphabetically in desc. order
+        codingSystems.sort((a, b) => {
+          if (a.name < b.name) {
+            return -1;
+          }
+
+          return (a.name > b.name) ? 1 : 0;
+        });
     
+        // Build each coding system option
         for (let i = 0; i < codingSystems.length; ++i) {
           const item = codingSystems[i];
           options += interpolateHTML(CONCEPT_CREATOR_DEFAULTS.CODING_DEFAULT_ACTIVE_OPTION, {
@@ -1063,10 +1073,13 @@ export default class ConceptCreator {
     const checkbox = item.querySelector('.fill-accordian__input');
 
     // Add handler for each rule type, otherwise disable element
-    if (!isNullOrUndefined(source) || sourceInfo.template == 'file-rule') {
+    if (sourceInfo.template == 'file-rule') {
       input.disabled = true;
     } else {
-      checkbox.checked = true;
+      // Open those that are still unused
+      if (!isNullOrUndefined(source)) {
+        checkbox.checked = true;
+      }
 
       // e.g. search, any future rules - can ignore file-rule because it should already be imported
       switch (sourceInfo.template) {
@@ -1457,7 +1470,7 @@ export default class ConceptCreator {
     const searchBtn = input.parentNode.querySelector('.code-text-input__icon');
     if (!isNullOrUndefined(searchBtn)) {
       searchBtn.addEventListener('click', (e) => {
-        input.dispatchEvent(new KeyboardEvent('keyup', {keyCode: CONCEPT_CREATOR_KEYCODES.ENTER}));
+        input.dispatchEvent(new KeyboardEvent('keyup', { keyCode: CONCEPT_CREATOR_KEYCODES.ENTER }));
       });
     }
 
@@ -1482,6 +1495,15 @@ export default class ConceptCreator {
             return item;
           });
 
+          // Update row
+          this.state.data.components[index].codes = codes.length > 0 ? codes : [ ];
+          this.state.data.components[index].source = codes.length > 0 ? value : null;
+          
+          // Apply changes and recompute codelist
+          this.#tryRenderAggregatedCodelist();
+          this.#computeAggregatedCodelist();
+
+          // Inform of null results
           if (codes.length < 1) {
             this.#pushToast({
               type: 'danger',
@@ -1489,18 +1511,14 @@ export default class ConceptCreator {
                 value: value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE)
               })
             });
+            
             return;
           }
 
-          // Update row
-          this.state.data.components[index].codes = codes;
-          this.state.data.components[index].source = value;
-
           // Disable future use now that the rule has been set
-          input.disabled = true;
           input.blur();
 
-          // Apply changes & recompute codelist
+          // Inform user of result count
           this.#pushToast({
             type: 'success',
             message: interpolateHTML(CONCEPT_CREATOR_TEXT.ADDED_SEARCH_CODES, {
@@ -1508,8 +1526,6 @@ export default class ConceptCreator {
               value: value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE),
             })
           });
-          this.#tryRenderAggregatedCodelist();
-          this.#computeAggregatedCodelist();
         })
         .catch(() => { /* SINK */ });
     });

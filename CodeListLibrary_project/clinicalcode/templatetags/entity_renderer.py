@@ -14,6 +14,20 @@ from ..models.GenericEntity import GenericEntity
 register = template.Library()
 
 @register.simple_tag
+def sort_by_alpha(arr, column="name", order="desc"):
+    '''
+        Sorts an array of objects by the defined column, and orders by
+        asc/desc given its params
+    '''
+    sorted_arr = None
+    try:
+        reverse = order == 'asc'
+        sorted_arr = sorted(arr, key=lambda x: x[column], reverse=reverse)
+    except:
+        sorted_arr = arr
+    return sorted_arr
+
+@register.simple_tag
 def get_brand_base_title(brand):
     '''
         Gets the brand-related site title if available, otherwise returns
