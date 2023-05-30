@@ -7,6 +7,7 @@ from django.conf import settings
 
 import re
 import json
+import warnings
 
 from ..entity_utils import permission_utils, template_utils, search_utils, model_utils, create_utils, gen_utils, constants
 from ..models.GenericEntity import GenericEntity
@@ -317,6 +318,9 @@ class EntityFiltersNode(template.Node):
         self.nodelist = nodelist
     
     def __try_compile_reference(self, context, field, structure):
+        '''
+            Attempts to compile the reference data for a metadata field
+        '''
         if field == 'template':
             layouts = context.get('layouts', None)
             modifier = {
@@ -328,6 +332,9 @@ class EntityFiltersNode(template.Node):
         return search_utils.get_source_references(structure, modifier=modifier)
 
     def __render_metadata_component(self, context, field, structure):
+        '''
+            Renders a metadata field, as defined by constants.py
+        '''
         request = self.request.resolve(context)
         filter_info = search_utils.get_filter_info(field, structure)
         if not filter_info:
@@ -353,6 +360,10 @@ class EntityFiltersNode(template.Node):
         return render_to_string(f'{constants.FILTER_DIRECTORY}/{component}.html', context.flatten())
 
     def __render_template_component(self, context, field, structure, layout):
+        '''
+            Renders a component for a template field after computing its reference data
+            as defined by its validation & field type
+        '''
         request = self.request.resolve(context)
         filter_info = search_utils.get_filter_info(field, structure)
         if not filter_info:
@@ -375,6 +386,9 @@ class EntityFiltersNode(template.Node):
         return render_to_string(f'{constants.FILTER_DIRECTORY}/{component}.html', context.flatten())
 
     def __generate_metadata_filters(self, context, is_single_search=False):
+        '''
+            Generates the filters for all metadata fields within a template
+        '''
         output = ''
         for field, structure in constants.metadata.items():
             search = template_utils.try_get_content(structure, 'search')
@@ -389,6 +403,9 @@ class EntityFiltersNode(template.Node):
         return output
     
     def __generate_template_filters(self, context, output, layouts):
+        '''
+            Generates a filter for each field of a template
+        '''
         layout = next((x for x in layouts.values()), None)
         if not template_utils.is_layout_safe(layout):
             return output
@@ -500,8 +517,11 @@ class EntityWizardSections(template.Node):
         self.params = params
         self.nodelist = nodelist
     
-    def __try_get_entity_value(self, template, entity, field):
-        value = create_utils.get_template_creation_data(entity, template, field, default=None)
+    def __try_get_entity_value(self, request, template, entity, field):
+        '''
+            Attempts to safely generate the creation data for field within a template
+        '''
+        value = create_utils.get_template_creation_data(request, entity, template, field, default=None)
 
         if value is None:
             return template_utils.get_entity_field(entity, field)
@@ -509,14 +529,22 @@ class EntityWizardSections(template.Node):
         return value
 
     def __try_render_item(self, **kwargs):
+        '''
+            Attempts to safely render the HTML to string and sinks exceptions
+        '''
         try:
             html = render_to_string(**kwargs)
-        except:
+        except Exception as e:
+            if settings.DEBUG:
+                warnings.warn(str(e))
             return ''
         else:
             return html
     
     def __try_get_props(self, template, field):
+        '''
+            Attempts to safely get the properties of a validation field, if present
+        '''
         struct = template_utils.get_layout_field(template, field)
         validation = struct.get('validation')
         if not validation:
@@ -524,6 +552,9 @@ class EntityWizardSections(template.Node):
         return validation.get('properties')
     
     def __try_get_computed(self, request, field):
+        '''
+            Attempts to safely parse computed fields
+        '''
         struct = template_utils.get_layout_field(constants.metadata, field)
         if struct is None:
             return
@@ -535,10 +566,16 @@ class EntityWizardSections(template.Node):
         if not validation.get('computed'):
             return
         
+        # append other computed fields if required
         if field == 'group':
             return permission_utils.get_user_groups(request)
+        return
 
     def __apply_mandatory_property(self, template, field):
+        '''
+            Returns boolean that reflects the mandatory status of a field given its
+            template's validation field (if present)
+        '''
         validation = template_utils.try_get_content(template, 'validation')
         if validation is None:
             return False
@@ -547,6 +584,9 @@ class EntityWizardSections(template.Node):
         return mandatory if isinstance(mandatory, bool) else False
 
     def __generate_wizard(self, request, context):
+        '''
+            Generates the creation wizard template
+        '''
         output = ''
         template = context.get('template', None)
         entity = context.get('entity', None)
@@ -609,7 +649,7 @@ class EntityWizardSections(template.Node):
                     component['properties'] = field_properties
                 
                 if entity:
-                    component['value'] = self.__try_get_entity_value(template, entity, field)
+                    component['value'] = self.__try_get_entity_value(request, template, entity, field)
                 else:
                     component['value'] = ''
                 component['mandatory'] = self.__apply_mandatory_property(template_field, field)
@@ -621,5 +661,8 @@ class EntityWizardSections(template.Node):
         return output
     
     def render(self, context):
+        '''
+            Renders the wizard
+        '''
         request = self.request.resolve(context)
         return self.__generate_wizard(request, context)

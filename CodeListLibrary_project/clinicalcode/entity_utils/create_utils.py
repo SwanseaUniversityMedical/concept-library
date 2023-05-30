@@ -17,6 +17,7 @@ from . import gen_utils
 from . import model_utils
 from . import permission_utils
 from . import template_utils
+from . import concept_utils
 from . import constants
 
 def try_validate_entity(request, entity_id, entity_history_id):
@@ -44,7 +45,7 @@ def get_createable_entities(request):
         'templates': list(templates)
     }
 
-def get_template_creation_data(entity, layout, field, default=[]):
+def get_template_creation_data(request, entity, layout, field, default=[]):
     '''
         Used to retrieve assoc. data values for specific keys, e.g.
         concepts, in its expanded format for use with create/update pages
@@ -68,10 +69,11 @@ def get_template_creation_data(entity, layout, field, default=[]):
     if field_type == 'concept':
         values = []
         for item in data:
-            value = model_utils.get_clinical_concept_data(
+            value = concept_utils.get_clinical_concept_data(
                 item['concept_id'],
                 item['concept_version_id'],
-                aggregate_component_codes=True
+                aggregate_component_codes=True,
+                derive_access_from=request
             )
 
             if value:
@@ -354,11 +356,6 @@ def validate_concept_form(form, errors):
     if is_new_concept and (concept_components is None or not isinstance(concept_components, list)):
         errors.append(f'Invalid concept with ID {concept_id} - components is a non-nullable list field.')
         return None
-    
-    if not is_new_concept:
-        field_value['concept']['is_new'] = is_new_concept
-        field_value['concept']['is_dirty'] = False
-        return field_value
 
     components = [ ]
     for concept_component in concept_components:
@@ -686,8 +683,9 @@ def try_update_concept(request, item, entity=None):
     
     req_component_ids = set([obj.get('id') for obj in components_data if not obj.get('is_new')])
     prev_component_ids = set(list(concept.component_set.all().values_list('id', flat=True)))
-    
+
     removed_components = list(set(prev_component_ids) - set(req_component_ids))
+
     for component_id in removed_components:
         component = model_utils.try_get_instance(Component, pk=component_id)
         if component is None:

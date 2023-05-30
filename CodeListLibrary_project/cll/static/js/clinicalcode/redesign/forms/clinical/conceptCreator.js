@@ -1409,7 +1409,11 @@ export default class ConceptCreator {
         this.#tryRenderRulesets();
         this.#tryRenderAggregatedCodelist();
       })
-      .catch(console.error);
+      .catch((e) => {
+        if (!isNullOrUndefined(e)) {
+          console.error(e);
+        }
+      });
     });
   }
 
@@ -1722,30 +1726,32 @@ export default class ConceptCreator {
     }
 
     return new Promise((resolve, reject) => {
-      promptClientModal(CONCEPT_CREATOR_TEXT.CONCEPT_DELETION)
-      .then(resolve)
-      .catch(reject);
-    })
-    .then(() => {
-      const conceptGroup = tryGetRootElement(target, 'concept-list__group');
-      const conceptId = conceptGroup.getAttribute('data-concept-id');
-      const historyId = conceptGroup.getAttribute('data-concept-history-id');
+        promptClientModal(CONCEPT_CREATOR_TEXT.CONCEPT_DELETION).then(resolve).catch(reject);
+      })
+      .then(() => {
+        const conceptGroup = tryGetRootElement(target, 'concept-list__group');
+        const conceptId = conceptGroup.getAttribute('data-concept-id');
+        const historyId = conceptGroup.getAttribute('data-concept-history-id');
 
-      // Remove if it's a concept that's in our dataset
-      const index = this.data.findIndex(item => item.concept_id == conceptId && item.concept_version_id == historyId);
-      if (index < 0) {
-        return;
-      }
-      this.data.splice(index, 1);
-      
-      // Reset the interface
-      this.#tryUpdateRenderConceptComponents();
-      this.element.scrollIntoView();
+        // Remove if it's a concept that's in our dataset
+        const index = this.data.findIndex(item => item.concept_id == conceptId && item.concept_version_id == historyId);
+        if (index < 0) {
+          return;
+        }
+        this.data.splice(index, 1);
+        
+        // Reset the interface
+        this.#tryUpdateRenderConceptComponents();
+        this.element.scrollIntoView();
 
-      // Inform the parent form we're dirty
-      this.makeDirty();
-    })
-    .catch(console.error);
+        // Inform the parent form we're dirty
+        this.makeDirty();
+      })
+      .catch((e) => {
+        if (!isNullOrUndefined(e)) {
+          console.error(e);
+        }
+      });
   }
 
   /**

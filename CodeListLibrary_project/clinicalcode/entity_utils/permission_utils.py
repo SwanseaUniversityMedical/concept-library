@@ -269,6 +269,8 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
 
 def is_concept_published(concept_id, concept_history_id):
   '''
+    [!] Legacy permission method
+
     Checks whether a concept is published, and if so, returns the PublishedConcept
 
     Args:
@@ -289,6 +291,8 @@ def is_concept_published(concept_id, concept_history_id):
 
 def get_latest_publicly_accessible_concept():
   '''
+    [!] Legacy permission method
+    
     Finds the latest publicly accessible published concept
     
     Returns:
@@ -352,12 +356,7 @@ def can_user_edit_concept(request, concept_id, concept_history_id):
   user = request.user
   if user.is_superuser:
     return True
-  
-  # Concept doesn't have approval status?
-  published_concept = is_concept_published(concept_id, concept_history_id)
-  if published_concept and is_member(user, [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING]):
-    return True
-    
+      
   if concept.owner == user:
     return True
   

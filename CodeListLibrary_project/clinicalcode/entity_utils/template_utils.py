@@ -2,8 +2,8 @@ from django.apps import apps
 from django.db.models import Q, ForeignKey
 from django.contrib.auth.models import User, Group
 
-from . import model_utils
 from . import filter_utils
+from . import concept_utils
 from . import constants
 
 def try_get_content(body, key, default=None):
@@ -484,7 +484,7 @@ def get_template_data_values(entity, layout, field, hide_user_details=False, def
     elif field_type == 'concept':
         values = []
         for item in data:
-            value = model_utils.get_clinical_concept_data(
+            value = concept_utils.get_clinical_concept_data(
                 item['concept_id'], 
                 item['concept_version_id'], 
                 hide_user_details=hide_user_details
