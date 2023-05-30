@@ -1,0 +1,94 @@
+{% extends "base_scss.html" %}
+
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+
+{% block head %}
+  <meta charset="utf-8"/>
+  <link href="{% sass_src 'scss/pages/select.scss' %}" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" type="text/css" href="{% static 'drf-yasg/style.css' %}"/>
+  <link rel="stylesheet" type="text/css" href="{% static 'drf-yasg/swagger-ui-dist/swagger-ui.css' %}">
+  <link href="{% sass_src 'scss/pages/swagger.scss' %}" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% compress js file %}
+  <script type="text/javascript" src="{% static "js/clinicalcode/redesign/utils.js" %}"></script>
+{% endcompress %}
+
+{% block container %}
+  <header class="main-header">
+    <div class="main-header__inner-container">
+      <div class="api-about">
+        <div class="api-about__section">
+          <p>
+            The Concept Library team maintain an R package to enable easy integration into existing research, you can find more information at:
+          </p>
+          <ul>
+            <li><a href="https://github.com/SwanseaUniversityMedical/concept-library-client-r">R package GitHub repository</a></li>
+            <li><a href="https://github.com/SwanseaUniversityMedical/concept-library/wiki">Concept Library GitHub wiki</a></li>
+          </ul>
+        </div>
+        <div class="api-about__section">
+          <p>
+            You can download the Concept Library API Swagger documentation in the following formats:
+          </p>
+          <ul>
+            <li><a href="{% url 'api:schema-json' format='.json' %}">Swagger JSON</a></li>
+            <li><a href="{% url 'api:schema-json' format='.yaml' %}">Swagger YAML</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div id="swagger-ui">
+    <h2>Please enable Javascript to view the API documentation</h2>
+  </div>
+
+  <script id="swagger-settings" type="application/json">{{ swagger_settings | safe }}</script>
+  <script id="oauth2-config" type="application/json">{{ oauth2_config | safe }}</script>
+  <script src="{% static 'drf-yasg/swagger-ui-dist/swagger-ui-bundle.js' %}"></script>
+  <script src="{% static 'drf-yasg/swagger-ui-dist/swagger-ui-standalone-preset.js' %}"></script>
+  <script src="{% static 'drf-yasg/insQ.min.js' %}"></script>
+  <script src="{% static 'drf-yasg/immutable.min.js' %}"></script>
+  <script src="{% static 'js/lib/drf-yasg/swagger-ui-init.js' %}"></script>
+
+  <a id="oauth2-redirect-url" href="{% static 'drf-yasg/swagger-ui-dist/oauth2-redirect.html' %}" class="hidden"></a>
+
+  {% if USE_SESSION_AUTH %}
+    <div id="django-session-auth" class="hidden">
+      {% block session_auth_button %}
+        {% csrf_token %}
+
+        {% block user_context_message %}
+          {% if request.user.is_authenticated %}
+            <div class="hello">
+              <span class="django-session">Django</span> <span
+                class="label label-primary">{{ request.user }}</span>
+            </div>
+          {% endif %}
+        {% endblock %}
+
+        {% if request.user.is_authenticated %}
+          <div class='btn authorize'>
+            <a id="auth" class="header__btn" href="{{ LOGOUT_URL }}?next={{ request.path }}" data-sw-translate>
+              {% block django_logout_message %}
+                Logout
+              {% endblock %}
+            </a>
+          </div>
+        {% else %}
+          <div class='btn authorize'>
+            <a id="auth" class="header__btn" href="{{ LOGIN_URL }}?next={{ request.path }}" data-sw-translate>
+              {% block django_login_message %}
+                Django Login
+              {% endblock %}
+            </a>
+          </div>
+        {% endif %}
+      {% endblock %}
+    </div>
+  {% endif %}
+
+{% endblock container %}

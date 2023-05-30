@@ -87,7 +87,7 @@ Paths which are available as REST API URLs. The router URLs listed above can
 be included via an include().
 '''
 urlpatterns += [
-    url(r'^$', cc_view.customRoot, name='root'),
+    url(r'^$', schema_view.with_ui('swagger', cache_timeout=0), name='root'),
     url(r'^', include(router.urls)),
 
     

@@ -1,0 +1,26 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+.scheme-container {
+  box-shadow: none !important;
+}
+
+.api-about {
+  @include flex-col();
+  margin: 0 auto;
+  max-width: 1460px;
+  padding: 0 20px;
+
+  &__section {
+    p {
+      margin: 0;
+      padding: 0;
+    }
+
+    ul {
+      margin-top: 0.3rem;
+    }
+  }
+}
