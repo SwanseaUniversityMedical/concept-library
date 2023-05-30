@@ -21,7 +21,7 @@
           <ul class="dropdown-btn__menu fall-right">
             <li aria-label="Export phenotype as JSON" role="button" tabindex="0">
               <a {% if user_can_export %}
-                  href="{% url 'api:api_generic_entity_detail_by_version' entity.id entity.history_id %}?format=json"
+                  href="{% url 'api:get_generic_entity_detail_by_version' entity.id entity.history_id %}?format=json"
                   target=_blank 
                   {% endif %}
                 class="dropdown-item">
@@ -30,7 +30,7 @@
             </li>
             <li aria-label="Export phenotype as XML" role="button" tabindex="0">
               <a {% if user_can_export %}
-                  href="{% url 'api:api_generic_entity_detail_by_version' entity.id entity.history_id %}?format=xml"
+                  href="{% url 'api:get_generic_entity_detail_by_version' entity.id entity.history_id %}?format=xml"
                   target=_blank 
                   {% endif %}
                 class="dropdown-item">

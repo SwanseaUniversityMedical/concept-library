@@ -14,6 +14,7 @@ from django.http.response import Http404
 from rest_framework import status, viewsets
 from rest_framework.decorators import (api_view, authentication_classes, permission_classes)
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from ...db_utils import *
 from ...models import *
@@ -108,18 +109,23 @@ def published_data_sources(request,
 
 #--------------------------------------------------------------------------
 @api_view(['GET'])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def data_sources(request,
-                pk=None,
+                datasource_id=None,
                 get_live_phenotypes=False,
                 show_published_data_only=False):
     '''
         Get the API output for the list of user data sources.
     '''
+    is_authenticated_user = False
+    if request.user and not request.user.is_anonymous:
+        is_authenticated_user = True
+
     return get_data_sources(request,
-                            pk=pk,
+                            pk=datasource_id,
                             get_live_phenotypes=get_live_phenotypes,
                             show_published_data_only=show_published_data_only,
-                            is_authenticated_user=True)
+                            is_authenticated_user=is_authenticated_user)
 
 
 #--------------------------------------------------------------------------
