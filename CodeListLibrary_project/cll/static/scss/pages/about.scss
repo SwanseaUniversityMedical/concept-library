@@ -1,0 +1,44 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+/// About template
+///   @desc Stylesheet relating to about pages; reference data, contact us, etc
+
+.reference-collection {
+  @include flex-col();
+  align-self: center;
+  width: var(--phenotype-article-lg-size);
+  max-width: var(--phenotype-article-lg-size);
+
+  @include media(">desktop", "screen") {
+    width: var(--phenotype-article-sm-size);
+    max-width: var(--phenotype-article-sm-size);
+  }
+
+  @include media("<desktop", "screen") {
+    width: var(--phenotype-article-lg-size);
+    max-width: var(--phenotype-article-lg-size);
+  }
+
+  &__inner-container {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  &__table-container {
+    @include flex-col();
+    position: relative;
+    height: auto;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    max-width: calc(100% - 1rem);
+  }
+
+  &-table{
+    &__wrapper > tbody > tr {
+      border-bottom: 1px solid col(accent-washed);
+    }
+  }
+}

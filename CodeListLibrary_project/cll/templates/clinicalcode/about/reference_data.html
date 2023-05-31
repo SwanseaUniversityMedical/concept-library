@@ -1,0 +1,121 @@
+{% extends "base_scss.html" %}
+
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+{% block title %}| Reference Data {% endblock title %}
+
+{% block container %}
+  <!-- Vendor -->
+  <script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
+  <script src="{% static 'js/clinicalcode/redesign/vendor/simple-datatables/simple-datatables.min.js' %}"></script>
+
+  <!-- Dependencies -->
+  {% compress js file %}
+    <script type="module" src="{% static 'js/clinicalcode/redesign/services/referenceDataService.js' %}"></script>
+  {% endcompress %}
+
+  <!-- Page Stylesheets -->
+  <link href="{% sass_src 'scss/pages/about.scss' %}" rel="stylesheet" type="text/css" />
+
+  <!-- Main -->
+  <header class="main-header banner">
+    <div class="banner__container">
+      <h2 class="banner__title">Reference Data</h2>
+      <p class="banner__description">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.
+      </p>
+      <div class="banner__cards">
+        <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
+          {% url 'api' as api_url %}
+          <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+            <div class="referral-card__header">
+              <a class="referral-card__title" href="{{ api_url }}">API Documentation<span class="referral-card__title-icon"></span></a>
+            </div>
+            <div class="referral-card__body">
+              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+            </div>
+          </article>
+          {% url 'create_phenotype' as create_url %}
+          <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+            <div class="referral-card__header">
+              <a class="referral-card__title" href="{{ create_url }}">Create a Phenotype<span class="referral-card__title-icon"></span></a>
+            </div>
+            <div class="referral-card__body">
+              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+            </div>
+          </article>
+          {% url 'search_phenotypes' as search_url %}
+          <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+            <div class="referral-card__header">
+              <a class="referral-card__title" href="{{ search_url }}">Search Phenotypes<span class="referral-card__title-icon"></span></a>
+            </div>
+            <div class="referral-card__body">
+              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="main-content__inner-container">
+      <article class="reference-collection">
+        <section class="reference-collection__inner-container" id="tags">
+          <data data-owner="reference-data-service" name="tags" type="text/json">
+            {% if tags %}
+              {{ tags|jsonify|safe }}
+            {% endif %}
+          </data>
+          <h3>Tags</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          <div class="reference-collection__table-container" id="tags-area">
+
+          </div>
+        </section>
+        <section class="reference-collection__inner-container" id="collections">
+          <data data-owner="reference-data-service" name="collections" type="text/json">
+            {% if collections %}
+              {{ collections|jsonify|safe }}
+            {% endif %}
+          </data>
+          <h3>Collections</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          <div class="reference-collection__table-container" id="collections-area">
+
+          </div>
+        </section>
+        <section class="reference-collection__inner-container" id="coding_system">
+          <data data-owner="reference-data-service" name="coding_system" type="text/json">
+            {% if coding_system %}
+              {{ coding_system|jsonify|safe }}
+            {% endif %}
+          </data>
+          <h3>Coding Systems</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          <div class="reference-collection__table-container" id="coding-systems-area">
+
+          </div>
+        </section>
+        <section class="reference-collection__inner-container" id="data_sources">
+          <data data-owner="reference-data-service" name="data_sources" type="text/json">
+            {% if data_sources %}
+              {{ data_sources|jsonify|safe }}
+            {% endif %}
+          </data>
+          <h3>Data Sources</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          <div class="reference-collection__table-container" id="data-sources-area">
+
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+
+{% endblock container %}

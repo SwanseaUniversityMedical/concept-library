@@ -3,15 +3,26 @@
 @import '../_media';
 @import '../_utils';
 
+.swagger-container {
+  margin: var(--main-top-padding) 0 0 0;
+}
+
+.information-container {
+  padding: 0 0.1rem !important;
+}
+
 .scheme-container {
   box-shadow: none !important;
 }
 
+div.info {
+  margin: 0 !important;
+}
+
 .api-about {
   @include flex-col();
-  margin: 0 auto;
   max-width: 1460px;
-  padding: 0 20px;
+  padding: 0;
 
   &__section {
     p {

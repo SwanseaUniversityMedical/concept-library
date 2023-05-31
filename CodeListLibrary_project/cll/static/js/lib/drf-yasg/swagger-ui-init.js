@@ -396,11 +396,11 @@ window.addEventListener('load', () => {
     topbar.remove();
   }
 
-  waitForElement('div.scheme-container')
-    .then((schemeContainer) => {
+  waitForElement('div.information-container')
+    .then((container) => {
       const about = document.querySelector('div.api-about');
       if (about) {
-        schemeContainer.parentNode.insertBefore(about, schemeContainer);
+        container.appendChild(about);
       }
     });
 });
