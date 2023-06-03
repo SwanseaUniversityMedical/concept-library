@@ -1,0 +1,262 @@
+{
+  "version": 1,
+  "card_type": "generic",
+
+  "sections": [
+    {
+      "title": "Definition",
+      "description": "An overview of the phenotype with basic metadata.",
+      "fields": ["name", "definition", "author", "event_date_range", "sex", "type", "tags", "collections", "data_sources"]
+    },
+    {
+      "title": "Implementation",
+      "description": "How this phenotype definition is run against data.",
+      "fields": ["phenoflowid","code_repository", "implementation"]
+    },
+    {
+      "title": "Validation",
+      "description": "Description of how correctness, appropriateness, and/or quality was assessed.",
+      "fields": ["validation"]
+    },
+    {
+      "title": "Publication",
+      "description": "Publication(s) where this phenotype is defined and/or used.",
+      "fields": ["publications", "citation_requirements"]
+    },
+    {
+      "title": "Permissions",
+      "description": "Settings for sharing and collaboration.",
+      "fields": ["group", "group_access", "world_access"]
+    }
+  ],
+  
+  "detail_page_sections": [
+    {
+      "title": "Home",
+      "description": "",
+      "fields": ["id", "history_id", "phenotype_uuid", "type", "data_sources", "sex", "event_date_range", "collections", "tags"]
+    },
+    {
+      "title": "Definition",
+      "description": "",
+      "fields": ["definition"]
+    },
+    {
+      "title": "Implementation",
+      "description": "",
+      "fields": ["implementation","code_repository", "phenoflowid"],
+      "hide_if_empty": true
+    },
+    {
+      "title": "Publications",
+      "description": "",
+      "fields": ["publications","citation_requirements"]
+    },
+     {
+      "title": "Validation",
+      "description": "",
+      "fields": ["validation"],
+      "do_not_show_in_production": true,
+      "hide_if_empty": true
+    },   
+    {
+      "title": "Permissions",
+      "description": "",
+      "fields": ["permissions"],
+      "requires_auth": true
+    },
+    {
+      "title": "API",
+      "description": "",
+      "fields": ["api"]
+    },
+    {
+      "title": "Version History",
+      "description": "",
+      "fields": ["version_history"]
+    }
+  ],  
+
+  "fields": {
+    "name": {
+      "is_base_field": true
+    },
+    "author": {
+      "is_base_field": true
+    },
+    "type": {
+      "title": "Phenotype Type",
+      "description": "The category of patient characteristic this phenotype falls under.",
+      "field_type": "enum_dropdown_badge",
+      "active": true,
+      "validation": {
+        "type": "enum",
+        "mandatory": true,
+        "options": {
+          "1": "Biomarker",
+          "2": "Disease or syndrome",
+          "3": "Drug",
+          "4": "Lifestyle risk factor",
+          "5": "Musculoskeletal",
+          "6": "Surgical procedure",
+          "7": "Other"
+        }
+      },
+      "search": {
+        "filterable": true,
+        "api": true
+      }
+    },
+    "data_sources": {
+      "title": "Data Sources",
+      "description": "Data sources the phenotype creators have run this phenotype against; or view as appropriate to use this phenotype for.",
+      "field_type": "data_sources",
+      "active": true,
+      "validation": {
+        "type": "int_array",
+        "mandatory": false,
+        "source": {
+          "table": "DataSource",
+          "query": "id",
+          "relative": "name"
+        }
+      },
+      "search": {
+        "filterable": true,
+        "api": true
+      }
+    },
+    "event_date_range": {
+      "title": "Valid Event Date Range",
+      "description": "If this phenotype is only applicable within a limited time period, please specify that here (optional).",
+      "field_type": "daterange",
+      "active": false,
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "regex": "(?:\\d+\/|\\d+)+[\\s+]?-[\\s+]?(?:\\d+\/|\\d+)+"
+      }
+    },
+    "sex": {
+      "title": "Sex",
+      "description": "Biological sex this phenotype is applicable to.",
+      "field_type": "enum_radio_badge",
+      "active": true,
+      "validation": {
+        "type": "enum",
+        "mandatory": true,
+        "options": {
+          "1": "Male",
+          "2": "Female",
+          "3": "Both",
+          "4": "Neither"
+        }
+      },
+      "search": {
+        "api": true
+      }
+    },
+    "collections": {
+      "is_base_field": true
+    },
+    "tags": {
+      "is_base_field": true
+    },
+    "definition": {
+      "is_base_field": true
+    },
+    "implementation": {
+      "is_base_field": true
+    },
+    "phenoflowid": {
+      "title": "Phenoflow ID",
+      "description": "ID of this phenotype's PhenoFLOW implementation, if applicable. For more information: https://kclhi.org/phenoflow/",
+      "field_type": "phenoflowid",
+      "active": true,
+      "validation": {
+        "type": "int",
+        "mandatory": false
+      },
+      "search": {
+        "api": true
+      },
+      "hide_on_create": true,
+      "hide_if_empty": true
+    },
+    "code_repository": {
+      "title": "Code Repository",
+      "description": "Link to a code repository where an implementation of this phenotype is held",
+      "field_type": "string_inputbox",
+      "active": true,
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "length": [0, 250]
+      },
+      "search": {
+        "api": true
+      },
+      "hide_on_create": true,
+      "hide_if_empty": true
+    },
+    "publications": {
+      "is_base_field": true
+    },
+    "validation": {
+      "is_base_field": true,
+      "hide_if_empty": true,
+      "do_not_show_in_production": true
+    },
+    "citation_requirements": {
+      "is_base_field": true,
+      "hide_if_empty": true
+    },
+    "source_reference": {
+      "title": "Source Reference",
+      "description": "If this phenotype is derived from a third-party source, define that here. Deprecated.",
+      "field_type": "string_inputbox",
+      "active": false,
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "length": [0, 250]
+      },
+      "hide_on_create": true,
+      "hide_if_empty": true
+    },
+    "group": {
+      "is_base_field": true
+    },
+    "world_access": {
+      "is_base_field": true
+    },
+    "group_access": {
+      "is_base_field": true
+    },
+
+    "permissions":{
+      "title": "Permissions",
+      "field_type": "permissions_section",
+      "active": true,
+      "hide_on_create": true
+    },
+    "api":{
+      "title": "API",
+      "field_type": "api_section",
+      "active": true,
+      "hide_on_create": true
+    },
+    "version_history":{
+      "title": "Version History",
+      "field_type": "version_history_section",
+      "active": true,
+      "hide_on_create": true
+    },
+    "history_id":{
+      "title": "Version ID",
+      "field_type": "history_id",
+      "active": true,
+      "hide_on_create": true
+    }
+  }
+}
