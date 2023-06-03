@@ -242,7 +242,7 @@ metadata = {
     },
     "name": {
         "title": "Name",
-        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "description": "Unsurprisingly, the name of the phenotype.",
         "field_type": "string_inputbox",
         "active": True,
         "validation": {
@@ -253,7 +253,7 @@ metadata = {
     },
     "definition": {
         "title": "Definition",
-        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "description": "An overview of the phenotype.",
         "field_type": "textarea_markdown",
         "active": True,
         "validation": {
@@ -264,7 +264,7 @@ metadata = {
     },
     "implementation": {
         "title": "Implementation",
-        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "description": "Information on how the phenotype is applied to data.",
         "field_type": "textarea_markdown",
         "active": True,
         "validation": {
@@ -275,7 +275,7 @@ metadata = {
     },
     "publications": {
         "title": "Publications",
-        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "description": "Publication(s) where the phenotype was defined or has been used.",
         "field_type": "publications",
         "active": True,
         "validation": {
@@ -296,7 +296,7 @@ metadata = {
     },
     "citation_requirements": {
         "title": "Citation Requirements",
-        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "description": "A request for how this phenotype is referenced if used in other work.",
         "field_type": "textarea_markdown",
         "active": True,
         "validation": {
@@ -322,7 +322,7 @@ metadata = {
     },
     "author": {
         "title": "Author",
-        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "description": "List of authors who contributed to this phenotype.",
         "field_type": "string_inputbox",
         "active": True,
         "validation": {
@@ -333,7 +333,7 @@ metadata = {
     },
     "collections": {
         "title": "Collections",
-        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "description": "List of content collections this phenotype belongs to.",
         "field_type": "collections",
         "active": True,
         "compute_statistics": True,
@@ -357,7 +357,7 @@ metadata = {
     },
     "tags": {
         "title": "Tags",
-        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "description": "Optional keywords helping to categorize this content.",
         "field_type": "tags",
         "active": True,
         "compute_statistics": True,
@@ -381,7 +381,7 @@ metadata = {
     },
     "group": {
         "title": "Group",
-        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "description": "The group that owns this phenotype for permissions purposes.",
         "field_type": "group_field",
         "active": True,
         "validation": {
@@ -393,7 +393,7 @@ metadata = {
     },
     "group_access": {
         "title": "Group Access",
-        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "description": "Optionally enable this phenotype to be viewed or edited by the group.",
         "field_type": "access_field_editable",
         "active": True,
         "validation": {
@@ -405,7 +405,7 @@ metadata = {
     },
     "world_access": {
         "title": "World Access",
-        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "description": "Enables this phenotype to be viewed by all logged-in users of the Library (does not make it public on the web--use the Publish action for that).",
         "field_type": "access_field",
         "active": True,
         "validation": {

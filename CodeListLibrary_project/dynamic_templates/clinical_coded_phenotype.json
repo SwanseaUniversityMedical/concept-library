@@ -5,32 +5,32 @@
   "sections": [
     {
       "title": "Definition",
-      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "description": "An overview of the phenotype with basic metadata.",
       "fields": ["name", "definition", "author", "event_date_range", "sex", "type", "tags", "collections", "data_sources"]
     },
     {
       "title": "Clinical Code List",
-      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "description": "Clinical codes used to define this phenotype.",
       "fields": ["concept_information"]
     },
     {
       "title": "Implementation",
-      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "description": "How this phenotype definition is run against data.",
       "fields": ["phenoflowid", "implementation"]
     },
     {
       "title": "Validation",
-      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "description": "Description of how correctness, appropriateness, and/or quality was assessed.",
       "fields": ["validation"]
     },
     {
       "title": "Publication",
-      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "description": "Publication(s) where this phenotype is defined and/or used.",
       "fields": ["publications", "citation_requirements"]
     },
     {
       "title": "Permissions",
-      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "description": "Settings for sharing and collaboration.",
       "fields": ["group", "group_access", "world_access"]
     }
   ],
@@ -113,7 +113,7 @@
     },
     "type": {
       "title": "Phenotype Type",
-      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "description": "The category of patient characteristic this phenotype falls under.",
       "field_type": "enum_dropdown_badge",
       "active": true,
       "validation": {
@@ -136,7 +136,7 @@
     },
     "data_sources": {
       "title": "Data Sources",
-      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "description": "Data sources the phenotype creators have run this phenotype against; or view as appropriate to use this phenotype for.",
       "field_type": "data_sources",
       "active": true,
       "validation": {
@@ -155,7 +155,7 @@
     },
     "event_date_range": {
       "title": "Valid Event Date Range",
-      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "description": "If this phenotype is only applicable within a limited time period, please specify that here (optional).",
       "field_type": "daterange",
       "active": false,
       "validation": {
@@ -166,7 +166,7 @@
     },
     "sex": {
       "title": "Sex",
-      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "description": "Biological sex this phenotype is applicable to.",
       "field_type": "enum_radio_badge",
       "active": true,
       "validation": {
@@ -185,6 +185,7 @@
     },
     "agreement_date": {
       "title": "Agreement Date",
+      "description":"A date representing when this phenotype was first finalized (may predate the Phenotype Library). Deprecated.",
       "field_type": "date",
       "active": true,
       "validation": {
@@ -197,6 +198,7 @@
     },
     "coding_system": {
       "title": "Coding System",
+      "description":"Clinical coding system(s) contained within this phenotype. A phenotype may have multiple concepts, each with its own coding system. All contained coding systems are programmatically represented here.",
       "field_type": "coding_system",
       "active": true,
       "validation": {
@@ -229,7 +231,7 @@
     },
     "phenoflowid": {
       "title": "Phenoflow ID",
-      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "description": "ID of this phenotype's PhenoFLOW implementation, if applicable. For more information: https://kclhi.org/phenoflow/",
       "field_type": "phenoflowid",
       "active": true,
       "validation": {
@@ -256,6 +258,7 @@
     },
     "concept_information": {
       "title": "Clinical Codes",
+      "description": "A set of concepts, each of which defines a list of clinical codes, contained within this phenotype.",
       "field_type": "concept_information",
       "active": true,
       "validation": {
@@ -266,6 +269,7 @@
     },
     "source_reference": {
       "title": "Source Reference",
+      "description": "If this phenotype is derived from a third-party source, define that here. Deprecated.",
       "field_type": "string_inputbox",
       "active": false,
       "validation": {
