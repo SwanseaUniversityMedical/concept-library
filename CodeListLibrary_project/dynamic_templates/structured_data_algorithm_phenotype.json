@@ -140,7 +140,7 @@
     "sex": {
       "title": "Sex",
       "description": "Biological sex this phenotype is applicable to.",
-      "field_type": "enum_radio_badge",
+      "field_type": "grouped_enum",
       "active": true,
       "validation": {
         "type": "enum",
@@ -150,7 +150,13 @@
           "2": "Female",
           "3": "Both",
           "4": "Neither"
-        }
+        },
+        "properties": [
+          {
+            "when": ["1", "2"],
+            "result": "3"
+          }
+        ]
       },
       "search": {
         "api": true
@@ -180,7 +186,6 @@
       "search": {
         "api": true
       },
-      "hide_on_create": true,
       "hide_if_empty": true
     },
     "code_repository": {
@@ -196,7 +201,6 @@
       "search": {
         "api": true
       },
-      "hide_on_create": true,
       "hide_if_empty": true
     },
     "publications": {
