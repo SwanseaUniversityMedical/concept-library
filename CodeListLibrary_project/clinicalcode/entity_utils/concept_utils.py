@@ -245,12 +245,11 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
   if not components.exists():
     return [ ]
   
-  final_codelist = []
+  # This needs changing in future, it's a naive implementation for a hotfix
+  result_set = []
+  final_codelist = set([])
+  excluded_codes = set([])
   for component in components:
-    # Ignore logical types if not matched within the logical type lookup parameter
-    if isinstance(incl_logical_types, list) and component.logical_type not in incl_logical_types:
-      continue
-
     # Find the codelist associated with this component
     codelist = CodeList.history.exclude(history_type='-') \
                                 .filter(
@@ -285,6 +284,7 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
                         .order_by('id', '-history_id') \
                         .distinct('id')
 
+    results = None
     if attribute_header:
       codes = codes.annotate(
         attributes=Subquery(
@@ -313,18 +313,19 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
         )
       )
     
-      final_codelist += list(codes.values('id', 'code', 'description', 'attributes'))
+      results = list(codes.values('id', 'code', 'description', 'attributes'))
     else:
-      final_codelist += list(codes.values('id', 'code', 'description'))
+      results = list(codes.values('id', 'code', 'description'))
   
-  seen_codes = set()
-  final_codelist = [
-    seen_codes.add(obj.get('code')) or obj
-    for obj in final_codelist
-    if obj.get('code') not in seen_codes
-  ]
+    result_set += results
+    if isinstance(incl_logical_types, list) and component.logical_type not in incl_logical_types:
+      excluded_codes.update([x.get('code') for x in results])
+    else:
+      final_codelist.update([x.get('code') for x in results])
 
-  return final_codelist
+  output = list(final_codelist - excluded_codes)
+  output = [next(obj for obj in result_set if obj.get('code') == x) for x in output]
+  return output
 
 def get_associated_concept_codes(concept_id, concept_history_id, code_ids, incl_attributes=False):
   '''
