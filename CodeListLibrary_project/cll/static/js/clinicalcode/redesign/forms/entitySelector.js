@@ -146,7 +146,7 @@ const initialiseSelector = (formData) => {
     
         let btn = card.querySelector('#select-btn');
         btn.addEventListener('click', (e) => {
-          window.location.href = `${getCurrentURL()}${entity.id}`;
+          window.location.href = `${getCurrentURL()}${item.id}`;
         });
       }
     }
