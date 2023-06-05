@@ -2,10 +2,9 @@ from django.apps import apps
 from django.db.models import Q, ForeignKey
 from django.contrib.auth.models import User, Group
 
-from . import model_utils
+from . import filter_utils
+from . import concept_utils
 from . import constants
-from ..models import Brand
-from ..models import Tag
 
 def try_get_content(body, key, default=None):
     '''
@@ -17,17 +16,6 @@ def try_get_content(body, key, default=None):
         return default
     except:
         return default
-
-def get_brand_collection_ids(brand_name):
-    """
-        Rreturns list of collections (tags) ids associated with the brand
-    """
-    if Brand.objects.all().filter(name__iexact=brand_name).exists():
-        brand = Brand.objects.get(name__iexact=brand_name)
-        brand_collection_ids = list(Tag.objects.filter(collection_brand=brand.id).values_list('id', flat=True))
-        return brand_collection_ids
-    else:
-        return [-1]
 
 def is_metadata(entity, field):
     '''
@@ -118,6 +106,15 @@ def get_ordered_definition(definition, clean_fields=False):
 
 def get_one_of_field(entity, entity_fields, default=None):
     '''
+        Attempts to get a field member of an entity given the fields to check,
+        will return whichever is found first
+
+        Args:
+            entity {Model}: the entity to examine
+            entity_fields {list}: a list of fields to select from
+
+        Returns:
+            Either (a) the default value if none are found, or (b) the value of the field that was selected
     '''
     for field in entity_fields:
         value = None
@@ -154,6 +151,9 @@ def get_entity_field(entity, field, default=None):
     return default
 
 def is_valid_field(entity, field):
+    '''
+        Checks to see if a field is a valid member of a template
+    '''
     if is_metadata(entity, field):
         return True
     
@@ -199,6 +199,9 @@ def is_filterable(layout, field):
 
 def get_metadata_field_value(entity, field_name, default=None):
     '''
+        Tries to get the metadata field value of an entity after cleaning
+        it by removing the stripped fields, historical fields and userdata information
+        so that it can be safely presented to the client
     '''
     field = entity._meta.get_field(field_name)
     if not field:
@@ -223,8 +226,64 @@ def get_metadata_field_value(entity, field_name, default=None):
 
     return field_value
 
-def get_metadata_value_from_source(entity, field, default=None):
+def try_get_filter_query(field_name, source, request=None):
     '''
+        @desc cleans the filter query provided by a template / metadata
+              and applies the ENTITY_FILTER_PARAMS filter generator if available
+              otherwise it will remove this key from the query
+        
+        Args:
+            field_name {string}: the name of the field
+            source {dict}: the field filter provided by a template and/or metadata
+
+            request {RequestContext}: the current request context, if available
+        
+        Returns:
+            The final filter query as a {dict}
+    '''
+    output = { }
+    for key, value in source.items():
+        filter_packet = constants.ENTITY_FILTER_PARAMS.get(key)
+        if not isinstance(filter_packet, dict):
+            output[key] = value
+            continue
+        
+        filter_name = filter_packet.get('filter')
+        if not isinstance(filter_name, str) or request is None:
+            continue
+
+        # Apply any filter specific props provided by constants and append the RequestContext
+        filter_props = filter_packet.get('properties')
+        filter_props = filter_props if isinstance(filter_props, dict) else { }
+        filter_props = filter_props | {'request': request}
+        
+        # Apply field specific props
+        field_props = filter_packet.get('field_properties')
+        if field_props and isinstance(field_props.get(field_name), dict):
+            filter_props = filter_props | field_props.get(field_name)
+
+        # Try to generate the filter and update the query if successful
+        result = None
+
+        try:
+            result = filter_utils.DataTypeFilters.try_generate_filter(
+                desired_filter=filter_name,
+                expected_params=filter_packet.get('expected_params'),
+                **filter_props
+            )
+        except Exception as e:
+            pass
+
+        if isinstance(result, dict):
+            output = output | result
+
+    return output
+
+def get_metadata_value_from_source(entity, field, default=None, request=None):
+    '''
+        [!] Note: RequestContext is an optional parameter that can be provided to further filter
+            the results based on the request's Brand    
+    
         Tries to get the values from a top-level metadata field
             - This method assumes it is sourced i.e. has a foreign key (has different names and/or filters)
             to another table
@@ -256,7 +315,8 @@ def get_metadata_value_from_source(entity, field, default=None):
                 }
 
             if 'filter' in source_info:
-                query = {**query, **source_info['filter']}
+                filter_query = try_get_filter_query(field, source_info.get('filter'), request=request)
+                query = {**query, **filter_query}
             
             queryset = model.objects.filter(Q(**query))
             if queryset.exists():
@@ -277,8 +337,11 @@ def get_metadata_value_from_source(entity, field, default=None):
     else:
         return default
 
-def get_template_sourced_values(template, field, default=None):
+def get_template_sourced_values(template, field, default=None, request=None):
     '''
+        [!] Note: RequestContext is an optional parameter that can be provided to further filter
+            the results based on the request's Brand    
+        
         Returns the complete option list of an enum or a sourced field
     '''
     struct = get_layout_field(template, field)
@@ -308,10 +371,10 @@ def get_template_sourced_values(template, field, default=None):
                 column = source_info['query']
 
             if 'filter' in source_info:
-                query = {**source_info['filter']}
+                filter_query = try_get_filter_query(field, source_info.get('filter'), request=request)
+                query = {**filter_query}
             else:
                 query = { }
-            
             
             queryset = model.objects.filter(Q(**query))
             if queryset.exists():
@@ -421,7 +484,7 @@ def get_template_data_values(entity, layout, field, hide_user_details=False, def
     elif field_type == 'concept':
         values = []
         for item in data:
-            value = model_utils.get_clinical_concept_data(
+            value = concept_utils.get_clinical_concept_data(
                 item['concept_id'], 
                 item['concept_version_id'], 
                 hide_user_details=hide_user_details

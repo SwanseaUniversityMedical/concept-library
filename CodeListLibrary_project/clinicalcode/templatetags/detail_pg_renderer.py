@@ -9,7 +9,7 @@ from django.conf import settings
 import re
 import json
 
-from ..entity_utils import permission_utils, template_utils, search_utils, model_utils, create_utils, gen_utils, constants
+from ..entity_utils import permission_utils, template_utils, search_utils, model_utils, create_utils, gen_utils, constants, concept_utils
 from ..models.GenericEntity import GenericEntity
 
 register = template.Library()
@@ -513,7 +513,7 @@ def get_template_creation_data(entity, layout, field, default=[]):
     if field_type == 'concept':
         values = []
         for item in data:
-            value = model_utils.get_clinical_concept_data(
+            value = concept_utils.get_clinical_concept_data(
                 item['concept_id'],
                 item['concept_version_id'],
                 include_component_codes=False, 

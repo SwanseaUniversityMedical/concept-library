@@ -617,6 +617,27 @@ export default class ConceptCreator {
    *                                   *
    *************************************/
   /**
+   * getNextRuleCount
+   * @desc gets n+1 of current rules
+   */
+  #getNextRuleCount(logicalType) {
+    if (isNullOrUndefined(logicalType)) {
+      return this.state?.data?.components.length + 1;
+    }
+
+    const filtered = this.state?.data?.components.filter(item => item.logical_type == logicalType);
+    return filtered.length + 1;
+  }
+
+  /**
+   * getNextRuleCount
+   * @desc gets n+1 of current concepts
+   */
+  #getNextConceptCount() {
+    return this.data.length + 1;
+  }
+
+  /**
    * isCodeInclusionary
    * @desc determines whether a code is inclusionary by examining its presence in other components
    * @param {list} item the row item of a code
@@ -793,6 +814,7 @@ export default class ConceptCreator {
       'concept_version_id': concept?.concept_version_id,
       'coding_id': concept?.coding_system?.id,
       'coding_system': concept?.coding_system?.description,
+      'can_edit': concept?.details?.has_edit_access,
     });
 
     const containerList = this.element.querySelector('#concept-content-list');
@@ -890,7 +912,17 @@ export default class ConceptCreator {
         let options = interpolateHTML(CONCEPT_CREATOR_DEFAULTS.CODING_DEFAULT_HIDDEN_OPTION, {
           'is_unselected': codingSystems.length  < 1,
         });
+
+        // Sort alphabetically in desc. order
+        codingSystems.sort((a, b) => {
+          if (a.name < b.name) {
+            return -1;
+          }
+
+          return (a.name > b.name) ? 1 : 0;
+        });
     
+        // Build each coding system option
         for (let i = 0; i < codingSystems.length; ++i) {
           const item = codingSystems[i];
           options += interpolateHTML(CONCEPT_CREATOR_DEFAULTS.CODING_DEFAULT_ACTIVE_OPTION, {
@@ -929,13 +961,17 @@ export default class ConceptCreator {
    * @returns {string} interpolated element html
    */
   #tryRenderRulePresenceIcon(value, index) {
+    const alt = value.logical_type == CONCEPT_CREATOR_LOGICAL_TYPES.INCLUDE ? CONCEPT_CREATOR_ICONS.PRESENT : CONCEPT_CREATOR_ICONS.ABSENT;
     return {
       select: CONCEPT_CREATOR_OFFSET + index,
       type: 'string',
       render: (data, td, rowIndex, cellIndex) => {
         const icon = CONCEPT_CREATOR_CLASSES.DATA_ICON;
-        const alt = data ? CONCEPT_CREATOR_ICONS.PRESENT : CONCEPT_CREATOR_ICONS.ABSENT;
-        return `<span class="${icon} ${icon}--align-center ${icon}${alt}"></span>`
+        if (data) {
+          return `<span class="${icon} ${icon}--align-center ${icon}${alt}"></span>`
+        }
+
+        return ' ';
       }
     }
   }
@@ -1038,10 +1074,13 @@ export default class ConceptCreator {
     const checkbox = item.querySelector('.fill-accordian__input');
 
     // Add handler for each rule type, otherwise disable element
-    if (!isNullOrUndefined(source) || sourceInfo.template == 'file-rule') {
+    if (sourceInfo.template == 'file-rule') {
       input.disabled = true;
     } else {
-      checkbox.checked = true;
+      // Open those that are still unused
+      if (!isNullOrUndefined(source)) {
+        checkbox.checked = true;
+      }
 
       // e.g. search, any future rules - can ignore file-rule because it should already be imported
       switch (sourceInfo.template) {
@@ -1291,10 +1330,11 @@ export default class ConceptCreator {
     }
 
     // Create new rule
+    const ruleIncrement = this.#getNextRuleCount(logicalType);
     const element = this.state.element;
     const rule = {
       id: generateUUID(),
-      name: 'New Rule',
+      name: `Rule ${ruleIncrement}`,
       code_count: 0,
       source_type: sourceType.name,
       logical_type: logicalType,
@@ -1370,7 +1410,11 @@ export default class ConceptCreator {
         this.#tryRenderRulesets();
         this.#tryRenderAggregatedCodelist();
       })
-      .catch(console.error);
+      .catch((e) => {
+        if (!isNullOrUndefined(e)) {
+          console.error(e);
+        }
+      });
     });
   }
 
@@ -1431,7 +1475,7 @@ export default class ConceptCreator {
     const searchBtn = input.parentNode.querySelector('.code-text-input__icon');
     if (!isNullOrUndefined(searchBtn)) {
       searchBtn.addEventListener('click', (e) => {
-        input.dispatchEvent(new KeyboardEvent('keyup', {keyCode: CONCEPT_CREATOR_KEYCODES.ENTER}));
+        input.dispatchEvent(new KeyboardEvent('keyup', { keyCode: CONCEPT_CREATOR_KEYCODES.ENTER }));
       });
     }
 
@@ -1456,6 +1500,15 @@ export default class ConceptCreator {
             return item;
           });
 
+          // Update row
+          this.state.data.components[index].codes = codes.length > 0 ? codes : [ ];
+          this.state.data.components[index].source = codes.length > 0 ? value : null;
+          
+          // Apply changes and recompute codelist
+          this.#tryRenderAggregatedCodelist();
+          this.#computeAggregatedCodelist();
+
+          // Inform of null results
           if (codes.length < 1) {
             this.#pushToast({
               type: 'danger',
@@ -1463,18 +1516,14 @@ export default class ConceptCreator {
                 value: value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE)
               })
             });
+            
             return;
           }
 
-          // Update row
-          this.state.data.components[index].codes = codes;
-          this.state.data.components[index].source = value;
-
           // Disable future use now that the rule has been set
-          input.disabled = true;
           input.blur();
 
-          // Apply changes & recompute codelist
+          // Inform user of result count
           this.#pushToast({
             type: 'success',
             message: interpolateHTML(CONCEPT_CREATOR_TEXT.ADDED_SEARCH_CODES, {
@@ -1482,8 +1531,6 @@ export default class ConceptCreator {
               value: value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE),
             })
           });
-          this.#tryRenderAggregatedCodelist();
-          this.#computeAggregatedCodelist();
         })
         .catch(() => { /* SINK */ });
     });
@@ -1620,6 +1667,7 @@ export default class ConceptCreator {
   #handleConceptCreation(e) {
     this.tryCloseEditor()
       .then(() => {
+        const conceptIncrement = this.#getNextConceptCount();
         const concept = {
           is_new: true,
           concept_id: generateUUID(),
@@ -1627,7 +1675,8 @@ export default class ConceptCreator {
           components: [ ],
           aggregated_component_codes: [ ],
           details: {
-            name: 'New Concept',
+            name: `Concept ${conceptIncrement}`,
+            has_edit_access: true,
           },
         }
 
@@ -1679,30 +1728,32 @@ export default class ConceptCreator {
     }
 
     return new Promise((resolve, reject) => {
-      promptClientModal(CONCEPT_CREATOR_TEXT.CONCEPT_DELETION)
-      .then(resolve)
-      .catch(reject);
-    })
-    .then(() => {
-      const conceptGroup = tryGetRootElement(target, 'concept-list__group');
-      const conceptId = conceptGroup.getAttribute('data-concept-id');
-      const historyId = conceptGroup.getAttribute('data-concept-history-id');
+        promptClientModal(CONCEPT_CREATOR_TEXT.CONCEPT_DELETION).then(resolve).catch(reject);
+      })
+      .then(() => {
+        const conceptGroup = tryGetRootElement(target, 'concept-list__group');
+        const conceptId = conceptGroup.getAttribute('data-concept-id');
+        const historyId = conceptGroup.getAttribute('data-concept-history-id');
 
-      // Remove if it's a concept that's in our dataset
-      const index = this.data.findIndex(item => item.concept_id == conceptId && item.concept_version_id == historyId);
-      if (index < 0) {
-        return;
-      }
-      this.data.splice(index, 1);
-      
-      // Reset the interface
-      this.#tryUpdateRenderConceptComponents();
-      this.element.scrollIntoView();
+        // Remove if it's a concept that's in our dataset
+        const index = this.data.findIndex(item => item.concept_id == conceptId && item.concept_version_id == historyId);
+        if (index < 0) {
+          return;
+        }
+        this.data.splice(index, 1);
+        
+        // Reset the interface
+        this.#tryUpdateRenderConceptComponents();
+        this.element.scrollIntoView();
 
-      // Inform the parent form we're dirty
-      this.makeDirty();
-    })
-    .catch(console.error);
+        // Inform the parent form we're dirty
+        this.makeDirty();
+      })
+      .catch((e) => {
+        if (!isNullOrUndefined(e)) {
+          console.error(e);
+        }
+      });
   }
 
   /**

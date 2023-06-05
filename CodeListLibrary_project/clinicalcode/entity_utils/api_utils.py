@@ -10,6 +10,7 @@ from ..models.Concept import Concept
 from . import model_utils
 from . import template_utils
 from . import permission_utils
+from . import concept_utils
 from . import search_utils
 from . import create_utils
 from . import gen_utils
@@ -380,7 +381,7 @@ def build_final_codelist_from_concepts(entity, concept_information, inline=True)
     }
 
     # Get codes
-    concept_codes = model_utils.get_concept_codelist(
+    concept_codes = concept_utils.get_concept_codelist(
       concept_id, 
       concept_version, 
       incl_logical_types=[constants.CLINICAL_RULE_TYPE.INCLUDE.value], 

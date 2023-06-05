@@ -27,7 +27,7 @@
     <div class="banner__container">
       <h2 class="banner__title">My Collection</h2>
       <p class="banner__description">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.
+        View content owned by or shared with you.
       </p>
       <div class="banner__cards">
         <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
@@ -37,7 +37,7 @@
               <a class="referral-card__title" href="{{ create_url }}">Create a Phenotype<span class="referral-card__title-icon"></span></a>
             </div>
             <div class="referral-card__body">
-              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+              <p>Look up values for phenotype fields.</p>
             </div>
           </article>
           {% url 'search_phenotypes' as search_url %}
@@ -46,7 +46,7 @@
               <a class="referral-card__title" href="{{ search_url }}">Search Phenotypes<span class="referral-card__title-icon"></span></a>
             </div>
             <div class="referral-card__body">
-              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+              <p>Find Phenotypes within the Library.</p>
             </div>
           </article>
         </div>
@@ -64,7 +64,7 @@
             {% endif %}
           </data>
           <h3>1. Published Phenotypes</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          <p>Phenotypes that have been shared publicly on the web.</p>
           <section class="profile-collection__none-available show" id="empty-collection">
             <p class="profile-collection__none-available-message">
               You haven't published anything yet
@@ -81,7 +81,7 @@
             {% endif %}
           </data>
           <h3>2. Reviews in Progress</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          <p>Phenotypes that are awaiting a review before publication</p>
           <section class="profile-collection__none-available show" id="empty-collection">
             <p class="profile-collection__none-available-message">
               You haven't made any requests to publish yet
@@ -98,7 +98,7 @@
             {% endif %}
           </data>
           <h3>3. Phenotypes in Progress</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          <p>Phenotypes that have not been made public.</p>
           <section class="profile-collection__none-available show" id="empty-collection">
             <p class="profile-collection__none-available-message">
               You have no drafts yet
@@ -115,7 +115,7 @@
             {% endif %}
           </data>
           <h3>4. Archived Phenotypes</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          <p>Content that has been marked as archived is still present on the system but is hidden by default.</p>
           <section class="profile-collection__none-available show" id="empty-collection">
             <p class="profile-collection__none-available-message">
               You haven't archived any content yet

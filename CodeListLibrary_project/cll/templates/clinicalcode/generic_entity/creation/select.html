@@ -29,39 +29,28 @@
     <div class="banner__container">
       <h2 class="banner__title">Create a Phenotype</h2>
       <p class="banner__description">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.
+        Select the type of Phenotype you want to create to start contributing to the Library.
       </p>
       <div class="banner__cards"></div>
     </div>
   </header>
   
   <main class="main-content">
-    <div class="main-content__inner-container">
-      <article class="entity-panel">
-        <!-- Select entity type -->
-        <section class="entity-panel__group">
-          <h3 class="entity-panel__title">1. Select a Phenotype</h3>
-          <p class="entity-panel__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
-          <div class="entity-panel__container slim-scrollbar" id="entity-options"></div>
-        </section>
-        
-        <!-- Contextual entity templates -->
-        <section class="entity-panel__group hide">
-          <h3 class="entity-panel__title">2. Select a Template</h3>
-          <p class="entity-panel__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
-          <div class="entity-panel__container slim-scrollbar" id="entity-templates"></div>
-        </section>
+    <div class="main-content__inner-container" id="group-container">
 
-        <!-- Confirmation -->
-        <section class="entity-panel__interaction">
-          <button class="primary-btn text-accent-darkest bold secondary-accent icon r-arrow-icon sweep-left"
-            aria-label="Go Next" id="next-btn" disabled>
-            Continue
-          </button>
-        </section>
-      </article>
     </div>
   </main>
+
+  <!-- Entity class template -->
+  <template name="group" data-owner="entity-selector">
+    <article class="entity-panel">
+      <section class="entity-panel__group">
+        <h3 class="entity-panel__title">${title}</h3>
+        <p class="entity-panel__description">${description}</p>
+        <div class="entity-panel__container slim-scrollbar" id="entity-options"></div>
+      </section>
+    </article>
+  </template>
 
   <!-- Card template -->
   <template name="card" data-owner="entity-selector">
@@ -73,7 +62,7 @@
         <div class="entity-panel__card-interface">
           <button class="primary-btn text-accent-darkest bold tertiary-accent"
             aria-label="Select Item" id="select-btn">
-            Select
+            Create
           </button>
         </div>
       </div>

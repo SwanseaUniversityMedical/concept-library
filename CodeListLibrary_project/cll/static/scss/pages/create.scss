@@ -467,12 +467,12 @@
 
   &--present-icon:after {
     content: '\f058';
-    color: col(text-dark);
+    color: col(accent-success);
   }
   
   &--absent-icon:after {
     content: '\f057';
-    color: col(text-dark);
+    color: col(accent-danger);
   }
 
   &--include-icon:after {

@@ -1,6 +1,6 @@
 from functools import cmp_to_key
 from ..models import GenericEntity, Template, Statistics, Brand
-from . import template_utils, constants, gen_utils
+from . import template_utils, constants, model_utils
 
 def sort_by_count(a, b):
     '''
@@ -174,10 +174,9 @@ def collect_statistics(request):
     to_update = [ ]
     to_create = [ ]
     for brand in Brand.objects.all():
-        collection_ids = template_utils.get_brand_collection_ids(brand.name)
         stats = collate_statistics(
-            all_entities.filter(collections__overlap=collection_ids),
-            published_entities.filter(collections__overlap=collection_ids),
+            all_entities.filter(brands__overlap=[brand.id]),
+            published_entities.filter(brands__overlap=[brand.id]),
             data_cache=cache
         )
 

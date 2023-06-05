@@ -27,7 +27,7 @@
     <div class="banner__container">
       <h2 class="banner__title">Reference Data</h2>
       <p class="banner__description">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.
+        Look up values for phenotype fields.
       </p>
       <div class="banner__cards">
         <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
@@ -37,7 +37,7 @@
               <a class="referral-card__title" href="{{ api_url }}">API Documentation<span class="referral-card__title-icon"></span></a>
             </div>
             <div class="referral-card__body">
-              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+              <p>View the API documentation.</p>
             </div>
           </article>
           {% url 'create_phenotype' as create_url %}
@@ -46,7 +46,7 @@
               <a class="referral-card__title" href="{{ create_url }}">Create a Phenotype<span class="referral-card__title-icon"></span></a>
             </div>
             <div class="referral-card__body">
-              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+              <p>Start here to contribute to the Library.</p>
             </div>
           </article>
           {% url 'search_phenotypes' as search_url %}
@@ -55,7 +55,7 @@
               <a class="referral-card__title" href="{{ search_url }}">Search Phenotypes<span class="referral-card__title-icon"></span></a>
             </div>
             <div class="referral-card__body">
-              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+              <p>Find Phenotypes within the Library.</p>
             </div>
           </article>
         </div>
@@ -73,7 +73,7 @@
             {% endif %}
           </data>
           <h3>Tags</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          <p>Optional keywords helping to categorize this content.</p>
           <div class="reference-collection__table-container" id="tags-area">
 
           </div>
@@ -85,7 +85,7 @@
             {% endif %}
           </data>
           <h3>Collections</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          <p>List of content collections this phenotype belongs to.</p>
           <div class="reference-collection__table-container" id="collections-area">
 
           </div>
@@ -97,7 +97,7 @@
             {% endif %}
           </data>
           <h3>Coding Systems</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          <p>Clinical coding system(s) that relate to Phenotypes.</p>
           <div class="reference-collection__table-container" id="coding-systems-area">
 
           </div>
@@ -109,7 +109,7 @@
             {% endif %}
           </data>
           <h3>Data Sources</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nisl amet aliquet at.</p>
+          <p>Data sources the phenotype creators have run this phenotype against; or view as appropriate to use this phenotype for.</p>
           <div class="reference-collection__table-container" id="data-sources-area">
 
           </div>

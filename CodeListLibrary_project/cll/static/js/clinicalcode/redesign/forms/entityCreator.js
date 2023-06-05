@@ -1,6 +1,7 @@
 import Tagify from '../components/tagify.js';
 import PublicationCreator from './clinical/publicationCreator.js';
 import ConceptCreator from './clinical/conceptCreator.js';
+import GroupedEnum from '../components/groupedEnumSelector.js';
 
 /**
  * ENTITY_OPTIONS
@@ -17,7 +18,13 @@ const ENTITY_OPTIONS = {
  * ENTITY_DATEPICKER_FORMAT
  * @desc Defines how the creator should format dates when producing form values
  */
-const ENTITY_DATEPICKER_FORMAT = 'YYYY-MM-DD';
+const ENTITY_DATEPICKER_FORMAT = 'YYYY/MM/DD';
+
+/**
+ * ENTITY_ACCEPTABLE_DATE_FORMAT
+ * @desc Defines acceptable date formats
+ */
+const ENTITY_ACCEPTABLE_DATE_FORMAT = ['DD-MM-YYYY', 'MM-DD-YYYY', 'YYYY-MM-DD'];
 
 /**
  * ENTITY_TOAST_MIN_DURATION
@@ -65,6 +72,29 @@ const ENTITY_TEXT_PROMPTS = {
  * 
  */
 const ENTITY_HANDLERS = {
+  // Generates a groupedenum component context
+  'groupedenum': (element) => {
+    const data = element.parentNode.querySelectorAll(`data[for="${element.getAttribute('data-field')}"]`);
+    
+    const packet = { };
+    for (let i = 0; i < data.length; ++i) {
+      let datafield = data[i];
+      if (!datafield.innerText.trim().length) {
+        continue;
+      }
+
+      let type = datafield.getAttribute('data-type');
+      try {
+        packet[type] = JSON.parse(datafield.innerText);
+      }
+      catch (e) {
+        console.warn(`Unable to parse datafield for GroupedEnum element with target field: ${datafield.getAttribute('for')}`);
+      }
+    }
+
+    return new GroupedEnum(element, packet);
+  },
+
   // Generates a tagify component for an element
   'tagify': (element) => {
     const data = element.parentNode.querySelectorAll(`data[for="${element.getAttribute('data-field')}"]`);
@@ -114,6 +144,33 @@ const ENTITY_HANDLERS = {
     return tagbox;
   },
 
+  // Handles data for daterange selectors
+  'daterange': (element) => {
+    const id = element.getAttribute('id');
+    const startDateInput = element.querySelector(`#${id}-startdate`);
+    const endDateInput = element.querySelector(`#${id}-enddate`);
+
+    if (isNullOrUndefined(startDateInput) || isNullOrUndefined(endDateInput)) {
+      return;
+    }
+
+    let value = element.getAttribute('data-value');
+    if (isNullOrUndefined(value)) {
+      return;
+    }
+
+    value = value.split(/[\.\,\-]/)
+      .map(date => moment(date.trim(), ENTITY_ACCEPTABLE_DATE_FORMAT))
+      .filter(date => date.isValid())
+      .slice(0, 2)
+      .sort((a, b) => a.diff(b))
+      .map(date => date.format('YYYY-MM-DD'));
+
+    const [start, end] = value;
+    startDateInput.setAttribute('value', start);
+    endDateInput.setAttribute('value', end);
+  },
+
   // Generates a datepicker (single or range) component for an element
   'datepicker': (element) => {
     const range = element.getAttribute('data-range');
@@ -150,18 +207,18 @@ const ENTITY_HANDLERS = {
     let value = element.getAttribute('data-value');
     if (range == 'true') {
       value = value.split(/[\.\,\-]/)
-                  .map(date => moment(date.trim(), ['DD-MM-YYYY', 'MM-DD-YYYY']))
+                  .map(date => moment(date.trim(), ENTITY_ACCEPTABLE_DATE_FORMAT))
                   .filter(date => date.isValid())
                   .slice(0, 2)
                   .sort((a, b) => -a.diff(b))
-                  .map(date => date.format(ENTITY_DATEPICKER_FORMAT));
+                  .map(date => date.format('YYYY-MM-DD'));
       
       const [start, end] = value;
       datepicker.setDateRange(end, start, true);
     } else {
-      value = moment(value, ['DD-MM-YYYY', 'MM-DD-YYYY']);
+      value = moment(value, ENTITY_ACCEPTABLE_DATE_FORMAT);
       value = value.isValid() ? value : moment();
-      value = value.format(ENTITY_DATEPICKER_FORMAT);
+      value = value.format('YYYY-MM-DD');
       datepicker.setDate(value, true);
     }
 
@@ -278,11 +335,11 @@ const ENTITY_FIELD_COLLECTOR = {
     const element = packet.element;
     const selected = element.options[element.selectedIndex];
     if (isMandatoryField(packet)) {
-      if (!element.checkValidity() || isNullOrUndefined(selected) || element.selectedIndex < 0) {
+      if (!element.checkValidity() || isNullOrUndefined(selected) || element.selectedIndex < 1) {
         return {
           valid: false,
           value: selected.value,
-          message: (isNullOrUndefined(selected) || element.selectedIndex < 0) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
+          message: (isNullOrUndefined(selected) || element.selectedIndex < 1) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
         }
       }
     }
@@ -361,6 +418,56 @@ const ENTITY_FIELD_COLLECTOR = {
     }
   },
 
+  // Retrieves and validates daterange selector components
+  'daterange': (field, packet) => {
+    const element = packet.element;
+    const id = element.getAttribute('id');
+    const startDateInput = element.querySelector(`#${id}-startdate`);
+    const endDateInput = element.querySelector(`#${id}-enddate`);
+    if (isNullOrUndefined(startDateInput) || isNullOrUndefined(endDateInput)) {
+      return {
+        valid: false,
+        value: null,
+      }
+    }
+
+    let dates = [moment(startDateInput.value, ['YYYY-MM-DD']), moment(endDateInput.value, ['YYYY-MM-DD'])]
+    dates = dates.sort((a, b) => a.diff(b));
+    
+    let [ startDate, endDate ] = dates.map(date => date.format(ENTITY_DATEPICKER_FORMAT));
+    let value = `${startDate} - ${endDate}`;
+    if (isMandatoryField(packet)) {
+      if (!startDateInput.checkValidity() || !endDateInput.checkValidity() || isNullOrUndefined(value) || isStringEmpty(value)) {
+        return {
+          valid: false,
+          value: value,
+          message: (isNullOrUndefined(value) || isStringEmpty(value)) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
+        }
+      }
+    }
+
+    if (isNullOrUndefined(value) || isStringEmpty(value)) {
+      return {
+        valid: true,
+        value: null,
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, value);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: value,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+
+    return {
+      valid: true,
+      value: parsedValue?.value
+    }
+  },
+
   // Retrieves and validates datepicker components
   'datepicker': (field, packet) => {
     const element = packet.element;
@@ -430,6 +537,36 @@ const ENTITY_FIELD_COLLECTOR = {
     return {
       valid: true,
       value: parsedValue?.value < 0 ? null : parsedValue?.value
+    }
+  },
+
+  // Retrieves and validates groupedenum compoonents
+  'groupedenum': (field, packet) => {
+    const handler = packet.handler;
+    const value = handler.getValue();
+
+    if (isMandatoryField(packet)) {
+      if (isNullOrUndefined(value)) {
+        return {
+          valid: false,
+          value: value,
+          message: ENTITY_TEXT_PROMPTS.REQUIRED_FIELD
+        }
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, value);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: value,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+    
+    return {
+      valid: true,
+      value: parsedValue?.value
     }
   },
 

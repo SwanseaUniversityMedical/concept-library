@@ -35,7 +35,9 @@ from .View import *
 from clinicalcode.api.views.View import get_canonical_path_by_brand
 from clinicalcode.constants import *
 
-from ..entity_utils import entity_db_utils, permission_utils, template_utils, gen_utils, model_utils, create_utils, stats_utils, search_utils, constants
+from ..entity_utils import (concept_utils, entity_db_utils, permission_utils,
+                            template_utils, gen_utils, model_utils, 
+                            create_utils, stats_utils, search_utils, constants)
 
 logger = logging.getLogger(__name__)
 
@@ -278,6 +280,8 @@ class CreateEntityView(TemplateView):
         '''
             @desc GET request made by client to retrieve all available
                   options for a given field within its template
+
+                  Atm, it is exclusively used to retrieve Coding Systems
         '''
         template_id = gen_utils.parse_int(gen_utils.try_get_param(request, 'template'), default=None)
         if not template_id:
@@ -292,9 +296,9 @@ class CreateEntityView(TemplateView):
             return gen_utils.jsonify_response(message='Invalid field parameter', code=400, status='false')
 
         if template_utils.is_metadata(GenericEntity, field):
-            options = template_utils.get_template_sourced_values(constants.metadata, field)
+            options = template_utils.get_template_sourced_values(constants.metadata, field, request=request)
         else:
-            options = template_utils.get_template_sourced_values(template, field)
+            options = template_utils.get_template_sourced_values(template, field, request=request)
         
         if options is None:
             return gen_utils.jsonify_response(message='Invalid field parameter, does not exist or is not an optional parameter', code=400, status='false')
@@ -1040,10 +1044,10 @@ def export_entity_codes_to_csv(request, pk, history_id=None):
         
         #     codes = codes_with_attributes
         
-        concept_data = model_utils.get_clinical_concept_data(concept_id,
+        concept_data = concept_utils.get_clinical_concept_data(concept_id,
                                                       concept_version_id,
-                                                      include_component_codes=False, 
-                                                      include_attributes=True, 
+                                                      include_component_codes=False,
+                                                      include_attributes=True,
                                                       include_reviewed_codes=True)
             
         # if the phenotype contains only one concept

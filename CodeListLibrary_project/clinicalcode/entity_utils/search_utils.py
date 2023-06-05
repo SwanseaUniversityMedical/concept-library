@@ -467,11 +467,7 @@ def try_get_template_statistics(field, brand='ALL', published=True, entity_type=
     if obj is None:
         return default
 
-    if published:
-        stats = template_utils.try_get_content(obj.stat, 'all')
-    else:
-        stats = template_utils.try_get_content(obj.stat, 'published')
-
+    stats = template_utils.try_get_content(obj.stat, 'published' if published else 'all')
     if stats is None:
         return default
 

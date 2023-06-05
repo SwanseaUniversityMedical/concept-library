@@ -3,6 +3,212 @@
 @import '../_media';
 @import '../_utils';
 
+/// Avatar content
+/// @desc ...
+.avatar-content {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #f7f7f7;
+  border-radius: 7px;
+  
+  svg {
+    @include prefix(transition, all 250ms ease-in, webkit moz o);
+    width: 35px;
+    height: 35px;
+    border-radius: 6px;
+    background: var(--item-icon-color);
+
+    path {
+      fill: var(--item-icon-color);
+      stroke: var(--stroke-icon);
+    }
+  }
+}
+
+/// Profile row
+/// @desc ...
+.profile-row {
+  z-index: 999;
+  background-color: white;
+  border-radius: 1em;
+  padding: 1.5em;
+  left: calc(5% - 10px);
+  margin: 0 5em 0 -5em;
+  position: absolute;
+  top: 0;
+  box-sizing: border-box;
+  -webkit-box-shadow: var(--dropdown-shadow);
+  box-shadow: var(--dropdown-shadow);
+
+  .content-container {
+    list-style: none;
+    .item-dropdown {
+      display: flex;
+      justify-content: flex-start;
+      padding: 0.5em 0;
+      margin: 0 22px;
+      text-decoration: none;
+      flex-direction: row;
+
+      &__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        margin-right: 16px;
+        border-radius: 1em;
+        border-radius: 6px;
+        background: var(--phenotype-banner-bg-color);
+        @include prefix(transition, all 250ms ease-in, webkit moz o);
+
+        
+
+        img {
+          object-fit: cover;
+          width: 70%;
+          object-position: left;
+          height: 55%;
+        }
+      }
+
+      &__text {
+        @include prefix(transition, all 250ms ease-in, webkit moz o);
+        flex-grow: 1;
+      }
+
+      &__title {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        line-height: 14px;
+        font-weight: 500;
+      }
+
+      &__description {
+        word-break: break-word;
+        color: #6e6d7a;
+        line-height: 16px;
+        font-size: 12px;
+        font-weight: 400;
+      }
+    }
+  }
+
+  hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    margin-right: 1.5em;
+    margin-left: 1.5em;
+    background: #e7e7e9;
+  }
+
+  #admin_icon {
+    svg {
+      path {
+        fill: var(--item-icon-color);
+        stroke: var(--stroke-icon);
+      }
+    }
+  }
+}
+
+/// About row
+/// @desc ...
+.about-row {
+  @include grid-template(false, 2, 1fr);
+  background-color: white;
+  border-radius: 1em;
+  padding: 1.5em;
+  margin: 0 5em 0 -5em;
+  position: absolute;
+  top: 0;
+  box-sizing: border-box;
+  -webkit-box-shadow: var(--dropdown-shadow);
+  box-shadow: var(--dropdown-shadow);
+
+  .content-container {
+    list-style: none;
+    
+    &__full {
+      grid-column: 1 / span 2;
+      list-style: none;
+
+      a {
+        background-image: none;
+      }
+    }
+  }
+
+  .item-dropdown {
+    display: flex;
+    justify-content: flex-start;
+    padding: 0.5em 0;
+    margin: 0 22px;
+    text-decoration: none;
+    flex-direction: row;
+
+    &__icon {
+      @include prefix(transition, all 250ms ease-in, webkit moz o);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--icon-width);
+      height: var(--icon-height);
+      margin-right: 16px;
+      border-radius: 6px;
+      background: var(--icon-background-color);
+
+      svg {
+        path {
+          fill: var(--item-icon-color);
+          stroke: var(--stroke-icon);
+        }
+      }
+    }
+
+    &__text {
+      @include prefix(transition, all 250ms ease-in, webkit moz o);
+      flex-grow: 1;
+    }
+
+    &__title {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      line-height: 14px;
+      font-weight: 500;
+    }
+
+    &__dropdownlink{
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      line-height: 14px;
+      font-weight: 500;
+    }
+
+    &__description {
+      word-break: break-word;
+      color: var(--description-text-color);
+      line-height: 16px;
+      font-size: 12px;
+      font-weight: 400;
+    }
+  }
+
+  hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    margin-right: 1.5em;
+    margin-left: 1.5em;
+    background: #e7e7e9;
+  }
+}
+
+
 /// Navigation bar
 ///   @desc Used exclusively by navigation.html to present a fixed navigation bar
 ///         Handles both mobile and desktop interfaces

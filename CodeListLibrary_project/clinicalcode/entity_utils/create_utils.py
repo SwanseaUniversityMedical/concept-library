@@ -12,10 +12,12 @@ from ..models.Concept import Concept
 from ..models.Component import Component
 from ..models.CodeList import CodeList
 from ..models.Code import Code
+from ..models.Tag import Tag
 from . import gen_utils
 from . import model_utils
 from . import permission_utils
 from . import template_utils
+from . import concept_utils
 from . import constants
 
 def try_validate_entity(request, entity_id, entity_history_id):
@@ -43,7 +45,7 @@ def get_createable_entities(request):
         'templates': list(templates)
     }
 
-def get_template_creation_data(entity, layout, field, default=[]):
+def get_template_creation_data(request, entity, layout, field, default=[]):
     '''
         Used to retrieve assoc. data values for specific keys, e.g.
         concepts, in its expanded format for use with create/update pages
@@ -67,10 +69,11 @@ def get_template_creation_data(entity, layout, field, default=[]):
     if field_type == 'concept':
         values = []
         for item in data:
-            value = model_utils.get_clinical_concept_data(
+            value = concept_utils.get_clinical_concept_data(
                 item['concept_id'],
                 item['concept_version_id'],
-                aggregate_component_codes=True
+                aggregate_component_codes=True,
+                derive_access_from=request
             )
 
             if value:
@@ -99,7 +102,7 @@ def try_add_computed_fields(field, form_data, form_template, data):
     field_type = template_utils.try_get_content(validation, 'type')
     if field_type == 'concept':
         # Derive the coding systems of each child Concept
-        output = [ ]
+        output = set([])
         for concept in form_data[field]:
             details = concept.get('details')
             if details is None:
@@ -108,10 +111,10 @@ def try_add_computed_fields(field, form_data, form_template, data):
             coding_system = details.get('coding_system')
             if coding_system is None:
                 continue
-            output.append(coding_system)
-        data['coding_system'] = output
+            output.add(coding_system)
+        data['coding_system'] = list(output)
 
-def try_validate_sourced_value(template, data, default=None):
+def try_validate_sourced_value(field, template, data, default=None, request=None):
     '''
         Validates the query param based on its field type as defined by the template or metadata
         by examining its source and its current datatype
@@ -133,7 +136,8 @@ def try_validate_sourced_value(template, data, default=None):
                     }
 
                 if 'filter' in source_info:
-                    query = query | source_info['filter']
+                    filter_query = template_utils.try_get_filter_query(field, source_info.get('filter'), request=request)
+                    query = {**query, **filter_query}
                 
                 queryset = model.objects.filter(Q(**query))
                 queryset = list(queryset.values_list('id', flat=True))
@@ -352,11 +356,6 @@ def validate_concept_form(form, errors):
     if is_new_concept and (concept_components is None or not isinstance(concept_components, list)):
         errors.append(f'Invalid concept with ID {concept_id} - components is a non-nullable list field.')
         return None
-    
-    if not is_new_concept:
-        field_value['concept']['is_new'] = is_new_concept
-        field_value['concept']['is_dirty'] = False
-        return field_value
 
     components = [ ]
     for concept_component in concept_components:
@@ -509,7 +508,7 @@ def validate_metadata_value(request, field, value, errors=[]):
     field_type = template_utils.try_get_content(validation, 'type')
     if 'source' in validation or 'options' in validation:
         field_value = gen_utils.try_value_as_type(value, field_type, validation)
-        field_value = try_validate_sourced_value(field_data, field_value)
+        field_value = try_validate_sourced_value(field, field_data, field_value, request=request)
         if field_value is None and field_required:
             errors.append(f'"{field}" is invalid')
             return field_value, False
@@ -552,7 +551,7 @@ def validate_template_value(request, field, form_template, value, errors=[]):
     field_type = template_utils.try_get_content(validation, 'type')
     if 'source' in validation or 'options' in validation:
         field_value = gen_utils.try_value_as_type(value, field_type, validation)
-        field_value = try_validate_sourced_value(field_data, field_value)
+        field_value = try_validate_sourced_value(field, field_data, field_value, request=request)
         if field_value is None and field_required:
             errors.append(f'"{field}" is invalid')
             return field_value, False
@@ -684,8 +683,9 @@ def try_update_concept(request, item, entity=None):
     
     req_component_ids = set([obj.get('id') for obj in components_data if not obj.get('is_new')])
     prev_component_ids = set(list(concept.component_set.all().values_list('id', flat=True)))
-    
+
     removed_components = list(set(prev_component_ids) - set(req_component_ids))
+
     for component_id in removed_components:
         component = model_utils.try_get_instance(Component, pk=component_id)
         if component is None:
@@ -870,6 +870,35 @@ def build_related_entities(request, field_data, packet, override_dirty=False, en
 
     return False, None
 
+def compute_brand_context(request, form_data):
+    '''
+        Computes the brand context given the metadata of an entity,
+        where brand is computed by the RequestContext's brand and its
+        given collections
+    '''
+    related_brands = set([])
+
+    brand = model_utils.try_get_brand(request)
+    if brand:
+        related_brands.add(brand.id)
+    
+    metadata = form_data.get('metadata')
+    if not metadata:
+        return list(related_brands)
+    
+    collections = metadata.get('collections')
+    if isinstance(collections, list):
+        for collection_id in collections:
+            collection = Tag.objects.filter(id=collection_id)
+            if not collection.exists():
+                continue
+            
+            brand = collection.first().collection_brand
+            if brand is None:
+                continue
+            related_brands.add(brand.id)
+    return list(related_brands)
+
 @transaction.atomic
 def create_or_update_entity_from_form(request, form, errors=[], override_dirty=False):
     '''
@@ -888,7 +917,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
     user = request.user
     if user is None:
         return
-
+    
     form_method = form.get('method')
     form_template = form.get('template')
     form_data = form.get('data')
@@ -923,6 +952,10 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
             return
         form_entity = entity
     
+    # Build related brand instances
+    related_brands = compute_brand_context(request, form_data)
+
+    # Atomically create the instance and its children
     try:
         with transaction.atomic():
             # Build any validated children
@@ -965,7 +998,9 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                     template=template_instance,
                     template_version=form_template.template_version,
                     template_data=template_data,
-                    created_by=user
+                    created_by=user,
+                    brands=related_brands,
+                    owner=user
                 )
                 entity.save()
             elif form_method == constants.FORM_METHODS.UPDATE:
@@ -989,6 +1024,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                 entity.updated = make_aware(datetime.now())
                 entity.publish_status = constants.APPROVAL_STATUS.ANY
                 entity.updated_by = user
+                entity.brands = related_brands
                 entity.save()
 
             # Update child related entities with entity object    
@@ -997,6 +1033,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                 instances = group.get('entities')
                 for instance in instances:
                     setattr(instance, field, entity)
+                    instance.save()
             return entity.history.latest()
     except IntegrityError:
         errors.append('Data integrity error when submitting form')

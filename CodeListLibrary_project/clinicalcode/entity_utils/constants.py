@@ -1,3 +1,4 @@
+from django.http.request import HttpRequest
 from django.contrib.auth.models import User, Group
 
 import enum
@@ -214,6 +215,59 @@ ENTITY_LIST_API_HIDDEN_FIELDS = [
 ]
 
 '''
+    ENTITY_FILTER_PARAMS
+
+    @desc Used to define:
+        - Filter types within the 'filter' field of a datatype to det. how to handle
+          specific parameters e.g. 'source_by_brand' which filters objects by brand type
+    
+    @building Additional filters should be built such that:
+        
+        [key]: The name of the filter within the .filters property
+            
+            [filter]: {string} The name of the filter method within the DataTypeFilter found in filter_utils
+            
+            [properties]: {dict/null} Any additional params/properties to be passed
+                          as args (global, not field specific)
+            
+            [field_properties] {dict/null}: Params/Properties to be passed to the filter method
+                                            based on which field was used to access the filter
+            
+                [field_name]: {dict} The field_name/properties to be passed as kwargs
+            
+            [expected_params]: {dict}: The params expected by this method when attempting to generate
+                                       filters 
+'''
+ENTITY_FILTER_PARAMS = {
+    # the name of the filter found within a field's 'filter' key-value pair in its template/the metadata
+    'source_by_brand': {
+        # name of the filter to use within DataTypeFilters
+        'filter': 'brand_filter',
+
+        # e.g. some props if needed (this key can be removed but here for example usage)
+        'properties': {
+            
+        },
+
+        # how to generate the filter based on the field name
+        'field_properties': {
+            'tags': {
+                'column_name': 'collection_brand'
+            },
+            'collections': {
+                'column_name': 'collection_brand'
+            }
+        },
+
+        # what params the fn needs to execute
+        'expected_params': {
+            'request': HttpRequest,
+            'column_name': str
+        }
+    }
+}
+
+'''
     [!] Note: Will be moved to a table once tooling is finished, accessible through the 'base_template_version'
 
     Used to define:
@@ -221,24 +275,40 @@ ENTITY_LIST_API_HIDDEN_FIELDS = [
         - By filter to determine metadata-related filters
 '''
 metadata = {
-    "template": {
-        "title": "Type",
-        "field_type": "???",
-        "active": True,
-        "validation": {
-            "type": "int",
-            "mandatory": True,
-            "computed": True,
-            "source": {
-                "table": "Template",
-                "query": "id",
-                "relative": "name"
+    'template': {
+        'title': 'Type',
+        'field_type': '???',
+        'active': True,
+        'validation': {
+            'type': 'int',
+            'mandatory': True,
+            'computed': True,
+            'source': {
+                'table': 'Template',
+                'query': 'id',
+                'relative': 'name'
             }
         },
-        "search": {
-            "filterable": True,
-            "single_search_only": True,
+        'search': {
+            'filterable': True,
+            'single_search_only': True,
         }
+    },
+    'brand': {
+        'title': 'Brand',
+        'description': 'The brand that this Phenotype is related to.',
+        'field_type': '???',
+        'active': True,
+        'validation': {
+            'type': 'int_array',
+            'mandatory': False,
+            'computed': True,
+            'source': {
+                'table': 'Brand',
+                'query': 'id',
+                'relative': 'name',
+            }
+        },
     },
     "name": {
         "title": "Name",
@@ -249,7 +319,7 @@ metadata = {
             "type": "string",
             "mandatory": True
         },
-        "is_base_field": True
+        'is_base_field': True
     },
     "definition": {
         "title": "Definition",
@@ -260,7 +330,7 @@ metadata = {
             "type": "string",
             "mandatory": False
         },
-        "is_base_field": True
+        'is_base_field': True
     },
     "implementation": {
         "title": "Implementation",
@@ -271,7 +341,7 @@ metadata = {
             "type": "string",
             "mandatory": False
         },
-        "is_base_field": True
+        'is_base_field': True
     },
     "publications": {
         "title": "Publications",
@@ -282,17 +352,17 @@ metadata = {
             "type": "publication",
             "mandatory": False
         },
-        "is_base_field": True
+        'is_base_field': True
     },
-    "validation": {
-        "title": "Validation",
-        "field_type": "textarea_markdown",
-        "active": True,
-        "validation": {
-            "type": "string",
-            "mandatory": False
+    'validation': {
+        'title': 'Validation',
+        'field_type': 'textarea_markdown',
+        'active': True,
+        'validation': {
+            'type': 'string',
+            'mandatory': False
         },
-        "is_base_field": True
+        'is_base_field': True
     },
     "citation_requirements": {
         "title": "Citation Requirements",
@@ -303,22 +373,22 @@ metadata = {
             "type": "string",
             "mandatory": False
         },
-        "is_base_field": True
+        'is_base_field': True
     },
-    "created": {
-        "title": "Date",
-        "field_type": "???",
-        "active": True,
-        "validation": {
-            "type": "datetime",
-            "mandatory": True,
-            "computed": True
+    'created': {
+        'title': 'Date',
+        'field_type': '???',
+        'active': True,
+        'validation': {
+            'type': 'datetime',
+            'mandatory': True,
+            'computed': True
         },
-        "search": {
-            "filterable": True
+        'search': {
+            'filterable': True
         },
-        "hide_on_create": True,
-        "is_base_field": True
+        'hide_on_create': True,
+        'is_base_field': True
     },
     "author": {
         "title": "Author",
@@ -329,7 +399,7 @@ metadata = {
             "type": "string",
             "mandatory": True
         },
-        "is_base_field": True
+        'is_base_field': True
     },
     "collections": {
         "title": "Collections",
@@ -349,11 +419,11 @@ metadata = {
                 }
             }
         },
-        "search": {
-            "filterable": True,
-            "api": True
+        'search': {
+            'filterable': True,
+            'api': True
         },
-        "is_base_field": True
+        'is_base_field': True
     },
     "tags": {
         "title": "Tags",
@@ -373,11 +443,11 @@ metadata = {
                 }
             }
         },
-        "search": {
-            "filterable": True,
-            "api": True
+        'search': {
+            'filterable': True,
+            'api': True
         },
-        "is_base_field": True
+        'is_base_field': True
     },
     "group": {
         "title": "Group",
@@ -389,7 +459,7 @@ metadata = {
             "mandatory": False,
             "computed": True
         },
-        "is_base_field": True
+        'is_base_field': True
     },
     "group_access": {
         "title": "Group Access",
@@ -401,7 +471,7 @@ metadata = {
             "mandatory": True,
             "range": [1, 3]
         },
-        "is_base_field": True
+        'is_base_field': True
     },
     "world_access": {
         "title": "World Access",
@@ -413,53 +483,52 @@ metadata = {
             "mandatory": True,
             "range": [1, 3]
         },
-        "is_base_field": True
+        'is_base_field': True
     },
-    "updated": {
-        "title": "Updated",
-        "field_type": "???",
-        "active": True,
-        "validation": {
-            "type": "datetime",
-            "mandatory": True,
-            "computed": True
+    'updated': {
+        'title': 'Updated',
+        'field_type': '???',
+        'active': True,
+        'validation': {
+            'type': 'datetime',
+            'mandatory': True,
+            'computed': True
         },
-        "hide_on_create": True,
-        "is_base_field": True
+        'hide_on_create': True,
+        'is_base_field': True
     },
-    "created_by": {
-        "title": "Created By",
-        "field_type": "???",
-        "active": True,
-        "requires_auth": True,
-        "validation": {
-            "type": "int", 
-            "mandatory": True,
-            "computed": True
+    'created_by': {
+        'title': 'Created By',
+        'field_type': '???',
+        'active': True,
+        'requires_auth': True,
+        'validation': {
+            'type': 'int', 
+            'mandatory': True,
+            'computed': True
         },
-        "hide_on_create": True,
-        "is_base_field": True
+        'hide_on_create': True,
+        'is_base_field': True
     },
-    "updated_by": {
-        "title": "Updated By",
-        "field_type": "???",
-        "active": True,
-        "requires_auth": True,
-        "validation": {
-            "type": "int", 
-            "mandatory": True,
-            "computed": True
+    'updated_by': {
+        'title': 'Updated By',
+        'field_type': '???',
+        'active': True,
+        'requires_auth': True,
+        'validation': {
+            'type': 'int', 
+            'mandatory': True,
+            'computed': True
         },
-        "hide_on_create": True,
-        "is_base_field": True
+        'hide_on_create': True,
+        'is_base_field': True
     },
-    "id": {
-        "title": "ID",
-        "field_type": "id",
-        "active": True,
-        "hide_on_create": True
+    'id': {
+        'title': 'ID',
+        'field_type': 'id',
+        'active': True,
+        'hide_on_create': True
     },
-
 }
 
 '''
@@ -467,155 +536,159 @@ metadata = {
     through components and modifiers
 '''
 FIELD_TYPES = {
-    "int": {
-        "data_type": "int",
-        "input_type": "inputbox",
-        "output_type": "inputbox"
+    'int': {
+        'data_type': 'int',
+        'input_type': 'inputbox',
+        'output_type': 'inputbox'
     },
-    "date": {
-        "data_type": "date",
-        "input_type": "datepicker",
-        "output_type": "datepicker"
+    'date': {
+        'data_type': 'date',
+        'input_type': 'datepicker',
+        'output_type': 'datepicker'
     },
-    "daterange": {
-        "data_type": "date",
-        "input_type": "datepicker_range",
-        "output_type": "datepicker_range"
+    'daterange': {
+        'data_type': 'date',
+        'input_type': 'daterange_selector',
+        'output_type': 'datepicker_range'
     },
-    "string_inputbox": {
-        "data_type": "string",
-        "input_type": "inputbox",
-        "output_type": "inputbox",
-        "max_length": 250
+    'string_inputbox': {
+        'data_type': 'string',
+        'input_type': 'inputbox',
+        'output_type': 'inputbox',
+        'max_length': 250
     },
-    "string_inputbox_code": {
-        "data_type": "string",
-        "input_type": "inputbox",
-        "output_type": "inputbox",
-        "max_length": 250,
-        "apply_code_style": True
+    'string_inputbox_code': {
+        'data_type': 'string',
+        'input_type': 'inputbox',
+        'output_type': 'inputbox',
+        'max_length': 250,
+        'apply_code_style': True
     },
-    "textarea": {
-        "data_type": "string",
-        "input_type": "textarea",
-        "output_type": "textarea",
-        "rows": 5
+    'textarea': {
+        'data_type': 'string',
+        'input_type': 'textarea',
+        'output_type': 'textarea',
+        'rows': 5
     },
-    "textarea_markdown": {
-        "data_type": "string",
-        "input_type": "markdown",
-        "output_type": "markdown",
-        "rows": 5,
-        "display": "markdown"
+    'textarea_markdown': {
+        'data_type': 'string',
+        'input_type': 'markdown',
+        'output_type': 'markdown',
+        'rows': 5,
+        'display': 'markdown'
     },
-    "string_list_of_inputboxes": {
-        "data_type": "string",
-        "max_length": 250
+    'string_list_of_inputboxes': {
+        'data_type': 'string',
+        'max_length': 250
     },
-    "string_list_of_inputboxes_markdown": {
-        "data_type": "string",
-        "input_type": "list_of_inputboxes",
-        "output_type": "list_of_inputboxes",
-        "max_length": 250,
-        "display": "markdown"
-    },
-
-    "enum": {
-        "data_type": "int",
-        "input_type": "dropdown-list",
-        "output_type": "dropdown-list",
-        "use_permitted_values": True
+    'string_list_of_inputboxes_markdown': {
+        'data_type': 'string',
+        'input_type': 'list_of_inputboxes',
+        'output_type': 'list_of_inputboxes',
+        'max_length': 250,
+        'display': 'markdown'
     },
 
-    "enum_radio_badge": {
-        "data_type": "int",
-        "input_type": "radiobutton",
-        "output_type": "radiobutton",
-        "use_permitted_values": True,
-        "apply_badge_style": True
+    'enum': {
+        'data_type': 'int',
+        'input_type': 'dropdown-list',
+        'output_type': 'dropdown-list',
+        'use_permitted_values': True
     },
 
-    "enum_dropdown_badge": {
-        "data_type": "int",
-        "input_type": "dropdown",
-        "output_type": "dropdown",
-        "use_permitted_values": True,
-        "apply_badge_style": True
+    'grouped_enum': {
+        'data_type': 'int',
+        'input_type': 'grouped_enum',
+        'output_type': 'radiobutton',
+        'use_permitted_values': True,
+        'apply_badge_style': True
     },
 
-    "concept_information": {
-        "system_defined": True,
-        "description": "json of concept ids/ver used in phenotype (managed by code snippet)",
-        "input_type": "clinical/concept",
-        "output_type": "phenotype_clinical_code_lists"
-    },
-    "publications": {
-        "input_type": "clinical/publication",
-        "output_type": "clinical/publication",
-    },
-    "coding_system": {
-        "system_defined": True,
-        "description": "list of coding system ids (calculated from phenotype concepts) (managed by code snippet)",
-        "input_type": "tagbox",
-        "output_type": "tagbox"
-    },
-    "tags": {
-        "system_defined": True,
-        "description": "list of tags ids (managed by code snippet)",
-        "input_type": "tagbox",
-        "output_type": "tagbox"
-    },
-    "collections": {
-        "system_defined": True,
-        "description": "list of collections ids (managed by code snippet)",
-        "input_type": "tagbox",
-        "output_type": "tagbox"
-    },
-    "data_sources": {
-        "system_defined": True,
-        "description": "list of data_sources ids (managed by code snippet)",
-        "input_type": "tagbox",
-        "output_type": "data_source"
-    },
-    "phenoflowid": {
-        "system_defined": True,
-        "description": "URL for phenoflow (managed by code snippet)",
-        "input_type": "phenoflowid",
-        "output_type": "phenoflowid",
+    'enum_radio_badge': {
+        'data_type': 'int',
+        'input_type': 'radiobutton',
+        'output_type': 'radiobutton',
+        'use_permitted_values': True,
+        'apply_badge_style': True
     },
 
-    "group_field": {
-        "input_type": "group_select",
-    },
-    "access_field": {
-        "input_type": "access_select",
-    },
-    "access_field_editable": {
-        "input_type": "access_select_editable",
+    'enum_dropdown_badge': {
+        'data_type': 'int',
+        'input_type': 'dropdown',
+        'output_type': 'dropdown',
+        'use_permitted_values': True,
+        'apply_badge_style': True
     },
 
-    "permissions_section":{
-        "system_defined": True,
-        "output_type": "permissions"
+    'concept_information': {
+        'system_defined': True,
+        'description': 'json of concept ids/ver used in phenotype (managed by code snippet)',
+        'input_type': 'clinical/concept',
+        'output_type': 'phenotype_clinical_code_lists'
     },
-    "api_section": {
-        "system_defined": True,
-        "output_type": "api"
+    'publications': {
+        'input_type': 'clinical/publication',
+        'output_type': 'clinical/publication',
     },
-    "version_history_section": {
-        "system_defined": True,
-        "output_type": "version_history"
+    'coding_system': {
+        'system_defined': True,
+        'description': 'list of coding system ids (calculated from phenotype concepts) (managed by code snippet)',
+        'input_type': 'tagbox',
+        'output_type': 'tagbox'
     },
-    "id": {
-        "system_defined": True,
-        "output_type": "id"
+    'tags': {
+        'system_defined': True,
+        'description': 'list of tags ids (managed by code snippet)',
+        'input_type': 'tagbox',
+        'output_type': 'tagbox'
     },
-    "history_id": {
-        "system_defined": True,
-        "output_type": "history_id"
+    'collections': {
+        'system_defined': True,
+        'description': 'list of collections ids (managed by code snippet)',
+        'input_type': 'tagbox',
+        'output_type': 'tagbox'
+    },
+    'data_sources': {
+        'system_defined': True,
+        'description': 'list of data_sources ids (managed by code snippet)',
+        'input_type': 'tagbox',
+        'output_type': 'data_source'
+    },
+    'phenoflowid': {
+        'system_defined': True,
+        'description': 'URL for phenoflow (managed by code snippet)',
+        'input_type': 'inputbox',
+        'output_type': 'phenoflowid',
+    },
+
+    'group_field': {
+        'input_type': 'group_select',
+    },
+    'access_field': {
+        'input_type': 'access_select',
+    },
+    'access_field_editable': {
+        'input_type': 'access_select_editable',
+    },
+
+    'permissions_section':{
+        'system_defined': True,
+        'output_type': 'permissions'
+    },
+    'api_section': {
+        'system_defined': True,
+        'output_type': 'api'
+    },
+    'version_history_section': {
+        'system_defined': True,
+        'output_type': 'version_history'
+    },
+    'id': {
+        'system_defined': True,
+        'output_type': 'id'
+    },
+    'history_id': {
+        'system_defined': True,
+        'output_type': 'history_id'
     }
 }
-
-#####################################
-
-

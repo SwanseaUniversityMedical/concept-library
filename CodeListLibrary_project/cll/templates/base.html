@@ -129,40 +129,10 @@
 								>Home</a>
 							</li>
 						{% endif %}
-												
-						{% if request.BRAND_OBJECT.allowed_tabs is none or 'phenotypes' in request.BRAND_OBJECT.allowed_tabs %}																	
-							<li id="phenotype_li">
-								<a id="phenotype_a" class="main_menu nav-bar-title"  href="{% url 'phenotype_list' %}">Phenotypes</a>
-							</li>
-						{% endif %}
-						
-						{% if request.BRAND_OBJECT.allowed_tabs is none or 'concepts' in request.BRAND_OBJECT.allowed_tabs %}					
-							<li id="concept_li" >
-								<a id="concept_a"  class="main_menu nav-bar-title" href="{% url 'concept_list' %}">Concepts</a>
-							</li>	
-						{% endif %}				
-
-						{% if user.is_authenticated %}					
-							{% if request.BRAND_OBJECT.allowed_tabs is none or 'workingsets' in request.BRAND_OBJECT.allowed_tabs %}					
-								<li id="workingset_li"  >
-									<a id="workingset_a" class="main_menu nav-bar-title" href="{% url 'workingset_list' %}">Working Sets</a>
-								</li>	
-							{% endif %}		
-						{% endif %}		
-
-						{% if user.is_authenticated %}
-							{% if IS_DEMO or IS_DEVELOPMENT_PC %}					
-								{% if request.BRAND_OBJECT.allowed_tabs is none or 'phenotypeworkingsets' in request.BRAND_OBJECT.allowed_tabs %}					
-									<li id="phenotypeworkingsets_li"  >
-										<a id="phenotypeworkingsets_a" class="main_menu nav-bar-title" href="{% url 'phenotypeworkingsets_list' %}">Phenotype Working Sets</a>
-									</li>	
-								{% endif %}		
-							{% endif %}		
-						{% endif %}	
 						
 						{% if IS_DEMO or IS_DEVELOPMENT_PC %}					
 							<li id="generic_entity_li"  >
-								<a id="generic_entity_a" class="main_menu nav-bar-title" href="{% url 'search_phenotypes' %}">Search</a>
+								<a id="generic_entity_a" class="main_menu nav-bar-title" href="{% url 'search_phenotypes' %}">Phenotypes</a>
 							</li>	
 						{% endif %}		
 							
