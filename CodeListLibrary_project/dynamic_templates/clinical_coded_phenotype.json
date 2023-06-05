@@ -171,7 +171,7 @@
     "sex": {
       "title": "Sex",
       "description": "Biological sex this phenotype is applicable to.",
-      "field_type": "enum_radio_badge",
+      "field_type": "grouped_enum",
       "active": true,
       "validation": {
         "type": "enum",
