@@ -51,7 +51,7 @@ class EntityDecline(LoginRequiredMixin, permission_utils.HasAccessToViewGenericE
 
                     data = publish_utils.form_validation(request, data, history_id, pk, entity, checks)
         except Exception as e:
-            print(e)
+            #print(e)
             data['form_is_valid'] = False
             data['message'] = render_to_string('clinicalcode/error.html', {}, self.request)
 
