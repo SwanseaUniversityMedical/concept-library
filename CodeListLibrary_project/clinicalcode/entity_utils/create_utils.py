@@ -102,7 +102,7 @@ def try_add_computed_fields(field, form_data, form_template, data):
     field_type = template_utils.try_get_content(validation, 'type')
     if field_type == 'concept':
         # Derive the coding systems of each child Concept
-        output = [ ]
+        output = set([])
         for concept in form_data[field]:
             details = concept.get('details')
             if details is None:
@@ -111,8 +111,8 @@ def try_add_computed_fields(field, form_data, form_template, data):
             coding_system = details.get('coding_system')
             if coding_system is None:
                 continue
-            output.append(coding_system)
-        data['coding_system'] = output
+            output.add(coding_system)
+        data['coding_system'] = list(output)
 
 def try_validate_sourced_value(field, template, data, default=None, request=None):
     '''
@@ -999,7 +999,8 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                     template_version=form_template.template_version,
                     template_data=template_data,
                     created_by=user,
-                    brands=related_brands
+                    brands=related_brands,
+                    owner=user
                 )
                 entity.save()
             elif form_method == constants.FORM_METHODS.UPDATE:
@@ -1032,6 +1033,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                 instances = group.get('entities')
                 for instance in instances:
                     setattr(instance, field, entity)
+                    instance.save()
             return entity.history.latest()
     except IntegrityError:
         errors.append('Data integrity error when submitting form')

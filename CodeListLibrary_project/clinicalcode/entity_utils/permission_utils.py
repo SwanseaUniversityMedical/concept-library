@@ -254,7 +254,7 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
   #   if status is not None and status in [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING]:
   #     is_allowed_to_edit = True
   
-  if live_entity.owner == user:
+  if live_entity.owner == user or live_entity.created_by == user:
     is_allowed_to_edit = True
   
   if has_member_access(user, live_entity, [GROUP_PERMISSIONS.EDIT]):
@@ -320,7 +320,7 @@ def user_can_edit_via_entity(request, concept):
   '''
   entity = concept.phenotype_owner
   if entity is None:
-    return True
+    return False
   
   return can_user_edit_entity(request, entity)
 

@@ -335,11 +335,11 @@ const ENTITY_FIELD_COLLECTOR = {
     const element = packet.element;
     const selected = element.options[element.selectedIndex];
     if (isMandatoryField(packet)) {
-      if (!element.checkValidity() || isNullOrUndefined(selected) || element.selectedIndex < 0) {
+      if (!element.checkValidity() || isNullOrUndefined(selected) || element.selectedIndex < 1) {
         return {
           valid: false,
           value: selected.value,
-          message: (isNullOrUndefined(selected) || element.selectedIndex < 0) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
+          message: (isNullOrUndefined(selected) || element.selectedIndex < 1) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
         }
       }
     }
@@ -431,8 +431,10 @@ const ENTITY_FIELD_COLLECTOR = {
       }
     }
 
-    let startDate = moment(startDateInput.value, ['YYYY-MM-DD']).format(ENTITY_DATEPICKER_FORMAT);
-    let endDate = moment(endDateInput.value, ['YYYY-MM-DD']).format(ENTITY_DATEPICKER_FORMAT);
+    let dates = [moment(startDateInput.value, ['YYYY-MM-DD']), moment(endDateInput.value, ['YYYY-MM-DD'])]
+    dates = dates.sort((a, b) => a.diff(b));
+    
+    let [ startDate, endDate ] = dates.map(date => date.format(ENTITY_DATEPICKER_FORMAT));
     let value = `${startDate} - ${endDate}`;
     if (isMandatoryField(packet)) {
       if (!startDateInput.checkValidity() || !endDateInput.checkValidity() || isNullOrUndefined(value) || isStringEmpty(value)) {

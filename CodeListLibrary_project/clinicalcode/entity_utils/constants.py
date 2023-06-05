@@ -309,9 +309,6 @@ metadata = {
                 'relative': 'name',
             }
         },
-        'search': {
-            'filterable': False
-        },
     },
     'name': {
         'title': 'Name',
