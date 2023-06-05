@@ -525,17 +525,25 @@ const parseDOI = (value) => {
 }
 
 /**
- * isArrayEqual
- * @desc det. whether an array is eq
- * @param {array} a an array
- * @param {array} b an array
- * @param {boolean} shouldSort whether to sort both arrays first
- * @returns {boolean} that refelects __eq state
+ * waitForElement
+ *  
+ * @desc waits for an element to exist based on selector parameter
+ * @param {string} selector the string to match 
+ * @returns {promise} promise that resolves with the given element
  */
-const isArrayEqual = (a, b, shouldSort = true) => {
-  if (shouldSort) {
-    a.sort();
-    b.sort();
-  }
-  return a.length == b.length && a.every((ti, i) => { return ti == b[i]; });
+const waitForElement = (selector) => {
+  return new Promise(resolve => {
+    if (document.querySelector(selector)) {
+      return resolve(document.querySelector(selector));
+    }
+
+    const observer = new MutationObserver(_ => {
+      if (document.querySelector(selector)) {
+        observer.disconnect();
+        resolve(document.querySelector(selector));
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+  });
 }

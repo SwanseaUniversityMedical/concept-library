@@ -294,63 +294,47 @@ metadata = {
             'single_search_only': True,
         }
     },
-    'brand': {
-        'title': 'Brand',
-        'description': 'The brand that this Phenotype is related to.',
-        'field_type': '???',
-        'active': True,
-        'validation': {
-            'type': 'int_array',
-            'mandatory': False,
-            'computed': True,
-            'source': {
-                'table': 'Brand',
-                'query': 'id',
-                'relative': 'name',
-            }
-        },
-    },
-    'name': {
-        'title': 'Name',
-        'description': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-        'field_type': 'string_inputbox',
-        'active': True,
-        'validation': {
-            'type': 'string',
-            'mandatory': True
+    "name": {
+        "title": "Name",
+        "description": "Unsurprisingly, the name of the phenotype.",
+        "field_type": "string_inputbox",
+        "active": True,
+        "validation": {
+            "type": "string",
+            "mandatory": True
         },
         'is_base_field': True
     },
-    'definition': {
-        'title': 'Definition',
-        'description': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-        'field_type': 'textarea_markdown',
-        'active': True,
-        'validation': {
-            'type': 'string',
-            'mandatory': False
+    "definition": {
+        "title": "Definition",
+        "description": "An overview of the phenotype.",
+        "field_type": "textarea_markdown",
+        "active": True,
+        "validation": {
+            "type": "string",
+            "mandatory": False
         },
         'is_base_field': True
     },
-    'implementation': {
-        'title': 'Implementation',
-        'description': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-        'field_type': 'textarea_markdown',
-        'active': True,
-        'validation': {
-            'type': 'string',
-            'mandatory': False
+    "implementation": {
+        "title": "Implementation",
+        "description": "Information on how the phenotype is applied to data.",
+        "field_type": "textarea_markdown",
+        "active": True,
+        "validation": {
+            "type": "string",
+            "mandatory": False
         },
         'is_base_field': True
     },
-    'publications': {
-        'title': 'Publications',
-        'description': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-        'field_type': 'publications',
-        'active': True,
-        'validation': {
-            'type': 'publication',
-            'mandatory': False
+    "publications": {
+        "title": "Publications",
+        "description": "Publication(s) where the phenotype was defined or has been used.",
+        "field_type": "publications",
+        "active": True,
+        "validation": {
+            "type": "publication",
+            "mandatory": False
         },
         'is_base_field': True
     },
@@ -364,14 +348,14 @@ metadata = {
         },
         'is_base_field': True
     },
-    'citation_requirements': {
-        'title': 'Citation Requirements',
-        'description': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-        'field_type': 'textarea_markdown',
-        'active': True,
-        'validation': {
-            'type': 'string',
-            'mandatory': False
+    "citation_requirements": {
+        "title": "Citation Requirements",
+        "description": "A request for how this phenotype is referenced if used in other work.",
+        "field_type": "textarea_markdown",
+        "active": True,
+        "validation": {
+            "type": "string",
+            "mandatory": False
         },
         'is_base_field': True
     },
@@ -390,34 +374,33 @@ metadata = {
         'hide_on_create': True,
         'is_base_field': True
     },
-    'author': {
-        'title': 'Author',
-        'description': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-        'field_type': 'string_inputbox',
-        'active': True,
-        'validation': {
-            'type': 'string',
-            'mandatory': True
+    "author": {
+        "title": "Author",
+        "description": "List of authors who contributed to this phenotype.",
+        "field_type": "string_inputbox",
+        "active": True,
+        "validation": {
+            "type": "string",
+            "mandatory": True
         },
         'is_base_field': True
     },
-    'collections': {
-        'title': 'Collections',
-        'description': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-        'field_type': 'collections',
-        'active': True,
-        'compute_statistics': True,
-        'validation': {
-            'type': 'int_array',
-            'mandatory': False,
-            'source': {
-                'table': 'Tag',
-                'query': 'id',
-                'relative': 'description',
-                'filter': {
-                    'tag_type': 2,
-                    'source_by_brand': True,
-                },
+    "collections": {
+        "title": "Collections",
+        "description": "List of content collections this phenotype belongs to.",
+        "field_type": "collections",
+        "active": True,
+        "compute_statistics": True,
+        "validation": {
+            "type": "int_array",
+            "mandatory": False,
+            "source": {
+                "table": "Tag",
+                "query": "id",
+                "relative": "description",
+                "filter": {
+                    "tag_type": 2
+                }
             }
         },
         'search': {
@@ -426,23 +409,22 @@ metadata = {
         },
         'is_base_field': True
     },
-    'tags': {
-        'title': 'Tags',
-        'description': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-        'field_type': 'tags',
-        'active': True,
-        'compute_statistics': True,
-        'validation': {
-            'type': 'int_array',
-            'mandatory': False,
-            'source': {
-                'table': 'Tag',
-                'query': 'id',
-                'relative': 'description',
-                'filter': {
-                    'tag_type': 1,
-                    'source_by_brand': True,
-                },
+    "tags": {
+        "title": "Tags",
+        "description": "Optional keywords helping to categorize this content.",
+        "field_type": "tags",
+        "active": True,
+        "compute_statistics": True,
+        "validation": {
+            "type": "int_array",
+            "mandatory": False,
+            "source": {
+                "table": "Tag",
+                "query": "id",
+                "relative": "description",
+                "filter": {
+                    "tag_type": 1
+                }
             }
         },
         'search': {
@@ -451,39 +433,39 @@ metadata = {
         },
         'is_base_field': True
     },
-    'group': {
-        'title': 'Group',
-        'description': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-        'field_type': 'group_field',
-        'active': True,
-        'validation': {
-            'type': 'int',
-            'mandatory': False,
-            'computed': True
+    "group": {
+        "title": "Group",
+        "description": "The group that owns this phenotype for permissions purposes.",
+        "field_type": "group_field",
+        "active": True,
+        "validation": {
+            "type": "int",
+            "mandatory": False,
+            "computed": True
         },
         'is_base_field': True
     },
-    'group_access': {
-        'title': 'Group Access',
-        'description': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-        'field_type': 'access_field_editable',
-        'active': True,
-        'validation': {
-            'type': 'int',
-            'mandatory': True,
-            'range': [1, 3]
+    "group_access": {
+        "title": "Group Access",
+        "description": "Optionally enable this phenotype to be viewed or edited by the group.",
+        "field_type": "access_field_editable",
+        "active": True,
+        "validation": {
+            "type": "int",
+            "mandatory": True,
+            "range": [1, 3]
         },
         'is_base_field': True
     },
-    'world_access': {
-        'title': 'World Access',
-        'description': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-        'field_type': 'access_field',
-        'active': True,
-        'validation': {
-            'type': 'int',
-            'mandatory': True,
-            'range': [1, 3]
+    "world_access": {
+        "title": "World Access",
+        "description": "Enables this phenotype to be viewed by all logged-in users of the Library (does not make it public on the web--use the Publish action for that).",
+        "field_type": "access_field",
+        "active": True,
+        "validation": {
+            "type": "int",
+            "mandatory": True,
+            "range": [1, 3]
         },
         'is_base_field': True
     },

@@ -44,7 +44,7 @@ def get_templates(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_template_version_history(request, primary_key):
+def get_template_version_history(request, template_id):
   '''
   
   '''
@@ -57,7 +57,7 @@ def get_template_version_history(request, primary_key):
       status=status.HTTP_403_FORBIDDEN
     )
   
-  template = Template.objects.filter(id=primary_key)
+  template = Template.objects.filter(id=template_id)
   if not template.exists():
     return Response(
       data={
@@ -78,7 +78,7 @@ def get_template_version_history(request, primary_key):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_template(request, primary_key, history_id=None):
+def get_template(request, template_id, version_id=None):
   '''
   
   '''
@@ -91,7 +91,7 @@ def get_template(request, primary_key, history_id=None):
       status=status.HTTP_403_FORBIDDEN
     )
   
-  template = Template.objects.filter(id=primary_key)
+  template = Template.objects.filter(id=template_id)
   if not template.exists():
     return Response(
       data={
@@ -102,8 +102,8 @@ def get_template(request, primary_key, history_id=None):
     )
   template = template.first()
   
-  if history_id:
-    template = template.history.filter(template_version=history_id)
+  if version_id:
+    template = template.history.filter(template_version=version_id)
     if not template.exists():
         return Response(
             data={

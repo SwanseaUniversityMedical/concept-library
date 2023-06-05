@@ -29,6 +29,7 @@ from numpy.distutils.fcompiler import none
 from rest_framework import status, viewsets
 from rest_framework.decorators import (api_view, authentication_classes, permission_classes)
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.utils.timezone import make_aware
 
 from ...db_utils import *
@@ -217,6 +218,19 @@ def parent_concepts(request, pk):
 
 #--------------------------------------------------------------------------
 @api_view(['GET'])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def get_concept_codes(request, concept_id, version_id):
+    '''
+    
+    '''
+    if request.user and not request.user.is_anonymous:
+        if not version_id:
+            return export_concept_codes(request, concept_id)
+        return export_concept_codes_byVersionID(request, concept_id, version_id)
+    
+    return export_published_concept_codes(request, concept_id, version_id)
+
+@robots2()
 def export_concept_codes(request, pk):
     '''
         Return the unique set of codes and descriptions for the specified
@@ -298,9 +312,7 @@ def export_concept_codes(request, pk):
 
 #--------------------------------------------------------------------------
 #disable authentication for this function
-@api_view(['GET'])
-@authentication_classes([])
-@permission_classes([])
+@robots2()
 def export_published_concept_codes(request, pk, concept_history_id=None):
     '''
         Return the unique set of codes and descriptions for the specified
@@ -331,7 +343,7 @@ def export_published_concept_codes(request, pk, concept_history_id=None):
 
 
 #--------------------------------------------------------------------------
-@api_view(['GET'])
+@robots2()
 def export_concept_codes_byVersionID(request, pk, concept_history_id):
     '''
         Return the unique set of codes and descriptions for the specified
@@ -925,6 +937,7 @@ def published_concepts(request, pk=None):
 
 #--------------------------------------------------------------------------
 @api_view(['GET'])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def user_concepts(request, pk=None):
     """
     Lists all available visible concepts <em>for the user</em>.
@@ -952,8 +965,11 @@ def user_concepts(request, pk=None):
     -   <code>?must_have_published_versions=1</code>  
     show only concepts which have a published version(by default, all concepts are shown)  
     """
+    is_authenticated_user = False
+    if request.user and not request.user.is_anonymous:
+        is_authenticated_user = True
     
-    return getConcepts(request, is_authenticated_user=True, pk=pk, set_class=Concept)
+    return getConcepts(request, is_authenticated_user=is_authenticated_user, pk=pk, set_class=Concept)
 
 
 #--------------------------------------------------------------------------
@@ -1170,46 +1186,50 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
 # show concept detail
 #=============================================================
 @api_view(['GET'])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def concept_detail(request,
-                   pk,
-                   concept_history_id=None,
+                   concept_id,
+                   version_id=None,
                    get_versions_only=None):
     ''' 
         Display the detail of a concept at a point in time.
     '''
+    is_authenticated_user = False
+    if request.user and not request.user.is_anonymous:
+        is_authenticated_user = True
 
-    if Concept.objects.filter(id=pk).count() == 0:
+    if Concept.objects.filter(id=concept_id).count() == 0:
         raise Http404
 
-    if concept_history_id is not None:
-        concept_ver = Concept.history.filter(id=pk, history_id=concept_history_id)
+    if version_id is not None:
+        concept_ver = Concept.history.filter(id=concept_id, history_id=version_id)
         if concept_ver.count() == 0: raise Http404
 
-    if concept_history_id is None:
+    if version_id is None:
         # get the latest version/ or latest published version
-        concept_history_id = try_get_valid_history_id(request, Concept, pk)
+        version_id = try_get_valid_history_id(request, Concept, concept_id)
         
     # validate access concept
-    if not allowed_to_view(request, Concept, pk, set_history_id=concept_history_id):
+    if not allowed_to_view(request, Concept, concept_id, set_history_id=version_id):
         raise PermissionDenied
 
     # we can remove this check as in concept-detail
     #---------------------------------------------------------
     # validate access to child concepts
-    if not (allowed_to_view_children(request, Concept, pk, set_history_id=concept_history_id)
+    if not (allowed_to_view_children(request, Concept, concept_id, set_history_id=version_id)
             and chk_deleted_children(request,
                                      Concept,
-                                     pk,
+                                     concept_id,
                                      returnErrors=False,
-                                     set_history_id=concept_history_id)):
+                                     set_history_id=version_id)):
         raise PermissionDenied
     #---------------------------------------------------------
 
 
     return getConceptDetail(request,
-                            pk = pk,
-                            history_id = concept_history_id,
-                            is_authenticated_user = True,
+                            pk = concept_id,
+                            history_id = version_id,
+                            is_authenticated_user = is_authenticated_user,
                             get_versions_only = get_versions_only,
                             set_class = Concept)
 
