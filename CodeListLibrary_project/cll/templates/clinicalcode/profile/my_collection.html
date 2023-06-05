@@ -57,13 +57,13 @@
   <main class="main-content">
     <div class="main-content__inner-container">
       <article class="profile-collection">
-        <section class="profile-collection__inner-container" id="published">
-          <data data-owner="collection-service" page-type="PROFILE_COLLECTIONS" name="published" type="text/json">
-            {% if published_content %}
-              {{ published_content|jsonify|safe }}
+        <section class="profile-collection__inner-container" id="content">
+          <data data-owner="collection-service" page-type="PROFILE_COLLECTIONS" name="content" type="text/json">
+            {% if content %}
+              {{ content|jsonify|safe }}
             {% endif %}
           </data>
-          <h3>1. Published Phenotypes</h3>
+          <h3>1. My Phenotypes</h3>
           <p>Phenotypes that have been shared publicly on the web.</p>
           <section class="profile-collection__none-available show" id="empty-collection">
             <p class="profile-collection__none-available-message">
@@ -74,47 +74,13 @@
 
           </div>
         </section>
-        <section class="profile-collection__inner-container" id="published">
-          <data data-owner="collection-service" page-type="PROFILE_COLLECTIONS" name="progress" type="text/json">
-            {% if progress_content %}
-              {{ progress_content|jsonify|safe }}
-            {% endif %}
-          </data>
-          <h3>2. Reviews in Progress</h3>
-          <p>Phenotypes that are awaiting a review before publication</p>
-          <section class="profile-collection__none-available show" id="empty-collection">
-            <p class="profile-collection__none-available-message">
-              You haven't made any requests to publish yet
-            </p>
-          </section>
-          <div class="profile-collection__table-container" id="progress-area">
-
-          </div>
-        </section>
-        <section class="profile-collection__inner-container" id="draft">
-          <data data-owner="collection-service" page-type="PROFILE_COLLECTIONS" name="draft" type="text/json">
-            {% if draft_content %}
-              {{ draft_content|jsonify|safe }}
-            {% endif %}
-          </data>
-          <h3>3. Phenotypes in Progress</h3>
-          <p>Phenotypes that have not been made public.</p>
-          <section class="profile-collection__none-available show" id="empty-collection">
-            <p class="profile-collection__none-available-message">
-              You have no drafts yet
-            </p>
-          </section>
-          <div class="profile-collection__table-container" id="draft-area">
-
-          </div>
-        </section>
         <section class="profile-collection__inner-container" id="archived">
           <data data-owner="collection-service" page-type="PROFILE_COLLECTIONS" name="archived" type="text/json">
             {% if archived_content %}
               {{ archived_content|jsonify|safe }}
             {% endif %}
           </data>
-          <h3>4. Archived Phenotypes</h3>
+          <h3>2. Archived Phenotypes</h3>
           <p>Content that has been marked as archived is still present on the system but is hidden by default.</p>
           <section class="profile-collection__none-available show" id="empty-collection">
             <p class="profile-collection__none-available-message">

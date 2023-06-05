@@ -16,6 +16,9 @@ class EntityModeration(TemplateView):
   ]
   
   def __annotate_fields(self, queryset):
+    if not queryset:
+      return list()
+    
     annotated = queryset.annotate(
       group_name=Subquery(
         Group.objects.filter(id=OuterRef('group_id')).values('name')
@@ -40,14 +43,16 @@ class EntityModeration(TemplateView):
     request = self.request
 
     requested_content = self.__annotate_fields(
-      permission_utils.get_accessible_entities(
-        request, consider_user_perms=False, status=[constants.APPROVAL_STATUS.REQUESTED]
+      permission_utils.get_moderation_entities(
+        request, 
+        status=[constants.APPROVAL_STATUS.REQUESTED]
       )
     )
 
     pending_content = self.__annotate_fields(
-      permission_utils.get_accessible_entities(
-        request, consider_user_perms=False, status=[constants.APPROVAL_STATUS.PENDING]
+      permission_utils.get_moderation_entities(
+        request, 
+        status=[constants.APPROVAL_STATUS.PENDING]
       )
     )
 

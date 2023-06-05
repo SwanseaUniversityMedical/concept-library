@@ -172,6 +172,20 @@ const getCurrentPath = () => {
 const getCurrentURL = () => `${getCurrentHost()}${location.pathname}`;
 
 /**
+ * getCurrentBrandPrefix
+ * @desc Returns the current brand based on URL, e.g. '/HDRUK'
+ * @returns {string}
+ */
+const getCurrentBrandPrefix = () => {
+  const brand = document.documentElement.getAttribute('data-brand');
+  if (isNullOrUndefined(brand) || isStringEmpty(brand) || brand === 'none') {
+    return '';
+  }
+
+  return '/' + brand; 
+}
+
+/**
   * domReady
   * @desc A promise that resolves when the DOM is ready
   * @returns {promise}

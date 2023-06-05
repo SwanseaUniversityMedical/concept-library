@@ -1,4 +1,4 @@
-const DETAIL_URL = '/phenotype/${id}/version/${version_id}/detail/'
+const DETAIL_URL = '/phenotypes/${id}/version/${version_id}/detail/'
 
 const COLLECTION_HEADINGS = {
   PROFILE_COLLECTIONS: ['Name', 'ID', 'Version ID', 'Updated', 'Owner', 'Status'],
@@ -14,23 +14,37 @@ const MAX_NAME_LENGTH = 50;
 
 const COLLECTION_MAP = {
   PROFILE_COLLECTIONS: (item, index) => {
+    let status;
+    if (item.is_deleted) {
+      status = -1;
+    } else {
+      status = item.publish_status < 0 ? 5 : item.publish_status;
+    }
+
     return [
       index,
       item.id,
       item.history_id,
       new Date(item.updated), 
       item.group_name || item.owner_name,
-      item.is_deleted ? -1 : item.publish_status
+      status
     ];
   },
-  MODERATION_COLLECTIONS: (item, index) => {
+  MODERATION_COLLECTIONS: (item, index) => {    
+    let status;
+    if (item.is_deleted) {
+      status = -1;
+    } else {
+      status = item.publish_status < 0 ? 5 : item.publish_status;
+    }
+
     return [
       index,
       item.id,
       item.history_id,
       new Date(item.updated),
       item.group_name || item.owner_name,
-      item.is_deleted ? -1 : item.publish_status
+      status
     ];
   }
 }
@@ -94,7 +108,8 @@ const renderNameAnchor = (entity) => {
     ? `${text.substring(0, MAX_NAME_LENGTH).trim()}...` 
     : text;
 
-  const url = interpolateHTML(DETAIL_URL, {
+  const brand = getCurrentBrandPrefix();
+  const url = interpolateHTML(brand + DETAIL_URL, {
     id: id,
     version_id: history_id
   });

@@ -80,6 +80,60 @@ def get_user_groups(request):
     return list(Group.objects.all().exclude(name='ReadOnlyUsers').values('id', 'name'))
   return list(user.groups.all().exclude(name='ReadOnlyUsers').values('id', 'name'))
 
+def get_moderation_entities(
+    request,
+    status=None
+  ):
+  '''
+    Returns entities with moderation status of specified status
+
+    Args:
+      request {RequestContext}: HTTP context
+      status {List}: List of integers representing status
+    
+    Returns:
+      List of all entities with specified moderation status
+  '''
+  entities = GenericEntity.history.all() \
+    .order_by('id', '-history_id') \
+    .distinct('id')
+  
+  return entities.filter(Q(publish_status__in=status))
+
+def get_editable_entities(
+    request,
+    only_deleted=False
+  ):
+  '''
+    Tries to get all the entities that are editable by a specific user
+
+    Args:
+      request {RequestContext}: HTTP context
+      only_deleted {boolean}: Whether to only show deleted phenotypes or not 
+  
+    Returns:
+      List of all editable entities
+  '''
+  user = request.user
+  entities = GenericEntity.history.all() \
+    .order_by('id', '-history_id') \
+    .distinct('id')
+  
+  if user and not user.is_anonymous:
+    query = Q(owner=user.id) 
+    query |= Q(
+      group_id__in=user.groups.all(), 
+      group_access__in=[GROUP_PERMISSIONS.EDIT]
+    )
+
+    entities = entities.filter(query)
+    if only_deleted:
+      return entities.exclude(Q(is_deleted=False) | Q(is_deleted__isnull=True) | Q(is_deleted=None))
+    else:
+      return entities.exclude(Q(is_deleted=True))
+
+  return None
+
 def get_accessible_entities(
     request, 
     consider_user_perms=True,
@@ -89,7 +143,7 @@ def get_accessible_entities(
     consider_brand=True
   ):
   '''
-    Tries to get the all entities that are accessible to a specific user
+    Tries to get all the entities that are accessible to a specific user
 
     Args:
       consider_user_perms {boolean}: Whether to consider user perms i.e. superuser, moderation status etc
@@ -123,13 +177,12 @@ def get_accessible_entities(
       status += [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING, APPROVAL_STATUS.REJECTED]
       
     query = Q(owner=user.id) 
-    if not status or APPROVAL_STATUS.ANY not in status:
-      if status:
-        query |= Q(publish_status__in=status)
-      else:
-        query |= ~Q(publish_status=APPROVAL_STATUS.PENDING)
-    else:
+    if not status:
+      query |= ~Q(publish_status=APPROVAL_STATUS.PENDING)
+    elif APPROVAL_STATUS.ANY in status:
       query |= Q(publish_status=APPROVAL_STATUS.APPROVED)
+    else:
+      query |= Q(publish_status__in=status)
     
     if group_permissions:
       query |= Q(

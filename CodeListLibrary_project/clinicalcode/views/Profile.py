@@ -33,6 +33,9 @@ class MyCollection(TemplateView):
   ]
   
   def __annotate_fields(self, queryset):
+    if not queryset:
+      return list()
+    
     annotated = queryset.annotate(
       group_name=Subquery(
         Group.objects.filter(id=OuterRef('group_id')).values('name')
@@ -52,38 +55,16 @@ class MyCollection(TemplateView):
     context = super(MyCollection, self).get_context_data(*args, **kwargs)
     request = self.request
 
-    published_content = self.__annotate_fields(
-      permission_utils.get_accessible_entities(
-        request, consider_user_perms=False, status=[APPROVAL_STATUS.APPROVED]
-      )
-    )
-
-    progress_content = self.__annotate_fields(
-      permission_utils.get_accessible_entities(
-        request, consider_user_perms=False, status=[
-          APPROVAL_STATUS.REQUESTED, 
-          APPROVAL_STATUS.PENDING,
-          APPROVAL_STATUS.REJECTED
-        ]
-      )
-    )
-
-    draft_content = self.__annotate_fields(
-      permission_utils.get_accessible_entities(
-        request, consider_user_perms=False, status=None
-      )
+    content = self.__annotate_fields(
+      permission_utils.get_editable_entities(request)
     )
     
     archived_content = self.__annotate_fields(
-      permission_utils.get_accessible_entities(
-        request, consider_user_perms=False, status=[APPROVAL_STATUS.ANY], only_deleted=True
-      )
+      permission_utils.get_editable_entities(request, only_deleted=True)
     )
 
     return context | {
-      'published_content': published_content,
-      'progress_content': progress_content,
-      'draft_content': draft_content,
+      'content': content,
       'archived_content': archived_content
     }
 
