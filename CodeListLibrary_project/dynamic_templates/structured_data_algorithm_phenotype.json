@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "card_type": "clinical",
+  "card_type": "generic",
 
   "sections": [
     {
@@ -9,14 +9,9 @@
       "fields": ["name", "definition", "author", "event_date_range", "sex", "type", "tags", "collections", "data_sources"]
     },
     {
-      "title": "Clinical Code List",
-      "description": "Clinical codes used to define this phenotype.",
-      "fields": ["concept_information"]
-    },
-    {
       "title": "Implementation",
       "description": "How this phenotype definition is run against data.",
-      "fields": ["phenoflowid", "implementation"]
+      "fields": ["phenoflowid","code_repository", "implementation"]
     },
     {
       "title": "Validation",
@@ -39,7 +34,7 @@
     {
       "title": "Home",
       "description": "",
-      "fields": ["id", "history_id", "phenotype_uuid", "type", "data_sources", "sex", "event_date_range", "coding_system", "collections", "tags"]
+      "fields": ["id", "history_id", "phenotype_uuid", "type", "data_sources", "sex", "event_date_range", "collections", "tags"]
     },
     {
       "title": "Definition",
@@ -49,7 +44,7 @@
     {
       "title": "Implementation",
       "description": "",
-      "fields": ["implementation", "phenoflowid"],
+      "fields": ["implementation","code_repository", "phenoflowid"],
       "hide_if_empty": true
     },
     {
@@ -64,11 +59,6 @@
       "do_not_show_in_production": true,
       "hide_if_empty": true
     },   
-    {
-      "title": "Clinical Code List",
-      "description": "",
-      "fields": ["concept_information"]
-    },
     {
       "title": "Permissions",
       "description": "",
@@ -93,23 +83,6 @@
     },
     "author": {
       "is_base_field": true
-    },
-    "phenotype_uuid": {
-      "title": "Phenotype UUID",
-      "field_type": "string_inputbox_code",
-      "active": true,
-      "requires_auth": true,
-      "validation": {
-        "type": "string",
-        "mandatory": false,
-        "unique": true,
-        "length": [0, 250]
-      },
-      "search": {
-        "api": true
-      },
-      "hide_on_create": true,
-      "hide_if_empty": true
     },
     "type": {
       "title": "Phenotype Type",
@@ -183,40 +156,6 @@
         "api": true
       }
     },
-    "agreement_date": {
-      "title": "Agreement Date",
-      "description":"A date representing when this phenotype was first finalized (may predate the Phenotype Library). Deprecated.",
-      "field_type": "date",
-      "active": true,
-      "validation": {
-        "type": "string",
-        "mandatory": false,
-        "regex": "(0[1-9]|[12]\\d|30|31)\\/(0[1-9]|1[0-2])\\/(\\d{4})"
-      },
-      "hide_on_create": true,
-      "hide_if_empty": true
-    },
-    "coding_system": {
-      "title": "Coding System",
-      "description":"Clinical coding system(s) contained within this phenotype. A phenotype may have multiple concepts, each with its own coding system. All contained coding systems are programmatically represented here.",
-      "field_type": "coding_system",
-      "active": true,
-      "validation": {
-        "type": "int_array",
-        "mandatory": false,
-        "computed": true,
-        "source": {
-          "table": "CodingSystem",
-          "query": "codingsystem_id",
-          "relative": "name"
-        }
-      },
-      "search": {
-        "filterable": true,
-        "api": true
-      },
-      "hide_on_create": true
-    },
     "collections": {
       "is_base_field": true
     },
@@ -244,6 +183,22 @@
       "hide_on_create": true,
       "hide_if_empty": true
     },
+    "code_repository": {
+      "title": "Code Repository",
+      "description": "Link to a code repository where an implementation of this phenotype is held",
+      "field_type": "string_inputbox",
+      "active": true,
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "length": [0, 250]
+      },
+      "search": {
+        "api": true
+      },
+      "hide_on_create": true,
+      "hide_if_empty": true
+    },
     "publications": {
       "is_base_field": true
     },
@@ -255,17 +210,6 @@
     "citation_requirements": {
       "is_base_field": true,
       "hide_if_empty": true
-    },
-    "concept_information": {
-      "title": "Clinical Codes",
-      "description": "A set of concepts, each of which defines a list of clinical codes, contained within this phenotype.",
-      "field_type": "concept_information",
-      "active": true,
-      "validation": {
-        "type": "concept",
-        "mandatory": false,
-        "has_children": true
-      }
     },
     "source_reference": {
       "title": "Source Reference",
