@@ -20,7 +20,14 @@ from . import constants
 
 def is_malformed_entity_id(primary_key):
   '''
-  
+    Checks whether primary key is malformed
+
+    Args:
+      primary_key {string}: string containing primary key to be checked
+
+    Returns:
+      If primary key is malformed, returns 406 response, else returns split id
+      i.e. PH123 -> 'PH', '123'
   '''
   entity_id_split = model_utils.get_entity_id(primary_key)
   if not entity_id_split:
@@ -36,7 +43,13 @@ def is_malformed_entity_id(primary_key):
 
 def exists_entity(entity_id):
   '''
-  
+    Checks whether an entity with given entity_id exists
+
+    Args:
+      entity_id {string}: Id of entity to be checked
+    
+    Returns:
+      If entity exists, returns entity, else returns 404 response
   '''
   entity = model_utils.try_get_instance(
     GenericEntity, id=entity_id
@@ -55,7 +68,16 @@ def exists_entity(entity_id):
 
 def exists_historical_entity(entity_id, user, historical_id=None):
   '''
-  
+    Checks whether a historical version of an entity exists
+
+    Args:
+      entity_id {string}: entity id
+      user {User}: User object
+      historical_id {integer}: historical id
+    
+    Returns:
+      If exists, returns first instance of historical entity, otherwise 
+      returns response 404
   '''
   if not historical_id:
     historical_id = model_utils.get_latest_entity_historical_id(
@@ -82,7 +104,14 @@ def exists_historical_entity(entity_id, user, historical_id=None):
 
 def get_entity_version_history(request, entity_id):
   '''
-  
+    Retrieves an entities version history
+
+    Args:
+      request {HTTPContext}: Request context
+      entity_id {string}: Entity id
+    
+    Returns:
+      Dict containing version history of entity
   '''
   result = []
 
@@ -111,7 +140,13 @@ def get_entity_version_history(request, entity_id):
 
 def get_layout_from_entity(entity):
   '''
+    Retrieve the layout of an entity
 
+    Args:
+      entity {Entity}: Entity object
+
+    Returns:
+      Layout of entity if entity exists, otherwise 404 response
   '''
   layout = entity.template
   if not layout:
@@ -156,7 +191,16 @@ def get_layout_from_entity(entity):
 
 def build_query_from_template(request, user_authed, template=None):
   '''
-
+    Builds query (terms and where clauses) based on a template
+  
+    Args:
+      request {HTTPContext}: Request context
+      user_authed {boolean}: Whether the user making the request is 
+        authenticated
+      template {dict}: Template object
+    
+    Returns:
+      Terms and where clause built from the template
   '''
   is_dynamic = True
 
@@ -190,7 +234,8 @@ def build_query_from_template(request, user_authed, template=None):
         layout = constants.metadata
       
       search_utils.apply_param_to_query(
-        terms, where, layout, key, value, is_dynamic=is_dynamic, force_term=True, is_api=True
+        terms, where, layout, key, value, 
+        is_dynamic=is_dynamic, force_term=True, is_api=True
       )
 
   return terms, where
@@ -199,7 +244,19 @@ def get_entity_detail_from_layout(
     entity, fields, user_authed, fields_to_ignore=[], target_field=None
   ):
   '''
+    Retrieves entity detail in the format required for detail API endpoint,
+      specifically from a template 
 
+    Args:
+      entity {Entity}: Entity object to get the detail for
+      fields {dict}: dict containing layout of the entity
+      user_authed {boolean}: Whether the user is authenticated
+      fields_to_ignore {list of strings}: List of fields to remove from output
+      target_field {string}: Field to be targeted, i.e. only build the detail
+        for this particular field
+    
+    Returns:
+      Dict containing details of the entity specified
   '''
   result = {}
   for field, field_definition in fields.items():
@@ -244,7 +301,18 @@ def get_entity_detail_from_layout(
 
 def get_entity_detail_from_meta(entity, data, fields_to_ignore=[], target_field=None):
   '''
+    Retrieves entity detail in the format required for detail API endpoint,
+      specifically from metadata fields, e.g. constants
 
+    Args:
+      entity {Entity}: Entity object to get the detail for
+      data {dict}: dict containing previously built detail
+      fields_to_ignore {list of strings}: List of fields to remove from output
+      target_field {string}: Field to be targeted, i.e. only build the detail
+        for this particular field
+    
+    Returns:
+      Dict containing details of the entity specified
   '''
   result = {}
   for field in entity._meta.fields:
@@ -287,9 +355,22 @@ def get_entity_detail_from_meta(entity, data, fields_to_ignore=[], target_field=
   
   return result
 
-def get_ordered_entity_detail(fields, layout, layout_version, entity_versions, data):
+def get_ordered_entity_detail(
+    fields, layout, layout_version, entity_versions, data
+  ):
   '''
-  
+    Orders entity detail and appends template and version history to the detail
+      dict
+    
+    Args:
+      fields {dict}: Dict of fields from a template object
+      layout {dict}: Layout object
+      layout_version {int}: Layout version
+      entity_versions {dict}: Dict containing entity version information
+      data {dict}: Entity detail built so far
+
+    Returns:
+      Ordered entity detail with appended template and version history fields
   '''
   ordered_keys = list(fields.keys())
   ordered_keys.extend(key for key in data.keys() if key not in ordered_keys)
@@ -320,7 +401,20 @@ def get_entity_detail(
     return_data=False
   ):
   '''
+    Gets entity detail
 
+    Args:
+      request {HTTPContext}: Request context
+      entity_id {int}: Entity id
+      entity {Entity}: Entity object
+      user_authed {boolean}: Whether the user is authenticated or not
+      fields_to_ignore {list of strings}: Fields that should be ignored from result
+      target_field {string}: Field to target and break early if required
+      return_data {boolean}: Optionally return data or response
+
+    Returns:
+      Returns response containing entity detail if return_data is False,
+        otherwise returns dict containing built entity detail
   '''
   layout_response = get_layout_from_entity(entity)
   if isinstance(layout_response, Response):
@@ -356,7 +450,16 @@ def get_entity_detail(
 
 def build_final_codelist_from_concepts(entity, concept_information, inline=True):
   '''
-  
+    Builds the final codelist from all entity concepts
+
+    Args:
+      entity {Entity}: Entity object
+      concept_information {list of ints}: List of concept ids
+      inline {boolean}: Optionally format the response to be a list
+    
+    Returns:
+      Dict object containing final codelist if inline is False, otherwise, returns
+        list containing final codelist
   '''
   result = []
   for concept in concept_information:
@@ -397,7 +500,14 @@ def build_final_codelist_from_concepts(entity, concept_information, inline=True)
 
 def get_codelist_from_entity(entity):
   '''
-  
+    Retrieves final codelist from an entity
+
+    Args:
+      entity {Entity}: Entity object
+    
+    Returns:
+      If the entity contains a codelist, returns the final codelist, otherwise
+        returns 400/404 response depending on status within the template/entity
   '''
   layout_response = get_layout_from_entity(entity)
   if isinstance(layout_response, Response):
@@ -447,6 +557,15 @@ def get_codelist_from_entity(entity):
   )
 
 def populate_entity_version_id(form):
+  '''
+    Populates entity version id in entity form dict
+
+    Args:
+      form {dict}: Entity form dict
+    
+    Returns:
+      Form with entity version based on entity_id
+  '''
   form_entity = form.get('entity')
   if form_entity is not None:
     form['entity']['version_id'] = None
@@ -460,6 +579,16 @@ def populate_entity_version_id(form):
   return form
 
 def validate_api_create_update_form(request, method):
+  '''
+    Validates entity form dict
+
+    Args:
+      request {HTTPContext}: Request context
+      method {integer}: Represents create/update, see constants.FORM_METHODS enum
+
+    Returns:
+      Validated form if successful, otherwise returns 400 response
+  '''
   form_errors = []
   form = gen_utils.get_request_body(request)
   form = populate_entity_version_id(form)
@@ -480,6 +609,17 @@ def validate_api_create_update_form(request, method):
   return form
 
 def create_update_from_api_form(request, form):
+  '''
+    Create or updates an entity from an entity form dict
+
+    Args:
+      request {HTTPContext}: Request context
+      form {dict}: Dict containing entity information
+    
+    Returns:
+      Created/Updated entity if validation succeeds, otherwise returns
+        400 response
+  '''
   form_errors = []
   entity = create_utils.create_or_update_entity_from_form(request, form, form_errors)
   if entity is None:
@@ -495,6 +635,16 @@ def create_update_from_api_form(request, form):
   return entity
 
 def get_concept_versions_from_entity(entity):
+  '''
+    Retrieves concept versions for an entity
+
+    Args:
+      entity {Entity}: Entity object
+    
+    Returns:
+      Dict containing all concept_ids and concept_version_ids associated with 
+        the entity passed
+  '''
   result = {}
 
   concept_information = template_utils.try_get_content(
@@ -519,7 +669,13 @@ def get_concept_versions_from_entity(entity):
 
 def get_template_versions(template_id):
   '''
-  
+    Retrieves version history of a template from template_id
+
+    Args:
+      template_id {integer}: Template id
+    
+    Returns:
+      List containing version history of template
   '''
   template_versions = Template.objects.get(
     id=template_id

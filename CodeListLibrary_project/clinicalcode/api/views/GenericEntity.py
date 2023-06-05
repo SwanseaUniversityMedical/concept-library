@@ -21,7 +21,8 @@ from ...entity_utils import constants
 @permission_classes([IsAuthenticated])
 def create_generic_entity(request):
     '''
-    
+        Create a generic entity from request body, must be formatted in terms
+            of a specific layout and is validated against it
     '''
     if permission_utils.is_member(request.user, 'ReadOnlyUsers') or settings.CLL_READ_ONLY:
         return Response(
@@ -67,7 +68,8 @@ def create_generic_entity(request):
 @permission_classes([IsAuthenticated])
 def update_generic_entity(request):
     '''
-    
+        Update a generic entity from request body, must be formatted in terms
+            of a specific layout and is validated against it
     '''
     if permission_utils.is_member(request.user, 'ReadOnlyUsers') or settings.CLL_READ_ONLY:
         return Response(
@@ -114,7 +116,7 @@ def update_generic_entity(request):
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_generic_entity_version_history(request, phenotype_id=None):
     '''
-    
+        Get version history of specific entity, using phenotype_id
     '''
     user_authed = False
     if request.user and not request.user.is_anonymous:
@@ -141,7 +143,7 @@ def get_generic_entity_version_history(request, phenotype_id=None):
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_generic_entities(request, should_paginate=False):
     '''
-    
+        Get all generic entities accessible to the user, optionally paginate results
     '''
     user_authed = False
     if request.user and not request.user.is_anonymous:
@@ -263,7 +265,9 @@ def get_generic_entities(request, should_paginate=False):
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_entity_detail(request, phenotype_id, version_id=None, field=None):
     '''
-
+        Get detail of specified entity by phenotype_id, optionally target a specific
+            version using version_id and/or target a specific entity field using
+            field parameters
     '''
     user_authed = False
     if request.user and not request.user.is_anonymous:

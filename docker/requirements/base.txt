@@ -18,7 +18,6 @@ colorama==0.4.5
 coreapi==2.3.3
 coreschema==0.0.4
 cryptography==39.0.1
-debugpy==1.6.7
 defusedxml==0.7.1
 Deprecated==1.2.13
 Django==4.0.10
