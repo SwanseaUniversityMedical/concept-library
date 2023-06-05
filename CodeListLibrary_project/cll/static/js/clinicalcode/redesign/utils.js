@@ -523,3 +523,27 @@ const hasDeltaDiff = (lhs, rhs) => {
 const parseDOI = (value) => {
   return value.match(DOI_PATTERN);
 }
+
+/**
+ * waitForElement
+ *  
+ * @desc waits for an element to exist based on selector parameter
+ * @param {string} selector the string to match 
+ * @returns {promise} promise that resolves with the given element
+ */
+const waitForElement = (selector) => {
+  return new Promise(resolve => {
+    if (document.querySelector(selector)) {
+      return resolve(document.querySelector(selector));
+    }
+
+    const observer = new MutationObserver(_ => {
+      if (document.querySelector(selector)) {
+        observer.disconnect();
+        resolve(document.querySelector(selector));
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+  });
+}

@@ -85,11 +85,11 @@
 				   <li>
 				   {% if user.is_authenticated %}
 					   <a {% if user_can_export %}
-					       href="{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=json"
+					       href="{% url 'api:get_generic_entity_detail_version' entity.id entity.history_id %}?format=json"
 					       target=_blank {% endif %}
 					{% else %}
 					    <a {% if user_can_export %}
-					    href="{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=json"
+					    href="{% url 'api:get_generic_entity_detail_version' entity.id entity.history_id %}?format=json"
 					    target=_blank {% endif %}
 					{% endif %}
 					    class="dropdown-item">
@@ -99,11 +99,11 @@
 				   <li>
 				   {% if user.is_authenticated %}
                       <a {% if user_can_export %}
-                          href="{% url 'api:api_generic_entity_detail_version' entity.id entity.history_id %}?format=xml"
+                          href="{% url 'api:get_generic_entity_detail_version' entity.id entity.history_id %}?format=xml"
                           target=_blank {% endif %}
                   {% else %}
                       <a {% if user_can_export %}
-                      href="{% url 'api:api_generic_entity_detail_version_public' entity.id entity.history_id %}?format=xml"
+                      href="{% url 'api:get_generic_entity_detail_version' entity.id entity.history_id %}?format=xml"
                       target=_blank {% endif %}
                   {% endif %}
                       class="dropdown-item">

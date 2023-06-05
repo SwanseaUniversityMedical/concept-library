@@ -9,7 +9,7 @@ from ..entity_utils import permission_utils
 from ..entity_utils.constants import APPROVAL_STATUS
 
 class MyProfile(TemplateView):
-  template_name = 'clinicalcode/profile/my_profile.html'
+  template_name = 'clinicalcode/profile/index.html'
 
   @method_decorator([login_required])
   def dispatch(self, request, *args, **kwargs):

@@ -457,18 +457,17 @@ def reference_data(request):
         Open page to list Data sources, Coding systems, Tags, Collections, Phenotype types, etc 
     """
 
-    context = {}
-    context['data_sources'] = DataSource.objects.all().order_by('name')
-    context['coding_systems'] = CodingSystem.objects.all().order_by('name')
-    context['tags'] = Tag.objects.filter(tag_type=1).order_by('description')
-    context['collections'] = Tag.objects.filter(tag_type=2).order_by('description')
+    tags = Tag.objects.extra(select={
+        'name': 'description'
+    }).order_by('id')
+    collections = tags.filter(tag_type=2).values('id', 'name')
+    tags = tags.filter(tag_type=1).values('id', 'name')
+
+    context = {
+        'data_sources': list(DataSource.objects.all().order_by('id').values('id', 'name')),
+        'coding_system': list(CodingSystem.objects.all().order_by('id').values('id', 'name')),
+        'tags': list(tags),
+        'collections': list(collections)
+    }
     
-    #context['phenotype_types'] = Phenotype.objects.values('type').distinct().order_by('type')
-    # available phenotype_types in the DB
-    phenotype_types = Phenotype.history.annotate(type_lower=Lower('type')).values('type_lower').distinct().order_by('type_lower')
-    phenotype_types_list = list(phenotype_types.values_list('type_lower',  flat=True))
-    context['phenotype_types'] = phenotype_types_list 
-
-    return render(request, 'clinicalcode/reference-data.html', context)
-
-
+    return render(request, 'clinicalcode/about/reference_data.html', context)

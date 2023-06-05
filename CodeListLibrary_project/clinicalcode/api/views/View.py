@@ -231,7 +231,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 @authentication_classes([])
 @permission_classes([])
 @robots()
-def getTagsOrCollections(request, tag_type=None, pk=None):
+def getTagsOrCollections(request, tag_type=None, id=None):
     '''
         return the list of tags or collections
     '''
@@ -240,8 +240,8 @@ def getTagsOrCollections(request, tag_type=None, pk=None):
     # tag_type = {1: tag, 2: collection}   
     queryset = queryset.filter(tag_type=tag_type)
     
-    if pk is not None:
-        queryset = queryset.filter(id=pk)
+    if id is not None:
+        queryset = queryset.filter(id=id)
     
     search = request.query_params.get('search', None)
     if search is not None:
