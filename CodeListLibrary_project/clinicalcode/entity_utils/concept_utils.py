@@ -512,12 +512,12 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
     'concept_version_id': concept_history_id,
     'coding_system': model_utils.get_coding_system_details(historical_concept.coding_system),
     'details': concept_data,
-    'components': components_data.get('components'),
+    'components': components_data.get('components') if components_data is not None else [ ],
   }
 
   # Apply aggregated codes if required
   if aggregate_component_codes:
-    result['aggregated_component_codes'] = components_data.get('codelist')
+    result['aggregated_component_codes'] = components_data.get('codelist') if components_data is not None else [ ]
 
   # Build the final, reviewed codelist if required
   if include_reviewed_codes:
