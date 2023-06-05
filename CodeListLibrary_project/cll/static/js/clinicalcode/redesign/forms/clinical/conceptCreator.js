@@ -1107,7 +1107,7 @@ export default class ConceptCreator {
    * @param {node} area the ruleset area of this concept
    */
   #toggleRuleAreas(rules, area) {
-    const showRules = rules.length > 0;
+    const showRules = !isNullOrUndefined(rules) && rules.length > 0;
     const noRules = area.querySelector('#no-rules');
     const ruleList = area.querySelector('#rules-list');
 
@@ -1130,6 +1130,12 @@ export default class ConceptCreator {
    */
   #tryRenderRules(rules, inclusionArea, exclusionArea) {
     // Toggle visibility
+    if (isNullOrUndefined(rules) || rules.length < 0) {
+      this.#toggleRuleAreas(rules, inclusionArea);
+      this.#toggleRuleAreas(rules, exclusionArea);
+      return;
+    }
+
     const inclusionary = rules.filter(item => item.logical_type == CONCEPT_CREATOR_LOGICAL_TYPES.INCLUDE);
     const exclusionary = rules.filter(item => item.logical_type == CONCEPT_CREATOR_LOGICAL_TYPES.EXCLUDE);
     this.#toggleRuleAreas(inclusionary, inclusionArea);
