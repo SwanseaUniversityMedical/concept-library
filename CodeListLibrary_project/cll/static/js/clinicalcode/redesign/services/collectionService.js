@@ -1,4 +1,4 @@
-const DETAIL_URL = '/ge/${id}/version/${version_id}/detail/';
+const DETAIL_URL = '/phenotype/${id}/version/${version_id}/detail/'
 
 const COLLECTION_HEADINGS = {
   PROFILE_COLLECTIONS: ['Name', 'ID', 'Version ID', 'Updated', 'Owner', 'Status'],

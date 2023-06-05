@@ -6,7 +6,7 @@
   <section class="concepts-view__header">
     <div class="concepts-view__container">
       <p class="concepts-view__title">Your Concepts {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>
-      <p class="concepts-view__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+      <p class="concepts-view__description">The Concepts that relate to this Phenotype:</p>
     </div>
     <div class="concepts-view__container">
       <button class="secondary-btn text-accent-darkest bold icon import-icon secondary-accent" aria-label="Create new Concept" id="create-concept-btn">
@@ -60,7 +60,7 @@
 
           <!-- Codelist section -->
           <section class="concept-group-content__no-codes" id="no-available-codelist">
-            <p class="concept-group-content__no-codes-message">You haven't added any exclusion rules yet</p>
+            <p class="concept-group-content__no-codes-message">You haven't added any codes yet</p>
           </section>
           <div class="constrained-codelist-table" id="concept-codelist-table">
             
@@ -76,12 +76,12 @@
       <!-- Concept information -->
       <div class="detailed-input-group fill">
         <h3 class="detailed-input-group__title">Name</h3>
-        <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+        <p class="detailed-input-group__description">The name of the Concept</p>
         <input class="text-input" aria-label="Concept Name" type="text" id="concept-name" name="concept-name" placeholder="" minlength="3" pattern="^[a-zA-Z]{1,}.*?" value="${concept_name}" aria-required="true">
       </div>
       <div class="detailed-input-group fill">
         <h3 class="detailed-input-group__title">Coding System</h3>
-        <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+        <p class="detailed-input-group__description">Clinical coding system used to build this Concept's codelist.</p>
         <select class="selection-input" name="coding-system" id="coding-system-select" aria-label="Select Coding System" data-value="${coding_system_id}" aria-required="true">
           ${coding_system_options}
         </select>
@@ -91,7 +91,7 @@
       <section class="concept-group-content__details">
         <div class="concept-group-content__details-explanation">
           <h3>Inclusion Rules</h3>
-          <p class="concept-group-content__details-explanation-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+          <p class="concept-group-content__details-explanation-description">These rules are used to include codes within your codelist</p>
         </div>
         <div class="concept-group-content__editor-selection">
           <fieldset class="dropdown-btn">
@@ -122,7 +122,7 @@
       <section class="concept-group-content__details">
         <div class="concept-group-content__details-explanation">
           <h3>Exclusion Rules</h3>
-          <p class="concept-group-content__details-explanation-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+          <p class="concept-group-content__details-explanation-description">These rules are used to exclude codes within your codelist, they take priority over inclusionary rules</p>
         </div>
         <div class="concept-group-content__editor-selection">
           <fieldset class="dropdown-btn">
@@ -153,7 +153,7 @@
       <section class="concept-group-content__details">
         <div class="concept-group-content__details-explanation">
           <h3>Codelist</h3>
-          <p class="concept-group-content__details-explanation-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+          <p class="concept-group-content__details-explanation-description">The codelist associated with this Concept</p>
         </div>
       </section>
       <section class="concept-group-content__no-codes" id="no-available-codelist">
@@ -182,7 +182,7 @@
           <div class="detailed-input-group__header">
             <div class="detailed-input-group__header-item">
               <h3 class="detailed-input-group__title sm">Rule Name</h3>
-              <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+              <p class="detailed-input-group__description">The name of this Rule</p>
             </div>
             <div class="detailed-input-group__header-item">
               <span tooltip="Remove Ruleset" direction="left">
@@ -197,7 +197,7 @@
         </div>
         <div class="detailed-input-group fill">
           <h3 class="detailed-input-group__title sm">Searchterm Rule</h3>
-          <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+          <p class="detailed-input-group__description">A searchterm rule attempts to include codes by their code or description, you can use regex by prepending the "wildcard:" prefix to your searchterm (e.g. "wildcard:U&bsol;d+")</p>
           <fieldset class="code-search-group">
             <input class="code-text-input" aria-label="Ruleset Searchterm" type="text" 
                 id="searchterm" placeholder="Add searchterm..." minlength="3"
@@ -220,7 +220,7 @@
           <div class="detailed-input-group__header">
             <div class="detailed-input-group__header-item">
               <h3 class="detailed-input-group__title sm">Rule Name</h3>
-              <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+              <p class="detailed-input-group__description">The name of this Rule</p>
             </div>
             <div class="detailed-input-group__header-item">
               <span tooltip="Remove Ruleset" direction="left">
@@ -235,7 +235,7 @@
         </div>
         <div class="detailed-input-group fill">
           <h3 class="detailed-input-group__title sm">File Import Rule</h3>
-          <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+          <p class="detailed-input-group__description">This rule describes any codes retrieved from a file</p>
           <input class="text-input" aria-label="Imported File" type="text"
               value="${source}" data-item="rule" disabled>
         </div>

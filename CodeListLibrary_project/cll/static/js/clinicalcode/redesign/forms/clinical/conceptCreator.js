@@ -1676,6 +1676,7 @@ export default class ConceptCreator {
           aggregated_component_codes: [ ],
           details: {
             name: `Concept ${conceptIncrement}`,
+            has_edit_access: true,
           },
         }
 

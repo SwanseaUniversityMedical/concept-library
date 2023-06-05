@@ -657,7 +657,7 @@ FIELD_TYPES = {
     'phenoflowid': {
         'system_defined': True,
         'description': 'URL for phenoflow (managed by code snippet)',
-        'input_type': 'phenoflowid',
+        'input_type': 'inputbox',
         'output_type': 'phenoflowid',
     },
 
