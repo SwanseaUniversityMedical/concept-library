@@ -606,6 +606,10 @@ class EntityWizardSections(template.Node):
                 if not template_field:
                     continue
 
+                active = template_field.get('active')
+                if isinstance(active, bool) and not active:
+                    continue
+                
                 if template_field.get('hide_on_create'):
                     continue
                 

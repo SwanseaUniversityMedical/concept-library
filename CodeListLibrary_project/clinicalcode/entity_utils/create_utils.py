@@ -978,16 +978,6 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                 ownership_key, created_entities, field_value = res
                 template_data[field] = field_value
                 new_entities.append({'field': ownership_key, 'entities': created_entities})
-            
-            # Add any missing nullable fields from the template
-            for field, packet in template_fields.items():
-                if packet.get('is_base_field'):
-                    continue
-                
-                field_value = template_data.get(field)
-                if field_value:
-                    continue
-                template_data[field] = None
 
             # Create or update the entity
             entity = None
