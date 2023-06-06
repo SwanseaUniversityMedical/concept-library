@@ -2,26 +2,39 @@
   "version": 1,
   "card_type": "clinical",
 
+  "details": {
+    "name": "Clinical-Coded Phenotype",
+    "description": "Phenotype definitions that are based on lists of clinical codes, or algorithms using clinical codes."
+  },
+
   "sections": [
     {
-      "title": "Definition",
+      "title": "Overview",
       "description": "An overview of the phenotype with basic metadata.",
-      "fields": ["name", "definition", "author", "event_date_range", "sex", "type", "tags", "collections", "data_sources"]
+      "fields": ["id", "history_id", "name", "author", "phenotype_uuid", "event_date_range", "sex", "type", "coding_system", "collections", "tags", "data_sources"]
+    },
+    {
+      "title": "Definition",
+      "description": "",
+      "fields": ["definition"]
+    },
+    {
+      "title": "Implementation",
+      "description": "How this phenotype definition is run against data.",
+      "fields": ["phenoflowid", "implementation"],
+      "hide_if_empty": true
+    },
+    {
+      "title": "Validation",
+      "description": "Description of how correctness, appropriateness, and/or quality was assessed.",
+      "fields": ["validation"],
+      "do_not_show_in_production": true,
+      "hide_if_empty": true
     },
     {
       "title": "Clinical Code List",
       "description": "Clinical codes used to define this phenotype.",
       "fields": ["concept_information"]
-    },
-    {
-      "title": "Implementation",
-      "description": "How this phenotype definition is run against data.",
-      "fields": ["phenoflowid", "implementation"]
-    },
-    {
-      "title": "Validation",
-      "description": "Description of how correctness, appropriateness, and/or quality was assessed.",
-      "fields": ["validation"]
     },
     {
       "title": "Publication",
@@ -31,59 +44,20 @@
     {
       "title": "Permissions",
       "description": "Settings for sharing and collaboration.",
-      "fields": ["group", "group_access", "world_access"]
-    }
-  ],
-  
-  "detail_page_sections": [
-    {
-      "title": "Home",
-      "description": "",
-      "fields": ["id", "history_id", "phenotype_uuid", "type", "data_sources", "sex", "event_date_range", "coding_system", "collections", "tags"]
-    },
-    {
-      "title": "Definition",
-      "description": "",
-      "fields": ["definition"]
-    },
-    {
-      "title": "Implementation",
-      "description": "",
-      "fields": ["implementation", "phenoflowid"],
-      "hide_if_empty": true
-    },
-    {
-      "title": "Publications",
-      "description": "",
-      "fields": ["publications","citation_requirements"]
-    },
-     {
-      "title": "Validation",
-      "description": "",
-      "fields": ["validation"],
-      "do_not_show_in_production": true,
-      "hide_if_empty": true
-    },   
-    {
-      "title": "Clinical Code List",
-      "description": "",
-      "fields": ["concept_information"]
-    },
-    {
-      "title": "Permissions",
-      "description": "",
-      "fields": ["permissions"],
+      "fields": ["group", "group_access", "world_access", "permissions"],
       "requires_auth": true
     },
     {
       "title": "API",
       "description": "",
-      "fields": ["api"]
+      "fields": ["api"],
+      "hide_on_create": true
     },
     {
       "title": "Version History",
       "description": "",
-      "fields": ["version_history"]
+      "fields": ["version_history"],
+      "hide_on_create": true
     }
   ],  
 
@@ -93,10 +67,12 @@
       "hide_on_create": true
     },
     "name": {
-      "is_base_field": true
+      "is_base_field": true,
+      "hide_on_detail": true
     },
     "author": {
-      "is_base_field": true
+      "is_base_field": true,
+      "hide_on_detail": true
     },
     "phenotype_uuid": {
       "title": "Phenotype UUID",
@@ -170,7 +146,7 @@
     },
     "sex": {
       "title": "Sex",
-      "description": "Biological sex this phenotype is applicable to.",
+      "description": "The biological sex this phenotype is applicable to.",
       "field_type": "grouped_enum",
       "active": true,
       "validation": {
@@ -290,13 +266,16 @@
       "hide_if_empty": true
     },
     "group": {
-      "is_base_field": true
+      "is_base_field": true,
+      "hide_on_detail": true
     },
     "world_access": {
-      "is_base_field": true
+      "is_base_field": true,
+      "hide_on_detail": true
     },
     "group_access": {
-      "is_base_field": true
+      "is_base_field": true,
+      "hide_on_detail": true
     },
     "permissions":{
       "title": "Permissions",

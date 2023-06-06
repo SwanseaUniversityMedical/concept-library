@@ -409,7 +409,7 @@ class EntityWizardAside(template.Node):
 
         # We should be getting the FieldTypes.json related to the template
         detail_page_sections = []
-        for section in template.definition.get('detail_page_sections'):
+        for section in template.definition.get('sections'):
             if section.get('requires_auth', False):
                 if not request.user.is_authenticated:
                     #print('SECTION: requires_auth')
@@ -418,7 +418,10 @@ class EntityWizardAside(template.Node):
             if section.get('do_not_show_in_production', False):
                 if (not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC):
                     #print('SECTION: do_not_show_in_production')
-                    continue  
+                    continue
+            
+            if section.get('hide_on_detail'):
+                continue
             
             detail_page_sections.append(section)
 
@@ -583,7 +586,7 @@ class EntityWizardSections(template.Node):
         
         # We should be getting the FieldTypes.json related to the template
         field_types = constants.FIELD_TYPES
-        for section in template.definition.get('detail_page_sections'):
+        for section in template.definition.get('sections'):
             if section.get('requires_auth', False):
                 #if not request.user.is_authenticated:
                 if not context.get('user').is_authenticated:
@@ -593,7 +596,10 @@ class EntityWizardSections(template.Node):
             if section.get('do_not_show_in_production', False):
                 if (not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC):
                     #print('SECTION: do_not_show_in_production')
-                    continue    
+                    continue
+            
+            if template_utils.try_get_content(section, 'hide_on_detail'):
+                continue
                     
             # still need to handle: section 'hide_if_empty' ??? 
         
@@ -611,6 +617,9 @@ class EntityWizardSections(template.Node):
 
                 if not template_field:
                     #print('not template_field')
+                    continue
+
+                if template_field.get('hide_on_detail'):
                     continue
                 
                 if template_field.get('is_base_field', False):
@@ -652,12 +661,13 @@ class EntityWizardSections(template.Node):
                 component['field_name'] = field
                 component['field_data'] = field_data
 
-                desc = template_utils.try_get_content(template_field, 'description')
-                if desc is not None:
-                    component['description'] = desc
-                    component['hide_input_details'] = False
-                else:
-                    component['hide_input_details'] = True
+                ''' commented out as we want to hide descriptions now on detail page '''
+                # desc = template_utils.try_get_content(template_field, 'description')
+                # if desc is not None:
+                #     component['description'] = desc
+                #     component['hide_input_details'] = False
+                # else:
+                component['hide_input_details'] = True
                 
                 # don't show description in detail page
                 component['hide_input_details'] = True

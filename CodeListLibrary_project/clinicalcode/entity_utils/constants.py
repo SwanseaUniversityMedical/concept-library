@@ -527,7 +527,8 @@ metadata = {
         'title': 'ID',
         'field_type': 'id',
         'active': True,
-        'hide_on_create': True
+        'hide_on_create': True,
+        'is_base_field': True
     },
 }
 

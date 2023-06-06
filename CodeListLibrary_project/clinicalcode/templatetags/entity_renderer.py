@@ -479,10 +479,26 @@ class EntityWizardAside(template.Node):
         template = context.get('template', None)
         if template is None:
             return output
+        
+        sections = template.definition.get('sections')
+        if sections is None:
+            return ''
+        
+        final_sections = [ ]
+        for index in range(len(sections)):
+            section = sections[index]
+            if template_utils.try_get_content(section, 'hide_on_create'):
+                continue
+            
+            alias = template_utils.try_get_content(section, 'alias')
+            if alias is not None:
+                section.update({ 'title': alias })
+
+            final_sections.append(section)
 
         # We should be getting the FieldTypes.json related to the template
         output = render_to_string(constants.CREATE_WIZARD_ASIDE, {
-            'create_sections': template.definition.get('sections')
+            'create_sections': final_sections
         })
 
         return output
@@ -596,7 +612,16 @@ class EntityWizardSections(template.Node):
         # We should be getting the FieldTypes.json related to the template
         field_types = constants.FIELD_TYPES
         for section in template.definition.get('sections'):
-            output += self.__try_render_item(template_name=constants.CREATE_WIZARD_SECTION_START, request=request, context=context.flatten() | { 'section': section })
+            if template_utils.try_get_content(section, 'hide_on_create'):
+                continue
+            
+            alias = template_utils.try_get_content(section, 'alias')
+            if alias is not None:
+                alias = { 'title': alias }
+            else:
+                alias = { }
+
+            output += self.__try_render_item(template_name=constants.CREATE_WIZARD_SECTION_START, request=request, context=context.flatten() | { 'section': section | alias })
 
             for field in section.get('fields'):
                 template_field = template_utils.get_field_item(template.definition, 'fields', field)
