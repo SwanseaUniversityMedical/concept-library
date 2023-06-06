@@ -197,7 +197,7 @@
       "title": "Agreement Date",
       "description":"A date representing when this phenotype was first finalized (may predate the Phenotype Library). Deprecated.",
       "field_type": "date",
-      "active": true,
+      "active": false,
       "validation": {
         "type": "string",
         "mandatory": false,
