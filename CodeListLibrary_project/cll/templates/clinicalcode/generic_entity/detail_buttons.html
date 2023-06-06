@@ -43,12 +43,14 @@
       
       
       {% if user.is_authenticated and not CLL_READ_ONLY %}
-        {% comment %} {% if user_can_edit %}
-          <button role="link" onClick="window.location.href='{% url 'update_entity' entity.id entity.history_id %}';" >EDIT .......</button>
-            <a href="{% url 'update_entity' entity.id entity.history_id %}" class="btn btn-outline-primary btn-cl btn-cl-secondary">
+        {% if user_can_edit %}
+          <button role="link"  class="primary-btn bold dropdown-btn__label"
+             onClick="window.location.href='{% url 'update_phenotype' entity.id entity.history_id %}';" >&nbsp;Edit&nbsp;</button>
+
+            {% comment %} <a href="{% url 'update_phenotype' entity.id entity.history_id %}" class="btn btn-outline-primary btn-cl btn-cl-secondary">
               Edit
-            </a>
-        {% endif %} {% endcomment %}
+            </a> {% endcomment %}
+        {% endif %}
 
         {% if is_published and approval_status == APPROVED_STATUS_DICT.APPROVED %}
             <button class="primary-btn dropdown-btn__label" disabled title="This version is already published" style='color: green;'>
