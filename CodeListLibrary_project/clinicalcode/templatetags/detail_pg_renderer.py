@@ -227,7 +227,7 @@ class EntityCardsNode(template.Node):
             layout = template_utils.try_get_content(layouts, f'{entity.template.id}/{entity.template_data.get("version")}')
             if not template_utils.is_layout_safe(layout):
                 continue
-            card = template_utils.try_get_content(layout['definition'], 'card_type', constants.DEFAULT_CARD)
+            card = template_utils.try_get_content(layout['definition'].get('template_details'), 'card_type', constants.DEFAULT_CARD)
             card = f'{constants.CARDS_DIRECTORY}/{card}.html'
             try:
                 html = render_to_string(card, {

@@ -1,10 +1,9 @@
 {
-  "version": 1,
-  "card_type": "generic",
-
   "template_details": {
+    "version": 1,
     "name": "Structured Data Algorithm",
-    "description": "This Phenotype defines a structured data algorithm."
+    "description": "This Phenotype defines a structured data algorithm.",
+    "card_type": "generic"
   },
 
   "sections": [

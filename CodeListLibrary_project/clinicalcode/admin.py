@@ -90,7 +90,8 @@ class TemplateAdmin(admin.ModelAdmin):
                 order.append(field)
             obj.definition['layout_order'] = order
             
-            version = obj.definition.get('version', None)
+            details = obj.definition.get('template_details') or { }
+            version = details.get('version', None)
             if version != obj.template_version:
                 obj.template_version = version
         

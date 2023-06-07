@@ -1180,7 +1180,7 @@ class EntityCreator {
     if (this.data?.template) {
       packet.template = {
         id: this.data.template.id,
-        version: this.data.template?.definition.version
+        version: this.data.template?.definition?.template_details?.version
       }
     }
 

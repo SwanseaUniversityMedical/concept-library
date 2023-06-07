@@ -1,10 +1,9 @@
 {
-  "version": 1,
-  "card_type": "generic",
-
   "template_details": {
+    "version": 1,
     "name": "Working Set",
-    "description": "e.g. a workingset example"
+    "description": "e.g. a workingset example",
+    "card_type": "generic"
   },
 
   "sections": [
