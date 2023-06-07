@@ -96,8 +96,6 @@ def get_merged_definition(template, default={}):
             if isinstance(packet, dict) and (not isinstance(packet.get('active'), bool) or packet.get('active'))
     }
 
-    print(fields)
-
     definition.update({'fields': fields})
     return definition
 
