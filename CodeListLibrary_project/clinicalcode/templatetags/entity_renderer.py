@@ -479,10 +479,16 @@ class EntityWizardAside(template.Node):
         template = context.get('template', None)
         if template is None:
             return output
+        
+        sections = template.definition.get('sections')
+        if sections is None:
+            return ''
 
-        # We should be getting the FieldTypes.json related to the template
+        final_sections = [section for section in sections if not section.get('hide_on_create')]
+        final_sections.extend(constants.APPENDED_SECTIONS)
+
         output = render_to_string(constants.CREATE_WIZARD_ASIDE, {
-            'create_sections': template.definition.get('sections')
+            'create_sections': final_sections
         })
 
         return output
@@ -546,6 +552,9 @@ class EntityWizardSections(template.Node):
             Attempts to safely get the properties of a validation field, if present
         '''
         struct = template_utils.get_layout_field(template, field)
+        if not isinstance(struct, dict):
+            return
+        
         validation = struct.get('validation')
         if not validation:
             return
@@ -593,15 +602,22 @@ class EntityWizardSections(template.Node):
         if template is None:
             return output
         
-        # We should be getting the FieldTypes.json related to the template
         field_types = constants.FIELD_TYPES
-        for section in template.definition.get('sections'):
+        sections = template.definition.get('sections')
+        if sections is None:
+            return ''
+
+        sections = [section for section in sections if not section.get('hide_on_create')]
+        sections.extend(constants.APPENDED_SECTIONS)
+
+        for section in sections:
             output += self.__try_render_item(template_name=constants.CREATE_WIZARD_SECTION_START, request=request, context=context.flatten() | { 'section': section })
 
             for field in section.get('fields'):
-                template_field = template_utils.get_field_item(template.definition, 'fields', field)
-                if not template_field:
-                    template_field = template_utils.try_get_content(constants.metadata, field)
+                if template_utils.is_metadata(GenericEntity, field):
+                    template_field = constants.metadata.get(field)
+                else:
+                    template_field = template_utils.get_field_item(template.definition, 'fields', field)
 
                 if not template_field:
                     continue
@@ -613,9 +629,6 @@ class EntityWizardSections(template.Node):
                 if template_field.get('hide_on_create'):
                     continue
                 
-                if template_field.get('is_base_field'):
-                    template_field = constants.metadata.get(field) | template_field
-
                 component = template_utils.try_get_content(field_types, template_field.get('field_type'))                
                 if component is None:
                     continue

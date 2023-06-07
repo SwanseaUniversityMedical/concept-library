@@ -112,7 +112,7 @@ def compute_statistics(statistics, entity, data_cache=None):
         if not isinstance(struct, dict):
             continue
 
-        is_dynamic = 'is_base_field' not in struct
+        is_dynamic = template_utils.is_metadata(entity, field)
         build_statistics(statistics, entity, field, struct, is_dynamic=is_dynamic, data_cache=None, template_entity=template)
 
 def collate_statistics(all_entities, published_entities, data_cache=None):

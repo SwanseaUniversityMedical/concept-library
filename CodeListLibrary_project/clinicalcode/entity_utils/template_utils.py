@@ -21,6 +21,10 @@ def is_metadata(entity, field):
     '''
         Checks whether a field is accounted for in the metadata of an entity e.g. name, tags, collections
     '''
+    metadata_field = constants.metadata.get(field)
+    if metadata_field is not None and metadata_field.get('is_base_field'):
+        return True
+    
     try:
         data = entity._meta.get_field(field)
         return True
@@ -74,6 +78,28 @@ def get_layout_field(layout, field, default=None):
             return try_get_content(fields, field, default)
     
     return try_get_content(layout, field, default)
+
+def get_merged_definition(template, default={}):
+    '''
+        Used to merge the metadata into a template such that interfaces, e.g. API/create,
+        can understand the origin of fields
+    '''
+    definition = try_get_content(template, 'definition') if isinstance(template, dict) else getattr(template, 'definition')
+    if definition is None:
+        return default
+    
+    fields = { field: packet for field, packet in constants.metadata.items() if not packet.get('ignore') }
+    fields.update(definition.get('fields') or { })
+    fields = {
+        field: packet
+        for field, packet in fields.items()
+            if isinstance(packet, dict) and (not isinstance(packet.get('active'), bool) or packet.get('active'))
+    }
+
+    print(fields)
+
+    definition.update({'fields': fields})
+    return definition
 
 def get_ordered_definition(definition, clean_fields=False):
     '''

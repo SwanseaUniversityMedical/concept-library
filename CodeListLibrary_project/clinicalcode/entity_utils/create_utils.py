@@ -52,11 +52,11 @@ def get_template_creation_data(request, entity, layout, field, default=[]):
     '''
     data = template_utils.get_entity_field(entity, field)
     info = template_utils.get_layout_field(layout, field)
+    if not info and template_utils.is_metadata(entity, field):
+        info = template_utils.try_get_content(constants.metadata, field)
+
     if not info or not data:
         return default
-    
-    if info.get('is_base_field'):
-        info = template_utils.try_get_content(constants.metadata, field)
 
     validation = template_utils.try_get_content(info, 'validation')
     if validation is None:

@@ -396,7 +396,7 @@ def get_entity_detail(
     entity_id, 
     entity, 
     user_authed, 
-    fields_to_ignore=['deleted', 'created_by', 'updated_by', 'deleted_by'], 
+    fields_to_ignore=['deleted', 'created_by', 'updated_by', 'deleted_by', 'brands'], 
     target_field=None, 
     return_data=False
   ):
@@ -421,7 +421,7 @@ def get_entity_detail(
     return layout_response
   
   layout = layout_response
-  layout_definition = template_utils.get_ordered_definition(layout.definition)
+  layout_definition = template_utils.get_merged_definition(layout)
   layout_version = layout.template_version
 
   fields = template_utils.try_get_content(layout_definition, 'fields')

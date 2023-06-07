@@ -697,6 +697,7 @@ const ENTITY_FIELD_COLLECTOR = {
 const collectFormData = () => {
   const values = document.querySelectorAll('data[data-owner="entity-creator"]');
 
+  // collect the form data
   const result = { };
   for (let i = 0; i < values.length; ++i) {
     const data = values[i];
@@ -722,6 +723,13 @@ const collectFormData = () => {
     const referral = data.getAttribute('referral-url');
     if (!isNullOrUndefined(referral)) {
       result[name].referralURL = referral;
+    }
+  }
+
+  // merge metadata into template's fields for easy access
+  if (result?.metadata && result?.template) {
+    for (const [key, value] of Object.entries(result.metadata)) {
+      result.template.definition.fields[key] = { is_base_field: true };
     }
   }
 

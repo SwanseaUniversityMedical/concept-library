@@ -8,6 +8,12 @@ const PUBLICATION_KEYCODES = {
 }
 
 /**
+ * PUBLICATION_MIN_MSG_DURATION
+ * @desc Min. message duration for toast notif popups
+ */
+const PUBLICATION_MIN_MSG_DURATION = 5000;
+
+/**
  * PublicationCreator
  * @desc A class that can be used to control publication lists
  * 
@@ -157,7 +163,6 @@ export default class PublicationCreator {
    * @param {event} e the event of the input 
    */
   #handleInput(e) {
-    console.log('CLICK')
     e.preventDefault();
     e.stopPropagation();
 
@@ -168,6 +173,14 @@ export default class PublicationCreator {
     }
 
     const matches = parseDOI(doi);
+    if (!matches?.[0]) {
+      window.ToastFactory.push({
+        type: 'danger',
+        message: 'We couldn\'t validate the DOI you provided. Are you sure it\'s correct?',
+        duration: PUBLICATION_MIN_MSG_DURATION,
+      });
+    }
+
     this.doiInput.value = '';
     this.publicationInput.value = '';
     this.data.push({
