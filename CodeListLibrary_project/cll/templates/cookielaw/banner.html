@@ -9,31 +9,9 @@
 {% endif %}
 
 <div class="text-center cookiealert" role="alert">
+    {% include "components/cookies/banner_component.html" %}
 
-    <div class='cookies_text' style="display:inline-flex">
-        This site uses cookies:&nbsp;<a id="link_privacy" href="{% url 'privacy_and_cookie_policy' %}"
-                                   target="_blank">Learn more</a></div>
-
-
-    <div class="cookie_buttons">
-
-
-        <button type="button" id="cookie_preference" class="btn btn-link  preferencecookies" value="">
-            Customise settings
-        </button>
-
-        <button type="button" id="reject_button" class="btn btn-primary btn-sm rejectcookies" value="">
-            Disable analytics
-        </button>
-
-
-        <button type="button" id="accept_button" class="btn btn-primary btn-sm acceptcookies" value="">
-            Accept all
-        </button>
-
-
-    </div>
-
+   
 
 
     {% if IS_PRODUCTION_SERVER %}
