@@ -62,7 +62,9 @@ const ENTITY_TEXT_PROMPTS = {
   // Message when POST submission fails due to server error
   SERVER_ERROR_MESSAGE: 'It looks like we couldn\'t save. Please try again',
   // Message when the API fails
-  API_ERROR_INFORM: 'We can\'t seem to process your form. Please context an Admin'
+  API_ERROR_INFORM: 'We can\'t seem to process your form. Please context an Admin',
+  // Message when a user has failed to confirm / cancel an editable component before attemping to save
+  CLOSE_EDITOR: 'Please close the ${field} editor first.'
 }
 
 /**
@@ -308,7 +310,7 @@ const ENTITY_FIELD_COLLECTOR = {
       }
     }
 
-    if (isNullOrUndefined(value) || !element.checkValidity()) {
+    if (isNullOrUndefined(value) || !element.checkValidity() || isStringEmpty(value)) {
       return {
         valid: true,
         value: null,
@@ -424,18 +426,19 @@ const ENTITY_FIELD_COLLECTOR = {
     const id = element.getAttribute('id');
     const startDateInput = element.querySelector(`#${id}-startdate`);
     const endDateInput = element.querySelector(`#${id}-enddate`);
-    if (isNullOrUndefined(startDateInput) || isNullOrUndefined(endDateInput)) {
-      return {
-        valid: false,
-        value: null,
+
+    let value;
+    if (startDateInput.checkValidity() && endDateInput.checkValidity()) {
+      let dates = [moment(startDateInput.value, ['YYYY-MM-DD']), moment(endDateInput.value, ['YYYY-MM-DD'])]
+      dates = dates.sort((a, b) => a.diff(b))
+                   .filter(date => date.isValid());
+
+      if (dates.length === 2) {
+        let [ startDate, endDate ] = dates.map(date => date.format(ENTITY_DATEPICKER_FORMAT));
+        value = `${startDate} - ${endDate}`;
       }
     }
-
-    let dates = [moment(startDateInput.value, ['YYYY-MM-DD']), moment(endDateInput.value, ['YYYY-MM-DD'])]
-    dates = dates.sort((a, b) => a.diff(b));
     
-    let [ startDate, endDate ] = dates.map(date => date.format(ENTITY_DATEPICKER_FORMAT));
-    let value = `${startDate} - ${endDate}`;
     if (isMandatoryField(packet)) {
       if (!startDateInput.checkValidity() || !endDateInput.checkValidity() || isNullOrUndefined(value) || isStringEmpty(value)) {
         return {
@@ -969,10 +972,49 @@ class EntityCreator {
 
   /**
    * isDirty
-   * @returns whether the form has been modified and its data is now dirty
+   * @returns {boolean} whether the form has been modified and its data is now dirty
    */
   isDirty() {
     return this.formChanged;
+  }
+
+  /**
+   * isEditingChildren
+   * @desc checks whether the user is editing a child component
+   * @returns {boolean} reflects editing state
+   */
+  isEditingChildren() {
+    for (const [field, packet] of Object.entries(this.form)) {
+      if (!packet.handler || !packet.handler.isInEditor) {
+        continue;
+      }
+
+      if (packet.handler.isInEditor()) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * getActiveEditor
+   * @desc finds the active editor that the user is interacting with
+   * @returns {object|null} the active component
+   */
+  getActiveEditor() {
+    for (const [field, packet] of Object.entries(this.form)) {
+      if (!packet.handler || !packet.handler.isInEditor) {
+        continue;
+      }
+
+      if (packet.handler.isInEditor()) {
+        return {
+          field: field,
+          packet: packet,
+        };
+      }
+    }
   }
 
   /*************************************
@@ -995,6 +1037,19 @@ class EntityCreator {
    * @desc submits the form to create/update an entity
    */
   submitForm() {
+    // Check that our children aren't in an editor state
+    const child = this.getActiveEditor();
+    if (child) {
+      let title = tryGetFieldTitle(child.field, child.packet);
+      title = title || child.field;
+
+      return window.ToastFactory.push({
+        type: 'warning',
+        message: interpolateHTML(ENTITY_TEXT_PROMPTS.CLOSE_EDITOR, { field: title }),
+        duration: ENTITY_TOAST_MIN_DURATION,
+      });
+    }
+
     // Clear prev. error messages
     this.#clearErrorMessages();
 

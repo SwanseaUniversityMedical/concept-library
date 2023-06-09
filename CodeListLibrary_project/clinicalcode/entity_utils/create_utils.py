@@ -523,10 +523,6 @@ def validate_metadata_value(request, field, value, errors=[]):
         return field_value, True
     
     field_value = gen_utils.try_value_as_type(value, field_type, validation)
-    if field_type is not None and field_value is None:
-        errors.append(f'"{field}" is invalid')
-        return field_value, False
-    
     return field_value, True
 
 def validate_template_value(request, field, form_template, value, errors=[]):
@@ -574,10 +570,6 @@ def validate_template_value(request, field, form_template, value, errors=[]):
         return field_value, True
     
     field_value = gen_utils.try_value_as_type(value, field_type, validation)
-    if field_type is not None and field_value is None:
-        errors.append(f'"{field}" is invalid')
-        return field_value, False
-
     return field_value, True
 
 def validate_entity_form(request, content, errors=[], method=None):
@@ -618,15 +610,14 @@ def validate_entity_form(request, content, errors=[], method=None):
     for field, value in form_data.items():
         if template_utils.is_metadata(GenericEntity, field):
             field_value, validated = validate_metadata_value(request, field, value, errors)
-            top_level_data[field] = field_value
-            continue
-
-        if validate_template_field(form_template, field):
-            field_value, validated = validate_template_value(request, field, form_template, value, errors)
-            template_data[field] = field_value
-        
-            if not validated:
+            if not validated or field_value is None:
                 continue
+            top_level_data[field] = field_value
+        elif validate_template_field(form_template, field):
+            field_value, validated = validate_template_value(request, field, form_template, value, errors)
+            if not validated or field_value is None:
+                continue
+            template_data[field] = field_value
             try_add_computed_fields(field, form_data, form_template, template_data)
 
     if len(errors) > 0:

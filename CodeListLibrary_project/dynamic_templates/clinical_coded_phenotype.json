@@ -111,7 +111,7 @@
       "title": "Valid Event Date Range",
       "description": "If this phenotype is only applicable within a limited time period, please specify that here (optional).",
       "field_type": "daterange",
-      "active": false,
+      "active": true,
       "validation": {
         "type": "string",
         "mandatory": false,

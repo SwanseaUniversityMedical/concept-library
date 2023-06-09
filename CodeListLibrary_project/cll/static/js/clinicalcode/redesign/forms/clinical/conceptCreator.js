@@ -277,6 +277,15 @@ export default class ConceptCreator {
    *                                   *
    *************************************/
   /**
+   * isInEditor
+   * @desc a method to define editor status
+   * @returns {boolean} reflects active editor state
+   */
+  isInEditor() {
+    return !!this.state.editing;
+  }
+
+  /**
    * getData
    * @desc gets the current concept data, excluding any current changes
    * @returns {object} current concept data
