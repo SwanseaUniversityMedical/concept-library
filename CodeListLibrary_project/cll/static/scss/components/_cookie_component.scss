@@ -9,8 +9,8 @@
   left: 1rem;
   max-width: 530px;
   width: 100%;
-  background: #fff;
-  border-radius: 8px;
+  background: var(--color-accent-bright);
+  border-radius: 1em;
   padding: 15px 25px 22px;
   box-sizing: border-box;
   -webkit-box-shadow: var(--dropdown-shadow);
@@ -33,19 +33,23 @@
     align-items: center;
     column-gap: 15px;
     h2 {
-      color: blue;
+      color: var(--color-text-dark);
       font-weight: 500;
     }
+    svg{
+        fill:var(--color-text-dark);
+    }
+  
   }
 
   &__data {
     margin-top: 1rem;
     p {
-      color: #333;
+      color: var(--color-text-dark);
       font-size: 14px;
       a {
         text-decoration: none;
-        color: blue;
+        color: var(--referral-card-anchor-color);
         &:hover {
           text-decoration: underline;
         }
