@@ -8,12 +8,9 @@
 	</head>
 {% endif %}
 
-<div class="text-center cookiealert" role="alert">
-    {% include "components/cookies/banner_component.html" %}
+    {% include "components/cookies/cookie_component.html" %}
 
    
-
-
     {% if IS_PRODUCTION_SERVER %}
         {% if request.CURRENT_BRAND == 'HDRUK' %}
             <!-- for sub-directory = https://conceptlibrary.saildatabank.com/HDRUK/ -->
@@ -269,5 +266,4 @@
 
 </div>
 <script src="{% static 'cookielaw/js/cookiealert.js' %}"></script>
-<link href="{% static 'cookielaw/css/cookiealert.css' %}" rel="stylesheet"/>
 <script src="{% static 'cookielaw/js/bootstrap-cookie-consent-settings.js' %}"></script>
