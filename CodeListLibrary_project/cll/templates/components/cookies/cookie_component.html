@@ -1,12 +1,13 @@
 {% load static %}
 {% load i18n %}
-
+{% load svg %}
 {% load mathfilters %}
 {% load cl_extras %}
 
 {% block content %}
 <div class="cookiealert" role="alert">
-    <div class="title">
+    <div class="cookiealert__title">
+        {% svg "cookies_icon" %}
         <h2>Cookie consent</h2>
     </div>
     
