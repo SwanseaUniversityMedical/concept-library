@@ -1,0 +1,55 @@
+@import "../_methods";
+@import "../_variables";
+@import "../_media";
+@import "../_utils";
+
+.cookiealert {
+  position: fixed;
+  bottom: 2rem;
+  left: 1rem;
+  max-width: 345px;
+  width: 100%;
+  background: #fff;
+  border-radius: 8px;
+  padding: 15px 25px 22px;
+  box-sizing: border-box;
+  -webkit-box-shadow: var(--dropdown-shadow);
+  box-shadow: var(--dropdown-shadow);
+
+  &__title {
+    display: flex;
+    align-items: center;
+    column-gap: 15px;
+    h2 {
+      color: blue;
+      font-weight: 500;
+    }
+  }
+
+  &__data {
+    margin-top: 1rem;
+    p {
+      color: #333;
+      font-size: 14px;
+      a {
+        text-decoration: none;
+        color: blue;
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+  
+  &__cookie_buttons {
+    margin-top: 16px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    button {
+      width: calc(100% / 2 - 10px);
+      padding: 8px 0;
+    }
+  }
+}
