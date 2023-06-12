@@ -3,7 +3,7 @@
   <h3 class="detailed-input-group__title">{{ component.field_data.title }} {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>
   <p class="detailed-input-group__description">{{ component.description }}</p>
   {% endif %}
-  <data for="{{ component.field_name }}">{{ component.value }}</data>
+  <data for="{{ component.field_name }}">{% if component.value %}{{ component.value }}{% endif %}</data>
   <div id="entity-{{ component.field_name }}-command-bar" for="{{ component.field_name }}" class="markdown-command-bar" data-class="md-command-bar"></div>
   <div id="entity-{{ component.field_name }}" class="filter-scrollbar markdown-editor" data-class="md-editor" data-field="{{ component.field_name }}"></div>
 </div>

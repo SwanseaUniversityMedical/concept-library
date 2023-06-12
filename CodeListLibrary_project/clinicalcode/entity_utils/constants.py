@@ -268,6 +268,20 @@ ENTITY_FILTER_PARAMS = {
 }
 
 '''
+    [!] All items will be appended to the list of renderables, meaning they will always appear last
+
+    Used to define:
+        - Sections and fields that relate to permissions for create interface
+'''
+APPENDED_SECTIONS = [
+    {
+        "title": "Permissions",
+        "description": "Settings for sharing and collaboration.",
+        "fields": ["group", "group_access", "world_access"]
+    }
+]
+
+'''
     [!] Note: Will be moved to a table once tooling is finished, accessible through the 'base_template_version'
 
     Used to define:
@@ -292,9 +306,10 @@ metadata = {
         'search': {
             'filterable': True,
             'single_search_only': True,
-        }
+        },
+        'ignore': True
     },
-    'brand': {
+    'brands': {
         'title': 'Brand',
         'description': 'The brand that this Phenotype is related to.',
         'field_type': '???',
@@ -308,7 +323,7 @@ metadata = {
                 'query': 'id',
                 'relative': 'name',
             }
-        },
+        }
     },
     "name": {
         "title": "Name",
@@ -527,7 +542,8 @@ metadata = {
         'title': 'ID',
         'field_type': 'id',
         'active': True,
-        'hide_on_create': True
+        'hide_on_create': True,
+        'ignore': True
     },
 }
 

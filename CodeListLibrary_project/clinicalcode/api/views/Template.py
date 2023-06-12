@@ -114,17 +114,11 @@ def get_template(request, template_id, version_id=None):
         )
     template = template.latest()
     
-  template_fields = template_utils.try_get_content(template.definition, 'fields')
+  merged_definition = template_utils.get_merged_definition(template)
+  template_fields = template_utils.try_get_content(merged_definition, 'fields')
   
   formatted_fields = []
   for field, definition in template_fields.items():
-    is_base_field = template_utils.try_get_content(definition, 'is_base_field')
-    if is_base_field:
-      if field in constants.metadata:
-        definition = constants.metadata[field]
-      else:
-        continue
-
     is_active = template_utils.try_get_content(definition, 'active')
     if not is_active:
       continue

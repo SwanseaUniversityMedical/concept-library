@@ -165,7 +165,7 @@ const CONCEPT_CREATOR_FILE_UPLOAD = {
  * CONCEPT_CREATOR_MIN_MSG_DURATION
  * @desc Min. message duration for toast notif popups
  */
-const CONCEPT_CREATOR_MIN_MSG_DURATION = 2000; // 2000ms, or 2s
+const CONCEPT_CREATOR_MIN_MSG_DURATION = 5000; // 5000ms, or 5s
 
 /**
  * CONCEPT_CREATOR_LIMITS
@@ -236,11 +236,11 @@ const CONCEPT_CREATOR_TEXT = {
     content: '<p>Are you sure you want to delete this Concept from your Phenotype?</p>',
   },
   // Toast to inform user to close editor
-  REQUIE_EDIT_CLOSURE: 'Please close the editor before trying to delete a Concept.',
+  REQUIRE_EDIT_CLOSURE: 'Please close the editor before trying to delete a Concept.',
   // Toast for Concept name validation
   REQUIRE_CONCEPT_NAME: 'You need to name your Concept before saving',
   // Toast for Concept CodingSystem validation
-  REQUIE_CODING_SYSTEM: 'You need to select a coding system before saving!',
+  REQUIRE_CODING_SYSTEM: 'You need to select a coding system before saving!',
   // Toast to inform user that no code was matched
   NO_CODE_SEARCH_MATCH: 'No matches for "${value}..."',
   // Toast to inform user that the search codes were added
@@ -276,6 +276,15 @@ export default class ConceptCreator {
    *               Getter              *
    *                                   *
    *************************************/
+  /**
+   * isInEditor
+   * @desc a method to define editor status
+   * @returns {boolean} reflects active editor state
+   */
+  isInEditor() {
+    return !!this.state.editing;
+  }
+
   /**
    * getData
    * @desc gets the current concept data, excluding any current changes
@@ -1636,7 +1645,7 @@ export default class ConceptCreator {
     }
 
     if (isNullOrUndefined(data?.coding_system)) {
-      this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.REQUIE_CODING_SYSTEM});
+      this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.REQUIRE_CODING_SYSTEM});
       return;
     }
 
@@ -1729,7 +1738,7 @@ export default class ConceptCreator {
    */
   #handleDeletion(target) {
     if (this.state.editing) {
-      this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.REQUIE_EDIT_CLOSURE });
+      this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.REQUIRE_EDIT_CLOSURE });
       return;
     }
 

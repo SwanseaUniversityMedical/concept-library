@@ -52,11 +52,11 @@ def get_template_creation_data(request, entity, layout, field, default=[]):
     '''
     data = template_utils.get_entity_field(entity, field)
     info = template_utils.get_layout_field(layout, field)
+    if not info and template_utils.is_metadata(entity, field):
+        info = template_utils.try_get_content(constants.metadata, field)
+
     if not info or not data:
         return default
-    
-    if info.get('is_base_field'):
-        info = template_utils.try_get_content(constants.metadata, field)
 
     validation = template_utils.try_get_content(info, 'validation')
     if validation is None:
@@ -335,6 +335,9 @@ def validate_concept_form(form, errors):
     else:
         is_new_concept = True
     
+    if not is_new_concept and not is_dirty_concept:
+        return field_value
+    
     concept_details = form.get('details')
     if is_new_concept and (concept_details is None or not isinstance(concept_details, dict)):
         errors.append(f'Invalid concept with ID {concept_id} - details is a non-nullable dict field.')
@@ -358,6 +361,7 @@ def validate_concept_form(form, errors):
         return None
 
     components = [ ]
+    concept_components = concept_components or []
     for concept_component in concept_components:
         component = { }
 
@@ -423,9 +427,9 @@ def validate_concept_form(form, errors):
                 return None
 
             code_desc = gen_utils.try_value_as_type(component_code.get('description'), 'string')
-            if gen_utils.is_empty_string(code_desc):
-                errors.append(f'Invalid concept with ID {concept_id} - A code\'s description is a non-nullable, string field')
-                return None
+            # if gen_utils.is_empty_string(code_desc):
+            #     errors.append(f'Invalid concept with ID {concept_id} - A code\'s description is a non-nullable, string field')
+            #     return None
             
             code['is_new'] = is_new_code
             code['code'] = code_name
@@ -492,8 +496,7 @@ def validate_metadata_value(request, field, value, errors=[]):
     '''
     field_data = template_utils.try_get_content(constants.metadata, field)
     if field_data is None:
-        errors.append(f'"{field}" is a non-existent field for this template')
-        return value, False
+        return None, True
     
     validation = template_utils.try_get_content(field_data, 'validation')
     if validation is None:
@@ -523,10 +526,6 @@ def validate_metadata_value(request, field, value, errors=[]):
         return field_value, True
     
     field_value = gen_utils.try_value_as_type(value, field_type, validation)
-    if field_type is not None and field_value is None:
-        errors.append(f'"{field}" is invalid')
-        return field_value, False
-    
     return field_value, True
 
 def validate_template_value(request, field, form_template, value, errors=[]):
@@ -535,8 +534,7 @@ def validate_template_value(request, field, form_template, value, errors=[]):
     '''
     field_data = template_utils.get_layout_field(form_template, field)
     if field_data is None:
-        errors.append(f'"{field}" is a non-existent field for this template')
-        return value, False
+        return None, True
     
     validation = template_utils.try_get_content(field_data, 'validation')
     if validation is None:
@@ -574,10 +572,6 @@ def validate_template_value(request, field, form_template, value, errors=[]):
         return field_value, True
     
     field_value = gen_utils.try_value_as_type(value, field_type, validation)
-    if field_type is not None and field_value is None:
-        errors.append(f'"{field}" is invalid')
-        return field_value, False
-
     return field_value, True
 
 def validate_entity_form(request, content, errors=[], method=None):
@@ -618,15 +612,14 @@ def validate_entity_form(request, content, errors=[], method=None):
     for field, value in form_data.items():
         if template_utils.is_metadata(GenericEntity, field):
             field_value, validated = validate_metadata_value(request, field, value, errors)
-            top_level_data[field] = field_value
-            continue
-
-        if validate_template_field(form_template, field):
-            field_value, validated = validate_template_value(request, field, form_template, value, errors)
-            template_data[field] = field_value
-        
-            if not validated:
+            if not validated or field_value is None:
                 continue
+            top_level_data[field] = field_value
+        elif validate_template_field(form_template, field):
+            field_value, validated = validate_template_value(request, field, form_template, value, errors)
+            if not validated or field_value is None:
+                continue
+            template_data[field] = field_value
             try_add_computed_fields(field, form_data, form_template, template_data)
 
     if len(errors) > 0:
