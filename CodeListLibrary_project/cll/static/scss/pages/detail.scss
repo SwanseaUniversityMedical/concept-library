@@ -48,7 +48,7 @@
     @include app-font-style();
     @include bottom-divider(2rem);
   
-    padding: 0.5rem 1rem 1rem 1rem;
+    padding: 0.5rem 0.5rem 0.5rem 0.5rem;
   
     h1 {
       font-size: var(--phenotype-article-h1-size);
@@ -63,12 +63,13 @@
       color: col(text-dark);
       font-weight: normal;
       line-height: 1;
-      margin: 1rem auto;
+      margin: 0.5rem auto;
     }
   
     p {
       line-height: 1;
-      padding: 0.5rem 0.2rem;
+      padding: 0.2rem 0.2rem 0.2rem 0.2rem;
+      margin: 0.2rem 0.2rem;
     }
   }
 }
@@ -450,9 +451,9 @@
 .badge {
     display: inline-block;
     min-width: 10px;
-    padding: 3px 7px;
+    padding: 3px 7px !important;
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 700 !important;
     line-height: 1;
     text-align: center;
     white-space: nowrap;
@@ -464,16 +465,24 @@
 
   .label {
     display: inline;
-    padding: 0.2em 0.6em 0.3em;
+    padding: 0.2em 0.2em 0.2em !important;
     font-size: 75%;
-    font-weight: 700;
+    font-weight: 700 !important;
     line-height: 1;
-    color: #fff;
+    color: #fff !important;
     text-align: center;
     white-space: nowrap;
     vertical-align: baseline;
     border-radius: 0.25em;
     box-sizing: border-box;
+}
+
+.label-highlighted {
+  background-color: #F98E2B;
+}
+
+.label-default {
+  background-color: #777;
 }
 
 .caret {
@@ -486,6 +495,18 @@
   border-top: 4px solid\9;
   border-right: 4px solid transparent;
   border-left: 4px solid transparent
+}
+
+.detailed-input-group {
+  margin: 0.7rem 0 0 0;
+}
+
+.row {
+  padding: 0 0.5rem 0 0 !important;
+}
+
+.row-padding {
+  padding: 0 0.5rem 0 0 !important;
 }
 
 
@@ -727,4 +748,27 @@ code.api-codeblock .code-text-highlight, .code-comment-highlight {
   color: #009700;
 }
 
+.constrained-codelist-table__wrapper  thead>tr>th:first-child,
+.constrained-codelist-table__wrapper  tbody>tr>td:first-child {
+  white-space: wrap !important;
+}
+.constrained-table {
+  white-space: wrap !important;
+}
+
+td {
+  white-space: wrap !important;
+}
+
+.datatable-table > tbody > tr > td,
+.datatable-table > tbody > tr > th,
+.datatable-table > tfoot > tr > td,
+.datatable-table > tfoot > tr > th,
+.datatable-table > thead > tr > td,
+.datatable-table > thead > tr > th {
+  vertical-align: top;
+  padding: 8px 10px;
+  white-space: wrap !important;
+  width: max-content;
+}
 

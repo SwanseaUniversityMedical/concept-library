@@ -282,6 +282,64 @@ APPENDED_SECTIONS = [
 ]
 
 '''
+    [!] All items will be appended to the list of renderables in the detail page, meaning they will always appear last
+
+    Used to define:
+        - Sections and fields that relate to permissions for the detail page
+'''
+DETAIL_PAGE_APPENDED_SECTIONS = [
+    {
+      "title": "Permissions",
+      "description": "",
+      "fields": ["permissions"],
+      "requires_auth": True
+    },
+    {
+      "title": "API",
+      "description": "",
+      "fields": ["api"]
+    },
+    {
+      "title": "Version History",
+      "description": "",
+      "fields": ["version_history"]
+    }
+]
+
+'''
+    Used to define:
+        - fields that relate to DETAIL_PAGE_APPENDED_SECTIONS for the detail page
+'''
+DETAIL_PAGE_APPENDED_FIELDS = {
+    "permissions":{
+      "title": "Permissions",
+      "field_type": "permissions_section",
+      "active": True,
+      "hide_on_create": True
+    },
+    "api":{
+      "title": "API",
+      "field_type": "api_section",
+      "active": True,
+      "hide_on_create": True
+    },
+    "version_history":{
+      "title": "Version History",
+      "field_type": "version_history_section",
+      "active": True,
+      "hide_on_create": True
+    },
+    "history_id":{
+      "title": "Version ID",
+      "field_type": "history_id",
+      "active": True,
+      "hide_on_create": True
+    }
+}
+
+
+
+'''
     [!] Note: Will be moved to a table once tooling is finished, accessible through the 'base_template_version'
 
     Used to define:
