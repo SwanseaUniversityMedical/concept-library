@@ -600,7 +600,6 @@ def validate_api_create_update_form(request, method):
   form_errors = []
   form = gen_utils.get_request_body(request)
   form = populate_entity_version_id(form)
-  print(form)
   form = create_utils.validate_entity_form(
     request, form, form_errors, method=method
   )
