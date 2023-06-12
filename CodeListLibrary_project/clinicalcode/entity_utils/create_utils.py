@@ -335,6 +335,9 @@ def validate_concept_form(form, errors):
     else:
         is_new_concept = True
     
+    if not is_new_concept and not is_dirty_concept:
+        return field_value
+    
     concept_details = form.get('details')
     if is_new_concept and (concept_details is None or not isinstance(concept_details, dict)):
         errors.append(f'Invalid concept with ID {concept_id} - details is a non-nullable dict field.')
@@ -358,6 +361,7 @@ def validate_concept_form(form, errors):
         return None
 
     components = [ ]
+    concept_components = concept_components or []
     for concept_component in concept_components:
         component = { }
 
@@ -423,9 +427,9 @@ def validate_concept_form(form, errors):
                 return None
 
             code_desc = gen_utils.try_value_as_type(component_code.get('description'), 'string')
-            if gen_utils.is_empty_string(code_desc):
-                errors.append(f'Invalid concept with ID {concept_id} - A code\'s description is a non-nullable, string field')
-                return None
+            # if gen_utils.is_empty_string(code_desc):
+            #     errors.append(f'Invalid concept with ID {concept_id} - A code\'s description is a non-nullable, string field')
+            #     return None
             
             code['is_new'] = is_new_code
             code['code'] = code_name
@@ -492,8 +496,7 @@ def validate_metadata_value(request, field, value, errors=[]):
     '''
     field_data = template_utils.try_get_content(constants.metadata, field)
     if field_data is None:
-        errors.append(f'"{field}" is a non-existent field for this template')
-        return value, False
+        return None, True
     
     validation = template_utils.try_get_content(field_data, 'validation')
     if validation is None:
@@ -531,8 +534,7 @@ def validate_template_value(request, field, form_template, value, errors=[]):
     '''
     field_data = template_utils.get_layout_field(form_template, field)
     if field_data is None:
-        errors.append(f'"{field}" is a non-existent field for this template')
-        return value, False
+        return None, True
     
     validation = template_utils.try_get_content(field_data, 'validation')
     if validation is None:
