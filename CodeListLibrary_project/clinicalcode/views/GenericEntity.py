@@ -63,7 +63,7 @@ class EntitySearchView(TemplateView):
         # Get the renderable, published entities that match our request params & the selected entity_type (optional)
         entity_type_param = kwargs.get('entity_type')
         entity_type = search_utils.try_derive_entity_type(entity_type_param)
-
+        
         # Raise 404 when trying to access an entity class that does not exist
         if entity_type_param is not None and entity_type is None:
             raise Http404

@@ -419,6 +419,19 @@ def get_template_sourced_values(template, field, default=None, request=None):
 
     return default
 
+def get_detailed_options_value(data, info, default=None):
+    '''
+        Tries to get the detailed options parameter from a layout's field entry
+    '''
+    validation = try_get_content(info, 'validation')
+    if validation is None:
+        return False
+    
+    key = str(data)
+    if key in validation['options']:
+        return { 'name': validation['options'][key], 'value': data }
+    return default
+
 def get_options_value(data, info, default=None):
     '''
         Tries to get the options parameter from a layout's field entry
@@ -431,6 +444,53 @@ def get_options_value(data, info, default=None):
     if key in validation['options']:
         return validation['options'][key]
     return default
+
+def get_detailed_sourced_value(data, info, default=None):
+    '''
+        Tries to get the detailed sourced value of a dynamic field from its layout and/or 
+          another model (if sourced)
+    '''
+    validation = try_get_content(info, 'validation')
+    if validation is None:
+        return default
+
+    try:
+        source_info = validation.get('source')
+        model = apps.get_model(app_label='clinicalcode', model_name=source_info.get('table'))
+        relative = None
+        if 'relative' in source_info:
+            relative = source_info['relative']
+
+        query = None
+        if 'query' in source_info:
+            query = {
+                source_info['query']: data
+            }
+        else:
+            query = {
+                'pk': data
+            }
+
+        queryset = model.objects.filter(Q(**query))
+        if queryset.exists():
+            queryset = queryset.first()
+
+            packet = {
+                'name': try_get_instance_field(queryset, relative, default),
+                'value': data
+            }
+            included_fields = source_info.get('include')
+            if included_fields:
+                for included_field in included_fields:
+                    value = try_get_instance_field(queryset, included_field, default)
+                    if value is None:
+                        continue
+                    packet[included_field] = value
+
+            return packet
+        return default
+    except:
+        return default
 
 def get_sourced_value(data, info, default=None):
     '''
@@ -485,25 +545,20 @@ def get_template_data_values(entity, layout, field, hide_user_details=False, def
     if field_type == 'enum' or field_type == 'int':
         output = None
         if 'options' in validation:
-            output = get_options_value(data, info)
+            output = get_detailed_options_value(data, info)
         elif 'source' in validation:
-            output = get_sourced_value(data, info)
+            output = get_detailed_sourced_value(data, info)
         if output is not None:
-            return [{
-                'name': output,
-                'value': data
-            }]
+            return [output]
     elif field_type == 'int_array':
         if 'source' in validation:
             values = [ ]
             for item in data:
-                value = get_sourced_value(item, info) 
-                if value is not None:
-                    values.append({
-                        'name': value,
-                        'value': item,
-                    })
-            
+                value = get_detailed_sourced_value(item, info) 
+                if value is None:
+                    continue
+
+                values.append(value)
             return values
     elif field_type == 'concept':
         values = []

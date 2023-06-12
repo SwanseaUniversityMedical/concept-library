@@ -100,7 +100,8 @@
         "source": {
           "table": "DataSource",
           "query": "id",
-          "relative": "name"
+          "relative": "name",
+          "include": ["uid", "url"]
         }
       },
       "search": {

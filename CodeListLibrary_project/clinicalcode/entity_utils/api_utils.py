@@ -281,9 +281,13 @@ def get_entity_detail_from_layout(
       is_source = validation.get('source')
       
       if is_source:
-        result[field] = template_utils.get_metadata_value_from_source(
+        value = template_utils.get_metadata_value_from_source(
           entity, field, default=None
         )
+        if value is None:
+          value = template_utils.get_entity_field(entity, field)
+
+        result[field] = value
       continue
     
     if field == 'concept_information':
@@ -293,9 +297,13 @@ def get_entity_detail_from_layout(
           entity, concept_information=value, inline=False
         )
     else:
-      result[field] = template_utils.get_template_data_values(
+      value = template_utils.get_template_data_values(
         entity, fields, field, default=None, hide_user_details=True
       )
+      if value is None:
+        value = template_utils.get_entity_field(entity, field)
+
+      result[field] = value
   
   return result
 
@@ -478,9 +486,9 @@ def build_final_codelist_from_concepts(entity, concept_information, inline=True)
       'concept_version_id': concept_version,
       'concept_name': concept_entity.name,
       'coding_system': model_utils.get_coding_system_details(concept_entity.coding_system),
-      'entity_id': entity.id,
-      'entity_version_id': entity.history_id,
-      'entity_name': entity.name
+      'phenotype_id': entity.id,
+      'phenotype_version_id': entity.history_id,
+      'phenotype_name': entity.name
     }
 
     # Get codes
@@ -595,7 +603,7 @@ def validate_api_create_update_form(request, method):
   form = create_utils.validate_entity_form(
     request, form, form_errors, method=method
   )
-  
+
   if form is None:
     return Response(
       data={
