@@ -10,7 +10,8 @@
     {
       "title": "Name & Author",
       "description": "",
-      "fields": ["name", "author"]
+      "fields": ["name", "author"],
+      "hide_on_detail": true
     },
     {
       "title": "Definition",

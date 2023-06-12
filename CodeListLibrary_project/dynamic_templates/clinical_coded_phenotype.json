@@ -10,12 +10,13 @@
     {
       "title": "Name & Author",
       "description": "",
-      "fields": ["name", "author"]
+      "fields": ["name", "author"],
+      "hide_on_detail": true
     },
     {
       "title": "Overview",
       "description": "An overview of the phenotype with basic metadata.",
-      "fields": ["event_date_range", "sex", "type", "coding_system", "tags", "collections", "data_sources"]
+      "fields": ["type", "sex", "event_date_range", "coding_system", "data_sources", "collections", "tags"]
     },
     {
       "title": "Definition",
@@ -111,7 +112,7 @@
       "title": "Valid Event Date Range",
       "description": "If this phenotype is only applicable within a limited time period, please specify that here (optional).",
       "field_type": "daterange",
-      "active": false,
+      "active": true,
       "validation": {
         "type": "string",
         "mandatory": false,
