@@ -16,7 +16,7 @@
     {
       "title": "Overview",
       "description": "An overview of the phenotype with basic metadata.",
-      "fields": ["type", "sex", "event_date_range", "coding_system", "data_sources", "collections", "tags"]
+      "fields": ["type", "phenotype_uuid", "sex", "event_date_range", "coding_system", "data_sources", "collections", "tags"]
     },
     {
       "title": "Definition",
