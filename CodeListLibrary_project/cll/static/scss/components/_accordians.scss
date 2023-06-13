@@ -103,6 +103,10 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+
+      @include media(">desktop", "screen") {
+        width: 75%;
+      }
     }
 
     &:hover {

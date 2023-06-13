@@ -200,6 +200,10 @@
     width: 100%;
   }
 
+  &.constrained {
+    max-width: 100%;
+  }
+
   &__mandatory {
     float: right;
     color: col(text-danger);
