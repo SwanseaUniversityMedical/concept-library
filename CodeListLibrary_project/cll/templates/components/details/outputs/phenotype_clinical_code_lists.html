@@ -7,6 +7,7 @@
 <!--   phenotype_clinical_code_lists   -->
 
 <script src="{% static 'js/clinicalcode/redesign/vendor/simple-datatables/simple-datatables.min.js' %}"></script>
+<script src="{% static 'js/clinicalcode/redesign/data/conceptUtils.js' %}"></script>
 
 <div class="detailed-input-group fill">
   <div id="export-code-button" class="box-container">
@@ -60,105 +61,52 @@
     </div>
 </div>
 
-
-
-<div class="detailed-input-group fill">
-
-    <div class="publication-list-group">
-      <section class="publication-list-group__list show  "   id="publication-group">
-          {% if component.value|length %}
+<div class="detailed-input-group fill constrained">
+  {% if component.value|length %}
+    {% for c in component.value %}
+      <div class="fill-accordian" id="concept-accordian-{{ c.concept_id }}" data-id="{{ c.concept_id }}" data-history-id="{{ c.concept_version_id }}">
+        <input class="fill-accordian__input" id="concept-{{ c.concept_id }}-{{ c.concept_version_id }}"
+          name="concept-{{ c.concept_id }}-{{ c.concept_version_id }}" type="checkbox" />
+        <label class="fill-accordian__label" id="concept-{{ c.concept_id }}-{{ c.concept_version_id }}"
+            for="concept-{{ c.concept_id }}-{{ c.concept_version_id }}" role="button" tabindex="0">
+          <span>
+            <strong>C{{ c.concept_id }}/{{ c.concept_version_id }}</strong>
+            &nbsp;-&nbsp;{{ c.details.name }}
+            &nbsp;|&nbsp;({{ c.coding_system.name }}, {{ c.codelist|length }} Codes)
+            {% if c.is_published %}
+              &nbsp;-&nbsp;(Published)
+            {% endif %}
+          </span>
+        </label>
+        <article class="fill-accordian__container codelist-extents">
+          <div class="detailed-input-group fill constrained" style="max-width: 100%">
+            <div class="constrained-codelist-table" id="concept-codelist-{{ c.concept_id }}_{{ c.concept_version_id }}">
             
-                {% for c in component.value %}
-                <ul>
-                  <li style="padding-top: 15px;">
-                    <strong>
-                      C{{ c.concept_id }}/{{ c.concept_version_id }}  &nbsp;-&nbsp;            
-                    <span>
-                      {{ c.details.name }}
-                    &nbsp;
-                    - ({{ c.coding_system.name }})
-                    &nbsp;
-                    - ({{c.codelist|length}} codes)
-                    &nbsp;
-                      {% if user.is_authenticated %}
-                          {% if c.is_published %}
-                              (Published)
-                          {% endif %}
-                      {% endif %}
-                      </span>
-                    </strong>
-                  </li>
-                </ul>
-
-                  <div class="detailed-input-group fill constrained-codelist-table code-list-display-table" id="concept-{{ c.concept_id }}_{{ c.concept_version_id }}" >
-                        
-                  </div>
-                
-                {% endfor %}
-            
-          {% else %}
-            <span class="card-no-data">No Clinical Code Lists</span>
-          {% endif %}
-      </section>
-    </div>
-
+            </div>
+          </div>
+        </article>
+      </div>
+    {% endfor %}
+  {% else %}
+    <span class="card-no-data">No Clinical Code Lists</span>
+  {% endif %}
 </div>
 
+<script type="text/javascript">
+  const conceptData = {{ component.value|jsonify|safe }};
 
-<script>
-      
-  document.addEventListener("DOMContentLoaded",function(){
-      const conceptData = {{ component.value|jsonify|safe }};
-      
-      if (conceptData){
-        for (var ii = 0; ii < conceptData.length; ii++){
-          const c = conceptData[ii];
-          container = document.querySelector('#concept-' + c['concept_id'] + '_' + c['concept_version_id']);        
-          table = container.appendChild(createElement('table', {
-            'id': 'codelist-datatable',
-            'class': 'constrained-codelist-table__wrapper',
-          }));
+  domReady.finally(() => {
+    if (isNullOrUndefined(conceptData)) {
+      return;
+    }
 
-
-          headings = ['Code', 'Description'];
-          if (c['details']['code_attribute_headers']){
-            for (var i = 0; i < c['details']['code_attribute_headers'].length; i++){
-              headings.push(c['details']['code_attribute_headers'][i]);
-            }
-          }
-
-          columns = [
-            { select: 0, type: 'string' },
-            { select: 1, type: 'string' },
-          ];
-
-          data = []
-          codes = c['codelist'];
-
-          data =  codes.map(c => {
-            return [c['code'], c['description'], ...c['attributes']]
-          });
-
-
-          new window.simpleDatatables.DataTable(table, {
-            perPageSelect: [10, 50, 100, ["All", -1]],
-            fixedColumns: false,
-            classes: {
-              wrapper: "overflow-table-constraint constrained-table",
-            }, 
-            data: {
-              headings: headings,
-              data: data,
-            }
-          });
-
-
-        }
+    applyCodelistsFromConcepts(
+      conceptData,
+      {
+        codelistContainerId: '#concept-codelist-${concept_id}_${concept_version_id}',
+        showAttributes: true,
+        perPageSelect: [10, 50, 100, ['All', -1]]
       }
-
-
-
-       
-
+    );
   });
 </script>

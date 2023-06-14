@@ -13,9 +13,9 @@ jobs:
   action:
     runs-on: ubuntu-latest
     steps:
-      - uses: dessant/issue-states@v2
+      - uses: dessant/issue-states@v3
         with:
             github-token: ${{ github.token }}
             open-issue-columns: ''
-            closed-issue-columns: 'Done / Deployed'
+            closed-issue-columns: 'Current Sprint: Deploy to Demo / Waiting Deployment to Live / In Production'
             log-output: false
