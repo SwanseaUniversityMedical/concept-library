@@ -965,10 +965,7 @@ def export_entity_codes_to_csv(request, pk, history_id=None):
         history_id = try_get_valid_history_id(request, GenericEntity, pk)        
         
     # validate access for login and public site
-    validate_access_to_view(request,
-                            GenericEntity,
-                            pk,
-                            set_history_id=history_id)
+    permission_utils.validate_access_to_view(request, pk, history_id)
 
     is_published = checkIfPublished(GenericEntity, pk, history_id)
 
@@ -1015,12 +1012,11 @@ def export_entity_codes_to_csv(request, pk, history_id=None):
         'concept_id', 'concept_version_id', 'concept_name',
         'phenotype_id', 'phenotype_version_id', 'phenotype_name'
         ])
+    
     # if the phenotype contains only one concept, write titles in the loop below
-    if len(concept_ids_historyIDs) != 1:
-        final_titles = final_titles + ["code_attributes"]
-        writer.writerow(final_titles)
+    final_titles = final_titles + ["code_attributes"]
+    writer.writerow(final_titles)
         
-
     for concept in concept_ids_historyIDs:
         concept_id = concept[0]
         concept_version_id = concept[1]
@@ -1028,52 +1024,28 @@ def export_entity_codes_to_csv(request, pk, history_id=None):
         concept_coding_system = current_concept_version.coding_system.name
         concept_name = current_concept_version.name
         code_attribute_header = current_concept_version.code_attribute_header
-        concept_history_date = current_concept_version.history_date
         
-        rows_no = 0
-        # codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
-
-        # #---------------------------------------------
-        # #  code attributes  ---
-        # codes_with_attributes = []
-        # if code_attribute_header:
-        #     codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(concept_id=concept_id,
-        #                                                                             concept_history_date=concept_history_date,
-        #                                                                             allCodes=codes,
-        #                                                                             code_attribute_header=code_attribute_header)
-        
-        #     codes = codes_with_attributes
-        
+        rows_no = 0        
         concept_data = concept_utils.get_clinical_concept_data(concept_id,
                                                       concept_version_id,
                                                       include_component_codes=False,
                                                       include_attributes=True,
                                                       include_reviewed_codes=True)
             
-        # if the phenotype contains only one concept
-        if len(concept_ids_historyIDs) == 1:
-            if code_attribute_header:
-                final_titles = final_titles + code_attribute_header
-                
-            writer.writerow(final_titles)
-    
         #---------------------------------------------
-
         
         for cc in concept_data['codelist']:
             rows_no += 1
                          
             #---------------------------------------------   
             code_attributes = []
-            # if the phenotype contains only one concept
-            if len(concept_ids_historyIDs) == 1:
-                if code_attribute_header:
-                    code_attributes = cc['attributes']
-            else:
-                code_attributes_dict = OrderedDict([])
-                if code_attribute_header:
-                    code_attributes_dict = OrderedDict(zip(code_attribute_header, cc['attributes']))
-                    code_attributes.append(dict(code_attributes_dict))
+            code_attributes_dict = OrderedDict([])
+            if code_attribute_header:
+                code_attributes_dict = OrderedDict(zip(code_attribute_header, cc['attributes']))
+                code_attributes.append(dict(code_attributes_dict))
+                
+            if code_attributes:
+                code_attributes = [json.dumps(code_attributes)]
             #---------------------------------------------
             
             
