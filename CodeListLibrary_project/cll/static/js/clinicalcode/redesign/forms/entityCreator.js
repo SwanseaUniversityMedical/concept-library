@@ -1129,14 +1129,12 @@ class EntityCreator {
           this.#redirectFormClosure(content);
         })
         .catch(error => {
+          this.#locked = false;
           if (typeof error.json === 'function') {
             this.#handleAPIError(error);
           } else {
             this.#handleServerError(error);
           }
-        })
-        .finally(() => {
-          this.#locked = false;
         });
     }
     catch {
@@ -1222,6 +1220,18 @@ class EntityCreator {
    * @returns {string} jsonified data packet
    */
   #generateSubmissionData(data) {
+    // update the data with legacy fields (if still present in template)
+    const templateFields = getTemplateFields(this.data?.template);
+    const templateData = this.data?.entity?.template_data;
+    for (const [key, value] of Object.entries(templateData)) {
+      if (data.hasOwnProperty(key) || !templateFields.hasOwnProperty(key)) {
+        continue;
+      }
+      
+      data[key] = value;
+    }
+    
+    // package the data
     const packet = {
       method: this.getFormMethod(),
       data: data,
@@ -1519,6 +1529,10 @@ class EntityCreator {
    * @param {event} e the associated event
    */
   #handleOnLeaving(e) {
+    if (this.#locked) {
+      return;
+    }
+    
     const { data, errors } = this.#collectFieldData();
     if (this.isDirty() || hasDeltaDiff(this.initialisedData, data)) {
       e.preventDefault();
