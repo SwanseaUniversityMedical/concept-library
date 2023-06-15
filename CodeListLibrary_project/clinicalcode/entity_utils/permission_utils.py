@@ -511,7 +511,7 @@ class HasAccessToViewGenericEntityCheckMixin(object):
     this mixin is used within class based views and can be overridden
   '''
   def dispatch(self, request, *args, **kwargs):
-    if can_user_view_entity(request, self.kwargs['pk']):
+    if not can_user_view_entity(request, self.kwargs['pk']):
       raise PermissionDenied
 
     return super(HasAccessToViewGenericEntityCheckMixin, self).dispatch(request, *args, **kwargs)
