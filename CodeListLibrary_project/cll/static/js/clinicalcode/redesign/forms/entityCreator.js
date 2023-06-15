@@ -1137,7 +1137,7 @@ class EntityCreator {
           }
         });
     }
-    catch {
+    catch (e){
       this.#locked = false;
     }
   }
@@ -1221,14 +1221,16 @@ class EntityCreator {
    */
   #generateSubmissionData(data) {
     // update the data with legacy fields (if still present in template)
-    const templateFields = getTemplateFields(this.data?.template);
     const templateData = this.data?.entity?.template_data;
-    for (const [key, value] of Object.entries(templateData)) {
-      if (data.hasOwnProperty(key) || !templateFields.hasOwnProperty(key)) {
-        continue;
+    if (!isNullOrUndefined(templateData)) {
+      const templateFields = getTemplateFields(this.data?.template);
+      for (const [key, value] of Object.entries(templateData)) {
+        if (data.hasOwnProperty(key) || !templateFields.hasOwnProperty(key)) {
+          continue;
+        }
+        
+        data[key] = value;
       }
-      
-      data[key] = value;
     }
     
     // package the data
