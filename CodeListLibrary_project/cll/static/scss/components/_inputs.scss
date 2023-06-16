@@ -462,6 +462,19 @@
 
 .text-area-input {
   resize: vertical;
+
+  &.simple {
+    @include remove-appearance();
+  
+    font-family: inherit;
+    margin-top: 0.25rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid col(accent-dark);
+    border-radius: 2px;
+    padding: 0.5rem;
+    width: auto;
+    transition: border-color 250ms ease;
+  }
 }
 
 .selection-input {
