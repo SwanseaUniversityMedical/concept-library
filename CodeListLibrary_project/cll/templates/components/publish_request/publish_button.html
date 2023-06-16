@@ -1,7 +1,7 @@
 <button role="link"
   class="{{class_modal}}"
   {% if url %}
-  href="{{url}}"
+  onClick="window.location.href='{{url}}'"
   {% endif %}
   title="{{title}}"
     {% if disabled%}
