@@ -35,7 +35,7 @@
 						<th >Name</th>
 						{% if user.is_authenticated %}
 							<th>Date</th>
-							<th>Change reason</th>
+							<!-- <th>Change reason</th> -->
 							<th>User</th>
 							<th>Is Published?</th>
 						{% else %}
@@ -60,7 +60,7 @@
 						</td>
 						{% if user.is_authenticated %}
 							<td>{{ h.history_date}}</td>
-							<td>{{ h.history_change_reason }}</td>
+							<!-- <td>{{ h.history_change_reason }}</td> -->
 							<td>
 								{% if h.updated_by is not None %}
 									{{ h.updated_by }}

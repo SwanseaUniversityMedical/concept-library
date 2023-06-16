@@ -1,6 +1,6 @@
 from django.db.models import Q
 from functools import cmp_to_key
-
+from django.db import connection, connections  # , transaction
 from ..models import GenericEntity, Template, Statistics, Brand
 from . import template_utils, constants, model_utils
 
@@ -147,6 +147,7 @@ def compute_statistics(statistics, entity, data_cache=None, template_cache=None,
         if not isinstance(struct, dict):
             continue
 
+
         build_statistics(statistics['all'], entity, field, struct, data_cache=data_cache, template_entity=template, brand=brand)
 
         if entity.publish_status == constants.APPROVAL_STATUS.APPROVED:
@@ -244,3 +245,28 @@ def collect_statistics(request):
     # Create / Update stat objs
     Statistics.objects.bulk_create(to_create)
     Statistics.objects.bulk_update(to_update, ['stat', 'updated_by'])
+
+    clear_statistics_history()
+
+
+def clear_statistics_history():
+    """
+        leave only the last record per day for each statistics category
+    """
+    with connection.cursor() as cursor:
+        sql = """ 
+                WITH tbl AS (
+                            SELECT *
+                            FROM
+                            (
+                                SELECT 
+                                    ROW_NUMBER () OVER (PARTITION BY org, type, date(history_date) ORDER BY history_date DESC) rn
+                                    , *
+                                FROM clinicalcode_historicalstatistics 
+                            )t
+                )
+                DELETE FROM clinicalcode_historicalstatistics WHERE history_id NOT IN(SELECT history_id FROM tbl WHERE rn = 1) ;
+             """
+        cursor.execute(sql)
+
+ 
