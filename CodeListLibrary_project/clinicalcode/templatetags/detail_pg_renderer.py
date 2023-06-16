@@ -394,15 +394,20 @@ class EntityWizardSections(template.Node):
                 component['field_name'] = field
                 component['field_data'] = field_data
 
-                # desc = template_utils.try_get_content(template_field, 'description')
-                # if desc is not None:
-                #     component['description'] = desc
-                #     component['hide_input_details'] = False
-                # else:
-                #     component['hide_input_details'] = True
-                
+                desc = template_utils.try_get_content(template_field, 'description')
+                if desc is not None:
+                    component['description'] = desc
+                    component['hide_input_details'] = False
+                else:
+                    component['hide_input_details'] = True
+                    
                 # don't show field description in detail page
                 component['hide_input_details'] = True
+                
+                component['hide_input_title'] = False
+                if len(section.get('fields')) <= 1:
+                    # don't show field title if it is the only field in the section
+                    component['hide_input_title'] = True
                 
                 if template_utils.is_metadata(GenericEntity, field):
                     options = template_utils.get_template_sourced_values(constants.metadata, field)
