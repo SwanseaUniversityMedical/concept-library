@@ -356,6 +356,27 @@ class EntityStatisticsView(TemplateView):
         return render(request, 'clinicalcode/admin/run_statistics.html', {
             'successMsg': ['Filter statistics for Concepts/Phenotypes saved'],
         })
+        
+ 
+        
+def run_HDRUK_statistics(request):
+    """
+        save HDR-UK home page statistics
+    """
+    #     if not request.user.is_superuser:
+    #         raise PermissionDenied
+
+    if settings.CLL_READ_ONLY:
+        raise PermissionDenied
+
+    if request.method == 'GET':
+        stat = stats_utils.save_HDRUK_statistics(request)
+        return render(request, 'clinicalcode/admin/run_statistics.html', 
+                    {
+                        'successMsg': ['HDR-UK statistics saved'],
+                        'stat': stat
+                    })
+
 
 class ExampleSASSView(TemplateView):
     template_name = 'clinicalcode/generic_entity/examples.html'
