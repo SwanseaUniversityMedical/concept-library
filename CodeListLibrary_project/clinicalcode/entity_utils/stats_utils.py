@@ -36,17 +36,17 @@ def transform_counted_field(data):
     array.sort(key=sort_fn)
     return array
 
-def try_get_cached_data(cache, template, field, validation, struct, brand=None):
+def try_get_cached_data(cache, entity, template, field, field_value, validation, struct, brand=None):
     if template is None or not isinstance(cache, dict):
-        return get_field_values(field, validation, struct)
+        return get_field_values(field_value, validation, struct)
     
     if brand is not None:
-        cache_key = f'{brand.name}__{field}__{template.id}__{template.template_version}'
+        cache_key = f'{brand.name}__{field}__{field_value}__{template.id}__{template.template_version}'
     else:
-        cache_key = f'{field}__{template.id}__{template.template_version}'
+        cache_key = f'{field}__{field_value}__{template.id}__{template.template_version}'
     
     if cache_key not in cache:
-        value = get_field_values(field, validation, struct)
+        value = get_field_values(field_value, validation, struct)
         if value is None:
             return None
         
@@ -79,7 +79,7 @@ def build_statistics(statistics, entity, field, struct, data_cache=None, templat
 
     stats = statistics[field] if field in statistics else { }
     if field_type == 'enum':
-        value = try_get_cached_data(data_cache, template_entity, entity_field, validation, struct, brand=brand)
+        value = try_get_cached_data(data_cache, entity, template_entity, field, entity_field, validation, struct, brand=brand)
         
         if value is not None:
             if entity_field not in stats:
@@ -92,7 +92,7 @@ def build_statistics(statistics, entity, field, struct, data_cache=None, templat
     elif field_type == 'int_array':
         if 'source' in validation:
             for item in entity_field:
-                value = try_get_cached_data(data_cache, template_entity, item, validation, struct, brand=brand)
+                value = try_get_cached_data(data_cache, entity, template_entity, field, item, validation, struct, brand=brand)
                 if value is None:
                     continue
                 if item not in stats:
