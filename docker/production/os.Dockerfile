@@ -24,7 +24,7 @@ RUN \
   apt-get install -y -q dos2unix
 
 # install this for LDAP to work
-RUN apt-get install -y -q libsasl2-dev python-dev libldap2-dev libssl-dev
+RUN apt-get install -y -q libsasl2-dev python3.9-dev libldap2-dev libssl-dev
 
 ##RUN apt-get install -y -q git
 
