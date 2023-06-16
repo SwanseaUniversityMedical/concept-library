@@ -131,7 +131,7 @@ def search_entity_fields(queryset, search_query, fields=[], min_threshold=0.05, 
 
     return queryset.annotate(search=vector).filter(search=query)
 
-def validate_query_param(template, data, default=None):
+def validate_query_param(param, template, data, default=None, request=None):
     '''
         Validates the query param based on its field type as defined by the template or metadata by examining its source
     '''
@@ -146,7 +146,8 @@ def validate_query_param(template, data, default=None):
                 }
 
                 if 'filter' in source_info:
-                    query = query | source_info['filter']
+                    filter_query = template_utils.try_get_filter_query(param, source_info.get('filter'), request=request)
+                    query = {**query, **filter_query}
                 
                 queryset = model.objects.filter(Q(**query))
                 queryset = list(queryset.values_list('id', flat=True))
@@ -166,7 +167,7 @@ def validate_query_param(template, data, default=None):
     return default
 
 def apply_param_to_query(
-        query, where, template, param, data, is_dynamic=False, force_term=False, is_api=False
+        query, where, template, param, data, is_dynamic=False, force_term=False, is_api=False, request=None
     ):
     '''
         Tries to apply a URL param to a query if its able to resolve and validate the param data
@@ -187,7 +188,7 @@ def apply_param_to_query(
     if field_type == 'int' or field_type == 'enum':
         if 'options' in validation or 'source' in validation:
             data = [int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None)]
-            clean = validate_query_param(template_data, data, default=None)
+            clean = validate_query_param(param, template_data, data, default=None, request=request)
             if clean is None and force_term:
                 clean = data
             
@@ -206,7 +207,7 @@ def apply_param_to_query(
             return True
     elif field_type == 'int_array':
         data = [int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None)]
-        clean = validate_query_param(template_data, data, default=None)
+        clean = validate_query_param(param, template_data, data, default=None, request=request)
         if clean is None and force_term:
             clean = data
 
@@ -300,11 +301,11 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
         if param in metadata_filters:
             if template_utils.is_single_search_only(constants.metadata, param) and not is_single_search:
                 continue
-            apply_param_to_query(query, where, constants.metadata, param, data, force_term=force_term)
+            apply_param_to_query(query, where, constants.metadata, param, data, force_term=force_term, request=request)
         elif param in template_filters and not is_single_search:
             if template_fields is None:
                 continue
-            apply_param_to_query(query, where, template_fields, param, data, is_dynamic=True, force_term=force_term)
+            apply_param_to_query(query, where, template_fields, param, data, is_dynamic=True, force_term=force_term, request=request)
     
     # Collect all entities that are (1) published and (2) match request parameters
     entities = entities.filter(Q(**query))
