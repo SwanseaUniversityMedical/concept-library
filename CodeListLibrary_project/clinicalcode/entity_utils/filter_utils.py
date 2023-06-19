@@ -83,11 +83,7 @@ class DataTypeFilters:
             Result:
                 Either (a) a null result or (b) the generated filter query
         '''
-        current_brand = request.CURRENT_BRAND
-        if gen_utils.is_empty_string(current_brand):
-            return
-        
-        current_brand = model_utils.try_get_brand(current_brand)
+        current_brand = model_utils.try_get_brand(request)
         if current_brand is None:
             return
         

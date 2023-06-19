@@ -1,4 +1,6 @@
+from django.db.models import Q
 from functools import cmp_to_key
+from django.db import connection, connections  # , transaction
 from ..models import GenericEntity, Template, Statistics, Brand
 from . import template_utils, constants, model_utils
 
@@ -22,13 +24,29 @@ def get_field_values(field, validation, struct):
         value = template_utils.get_sourced_value(field, struct)
     return value
 
-def try_get_cached_data(cache, template, field, validation, struct):
+def transform_counted_field(data):
+    sort_fn = cmp_to_key(sort_by_count)
+    array = [
+        {
+            'pk': pk,
+            'value': packet['value'],
+            'count': packet['count']
+        } for pk, packet in data.items()
+    ]
+    array.sort(key=sort_fn)
+    return array
+
+def try_get_cached_data(cache, entity, template, field, field_value, validation, struct, brand=None):
     if template is None or not isinstance(cache, dict):
-        return get_field_values(field, validation, struct)
+        return get_field_values(field_value, validation, struct)
     
-    cache_key = f'{field}__{template.id}__{template.template_version}'
-    if not cache_key in cache:
-        value = get_field_values(field, validation, struct)
+    if brand is not None:
+        cache_key = f'{brand.name}__{field}__{field_value}__{template.id}__{template.template_version}'
+    else:
+        cache_key = f'{field}__{field_value}__{template.id}__{template.template_version}'
+    
+    if cache_key not in cache:
+        value = get_field_values(field_value, validation, struct)
         if value is None:
             return None
         
@@ -37,10 +55,7 @@ def try_get_cached_data(cache, template, field, validation, struct):
     
     return cache[cache_key]
 
-def build_statistics(statistics, entity, field, struct, is_dynamic=False, data_cache=None, template_entity=None):
-    if not is_dynamic:
-        struct = template_utils.try_get_content(constants.metadata, field)
-    
+def build_statistics(statistics, entity, field, struct, data_cache=None, template_entity=None, brand=None):
     if struct is None:
         return
     
@@ -64,7 +79,7 @@ def build_statistics(statistics, entity, field, struct, is_dynamic=False, data_c
 
     stats = statistics[field] if field in statistics else { }
     if field_type == 'enum':
-        value = try_get_cached_data(data_cache, template_entity, entity_field, validation, struct)
+        value = try_get_cached_data(data_cache, entity, template_entity, field, entity_field, validation, struct, brand=brand)
         
         if value is not None:
             if entity_field not in stats:
@@ -77,7 +92,7 @@ def build_statistics(statistics, entity, field, struct, is_dynamic=False, data_c
     elif field_type == 'int_array':
         if 'source' in validation:
             for item in entity_field:
-                value = try_get_cached_data(data_cache, template_entity, item, validation, struct)
+                value = try_get_cached_data(data_cache, entity, template_entity, field, item, validation, struct, brand=brand)
                 if value is None:
                     continue
                 if item not in stats:
@@ -92,66 +107,72 @@ def build_statistics(statistics, entity, field, struct, is_dynamic=False, data_c
     
     statistics[field] = stats
 
-def compute_statistics(statistics, entity, data_cache=None):
+def compute_statistics(statistics, entity, data_cache=None, template_cache=None, brand=None):
     if not template_utils.is_data_safe(entity):
         return
     
-    template = Template.history.filter(
-        id=entity.template.id,
-        template_version=entity.template_version
-    ) \
-    .latest_of_each() \
-    .distinct()
-
-    if not template.exists():
+    template_id = entity.template.id if entity.template is not None else None
+    template_version = entity.template_version
+    if template_id is None or template_version is None:
         return
+
+    template = None
+    layout = None
+    if isinstance(template_cache, dict):
+        cached = template_cache.get(f'{template_id}/{template_version}')
+        if cached is not None:
+            template = cached.get('template')
+            layout = cached.get('layout')
     
-    template = template.first()
-    layout = template.definition
+    if template is None or layout is None:
+        template = Template.history.filter(
+            id=entity.template.id,
+            template_version=entity.template_version
+        ) \
+        .latest_of_each() \
+        .distinct()
+
+        if not template.exists():
+            return
+        
+        template = template.first()
+        layout = template_utils.get_merged_definition(template)
+        if not layout:
+            return
+        
+        if isinstance(template_cache, dict):
+            template_cache[f'{template_id}/{template_version}'] = { 'template': template, 'layout': layout }
+
     for field, struct in layout.get('fields').items():
         if not isinstance(struct, dict):
             continue
 
-        is_dynamic = template_utils.is_metadata(entity, field)
-        build_statistics(statistics, entity, field, struct, is_dynamic=is_dynamic, data_cache=None, template_entity=template)
 
-def collate_statistics(all_entities, published_entities, data_cache=None):
+        build_statistics(statistics['all'], entity, field, struct, data_cache=data_cache, template_entity=template, brand=brand)
+
+        if entity.publish_status == constants.APPROVAL_STATUS.APPROVED:
+            build_statistics(statistics['published'], entity, field, struct, data_cache=data_cache, template_entity=template, brand=brand)
+
+def collate_statistics(entities, data_cache=None, template_cache=None, brand=None):
     statistics = {
         'published': { },
         'all': { },
     }
 
-    for entity in all_entities:
-        compute_statistics(statistics['all'], entity, data_cache)
+    if brand is not None:
+        collection_ids = model_utils.get_brand_collection_ids(brand.name)
+        entities = entities.filter(Q(brands__overlap=[brand.id]) | Q(collections__overlap=collection_ids))
 
-    for entity in published_entities:
-        compute_statistics(statistics['published'], entity, data_cache)
+    for entity in entities:
+        compute_statistics(statistics, entity, data_cache, template_cache, brand)
 
-    sort_fn = cmp_to_key(sort_by_count)
-    for field, data in statistics['all'].items():
-        array = [
-            {
-                'pk': pk,
-                'value': packet['value'],
-                'count': packet['count']
-            } for pk, packet in data.items()
-        ]
-        array.sort(key=sort_fn)
-        
-        statistics['all'][field] = array
-    
-    for field, data in statistics['published'].items():
-        array = [
-            {
-                'pk': pk,
-                'value': packet['value'],
-                'count': packet['count']
-            } for pk, packet in data.items()
-        ]
-        array.sort(key=sort_fn)
-        
-        statistics['published'][field] = array
-    
+    for field, all_data in statistics['all'].items():
+        statistics['all'][field] = transform_counted_field(all_data)
+
+        published_data = statistics['published'].get(field)
+        if published_data is not None:
+            statistics['published'][field] = transform_counted_field(published_data)
+
     return statistics
 
 '''
@@ -162,22 +183,18 @@ def collate_statistics(all_entities, published_entities, data_cache=None):
 def collect_statistics(request):
     user = request.user if request else None
     cache = { }
+    template_cache = { }
 
     all_entities = GenericEntity.objects.all()
-
-    published_entities = GenericEntity.history.filter(
-        publish_status=constants.APPROVAL_STATUS.APPROVED
-    ) \
-    .order_by('id', '-history_id') \
-    .distinct('id')
 
     to_update = [ ]
     to_create = [ ]
     for brand in Brand.objects.all():
         stats = collate_statistics(
-            all_entities.filter(brands__overlap=[brand.id]),
-            published_entities.filter(brands__overlap=[brand.id]),
-            data_cache=cache
+            all_entities,
+            data_cache=cache,
+            template_cache=template_cache,
+            brand=brand
         )
 
         obj = Statistics.objects.filter(
@@ -202,8 +219,8 @@ def collect_statistics(request):
     
     stats = collate_statistics(
         all_entities,
-        published_entities,
-        data_cache=cache
+        data_cache=cache,
+        template_cache=template_cache
     )
 
     obj = Statistics.objects.filter(
@@ -228,3 +245,28 @@ def collect_statistics(request):
     # Create / Update stat objs
     Statistics.objects.bulk_create(to_create)
     Statistics.objects.bulk_update(to_update, ['stat', 'updated_by'])
+
+    clear_statistics_history()
+
+
+def clear_statistics_history():
+    """
+        leave only the last record per day for each statistics category
+    """
+    with connection.cursor() as cursor:
+        sql = """ 
+                WITH tbl AS (
+                            SELECT *
+                            FROM
+                            (
+                                SELECT 
+                                    ROW_NUMBER () OVER (PARTITION BY org, type, date(history_date) ORDER BY history_date DESC) rn
+                                    , *
+                                FROM clinicalcode_historicalstatistics 
+                            )t
+                )
+                DELETE FROM clinicalcode_historicalstatistics WHERE history_id NOT IN(SELECT history_id FROM tbl WHERE rn = 1) ;
+             """
+        cursor.execute(sql)
+
+ 

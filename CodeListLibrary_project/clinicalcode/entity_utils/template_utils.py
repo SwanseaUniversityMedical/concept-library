@@ -288,7 +288,6 @@ def try_get_filter_query(field_name, source, request=None):
 
         # Try to generate the filter and update the query if successful
         result = None
-
         try:
             result = filter_utils.DataTypeFilters.try_generate_filter(
                 desired_filter=filter_name,
