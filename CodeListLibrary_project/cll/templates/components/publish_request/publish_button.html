@@ -12,3 +12,37 @@
   {{Button_type}}
 </button>
 
+<script>
+  const button = document.querySelector("#publish2");
+  button.addEventListener('click', function(e) {
+      e.preventDefault();
+      promptClientModal({
+        title: 'Are you sure you want to publish this version?',
+        content: "ttt",
+        showFooter: true,
+        buttons: {
+          reject: {
+            html: `<button class="secondary-btn text-accent-darkest bold washed-accent" aria-label="Cancel" id="reject-button"></button>`,
+            name: 'Cancel',
+          },
+          approve: {
+            html: `<button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Confirm" id="confirm-button"></button>`,
+            name: 'Confirm',
+          },
+          decline: {
+            html: `<button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Confirm" id="confirm-button"></button>`,
+            name: 'Decline',
+          }
+        }
+      })
+      .then(() => {
+        // do stuff because the user has accepted the prompt
+        alert('then');
+      })
+      .catch(() => {
+        // do stuff because the user has cancelled the prompt
+        alert('ctach');
+      });
+    }
+  );
+</script> 
