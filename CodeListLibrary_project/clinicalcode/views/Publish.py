@@ -27,9 +27,9 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
         if not checks['is_published']:
             checks = publish_utils.check_entity_to_publish(self.request, pk, history_id)
         
+        print(type(checks['entity']))
         # --------------------------------------------
-        return self.render_to_response({
-            'entity': checks['entity'],
+        return JsonResponse(json.dumps({
             'entity_type': checks['entity_type'],
             'name': checks['name'],
             'entity_history_id': history_id,
@@ -47,7 +47,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
             'other_pending': checks['other_pending'], # data if other pending ws
             'all_not_deleted': checks['all_not_deleted'], # check if phenotypes is not deleted
             'errors':checks['errors']
-        })
+        }), safe=False)
 
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def post(self, request, pk, history_id):
