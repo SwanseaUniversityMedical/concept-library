@@ -60,7 +60,7 @@ def render_publish_button(context, *args, **kwargs):
                                       'title': "Approve declined entity"
                                       }
                 else:
-                    button_context = {'class_modal':"js-load-modal btn btn-outline-primary btn-cl btn-cl-secondary",
+                    button_context = {'class_modal':"primary-btn dropdown-btn__label ",
                                       'url': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
                                       'title': "Publish immediately"
                                       }
