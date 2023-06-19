@@ -1,8 +1,5 @@
 <button role="link"
   class="{{class_modal}}"
-  {% if url %}
-  onClick="window.location.href='{{url}}'"
-  {% endif %}
   title="{{title}}"
     {% if disabled%}
     disabled
@@ -16,33 +13,58 @@
   const button = document.querySelector("#publish2");
   button.addEventListener('click', function(e) {
       e.preventDefault();
-      promptClientModal({
-        title: 'Are you sure you want to publish this version?',
-        content: "ttt",
-        showFooter: true,
-        buttons: {
-          reject: {
-            html: `<button class="secondary-btn text-accent-darkest bold washed-accent" aria-label="Cancel" id="reject-button"></button>`,
-            name: 'Cancel',
-          },
-          approve: {
-            html: `<button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Confirm" id="confirm-button"></button>`,
-            name: 'Confirm',
-          },
-          decline: {
-            html: `<button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Confirm" id="confirm-button"></button>`,
-            name: 'Decline',
-          }
-        }
-      })
-      .then(() => {
-        // do stuff because the user has accepted the prompt
-        alert('then');
-      })
-      .catch(() => {
-        // do stuff because the user has cancelled the prompt
-        alert('ctach');
-      });
+      const ModalFactory = window.ModalFactory;
+ModalFactory.create({
+id: 'test-dialog',
+title: 'Hello',
+content: '<p>Hello</p>',
+buttons: [
+{
+  name: 'Cancel',
+  type: ModalFactory.ButtonTypes.REJECT,
+  html: `<button class="secondary-btn text-accent-darkest bold washed-accent" id="cancel-button"></button>`,
+},
+{
+  name: 'Reject',
+        type: ModalFactory.ButtonTypes.REJECT,
+        html: `<button class="secondary-btn text-accent-darkest bold washed-accent" id="reject-button"></button>`,
+      },
+      {
+        name: 'Confirm',
+        type: ModalFactory.ButtonTypes.CONFIRM,
+        html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="confirm-button"></button>`,
+      },
+      {
+        name: 'Accept',
+        type: ModalFactory.ButtonTypes.CONFIRM,
+        html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="accept-button"></button>`,
+      },
+    ]
+  })
+  .then((result) => {
+    // e.g. user pressed a button that has type=ModalFactory.ButtonTypes.CONFIRM
+    const name = result.name;
+    if (name == 'Confirm') {
+      console.log('[success] user confirmed', result);
+    } else if (name == 'Accept') {
+      console.log('[success] user accepted', result);
+    }
+  })
+  .catch((result) => {
+    // An error occurred somewhere (unrelated to button input)
+   if (!(result instanceof ModalFactory.ModalResults)) {
+      return console.error(result);
+   }
+  
+    // e.g. user pressed a button that has type=ModalFactory.ButtonTypes.REJECT
+    const name = result.name;
+    if (name == 'Cancel') {
+      console.log('[failure] user cancelled', result);
+    } else if (name == 'Reject') {
+      console.log('[failure] rejected', result);
+    }
+  });
     }
   );
 </script> 
+
