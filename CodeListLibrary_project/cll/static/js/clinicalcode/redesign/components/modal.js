@@ -199,6 +199,7 @@ class ModalFactory {
       const closeModal = (method, details) => {
         modal.remove();
         history.replaceState({ }, document.title, '#');
+        this.modal = null;
 
         if (!method) {
           return;
