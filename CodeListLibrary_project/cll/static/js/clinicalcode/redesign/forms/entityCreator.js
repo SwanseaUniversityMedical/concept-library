@@ -1157,7 +1157,7 @@ class EntityCreator {
       return;
     }
 
-    promptClientModal(ENTITY_TEXT_PROMPTS.CANCEL_PROMPT)
+    window.ModalFactory.create(ENTITY_TEXT_PROMPTS.CANCEL_PROMPT)
       .then(() => {
         this.#redirectFormClosure();
       })
