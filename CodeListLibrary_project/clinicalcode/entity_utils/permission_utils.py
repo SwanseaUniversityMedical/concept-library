@@ -1,16 +1,15 @@
-from django.db.models import Q, F, Subquery, OuterRef
+from django.db.models import Q, Subquery, OuterRef
 from django.conf import settings
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 from django.core.exceptions import PermissionDenied
-from rest_framework.response import Response
 
 from functools import wraps
 
-from ..models.Brand import Brand
 from ..models.Concept import Concept
 from ..models.GenericEntity import GenericEntity
+from ..models.Concept import Concept
 from ..models.PublishedConcept import PublishedConcept
-from . import model_utils, template_utils, gen_utils
+from . import model_utils
 from .constants import APPROVAL_STATUS, GROUP_PERMISSIONS, WORLD_ACCESS_PERMISSIONS
 
 ''' Permission decorators '''
@@ -210,6 +209,67 @@ def get_accessible_entities(
   
   return entities.distinct('id')
 
+def get_accessible_concepts(
+    request, 
+    consider_user_perms=True,
+    group_permissions=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]
+  ):
+  '''
+    Tries to get all the concepts that are accessible to a specific user
+
+    Args:
+      consider_user_perms {boolean}: Whether to consider user perms i.e. superuser
+      group_permissions {list}: A list of which group permissions to consider
+
+    Returns:
+      List of accessible concepts
+    
+  '''
+  phenotypes = get_accessible_entities(
+    request, 
+    consider_user_perms=consider_user_perms, 
+    status=[APPROVAL_STATUS.ANY]
+  )
+  concepts_from_phenotypes = Concept.history.all() \
+    .filter(phenotype_owner__id__in=phenotypes.values('id')) \
+    .distinct('id')
+  
+  concepts = Concept.history.all() \
+    .annotate(
+      is_published=Subquery(
+        PublishedConcept.objects.filter(
+          concept_id=OuterRef('id'),
+          concept_history_id=OuterRef('history_id')
+        ) \
+        .order_by('id') \
+        .distinct('id') \
+        .values('id')
+      )
+    ) \
+    .order_by('id', '-history_id') \
+    .distinct('id')
+  
+  user = request.user
+  if user and not user.is_anonymous:
+    if consider_user_perms and user.is_superuser:
+      return concepts.distinct('id')
+    
+    concepts = concepts.filter(
+      Q(owner=user.id) | 
+      Q(
+        group_id__in=user.groups.all(), 
+        group_access__in=group_permissions
+      ) |
+      Q(world_access=WORLD_ACCESS_PERMISSIONS.VIEW) |
+      Q(is_published__isnull=False)
+    )
+  
+    return (concepts | concepts_from_phenotypes).distinct('id')
+  
+  concepts = concepts.filter(Q(is_published__isnull=False))
+
+  return (concepts | concepts_from_phenotypes).distinct('id')
+
 def can_user_view_entity(request, entity_id, entity_history_id=None):
   '''
     Checks whether a user has the permissions to view an entity
@@ -276,7 +336,7 @@ def can_user_view_concept(request, concept):
     concept_id=concept.id,
     concept_history_id=concept.history_id
   ).order_by('-concept_history_id').first()
-  
+
   if published_concept is not None:
     return True
   

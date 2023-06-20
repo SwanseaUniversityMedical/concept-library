@@ -388,6 +388,62 @@ def get_review_concept(concept_id, concept_history_id):
     history_id=historical_concept.history_id
   )
 
+def get_minimal_concept_data(concept):
+  '''
+  
+  '''
+  # Dictify our concept
+  concept_data = model_utils.jsonify_object(
+    concept,
+    remove_userdata=False,
+    strippable_fields=None,
+    dump=False
+  )
+  
+  # Retrieve human readable data for our tags, collections & coding systems
+  if concept_data.get('tags'):
+    concept_data['tags'] = [
+      model_utils.get_tag_attribute(tag, tag_type=TAG_TYPE.TAG)
+      for tag in concept_data['tags']
+    ]
+
+  if concept_data.get('collections'):
+    concept_data['collections'] = [
+      model_utils.get_tag_attribute(collection, tag_type=TAG_TYPE.COLLECTION)
+      for collection in concept_data['collections']
+    ]
+
+  # Clean coding system for top level field use
+  concept_data.pop('coding_system')
+  
+  # If userdata is requested, try to grab all related 
+  for field in concept._meta.fields:
+    if field.name not in concept_data:
+      continue
+
+    if not isinstance(field, ForeignKey):
+      continue
+    
+    model = field.target_field.model
+    if str(model) not in USERDATA_MODELS:
+      continue
+
+    concept_data[field.name] = model_utils.get_userdata_details(
+      model, pk=concept_data[field.name], hide_user_details=False
+    )
+
+  # Clean data if required
+  if not concept_data.get('is_deleted'):
+    concept_data.pop('is_deleted')
+    concept_data.pop('deleted_by')
+    concept_data.pop('deleted')
+
+  return {
+      'concept_id': concept.id,
+      'concept_version_id': concept.history_id,
+      'coding_system': model_utils.get_coding_system_details(concept.coding_system)
+    } | concept_data
+
 def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_codes=False,
                               aggregate_component_codes=False, include_component_codes=True,
                               include_attributes=False, strippable_fields=None,

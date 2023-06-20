@@ -104,7 +104,7 @@ urlpatterns += [
     
     # Concepts
     url(r'^concepts/$', 
-        Concept.user_concepts, 
+        Concept.get_concepts, 
         name='concepts'),
     url(r'^concepts/C(?P<concept_id>\d+)/detail/$',
         Concept.get_concept_detail,
