@@ -1,13 +1,14 @@
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.http.response import JsonResponse
 from django.template.loader import render_to_string
 from django.views.generic.base import TemplateResponseMixin, View
 from django.utils.decorators import method_decorator
-
 from ..entity_utils import publish_utils, permission_utils, constants
 from ..permissions import *
 from .View import *
+import json
 
 class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityCheckMixin, TemplateResponseMixin, View):
     model = GenericEntity
@@ -27,27 +28,10 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
         if not checks['is_published']:
             checks = publish_utils.check_entity_to_publish(self.request, pk, history_id)
         
-        print(type(checks['entity']))
+        checks['entity_history_id'] = history_id
+        checks['entity_id'] = pk
         # --------------------------------------------
-        return JsonResponse(json.dumps({
-            'entity_type': checks['entity_type'],
-            'name': checks['name'],
-            'entity_history_id': history_id,
-            'is_published': checks['is_published'],
-            'allowed_to_publish': checks['allowed_to_publish'],
-            'is_owner': checks['is_owner'],
-            'entity_is_deleted': checks['entity_is_deleted'],
-            'approval_status': checks['approval_status'],
-            'is_lastapproved': checks['is_lastapproved'],
-            'is_latest_pending_version': checks['is_latest_pending_version'], # check if it is latest to approve
-            'is_moderator': checks['is_moderator'],
-            'entity_has_data': checks['entity_has_data'], # check if table exists to publish ws
-            'is_allowed_view_children': checks['is_allowed_view_children'],
-            'all_are_published': checks['all_are_published'], # see if rest of the phenotypes is published already
-            'other_pending': checks['other_pending'], # data if other pending ws
-            'all_not_deleted': checks['all_not_deleted'], # check if phenotypes is not deleted
-            'errors':checks['errors']
-        }), safe=False)
+        return JsonResponse(checks, safe=False)
 
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def post(self, request, pk, history_id):
@@ -216,26 +200,9 @@ class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGeneric
 
 
         # --------------------------------------------
-        return self.render_to_response({
-           'entity': checks['entity'],
-            'entity_type': checks['entity_type'],
-            'name': checks['name'],
-            'entity_history_id': history_id,
-            'is_published': checks['is_published'],
-            'allowed_to_publish': checks['allowed_to_publish'],
-            'is_owner': checks['is_owner'],
-            'entity_is_deleted': checks['entity_is_deleted'],
-            'approval_status': checks['approval_status'],
-            'is_lastapproved': checks['is_lastapproved'],
-            'is_latest_pending_version': checks['is_latest_pending_version'], # check if it is latest to approve
-            'is_moderator': checks['is_moderator'],
-            'entity_has_data': checks['entity_has_data'], # check if table exists to publish ws
-            'is_allowed_view_children': checks['is_allowed_view_children'],
-            'all_are_published': checks['all_are_published'], # see if rest of the phenotypes is published already
-            'other_pending':checks['other_pending'], # data if other pending ws
-            'all_not_deleted': checks['all_not_deleted'], # check if phenotypes is not deleted
-            'errors':checks['errors']
-        })
+        checks['entity_history_id'] = history_id
+
+        return JsonResponse(json.dumps(checks))
     
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def post(self, request, pk, history_id):
