@@ -1,8 +1,5 @@
 FROM cll/os AS base
 
-#ENV http_proxy=http://192.168.10.15:8080
-#ENV https_proxy=http://192.168.10.15:8080
-
 ENV LC_ALL=C.UTF-8
 
 WORKDIR /var/www/
