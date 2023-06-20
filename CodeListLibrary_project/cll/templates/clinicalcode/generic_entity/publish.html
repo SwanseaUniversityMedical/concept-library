@@ -10,17 +10,11 @@
       fetch('{{url}}')
       .then(response => response.json())
       .then(data => {
-        // Handle the data received from the server
         console.log(data);
-      })
-      .catch(error => {
-        // Handle any errors that occur during the AJAX request
-        console.error(error);
-      });
-
-      ModalFactory.create({
+        // Handle the data received from the server
+        ModalFactory.create({
         id: "test-dialog",
-        title: "Publish {{entity_type|lower}} - {{ name }}",
+        title: `Publish - ${data.entity_id} ${data.entity_type} - ${data.name}`,
         content: "<p>Hello</p>",
         buttons: [
           {
@@ -68,6 +62,14 @@
             console.log("[failure] rejected", result);
           }
         });
+        console.log(data);
+      })
+      .catch(error => {
+        // Handle any errors that occur during the AJAX request
+        console.error(error);
+      });
+
+     
     });
   </script>
   
