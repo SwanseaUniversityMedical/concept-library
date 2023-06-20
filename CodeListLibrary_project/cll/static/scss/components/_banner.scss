@@ -24,6 +24,15 @@
       width: var(--phenotype-article-lg-size);
       max-width: var(--phenotype-article-lg-size);
     }
+
+    &.container {
+      &--desktop-lg {
+        @include media("<desktop-lg", "screen") {
+          width: var(--phenotype-article-lg-size);
+          max-width: var(--phenotype-article-lg-size);
+        }
+      }
+    }
   }
 
   &__title {
