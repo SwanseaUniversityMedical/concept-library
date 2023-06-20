@@ -69,6 +69,7 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
     if not settings.CLL_READ_ONLY:
         urlpatterns += [
             url(r'^admin/run-stats/$', GenericEntity.EntityStatisticsView.as_view(), name='run_entity_statistics'),
+            url(r'^admin/run-stats-HDRUK/$', GenericEntity.run_HDRUK_statistics, name='run_HDRUK_statistics'),
         ]
 
     # for admin(developers) to migrate phenotypes into dynamic template       
