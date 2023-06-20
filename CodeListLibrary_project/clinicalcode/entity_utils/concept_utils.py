@@ -9,8 +9,10 @@ from ..models.ConceptCodeAttribute import ConceptCodeAttribute
 from ..models.Code import Code
 
 from . import model_utils, permission_utils
-from .constants import (USERDATA_MODELS, TAG_TYPE, HISTORICAL_HIDDEN_FIELDS,
-                        CLINICAL_RULE_TYPE, CLINICAL_CODE_SOURCE)
+from .constants import (
+  USERDATA_MODELS, TAG_TYPE, HISTORICAL_HIDDEN_FIELDS, 
+  CLINICAL_RULE_TYPE, CLINICAL_CODE_SOURCE, 
+)
 
 def get_concept_component_details(concept_id, concept_history_id, aggregate_codes=False, include_codes=True, attribute_headers=None):
   '''
@@ -390,7 +392,7 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
                               aggregate_component_codes=False, include_component_codes=True,
                               include_attributes=False, strippable_fields=None,
                               remove_userdata=False, hide_user_details=False,
-                              derive_access_from=None):
+                              derive_access_from=None, format_for_api=False):
   '''
     [!] Note: This method ignores permissions to derive data - it should only be called from a
               a method that has previously considered accessibility
@@ -419,6 +421,8 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
 
       derive_access_from {RequestContext}: Using the RequestContext, determine whether a user can edit a Concept
     
+      format_for_api {boolean}: Flag to format against legacy API
+
     Returns:
       A dictionary that describes the concept, its components, and associated codes; constrained
       by the method parameters
@@ -508,13 +512,22 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
   if attribute_headers is not None:
     concept_data['code_attribute_headers'] = attribute_headers
   
-  result = {
-    'concept_id': concept_id,
-    'concept_version_id': concept_history_id,
-    'coding_system': model_utils.get_coding_system_details(historical_concept.coding_system),
-    'details': concept_data,
-    'components': components_data.get('components') if components_data is not None else [ ],
-  }
+  if not format_for_api:
+    result = {
+      'concept_id': concept_id,
+      'concept_version_id': concept_history_id,
+      'coding_system': model_utils.get_coding_system_details(historical_concept.coding_system),
+      'details': concept_data,
+      'components': components_data.get('components') if components_data is not None else [ ],
+    }
+  else:
+    result = {
+      'concept_id': concept_id,
+      'concept_version_id': concept_history_id,
+      'coding_system': model_utils.get_coding_system_details(historical_concept.coding_system)
+    }
+    result |= concept_data
+    result['components'] = components_data.get('components') if components_data is not None else [ ]
 
   # Apply aggregated codes if required
   if aggregate_component_codes:

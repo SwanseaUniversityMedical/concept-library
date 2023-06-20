@@ -261,6 +261,48 @@ def can_user_view_entity(request, entity_id, entity_history_id=None):
       return check_brand_access(request, is_published, entity_id, entity_history_id)
      
   return False
+
+def can_user_view_concept(request, concept):
+  '''
+    Checks whether a user has the permissions to view a concept
+    
+    Args:
+      concept {Concept}: The concept of interest
+    
+    Returns:
+      A boolean value reflecting whether the user is able to view a concept
+  '''
+  published_concept = PublishedConcept.objects.filter(
+    concept_id=concept.id,
+    concept_history_id=concept.history_id
+  ).order_by('-concept_history_id').first()
+  
+  if published_concept is not None:
+    return True
+  
+  user = request.user
+  if user.is_superuser:
+    return True
+  
+  if concept.owner == user:
+    return True
+  
+  if has_member_access(user, concept, [GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]):
+    return True
+  
+  if user and not user.is_anonymous:
+    if concept.world_access == WORLD_ACCESS_PERMISSIONS.VIEW:
+      return True
+  
+  associated_phenotype = concept.phenotype_owner
+  if associated_phenotype is not None:
+    return can_user_view_entity(
+      request, 
+      associated_phenotype.id,
+      associated_phenotype.history().latest().history_id
+    )
+  
+  return False
  
 def check_brand_access(request, is_published, entity_id, entity_history_id=None):
   '''
@@ -342,16 +384,17 @@ def is_concept_published(concept_id, concept_history_id):
   
   return published_concept
 
-def get_latest_publicly_accessible_concept():
-  '''
-    [!] Legacy permission method
-    
+def get_latest_publicly_accessible_concept(concept_id):
+  '''    
     Finds the latest publicly accessible published concept
     
     Returns:
       HistoricalConcept {obj} that is accessible by the user
   '''
-  concepts = Concept.history.annotate(
+  concepts = Concept.history.filter(
+    pk=concept_id
+  ) \
+  .annotate(
     is_published=Subquery(
       PublishedConcept.objects.filter(
         concept_id=OuterRef('id'),
@@ -515,3 +558,83 @@ class HasAccessToViewGenericEntityCheckMixin(object):
       raise PermissionDenied
 
     return super(HasAccessToViewGenericEntityCheckMixin, self).dispatch(request, *args, **kwargs)
+
+def get_latest_entity_published(entity_id):
+  '''
+    Gets latest published entity given an entity id
+  '''
+  entity = GenericEntity.history.filter(id=entity_id, publish_status=APPROVAL_STATUS.APPROVED)
+  if not entity.exists():
+    return None
+  
+  entity = entity.order_by('-history_id')
+  entity = entity.first()
+  return entity
+
+def get_latest_entity_historical_id(entity_id, user):
+  '''
+    Gets the latest entity history id for a given entity
+    and user, given the user has the permissions to access that
+    particular entity
+  '''
+  entity = model_utils.try_get_instance(GenericEntity, id=entity_id)
+      
+  if entity:
+    if user.is_superuser:
+      return int(entity.history.latest().history_id)
+    
+    if user and not user.is_anonymous:
+      history = entity.history.filter(
+        Q(owner=user.id) | 
+        Q(
+          group_id__in=user.groups.all(),
+          group_access__in=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]
+        ) |
+        Q(
+          world_access=WORLD_ACCESS_PERMISSIONS.VIEW
+        )
+      ) \
+      .order_by('-history_id')
+      
+      if history.exists():
+        return history.first().history_id
+  
+    published = get_latest_entity_published(entity.id)
+    if published:
+      return published.history_id
+
+  return None
+
+def get_latest_concept_historical_id(concept_id, user):
+  '''
+    Gets the latest concept history id for a given concept
+    and user, given the user has the permissions to access that
+    particular concept
+  '''
+  concept = model_utils.try_get_instance(Concept, pk=concept_id)
+
+  if concept:
+    if user.is_superuser:
+      return int(concept.history.latest().history_id)
+    
+    if user and not user.is_anonymous:
+      history = concept.history.filter(
+        Q(owner=user.id) | 
+        Q(
+          group_id__in=user.groups.all(),
+          group_access__in=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]
+        ) |
+        Q(
+          world_access=WORLD_ACCESS_PERMISSIONS.VIEW
+        )
+      ) \
+      .order_by('-history_id')
+      
+      if history.exists():
+        return history.first().history_id
+  
+    published = get_latest_publicly_accessible_concept(concept_id)
+    if published:
+      return published.history_id
+
+  return None

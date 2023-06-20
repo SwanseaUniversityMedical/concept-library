@@ -974,13 +974,15 @@ def user_concepts(request, pk=None):
 
 #--------------------------------------------------------------------------
 @robots2()
-def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept):
+def getConcepts(request, is_authenticated_user=True, pk=None):
+    '''
+    
+    '''
     search = request.query_params.get('search', '')
 
+    concept_id = request.query_params.get('id', None)
     if pk is not None:
         concept_id = pk
-    else:
-        concept_id = request.query_params.get('id', None)
 
     tag_ids = request.query_params.get('tag_ids', '')
     collection_ids = request.query_params.get('collection_ids', '')
@@ -991,13 +993,9 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
     concept_brand = request.query_params.get('brand', "")
     author = request.query_params.get('author', '')
     do_not_show_versions = request.query_params.get('do_not_show_versions', "0")
-    expand_published_versions = 0  # disable this option
-    #expand_published_versions = request.query_params.get('expand_published_versions', "1")
-    show_live_and_or_published_ver = "3"  #request.query_params.get('show_live_and_or_published_ver', "3")      # 1= live only, 2= published only, 3= live+published
+    expand_published_versions = 0
     must_have_published_versions = request.query_params.get('must_have_published_versions', "0")
-
     coding_ids = request.query_params.get('coding_ids', '')
-    data_sources = request.query_params.get('data_source_ids', '')
     start_date_range = request.query_params.get('start_date', '')
     end_date_range = request.query_params.get('end_date', '')
     
@@ -1008,9 +1006,6 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
     except ValueError:
         start_date_query = False
         end_date_query = False
-    
-    search_tag_list = []
-    tags = []
 
     # remove leading, trailing and multiple spaces from text search params
     search = re.sub(' +', ' ', search.strip())
@@ -1035,31 +1030,33 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
             
             
 
-    tags, filter_cond = apply_filter_condition(query='tags', selected=tag_ids, conditions=filter_cond)
-    collections, filter_cond = apply_filter_condition(query='collections', selected=collection_ids, conditions=filter_cond)
-        
-    coding, filter_cond = apply_filter_condition(query='coding_system_id', selected=coding_ids, conditions=filter_cond)
-    
-    daterange, date_range_cond = apply_filter_condition(query='daterange', 
-                                                    selected={'start': [start_date_query, start_date_range], 'end': [end_date_query, end_date_range]}, 
-                                                    conditions='',
-                                                    is_authenticated_user =is_authenticated_user)
+    _, filter_cond = apply_filter_condition(
+        query='tags', selected=tag_ids, conditions=filter_cond
+    )
+    _, filter_cond = apply_filter_condition(
+        query='collections', selected=collection_ids, conditions=filter_cond
+    )
+    _, filter_cond = apply_filter_condition(
+        query='coding_system_id', selected=coding_ids, conditions=filter_cond
+    )
+    _, date_range_cond = apply_filter_condition(
+        query='daterange', 
+        selected={
+            'start': [start_date_query, start_date_range], 
+            'end': [end_date_query, end_date_range]
+        }, 
+        conditions='',
+        is_authenticated_user=is_authenticated_user
+    )
    
-
     # check if it is the public site or not
     if is_authenticated_user:
         # ensure that user is only allowed to view/edit the relevant concepts
-
         get_live_and_or_published_ver = 3
         if must_have_published_versions == "1":
             get_live_and_or_published_ver = 2
 
-#         if show_live_and_or_published_ver in ["1", "2", "3"]:
-#             get_live_and_or_published_ver = int(show_live_and_or_published_ver)   #    2= published only
-#         else:
-#             return Response([], status=status.HTTP_200_OK)
-
-# show only concepts created by the current user
+        # show only concepts created by the current user
         if show_only_my_concepts == "1":
             filter_cond += " AND owner_id=" + str(request.user.id)
 
@@ -1068,7 +1065,6 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
             exclude_deleted = True
         else:
             exclude_deleted = False
-
     else:
         # show published concepts
         get_live_and_or_published_ver = 2  #    2= published only
@@ -1105,16 +1101,17 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
             force_brand = current_brand.name
 
     concepts_srch = get_visible_live_or_published_concept_versions(
-                                            request,
-                                            get_live_and_or_published_ver=get_live_and_or_published_ver,
-                                            search=[search, ''][search_by_id],
-                                            author=author,
-                                            exclude_deleted=exclude_deleted,
-                                            filter_cond=filter_cond,
-                                            show_top_version_only=show_top_version_only,
-                                            force_brand=force_brand,
-                                            search_name_only = False,
-                                            date_range_cond = date_range_cond)
+        request,
+        get_live_and_or_published_ver=get_live_and_or_published_ver,
+        search=[search, ''][search_by_id],
+        author=author,
+        exclude_deleted=exclude_deleted,
+        filter_cond=filter_cond,
+        show_top_version_only=show_top_version_only,
+        force_brand=force_brand,
+        search_name_only = False,
+        date_range_cond = date_range_cond
+    )
 
     rows_to_return = []
     titles = [
@@ -1157,19 +1154,22 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
         c_tags = []
         concept_tags = c['tags']
         if concept_tags:
-            c_tags = list(Tag.objects.filter(pk__in=concept_tags, tag_type=1).values('description', 'id'))
+            c_tags = list(
+                Tag.objects.filter(pk__in=concept_tags, tag_type=1).values('description', 'id')
+            )
            
         c_collections = []
         concept_collections = c['collections']
         if concept_collections:
-            c_collections = list(Tag.objects.filter(pk__in=concept_collections, tag_type=2).values('description', 'id',  'collection_brand'))
+            c_collections = list(
+                Tag.objects.filter(pk__in=concept_collections, tag_type=2).values('description', 'id',  'collection_brand')
+            )
             if c_collections:
                 for col in c_collections:
                     col['collection_brand'] = Brand.objects.get(pk=col['collection_brand']).name
 
         ret += [c_tags]
         ret += [c_collections]
-        
         
         if do_not_show_versions != "1":
             ret += [get_visible_versions_list(request, Concept, c['id'], is_authenticated_user)]
@@ -1180,8 +1180,6 @@ def getConcepts(request, is_authenticated_user=True, pk=None, set_class=Concept)
         return Response(rows_to_return, status=status.HTTP_200_OK)
     else:
         raise Http404
-        #return Response(rows_to_return, status=status.HTTP_404_NOT_FOUND)
-
 
 # show concept detail
 #=============================================================
@@ -1464,4 +1462,102 @@ def getConceptDetail(request,
 
     return Response(rows_to_return, status=status.HTTP_200_OK)
 
+''' Updated API '''
 
+from rest_framework.decorators import (api_view, permission_classes)
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
+from rest_framework import status
+from drf_yasg.utils import swagger_auto_schema
+
+from ...models import *
+from ...entity_utils import api_utils
+from ...entity_utils import permission_utils
+from ...entity_utils import concept_utils
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def get_concept_detail(request, concept_id, version_id=None, export_codes=False):
+    '''
+    
+    '''
+    # Check concept with this id exists
+    concept_response = api_utils.exists_concept(concept_id)
+    if isinstance(concept_response, Response):
+        return concept_response
+    
+    # Get historical concept
+    historical_concept_response = api_utils.exists_historical_concept(
+        concept_id, request.user, historical_id=version_id
+    )
+    if isinstance(historical_concept_response, Response):
+        return historical_concept_response
+    historical_concept = historical_concept_response
+
+    # Check if the user has the permissions to view this concept version
+    user_can_access = permission_utils.can_user_view_concept(request, historical_concept)
+    if not user_can_access:
+        return Response(
+            data={
+                'message': 'Concept version must be published or you must have permission to access it'
+            }, 
+            content_type='json',
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    if export_codes:
+        # Build only the codelist
+        concept_data = concept_utils.get_clinical_concept_data(
+            historical_concept.id,
+            historical_concept.history_id,
+            aggregate_component_codes=True,
+            include_component_codes=False,
+            include_attributes=True,
+            format_for_api=True
+        )
+        concept_codes = concept_data.get('aggregated_component_codes')
+        attribute_headers = concept_data.get('code_attribute_headers')
+
+        # Format the codelist for legacy API
+        concept_codes = api_utils.get_formatted_concept_codes(
+            historical_concept, concept_codes, headers=attribute_headers
+        )
+        
+        return Response(
+            data=concept_codes,
+            status=status.HTTP_200_OK
+        )
+    
+    # Build the whole concept detail
+    concept_data = concept_utils.get_clinical_concept_data(
+        historical_concept.id,
+        historical_concept.history_id,
+        include_attributes=True,
+        format_for_api=True
+    )
+
+    # Append concept version information
+    concept_data['version_history'] = api_utils.get_concept_version_history(
+        request, concept_id
+    )
+
+    return Response(
+        data=concept_data,
+        status=status.HTTP_200_OK
+    )
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def get_concept_version_history(request, concept_id):
+    '''
+    
+    '''
+    # Check concept with this id exists
+    concept_response = api_utils.exists_concept(concept_id)
+    if isinstance(concept_response, Response):
+        return concept_response
+    
+    return Response(
+        data=api_utils.get_concept_version_history(request, concept_id), 
+        status=status.HTTP_200_OK
+    )
