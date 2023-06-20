@@ -532,7 +532,7 @@ export default class ConceptCreator {
 
     // Prompt user to det. whether they want to close the editor despite losing progress
     return new Promise((resolve, reject) => {
-      promptClientModal(CONCEPT_CREATOR_TEXT.CLOSE_EDITOR)
+      window.ModalFactory.create(CONCEPT_CREATOR_TEXT.CLOSE_EDITOR)
       .then(resolve)
       .catch(reject);
     })
@@ -1416,7 +1416,7 @@ export default class ConceptCreator {
       }
 
       new Promise((resolve, reject) => {
-        promptClientModal(CONCEPT_CREATOR_TEXT.RULE_DELETION)
+        window.ModalFactory.create(CONCEPT_CREATOR_TEXT.RULE_DELETION)
         .then(resolve)
         .catch(reject);
       })
@@ -1743,7 +1743,7 @@ export default class ConceptCreator {
     }
 
     return new Promise((resolve, reject) => {
-        promptClientModal(CONCEPT_CREATOR_TEXT.CONCEPT_DELETION).then(resolve).catch(reject);
+        window.ModalFactory.create(CONCEPT_CREATOR_TEXT.CONCEPT_DELETION).then(resolve).catch(reject);
       })
       .then(() => {
         const conceptGroup = tryGetRootElement(target, 'concept-list__group');
