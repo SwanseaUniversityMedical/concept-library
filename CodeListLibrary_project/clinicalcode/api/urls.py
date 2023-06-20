@@ -13,9 +13,9 @@ from drf_yasg import openapi
       appear as links on the API page.
 '''
 router = routers.DefaultRouter()
-router.register('concepts-live', Concept.ConceptViewSet)
-router.register('codes', Concept.CodeViewSet)
-router.register('tags-and-collections', View.TagViewSet, basename='tags')
+#router.register('concepts-live', Concept.ConceptViewSet)
+#router.register('codes', Concept.CodeViewSet)
+#router.register('tags-and-collections', View.TagViewSet, basename='tags')
 #router.register('public/data-sources-list', View.DataSourceViewSet)
 #router.register('public/coding-systems', View.CodingSystemViewSet)
 
