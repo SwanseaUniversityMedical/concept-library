@@ -178,7 +178,6 @@ def check_entity_to_publish(request, pk, entity_history_id):
         allow_to_publish = False
 
     checks = {
-        'entity': entity,
         'entity_type': entity_class,
         'name': entity_ver.name,
         'errors': errors,
