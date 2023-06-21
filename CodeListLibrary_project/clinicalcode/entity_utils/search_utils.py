@@ -225,7 +225,7 @@ def apply_param_to_query(
     elif field_type == 'datetime':
         data = [gen_utils.parse_date(x) for x in data.split(',') if gen_utils.parse_date(x)]
         if len(data) > 1 and not is_dynamic:
-            query[f'{param}__range'] = data[:2]
+            query[f'{param}__range'] = data
             return True
     elif field_type == 'string':
         if is_dynamic:
