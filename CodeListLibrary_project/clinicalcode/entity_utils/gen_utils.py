@@ -157,6 +157,13 @@ def parse_date(value, default=0):
     else:
         return date.strftime('%Y-%m-%d')
 
+def parse_as_int_list(value):
+    result = []
+    for x in value.split(','):
+        if parse_int(x, default=None) is not None:
+            result.append(int(x))
+    return result
+
 def try_value_as_type(field_value, field_type, validation=None, default=None):
     '''
         Tries to parse a value as a given type, otherwise returns default
