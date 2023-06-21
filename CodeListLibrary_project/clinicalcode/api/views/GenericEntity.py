@@ -117,7 +117,11 @@ def update_generic_entity(request):
 def get_generic_entity_version_history(request, phenotype_id=None):
     '''
         Get version history of specific entity, using phenotype_id
-    '''    
+    '''
+    user_authed = False
+    if request.user and not request.user.is_anonymous:
+        user_authed = True
+    
     # Check if primary_key is valid, i.e. matches regex '^[a-zA-Z]\d+'
     entity_id_response = api_utils.is_malformed_entity_id(phenotype_id)
     if isinstance(entity_id_response, Response):

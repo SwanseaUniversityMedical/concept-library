@@ -57,7 +57,6 @@ def get_entity_id(primary_key):
   '''
   entity_id = re.split('(\d.*)', primary_key)
   if len(entity_id) >= 2 and entity_id[0].isalpha() and entity_id[1].isdigit():
-    entity_id[0] = entity_id[0].upper()
     return entity_id[:2]
   return False
 
@@ -71,6 +70,18 @@ def get_brand_collection_ids(brand_name):
     return brand_collection_ids
   return [-1]
 
+def get_latest_entity_published(entity_id):
+  '''
+    Gets latest published entity given an entity id
+  '''
+  entity = GenericEntity.history.filter(id=entity_id, publish_status=APPROVAL_STATUS.APPROVED)
+  if not entity.exists():
+    return None
+  
+  entity = entity.order_by('-history_id')
+  entity = entity.first()
+  return entity
+
 def get_entity_approval_status(entity_id, historical_id):
   '''
     Gets the entity's approval status, given an entity id and historical id
@@ -78,6 +89,40 @@ def get_entity_approval_status(entity_id, historical_id):
   entity = GenericEntity.history.filter(id=entity_id, history_id=historical_id)
   if entity.exists():
     return entity.first().publish_status
+
+def get_latest_entity_historical_id(entity_id, user):
+  '''
+    Gets the latest entity history id for a given entity
+    and user, given the user has the permissions to access that
+    particular entity
+  '''
+  entity = try_get_instance(GenericEntity, id=entity_id)
+      
+  if entity:
+    if user.is_superuser:
+      return int(entity.history.latest().history_id)
+    
+    if user and not user.is_anonymous:
+      history = entity.history.filter(
+        Q(owner=user.id) | 
+        Q(
+          group_id__in=user.groups.all(),
+          group_access__in=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]
+        ) |
+        Q(
+          world_access=WORLD_ACCESS_PERMISSIONS.VIEW
+        )
+      ) \
+      .order_by('-history_id')
+      
+      if history.exists():
+        return history.first().history_id
+  
+    published = get_latest_entity_published(entity.id)
+    if published:
+      return published.history_id
+
+  return None
 
 def is_legacy_entity(entity_id, entity_history_id):
   '''
