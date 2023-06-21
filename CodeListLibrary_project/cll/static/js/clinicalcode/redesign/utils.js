@@ -460,3 +460,24 @@ const isArrayEqual = (a, b, shouldSort = true) => {
   }
   return a.length == b.length && a.every((ti, i) => { return ti == b[i]; });
 }
+
+
+/**
+ * showing loader when fetching data
+ */
+
+const showLoader = () => {
+  const loader = document.querySelector('.loading');
+  loader.classList.add('display');
+  setTimeout(() => {
+    loader.classList.remove('display');
+  }, 2000);
+}
+
+/**
+ * hide loader when fetching data
+ */
+const hideLoader = () => {
+  const loader = document.querySelector('.loading');
+  loader.classList.remove('display');
+}
