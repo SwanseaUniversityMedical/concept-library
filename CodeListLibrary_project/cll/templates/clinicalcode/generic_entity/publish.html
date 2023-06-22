@@ -15,7 +15,7 @@
         ModalFactory.create({
         id: "test-dialog",
         title: `Publish - ${data.entity_id} ${data.entity_type} - ${data.name}`,
-        content: "<p>Hello</p>",
+        content: "Loh",
         buttons: [
           {
             name: "Cancel",
@@ -23,29 +23,17 @@
             html: `<button class="secondary-btn text-accent-darkest bold washed-accent" id="cancel-button"></button>`,
           },
           {
-            name: "Reject",
-            type: ModalFactory.ButtonTypes.REJECT,
-            html: `<button class="secondary-btn text-accent-darkest bold washed-accent" id="reject-button"></button>`,
-          },
-          {
-            name: "Confirm",
+            name: "Publish",
             type: ModalFactory.ButtonTypes.CONFIRM,
-            html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="confirm-button"></button>`,
-          },
-          {
-            name: "Accept",
-            type: ModalFactory.ButtonTypes.CONFIRM,
-            html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="accept-button"></button>`,
+            html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="publish-modlal-button"></button>`,
           },
         ],
       })
         .then((result) => {
           // e.g. user pressed a button that has type=ModalFactory.ButtonTypes.CONFIRM
           const name = result.name;
-          if (name == "Confirm") {
-            console.log("[success] user confirmed", result);
-          } else if (name == "Accept") {
-            console.log("[success] user accepted", result);
+          if (name == "Publish") {
+            console.log("[success] user publish", result);
           }
         })
         .catch((result) => {
@@ -58,8 +46,6 @@
           const name = result.name;
           if (name == "Cancel") {
             console.log("[failure] user cancelled", result);
-          } else if (name == "Reject") {
-            console.log("[failure] rejected", result);
           }
         });
         console.log(data);
