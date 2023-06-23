@@ -1,22 +1,17 @@
 {% load entity_publish_renderer %}
 
 <script>
-   
-    const button = document.querySelector("#publish2");
-    button.addEventListener("click", function (e) {
-      e.preventDefault();
-      const ModalFactory = window.ModalFactory;
+  const button = document.querySelector("#publish2");
+  button.addEventListener("click", async function (e) {
+    e.preventDefault();
+    const ModalFactory = window.ModalFactory;
 
-      fetch('{{url}}')
-      .then(response => response.json())
-      .then(data => {
+    await fetch("{{url}}")
+      .then((response) => response.json())
+      .then((data) => {
         console.log(data);
         // Handle the data received from the server
-        ModalFactory.create({
-        id: "test-dialog",
-        title: `Publish - ${data.entity_id} ${data.entity_type} - ${data.name}`,
-        content: "Loh",
-        buttons: [
+        const publishButton = [
           {
             name: "Cancel",
             type: ModalFactory.ButtonTypes.REJECT,
@@ -27,35 +22,73 @@
             type: ModalFactory.ButtonTypes.CONFIRM,
             html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="publish-modlal-button"></button>`,
           },
-        ],
-      })
-        .then((result) => {
-          // e.g. user pressed a button that has type=ModalFactory.ButtonTypes.CONFIRM
-          const name = result.name;
-          if (name == "Publish") {
-            console.log("[success] user publish", result);
-          }
+        ];
+        const declineButton = [
+          {
+            name: "Cancel",
+            type: ModalFactory.ButtonTypes.REJECT,
+            html: `<button class="secondary-btn text-accent-darkest bold washed-accent" id="cancel-button"></button>`,
+          },
+          {
+            name: "Decline",
+            type: ModalFactory.ButtonTypes.CONFIRM,
+            html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="decline-modlal-button"></button>`,
+          },
+          {
+            name: "Approve",
+            type: ModalFactory.ButtonTypes.CONFIRM,
+            html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="approve-modlal-button"></button>`,
+          },
+        ];
+
+        ModalFactory.create({
+          id: "test-dialog",
+          title: `Publish - ${data.entity_id} ${data.entity_type} - ${data.name}`,
+          content: "Loh",
+          buttons: data.approval_status === 1 ? declineButton : publishButton,
         })
-        .catch((result) => {
-          // An error occurred somewhere (unrelated to button input)
-          if (!(result instanceof ModalFactory.ModalResults)) {
-            return console.error(result);
-          }
-  
-          // e.g. user pressed a button that has type=ModalFactory.ButtonTypes.REJECT
-          const name = result.name;
-          if (name == "Cancel") {
-            console.log("[failure] user cancelled", result);
-          }
-        });
-        console.log(data);
+          .then((result) => {
+            // e.g. user pressed a button that has type=ModalFactory.ButtonTypes.CONFIRM
+            const name = result.name;
+            if (name == "Publish") {
+              postData(data,"{{url}}")
+            }
+          })
+          .catch((result) => {
+            // An error occurred somewhere (unrelated to button input)
+            if (!(result instanceof ModalFactory.ModalResults)) {
+              return console.error(result);
+            }
+            // e.g. user pressed a button that has type=ModalFactory.ButtonTypes.REJECT
+            const name = result.name;
+            if (name == "Cancel") {
+              console.log("[failure] user cancelled", result);
+            }
+          });
       })
-      .catch(error => {
+      .catch((error) => {
         // Handle any errors that occur during the AJAX request
         console.error(error);
       });
+  });
 
-     
-    });
-  </script>
-  
+  const postData = async (data, url) => {
+    try {
+      console.log(data)
+      const response = await fetch(
+        url,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+          },
+          body: data,
+        }
+      );
+      return response.json()
+    } catch (error) {
+      console.log(error);
+    }
+  };
+</script>
