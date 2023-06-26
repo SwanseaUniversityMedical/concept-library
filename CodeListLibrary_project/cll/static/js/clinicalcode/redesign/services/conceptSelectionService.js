@@ -64,7 +64,7 @@ const CSEL_BEHAVIOUR = {
  *       and are appended automatically if not overriden.
  */
 const CSEL_OPTIONS = {
-  // Template
+  // Which template to query when retrieving accessible entities
   template: 1,
 
   // Allow more than a single Concept to be selected
