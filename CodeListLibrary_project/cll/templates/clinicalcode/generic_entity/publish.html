@@ -1,4 +1,6 @@
 {% load entity_publish_renderer %}
+{% csrf_token %}
+
 
 <script>
   const button = document.querySelector("#publish2");
@@ -6,84 +8,80 @@
     e.preventDefault();
     const ModalFactory = window.ModalFactory;
 
-    await fetch("{{url}}")
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-        // Handle the data received from the server
-        const publishButton = [
-          {
-            name: "Cancel",
-            type: ModalFactory.ButtonTypes.REJECT,
-            html: `<button class="secondary-btn text-accent-darkest bold washed-accent" id="cancel-button"></button>`,
-          },
-          {
-            name: "Publish",
-            type: ModalFactory.ButtonTypes.CONFIRM,
-            html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="publish-modlal-button"></button>`,
-          },
-        ];
-        const declineButton = [
-          {
-            name: "Cancel",
-            type: ModalFactory.ButtonTypes.REJECT,
-            html: `<button class="secondary-btn text-accent-darkest bold washed-accent" id="cancel-button"></button>`,
-          },
-          {
-            name: "Decline",
-            type: ModalFactory.ButtonTypes.CONFIRM,
-            html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="decline-modlal-button"></button>`,
-          },
-          {
-            name: "Approve",
-            type: ModalFactory.ButtonTypes.CONFIRM,
-            html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="approve-modlal-button"></button>`,
-          },
-        ];
+    try {
+      const response = await fetch("{{url}}");
+      const data = await response.json();
 
-        ModalFactory.create({
-          id: "test-dialog",
-          title: `Publish - ${data.entity_id} ${data.entity_type} - ${data.name}`,
-          content: "Loh",
-          buttons: data.approval_status === 1 ? declineButton : publishButton,
-        })
-          .then((result) => {
-            // e.g. user pressed a button that has type=ModalFactory.ButtonTypes.CONFIRM
-            const name = result.name;
-            if (name == "Publish") {
-              postData(data,"{{url}}")
-            }
-          })
-          .catch((result) => {
-            // An error occurred somewhere (unrelated to button input)
-            if (!(result instanceof ModalFactory.ModalResults)) {
-              return console.error(result);
-            }
-            // e.g. user pressed a button that has type=ModalFactory.ButtonTypes.REJECT
-            const name = result.name;
-            if (name == "Cancel") {
-              console.log("[failure] user cancelled", result);
-            }
-          });
+      const publishButton = [
+        {
+          name: "Cancel",
+          type: ModalFactory.ButtonTypes.REJECT,
+          html: `<button class="secondary-btn text-accent-darkest bold washed-accent" id="cancel-button"></button>`,
+        },
+        {
+          name: "Publish",
+          type: ModalFactory.ButtonTypes.CONFIRM,
+          html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="publish-modlal-button"></button>`,
+        },
+      ];
+      const declineButton = [
+        {
+          name: "Cancel",
+          type: ModalFactory.ButtonTypes.REJECT,
+          html: `<button class="secondary-btn text-accent-darkest bold washed-accent" id="cancel-button"></button>`,
+        },
+        {
+          name: "Decline",
+          type: ModalFactory.ButtonTypes.CONFIRM,
+          html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="decline-modlal-button"></button>`,
+        },
+        {
+          name: "Approve",
+          type: ModalFactory.ButtonTypes.CONFIRM,
+          html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="approve-modlal-button"></button>`,
+        },
+      ];
+
+      ModalFactory.create({
+        id: "test-dialog",
+        title: `Publish - ${data.entity_id} ${data.entity_type} - ${data.name}`,
+        content: "Loh",
+        buttons: data.approval_status === 1 ? declineButton : publishButton,
       })
-      .catch((error) => {
-        // Handle any errors that occur during the AJAX request
-        console.error(error);
-      });
+        .then(async (result) => {
+          const name = result.name;
+          if (name == "Publish") {
+            await postData(data, "{{url}}");
+          }
+        })
+        .catch((result) => {
+          if (!(result instanceof ModalFactory.ModalResults)) {
+            return console.error(result);
+          }
+          const name = result.name;
+          if (name == "Cancel") {
+            console.log("[failure] user cancelled", result);
+          }
+        });
+    } catch (error) {
+      console.error(error);
+    }
   });
+
 
   const postData = async (data, url) => {
     try {
-      console.log(data)
+      const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
       const response = await fetch(
         url,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-CSRFToken": "{{ csrf_token }}"
+            "X-CSRFToken": csrfToken
           },
-          body: data,
+          body: JSON.stringify(data),
         }
       );
       return response.json()
