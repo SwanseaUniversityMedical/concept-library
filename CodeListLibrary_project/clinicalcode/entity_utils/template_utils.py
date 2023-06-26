@@ -1,6 +1,5 @@
 from django.apps import apps
 from django.db.models import Q, ForeignKey
-from django.contrib.auth.models import User, Group
 
 from . import filter_utils
 from . import concept_utils
@@ -46,9 +45,15 @@ def is_layout_safe(layout):
         return False
 
     definition = try_get_content(layout, 'definition') if isinstance(layout, dict) else getattr(layout, 'definition')
-    if layout is None:
-        return False
     return isinstance(definition, dict)
+
+def try_get_layout(template, default=None):
+    '''
+        Tries to get the definition from a template
+    '''
+    if not is_layout_safe(template):
+        return default
+    return try_get_content(template, 'definition') if isinstance(template, dict) else getattr(template, 'definition')
 
 def is_data_safe(entity):
     '''

@@ -1,5 +1,6 @@
 from django.apps import apps
-from django.db.models import Q, OuterRef
+from django.conf import settings
+from django.db.models import Q
 from django.db.models.functions import Lower
 from django.db.models.expressions import RawSQL
 from django.core.paginator import EmptyPage, Paginator
@@ -12,7 +13,99 @@ from ..models.Template import Template
 from ..models.GenericEntity import GenericEntity
 from ..models.Statistics import Statistics
 from ..models.CodingSystem import CodingSystem
-from . import model_utils, template_utils, constants, gen_utils, permission_utils
+from . import model_utils, template_utils, constants, gen_utils, permission_utils, concept_utils
+
+def get_template_filters(request, template, default=None):
+    '''
+        Safely gets the filterable fields of a template
+    '''
+    current_brand = request.CURRENT_BRAND or 'ALL'
+
+    layout = template_utils.try_get_layout(template)
+    if layout is None:
+        return default
+    
+    layout = template_utils.get_ordered_definition(layout, clean_fields=True)    
+    fields = template_utils.try_get_content(layout, 'fields')
+    if fields is None:
+        return default
+    
+    filters = [ ]
+    for field, packet in fields.items():
+        if not packet.get('active'):
+            continue
+        
+        validation = template_utils.try_get_content(packet, 'validation')
+        if validation is None:
+            continue
+        
+        search_params = template_utils.try_get_content(packet, 'search')
+        if search_params is None:
+            continue
+
+        if not search_params.get('filterable'):
+            continue
+
+        details = get_filter_info(field, packet)
+        if details is None:
+            continue
+
+        component = template_utils.try_get_content(constants.FILTER_COMPONENTS, details.get('type'))
+        if component is None:
+            continue
+        details.update({ 'component': component })
+        
+        filters.append({
+            'details': details,
+            'options': try_get_template_statistics(field, brand=current_brand)
+        })
+    
+    return filters
+
+def get_metadata_filters(request):
+    '''
+        Gets all filterable fields of the top-level metadata
+    '''
+    current_brand = request.CURRENT_BRAND or 'ALL'
+
+    filters = [ ]
+    for field, packet in constants.metadata.items():
+        if not packet.get('active'):
+            continue
+
+        validation = template_utils.try_get_content(packet, 'validation')
+        if validation is None:
+            continue
+        
+        search_params = template_utils.try_get_content(packet, 'search')
+        if search_params is None:
+            continue
+        
+        if not search_params.get('filterable') or search_params.get('single_search_only'):
+            continue
+        
+        details = get_filter_info(field, packet)
+        if details is None:
+            continue
+
+        component = template_utils.try_get_content(constants.FILTER_COMPONENTS, details.get('type'))
+        if component is None:
+            continue
+        details.update({ 'component': component })
+        
+        options = None
+        if 'compute_statistics' in packet:
+            options = get_metadata_stats_by_field(field, brand=current_brand)
+
+        if options is None and 'source' in validation:
+            options = get_source_references(packet)
+        
+        filters.append({
+            'details': details,
+            'options': options
+        })
+    
+    return filters
 
 def try_derive_entity_type(entity_type):
     '''
@@ -38,7 +131,6 @@ def try_derive_entity_type(entity_type):
     if entity_cls.exists():
         return [entity_cls.first().id]
     return None
-
 
 def perform_vector_search(queryset, search_query, min_rank=0.05, order_by_relevance=True, reverse_order=False):
     '''
@@ -225,7 +317,8 @@ def apply_param_to_query(
     elif field_type == 'datetime':
         data = [gen_utils.parse_date(x) for x in data.split(',') if gen_utils.parse_date(x)]
         if len(data) > 1 and not is_dynamic:
-            query[f'{param}__range'] = data[:2]
+            data = gen_utils.get_start_and_end_dates(data[:2])
+            query[f'{param}__range'] = data
             return True
     elif field_type == 'string':
         if is_dynamic:
@@ -235,6 +328,166 @@ def apply_param_to_query(
         return True
     
     return False
+
+def try_get_template_children(entity, default=None):
+    '''
+        Used to retrieve entities assoc. with this parent entity per
+        the template specification
+    '''
+    children = [ ]
+    if not template_utils.is_data_safe(entity):
+        return default
+
+    template = entity.template
+    template_version = entity.template_version
+    if template is None:
+        return default
+
+    template = template.history.filter(template_version=template_version)
+    if not template.exists():
+        return default
+    
+    template = template.latest()
+    template_fields = template_utils.get_layout_fields(template)
+    for field, packet in entity.template_data.items():
+        template_field = template_utils.try_get_content(template_fields, field)
+        if template_field is None:
+            continue
+
+        validation = template_utils.try_get_content(template_field, 'validation')
+        if validation is None:
+            continue
+
+        child_data = None
+        field_type = template_utils.try_get_content(validation, 'type')
+        if field_type == 'concept':
+            child_data = concept_utils.get_concept_dataset(packet, field_name=field, default=None)
+        
+        if child_data is None:
+            continue
+        children = children + child_data
+    return children
+        
+def get_template_entities(request, template_id, method='GET', force_term=True):
+    '''
+        Method to get a Template's entities that:
+            1. Are accessible to the RequestContext's user
+            2. Match the query parameters
+        
+        Returns:
+            A page of the results as defined by the query param
+                - Contains the entities and their related children
+                - Contains the pagination details
+    '''
+    template = model_utils.try_get_instance(Template, pk=template_id)
+    if template is None:
+        return None
+    
+    if not template_utils.is_layout_safe(template):
+        return None
+    
+    template_fields = template_utils.get_layout_fields(template)
+    if template_fields is None:
+        return None
+    
+    entities = permission_utils.get_accessible_entities(
+        request,
+        status=[constants.APPROVAL_STATUS.ANY]
+    )
+    entities = entities.filter(template__id=template_id)
+    entities = GenericEntity.history.filter(
+        id__in=entities.values_list('id', flat=True),
+        history_id__in=entities.values_list('history_id', flat=True)
+    )
+
+    metadata_filters = [key for key, value in constants.metadata.items() if 'search' in value and 'filterable' in value.get('search')]
+    template_filters = [ ]
+    
+    for key, value in template_fields.items():
+        if 'search' not in value or 'filterable' not in value.get('search'):
+            continue
+        template_filters.append(key)
+    
+    query = { }
+    where = [ ]
+    for param, data in getattr(request, method).items():
+        if param in metadata_filters:
+            apply_param_to_query(query, where, constants.metadata, param, data, force_term=force_term)
+        elif param in template_filters:
+            if template_fields is None:
+                continue
+            apply_param_to_query(query, where, template_fields, param, data, is_dynamic=True, force_term=force_term)
+    
+    entities = entities.filter(Q(**query))
+    entities = entities.extra(where=where)
+    
+    search_order = gen_utils.try_get_param(request, 'order_by', '1', method)
+    should_order_search = search_order == '1'
+    search_order = template_utils.try_get_content(constants.ORDER_BY, search_order)
+    if search_order is None:
+        search_order = constants.ORDER_BY['1']
+    
+    search = gen_utils.try_get_param(request, 'search', None)
+    if search is not None:
+        entity_ids = list(entities.values_list('id', flat=True))
+        entities = entities.filter(
+            id__in=RawSQL(
+                """
+                select id
+                from clinicalcode_historicalgenericentity
+                where id = ANY(%s)
+                  and search_vector @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %s)::text || ':*', '<->', '|'))
+                """,
+                [entity_ids, search]
+            )
+        ) \
+        .annotate(
+            score=RawSQL(
+                """ts_rank_cd(search_vector, websearch_to_tsquery('pg_catalog.english', %s))""",
+                [search]
+            )
+        )
+
+        if should_order_search:
+            entities = entities.order_by('-score')
+
+    if search_order != constants.ORDER_BY['1']:
+        search_order = search_order.get('clause')
+        entities = entities.order_by(search_order)
+    else:
+        if search is None:
+            entities = entities.all().extra(
+                select={'true_id': """CAST(REGEXP_REPLACE(id, '[a-zA-Z]+', '') AS INTEGER)"""}
+            ) \
+            .order_by('true_id', 'id')
+    
+    page_obj = try_get_paginated_results(request, entities)
+    
+    results = [ ]
+    for obj in page_obj.object_list:
+        entity = {
+            'id': obj.id,
+            'name': obj.name,
+            'history_id': obj.history_id,
+            'author': template_utils.get_entity_field(obj, 'author') or 'null'
+        }
+
+        children = try_get_template_children(obj, default=[])
+        entity.update({ 'children': children })
+        results.append(entity)
+
+    return {
+        'results': results,
+        'details': {
+            'page': page_obj.number,
+            'total': page_obj.paginator.num_pages,
+            'max_results': page_obj.paginator.count,
+            'start_index': page_obj.start_index(),
+            'end_index': page_obj.end_index(),
+            'has_previous': page_obj.has_previous(),
+            'has_next': page_obj.has_next(),
+        },
+    }
 
 def get_renderable_entities(request, entity_types=None, method='GET', force_term=True):
     '''
@@ -373,6 +626,7 @@ def try_get_paginated_results(request, entities, page=None, page_size=None):
     '''
     if not page:
         page = gen_utils.try_get_param(request, 'page', 1)
+        page = max(page, 1)
 
     if not page_size:
         page_size = gen_utils.try_get_param(request, 'page_size', '1')
@@ -383,7 +637,6 @@ def try_get_paginated_results(request, entities, page=None, page_size=None):
             page_size = constants.PAGE_RESULTS_SIZE.get(page_size)
 
     pagination = Paginator(entities, page_size, allow_empty_first_page=True)
-    
     try:
         page_obj = pagination.page(page)
     except EmptyPage:

@@ -14,6 +14,51 @@ from .constants import (
   CLINICAL_RULE_TYPE, CLINICAL_CODE_SOURCE, 
 )
 
+def get_concept_dataset(packet, field_name='concept_information', default=None):
+  '''
+    [!] Note: This method ignores permissions - it should only be called from a
+              a method that has previously considered accessibility
+    
+    @desc Attempts to collate a packet that contains data relating to the concepts
+          defined in the list
+    
+    Args:
+      packet {array[object]}: A list of objects that contain a {concept_id: [int], concept_version_id: [int]}
+      field_name {string}: The name of the template field from which this packet was derived
+      default {any}: A default param to return if we are unable to perform the task
+
+    Returns:
+      An {array[object]} that contains information relating to the concept:
+        - Name
+        - ID + Version ID
+  '''
+  if not isinstance(packet, list):
+    return default
+  
+  concept_ids = [x.get('concept_id') for x in packet if x.get('concept_id') is not None]
+  concept_version_ids = [x.get('concept_version_id') for x in packet if x.get('concept_version_id') is not None]
+  
+  concepts = Concept.history.filter(
+    id__in=concept_ids,
+    history_id__in=concept_version_ids,
+  )
+  
+  concept_data = concepts.values('name', 'id', 'history_id')
+  coding_systems = concepts.values('coding_system__id')
+
+  concept_data = list(concept_data)
+  concept_data = [
+    {
+      'prefix': 'C',
+      'type': 'Concept',
+      'field': field_name,
+      'coding_system': coding_systems[i].get('coding_system__id') if coding_systems[i] else -1
+    } | concept
+    for i, concept in enumerate(concept_data)
+  ]
+
+  return concept_data
+
 def get_concept_component_details(concept_id, concept_history_id, aggregate_codes=False, include_codes=True, attribute_headers=None):
   '''
     [!] Note: This method ignores permissions - it should only be called from a

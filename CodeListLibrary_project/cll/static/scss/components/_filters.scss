@@ -19,7 +19,7 @@
 }
 
 /// Search filters
-///   @desc Aside search bar
+///   @desc Aside search bar for the main search page
 .side-search-filters {
   @include flex-col();
   display: none;
@@ -54,6 +54,59 @@
     width: 100%;
     min-width: 175px;
   
+    @include media(">desktop") {
+      display: flex;
+      min-width: 225px;
+    }
+  }
+}
+
+/// Filter group
+///   @desc primarily used by selection service
+.filter-group {
+  flex-direction: column nowrap;
+  padding: 0.5rem 0;
+}
+
+/// Selection search filters
+///   @desc used exclusively by selectionService.js
+.selection-filters {
+  @include flex-col();
+  display: none;
+  flex-wrap: nowrap;
+  flex: 1 auto;
+  margin-right: 1rem;
+  min-width: 175px;
+  max-width: 200px;
+
+  @include media(">desktop") {
+    display: flex;
+    min-width: 225px;
+    max-width: 250px;
+  }
+  
+  &__header {
+    @include flex-col();
+
+    & > h3 {
+      padding: 0;
+      margin: 0;
+      font-size: 18px;
+      font-weight: bold;
+      line-height: 1;
+      color: col(text-darkest);
+    }
+  }
+
+  &__container {
+    @include flex-col();
+    flex-wrap: nowrap;
+    flex-grow: 1;
+    margin-top: 0.5rem;
+    max-height: 42.5vh;
+    min-width: 175px;
+    overflow-y: scroll;
+
     @include media(">desktop") {
       display: flex;
       min-width: 225px;

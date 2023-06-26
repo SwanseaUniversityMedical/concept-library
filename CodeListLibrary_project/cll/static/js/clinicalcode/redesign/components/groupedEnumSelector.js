@@ -79,7 +79,6 @@ export default class GroupedEnum {
     const inputs = this.element.querySelectorAll('input');
     for (let i = 0; i < inputs.length; ++i) {
       let val = inputs[i].getAttribute('data-value');
-      console.log(val, value);
       inputs[i].checked = val === value;
     }
 

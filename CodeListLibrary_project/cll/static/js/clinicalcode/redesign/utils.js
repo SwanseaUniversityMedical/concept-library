@@ -25,8 +25,8 @@ const deepCopy = (obj) => {
   * mergeObjects
   * @desc Merges two objects together where the first object takes precedence (i.e., it's not overriden)
   * @param {object} a An object to clone that takes precedence
-  * @param {object} b The object to clone
-  * @returns {object} The cloned object
+  * @param {object} b The object to clone and merge into the first object
+  * @returns {object} The merged object
   */
 const mergeObjects = (a, b) => {
   Object.keys(b).forEach(key => {
@@ -76,7 +76,7 @@ const getTransitionMethod = () => {
   */
 const createElement = (tag, attributes) => {
   let element = document.createElement(tag);
-  if (attributes != null) {
+  if (attributes !== null) {
     for (var name in attributes) {
       if (element[name] !== undefined) {
         element[name] = attributes[name];
@@ -94,7 +94,7 @@ const createElement = (tag, attributes) => {
   * @desc Checks whether an element is scrolled into view
   * @param {node} elem The element to examine
   * @param {number} offset An offset modifier (if required)
-  * @returns {boolean}
+  * @returns {boolean} that reflects the scroll view status of an element
   */
 const isScrolledIntoView = (elem, offset = 0) => {
   const rect = elem.getBoundingClientRect();
@@ -109,7 +109,7 @@ const isScrolledIntoView = (elem, offset = 0) => {
   * @desc A promise that resolves when an element is scrolled into view
   * @param {node} elem The element to examine
   * @param {number} offset An offset modifier (if required)
-  * @returns {promise}
+  * @returns {promise} a promise that resolves once the element scrolls into the view
   */
 const elementScrolledIntoView = (elem, offset = 0) => {
   return new Promise(resolve => {
@@ -127,7 +127,9 @@ const elementScrolledIntoView = (elem, offset = 0) => {
 /**
   * getCookie
   * @desc Gets the CSRF token
-  * @reference https://docs.djangoproject.com/en/4.1/howto/csrf/
+  *       Ref @ https://docs.djangoproject.com/en/4.1/howto/csrf/
+  * @param {string} name the name of the cookie
+  * @returns {*} the cookie's value
   */
 const getCookie = (name) => {
   let cookieValue = null;
@@ -296,8 +298,9 @@ const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callbac
 }
 
 /**
- * Get a template from a string
- * https://stackoverflow.com/posts/41015840/revisions
+ * interpolateHTML
+ * @desc Get a template from a string
+ *       Ref @ https://stackoverflow.com/posts/41015840/revisions
  * @param  {str} str The string to interpolate
  * @param  {object} params The parameters
  * @return {str} The interpolated string
@@ -310,6 +313,7 @@ const interpolateHTML = (str, params) => {
 
 /**
  * parseHTMLFromString
+ * @desc given a string of HTML, will return a parsed DOM
  * @param {str} str The string to parse as DOM elem
  * @returns {DOM} the parsed html
  */
@@ -320,6 +324,7 @@ const parseHTMLFromString = (str) => {
 
 /**
  * countUnique
+ * @desc counts the unique elements in an array
  * @param {iterable} array counts the number of unique elements
  * @return {integer} number of unique elements
  */
@@ -423,7 +428,6 @@ const parseDOI = (value) => {
 
 /**
  * waitForElement
- *  
  * @desc waits for an element to exist based on selector parameter
  * @param {string} selector the string to match 
  * @returns {promise} promise that resolves with the given element
