@@ -28,17 +28,9 @@ def form_validation(request, data, entity_history_id, pk, entity,checks):
     data['latest_history_ID'] = entity_history_id  # entity.history.latest().pk
 
     # update history list
-    data['html_history_list'] = render_to_string(
-        'components/details/version_history.html',
-        {
-            'history': get_history_table_data(request, pk),  # entity.history.all(),
-            'current_entity_history_id': int(entity_history_id),  # entity.history.latest().pk,
-            'published_historical_ids':
-                list(PublishedGenericEntity.objects.filter(entity_id=pk, approval_status=constants.APPROVAL_STATUS.APPROVED).values_list('entity_history_id', flat=True))
-        },
-        request=request)
+
     #send email message state and client side message
-    data['message'] = send_message(pk, data, entity, entity_history_id, checks)['message']
+    # data['message'] = send_message(pk, data, entity, entity_history_id, checks)['message']
 
     return data
 

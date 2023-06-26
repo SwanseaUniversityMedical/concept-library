@@ -78,7 +78,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
                                                                           entity_history_id=history_id, 
                                                                           moderator_id=request.user.id,
                                                                           created_by_id=GenericEntity.objects.get(pk=pk).created_by.id)
-                                published_entity.approval_status = constants.APPROVAL_STATUS.APPROVED
+                                published_entity.approval_status = constants.APPROVAL_STATUS.APPROVED.value
                                 published_entity.save()
 
                         #Check if was already published by user only to filter entitys and take the moderator id
