@@ -462,6 +462,12 @@ export class ConceptSelectionService {
     return this.dialogue;
   }
 
+  /**
+   * isSelected
+   * @param {number} childId 
+   * @param {number} childVersion 
+   * @returns {boolean} that reflects the selected state of a Concept
+   */
   isSelected(childId, childVersion) {
     if (isNullOrUndefined(this.dialogue?.data)) {
       return false;
