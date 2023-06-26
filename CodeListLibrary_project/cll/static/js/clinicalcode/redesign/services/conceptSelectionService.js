@@ -99,7 +99,11 @@ const CSEL_OPTIONS = {
   forceFilters: { },
 
   // Which filters, if any, to apply to children
-  childFilters: ['coding_system']
+  childFilters: ['coding_system'],
+
+  // Whether to cache the resulting queries for quicker,
+  // albeit possibly out of date, Phenotypes and their assoc. Concepts
+  useCachedResults: true,
 };
 
 /**
@@ -638,10 +642,13 @@ export class ConceptSelectionService {
    * @returns {array} the search results matching our current query 
    */
   async #tryGetSearchResults(cacheState = 'force-cache') {
+    if (!this.options?.useCachedResults) {
+      cacheState = 'reload';
+    }
+
     const query = this.#cleanQuery();
     const params = new URLSearchParams(query);
-
-    let request = {
+    const request = {
       method: 'GET',
       headers: {
         'X-Target': CSEL_BEHAVIOUR.ENDPOINTS.RESULTS,
