@@ -1,5 +1,13 @@
 {% load entity_publish_renderer %}
 {% csrf_token %}
+{% load compress %}
+{%load static%}
+
+{% compress js file %}
+<script type="text/javascript" src="{% static "js/clinicalcode/redesign/utils.js" %}"></script>
+{%endcompress%}
+
+
 
 
 <script>
@@ -21,7 +29,7 @@
         {
           name: "Publish",
           type: ModalFactory.ButtonTypes.CONFIRM,
-          html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="publish-modlal-button"></button>`,
+          html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="publish-modal-button"></button>`,
         },
       ];
       const declineButton = [
@@ -38,7 +46,7 @@
         {
           name: "Approve",
           type: ModalFactory.ButtonTypes.CONFIRM,
-          html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="approve-modlal-button"></button>`,
+          html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="approve-modlal-button"</button>`,
         },
       ];
 
@@ -47,11 +55,13 @@
         title: `Publish - ${data.entity_id} ${data.entity_type} - ${data.name}`,
         content: "Loh",
         buttons: data.approval_status === 1 ? declineButton : publishButton,
+        
       })
         .then(async (result) => {
           const name = result.name;
           if (name == "Publish") {
             await postData(data, "{{url}}");
+            location.reload()
           }
         })
         .catch((result) => {
@@ -72,7 +82,8 @@
   const postData = async (data, url) => {
     try {
       const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-
+     
+      //showLoader()
       const response = await fetch(
         url,
         {
@@ -84,9 +95,12 @@
           body: JSON.stringify(data),
         }
       );
+     // hideLoader()
       return response.json()
     } catch (error) {
       console.log(error);
     }
   };
+
+
 </script>

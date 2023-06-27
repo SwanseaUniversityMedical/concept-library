@@ -31,7 +31,7 @@ class PublishedGenericEntity(models.Model):
                 sql_publish_status = """
                                         UPDATE public.clinicalcode_historicalgenericentity 
                                         SET publish_status = """ + str(self.approval_status) + """
-                                        WHERE id = """ + """'"""+ str(self.entity.id) +"""'""" + """ and history_id = """ + str(self.entity_history_id) + """ ;
+                                        WHERE id = '""" + str(self.entity.id) + """'and history_id = """ + str(self.entity_history_id) + """ ;
                                     """
                 
                 cursor.execute(sql_publish_status)
@@ -42,7 +42,7 @@ class PublishedGenericEntity(models.Model):
                     sql_publish_status_2 = """
                                         UPDATE public.clinicalcode_genericentity 
                                         SET publish_status = """ + str(self.approval_status) + """
-                                        WHERE id = """ + """'"""+ str(self.entity.id) +"""'""" + """ ;
+                                        WHERE id = '"""+ str(self.entity.id)+"""' ;
                                     """
                     cursor.execute(sql_publish_status_2)                    
 
