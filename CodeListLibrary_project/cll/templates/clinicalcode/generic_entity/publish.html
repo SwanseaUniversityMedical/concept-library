@@ -9,7 +9,6 @@
 
 
 
-
 <script>
   const button = document.querySelector("#publish2");
   button.addEventListener("click", async function (e) {
@@ -53,7 +52,7 @@
       ModalFactory.create({
         id: "test-dialog",
         title: `Publish - ${data.entity_id} ${data.entity_type} - ${data.name}`,
-        content: "Loh",
+        content: generateContent(data),
         buttons: data.approval_status === 1 ? declineButton : publishButton,
         
       })
@@ -101,6 +100,28 @@
       console.log(error);
     }
   };
+
+  const generateContent = (data) =>{
+
+  let paragraph;
+  switch(data.approval_status){
+    case 1:
+      paragraph = `<p>Are you sure you want to approve this version of "${data.name}"?</p>
+      <p>Published ${data.entity_type} cannot be undone.</p>`
+      break;
+    case 3:
+      paragraph = `<p>Are you sure you want to approve previously declined version of "${data.name}"?</p>
+      <p>This change of  ${data.entity_type} cannot be undone.</p>`
+      break;
+    default:
+      paragraph = `<p>Are you sure you want to publish this version of "${data.name}"?</p>
+      <p>Published ${data.entity_type} cannot be undone.</p>`
+      break;
+  }
+  return paragraph
+
+
+  }
 
 
 </script>
