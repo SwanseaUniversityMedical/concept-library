@@ -15,7 +15,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
     template_name = 'clinicalcode/generic_entity/publish.html'
 
     @method_decorator([login_required, permission_utils.redirect_readonly])
-    def get(self, request, pk, history_id):
+    def get(self,request, pk, history_id):
         """
         Get method to generate modal response and pass additional information about working set
         @param request: user request object
@@ -34,7 +34,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
         return JsonResponse(checks, safe=False)
 
     @method_decorator([login_required, permission_utils.redirect_readonly])
-    def post(self, request, pk, history_id):
+    def post(self,request,pk, history_id):
         """
         Post data containing current state of entity to backend (published/declined/pending)
         @param request: request user object
@@ -43,7 +43,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
         @return: JsonResponse and status message
         """
         is_published = checkIfPublished(GenericEntity, pk, history_id)
-        checks = publish_utils.check_entity_to_publish(request, pk, history_id)
+        checks = publish_utils.check_entity_to_publish(self.request, pk, history_id)
         # if not is_published:
         #     checks = publish_utils.check_entity_to_publish(request, pk, history_id)
 
@@ -52,7 +52,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
         #check if entity could be published if not show error
         if not checks['allowed_to_publish'] or is_published:
             data['form_is_valid'] = False
-            data['message'] = render_to_string('clinicalcode/error.html', {}, request)
+            data['message'] = render_to_string('clinicalcode/error.html', {}, self.request)
             return JsonResponse(data)
 
         try:
@@ -64,14 +64,14 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
                     #Check if moderator first and if was already approved to filter by only approved entitys
                     if checks['is_moderator']:
                         if checks['is_lastapproved']:
-                            self.last_approved_publish(request,entity,history_id,checks)
+                            self.last_approved_publish(self.request,entity,history_id)
                         else:
-                            self.moderator_publish(request,entity,history_id,pk,checks)
+                            self.moderator_publish(self.request,history_id,pk,checks,data)
                             
 
                     #Check if was already published by user only to filter entitys and take the moderator id
                     if checks['is_lastapproved'] and not checks['is_moderator']:
-                        self.last_approved_publish(request,entity,history_id,checks)
+                        self.last_approved_publish(self.request,entity,history_id)
 
                     #Approve other pending entity if available to publish
                     if checks['other_pending']:
@@ -79,30 +79,30 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
                                                                                     approval_status=constants.APPROVAL_STATUS.PENDING)
                         for en in published_entity:
                             en.approval_status = constants.APPROVAL_STATUS.APPROVED
-                            en.moderator_id = request.user.id
+                            en.moderator_id = self.request.user.id
                             en.save()
 
                     data['form_is_valid'] = True
                     data['approval_status'] = constants.APPROVAL_STATUS.APPROVED
                     #show state message to the client side and send email
-                    data = publish_utils.form_validation(request, data, history_id, pk, entity,checks)
+                    data = publish_utils.form_validation(self.request, data, history_id, pk, entity,checks)
 
             #check if moderator and current entity is in pending state
             elif checks['approval_status'] == constants.APPROVAL_STATUS.PENDING and checks['is_moderator']:
                 with transaction.atomic():
-                    self.moderator_publish(request,entity,history_id,pk,checks)
+                    self.moderator_publish(history_id,pk,checks,data)
 
             #check if entity declined and user is moderator to review again
             elif checks['approval_status'] == constants.APPROVAL_STATUS.REJECTED and checks['is_moderator']:
                 with transaction.atomic():
-                    self.moderator_publish(request,entity,history_id,pk,checks)
+                    self.moderator_publish(history_id,pk,checks,data)
 
         except Exception as e:
             print(e)
             data['form_is_valid'] = False
             data['message'] = render_to_string('clinicalcode/error.html',
                                                {},
-                                               request)
+                                               self.request)
 
         return JsonResponse(data)
 
@@ -121,30 +121,31 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
             return True
     
 
-    def moderator_publish(self,request,entity,history_id,pk,conditions):   
+    def moderator_publish(self,history_id,pk,conditions,data):   
+        print(self.request)
         if conditions['approval_status'] == constants.APPROVAL_STATUS.PENDING:
             entity = GenericEntity.objects.get(pk=pk)
             published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,
-                                                                        approval_status=constants.APPROVAL_STATUS.PENDING)
+                                                                        approval_status=constants.APPROVAL_STATUS.PENDING.value)
             #filter and publish all pending ws
             for en in published_entity:
-                en.approval_status = constants.APPROVAL_STATUS.APPROVED
-                en.moderator_id = request.user.id
+                en.approval_status = constants.APPROVAL_STATUS.APPROVED.value
+                en.moderator_id = self.request.user.id
                 en.save()
 
             data['approval_status'] = constants.APPROVAL_STATUS.APPROVED
             data['form_is_valid'] = True
-            data = publish_utils.form_validation(request, data, history_id, pk, entity, conditions)
+            data = publish_utils.form_validation(self.request, data, history_id, pk, entity, conditions)
 
         elif conditions['approval_status'] == constants.APPROVAL_STATUS.REJECTED:
             entity = GenericEntity.objects.get(pk=pk)
             #filter by declined ws
             published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,
                                                                         entity_history_id=history_id,
-                                                                        approval_status=constants.APPROVAL_STATUS.REJECTED
+                                                                        approval_status=constants.APPROVAL_STATUS.REJECTED.value
                                                                         ).first()
-            published_entity.approval_status = constants.APPROVAL_STATUS.APPROVED
-            published_entity.moderator_id=request.user.id
+            published_entity.approval_status = constants.APPROVAL_STATUS.APPROVED.value
+            published_entity.moderator_id=self.request.user.id
             published_entity.save()
 
             #check if other pending exist to approve this ws automatically
@@ -153,47 +154,29 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
                                                                             approval_status=constants.APPROVAL_STATUS.PENDING)
                 for en in published_entity:
                     en.approval_status = constants.APPROVAL_STATUS.APPROVED
-                    en.moderator_id = request.user.id
+                    en.moderator_id = self.request.user.id
                     en.save()
 
             data['approval_status'] = constants.APPROVAL_STATUS.APPROVED
             data['form_is_valid'] = True
             #send message to the client
-            data = publish_utils.form_validation(request, data, history_id, pk, entity, conditions)
+            data = publish_utils.form_validation(self.request, data, history_id, pk, entity, conditions)
 
         else:
-            published_entity = PublishedGenericEntity(entity=entity,entity_history_id=history_id, moderator_id=request.user.id,
-                                                        created_by_id=GenericEntity.objects.get(pk=pk).created_by.id)
+            published_entity = PublishedGenericEntity(entity=entity,entity_history_id=history_id, moderator_id=self.request.user.id,
+                                                        created_by_id=GenericEntity.objects.get(pk=pk).created_by.id,approval_status=constants.APPROVAL_STATUS.APPROVED.value)
             
-            published_entity.approval_status = constants.APPROVAL_STATUS.APPROVED.value
             published_entity.save()
             
-    def last_approved_publish(self,request,entity,history_id,conditions):
-        if conditions['is_moderator']:
+    def last_approved_publish(self,entity,history_id):
             last_moderated = PublishedGenericEntity.objects.filter(entity_id=entity.id,approval_status=constants.APPROVAL_STATUS.APPROVED).first()
 
             published_entity = PublishedGenericEntity(entity=entity,
                                                         entity_history_id=history_id,
                                                         moderator_id=last_moderated.moderator.id,
-                                                        created_by_id=request.user.id)
-            
-            published_entity.approval_status = constants.APPROVAL_STATUS.APPROVED.value
+                                                        created_by_id=self.request.user.id,
+                                                        approval_status=constants.APPROVAL_STATUS.APPROVED.value)
             published_entity.save()
-        else:
-            last_moderated = PublishedGenericEntity.objects.filter(entity_id=entity.id,approval_status=constants.APPROVAL_STATUS.APPROVED).first()
-
-            published_entity = PublishedGenericEntity(entity=entity,entity_history_id=history_id,
-                                                      moderator_id=last_moderated.moderator.id,created_by_id=request.user.id)
-                            
-            published_entity.approval_status = constants.APPROVAL_STATUS.APPROVED
-            published_entity.save()
-
-    
-    
-
-    
-
-        
 
 class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityCheckMixin, TemplateResponseMixin, View):
     '''
@@ -224,7 +207,7 @@ class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGeneric
         return JsonResponse(json.dumps(checks))
     
     @method_decorator([login_required, permission_utils.redirect_readonly])
-    def post(self, request, pk, history_id):
+    def post(self, pk, history_id):
         """
         Send the request to publish data to the server
         @param request: user request object
@@ -233,9 +216,9 @@ class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGeneric
         @return: JSON success body response
         """
         is_published = checkIfPublished(GenericEntity, pk, history_id)
-        checks = publish_utils.check_entity_to_publish(request, pk, history_id)
+        checks = publish_utils.check_entity_to_publish(self.request, pk, history_id)
         if not is_published:
-            checks = publish_utils.check_entity_to_publish(request, pk, history_id)
+            checks = publish_utils.check_entity_to_publish(self.request, pk, history_id)
 
         data = dict()
         if not checks['allowed_to_publish'] or is_published:
@@ -250,11 +233,11 @@ class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGeneric
                     with transaction.atomic():
                         entity = GenericEntity.objects.get(pk=pk)
                         published_entity = PublishedGenericEntity(entity=entity, entity_history_id=history_id,
-                                                                    created_by_id=request.user.id,approval_status=constants.APPROVAL_STATUS.PENDING)
+                                                                    created_by_id=self.request.user.id,approval_status=constants.APPROVAL_STATUS.PENDING)
                         published_entity.save()
                         data['form_is_valid'] = True
                         data['approval_status'] = constants.APPROVAL_STATUS.PENDING
-                        data = publish_utils.form_validation(request, data, history_id, pk, entity, checks)
+                        data = publish_utils.form_validation(self.request, data, history_id, pk, entity, checks)
 
 
         except Exception as e:
