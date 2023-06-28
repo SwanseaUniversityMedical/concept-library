@@ -42,6 +42,16 @@
     .search-container__field {
       height: 3rem;
     }
+
+    &__left-landing-page{
+      padding-top: 1rem;
+      padding-bottom: 1.8rem;
+      height: 4rem;
+      max-width: 36%;
+      padding-left: 6rem;
+      align-content: left;
+    }
+
   }
 
   &__cards {

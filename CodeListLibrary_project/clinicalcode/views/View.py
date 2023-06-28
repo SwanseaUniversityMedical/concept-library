@@ -63,7 +63,7 @@ def index_HDRUK(request):
 
     return render(
         request,
-        'clinicalcode/brand/HDRUK/index_HDRUK.html',
+        'clinicalcode/brand/HDRUK/index_HDRUK_updated.html',
         {
             # ONLY PUBLISHED COUNTS HERE
             'published_concept_count': HDRUK_stat['published_concept_count'],

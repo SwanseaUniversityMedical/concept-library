@@ -1,0 +1,26 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+.counter-section {
+    display: flex;
+    justify-content: space-around;
+    background-color: var(--color-accent-bright);
+    padding: 40px;
+  
+    .counter {
+      text-align: center;
+  
+      .number {
+        font-size: 36px;
+        color: var(--color-text-darkest);
+        font-weight: bold;
+      }
+  
+      .title {
+        font-size: 18px;
+        color: var(--color-text-darkest);
+      }
+    }
+  }

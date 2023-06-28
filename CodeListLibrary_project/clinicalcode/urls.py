@@ -22,8 +22,8 @@ from django.views.generic.base import TemplateView
 #from django.urls import reverse_lazy, reverse
 
 urlpatterns = [
-    # url(r'^$', View.index, name='concept_library_home'),
-    # url(r'^home/$', View.index, name='concept_library_home2'),
+    url(r'^$', View.index, name='concept_library_home'),
+    #url(r'^home/$', View.index, name='concept_library_home2'),
     url(r'^$', GenericEntity.EntitySearchView.as_view(), name='concept_library_home'),
     url(r'^home/$', GenericEntity.EntitySearchView.as_view(), name='concept_library_home2'),
     

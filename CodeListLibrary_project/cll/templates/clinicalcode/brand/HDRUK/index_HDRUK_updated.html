@@ -1,0 +1,85 @@
+{% extends "base_scss.html" %}
+
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+
+{% block title %}| HDRUK_HOMEPAGE {% endblock title %}
+
+{% block container %}
+
+  <!-- Page Stylesheets -->
+  <link href="{% sass_src 'scss/pages/counter.scss' %}" rel="stylesheet" type="text/css" />
+  <link href="{% sass_src 'scss/pages/headline.scss' %}" rel="stylesheet" type="text/css" />
+
+
+
+  <!-- Main -->
+  <header class="main-header banner image">
+    
+
+    <div class="banner__container__left-landing-page">
+      <h3 class="banner__description__landing-page ">
+        The HDR UK Phenotype Library is a comprehensive, open access resource providing the research community with information, tools and phenotyping algorithms for UK electronic health records.
+      </h3>
+    </div>
+
+
+
+<div class="search-banner__container__left-landing-page">
+  <fieldset class="search-container" data-controller="filter" data-class="searchbar" data-field="search">
+    <input type="text" placeholder="Search our phenotype library" value="{{ search_query }}" id="searchbar" class="search-container__field washed-outline" data-class="searchbar" data-field="search" />
+    <span class="search-container__icon" id="searchbar-icon-btn"></span>
+  </fieldset>
+</div>
+
+  </header>
+
+
+
+  <div class="counter-section">
+    <div class="counter">
+      <div class="number">{{ published_phenotype_count }}</div>
+      <div class="title">Phenotypes</div>
+    </div>
+    <div class="counter">
+      <div class="number">{{ published_concept_count }}</div>
+      <div class="title">Concepts</div>
+    </div>
+    <div class="counter">
+      <div class="number">{{ published_clinical_codes }}</div>
+      <div class="title">Data Sources
+      </div>
+    </div>
+    <div class="counter">
+      <div class="number">{{datasources_component_count}}</div>
+      <div class="title">Clinical Codes
+      </div>
+    </div>
+    <div class="counter">
+      <div class="number">{{clinical_terminologies}}</div>
+      <div class="title">Coding Systems
+      </div>
+    </div>
+  </div>
+
+  <div class="headline">
+    <img src="" alt="Image" class="headline__image">
+    <div class="headline__text">
+      <div class="headline__section">
+        <p>Connected. The Phenotype Library is accessible via an API to support interoperability, is integrated with health dataset information in HDR-UK's Innovation Gateway, and hosts content from numerous contributing organisations.        </p>
+      </div>
+      <div class="headline__section">
+        <p>Patient-focused. The Library is enabling important research to improve patient health and well-being. Content spans major disease areas, including heart disease, cancer, COVID-19 and other common and rare human health conditions. Curated collections from contributors such as the HDR UK BREATHE Hub for respiratory health share clinical expertise to tackle critical research questions.        </p>
+      </div>
+      <div class="headline__section">
+        <p>Cutting-edge. Built with a focus on computability, this resource aims to drive the next generation of research methods. Integration with Phenoflow enables executable implementations of the phenotypes in our collection, while the API and R package client facilitate integration of the Library content directly into other analysis workflows.</p>
+      </div>
+    </div>
+  </div>
+
+  {% endblock container %}
