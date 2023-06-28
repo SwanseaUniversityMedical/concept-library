@@ -32,9 +32,9 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
         url(r'^phenotypes/(?P<pk>\w+)/export/codes/$', GenericEntity.export_entity_codes_to_csv, name='export_entity_latest_version_codes_to_csv'),
         url(r'^phenotypes/(?P<pk>\w+)/version/(?P<history_id>\d+)/export/codes/$', GenericEntity.export_entity_codes_to_csv, name='export_entity_version_codes_to_csv'),   
 
-        url(r'^phenotypes/(?P<pk>\w+)/uniquecodesbyversion/(?P<history_id>\d+)/concept/C(?P<target_concept_id>\d+)/(?P<target_concept_history_id>\d+)/$',
-            GenericEntity.phenotype_concept_codes_by_version,
-            name='ge_phenotype_concept_codes_by_version'),            
+        # url(r'^phenotypes/(?P<pk>\w+)/uniquecodesbyversion/(?P<history_id>\d+)/concept/C(?P<target_concept_id>\d+)/(?P<target_concept_history_id>\d+)/$',
+        #     GenericEntity.phenotype_concept_codes_by_version,
+        #     name='ge_phenotype_concept_codes_by_version'),            
  
         # Profile
         url(r'profile/$', Profile.MyProfile.as_view(), name='my_profile'),
@@ -69,6 +69,7 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
     if not settings.CLL_READ_ONLY:
         urlpatterns += [
             url(r'^admin/run-stats/$', GenericEntity.EntityStatisticsView.as_view(), name='run_entity_statistics'),
+            url(r'^admin/run-stats-HDRUK/$', GenericEntity.run_HDRUK_statistics, name='run_HDRUK_statistics'),
         ]
 
     # for admin(developers) to migrate phenotypes into dynamic template       

@@ -488,7 +488,10 @@ metadata = {
                 "query": "id",
                 "relative": "description",
                 "filter": {
-                    "tag_type": 2
+                    "tag_type": 2,
+                    
+                    ## Can be added once we det. what we're doing with brands
+                    # "source_by_brand": None
                 }
             }
         },
@@ -512,7 +515,10 @@ metadata = {
                 "query": "id",
                 "relative": "description",
                 "filter": {
-                    "tag_type": 1
+                    "tag_type": 1,
+                    
+                    ## Can be added once we det. what we're doing with brands
+                    # "source_by_brand": None
                 }
             }
         },

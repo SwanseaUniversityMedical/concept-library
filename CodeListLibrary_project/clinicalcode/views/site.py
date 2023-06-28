@@ -3,7 +3,8 @@ from django.views.decorators.http import require_GET
 from django.conf import settings
 from django.urls import reverse
 #import xml.etree.ElementTree as ET
-from .. import db_utils
+#from .. import db_utils
+from clinicalcode.entity_utils import entity_db_utils
 from datetime import datetime
 
 cur_time = str(datetime.now().date())
@@ -34,7 +35,7 @@ def get_sitemap(request):
     links = [
         (request.build_absolute_uri(reverse('concept_library_home')), cur_time, "1.00"), 
         (request.build_absolute_uri(reverse('concept_library_home2')), cur_time, "1.00"),  
-        (request.build_absolute_uri(reverse('concept_list')), cur_time, "1.00"), 
+        #(request.build_absolute_uri(reverse('concept_list')), cur_time, "1.00"), 
         (request.build_absolute_uri(reverse('phenotype_list')), cur_time, "1.00"),  
         (request.build_absolute_uri(reverse('reference_data')), cur_time, "1.00"),
         (request.build_absolute_uri(reverse('login')), cur_time, "1.00"),
@@ -71,15 +72,15 @@ def get_sitemap(request):
     # API
     links += [
         (request.build_absolute_uri(reverse('api:root')), cur_time, "1.00"), 
-        (request.build_absolute_uri(reverse('api:api_published_concepts')), cur_time, "1.00"), 
-        (request.build_absolute_uri(reverse('api:api_published_phenotypes')), cur_time, "1.00"), 
-        (request.build_absolute_uri(reverse('api:data_sources_public')), cur_time, "1.00"), 
+        (request.build_absolute_uri(reverse('api:concepts')), cur_time, "1.00"), 
+        (request.build_absolute_uri(reverse('api:get_generic_entities')), cur_time, "1.00"), 
+        (request.build_absolute_uri(reverse('api:data_sources')), cur_time, "1.00"), 
         (request.build_absolute_uri(reverse('api:schema-swagger-ui')), cur_time, "0.80"), 
     ]
 
     # add links of published concepts/phenotypes
-    if settings.CURRENT_BRAND != "":
-        links += get_published_phenotypes_and_concepts(request)
+    #if settings.CURRENT_BRAND != "":
+    links += get_published_phenotypes_and_concepts(request)
     
     links_str = """
                 <urlset
@@ -114,33 +115,30 @@ def get_published_phenotypes_and_concepts(request):
 
     #--------------------------
     # published phenotypes
-    
-    published_phenotypes = db_utils.get_visible_live_or_published_phenotype_versions(request,
+    filter_cond = ""
+    if request.CURRENT_BRAND+'' == '': # default site
+        filter_cond = " (ARRAY_LENGTH(collections, 1) IS NULL OR ARRAY_LENGTH(collections, 1) < 1) "
+    published_phenotypes = entity_db_utils.get_visible_live_or_published_generic_entity_versions(request,
                                                                                     get_live_and_or_published_ver= 2,  # 1= live only, 2= published only, 3= live+published
                                                                                     exclude_deleted=True,
+                                                                                    filter_cond=filter_cond,
                                                                                     show_top_version_only=False,
                                                                                     )
 
 
-    published_phenotypes_ids = db_utils.get_list_of_visible_entity_ids(published_phenotypes, return_id_or_history_id="id")
+    published_phenotypes_ids = entity_db_utils.get_list_of_visible_entity_ids(published_phenotypes, return_id_or_history_id="id")
     for pk in published_phenotypes_ids:
-        links +=[(request.build_absolute_uri(reverse('phenotype_detail', kwargs={'pk': pk})), cur_time, "0.80")]
-        links +=[(request.build_absolute_uri(reverse('api:api_phenotype_detail_public', kwargs={'pk': pk})), cur_time, "0.80")]
+        links +=[(request.build_absolute_uri(reverse('entity_detail', kwargs={'pk': pk})), cur_time, "0.80")]
+        links +=[(request.build_absolute_uri(reverse('api:get_generic_entity_detail', kwargs={'phenotype_id': pk})), cur_time, "0.80")]
 
     
     #--------------------------    
     # published concepts
     
-    published_concepts = db_utils.get_visible_live_or_published_concept_versions(request,
-                                                                                get_live_and_or_published_ver= 2,  # 1= live only, 2= published only, 3= live+published 
-                                                                                exclude_deleted=True,
-                                                                                show_top_version_only=False,
-                                                                                )
-
-    published_concepts_ids = db_utils.get_list_of_visible_entity_ids(published_concepts, return_id_or_history_id="id")
+    published_concepts_ids = entity_db_utils.get_concept_ids_from_phenotypes(published_phenotypes, return_id_or_history_id="id")
     for pk in published_concepts_ids:
-        links +=[(request.build_absolute_uri(reverse('concept_detail', kwargs={'pk': pk})), cur_time, "0.80")]
-        links +=[(request.build_absolute_uri(reverse('api:api_concept_detail_public', kwargs={'pk': pk})), cur_time, "0.80")]
+        #links +=[(request.build_absolute_uri(reverse('concept_detail', kwargs={'pk': pk})), cur_time, "0.80")]
+        links +=[(request.build_absolute_uri(reverse('api:api_concept_detail', kwargs={'concept_id': pk})), cur_time, "0.80")]
 
 
     return links
