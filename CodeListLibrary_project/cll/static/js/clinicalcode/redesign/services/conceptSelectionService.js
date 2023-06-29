@@ -89,6 +89,9 @@ const CSEL_OPTIONS = {
   // The size of the prompt (ModalFactory.ModalSizes.%s, i.e., {sm, md, lg})
   promptSize: 'lg',
 
+  // The message shown when no items are selected
+  noneSelectedMessage: 'You haven\'t selected any Concepts yet',
+
   // Whether to maintain applied filters when user enters/exits the search dialogue
   maintainFilters: true,
 
@@ -150,6 +153,9 @@ const CSEL_INTERFACE = {
         <p class="detailed-input-group__description">Your currently selected items:</p> \
       </div> \
     </div> \
+    <section class="detailed-input-group__none-available" id="no-items-selected"> \
+      <p class="detailed-input-group__none-available-message">${noneSelectedMessage}</p> \
+    </section> \
     <fieldset class="code-search-group indented scrollable slim-scrollbar" id="item-list"> \
     </fieldset> \
   </div>',
@@ -160,6 +166,11 @@ const CSEL_INTERFACE = {
     <aside class="selection-filters"> \
       <div class="selection-filters__header"> \
         <h3>Filter By</h3> \
+        <div class="selection-filters__header-options"> \
+          <button class="tertiary-btn text-accent-darkest bubble-accent" id="reset-filter-btn"> \
+            Reset \
+          </button> \
+        </div> \
       </div> \
       <div class="selection-filters__container slim-scrollbar" id="search-filters"> \
       </div> \
@@ -332,6 +343,49 @@ const CSEL_FILTER_CLEANSERS = {
 };
 
 /**
+ * CSEL_FILTER_APPLICATORS
+ * @desc Applies the value of the query to the filter component
+ */
+const CSEL_FILTER_APPLICATORS = {
+  CHECKBOX: (filterGroup, query) => {
+    const checkboxes = filterGroup.filter.querySelectorAll('.checkbox-item');
+    for (let i = 0; i < checkboxes.length; ++i) {
+      let checkbox = checkboxes[i];
+      let value = checkbox.getAttribute('data-value');
+      if (!isNullOrUndefined(value) && !isNullOrUndefined(query)) {
+        let index = query.indexOf(value);
+        checkbox.checked = index >= 0;
+      } else {
+        checkbox.checked = false;
+      }
+    }
+  },
+
+  DATEPICKER: (filterGroup, query) => {
+    const dateinputs = filterGroup.filter.querySelectorAll('input[type="date"]');
+    for (let i = 0; i < dateinputs.length; ++i) {
+      let input = dateinputs[i];
+      let value = !isNullOrUndefined(query) ? query?.[type] : null;
+      input.value = value;
+    }
+  },
+
+  SEARCHBAR: (filterGroup, query) => {
+    const searchbar = filterGroup.filter.querySelector('#searchterm');
+    searchbar.value = !isNullOrUndefined(query) ? query : '';
+  },
+
+  OPTION: (filterGroup, query) => {
+    for (let i = 0; i < filterGroup.filter.options.length; ++i) {
+      const option = filterGroup.filter.options[i];
+      option.selected = option.value == query;
+      option.dispatchEvent(new CustomEvent('change', { bubbles: true, detail: { filterSet: true } }));
+    }
+    filterGroup.filter.value = !isNullOrUndefined(query) ? query : 1;
+  }
+};
+
+/**
  * CSEL_FILTER_GENERATORS
  * @desc Describes how to generate filter groups by their class
  */
@@ -477,7 +531,8 @@ export class ConceptSelectionService {
       return item.id == childId && item.history_id == childVersion;
     });
   }
-  
+
+
   /*************************************
    *                                   *
    *               Setter              *
@@ -652,6 +707,7 @@ export class ConceptSelectionService {
       cacheState = 'reload';
     }
 
+    // build params
     const query = this.#cleanQuery();
     const params = new URLSearchParams(query);
     const request = {
@@ -662,6 +718,10 @@ export class ConceptSelectionService {
       }
     };
 
+    // toggle filter reset button visibility
+    this.#toggleResetButton(query);
+
+    // query results
     if (cacheState) {
       request.cache = cacheState;
     }
@@ -717,8 +777,19 @@ export class ConceptSelectionService {
       for (let j = 0; j < childFilters.length; ++j) {
         let filter = childFilters[j];
         let query = this.query?.[filter];
-        if (isNullOrUndefined(child?.[filter]) || (!isNullOrUndefined(query) && child[filter] != query)) {
+        if (isNullOrUndefined(child?.[filter])) {
           passed = false;
+          continue;
+        }
+
+        if (!isNullOrUndefined(query)) {
+          if (typeof query === 'array' && !query.includes(child[filter])) {
+            passed = false;
+            continue;
+          } else if (typeof child[filter] === typeof query && child[filter] != query) {
+            passed = false;
+            continue;
+          }
         }
       }
 
@@ -740,6 +811,7 @@ export class ConceptSelectionService {
     }
     this.query.page = 1;
   }
+
 
   /*************************************
    *                                   *
@@ -918,7 +990,10 @@ export class ConceptSelectionService {
    */
   #renderSelectionView() {
     // Draw page
-    let html = CSEL_INTERFACE.SELECTION_VIEW;
+    let html = interpolateHTML(CSEL_INTERFACE.SELECTION_VIEW, {
+      noneSelectedMessage: this.options?.noneSelectedMessage,
+    });
+  
     let doc = parseHTMLFromString(html);
     let page = this.dialogue.content.appendChild(doc.body.children[0]);
     this.dialogue.page = page;
@@ -956,17 +1031,29 @@ export class ConceptSelectionService {
    */
   #paintSelectionList() {
     const page = this.dialogue.page;
+    const selectedData = this.dialogue?.data;
     if (!this.dialogue?.view == CSEL_VIEWS.SELECTION || isNullOrUndefined(page)) {
       return;
     }
 
     const content = page.querySelector('#item-list');
-    if (isNullOrUndefined(content)) {
+    const noneAvailable = page.querySelector('#no-items-selected');
+    if (isNullOrUndefined(content) || isNullOrUndefined(noneAvailable)) {
       return;
     }
 
-    for (let i = 0; i < this.dialogue?.data.length; ++i) {
-      let selected = this.dialogue?.data?.[i];
+    const hasSelectedItems = !isNullOrUndefined(selectedData) && selectedData.length > 0;
+
+    // Display none available if no items selected
+    if (!hasSelectedItems) {
+      content.classList.add('hide');
+      noneAvailable.classList.add('show');
+      return;
+    }
+
+    // Render selected items if available
+    for (let i = 0; i < selectedData.length; ++i) {
+      let selected = selectedData?.[i];
       let html = interpolateHTML(CSEL_INTERFACE.CHILD_SELECTOR, {
         'id': selected.id,
         'history_id': selected.history_id,
@@ -1059,6 +1146,11 @@ export class ConceptSelectionService {
         datatype: group?.details?.type,
       };
       this.#handleClientInteraction(this.filters[group?.details?.field]);
+    }
+
+    const resetButton = this.dialogue.page.querySelector('#reset-filter-btn');
+    if (!isNullOrUndefined(resetButton)) {
+      resetButton.addEventListener('click', this.#handleFilterReset.bind(this));
     }
   }
 
@@ -1175,7 +1267,57 @@ export class ConceptSelectionService {
       }
     }
 
+    // paint pagination
     this.#paintSearchPagination(response);
+  }
+
+  /**
+   * toggleResetButton
+   * @desc toggles the reset button's visibility, dependent on whether
+   *       filters are currently applied
+   * @param {object} query the filters that are being currently applied
+   */
+  #toggleResetButton(query) {
+    const resetButton = this.dialogue.page.querySelector('#reset-filter-btn');
+    if (!isNullOrUndefined(resetButton)) {
+      const trueQuery = Object.keys(query)
+                              .filter(key => isNullOrUndefined(this.options?.forceFilters) || !this.options?.forceFilters.hasOwnProperty(key))
+                              .reduce((obj, key) => {
+                                obj[key] = query[key];
+                                return obj;
+                              }, {});
+
+      const hasFilters = Object.values(trueQuery);
+      if (hasFilters.length > 0) {
+        resetButton.classList.add('show');
+      } else {
+        resetButton.classList.remove('show');
+      }
+    }
+  }
+
+  /**
+   * applyFilterStates
+   * @desc applies the filter's state to the filter's component
+   * @param {object} filterGroup the filter group and assoc. data
+   */
+  #applyFilterStates(filterGroup) {
+    const componentType = filterGroup?.component;
+    if (isNullOrUndefined(componentType)) {
+      return;
+    }
+
+    const applicator = CSEL_FILTER_APPLICATORS?.[componentType.toLocaleUpperCase()];
+    if (isNullOrUndefined(applicator)) {
+      return;
+    }
+
+    try {
+      applicator(filterGroup, this.query?.[filterGroup.name]);
+    }
+    catch (e) {
+      console.warn(e);
+    }
   }
 
   /*************************************
@@ -1189,48 +1331,27 @@ export class ConceptSelectionService {
    * @param {object} filterGroup the filter group as described by the spec 
    */
   #handleClientInteraction(filterGroup) {
+    this.#applyFilterStates(filterGroup);
+
     switch (filterGroup.component) {
       case 'checkbox': {
         const checkboxes = filterGroup.filter.querySelectorAll('.checkbox-item');
-        let query = this.query?.[filterGroup.name];
         for (let i = 0; i < checkboxes.length; ++i) {
           let checkbox = checkboxes[i];
-          let value = checkbox.getAttribute('data-value');
-          if (!isNullOrUndefined(value) && !isNullOrUndefined(query)) {
-            let index = query.indexOf(value);
-            if (index >= 0) {
-              checkbox.checked = true;
-            }
-          }
-          
           checkbox.addEventListener('change', this.#handleCheckboxUpdate.bind(this));
         }
       } break;
 
       case 'datepicker': {
         const dateinputs = filterGroup.filter.querySelectorAll('input[type="date"]');
-        const values = this.query?.[filterGroup.name];
         for (let i = 0; i < dateinputs.length; ++i) {
           let input = dateinputs[i];
-          let type = input.getAttribute('data-type');
-          if (!isNullOrUndefined(values)) {
-            let value = values[type];
-            if (!isNullOrUndefined(value)) {
-              input.value = value;
-            }
-          }
-
           input.addEventListener('change', this.#handleDateUpdate.bind(this));
         }
       } break;
 
       case 'searchbar': {
         const searchbar = filterGroup.filter.querySelector('#searchterm');
-        const value = this.query?.[filterGroup.name];
-        if (!isNullOrUndefined(value)) {
-          searchbar.value = value;
-        }
-
         searchbar.addEventListener('keyup', this.#handleSearchbarUpdate.bind(this));
       } break;
 
@@ -1248,16 +1369,6 @@ export class ConceptSelectionService {
       } break;
 
       case 'option': {
-        const value = this.query?.[filterGroup.name];
-        if (!isNullOrUndefined(value)) {
-          for (let i = 0; i < filterGroup.filter.options.length; ++i) {
-            const option = filterGroup.filter.options[i];
-            option.selected = option.value == value;
-            option.dispatchEvent(new CustomEvent('change', { bubbles: true, detail: { filterSet: true } }));
-          }
-          filterGroup.filter.value = value;
-        }
-
         filterGroup.filter.addEventListener('change', this.#handleOptionUpdate.bind(this));
       } break;
 
@@ -1281,6 +1392,26 @@ export class ConceptSelectionService {
     
     this.dialogue.data.splice(index, 1);
     target.parentNode.remove();
+
+    const page = this.dialogue.page;
+    if (isNullOrUndefined(page)) {
+      return;
+    }
+
+    const content = page.querySelector('#item-list');
+    const noneAvailable = page.querySelector('#no-items-selected');
+    if (isNullOrUndefined(content) || isNullOrUndefined(noneAvailable)) {
+      return;
+    }
+
+    const hasSelectedItems = !isNullOrUndefined(this.dialogue.data) && this.dialogue.data.length > 0;
+    if (!hasSelectedItems) {
+      content.classList.add('hide');
+      noneAvailable.classList.add('show');
+    } else {
+      content.classList.remove('hide');
+      noneAvailable.classList.remove('show');
+    }
   }
 
   /**
@@ -1405,10 +1536,12 @@ export class ConceptSelectionService {
     if (!this.query.hasOwnProperty(field)) {
       this.query[field] = { start: null, end: null };
     }
-    this.query[field][type] = moment(target.value, CSEL_BEHAVIOUR.ACCEPTABLE_DATE_FORMAT).format(CSEL_BEHAVIOUR.DATE_FORMAT);
+    
+    let datetime = moment(target.value, CSEL_BEHAVIOUR.ACCEPTABLE_DATE_FORMAT);
+    this.query[field][type] = datetime.isValid() ? datetime.format(CSEL_BEHAVIOUR.DATE_FORMAT) : null;
 
     let dates = Object.values(this.query[field])
-      .filter(x => !isNullOrUndefined(x))
+      .filter(x => !isNullOrUndefined(x) && moment(x, CSEL_BEHAVIOUR.DATE_FORMAT).isValid())
       .sort((a, b) => moment(a, CSEL_BEHAVIOUR.DATE_FORMAT).diff(moment(b, CSEL_BEHAVIOUR.DATE_FORMAT)));
   
     if (dates.length > 1) {
@@ -1580,5 +1713,26 @@ export class ConceptSelectionService {
     }
 
     this.#renderView(CSEL_VIEWS[desired]);
+  }
+
+  /**
+   * handleFilterReset
+   * @desc handles the reset of filters, if applied
+   * @params {event} e the assoc. event
+   */
+  #handleFilterReset(e) {
+    this.query = { };
+
+    if (this.options?.forceFilters) {
+      this.query = mergeObjects(this.query, this.options.forceFilters);
+    }
+    
+    for (const [name, filterGroup] of Object.entries(this.filters)) {
+      this.#applyFilterStates(filterGroup);
+    }
+
+    this.#tryGetSearchResults()
+      .then((results) => this.#paintSearchResults(results))
+      .catch(console.warn);
   }
 }

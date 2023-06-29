@@ -71,22 +71,24 @@
 /// Selection search filters
 ///   @desc used exclusively by selectionService.js
 .selection-filters {
-  @include flex-col();
   display: none;
-  flex-wrap: nowrap;
-  flex: 1 auto;
-  margin-right: 1rem;
-  min-width: 175px;
-  max-width: 200px;
 
   @include media(">desktop") {
+    @include flex-col();
     display: flex;
+    flex: 1 auto;
+    flex-wrap: nowrap;
+    margin-right: 1rem;
     min-width: 225px;
     max-width: 250px;
+    max-height: 100%;
   }
   
   &__header {
-    @include flex-col();
+    @include flex-row();
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
 
     & > h3 {
       padding: 0;
@@ -95,6 +97,14 @@
       font-weight: bold;
       line-height: 1;
       color: col(text-darkest);
+    }
+
+    &-options {
+      @include flex-col();
+
+      &>button:not(.show) {
+        display: none;
+      }
     }
   }
 
