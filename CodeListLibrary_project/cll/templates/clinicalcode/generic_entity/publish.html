@@ -61,8 +61,10 @@
           if (name == "Publish") {
             await postData(data, "{{url}}");
             location.reload()
-          }
-        })
+          }else if (name == "Decline"){
+            await postData(data, "{{url_decline}}");
+            location.reload()
+          }})
         .catch((result) => {
           if (!(result instanceof ModalFactory.ModalResults)) {
             return console.error(result);
