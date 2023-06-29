@@ -66,7 +66,6 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
                         if checks['is_lastapproved']:
                             self.last_approved_publish(self.request,entity,history_id)
                         else:
-                            print('moderator')
                             self.moderator_publish(self.request,history_id,pk,checks,data)
                             
 
@@ -91,12 +90,13 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
             #check if moderator and current entity is in pending state
             elif checks['approval_status'] == constants.APPROVAL_STATUS.PENDING and checks['is_moderator']:
                 with transaction.atomic():
-                    self.moderator_publish(history_id,pk,checks,data)
+                    self.moderator_publish(self.request,history_id,pk,checks,data)
 
             #check if entity declined and user is moderator to review again
             elif checks['approval_status'] == constants.APPROVAL_STATUS.REJECTED and checks['is_moderator']:
                 with transaction.atomic():
-                    self.moderator_publish(history_id,pk,checks,data)
+                    print("moderator loh")
+                    self.moderator_publish(self.request,history_id,pk,checks,data)
 
         except Exception as e:
             print(e)
@@ -126,7 +126,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
         entity = GenericEntity.objects.get(pk=pk) 
         if conditions['approval_status'] == constants.APPROVAL_STATUS.PENDING:
             published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,
-                                                                        approval_status=constants.APPROVAL_STATUS.PENDING.value)
+                                                                        approval_status=constants.APPROVAL_STATUS.PENDING)
             #filter and publish all pending ws
             for en in published_entity:
                 en.approval_status = constants.APPROVAL_STATUS.APPROVED.value
@@ -141,9 +141,9 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
             #filter by declined ws
             published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,
                                                                         entity_history_id=history_id,
-                                                                        approval_status=constants.APPROVAL_STATUS.REJECTED.value
+                                                                        approval_status=constants.APPROVAL_STATUS.REJECTED
                                                                         ).first()
-            published_entity.approval_status = constants.APPROVAL_STATUS.APPROVED.value
+            published_entity.approval_status = constants.APPROVAL_STATUS.APPROVED
             published_entity.moderator_id=request.user.id
             published_entity.save()
 
@@ -163,7 +163,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
 
         else:
             published_entity = PublishedGenericEntity(entity=entity,entity_history_id=history_id, moderator_id=request.user.id,
-                                                        created_by_id=GenericEntity.objects.get(pk=pk).created_by.id,approval_status=constants.APPROVAL_STATUS.APPROVED.value)
+                                                        created_by_id=GenericEntity.objects.get(pk=pk).created_by.id,approval_status=constants.APPROVAL_STATUS.APPROVED)
             
             published_entity.save()
             
@@ -174,7 +174,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
                                                         entity_history_id=history_id,
                                                         moderator_id=last_moderated.moderator.id,
                                                         created_by_id=self.request.user.id,
-                                                        approval_status=constants.APPROVAL_STATUS.APPROVED.value)
+                                                        approval_status=constants.APPROVAL_STATUS.APPROVED)
             published_entity.save()
 
 class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityCheckMixin, TemplateResponseMixin, View):
