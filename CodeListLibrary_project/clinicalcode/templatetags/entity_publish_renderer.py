@@ -48,14 +48,14 @@ def render_publish_button(context, *args, **kwargs):
     if user_is_moderator:
         if not context['live_ver_is_deleted']:
             if context["approval_status"]== constants.APPROVAL_STATUS.PENDING and context["is_latest_pending_version"]:
-                button_context.update({'class_modal':"js-load-modal btn btn-warning",
+                button_context.update({'class_modal':"primary-btn dropdown-btn__label ",
                                   'url': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
                                   'title': "Needs to be approved"
                                   })
                         
             else:
                 if context['approval_status'] == constants.APPROVAL_STATUS.REJECTED:
-                     button_context.update({'class_modal':"js-load-modal  btn btn-danger",
+                     button_context.update({'class_modal':"primary-btn dropdown-btn__label",
                                       'url': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
                                       'title': "Approve declined entity"
                                       })
