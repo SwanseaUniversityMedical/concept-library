@@ -102,7 +102,7 @@ def render_publish_button(context, *args, **kwargs):
                                   'title': f"This version has been {constants.APPROVAL_STATUS.REJECTED.name.lower()}"
                                   })
             elif context["approval_status"] == constants.APPROVAL_STATUS.PENDING:
-                if context["entity"]["owner_id"] == context["request"].user.id:
+                if context["entity"].owner_id== context["request"].user.id:
                      button_context.update({'class_modal':"btn btn-warning",
                                       'disabled': 'true',
                                       'title': "This version is pending approval",
