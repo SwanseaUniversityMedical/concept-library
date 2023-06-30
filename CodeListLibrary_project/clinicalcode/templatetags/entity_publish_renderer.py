@@ -52,6 +52,7 @@ def render_publish_button(context, *args, **kwargs):
                                   'url': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
                                   'title': "Needs to be approved"
                                   })
+                print(button_context)
                         
             else:
                 if context['approval_status'] == constants.APPROVAL_STATUS.REJECTED:
@@ -106,7 +107,7 @@ def render_publish_button(context, *args, **kwargs):
                      button_context.update({'class_modal':"btn btn-warning",
                                       'disabled': 'true',
                                       'title': "This version is pending approval",
-                                      'url_publish': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
+                                      'url': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
                                       })
                     
                 else:
