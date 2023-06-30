@@ -129,7 +129,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
                                                                         approval_status=constants.APPROVAL_STATUS.PENDING)
             #filter and publish all pending ws
             for en in published_entity:
-                en.approval_status = constants.APPROVAL_STATUS.APPROVED.value
+                en.approval_status = constants.APPROVAL_STATUS.APPROVED
                 en.moderator_id = request.user.id
                 en.save()
 
@@ -202,11 +202,12 @@ class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGeneric
 
         # --------------------------------------------
         checks['entity_history_id'] = history_id
+        checks['entity_id'] = pk
 
-        return JsonResponse(json.dumps(checks))
+        return JsonResponse(checks, safe=False)
     
     @method_decorator([login_required, permission_utils.redirect_readonly])
-    def post(self, pk, history_id):
+    def post(self,request, pk, history_id):
         """
         Send the request to publish data to the server
         @param request: user request object
