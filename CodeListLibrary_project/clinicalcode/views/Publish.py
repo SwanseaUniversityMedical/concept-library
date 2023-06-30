@@ -167,13 +167,13 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
             
             published_entity.save()
             
-    def last_approved_publish(self,entity,history_id):
+    def last_approved_publish(self,request,entity,history_id):
             last_moderated = PublishedGenericEntity.objects.filter(entity_id=entity.id,approval_status=constants.APPROVAL_STATUS.APPROVED).first()
 
             published_entity = PublishedGenericEntity(entity=entity,
                                                         entity_history_id=history_id,
                                                         moderator_id=last_moderated.moderator.id,
-                                                        created_by_id=self.request.user.id,
+                                                        created_by_id=request.user.id,
                                                         approval_status=constants.APPROVAL_STATUS.APPROVED)
             published_entity.save()
 

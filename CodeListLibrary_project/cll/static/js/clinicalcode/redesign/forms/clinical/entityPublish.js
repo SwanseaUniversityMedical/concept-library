@@ -22,7 +22,7 @@ class PublishModal {
           html: `<button class="secondary-btn text-accent-darkest bold washed-accent" id="cancel-button"></button>`,
         },
         {
-          name: "Publish",
+          name: data.approval_status == null ? "Submit" : "Publish",
           type: ModalFactory.ButtonTypes.CONFIRM,
           html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="publish-modal-button"></button>`,
         },
@@ -53,12 +53,12 @@ class PublishModal {
       })
         .then(async (result) => {
           const name = result.name;
-          if (name == "Publish" || name == "Approve") {
-            await this.postData(data, this.publish_url);
-            location.reload();
-          } else if (name == "Decline") {
+          if (name == "Decline") {
             await this.postData(data, this.decline_url);
             location.reload();
+          }else{
+              await this.postData(data, this.publish_url);
+              location.reload();
           }
         })
         .catch((result) => {
@@ -105,6 +105,11 @@ class PublishModal {
       case 3:
         paragraph = `<p>Are you sure you want to approve previously declined version of "${data.name}"?</p>
         <p>This change of ${data.entity_type} cannot be undone.</p>`;
+        break;
+      case null:
+        paragraph = `<p>Are you sure you want to approve previously declined version of "${data.name}"?</p>
+        <p>This change of ${data.entity_type} cannot be undone.</p>
+        <p>This ${data.entity_type} is going to be reviewed by the moderator and you will be notified when is published</p>`;
         break;
       default:
         paragraph = `<p>Are you sure you want to publish this version of "${data.name}"?</p>
