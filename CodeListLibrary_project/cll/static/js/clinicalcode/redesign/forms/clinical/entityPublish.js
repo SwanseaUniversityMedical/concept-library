@@ -53,7 +53,7 @@ class PublishModal {
       })
         .then(async (result) => {
           const name = result.name;
-          if (name == "Publish") {
+          if (name == "Publish" || name == "Approve") {
             await this.postData(data, this.publish_url);
             location.reload();
           } else if (name == "Decline") {
