@@ -275,7 +275,7 @@ const redirectToTarget = (elem) => {
  *  console.log(files); --> [file_1, ..., file_n]
  * }});
  */
-const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callback = null } = {}) => {
+const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callback = null }) => {
   const input = document.createElement('input');
   input.type = 'file';
 

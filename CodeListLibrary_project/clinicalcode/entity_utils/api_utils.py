@@ -524,7 +524,7 @@ def get_entity_detail(
     return layout_response
   
   layout = layout_response
-  layout_definition = template_utils.get_merged_definition(layout)
+  layout_definition = template_utils.get_merged_definition(layout, default={})
   layout_version = layout.template_version
 
   fields = template_utils.try_get_content(layout_definition, 'fields')

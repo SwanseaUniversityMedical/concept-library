@@ -98,7 +98,7 @@ def get_metadata_filters(request):
             options = get_metadata_stats_by_field(field, brand=current_brand)
 
         if options is None and 'source' in validation:
-            options = get_source_references(packet)
+            options = get_source_references(packet, default=[])
         
         filters.append({
             'details': details,
@@ -643,7 +643,7 @@ def try_get_paginated_results(request, entities, page=None, page_size=None):
         page_obj = pagination.page(pagination.num_pages)
     return page_obj
 
-def get_source_references(struct, default=[], modifier=None):
+def get_source_references(struct, default=None, modifier=None):
     '''
         Retrieves the refence values from source fields e.g. tags, collections, entity type
     '''

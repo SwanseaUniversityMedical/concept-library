@@ -168,7 +168,8 @@ class ModalFactory {
     this.modal = null;
   }
 
-  create(options = { }) {
+  create(options) {
+    options = options || { };
     this.closeCurrentModal();
 
     try {

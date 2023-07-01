@@ -565,7 +565,7 @@ export class ConceptSelectionService {
    * @param {object|null} params query parameters to be provided to server to modify Concept results 
    * @returns {promise} a promise that resolves if the selection was confirmed, otherwise rejects
    */
-  show(view = CSEL_VIEWS.SEARCH, params = { }) {
+  show(view = CSEL_VIEWS.SEARCH, params) {
     params = params || { };
 
     // Reject immediately if we currently have a dialogue open

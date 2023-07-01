@@ -84,7 +84,7 @@ def get_layout_field(layout, field, default=None):
     
     return try_get_content(layout, field, default)
 
-def get_merged_definition(template, default={}):
+def get_merged_definition(template, default=None):
     '''
         Used to merge the metadata into a template such that interfaces, e.g. API/create,
         can understand the origin of fields
@@ -529,7 +529,7 @@ def get_sourced_value(data, info, default=None):
     except:
         return default
 
-def get_template_data_values(entity, layout, field, hide_user_details=False, default=[]):
+def get_template_data_values(entity, layout, field, hide_user_details=False, default=None):
     '''
         Retrieves the sourced values from an entity in an array
     '''
