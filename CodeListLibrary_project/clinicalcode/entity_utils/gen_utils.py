@@ -1,8 +1,10 @@
 from django.conf import settings
 from django.http.response import JsonResponse
+from django.core.exceptions import BadRequest
 from django.http.multipartparser import MultiPartParser
+from django.utils.timezone import make_aware
 from functools import wraps
-from dateutil import parser
+from dateutil import parser as dateparser
 from json import JSONEncoder
 
 import re
@@ -85,6 +87,22 @@ def is_fetch_request(request):
     '''
     return request.headers.get('X-Requested-With') == constants.FETCH_REQUEST_HEADER
 
+def handle_fetch_request(request, obj, *args, **kwargs):
+    '''
+        @desc Parses the X-Target header to determine which GET method
+              to respond with
+    '''
+    target = request.headers.get('X-Target', None)
+    if target is None or target not in obj.fetch_methods:
+        raise BadRequest('No such target')
+    
+    try:
+        response = getattr(obj, target)
+    except Exception as e:
+        raise BadRequest('Invalid request')
+    else:
+        return response 
+
 def decode_uri_parameter(value, default=None):
     '''
         Decodes an ecoded URI parameter e.g. 'wildcard:C\d+' encoded as 'wildcard%3AC%5Cd%2B'
@@ -146,16 +164,39 @@ def parse_int(value, default=0):
     else:
         return value
 
+def get_start_and_end_dates(daterange):
+    '''
+        Sorts a date range to [min, max] and sets their timepoints to the [start] and [end] of the day respectively
+
+        Args:
+            daterange {list[string]}: List of dates as strings (size of 2)
+        
+        Returns:
+            A sorted {list} of datetime objects, combined with their respective start and end times
+    '''
+    dates = [dateparser.parse(x).date() for x in daterange]
+    
+    max_date = datetime.datetime.combine(max(dates), datetime.time(23, 59, 59, 999))
+    min_date = datetime.datetime.combine(min(dates), datetime.time(00, 00, 00, 000))
+    return [min_date, max_date]
+
 def parse_date(value, default=0):
     '''
         Attempts to parse a date from a string value, if it fails to do so, returns the default value
     '''
     try:
-        date = parser.parse(value)
+        date = dateparser.parse(value)
     except:
         return default
     else:
-        return date.strftime('%Y-%m-%d')
+        return date.strftime('%Y-%m-%d %H:%M:%S')
+
+def parse_as_int_list(value):
+    result = []
+    for x in value.split(','):
+        if parse_int(x, default=None) is not None:
+            result.append(int(x))
+    return result
 
 def try_value_as_type(field_value, field_type, validation=None, default=None):
     '''

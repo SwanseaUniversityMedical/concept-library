@@ -253,14 +253,14 @@
     text-align: left;
   }
 
-  &.create-icon:after {
+  &.import-icon:after {
     content: '\f381';
     cursor: pointer;
     pointer-events: auto;
     position: absolute;
     right: 0;
     height: 100%;
-    top: 0.65rem;
+    top: 25%;
     aspect-ratio: 1 / 1;
     font-family: var(--icons-name);
     font-style: var(--icons-style);
@@ -268,14 +268,14 @@
     text-align: center;
   }
 
-  &.import-icon:after {
+  &.create-icon:after {
     content: '\f0cb';
     cursor: pointer;
     pointer-events: auto;
     position: absolute;
     right: 0;
     height: 100%;
-    top: 0.65rem;
+    top: 25%;
     aspect-ratio: 1 / 1;
     font-family: var(--icons-name);
     font-style: var(--icons-style);
@@ -290,7 +290,7 @@
     position: absolute;
     right: 0;
     height: 100%;
-    top: 0.65rem;
+    top: 25%;
     aspect-ratio: 1 / 1;
     font-family: var(--icons-name);
     font-style: var(--icons-style);
@@ -305,7 +305,7 @@
     position: absolute;
     right: 0;
     height: 100%;
-    top: 0.65rem;
+    top: 25%;
     aspect-ratio: 1 / 1;
     font-family: var(--icons-name);
     font-style: var(--icons-style);

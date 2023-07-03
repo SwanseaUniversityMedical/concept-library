@@ -117,11 +117,7 @@ def update_generic_entity(request):
 def get_generic_entity_version_history(request, phenotype_id=None):
     '''
         Get version history of specific entity, using phenotype_id
-    '''
-    user_authed = False
-    if request.user and not request.user.is_anonymous:
-        user_authed = True
-    
+    '''    
     # Check if primary_key is valid, i.e. matches regex '^[a-zA-Z]\d+'
     entity_id_response = api_utils.is_malformed_entity_id(phenotype_id)
     if isinstance(entity_id_response, Response):
@@ -196,7 +192,7 @@ def get_generic_entities(request, should_paginate=False):
     # Build query from searchable GenericEntity template fields
     templates = Template.objects.all()
     for template in templates:
-        merged_definition = template_utils.get_merged_definition(template)
+        merged_definition = template_utils.get_merged_definition(template, default={})
         template_fields = template_utils.try_get_content(merged_definition, 'fields')
 
         template_query, where_clause = api_utils.build_query_from_template(

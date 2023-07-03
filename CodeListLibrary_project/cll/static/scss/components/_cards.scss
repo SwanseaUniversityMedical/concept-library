@@ -270,14 +270,16 @@
   padding: 0 0 1.5rem 0;
   margin: 0 0 1rem 0;
 
-  &:active {
-    /* Should we animate it? */
-    @include prefix(transform, scale(0.99), webkit moz o);
-  }
-
-  &:focus-visible {
-    outline: 1px solid black;
-    border-radius: 2pt;
+  &:not(.inactive) {
+    &:active {
+      /* Should we animate it? */
+      @include prefix(transform, scale(0.99), webkit moz o);
+    }
+  
+    &:focus-visible {
+      outline: 1px solid black;
+      border-radius: 2pt;
+    }
   }
 
   &__click {
@@ -353,6 +355,13 @@
           justify-content: flex-end;
         }
       }
+    }
+
+    &-datagroup {
+      @include flex-col();
+      flex-wrap: nowrap;
+      width: 100%;
+      gap: 0.25rem;
     }
   }
 }

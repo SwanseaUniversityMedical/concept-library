@@ -7,6 +7,7 @@ from copy import deepcopy
 from ..models.GenericEntity import GenericEntity
 from ..models.Template import Template
 from ..models.Concept import Concept
+from ..models.PublishedConcept import PublishedConcept
 from . import model_utils
 from . import template_utils
 from . import permission_utils
@@ -80,7 +81,7 @@ def exists_historical_entity(entity_id, user, historical_id=None):
       returns response 404
   '''
   if not historical_id:
-    historical_id = model_utils.get_latest_entity_historical_id(
+    historical_id = permission_utils.get_latest_entity_historical_id(
       entity_id, user
     )
 
@@ -99,6 +100,65 @@ def exists_historical_entity(entity_id, user, historical_id=None):
     )
   
   return historical_entity.first()
+
+def exists_concept(concept_id):
+  '''
+    Checks whether a concept with given concept_id exists
+
+    Args:
+      concept_id {string}: Id of the concept to be checked
+    
+    Returns:
+      If concept exists, returns concept, else returns 404 response
+  '''
+  concept = model_utils.try_get_instance(
+    Concept, pk=concept_id
+  )
+
+  if not concept:
+    return Response(
+      data={
+        'message': 'Concept does not exist'
+      }, 
+      content_type='json',
+      status=status.HTTP_404_NOT_FOUND
+    )
+  
+  return concept
+  
+def exists_historical_concept(concept_id, user, historical_id=None):
+  '''
+    Checks whether a historical version of a concept exists
+
+    Args:
+      concept_id {string}: concept id
+      user {User}: User object
+      historical_id {integer}: historical id of the concept
+    
+    Returns:
+      If exists, returns first instance of historical concept, otherwise 
+      returns response 404
+  '''
+  if not historical_id:
+    historical_id = permission_utils.get_latest_concept_historical_id(
+      concept_id, user
+    )
+
+  historical_concept = model_utils.try_get_instance(
+    Concept, 
+    pk=concept_id
+  ).history.filter(history_id=historical_id)
+
+  if not historical_concept.exists():
+    return Response(
+      data={
+        'message': 'Historical concept version does not exist'
+      }, 
+      content_type='json',
+      status=status.HTTP_404_NOT_FOUND
+    )
+  
+  return historical_concept.first()
 
 ''' General helpers '''
 
@@ -131,6 +191,41 @@ def get_entity_version_history(request, entity_id):
         'version_name': version.name.encode('ascii', 'ignore').decode('ascii'),
         'version_date': version.history_date,
         'is_published': is_published,
+        'is_latest': latest.history_id == version.history_id
+      })
+
+  return result
+
+def get_concept_version_history(request, concept_id):
+  '''
+    Retrieves a concepts version history
+
+    Args:
+      request {HTTPContext}: Request context
+      concept_id {string}: concept id
+    
+    Returns:
+      Dict containing version history of entity
+  '''
+  result = []
+
+  historical_versions = Concept.objects.get(
+    id=concept_id
+  ).history.all().order_by('-history_id')
+
+  latest = historical_versions.first()
+  for version in historical_versions:
+    published_concept = PublishedConcept.objects.filter(
+      concept_id=concept_id,
+      concept_history_id=version.history_id
+    ).order_by('-concept_history_id').first()
+    
+    if permission_utils.can_user_view_concept(request, version):
+      result.append({
+        'version_id': version.history_id,
+        'version_name': version.name.encode('ascii', 'ignore').decode('ascii'),
+        'version_date': version.history_date,
+        'is_published': published_concept is not None,
         'is_latest': latest.history_id == version.history_id
       })
 
@@ -429,7 +524,7 @@ def get_entity_detail(
     return layout_response
   
   layout = layout_response
-  layout_definition = template_utils.get_merged_definition(layout)
+  layout_definition = template_utils.get_merged_definition(layout, default={})
   layout_version = layout.template_version
 
   fields = template_utils.try_get_content(layout_definition, 'fields')
@@ -450,9 +545,9 @@ def get_entity_detail(
 
   if return_data:
     return result
-  
+
   return Response(
-    data=[result | { 'phenotype_version_id': entity.history_id }],
+    data=[{ 'phenotype_id': entity.id, 'phenotype_version_id': entity.history_id } | result],
     status=status.HTTP_200_OK
   )
 
@@ -692,3 +787,32 @@ def get_template_versions(template_id):
   template_versions = list(template_versions.values('template_version'))
 
   return list(set([version['template_version'] for version in template_versions]))
+
+def get_formatted_concept_codes(concept, concept_codelist, headers=None):
+  '''
+    Formats concept codelist and attribute data in the format required for API
+
+    Args:
+      concept {Concept}: Concept object
+      concept_codelist {dict}: Dict containing codelist data
+      headers {list of strings}: List containing attribute headers
+
+    Returns:
+      Dict containing formatted concept codelist information 
+  '''
+  concept_codes = []
+  for code in concept_codelist:
+    attributes = code.get('attributes')
+    if attributes is not None and headers is not None:
+      attributes = dict(zip(headers, attributes))
+
+    concept_codes.append({
+      'code': code.get('code'),
+      'description': code.get('description'),
+      'concept_id': concept.id,
+      'concept_version_id': concept.history_id,
+      'coding_system': model_utils.get_coding_system_details(concept.coding_system),
+      'attributes': attributes
+    })
+
+  return concept_codes

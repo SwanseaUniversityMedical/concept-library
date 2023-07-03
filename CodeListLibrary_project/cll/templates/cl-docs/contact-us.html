@@ -1,130 +1,124 @@
-{% extends "base.html" %}
+{% extends "base_scss.html" %}
 
 {% load static %}
-{% block title %}| CONTACT-US PAGE{% endblock title %}
-{% block description %} CONTACT-US PAGE {% endblock description %}
+{% load compress %}
+{% load sass_tags %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
 
-{% block head %}
-<link href="{% static 'css/brands/HDRUK/contactusPageStyle.css' %}" rel="stylesheet" />
-{% endblock head %}
-{% block scrollNav %}
-data-spy="scroll" data-target="#ContactUsMenu" data-offset = "150"
-{% endblock scrollNav %}
+{% block title %}| Contact Us {% endblock title %}
 
 {% block container %}
-<div class="row">
-   <nav class="col-sm-2 hideleft-navbar" id="ContactUsMenu"  style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;">
+  <!-- Page Stylesheets -->
+  <link href="{% sass_src 'scss/pages/about.scss' %}" rel="stylesheet" type="text/css" />
 
-         <ul class=" nav left-navbar" id='navList'>
-            <li class = "active"><a href="#Contact-Us">Contact Us</a></li>
-            <li><a href="#Submitting-Phenotypes" >Submitting Phenotypes</a></li>
-            <li><a href="#Issues">Issues & Future Features</a></li>
-            <li><a href="#General-Enquiries">Contact Us & General Enquiries</a></li>
-         </ul>
+  <!-- Main -->
+  <header class="main-header banner">
+    <div class="banner__container container--desktop-lg">
+      <h2 class="banner__title">Contact Us</h2>
+      <p class="banner__description">
+        Fill out the form below and a member of our team will get back to you as soon as 
+        possible.
+      </p>
+      <br/>
+    </div>
+  </header>
 
-   </nav>
-
-
-   <h3><span id="Contact-Us"></span></h3>
-   <div style="width:70%;" class="column" >
-      <div class="post-content">
-      <div class="header-content-design">
-         Contact Us
-      </div>
-         <div id="Submitting-Phenotypes">
-            <div class="sm-header-design">
-	            <h2>Submitting Phenotypes</h2>
-	            Please contact us using the form below to request a user account to be able to submit phenotypes.
-               <br>
-				   Information on previous/alternative methods of content submission can be found in our <a href="{% url 'technical_documentation' %}">technical documentation</a> .
+  <main class="main-content">
+    <div class="main-content__inner-container">
+      <div class="contactus-container">
+        <div class="contactus-container__info-container">
+          <div class="contactus-container__info-container__content">
+            <div class="contactus-container__info-container__section">
+              <h2>Submitting Phenotypes</h2>
+              <p>
+                Please contact us using the form below to request a user account to be able 
+                to submit phenotypes.
+              </p>
+              <br/>
+              <p>
+                Information on previous/alternative methods of content 
+                submission can be found in our technical documentation.
+              </p>
             </div>
-         </div>
-         <div id="Issues">
-             <div class="sm-header-design">
-             <h2>Issues and Feature Requests</h2>
-            If you would like to report a bug or give feedback or suggestions for the Phenotype Library website, please submit an issue to our <a href="https://github.com/SwanseaUniversityMedical/concept-library/issues" target=_blank>Github Repository</a>.
+            <div class="contactus-container__info-container__section">
+              <h2>Issues and Feature Requests</h2>
+              <p>
+                If you would like to report a bug or give feedback or suggestions for the 
+                Phenotype Library website, please submit an issue to our Github Repository.
+              </p>
             </div>
-         </div>
-         <div id="General-Enquiries" >
-           <div class="sm-header-design">
-               <h2>General Enquiries</h2>
-               Please refer to the <a href="https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation" target=_blank>support documentation</a> for user guide information.
-
-               By submitting your enquiry you are consenting to your data being held by the SAIL Databank, Swansea University. Your data will be used for the purposes of dealing with your enquiry and sending you relevant information about the Concept Library.</p>
-                <br>
+            <div class="contactus-container__info-container__section">
+              <h2>General Enquiries</h2>
+              <p>
+                Please refer to the support documentation for user guide information. 
+              </p>
+              <br/>
+              <p>
+                By submitting your enquiry you are consenting to your data being held by the 
+                SAIL Databank, Swansea University. Your data will be used for the purposes 
+                of dealing with your enquiry and sending you relevant information about the 
+                Concept Library.
+              </p>
             </div>
           </div>
+        </div>
+        <div class="contactus-container__form-container">
+          <form method="post">
+            <div class="detailed-input-group fill">
+              <h3 class="detailed-input-group__title">
+                Name
+                <span class="detailed-input-group__mandatory">*</span>
+              </h3>
+              {{ form.name }}
+            </div>
+            <div class="detailed-input-group fill">
+              <h3 class="detailed-input-group__title">
+                Email address
+                <span class="detailed-input-group__mandatory">*</span>
+              </h3>
+              {{ form.from_email }}
+            </div>
+            <div class="detailed-input-group fill">
+              <h3 class="detailed-input-group__title">
+                Category
+                <span class="detailed-input-group__mandatory">*</span>
+              </h3>
+              {{ form.categories }}
+            </div>
+            <div class="detailed-input-group fill">
+              <h3 class="detailed-input-group__title">
+                Message
+                <span class="detailed-input-group__mandatory">*</span>
+              </h3>
+              {{ form.message }}
+            </div>
+            
+            <!-- Captcha -->
+            <div class="contactus-container__form-container__captcha-container">
+              {% if sent_status == False %}
+                <p class="error-message">
+                  Failed to send message, please try again
+                </p>
+              {% endif %}
+              <script src='https://www.google.com/recaptcha/api.js'></script>
+              <div class="g-recaptcha" data-sitekey="6LfQjUseAAAAAKGjXOJkicSOY0cvoyq_IUY28_KR">
 
-            {% for msg in message %}
-               <div class="bs-example" id="Alert">
-                  {% if msg.SUCCESS %}
-                     <div class="alert alert-success fade in">
-                        <a href="#" class="close" data-dismiss="alert">&times;</a>
-                        <ul>
-                           <li>{{ msg.SUCCESS }}</li>
-                        </ul>
-                     </div>
-                  {% elif msg.FAIL %}
-                     <div class="alert alert-warning fade in">
-                        <a href="#" class="close" data-dismiss="alert">&times;</a>
-                        <ul>
-                           <li>{{ msg.FAIL }}</li>
-                        </ul>
-                     </div>
-                  {% endif %}   
-               </div>
-            {% endfor %}
+              </div>
+            </div>
 
-            <form method="post">
-               <div class="fieldWrapperHeader">
-                  <b>Name:</b>
-               </div>
-               <div class="fieldWrapper">
-                  {{ form.name }}
-                  <br><br>
-               </div>
-               <div class="fieldWrapperHeader">
-                  <b>Email Address:</b>
-               </div>
-               <div class="fieldWrapper">
-                  {{ form.from_email }}<br><br>
-               </div>
-               <div class="fieldWrapperHeader">
-                  <b>Category:</b>
-               </div>
-               <div class="fieldWrapper">
-                  {{ form.categories }}<br><br>
-               </div>
-               <div class="fieldWrapperHeader">
-                  <b>Message:</b>
-               </div>
-               <div class="fieldWrapper">
-                  {{ form.message }}<br><br>
-               </div>
-               <script src='https://www.google.com/recaptcha/api.js'></script>
-               <div class="g-recaptcha" data-sitekey="6LfQjUseAAAAAKGjXOJkicSOY0cvoyq_IUY28_KR"></div>
-                <br>
-               <div class="form-actions">
-               {% csrf_token %}
-               <button type="submit" class="btn btn-primary" onClick='window.location="#Alert"'>Submit</button>
-               </div>
-            </form>
-         </div>
+            <div class="contactus-container__form-container__submit-container">
+              {% csrf_token %}
+              <button class="primary-btn text-accent-darkest bold tertiary-accent sweep-left" 
+                      type="submit"
+                      aria-label="Submit contact form">
+                Submit
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
 {% endblock container %}
-
-
-{% block scripts %}
-
-	<script type="text/javascript">
-
-	    function showSelection(e) {
-		    if (document.querySelector('#navList a.active') !== null) {
-		    	document.querySelector('#navList a.active').classList.remove('active');
-		    }
-		    e.target.className = "active";
-	    }
-	</script>
-
-{% endblock scripts %}
-
-

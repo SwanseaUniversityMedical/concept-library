@@ -45,7 +45,7 @@ def get_createable_entities(request):
         'templates': list(templates)
     }
 
-def get_template_creation_data(request, entity, layout, field, default=[]):
+def get_template_creation_data(request, entity, layout, field, default=None):
     '''
         Used to retrieve assoc. data values for specific keys, e.g.
         concepts, in its expanded format for use with create/update pages

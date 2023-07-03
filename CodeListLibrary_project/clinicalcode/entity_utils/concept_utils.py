@@ -9,8 +9,55 @@ from ..models.ConceptCodeAttribute import ConceptCodeAttribute
 from ..models.Code import Code
 
 from . import model_utils, permission_utils
-from .constants import (USERDATA_MODELS, TAG_TYPE, HISTORICAL_HIDDEN_FIELDS,
-                        CLINICAL_RULE_TYPE, CLINICAL_CODE_SOURCE)
+from .constants import (
+  USERDATA_MODELS, TAG_TYPE, HISTORICAL_HIDDEN_FIELDS, 
+  CLINICAL_RULE_TYPE, CLINICAL_CODE_SOURCE, 
+)
+
+def get_concept_dataset(packet, field_name='concept_information', default=None):
+  '''
+    [!] Note: This method ignores permissions - it should only be called from a
+              a method that has previously considered accessibility
+    
+    @desc Attempts to collate a packet that contains data relating to the concepts
+          defined in the list
+    
+    Args:
+      packet {array[object]}: A list of objects that contain a {concept_id: [int], concept_version_id: [int]}
+      field_name {string}: The name of the template field from which this packet was derived
+      default {any}: A default param to return if we are unable to perform the task
+
+    Returns:
+      An {array[object]} that contains information relating to the concept:
+        - Name
+        - ID + Version ID
+  '''
+  if not isinstance(packet, list):
+    return default
+  
+  concept_ids = [x.get('concept_id') for x in packet if x.get('concept_id') is not None]
+  concept_version_ids = [x.get('concept_version_id') for x in packet if x.get('concept_version_id') is not None]
+  
+  concepts = Concept.history.filter(
+    id__in=concept_ids,
+    history_id__in=concept_version_ids,
+  )
+  
+  concept_data = concepts.values('name', 'id', 'history_id')
+  coding_systems = concepts.values('coding_system__id')
+
+  concept_data = list(concept_data)
+  concept_data = [
+    {
+      'prefix': 'C',
+      'type': 'Concept',
+      'field': field_name,
+      'coding_system': coding_systems[i].get('coding_system__id') if coding_systems[i] else -1
+    } | concept
+    for i, concept in enumerate(concept_data)
+  ]
+
+  return concept_data
 
 def get_concept_component_details(concept_id, concept_history_id, aggregate_codes=False, include_codes=True, attribute_headers=None):
   '''
@@ -386,11 +433,67 @@ def get_review_concept(concept_id, concept_history_id):
     history_id=historical_concept.history_id
   )
 
+def get_minimal_concept_data(concept):
+  '''
+  
+  '''
+  # Dictify our concept
+  concept_data = model_utils.jsonify_object(
+    concept,
+    remove_userdata=False,
+    strippable_fields=None,
+    dump=False
+  )
+  
+  # Retrieve human readable data for our tags, collections & coding systems
+  if concept_data.get('tags'):
+    concept_data['tags'] = [
+      model_utils.get_tag_attribute(tag, tag_type=TAG_TYPE.TAG)
+      for tag in concept_data['tags']
+    ]
+
+  if concept_data.get('collections'):
+    concept_data['collections'] = [
+      model_utils.get_tag_attribute(collection, tag_type=TAG_TYPE.COLLECTION)
+      for collection in concept_data['collections']
+    ]
+
+  # Clean coding system for top level field use
+  concept_data.pop('coding_system')
+  
+  # If userdata is requested, try to grab all related 
+  for field in concept._meta.fields:
+    if field.name not in concept_data:
+      continue
+
+    if not isinstance(field, ForeignKey):
+      continue
+    
+    model = field.target_field.model
+    if str(model) not in USERDATA_MODELS:
+      continue
+
+    concept_data[field.name] = model_utils.get_userdata_details(
+      model, pk=concept_data[field.name], hide_user_details=False
+    )
+
+  # Clean data if required
+  if not concept_data.get('is_deleted'):
+    concept_data.pop('is_deleted')
+    concept_data.pop('deleted_by')
+    concept_data.pop('deleted')
+
+  return {
+      'concept_id': concept.id,
+      'concept_version_id': concept.history_id,
+      'coding_system': model_utils.get_coding_system_details(concept.coding_system)
+    } | concept_data
+
 def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_codes=False,
                               aggregate_component_codes=False, include_component_codes=True,
                               include_attributes=False, strippable_fields=None,
                               remove_userdata=False, hide_user_details=False,
-                              derive_access_from=None):
+                              derive_access_from=None, format_for_api=False):
   '''
     [!] Note: This method ignores permissions to derive data - it should only be called from a
               a method that has previously considered accessibility
@@ -419,6 +522,8 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
 
       derive_access_from {RequestContext}: Using the RequestContext, determine whether a user can edit a Concept
     
+      format_for_api {boolean}: Flag to format against legacy API
+
     Returns:
       A dictionary that describes the concept, its components, and associated codes; constrained
       by the method parameters
@@ -508,13 +613,22 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
   if attribute_headers is not None:
     concept_data['code_attribute_headers'] = attribute_headers
   
-  result = {
-    'concept_id': concept_id,
-    'concept_version_id': concept_history_id,
-    'coding_system': model_utils.get_coding_system_details(historical_concept.coding_system),
-    'details': concept_data,
-    'components': components_data.get('components') if components_data is not None else [ ],
-  }
+  if not format_for_api:
+    result = {
+      'concept_id': concept_id,
+      'concept_version_id': concept_history_id,
+      'coding_system': model_utils.get_coding_system_details(historical_concept.coding_system),
+      'details': concept_data,
+      'components': components_data.get('components') if components_data is not None else [ ],
+    }
+  else:
+    result = {
+      'concept_id': concept_id,
+      'concept_version_id': concept_history_id,
+      'coding_system': model_utils.get_coding_system_details(historical_concept.coding_system)
+    }
+    result |= concept_data
+    result['components'] = components_data.get('components') if components_data is not None else [ ]
 
   # Apply aggregated codes if required
   if aggregate_component_codes:
