@@ -452,7 +452,7 @@ def get_latest_publicly_accessible_concept(concept_id):
       HistoricalConcept {obj} that is accessible by the user
   '''
   concepts = Concept.history.filter(
-    pk=concept_id
+    id=concept_id
   ) \
   .annotate(
     is_published=Subquery(
