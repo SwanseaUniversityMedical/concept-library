@@ -29,7 +29,7 @@ const PROMPT_BUTTONS_DEFAULT = [
  * @desc Defines the default style of the modal container
  */
 const PROMPT_DEFAULT_CONTAINER = '\
-<div class="target-modal" id="${id}" aria-hidden="true"> \
+<div class="target-modal target-modal-${size}" id="${id}" aria-hidden="true"> \
   <div class="target-modal__container"> \
     <div class="target-modal__header"> \
       <h2 id="target-modal-title">${title}</h2> \
@@ -42,6 +42,16 @@ const PROMPT_DEFAULT_CONTAINER = '\
 </div>';
 
 /**
+ * PROMPT_MODAL_SIZES
+ * @desc Defines the sizes available for the modal prompt
+ */
+const PROMPT_MODAL_SIZES = {
+  Small: 'sm',
+  Medium: 'md',
+  Large: 'lg',
+};
+
+/**
  * PROMPT_DEFAULT_PARAMS
  * @desc Defines the default parameters for the modal
  */
@@ -50,6 +60,7 @@ const PROMPT_DEFAULT_PARAMS = {
   title: 'Modal',
   content: '',
   showFooter: true,
+  size: PROMPT_MODAL_SIZES.Medium,
   buttons: PROMPT_BUTTONS_DEFAULT,
 };
 
@@ -150,22 +161,25 @@ class ModalResult {
 class ModalFactory {
   ButtonTypes = PROMPT_BUTTON_TYPES;
   DefaultButtons = PROMPT_BUTTONS_DEFAULT;
+  ModalSizes = PROMPT_MODAL_SIZES;
   ModalResults = ModalResult;
 
   constructor() {
     this.modal = null;
   }
 
-  create(options = { }) {
+  create(options) {
+    options = options || { };
     this.closeCurrentModal();
 
     try {
       options = mergeObjects(options, PROMPT_DEFAULT_PARAMS);
 
-      const { id, title, content, showFooter, buttons } = options;
+      const { id, title, content, showFooter, buttons, size } = options;
     
-      const html = interpolateHTML(PROMPT_DEFAULT_CONTAINER, { id: id, title: title, content: content });
+      const html = interpolateHTML(PROMPT_DEFAULT_CONTAINER, { id: id, title: title, content: content, size: size });
       const doc = parseHTMLFromString(html);
+      const currentHeight = window.scrollY;
       const modal = document.body.appendChild(doc.body.children[0]);
       const container = modal.querySelector('.target-modal__container');
 
@@ -197,6 +211,8 @@ class ModalFactory {
       }
 
       const closeModal = (method, details) => {
+        document.body.classList.remove('modal-open');
+        window.scrollTo({ top: currentHeight, left: window.scrollX, behaviour: 'instant'});
         modal.remove();
         history.replaceState({ }, document.title, '#');
         this.modal = null;
@@ -238,7 +254,6 @@ class ModalFactory {
         }
         
         // Show the modal
-        const currentHeight = window.scrollY;
         createElement('a', { href: `#${id}` }).click();
         window.scrollTo({ top: currentHeight, left: window.scrollX, behaviour: 'instant'});
     
@@ -246,6 +261,9 @@ class ModalFactory {
         modal.setAttribute('aria-hidden', false);
         modal.setAttribute('role', 'alert');
         modal.setAttribute('aria-live', true);
+
+        // Stop scrolling on body when modal is open
+        document.body.classList.add('modal-open');
       });
 
       this.modal = {

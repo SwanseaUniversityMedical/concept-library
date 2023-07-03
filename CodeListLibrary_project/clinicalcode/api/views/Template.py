@@ -114,7 +114,7 @@ def get_template(request, template_id, version_id=None):
         )
     template = template.latest()
     
-  merged_definition = template_utils.get_merged_definition(template)
+  merged_definition = template_utils.get_merged_definition(template, default={})
   template_fields = template_utils.try_get_content(merged_definition, 'fields')
   
   formatted_fields = []

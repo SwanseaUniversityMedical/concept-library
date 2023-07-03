@@ -116,7 +116,8 @@ export default class FuzzyQuery {
    * @param {function} transformer The preprocessing function, per the FuzzyQuery.Transformers enum
    * @return {array} An array of matches
    */
-  static Search(haystack = [], query = '', sort = 1, transformer = null) {
+  static Search(haystack, query = '', sort = 1, transformer = null) {
+    haystack = haystack || [];
     query = String(query);
     sort = Boolean(sort);
 

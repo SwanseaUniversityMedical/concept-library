@@ -5,7 +5,6 @@
     <p>{{ page_obj.start_index|stylise_number }}-{{ page_obj.end_index|stylise_number }} of over {{ page_obj.paginator.count|stylise_number }}</p>
   </div>
   <div class="entity-search-results__header-modifiers">
-    <!-- e.g. 'Order By', 'Results per Page' -->
     <div class="selection-group">
       <p class="selection-group__title">Order By:</p>
       <select id="order-by-filter" placeholder-text="By Relevance" data-element="dropdown" data-controller="filter" data-field="order_by" data-class="option">

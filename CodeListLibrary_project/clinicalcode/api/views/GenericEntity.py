@@ -192,7 +192,7 @@ def get_generic_entities(request, should_paginate=False):
     # Build query from searchable GenericEntity template fields
     templates = Template.objects.all()
     for template in templates:
-        merged_definition = template_utils.get_merged_definition(template)
+        merged_definition = template_utils.get_merged_definition(template, default={})
         template_fields = template_utils.try_get_content(merged_definition, 'fields')
 
         template_query, where_clause = api_utils.build_query_from_template(

@@ -3,6 +3,13 @@
 @import '../_media';
 @import '../_utils';
 
+/// modal-open
+///   @desc stops body from scrolling when modal open
+.modal-open {
+  overflow: hidden;
+  position: fixed;
+}
+
 /// Target modal
 ///   @desc CSS-driven modal, used in create.html of Concept Creation
 .target-modal {
@@ -28,11 +35,32 @@
     z-index: 99999;
   }
 
+  &-sm {
+    .target-modal__container {
+      top: 20%;
+      left: 37.5%;
+      width: 25%;
+    }
+  }
+
+  &-md {
+    .target-modal__container {
+      top: 20%;
+      left: 25%;
+      width: 50%;
+    }
+  }
+
+  &-lg {
+    .target-modal__container {
+      top: 10%;
+      left: 12.5%;
+      width: 75%;
+    }
+  }
+  
   &__container {
     position: fixed;
-    top: 20%;
-    left: 25%;
-    width: 50%;
     border: 1px solid col(accent-darkish);
     border-radius: 0.25rem;
     background: #fefefe;
@@ -77,7 +105,12 @@
   }
 
   &__body {
+    max-height: 90vh;
     padding: 1rem;
+
+    &.no-pad {
+      padding: 0;
+    }
   }
 
   &__footer {

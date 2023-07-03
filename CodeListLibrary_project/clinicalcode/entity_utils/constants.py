@@ -48,6 +48,7 @@ class CLINICAL_CODE_SOURCE(int, enum.Enum, metaclass=IterableMeta):
     SELECT_IMPORT = 4
     FILE_IMPORT = 5
     SEARCH_TERM = 6
+    CONCEPT_IMPORT = 7
 
 class ENTITY_STATUS(int, enum.Enum):
     '''

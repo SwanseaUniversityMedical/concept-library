@@ -975,7 +975,7 @@ class EntityCreator {
    * @returns {boolean} whether the form has been modified and its data is now dirty
    */
   isDirty() {
-    return this.formChanged;
+    return this.data?.is_historical === 1 || this.formChanged;
   }
 
   /**
