@@ -43,7 +43,7 @@ class EntityDecline(LoginRequiredMixin, permission_utils.HasAccessToViewGenericE
                 entity = GenericEntity.objects.get(pk=pk)
                 #if moderator and in pending state
                 if checks['is_moderator'] and checks['approval_status'] == constants.APPROVAL_STATUS.PENDING:
-                    published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id, approval_status=constants.APPROVAL_STATUS.PENDING).first() #find first record
+                    published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,entity_history_id=history_id,approval_status=constants.APPROVAL_STATUS.PENDING).first() #find first record
                     published_entity.approval_status = constants.APPROVAL_STATUS.REJECTED
                     published_entity.save()
                     data['form_is_valid'] = True
