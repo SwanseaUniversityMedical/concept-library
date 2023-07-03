@@ -181,6 +181,21 @@
     }
   }
 
+  &.text-danger{
+    color: col(text-danger);
+  }
+
+  &.text-success{
+    color: col(text-success);
+  }
+
+  &.text-warning{
+    color: col(text-warning);
+  }
+
+
+
+
   /* Outline accents */
   &.outline {
     border-width: 1px;
