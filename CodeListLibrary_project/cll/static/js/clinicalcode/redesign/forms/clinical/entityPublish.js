@@ -22,7 +22,7 @@ class PublishModal {
           html: `<button class="secondary-btn text-accent-darkest bold washed-accent" id="cancel-button"></button>`,
         },
         {
-          name: data.approval_status == null ? "Submit" : "Publish",
+          name: !data.is_moderator ? "Submit" : "Publish",
           type: ModalFactory.ButtonTypes.CONFIRM,
           html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="publish-modal-button"></button>`,
         },
@@ -107,9 +107,15 @@ class PublishModal {
         <p>This change of ${data.entity_type} cannot be undone.</p>`;
         break;
       case null:
-        paragraph = `<p>Are you sure you want to approve previously declined version of "${data.name}"?</p>
-        <p>This change of ${data.entity_type} cannot be undone.</p>
-        <p>This ${data.entity_type} is going to be reviewed by the moderator and you will be notified when is published</p>`;
+        if(data.is_moderator){ 
+        paragraph = `<p>Are you sure you want to publish this version of "${data.name}"?</p>
+        <p>Published ${data.entity_type} cannot be undone.</p>`;
+        }else{
+          paragraph = `<p>Are you sure you want to submit this version of "${data.name}"?</p>
+          <p>This change of ${data.entity_type} cannot be undone.</p>
+          <p>This ${data.entity_type} is going to be reviewed by the moderator and you will be notified when is published</p>`;
+        }
+       
         break;
       default:
         paragraph = `<p>Are you sure you want to publish this version of "${data.name}"?</p>
