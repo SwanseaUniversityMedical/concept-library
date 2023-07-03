@@ -6,7 +6,7 @@ RUN apt-get update -y -q && \
     apt-get install dos2unix
 
 # Install LDAP header files
-# removed python-dev to check if compose up
+# removed python-dev until further advise (docker compose up was failing)
 RUN apt-get install -y -q libsasl2-dev libldap2-dev libssl-dev
 
 # Install pip
