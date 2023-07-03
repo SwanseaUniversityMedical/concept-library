@@ -7,20 +7,22 @@
 .headline {
     display: flex;
     align-items: center;
-    padding: 100px; /* Adjust the margin as needed */
+    margin-left: 4rem;
+    margin-right: 4rem;
+    margin-top: 2rem;
 
   }
 
   .headline__image {
     margin-right: 2rem;
     background-image: var(--headline-url);
-	background-repeat: no-repeat;
-	height: 336px;
-	width: 40%;
+	  background-repeat: no-repeat;
+	  height: 400px;
+	  width: 40%;
   }
   
   .headline__text {
-    flex: 1 1 auto;
+    flex: 2;
   }
   
   .headline__heading {
@@ -30,5 +32,19 @@
   }
   
   .headline__section {
-    margin-bottom: 20px;
+    margin-top: 2rem;
+
+    &__general{
+        margin: 4rem;
+    }
+
+    &__outside_with_background{
+      padding-top: 3rem;
+      padding-bottom: 3rem;
+      background-color: var(--phenotype-banner-bg-color);
+    
+  }
+
+
+
   }

@@ -9,16 +9,16 @@
     background-color: var(--color-accent-bright);
     padding: 40px;
   
-    .counter {
+    &__counter {
       text-align: center;
   
-      .number {
+      &__number {
         font-size: 36px;
         color: var(--color-text-darkest);
         font-weight: bold;
       }
   
-      .title {
+      &__title {
         font-size: 18px;
         color: var(--color-text-darkest);
       }
