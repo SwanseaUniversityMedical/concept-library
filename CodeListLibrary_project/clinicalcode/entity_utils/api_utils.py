@@ -545,9 +545,9 @@ def get_entity_detail(
 
   if return_data:
     return result
-  
+
   return Response(
-    data=[result | { 'phenotype_version_id': entity.history_id }],
+    data=[{ 'phenotype_id': entity.id, 'phenotype_version_id': entity.history_id } | result],
     status=status.HTTP_200_OK
   )
 
