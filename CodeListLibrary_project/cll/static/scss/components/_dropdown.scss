@@ -258,6 +258,14 @@
       text-align: right;
       vertical-align: middle;
     }
+
+    &-icon-search-box {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      margin-bottom: 8px;
+      content: '\f107';
+    }
   }
 
   &__list {

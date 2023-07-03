@@ -7,6 +7,15 @@
   @include flex-col();
   background-color: var(--phenotype-banner-bg-color);
 
+
+  &.image {
+    background-image: var(--banner-url);
+    background-repeat: no-repeat;
+    background-color: #000000;
+    background-position: center;
+  }
+
+
   &__container {
     @include flex-col();
     padding: 0.5rem 0 0.5rem 0;
@@ -33,6 +42,14 @@
         }
       }
     }
+   
+    &__left-landing-page {
+      padding-top: 5rem;
+      max-width: 36%;
+      padding-left: 6rem;
+      align-content: left;
+    }
+    
   }
 
   &__title {
@@ -46,6 +63,9 @@
 
   &__description {
     margin: 1rem 0 0.5rem 0;
+    &__landing-page {
+      color: var(--color-accent-bright);
+    }
   }
 
   &__cards {

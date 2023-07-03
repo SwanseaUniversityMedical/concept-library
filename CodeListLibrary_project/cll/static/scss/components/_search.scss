@@ -42,6 +42,41 @@
     .search-container__field {
       height: 3rem;
     }
+
+  }
+
+
+  &__container-landing {
+    @include flex-col();
+    padding-bottom: 2rem;
+    align-items: left;
+    align-self: left;
+    align-content: left;
+    padding-left: 6rem;
+    padding-top: 0.5rem;
+    max-width: 36%;
+
+    @include media(">desktop", "screen") {
+      width: 400px;
+    }
+
+    @include media("<desktop", "screen") {
+      width: 250px;
+      padding: 1rem 0 2rem 0;
+    }
+
+    /* Override search field size */
+    .search-container__field {
+      height: 3rem;
+      width: 32rem;
+    }
+
+  }
+
+  &__container--override {
+    align-items: left;
+    align-self: left;
+    padding-left: 6rem; 
   }
 
   &__cards {
