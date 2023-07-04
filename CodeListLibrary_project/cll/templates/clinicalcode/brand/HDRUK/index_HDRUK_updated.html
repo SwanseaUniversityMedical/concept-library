@@ -11,6 +11,12 @@
 <link href="{% sass_src 'scss/pages/counter.scss' %}" rel="stylesheet" type="text/css" />
 <link href="{% sass_src 'scss/pages/headline.scss' %}" rel="stylesheet" type="text/css" />
 <link href="{% sass_src 'scss/pages/key_section_landing.scss' %}" rel="stylesheet" type="text/css" />
+<script type="module" src="{% static 'js/clinicalcode/redesign/components/tooltipFactory.js' %}"></script>
+<script type="text/javascript">   const TooltipFactory = window.TooltipFactory;
+   const statSpan = document.getElementById('statSpan');
+   TooltipFactory.addTooltip(statSpan, statSpan.getAttribute('tooltip'), statSpan.getAttribute('direction'));
+   
+</script>
 <!-- Main -->
 <header class="main-header banner image">
    <div class="banner__container__left-landing-page">
@@ -20,35 +26,47 @@
    </div>
    <div class="search-banner__container-landing">
       <form class="search-container" data-controller="filter" data-class="searchbar" data-field="search" action="{% url 'search_phenotypes' %}" method="GET">
-         <input type="text" placeholder="Search our phenotype library" id="searchbar" class="search-container__field washed-outline" data-class="searchbar" data-field="search" value="{{ search|default_if_none:'' }}"/>
+         <input type="text" placeholder="Search our phenotype library" id="searchbar" class="search-container__field washed-outline" data-class="searchbar" data-field="search" name="search" value="{{ search|default_if_none:'' }}"/>
          <!-- <span -->
          <!--   class="search-container__icon" id="searchbar-icon-btn" name="page" value="1"></span> -->
-      </span>
-    </form>
+         </span>
+      </form>
    </div>
 </header>
 <section class="counter-section">
    <div class="counter-section__counter">
-      <div class="counter-section__counter__number">{{ published_phenotype_count }}</div>
-      <div class="counter-section__counter__title">phenotyping algorithms</div>
+      <div class="counter-section__counter__number">
+         <span id="statSpan" tooltip="A phenotype defines how to measure real-world attributes of human health in data" direction="up">{{ published_phenotype_count }}</span>
+      </div>
+      <div class="counter-section__counter__title">phenotypes
+      </div>
    </div>
    <div class="counter-section__counter">
-      <div class="counter-section__counter__number">{{ published_concept_count }}</div>
-      <div class="counter-section__counter__title">Codelists</div>
+      <div class="counter-section__counter__number">      
+         <span id="statSpan" tooltip="Concepts are individual lists of clinical codes defining a condition, treatment, etc." direction="up">{{ published_concept_count }}</span>
+      </div>
+      <div class="counter-section__counter__title">codelists
+      </div>
    </div>
    <div class="counter-section__counter">
-      <div class="counter-section__counter__number">{{ published_clinical_codes }}</div>
+      <div class="counter-section__counter__number">
+         <span id="statSpan" tooltip="Health data is gathered in many different settings and organizations; phenotypes may be specific to data from one source or apply across a number of data sources" direction="up">{{datasources_component_count}}</span>
+      </div>
       <div class="counter-section__counter__title">data sources
       </div>
    </div>
    <div class="counter-section__counter">
-      <div class="counter-section__counter__number">{{datasources_component_count}}</div>
+      <div class="counter-section__counter__number">
+         <span id="statSpan" tooltip="Clinical codes are the 'words' in standardized languages used to create electronic health records" direction="up">{{ published_clinical_codes }}</span>
+      </div>
       <div class="counter-section__counter__title">clinical codes
       </div>
    </div>
    <div class="counter-section__counter">
-      <div class="counter-section__counter__number">{{clinical_terminologies}}</div>
-      <div class="counter-section__counter__title">clinical terminologies
+      <div class="counter-section__counter__number">
+         <span id="statSpan" tooltip="Clinical coding systems are the languages used to capture electronic health records in a standardized format; different systems are used in different settings and for different purposes" direction="up">{{clinical_terminologies}}</span>
+      </div>
+      <div class="counter-section__counter__title">clincal terminologies
       </div>
    </div>
 </section>
@@ -74,33 +92,27 @@
 </div>
 <div class="headline__section__outside_with_background">
    <div class="row-landing-page">
-    <article class="referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
-      <div class="referral-card__icon-before referral-card__icon-before"></div>
-      <div class="referral-card__header">
-         <div class="icon-landing">
+      <article class="referral-card referral-card--landing-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+         <div class="referral-card__header referral-card__header--icon-row">
+            <div class="referral-card__icon-before"></div>
+            <p class="referral-card__title referral-card__title--align-centre">Search</p>
          </div>
-         <p class="referral-card__title">Search</p>
-      </div>
-      <a style="text-decoration: none;
-         color: inherit;"href="{% url 'search_phenotypes' %}">
-         <div class="referral-card__coloured-box referral-card__body">
-            <p> Start here to explore phenotypes in our library.</p>
+         <div class="referral-card__body referral-card__body--hide-overflow">
+            <a class="referral-card__anchor" href="{% url 'search_phenotypes' %}">
+               <p>Start here to explore phenotypes in our library.</p>
+            </a>
          </div>
-      </a>
-   </article>
-      <article class="referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
-         <div class="referral-card__icon-before referral-card__icon-before__plus"></div>
-         <div class="referral-card__header">
-            <div class="icon-landing">
-            </div>
-            <p class="referral-card__title">Submit a phenotype</p>
+      </article>
+      <article class="referral-card referral-card--landing-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+         <div class="referral-card__header referral-card__header--icon-row">
+            <div class="referral-card__icon-before referral-card__icon-before__plus"></div>
+            <p class="referral-card__title referral-card__title--align-centre">Submit a phenotype</p>
          </div>
-         <a style="text-decoration: none;
-            color: inherit;"href="{% url 'create_phenotype' %}">
-            <div class="referral-card__coloured-box referral-card__body">
-               <p> Learn how you contribute your phenotypes to our library.</p>
-            </div>
-         </a>
+         <div class="referral-card__body referral-card__body--hide-overflow">
+            <a class="referral-card__anchor" href="{% url 'create_phenotype' %}">
+               <p>Learn how you contribute your phenotypes to our library.</p>
+            </a>
+         </div>
       </article>
    </div>
 </div>
@@ -108,27 +120,22 @@
    <h2 class="key-section__title">Key Principles</h2>
    <div class="key-section__columns">
       <div class="key-section__column">
-         <div class="key-section__column">
-            <p>The Library stores phenotyping algorithms, metadata and tools only. No data are stored in the Library.</p>
-         </div>
-         <div class="key-section__text-section">
-            <p>Ideally, phenotypes that are deposited in the Library will have undergone some form of peer-review to assess validity and quality either through peer-reviewed publication or some other means of sharing the definition(s)</p>
-         </div>
-         <div class="key-section__text-section">
-            <p>All material deposited in the Library remain the intellectual property of the research group who created the phenotype(s) – the default licensing agreement that information is available under is the Creative Commons Attribution 4.0 (CC-A)</p>
-         </div>
+         <p>The Library stores phenotyping algorithms, metadata and tools only. No data are stored in the Library.</p>
       </div>
       <div class="key-section__column">
-         <div class="key-section__text-section">
-            <p>Phenotype definitions will be assigned a unique Digital Object Identifier (DOI) to facilitate identification of the phenotype</p>
-         </div>
-         <div class="key-section__text-section">
-            <p>Users should cite the Phenotype Library in all publications, presentations and reports as follows: “HDR UK CALIBER Phenotype Library https://portal.caliberresearch.org/”</p>
-         </div>
-         <div class="key-section__icon-before"></div>
-         <div class="key-section__text-section">
-            <p>The aim of the Library is not to standardize or harmonize disease definitions, therefore several phenotypes may be stored for the same condition and the onus is on individual researchers to explore which phenotypes they wish to use</p>
-         </div>
+         <p>Ideally, phenotypes that are deposited in the Library will have undergone some form of peer-review to assess validity and quality either through peer-reviewed publication or some other means of sharing the definition(s)</p>
+      </div>
+      <div class="key-section__column">
+         <p>All material deposited in the Library remain the intellectual property of the research group who created the phenotype(s) – the default licensing agreement that information is available under is the Creative Commons Attribution 4.0 (CC-A)</p>
+      </div>
+      <div class="key-section__column">
+         <p>Phenotype definitions will be assigned a unique Digital Object Identifier (DOI) to facilitate identification of the phenotype</p>
+      </div>
+      <div class="key-section__column">
+         <p>Users should cite the Phenotype Library in all publications, presentations and reports as follows: "HDR UK CALIBER Phenotype Library https://portal.caliberresearch.org/"</p>
+      </div>
+      <div class="key-section__column">
+         <p>The aim of the Library is not to standardize or harmonize disease definitions, therefore several phenotypes may be stored for the same condition and the onus is on individual researchers to explore which phenotypes they wish to use</p>
       </div>
    </div>
 </section>
