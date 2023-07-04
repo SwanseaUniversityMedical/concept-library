@@ -57,6 +57,8 @@ class TooltipFactory {
 
     let tooltip = this.#createTooltip(tip, direction);
     tooltip = this.element.appendChild(tooltip);
+    tooltip.classList.add('hide');
+
     this.#tooltips[uuid] = tooltip;
 
     const methods = {
