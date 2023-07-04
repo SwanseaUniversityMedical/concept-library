@@ -8,18 +8,15 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import BadRequest
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseNotFound
 from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.template.loader import render_to_string
-from django.templatetags.static import static
-from django.views.generic import DetailView, TemplateView
-from django.views.generic.base import TemplateResponseMixin, View
-from django.views.generic.edit import UpdateView
+from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
+from rest_framework.views import APIView
 from collections import OrderedDict
 
 import csv
@@ -109,20 +106,98 @@ class EntitySearchView(TemplateView):
             
         return render(request, self.template_name, context)
 
+class EntityDescendantSelection(APIView):
+    '''
+        Selection Service View
+            @desc API-like view for internal services to discern
+                  template-related information and to retrieve
+                  entity descendant data via search
+            
+            @note Could be moved to API in future?
+    '''
+    fetch_methods = ['get_filters', 'get_results']
+
+    ''' Private methods '''
+    def __get_template(self, template_id):
+        '''
+            Attempts to get the assoc. template if available or raises a bad request
+        '''
+        template = model_utils.try_get_instance(Template, pk=template_id)
+        if template is None:
+            raise BadRequest('Template ID is invalid')
+        return template
+
+    ''' View methods '''
+    @method_decorator([login_required, permission_utils.redirect_readonly])
+    def dispatch(self, request, *args, **kwargs):
+        '''
+            @desc Dispatch view if not in read-only and user is authenticated
+        '''
+        return super(EntityDescendantSelection, self).dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        '''
+            @desc Provides contextual data
+        '''
+        context = { }
+        request = self.request
+
+        template_id = gen_utils.parse_int(kwargs.get('template_id'), default=None)
+        if template_id is None:
+            raise BadRequest('Invalid request')
+        return context | { 'template_id': template_id }
+    
+    def get(self, request, *args, **kwargs):
+        '''
+            @desc Handles GET requests made by the client and directs
+                  the params to the appropriate method given the fetch target
+        '''
+        if gen_utils.is_fetch_request(request):
+            method = gen_utils.handle_fetch_request(request, self, *args, **kwargs)
+            return method(request, *args, **kwargs)
+        raise BadRequest('Invalid request')
+
+    ''' Fetch methods '''
+    def get_filters(self, request, *args, **kwargs):
+        '''
+            @desc Gets the filter specification for this template
+        '''
+        context = self.get_context_data(*args, **kwargs)
+        
+        template = self.__get_template(context.get('template_id'))
+        template_filters = search_utils.get_template_filters(request, template, default=[])
+        metadata_filters = search_utils.get_metadata_filters(request)
+
+        return JsonResponse({
+            'template': template_filters,
+            'metadata': metadata_filters,
+        })
+    
+    def get_results(self, request, *args, **kwargs):
+        '''
+            @desc Gets the search results for the desired template
+                  after applying query params
+        '''
+        context = self.get_context_data(*args, **kwargs)
+        template_id = context.get('template_id')
+        result = search_utils.get_template_entities(request, template_id)
+        return JsonResponse(result)
+
 class CreateEntityView(TemplateView):
     '''
         Entity Create View
             @desc Used to create entities
             
             @note CreateView isn't used due to the requirements
-                  of having a form dynamically created to reflect the dynamic model.
+                  of having a form dynamically created to
+                  reflect the dynamic model.
     '''
-    fetch_methods = ['search_codes', 'get_options']
+    fetch_methods = ['search_codes', 'get_options', 'import_rule', 'import_concept']
     templates = {
         'form': 'clinicalcode/generic_entity/creation/create.html',
         'select': 'clinicalcode/generic_entity/creation/select.html'
     }
-    
+
     ''' View methods '''
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def dispatch(self, request, *args, **kwargs):
@@ -148,7 +223,8 @@ class CreateEntityView(TemplateView):
                   will respond with appropriate method, if applicable.
         '''
         if gen_utils.is_fetch_request(request):
-            return self.fetch_response(request, *args, **kwargs)
+            method = gen_utils.handle_fetch_request(request, self, *args, **kwargs)
+            return method(request, *args, **kwargs)
         
         return self.render_view(request, *args, **kwargs)
 
@@ -192,7 +268,7 @@ class CreateEntityView(TemplateView):
             'success': True,
             'entity': { 'id': entity.id, 'history_id': entity.history_id },
             'redirect': reverse('entity_history_detail', kwargs={ 'pk': entity.id, 'history_id': entity.history_id })
-        })        
+        })
 
     ''' Main view render '''
     def render_view(self, request, *args, **kwargs):
@@ -265,16 +341,64 @@ class CreateEntityView(TemplateView):
         return render(request, self.templates.get('form'), context)
 
     ''' Fetch methods '''
-    def fetch_response(self, request, *args, **kwargs):
+    def import_rule(self, request, *args, **kwargs):
         '''
-            @desc Parses the X-Target header to determine which GET method
-                  to respond with
+            @desc GET request made by client to retrieve the codelist assoc.
+                  with the concept they are attempting to import as a rule
         '''
-        target = request.headers.get('X-Target', None)
-        if target is None or target not in self.fetch_methods:
-            raise BadRequest('No such target')
+        concept_id = gen_utils.try_get_param(request, 'concept_id')
+        concept_version_id = gen_utils.try_get_param(request, 'concept_version_id')
+        if concept_id is None or concept_version_id is None:
+            raise BadRequest('Parameters are missing')
+
+        concept_id = gen_utils.parse_int(concept_id)
+        concept_version_id = gen_utils.parse_int(concept_version_id)
+        if concept_id is None or concept_version_id is None:
+            raise BadRequest('Parameter type mismatch')
         
-        return getattr(self, target)(request, *args, **kwargs)
+        concept = concept_utils.get_clinical_concept_data(
+            concept_id,
+            concept_version_id,
+            include_component_codes=False,
+            aggregate_component_codes=False,
+            include_reviewed_codes=True
+        )
+
+        return JsonResponse({
+            'concept_id': concept_id,
+            'concept_version_id': concept_version_id,
+            'codelist': concept.get('codelist')
+        })
+    
+    def import_concept(self, request, *args, **kwargs):
+        '''
+            @desc GET request made by client to retrieve codelists assoc.
+                  with the concepts they are attempting to import as top-level objects
+        '''
+        concept_ids = gen_utils.try_get_param(request, 'concept_ids')
+        concept_version_ids = gen_utils.try_get_param(request, 'concept_version_ids')
+        if concept_ids is None or concept_version_ids is None:
+            raise BadRequest('Parameters are missing')
+        
+        concept_ids = [gen_utils.parse_int(x) for x in concept_ids.split(',') if gen_utils.parse_int(x)]
+        concept_version_ids = [gen_utils.parse_int(x) for x in concept_version_ids.split(',') if gen_utils.parse_int(x)]
+        if len(concept_ids) != len(concept_version_ids):
+            raise BadRequest('Parameter mismatch')
+        
+        concepts = [
+            concept_utils.get_clinical_concept_data(
+                concept[0],
+                concept[1],
+                aggregate_component_codes=True,
+            ) | {
+                'has_edit_access': False,
+            }
+            for concept in zip(concept_ids, concept_version_ids)
+        ]
+        
+        return JsonResponse({
+            'concepts': concepts
+        })
     
     def get_options(self, request, *args, **kwargs):
         '''
@@ -347,18 +471,18 @@ class EntityStatisticsView(TemplateView):
     '''
         Admin job panel to save statistics for templates across entities
     '''
-    @method_decorator([permission_utils.redirect_readonly])
+    @method_decorator([login_required, permission_utils.redirect_readonly])
     def get(self, request, *args, **kwargs):
-        # if not request.user.is_superuser:
-        #     raise PermissionDenied
-        
+        if not request.user.is_superuser:
+            raise PermissionDenied
+
         stats_utils.collect_statistics(request)
-        return render(request, 'clinicalcode/admin/run_statistics.html', {
+        context = {
             'successMsg': ['Filter statistics for Concepts/Phenotypes saved'],
-        })
-        
- 
-        
+        }
+
+        return render(request, 'clinicalcode/admin/run_statistics.html', context)
+
 def run_HDRUK_statistics(request):
     """
         save HDR-UK home page statistics

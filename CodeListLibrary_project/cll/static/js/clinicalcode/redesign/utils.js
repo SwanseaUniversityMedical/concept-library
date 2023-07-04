@@ -25,8 +25,8 @@ const deepCopy = (obj) => {
   * mergeObjects
   * @desc Merges two objects together where the first object takes precedence (i.e., it's not overriden)
   * @param {object} a An object to clone that takes precedence
-  * @param {object} b The object to clone
-  * @returns {object} The cloned object
+  * @param {object} b The object to clone and merge into the first object
+  * @returns {object} The merged object
   */
 const mergeObjects = (a, b) => {
   Object.keys(b).forEach(key => {
@@ -76,7 +76,7 @@ const getTransitionMethod = () => {
   */
 const createElement = (tag, attributes) => {
   let element = document.createElement(tag);
-  if (attributes != null) {
+  if (attributes !== null) {
     for (var name in attributes) {
       if (element[name] !== undefined) {
         element[name] = attributes[name];
@@ -94,7 +94,7 @@ const createElement = (tag, attributes) => {
   * @desc Checks whether an element is scrolled into view
   * @param {node} elem The element to examine
   * @param {number} offset An offset modifier (if required)
-  * @returns {boolean}
+  * @returns {boolean} that reflects the scroll view status of an element
   */
 const isScrolledIntoView = (elem, offset = 0) => {
   const rect = elem.getBoundingClientRect();
@@ -109,7 +109,7 @@ const isScrolledIntoView = (elem, offset = 0) => {
   * @desc A promise that resolves when an element is scrolled into view
   * @param {node} elem The element to examine
   * @param {number} offset An offset modifier (if required)
-  * @returns {promise}
+  * @returns {promise} a promise that resolves once the element scrolls into the view
   */
 const elementScrolledIntoView = (elem, offset = 0) => {
   return new Promise(resolve => {
@@ -127,7 +127,9 @@ const elementScrolledIntoView = (elem, offset = 0) => {
 /**
   * getCookie
   * @desc Gets the CSRF token
-  * @reference https://docs.djangoproject.com/en/4.1/howto/csrf/
+  *       Ref @ https://docs.djangoproject.com/en/4.1/howto/csrf/
+  * @param {string} name the name of the cookie
+  * @returns {*} the cookie's value
   */
 const getCookie = (name) => {
   let cookieValue = null;
@@ -273,7 +275,7 @@ const redirectToTarget = (elem) => {
  *  console.log(files); --> [file_1, ..., file_n]
  * }});
  */
-const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callback = null } = {}) => {
+const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callback = null }) => {
   const input = document.createElement('input');
   input.type = 'file';
 
@@ -296,8 +298,9 @@ const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callbac
 }
 
 /**
- * Get a template from a string
- * https://stackoverflow.com/posts/41015840/revisions
+ * interpolateHTML
+ * @desc Get a template from a string
+ *       Ref @ https://stackoverflow.com/posts/41015840/revisions
  * @param  {str} str The string to interpolate
  * @param  {object} params The parameters
  * @return {str} The interpolated string
@@ -310,6 +313,7 @@ const interpolateHTML = (str, params) => {
 
 /**
  * parseHTMLFromString
+ * @desc given a string of HTML, will return a parsed DOM
  * @param {str} str The string to parse as DOM elem
  * @returns {DOM} the parsed html
  */
@@ -320,127 +324,11 @@ const parseHTMLFromString = (str) => {
 
 /**
  * countUnique
+ * @desc counts the unique elements in an array
  * @param {iterable} array counts the number of unique elements
  * @return {integer} number of unique elements
  */
 const countUniqueElements = (iterable) => new Set(iterable).size;
-
-/**
- * promptClientModal
- * @desc Prompts the user with a modal, given an inner html and the assoc.
- *       buttons for the user to confirm/reject the prompt
- * @param {*} id the ID of the modal
- * @param {string} title the title of the modal
- * @param {string} content the HTML/text context of the modal
- * @param {boolean} showFooter whether or not we should include a footer - if set to false,
- *                             we won't render any assoc. buttons and modal can only be closed
- *                             via cancelling the modal
- * @param {object} buttons the html to render the buttons for confirmation/rejection
- * @returns {promise} A promise that resolves when the user clicks the confirm button,
- *                    and rejects when the user clicks the reject button
- * 
- * e.g. usage:
- * 
- * promptClientModal({
- *  id: 'some-modal', 
- *  title: 'Are you sure?',
- *  content: 'Are you sure you want to perform this action?'
- * })
- * .then(() => {
- *    //! User has confirmed prompt !//
- *    // ... do stuff ...
- * })
- * .catch(() => {
- *    //! User has cancelled prompt !//
- *    // ... do other stuff ...
- * })
- * 
- */
-
-const PROMPT_BUTTONS_DEFAULT = {
-  reject: {
-    html: `<button class="secondary-btn text-accent-darkest bold washed-accent" aria-label="Cancel" id="reject-button"></button>`,
-    name: 'Cancel',
-  },
-  confirm: {
-    html: `<button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Confirm" id="confirm-button"></button>`,
-    name: 'Confirm',
-  }
-};
-
-const promptClientModal = ({ id = 'modal-dialog', title = 'Modal', content = '', showFooter = true, buttons = PROMPT_BUTTONS_DEFAULT }) => {
-  let html = `
-  <div class="target-modal" id="${id}" aria-hidden="true">
-    <div class="target-modal__container">
-      <div class="target-modal__header">
-        <h2 id="target-modal-title">${title}</h2>
-        <a href="#" class="target-modal__header-close" aria-label="Close Modal" id="modal-close-btn"></a>
-      </div>
-      <div class="target-modal__body" id="target-modal-content">
-        ${content}
-      </div>
-    </div>
-  </div>`;
-
-  const doc = parseHTMLFromString(html);
-  const modal = document.body.appendChild(doc.body.children[0]);
-  
-  let footer;
-  if (showFooter) {
-    footer = createElement('div', {
-      class: 'target-modal__footer',
-      id: 'target-modal-footer',
-    });
-
-    const container = modal.querySelector('.target-modal__container');
-    footer = container.appendChild(footer);
-  }
-  
-  const btn = { };
-  if (!isNullOrUndefined(footer)) {
-    for (const [name, button] of Object.entries(buttons)) {
-      let item = parseHTMLFromString(button.html);
-      item = footer.appendChild(item.body.children[0]);
-      item.innerText = button.name;
-      btn[name] = item;
-    }
-  }
-
-  const showModal = () => {
-    const currentHeight = window.scrollY;
-    createElement('a', { href: `#${id}` }).click();
-    window.scrollTo({ top: currentHeight, left: window.scrollX, behaviour: 'instant'});
-
-    // Inform screen readers of alert
-    modal.setAttribute('aria-hidden', false);
-    modal.setAttribute('role', 'alert');
-    modal.setAttribute('aria-live', true);
-  }
-
-  const closeModal = (method) => {
-    modal.remove();
-    history.replaceState({ }, document.title, '#');
-    method();
-  }
-  
-  return new Promise((resolve, reject) => {
-    if (btn.hasOwnProperty('confirm')) {
-      btn.confirm.addEventListener('click', (e) => closeModal(resolve));
-    }
-
-    if (btn.hasOwnProperty('reject')) {
-      btn.reject.addEventListener('click', (e) => closeModal(reject));
-    }
-
-    const exit = modal.querySelector('#modal-close-btn');
-    exit.addEventListener('click', (e) => {
-      e.preventDefault();
-      closeModal(reject)
-    });
-
-    showModal();
-  });
-}
 
 /**
  * transformTitleCase
@@ -540,7 +428,6 @@ const parseDOI = (value) => {
 
 /**
  * waitForElement
- *  
  * @desc waits for an element to exist based on selector parameter
  * @param {string} selector the string to match 
  * @returns {promise} promise that resolves with the given element

@@ -8,7 +8,12 @@
 .pagination-box {
   @include flex-row();
   margin: 1rem 0 0 0;
+  align-self: flex-end;
   justify-content: flex-end;
+
+  &.push-bottom {
+    margin-bottom: auto;
+  }
 }
 
 .pagination-container {

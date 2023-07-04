@@ -34,12 +34,22 @@
       max-width: var(--phenotype-article-lg-size);
     }
 
+    &.container {
+      &--desktop-lg {
+        @include media("<desktop-lg", "screen") {
+          width: var(--phenotype-article-lg-size);
+          max-width: var(--phenotype-article-lg-size);
+        }
+      }
+    }
+   
     &__left-landing-page {
       padding-top: 5rem;
       max-width: 36%;
       padding-left: 6rem;
       align-content: left;
     }
+    
   }
 
   &__title {

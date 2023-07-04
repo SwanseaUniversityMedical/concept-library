@@ -21,8 +21,8 @@ const CONCEPT_UTILS_DEFAULT_ARGS = {
  * @param {object} options optional parameters to modify the behaviour of the method
  *                         see CONCEPT_UTILS_DEFAULT_ARGS.APPLICATOR for more details
  */
-const applyCodelistsFromConcepts = ( conceptData, options = {} ) => {
-  options = mergeObjects(options, CONCEPT_UTILS_DEFAULT_ARGS.APPLICATOR);
+const applyCodelistsFromConcepts = ( conceptData, options) => {
+  options = mergeObjects(options || { }, CONCEPT_UTILS_DEFAULT_ARGS.APPLICATOR);
 
   const { codelistContainerId, showAttributes, perPageSelect } = options;
   for (let ii = 0; ii < conceptData.length; ii++) {

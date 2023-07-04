@@ -214,7 +214,7 @@ def get_data_sources(ds_ids, info, default=None):
     except:
         return default
     
-def get_template_creation_data(entity, layout, field, default=[]):
+def get_template_creation_data(entity, layout, field, default=None):
     '''
         Used to retrieve assoc. data values for specific keys, e.g.
         concepts, in its expanded format for use with create/update pages
@@ -305,7 +305,7 @@ class EntityWizardSections(template.Node):
         if template is None:
             return output
         
-        merged_definition = template_utils.get_merged_definition(template)
+        merged_definition = template_utils.get_merged_definition(template, default={})
         template_fields = template_utils.try_get_content(merged_definition, 'fields')
         template_fields.update(constants.DETAIL_PAGE_APPENDED_FIELDS)
         template.definition['fields'] = template_fields
