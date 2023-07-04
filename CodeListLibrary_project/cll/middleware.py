@@ -20,6 +20,56 @@ from django.urls import clear_url_caches, get_urlconf, set_urlconf
 from django.utils.deprecation import MiddlewareMixin
 from rest_framework.reverse import reverse
 
+from django.contrib.auth import logout
+from datetime import datetime
+from django.utils.timezone import now as timezone_now
+
+def try_expire_session(request, options):
+    '''
+        [!] Options are defined within settings.py
+
+        Tries to expire a session if either:
+            - The session length has expired after X duration
+            - The user has idled between requests for X duration
+    '''
+    current_time = timezone_now()
+    requires_logout = False
+
+    session_limit = options.get('SESSION_LIMIT')
+    if session_limit is not None:
+        last_login = request.user.last_login
+        session_time = (last_login - current_time + session_limit).total_seconds()
+        requires_logout |= session_time < 0
+
+    idle_limit = options.get('IDLE_LIMIT')
+    if idle_limit is not None:
+        last_request = current_time
+        if 'last_session_request' in request.session:
+            last_request = datetime.fromisoformat(request.session.get('last_session_request'))
+
+        idle_time = (last_request - current_time + idle_limit).total_seconds()
+        requires_logout |= idle_time < 0
+        request.session['last_session_request'] = current_time.isoformat()
+    
+    if requires_logout:
+        if 'last_session_request' in request.session:
+            del request.session['last_session_request']
+
+        logout(request)
+
+def session_expiry(get_response):
+    '''
+        Middleware to det. whether a user session needs to expire
+    '''
+    def middleware(request):
+        if not request.user.is_anonymous:
+            session_options = getattr(settings, 'SESSION_EXPIRY', None)
+            if session_options is not None:
+                try_expire_session(request, session_options)
+
+        return get_response(request)
+
+    return middleware
 
 class brandMiddleware(MiddlewareMixin):
 

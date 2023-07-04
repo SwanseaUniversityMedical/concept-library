@@ -5,22 +5,22 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/
 """
 
-import distutils
-import os
-import socket
-import sys
 from distutils import util
-
-import ldap
 from decouple import Config, Csv, RepositoryEnv
+from datetime import timedelta
 from django.conf.global_settings import AUTHENTICATION_BACKENDS, EMAIL_BACKEND
 from django.contrib.messages import constants as messages
 from django.core.exceptions import ImproperlyConfigured
-#from django.core.urlresolvers import reverse_lazy
 from django.urls import reverse_lazy
 from django_auth_ldap.config import (GroupOfNamesType, LDAPSearch,
                                      LDAPSearchUnion,
                                      NestedActiveDirectoryGroupType)
+
+import distutils
+import os
+import socket
+import sys
+import ldap
 
 APP_TITLE = 'Concept Library'
 APP_DESC = 'The {app_title} is a system for storing, managing, sharing, and documenting clinical code lists in health research.'
@@ -73,6 +73,16 @@ else:
 
 if path_prj not in sys.path:
     sys.path.append(path_prj)
+
+#==========================================================================
+
+# user session expiry
+SESSION_EXPIRY = {
+    # i.e. logout after 1 week
+    'SESSION_LIMIT': timedelta(weeks=1),
+    # i.e. logout after 1 day if no requests were made during this time
+    'IDLE_LIMIT': timedelta(days=1),
+}
 
 #==========================================================================
 # separate settings for different environments
@@ -240,7 +250,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
-    'cll.middleware.brandMiddleware'
+    # handle brands
+    'cll.middleware.brandMiddleware',
+    # handle user session expiry
+    'cll.middleware.session_expiry'
 ]
 
 # Keep ModelBackend around for per-user permissions and a local superuser.
