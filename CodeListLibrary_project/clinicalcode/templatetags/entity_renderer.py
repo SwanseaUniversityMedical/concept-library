@@ -229,7 +229,7 @@ def renderable_field_values(entity, layout, field):
         # handle metadata e.g. collections, tags etc
         return template_utils.get_metadata_value_from_source(entity, field, default=[])
     
-    return template_utils.get_template_data_values(entity, layout, field)
+    return template_utils.get_template_data_values(entity, layout, field, default=[])
 
 @register.tag(name='render_entity_cards')
 def render_entities(parser, token):
@@ -273,7 +273,7 @@ class EntityCardsNode(template.Node):
             layout = template_utils.try_get_content(layouts, f'{entity.template.id}/{entity.template_data.get("version")}')
             if not template_utils.is_layout_safe(layout):
                 continue
-            card = template_utils.try_get_content(layout['definition'], 'card_type', constants.DEFAULT_CARD)
+            card = template_utils.try_get_content(layout['definition'].get('template_details'), 'card_type', constants.DEFAULT_CARD)
             card = f'{constants.CARDS_DIRECTORY}/{card}.html'
             try:
                 html = render_to_string(card, {
@@ -329,7 +329,7 @@ class EntityFiltersNode(template.Node):
         else:
             modifier = None
 
-        return search_utils.get_source_references(structure, modifier=modifier)
+        return search_utils.get_source_references(structure, default=[], modifier=modifier)
 
     def __render_metadata_component(self, context, field, structure):
         '''
@@ -479,10 +479,16 @@ class EntityWizardAside(template.Node):
         template = context.get('template', None)
         if template is None:
             return output
+        
+        sections = template.definition.get('sections')
+        if sections is None:
+            return ''
 
-        # We should be getting the FieldTypes.json related to the template
+        final_sections = [section for section in sections if not section.get('hide_on_create')]
+        final_sections.extend(constants.APPENDED_SECTIONS)
+
         output = render_to_string(constants.CREATE_WIZARD_ASIDE, {
-            'create_sections': template.definition.get('sections')
+            'create_sections': final_sections
         })
 
         return output
@@ -546,6 +552,9 @@ class EntityWizardSections(template.Node):
             Attempts to safely get the properties of a validation field, if present
         '''
         struct = template_utils.get_layout_field(template, field)
+        if not isinstance(struct, dict):
+            return
+        
         validation = struct.get('validation')
         if not validation:
             return
@@ -593,15 +602,22 @@ class EntityWizardSections(template.Node):
         if template is None:
             return output
         
-        # We should be getting the FieldTypes.json related to the template
         field_types = constants.FIELD_TYPES
-        for section in template.definition.get('sections'):
+        sections = template.definition.get('sections')
+        if sections is None:
+            return ''
+
+        sections = [section for section in sections if not section.get('hide_on_create')]
+        sections.extend(constants.APPENDED_SECTIONS)
+
+        for section in sections:
             output += self.__try_render_item(template_name=constants.CREATE_WIZARD_SECTION_START, request=request, context=context.flatten() | { 'section': section })
 
             for field in section.get('fields'):
-                template_field = template_utils.get_field_item(template.definition, 'fields', field)
-                if not template_field:
-                    template_field = template_utils.try_get_content(constants.metadata, field)
+                if template_utils.is_metadata(GenericEntity, field):
+                    template_field = constants.metadata.get(field)
+                else:
+                    template_field = template_utils.get_field_item(template.definition, 'fields', field)
 
                 if not template_field:
                     continue
@@ -613,9 +629,6 @@ class EntityWizardSections(template.Node):
                 if template_field.get('hide_on_create'):
                     continue
                 
-                if template_field.get('is_base_field'):
-                    template_field = constants.metadata.get(field) | template_field
-
                 component = template_utils.try_get_content(field_types, template_field.get('field_type'))                
                 if component is None:
                     continue

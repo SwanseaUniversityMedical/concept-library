@@ -1,13 +1,29 @@
-{% extends "base.html" %}
-
+{% extends "base_scss.html" %}
 {% load static %}
-
+{% load compress %}
+{% load sass_tags %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
 {% block title %}{% endblock title %}
-
 {% block container %}
 
-	<h1>Concept Library</h1>
 	
+	
+<link href="{% sass_src 'scss/pages/headline.scss' %}" rel="stylesheet" type="text/css" />
+
+
+<header class="main-header search-banner">
+	<div class="search-banner__header">
+	  <h2 class="search-banner__title">Concept Library</h2>
+	</div>
+  </header>
+  
+
+
+  <div class="headline__section__general">
+
+
 	<p>The concept library is a system for storing, managing, sharing, and documenting clinical code lists in health research.  The specific goals of this work are:</p>
 	<ul>
 		<li>Store code lists along with metadata that captures important information about quality, author, etc.</li>
@@ -18,7 +34,7 @@
 
 						
 						
-	<h2><span class="glyphicon">&#xe032;</span> Documentation</h2>
+	<h2> Documentation</h2>
 	<p>
 	{% if IS_INSIDE_GATEWAY or request.get_host == "conceptlibrary.serp.ac.uk" %}
 	Concept Library documentation is available at the external application  <br>Please access via the external application
@@ -37,6 +53,10 @@
 	<h2>Overview</h2>
 	<p>Our goal is to create a system that describes research study designs in a machine-readable format to facilitate rapid study development; higher quality research; easier replication; and sharing of methods between researchers, institutions, and countries.</p>
 	
+
+
+  </div>
+
 
 		
 {% endblock container %}

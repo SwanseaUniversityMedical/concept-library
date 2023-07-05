@@ -63,7 +63,7 @@ def index_HDRUK(request):
 
     return render(
         request,
-        'clinicalcode/brand/HDRUK/index_HDRUK.html',
+        'clinicalcode/brand/HDRUK/index_HDRUK_updated.html',
         {
             # ONLY PUBLISHED COUNTS HERE
             'published_concept_count': HDRUK_stat['published_concept_count'],
@@ -379,7 +379,8 @@ def contact_us(request):
         raise PermissionDenied
     
     captcha = check_recaptcha(request)
-    status = []
+
+    sent_status = None
     if request.method == 'GET':
         form = ContactForm()
     else:
@@ -389,67 +390,74 @@ def contact_us(request):
             from_email = form.cleaned_data['from_email']
             message = form.cleaned_data['message']
             category = form.cleaned_data['categories']
-            email_subject = ('Concept Library - New Message From ' + name)
+            email_subject = 'Concept Library - New Message From %s' % name
 
             try:
-                html_content = ('<strong>New Message from Concept Library Website</strong> <br><br> <strong>Name:</strong><br>' 
-                                + name 
-                                + '<br><br> <strong>Email:</strong><br>' 
-                                + from_email 
-                                + '<br><br> <strong>Issue Type:</strong><br>' 
-                                + category 
-                                + '<br><br><strong> Tell us about your Enquiry: </strong><br>' 
-                                + message)
+                html_content = \
+                    "<strong>New Message from Concept Library Website</strong><br><br>"\
+                    "<strong>Name:</strong><br>"\
+                    "{name}"\
+                    "<br><br>"\
+                    "<strong>Email:</strong><br>"\
+                    "{from_email}"\
+                    "<br><br>"\
+                    "<strong>Issue Type:</strong><br>"\
+                    "{category}"\
+                    "<br><br>"\
+                    "<strong> Tell us about your Enquiry: </strong><br>"\
+                    "{message}".format(
+                        name=name, from_email=from_email, category=category, message=message
+                    )
                 
-                msg = EmailMultiAlternatives(email_subject,
-                                             html_content,
-                                             'Helpdesk <%s>' %
-                                             settings.DEFAULT_FROM_EMAIL,
-                                             to=[settings.HELPDESK_EMAIL],
-                                             cc=[from_email])
-                msg.content_subtype = "html"  # Main content is now text/html
-                msg.send()
+                if not settings.IS_DEVELOPMENT_PC:
+                    message = EmailMultiAlternatives(
+                        email_subject,
+                        html_content,
+                        'Helpdesk <%s>' % settings.DEFAULT_FROM_EMAIL,
+                        to=[settings.HELPDESK_EMAIL],
+                        cc=[from_email]
+                    )
+                    message.content_subtype = "html"
+                    message.send()
 
                 form = ContactForm()
-                status.append({'SUCCESS': 'Issue Reported Successfully.'})
+                sent_status = True
             except BadHeaderError:
-                return HttpResponse('Invalid header found.')
+                return HttpResponse('Invalid header found')
 
-        if captcha == False:
-            status.append({'FAIL': 'Please verify using the Captcha'})
+    sent_status = captcha
 
-    return render(request, 
-                  'cl-docs/contact-us.html', 
-                  {
-                    'form': form,
-                    'message': status,
-                  }
-                )
+    return render(
+        request, 
+        'cl-docs/contact-us.html', 
+        { 'form': form, 'message_sent': sent_status }
+    )
 
 def check_recaptcha(request):
     '''
         Contact Us Recaptcha code
     '''
+    if settings.IS_DEVELOPMENT_PC:
+        return True
+
     if settings.CLL_READ_ONLY:
         raise PermissionDenied
     
     if request.method == 'POST':
-        recaptcha_response = request.POST.get('g-recaptcha-response')
         data = {
             'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
-            'response': recaptcha_response
+            'response': request.POST.get('g-recaptcha-response')
         }
-        r = requests.post(
-                            'https://www.google.com/recaptcha/api/siteverify',
-                            data=data,
-                            proxies={'https': 'http://proxy:8080/'}
-                        )
-        result = r.json()
+        result = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data=data,
+            proxies={ 'https': 'http://proxy:8080/' }
+        ).json()
+
         if result['success']:
-            recaptcha_is_valid = True
-        else:
-            recaptcha_is_valid = False
-        return recaptcha_is_valid
+            return True
+        
+        return False
 
 
 def reference_data(request):

@@ -196,8 +196,16 @@
   font-family: inherit;
   margin: 1rem 0 0 0;
 
+  &.no-margin {
+    margin: 0;
+  }
+
   &.fill-width {
     width: 100%;
+  }
+
+  &.constrained {
+    max-width: 100%;
   }
 
   &__mandatory {
@@ -238,16 +246,39 @@
   &__header-item {
     @include flex-col();
   }
+
+  &__none-available {
+    display: block;
+    padding: 1rem;
+    border-radius: 0.1rem;
+    background-color: col(accent-semi-transparent);
+    margin-bottom: 0.5rem;
+
+    &-message {
+      text-align: center;
+    }
+
+    &:not(.show) {
+      display: none;
+    }
+  }
 }
 
 .date-range-field {
   display: flex;
+  flex-flow: row nowrap;
   padding: 0;
   margin: 0;
   border: 0;
   width: 100%;
 
+  &.wrapped {
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+
   &__label {
+    display: flex;
     margin-right: 0.5rem;
 
     &:last-of-type {
@@ -290,6 +321,10 @@
   &.min-size {
     max-width: fit-content;
     margin-right: 0.5rem;
+  }
+
+  &.ignore-overflow {
+    overflow: visible;
   }
 }
 
@@ -432,6 +467,17 @@
   border: 0;
   width: 100%;
   height: fit-content;
+
+  &.indented {
+    padding: 0 0 0 0.5rem;
+  }
+
+  &.scrollable {
+    max-height: 45vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex-wrap: nowrap;
+  }
 }
 
 .code-text-input {
@@ -445,10 +491,10 @@
     cursor: pointer;
     display: block;
     position: absolute;
-    right: 8px;
-    top: 12px;
-    width: 20px;
-    height: 20px;
+    right: 5px;
+    top: 20%;
+    height: 55%;
+    aspect-ratio: 1 / 1;
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23687FCB' viewBox='0 0 16 16'%3e%3cpath d='M0 14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2v12zm4.5-6.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5a.5.5 0 0 1 0-1z'/%3e%3c/svg%3e");
     background-size: 20px;
     background-repeat: no-repeat;
@@ -458,6 +504,19 @@
 
 .text-area-input {
   resize: vertical;
+
+  &.simple {
+    @include remove-appearance();
+  
+    font-family: inherit;
+    margin-top: 0.25rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid col(accent-dark);
+    border-radius: 2px;
+    padding: 0.5rem;
+    width: auto;
+    transition: border-color 250ms ease;
+  }
 }
 
 .selection-input {

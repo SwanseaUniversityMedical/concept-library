@@ -3,7 +3,6 @@ import datetime
 
 from celery import shared_task
 
-from clinicalcode.api.views.Concept import published_concepts
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin  # , UserPassesTestMixin

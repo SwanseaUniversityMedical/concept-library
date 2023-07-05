@@ -8,18 +8,15 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import BadRequest
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseNotFound
 from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.template.loader import render_to_string
-from django.templatetags.static import static
-from django.views.generic import DetailView, TemplateView
-from django.views.generic.base import TemplateResponseMixin, View
-from django.views.generic.edit import UpdateView
+from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
+from rest_framework.views import APIView
 from collections import OrderedDict
 
 import csv
@@ -63,7 +60,7 @@ class EntitySearchView(TemplateView):
         # Get the renderable, published entities that match our request params & the selected entity_type (optional)
         entity_type_param = kwargs.get('entity_type')
         entity_type = search_utils.try_derive_entity_type(entity_type_param)
-
+        
         # Raise 404 when trying to access an entity class that does not exist
         if entity_type_param is not None and entity_type is None:
             raise Http404
@@ -109,20 +106,98 @@ class EntitySearchView(TemplateView):
             
         return render(request, self.template_name, context)
 
+class EntityDescendantSelection(APIView):
+    '''
+        Selection Service View
+            @desc API-like view for internal services to discern
+                  template-related information and to retrieve
+                  entity descendant data via search
+            
+            @note Could be moved to API in future?
+    '''
+    fetch_methods = ['get_filters', 'get_results']
+
+    ''' Private methods '''
+    def __get_template(self, template_id):
+        '''
+            Attempts to get the assoc. template if available or raises a bad request
+        '''
+        template = model_utils.try_get_instance(Template, pk=template_id)
+        if template is None:
+            raise BadRequest('Template ID is invalid')
+        return template
+
+    ''' View methods '''
+    @method_decorator([login_required, permission_utils.redirect_readonly])
+    def dispatch(self, request, *args, **kwargs):
+        '''
+            @desc Dispatch view if not in read-only and user is authenticated
+        '''
+        return super(EntityDescendantSelection, self).dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        '''
+            @desc Provides contextual data
+        '''
+        context = { }
+        request = self.request
+
+        template_id = gen_utils.parse_int(kwargs.get('template_id'), default=None)
+        if template_id is None:
+            raise BadRequest('Invalid request')
+        return context | { 'template_id': template_id }
+    
+    def get(self, request, *args, **kwargs):
+        '''
+            @desc Handles GET requests made by the client and directs
+                  the params to the appropriate method given the fetch target
+        '''
+        if gen_utils.is_fetch_request(request):
+            method = gen_utils.handle_fetch_request(request, self, *args, **kwargs)
+            return method(request, *args, **kwargs)
+        raise BadRequest('Invalid request')
+
+    ''' Fetch methods '''
+    def get_filters(self, request, *args, **kwargs):
+        '''
+            @desc Gets the filter specification for this template
+        '''
+        context = self.get_context_data(*args, **kwargs)
+        
+        template = self.__get_template(context.get('template_id'))
+        template_filters = search_utils.get_template_filters(request, template, default=[])
+        metadata_filters = search_utils.get_metadata_filters(request)
+
+        return JsonResponse({
+            'template': template_filters,
+            'metadata': metadata_filters,
+        })
+    
+    def get_results(self, request, *args, **kwargs):
+        '''
+            @desc Gets the search results for the desired template
+                  after applying query params
+        '''
+        context = self.get_context_data(*args, **kwargs)
+        template_id = context.get('template_id')
+        result = search_utils.get_template_entities(request, template_id)
+        return JsonResponse(result)
+
 class CreateEntityView(TemplateView):
     '''
         Entity Create View
             @desc Used to create entities
             
             @note CreateView isn't used due to the requirements
-                  of having a form dynamically created to reflect the dynamic model.
+                  of having a form dynamically created to
+                  reflect the dynamic model.
     '''
-    fetch_methods = ['search_codes', 'get_options']
+    fetch_methods = ['search_codes', 'get_options', 'import_rule', 'import_concept']
     templates = {
         'form': 'clinicalcode/generic_entity/creation/create.html',
         'select': 'clinicalcode/generic_entity/creation/select.html'
     }
-    
+
     ''' View methods '''
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def dispatch(self, request, *args, **kwargs):
@@ -148,7 +223,8 @@ class CreateEntityView(TemplateView):
                   will respond with appropriate method, if applicable.
         '''
         if gen_utils.is_fetch_request(request):
-            return self.fetch_response(request, *args, **kwargs)
+            method = gen_utils.handle_fetch_request(request, self, *args, **kwargs)
+            return method(request, *args, **kwargs)
         
         return self.render_view(request, *args, **kwargs)
 
@@ -192,7 +268,7 @@ class CreateEntityView(TemplateView):
             'success': True,
             'entity': { 'id': entity.id, 'history_id': entity.history_id },
             'redirect': reverse('entity_history_detail', kwargs={ 'pk': entity.id, 'history_id': entity.history_id })
-        })        
+        })
 
     ''' Main view render '''
     def render_view(self, request, *args, **kwargs):
@@ -265,16 +341,64 @@ class CreateEntityView(TemplateView):
         return render(request, self.templates.get('form'), context)
 
     ''' Fetch methods '''
-    def fetch_response(self, request, *args, **kwargs):
+    def import_rule(self, request, *args, **kwargs):
         '''
-            @desc Parses the X-Target header to determine which GET method
-                  to respond with
+            @desc GET request made by client to retrieve the codelist assoc.
+                  with the concept they are attempting to import as a rule
         '''
-        target = request.headers.get('X-Target', None)
-        if target is None or target not in self.fetch_methods:
-            raise BadRequest('No such target')
+        concept_id = gen_utils.try_get_param(request, 'concept_id')
+        concept_version_id = gen_utils.try_get_param(request, 'concept_version_id')
+        if concept_id is None or concept_version_id is None:
+            raise BadRequest('Parameters are missing')
+
+        concept_id = gen_utils.parse_int(concept_id)
+        concept_version_id = gen_utils.parse_int(concept_version_id)
+        if concept_id is None or concept_version_id is None:
+            raise BadRequest('Parameter type mismatch')
         
-        return getattr(self, target)(request, *args, **kwargs)
+        concept = concept_utils.get_clinical_concept_data(
+            concept_id,
+            concept_version_id,
+            include_component_codes=False,
+            aggregate_component_codes=False,
+            include_reviewed_codes=True
+        )
+
+        return JsonResponse({
+            'concept_id': concept_id,
+            'concept_version_id': concept_version_id,
+            'codelist': concept.get('codelist')
+        })
+    
+    def import_concept(self, request, *args, **kwargs):
+        '''
+            @desc GET request made by client to retrieve codelists assoc.
+                  with the concepts they are attempting to import as top-level objects
+        '''
+        concept_ids = gen_utils.try_get_param(request, 'concept_ids')
+        concept_version_ids = gen_utils.try_get_param(request, 'concept_version_ids')
+        if concept_ids is None or concept_version_ids is None:
+            raise BadRequest('Parameters are missing')
+        
+        concept_ids = [gen_utils.parse_int(x) for x in concept_ids.split(',') if gen_utils.parse_int(x)]
+        concept_version_ids = [gen_utils.parse_int(x) for x in concept_version_ids.split(',') if gen_utils.parse_int(x)]
+        if len(concept_ids) != len(concept_version_ids):
+            raise BadRequest('Parameter mismatch')
+        
+        concepts = [
+            concept_utils.get_clinical_concept_data(
+                concept[0],
+                concept[1],
+                aggregate_component_codes=True,
+            ) | {
+                'has_edit_access': False,
+            }
+            for concept in zip(concept_ids, concept_version_ids)
+        ]
+        
+        return JsonResponse({
+            'concepts': concepts
+        })
     
     def get_options(self, request, *args, **kwargs):
         '''
@@ -351,11 +475,32 @@ class EntityStatisticsView(TemplateView):
     def get(self, request, *args, **kwargs):
         if not request.user.is_superuser:
             raise PermissionDenied
-        
+
         stats_utils.collect_statistics(request)
-        return render(request, 'clinicalcode/admin/run_statistics.html', {
+        context = {
             'successMsg': ['Filter statistics for Concepts/Phenotypes saved'],
-        })
+        }
+
+        return render(request, 'clinicalcode/admin/run_statistics.html', context)
+
+def run_HDRUK_statistics(request):
+    """
+        save HDR-UK home page statistics
+    """
+    #     if not request.user.is_superuser:
+    #         raise PermissionDenied
+
+    if settings.CLL_READ_ONLY:
+        raise PermissionDenied
+
+    if request.method == 'GET':
+        stat = stats_utils.save_HDRUK_statistics(request)
+        return render(request, 'clinicalcode/admin/run_statistics.html', 
+                    {
+                        'successMsg': ['HDR-UK statistics saved'],
+                        'stat': stat
+                    })
+
 
 class ExampleSASSView(TemplateView):
     template_name = 'clinicalcode/generic_entity/examples.html'
@@ -409,144 +554,8 @@ def generic_entity_list_temp(request):
     
     return render(request, 'clinicalcode/generic_entity/search_temp.html', context)
 
-
-def get_history_table_data(request, pk):
-    """"
-        get history table data for the template
-    """
-    
-    versions = GenericEntity.objects.get(pk=pk).history.all()
-    historical_versions = []
-
-    for v in versions:
-        ver = entity_db_utils.get_historical_entity(pk, v.history_id
-                                        , highlight_result = [False, True][entity_db_utils.is_referred_from_search_page(request)]
-                                        , q_highlight = entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))
-                                        , include_template_data = False  
-                                        )
-        
-        if ver['owner_id'] is not None:
-            ver['owner'] = User.objects.get(id=int(ver['owner_id']))
-
-        if ver['created_by_id'] is not None:
-            ver['created_by'] = User.objects.get(id=int(ver['created_by_id']))
-
-        ver['updated_by'] = None
-        if ver['updated_by_id'] is not None:
-            ver['updated_by'] = User.objects.get(pk=ver['updated_by_id'])
-
-        is_this_version_published = False
-        is_this_version_published = checkIfPublished(GenericEntity, ver['id'], ver['history_id'])
-
-        if is_this_version_published:
-            ver['publish_date'] = PublishedGenericEntity.objects.get(entity_id=ver['id'], entity_history_id=ver['history_id'], approval_status=2).created
-        else:
-            ver['publish_date'] = None
-
-        ver['approval_status'] = -1
-        ver['approval_status_label'] = ''
-        if PublishedGenericEntity.objects.filter(entity_id=ver['id'], entity_history_id=ver['history_id']).exists():
-            ver['approval_status'] = PublishedGenericEntity.objects.get(entity_id=ver['id'], entity_history_id=ver['history_id']).approval_status
-            ver['approval_status_label'] = APPROVED_STATUS[ver['approval_status']][1]        
-        
-        
-        if request.user.is_authenticated:
-            if permission_utils.can_user_edit_entity(request, pk) or permission_utils.can_user_view_entity(request, pk):
-                historical_versions.append(ver)
-            else:
-                if is_this_version_published:
-                    historical_versions.append(ver)
-        else:
-            if is_this_version_published:
-                historical_versions.append(ver)
-                
-    return historical_versions
    
-   
-def get_concept_data(request, pk, history_id, generic_entity, is_latest_version, children_permitted_and_not_deleted):
-    """
-    get concept data from concept_informations
-    """
-    error_dict = {}
-    are_concepts_latest_version = True
-    
-    concept_id_list = []
-    concept_hisoryid_list = []
-    concepts = Concept.history.filter(pk=-1).values('id', 'history_id', 'name', 'group')
-
-    if generic_entity['fields_data']['concept_information']:
-        concept_information = generic_entity['fields_data']['concept_information']['value']
-        concept_id_list = [x['concept_id'] for x in concept_information]
-        concept_hisoryid_list = [x['concept_version_id'] for x in concept_information]
-        concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).values('id', 'history_id', 'name', 'group')
-
-    concepts_id_name = json.dumps(list(concepts))
-    
-    if request.user.is_authenticated:
-        if is_latest_version:
-            are_concepts_latest_version, version_alerts = check_concept_version_is_the_latest(pk)
-    
-    # how to show codelist tab
-    if request.user.is_authenticated:
-        component_tab_active = "active"
-        codelist_tab_active = ""
-        codelist = []
-        codelist_loaded = 0
-    else:
-        # published
-        component_tab_active = "active"  # ""
-        codelist_tab_active = ""  # "active"
-        codelist = entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id) ## change
-        codelist_loaded = 1
-        
-    # codelist = entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id)
-    # codelist_loaded = 1    
-    
-    conceptBrands = entity_db_utils.getConceptBrands(request, concept_id_list)
-    concept_data = []
-    if concept_information:
-        for c in concept_information:
-            c['codingsystem'] = CodingSystem.objects.get(pk=Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).coding_system_id).name
-            c['code_attribute_header'] = Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).code_attribute_header
-
-            c['alerts'] = ''
-            if not are_concepts_latest_version:
-                if c['concept_version_id'] in version_alerts:
-                    c['alerts'] = version_alerts[c['concept_version_id']]
-
-            if not children_permitted_and_not_deleted:
-                if c['concept_id'] in error_dict:
-                    c['alerts'] += "<BR>- " + "<BR>- ".join(error_dict[c['concept_id']])
-
-            c['alerts'] = re.sub("Child ", "", c['alerts'], flags=re.IGNORECASE)
-
-            c['brands'] = ''
-            if c['concept_id'] in conceptBrands:
-                for brand in conceptBrands[c['concept_id']]:
-                    c['brands'] += "<img src='" + static('img/brands/' + brand + '/logo.png') + "' height='10px' title='" + brand + "' alt='" + brand + "' /> "
-
-            c['is_published'] = checkIfPublished(Concept, c['concept_id'], c['concept_version_id'])
-            c['name'] = concepts.get(id=c['concept_id'], history_id=c['concept_version_id'])['name']
-
-            c['codesCount'] = 0
-            if codelist:
-                c['codesCount'] = len([x['code'] for x in codelist if x['concept_id'] == 'C' + str(c['concept_id']) and x['concept_version_id'] == c['concept_version_id'] ])
-
-            c['concept_friendly_id'] = 'C' + str(c['concept_id'])
-            concept_data.append(c)
-
-    ret_dict = {        
-        #'concept_information': json.dumps(concept_information),
-        'component_tab_active': component_tab_active,
-        'codelist_tab_active': codelist_tab_active,
-        'codelist': codelist,  # json.dumps(codelist)
-        'codelist_loaded': codelist_loaded,
-        'concepts_id_name': concepts_id_name,
-        'concept_data': concept_data,
-        }
-    
-    return ret_dict
-   
+      
 @login_required
 # phenotype_conceptcodesByVersion
 def phenotype_concept_codes_by_version(request,
@@ -684,52 +693,25 @@ def generic_entity_detail(request, pk, history_id=None):
     approval_status = get_publish_approval_status(GenericEntity, pk, history_id)
     is_lastapproved = len(PublishedGenericEntity.objects.filter(entity_id=pk, approval_status=constants.APPROVAL_STATUS.APPROVED)) > 0
 
-    # ----------------------------------------------------------------------
-
-    #########################################################################
     generic_entity = entity_db_utils.get_historical_entity(pk, history_id
                                             , highlight_result = [False, True][entity_db_utils.is_referred_from_search_page(request)]
                                             , q_highlight = entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))  
                                             )
-    # # The historical entity contains the owner_id, to provide the owner name, we
-    # # need to access the user object with that ID and add that to the generic_entity.
-    # if generic_entity['owner_id'] is not None:
-    #     generic_entity['owner'] = User.objects.get(id=int(generic_entity['owner_id']))
-        
-    # generic_entity['group'] = None
-    # if generic_entity['group_id'] is not None:
-    #     generic_entity['group'] = Group.objects.get(id=int(generic_entity['group_id']))
 
-    history_date = generic_entity.history_date
-
-
-
-################################################
     template_obj = Template.objects.get(pk=generic_entity.template.id)
     template = template_obj.history.filter(template_version=generic_entity.template_version).latest()
     template_definition = template.definition
     entity_class = template.entity_class.name
-
-        
-    side_menu = {} # get_side_menu(request, generic_entity['fields_data'])
-
-
-
-
-################################################
-
 
     is_latest_version = (int(history_id) == GenericEntity.objects.get(pk=pk).history.latest().history_id)
     is_latest_pending_version = False
 
     if len(PublishedGenericEntity.objects.filter(entity_id=pk, entity_history_id=history_id, approval_status=1)) > 0:
         is_latest_pending_version = True
-   # print(is_latest_pending_version)
 
 
     children_permitted_and_not_deleted = True
     error_dict = {}
-    #are_concepts_latest_version = True
     version_alerts = {}
 
     if request.user.is_authenticated:
@@ -763,29 +745,16 @@ def generic_entity_detail(request, pk, history_id=None):
     # published versions
     published_historical_ids = list(PublishedGenericEntity.objects.filter(entity_id=pk, approval_status=2).values_list('entity_history_id', flat=True))
 
-    # # history
-    history = get_history_table_data2(request, pk)
+    # history
+    history = get_history_table_data(request, pk)
    
 
-    # # rmd 
-    # if generic_entity['fields_data']['implementation'] is None:
-    #     generic_entity['fields_data']['implementation'] = ''
-
-
-
-
     context = {
-        'side_menu': side_menu,  
         'entity_class': entity_class,
         'entity': generic_entity,
-        #'entity_fields': generic_entity['fields_data'],
         'history': history,
-
-        ##### ???  #######
         'template': template,
-        ###################
-        'page_canonical_path': get_canonical_path_by_brand(request, GenericEntity, pk, history_id),
-        
+        'page_canonical_path': get_canonical_path_by_brand(request, GenericEntity, pk, history_id),        
         
         'user_can_edit': can_edit,  
         'allowed_to_create': user_allowed_to_create,
@@ -805,104 +774,13 @@ def generic_entity_detail(request, pk, history_id=None):
         'force_highlight_result':  ['0', '1'][entity_db_utils.is_referred_from_search_page(request)]                              
     }
 
-    if 'concept_information' in template.definition['fields']:
-        concept_dict = get_concept_data2(request, pk, history_id, generic_entity, is_latest_version, children_permitted_and_not_deleted)
-        context = context | concept_dict
-
-
-    
     return render(request, 
                   'clinicalcode/generic_entity/detail.html',
                   context 
                 )
 
 
-def get_concept_data2(request, pk, history_id, generic_entity, is_latest_version, children_permitted_and_not_deleted):
-    """
-    get concept data from concept_informations
-    """
-    error_dict = {}
-    are_concepts_latest_version = True
-    
-    concept_id_list = []
-    concept_hisoryid_list = []
-    concepts = Concept.history.filter(pk=-1).values('id', 'history_id', 'name', 'group')
-
-    if 'concept_information' in generic_entity.template_data:
-        concept_information = generic_entity.template_data['concept_information']#['value']
-        concept_id_list = [x['concept_id'] for x in concept_information]
-        concept_hisoryid_list = [x['concept_version_id'] for x in concept_information]
-        concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list).values('id', 'history_id', 'name', 'group')
-
-    concepts_id_name = json.dumps(list(concepts))
-    
-    if request.user.is_authenticated:
-        if is_latest_version:
-            are_concepts_latest_version, version_alerts = check_concept_version_is_the_latest(pk)
-    
-    # how to show codelist tab
-    if request.user.is_authenticated:
-        component_tab_active = "active"
-        codelist_tab_active = ""
-        codelist = []
-        codelist_loaded = 0
-    else:
-        # published
-        component_tab_active = "active"  # ""
-        codelist_tab_active = ""  # "active"
-        codelist = [] # entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id) ## change
-        codelist_loaded = 1
-        
-    # codelist = entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id)
-    # codelist_loaded = 1    
-    
-    conceptBrands = entity_db_utils.getConceptBrands(request, concept_id_list)
-    concept_data = []
-    if concept_information:
-        for c in concept_information:
-            c['codingsystem'] = CodingSystem.objects.get(pk=Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).coding_system_id).name
-            c['code_attribute_header'] = Concept.history.get(id=c['concept_id'], history_id=c['concept_version_id']).code_attribute_header
-
-            c['alerts'] = ''
-            if not are_concepts_latest_version:
-                if c['concept_version_id'] in version_alerts:
-                    c['alerts'] = version_alerts[c['concept_version_id']]
-
-            if not children_permitted_and_not_deleted:
-                if c['concept_id'] in error_dict:
-                    c['alerts'] += "<BR>- " + "<BR>- ".join(error_dict[c['concept_id']])
-
-            c['alerts'] = re.sub("Child ", "", c['alerts'], flags=re.IGNORECASE)
-
-            c['brands'] = ''
-            if c['concept_id'] in conceptBrands:
-                for brand in conceptBrands[c['concept_id']]:
-                    c['brands'] += "<img src='" + static('img/brands/' + brand + '/logo.png') + "' height='10px' title='" + brand + "' alt='" + brand + "' /> "
-
-            c['is_published'] = checkIfPublished(Concept, c['concept_id'], c['concept_version_id'])
-            c['name'] = concepts.get(id=c['concept_id'], history_id=c['concept_version_id'])['name']
-
-            c['codesCount'] = 0
-            if codelist:
-                c['codesCount'] = len([x['code'] for x in codelist if x['concept_id'] == 'C' + str(c['concept_id']) and x['concept_version_id'] == c['concept_version_id'] ])
-
-            c['concept_friendly_id'] = 'C' + str(c['concept_id'])
-            concept_data.append(c)
-
-    ret_dict = {        
-        #'concept_information': json.dumps(concept_information),
-        'component_tab_active': component_tab_active,
-        'codelist_tab_active': codelist_tab_active,
-        'codelist': codelist,  # json.dumps(codelist)
-        'codelist_loaded': codelist_loaded,
-        'concepts_id_name': concepts_id_name,
-        'concept_data': concept_data,
-        }
-    # print('jjjjjjjjjjjjjjjjjj')
-    # print(str(ret_dict))
-    return ret_dict
-
-def get_history_table_data2(request, pk):
+def get_history_table_data(request, pk):
     """"
         get history table data for the template
     """
@@ -916,16 +794,6 @@ def get_history_table_data2(request, pk):
                                         , q_highlight = entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))
                                         , include_template_data = False  
                                         )
-        
-        # if ver['owner_id'] is not None:
-        #     ver['owner'] = User.objects.get(id=int(ver['owner_id']))
-
-        # if ver['created_by_id'] is not None:
-        #     ver['created_by'] = User.objects.get(id=int(ver['created_by_id']))
-
-        # ver['updated_by'] = None
-        # if ver['updated_by_id'] is not None:
-        #     ver['updated_by'] = User.objects.get(pk=ver['updated_by_id'])
 
         is_this_version_published = False
         is_this_version_published = checkIfPublished(GenericEntity, ver.id, ver.history_id)
@@ -965,10 +833,7 @@ def export_entity_codes_to_csv(request, pk, history_id=None):
         history_id = try_get_valid_history_id(request, GenericEntity, pk)        
         
     # validate access for login and public site
-    validate_access_to_view(request,
-                            GenericEntity,
-                            pk,
-                            set_history_id=history_id)
+    permission_utils.validate_access_to_view(request, pk, history_id)
 
     is_published = checkIfPublished(GenericEntity, pk, history_id)
 
@@ -1015,12 +880,11 @@ def export_entity_codes_to_csv(request, pk, history_id=None):
         'concept_id', 'concept_version_id', 'concept_name',
         'phenotype_id', 'phenotype_version_id', 'phenotype_name'
         ])
+    
     # if the phenotype contains only one concept, write titles in the loop below
-    if len(concept_ids_historyIDs) != 1:
-        final_titles = final_titles + ["code_attributes"]
-        writer.writerow(final_titles)
+    final_titles = final_titles + ["code_attributes"]
+    writer.writerow(final_titles)
         
-
     for concept in concept_ids_historyIDs:
         concept_id = concept[0]
         concept_version_id = concept[1]
@@ -1028,52 +892,28 @@ def export_entity_codes_to_csv(request, pk, history_id=None):
         concept_coding_system = current_concept_version.coding_system.name
         concept_name = current_concept_version.name
         code_attribute_header = current_concept_version.code_attribute_header
-        concept_history_date = current_concept_version.history_date
         
-        rows_no = 0
-        # codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
-
-        # #---------------------------------------------
-        # #  code attributes  ---
-        # codes_with_attributes = []
-        # if code_attribute_header:
-        #     codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(concept_id=concept_id,
-        #                                                                             concept_history_date=concept_history_date,
-        #                                                                             allCodes=codes,
-        #                                                                             code_attribute_header=code_attribute_header)
-        
-        #     codes = codes_with_attributes
-        
+        rows_no = 0        
         concept_data = concept_utils.get_clinical_concept_data(concept_id,
                                                       concept_version_id,
                                                       include_component_codes=False,
                                                       include_attributes=True,
                                                       include_reviewed_codes=True)
             
-        # if the phenotype contains only one concept
-        if len(concept_ids_historyIDs) == 1:
-            if code_attribute_header:
-                final_titles = final_titles + code_attribute_header
-                
-            writer.writerow(final_titles)
-    
         #---------------------------------------------
-
         
         for cc in concept_data['codelist']:
             rows_no += 1
                          
             #---------------------------------------------   
             code_attributes = []
-            # if the phenotype contains only one concept
-            if len(concept_ids_historyIDs) == 1:
-                if code_attribute_header:
-                    code_attributes = cc['attributes']
-            else:
-                code_attributes_dict = OrderedDict([])
-                if code_attribute_header:
-                    code_attributes_dict = OrderedDict(zip(code_attribute_header, cc['attributes']))
-                    code_attributes.append(dict(code_attributes_dict))
+            code_attributes_dict = OrderedDict([])
+            if code_attribute_header:
+                code_attributes_dict = OrderedDict(zip(code_attribute_header, cc['attributes']))
+                code_attributes.append(dict(code_attributes_dict))
+                
+            if code_attributes:
+                code_attributes = [json.dumps(code_attributes)]
             #---------------------------------------------
             
             

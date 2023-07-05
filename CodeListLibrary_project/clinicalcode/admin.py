@@ -10,6 +10,7 @@ from .models.Template import Template
 from .forms.TemplateForm import TemplateAdminForm
 from .forms.EntityClassForm import EntityAdminForm
 
+import datetime
 # Register your models here.
 
 @admin.register(CodingSystemFilter)
@@ -37,6 +38,7 @@ class TagAdmin(admin.ModelAdmin):
             instance.created_by = user
 
         instance.updated_by = user
+        instance.modified = datetime.datetime.now()
         instance.save()
         form.save_m2m()
 
@@ -90,9 +92,16 @@ class TemplateAdmin(admin.ModelAdmin):
                 order.append(field)
             obj.definition['layout_order'] = order
             
-            version = obj.definition.get('version', None)
+            details = obj.definition.get('template_details') or { }
+            version = details.get('version', None)
             if version != obj.template_version:
                 obj.template_version = version
+                
+        if not change or not obj.created_by:
+            obj.created_by = request.user
+
+        obj.updated_by = request.user
+        obj.modified = datetime.datetime.now()
         
         obj.save()
     

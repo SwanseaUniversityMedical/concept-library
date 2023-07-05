@@ -285,6 +285,17 @@ class FilterService {
       .catch(error => console.error(error));
   }
 
+  /**
+   * resetPage
+   * @desc Force reset page on filter mutation
+   */
+  #resetPage() {
+    if (isNullOrUndefined(this.query.page)) {
+      return;
+    }
+    this.query.page = 1;
+  }
+
   /*************************************
    *                                   *
    *                Init               *
@@ -457,6 +468,7 @@ class FilterService {
 
     const filterItem = this.filters[field];
     this.query[field] = filterItem.filter.value;
+    this.#resetPage();
     this.#postQuery();
   }
 
@@ -475,6 +487,7 @@ class FilterService {
     }
 
     this.query[field] = [start.format(FILTER_DATEPICKER_FORMAT), end.format(FILTER_DATEPICKER_FORMAT)]
+    this.#resetPage();
     this.#postQuery();
   }
 
@@ -502,6 +515,7 @@ class FilterService {
       }
 
       this.query[field].push(value);
+      this.#resetPage();
       this.#postQuery();
       return;
     }
@@ -511,6 +525,7 @@ class FilterService {
     }
 
     this.query[field].splice(index, 1);
+    this.#resetPage();
     this.#postQuery();
     return;
   }
@@ -539,6 +554,7 @@ class FilterService {
     }
 
     this.query[field] = value;
+    this.#resetPage();
     this.#postQuery();
   }
 
@@ -570,6 +586,7 @@ class FilterService {
     }
 
     this.query[field] = value;
+    this.#resetPage();
     this.#postQuery();
   }
 

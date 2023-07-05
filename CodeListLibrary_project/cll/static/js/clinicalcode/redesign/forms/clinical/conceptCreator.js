@@ -1,4 +1,5 @@
 import { parse as parseCSV } from '../../vendor/csv.min.js';
+import { ConceptSelectionService } from '../../services/conceptSelectionService.js';
 
 /**
  * tryCleanCodingCSV
@@ -44,7 +45,7 @@ const tryCleanCodingItem = (val, row, col) => {
     return;
   }
   
-  return val.replace(/^\s+|\s+$/gm,'');
+  return val.replace(/^\s+|\s+$/gm, '');
 }
 
 /**
@@ -115,31 +116,43 @@ const CONCEPT_CREATOR_SOURCE_TYPES = {
     name: 'CONCEPT',
     value: 1,
     template: 'file-rule',
+    disabled: true,
   },
   QUERY_BUILDER: { 
     name: 'QUERY_BUILDER',
     value: 2,
     template: 'file-rule',
+    disabled: true,
   },
   EXPRESSION: {
     name: 'EXPRESSION',
     value: 3,
     template: 'file-rule',
+    disabled: true,
   },
   SELECT_IMPORT: {
     name: 'SELECT_IMPORT',
     value: 4,
     template: 'file-rule',
+    disabled: true,
   },
   FILE_IMPORT: {
     name: 'FILE_IMPORT',
     value: 5,
     template: 'file-rule',
+    disabled: true,
   },
   SEARCH_TERM: {
     name: 'SEARCH_TERM',
     value: 6,
     template: 'search-rule',
+    disabled: false,
+  },
+  CONCEPT_IMPORT: {
+    name: 'CONCEPT_IMPORT',
+    value: 7,
+    template: 'concept-rule',
+    disabled: true,
   },
 }
 
@@ -165,7 +178,7 @@ const CONCEPT_CREATOR_FILE_UPLOAD = {
  * CONCEPT_CREATOR_MIN_MSG_DURATION
  * @desc Min. message duration for toast notif popups
  */
-const CONCEPT_CREATOR_MIN_MSG_DURATION = 2000; // 2000ms, or 2s
+const CONCEPT_CREATOR_MIN_MSG_DURATION = 5000; // 5000ms, or 5s
 
 /**
  * CONCEPT_CREATOR_LIMITS
@@ -236,19 +249,31 @@ const CONCEPT_CREATOR_TEXT = {
     content: '<p>Are you sure you want to delete this Concept from your Phenotype?</p>',
   },
   // Toast to inform user to close editor
-  REQUIE_EDIT_CLOSURE: 'Please close the editor before trying to delete a Concept.',
+  REQUIRE_EDIT_CLOSURE: 'Please close the editor before trying to delete a Concept.',
   // Toast for Concept name validation
   REQUIRE_CONCEPT_NAME: 'You need to name your Concept before saving',
   // Toast for Concept CodingSystem validation
-  REQUIE_CODING_SYSTEM: 'You need to select a coding system before saving!',
+  REQUIRE_CODING_SYSTEM: 'You need to select a coding system before saving!',
   // Toast to inform user that no code was matched
   NO_CODE_SEARCH_MATCH: 'No matches for "${value}..."',
+  // Toast to inform user we exchanged codes for a null match
+  NO_CODE_SEARCH_EXCHANGE: 'No matches for "${value}...", removed ${code_len} codes',
   // Toast to inform user that the search codes were added
   ADDED_SEARCH_CODES: 'Added ${code_len} codes for "${value}..."',
+  // Toast to inform user that the search codes were exchanged
+  EXCHANGED_SEARCH_CODES: 'Exchanged ${prev_code_len} codes for ${new_code_len} for "${value}..."',
   // Toast to inform the user that the codes from the uploaded files were added
   ADDED_FILE_CODES: 'Added ${code_len} codes via File Upload',
   // Toast to inform the user there was an error when trying to upload their code file
   NO_CODE_FILE_MATCH: 'Unable to parse uploaded file. Please try again.',
+  // Toast to inform the user that the codes from the imported concept(s) were added
+  ADDED_CONCEPT_CODES: 'Added ${code_len} codes via Concept Import',
+  // Toast to inform the user there was an error when trying to upload their code file
+  NO_CONCEPT_MATCH: 'We were unable to add this Concept. Please try again.',
+  // Toast to inform the user they tried to import non-distinct top-level concepts
+  CONCEPT_IMPORTS_ARE_PRESENT: 'Already imported ${failed}',
+  // Toast to inform the user they tried to import non-distinct rule-level concepts
+  CONCEPT_RULE_IS_PRESENT: 'You have already imported this Concept as a rule',
 }
 
 /**
@@ -276,6 +301,15 @@ export default class ConceptCreator {
    *               Getter              *
    *                                   *
    *************************************/
+  /**
+   * isInEditor
+   * @desc a method to define editor status
+   * @returns {boolean} reflects active editor state
+   */
+  isInEditor() {
+    return !!this.state.editing;
+  }
+
   /**
    * getData
    * @desc gets the current concept data, excluding any current changes
@@ -418,6 +452,114 @@ export default class ConceptCreator {
    *                                   *
    *************************************/
   /**
+   * tryImportConcepts
+   * @desc prompts the user to import a Concept as a top-level object,
+   *       where the user can select 1 or more concepts to import
+   * @returns {promise} that can be used as a Thenable if required
+   */
+  tryImportConcepts() {
+    const prompt = new ConceptSelectionService({
+      promptTitle: 'Import Concepts',
+      template: this.template?.id,
+      allowMultiple: true
+    });
+
+    return prompt.show()
+      .then((data) => {
+        return this.#tryRetrieveCodelists(data);
+      });
+  }
+
+  /**
+   * tryPromptConceptRuleImport
+   * @desc tries to prompt the user to import a Concept as a rule,
+   *       where the user is only able to select a single concept
+   *       that relates to the coding system they're currently working within
+   * @returns {promise} a promise that resolves with a concept's data,
+   *                    otherwise rejects
+   */
+  tryPromptConceptRuleImport() {
+    const codingSystem = this.state.data.coding_system;
+    if (isNullOrUndefined(codingSystem)) {
+      return Promise.reject();
+    }
+
+    const { id: codingSystemId, name: codingSystemName } = codingSystem;
+    if (isNullOrUndefined(codingSystemId) || isNullOrUndefined(codingSystemName)) {
+      return Promise.reject();
+    }
+
+    const prompt = new ConceptSelectionService({
+      promptTitle: `Import Concept as Rule (${codingSystemName})`,
+      template: this.template?.id,
+      allowMultiple: false,
+      ignoreFilters: ['coding_system'],
+      forceFilters: {
+        coding_system: codingSystemId,
+      },
+    });
+
+    return prompt.show()
+      .then((data) => {
+        return this.#tryRetrieveRuleCodelist(data);
+      });
+  }
+
+  /**
+   * tryRetrieveRuleCodelist
+   * @desc retrieves the Concept's codelist from the endpoint
+   * @param {object} concept the concept to retrieve
+   * @returns {object} the retrieved concept
+   */
+  #tryRetrieveRuleCodelist(concept) {
+    const parameters = new URLSearchParams({
+      template: this.template?.id,
+      concept_id: concept.id,
+      concept_version_id: concept.history_id,
+    });
+
+    return fetch(
+      `${getCurrentURL()}?` + parameters,
+      {
+        method: 'GET',
+        headers: {
+          'X-Target': 'import_rule',
+          'X-Requested-With': 'XMLHttpRequest',
+        }
+      }
+    )
+    .then(response => response.json());
+  }
+
+  /**
+   * tryRetrieveCodelists
+   * @param {list[object]} concepts of type [ {id: [int], history_id: [int] } ]
+   * @returns {list[object]} of type [ {concept_id: [int], history_id: [int], codelist: [list] }]
+   */
+  #tryRetrieveCodelists(concepts) {
+    const ids = concepts.map(item => item.id);
+    const versions = concepts.map(item => item.history_id);
+    const parameters = new URLSearchParams({
+      template: this.template?.id,
+      concept_ids: ids.join(','),
+      concept_version_ids: versions.join(','),
+    });
+
+    return fetch(
+      `${getCurrentURL()}?` + parameters,
+      {
+        method: 'GET',
+        headers: {
+          'X-Target': 'import_concept',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      }
+    )
+    .then(response => response.json())
+    .then(response => response.concepts);
+  }
+
+  /**
    * tryPromptFileUpload
    * @desc tries to open a file prompt, allowing the user to select the file as defined by
    *       ConceptCreator's const defaults
@@ -445,7 +587,7 @@ export default class ConceptCreator {
           }
         }
       });
-    })
+    });
   }
 
   /**
@@ -507,7 +649,7 @@ export default class ConceptCreator {
         }
       }
     )
-    .then(response => response.json())
+    .then(response => response.json());
   }
 
   /**
@@ -523,9 +665,9 @@ export default class ConceptCreator {
 
     // Prompt user to det. whether they want to close the editor despite losing progress
     return new Promise((resolve, reject) => {
-      promptClientModal(CONCEPT_CREATOR_TEXT.CLOSE_EDITOR)
-      .then(resolve)
-      .catch(reject);
+      window.ModalFactory.create(CONCEPT_CREATOR_TEXT.CLOSE_EDITOR)
+        .then(resolve)
+        .catch(reject);
     })
     .then(() => {
       const { id, history_id } = this.state.editing;
@@ -607,8 +749,12 @@ export default class ConceptCreator {
       }
     }
 
+    // Set up assoc. top-level button(s)
     const createBtn = this.element.querySelector('#create-concept-btn');
     createBtn.addEventListener('click', this.#handleConceptCreation.bind(this));
+
+    const importBtn = this.element.querySelector('#import-concept-btn');
+    importBtn.addEventListener('click', this.#handleConceptImporting.bind(this));
   }
 
   /*************************************
@@ -616,6 +762,71 @@ export default class ConceptCreator {
    *              Private              *
    *                                   *
    *************************************/
+  /**
+   * generateConceptRuleSource
+   * @desc generates the rule source name for a given concept
+   * @param {object} data the concept data returned from the prompt
+   * @returns {string} the source name
+   */
+  #generateConceptRuleSource(data) {
+    return `C${data.concept_id}/${data.concept_version_id}`;
+  }
+
+  /**
+   * getImportedName
+   * @desc modifies the concept's name to include its origin as a prefix
+   * @param {object} data the concept data
+   * @returns {string} the modified name
+   */
+  #getImportedName(data) {
+    const name = data.details.name;
+    const { concept_id: id, concept_version_id: history_id } = data;
+    return `C${id}/${history_id} - ${name}`;
+  }
+
+  /**
+   * isConceptRuleImportDistinct
+   * @desc ensures that the concept, imported as a rule in this case,
+   *       is distinct for its logical type
+   * @param {object} result the imported concept
+   * @param {string} logicalType the logical type of the rule i.e. include/exclude
+   * @returns {boolean} that reflects its uniqueness
+   */
+  #isConceptRuleImportDistinct(result, logicalType) {
+    const components = this.state.data?.components;
+    if (isNullOrUndefined(components)) {
+      return true;
+    }
+
+    const source = this.#generateConceptRuleSource(result);
+    const index = components?.findIndex(item => item?.source == source && item?.logical_type == logicalType);
+    return index < 0;
+  }
+
+  /**
+   * isConceptImportDistinct
+   * @desc ensures that the concept, imported as a top-level object in this case,
+   *       is distinct
+   * @param {object} result the imported concept
+   * @returns {boolean} that reflects its uniqueness
+   */
+  #isConceptImportDistinct(result) {
+    const index = this.data.findIndex(item => item?.concept_id == result?.concept_id && item.concept_version_id == result?.concept_version_id);
+    return index < 0;
+  }
+
+  /**
+   * deriveEditAccess
+   * @desc derives edit access (whether to render the edit button)
+   * @param {object} concept the concept to consider
+   * @returns {boolean} reflects edit access
+   */
+  #deriveEditAccess(concept) {
+    const canEdit = !isNullOrUndefined(concept?.details?.has_edit_access) ? concept?.details?.has_edit_access : false;
+    const isImported = concept?.imported;
+    return canEdit && !isImported;
+  }
+
   /**
    * getNextRuleCount
    * @desc gets n+1 of current rules
@@ -808,13 +1019,15 @@ export default class ConceptCreator {
    */
   #tryRenderConceptComponent(concept) {
     const template = this.templates['concept-item'];
+    const access = this.#deriveEditAccess(concept);
     const html = interpolateHTML(template, {
-      'concept_name': concept?.details?.name,
+      'concept_name': access ? concept?.details?.name : this.#getImportedName(concept),
       'concept_id': concept?.concept_id,
       'concept_version_id': concept?.concept_version_id,
       'coding_id': concept?.coding_system?.id,
       'coding_system': concept?.coding_system?.description,
-      'can_edit': concept?.details?.has_edit_access,
+      'can_edit': access,
+      'subheader': access ? 'Codelist' : 'Imported Codelist',
     });
 
     const containerList = this.element.querySelector('#concept-content-list');
@@ -1074,11 +1287,11 @@ export default class ConceptCreator {
     const checkbox = item.querySelector('.fill-accordian__input');
 
     // Add handler for each rule type, otherwise disable element
-    if (sourceInfo.template == 'file-rule') {
+    if (sourceInfo.disabled) {
       input.disabled = true;
     } else {
       // Open those that are still unused
-      if (!isNullOrUndefined(source)) {
+      if (isNullOrUndefined(source)) {
         checkbox.checked = true;
       }
 
@@ -1358,6 +1571,13 @@ export default class ConceptCreator {
         rule.codes = data?.content?.data;
       } break;
 
+      case 'concept-rule': {
+        const ruleSource = this.#generateConceptRuleSource(data);
+        rule.name = `Imported from ${ruleSource}`
+        rule.source = ruleSource;
+        rule.codes = data?.codelist;
+      } break;
+
       default: break;
     }
 
@@ -1407,7 +1627,7 @@ export default class ConceptCreator {
       }
 
       new Promise((resolve, reject) => {
-        promptClientModal(CONCEPT_CREATOR_TEXT.RULE_DELETION)
+        window.ModalFactory.create(CONCEPT_CREATOR_TEXT.RULE_DELETION)
         .then(resolve)
         .catch(reject);
       })
@@ -1507,35 +1727,74 @@ export default class ConceptCreator {
           });
 
           // Update row
+          const prevCodeLength = this.state.data.components?.[index]?.codes?.length;
           this.state.data.components[index].codes = codes.length > 0 ? codes : [ ];
           this.state.data.components[index].source = codes.length > 0 ? value : null;
           
+          // Blur the input focus
+          input.blur();
+
           // Apply changes and recompute codelist
           this.#tryRenderAggregatedCodelist();
           this.#computeAggregatedCodelist();
 
-          // Inform of null results
+          // Inform of null results (and inform of code loss if a prev. match was a success)
           if (codes.length < 1) {
+            if (prevCodeLength) {
+              this.#pushToast({
+                type: 'danger',
+                message: interpolateHTML(
+                  CONCEPT_CREATOR_TEXT.NO_CODE_SEARCH_EXCHANGE,
+                  {
+                    value: value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE),
+                    code_len: prevCodeLength,
+                  }
+                )
+              });
+
+              return;
+            }
+
             this.#pushToast({
               type: 'danger',
-              message: interpolateHTML(CONCEPT_CREATOR_TEXT.NO_CODE_SEARCH_MATCH, {
-                value: value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE)
-              })
+              message: interpolateHTML(
+                CONCEPT_CREATOR_TEXT.NO_CODE_SEARCH_MATCH,
+                {
+                  value: value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE)
+                }
+              )
             });
             
             return;
           }
 
-          // Disable future use now that the rule has been set
-          input.blur();
+          // If we reran search / changed search term, inform user of exchange count
+          if (prevCodeLength) {
+            this.#pushToast({
+              type: 'success',
+              message: interpolateHTML(
+                CONCEPT_CREATOR_TEXT.EXCHANGED_SEARCH_CODES,
+                {
+                  prev_code_len: prevCodeLength,
+                  new_code_len: codes.length.toLocaleString(),
+                  value: value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE),
+                }
+              )
+            });
+
+            return;
+          }
 
           // Inform user of result count
           this.#pushToast({
             type: 'success',
-            message: interpolateHTML(CONCEPT_CREATOR_TEXT.ADDED_SEARCH_CODES, {
-              code_len: codes.length.toLocaleString(),
-              value: value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE),
-            })
+            message: interpolateHTML(
+              CONCEPT_CREATOR_TEXT.ADDED_SEARCH_CODES,
+              {
+                code_len: codes.length.toLocaleString(),
+                value: value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE),
+              }
+            )
           });
         })
         .catch(() => { /* SINK */ });
@@ -1550,8 +1809,8 @@ export default class ConceptCreator {
   #handleRulesetAddition(e) {
     const target = e.target;
     const dropdown = target.parentNode.parentNode;
-
     const logicalType = dropdown.getAttribute('data-type');
+
     let sourceType = target.getAttribute('data-source');
     sourceType = CONCEPT_CREATOR_SOURCE_TYPES[sourceType];
     
@@ -1565,6 +1824,7 @@ export default class ConceptCreator {
                 code_len: content?.content?.data.length.toLocaleString(),
               })
             });
+
             this.#tryAddNewRule(logicalType, sourceType, content);
           })
           .catch(e => {
@@ -1574,6 +1834,32 @@ export default class ConceptCreator {
 
       case 'search-rule': {
         this.#tryAddNewRule(logicalType, sourceType);
+      } break;
+
+      case 'concept-rule': {
+        this.tryPromptConceptRuleImport()
+          .then(result => {
+
+            if (!this.#isConceptRuleImportDistinct(result, logicalType)) {
+              this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.CONCEPT_RULE_IS_PRESENT});
+            } else {
+              this.#pushToast({
+                type: 'success',
+                message: interpolateHTML(CONCEPT_CREATOR_TEXT.ADDED_CONCEPT_CODES, {
+                  code_len: result?.codelist.length.toLocaleString(),
+                })
+              })
+  
+              this.#tryAddNewRule(logicalType, sourceType, result);
+            }
+          })
+          .catch(e => {
+            if (!isNullOrUndefined(e)) {
+              this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.NO_CONCEPT_MATCH});
+              console.error(e);
+              return;
+            }
+          })
       } break;
 
       default: break;
@@ -1636,7 +1922,7 @@ export default class ConceptCreator {
     }
 
     if (isNullOrUndefined(data?.coding_system)) {
-      this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.REQUIE_CODING_SYSTEM});
+      this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.REQUIRE_CODING_SYSTEM});
       return;
     }
 
@@ -1664,7 +1950,49 @@ export default class ConceptCreator {
     // Inform the parent form we're dirty
     this.makeDirty(data?.concept_id, data?.concept_version_id);
   }
-  
+
+  /**
+   * handleConceptImporting
+   * @desc handles the importing of a concept when a user interacts with the assoc. button
+   * @param {event} e the assoc. event
+   */
+  #handleConceptImporting(e) {
+    this.tryCloseEditor()
+      .then(() => {
+        return this.tryImportConcepts();
+      })
+      .then((concepts) => {
+        const failedImports = [];
+        for (let i = 0; i < concepts.length; ++i) {
+          const data = concepts[i];
+          if (!this.#isConceptImportDistinct(data)) {
+            failedImports.push(this.#generateConceptRuleSource(data));
+            continue;
+          }
+
+          data.imported = true;
+          this.data.push(data);
+
+          this.#tryRenderConceptComponent(data);
+        }
+        this.#toggleNoConceptBox(this.data.length > 0);
+
+        if (failedImports.length > 0) {
+          this.#pushToast({
+            type: 'danger',
+            message: interpolateHTML(CONCEPT_CREATOR_TEXT.CONCEPT_IMPORTS_ARE_PRESENT, {
+              failed: failedImports.join(', '),
+            }),
+          });
+        }
+      })
+      .catch((e) => {
+        if (!isNullOrUndefined(e)) {
+          console.error(e);
+        }
+      })
+  }
+
   /**
    * handleConceptCreation
    * @desc handles the creation of a concept when the user selects the 'Add Concept' button
@@ -1729,12 +2057,12 @@ export default class ConceptCreator {
    */
   #handleDeletion(target) {
     if (this.state.editing) {
-      this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.REQUIE_EDIT_CLOSURE });
+      this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.REQUIRE_EDIT_CLOSURE });
       return;
     }
 
     return new Promise((resolve, reject) => {
-        promptClientModal(CONCEPT_CREATOR_TEXT.CONCEPT_DELETION).then(resolve).catch(reject);
+        window.ModalFactory.create(CONCEPT_CREATOR_TEXT.CONCEPT_DELETION).then(resolve).catch(reject);
       })
       .then(() => {
         const conceptGroup = tryGetRootElement(target, 'concept-list__group');

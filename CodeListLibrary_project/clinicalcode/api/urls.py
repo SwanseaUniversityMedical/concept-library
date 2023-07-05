@@ -13,9 +13,9 @@ from drf_yasg import openapi
       appear as links on the API page.
 '''
 router = routers.DefaultRouter()
-router.register('concepts-live', Concept.ConceptViewSet)
-router.register('codes', Concept.CodeViewSet)
-router.register('tags-and-collections', View.TagViewSet, basename='tags')
+#router.register('concepts-live', Concept.ConceptViewSet)
+#router.register('codes', Concept.CodeViewSet)
+#router.register('tags-and-collections', View.TagViewSet, basename='tags')
 #router.register('public/data-sources-list', View.DataSourceViewSet)
 #router.register('public/coding-systems', View.CodingSystemViewSet)
 
@@ -104,24 +104,24 @@ urlpatterns += [
     
     # Concepts
     url(r'^concepts/$', 
-        Concept.user_concepts, 
+        Concept.get_concepts, 
         name='concepts'),
     url(r'^concepts/C(?P<concept_id>\d+)/detail/$',
-        Concept.concept_detail,
+        Concept.get_concept_detail,
         name='api_concept_detail'),
     url(r'^concepts/C(?P<concept_id>\d+)/version/(?P<version_id>\d+)/detail/$',
-        Concept.concept_detail,
+        Concept.get_concept_detail,
         name='api_concept_detail_version'),
     url(r'^concepts/C(?P<concept_id>\d+)/export/codes/$',
-        Concept.get_concept_codes, 
-        { 'version_id': None },
+        Concept.get_concept_detail, 
+        { 'export_codes': True },
         name='api_export_concept_codes'),
     url(r'^concepts/C(?P<concept_id>\d+)/version/(?P<version_id>\d+)/export/codes/$',
-        Concept.get_concept_codes,
+        Concept.get_concept_detail,
+        { 'export_codes': True },
         name='api_export_concept_codes_byVersionID'),
     url(r'^concepts/C(?P<concept_id>\d+)/get-versions/$',
-        Concept.concept_detail, 
-        { 'get_versions_only': '1' },
+        Concept.get_concept_version_history,
         name='get_concept_versions'),
 
     # Datasources
