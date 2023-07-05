@@ -23,53 +23,73 @@ from rest_framework.reverse import reverse
 from django.contrib.auth import logout
 from datetime import datetime
 from django.utils.timezone import now as timezone_now
+from datetime import timedelta
 
-def try_expire_session(request, options):
+class SessionExpiryMiddleware:
     '''
-        [!] Options are defined within settings.py
-
-        Tries to expire a session if either:
-            - The session length has expired after X duration
-            - The user has idled between requests for X duration
+        Middleware to det. whether a user session needs to expire
     '''
-    current_time = timezone_now()
-    requires_logout = False
+    def __init__(self, get_response):
+        self.get_response = get_response
+        super().__init__()
+    
+    def __get_session_options(self, request):
+        if request.user.is_anonymous:
+            return
 
-    session_limit = options.get('SESSION_LIMIT')
-    if session_limit is not None:
+        options = getattr(settings, 'SESSION_EXPIRY', None)
+        if options is None:
+            return
+        
+        return options
+    
+    def __session_is_expired(self, request, options):
+        current_time = timezone_now()
+        session_limit = options.get('SESSION_LIMIT')
+        if not isinstance(session_limit, timedelta):
+            return False
+
         last_login = request.user.last_login
         session_time = (last_login - current_time + session_limit).total_seconds()
-        requires_logout |= session_time < 0
+        return session_time < 0
 
-    idle_limit = options.get('IDLE_LIMIT')
-    if idle_limit is not None:
+    def __session_reached_idle_limit(self, request, options):
+        current_time = timezone_now()
+        idle_limit = options.get('IDLE_LIMIT')
+        if not isinstance(idle_limit, timedelta):
+            return False
+
         last_request = current_time
         if 'last_session_request' in request.session:
             last_request = datetime.fromisoformat(request.session.get('last_session_request'))
 
         idle_time = (last_request - current_time + idle_limit).total_seconds()
-        requires_logout |= idle_time < 0
         request.session['last_session_request'] = current_time.isoformat()
+        return idle_time < 0
+
+    def __try_expire_session(self, request, options):
+        '''
+            [!] Options are defined within settings.py
+
+            Tries to expire a session if either:
+                - The session length has expired after X duration
+                - The user has idled between requests for X duration
+        '''
+        requires_logout = self.__session_is_expired(request, options) | self.__session_reached_idle_limit(request, options)
+        
+        if requires_logout:
+            if 'last_session_request' in request.session:
+                del request.session['last_session_request']
+
+            logout(request)
     
-    if requires_logout:
-        if 'last_session_request' in request.session:
-            del request.session['last_session_request']
+    def __call__(self, request):
+        options = self.__get_session_options(request)
+        if options is not None:
+            self.__try_expire_session(request, options)
 
-        logout(request)
+        return self.get_response(request)
 
-def session_expiry(get_response):
-    '''
-        Middleware to det. whether a user session needs to expire
-    '''
-    def middleware(request):
-        if not request.user.is_anonymous:
-            session_options = getattr(settings, 'SESSION_EXPIRY', None)
-            if session_options is not None:
-                try_expire_session(request, session_options)
-
-        return get_response(request)
-
-    return middleware
 
 class brandMiddleware(MiddlewareMixin):
 

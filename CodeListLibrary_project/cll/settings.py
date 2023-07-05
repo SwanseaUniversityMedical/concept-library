@@ -253,7 +253,7 @@ MIDDLEWARE = [
     # handle brands
     'cll.middleware.brandMiddleware',
     # handle user session expiry
-    'cll.middleware.session_expiry'
+    'cll.middleware.SessionExpiryMiddleware'
 ]
 
 # Keep ModelBackend around for per-user permissions and a local superuser.
