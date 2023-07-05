@@ -57,7 +57,7 @@ class TooltipFactory {
 
     let tooltip = this.#createTooltip(tip, direction);
     tooltip = this.element.appendChild(tooltip);
-    tooltip.classList.add('hide');
+    tooltip.style.setProperty('display', 'none');
 
     this.#tooltips[uuid] = tooltip;
 
@@ -66,17 +66,45 @@ class TooltipFactory {
         if (isNullOrUndefined(tooltip)) {
           return;
         }
-        tooltip.classList.remove('hide');
+        tooltip.style.setProperty('display', 'block');
+
+        let span = tooltip.querySelector('span');
+        let height = window.getComputedStyle(span, ':after').getPropertyValue('height');
+        height = height.matchAll(/(\d+)px/gm);
+        height = Array.from(height, x => parseInt(x[1]))
+                      .filter(x => !isNaN(x))
+                      .shift();
+        height = height || 0;
 
         const rect = elem.getBoundingClientRect();
-        tooltip.style.left = `${rect.left}px`
-        tooltip.style.top = `${rect.top + 20}px`;
+        switch (direction) {
+          case 'up': {
+            tooltip.style.left = `${rect.left + rect.width / 2}px`;
+            tooltip.style.top = `${rect.top + height / 2}px`;
+          } break;
+          case 'down': {
+            tooltip.style.left = `${rect.left + rect.width / 2}px`;
+            tooltip.style.top = `${rect.top + rect.height - height / 4}px`;
+          } break;
+          case 'right': {
+            tooltip.style.left = `${rect.left + rect.width}px`;
+            tooltip.style.top = `${rect.top + rect.height - height / 4}px`;
+          } break;
+          case 'left': {
+            tooltip.style.left = `${rect.left}px`;
+            tooltip.style.top = `${rect.top + rect.height - height / 4}px`;
+          } break;
+          default: {
+            tooltip.style.left = `${rect.left + rect.width / 2}px`;
+            tooltip.style.top = `${rect.top + rect.height - height / 4}px`;
+          } break;
+        }
       },
       leave: (e) => {
         if (isNullOrUndefined(tooltip)) {
           return;
         }
-        tooltip.classList.add('hide');
+        tooltip.style.setProperty('display', 'none');
       },
     };
     this.#handlers[uuid] = methods;
