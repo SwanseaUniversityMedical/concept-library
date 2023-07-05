@@ -151,11 +151,8 @@ def check_entity_to_publish(request, pk, entity_history_id):
     entity_class = entity.template.entity_class.name                                                          
 
     if entity_class == "Phenotype" or entity_class == "Workingset":
-         has_childs, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
-        check_children(request, entity)
-    else: #???
         has_childs, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
-        checkChildConcept(request, entity_history_id)
+        check_children(request, entity)
     
    
 
