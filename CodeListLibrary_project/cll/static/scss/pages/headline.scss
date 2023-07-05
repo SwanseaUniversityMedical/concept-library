@@ -32,19 +32,23 @@
   }
   
   .headline__section {
-    margin-top: 2rem;
-
-    &__general{
-        margin: 4rem;
+    display: flex;
+    flex-flow: column nowrap;
+    & > h3 {
+      margin-bottom: 0rem;
     }
-
-    &__outside_with_background{
+  
+    &__general {
+      margin: 1rem 4rem 2rem 4rem;
+      
+      @include media('<600px', 'screen') {
+        margin-top: 0rem;
+      }
+    }
+  
+    &__outside_with_background {
       padding-top: 3rem;
       padding-bottom: 3rem;
       background-color: var(--phenotype-banner-bg-color);
-    
-  }
-
-
-
+    }
   }
