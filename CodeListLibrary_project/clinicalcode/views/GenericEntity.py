@@ -548,6 +548,7 @@ def generic_entity_detail(request, pk, history_id=None):
     approval_status = get_publish_approval_status(GenericEntity, pk, history_id)
     is_lastapproved = len(PublishedGenericEntity.objects.filter(entity_id=pk, approval_status=constants.APPROVAL_STATUS.APPROVED)) > 0
 
+
     generic_entity = entity_db_utils.get_historical_entity(pk, history_id
                                             , highlight_result = [False, True][entity_db_utils.is_referred_from_search_page(request)]
                                             , q_highlight = entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))  
@@ -610,19 +611,17 @@ def generic_entity_detail(request, pk, history_id=None):
         'history': history,
         'template': template,
         'page_canonical_path': get_canonical_path_by_brand(request, GenericEntity, pk, history_id),        
-        
         'user_can_edit': can_edit,  
         'allowed_to_create': user_allowed_to_create,
         'user_can_export': user_can_export,
-        
         'live_ver_is_deleted': GenericEntity.objects.get(pk=pk).is_deleted,
         'published_historical_ids': published_historical_ids,
-        'is_published': is_published,
         'approval_status': approval_status,
-        'is_lastapproved': is_lastapproved,
         'publish_date': publish_date,
         'is_latest_version': is_latest_version,
         'is_latest_pending_version':is_latest_pending_version,
+        'is_lastapproved': is_lastapproved,
+        'is_published': is_published,
         'current_phenotype_history_id': int(history_id),
 
         'q': entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', '')),
