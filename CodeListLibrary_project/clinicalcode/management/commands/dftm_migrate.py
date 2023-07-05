@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from django.db import transaction
 
 import os
 import glob
@@ -52,7 +53,34 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('-f', '--file', type=str, help='Location of Menu / Footer files directory relative to manage.py')
 
+    @transaction.atomic
     def handle(self, *args, **kwargs):
+        '''
+            Pushes the following changes to the legacy models:
+
+              1. CodingSystem
+                  - Updates the `.filter` field (per the FILTER_UPD map)
+
+              2. Brand
+                  - Reads the menu.json and footer.json files (found within Slack, authored by @arturzinnurov)
+                  - Applies the data to the specified brand, given it's field within the FIELD_MAP map
+
+            [!] File location:
+                - This can be provided via the -f or --file argument
+                - Otherwise, it will look for a folder (described by DEFAULT_DIR), and glob its
+                  files to find those that need to be applied
+
+            [!] Usage:
+                - Either call the command via the terminal, e.g.
+                
+                    python manage.py dftm_migrate
+                
+                - OR; call the command using the following:
+
+                    from django.core import management
+                    management.call_command('dftm_migrate')
+
+        '''
         # update coding system filters
         for name, filter_value in self.FILTER_UPD.items():
             coding_system = CodingSystem.objects.filter(name=name)
