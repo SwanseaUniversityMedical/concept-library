@@ -78,9 +78,9 @@ if path_prj not in sys.path:
 
 # user session expiry
 SESSION_EXPIRY = {
-    # i.e. logout after 1 week
+    # i.e. logout after 1 week (optional)
     'SESSION_LIMIT': timedelta(weeks=1),
-    # i.e. logout after 1 day if no requests were made during this time
+    # i.e. logout after 1 day if no requests were made during this time (optional)
     'IDLE_LIMIT': timedelta(days=1),
 }
 
