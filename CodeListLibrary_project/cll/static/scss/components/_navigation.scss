@@ -299,7 +299,11 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
 //  @desc defines the navigation bar for use within navigation.html
 .page-navigation {
   @include prefix(transition, all 250ms ease-in, webkit moz o);
-
+  
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
   position: fixed;
   top: 0;
@@ -323,6 +327,8 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     height: fit-content;
     min-height: var(--navigation-height);
     margin: var(--navigation-offset) var(--navigation-gutter);
+    max-width: 2160px;
+    width: calc(100% - var(--navigation-gutter) - var(--navigation-gutter));
   }
 
   &__logo {
@@ -339,6 +345,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
   @include media("<desktop", "screen") {
     &__container {
       margin: var(--navigation-mobile-offset) var(--navigation-mobile-gutter);
+      width: calc(100% - var(--navigation-mobile-gutter) - var(--navigation-mobile-gutter));
     }
 
     &__logo {
@@ -354,7 +361,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     width: auto;
 
     @include media("<desktop", "screen") {
-      &:not(:has(.open)):after {
+      &:not(.open):after {
         --as-burger: "true";
 
         content: '\f0c9';

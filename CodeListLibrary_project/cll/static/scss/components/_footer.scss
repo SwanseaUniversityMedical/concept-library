@@ -7,25 +7,30 @@
 ///   @desc Used exclusively by footer.html to present the footer content of each page
 .page-footer {
   display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: var(--footer-page-offset) 0;
+
   &__row {
     @include flex-row();
-    flex: 1;
-    max-width: 100%;
-    margin: var(--footer-page-offset) 0 0 0;
-    padding: var(--footer-top-offset) var(--footer-gutter) var(--footer-bottom-offset) var(--footer-gutter);
+    width: 100%;
     justify-content: space-between;
-    
-    @include media("<=tablet", "screen") {
-      & {
-        padding-left: var(--footer-mobile-gutter);
-        padding-right: var(--footer-mobile-gutter);
-      }
+    height: fit-content;
+    max-width: 2160px;
+    margin: 0 var(--footer-gutter);
+    padding: var(--footer-top-offset) 0 var(--footer-bottom-offset) 0;
+    width: calc(100% - var(--footer-gutter) - var(--footer-gutter));
+
+    @include media('<desktop', 'screen') {
+      margin: 0 var(--footer-mobile-gutter);
+      width: calc(100% - var(--footer-mobile-gutter) - var(--footer-mobile-gutter));
     }
   }
 
   &__copyright {
     @include app-font-style();
-    flex: 1;
     font-size: var(--footer-copyright-size);
     text-overflow: ellipsis;
     white-space: wrap;
@@ -56,10 +61,8 @@
 
   &__listlinks {
     display: grid;
-    gap: 1.5rem;
+    gap: 1rem;
     flex: 1;
-    margin-right: var(--footer-row-gap);
-    margin-left: var(--footer-row-gap);
 
     a, a:visited {
       @include clear-anchor();
@@ -74,14 +77,18 @@
     a:active {
       font-weight: bold;
     }
+
+    p {
+      white-space: normal;
+      text-align: left;
+    }
+
+    p, a {
+      margin: 0 0 0 0;
+    }
   }
 
   @include media("<=tablet", "screen") {
-    & {
-      padding-left: var(--footer-mobile-gutter);
-      padding-right: var(--footer-mobile-gutter);
-    }
-
     &__copyright {
       flex: 0.15;
     }
@@ -97,10 +104,11 @@
 .footer {
   &-links{
     display: flex;
-    flex-direction: row;
+    flex-flow: row wrap;
     justify-content: flex-start;
     align-items: center;
     gap: 1.5rem;
+    margin-top: 1rem;
   }
 
   &-hr{
@@ -112,14 +120,15 @@
     border-top: 1px solid #eee;
   }
 
-  &-alert {  
+  &-alert {
+    display: flex;
     margin-top: 5px;
     padding: 15px;
     margin-bottom: 20px;
     border: 1px solid transparent;
     border-radius: 4px;
 
-    &-warning {
+    &--warning {
       // background-image: -webkit-linear-gradient(top,#fcf8e3 0,#f8efc0 100%);
       background-image: -o-linear-gradient(top,#fcf8e3 0,#f8efc0 100%);
       background-image: -webkit-gradient(linear,left top,left bottom,from(#fcf8e3),to(#f8efc0));
@@ -129,12 +138,14 @@
       border-color: #f5e79e;
     
       text-shadow: 0 1px 0 rgba(255,255,255,.2);
-      // -webkit-box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 1px 2px rgba(0,0,0,.05);
       box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 1px 2px rgba(0,0,0,.05);
     
       color: #8a6d3b;
       background-color: #fcf8e3;
-      // border-color: #faebcc;
+    }
+    
+    &--right {
+      margin-left: auto;
     }
   }
 }

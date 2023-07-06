@@ -369,6 +369,11 @@
       outline: none;
     }
 
+    &:focus-visible {
+      outline: 1px solid black;
+      border-radius: 2pt;
+    }
+
     &:disabled {
       opacity: 0.5;
     }
@@ -412,6 +417,7 @@
   }
 
   &__icon {
+    all: unset;
     cursor: pointer;
     display: block;
     position: absolute;
@@ -423,9 +429,15 @@
     background-size: 20px;
     background-repeat: no-repeat;
     background-position: 50%, 50%;
+
+    &:focus-visible {
+      outline: 1px solid black;
+      border-radius: 2pt;
+    }
   }
 
   &__icon-landing {
+    all: unset;
     cursor: pointer;
     display: block;
     position: absolute;
@@ -437,6 +449,11 @@
     background-size: 20px;
     background-repeat: no-repeat;
     background-position: 50%, 50%;
+
+    &:focus-visible {
+      outline: 1px solid black;
+      border-radius: 2pt;
+    }
   }
 }
 
