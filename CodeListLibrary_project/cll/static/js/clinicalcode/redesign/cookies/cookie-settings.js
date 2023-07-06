@@ -20,25 +20,11 @@ const ModalFactory = window.ModalFactory;
       },
     ]
   })
-
-  .then((result) => {
-    // e.g. user pressed a button that has type=ModalFactory.ButtonTypes.CONFIRM
-    const name = result.name;
-    if (name == 'Save selection') {
-      console.log('[success] user confirmed', result);
-    } 
-  })
   .catch((result) => {
     // An error occurred somewhere (unrelated to button input)
     if (!(result instanceof ModalFactory.ModalResults)) {
       return console.error(result);
     }
-  
-    // e.g. user pressed a button that has type=ModalFactory.ButtonTypes.REJECT
-    const name = result.name;
-    if (name == 'Cancel') {
-      console.log('[failure] user cancelled', result);
-    } 
   });
 
 
