@@ -19,7 +19,7 @@
 </header>
   
 
-<main class="main-content">
+<main class="main-content main-content--inner-padding">
 	<div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
   <div class="headline__section__general">
 
@@ -39,9 +39,10 @@
 	{% if IS_INSIDE_GATEWAY or request.get_host == "conceptlibrary.serp.ac.uk" %}
 	Concept Library documentation is available at the external application  <br>Please access via the external application
 	{% else %}
-	Concept Library documentation is available at this URL
+	Concept Library documentation is available at on
+	<a href="https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation" target=_blank rel="noopener noreferrer">Github</a>
 	<br>
-	<a href="https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation" target=_blank rel="noopener noreferrer">https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation</a>
+	
 	{% endif %}	
 	
 	<h2>Background</h2>

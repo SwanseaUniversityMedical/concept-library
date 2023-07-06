@@ -28,10 +28,10 @@
   </div>
   {% endif %}
 
-  {% if IS_DEVELOPMENT_PC or CLL_READ_ONLY %}
+  {% if DEV_PRODUCTION|length or CLL_READ_ONLY %}
     <span class="footer-alert footer-alert--warning footer-alert--right" role="alert">
       {{ DEV_PRODUCTION|safe }}
-      {% if IS_DEVELOPMENT_PC %}
+      {% if CLL_READ_ONLY %}
         <strong>READONLY</strong>
       {% endif %}
     </span>
