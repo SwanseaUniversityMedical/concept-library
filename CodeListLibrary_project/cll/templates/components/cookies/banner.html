@@ -1,4 +1,6 @@
 {% load i18n static %}
+{% load compress %}
+
 
 {% if IS_DEMO or IS_DEVELOPMENT_PC %}	
 	<head>
@@ -10,6 +12,7 @@
 
 {% include "components/cookies/cookie_component.html" %}
 
-<script src="{% static 'cookielaw/js/cookiealert.js' %}"></script>
-
-<script src="{% static 'cookielaw/js/cookie-settings.js' %}"></script>
+{% compress js file %}
+<script src="{% static 'js/clinicalcode/redesign/cookies/cookiealert.js' %}"></script>
+<script src="{% static 'js/clinicalcode/redesign/cookies/cookie-settings.js' %}"></script>
+{% endcompress %}

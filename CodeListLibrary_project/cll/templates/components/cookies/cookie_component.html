@@ -54,21 +54,23 @@
 
       // Attach click event handler to #cookie_preference element
       document.getElementById("cookie_preference").addEventListener("click", function() {
-        var cookieSettings = new CookieSettingsModal();
-        cookieSettings.showDialog();
+        cookieSettings("{% url 'cookies_settings' %}",);
 
-        if (cookieSettings.getSettings("analyses")) {
-          window.dataLayer = window.dataLayer || [];
-          function gtag() { dataLayer.push(arguments); }
-          gtag('js', new Date());
-          gtag('consent', 'update', { 'ad_storage': 'granted' });
-          gtag('config', 'G-QE37B9J5WK');
-          gtag('consent', 'update', { 'ad_storage': 'granted' });
-          gtag('config', 'G-W6XK339B16');
-        } else {
-          window.dataLayer = window.dataLayer || [];
-          function gtag() { dataLayer.push(arguments); }
-          gtag('js', new Date());
+        const dataLayer = window.dataLayer || [];
+        function gtag() {
+          dataLayer.push(arguments);
+        }
+
+        const adStoragePermission = cookieSettings.getSettings("analyses") ? 'granted' : 'denied';
+        const analyticsStoragePermission = cookieSettings.getSettings("analyses") ? 'granted' : 'denied';
+
+        gtag('js', new Date());
+        gtag('consent', 'update', { 'ad_storage': adStoragePermission });
+        gtag('config', 'G-QE37B9J5WK');
+        gtag('consent', 'update', { 'ad_storage': adStoragePermission });
+        gtag('config', 'G-W6XK339B16');
+
+        if (!cookieSettings.getSettings("analyses")) {
           gtag('consent', 'default', { 'ad_storage': 'denied', 'analytics_storage': 'denied' });
           gtag('config', 'G-QE37B9J5WK');
           gtag('consent', 'default', { 'ad_storage': 'denied', 'analytics_storage': 'denied' });

@@ -108,7 +108,7 @@
 	{% endblock scripts %}
 
 	{% if SHOW_COOKIE_ALERT %}
-	    {% cookielaw_banner %}
+	    {% include "components/cookies/banner.html" %}
 	{% endif %}		
 	
   </body>
