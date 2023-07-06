@@ -17,6 +17,7 @@ from django.template.loader import render_to_string
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
+from rest_framework.decorators import schema
 from collections import OrderedDict
 
 import csv
@@ -106,6 +107,7 @@ class EntitySearchView(TemplateView):
             
         return render(request, self.template_name, context)
 
+@schema(None)
 class EntityDescendantSelection(APIView):
     '''
         Selection Service View
