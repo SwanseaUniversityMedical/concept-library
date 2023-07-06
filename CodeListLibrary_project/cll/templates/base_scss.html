@@ -42,7 +42,9 @@
       <link rel="canonical" href="{{ CANONICAL_PATH }}" />
     {% endblock canonical_path %}
 
-    <link rel="icon" href="data:,">
+    {% get_brand_base_icons request.BRAND_OBJECT as base_icons %}
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static base_icons.apple %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static base_icons.favicon %}">
 
     <!-- URL embedding -->
     {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
