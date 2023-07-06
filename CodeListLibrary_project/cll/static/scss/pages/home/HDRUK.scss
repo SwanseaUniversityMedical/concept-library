@@ -1,8 +1,32 @@
-@import '../_methods';
-@import '../_variables';
-@import '../_media';
-@import '../_utils';
+@import '../../_methods';
+@import '../../_variables';
+@import '../../_media';
+@import '../../_utils';
 
+.counter-section {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-around;
+  background-color: var(--color-accent-bright);
+  padding: 40px;
+  gap: 1rem;
+
+  &__counter {
+    margin-bottom: 1rem;
+    text-align: center;
+
+    &__number {
+      font-size: 36px;
+      color: var(--color-text-darkest);
+      font-weight: bold;
+    }
+
+    &__title {
+      font-size: 18px;
+      color: var(--color-text-darkest);
+    }
+  }
+}
 
 .key-section {
   display: flex;

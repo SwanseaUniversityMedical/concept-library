@@ -3,37 +3,54 @@
 @import '../_media';
 @import '../_utils';
 
+// row-landing-page
+//  @desc defines a row of headlines or cards, primarily used within the homepage
+.row-landing-page {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  padding-left: 5%;
+  padding-right: 5%;
+}
 
+// Headline
+//  @desc primarily used for homepage to describe a container of text with headline(s)
 .headline {
+  display: flex;
+  align-items: center;
+  margin-left: 4rem;
+  margin-right: 4rem;
+  margin-top: 2rem;
+
+  &__image {
     display: flex;
-    align-items: center;
-    margin-left: 4rem;
-    margin-right: 4rem;
-    margin-top: 2rem;
-
-  }
-
-  .headline__image {
+    flex-flow: column nowrap;
     margin-right: 2rem;
     background-image: var(--headline-url);
-	  background-repeat: no-repeat;
+    background-repeat: no-repeat;
+    background-size: cover;
 	  height: 400px;
 	  width: 40%;
+
+    @include media('<600px', 'screen') {
+      display: none;
+    }
   }
   
-  .headline__text {
+  &__text {
     flex: 2;
   }
   
-  .headline__heading {
+  &__heading {
     font-size: 18px;
     font-weight: bold;
     margin-bottom: 10px;
   }
   
-  .headline__section {
+  &__section {
     display: flex;
     flex-flow: column nowrap;
+
     & > h3 {
       margin-bottom: 0rem;
     }
@@ -52,3 +69,4 @@
       background-color: var(--phenotype-banner-bg-color);
     }
   }
+}

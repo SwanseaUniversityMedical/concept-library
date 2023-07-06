@@ -39,7 +39,7 @@
   <link href="{% sass_src 'scss/pages/create.scss' %}" rel="stylesheet" type="text/css" />
 
   <header class="main-header">
-    <div class="main-header__inner-container">
+    <div class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
       {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
       {% endbreadcrumbs %}
     </div>
@@ -49,7 +49,7 @@
     {% render_wizard_navigation %}
     {% endrender_wizard_navigation %}
 
-    <div class="main-content__inner-container">
+    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred main-content__inner-container--pad-right-1">
       <article class="phenotype-creation">
         <section class="phenotype-creation__header">
           {% if form_method.value == 1 %}

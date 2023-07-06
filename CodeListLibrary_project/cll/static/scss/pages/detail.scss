@@ -3,8 +3,8 @@
 @import '../_media';
 @import '../_utils';
 
-/// Create template
-///   @desc Stylesheet relating to create and update form
+/// Detail template
+///   @desc Stylesheet relating to the detail page
 .phenotype-creation {
   @include flex-col();
   position: relative;

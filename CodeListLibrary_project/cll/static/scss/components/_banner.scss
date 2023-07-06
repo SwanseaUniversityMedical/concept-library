@@ -3,10 +3,11 @@
 @import '../_media';
 @import '../_utils';
 
+// Banner
+//  @desc defines a rectangular banner shown along the top of a page
 .banner {
   @include flex-col();
   background-color: var(--phenotype-banner-bg-color);
-
 
   &.image {
     background-image: var(--banner-url);
@@ -14,7 +15,6 @@
     background-color: #000000;
     background-position: center;
   }
-
 
   &__container {
     @include flex-col();
@@ -44,12 +44,16 @@
     }
    
     &__left-landing-page {
-      padding-top: 5rem;
-      max-width: 36%;
+      max-width: 350px;
+      width: 50%;
+      padding-top: 2rem;
       padding-left: 6rem;
       align-content: left;
+
+      @include media("<tablet", "screen") {
+        padding: 1rem 0 0 2rem;
+      }
     }
-    
   }
 
   &__title {
