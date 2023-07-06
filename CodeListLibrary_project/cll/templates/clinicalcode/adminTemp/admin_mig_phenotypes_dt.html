@@ -56,19 +56,21 @@
 	{% if pk is None %}
 	    <form name='form1' id='form1' class="form-horizontal" action="{{ url }}" method="POST" autocomplete="off" >
 	    	{% csrf_token %}
+				{% if not hide_phenotype_options %}
 	    	<div class="form-group">
-				<label class="col-sm-3 required">Auth-Code</label>
-				<div class="col-sm-7">
-					<input class="col-sm-7 form-control" type="text" name="code" id="code" value="6)r&9hpr_a0_4g(xan5p@=kaz2q_cd(v5n^!#ru*_(+d)#_0-i">
+					<label class="col-sm-3 required">Auth-Code</label>
+					<div class="col-sm-7">
+						<input class="col-sm-7 form-control" type="text" name="code" id="code" value="6)r&9hpr_a0_4g(xan5p@=kaz2q_cd(v5n^!#ru*_(+d)#_0-i">
+					</div>
 				</div>
-			</div>
 			
 	    	<div class="form-group">
-				<label class="col-sm-3 required">Phenotype IDs (separated by ',' or 'ALL')</label>
-				<div class="col-sm-7">
-					<input class="col-sm-7 form-control" type="text" name="phenotype_ids" id="phenotype_ids" value="ALL" readonly >
+					<label class="col-sm-3 required">Phenotype IDs (separated by ',' or 'ALL')</label>
+					<div class="col-sm-7">
+						<input class="col-sm-7 form-control" type="text" name="phenotype_ids" id="phenotype_ids" value="ALL" readonly >
+					</div>
 				</div>
-			</div>			
+				{% endif %}	
 	
 	    	<div class="row">
 				<div class="col-md-6">								

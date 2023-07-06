@@ -18,6 +18,7 @@ from django.views.generic import DetailView
 from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import CreateView, UpdateView  # , DeleteView
 from simple_history.models import HistoricalRecords
+from django.core.exceptions import BadRequest
 
 from .. import db_utils, utils
 #from ..forms.ConceptForms import ConceptForm, ConceptUploadForm
@@ -716,6 +717,84 @@ def admin_mig_phenotypes_dtXXX(request):
                         )
 
 @login_required
+def admin_mig_concepts_dt(request):
+    '''
+        Approximates ownership of a Concept given it's first appearance
+        in a phenotype
+
+        i.e.
+            for concept in concepts:
+                concept.phenotype_owner = earliest_record_as_child_of_phenotype(concept.id)
+
+    '''
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not is_member(request.user, 'system developers'):
+        raise PermissionDenied
+
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_mig_phenotypes_dt.html', 
+            {
+                'url': reverse('admin_mig_concepts_dt'),
+                'action_title': 'Migrate Concepts',
+                'hide_phenotype_options': True,
+            }
+        )
+
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+
+    with connection.cursor() as cursor:
+        sql = '''
+        with
+            split_concepts as (
+                select phenotype.id as phenotype_id, 
+                    concept ->> 'concept_id' as concept_id,
+                    created
+                from public.clinicalcode_phenotype as phenotype,
+                    json_array_elements(phenotype.concept_informations :: json) as concept
+            ),
+            ranked_concepts as (
+                select phenotype_id, concept_id,
+                    rank() over(
+                        partition by concept_id
+                        order by created
+                    ) ranking
+                from split_concepts
+            )
+
+        update public.clinicalcode_concept as trg
+           set phenotype_owner_id = src.phenotype_id
+          from ranked_concepts as src
+         where trg.id = src.concept_id::int;
+        
+        update public.clinicalcode_historicalconcept as trg
+           set phenotype_owner_id = src.phenotype_owner_id
+          from public.clinicalcode_concept as src
+         where trg.id = src.id;
+        '''
+        cursor.execute(sql)
+
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_mig_phenotypes_dt.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { '1': 'ALL'},
+            'action_title': 'Migrate Concepts',
+            'hide_phenotype_options': True,
+        }
+    )
+
+@login_required
 def admin_mig_phenotypes_dt(request):
     # for admin(developers) to migrate phenotypes into dynamic template
    
@@ -728,7 +807,6 @@ def admin_mig_phenotypes_dt(request):
     if not is_member(request.user, 'system developers'):
         raise PermissionDenied
     
-
     if request.method == 'GET':
         if not settings.CLL_READ_ONLY: 
             return render(request, 'clinicalcode/adminTemp/admin_mig_phenotypes_dt.html', 

@@ -67,4 +67,5 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
     if not settings.CLL_READ_ONLY:
         urlpatterns += [
             url(r'^adminTemp/admin_mig_phenotypes_dt/$', adminTemp.admin_mig_phenotypes_dt, name='admin_mig_phenotypes_dt'),
+            url(r'^adminTemp/admin_mig_concepts_dt/$', adminTemp.admin_mig_concepts_dt, name='admin_mig_concepts_dt'),
         ]

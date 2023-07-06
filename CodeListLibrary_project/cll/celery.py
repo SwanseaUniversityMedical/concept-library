@@ -12,38 +12,44 @@ app = Celery('cll')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 # Load tasks from all registered apps
 
-app.conf.beat_schedule = {
+schedule = {
+    # Publication & Update emails
     'send_mail': {
         'task': 'clinicalcode.tasks.send_scheduled_email',
         'schedule': crontab(minute='*/5') if settings.IS_DEVELOPMENT_PC else crontab(minute=0,hour='9,18')
     },
-    'send_message_test': {
-        'task': 'clinicalcode.tasks.send_message_test',
-        'schedule':crontab(minute='*/5') if settings.IS_DEVELOPMENT_PC else crontab(minute=0,hour='9,18')
 
-    }, 'celery_run_statistics': {
-        'task': 'clinicalcode.views.Admin.run_celery_statistics',
-        'schedule': crontab(minute='*/5') if settings.IS_DEVELOPMENT_PC else crontab(minute=0,hour='9,18')
-    },
-    'celery_run_filters': {
-        'task': 'clinicalcode.views.Admin.run_celery_filters',
-        'schedule': crontab(minute='*/5') if settings.IS_DEVELOPMENT_PC else crontab(minute=0,hour='9,18')
-
-    },'celery_run_data_sync':{
+    # Sync sources
+    'celery_run_data_sync':{
         'task': 'clinicalcode.views.Admin.run_celery_datasource',
         'schedule': crontab(minute='*/5') if settings.IS_DEVELOPMENT_PC else crontab(minute=0, hour='9,18')
     },
 
-    # Statistics
+    # Statistics job
     'celery_run_daily_stats': {
         'task': 'clinicalcode.tasks.run_daily_statistics',
         'schedule': crontab(minute=0, hour=0)
     },
+
+    # Session cleanup task
+    'celery_run_weekly_clean': {
+        'task': 'clinicalcode.tasks.run_weekly_cleanup',
+        'schedule': crontab(hour=0, minute=0, day_of_week='sunday'),
+    },
 }
 
+# Any current debug tasks
+if settings.DEBUG:
+    schedule |= {
+        'send_message_test': {
+            'task': 'clinicalcode.tasks.send_message_test',
+            'schedule':crontab(minute='*/5') if settings.IS_DEVELOPMENT_PC else crontab(minute=0,hour='9,18')
+        },
+    }
+
+    @app.task(bind=True)
+    def debug_task(self):
+        print(f'Request: {self.request!r}')
+
+app.conf.beat_schedule = schedule
 app.autodiscover_tasks()
-
-
-@app.task(bind=True)
-def debug_task(self):
-    print(f'Request: {self.request!r}')
