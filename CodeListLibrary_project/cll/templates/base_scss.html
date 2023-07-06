@@ -42,7 +42,9 @@
       <link rel="canonical" href="{{ CANONICAL_PATH }}" />
     {% endblock canonical_path %}
 
-    <link rel="icon" href="data:,">
+    {% get_brand_base_icons request.BRAND_OBJECT as base_icons %}
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static base_icons.apple %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static base_icons.favicon %}">
 
     <!-- URL embedding -->
     {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
@@ -76,7 +78,6 @@
       <script type="module" src="{% static "js/clinicalcode/redesign/components/modal.js" %}"></script>
     {% endcompress %}
 
-
     <!-- Page title -->
     <title>
       {{ base_page_title }} {% block title %}{% endblock title %}
@@ -93,7 +94,6 @@
 
     {% block container %}
       <!-- Page Content -->
-
     {% endblock container %}
 
     {% block footer_wrapper %}
@@ -102,14 +102,12 @@
       {% endif %}
     {% endblock footer_wrapper %}
     
-    
     {% block scripts %}
-      <!-- script -->
-	{% endblock scripts %}
+      <!-- Scripts -->
+	  {% endblock scripts %}
 
-	{% if SHOW_COOKIE_ALERT %}
-	    {% cookielaw_banner %}
-	{% endif %}		
-	
+    {% if SHOW_COOKIE_ALERT %}
+      {% cookielaw_banner %}
+    {% endif %}		
   </body>
 </html>

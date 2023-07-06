@@ -135,6 +135,15 @@ data {
     &--pad-right-1 {
       padding-right: 1rem;
     }
+
+    &--pad-right-constrained {
+      padding-right: 1rem;
+
+      @include media("<desktop", "screen") {
+        padding-right: 2rem;
+        width: calc(100% - 2rem);
+      }
+    }
   }
   
   &--inner-padding {
