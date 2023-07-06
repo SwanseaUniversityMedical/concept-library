@@ -1,297 +1,216 @@
-{% extends "base.html" %}
+{% extends "base_scss.html" %}
+
 {% load static %}
-{% block title %}{% endblock title %}
-{% block description %} HDR-UK Technical Details {% endblock description %}
-{% block keywords %}, hdr-uk, Phenotype, BREATHE, phenotyping algorithms, analysis, Terminology, files {% endblock keywords %}
-{% block head %}
-<link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
-{% endblock head %}
-{% block scrollNav %}
-data-spy="scroll" data-target="#TechnicalMenu" data-offset = "220"
-{% endblock scrollNav %}
+{% load compress %}
+{% load sass_tags %}
+{% load breadcrumbs %}
+
+{% block title %}| Technical Details {% endblock title %}
+
 {% block container %}
+<!-- Page Stylesheets -->
+<link href="{% sass_src 'scss/pages/about.scss' %}" rel="stylesheet" type="text/css" />
 
+<!-- Dependencies -->
+{% compress js file %}
+  <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/templateDetailRenderer.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/scrollspy.js' %}"></script>
+{% endcompress %}
 
+<!-- Build templates -->
+<script type="text/javascript">
+  const url = '{% url "api:get_template_detail" template_id=1 %}';
 
-<div class="row">
-   <nav class="col-sm-2 hideleft-navbar " id="TechnicalMenu"  style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;">
+  fetch(url, { method: 'GET' })
+    .then((response) => response.json())
+    .then((data) => {
+      domReady.finally(() => {
+        const container = document.querySelector('#template-detail-output');
+        renderTemplateDetail(container, data);
+      });
+    })
+    .catch((error) => console.error(error));
+</script>
 
-         <ul class="nav left-navbar " id='navList'>
-            <li><a href="#technicaldoc" id="technicalHeader">Technical Documentation
-               </a>
-            </li>
-            <li><a href="#inclusion">Inclusion Criteria
-               </a>
-            </li>
-            <li><a href="#spec">Specification
-               </a>
-            </li>
-            <li><a href="#naming">File Naming
-               </a>
-            </li>
-            <li><a href="#def">Definition File
-               </a>
-            </li>
-            <li><a href="#term">Terminology Files
-               </a>
-            </li>
-            <li><a href="#howto">How to Submit Data
-               </a>
-            </li>
-         </ul>
+<!-- Main -->
+<header class="main-header">
+</header>
 
-   </nav>
-    <h3><span id="technicaldoc"></span></h3>
-   <div style="width:70%;" class="column" >
-      <div class="header-content-design" style="padding-bottom:30px;">
-         Technical Documentation
-      </div>
-      <div class="medium-header-design" id="inclusion">
-         Phenotype Library Inclusion Criteria
-      </div>
-      <ul>
-         <li>Define a disease (e.g. hypertension), life style risk factor (e.g. smoking) or biomarker (e.g. blood pressure)</li>
-         <li>Derive information from one or more electronic health record data sources. This can include national and local sources. The definition of EHR includes administrative data such as billing/claims data, and clinical audits.</li>
-         <li>Have one or more peer-reviewed outputs associated with it e.g. journal publication, scientific conferences, policy white papers etc.</li>
-         <li>Provide evidence of how the phenotyping algorithm was validated.</li>
-      </ul>
-      <div class="medium-header-design" id="spec">
-         Specification
-      </div>
-      <p>Phenotyping algorithms are stored in the Phenotype Library usign a combination of YAML and CSV files. There are two main components to each algorothm: </p>
-      <ul>
-         <li>a) the phenotype definition file (which is defined in a YAML file) and, </li>
-         <li>b) one or more teminology files (also known as codelists) which can be stored inline within the YAML file or in linked CSV files. </li>
-      </ul>
-      <p>The section below provides information on their schema and contents.</p>
-      <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="481px" viewBox="-0.5 -0.5 481 241" content="<mxfile host=&quot;Electron&quot; modified=&quot;2020-07-17T10:25:32.250Z&quot; agent=&quot;5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/13.2.4 Chrome/83.0.4103.104 Electron/9.0.4 Safari/537.36&quot; etag=&quot;rJQazkSRR-_YdsYiEPns&quot; version=&quot;13.2.4&quot; type=&quot;device&quot;><diagram id=&quot;prtHgNgQTEPvFCAcTncT&quot; name=&quot;Page-1&quot;>7Vjvb9o6FP1r+LiJJBDox0LbVVqZqjFtn01ySfzm2MwxDeyv373ESXCSUrQNqe+9SkjEx9e/7jm+HDII5tnug2abdKFiEAN/GO8Gwc3A9z1vGOIXIXuLDIdBiSSaxxZrgCX/CVWgRbc8htwJNEoJwzcuGCkpITIOxrRWhRu2VsJddcMS6ADLiIku+o3HJi3RqT9p8HvgSVqt7IVXZU/GqmB7kjxlsSqOoOB2EMy1UqZ8ynZzEJS9Ki/luLtneuuNaZDmnAHxp93+08dJNJmuHoqnPIbF/fidZ6d5YmJrT3wrMI9aSR4hfg9M4Dn84WeIlI5zfHpMQSqz33CZUI5FojQ3aWYPafZV5vKCZ4JJbM1SkwkEPXzMDdPG0owbxj4c/lNJw6qIiBpcgv6y31CU0UBzJILlxCWN6R69OgZoA7sjyKbiA6gMjN5jiO0dWVasLqe2WTQcjyosPeK3HsesrpJ65ib1+GCz389EolarO7j/lq9md/+wXTj7WqzfeaMOE1WmgS4QrLnkhis5IJ7xWgUepWLNMd8nUr/GbC5tzyG7KRfxA9urLZ0I2Yi+V60uFcdkjexqYq6E0ghIVXJbD1rSZJYhDTkOe6wY8lrQgu2cwAeWGwtESgi2yfmq3nLGdMLlTBmjMkcAHbZdTZwQ/LOy8KauLoKuLrxxjy6uTsjCLoY3yDCZEF31auH4xdVGPau1RYh3FLRkBmZqK+mStrRYn/MP5DnuyHMBhsXMsI78kBRzUI9W36Ellx4FMcETiU0BaxpGrHIswNcWNmpDk21YhBXn4RBzM2qQzzYtBCkcuxaHIpvyOAZJAlMG91iqiaSzUVyaQ97GM/xgJufD9+PBGDc+x7bXtPFD4drMlcSzYE2idQClWgDJ9TwVnrjsXRXuXX5fUh0BlylGYYdtTIKhQ72R/ZfJDv0zyZ5eiOzKoByR3WEZYnRFtglipYrbBpgdAOyoyKx+Oa7JfzXUg4xbiKZyBbFT1Gkl1+5h+YdT+a0S89u1X4Nghj+5y56o5I+kqqaK++ORU8U9v1Wec7XVEdhRf780+10PhwZBkGhX+JDQw5ycOc9p16VjKPtxvTqkw3mRcgNLvHjULtDfu06uuskRJh10z13O8FYe9EEO7g6NNznGciwhC/XUABKOFXUzmOB2wh9b8sazRns1NAiuj/pdPTZBeMfrxpEg+2c5SLJ/bC3cs0ZObi5pUK5cx+CFPT8Vw57qEV7Kt/pdY/Cmvv+q+gLv1clv+ia//438/OGrk1/XKL8m73RmwnG7B4tyxj+Cl93Y+FWZrO5ErX/4Xlsb5Qkv59b8f41izjbgF/LVVy7l/vA3KQ/C1kTt9yfPUI75Y/ujMPtv8tkNB74rrdYbWXwoZzxTT9hs3g6X4c1L9uD2Fw==</diagram></mxfile>" onclick="(function(svg){var src=window.event.target||window.event.srcElement;while (src!=null&amp;&amp;src.nodeName.toLowerCase()!='a'){src=src.parentNode;}if(src==null){if(svg.wnd!=null&amp;&amp;!svg.wnd.closed){svg.wnd.focus();}else{var r=function(evt){if(evt.data=='ready'&amp;&amp;evt.source==svg.wnd){svg.wnd.postMessage(decodeURIComponent(svg.getAttribute('content')),'*');window.removeEventListener('message',r);}};window.addEventListener('message',r);svg.wnd=window.open('https://app.diagrams.net/?client=1&amp;lightbox=1&amp;edit=_blank');}}})(this);" style="cursor:pointer;max-width:100%;max-height:241px;">
-         <defs>
-            <clipPath id="mx-clip-184-75-142-22-0">
-               <rect x="184" y="75" width="142" height="22"></rect>
-            </clipPath>
-            <clipPath id="mx-clip-184-97-142-28-0">
-               <rect x="184" y="97" width="142" height="28"></rect>
-            </clipPath>
-         </defs>
-         <g>
-            <path d="M 0 20 L 0 0 L 480 0 L 480 20" fill="#ffffff" stroke="#000000" stroke-miterlimit="10" pointer-events="all"></path>
-            <path d="M 0 20 L 0 240 L 480 240 L 480 20" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"></path>
-            <path d="M 0 20 L 480 20" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"></path>
-            <g transform="translate(-0.5 -0.5)">
-               <switch>
-                  <foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
-                     <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 1px; height: 1px; padding-top: 10px; margin-left: 240px;">
-                        <div style="box-sizing: border-box; font-size: 0; text-align: center; ">
-                           <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; font-weight: bold; white-space: nowrap; ">Electronic Health Records Phenotyping algorithm</div>
-                        </div>
-                     </div>
-                  </foreignObject>
-                  <text x="240" y="14" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle" font-weight="bold">Electronic Health Records Phenotyping algorithm</text>
-               </switch>
-            </g>
-            <path d="M 180 70 L 180 30 L 330 30 L 330 70" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"></path>
-            <path d="M 180 70 L 180 120 L 330 120 L 330 70" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"></path>
-            <path d="M 180 70 L 330 70" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"></path>
-            <g fill="#000000" font-family="Helvetica" font-weight="bold" text-anchor="middle" font-size="12px">
-               <text x="254.5" y="47.5">Phenotype definition </text>
-               <text x="254.5" y="61.5">file</text>
-            </g>
-            <g fill="#000000" font-family="Helvetica" clip-path="url(#mx-clip-184-75-142-22-0)" font-size="12px">
-               <text x="185.5" y="87.5">Metadata</text>
-            </g>
-            <g fill="#000000" font-family="Helvetica" clip-path="url(#mx-clip-184-97-142-28-0)" font-size="12px">
-               <text x="185.5" y="109.5">Content</text>
-            </g>
-            <path d="M 254 120 L 254 140 L 255 140 L 255 160" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"></path>
-            <rect x="95" y="160" width="100" height="60" fill="#ffffff" stroke="#000000" pointer-events="none"></rect>
-            <g transform="translate(-0.5 -0.5)">
-               <switch>
-                  <foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
-                     <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 98px; height: 1px; padding-top: 190px; margin-left: 96px;">
-                        <div style="box-sizing: border-box; font-size: 0; text-align: center; ">
-                           <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><b>Codelist file</b></div>
-                        </div>
-                     </div>
-                  </foreignObject>
-                  <text x="145" y="194" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Codelist file</text>
-               </switch>
-            </g>
-            <rect x="315" y="160" width="100" height="60" fill="#ffffff" stroke="#000000" pointer-events="none"></rect>
-            <g transform="translate(-0.5 -0.5)">
-               <switch>
-                  <foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
-                     <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 98px; height: 1px; padding-top: 190px; margin-left: 316px;">
-                        <div style="box-sizing: border-box; font-size: 0; text-align: center; ">
-                           <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><b>Codelist file</b></div>
-                        </div>
-                     </div>
-                  </foreignObject>
-                  <text x="365" y="194" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Codelist file</text>
-               </switch>
-            </g>
-            <rect x="205" y="160" width="100" height="60" fill="#ffffff" stroke="#000000" pointer-events="none"></rect>
-            <g transform="translate(-0.5 -0.5)">
-               <switch>
-                  <foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
-                     <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 98px; height: 1px; padding-top: 190px; margin-left: 206px;">
-                        <div style="box-sizing: border-box; font-size: 0; text-align: center; ">
-                           <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><b>Codelist file</b></div>
-                        </div>
-                     </div>
-                  </foreignObject>
-                  <text x="255" y="194" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Codelist file</text>
-               </switch>
-            </g>
-            <path d="M 255 120 L 255 140 L 365 140 L 365 160" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"></path>
-            <path d="M 254 120 L 254 140 L 145 140 L 145 160" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"></path>
-         </g>
-         <switch>
-            <g requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"></g>
-            <a transform="translate(0,-5)" xlink:href="https://desk.draw.io/support/solutions/articles/16000042487" target=_blank >
-               <text text-anchor="middle" font-size="10px" x="50%" y="100%">Viewer does not support full SVG 1.1</text>
-            </a>
-         </switch>
-      </svg>
-      <div class="medium-header-design" id="naming">
-         File Naming
-      </div>
-      <p>All phenotype definition files associated with a phenotype use a common naming pattern:</p>
-      <div class="language-plaintext highlighter-rouge">
-         <div class="highlight">
-            <pre class="highlight"><code>AUTHORSURNAME_NAME_UUID.yaml</code></pre>
-         </div>
-      </div>
-      <p>for example: <code class="language-plaintext highlighter-rouge">axson_bronchiestasis_ZckoXfUWNXn8Jn7fdLQuxj.yaml</code></p>
-      <p>Similarly, code list files follow a similar pattern:</p>
-      <pre class="highlight"><code>NAME_UUID_TERMINOLOGY.csv
-</code></pre>
-       <p>for example: <code class="language-plaintext highlighter-rouge">axson_bronchiestasis_ZckoXfUWNXn8Jn7fdLQuxj_ICD10.csv</code></p>
-      <div class="medium-header-design" id="def">
-         Phenotype definition file
-      </div>
-      <p>The phenotype definition file is a YAML header file. The YAML file is used to record metadata fields capturing information about the algorithm, the data sources, controlled clinical terminologies and other information.</p>
-      <pre class="highlight"><code><span class="na">phenotype_uuid</span><span class="pi">:</span> <span class="s">5bqxGMaqvZFBhtEYb5mhZJ</span>
-<span class="na">title</span><span class="pi">:</span> <span class="s">Anxiety</span>
-<span class="na">publish</span><span class="pi">:</span> <span class="s">FALSE</span>
-<span class="na">author</span><span class="pi">:</span>
-<span class="pi">-</span> <span class="s">Matthew J Carr</span>
-<span class="pi">-</span> <span class="s">Sarah Steeg</span>
-<span class="pi">-</span> <span class="s">Roger T Webb</span>
-<span class="pi">-</span> <span class="s">Nav Kapur</span>
-<span class="pi">-</span> <span class="s">Carolyn A Chew-Graham</span>
-<span class="pi">-</span> <span class="s">Kathrym M Abel</span>
-<span class="pi">-</span> <span class="s">Holly Hope</span>
-<span class="pi">-</span> <span class="s">Matthias Pierce</span>
-<span class="pi">-</span> <span class="s">Darren M. Ashcroft</span>
-<span class="na">type</span><span class="pi">:</span> <span class="s">Disease or Syndrome</span>
-<span class="na">valid_event_data_range</span><span class="pi">:</span> <span class="s">01/01/2020 - 31/10/2020</span>
-<span class="na">sex</span><span class="pi">:</span>
-<span class="pi">-</span> <span class="s">Female</span>
-<span class="pi">-</span> <span class="s">Male</span>
-<span class="na">collections</span><span class="pi">:</span>
-<span class="pi">-</span> <span class="s">20</span>
-<span class="na">phenoflowid</span><span class="pi">:</span> <span class="s">4</span>
-<span class="na">description</span><span class="pi">: |-</span>
-<span class="s">Using electronic health records from 1714 UK general practices registered with the Clinical Practice Research Datalink we examined incidence and event rates of depression and anxiety disorders, self-harm, prescriptions for antidepressants and benzodiazepines and GP referrals to mental health services per 100,000 person-months, before, during and after the peak of the Covid-19 emergency. Analyses were stratified by gender, age group and practice-level Index of Multiple Deprivation quintile.</span>
-<span class="na">publications</span><span class="pi">:</span>
-<span class="pi">-</span> <span class="s">Matthew J Carr, Sarah Steeg, Roger T Webb, Nav Kapur, Carolyn A Chew-Graham, Kathrym M Abel, Holly Hope, Matthias Pierce, Darren M. Ashcroft, Primary care contact for mental illness and self-harm before during and after the peak of the Covid-19 pandemic in the UK: cohort study of 13 million individual". 2020.</span>
-<span class="na">data_sources</span><span class="pi">:</span>
-<span class="pi">-</span> <span class="s">5</span>
-<span class="pi">-</span> <span class="s">6</span>
-<span class="na">concepts</span><span class="pi">:</span>
-<span class="pi">-</span> <span class="s">Anxiety - Primary Care:</span>
-   <span class="pi">- type:</span> <span class="s">csv</span>
-   <span class="pi">- coding_system:</span> <span class="s">5</span>
-   <span class="pi">- filepath:</span> <span class="s">./path/to/file.csv</span></code></pre>
-      <p>The required Phenotype metadata fields are:</p>
-      <ul>
-         <li><strong>title</strong> (string): Phenotype (long) name</li>
-         <li><strong>publish</strong> (bool): Whether to publish the phenotype and concepts immediately after uploading (publishing allows anyone to view your work)</li>
-         <li><strong>type</strong> (string): Type of phenotype (a list of valid Phenotype types is available <a href={% url 'reference_data' %}>here</a>)</li>
-         <li><strong>author</strong> (list of strings): list of phenotype authors</li>
-         <li><strong>sex</strong> (list of strings): list of sexes valid for the phenotype</li>
-         <li><strong>concepts</strong> (list of concept objects): A list of concept objects
-         </li>
-      </ul>
+<main class="main-content">
+  <div class="main-content__inner-container">
+    <article class="about-container">
+      <section class="page-split">
+        <div class="page-split__left">
+          <aside class="scrollspy">
+            <div class="scrollspy__container">
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary active"
+                aria-label="Go to Phenotype Library Inclusion Criteria" data-target="#home">
+                <a href="#home">Phenotype Library Inclusion Criteria</a>
+              </button>
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+                aria-label="Go to Phenotype Library Inclusion Criteria" data-target="#specification">
+                <a href="#specification">Specification</a>
+              </button>
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+                aria-label="Go to Phenotype Definition File" data-target="#phenotype-definition">
+                <a href="#phenotype-definition">Phenotype Definition File</a>
+              </button>
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+                aria-label="Go to Defining a Concept" data-target="#concept-definition">
+                <a href="#concept-definition">Defining a Concept</a>
+              </button>
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+                aria-label="Go to How to Submit Data" data-target="#submit">
+                <a href="#submit">How to Submit Data</a>
+              </button>
+            </div>
+          </aside>
+        </div>
+        <div class="page-split__right">
+          <div class="page-split__container">
+            <h2>
+              Technical Documentation
+            </h2>
+            <section class="about-container__section__text">
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="home"></span>
+                Phenotype Library Inclusion Criteria
+              </h3>
+              <ul>
+                <li>
+                  Define a disease (e.g. hypertension), life style risk factor (e.g. smoking) 
+                  or biomarker (e.g. blood pressure)
+                </li>
+                <li>
+                  Derive information from one or more electronic health record data sources. 
+                  This can include national and local sources. The definition of EHR includes 
+                  administrative data such as billing/claims data, and clinical audits.
+                </li>
+                <li>
+                  Have one or more peer-reviewed outputs associated with it e.g. journal 
+                  publication, scientific conferences, policy white papers etc.
+                </li>
+                <li>
+                  Provide evidence of how the phenotyping algorithm was validated.
+                </li>
+              </ul>
+            </section>
+            <section class="about-container__section__text">
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="specification"></span>
+                Specification
+              </h3>
+              <p>
+                Phenotyping algorithms are stored in the Phenotype Library usign a combination 
+                of YAML and CSV files. There are two main components to each algorithm:
+              </p>
+              <ul class="decimal">
+                <li>
+                  The phenotype definition file (which is defined in a YAML file); and,
+                </li>
+                <li>
+                  One or more teminology files (also known as codelists) which can be stored 
+                  inline within the YAML file or in linked CSV files
+                </li>
+              </ul>
+            </section>
+            <section class="about-container__section__text">
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="phenotype-definition"></span>
+                Phenotype Definition
+              </h3>
+              <p>
+                The phenotype definition file is a YAML header file. The YAML file is used to 
+                record metadata fields capturing information about the algorithm, the data 
+                sources, controlled clinical terminologies and other information.
+              </p>
+              <p>
+                Clinical-Coded Phenotype Template:
+              </p>
+              <div class="template-detail slim-scrollbar" id="template-detail-output">
+                
+              </div>
+            </section>
+            <section class="about-container__section__text">
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="concept-definition"></span>
+                Defining a Concept
+              </h3>
+              <p>
+                Existing concepts can be linked to new phenotypes using their concept id and version id,
+                new ones can be uploaded via a csv file.
+              </p>
+              <div class="template-detail slim-scrollbar" id="template-detail-output">
+                <div class="template-detail__container">
+                  <h3>From an existing concept:</h3>
+                  <p><strong>name: </strong>The name of the concept<p>
+                  <p><strong>type: </strong>existing_concept<p>
+                  <p>
+                    <strong>concept_id: </strong>
+                    The concept ID as displayed on the Phenotype Library
+                  <p>
+                  <p>
+                    <strong>concept_version_id: </strong>
+                    The concent version ID as displayed on the Phenotype Library
+                  </p>
+                </div>
+                <div class="template-detail__container">
+                  <h3>Through uploading a csv file:</h3>
+                  <p><strong>name: </strong>The name of the concept<p>
+                  <p><strong>type: </strong>csv<p>
+                  <p><strong>filepath: </strong>Location of the csv file, e.g. C:/my/csv/file.csv<p>
+                  <p>
+                    <strong>code_column: </strong>
+                    The name of the code column in your csv
+                  <p>
+                  <p>
+                    <strong>description_column: </strong>
+                    The name of the description column in your csv
+                  <p>
+                </div>
+              </div>
+            </section>
+            <section class="about-container__section__text">
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="submit"></span>
+                How to Submit Data
+              </h3>
+              <p>
+                You can download a sample 
+                <a href="https://raw.githubusercontent.com/SwanseaUniversityMedical/ConceptLibraryClient/main/template.yaml">
+                  template file
+                </a>
+                from the repository.
+              </p>
+              <p>
+                If you have a phenotyping algorithm that meets the eligibility requirements, we invite you to submit your data by one of the following ways:
+              </p>
+              <ul>
+                <li>
+                  By using the
+                  <a href="{% url 'create_phenotype' %}">
+                    Phenotype Builder
+                  </a>
+                </li>
+                <li>
+                  By using the 
+                  <a href="https://github.com/SwanseaUniversityMedical/ConceptLibraryClient">
+                    ConceptLibraryClient R Package
+                  </a>
+                </li>
+                <li>
+                  By 
+                  <a href="{% url 'contact_us' %}">
+                    contacting us
+                  </a>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </section>
+    </article>
+  </div>
+</main>
 
-      <p>Additional Phenotype metadata fields are available:</p>
-      <ul>
-         <li><strong>phenotype_uuid</strong> (list of strings): Unique universal phenotype identifier, generated using the <code class="language-plaintext highlighter-rouge">shortuuid</code> <a href="https://pypi.org/project/shortuuid/" target=_blank   rel="noopener noreferrer">Python module</a>.</li>
-         <li><strong>valid_event_data_range</strong> (list of strings): DD/MM/YYYY date range for events</li>
-         <li><strong>description</strong> (string): Markdown text field providing a description of the Phenotype</li>
-         <li><strong>implementation</strong> (string): Markdown text field providing details on the implementation of the phenotype</li>
-         <li><strong>primary_publication</strong> (string): Citation of the primary publication</li>
-         <li><strong>primary_publication_link</strong> (string): Link to the primary publication</li>
-         <li><strong>primary_publication_doi</strong> (string): DOI linking to the primary publication</li>
-         <li><strong>publications</strong> (list of strings): list of publications</li>
-         <li><strong>tags</strong> (list of ints): List of tag ids that are associated with this Phenotype (a list of valid tag ids is available <a href={% url 'reference_data' %}>here</a>)</li>
-         <li><strong>collections</strong> (list of ints): List of collection ids that are associated with this Phenotype (a list of valid collection ids is available <a href={% url 'reference_data' %}>here</a>)</li>
-         <li><strong>data_sources</strong> (list of ints): List of data source ids that the Phenotype sources information from (a list of valid data source ids is available <a href={% url 'reference_data' %}>here</a>). The data sources available in the Phenotype Library have been sourced from <a href="https://www.healthdatagateway.org/" target=_blank   rel="noopener noreferrer">HDR Gateway</a>.</li>
-         <li>
-            <strong>validation</strong> (list of strings): evidence of validation used as evidence of phenotype robustness - valid values:
-            <ul>
-               <li><em>prognostic</em>: the ability to replicate known prognostic associations</li>
-               <li><em>aetiologic</em>: the ability to replicate known associations with risk factors</li>
-               <li><em>genetic</em> : the abity to replicate associations with known regions or variants</li>
-               <li><em>cross-source</em>: has the algorithm been evaluated in a similar external data source</li>
-               <li><em>casenote review</em> : has the algorithm been validated through manual review of clinical notes (this usually would result to PPV, NPV values)</li>
-               <li><em>cross-country</em> : has the algorithm been evaluated in a similar external healthcare system</li>
-            </ul>
-         </li>
-      </ul>
-
-      <div class="medium-header-design" id="def">
-         Defining a Concept
-      </div>
-      <p>With a csv file:</p>
-      <ul>
-         <li>
-            <strong>- [concept name]</strong> (string): The name of the concept
-            <ul>
-               <li><em>&nbsp; - type</em>: csv</li>
-               <li><em>&nbsp; - coding_system</em> (string): The coding system contained in the concept (a list of valid coding systems is available <a href={% url 'reference_data' %}>here</a>)</li>
-               <li><em>&nbsp; - filepath</em> (string): Location of the csv file, e.g. C:/myphenotype/myconcept.csv</li>
-            </ul>
-         </li>
-      </ul>
-      <p>By entering the codes as a list:</p>
-      <ul>
-         <li>
-            <strong>- [concept name]</strong> (string): The name of the concept
-            <ul>
-               <li><em>&nbsp; - type</em>: inline</li>
-               <li><em>&nbsp; - coding_system</em> (string): The coding system contained in the concept (a list of valid coding systems is available <a href={% url 'reference_data' %}>here</a>)</li>
-               <li><em>&nbsp; - codes</em> (list of strings): A list of codes that this concept should contain</li>
-            </ul>
-         </li>
-      </ul>
-      <p>By referencing a concept that has been published on the Phenotype Library:</p>
-      <ul>
-         <li>
-            <strong>- [concept name]</strong> (string): The name of the concept
-            <ul>
-               <li><em>&nbsp; - type</em>: existing_concept</li>
-               <li><em>&nbsp; - concept_id</em> (string): The concept ID as displayed on the Phenotype Library, e.g. C123</li>
-            </ul>
-         </li>
-      </ul>
-
-      <div class="medium-header-design" id="howto">
-         How to submit data
-      </div>
-      <p>You can download a <a href="https://raw.githubusercontent.com/SwanseaUniversityMedical/ConceptLibraryClient/main/template.yaml" target=_blank   rel="noopener noreferrer"><strong>sample template file</strong></a> from the repository:</p>
-      <p>If you have a phenotyping algorithm that meets the eligibility requirements, we invite you to submit your data by one of the following ways:</p>
-      <ul>
-
-        <li style="list-style-type:circle; margin-left:20px;">by <strong>using the <a href="https://github.com/SwanseaUniversityMedical/ConceptLibraryClient">Concept Library Client R Package</a></strong></a></li>
-        {% if not CLL_READ_ONLY %}
-          <li style="list-style-type:circle; margin-left:20px;">by <strong><a href={% url 'contact_us' %}>contacting us</a></strong> </li>
-        {% else %}
-          <li style="list-style-type:circle; margin-left:20px;">by <strong>contacting us</strong> </li>
-        {% endif %}
-      </ul>
-   </div>
-</div>
 {% endblock container %}
-
-

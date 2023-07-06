@@ -17,10 +17,20 @@ class ContactForm(forms.Form):
     '''
         Generates the contact us form widgets
     '''
-    from_email = forms.EmailField(required=True)
-    name = forms.CharField(required=True)
-    message = forms.CharField(widget=forms.Textarea)
+    name = forms.CharField(
+        required=True, 
+        widget=forms.TextInput(
+            attrs={ 'autocomplete': 'given-name' }
+        )
+    )
+    from_email = forms.EmailField(
+        required=True, 
+        widget=forms.EmailInput(
+            attrs={ 'autocomplete': 'email' }
+        )
+    )
     categories = forms.CharField(widget=forms.Select(choices=MESSAGE_CATEGORIES))
+    message = forms.CharField(widget=forms.Textarea)
 
     def __init__(self, *args, **kwargs):
         super(ContactForm, self).__init__(*args, **kwargs)
