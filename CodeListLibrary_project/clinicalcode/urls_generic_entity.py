@@ -36,10 +36,6 @@ if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
 
         # Selection service(s)
         url(r'^query/(?P<template_id>\w+)/?$', GenericEntity.EntityDescendantSelection.as_view(), name='entity_descendants'),
-
-        # Example - remove at production
-        url(r'^ge/example/$', GenericEntity.ExampleSASSView.as_view(), name='example_phenotype'),
-        url(r'^ge/search/temp/$', GenericEntity.generic_entity_list_temp, name='generic_entity_list_temp'),
     ]
 
     # For create/update/publish - blocked in Read-only mode
