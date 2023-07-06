@@ -295,6 +295,8 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
   }
 }
 
+// page-navigation
+//  @desc defines the navigation bar for use within navigation.html
 .page-navigation {
   @include prefix(transition, all 250ms ease-in, webkit moz o);
 

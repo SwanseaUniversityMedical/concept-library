@@ -8,18 +8,11 @@
 {% block title %}| HDRUK_HOMEPAGE {% endblock title %}
 {% block container %}
 <!-- Page Stylesheets -->
-<link href="{% sass_src 'scss/pages/counter.scss' %}" rel="stylesheet" type="text/css" />
-<link href="{% sass_src 'scss/pages/headline.scss' %}" rel="stylesheet" type="text/css" />
-<link href="{% sass_src 'scss/pages/key_section_landing.scss' %}" rel="stylesheet" type="text/css" />
-<script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/tooltipFactory.js' %}"></script>
-<script type="text/javascript">   const TooltipFactory = window.TooltipFactory;
-   const statSpan = document.getElementById('statSpan');
-   TooltipFactory.addTooltip(statSpan, statSpan.getAttribute('tooltip'), statSpan.getAttribute('direction'));
-   
-</script>
+<link href="{% sass_src 'scss/pages/home/HDRUK.scss' %}" rel="stylesheet" type="text/css" />
 
 <!-- Main -->
 <header class="main-header banner image">
+   <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
    <div class="banner__container__left-landing-page">
       <h3 class="banner__description__landing-page ">
          The HDR UK Phenotype Library is a comprehensive, open access resource providing the research community with information, tools and phenotyping algorithms for UK electronic health records.
@@ -34,7 +27,10 @@
         
        </form>
    </div>
+   </div>
 </header>
+<main class="main-content">
+<div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
 <section class="counter-section">
    <div class="counter-section__counter">
       <div class="counter-section__counter__number">
@@ -154,4 +150,6 @@
       </p>
    </div>
 </section>
+</div>
+</main>
 {% endblock container %}

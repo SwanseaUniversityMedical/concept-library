@@ -6,13 +6,13 @@
 
   <div class="row">    
     <div class="col-md-12 text-align-right">
-      <label class="dropdown">
+      <label class="dropdown-group">
 
-        <div class="dd-button">Export {{ entity_class }} </div>
+        <div class="dropdown-group__button">Export {{ entity_class }} </div>
       
-        <input type="checkbox" class="dd-input"  id="dd_1">
+        <input type="checkbox" class="dropdown-group__input"  id="dd_1">
       
-        <ul class="dd-menu fall-right" {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} >
+        <ul class="dropdown-group__menu dropdown-group__menu--fall-right" {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} >
           <li aria-label="Export phenotype as JSON" role="button" tabindex="0">
             <a {% if user_can_export %}
                 href="{% url 'api:get_generic_entity_detail_by_version' entity.id entity.history_id %}?format=json"

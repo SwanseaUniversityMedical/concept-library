@@ -28,6 +28,7 @@
 @import 'components/_banner';
 @import 'components/_cookie_component';
 @import 'components/_scrollspy';
+@import 'components/_headline';
 
 // Need to add vendor's properties to brand map
 @import 'vendor/_lightpick';
@@ -64,6 +65,8 @@ data {
   display: none;
 }
 
+// main-header
+//  @desc defines the main <header/> element
 .main-header {
   @include flex-col();
   min-height: fit-content;
@@ -75,14 +78,36 @@ data {
     min-height: fit-content;
     max-width: 100%;
     padding: 0 var(--main-gutter) 0 var(--main-gutter);
-  
+
     @include media("<desktop", "screen") {
       padding-right: var(--main-mobile-gutter);
       padding-left: var(--main-mobile-gutter);
     }
+
+    &--constrained {
+      max-width: 2160px;
+      width: calc(100% - var(--main-gutter) - var(--main-gutter));
+
+      @include media("<desktop", "screen") {
+        max-width: 2160px;
+        width: calc(100% - var(--main-mobile-gutter) - var(--main-mobile-gutter));
+      }
+    }
+
+    &--constrained-no-pad {
+      max-width: 2160px;
+      width: 100%;
+      padding: 0 !important;
+    }
+
+    &--centred {
+      align-self: center;
+    }
   }
 }
 
+// main-content
+//  @desc defines the main <main/> element
 .main-content {
   @include flex-col();
   position: relative;
@@ -97,6 +122,19 @@ data {
     flex: 1;
     min-height: fit-content;
     max-width: 100%;
+
+    &--constrained {
+      width: 100%;
+      max-width: 2160px;
+    }
+
+    &--centred {
+      align-self: center;
+    }
+
+    &--pad-right-1 {
+      padding-right: 1rem;
+    }
   }
   
   &--inner-padding {
@@ -108,4 +146,3 @@ data {
     }
   }
 }
-
