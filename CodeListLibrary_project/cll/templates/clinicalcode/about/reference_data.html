@@ -25,46 +25,48 @@
   <!-- Main -->
   <header class="main-header banner">
     <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
-      <h2 class="banner__title">Reference Data</h2>
-      <p class="banner__description">
-        Look up values for phenotype fields.
-      </p>
-      <div class="banner__cards">
-        <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
-          {% url 'api:root' as api_url %}
-          <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
-            <div class="referral-card__header">
-              <a class="referral-card__title" href="{{ api_url }}">API Documentation<span class="referral-card__title-icon"></span></a>
-            </div>
-            <div class="referral-card__body">
-              <p>View the API documentation.</p>
-            </div>
-          </article>
-          {% url 'create_phenotype' as create_url %}
-          <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
-            <div class="referral-card__header">
-              <a class="referral-card__title" href="{{ create_url }}">Create a Phenotype<span class="referral-card__title-icon"></span></a>
-            </div>
-            <div class="referral-card__body">
-              <p>Start here to contribute to the Library.</p>
-            </div>
-          </article>
-          {% url 'search_phenotypes' as search_url %}
-          <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
-            <div class="referral-card__header">
-              <a class="referral-card__title" href="{{ search_url }}">Search Phenotypes<span class="referral-card__title-icon"></span></a>
-            </div>
-            <div class="referral-card__body">
-              <p>Find Phenotypes within the Library.</p>
-            </div>
-          </article>
+      <div class="banner__container">
+        <h2 class="banner__title">Reference Data</h2>
+        <p class="banner__description">
+          Look up values for phenotype fields.
+        </p>
+        <div class="banner__cards">
+          <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
+            {% url 'api:root' as api_url %}
+            <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+              <div class="referral-card__header">
+                <a class="referral-card__title" href="{{ api_url }}">API Documentation<span class="referral-card__title-icon"></span></a>
+              </div>
+              <div class="referral-card__body">
+                <p>View the API documentation.</p>
+              </div>
+            </article>
+            {% url 'create_phenotype' as create_url %}
+            <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+              <div class="referral-card__header">
+                <a class="referral-card__title" href="{{ create_url }}">Create a Phenotype<span class="referral-card__title-icon"></span></a>
+              </div>
+              <div class="referral-card__body">
+                <p>Start here to contribute to the Library.</p>
+              </div>
+            </article>
+            {% url 'search_phenotypes' as search_url %}
+            <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+              <div class="referral-card__header">
+                <a class="referral-card__title" href="{{ search_url }}">Search Phenotypes<span class="referral-card__title-icon"></span></a>
+              </div>
+              <div class="referral-card__body">
+                <p>Find Phenotypes within the Library.</p>
+              </div>
+            </article>
+          </div>
         </div>
       </div>
     </div>
   </header>
 
   <main class="main-content">
-    <div class="main-content__inner-container">
+    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
       <article class="reference-collection">
         <section class="reference-collection__inner-container" id="tags">
           <data data-owner="reference-data-service" name="tags" type="text/json">
@@ -74,7 +76,7 @@
           </data>
           <h3>Tags</h3>
           <p>Optional keywords helping to categorize this content.</p>
-          <div class="reference-collection__table-container" id="tags-area">
+          <div class="reference-collection__table-container constrained-codelist-table" id="tags-area">
 
           </div>
         </section>
@@ -86,7 +88,7 @@
           </data>
           <h3>Collections</h3>
           <p>List of content collections this phenotype belongs to.</p>
-          <div class="reference-collection__table-container" id="collections-area">
+          <div class="reference-collection__table-container constrained-codelist-table" id="collections-area">
 
           </div>
         </section>
@@ -98,7 +100,7 @@
           </data>
           <h3>Coding Systems</h3>
           <p>Clinical coding system(s) that relate to Phenotypes.</p>
-          <div class="reference-collection__table-container" id="coding-systems-area">
+          <div class="reference-collection__table-container constrained-codelist-table" id="coding-systems-area">
 
           </div>
         </section>
@@ -110,7 +112,7 @@
           </data>
           <h3>Data Sources</h3>
           <p>Data sources the phenotype creators have run this phenotype against; or view as appropriate to use this phenotype for.</p>
-          <div class="reference-collection__table-container" id="data-sources-area">
+          <div class="reference-collection__table-container constrained-codelist-table" id="data-sources-area">
 
           </div>
         </section>

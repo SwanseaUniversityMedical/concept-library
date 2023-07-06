@@ -20,6 +20,18 @@ const updateTrackerStyle = (navbar, trackers, headerOffset) => {
 }
 
 /**
+ * resolveWizardStepsArea
+ * @desc resolve the wizard step area location
+ * @param {node} aside the aside wizard area
+ * @param {node} content the content area
+ */
+const resolveWizardStepsArea = (aside, content) => {
+  const asideRect = aside.getBoundingClientRect();
+  const contentRect = content.getBoundingClientRect();
+  aside.style.left = `${contentRect.left - asideRect.width * 1.05}px`;
+}
+
+/**
  * initStepsWizard
  * @desc initialises the wizard steps form
  */
@@ -40,6 +52,15 @@ const initStepsWizard = () => {
     updateTrackerStyle(navbar, trackers, header ? header.getBoundingClientRect().y / 2 : 0);
   });
   updateTrackerStyle(navbar, trackers, header ? header.getBoundingClientRect().y / 2 : 0);
+
+  const aside = document.querySelector('#steps-wizard-area');
+  const content = document.querySelector('#main-wizard');
+  if (content) {
+    window.addEventListener('resize', () => {
+      resolveWizardStepsArea(aside, content);
+    });
+    resolveWizardStepsArea(aside, content);
+  }
 }
 
 domReady.finally(() => {
