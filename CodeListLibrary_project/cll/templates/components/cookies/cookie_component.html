@@ -41,20 +41,10 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-W6XK339B16"></script>
     
     <script type="text/javascript">
-      // Define the props object
-      var props = {
-        autoShowDialog: true,
-        lang: navigator.language,
-        languages: ["en", "de"],
-        contentURL: "{% url 'cookies_settings' %}",
-        cookieName: "cookieSettings",
-        cookieStorageDays: 365,
-        postSelectionCallback: undefined
-      };
 
       // Attach click event handler to #cookie_preference element
-      document.getElementById("cookie_preference").addEventListener("click", function() {
-        cookieSettings("{% url 'cookies_settings' %}",);
+      document.getElementById("cookie_preference").addEventListener("click", function(e) {
+        cookieSettings("{% url 'cookies_settings' %}");
 
         const dataLayer = window.dataLayer || [];
         function gtag() {
@@ -83,17 +73,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-KLBS2646W1"></script>
     <script type="text/javascript">
-      // Define the props object
-      var props = {
-        autoShowDialog: true,
-        lang: navigator.language,
-        languages: ["en", "de"],
-        contentURL: "{% url 'cookies_settings' %}",
-        cookieName: "cookieSettings",
-        cookieStorageDays: 365,
-        postSelectionCallback: undefined
-      };
-
+     
       // Attach click event handler to #cookie_preference element
       document.getElementById("cookie_preference").addEventListener("click", function() {
         var cookieSettings = new BootstrapCookieConsentSettings(props);
@@ -122,46 +102,20 @@
     <!-- for sub-directory = https://conceptlibrary.saildatabank.com/HDRUK/ -->
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-QE37B9J5WK"></script>
-    <script type="text/javascript">
-      // Attach click event handlers to #accept_button and #reject_button elements
-      document.getElementById("accept_button").addEventListener("click", function() {
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('consent', 'update', { 'ad_storage': 'granted' });
-        gtag('config', 'G-QE37B9J5WK');
-      });
-
-      document.getElementById("reject_button").addEventListener("click", function() {
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('consent', 'default', { 'ad_storage': 'denied', 'analytics_storage': 'denied' });
-        gtag('config', 'G-QE37B9J5WK');
-      });
-    </script>
-
-    <!-- for https://phenotypes.healthdatagateway.org -->
-    <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-W6XK339B16"></script>
     <script type="text/javascript">
       // Attach click event handlers to #accept_button and #reject_button elements
       document.getElementById("accept_button").addEventListener("click", function() {
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('consent', 'update', { 'ad_storage': 'granted' });
-        gtag('config', 'G-W6XK339B16');
+        generateTag('update','G-QE37B9J5WK',{ 'ad_storage': 'granted' })
+        generateTag('update','G-W6XK339B16', { 'ad_storage': 'granted' })
       });
 
       document.getElementById("reject_button").addEventListener("click", function() {
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('consent', 'default', { 'ad_storage': 'denied', 'analytics_storage': 'denied' });
-        gtag('config', 'G-W6XK339B16');
+        generateTag('default','G-QE37B9J5WK',{ 'ad_storage': 'denied', 'analytics_storage': 'denied' })
+        generateTag('default','G-W6XK339B16', { 'ad_storage': 'denied', 'analytics_storage': 'denied' })
       });
     </script>
+
   {% else %}
     <!-- for the default/other brands -->
     <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -169,19 +123,12 @@
     <script type="text/javascript">
       // Attach click event handlers to #accept_button and #reject_button elements
       document.getElementById("accept_button").addEventListener("click", function() {
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('consent', 'update', { 'ad_storage': 'granted' });
-        gtag('config', 'G-KLBS2646W1');
+        generateTag('update','G-KLBS2646W1', { 'ad_storage': 'granted' })
+      
       });
-
       document.getElementById("reject_button").addEventListener("click", function() {
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('consent', 'default', { 'ad_storage': 'denied', 'analytics_storage': 'denied' });
-        gtag('config', 'G-KLBS2646W1');
+        generateTag('default','G-KLBS2646W1', { 'ad_storage': 'denied', 'analytics_storage': 'denied' })
+
       });
     </script>
   {% endif %}
