@@ -1,10 +1,10 @@
 
- const cookieSettings = (privacyurl) => {
+const cookieSettings = (privacyurl) => {
     
 const ModalFactory = window.ModalFactory;
 
   ModalFactory.create({
-    id: 'test-dialog',
+    id: 'cookie-dialog',
     title: 'Privacy Settings',
     content: generateContent(privacyurl),
     buttons: [
@@ -20,14 +20,13 @@ const ModalFactory = window.ModalFactory;
       },
     ]
   })
+
   .then((result) => {
     // e.g. user pressed a button that has type=ModalFactory.ButtonTypes.CONFIRM
     const name = result.name;
-    if (name == 'Confirm') {
+    if (name == 'Save selection') {
       console.log('[success] user confirmed', result);
-    } else if (name == 'Accept') {
-      console.log('[success] user accepted', result);
-    }
+    } 
   })
   .catch((result) => {
     // An error occurred somewhere (unrelated to button input)
@@ -39,10 +38,9 @@ const ModalFactory = window.ModalFactory;
     const name = result.name;
     if (name == 'Cancel') {
       console.log('[failure] user cancelled', result);
-    } else if (name == 'Reject') {
-      console.log('[failure] rejected', result);
-    }
+    } 
   });
+
 
 }
 
@@ -70,11 +68,4 @@ const generateContent = (url) => {
     <p>Monitoring website usage and optimizing the user experience.</p>`
     
     return maindescription;
-}
-
-const sendGtag = () => {
-const checkbox = document.getElementById('stats-check');
-if (checkbox.checked) {
-    
-}
 }
