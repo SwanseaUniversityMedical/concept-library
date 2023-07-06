@@ -119,6 +119,8 @@ def about_pages(request, pg_name=None):
         elif pg_name.lower() == "bhf_data_science_centre".lower():
             return render(request, 'clinicalcode/brand/HDRUK/collections/bhf-data-science-centre.html', {})
 
+        elif pg_name.lower() == "eurolinkcat".lower():
+            return render(request, 'clinicalcode/brand/HDRUK/collections/eurolinkcat.html', {})
 #     else:
 #         return render(request, 'clinicalcode/index.html', {})
 

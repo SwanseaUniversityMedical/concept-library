@@ -127,6 +127,18 @@
     width: var(--phenotype-article-lg-size);
     max-width: var(--phenotype-article-lg-size);
   }
+  
+  img.img-banner {
+    width: 100%;
+    aspect-ratio: 3 / 1;
+    background-size: cover;
+    background-position-x: 100%;
+    min-height: 100px;
+
+    &--sz-6x1 {
+      aspect-ratio: 6 / 1;
+    }
+  }
 
   h3.subheader {
     position: relative;
