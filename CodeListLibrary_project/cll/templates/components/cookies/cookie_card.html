@@ -1,0 +1,18 @@
+
+{% load static %}
+{% load i18n %}
+{% load svg %}
+{% load mathfilters %}
+{% load cl_extras %}
+
+{% block content %}
+<div class="cookie_card" title="Cookies Settings" role="alert">
+    <div class="cookie_card__container">
+        <button type="button" id="cookie_preference" class="secondary-btn preferencecookies" value="">
+        {% svg "cookies_icon" %}
+    </button>
+    </div>   
+    
+</div>
+
+{% endblock content %}
