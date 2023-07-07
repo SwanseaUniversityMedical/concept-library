@@ -30,9 +30,10 @@
 
   {% if DEV_PRODUCTION|length or CLL_READ_ONLY %}
     <span class="footer-alert footer-alert--warning footer-alert--right" role="alert">
-      {{ DEV_PRODUCTION|safe }}
       {% if CLL_READ_ONLY %}
         <strong>READONLY</strong>
+      {% else %}
+        <strong>{{ DEV_PRODUCTION|safe }}</strong>
       {% endif %}
     </span>
   {% endif %}
