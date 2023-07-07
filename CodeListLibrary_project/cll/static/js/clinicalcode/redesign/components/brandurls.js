@@ -1,5 +1,4 @@
 const brandUrlsgen = (all_brands,prod,element,old_root,path) =>{
-  
   new_root = "";
   if (element.getAttribute('value') != '') {
     new_root = "/" + element.getAttribute('value');
@@ -63,7 +62,6 @@ const generateOldPathRoot = () =>{
   for (var brand in all_brands) {
     all_brands.push(brand.toUpperCase());
   }
-
 
   var path = window.location.pathname;
   path = lTrim(path);
