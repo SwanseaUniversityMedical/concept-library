@@ -35,7 +35,6 @@ services:
     tty: true
     stdin_open: true
     environment:
-      TEST_STATIC_SERVING: false
       DEBUG: true
       DEBUG_TOOLS: true
       IS_DEMO: false

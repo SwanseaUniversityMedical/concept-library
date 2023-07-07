@@ -4,8 +4,8 @@ echo "===================================="
 echo "======= Starting application ======="
 echo "===================================="
 
-if [ ! -z $TEST_STATIC_SERVING ] && [ $TEST_STATIC_SERVING = true ]; then
-  echo "[!>] Starting dev app with WhiteNoise [TEST_STATIC_SERVING: TRUE]"
+if [ ! -z $DEBUG ] && [ $DEBUG = true ]; then
+  echo "[!>] Starting dev app [TEST_STATIC_SERVING: TRUE]"
   python /var/www/CodeListLibrary_project/manage.py migrate
   python /var/www/CodeListLibrary_project/manage.py compilescss
   python /var/www/CodeListLibrary_project/manage.py collectstatic --noinput
