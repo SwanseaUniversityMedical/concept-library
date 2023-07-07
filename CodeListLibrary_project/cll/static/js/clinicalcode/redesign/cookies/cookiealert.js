@@ -2,9 +2,10 @@
   "use strict";
 
   const cookieAlert = document.querySelector(".cookiealert");
+  const cookieCard = document.querySelector(".cookie_card");
   const acceptCookies = document.querySelector(".acceptcookies");
   const rejectCookies = document.querySelector(".rejectcookies");
-  const settingsCookie = document.querySelector(".preferencecookies");
+
 
   if (!cookieAlert) {
     return;
@@ -31,27 +32,30 @@
   
   if (!getCookie("acceptCookies")) {
     cookieAlert.classList.add("show");
+  }else{
+    cookieCard.classList.add("show");
   }
+  
   if (getCookie("rejectCookies")) {
     cookieAlert.classList.remove("show");
+    cookieCard.classList.add("show");
   }
 
-  const handleButtonClick = (eventName, cookieName, cookieValue) => {
+
+  const handleCookies = (eventName, cookieName, cookieValue) => {
     cookieAlert.classList.remove("show");
-    
     setCookie(cookieName, cookieValue, 365);
     window.dispatchEvent(new Event(eventName));
   };
 
   acceptCookies.addEventListener("click", () => {
-    handleButtonClick("cookieAlertAccept", "acceptCookies", true);
+    handleCookies("cookieAlertAccept", "acceptCookies", true);
   });
 
   rejectCookies.addEventListener("click", () => {
-    handleButtonClick("rejectCookiesAlert", "rejectCookies", false);
+    handleCookies("rejectCookiesAlert", "rejectCookies", false);
   });
 
-  settingsCookie.addEventListener("click", () => {
-    handleButtonClick("preferencecookiesAlert", "cookieSettings", true);
-  });
+  window.handleCookies = handleCookies;
+
 })();
