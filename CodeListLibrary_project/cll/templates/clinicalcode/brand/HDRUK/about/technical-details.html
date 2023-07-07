@@ -185,9 +185,13 @@
               <ul>
                 <li>
                   By using the
-                  <a href="{% url 'create_phenotype' %}">
+                  {% if not CLL_READ_ONLY %}
+                    <a href="{% url 'create_phenotype' %}">
+                      Phenotype Builder
+                    </a>
+                  {% else %}
                     Phenotype Builder
-                  </a>
+                  {% endif %}
                 </li>
                 <li>
                   By using the 
