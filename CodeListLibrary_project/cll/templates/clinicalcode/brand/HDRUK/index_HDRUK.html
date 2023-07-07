@@ -85,31 +85,59 @@
       </div>
     </section>
     <div class="headline">
-      <div class="headline__image"> </div>
+      <div class="headline__image"></div>
       <div class="headline__text">
+        <h2>A Reference Catalogue of Human Diseases</h2>
         <div class="headline__section">
-          <h3>What is a phenotyping algorithm?</h3>
-          <p>Phenotyping algorithms are complex computer programs that extract useful information from electronic health
-            records so they can be used for health research.</p>
+          <p>
+            <strong>Connected.</strong>
+            The Phenotype Library is accessible via an API to support interoperability, is integrated with health dataset information in HDR-UK's Innovation Gateway, 
+            and hosts content from numerous contributing organisations. 
+          </p>
         </div>
-        <h3>What is the HDR UK Phenotype Library?</h3>
         <div class="headline__section">
-          <p>Our aim is to provide researchers with the “GitHub of phenotyping”: an open platform for storage,
-            dissemination, re-use, evaluation and citation of their own curated algorithms and metadata (data source(s),
-            clinical terminologies, and other information) in order to reduce duplication of effort and improve research
-            reproducibility.</p>
+          <p>
+            <strong>Patient-focused.</strong>
+            The Library is enabling important research to improve patient health and well-being. Content spans major disease areas, including heart disease, cancer, 
+            COVID-19 and other common and rare human health conditions.
+            Curated collections from contributors such as the HDR UK BREATHE Hub for respiratory health share clinical expertise to tackle critical research questions. 
+          </p>
+        </div>
+        <div class="headline__section">
+          <p>
+            <strong>Cutting-edge.</strong>
+            Built with a focus on computability, this resource aims to drive the next generation of research methods. Integration with Phenoflow enables executable 
+            implementations of the phenotypes in our collection, while the API and R package client facilitate integration of the Library content directly into 
+            other analysis workflows. 
+          </p>
         </div>
       </div>
     </div>
     <div class="headline__section__general">
+      <h3>What is a phenotyping algorithm?</h3>
+      <p>
+        A phenotype is a observable and measurable piece of information that is relevant to health or healthcare.
+        For example, it can be a disease (e.g. type 2 diabetes), a blood pressure measurement, a blood sugar value or a prescription of antibiotics.
+      </p>
+      <p>
+        Phenotyping algorithms are special tools that enable researchers to extract phenotypes from complex, and often messy data that 
+        get generated during routine interactions within the healthcare system.
+        They identify and extract data from medical records using clinical codes which are the building block of how information is recorded 
+        in healthcare (for example ICD-10). Using these specialized algorithms, researchers and clinicians can maximize the value of patient 
+        data contained in medical records and answer important questions that can improve health and healthcare. 
+      </p>
+    </div>
+    <div class="headline__section__general headline--margin-bottom-2rem">
       <h3>How are we enabling this work?</h3>
       <p>
-        The HDR UK Phenotype Library is a platform to host phenotyping algorithms and harness their power for research.
-        Our aim is to provide researchers with the “GitHub of phenotyping”: an open platform for creation, storage,
-        dissemination, re-use, evaluation, and citation of curated algorithms and metadata. Our goal is for this to be a
+        The <strong>HDR UK Phenotype Library</strong> is a platform to host phenotyping algorithms and harness their power for research.
+        Our aim is to provide researchers with the “GitHub of phenotyping”: an open platform for <strong>creation, storage,
+        dissemination, re-use, evaluation, and citation</strong> of curated algorithms and metadata. Our goal is for this to be a
         place where researchers can share their own work, benefit from what others have shared, and even build new
         collaborations.
-        As a funded project of HDR UK, our primary goal is to develop a national platform supporting researchers within
+      </p>
+      <p>
+        As a funded project of <a href="https://www.hdruk.ac.uk/projects/national-phenomics-resource/">HDR UK</a>, our primary goal is to develop a national platform supporting researchers within
         the United Kingdom, but we don’t want to stop there: we welcome contributions from members of the health
         research community worldwide.
       </p>
@@ -128,21 +156,21 @@
             </a>
           </div>
         </article>
-        <article
-          class="referral-card referral-card--landing-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
-          <div class="referral-card__header referral-card__header--icon-column">
-            <div class="referral-card__icon-before referral-card__icon-before__plus"></div>
-            <p class="referral-card__title referral-card__title--align-centre">Submit a phenotype</p>
-          </div>
-          <div class="referral-card__body referral-card__body--hide-overflow">
+        {% if not CLL_READ_ONLY%}
+          <article
+            class="referral-card referral-card--landing-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+            <div class="referral-card__header referral-card__header--icon-column">
+              <div class="referral-card__icon-before referral-card__icon-before__plus"></div>
+              <p class="referral-card__title referral-card__title--align-centre">Submit a phenotype</p>
+            </div>
+            <div class="referral-card__body referral-card__body--hide-overflow">
 
-            {% if not CLL_READ_ONLY%}
-            <a class="referral-card__anchor" href="{% url 'create_phenotype' %}">
-              <p>Learn how you contribute your phenotypes to our library.</p>
-            </a>
-            {% endif %}
-          </div>
-        </article>
+              <a class="referral-card__anchor" href="{% url 'create_phenotype' %}">
+                <p>Learn how you contribute your phenotypes to our library.</p>
+              </a>
+            </div>
+          </article>
+        {% endif %}
       </div>
     </div>
     <section class="key-section">
@@ -176,16 +204,12 @@
         </div>
       </div>
     </section>
-    <section class="key-section">
-      <h2 class="key-section__title">How to contribute?</h2>
-      <div class="headline__section__general">
-        <p>
-          To submit an EHR phenotyping algorithm to the Phenotype Library please read <a
-            href="{% url 'about_page' 'hdruk_about_technical_details' %}" target=_blank rel="noopener noreferrer">our
-            documentation pages</a>.
-        </p>
-      </div>
-    </section>
+    <div class="headline__section__general headline__section__general--align-items-center">
+      <h2 class="headline--text-align-center">How to contribute?</h2>
+      <p>
+        To submit an EHR phenotyping algorithm to the Phenotype Library please read <a href="{% url 'about_page' 'hdruk_about_technical_details' %}" rel="noopener noreferrer">our documentation pages</a>.
+      </p>
+    </div>
   </div>
 </main>
 {% endblock container %}

@@ -47,7 +47,7 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(150px, 1fr));
     grid-template-rows: auto;
-    grid-column-gap: 20px;
+    grid-column-gap: 4rem;
     grid-row-gap: 1rem;
     justify-content: center;
     background-color: var(--color-accent-bright);
@@ -61,6 +61,11 @@
   &__column {
     text-align: left;
     align-items: baseline;
+    max-width: 100%;
+
+    p {
+      word-wrap: break-word;
+    }
 
     &:before {
       content: '';
