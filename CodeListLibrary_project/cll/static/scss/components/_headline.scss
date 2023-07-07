@@ -29,7 +29,7 @@
     background-image: var(--headline-url);
     background-repeat: no-repeat;
     background-size: cover;
-	  width: 40%;
+    width: 40%;
     aspect-ratio: 2 / 1;
 
 
@@ -57,12 +57,16 @@
     &__general {
       display: flex;
       flex-flow: column wrap;
-      margin: 1rem 0rem 0rem 0rem;
+      margin: 0;
       padding: 0 4rem;
       width: calc(100% - 8rem);
       max-width: 100%;
   
       h3 {
+        margin-bottom: 0rem;
+      }
+
+      h2 {
         margin-bottom: 0rem;
       }
       

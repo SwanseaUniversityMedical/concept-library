@@ -10,10 +10,15 @@
   background-color: var(--phenotype-banner-bg-color);
 
   &.image {
-    background-image: var(--banner-url);
+    background: var(--banner-url);
     background-repeat: no-repeat;
     background-color: #000000;
     background-position: center;
+
+    @include media('<tablet', 'screen') {
+      background-position: 50% 50%;
+      background-size: cover;
+    }
   }
 
   &__container {
