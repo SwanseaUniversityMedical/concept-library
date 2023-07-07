@@ -28,14 +28,17 @@
   };
 
   // Show the alert if we can't find the "acceptCookies" cookie
+  
   if (!getCookie("acceptCookies")) {
     cookieAlert.classList.add("show");
-  } else if (getCookie("rejectCookies") || getCookie("cookieSettings")) {
+  }
+  if (getCookie("rejectCookies")) {
     cookieAlert.classList.remove("show");
   }
 
   const handleButtonClick = (eventName, cookieName, cookieValue) => {
     cookieAlert.classList.remove("show");
+    
     setCookie(cookieName, cookieValue, 365);
     window.dispatchEvent(new Event(eventName));
   };
