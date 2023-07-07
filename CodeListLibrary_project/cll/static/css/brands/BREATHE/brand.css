@@ -15,7 +15,6 @@
 
 .navbar {
 	background-color: #3c3c3b;
-	/*background-image: url("../../../img/brands/BREATHE/placeholder.png");*/
 	/*background-repeat: no-repeat;*/
 	/*background-position: top right;*/
 }
@@ -44,7 +43,6 @@
 .big-banner_breathe {
 	height: 165px;
 	width: 100%;
-	background-image: url("../../../img/brands/BREATHE/breathe_banner.png");
 	background-repeat: no-repeat;
   	background-size: 100%;
 	margin: 0;

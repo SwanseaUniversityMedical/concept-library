@@ -28,10 +28,14 @@
 
       cd /var/www/concept_lib_sites/v1/CodeListLibrary_project
       
-      echo ">>>>> collectstatic <<<<<<<<<<<<<<<<<<<"
+      echo ">>>>> compile scss <<<<<<<<<<<<<<<<<<<"
       python manage.py compilescss
+
+      echo ">>>>> compression & collection <<<<<<<<<<<<<<<<<<<"
       sudo chown -R www-data:www-data /var/www/ &
       python manage.py collectstatic --noinput 1> /dev/null
+      python manage.py compress
+      python manage.py collectstatic --noinput
 
 #      echo ">>>>> makemigrations <<<<<<<<<<<<<<<<<<<"
 #      python manage.py makemigrations 

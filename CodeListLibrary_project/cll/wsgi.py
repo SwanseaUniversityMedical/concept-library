@@ -10,7 +10,9 @@ https://docs.djangoproject.com/en/1.10/howto/deployment/wsgi/
 import os
 import sys
 
+from django.conf import settings
 from django.core.wsgi import get_wsgi_application
+from whitenoise import WhiteNoise
 
 # if 'test' in sys.argv:
 #     # if a command contains read_only phrase at the end, then read cll.read_only_test_settings otherwise cll.test_settings
@@ -41,3 +43,4 @@ if ver_env not in sys.path:
     sys.path.append(ver_env)
 
 application = get_wsgi_application()
+application = WhiteNoise(application, root=os.path.join(settings.BASE_DIR, 'cll/static'))

@@ -24,7 +24,7 @@ import ldap
 
 APP_TITLE = 'Concept Library'
 APP_DESC = 'The {app_title} is a system for storing, managing, sharing, and documenting clinical code lists in health research.'
-APP_LOGO_PATH = '/img/'
+APP_LOGO_PATH = 'img/'
 APP_EMBED_ICON = '{logo_path}embed_img.png'
 
 def GET_SERVER_IP(TARGET_IP='10.255.255.255', PORT=1):
@@ -108,8 +108,6 @@ SECRET_KEY = get_env_value('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = get_env_value('DEBUG', cast='bool')
 
-    
-
 ADMIN = [('Muhammad', 'Muhammad.Elmessary@Swansea.ac.uk'),
          ('Dan', 'd.s.thayer@swansea.ac.uk')]
 
@@ -135,17 +133,13 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "cll.settings"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'cll/static'),
-]
-
-
-
 STATIC_URL = '/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticroot')
 
 WSGI_APPLICATION = 'cll.wsgi.application'
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -156,8 +150,21 @@ STATICFILES_FINDERS = (
     'compressor.finders.CompressorFinder',
 )
 
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'cll/static'),
+]
+
 # Compressor options
 COMPRESS_ENABLED = not DEBUG
+COMPRESS_OFFLINE = True
+COMPRESS_URL = STATIC_URL
+COMPRESS_ROOT = STATIC_ROOT
+
+if not DEBUG:
+    COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
+    COMPRESS_PRECOMPILERS = (
+        ('module', 'esbuild {infile} --bundle --outfile={outfile}'),
+    )
 
 # SCSS options
 SASS_PROCESSOR_ENABLED = True
@@ -165,7 +172,6 @@ SASS_PROCESSOR_AUTO_INCLUDE = True
 SASS_PROCESSOR_INCLUDE_FILE_PATTERN = r'^.+\.scss$'
 SASS_OUTPUT_STYLE = 'expanded' if DEBUG else 'compressed'
 SASS_PROCESSOR_ROOT = STATIC_ROOT
-
 
 # Binding and connection options
 # LDAP authentication  =======================================================
@@ -243,10 +249,14 @@ INSTALLED_APPS = INSTALLED_APPS + [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',  # manages sessions across requests
+    # static file serving
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    # manages sessions across requests
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',  # associates users with requests using sessions
+    # associates users with requests using sessions
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',

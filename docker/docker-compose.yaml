@@ -24,8 +24,7 @@ services:
       dockerfile: ./app.Dockerfile
     command: >
       sh -c "/bin/wait-for-it.sh -t 0 postgres:5432 -- python /var/www/CodeListLibrary_project/manage.py makemigrations
-      && python /var/www/CodeListLibrary_project/manage.py migrate
-      && python /var/www/CodeListLibrary_project/manage.py runserver 0.0.0.0:8000"
+      && /bin/init-app.sh"
     volumes:
       - ../CodeListLibrary_project:/var/www/CodeListLibrary_project/
     ports:
@@ -36,6 +35,7 @@ services:
     tty: true
     stdin_open: true
     environment:
+      TEST_STATIC_SERVING: false
       DEBUG: true
       DEBUG_TOOLS: true
       IS_DEMO: false
