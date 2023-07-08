@@ -17,15 +17,15 @@
     </div>
     <div class="cookiealert__cookie_buttons">
 
-        <button type="button" id="cookie_preference" class="secondary-btn  outline preferencecookies" value="">
+        <button type="button" id="cookie_preference" class="secondary-btn  outline preferencecookies">
             Customise settings
         </button>
 
-        <button type="button" id="reject_button" class="secondary-btn outline rejectcookies" value="">
+        <button type="button" id="reject_button" class="secondary-btn outline rejectcookies">
             Disable analytics
         </button>
     
-        <button type="button" id="accept_button" class="primary-btn  acceptcookies" value="">
+        <button type="button" id="accept_button" class="primary-btn  acceptcookies">
             Accept all
         </button>
     </div>
@@ -39,21 +39,11 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-QE37B9J5WK"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-W6XK339B16"></script>
-
     <script type="text/javascript">
-      // Attach click event handlers to #accept_button and #reject_button elements
-      document.getElementById("accept_button").addEventListener("click", function() {
-        generateTag('update','G-QE37B9J5WK',{ 'ad_storage': 'granted' })
-        generateTag('update','G-W6XK339B16', { 'ad_storage': 'granted' })
-      });
-
-      document.getElementById("reject_button").addEventListener("click", function() {
-        generateTag('default','G-QE37B9J5WK',{ 'ad_storage': 'denied', 'analytics_storage': 'denied' })
-        generateTag('default','G-W6XK339B16', { 'ad_storage': 'denied', 'analytics_storage': 'denied' })
-      });
       // Attach click event handler to #cookie_preference element
       document.getElementById("cookie_preference").addEventListener("click", function(e) {
-        cookieSettings("{% url 'cookies_settings' %}");
+        e.preventDefault()
+        cookieSettings("{% url 'privacy_and_cookie_policy' %}");
 
         const checkbox = document.getElementById("stats-check")
         document.getElementById("save-button").addEventListener("click",function(){
@@ -69,9 +59,19 @@
 
         })
       });
+
+      // Attach click event handlers to #accept_button and #reject_button elements
+      document.getElementById("reject_button").addEventListener("click", function() {
+        generateTag('default','G-QE37B9J5WK',{ 'ad_storage': 'denied', 'analytics_storage': 'denied' })
+        generateTag('default','G-W6XK339B16', { 'ad_storage': 'denied', 'analytics_storage': 'denied' })
+      });
+
+      document.getElementById("accept_button").addEventListener("click", function() {
+        generateTag('update','G-QE37B9J5WK',{ 'ad_storage': 'granted' })
+        generateTag('update','G-W6XK339B16', { 'ad_storage': 'granted' })
+      });
     </script>
      
-
   {% else %}
     <!-- for the default/other brands -->
     <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -79,8 +79,9 @@
     <script type="text/javascript">
      
       // Attach click event handler to #cookie_preference element
-      document.getElementById("cookie_preference").addEventListener("click", function() {
-        cookieSettings("{% url 'cookies_settings' %}");
+      document.getElementById("cookie_preference").addEventListener("click", function(e) {
+        e.preventDefault()
+        cookieSettings("{% url 'privacy_and_cookie_policy' %}");
         const checkbox = document.getElementById("stats-check")
         document.getElementById("save-button").addEventListener("click",function(){
         if (checkbox.checked){
