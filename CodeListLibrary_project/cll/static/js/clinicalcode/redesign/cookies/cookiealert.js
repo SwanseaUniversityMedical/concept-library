@@ -28,6 +28,19 @@
     document.cookie = `${cname}=${cvalue}; ${expires}; path=/`;
   };
 
+  const deleteCookies = () => {
+    // Delete cookies
+  
+    const cookies = document.cookie.split(";");
+    cookies.forEach(cookie => {
+      const cookieName = cookie.split("=")[0].trim();
+      document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+    });
+  };
+  
+  
+  
+
   // Show the alert if we can't find the "acceptCookies" cookie
   
   if (!getCookie("acceptCookies")) {
@@ -57,5 +70,7 @@
   });
 
   window.handleCookies = handleCookies;
+  window.getCookie = getCookie;
+  window.deleteCookies = deleteCookies;
 
 })();
