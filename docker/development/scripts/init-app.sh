@@ -4,7 +4,7 @@ echo "===================================="
 echo "======= Starting application ======="
 echo "===================================="
 
-if [ ! -z $DEBUG ] && [ $DEBUG = true ]; then
+if [ ! -z $DEBUG ] && [ $DEBUG = false ]; then
   echo "[!>] Starting dev app [TEST_STATIC_SERVING: TRUE]"
   python /var/www/CodeListLibrary_project/manage.py migrate
   python /var/www/CodeListLibrary_project/manage.py compilescss
