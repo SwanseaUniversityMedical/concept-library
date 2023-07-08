@@ -17,6 +17,7 @@ from django.template.loader import render_to_string
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
+from rest_framework.decorators import schema
 from collections import OrderedDict
 
 import csv
@@ -46,7 +47,7 @@ class EntitySearchView(TemplateView):
                 -> SSR of entities at initial GET request based on request params
                 -> AJAX-driven update of template based on request params (through JsonResponse)
     '''
-    template_name = 'clinicalcode/generic_entity/search.html'
+    template_name = 'clinicalcode/generic_entity/search/search.html'
     result_template = 'components/search/results.html'
     pagination_template = 'components/search/pagination_container.html'
 
@@ -106,6 +107,7 @@ class EntitySearchView(TemplateView):
             
         return render(request, self.template_name, context)
 
+@schema(None)
 class EntityDescendantSelection(APIView):
     '''
         Selection Service View
@@ -501,60 +503,6 @@ def run_HDRUK_statistics(request):
                         'stat': stat
                     })
 
-
-class ExampleSASSView(TemplateView):
-    template_name = 'clinicalcode/generic_entity/examples.html'
-
-    def get(self, request):
-        ctx = {
-
-        }
-
-        return render(request, self.template_name, context=ctx)
-
-def generic_entity_list_temp(request):
-    '''
-        Display the list of phenotypes. 
-    '''
-    from django.core.paginator import EmptyPage, Paginator
-    
-    page = utils.get_int_value(request.GET.get('page', request.session.get('entity_page', 1)), request.session.get('phenotype_page', 1))
-    page_size = 20    
- 
-    request.session['entity_page'] = page
-    
-    srch = entity_db_utils.get_visible_live_or_published_generic_entity_versions(request,
-                                                                            get_live_and_or_published_ver=3,
-                                                                            search='',
-                                                                            author='',
-                                                                            exclude_deleted=True,
-                                                                            filter_cond=" 1=1 ",
-                                                                            search_name_only = False,
-                                                                            highlight_result = True
-                                                                            )
-    # create pagination
-    paginator = Paginator(srch,
-                          page_size,
-                          allow_empty_first_page=True)
-    try:
-        p = paginator.page(page)
-    except EmptyPage:
-        p = paginator.page(paginator.num_pages)
-
-    p_btns = utils.get_paginator_pages(paginator, p)
-
-
-    context = {
-        'page': page,
-        'page_size': str(20),
-        'page_obj': p,
-        'search_form': 'basic-form',
-        'p_btns': p_btns,
-        }
-    
-    return render(request, 'clinicalcode/generic_entity/search_temp.html', context)
-
-   
       
 @login_required
 # phenotype_conceptcodesByVersion
@@ -775,7 +723,7 @@ def generic_entity_detail(request, pk, history_id=None):
     }
 
     return render(request, 
-                  'clinicalcode/generic_entity/detail.html',
+                  'clinicalcode/generic_entity/detail/detail.html',
                   context 
                 )
 

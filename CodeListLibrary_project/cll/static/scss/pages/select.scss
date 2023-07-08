@@ -5,8 +5,6 @@
 
 /// Select template
 ///   @desc Stylesheet relating to page that allows selection of which entity/template to create
-
-
 .entity-panel {
   @include flex-col();
   position: relative;

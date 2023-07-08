@@ -15,7 +15,7 @@ class EntityDecline(LoginRequiredMixin, permission_utils.HasAccessToViewGenericE
     '''
     model = GenericEntity
     #use same template as we have two buttons publish and decline
-    template_name = 'clinicalcode/generic_entity/publish.html'
+    template_name = 'clinicalcode/generic_entity/publish/publish.html'
 
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def post(self, request, pk, history_id):

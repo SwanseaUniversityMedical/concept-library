@@ -29,6 +29,17 @@ def sort_by_alpha(arr, column="name", order="desc"):
     return sorted_arr
 
 @register.simple_tag
+def get_brand_base_icons(brand):
+    path = settings.APP_LOGO_PATH
+    if brand and getattr(brand, 'logo_path'):
+        path = brand.logo_path
+
+    return {
+        'favicon': path + 'favicon-32x32.png',
+        'apple': path + 'apple-touch-icon.png',
+    }
+
+@register.simple_tag
 def get_brand_base_title(brand):
     '''
         Gets the brand-related site title if available, otherwise returns

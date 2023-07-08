@@ -39,24 +39,23 @@
 
 <!-- Page Stylesheets -->
 <link href="{% sass_src 'scss/pages/detail.scss' %}" rel="stylesheet" type="text/css" />
-<link href="{% sass_src 'scss/pages/detail_btn_dropdown.scss' %}" rel="stylesheet" type="text/css" />
 
   <!-- Form -->
   <header class="main-header">
-    <div class="main-header__inner-container">
+    <div class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
       {% comment %} {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
       {% endbreadcrumbs %} {% endcomment %}
 
-		<section class="breadcrumbs">
-			<span class="breadcrumb-item">
-				<span class="marker"></span>
-				<span class="breadcrumb"><a href="{% url 'search_phenotypes' %}">search</a></span>
-			</span>
-			<span class="breadcrumb-item">
-				<span class="marker"></span>
-				<span class="breadcrumb">{{ entity.name }}</span>
-			</span>
-		</section>
+      <section class="breadcrumbs">
+        <span class="breadcrumb-item">
+          <span class="marker"></span>
+          <span class="breadcrumb"><a href="{% url 'search_phenotypes' %}">search</a></span>
+        </span>
+        <span class="breadcrumb-item">
+          <span class="marker"></span>
+          <span class="breadcrumb">{{ entity.name }}</span>
+        </span>
+      </section>
     
     </div>
   </header>
@@ -66,7 +65,7 @@
     {% endrender_wizard_sidemenu %}
     
 
-    <div class="main-content__inner-container">
+    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
       <article class="phenotype-creation">
 
         {% include './detail_buttons.html' %}

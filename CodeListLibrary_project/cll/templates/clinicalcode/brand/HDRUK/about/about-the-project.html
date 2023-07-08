@@ -1,133 +1,346 @@
-{% extends "base.html" %}
-{% load static %}
-{% block title %}{% endblock title %}
-{% block description %} About the HDR UK Phenotype Library {% endblock description %}
-{% block keywords %}, Algorithm, Library, HDR-UK, HDR, Phenotype, Phenotypes, Electronic, Health, Records{% endblock keywords %}
-{% block head %}
-<link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
-{% endblock head %}
+{% extends "base_scss.html" %}
 
-{% block scrollNav %}
-data-spy="scroll" data-target="#AboutUsMenu" data-offset = "280"
-{% endblock scrollNav %}
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load breadcrumbs %}
+
+{% block title %}| About Us {% endblock title %}
 
 {% block container %}
-<div class="row">
-   <nav class="col-sm-2 hideleft-navbar " id = "AboutUsMenu"  style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;" >
+<!-- Page Stylesheets -->
+<link href="{% sass_src 'scss/pages/about.scss' %}" rel="stylesheet" type="text/css" />
 
-      <ul class=" nav left-navbar" id='navList'>
-         <li> <a href="#abouthdrsection" id="abouthdr">HDR UK Phenotype
-            </a>
-         </li>
-         <li> <a href="#phenomics">What is phenomics
-            </a>
-         </li>
-         <li>  <a href="#challenge">
-            The challenge
-            </a>
-         </li>
-         <li>  <a href="#solution">
-            The solution
-            </a>
-         </li>
-         <li> <a href="#impact">
-            Impact and outcomes
-            </a>
-         </li>
-         <li>  <a href="#resource">   About the resource
-            </a>
-         </li>
-         <li>  <a href="#objective">  Objectives
-            </a>
-         </li>
-         <li>   <a href="#electronic" >
-            Electronic health records
-            </a>
-         </li>
-         <li>    <a href="#pheno" >
-            Phenotyping algorithms
-            </a>
-         </li>
-         <li>  <a  href="#principle">         Key principles
-            </a>
-         </li>
-         <li>   <a  href="#future">
-            Future plans
-            </a>
-         </li>
-      </ul>
+<!-- Dependencies -->
+{% compress js file %}
+  <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/scrollspy.js' %}"></script>
+{% endcompress %}
 
-</nav>
+<!-- Main -->
+<main class="main-content">
+  <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+    <article class="about-container">
+      <section class="page-split">
+        <div class="page-split__left">
+          <aside class="scrollspy">
+            <div class="scrollspy__container">
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary active"
+                aria-label="Go to About the HDRUK Library" data-target="#home">
+                <a href="#home">About the HDRUK Library</a>
+              </button>
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+                aria-label="Go to About the HDRUK Library" data-target="#what-is-phenomics">
+                <a href="#what-is-phenomics">What is 'Phenomics'?</a>
+              </button>
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+                aria-label="Go to About the HDRUK Library" data-target="#the-challenge">
+                <a href="#the-challenge">The Challenge</a>
+              </button>
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+                aria-label="Go to About the HDRUK Library" data-target="#the-solution">
+                <a href="#the-solution">The Solution</a>
+              </button>
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+                aria-label="Go to About the HDRUK Library" data-target="#impact-and-outcomes">
+                <a href="#impact-and-outcomes">Impact and Outcomes</a>
+              </button>
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+                aria-label="Go to About the HDRUK Library" data-target="#the-resource">
+                <a href="#the-resource">About the Resource</a>
+              </button>
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+                aria-label="Go to About the HDRUK Library" data-target="#objectives">
+                <a href="#objectives">Objectives</a>
+              </button>
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+                aria-label="Go to About the HDRUK Library" data-target="#electronic-health-records">
+                <a href="#electronic-health-records">Electronic Health Records</a>
+              </button>
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+                aria-label="Go to About the HDRUK Library" data-target="#phenotyping-algorithms">
+                <a href="#phenotyping-algorithms">Phenotyping Algorithms</a>
+              </button>
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+                aria-label="Go to About the HDRUK Library" data-target="#key-principles">
+                <a href="#key-principles">Key Principles</a>
+              </button>
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+                aria-label="Go to About the HDRUK Library" data-target="#future-plans">
+                <a href="#future-plans">Future Plans</a>
+              </button>
+            </div>
+          </aside>
+        </div>
+        <div class="page-split__right">
+          <div class="page-split__container">
+            <h2>
+              About Us
+            </h2>
+            <section class="about-container__section__text">
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="home"></span>
+                About the HDRUK Library
+              </h3>
+              <p>
+                Welcome to HDR UK National Phenomics Resource Project, a project
+                funded by Health Data Research UK.
+              </p>
+              <p>
+                When patients interact with physicians, or are admitted into hospital,
+                information is collected electronically on their symptoms, diagnoses,
+                laboratory test results, and prescriptions. This information is stored
+                securely in Electronic Health Records (EHR) and is a valuable resource
+                for researchers and clinicians for improving health and healthcare.
+                EHRs are however of variable detail and quality and contain many
+                inconsistencies.
+              </p>
+              <p>
+                As a result, researchers and data providers spend
+                considerable time creating complex computer programs to fix and
+                statistically analyse the information in EHR and identify which
+                patients have which disease. Currently, there is no means to share
+                these tools across institutions in the UK resulting in duplication of
+                effort. Reproducibility of research is also hampered as others do not
+                have access to the precise methods and definitions used in a particular
+                study. This project addresses these issues by creating an open resource
+                for EHR users (researchers, clinicians, the NHS and data providers) to
+                share their methods.
+              </p>
+            </section>
+            <section class="about-container__section__text">
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="what-is-phenomics"></span>
+                What is Phenomics?
+              </h3>
+              <p>
+                Phenomics refers to the science of deriving new knowledge for health
+                by studying multiple conditions in new ways. This involves studying
+                all currently recognized diseases - so called 'phenome wide'
+                approaches. In order to do this efficiently phenomics approaches
+                require the creation of computable definitions of diseases, health
+                states and traits, including temporal components of these (i.e. change
+                and rate of change over time). It covers the full spectrum of health
+                and disease across the entire life course and is relevant to a wide
+                range of potential stakeholders and beneficiaries.
+              </p>
+            </section>
+            <section class="about-container__section__text">
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="the-challenge"></span>
+                The Challenge
+              </h3>
+              <p>
+                A primary reason for using data from EHR is the creation of phenotype
+                algorithms to identify disease status, onset and progression.
+                Phenotyping (describing the characteristics of disease) however is
+                challenging as the data are collected for different purposes, have
+                variable data quality and often require significant harmonisation.
+                While considerable effort goes into these algorithms, there is no
+                consistent methodology for creating and evaluating them and no
+                centralised repository for depositing and sharing them.
+              </p>
+            </section>
+            <section class="about-container__section__text">
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="the-solution"></span>
+                The Solution
+              </h3>
+              <p>
+                We will create a national library for dissemination of citable
+                algorithms (incl. validations) and tools which will reduce duplication
+                of effort and improve research reproducibility. We will explore
+                methods for creating computable representations of algorithms for
+                integration into actionable analytics for healthcare. Finally, we will
+                fundamentally shift the EHR cultural landscape by a robust
+                incentivisation programme, providing guidelines on best practices,
+                cross-disciplinary training, and ensuring alignment with other
+                international initiatives.
+              </p>
+            </section>
+            <section class="about-container__section__text">
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="impact-and-outcomes"></span>
+                Impact and Outcomes
+              </h3>
+              <p>
+                Through this project, we will deliver a fundamental step-change in the
+                current EHR community in the UK by bringing together health data
+                scientists, clinicians, computer scientists, public health experts and
+                data curators under the FAIR principles (www.force11.org). The
+                National Phenomics Resource will facilitate the dissemination and
+                re-use of algorithms, tools and methods by the community. By
+                establishing a national standard for creating, evaluating and
+                representing phenotypes, we will accelerate the impact of discovery
+                through increased transparency and replicability and maximise the
+                usability and value of existing data repositories to new users.
+                Finally, we will take the first steps towards establishing
+                computational biomedical knowledge objects (e.g. guidelines with
+                embedded phenotypes endorsed by NICE) which will enable the creation
+                of actionable health analytics in the NHS.
+              </p>
+            </section>
+            <section class="about-container__section__text">
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="the-resource"></span>
+                About the Resource
+              </h3>
+              <p>
+                The Library contains definitions for hundreds of diseases from
+                structured and unstructured data sources including mobile devices and
+                wearables. For each phenotype, the library curates its metadata,
+                implementation details, code and validation information, and enables
+                reproducible and transparent research by the wider research and
+                clinical community. National research initiatives can curate and
+                showcase their algorithms through bespoke "collection" pages such as
+                BREATHE (respiratory phenotypes collated by the HDR UK Hub for
+                Respiratory Health for use in research) and the British Heart
+                Foundation Data Science Centre phenotypes. Finally, the Phenotype
+                Library is cross-linked to the HDR UK Innovation Gateway to enable
+                discovery of tools and maximise the usability and value of existing
+                data repositories to the research community.
+              </p>
+            </section>
+            <section class="about-container__section__text">
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="objectives"></span>
+                Objectives
+              </h3>
+              <ul class="decimal">
+                <li>
+                  <strong>Scoping and Prototyping:</strong>
+                  To landscape existing national/international approaches for
+                  creating, validating and curating multimodal disease phenotypes;
+                  gather requirements through stakeholder engagement; define a
+                  phenotype presentation metadata standard, and deliver a prototype
+                  showcasing exemplars.
+                </li>
+                <li>
+                  <strong>Phenome Portal:</strong>
+                  To build and curate an online, open-access, standards-driven
+                  library of complex phenotypes enabling their dissemination,
+                  re-use, evaluation, and citation.
+                </li>
+                <li>
+                  <strong>Computable Phenotype Model and Tooling:</strong>
+                  To evaluate computable phenotype representation approaches and
+                  build data management tools for common UK EHR datasets.
+                </li>
+                <li>
+                  <strong>Training and Capacity Building:</strong>
+                  To develop and deliver cross-disciplinary training on phenotyping,
+                  reproducible science, scientific software development at
+                  undergrad, postgrad and continuous professional development (CPD)
+                  levels.
+                </li>
+                <li>
+                  <strong>Community and Engagement:</strong>
+                  To ignite and evolve the user community by incentivizing usage and
+                  on-going meaningful engagement across stakeholders.
+                </li>
+              </ul>
+            </section>
+            <section class="about-container__section__text">
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="electronic-health-records"></span>
+                Electronic Health Records
+              </h3>
+              <p>
+                When patients interact with physicians, or are admitted into hospital,
+                information is collected electronically on their symptoms, diagnoses,
+                laboratory test results, and prescriptions. This information is
+                stored securely in Electronic Health Records (EHR) and is a valuable
+                resource for researchers and clinicians for improving health and
+                healthcare. EHRs are however of variable detail and quality and
+                contain many inconsistencies. As a result, researchers and data
+                providers spend considerable time creating complex computer programs
+                to fix and statistically analyse the information in EHR and identify
+                which patients have which disease. Currently, there is no means to
+                share these tools across institutions in the UK resulting in
+                duplication of effort. Reproducibility of research is also hampered
+                as others do not have access to the precise methods and definitions
+                used in a particular study. This project addresses these issues by
+                creating an open resource for EHR users (researchers, clinicians, the
+                NHS and data providers) to share their methods.
+              </p>
+            </section>
+            <section class="about-container__section__text">
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="phenotyping-algorithms"></span>
+                Phenotyping Algorithms
+              </h3>
+              <p>
+                A primary use-case for EHR is the creation of phenotyping algorithms
+                used to identify disease status, onset and progression or extraction
+                of information on risk factors or biomarkers. These complex
+                algorithms can enable researchers to extract information from EHR,
+                statistically analyze it and use the findings to improve human
+                health. While considerable effort goes into creating these
+                algorithms, there is no consistent methodology for creating and
+                evaluating them and no centralised repository for depositing and
+                sharing them.
+              </p>
+            </section>
+            <section class="about-container__section__text">
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="key-principles"></span>
+                Key Principles
+              </h3>
+              <ul>
+                <li>
+                  The Library stores phenotyping algorithms, metadata and tools
+                  only. No data are stored in the Library.
+                </li>
+                <li>
+                  Ideally, phenotypes that are deposited in the Library will have
+                  undergone some form of peer-review to assess validity and quality
+                  either through peer-reviewed publication or some other means of
+                  sharing the definition(s).
+                </li>
+                <li>
+                  Phenotype definitions will be assigned a unique Digital Object
+                  Identifier (DOI) to facilitate identification of the phenotype.
+                </li>
+                <li>
+                  All material deposited in the Library remain the intellectual
+                  property of the research group who created the phenotype(s) - the
+                  default licensing agreement that information is available under is
+                  the Creative Commons Attribution 4.0 (CC-A).
+                </li>
+                <li>
+                  Users should cite the Phenotype Library in all publications,
+                  presentations and reports as follows:
+                  <a href="https://phenotypes.healthdatagateway.org">
+                    HDR UK Phenotype Library
+                  </a>
+                </li>
+                <li>
+                  The aim of the Library is not to standardize or harmonize disease
+                  definitions, therefore several phenotypes may be stored for the
+                  same condition and the onus is on individual researchers to
+                  explore which phenotypes they wish to use.
+                </li>
+              </ul>
+            </section>
+            <section class="about-container__section__text">
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="future-plans"></span>
+                Future Plans
+              </h3>
+              <p>
+                Short term - we are currently working on expanding the Phenotype
+                Library to include a number of new collections (HDR UK Hubs for
+                critical care (PIONEER) and cancer (DATA-CAN), ClinicalCodes.org and
+                UK Biobank). Longer term - we are taking the first steps towards
+                establishing computational biomedical knowledge objects (e.g.
+                guidelines with embedded phenotypes endorsed by NICE) which will
+                enable the creation of actionable health analytics in the NHS.
+              </p>
+            </section>
+          </div>
+        </div>
+      </section>
+    </article>
+  </div>
+</main>
 
-   <h3><span id="abouthdrsection"></span></h3>
-
-<div style="width:70%;" class="column" >
-   <div class="header-content-design">
-      About the HDR UK Phenotype Library
-   </div>
-   <div class="sm-header-design" style="padding-bottom:30px;">Welcome to HDR UK National Phenomics Resource Project, a project funded by Health Data Research UK.</div>
-   <div class="sm-header-design" style="padding-bottom:30px;">When patients interact with physicians, or are admitted into hospital, information is collected electronically on their symptoms, diagnoses, laboratory test results, and prescriptions. This information is stored securely in Electronic Health Records (EHR) and is a valuable resource for researchers and clinicians for improving health and healthcare. EHRs are however of variable detail and quality and contain many inconsistencies. As a result, researchers and data providers spend considerable time creating complex computer programs to fix and statistically analyse the information in EHR and identify which patients have which disease. Currently, there is no means to share these tools across institutions in the UK resulting in duplication of effort. Reproducibility of research is also hampered as others do not have access to the precise methods and definitions used in a particular study. This project addresses these issues by creating an open resource for EHR users (researchers, clinicians, the NHS and data providers) to share their methods.</div>
-   <div class="medium-header-design" id="phenomics">
-      What is 'phenomics'?
-   </div>
-   <div class="sm-header-design">Phenomics refers to the science of deriving new knowledge for health by studying multiple conditions in new ways. This involves studying all currently recognized diseases – so called 'phenome wide' approaches. In order to do this efficiently phenomics approaches require the creation of computable definitions of diseases, health states and traits, including temporal components of these (i.e. change and rate of change over time). It covers the full spectrum of health and disease across the entire life course and is relevant to a wide range of potential stakeholders and beneficiaries.</div>
-   <div class="medium-header-design" id="challenge">
-      The challenge
-   </div>
-   <div class="sm-header-design">A primary reason for using data from EHR is the creation of phenotype algorithms to identify disease status, onset and progression. Phenotyping (describing the characteristics of disease) however is challenging as the data are collected for different purposes, have variable data quality and often require significant harmonisation. While considerable effort goes into these algorithms, there is no consistent methodology for creating and evaluating them and no centralised repository for depositing and sharing them.</div>
-   <div class="medium-header-design" id="solution" >
-      The solution
-   </div>
-   <div class="sm-header-design">We will create a national library for dissemination of citable algorithms (incl. validations) and tools which will reduce duplication of effort and improve research reproducibility. We will explore methods for creating computable representations of algorithms for integration into actionable analytics for healthcare. Finally, we will fundamentally shift the EHR cultural landscape by a robust incentivisation programme, providing guidelines on best practices, cross-disciplinary training, and ensuring alignment with other international initiatives.</div>
-   <div class="medium-header-design" id="impact">
-      Impact and outcomes
-   </div>
-   <div class="sm-header-design">Through this project, we will deliver a fundamental step-change in the current EHR community in the UK by bringing together health data scientists, clinicians, computer scientists, public health experts and data curators under the FAIR principles (www.force11.org). The National Phenomics Resource will facilitate the dissemination and re-use of algorithms, tools and methods by the community. By establishing a national standard for creating, evaluating and representing phenotypes, we will accelerate the impact of discovery through increased transparency and replicability and maximise the usability and value of existing data repositories to new users. Finally, we will take the first steps towards establishing computational biomedical knowledge objects (e.g. guidelines with embedded phenotypes endorsed by NICE) which will enable the creation of actionable health analytics in the NHS.</div>
-   <div class="medium-header-design" id="resource" >
-      About the resource
-   </div>
-   <div class="sm-header-design">The Library contains definitions for hundreds of diseases from structured and unstructured data sources including mobile devices and wearables. For each phenotype, the library curates its metadata, implementation details, code and validation information, and enables reproducible and transparent research by the wider research and clinical community. National research initiatives can curate and showcase their algorithms through bespoke "collection" pages such as BREATHE (respiratory phenotypes collated by the HDR UK Hub for Respiratory Health for use in research) and the British Heart Foundation Data Science Centre phenotypes. Finally, the Phenotype Library is cross-linked to the HDR UK Innovation Gateway to enable discovery of tools and maximise the usability and value of existing data repositories to the research community.</div>
-   <div class="medium-header-design"  id="objective">
-      Objectives
-   </div>
-   <div class="sm-header-design">
-      <li style="list-style-type: number;"> <b>Scoping and Prototyping:</b> To landscape existing national/international approaches for creating, validating and curating multimodal disease phenotypes; gather requirements through stakeholder engagement; define a phenotype presentation metadata standard, and deliver a prototype showcasing exemplars.</li>
-      <li style="list-style-type: number;"> <b>Phenome Portal:</b> To build and curate an online, open-access, standards-driven library of complex phenotypes enabling their dissemination, re-use, evaluation, and citation.</li>
-      <li style="list-style-type: number;"> <b>Computable Phenotype Model and Tooling:</b> To evaluate computable phenotype representation approaches and build data management tools for common UK EHR datasets.</li>
-      <li style="list-style-type: number;"> <b>Training and Capacity Building:</b> To develop and deliver cross-disciplinary training on phenotyping, reproducible science, scientific software development at undergrad, postgrad and continuous professional development (CPD) levels.</li>
-      <li style="list-style-type: number;"><b>Community and Engagement:</b> To ignite and evolve the user community by incentivizing usage and on-going meaningful engagement across stakeholders.</li>
-      <div class="medium-header-design"  id="electronic">
-         Electronic health records
-      </div>
-      <div class="sm-header-design">When patients interact with physicians, or are admitted into hospital, information is collected electronically on their symptoms, diagnoses, laboratory test results, and prescriptions. This information is stored securely in Electronic Health Records (EHR) and is a valuable resource for researchers and clinicians for improving health and healthcare. EHRs are however of variable detail and quality and contain many inconsistencies. As a result, researchers and data providers spend considerable time creating complex computer programs to fix and statistically analyse the information in EHR and identify which patients have which disease. Currently, there is no means to share these tools across institutions in the UK resulting in duplication of effort. Reproducibility of research is also hampered as others do not have access to the precise methods and definitions used in a particular study. This project addresses these issues by creating an open resource for EHR users (researchers, clinicians, the NHS and data providers) to share their methods.</div>
-      <div class="medium-header-design"  id="pheno">
-         Phenotyping algorithms
-      </div>
-      <div class="sm-header-design">A primary use-case for EHR is the creation of phenotyping algorithms used to identify disease status, onset and progression or extraction of information on risk factors or biomarkers. These complex algorithms can enable researchers to extract information from EHR, statistically analyze it and use the findings to improve human health. While considerable effort goes into creating these algorithms, there is no consistent methodology for creating and evaluating them and no centralised repository for depositing and sharing them.</div>
-      <div class="medium-header-design" id="principle">
-         Key principles
-      </div>
-      <div class="sm-header-design">
-         <ul>
-            <li style="list-style-type:circle;">The Library stores phenotyping algorithms, metadata and tools only. No data are stored in the Library.
-            </li>
-            <li style="list-style-type:circle;">Ideally, phenotypes that are deposited in the Library will have undergone some form of peer-review to assess validity and quality either through peer-reviewed publication or some other means of sharing the definition(s)
-            </li>
-            <li style="list-style-type:circle;">Phenotype definitions will be assigned a unique Digital Object Identifier (DOI) to facilitate identification of the phenotype
-            </li>
-            <li style="list-style-type:circle;">All material deposited in the Library remain the intellectual property of the research group who created the phenotype(s) – the default licensing agreement that information is available under is the Creative Commons Attribution 4.0 (CC-A)
-            </li>
-            <li style="list-style-type:circle;">Users should cite the Phenotype Library in all publications, presentations and reports as follows: "HDR UK Phenotype Library https://phenotypes.healthdatagateway.org"
-            </li>
-            <li style="list-style-type:circle;">The aim of the Library is not to standardize or harmonize disease definitions, therefore several phenotypes may be stored for the same condition and the onus is on individual researchers to explore which phenotypes they wish to use
-            </li>
-         </ul>
-      </div>
-      <div class="medium-header-design" id="future" >
-         Future plans
-      </div>
-      <div class="sm-header-design">Short term - we are currently working on expanding the Phenotype Library to include a number of new collections (HDR UK Hubs for critical care (PIONEER) and cancer (DATA-CAN), ClinicalCodes.org and UK Biobank). Longer term - we are taking the first steps towards establishing computational biomedical knowledge objects (e.g. guidelines with embedded phenotypes endorsed by NICE) which will enable the creation of actionable health analytics in the NHS.</div>
-   </div>
-</div>
-</div>
 {% endblock container %}

@@ -346,6 +346,7 @@ const transformTitleCase = (str) => {
  *      (a) lapses by not finding an element that matches the class
  *      (b) finds the parent element that matches the class
  * @param {node} item the item to recursively examine
+ * @param {string} expectedClass the expected class name 
  * @return {node|none} the parent element, if found
  */
 const tryGetRootElement = (item, expectedClass) => {
@@ -360,6 +361,34 @@ const tryGetRootElement = (item, expectedClass) => {
   while (!isNullOrUndefined(item.parentNode) && item.parentNode.classList) {
     item = item.parentNode;
     if (item.classList.contains(expectedClass)) {
+      return item;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * tryGetRootNode
+ * @desc Iterates through the parent of an element until it either
+ *      (a) lapses by not finding an element that matches the node
+ *      (b) finds the parent element that matches the node
+ * @param {node} item the item to recursively examine
+ * @param {string} expectedNode the expected node type 
+ * @return {node|none} the parent element, if found
+ */
+const tryGetRootNode = (item, expectedNode) => {
+  if (isNullOrUndefined(item)) {
+    return null;
+  }
+
+  if (item.nodeName === expectedNode) {
+    return item;
+  }
+
+  while (!isNullOrUndefined(item.parentNode) && item.parentNode.nodeName) {
+    item = item.parentNode;
+    if (item.nodeName === expectedNode) {
       return item;
     }
   }

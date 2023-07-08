@@ -6,7 +6,6 @@
 /// Contrained codelist table
 ///   @desc Used to constrain codelist tables in phenotype creation
 .constrained-codelist-table {
-
   @include flex-col();
   position: relative;
   width: 100%;
