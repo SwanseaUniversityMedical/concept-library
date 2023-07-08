@@ -448,7 +448,13 @@ class FilterService {
    * @desc Instantiates an event handler to listen when the page is redirected
    */
   #handleHistoryUpdate() {
-    window.addEventListener('popstate', () => window.location.reload());
+    window.addEventListener('popstate', e => {
+      if (isNullOrUndefined(e.state)) {
+        return false;
+      }
+
+      window.location.reload();
+    });
   }
 
   /**
