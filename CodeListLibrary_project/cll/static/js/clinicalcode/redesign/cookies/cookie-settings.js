@@ -37,7 +37,7 @@ const generateContent = (url) => {
     and to check marketing measures for their efficiency. These analyses are carried out to provide you
     with a better user experience on the website. You are free to give, deny, or withdraw your consent
     at any time by using the "cookie settings" link at the bottom of each page. You can consent to our
-    use of cookies by clicking "Agree". For more information about what information is collected and how
+    use of cookies by clicking "Save selection". For more information about what information is collected and how
     it is shared with our partners, please read our <a
     href=${url}>Privacy and cookie policy</a>.</a>
     </p>
