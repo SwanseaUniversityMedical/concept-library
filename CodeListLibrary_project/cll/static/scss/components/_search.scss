@@ -12,6 +12,10 @@
   &__header {
     @include flex-col();
     align-items: center;
+
+    &--pad-bottom-2 {
+      padding-bottom: 2rem;
+    }
   }
 
   &__title {
@@ -42,9 +46,7 @@
     .search-container__field {
       height: 3rem;
     }
-
   }
-
 
   &__container-landing {
     @include flex-col();
@@ -54,23 +56,18 @@
     align-content: left;
     padding-left: 6rem;
     padding-top: 0.5rem;
-    max-width: 36%;
+    width: 50%;
+    max-width: 450px;
 
-    @include media(">desktop", "screen") {
-      width: 400px;
-    }
-
-    @include media("<desktop", "screen") {
-      width: 250px;
-      padding: 1rem 0 2rem 0;
+    @include media("<tablet", "screen") {
+      padding: 1rem 0 2rem 2rem;
     }
 
     /* Override search field size */
     .search-container__field {
       height: 3rem;
-      width: 32rem;
+      width: 100%;
     }
-
   }
 
   &__container--override {
@@ -88,12 +85,12 @@
       width: 300px;
     }
 
-    @include media(">=tablet", "screen") {
-      width: 900px;
+    @include media(">tablet", "screen") {
+      width: 800px;
     }
 
     @include media(">=desktop", "screen") {
-      width: 80%;
+      width: 90%;
     }
   }
 }

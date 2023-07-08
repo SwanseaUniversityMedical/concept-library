@@ -1,4 +1,5 @@
 *.pyc
+__pycache__
 .project
 .pydevproject
 CodeListLibrary_project/.settings/org.eclipse.core.resources.prefs
@@ -12,3 +13,6 @@ CodeListLibrary_project/debug.log
 .vscode
 .settings/org.eclipse.core.resources.prefs
 venv
+
+# macOS system files
+.DS_Stores

@@ -18,13 +18,13 @@
       </div>
       <div class="col-md-6 text-align-right">
 
-        <label class="dropdown">
+        <label class="dropdown-group">
 
-          <div class="dd-button">Export Code List </div>
+          <div class="dropdown-group__button">Export Code List </div>
         
-          <input type="checkbox" class="dd-input"  id="dd_2">
+          <input type="checkbox" class="dropdown-group__input"  id="dd_2">
         
-          <ul class="dd-menu fall-right" {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} >
+          <ul class="dropdown-group__menu dropdown-group__menu--fall-right" {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} >
             <li aria-label="Export code list as CSV" role="button" tabindex="0">
               <a {% if user_can_export %}
                 href="{% url 'export_entity_version_codes_to_csv' pk=entity.id history_id=entity.history_id %}" {% endif %}

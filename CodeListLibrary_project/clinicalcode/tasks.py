@@ -3,18 +3,15 @@ import time
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.core.mail import EmailMultiAlternatives, BadHeaderError
+from django.core import management
 
 from clinicalcode import db_utils
-from clinicalcode.models import Phenotype
 from clinicalcode.entity_utils import stats_utils
 
 @shared_task(bind=True)
 def send_message_test(self):
     return 'test message'
-
-
 
 @shared_task(name="review_email_backgorund_task")
 def send_review_email(id,name,owner_id, review_decision, review_message):
@@ -68,3 +65,10 @@ def run_daily_statistics(self):
     else:
         logger.info(f'Successfully updated statistics')
     return True
+
+@shared_task(bind=True)
+def run_weekly_cleanup():
+    '''
+        Runs the clear_session.py management command
+    '''
+    management.call_command('clear_sessions')

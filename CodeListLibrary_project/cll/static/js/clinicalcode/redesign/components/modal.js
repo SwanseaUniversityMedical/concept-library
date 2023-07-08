@@ -214,7 +214,7 @@ class ModalFactory {
         document.body.classList.remove('modal-open');
         window.scrollTo({ top: currentHeight, left: window.scrollX, behaviour: 'instant'});
         modal.remove();
-        history.replaceState({ }, document.title, '#');
+        history.pushState("", document.title, window.location.pathname + window.location.search);
         this.modal = null;
 
         if (!method) {

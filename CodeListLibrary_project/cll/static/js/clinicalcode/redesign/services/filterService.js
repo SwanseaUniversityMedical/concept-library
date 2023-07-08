@@ -570,13 +570,13 @@ class FilterService {
    * @param {event} e the associated event
    */
   #handleSearchbarClick(e) {
-    const parent = e.target.parentNode;
+    const parent = tryGetRootNode(e.target, 'FIELDSET');
     if (isNullOrUndefined(parent)) {
       return;
     }
 
     const searchbar = parent.querySelector('input');
-    if (isNullOrUndefined(parent)) {
+    if (isNullOrUndefined(searchbar)) {
       return;
     }
 

@@ -3,6 +3,8 @@
 @import '../_media';
 @import '../_utils';
 
+// tab-view
+//  @desc describes a JS-driven tab-based view, primarily used by conceptSelectionService.js
 .tab-view {
   @include flex-col();
   width: 100%;

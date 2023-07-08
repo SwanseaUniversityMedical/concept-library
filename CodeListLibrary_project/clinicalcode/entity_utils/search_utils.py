@@ -428,7 +428,7 @@ def get_template_entities(request, template_id, method='GET', force_term=True):
         search_order = constants.ORDER_BY['1']
     
     search = gen_utils.try_get_param(request, 'search', None)
-    if search is not None:
+    if not gen_utils.is_empty_string(search):
         entity_ids = list(entities.values_list('id', flat=True))
         entities = entities.filter(
             id__in=RawSQL(
@@ -455,7 +455,7 @@ def get_template_entities(request, template_id, method='GET', force_term=True):
         search_order = search_order.get('clause')
         entities = entities.order_by(search_order)
     else:
-        if search is None:
+        if gen_utils.is_empty_string(search):
             entities = entities.all().extra(
                 select={'true_id': """CAST(REGEXP_REPLACE(id, '[a-zA-Z]+', '') AS INTEGER)"""}
             ) \
@@ -573,7 +573,7 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
     
     # Apply any search param if present
     search = gen_utils.try_get_param(request, 'search', None)
-    if search is not None:
+    if not gen_utils.is_empty_string(search):
         entity_ids = list(entities.values_list('id', flat=True))
         entities = entities.filter(
             id__in=RawSQL(
@@ -601,7 +601,7 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
         search_order = search_order.get('clause')
         entities = entities.order_by(search_order)
     else:
-        if search is None:
+        if gen_utils.is_empty_string(search):
             entities = entities.all().extra(
                 select={'true_id': """CAST(REGEXP_REPLACE(id, '[a-zA-Z]+', '') AS INTEGER)"""}
             ) \
