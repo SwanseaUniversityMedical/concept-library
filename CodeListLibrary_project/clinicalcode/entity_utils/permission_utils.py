@@ -611,12 +611,8 @@ class HasAccessToViewGenericEntityCheckMixin(object):
   def dispatch(self, request, *args, **kwargs):
     if not can_user_view_entity(request, self.kwargs['pk']):
       raise PermissionDenied
-
-    def dispatch(self, request, *args, **kwargs):
-        if can_user_view_entity(request.user, self.kwargs['pk']):
-            raise PermissionDenied
-
-        return super(HasAccessToViewGenericEntityCheckMixin, self).dispatch(request, *args, **kwargs)
+    
+    return super(HasAccessToViewGenericEntityCheckMixin, self).dispatch(request, *args, **kwargs)
 
 def get_latest_entity_published(entity_id):
     '''
