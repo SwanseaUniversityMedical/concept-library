@@ -331,7 +331,7 @@ def clear_statistics_history():
              """
         cursor.execute(sql)
 
- 
+
 
 @shared_task(bind=True)
 def run_celery_datasource(self):

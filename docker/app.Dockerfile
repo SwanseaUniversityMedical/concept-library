@@ -11,6 +11,9 @@ RUN apt-get install -y -q libsasl2-dev libldap2-dev libssl-dev
 # Install pip
 RUN apt-get install -y -q python3-pip 
 
+# Install redis server
+RUN apt-get install redis-server -y
+
 # Install npm
 RUN apt-get update && apt-get install -y \
     software-properties-common \

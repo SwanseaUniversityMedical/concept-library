@@ -26,13 +26,13 @@ schedule = {
     },
 
     # Statistics job
-    'celery_run_daily_stats': {
+    'celery_run_stats': {
         'task': 'clinicalcode.tasks.run_daily_statistics',
         'schedule': crontab(minute=0, hour=0)
     },
 
     # Session cleanup task
-    'celery_run_weekly_clean': {
+    'celery_run_cleanup': {
         'task': 'clinicalcode.tasks.run_weekly_cleanup',
         'schedule': crontab(hour=0, minute=0, day_of_week='sunday'),
     },
