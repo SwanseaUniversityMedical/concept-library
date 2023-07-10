@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User
 from rest_framework.response import Response
-from django.db.models import ForeignKey
 from rest_framework import status
-from copy import deepcopy
+from django.db.models.functions import JSONObject
+from django.db.models import ForeignKey, F
 
 from ..models.GenericEntity import GenericEntity
 from ..models.Template import Template
@@ -828,3 +828,31 @@ def get_formatted_concept_codes(concept, concept_codelist, headers=None):
         })
 
     return concept_codes
+
+def annotate_linked_entities(entities):
+    '''
+        Annotates linked entities with phenotype and template details
+
+        Args:
+            entities {QuerySet}: Entities queryset
+        
+        Returns:
+            Queryset containing annotated entities
+    '''
+    return entities.annotate(
+        phenotype_id=F('id'),
+        phenotype_version_id=F('history_id'),
+        phenotype_name=F('name')
+    ) \
+    .values(
+        'phenotype_id', 
+        'phenotype_version_id', 
+        'phenotype_name'
+    ) \
+    .annotate(
+        template=JSONObject(
+            id=F('template__id'),
+            version_id=F('template_version'),
+            name=F('template__name')
+        )
+    )

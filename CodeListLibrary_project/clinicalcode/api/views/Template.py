@@ -1,30 +1,18 @@
 from rest_framework.decorators import (api_view, permission_classes)
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework import status
-from django.conf import settings
 
-from ...models import *
-from ...entity_utils import permission_utils
+from ...models import Template
 from ...entity_utils import api_utils
 from ...entity_utils import template_utils
-from ...entity_utils import constants
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def get_templates(request):
   '''
   
-  '''
-  if permission_utils.is_member(request.user, 'ReadOnlyUsers') or settings.CLL_READ_ONLY:
-    return Response(
-      data={
-        'message': 'Permission denied'
-      },
-      content_type='json',
-      status=status.HTTP_403_FORBIDDEN
-    )
-    
+  '''    
   templates = Template.objects.all()
   
   result = []
@@ -43,20 +31,11 @@ def get_templates(request):
   )
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def get_template_version_history(request, template_id):
   '''
   
-  '''
-  if permission_utils.is_member(request.user, 'ReadOnlyUsers') or settings.CLL_READ_ONLY:
-    return Response(
-      data={
-        'message': 'Permission denied'
-      },
-      content_type='json',
-      status=status.HTTP_403_FORBIDDEN
-    )
-  
+  '''  
   template = Template.objects.filter(id=template_id)
   if not template.exists():
     return Response(
@@ -77,20 +56,11 @@ def get_template_version_history(request, template_id):
   )
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def get_template(request, template_id, version_id=None):
   '''
   
-  '''
-  if permission_utils.is_member(request.user, 'ReadOnlyUsers') or settings.CLL_READ_ONLY:
-    return Response(
-      data={
-        'message': 'Permission denied'
-      },
-      content_type='json',
-      status=status.HTTP_403_FORBIDDEN
-    )
-  
+  '''  
   template = Template.objects.filter(id=template_id)
   if not template.exists():
     return Response(
