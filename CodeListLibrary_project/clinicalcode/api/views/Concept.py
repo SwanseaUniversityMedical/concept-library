@@ -89,9 +89,7 @@ def get_concepts(request):
             request, concept.id
         )
 
-        result.append(
-            concept_data
-        )
+        result.append(concept_data)
     
     return Response(
         data=result,
