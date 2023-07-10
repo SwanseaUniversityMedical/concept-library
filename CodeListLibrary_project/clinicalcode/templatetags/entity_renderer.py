@@ -29,6 +29,17 @@ def sort_by_alpha(arr, column="name", order="desc"):
     return sorted_arr
 
 @register.simple_tag
+def get_brand_base_icons(brand):
+    path = settings.APP_LOGO_PATH
+    if brand and getattr(brand, 'logo_path'):
+        path = brand.logo_path
+
+    return {
+        'favicon': path + 'favicon-32x32.png',
+        'apple': path + 'apple-touch-icon.png',
+    }
+
+@register.simple_tag
 def get_brand_base_title(brand):
     '''
         Gets the brand-related site title if available, otherwise returns
@@ -229,7 +240,7 @@ def renderable_field_values(entity, layout, field):
         # handle metadata e.g. collections, tags etc
         return template_utils.get_metadata_value_from_source(entity, field, default=[])
     
-    return template_utils.get_template_data_values(entity, layout, field)
+    return template_utils.get_template_data_values(entity, layout, field, default=[])
 
 @register.tag(name='render_entity_cards')
 def render_entities(parser, token):
@@ -329,7 +340,7 @@ class EntityFiltersNode(template.Node):
         else:
             modifier = None
 
-        return search_utils.get_source_references(structure, modifier=modifier)
+        return search_utils.get_source_references(structure, default=[], modifier=modifier)
 
     def __render_metadata_component(self, context, field, structure):
         '''

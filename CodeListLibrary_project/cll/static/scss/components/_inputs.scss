@@ -190,11 +190,19 @@
   }
 }
 
+// detailed-input-group
+//  @desc defines a group of one or more inputs, and allows the addition of other
+//        elements, e.g. a title/description/mandatory status, to communicate its
+//        use to the user
 .detailed-input-group {
   @include flex-col();
 
   font-family: inherit;
   margin: 1rem 0 0 0;
+
+  &.no-margin {
+    margin: 0;
+  }
 
   &.fill-width {
     width: 100%;
@@ -242,16 +250,41 @@
   &__header-item {
     @include flex-col();
   }
+
+  &__none-available {
+    display: block;
+    padding: 1rem;
+    border-radius: 0.1rem;
+    background-color: col(accent-semi-transparent);
+    margin-bottom: 0.5rem;
+
+    &-message {
+      text-align: center;
+    }
+
+    &:not(.show) {
+      display: none;
+    }
+  }
 }
 
+// date-range-field
+//  @desc describes a date range field, where each input describes either the start or end of the date
 .date-range-field {
   display: flex;
+  flex-flow: row nowrap;
   padding: 0;
   margin: 0;
   border: 0;
   width: 100%;
 
+  &.wrapped {
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+
   &__label {
+    display: flex;
     margin-right: 0.5rem;
 
     &:last-of-type {
@@ -260,6 +293,8 @@
   }
 }
 
+// radio-chips-group
+//  @desc describes a group of radio chips
 .radio-chips-group {
   @include flex-row($gap: 0.5rem);
 
@@ -268,6 +303,8 @@
 	list-style-type: none;
 }
 
+// hstack-checkbox-group
+//  @desc defines a horizontal stack of checkboxes
 .hstack-checkbox-group {
   @include flex-row();
 
@@ -276,6 +313,8 @@
   min-height: 20px;
 }
 
+// hstack-radio-group
+//  @desc defines a horizontal stack of radio inputs
 .hstack-radio-group {
   @include flex-row();
   @include remove-appearance();
@@ -284,6 +323,8 @@
   position: relative;
 }
 
+// checkbox-item-container
+//  @desc defines a horizontal group of checkbox items
 .checkbox-item-container {
   display: flex;
   flex-flow: row nowrap;
@@ -295,8 +336,14 @@
     max-width: fit-content;
     margin-right: 0.5rem;
   }
+
+  &.ignore-overflow {
+    overflow: visible;
+  }
 }
 
+// search-container
+//  @desc defines a search input field
 .search-container {
   @include flex-col();
   position: relative;
@@ -320,6 +367,11 @@
     &:focus {
       @include box-shadow(0px, 10px, 20px, var(--search-shadow-active-color));
       outline: none;
+    }
+
+    &:focus-visible {
+      outline: 1px solid black;
+      border-radius: 2pt;
     }
 
     &:disabled {
@@ -365,6 +417,7 @@
   }
 
   &__icon {
+    all: unset;
     cursor: pointer;
     display: block;
     position: absolute;
@@ -376,9 +429,36 @@
     background-size: 20px;
     background-repeat: no-repeat;
     background-position: 50%, 50%;
+
+    &:focus-visible {
+      outline: 1px solid black;
+      border-radius: 2pt;
+    }
+  }
+
+  &__icon-landing {
+    all: unset;
+    cursor: pointer;
+    display: block;
+    position: absolute;
+    right: 10px;
+    top: 27.25%;
+    width: 20px;
+    height: 20px;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56.966 56.966' fill='%23687FCB'%3e%3cpath d='M55.146 51.887L41.588 37.786A22.926 22.926 0 0046.984 23c0-12.682-10.318-23-23-23s-23 10.318-23 23 10.318 23 23 23c4.761 0 9.298-1.436 13.177-4.162l13.661 14.208c.571.593 1.339.92 2.162.92.779 0 1.518-.297 2.079-.837a3.004 3.004 0 00.083-4.242zM23.984 6c9.374 0 17 7.626 17 17s-7.626 17-17 17-17-7.626-17-17 7.626-17 17-17z'/%3e%3c/svg%3e");
+    background-size: 20px;
+    background-repeat: no-repeat;
+    background-position: 50%, 50%;
+
+    &:focus-visible {
+      outline: 1px solid black;
+      border-radius: 2pt;
+    }
   }
 }
 
+// date-range-picker
+//  @desc defines a date range picker for use with lightpick.js
 .date-range-picker {
   @include remove-appearance();
 
@@ -403,6 +483,8 @@
   }
 }
 
+// text inputs
+//  @desc defines a set of text inputs
 .code-text-input,
 .text-input,
 .text-area-input {
@@ -428,6 +510,8 @@
   }
 }
 
+// code inputs
+//  @desc defines a set of input elements for code search
 .code-search-group {
   @include flex-col();
   position: relative;
@@ -436,6 +520,17 @@
   border: 0;
   width: 100%;
   height: fit-content;
+
+  &.indented {
+    padding: 0 0 0 0.5rem;
+  }
+
+  &.scrollable {
+    max-height: 45vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex-wrap: nowrap;
+  }
 }
 
 .code-text-input {
@@ -449,10 +544,10 @@
     cursor: pointer;
     display: block;
     position: absolute;
-    right: 8px;
-    top: 12px;
-    width: 20px;
-    height: 20px;
+    right: 5px;
+    top: 20%;
+    height: 55%;
+    aspect-ratio: 1 / 1;
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23687FCB' viewBox='0 0 16 16'%3e%3cpath d='M0 14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2v12zm4.5-6.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5a.5.5 0 0 1 0-1z'/%3e%3c/svg%3e");
     background-size: 20px;
     background-repeat: no-repeat;
@@ -460,10 +555,27 @@
   }
 }
 
+// text-area-input
+//  @desc defines an area for text input
 .text-area-input {
   resize: vertical;
+
+  &.simple {
+    @include remove-appearance();
+  
+    font-family: inherit;
+    margin-top: 0.25rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid col(accent-dark);
+    border-radius: 2px;
+    padding: 0.5rem;
+    width: auto;
+    transition: border-color 250ms ease;
+  }
 }
 
+// selection inputs
+//  @desc defines a group of selection inputs for radio buttons, checkboxes, dropdown etc
 .selection-input {
   font-family: inherit;
   margin-top: 0.25rem;
@@ -722,6 +834,8 @@
   }
 }
 
+// switch inputs
+//  @desc defines a switch, similar in function to a radiobutton, to describe a binary state
 .switch-input {
   display: none;
 

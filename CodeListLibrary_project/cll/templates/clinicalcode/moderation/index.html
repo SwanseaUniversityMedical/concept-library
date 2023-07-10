@@ -7,7 +7,7 @@
 {% load breadcrumbs %}
 {% load entity_renderer %}
 
-{% block title %}| Entity Moderation {% endblock title %}
+{% block title %}| Phenotype Moderation {% endblock title %}
 
 {% block container %}
   <!-- Vendor -->
@@ -24,18 +24,20 @@
 
   <!-- Main -->
   <header class="main-header banner">
-    <div class="banner__container">
-      <h2 class="banner__title">Phenotype Moderation</h2>
-      <p class="banner__description">
-        Review content before publication.
-      </p>
-      <div class="banner__cards">
+    <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
+      <div class="banner__container">
+        <h2 class="banner__title">Phenotype Moderation</h2>
+        <p class="banner__description">
+          Review content before publication.
+        </p>
+        <div class="banner__cards">
+        </div>
       </div>
     </div>
   </header>
 
   <main class="main-content">
-    <div class="main-content__inner-container">
+    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
       <article class="profile-collection">
         <section class="profile-collection__inner-container" id="requested">
           <data data-owner="collection-service" page-type="MODERATION_COLLECTIONS" name="requested" type="text/json">

@@ -119,6 +119,8 @@ def about_pages(request, pg_name=None):
         elif pg_name.lower() == "bhf_data_science_centre".lower():
             return render(request, 'clinicalcode/brand/HDRUK/collections/bhf-data-science-centre.html', {})
 
+        elif pg_name.lower() == "eurolinkcat".lower():
+            return render(request, 'clinicalcode/brand/HDRUK/collections/eurolinkcat.html', {})
 #     else:
 #         return render(request, 'clinicalcode/index.html', {})
 
@@ -238,104 +240,6 @@ def build_permitted_components_list(request,
 
 #--------------------------------------------------------------------------
 
-
-# No authentication for this function
-def customRoot(request):
-    '''
-        Custom API Root page.
-        Replace pk=0 (i.e.'/0/' in the url) with the relevant id.
-        Replace history=0 (i.e.'/0/' in the url) with the relevant version_id.
-    '''
-    from django.shortcuts import render
-    from rest_framework.reverse import reverse
-    from rest_framework.views import APIView
-
-    #api_absolute_ip = str(request.build_absolute_uri(reverse('api:api_export_concept_codes', kwargs={'pk': 0}))).split('/')[2]
-
-    urls_available = {
-        'export_concept_codes': reverse('api:api_export_concept_codes', kwargs={'pk': 0}),
-        'export_concept_codes_byVersionID': reverse('api:api_export_concept_codes_byVersionID', kwargs={'pk': 0, 'concept_history_id': 123}),
-        'api_export_published_concept_codes_latestVersion': reverse('api:api_export_published_concept_codes_latestVersion', kwargs={'pk': 0}),
-        'api_export_published_concept_codes': reverse('api:api_export_published_concept_codes', kwargs={'pk': 0, 'concept_history_id': 123}),
-        'concepts': reverse('api:concepts', kwargs={}),
-        'api_concept_detail': reverse('api:api_concept_detail', kwargs={'pk': 0}),
-        'api_concept_detail_version': reverse('api:api_concept_detail_version', kwargs={'pk': 0, 'concept_history_id': 123}),
-        'api_published_concepts': reverse('api:api_published_concepts', kwargs={}),
-        'api_concept_detail_public': reverse('api:api_concept_detail_public', kwargs={'pk': 0}),
-        'api_concept_detail_version_public': reverse('api:api_concept_detail_version_public', kwargs={'pk': 0, 'concept_history_id': 123}),
-        'get_concept_versions': reverse('api:get_concept_versions', kwargs={'pk': 0}),
-        'get_concept_versions_public': reverse('api:get_concept_versions_public', kwargs={'pk': 0}),
-        'concept_by_id': reverse('api:concept_by_id', kwargs={'pk': 0}),
-        'api_published_concept_by_id': reverse('api:api_published_concept_by_id', kwargs={'pk': 0}),
-        'export_workingset_codes': reverse('api:api_export_workingset_codes', kwargs={'pk': 0}),
-        'export_workingset_codes_byVersionID': reverse('api:api_export_workingset_codes_byVersionID', kwargs={'pk': 0, 'workingset_history_id': 123}),
-        'workingsets': reverse('api:workingsets', kwargs={}),
-        'api_workingset_detail': reverse('api:api_workingset_detail', kwargs={'pk': 0}),
-        'api_workingset_detail_version': reverse('api:api_workingset_detail_version', kwargs={'pk': 0, 'workingset_history_id': 123}),
-        'get_workingset_versions': reverse('api:get_workingset_versions', kwargs={'pk': 0}),
-        'workingset_by_id': reverse('api:workingset_by_id', kwargs={'pk': 0}),
-
-        # not implemented yet, will be done when creating/updating phenotype
-        #'export_phenotype_codes': reverse('api:api_export_phenotype_codes', kwargs={'pk': 'PH0'}),
-        'api_export_phenotype_codes_byVersionID': reverse('api:api_export_phenotype_codes_byVersionID', kwargs={'pk': 'PH0', 'phenotype_history_id': 123}),
-        'phenotypes': reverse('api:phenotypes', kwargs={}),
-        'api_phenotype_detail': reverse('api:api_phenotype_detail', kwargs={'pk': 'PH0'}),
-        'api_phenotype_detail_version': reverse('api:api_phenotype_detail_version', kwargs={'pk': 'PH0', 'phenotype_history_id': 123}),
-        'api_published_phenotypes': reverse('api:api_published_phenotypes', kwargs={}),
-        # not needed to be public
-        #'api_phenotype_detail_public': reverse('api:api_phenotype_detail_public', kwargs={'pk': 'PH0'}),
-        'api_phenotype_detail_version_public': reverse('api:api_phenotype_detail_version_public', kwargs={'pk': 'PH0', 'phenotype_history_id': 123}),
-        'api_export_published_phenotype_codes_latestVersion': reverse('api:api_export_published_phenotype_codes_latestVersion', kwargs={'pk': 'PH0'}),
-        'api_export_published_phenotype_codes': reverse('api:api_export_published_phenotype_codes', kwargs={'pk': 'PH0', 'phenotype_history_id': 123}),
-        'get_phenotype_versions': reverse('api:get_phenotype_versions', kwargs={'pk': 'PH0'}),
-        'get_phenotype_versions_public': reverse('api:get_phenotype_versions_public', kwargs={'pk': 'PH0'}),
-        'phenotype_by_id': reverse('api:phenotype_by_id', kwargs={'pk': 'PH0'}),
-        'api_published_phenotype_by_id': reverse('api:api_published_phenotype_by_id', kwargs={'pk': 'PH0'}),
-        'api_phenotype_detail_public': reverse('api:api_phenotype_detail_public', kwargs={'pk': 'PH0'}),
-        'api_phenotype_detail_version': reverse('api:api_phenotype_detail_version', kwargs={'pk': 'PH0', 'phenotype_history_id': 123}),
-        'api_phenotype_detail_version_public': reverse('api:api_phenotype_detail_version_public', kwargs={'pk': 'PH0', 'phenotype_history_id': 123}),
-        'api_export_phenotype_codes_byVersionID': reverse('api:api_export_phenotype_codes_byVersionID', kwargs={'pk': 'PH0', 'phenotype_history_id': 123}),
-        'api_export_phenotype_codes_latestVersion': reverse('api:api_export_phenotype_codes_latestVersion', kwargs={'pk': 'PH0'}),
-        'api_export_published_phenotype_codes': reverse('api:api_export_published_phenotype_codes', kwargs={'pk': 'PH0', 'phenotype_history_id': 123}),
-                
-        'get_phenotype_versions': reverse('api:get_phenotype_versions', kwargs={'pk': 'PH0'}),
-        'get_phenotype_versions_public':  reverse('api:get_phenotype_versions_public', kwargs={'pk': 'PH0'}),
-        'tags':  reverse('api:tag_list_public'),
-        'collections':  reverse('api:collection_list_public'),
-        'datasource-list':  reverse('api:datasource-list'),
-    }
-    
-    if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
-        urls_available.update({
-            'phenotypeworkingset_by_id': reverse('api:api_phenotypeworkingset_by_id', kwargs={'pk': 'WS0'}),
-            'api_phenotypeworkingset_detail': reverse('api:api_phenotypeworkingset_detail', kwargs={'pk': 'WS0'}),
-            'api_phenotypeworkingset_detail_version': reverse('api:api_phenotypeworkingset_detail_version', kwargs={'pk': 'WS0', 'workingset_history_id': 123}),
-            'get_phenotypeworkingset_versions': reverse('api:get_phenotypeworkingset_versions', kwargs={'pk': 'WS0'}),
-            'api_export_phenotypeworkingset_codes_latestVersion': reverse('api:api_export_phenotypeworkingset_codes_latestVersion', kwargs={'pk': 'WS0'}),
-            'api_export_phenotypeworkingset_codes_byVersionID': reverse('api:api_export_phenotypeworkingset_codes_byVersionID', kwargs={'pk': 'WS0', 'workingset_history_id': 123}),
-            'api_export_published_phenotypeworkingset_codes_latestVersion': reverse('api:api_export_published_phenotypeworkingset_codes_latestVersion', kwargs={'pk': 'WS0'}),
-            'api_export_published_phenotypeworkingset_codes': reverse('api:api_export_published_phenotypeworkingset_codes', kwargs={'pk': 'WS0', 'workingset_history_id': 123}),
-        })
-
-    if not settings.CLL_READ_ONLY:
-        urls_available.update({
-            'api_concept_create':       reverse('api:api_concept_create', kwargs={}),
-            'api_concept_update':       reverse('api:api_concept_update', kwargs={}),
-            'api_workingset_create':    reverse('api:api_workingset_create', kwargs={}),
-            'api_workingset_update':    reverse('api:api_workingset_update', kwargs={}),
-            'api_phenotype_create':     reverse('api:api_phenotype_create', kwargs={}),
-            'api_phenotype_update':     reverse('api:api_phenotype_update', kwargs={}),
-            'api_datasource_create':    reverse('api:api_datasource_create', kwargs={})
-        })
-
-    # replace 0/123 by {id}/{version_id}
-    for k, v in list(urls_available.items()):
-        new_url = urls_available[k].replace('C0', '{id}').replace('PH0', '{id}').replace('WS0', '{id}').replace('123', '{version_id}')
-        urls_available[k] = new_url
-
-    return render(request, 'rest_framework/API-root-pg.html', urls_available)
-
-
 def termspage(request):
     """
         terms and conditions page
@@ -379,7 +283,8 @@ def contact_us(request):
         raise PermissionDenied
     
     captcha = check_recaptcha(request)
-    status = []
+
+    sent_status = None
     if request.method == 'GET':
         form = ContactForm()
     else:
@@ -389,67 +294,74 @@ def contact_us(request):
             from_email = form.cleaned_data['from_email']
             message = form.cleaned_data['message']
             category = form.cleaned_data['categories']
-            email_subject = ('Concept Library - New Message From ' + name)
+            email_subject = 'Concept Library - New Message From %s' % name
 
             try:
-                html_content = ('<strong>New Message from Concept Library Website</strong> <br><br> <strong>Name:</strong><br>' 
-                                + name 
-                                + '<br><br> <strong>Email:</strong><br>' 
-                                + from_email 
-                                + '<br><br> <strong>Issue Type:</strong><br>' 
-                                + category 
-                                + '<br><br><strong> Tell us about your Enquiry: </strong><br>' 
-                                + message)
+                html_content = \
+                    "<strong>New Message from Concept Library Website</strong><br><br>"\
+                    "<strong>Name:</strong><br>"\
+                    "{name}"\
+                    "<br><br>"\
+                    "<strong>Email:</strong><br>"\
+                    "{from_email}"\
+                    "<br><br>"\
+                    "<strong>Issue Type:</strong><br>"\
+                    "{category}"\
+                    "<br><br>"\
+                    "<strong> Tell us about your Enquiry: </strong><br>"\
+                    "{message}".format(
+                        name=name, from_email=from_email, category=category, message=message
+                    )
                 
-                msg = EmailMultiAlternatives(email_subject,
-                                             html_content,
-                                             'Helpdesk <%s>' %
-                                             settings.DEFAULT_FROM_EMAIL,
-                                             to=[settings.HELPDESK_EMAIL],
-                                             cc=[from_email])
-                msg.content_subtype = "html"  # Main content is now text/html
-                msg.send()
+                if not settings.IS_DEVELOPMENT_PC:
+                    message = EmailMultiAlternatives(
+                        email_subject,
+                        html_content,
+                        'Helpdesk <%s>' % settings.DEFAULT_FROM_EMAIL,
+                        to=[settings.HELPDESK_EMAIL],
+                        cc=[from_email]
+                    )
+                    message.content_subtype = "html"
+                    message.send()
 
                 form = ContactForm()
-                status.append({'SUCCESS': 'Issue Reported Successfully.'})
+                sent_status = True
             except BadHeaderError:
-                return HttpResponse('Invalid header found.')
+                return HttpResponse('Invalid header found')
 
-        if captcha == False:
-            status.append({'FAIL': 'Please verify using the Captcha'})
+    sent_status = captcha
 
-    return render(request, 
-                  'cl-docs/contact-us.html', 
-                  {
-                    'form': form,
-                    'message': status,
-                  }
-                )
+    return render(
+        request, 
+        'cl-docs/contact-us.html', 
+        { 'form': form, 'message_sent': sent_status }
+    )
 
 def check_recaptcha(request):
     '''
         Contact Us Recaptcha code
     '''
+    if settings.IS_DEVELOPMENT_PC:
+        return True
+
     if settings.CLL_READ_ONLY:
         raise PermissionDenied
     
     if request.method == 'POST':
-        recaptcha_response = request.POST.get('g-recaptcha-response')
         data = {
             'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
-            'response': recaptcha_response
+            'response': request.POST.get('g-recaptcha-response')
         }
-        r = requests.post(
-                            'https://www.google.com/recaptcha/api/siteverify',
-                            data=data,
-                            proxies={'https': 'http://proxy:8080/'}
-                        )
-        result = r.json()
+        result = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data=data,
+            proxies={ 'https': 'http://proxy:8080/' }
+        ).json()
+
         if result['success']:
-            recaptcha_is_valid = True
-        else:
-            recaptcha_is_valid = False
-        return recaptcha_is_valid
+            return True
+        
+        return False
 
 
 def reference_data(request):

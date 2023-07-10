@@ -5,7 +5,6 @@
 
 /// Create template
 ///   @desc Stylesheet relating to create and update form
-
 .phenotype-creation {
   @include flex-col();
   position: relative;
@@ -216,12 +215,22 @@
     @include flex-row();
     width: 100%;
     justify-content: space-between;
+    margin-bottom: 0.5rem;
+    gap: 1rem;
   }
 
   &__container {
     @include flex-col();
     width: fit-content;
     justify-content: center;
+
+    &.as-row {
+      @include flex-row();
+      gap: 0.5rem;
+      margin-left: auto;
+      height: fit-content;
+      align-self: center;
+    }
   }
 
   &__title {

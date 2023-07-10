@@ -1,390 +1,478 @@
-{% extends "base.html" %}
+{% extends "base_scss.html" %}
+
 {% load static %}
-{% block title %}{% endblock title %}
-{% block description %} HDR-UK Team and Collaborators {% endblock description %}
-{% block keywords %}, research, health, uk, informatics, collaborators, team, Prof Sinead Brophy, Swansea University, Prof Richard Dobson, Prof Colin McCowan, Prof Ruth Gilbert,
-Dr Andreas Karwath, Dr Arturo Gonzalez-Izquierdo, Dr Harriet Forbes, Kristiina Rannikmae, Dr Steve Harris {% endblock keywords %}
-{% block head %}
-<link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
-{% endblock head %}
-{% block scrollNav %}
-data-spy="scroll" data-target="#TeamMenu" data-offset = "120"
-{% endblock scrollNav %}
+{% load compress %}
+{% load sass_tags %}
+{% load breadcrumbs %}
+
+{% block title %}| The Team {% endblock title %}
 
 {% block container %}
-<div class="row">
-   <nav class=" col-sm-2 hideleft-navbar " id = "TeamMenu" style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;">
-         <ul class="nav left-navbar"  id='navList'>
-            <li> <a href="#teamandcollab" id="teamSection">
-               Team and Collaborators
-               </a>
-            </li>
-            <li> <a href="#team">
-               Team
-               </a>
-            </li>
-            <li><a href="#collaborators">
-               Collaborators
-               </a>
-            </li>
-         </ul>
+<!-- Page Stylesheets -->
+<link href="{% sass_src 'scss/pages/about.scss' %}" rel="stylesheet" type="text/css" />
 
-   </nav>
+<!-- Dependencies -->
+{% compress js file %}
+  <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/scrollspy.js' %}"></script>
+{% endcompress %}
 
-
-      <!--<div class="col-sm-2 hideleft-navbar" style="padding-top: 40px; position: sticky; position: -webkit-sticky; top: 60px;">
-	<div class="hideleft-navbar">
-       <ul class="left-navbar" onclick="showSelection(event)" id='navList'>
-			<li><a href="#teamandcollab" id="teamSection">Home</a>
-			<li><a href="#team">Team</a>
-			<li><a href="#collaborators">Collaborators</a>
-
-		</ul></div>
-
-	</div>-->
-
-   <h3><span id="teamandcollab"></span></h3>
-   <div style="width:70%;" class="column" >
-      <div class="header-content-design" >
-         Team and Collaborators
-      </div>
-      <div class="medium-header-design" id="team">
-         Team
-      </div>
-      <div style="padding-top:50px;">
-         <table>
-            <tr>
-               <td>
-                  <div class="member-photo-design">
-                     <img class="member-photo-design-img" src="{% static  'img/brands/HDRUK/team/martin-chapman.jpg'%}" >
+<!-- Main -->
+<main class="main-content">
+  <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+    <article class="about-container">
+      <section class="page-split">
+        <div class="page-split__left">
+          <aside class="scrollspy">
+            <div class="scrollspy__container">
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary active"
+                aria-label="Go to Team" data-target="#home">
+                <a href="#home">Team</a>
+              </button>
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+                aria-label="Go to Collaborators" data-target="#collaborators">
+                <a href="#collaborators">Collaborators</a>
+              </button>
+            </div>
+          </aside>
+        </div>
+        <div class="page-split__right">
+          <div class="page-split__container">
+            <section class="about-container__section">
+              <h2>
+                Team and Collaborators
+              </h2>
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="home"></span>
+                Team
+              </h3>
+              <section class="about-container__section__team">
+                <div class="about-container__section__team__card">
+                  <img src="{% static  'img/brands/HDRUK/team/martin-chapman.jpg'%}" />
+                  <div class="about-container__section__team__card__details">
+                    <h3>Dr Martin Chapman</h3>
+                    <p>Research Fellow</p>
+                    <p>marin.chapman@kcl.ac.uk</p>
                   </div>
-               </td>
-               <td>
-                  <div style="padding-left:20px;">
-                     <div class="member-title-design"> Dr Martin Chapman</div>
-                     <div class="member-position-design">Research Fellow</div>
-                     <div class="member-contact-design">martin.chapman@kcl.ac.uk</div>
+                </div>
+                <p>
+                  Martin is a researcher working in Health Informatics at King's
+                  College London. He is currently involved in developing models and
+                  tooling for computational phenotypes, funded by Health Data Research
+                  UK and the NIHR Biomedical Research Centre.
+                </p>
+              </section>
+              <section class="about-container__section__team">
+                <div class="about-container__section__team__card">
+                  <img src="{% static  'img/brands/HDRUK/team/vasa-curcin.jpg'%}" />
+                  <div class="about-container__section__team__card__details">
+                    <h3>Dr Vasa Curcin</h3>
+                    <p>Reader in Health Informatics</p>
+                    <p>vasa.curcin@kcl.ac.uk</p>
                   </div>
-               </td>
-            </tr>
-         </table>
-         <div class="member-bio-design">Martin is a researcher working in Health Informatics at King's College London. He is currently involved in developing models and tooling for computational phenotypes, funded by Health Data Research UK and the NIHR Biomedical Research Centre. </div>
-      </div>
-      <div style="padding-top:50px;">
-         <table>
-            <tr>
-               <td>
-                  <div class="member-photo-design">
-                     <img class="member-photo-design-img" src="{% static  'img/brands/HDRUK/team/vasa-curcin.jpg'%}" >
+                </div>
+                <p>
+                  Vasa is a Senior Lecturer in Health Informatics, leading the
+                  Biomedical Informatics Group at School of Population Health and
+                  Environmental Sciences at King's College London. His research
+                  focuses on the theoretical informatics foundations and resulting
+                  software infrastructures for the Learning Health Systems,
+                  specifically in the areas of clinical trials and decision support
+                  systems, together with the role of data provenance in delivering
+                  reproducibility and auditability to scientific tasks.
+                </p>
+              </section>
+              <section class="about-container__section__team">
+                <div class="about-container__section__team__card">
+                  <img src="{% static  'img/brands/HDRUK/team/spiros-denaxas.jpg'%}" />
+                  <div class="about-container__section__team__card__details">
+                    <h3>Prof Spiros Denaxas (PI)</h3>
+                    <p>Professor in Biomedical Informatics</p>
+                    <p>s.denaxas@ucl.ac.uk</p>
                   </div>
-               </td>
-               <td>
-                  <div style="padding-left:20px;">
-                     <div class="member-title-design"> Dr Vasa Curcin</div>
-                     <div class="member-position-design">Reader in Health Informatics</div>
-                     <div class="member-contact-design">vasa.curcin@kcl.ac.uk</div>
+                </div>
+                <p>
+                  Spiros is Professor of Biomedical Informatics based at the UCL
+                  Institute of Health Informatics. His lab's research focuses on
+                  creating and evaluating computational approaches for phenotyping in
+                  structured electronic health records, clinical and genomic data.
+                </p>
+              </section>
+              <section class="about-container__section__team">
+                <div class="about-container__section__team__card">
+                  <img src="{% static  'img/brands/HDRUK/team/natalie-fitzpatrick.jpg'%}" />
+                  <div class="about-container__section__team__card__details">
+                    <h3>Natalie Fitzpatrick</h3>
+                    <p>HDR UK Phenomics Programme Manager</p>
+                    <p>n.fitzpatrick@ucl.ac.uk</p>
                   </div>
-               </td>
-            </tr>
-         </table>
-         <div class="member-bio-design">Vasa is a Senior Lecturer in Health Informatics, leading the Biomedical Informatics Group at School of Population Health and Environmental Sciences at King's College London. His research focuses on the theoretical informatics foundations and resulting software infrastructures for the Learning Health Systems, specifically in the areas of clinical trials and decision support systems, together with the role of data provenance in delivering reproducibility and auditability to scientific tasks. </div>
-      </div>
-      <div style="padding-top:50px;">
-         <table>
-            <tr>
-               <td>
-                  <div class="member-photo-design">
-                     <img class="member-photo-design-img" src="{% static  'img/brands/HDRUK/team/spiros-denaxas.jpg'%}"">
+                </div>
+                <p>
+                  Natalie is the Phenomics Programme Manager for the Health Data
+                  Research UK (HDR UK) National Phenomics Resource and National Text
+                  Analytics Implementation projects. She is based at the UCL Institute
+                  of Health Informatics and co-leads the Institute's Phenomics Group.
+                  Natalie has more than 20 years' experience managing complex research
+                  programmes involving large linked electronic health record data. She
+                  also leads on facilitating research collaborations for the CALIBER
+                  platform (https://www.ucl.ac.uk/health-informatics/caliber) and leads
+                  on patient and public engagement for the Institute.
+                </p>
+              </section>
+              <section class="about-container__section__team">
+                <div class="about-container__section__team__card">
+                  <img src="{% static  'img/brands/HDRUK/team/chuang-gao.jpg'%}" />
+                  <div class="about-container__section__team__card__details">
+                    <h3>Dr Chuang Gao</h3>
+                    <p>Data Scientist</p>
+                    <p>CGao001@dundee.ac.uk</p>
                   </div>
-               </td>
-               <td>
-                  <div style="padding-left:20px;">
-                     <div class="member-title-design"> Prof Spiros Denaxas (PI)</div>
-                     <div class="member-position-design">Professor in Biomedical Informatics</div>
-                     <div class="member-contact-design">s.denaxas@ucl.ac.uk</div>
+                </div>
+                <p>
+                  Chuang is a Data Scientist working in the Health Informatics Centre
+                  (HIC), University of Dundee. His research focuses on creating and
+                  evaluating novel models and tooling for Electronic Health Record
+                  federation system. He is also currently involved in UK national
+                  phenotypes portal development, guideline development of
+                  multimorbidity clinical trials.
+                </p>
+              </section>
+              <section class="about-container__section__team">
+                <div class="about-container__section__team__card">
+                  <img src="{% static  'img/brands/HDRUK/team/george-gkoutos.jpg'%}" />
+                  <div class="about-container__section__team__card__details">
+                    <h3>Prof George Gkoutos</h3>
+                    <p>Professor in Clinical Bioinformatics</p>
+                    <p>G.Gkoutos@bham.ac.uk</p>
                   </div>
-               </td>
-            </tr>
-         </table>
-         <div class="member-bio-design">Spiros is Professor of Biomedical Informatics based at the UCL Institute of Health Informatics. His lab's research focuses on creating and evaluating computational approaches for phenotyping in structured electronic health records, clinical and genomic data.</div>
-      </div>
-      <div style="padding-top:50px;">
-         <table>
-            <tr>
-               <td>
-                  <div class="member-photo-design">
-                     <img class="member-photo-design-img" src="{% static  'img/brands/HDRUK/team/natalie-fitzpatrick.jpg'%}">
+                </div>
+                <p>
+                  George is a Professor in Clinical Bioinformatics, a joint
+                  appointment between the University of Birmingham Medical School and
+                  the University Hospitals Birmingham NHS Foundation Trust. He is a
+                  Faculty Affiliate Professor of Clinical Bioinformatics, Berkeley Lab,
+                  Associate Director of MRC Health Data Research UK, Co-Director of the
+                  WCH-Birmingham Research Institute and Alan Turing Fellow. His lab's
+                  research lie in the fields of translational research and integrative
+                  systems biology, biomedical knowledge formalisation, standardisation
+                  and representation, AI based multimodal large data harmonisation,
+                  interoperability, integration and analysis, comparative phenomics,
+                  genomics and multiomics integration and analytics.
+                </p>
+              </section>
+              <section class="about-container__section__team">
+                <div class="about-container__section__team__card">
+                  <img src="{% static  'img/brands/HDRUK/team/emily-jefferson.jpg'%}" />
+                  <div class="about-container__section__team__card__details">
+                    <h3>Prof Emily Jefferson</h3>
+                    <p>
+                      Professor of Health Data Science and Director of Health
+                      Informatics Centre, Dundee
+                    </p>
+                    <p>e.r.jefferson@dundee.ac.uk</p>
                   </div>
-               </td>
-               <td>
-                  <div style="padding-left:20px;">
-                     <div class="member-title-design"> Natalie Fitzpatrick</div>
-                     <div class="member-position-design">HDR UK Phenomics Programme Manager</div>
-                     <div class="member-contact-design">n.fitzpatrick@ucl.ac.uk</div>
+                </div>
+                <p>
+                  Emily is the academic lead and Director of the Health Informatics
+                  Centre (HIC) at the University of Dundee and Chair of Health Data
+                  Science. She has a team of c.55 people providing research and
+                  services to over 1000 different research projects bringing expertise
+                  in health informatics, data science, data management, governance,
+                  machine learning and AI. She is responsible for an ISO27001 certified
+                  infrastructure and a Scottish Government accredited Safe Haven.
+                  Emily's main research interest is in innovative automated methods
+                  for the provision of sensitive linked data which meets both data
+                  governance requirements and those of the research community. HIC
+                  have provided >2000 linked data extracts for research utilising
+                  phenotype definitions. Her team will bring this expertise to the
+                  project and be able to utilise the portal to support reusable
+                  phenotypes at UK wide scale. Emily is also the Alleviate Pain Hub
+                  Director and will be incorporating detailed pain phenotypes into
+                  the portal.
+                </p>
+              </section>
+              <section class="about-container__section__team">
+                <div class="about-container__section__team__card">
+                  <img src="{% static  'img/brands/HDRUK/team/andreas-karwath.jpg'%}" />
+                  <div class="about-container__section__team__card__details">
+                    <h3>Dr Andreas Karwath</h3>
+                    <p>Rutherford Research Fellow</p>
+                    <p>a.karwath@bham.ac.uk</p>
                   </div>
-               </td>
-            </tr>
-         </table>
-         <div class="member-bio-design">Natalie is the Phenomics Programme Manager for the Health Data Research UK (HDR UK) National Phenomics Resource and National Text Analytics Implementation projects. She is based at the UCL Institute of Health Informatics and co-leads the Institute's Phenomics Group. Natalie has more than 20 years' experience managing complex research programmes involving large linked electronic health record data. She also leads on facilitating research collaborations for the CALIBER platform (https://www.ucl.ac.uk/health-informatics/caliber) and leads on patient and public engagement for the Institute. </div>
-      </div>
-      <div style="padding-top:50px;">
-         <table>
-            <tr>
-               <td>
-                  <div class="member-photo-design">
-                     <img class="member-photo-design-img" src="{% static  'img/brands/HDRUK/team/chuang-gao.jpg'%}">
+                </div>
+                <p>
+                  Andreas is generally interested in research in and development of
+                  semantic-based "information commons for research" health care-related
+                  data frameworks. These frameworks should serve as fully integrated
+                  health research information platforms, with access to both deep
+                  clinical data and extensive unstructured and large data on individual
+                  patients and populations.
+                </p>
+              </section>
+              <section class="about-container__section__team">
+                <div class="about-container__section__team__card">
+                  <img src="{% static  'img/brands/HDRUK/team/shahzad-mumtaz.jpg'%}" />
+                  <div class="about-container__section__team__card__details">
+                    <h3>Dr Shahzad Mumtaz</h3>
+                    <p>
+                      Postdoctoral research assistant / Health data scientist at the
+                      Health Informatics Centre (HIC), University of Dundee
+                    </p>
+                    <p>SMumtaz001@dundee.ac.uk</p>
                   </div>
-               </td>
-               <td>
-                  <div style="padding-left:20px;">
-                     <div class="member-title-design"> Dr Chuang Gao</div>
-                     <div class="member-position-design">Data Scientist</div>
-                     <div class="member-contact-design">CGao001@dundee.ac.uk</div>
+                </div>
+                <p>
+                  Shahzad has a PhD in computer science from Aston University, UK.
+                  His masters and BSc degrees are also in computer science from The
+                  Islamia University of Bahawalpur, Pakistan. Just after PhD, he
+                  worked as a postdoctoral researcher for an 11 months project at Aston
+                  University, UK. His research interests are in machine learning models
+                  both in terms of their mathematical foundations and their application
+                  to health care and bioinformatics problems. He has worked on projects
+                  like: An analysis of protein family of major histocompatibility
+                  complex, demand forecasting for National Health Services (NHS)
+                  emergency departments of West-Midlands hospitals, UK, probabilistic
+                  modelling of blood glucose via eye parameters and development of Data
+                  Visualisation and Modelling System.
+                </p>
+              </section>
+              <section class="about-container__section__team">
+                <div class="about-container__section__team__card">
+                  <img src="{% static  'img/brands/HDRUK/team/helen-parkinson.jpg'%}" />
+                  <div class="about-container__section__team__card__details">
+                    <h3>Dr Helen Parkinson</h3>
+                    <p>Head of Molecular Archival Resources, EMBL-EBI</p>
+                    <p>parkinso@ebi.ac.uk</p>
                   </div>
-               </td>
-            </tr>
-         </table>
-         <div class="member-bio-design">Chuang is a Data Scientist working in the Health Informatics Centre (HIC), University of Dundee. His research focuses on creating and evaluating novel models and tooling for Electronic Health Record federation system. He is also currently involved in UK national phenotypes portal development, guideline development of multimorbidity clinical trials. </div>
-      </div>
-      <div style="padding-top:50px;">
-         <table>
-            <tr>
-               <td>
-                  <div class="member-photo-design">
-                     <img class="member-photo-design-img" src="{% static  'img/brands/HDRUK/team/george-gkoutos.jpg'%}">
+                </div>
+                <p>
+                  Helen is Head of Molecular Archival Resources at EMBL-EBI. Helen's
+                  team manages, analyses, and distributes complex high-throughput
+                  phenotypic data from mammals and promotes phenomic data integration
+                  internationally. They also develop open-source software tools for
+                  managing data, developing and integrating ontologies and data, and
+                  integrating semantic web technologies.
+                </p>
+              </section>
+              <section class="about-container__section__team">
+                <div class="about-container__section__team__card">
+                  <img src="{% static  'img/brands/HDRUK/team/daniel-thayer.jpg'%}" />
+                  <div class="about-container__section__team__card__details">
+                    <h3>Daniel Thayer</h3>
+                    <p>Senior Data Scientist</p>
+                    <p>d.s.thayer@swansea.ac.uk</p>
                   </div>
-               </td>
-               <td>
-                  <div style="padding-left:20px;">
-                     <div class="member-title-design"> Prof George Gkoutos</div>
-                     <div class="member-position-design">Professor in Clinical Bioinformatics</div>
-                     <div class="member-contact-design">G.Gkoutos@bham.ac.uk</div>
+                </div>
+                <p>
+                  Dan leads a team of data scientists that support research with the
+                  SAIL Databank, a repository of anonymised Welsh population data. He
+                  is responsible for handling enquiries about SAIL, supporting all
+                  existing research projects, and developing tools and infrastructure
+                  to improve the research process, as well as sitting on the SAIL
+                  operations group.
+                </p>
+              </section>
+              <section class="about-container__section__team">
+                <div class="about-container__section__team__card">
+                  <img src="{% static  'img/brands/HDRUK/team/leandro-tramma.jpg'%}" />
+                  <div class="about-container__section__team__card__details">
+                    <h3>Leandro Tramma</h3>
+                    <p>Application Development Technical Manager</p>
+                    <p>l.tramma@dundee.ac.uk</p>
                   </div>
-               </td>
-            </tr>
-         </table>
-         <div class="member-bio-design">George is a Professor in Clinical Bioinformatics, a joint appointment between the University of Birmingham Medical School and the University Hospitals Birmingham NHS Foundation Trust. He is a Faculty Affiliate Professor of Clinical Bioinformatics, Berkeley Lab, Associate Director of MRC Health Data Research UK, Co-Director of the WCH-Birmingham Research Institute and Alan Turing Fellow. His lab's research lie in the fields of translational research and integrative systems biology, biomedical knowledge formalisation, standardisation and representation, AI based multimodal large data harmonisation, interoperability, integration and analysis, comparative phenomics, genomics and multiomics integration and analytics. </div>
-      </div>
-      <div style="padding-top:50px;">
-         <table>
-            <tr>
-               <td>
-                  <div class="member-photo-design">
-                     <img class="member-photo-design-img" src="{% static  'img/brands/HDRUK/team/emily-jefferson.jpg'%}">
+                </div>
+                <p>
+                  Leandro is an experienced software developer with great passion for
+                  beautifully crafted software and a keen interest in Application
+                  Lifecycle Management and good Software Design. In 2013 he joined HIC
+                  as a Senior Software Developer. Leandro currently manages multiple
+                  projects within the ADP team, providing technical expertise and
+                  guidance for the team. He is involved in the design and development
+                  of the Research Data Management Platform for HIC Services. Leandro
+                  graduated in Telecommunications Engineering at the University of Rome
+                  "La Sapienza" and in 2007 he moved to Scotland from Italy.
+                </p>
+              </section>
+              <section class="about-container__section__team">
+                <div class="about-container__section__team__card">
+                  <img src="{% static  'img/brands/HDRUK/team/susheel-varma.jpg'%}" />
+                  <div class="about-container__section__team__card__details">
+                    <h3>Dr Susheel Varma</h3>
+                    <p>Director of Engineering, Health Data Research UK</p>
+                    <p>Susheel.Varma@hdruk.ac.uk</p>
                   </div>
-               </td>
-               <td>
-                  <div style="padding-left:20px;">
-                     <div class="member-title-design"> Prof Emily Jefferson</div>
-                     <div class="member-position-design">Professor of Health Data Science and Director of Health Informatics Centre, Dundee</div>
-                     <div class="member-contact-design"> e.r.jefferson@dundee.ac.uk</div>
+                </div>
+                <p>
+                  Susheel is Director of Engineering (a.k.a Director of Possibilities)
+                  at HDR UK.
+                </p>
+              </section>
+              <section class="about-container__section__team">
+                <div class="about-container__section__team__card">
+                  <img src="{% static  'img/brands/HDRUK/team/harry-hemingway.jpg'%}" />
+                  <div class="about-container__section__team__card__details">
+                    <h3>Prof Harry Hemingway (FFPH FRCP FMedSci)</h3>
+                    <p>
+                      Research Director at HDR UK, Institute Director at the
+                      Institute of Health Informatics, UCL Professor of Clinical
+                      Epidemiology
+                    </p>
+                    <p>h.hemingway@ucl.ac.uk</p>
                   </div>
-               </td>
-            </tr>
-         </table>
-         <div class="member-bio-design"> Emily is the academic lead and Director of the Health Informatics Centre (HIC) at the University of Dundee and Chair of Health Data Science. She has a team of c.55 people providing research and services to over 1000 different research projects bringing expertise in health informatics, data science, data management, governance, machine learning and AI. She is responsible for an ISO27001 certified infrastructure and a Scottish Government accredited Safe Haven. Emily's main research interest is in innovative automated methods for the provision of sensitive linked data which meets both data governance requirements and those of the research community. HIC have provided >2000 linked data extracts for research utilising phenotype definitions. Her team will bring this expertise to the project and be able to utilise the portal to support reusable phenotypes at UK wide scale. Emily is also the Alleviate Pain Hub Director and will be incorporating detailed pain phenotypes into the portal. </div>
-      </div>
-      <div style="padding-top:50px;">
-         <table>
-            <tr>
-               <td>
-                  <div class="member-photo-design">
-                     <img class="member-photo-design-img" src="{% static  'img/brands/HDRUK/team/andreas-karwath.jpg'%}">
-                  </div>
-               </td>
-               <td>
-                  <div style="padding-left:20px;">
-                     <div class="member-title-design"> Dr Andreas Karwath</div>
-                     <div class="member-position-design">Rutherford Research Fellow</div>
-                     <div class="member-contact-design"> a.karwath@bham.ac.uk</div>
-                  </div>
-               </td>
-            </tr>
-         </table>
-         <div class="member-bio-design"> Andreas is generally interested in research in and development of semantic-based "information commons for research" health care-related data frameworks. These frameworks should serve as fully integrated health research information platforms, with access to both deep clinical data and extensive unstructured and large data on individual patients and populations. </div>
-      </div>
-      <div style="padding-top:50px;">
-         <table>
-            <tr>
-               <td>
-                  <div class="member-photo-design">
-                     <img class="member-photo-design-img" src="{% static  'img/brands/HDRUK/team/shahzad-mumtaz.jpg'%}">
-                  </div>
-               </td>
-               <td>
-                  <div style="padding-left:20px;">
-                     <div class="member-title-design"> Dr Shahzad Mumtaz</div>
-                     <div class="member-position-design">Postdoctoral research assistant / Health data scientist at the Health Informatics Centre (HIC), University of Dundee</div>
-                     <div class="member-contact-design"> SMumtaz001@dundee.ac.uk</div>
-                  </div>
-               </td>
-            </tr>
-         </table>
-         <div class="member-bio-design"> Shahzad has a PhD in computer science from Aston University, UK. His masters and BSc degrees are also in computer science from The Islamia University of Bahawalpur, Pakistan. Just after PhD, he worked as a postdoctoral researcher for an 11 months project at Aston University, UK. His research interests are in machine learning models both in terms of their mathematical foundations and their application to health care and bioinformatics problems. He has worked on projects like: An analysis of protein family of major histocompatibility complex, demand forecasting for National Health Services (NHS) emergency departments of West-Midlands hospitals, UK, probabilistic modelling of blood glucose via eye parameters and development of Data Visualisation and Modelling System. </div>
-      </div>
-      <div style="padding-top:50px;">
-         <table>
-            <tr>
-               <td>
-                  <div class="member-photo-design">
-                     <img class="member-photo-design-img" src="{% static  'img/brands/HDRUK/team/helen-parkinson.jpg'%}">
-                  </div>
-               </td>
-               <td>
-                  <div style="padding-left:20px;">
-                     <div class="member-title-design"> Dr Helen Parkinson</div>
-                     <div class="member-position-design">Head of Molecular Archival Resources, EMBL-EBI</div>
-                     <div class="member-contact-design"> parkinso@ebi.ac.uk</div>
-                  </div>
-               </td>
-            </tr>
-         </table>
-         <div class="member-bio-design"> Helen is Head of Molecular Archival Resources at EMBL-EBI. Helen's team manages, analyses, and distributes complex high-throughput phenotypic data from mammals and promotes phenomic data integration internationally. They also develop open-source software tools for managing data, developing and integrating ontologies and data, and integrating semantic web technologies. </div>
-      </div>
-      <div style="padding-top:50px;">
-         <table>
-            <tr>
-               <td>
-                  <div class="member-photo-design">
-                     <img class="member-photo-design-img" src="{% static  'img/brands/HDRUK/team/daniel-thayer.jpg'%}">
-                  </div>
-               </td>
-               <td>
-                  <div style="padding-left:20px;">
-                     <div class="member-title-design"> Daniel Thayer</div>
-                     <div class="member-position-design">Senior Data Scientist</div>
-                     <div class="member-contact-design"> d.s.thayer@swansea.ac.uk</div>
-                  </div>
-               </td>
-            </tr>
-         </table>
-         <div class="member-bio-design"> Dan leads a team of data scientists that support research with the SAIL Databank, a repository of anonymised Welsh population data. He is responsible for handling enquiries about SAIL, supporting all existing research projects, and developing tools and infrastructure to improve the research process, as well as sitting on the SAIL operations group. </div>
-      </div>
-      <div style="padding-top:50px;">
-         <table>
-            <tr>
-               <td>
-                  <div class="member-photo-design">
-                     <img class="member-photo-design-img" src="{% static  'img/brands/HDRUK/team/leandro-tramma.jpg'%}">
-                  </div>
-               </td>
-               <td>
-                  <div style="padding-left:20px;">
-                     <div class="member-title-design"> Leandro Tramma</div>
-                     <div class="member-position-design">Application Development Technical Manager</div>
-                     <div class="member-contact-design"> l.tramma@dundee.ac.uk</div>
-                  </div>
-               </td>
-            </tr>
-         </table>
-         <div class="member-bio-design">Leandro is an experienced software developer with great passion for beautifully crafted software and a keen interest in Application Lifecycle Management and good Software Design. In 2013 he joined HIC as a Senior Software Developer. Leandro currently manages multiple projects within the ADP team, providing technical expertise and guidance for the team. He is involved in the design and development of the Research Data Management Platform for HIC Services. Leandro graduated in Telecommunications Engineering at the University of Rome "La Sapienza" and in 2007 he moved to Scotland from Italy. </div>
-      </div>
-      <div style="padding-top:50px;">
-         <table>
-            <tr>
-               <td>
-                  <div class="member-photo-design">
-                     <img class="member-photo-design-img" src="{% static  'img/brands/HDRUK/team/susheel-varma.jpg'%}">
-                  </div>
-               </td>
-               <td>
-                  <div style="padding-left:20px;">
-                     <div class="member-title-design"> Dr Susheel Varma</div>
-                     <div class="member-position-design">Director of Engineering, Health Data Research UK</div>
-                     <div class="member-contact-design"> Susheel.Varma@hdruk.ac.uk</div>
-                  </div>
-               </td>
-            </tr>
-         </table>
-         <div class="member-bio-design"> Susheel is Director of Engineering (a.k.a Director of Possibilities) at HDR UK. </div>
-      </div>
-
-      <div style="padding-top:50px;">
-         <table>
-            <tr>
-               <td>
-                  <div class="member-photo-design">
-                     <img class="member-photo-design-img" src="{% static  'img/brands/HDRUK/team/harry-hemingway.jpg'%}">
-                  </div>
-               </td>
-               <td>
-                  <div style="padding-left:20px;">
-                     <div class="member-title-design">Prof Harry Hemingway (FFPH FRCP FMedSci)</div>
-                     <div class="member-position-design">Research Director at HDR UK, Institute Director at the Institute of Health Informatics, UCL Professor of Clinical Epidemiology
-                     </div>
-                     <div class="member-contact-design"> h.hemingway@ucl.ac.uk</div>
-                  </div>
-               </td>
-            </tr>
-         </table>
-         <div class="member-bio-design"> Harry is Research Director at HDR UK, Institute Director at the Institute of Health Informatics UCL and Professor of Clinical Epidemiology. He has over 25 years of experience in leadership in using rapidly changing patient and population data resources for research and has contributed to establishing, growing and critically evaluating the field of data science for health nationally and internationally.
-         The central focus of his research is to develop underpinning methods to exploit the scale and phenotypic resolution of electronic health records (EHR) to accelerate early and late phase translational research. He has published over 200 papers, has an h-index of 57 with 27,657 citations with research cited in seven major clinical guidelines and public health policies with implications for the health of millions.
-         As Research Director Health Data Research UK (2017–), with £120m initial investment and long term (15+ years) horizons, he delivered an historic ‘first ever’ pan London research partnership in biomedicine around his science vision across London’s five universities (Imperial, King’s, QMUL, LSHTM and UCL) establishing governance arrangements and legal contracts. HDR UK London has influenced ministerial decisions to award the Digital Innovation Hubs Programme to HDR UK.
+                </div>
+                <p>
+                  Harry is Research Director at HDR UK, Institute Director at the
+                  Institute of Health Informatics UCL and Professor of Clinical
+                  Epidemiology. He has over 25 years of experience in leadership in
+                  using rapidly changing patient and population data resources for
+                  research and has contributed to establishing, growing and critically
+                  evaluating the field of data science for health nationally and
+                  internationally. The central focus of his research is to develop
+                  underpinning methods to exploit the scale and phenotypic resolution
+                  of electronic health records (EHR) to accelerate early and late phase
+                  translational research. He has published over 200 papers, has an
+                  h-index of 57 with 27,657 citations with research cited in seven
+                  major clinical guidelines and public health policies with
+                  implications for the health of millions. As Research Director Health
+                  Data Research UK (2017-), with £120m initial investment and long
+                  term (15+ years) horizons, he delivered an historic 'first ever' pan
+                  London research partnership in biomedicine around his science vision
+                  across London's five universities (Imperial, King's, QMUL, LSHTM and
+                  UCL) establishing governance arrangements and legal contracts. HDR UK
+                  London has influenced ministerial decisions to award the Digital
+                  Innovation Hubs Programme to HDR UK.
+                </p>
+              </section>
+            </section>
+            <section class="about-container__section">
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="collaborators"></span>
+                Collaborators
+              </h3>
+              <section class="about-container__section__collaborators">
+                <div>
+                  <h3>Swansea University</h3>
+                  <ul>
+                    <li>
+                      <a href="https://saildatabank.com/">
+                        Hannah Davies
+                      </a> (SAIL Databank)
+                    </li>
+                    <li>
+                      <a href="https://saildatabank.com/">
+                        Dr Muhammad Elmessary
+                      </a> (SAIL Databank)
+                    </li>
+                    <li>
+                      <a href="https://saildatabank.com/">
+                        Ieuan Scanlon
+                      </a> (SAIL Databank)
+                    </li>
+                    <li>
+                      <a href="https://saildatabank.com/">
+                        Artur Zinnurov
+                      </a> (SAIL Databank)
+                    </li>
+                    <li>
+                      <a href="https://saildatabank.com/">
+                        Alex-Ioan Coldea
+                      </a> (SAIL Databank)
+                    </li>
+                    <li>
+                      <a href="https://saildatabank.com/">
+                        Dr Jack Scanlon
+                      </a> (SAIL Databank)
+                    </li>
+                    <li>
+                      <a href="https://www.swansea.ac.uk/staff/medicine-health-life-science/">
+                        Prof Sinead Brophy
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h3>University of Oxford</h3>
+                  <ul>
+                    <li>
+                      <a href="https://www.cs.ox.ac.uk/people/jim.davies/">
+                        James Welch
+                      </a>
+                    </li>
+                    <li>
+                      <a href="https://www.cs.ox.ac.uk/people/jim.davies/">
+                        Prof Jim Davies
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h3>University of Birmingham</h3>
+                  <ul>
+                    <li>
+                      <a href="https://www.birmingham.ac.uk/staff/profiles/cancer-genomic/basu-tanmay.aspx">
+                        Dr Tanmay Basu
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h3>UCL Institute of Health Informatics</h3>
+                  <ul>
+                    <li>
+                      <a href="https://www.kcl.ac.uk/people/richard-dobson">
+                        Prof Richard Dobson
+                      </a>
+                      (King's College London)
+                    </li>
+                    <li>
+                      <a href="https://www.ucl.ac.uk/child-health/people/gilbert-ruth">
+                        Prof Ruth Gilbert
+                      </a>
+                      (UCL Great Ormond Street Institute of Child Health)
+                    </li>
+                    <li>
+                      <a href="http://iris.ucl.ac.uk">
+                        Dr Arturo Gonzalez-Izquierdo
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h3>University of St Andrews</h3>
+                  <ul>
+                    <li>
+                      <a href="https://www.st-andrews.ac.uk/medicine/people/cm434">
+                        Prof Colin McCowan
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h3>University of Edingburgh</h3>
+                  <ul>
+                    <li>
+                      <a href="https://www.ed.ac.uk/profile/kristiina-rannikmae">
+                        Kristiina Rannikmae
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h3>University College London Hospitals</h3>
+                  <ul>
+                    <li>
+                      <a href="https://www.uclh.nhs.uk/our-services/find-consultant/dr-steve-harris">
+                        Dr Steve Harris
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </section>
+            </section>
           </div>
-      </div>
+        </div>
+      </section>
+    </article>
+  </div>
+</main>
 
-      <div class="medium-header-design" id="collaborators">
-         Collaborators
-      </div>
-      <div>
-         <div class="row collaborator-padding">
-            <a class="collaborator-name-design" href="https://saildatabank.com/" target=_blank   rel="noopener noreferrer">Hannah Davies</a>
-            <div class="collaborator-location-design">(Swansea University)</div>
-         </div>
-         <div class="row collaborator-padding">
-            <a class="collaborator-name-design" href="https://saildatabank.com/" target=_blank   rel="noopener noreferrer">Dr Muhammad Elmessary</a>
-            <div class="collaborator-location-design">(Swansea University)</div>
-         </div>
-         <div class="row collaborator-padding">
-            <a class="collaborator-name-design" href="https://saildatabank.com/" target=_blank   rel="noopener noreferrer">Ieuan Scanlon</a>
-            <div class="collaborator-location-design">(Swansea University)</div>
-         </div>
-         <div class="row collaborator-padding">
-            <a class="collaborator-name-design" href="https://www.cs.ox.ac.uk/people/james.welch/" target=_blank   rel="noopener noreferrer">James Welch</a>
-            <div class="collaborator-location-design">(University of Oxford)</div>
-         </div>
-         <div class="row collaborator-padding">
-            <a class="collaborator-name-design" href="https://www.birmingham.ac.uk/staff/profiles/cancer-genomic/basu-tanmay.aspx" target=_blank   rel="noopener noreferrer">Dr Tanmay Basu</a>
-            <div class="collaborator-location-design">(University of Birmingham)</div>
-         </div>
-         <div class="row collaborator-padding">
-            <a class="collaborator-name-design" href="https://www.cs.ox.ac.uk/people/jim.davies/" target=_blank   rel="noopener noreferrer">Prof Jim Davies</a>
-            <div class="collaborator-location-design">(University of Oxford)</div>
-         </div>
-         <div class="row collaborator-padding">
-            <a class="collaborator-name-design" href="https://www.swansea.ac.uk/staff/medicine/research/brophy-s-t/" target=_blank   rel="noopener noreferrer">Prof Sinead Brophy</a>
-            <div class="collaborator-location-design">(Swansea University)</div>
-         </div>
-         <div class="row collaborator-padding">
-            <a class="collaborator-name-design" href="https://www.kcl.ac.uk/people/richard-dobson" target=_blank   rel="noopener noreferrer">Prof Richard Dobson</a>
-            <div class="collaborator-location-design">(King's College London / UCL Institute of Health Informatics)</div>
-         </div>
-         <div class="row collaborator-padding">
-            <a class="collaborator-name-design" href="https://www.st-andrews.ac.uk/medicine/people/cm434" target=_blank   rel="noopener noreferrer">Prof Colin McCowan</a>
-            <div class="collaborator-location-design">(University of St Andrews)</div>
-         </div>
-         <div class="row collaborator-padding">
-            <a class="collaborator-name-design" href="https://www.ucl.ac.uk/child-health/people/gilbert-ruth" target=_blank   rel="noopener noreferrer">Prof Ruth Gilbert</a>
-            <div class="collaborator-location-design">(UCL Great Ormond Street Institute of Child Health / UCL Institute of Health Informatics)</div>
-         </div>
-         <div class="row collaborator-padding">
-            <a class="collaborator-name-design" href="http://iris.ucl.ac.uk" target=_blank   rel="noopener noreferrer">Dr Arturo Gonzalez-Izquierdo</a>
-            <div class="collaborator-location-design">(UCL Institute of Health Informatics)</div>
-         </div>
-         <div class="row collaborator-padding">
-            <a class="collaborator-name-design" href="https://www.hdruk.ac.uk/people/dr-harriet-forbes/" target=_blank   rel="noopener noreferrer">Dr Harriet Forbes</a>
-            <div class="collaborator-location-design">(London School of Hygiene & Tropical Medicine)</div>
-         </div>
-         <div class="row collaborator-padding">
-            <a class="collaborator-name-design" href="https://www.ed.ac.uk/profile/kristiina-rannikmae" target=_blank   rel="noopener noreferrer">Kristiina Rannikmae</a>
-            <div class="collaborator-location-design">(University of Edinburgh)</div>
-         </div>
-         <div class="row collaborator-padding">
-            <a class="collaborator-name-design" href="https://www.uclh.nhs.uk/our-services/find-consultant/dr-steve-harris" target=_blank   rel="noopener noreferrer">Dr Steve Harris</a>
-            <div class="collaborator-location-design">(University College London Hospitals)</div>
-         </div>
-      </div>
-   </div>
-</div>
 {% endblock container %}
-

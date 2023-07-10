@@ -24,38 +24,42 @@
 
   <!-- Main -->
   <header class="main-header banner">
-    <div class="banner__container">
-      <h2 class="banner__title">My Collection</h2>
-      <p class="banner__description">
-        View content owned by or shared with you.
-      </p>
-      <div class="banner__cards">
-        <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
-          {% url 'create_phenotype' as create_url %}
-          <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
-            <div class="referral-card__header">
-              <a class="referral-card__title" href="{{ create_url }}">Create a Phenotype<span class="referral-card__title-icon"></span></a>
-            </div>
-            <div class="referral-card__body">
-              <p>Look up values for phenotype fields.</p>
-            </div>
-          </article>
-          {% url 'search_phenotypes' as search_url %}
-          <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
-            <div class="referral-card__header">
-              <a class="referral-card__title" href="{{ search_url }}">Search Phenotypes<span class="referral-card__title-icon"></span></a>
-            </div>
-            <div class="referral-card__body">
-              <p>Find Phenotypes within the Library.</p>
-            </div>
-          </article>
+    <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
+      <div class="banner__container">
+        <h2 class="banner__title">My Collection</h2>
+        <p class="banner__description">
+          View content owned by or shared with you.
+        </p>
+        <div class="banner__cards">
+          <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
+            {% if not CLL_READ_ONLY %}
+              {% url 'create_phenotype' as create_url %}
+              <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+                <div class="referral-card__header">
+                  <a class="referral-card__title" href="{{ create_url }}">Create a Phenotype<span class="referral-card__title-icon"></span></a>
+                </div>
+                <div class="referral-card__body">
+                  <p>Look up values for phenotype fields.</p>
+                </div>
+              </article>
+            {% endif %}
+            {% url 'search_phenotypes' as search_url %}
+            <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+              <div class="referral-card__header">
+                <a class="referral-card__title" href="{{ search_url }}">Search Phenotypes<span class="referral-card__title-icon"></span></a>
+              </div>
+              <div class="referral-card__body">
+                <p>Find Phenotypes within the Library.</p>
+              </div>
+            </article>
+          </div>
         </div>
       </div>
     </div>
   </header>
 
   <main class="main-content">
-    <div class="main-content__inner-container">
+    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
       <article class="profile-collection">
         <section class="profile-collection__inner-container" id="content">
           <data data-owner="collection-service" page-type="PROFILE_COLLECTIONS" name="content" type="text/json">

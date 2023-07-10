@@ -88,8 +88,8 @@ $brand-map-none: (
   'main-mobile-gutter': 1.75rem,
 
   // Footer
-  'footer-gutter': 1.25rem,
-  'footer-mobile-gutter': 1.75rem,
+  'footer-gutter': 6rem,
+  'footer-mobile-gutter': 1rem,
   'footer-page-offset': 1rem,
   'footer-top-offset': 0.25rem,
   'footer-bottom-offset': 1rem,
@@ -248,8 +248,8 @@ $brand-map-ADP: (
   'main-mobile-gutter': 1.75rem,
 
   // Footer
-  'footer-gutter': 1.25rem,
-  'footer-mobile-gutter': 1.75rem,
+  'footer-gutter': 6rem,
+  'footer-mobile-gutter': 1rem,
   'footer-page-offset': 1rem,
   'footer-top-offset': 0.25rem,
   'footer-bottom-offset': 1rem,
@@ -324,6 +324,13 @@ $brand-map-ADP: (
 );
 
 $brand-map-HDRUK: (
+
+  // Brand banner
+  'banner-url': url('/static/img/brands/HDRUK/banner_design.jpg'),
+  // Headline pic
+  'headline-url': url('/static/img/brands/HDRUK/HDRUK_phenotyping_algorithm_web.jpg'),
+
+
   // Brand logo
   'logo-url': url('/static/img/brands/HDRUK/header_logo.png'),
 
@@ -408,8 +415,8 @@ $brand-map-HDRUK: (
   'main-mobile-gutter': 1.75rem,
 
   // Footer
-  'footer-gutter': 1.25rem,
-  'footer-mobile-gutter': 1.75rem,
+  'footer-gutter': 6rem,
+  'footer-mobile-gutter': 1rem,
   'footer-page-offset': 1rem,
   'footer-top-offset': 0.25rem,
   'footer-bottom-offset': 1rem,
@@ -567,8 +574,8 @@ $brand-map-SAIL: (
   'main-mobile-gutter': 1.75rem,
 
   // Footer
-  'footer-gutter': 1.25rem,
-  'footer-mobile-gutter': 1.75rem,
+  'footer-gutter': 6rem,
+  'footer-mobile-gutter': 1rem,
   'footer-page-offset': 1rem,
   'footer-top-offset': 0.25rem,
   'footer-bottom-offset': 1rem,

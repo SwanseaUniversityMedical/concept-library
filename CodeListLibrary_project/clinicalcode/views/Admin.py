@@ -3,7 +3,6 @@ import datetime
 
 from celery import shared_task
 
-from clinicalcode.api.views.Concept import published_concepts
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin  # , UserPassesTestMixin
@@ -346,47 +345,6 @@ def run_celery_datasource(self):
         results = create_or_update_internal_datasources()
 
         return True,results
-
-@shared_task(bind=True)
-def run_celery_statistics(self):
-    request_factory = RequestFactory()
-    my_url = r'^admin/run-stat/$'
-    request = request_factory.get(my_url)
-    request.user = AnonymousUser()
-
-
-    request.CURRENT_BRAND = ''
-    if request.method == 'GET':
-        stat = save_statistics(request)
-
-        return True, stat
-
-
-@shared_task(bind=True)
-def run_celery_filters(self):
-    request_factory = RequestFactory()
-    my_url = r'^admin/run-stat-filters/$'
-    request = request_factory.get(my_url)
-    request.user = AnonymousUser()
-    request.CURRENT_BRAND = ''
-
-    brands = Brand.objects.all()
-    brand_list = list(brands.values_list('name', flat=True))
-
-    if request.method == 'GET':
-        for brand in brand_list:
-            save_filter_statistics(request, Concept, brand)
-            save_filter_statistics(request, Phenotype, brand)
-
-        # save for all data
-        stat1 = save_filter_statistics(request, Concept, brand='ALL')
-        stat2 = save_filter_statistics(request, Phenotype, brand='ALL')
-        
-        clear_statistics_history()
-        
-        return True, stat1 + stat2
-
-
 
 @login_required
 def get_caliberresearch_url_source(request):

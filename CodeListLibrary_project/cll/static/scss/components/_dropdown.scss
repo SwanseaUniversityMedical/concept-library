@@ -258,6 +258,14 @@
       text-align: right;
       vertical-align: middle;
     }
+
+    &-icon-search-box {
+      content: '\f107';
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      margin-bottom: 8px;
+    }
   }
 
   &__list {
@@ -310,5 +318,97 @@
 
   &:last-child {
     margin-right: 0;
+  }
+}
+
+// Dropdown group
+//  @desc Primarily used for detail page
+.dropdown-group {
+  display: inline-block;
+  position: relative;
+  margin: 0;
+
+  &__input {
+    display: none;
+  }
+
+  &__button {
+    cursor: pointer;
+    display: inline-block;
+    border: 1px solid col(accent-washed);
+    border-radius: 4px;
+    padding: 0.5rem 2rem 0.5rem 1rem;
+    background-color: col(bg);
+    white-space: nowrap;
+    margin: 0;
+
+    &:hover {
+      background-color: col(accent-washed);
+    }
+
+    &:after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      right: 15px;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid col(accent-dark);
+    }
+  }
+
+  &__input + &__menu {
+    display: none;
+  }
+
+  &__input:checked + &__menu {
+    display: block;
+  } 
+
+  &__menu {
+    position: absolute;
+    top: 100%;
+    border: 1px solid col(accent-washed);
+    border-radius: 4px;
+    padding: 0;
+    margin: 2px 0 0 0;
+    box-shadow: 0 0 6px 0 col(accent-semi-transparent);
+    background-color: col(bg);
+    list-style-type: none;
+    z-index: 2000;
+
+    &--fall-right {
+      right: 0;
+    }
+
+    a:hover {
+      color: col(text-dark);
+    }
+
+    & > li {
+      cursor: pointer;
+      padding: 10px 20px;
+      white-space: nowrap;
+
+      &:hover {
+        background-color: col(accent-washed);
+      }
+
+      & > a {
+        display: block;
+        margin: -10px -20px;
+        padding: 10px 20px;
+        text-decoration: none;
+        color: col(text-dark);
+      }
+
+      &.divider {
+        padding: 0;
+        border-bottom: 1px solid col(accent-washed);
+      }
+    }
   }
 }

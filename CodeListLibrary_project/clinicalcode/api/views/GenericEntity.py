@@ -6,7 +6,7 @@ from drf_yasg.utils import swagger_auto_schema
 from django.db.models import Q
 from django.conf import settings
 
-from ...models import *
+from ...models import GenericEntity, Template
 from ...entity_utils import permission_utils
 from ...entity_utils import template_utils
 from ...entity_utils import search_utils
@@ -22,7 +22,7 @@ from ...entity_utils import constants
 def create_generic_entity(request):
     '''
         Create a generic entity from request body, must be formatted in terms
-            of a specific layout and is validated against it
+          of a specific layout and is validated against it
     '''
     if permission_utils.is_member(request.user, 'ReadOnlyUsers') or settings.CLL_READ_ONLY:
         return Response(
@@ -69,7 +69,7 @@ def create_generic_entity(request):
 def update_generic_entity(request):
     '''
         Update a generic entity from request body, must be formatted in terms
-            of a specific layout and is validated against it
+          of a specific layout and is validated against it
     '''
     if permission_utils.is_member(request.user, 'ReadOnlyUsers') or settings.CLL_READ_ONLY:
         return Response(
@@ -117,11 +117,7 @@ def update_generic_entity(request):
 def get_generic_entity_version_history(request, phenotype_id=None):
     '''
         Get version history of specific entity, using phenotype_id
-    '''
-    user_authed = False
-    if request.user and not request.user.is_anonymous:
-        user_authed = True
-    
+    '''    
     # Check if primary_key is valid, i.e. matches regex '^[a-zA-Z]\d+'
     entity_id_response = api_utils.is_malformed_entity_id(phenotype_id)
     if isinstance(entity_id_response, Response):
@@ -196,7 +192,7 @@ def get_generic_entities(request, should_paginate=False):
     # Build query from searchable GenericEntity template fields
     templates = Template.objects.all()
     for template in templates:
-        merged_definition = template_utils.get_merged_definition(template)
+        merged_definition = template_utils.get_merged_definition(template, default={})
         template_fields = template_utils.try_get_content(merged_definition, 'fields')
 
         template_query, where_clause = api_utils.build_query_from_template(
@@ -269,8 +265,8 @@ def get_generic_entities(request, should_paginate=False):
 def get_entity_detail(request, phenotype_id, version_id=None, field=None):
     '''
         Get detail of specified entity by phenotype_id, optionally target a specific
-            version using version_id and/or target a specific entity field using
-            field parameters
+          version using version_id and/or target a specific entity field using
+          field parameters
     '''
     user_authed = False
     if request.user and not request.user.is_anonymous:

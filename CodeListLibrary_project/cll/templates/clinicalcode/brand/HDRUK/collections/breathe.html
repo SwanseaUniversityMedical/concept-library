@@ -1,95 +1,130 @@
-{% extends "base.html" %}
-{% load static %}
-{% block title %}{% endblock title %}
-{% block description %} HDR-UK BREATHE {% endblock description %}
-{% block keywords %}, HDR-UK, Phenotype, Phenotypes, BREATHE, Data Science Centre, Health Data, Research Hub {% endblock keywords %}
-{% block head %}
-<link href="{% static 'css/brands/HDRUK/aboutPageStyle.css' %}" rel="stylesheet" />
-{% endblock head %}
-{% block container %}
-<div class="row">
-   <nav class="col-sm-2 hideleft-navbar" id = "BREATHEMenu"  style="padding-top: 20px; position: sticky; height: min-content; position: -webkit-sticky; top: 60px;">
-      <div class="leftnavbar-position">
-         <ul class="nav left-navbar text-rubric-design pointer" onclick="showSelection(event)" id='navList'>
-            <li> <a href="#collections" id="breatheHeader">BREATHE
-               </a>
-            </li>
-            <li> <a href="#help">Help
-               </a>
-            </li>
-            <li><a href="#pheno">
-               Phenotypes
-               </a>
-            </li>
-         </ul>
-      </div>
-   </nav>
-   <h3><span id="collections"></span></h3>
-   <div style="width:70%;" class="column" >
-          <div class="big-banner_breathe"> </div>
-             <div class="header-breathe">
-		BREATHE - HEALTH DATA RESEARCH HUB FOR RESPIRATORY HEALTH
-	</div>
-             <div class="medium-header-design" >
-            What is BREATHE?
-         </div>
-         <div class="sm-header-design">
-            <p>BREATHE is a UK-wide collaboration, enabling the use of health data in research to transform respiratory health.
-               The Hub is a partnership between patients and publics, UK Universities, third sector, Government organisations and industry from across the UK and globally. It is led by The University of Edinburgh, Imperial College London, University of Leicester, Nottingham University Hospitals NHS Trust, Queen Mary University of London and Swansea University.
-            </p>
-            <p>Visit the <a href="https://www.ed.ac.uk/usher/breathe" target=_blank   rel="noopener noreferrer">BREATHE website</a> for more information</p>
-         </div>
-         <div id="help" class="medium-header-design" >
-            How can we help?
-         </div>
-         <div class="sm-header-design">
-            <p>Electronic Health Records (EHR) hold a wealth of information, but can be complicated to use due to variable quality and inconsistencies in reporting.</p>
-            <p>BREATHE is facilitating their use in research through:</p>
-            <div style="padding-left:30px;">
-               <ul>
-                  <li style="  list-style-type: circle;">The generation of standardised phenotypes for respiratory conditions in routinely collected healthcare data</li>
-                  <li style="  list-style-type: circle;">Support for the use of phenotypes in research</li>
-                  <li style="  list-style-type: circle;">Providing estimates of population sizes meeting each phenotype in each database</li>
-                  <li style="  list-style-type: circle;">Expertly reviewing phenotypes at their definition and updating regularly</li>
-               </ul>
-            </div>
-            <p>If you would like more information, or require support, please <a href="mailto:breathe.admin@ed.ac.uk?subject=Respiratory%20phenotypes" target=_blank   rel="noopener noreferrer">get in touch</a>.</p>
-            <div class="medium-header-design" id="pheno">
-               Standardised respiratory phenotypes
-            </div>
-            <p>BREATHE has brought together a set of phenotypes (found below) covering a number of key respiratory conditions.
-               This is not an exhaustive list of codes or mandatory, but a guide to aid researchers in starting to make code lists appropriate for their study. We will continue to update existing lists and add more over time, so do keep checking back!
-            </p>
-            <div style="display: flex; flex-wrap:nowrap; ">
-               <form class= "row" style="padding-left:12px;" action="{% url 'phenotype_list' %}" method="GET" >
-                  <div style="height:0;width:0;overflow:hidden;">
-                     <input class="form-control" type="hidden" name="collection_ids" data-role="tagsinput" value="19">
-                  </div>
-                  <div style="display: flex; flex-wrap: nowrap;">
-                     <button class="btn-link" name="page" value="1">
-                     Browse BREATHE Phenotypes
-                     </button>
-                  </div>
-               </form>
-            </div>
-         </div>
-      </div>
-   </div>
-</div>
-{% endblock container %}
-{% block scripts  %}
-<script type="text/javascript">
-   function showSelection(e) {
-   		if (document.querySelector('#navList a.active') !== null) {
-     		document.querySelector('#navList a.active').classList.remove('active');
-   		}
-   e.target.className = "active";
-   }
-</script>
-<script type="text/javascript">
-   window.onload=function(){
-   		document.getElementById("breatheHeader").click();
-   };
-</script>
-{% endblock scripts %}
+{% extends "base_scss.html" %}
 
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load breadcrumbs %}
+
+{% block title %}| BREATHE {% endblock title %}
+
+{% block container %}
+<!-- Page Stylesheets -->
+<link href="{% sass_src 'scss/pages/about.scss' %}" rel="stylesheet" type="text/css" />
+
+<!-- Dependencies -->
+{% compress js file %}
+<script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/scrollspy.js' %}"></script>
+{% endcompress %}
+
+<!-- Main -->
+<main class="main-content">
+  <div
+    class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+    <article class="about-container">
+      <section class="page-split">
+        <div class="page-split__left">
+          <aside class="scrollspy">
+            <div class="scrollspy__container">
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary active"
+                aria-label="Go to What is BREATHE?" data-target="#home">
+                <a href="#home">What is the BHF Data Science Centre?</a>
+              </button>
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+                aria-label="Go to How we're aiming to help" data-target="#aims">
+                <a href="#aims">How we're aiming to help</a>
+              </button>
+              <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+                aria-label="Go to Standardised Respiratory Phenotypes" data-target="#phenotypes">
+                <a href="#phenotypes">Standardised Respiratory Phenotypes</a>
+              </button>
+            </div>
+          </aside>
+        </div>
+        <div class="page-split__right">
+          <div class="page-split__container">
+            <img class="img-banner img-banner--sz-6x1" src="{% static 'img/brands/BREATHE/breathe_banner_big.png'%}" />
+            <h2>
+              BREATHE - Health Data Research Hub for Respiratory Health
+            </h2>
+            <section class="about-container__section__text">
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="home"></span>
+                What is BREATHE?
+              </h3>
+              <p>
+                BREATHE is a UK-wide collaboration, enabling the use of health data in
+                research to transform respiratory health. The Hub is a partnership between
+                patients and publics, UK Universities, third sector, Government organisations
+                and industry from across the UK and globally. It is led by The University of
+                Edinburgh, Imperial College London, University of Leicester, Nottingham
+                University Hospitals NHS Trust, Queen Mary University of London and Swansea
+                University.
+              </p>
+              <p>
+                Visit the 
+                <a href="https://www.ed.ac.uk/usher/breathe">
+                  BREATHE website
+                </a>
+                for more information
+              </p>
+            </section>
+            <section class="about-container__section__text">
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="aims"></span>
+                How we're aiming to help
+              </h3>
+              <p>
+                Electronic Health Records (EHR) hold a wealth of information, but can be 
+                complicated to use due to variable quality and inconsistencies in reporting.
+              </p>
+              <p>
+                BREATHE is facilitating their use in research through:
+              </p>
+              <ul>
+                <li>
+                  The generation of standardised phenotypes for respiratory conditions in 
+                  routinely collected healthcare data
+                </li>
+                <li>
+                  Support for the use of phenotypes in research
+                </li>
+                <li>
+                  Providing estimates of population sizes meeting each phenotype in each database
+                </li>
+                <li>
+                  Expertly reviewing phenotypes at their definition and updating regularly
+                </li>
+              </ul>
+              <p>
+                If you would like more information, or require support, please 
+                <a href="mailto:breathe.admin@ed.ac.uk">
+                  get in touch
+                </a>
+              </p>
+            </section>
+            <section class="about-container__section__text">
+              <h3 class="subheader">
+                <span class="scrollspy-target" id="phenotypes"></span>
+                Standardised Respiratory Phenotypes
+              </h3>
+              <p>
+                BREATHE has brought together a set of phenotypes (found below) covering a 
+                number of key respiratory conditions. This is not an exhaustive list of codes 
+                or mandatory, but a guide to aid researchers in starting to make code lists 
+                appropriate for their study. We will continue to update existing lists and 
+                add more over time, so do keep checking back!
+              </p>
+              <a href="{% url 'search_phenotypes' %}?collections=19">
+                <button class="secondary-btn text-accent-darkest bold icon create-icon secondary-accent">
+                  Browse Phenotypes
+                </button>
+              </a>
+            </section>
+          </div>
+        </div>
+      </section>
+    </article>
+  </div>
+</main>
+
+{% endblock container %}

@@ -1,204 +1,215 @@
-{% extends "base.html" %}
+{% extends "base_scss.html" %}
 {% load static %}
-
-{% block title %} | HDRUK{% endblock title %}
-
-{% block description %}The HDR UK Phenotype Library is a comprehensive, open access resource providing the research community with information, tools and phenotyping algorithms for UK electronic health records.{% endblock description %}
-
-{% block keywords %}, hdr-uk, Phenotype, Phenotypes, Library, Data Science, Concepts, Clinical Codes, Data Sources, Coding Systems, algorithm, Github of phenotyping, EHR phenotyping, algoritm, Caliber {% endblock keywords %}
-
-{% block head %}
-	<link href="{% static 'css/brands/HDRUK/landingPageStyles.css' %}" rel="stylesheet" />
-{% endblock head %}
-
-
-{% block container_fluid %}
-<div class="big-banner">
-   <div class="container" >
-      <div style="padding-left:0px; padding-top:50px; color: #FFFFFF;">
-         <div style="width:100%; padding-left:20px; max-width:500px;">
-            <p class="welcome-text-design">The HDR UK Phenotype Library is a comprehensive, open access resource providing the research community
-               with information, tools and phenotyping algorithms for UK electronic health records.
-            </p>
-         </div>
-         <div style="display: flex; flex-wrap:nowrap; ">
-            <form class= "row" style="padding-top:15px; padding-left:30px;" id="basic-form" action="{% url 'phenotype_list' %}" method="GET" >
-               <div class="search_box">
-                  <div class="search_field" style="padding-left:10px; display: flex; flex-wrap: nowrap;">
-                     <input type="text" class="input" placeholder="Search our Phenotype library" name="search" id="search1" value="{{ search|default_if_none:'' }}">
-                  </div>
-               </div>
-               <div style="padding-left:10px; display: flex; flex-wrap: nowrap;">
-                  <button class="btn" name="page" value="1" style="height:50px;width:50px"><i class="fa fa-search"></i></button>
-               </div>
-            </form>
-         </div>
-      </div>
-   </div>
-</div>
-{% endblock container_fluid %}
+{% load compress %}
+{% load sass_tags %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+{% block title %}| HDRUK_HOMEPAGE {% endblock title %}
 {% block container %}
-<div>
-   <!--<h2 class="header-design">Welcome to the Concept Library</h2>
-      <p>The concept library is a system for storing, managing, sharing, and documenting clinical code lists in health research. The specific goals of this work are
-         storing code lists along with metadata that captures important information about quality, author and
-         storing version history and provide a way to unambiguously reference a particular version of a code list,
-         allowing programmatic interaction with code lists via an API, so that they can be directly used in queries, statistical scripts, etc.
-         A key goal would also be to provide a mechanism for sharing code lists between projects and organizations.
-         </p> -->
-   {% block content %}
-   <div class="row mt-4 text-padding-top stats-row">
-      <div class="col-sm-1"></div>
-      <div class="col-sm-2 text-style-center">
-         <div class="number-design" data-toggle="tooltip" data-placement="top" title="A phenotype defines how to measure real-world attributes of human health in data">
-            {{ published_phenotype_count }}
-         </div>
-         <div class="data-design">
-            Phenotypes
-         </div>
-      </div>
-      <div class="col-sm-2 text-style-center">
-         <div class="number-design" data-toggle="tooltip" data-placement="top" title="Concepts are individual lists of clinical codes defining a condition, treatment, etc.">
-            {{ published_concept_count }}
-         </div>
-         <div class="data-design">
-            Concepts
-         </div>
-      </div>
-      <div class="col-sm-2 text-style-center" data-toggle="tooltip" data-placement="top" title="Clinical codes are the 'words' in standardized languages used to create electronic health records">
-         <div class="number-design">
-            {{ published_clinical_codes }}
-         </div>
-         <div class="data-design">
-            Clinical Codes
-         </div>
-      </div>
-      <div class="col-sm-2 text-style-center" data-toggle="tooltip" data-placement="top" title="Health data is gathered in many different settings and organizations; phenotypes may be specific to data from one source or apply across a number of data sources">
-         <div class="number-design">
-            {{datasources_component_count}}
-         </div>
-         <div class="data-design">
-            Data Sources
-         </div>
-      </div>
-      <div class="col-sm-2 text-style-center" data-toggle="tooltip" data-placement="top" title="Clinical coding systems are the languages used to capture electronic health records in a standardized format; different systems are used in different settings and for different purposes">
-         <div class="number-design">
-            {{clinical_terminologies}}
-            <!--   100+ -->
-         </div>
-         <div class="data-design">
-            Coding Systems
-         </div>
-      </div>
-   </div>
-   {% endblock %}
- <div class="container">
-      <table class="spacing">
-         <tr class="reference-row">
-            <td class="reference-image-container">
-               <div class="info-pic"></div>
-            </td>
-            <td class="reference-text-container">
-               <div class="text-bottom-header">A Reference Catalogue of Human Diseases</div>
-               <div class="paddingText">
-                  <b>Connected.</b> The Phenotype Library is accessible via an <a href="{% url 'api:root' %}">API</a>
-                  to support interoperability, is integrated with health dataset information in HDR-UK's Innovation Gateway, and hosts content from numerous contributing organisations.
-                  <br><br>
-                  <b>Patient-focused.</b> The Library is enabling important research to improve patient health and well-being. Content spans major disease areas, including heart disease, cancer, COVID-19 and other common and rare human health conditions. Curated collections from contributors such as the HDR UK BREATHE Hub for respiratory health share clinical expertise to tackle critical research questions.
-                  <br><br>
-                  <b>Cutting-edge.</b> Built with a focus on computability, this resource aims to drive the next generation of research methods. Integration with <a href="https://kclhi.org/phenoflow/">Phenoflow</a> enables executable implementations of the phenotypes in our collection, while the API and R package client facilitate integration of the Library content directly into other analysis workflows.
-               </div>
-            </td>
-         </tr>
-      </table>
-   </div>
-      <div class="overview-text-spacing">
-            <div class="text-bottom-header" style="padding-top: 30px;">What is a phenotyping algorithm?</div>
-               <div class="paddingText">
-                  A phenotype is a observable and measurable piece of information that is relevant to health or healthcare. For example, it can be a disease (e.g. type 2 diabetes), a blood pressure measurement, a blood sugar value or a prescription of antibiotics. Phenotyping algorithms are special tools that enable researchers to extract phenotypes from complex, and often messy data that get generated during routine interactions within the healthcare system. They identify and extract data from medical records using clinical codes which are the building block of how information is recorded in healthcare (for example ICD-10). Using these specialized algorithms, researchers and clinicians can maximize the value of patient data contained in medical records and answer important questions that can improve health and healthcare.
-               </div>
 
-      <div class="overview-text-spacing">
-   <div class="text-bottom-header" style="padding-top: 30px;">How are we driving this work?</div>
-               <div class="paddingText">
-                  The <b>HDR UK Phenotype Library</b> is a platform to host phenotyping algorithms and harness their power for research. Our aim is to provide researchers with the "GitHub of phenotyping": an open platform for
-                  <b>creation, storage, dissemination, re-use, evaluation, and citation </b>of curated algorithms and metadata. Our goal is for this to be a place where researchers can share their own work, benefit from what others have shared, and even build new collaborations.
-               </div>
-               <div class="paddingText">
-            As a funded project of <a href="https://www.hdruk.ac.uk/projects/national-phenomics-resource/" target=_blank   rel="noopener noreferrer">HDR UK</a> , our primary goal is to develop a national platform supporting researchers within the United Kingdom, but we don't want to stop there: we welcome contributions from members of the health research community worldwide.
-               </div>
-      </div>
+<!-- Page Stylesheets -->
+<link href="{% sass_src 'scss/pages/home/HDRUK.scss' %}" rel="stylesheet" type="text/css" />
 
-   <div class="row text-padding-top">
-      <div class="column">
-         <a style="text-decoration: none; color:black;" href="{% url 'phenotype_list' %}">
-            <div class="card pointer">
-               <i class="fa fa-search" style="position:relative; right: 47.5%; font-size: 32px;"></i>
-               <h4 style="text-align:left">Search</h4>
-               <p style="text-align:left">Start here to explore phenotypes in our library.</p>
-            </div>
-         </a>
+<!-- Main -->
+<header class="main-header banner image">
+  <div
+    class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
+    <div class="banner__container__left-landing-page">
+      <h3 class="banner__description__landing-page ">
+        The HDR UK Phenotype Library is a comprehensive, open access resource providing the research community with
+        information, tools and phenotyping algorithms for UK electronic health records.
+      </h3>
+    </div>
+    <div class="search-banner__container-landing">
+      <form class="search-container" data-controller="filter" data-class="searchbar" data-field="search"
+        action="{% url 'search_phenotypes' %}" method="GET">
+        <input type="text" placeholder="Search our Phenotype Library" id="searchbar"
+          class="search-container__field washed-outline" data-class="searchbar" data-field="search" name="search"
+          value="{{ search|default_if_none:'' }}" aria-label="Search our Phenotype Library" />
+
+        <button class="search-container__icon-landing" name="page" value="1" aria-label="Search Phenotypes"
+          tabindex="0">
+        </button>
+      </form>
+    </div>
+  </div>
+</header>
+<main class="main-content">
+  <div
+    class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+    <section class="counter-section">
+      <div class="counter-section__counter">
+        <div class="counter-section__counter__number">
+          <span id="statSpan" tooltip="A phenotype defines how to measure real-world attributes of human health in data"
+            direction="up">{{ published_phenotype_count|stylise_number }}</span>
+        </div>
+        <div class="counter-section__counter__title">phenotypes
+        </div>
       </div>
-      <div class="column">
-      	{% if not CLL_READ_ONLY %}							
-         <a style="text-decoration: none; color:black;" href="{% url 'contact_us' %}">
-            <div class="card pointer" >
-               <i class="fa fa-plus" style="position:relative;  right: 47.5%; font-size: 32px;"></i>
-               <h4 style="text-align:left">Submit a Phenotype</h4>
-               <p id="card" style="text-align:left">Learn how to contribute your phenotypes to our library.</p>
-            </div>
-         </a>
+      <div class="counter-section__counter">
+        <div class="counter-section__counter__number">
+          <span id="statSpan"
+            tooltip="Concepts are individual lists of clinical codes defining a condition, treatment, etc."
+            direction="up">{{ published_concept_count|stylise_number }}</span>
+        </div>
+        <div class="counter-section__counter__title">codelists
+        </div>
       </div>
-      {% endif %}
-   </div>
-   
-   <div class="text-bottom-header text-style-center text-padding-top">Key Principles</div>
-   <table class="key-principles-spacing">
-      <tr>
-         <td style="vertical-align: top;">
-            <div>The aim of the Library is not to standardize or harmonize disease definitions, therefore several phenotypes may be stored for the same condition and the onus is on individual researchers to explore which phenotypes they wish to use</div>
-         </td>
-         <td style="vertical-align: top;">
-            <div>Phenotype definitions will be assigned a unique Digital Object Identifier (DOI) to facilitate identification of the phenotype</div>
-         </td>
-      </tr>
-      <tr>
-         <td style="vertical-align: top;">
-            <div>
-                Ideally, phenotypes that are deposited in the Library will have undergone some form of peer-review to assess validity and quality either through peer-reviewed publication or some other means of sharing the definition(s)
-            </div>
-         </td>
-         <td style="vertical-align: top;">
-            <div>
-               All material deposited in the Library remain the intellectual property of the research group who created the phenotype(s) the default licensing agreement that information is available under is the Creative Commons Attribution 4.0 (CC A).
-            </div>
-         </td>
-      </tr>
-      <tr>
-         <td style="vertical-align: top;">
-            <div>The Library stores phenotyping algorithms, metadata and tools only. No data are stored in the Library.
-            </div>
-         </td>
-         <td style="vertical-align: top;">
-            <div>Users should cite the Phenotype Library in all publications, presentations and reports as follows: "HDR UK Phenotype Library phenotypes.healthdatagateway.org"</div>
-         </td>
-      </tr>
-   </table>
-   
-   <div class="text-bottom-header text-style-center text-padding-top">How to contribute?</div>
-   <div class="key-principles-spacing">
-      <div class="text-contribute-design">
-         To submit an EHR phenotyping algorithm to the Phenotype Library please read <a href="{% url 'about_page' 'hdruk_about_technical_details' %}" target=_blank   rel="noopener noreferrer">our documentation pages</a>.
+      <div class="counter-section__counter">
+        <div class="counter-section__counter__number">
+          <span id="statSpan"
+            tooltip="Health data is gathered in many different settings and organizations; phenotypes may be specific to data from one source or apply across a number of data sources"
+            direction="up">{{datasources_component_count}}</span>
+        </div>
+        <div class="counter-section__counter__title">data sources
+        </div>
       </div>
-   </div>
-</div>
+      <div class="counter-section__counter">
+        <div class="counter-section__counter__number">
+          <span id="statSpan"
+            tooltip="Clinical codes are the 'words' in standardized languages used to create electronic health records"
+            direction="up">{{ published_clinical_codes|stylise_number }}</span>
+        </div>
+        <div class="counter-section__counter__title">clinical codes
+        </div>
+      </div>
+      <div class="counter-section__counter">
+        <div class="counter-section__counter__number">
+          <span id="statSpan"
+            tooltip="Clinical coding systems are the languages used to capture electronic health records in a standardized format; different systems are used in different settings and for different purposes"
+            direction="up">{{ clinical_terminologies|stylise_number }}</span>
+        </div>
+        <div class="counter-section__counter__title">clincal terminologies
+        </div>
+      </div>
+    </section>
+    <div class="headline">
+      <div class="headline__image"></div>
+      <div class="headline__text">
+        <h2>A Reference Catalogue of Human Diseases</h2>
+        <div class="headline__section">
+          <p>
+            <strong>Connected.</strong>
+            The Phenotype Library is accessible via an API to support interoperability, is integrated with health dataset information in HDR-UK's Innovation Gateway, 
+            and hosts content from numerous contributing organisations. 
+          </p>
+        </div>
+        <div class="headline__section">
+          <p>
+            <strong>Patient-focused.</strong>
+            The Library is enabling important research to improve patient health and well-being. Content spans major disease areas, including heart disease, cancer, 
+            COVID-19 and other common and rare human health conditions.
+            Curated collections from contributors such as the HDR UK BREATHE Hub for respiratory health share clinical expertise to tackle critical research questions. 
+          </p>
+        </div>
+        <div class="headline__section">
+          <p>
+            <strong>Cutting-edge.</strong>
+            Built with a focus on computability, this resource aims to drive the next generation of research methods. Integration with Phenoflow enables executable 
+            implementations of the phenotypes in our collection, while the API and R package client facilitate integration of the Library content directly into 
+            other analysis workflows. 
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="headline__section__general">
+      <h3>What is a phenotyping algorithm?</h3>
+      <p>
+        A phenotype is a observable and measurable piece of information that is relevant to health or healthcare.
+        For example, it can be a disease (<em>e.g.</em> type 2 diabetes), a blood pressure measurement, a blood sugar value or a prescription of antibiotics.
+      </p>
+      <p>
+        Phenotyping algorithms are special tools that enable researchers to extract phenotypes from complex, and often messy data that 
+        get generated during routine interactions within the healthcare system.
+        They identify and extract data from medical records using clinical codes which are the building block of how information is recorded 
+        in healthcare (for example ICD-10). Using these specialized algorithms, researchers and clinicians can maximize the value of patient 
+        data contained in medical records and answer important questions that can improve health and healthcare. 
+      </p>
+    </div>
+    <div class="headline__section__general headline--margin-bottom-2rem">
+      <h3>How are we enabling this work?</h3>
+      <p>
+        The <strong>HDR UK Phenotype Library</strong> is a platform to host phenotyping algorithms and harness their power for research.
+        Our aim is to provide researchers with the “GitHub of phenotyping”: an open platform for <strong>creation, storage,
+        dissemination, re-use, evaluation, and citation</strong> of curated algorithms and metadata. Our goal is for this to be a
+        place where researchers can share their own work, benefit from what others have shared, and even build new
+        collaborations.
+      </p>
+      <p>
+        As a funded project of <a href="https://www.hdruk.ac.uk/projects/national-phenomics-resource/">HDRUK</a>, our primary goal is to develop a national platform supporting researchers within
+        the United Kingdom, but we don’t want to stop there: we welcome contributions from members of the health
+        research community worldwide.
+      </p>
+    </div>
+    <div class="headline__section__outside_with_background">
+      <div class="row-landing-page">
+        <article
+          class="referral-card referral-card--landing-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+          <div class="referral-card__header referral-card__header--icon-column">
+            <div class="referral-card__icon-before"></div>
+            <p class="referral-card__title referral-card__title--align-centre">Search</p>
+          </div>
+          <div class="referral-card__body referral-card__body--hide-overflow">
+            <a class="referral-card__anchor" href="{% url 'search_phenotypes' %}">
+              <p>Start here to explore phenotypes in our library.</p>
+            </a>
+          </div>
+        </article>
+        {% if not CLL_READ_ONLY%}
+          <article
+            class="referral-card referral-card--landing-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+            <div class="referral-card__header referral-card__header--icon-column">
+              <div class="referral-card__icon-before referral-card__icon-before__plus"></div>
+              <p class="referral-card__title referral-card__title--align-centre">Submit a phenotype</p>
+            </div>
+            <div class="referral-card__body referral-card__body--hide-overflow">
+
+              <a class="referral-card__anchor" href="{% url 'create_phenotype' %}">
+                <p>Learn how you contribute your phenotypes to our library.</p>
+              </a>
+            </div>
+          </article>
+        {% endif %}
+      </div>
+    </div>
+    <section class="key-section">
+      <h2 class="key-section__title">Key Principles</h2>
+      <div class="key-section__columns">
+        <div class="key-section__column">
+          <p>The Library stores phenotyping algorithms, metadata and tools only. No data are stored in the Library.</p>
+        </div>
+        <div class="key-section__column">
+          <p>Ideally, phenotypes that are deposited in the Library will have undergone some form of peer-review to
+            assess validity and quality either through peer-reviewed publication or some other means of sharing the
+            definition(s)</p>
+        </div>
+        <div class="key-section__column">
+          <p>All material deposited in the Library remain the intellectual property of the research group who created
+            the phenotype(s) – the default licensing agreement that information is available under is the Creative
+            Commons Attribution 4.0 (CC-A)</p>
+        </div>
+        <div class="key-section__column">
+          <p>Phenotype definitions will be assigned a unique Digital Object Identifier (DOI) to facilitate
+            identification of the phenotype</p>
+        </div>
+        <div class="key-section__column">
+          <p>Users should cite the Phenotype Library in all publications, presentations and reports as follows: "HDR UK
+            CALIBER Phenotype Library https://portal.caliberresearch.org/"</p>
+        </div>
+        <div class="key-section__column">
+          <p>The aim of the Library is not to standardize or harmonize disease definitions, therefore several phenotypes
+            may be stored for the same condition and the onus is on individual researchers to explore which phenotypes
+            they wish to use</p>
+        </div>
+      </div>
+    </section>
+    <div class="headline__section__general headline__section__general--align-items-center">
+      <h2 class="headline--text-align-center">How to contribute?</h2>
+      <p>
+        To submit an EHR phenotyping algorithm to the Phenotype Library please read <a href="{% url 'about_page' 'hdruk_about_technical_details' %}" rel="noopener noreferrer">our documentation pages</a>.
+      </p>
+    </div>
+  </div>
+</main>
 {% endblock container %}
-
-{% block scripts %}
-	<script>
-		$(document).ready(function(){
-		  $('[data-toggle="tooltip"]').tooltip();
-		});
-	</script>
-{% endblock scripts %}
-

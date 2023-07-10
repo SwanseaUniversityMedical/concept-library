@@ -15,7 +15,6 @@
 <meta http-equiv="Expires" content="0" />
 {% endblock cache_tags %}
 
-
 {% block indexing_robots %}
   {% with stop_robot_indexing=True %}
     {{ block.super }}
@@ -23,29 +22,24 @@
 {% endblock indexing_robots %}
 
 {% block container %}
-  <!-- Vendor -->
   <link rel="stylesheet" type="text/css" href="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.css' %}" />
   <script src="{% static 'js/clinicalcode/redesign/vendor/simple-datatables/simple-datatables.min.js' %}"></script>
   <script src="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.js' %}"></script>
   <script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
 
-  <!-- Dependencies -->
   {% compress js file %}
   <script src="{% static 'js/clinicalcode/redesign/vendor/lightpick.js' %}"></script>
-  <script type="module" src="{% static 'js/clinicalcode/redesign/components/tooltipFactory.js' %}"></script>
+  <script src="{% static 'js/clinicalcode/redesign/components/dropdown.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/tooltipFactory.js' %}"></script>
   <script type="module" src="{% static 'js/clinicalcode/redesign/forms/entityCreator.js' %}"></script>
   <script type="module" src="{% static 'js/clinicalcode/redesign/components/stepsWizard.js' %}"></script>
   <script type="module" src="{% static 'js/clinicalcode/redesign/components/toastNotification.js' %}"></script>
   {% endcompress %}
 
-
-
-  <!-- Page Stylesheets -->
   <link href="{% sass_src 'scss/pages/create.scss' %}" rel="stylesheet" type="text/css" />
 
-  <!-- Form -->
   <header class="main-header">
-    <div class="main-header__inner-container">
+    <div class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
       {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
       {% endbreadcrumbs %}
     </div>
@@ -55,7 +49,7 @@
     {% render_wizard_navigation %}
     {% endrender_wizard_navigation %}
 
-    <div class="main-content__inner-container">
+    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred main-content__inner-container--pad-right-constrained">
       <article class="phenotype-creation">
         <section class="phenotype-creation__header">
           {% if form_method.value == 1 %}
@@ -79,7 +73,7 @@
           </section>
         {% endif %}
         
-        <ol class="phenotype-progress">
+        <ol class="phenotype-progress" id="main-wizard">
           {% render_wizard_sections %}
           {% endrender_wizard_sections %}
         </ol>
@@ -104,6 +98,13 @@
 
   <data data-owner="entity-creator" id="referral-links" name="links" type="text/json" referral-url="{% url 'search_phenotypes' %}"></data>
   <data data-owner="entity-creator" id="form-method" name="method" type="int">{{ form_method.value }}</data>
+  <data data-owner="entity-creator" id="historical-data" name="is_historical" type="int">
+    {% if is_historical %}
+      1
+    {% else %}
+      0
+    {% endif %}
+  </data>
   <data data-owner="entity-creator" id="metadata-data" name="metadata" type="text/json">{{ metadata|jsonify|safe }}</data>
   <data data-owner="entity-creator" id="template-data" name="template" type="text/json">{{ template|jsonify|safe }}</data>
   {% if entity is not None %}

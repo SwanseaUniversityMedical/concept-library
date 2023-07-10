@@ -35,13 +35,24 @@ from clinicalcode import db_utils
 from clinicalcode.entity_utils import constants
 
 #--------- Order queries ---------------
+entity_order_queries = {
+    'Relevance': ' ORDER BY id, history_id DESC ',
+    'Created (Desc)': ' ORDER BY created DESC ',
+    'Created (Asc)': ' ORDER BY created ASC ',
+    'Last Updated (Desc)': ' ORDER BY modified DESC ',
+    'Last Updated (Asc)': ' ORDER BY modified ASC ',
+    'Published Date (Desc)': ' ORDER BY publish_date DESC ',
+    'Published Date (Asc)': ' ORDER BY publish_date ASC '
+}
+entity_order_default = list(entity_order_queries.values())[0]
+
 def get_order_from_parameter(parameter):
-    from clinicalcode.constants import concept_order_queries, concept_order_default
-    if parameter in concept_order_queries:
-        return concept_order_queries[parameter]
-    return concept_order_default
+    if parameter in entity_order_queries:
+        return entity_order_queries[parameter]
+    return entity_order_default
 
 
+#----------------------------------------
 def get_can_edit_subquery(request):
     # check can_edit in SQl - faster way
 
@@ -347,7 +358,7 @@ def get_visible_live_or_published_generic_entity_versions(request,
                                     , """ + order_by.replace(' ORDER BY ', '')
         else:
             # search all related fields
-            if order_by != concept_order_default.replace(" id,", " REPLACE(id, 'PH', '')::INTEGER,"):
+            if order_by != entity_order_default.replace(" id,", " REPLACE(id, 'PH', '')::INTEGER,"):
                 order_by =  """
                                 ORDER BY """ + order_by.replace(' ORDER BY ', '') + """, rank_name DESC, rank_author DESC, rank_all DESC 
                             """

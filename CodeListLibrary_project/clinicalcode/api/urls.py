@@ -2,20 +2,21 @@ from django.conf import settings
 from django.urls import re_path as url
 from django.urls import include
 from rest_framework import routers
-from .views import View, Concept, GenericEntity, Template, DataSource
 from rest_framework import permissions
 from drf_yasg.generators import OpenAPISchemaGenerator
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+
+from .views import Concept, GenericEntity, Template, DataSource, Tag, Collection
 
 ''' Router
     Use the default REST API router to access the API details explicitly. These paths will 
       appear as links on the API page.
 '''
 router = routers.DefaultRouter()
-router.register('concepts-live', Concept.ConceptViewSet)
-router.register('codes', Concept.CodeViewSet)
-router.register('tags-and-collections', View.TagViewSet, basename='tags')
+#router.register('concepts-live', Concept.ConceptViewSet)
+#router.register('codes', Concept.CodeViewSet)
+#router.register('tags-and-collections', View.TagViewSet, basename='tags')
 #router.register('public/data-sources-list', View.DataSourceViewSet)
 #router.register('public/coding-systems', View.CodingSystemViewSet)
 
@@ -25,7 +26,7 @@ class SchemaGenerator(OpenAPISchemaGenerator):
     '''
     
     '''
-    #@method_decorator(View.robots())  
+    #@method_decorator(View.robots())
     def get_schema(self, request=None, public=False):
         schema = super(SchemaGenerator, self).get_schema(request, public)
         schema.basePath = request.path.replace('swagger/', '')
@@ -46,8 +47,7 @@ schema_view = get_schema_view(
 )
 
 ''' Swagger urls '''
-urlpatterns = []
-urlpatterns += [
+urlpatterns = [
     url(r'^swagger(?P<format>\.json|\.yaml)/$', 
         schema_view.without_ui(cache_timeout=0), 
         name='schema-json'),
@@ -104,56 +104,48 @@ urlpatterns += [
     
     # Concepts
     url(r'^concepts/$', 
-        Concept.user_concepts, 
+        Concept.get_concepts, 
         name='concepts'),
     url(r'^concepts/C(?P<concept_id>\d+)/detail/$',
-        Concept.concept_detail,
+        Concept.get_concept_detail,
         name='api_concept_detail'),
     url(r'^concepts/C(?P<concept_id>\d+)/version/(?P<version_id>\d+)/detail/$',
-        Concept.concept_detail,
+        Concept.get_concept_detail,
         name='api_concept_detail_version'),
     url(r'^concepts/C(?P<concept_id>\d+)/export/codes/$',
-        Concept.get_concept_codes, 
-        { 'version_id': None },
+        Concept.get_concept_detail, 
+        { 'export_codes': True },
         name='api_export_concept_codes'),
     url(r'^concepts/C(?P<concept_id>\d+)/version/(?P<version_id>\d+)/export/codes/$',
-        Concept.get_concept_codes,
+        Concept.get_concept_detail,
+        { 'export_codes': True },
         name='api_export_concept_codes_byVersionID'),
     url(r'^concepts/C(?P<concept_id>\d+)/get-versions/$',
-        Concept.concept_detail, 
-        { 'get_versions_only': '1' },
+        Concept.get_concept_version_history,
         name='get_concept_versions'),
 
     # Datasources
     url(r'^data-sources/$', 
-        DataSource.data_sources, 
+        DataSource.get_datasources, 
         name='data_sources'),
-    url(r'^data-sources/(?P<datasource_id>\d+)/$',
-        DataSource.data_sources,
+    url(r'^data-sources/(?P<datasource_id>[\w-]+)/detail/$',
+        DataSource.get_datasource_detail,
         name='data_source_by_id'),
-    url(r'^data-sources/live/$',
-        DataSource.data_sources, 
-        { 'get_live_phenotypes': True },
-        name='data_sources_live'),
 
     # Tags
     url(r'^tags/$',
-        View.getTagsOrCollections, 
-        { 'tag_type': 1 },
+        Tag.get_tags, 
         name='tag_list'),
-    url(r'^tags/(?P<id>\d+)/$',
-        View.getTagsOrCollections, 
-        { 'tag_type': 1 },
+    url(r'^tags/(?P<tag_id>\d+)/detail/$',
+        Tag.get_tag_detail, 
         name='tag_list_by_id'),
 
     # Collections
     url(r'^collections/$',
-        View.getTagsOrCollections, 
-        { 'tag_type': 2 },
+        Collection.get_collections, 
         name='collection_list'),
-    url(r'^collections/(?P<id>\d+)/$',
-        View.getTagsOrCollections, 
-        { 'tag_type': 2 },
+    url(r'^collections/(?P<collection_id>\d+)/detail/$',
+        Collection.get_collection_detail, 
         name='collections_list_by_id'),    
 ]
 
@@ -167,9 +159,4 @@ if not settings.CLL_READ_ONLY:
         url(r'^phenotypes/update/$',
             GenericEntity.update_generic_entity,
             name='update_generic_entity'),
-
-        # Datasources
-        url(r'^api_datasource_create/$',
-                DataSource.api_datasource_create,
-                name='api_datasource_create'),
-        ]
+    ]

@@ -83,6 +83,8 @@ const TAGIFY__TAG_OPTIONS = {
   */
 export default class Tagify {
   constructor(obj, options) {
+    this.uuid = generateUUID();
+
     if (typeof obj === 'string') {
       this.id = id;
       this.element = document.getElementById(id);
@@ -260,7 +262,7 @@ export default class Tagify {
   #onKeyDown(e) {
     setTimeout(() => {
       const target = e.target;
-      if (e.target.id == 'tag-field') {
+      if (e.target.id == this.uuid) {
         let name = target.value.trim();
         const code = e.which || e.keyCode;
         switch (code) {
@@ -364,7 +366,7 @@ export default class Tagify {
     this.field = createElement('input', {
       'type': 'text',
       'className': 'tags-input-field',
-      'id': 'tag-field',
+      'id': this.uuid,
       'placeholder': this.element.placeholder || '',
     });
 

@@ -12,7 +12,7 @@ import json
 
 class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityCheckMixin, TemplateResponseMixin, View):
     model = GenericEntity
-    template_name = 'clinicalcode/generic_entity/publish.html'
+    template_name = 'clinicalcode/generic_entity/publish/publish.html'
 
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def get(self,request, pk, history_id):
@@ -182,7 +182,7 @@ class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGeneric
         User request to publish entity
     '''
     model = GenericEntity
-    template_name = 'clinicalcode/generic_entity/request_publish.html'
+    template_name = 'clinicalcode/generic_entity/publish/request_publish.html'
 
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def get(self, request, pk, history_id):

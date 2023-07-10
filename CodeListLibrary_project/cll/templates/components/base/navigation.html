@@ -8,7 +8,8 @@
 {% endcompress %}
 <nav class="page-navigation">
   <div class="page-navigation__container">
-    <div class="page-navigation__logo"></div>
+    {% url 'concept_library_home' as home_url %}
+     <a href="{{ home_url }}" id="Logourl"><div class="page-navigation__logo"></div></a>
     <div class="page-navigation__buttons">
       <div class="page-navigation__items">
         {% if request.BRAND_OBJECT.allowed_tabs is none or 'home' in request.BRAND_OBJECT.allowed_tabs %}

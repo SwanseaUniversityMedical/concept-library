@@ -12,6 +12,10 @@
   &__header {
     @include flex-col();
     align-items: center;
+
+    &--pad-bottom-2 {
+      padding-bottom: 2rem;
+    }
   }
 
   &__title {
@@ -44,6 +48,34 @@
     }
   }
 
+  &__container-landing {
+    @include flex-col();
+    padding-bottom: 2rem;
+    align-items: left;
+    align-self: left;
+    align-content: left;
+    padding-left: 6rem;
+    padding-top: 0.5rem;
+    width: 50%;
+    max-width: 450px;
+
+    @include media("<tablet", "screen") {
+      padding: 1rem 0 2rem 2rem;
+    }
+
+    /* Override search field size */
+    .search-container__field {
+      height: 3rem;
+      width: 100%;
+    }
+  }
+
+  &__container--override {
+    align-items: left;
+    align-self: left;
+    padding-left: 6rem; 
+  }
+
   &__cards {
     @include flex-col();
     padding: 0 0 2rem;
@@ -53,12 +85,12 @@
       width: 300px;
     }
 
-    @include media(">=tablet", "screen") {
-      width: 900px;
+    @include media(">tablet", "screen") {
+      width: 800px;
     }
 
     @include media(">=desktop", "screen") {
-      width: 80%;
+      width: 90%;
     }
   }
 }
@@ -70,6 +102,13 @@
   flex-wrap: nowrap;
   flex-grow: 1;
   margin: 2rem 0 0 0;
+  align-items: flex-start;
+
+  &.as-selection {
+    margin: 0;
+    min-height: 30vh;
+    max-height: 100%;
+  }
 }
 
 /// Search results
@@ -77,11 +116,12 @@
 .entity-search-results {
   @include flex-col();
   flex: 5 auto;
+  max-height: 100%;
 
   &__header {
     @include flex-row();
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 1rem;
 
     &-results {
@@ -109,5 +149,11 @@
   &__container {
     @include flex-col();
     flex-grow: 1;
+
+    &.scrollable {
+      flex-wrap: nowrap;
+      max-height: 40vh;
+      overflow-y: auto;
+    }
   }
 }
