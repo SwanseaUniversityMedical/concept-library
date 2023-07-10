@@ -6,26 +6,30 @@ const activateScrollSpyButton = (items, item) => {
   item.classList.add('active');
 };
 
+const handleScrollspyClick = (event, anchor, e) => {
+  event.preventDefault();
+
+  const elem = document.querySelector(anchor.getAttribute('href'));
+  if (isNullOrUndefined(elem))
+    return;
+
+  elem.scrollIntoView({ behavior: 'instant' });
+  setTimeout(() => {
+    activateScrollSpyButton(scrollSpyItems, e);
+  }, 100);
+};
+
 domReady.finally(() => {
   const scrollSpyItems = document.querySelectorAll('button.scrollspy__container__item');
-  
+
   scrollSpyItems.forEach((e, _) => {
     const anchor = e.querySelector('a');
     if (isNullOrUndefined(anchor))
       return;
 
-    anchor.addEventListener('click', (event) => {
-      event.preventDefault();
-
-      const elem = document.querySelector(anchor.getAttribute('href'));
-      if (isNullOrUndefined(elem))
-        return;
-
-      elem.scrollIntoView({ behavior: 'instant' });
-      setTimeout(() => {
-        activateScrollSpyButton(scrollSpyItems, e);
-      }, 100);
-    });
+    anchor.setAttribute('tabindex', -1);
+    e.addEventListener('click', event => handleScrollspyClick(event, anchor, e));    
+    anchor.addEventListener('click', event => handleScrollspyClick(event, anchor, e));    
   });
 
   const targetItems = document.querySelectorAll('span.scrollspy-target');

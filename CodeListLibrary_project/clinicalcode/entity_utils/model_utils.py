@@ -67,8 +67,7 @@ def get_brand_collection_ids(brand_name):
     """
     if Brand.objects.all().filter(name__iexact=brand_name).exists():
         brand = Brand.objects.get(name__iexact=brand_name)
-        brand_collection_ids = list(Tag.objects.filter(
-            collection_brand=brand.id).values_list('id', flat=True))
+        brand_collection_ids = list(Tag.objects.filter(collection_brand=brand.id).values_list('id', flat=True))
         return brand_collection_ids
     return [-1]
 
@@ -76,8 +75,7 @@ def get_entity_approval_status(entity_id, historical_id):
     '''
       Gets the entity's approval status, given an entity id and historical id
     '''
-    entity = GenericEntity.history.filter(
-        id=entity_id, history_id=historical_id)
+    entity = GenericEntity.history.filter(id=entity_id, history_id=historical_id)
     if entity.exists():
         return entity.first().publish_status
 
@@ -152,8 +150,7 @@ def get_coding_system_details(coding_system):
       that references a coding_system by its codingsystem_id
     '''
     if isinstance(coding_system, int):
-        coding_system = CodingSystem.objects.filter(
-            codingsystem_id=coding_system)
+        coding_system = CodingSystem.objects.filter(codingsystem_id=coding_system)
         if not coding_system.exists():
             return None
         coding_system = coding_system.first()
@@ -209,8 +206,7 @@ def append_coding_system_data(systems):
     '''
     for i, system in enumerate(systems):
         try:
-            coding_system = CodingSystem.objects.get(
-                codingsystem_id=system.get('value'))
+            coding_system = CodingSystem.objects.get(codingsystem_id=system.get('value'))
             table = coding_system.table_name.replace('clinicalcode_', '')
             codes = apps.get_model(app_label='clinicalcode', model_name=table)
             count = codes.objects.count() > 0
