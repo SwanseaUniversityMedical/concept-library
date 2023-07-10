@@ -39,7 +39,7 @@ def get_createable_entities(request):
         entity_class__id__in=entities.values_list('id', flat=True)
     ) \
     .values('id', 'template_version', 'entity_class__id', 'name', 'description')
-    
+
     return {
         'entities': list(entities),
         'templates': list(templates)

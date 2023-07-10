@@ -35,10 +35,11 @@ def get_concept_dataset(packet, field_name='concept_information', default=None):
     if not isinstance(packet, list):
         return default
 
-    concept_ids = [x.get('concept_id')
-                   for x in packet if x.get('concept_id') is not None]
-    concept_version_ids = [x.get('concept_version_id') for x in packet if x.get(
-        'concept_version_id') is not None]
+    concept_ids = [x.get('concept_id') for x in packet if x.get('concept_id') is not None]
+    concept_version_ids = [
+        x.get('concept_version_id') for x in packet
+        if x.get('concept_version_id') is not None
+    ]
 
     concepts = Concept.history.filter(
         id__in=concept_ids,
@@ -61,7 +62,8 @@ def get_concept_dataset(packet, field_name='concept_information', default=None):
 
     return concept_data
 
-def get_concept_component_details(concept_id, concept_history_id, aggregate_codes=False, include_codes=True, attribute_headers=None):
+def get_concept_component_details(concept_id, concept_history_id, aggregate_codes=False,
+                                  include_codes=True, attribute_headers=None):
     '''
       [!] Note: This method ignores permissions - it should only be called from a
                 a method that has previously considered accessibility
@@ -94,8 +96,7 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
     if not concept:
         return None
 
-    historical_concept = model_utils.try_get_entity_history(
-        concept, concept_history_id)
+    historical_concept = model_utils.try_get_entity_history(concept, concept_history_id)
     if not historical_concept:
         return None
 
@@ -104,7 +105,7 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
         concept__id=historical_concept.id,
         history_date__lte=historical_concept.history_date
     ) \
-        .annotate(
+    .annotate(
         was_deleted=Subquery(
             Component.history.filter(
                 id=OuterRef('id'),
@@ -117,9 +118,9 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
             .values('id')
         )
     ) \
-        .exclude(was_deleted__isnull=False) \
-        .order_by('id', '-history_id') \
-        .distinct('id')
+    .exclude(was_deleted__isnull=False) \
+    .order_by('id', '-history_id') \
+    .distinct('id')
 
     if not components.exists():
         return None
@@ -138,11 +139,11 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
 
         # Find the codelist associated with this component
         codelist = CodeList.history.exclude(history_type='-') \
-            .filter(
+        .filter(
             component__id=component.id,
             history_date__lte=historical_concept.history_date
         ) \
-            .order_by('-history_date', '-history_id')
+        .order_by('-history_date', '-history_id')
 
         if not codelist.exists():
             continue
@@ -153,7 +154,7 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
             code_list__id=codelist.id,
             history_date__lte=historical_concept.history_date
         ) \
-            .annotate(
+        .annotate(
             was_deleted=Subquery(
                 Code.history.filter(
                     id=OuterRef('id'),
@@ -166,9 +167,9 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
                 .values('id')
             )
         ) \
-            .exclude(was_deleted__isnull=False) \
-            .order_by('id', '-history_id') \
-            .distinct('id')
+        .exclude(was_deleted__isnull=False) \
+        .order_by('id', '-history_id') \
+        .distinct('id')
 
         component_data['code_count'] = codes.count()
 
@@ -203,7 +204,7 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
                     .values('attributes')
                 )
             ) \
-                .values('id', 'code', 'description', 'attributes')
+            .values('id', 'code', 'description', 'attributes')
 
         codes = list(codes)
 
@@ -261,8 +262,7 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
     if not concept:
         return None
 
-    historical_concept = model_utils.try_get_entity_history(
-        concept, concept_history_id)
+    historical_concept = model_utils.try_get_entity_history(concept, concept_history_id)
     if not historical_concept:
         return None
 
@@ -272,11 +272,11 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
 
     # Find the components associated with this concept
     components = Component.history.exclude(history_type='-') \
-                                  .filter(
+    .filter(
         concept__id=historical_concept.id,
         history_date__lte=historical_concept.history_date
     ) \
-        .annotate(
+    .annotate(
         was_deleted=Subquery(
             Component.history.filter(
                 id=OuterRef('id'),
@@ -289,9 +289,9 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
             .values('id')
         )
     ) \
-        .exclude(was_deleted__isnull=False) \
-        .order_by('id', '-history_id') \
-        .distinct('id')
+    .exclude(was_deleted__isnull=False) \
+    .order_by('id', '-history_id') \
+    .distinct('id')
 
     if not components.exists():
         return []
@@ -303,11 +303,11 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
     for component in components:
         # Find the codelist associated with this component
         codelist = CodeList.history.exclude(history_type='-') \
-            .filter(
+        .filter(
             component__id=component.id,
             history_date__lte=historical_concept.history_date
         ) \
-            .order_by('-history_date', '-history_id')
+        .order_by('-history_date', '-history_id')
 
         if not codelist.exists():
             continue
@@ -318,7 +318,7 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
             code_list__id=codelist.id,
             history_date__lte=historical_concept.history_date
         ) \
-            .annotate(
+        .annotate(
             was_deleted=Subquery(
                 Code.history.filter(
                     id=OuterRef('id'),
@@ -331,9 +331,9 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
                 .values('id')
             )
         ) \
-            .exclude(was_deleted__isnull=False) \
-            .order_by('id', '-history_id') \
-            .distinct('id')
+        .exclude(was_deleted__isnull=False) \
+        .order_by('id', '-history_id') \
+        .distinct('id')
 
         results = None
         if attribute_header:
@@ -364,8 +364,7 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
                 )
             )
 
-            results = list(codes.values(
-                'id', 'code', 'description', 'attributes'))
+            results = list(codes.values('id', 'code', 'description', 'attributes'))
         else:
             results = list(codes.values('id', 'code', 'description'))
 
@@ -376,8 +375,11 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
             final_codelist.update([x.get('code') for x in results])
 
     output = list(final_codelist - excluded_codes)
-    output = [next(obj for obj in result_set if obj.get('code') == x)
-              for x in output]
+    output = [
+        next(obj for obj in result_set if obj.get('code') == x)
+        for x in output
+    ]
+
     return output
 
 def get_associated_concept_codes(concept_id, concept_history_id, code_ids, incl_attributes=False):
@@ -397,8 +399,7 @@ def get_associated_concept_codes(concept_id, concept_history_id, code_ids, incl_
         The codes that are present in the code ids list
 
     '''
-    codelist = get_concept_codelist(
-        concept_id, concept_history_id, incl_attributes=incl_attributes)
+    codelist = get_concept_codelist(concept_id, concept_history_id, incl_attributes=incl_attributes)
     codelist = [code for code in codelist if code.get('id', -1) in code_ids]
     return codelist
 
@@ -430,8 +431,7 @@ def get_review_concept(concept_id, concept_history_id):
     if not concept:
         return None
 
-    historical_concept = model_utils.try_get_entity_history(
-        concept, concept_history_id)
+    historical_concept = model_utils.try_get_entity_history(concept, concept_history_id)
     if not historical_concept:
         return None
 
@@ -462,8 +462,7 @@ def get_minimal_concept_data(concept):
 
     if concept_data.get('collections'):
         concept_data['collections'] = [
-            model_utils.get_tag_attribute(
-                collection, tag_type=TAG_TYPE.COLLECTION)
+            model_utils.get_tag_attribute(collection, tag_type=TAG_TYPE.COLLECTION)
             for collection in concept_data['collections']
         ]
 
@@ -483,7 +482,9 @@ def get_minimal_concept_data(concept):
             continue
 
         concept_data[field.name] = model_utils.get_userdata_details(
-            model, pk=concept_data[field.name], hide_user_details=False
+            model,
+            pk=concept_data[field.name],
+            hide_user_details=False
         )
 
     # Clean data if required
@@ -548,8 +549,7 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
     if not concept:
         return None
 
-    historical_concept = model_utils.try_get_entity_history(
-        concept, concept_history_id)
+    historical_concept = model_utils.try_get_entity_history(concept, concept_history_id)
     if not historical_concept:
         return None
 
@@ -574,8 +574,7 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
 
     if concept_data.get('collections'):
         concept_data['collections'] = [
-            model_utils.get_tag_attribute(
-                collection, tag_type=TAG_TYPE.COLLECTION)
+            model_utils.get_tag_attribute(collection, tag_type=TAG_TYPE.COLLECTION)
             for collection in concept_data['collections']
         ]
 
@@ -596,13 +595,15 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
                 continue
 
             concept_data[field.name] = model_utils.get_userdata_details(
-                model, pk=concept_data[field.name], hide_user_details=hide_user_details
+                model,
+                pk=concept_data[field.name],
+                hide_user_details=hide_user_details
             )
 
     # Derive access permissions if RequestContext provided
     if isinstance(derive_access_from, HttpRequest):
-        concept_data['has_edit_access'] = permission_utils.user_can_edit_via_entity(
-            derive_access_from, concept) or permission_utils.user_has_concept_ownership(derive_access_from.user, concept)
+        concept_data['has_edit_access'] = permission_utils.user_can_edit_via_entity(derive_access_from, concept) \
+                                        or permission_utils.user_has_concept_ownership(derive_access_from.user, concept)
 
     # Clean data if required
     if not concept_data.get('is_deleted'):
@@ -611,10 +612,8 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
         concept_data.pop('deleted')
 
     # Build codelist and components from concept (modified by params)
-    attribute_headers = concept_data.pop(
-        'code_attribute_header', None) if include_attributes else None
-    attribute_headers = attribute_headers if isinstance(
-        attribute_headers, list) and len(attribute_headers) > 0 else None
+    attribute_headers = concept_data.pop('code_attribute_header', None) if include_attributes else None
+    attribute_headers = attribute_headers if isinstance(attribute_headers, list) and len(attribute_headers) > 0 else None
     components_data = get_concept_component_details(
         concept_id,
         concept_history_id,
@@ -642,17 +641,18 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
             'coding_system': model_utils.get_coding_system_details(historical_concept.coding_system)
         }
         result |= concept_data
-        result['components'] = components_data.get(
-            'components') if components_data is not None else []
+        result['components'] = components_data.get('components') if components_data is not None else []
 
     # Apply aggregated codes if required
     if aggregate_component_codes:
-        result['aggregated_component_codes'] = components_data.get(
-            'codelist') if components_data is not None else []
+        result['aggregated_component_codes'] = components_data.get('codelist') if components_data is not None else []
 
     # Build the final, reviewed codelist if required
     if include_reviewed_codes:
-        result['codelist'] = get_concept_codelist(concept_id, concept_history_id, incl_logical_types=[
-                                                  CLINICAL_RULE_TYPE.INCLUDE.value], incl_attributes=include_attributes)
+        result['codelist'] = get_concept_codelist(
+            concept_id, concept_history_id,
+            incl_logical_types=[CLINICAL_RULE_TYPE.INCLUDE.value],
+            incl_attributes=include_attributes
+        )
 
     return result

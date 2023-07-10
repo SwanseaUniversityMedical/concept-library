@@ -234,12 +234,13 @@ def get_accessible_concepts(
         consider_user_perms=consider_user_perms,
         status=[APPROVAL_STATUS.ANY]
     )
+    
     concepts_from_phenotypes = Concept.history.all() \
         .filter(phenotype_owner__id__in=phenotypes.values('id')) \
         .distinct('id')
 
     concepts = Concept.history.all() \
-        .annotate(
+    .annotate(
         is_published=Subquery(
             PublishedConcept.objects.filter(
                 concept_id=OuterRef('id'),
@@ -250,8 +251,8 @@ def get_accessible_concepts(
             .values('id')
         )
     ) \
-        .order_by('id', '-history_id') \
-        .distinct('id')
+    .order_by('id', '-history_id') \
+    .distinct('id')
 
     user = request.user
     if user and not user.is_anonymous:
@@ -397,8 +398,7 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
         return False
 
     if entity_history_id is not None:
-        historical_entity = model_utils.try_get_entity_history(
-            live_entity, entity_history_id)
+        historical_entity = model_utils.try_get_entity_history(live_entity, entity_history_id)
         if historical_entity is None:
             return False
     else:
@@ -411,19 +411,12 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
     if user.is_superuser:
         is_allowed_to_edit = True
 
-    ''' Moderator does not have EDIT permission on publish-requests '''
-    # if is_member(user, 'moderator'):
-    #   status = historical_entity.publish_status
-    #   if status is not None and status in [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING]:
-    #     is_allowed_to_edit = True
-
     if live_entity.owner == user or live_entity.created_by == user:
         is_allowed_to_edit = True
 
     if has_member_access(user, live_entity, [GROUP_PERMISSIONS.EDIT]):
         is_allowed_to_edit = True
 
-    # check brand access
     if is_allowed_to_edit:
         if not is_brand_accessible(request, entity_id):
             is_allowed_to_edit = False
@@ -462,7 +455,7 @@ def get_latest_publicly_accessible_concept(concept_id):
     concepts = Concept.history.filter(
         id=concept_id
     ) \
-        .annotate(
+    .annotate(
         is_published=Subquery(
             PublishedConcept.objects.filter(
                 concept_id=OuterRef('id'),
@@ -473,8 +466,8 @@ def get_latest_publicly_accessible_concept(concept_id):
             .values('id')
         )
     ) \
-        .exclude(is_published__isnull=True) \
-        .order_by('-history_id')
+    .exclude(is_published__isnull=True) \
+    .order_by('-history_id')
 
     return concepts.first() if concepts.exists() else None
 
@@ -507,14 +500,11 @@ def can_user_edit_concept(request, concept_id, concept_history_id):
         Boolean value that reflects whether is it able to be edited
         by the user
     '''
-    concept = model_utils.try_get_instance(
-        Concept, pk=concept_id
-    )
+    concept = model_utils.try_get_instance(Concept, pk=concept_id)
     if not concept:
         return False
 
-    historical_concept = model_utils.try_get_entity_history(
-        concept, concept_history_id)
+    historical_concept = model_utils.try_get_entity_history(concept, concept_history_id)
     if not historical_concept:
         return False
 
@@ -560,8 +550,7 @@ def validate_access_to_view(request, entity_id, entity_history_id=None):
         raise PermissionDenied
 
     # Check if the user has the permissions to view this entity version
-    user_can_access = can_user_view_entity(
-        request, entity_id, entity_history_id)
+    user_can_access = can_user_view_entity(request, entity_id, entity_history_id)
     if not user_can_access:
         # message = 'Entity version must be published or you must have permission to access it'
         raise PermissionDenied

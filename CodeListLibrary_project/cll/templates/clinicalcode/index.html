@@ -21,8 +21,18 @@
   <div
     class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
     <div class="headline__section__general">
-      <p>The Concept Library is a system for storing, managing, sharing, and documenting clinical code lists in health
-        research. The specific goals of this work are:</p>
+      <h2>Overview</h2>
+      <p>
+        The <strong>Concept Library</strong> project intends to create a system that describes research study designs in a machine-readable
+        format to facilitate rapid study development; higher quality research; easier replication; and sharing of methods between
+        researchers, institutions, and countries.
+      </p>
+
+      <h2>Goals</h2>
+      <p>
+        The Concept Library is a system for storing, managing, sharing, and documenting clinical code lists in health
+        research. The specific goals of this work are:
+      </p>
       <ul>
         <li>Store code lists along with metadata that captures important information about quality, author, etc.</li>
         <li>Store version history and provide a way to unambiguously reference a particular version of a code list.</li>
@@ -32,19 +42,6 @@
         </li>
         <li>Provide a mechanism for sharing code lists between projects and organizations.</li>
       </ul>
-
-      <h2> Documentation</h2>
-      <p>
-        {% if IS_INSIDE_GATEWAY or request.get_host == "conceptlibrary.serp.ac.uk" %}
-        Concept Library documentation is available at the external application<br />
-        Please access via the external application
-        {% else %}
-        Concept Library documentation is available at on
-        <a href="https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation"
-          target=_blank rel="noopener noreferrer">Github</a>
-        <br />
-        {% endif %}
-      </p>
 
       <h2>Background</h2>
       <p>
@@ -66,13 +63,25 @@
         is published, information on the precise methods used should be included, but in reality this is often
         inadequate.
       </p>
+      <br />
 
-      <h2>Overview</h2>
-      <p>
-        Our goal is to create a system that describes research study designs in a machine-readable format to facilitate
-        rapid study development; higher quality research; easier replication; and sharing of methods between
-        researchers, institutions, and countries.
-      </p>
+      <h2>Documentation</h2>
+      {% if IS_INSIDE_GATEWAY or request.get_host == "conceptlibrary.serp.ac.uk" %}
+        <p>
+          Concept Library documentation is available within the external application, or on Github.
+        </p>
+        <p>
+          Please access the documentation outside of the gateway.
+        </p>
+      {% else %}
+        <p>
+          Concept Library documentation is available on
+          <a href="https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation"
+            target=_blank rel="noopener noreferrer">
+            Github
+          </a>.
+        </p>
+      {% endif %}
     </div>
   </div>
 </main>
