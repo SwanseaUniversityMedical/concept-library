@@ -286,9 +286,6 @@ def can_user_view_entity(request, entity_id, entity_history_id=None):
       Returns:
         A boolean value reflecting whether the user is able to view an entity
     '''
-
-    # since permissions are derived from the live entity (not from historical records),
-    # get live entity
     live_entity = model_utils.try_get_instance(GenericEntity, pk=entity_id)
     if live_entity is None:
         return False
@@ -392,7 +389,6 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
       Returns:
         A boolean value reflecting whether the user is able to modify an entity
     '''
-
     live_entity = model_utils.try_get_instance(GenericEntity, pk=entity_id)
     if live_entity is None:
         return False

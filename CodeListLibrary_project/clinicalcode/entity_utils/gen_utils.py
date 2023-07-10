@@ -6,6 +6,7 @@ from django.utils.timezone import make_aware
 from functools import wraps
 from dateutil import parser as dateparser
 from json import JSONEncoder
+from uuid import UUID
 
 import re
 import time
@@ -149,6 +150,17 @@ def try_match_pattern(value, pattern):
     '''
     pattern = re.compile(pattern)
     return pattern.match(value)
+
+def is_valid_uuid(value):
+    '''
+        Validates value as a UUID
+    '''
+    try:
+        uuid = UUID(value)
+    except ValueError:
+        return False
+    
+    return str(uuid) == value
 
 def parse_int(value, default=0):
     '''
