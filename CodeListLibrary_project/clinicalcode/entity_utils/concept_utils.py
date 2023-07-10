@@ -443,7 +443,15 @@ def get_review_concept(concept_id, concept_history_id):
 
 def get_minimal_concept_data(concept):
     '''
+        Gets the minimum concept related details
+        required for the API view to support legacy
+        requests & formatting
+    
+        Args:
+            concept {Concept()} - the Concept model instance
 
+        Returns:
+            An {object} containing the associated data
     '''
     # Dictify our concept
     concept_data = model_utils.jsonify_object(
