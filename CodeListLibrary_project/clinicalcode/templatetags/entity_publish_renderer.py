@@ -78,8 +78,7 @@ def render_publish_button(context, *args, **kwargs):
         else:
             button_context["Button_type"] = "Publish"
             return button_context
-    else:
-        
+    else:        
         if not context["is_lastapproved"] and context["approval_status"] is None and user_is_owner:
              button_context.update({'class_modal':"primary-btn dropdown-btn__label",
                               'url': reverse('generic_entity_request_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),

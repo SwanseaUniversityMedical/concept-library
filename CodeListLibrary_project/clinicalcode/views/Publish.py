@@ -1,14 +1,14 @@
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
-from django.http.response import JsonResponse
+from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.views.generic.base import TemplateResponseMixin, View
 from django.utils.decorators import method_decorator
 from ..entity_utils import publish_utils, permission_utils, constants
 from ..permissions import *
 from .View import *
-import json
+
 
 class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityCheckMixin, TemplateResponseMixin, View):
     model = GenericEntity
@@ -95,7 +95,6 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
             #check if entity declined and user is moderator to review again
             elif checks['approval_status'] == constants.APPROVAL_STATUS.REJECTED and checks['is_moderator']:
                 with transaction.atomic():
-                    print("moderator loh")
                     self.moderator_publish(self.request,history_id,pk,checks,data)
 
         except Exception as e:
@@ -195,12 +194,6 @@ class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGeneric
         """
         #get additional checks in case if ws is deleted/approved etc
         checks = publish_utils.check_entity_to_publish(self.request, pk, history_id)
-
-        # if not checks['is_published']:
-        #     checks = publish_utils.check_entity_to_publish(self.request, pk, history_id)
-
-
-        # --------------------------------------------
         checks['entity_history_id'] = history_id
         checks['entity_id'] = pk
 
