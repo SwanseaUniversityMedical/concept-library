@@ -27,11 +27,8 @@ def form_validation(request, data, entity_history_id, pk, entity,checks):
     """
     data['form_is_valid'] = True
     data['latest_history_ID'] = entity_history_id  # entity.history.latest().pk
-
-    # update history list
-
     #send email message state and client side message
-    # data['message'] = send_message(pk, data, entity, entity_history_id, checks)['message']
+    data['message'] = send_message(pk, data, entity, entity_history_id, checks)['message']
 
     return data
 
@@ -45,53 +42,26 @@ def send_message(pk, data, entity, entity_history_id, checks):
     @param checks: additional checks of entity
     @return: updated data dictionary with client side message
     """
-    if data['approval_status'] == constants.APPROVAL_STATUS.APPROVED:
-        data['message'] = """The {entity_type} version has been successfully published.<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'], url=reverse('entity_history_detail',  args=(pk,entity_history_id)), pk=pk,history=entity_history_id)
+    # Message templates
+    approved_template = """The {entity_type} version has been successfully published.<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>"""
+    rejected_template = """The {entity_type} version has been rejected .<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>"""
+    pending_template = """The {entity_type} version is going to be reviewed by the moderator.<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>"""
 
-        send_email_decision_entity(entity, checks['entity_type'], data['approval_status'])
-        return data
+    # Determine the appropriate message template and send email
+    approval_status = data['approval_status']
+    if approval_status == constants.APPROVAL_STATUS.APPROVED:
+        return format_message_and_send_email(pk, data, entity, entity_history_id, checks, approved_template)
+    elif approval_status == constants.APPROVAL_STATUS.REJECTED:
+        return format_message_and_send_email(pk, data, entity, entity_history_id, checks, rejected_template)
+    elif approval_status == constants.APPROVAL_STATUS.PENDING:
+        return format_message_and_send_email(pk, data, entity, entity_history_id, checks, pending_template)
+    elif approval_status is None and checks['is_moderator']:
+        return format_message_and_send_email(pk, data, entity, entity_history_id, checks, approved_template)
+    elif len(PublishedGenericEntity.objects.filter(
+            entity=GenericEntity.objects.get(pk=pk).id, 
+            approval_status=constants.APPROVAL_STATUS.APPROVED)) > 0 and approval_status != constants.APPROVAL_STATUS.REJECTED:
+        return format_message_and_send_email(pk, data, entity, entity_history_id, checks, approved_template)
 
-    #publish message if not declined
-    elif len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=constants.APPROVAL_STATUS.APPROVED)) > 0 and not data['approval_status'] == constants.APPROVAL_STATUS.REJECTED:
-        data['message'] = """The {entity_type} version has been successfully published.
-                                 <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'], url=reverse('entity_history_detail', args=(pk,entity_history_id)),
-                                                                                                         pk=pk,history=entity_history_id)
-        
-        send_email_decision_entity(entity, checks['entity_type'], data['approval_status'])
-
-        return data
-
-    #showing rejected message
-    elif data['approval_status'] == constants.APPROVAL_STATUS.REJECTED:
-        data['message'] = """The {entity_type} version has been rejected .
-                                               <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'],
-            url=reverse('entity_history_detail', args=(pk,entity_history_id)),
-            pk=pk,history=entity_history_id)
-        
-        send_email_decision_entity(entity,checks['entity_type'],data['approval_status'])
-
-        return data
-
-    # ws is approved by moderator if moderator approved different version
-    elif data['approval_status'] is None and checks['is_moderator']:
-        data['message'] = """The {entity_type} version has been successfully published.
-                                                <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'],
-            url=reverse('entity_history_detail', args=(pk,entity_history_id)),
-            pk=pk,history=entity_history_id)
-
-        return data
-
-
-    #show pending message if user clicks to request review
-    elif data['approval_status'] == constants.APPROVAL_STATUS.PENDING:
-        data['message'] = """The {entity_type} version is going to be reviewed by the moderator.
-                                                      <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'],
-            url=reverse('entity_history_detail', args=(pk,entity_history_id)),
-            pk=pk,history=entity_history_id)
-        
-        send_email_decision_entity(entity,checks['entity_type'],0)
-
-        return data
 
 def check_entity_to_publish(request, pk, entity_history_id):
     '''
@@ -115,7 +85,7 @@ def check_entity_to_publish(request, pk, entity_history_id):
         approval_status=constants.APPROVAL_STATUS.PENDING
     ).exists()
 
-    # Initialize the status variables based on the fetched data
+    # Determine the status of the entity
     entity_is_deleted = generic_entity.is_deleted
     is_owner = not entity_is_deleted and user_is_owner
     is_moderator = not entity_is_deleted and user_is_moderator
@@ -125,38 +95,46 @@ def check_entity_to_publish(request, pk, entity_history_id):
     allow_to_publish = is_owner or is_moderator
     
 
+    generic_entity = GenericEntity.objects.get(pk=pk)
+    published_entity_approved = PublishedGenericEntity.objects.filter(
+        entity=generic_entity.id, 
+        approval_status=constants.APPROVAL_STATUS.APPROVED
+    )
+    published_entity_pending = PublishedGenericEntity.objects.filter(
+        entity=generic_entity.id, 
+        approval_status=constants.APPROVAL_STATUS.PENDING
+    )
+
+    # Initialize the status variables based on the fetched data
     entity_ver = GenericEntity.history.get(id=pk, history_id=entity_history_id)
     is_published = checkIfPublished(GenericEntity, pk, entity_history_id)
     approval_status = get_publish_approval_status(GenericEntity, pk, entity_history_id)
-    is_lastapproved = len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=constants.APPROVAL_STATUS.APPROVED)) > 0
-    other_pending = len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=constants.APPROVAL_STATUS.PENDING)) > 0
-    
+    is_lastapproved = published_entity_approved.exists()
+    other_pending = published_entity_pending.exists()
 
-    # get historical version 
-    entity = entity_db_utils.get_historical_entity(pk, entity_history_id
-                                            , highlight_result = [False, True][entity_db_utils.is_referred_from_search_page(request)]
-                                            , q_highlight = entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))  
-                                            )
-                                                                                                            
+    # Get historical version
+    highlight_result = entity_db_utils.is_referred_from_search_page(request)
+    q_highlight = entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))
+    entity = entity_db_utils.get_historical_entity(pk, entity_history_id, highlight_result, q_highlight)
+
+    # Entity class
     entity_class = entity.template.entity_class.name 
-
-    find_entity_class = lambda entity_class: True if re.match(r"(?i)^(Phenotype|Workingset)$", entity_class) else False                                                        
-
-    if find_entity_class:
-        has_childs, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
-        check_children(request, entity)
-    
    
-    if not isOK:
-        allow_to_publish = False
 
-    #check if table is not empty
-    table_ofEntity = lambda entity_class:  'concept_information' if entity_class== "Phenotype"  else 'workingset_concept_information'
-    entity_has_data = len(GenericEntity.history.get(id=pk, history_id=entity_history_id).template_data[table_ofEntity(entity_class)]) > 0
+    # Check children
+    if is_valid_entity_class(entity_class):
+        has_childs, is_ok, all_not_deleted, all_are_published, is_allowed_view_children, errors = check_children(request, entity)
 
+        if not is_ok:
+            allow_to_publish = False
+
+    entity_has_data = bool(GenericEntity.history.get(id=pk, history_id=entity_history_id).template_data[get_table_of_entity(entity_class)])
+
+    # Check entity data and class
     if not entity_has_data and entity_class == "Workingset":
         allow_to_publish = False
 
+    
     checks = {
         'entity_type': entity_class,
         'name': entity_ver.name,
@@ -176,6 +154,7 @@ def check_entity_to_publish(request, pk, entity_history_id):
         'all_not_deleted': all_not_deleted
     }
     return checks
+
 
 def check_children(request, entity):
         """
@@ -198,8 +177,6 @@ def check_children(request, entity):
             child_version_id = 'phenotype_version_id'
             name_child = 'phenotype'
         
-
-
         if len(entity.template_data[name_table]) == 0:
             has_child_entitys = False
             child_entitys_versions = ''
@@ -251,14 +228,33 @@ def check_children(request, entity):
         return  has_child_entitys, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors
 
 
+def is_valid_entity_class(entity_class):
+    return bool(re.match(r"(?i)^(Phenotype|Workingset)$", entity_class))
+
+def get_table_of_entity(entity_class):
+    return 'concept_information' if entity_class == "Phenotype" else 'workingset_concept_information'
+
+
+def format_message_and_send_email(pk, data, entity, entity_history_id, checks, message_template):
+    """
+    Format the message, send an email, and update data with the new message
+    """
+    data['message'] = message_template.format(
+        entity_type=checks['entity_type'], 
+        url=reverse('entity_history_detail', args=(pk, entity_history_id)), 
+        pk=pk,
+        history=entity_history_id
+    )
+    send_email_decision_entity(entity, checks['entity_type'], data['approval_status'])
+    return data
+
+
 def send_email_decision_entity(entity, entity_type, approved):
     """
     Call util function to send email decision
     @param workingset: workingset object
     @param approved: approved status flag
     """
-    
-    
     if approved == 1:
         send_review_email.delay(entity.id, entity.name, entity.owner_id,
                                    "Published",
