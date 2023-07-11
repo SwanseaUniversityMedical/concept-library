@@ -11,7 +11,9 @@
 
 {% block container %}
 
+{% compress css %}
 <link href="{% sass_src 'scss/pages/about.scss' %}" rel="stylesheet" type="text/css" />
+{% endcompress %}
 
 {% compress js %}
   <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/scrollspy.js' %}"></script>

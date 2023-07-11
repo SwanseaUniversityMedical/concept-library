@@ -1,25 +1,35 @@
-{% extends "base.html" %}
-
+{% extends "base_scss.html" %}
 {% load static %}
 
-{% block title %}Permission denied{% endblock title %}
+{% block title %}| Permission denied{% endblock title %}
 
 {% block container %}
-
-{% if exception is None %}
-  <h2>403: Permission denied</h2>
-  <p>Apologies, but it seems as if you're not allowed to access this page.</p>
-{% else %}
-  {% if exception == "ERR_403_PERM" %}
-    <h2>You don't have permission to view this</h2>
-    <p>It looks like you're trying to access content that's not published yet.</p>
-    <p>You'll be able to view this content once it's been published by the author.</p>
-  {% else %}
-    <h2>403: Permission denied</h2>
-    <p>Apologies, but it seems as if you're not allowed to access this page.</p>
-  {% endif %}
-{% endif %}
-
-<p>Click <a href="javascript:history.back()">here</a> to go back.</p>
-
+  <header class="main-header search-banner">
+    <div
+      class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
+      <div class="search-banner__header search-banner__header--pad-bottom-2">
+        <h2 class="search-banner__title">Concept Library</h2>
+      </div>
+    </div>
+  </header>
+  <main class="main-content main-content--inner-padding">
+    <div
+        class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+      {% if exception is None %}
+        <h2>403: Forbidden</h2>
+        <p>Apologies, but it seems as if you're not allowed to access this page.</p>
+      {% else %}
+        {% if exception == "ERR_403_PERM" %}
+          <h2>You don't have permission to view this</h2>
+          <p>It looks like you're trying to access content that's not published yet.</p>
+          <p>You'll be able to view this content once it's been published by the author.</p>
+        {% else %}
+          <h2>403: Forbidden</h2>
+          <p>Apologies, but it seems as if you're not allowed to access this page.</p>
+        {% endif %}
+      {% endif %}
+      <p>Follow this link to get back to the <a href="{% url 'concept_library_home' %}">homepage</a>.</p>
+      <p>Or, click <a href="javascript:history.back()">here</a> to go back.</p>
+    </div>
+  </main>
 {% endblock container %}

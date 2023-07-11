@@ -20,7 +20,9 @@
   {% endcompress %}
 
   <!-- Page Stylesheets -->
+  {% compress css %}
   <link href="{% sass_src 'scss/pages/about.scss' %}" rel="stylesheet" type="text/css" />
+  {% endcompress %}
 
   <!-- Main -->
   <header class="main-header banner">

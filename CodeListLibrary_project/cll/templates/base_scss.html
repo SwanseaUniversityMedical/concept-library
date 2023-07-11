@@ -69,7 +69,9 @@
     {% endblock embedding_wrapper %}
 
     <!-- Stylesheets -->
-    <link href="{% sass_src 'scss/main.scss' %}" rel="stylesheet" type="text/css" />
+    {% compress css %}
+      <link href="{% sass_src 'scss/main.scss' %}" rel="stylesheet" type="text/css" />
+    {% endcompress %}
 
     <!-- Scripts -->
     {% compress js %}

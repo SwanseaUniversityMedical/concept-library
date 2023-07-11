@@ -1,5 +1,4 @@
 import json
-# from clinicalcode.context_processors import clinicalcode
 from collections import OrderedDict
 from collections import OrderedDict as ordr
 from datetime import datetime

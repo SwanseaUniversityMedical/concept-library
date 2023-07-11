@@ -241,7 +241,9 @@ INSTALLED_APPS = INSTALLED_APPS + [
     # SCSS
     'sass_processor',
     # Compressor
-    'compressor'
+    'compressor',
+    # HTML Minifier
+    'django_minify_html',
 ]
 
 #==============================================================================#
@@ -263,10 +265,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
+    # Minify HTML
+    'clinicalcode.middleware.Compression.HTMLCompressionMiddleware',
     # Handle brands
-    'cll.middleware.brandMiddleware',
+    'clinicalcode.middleware.Brands.BrandMiddleware',
     # Handle user session expiry
-    'cll.middleware.SessionExpiryMiddleware'
+    'clinicalcode.middleware.Sessions.SessionExpiryMiddleware',
 ]
 
 #==============================================================================#
@@ -354,7 +358,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'cookielaw.context_processors.cookielaw',
-                'cll.context_processors.general_var',
+                'clinicalcode.context_processors.general.general_var',
             ],
             'libraries': {
                 'breadcrumbs': 'clinicalcode.templatetags.breadcrumbs',
@@ -525,6 +529,9 @@ if not DEBUG:
 ## Default primary key field type - Django >= 3.2
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+## HTML Minifier
+HTML_MINIFIER_ENABLED = True
+
 ## Compressor options
 COMPRESS_ENABLED = not DEBUG
 COMPRESS_OFFLINE = True
@@ -542,7 +549,6 @@ SASS_PROCESSOR_ENABLED = True
 SASS_PROCESSOR_AUTO_INCLUDE = True
 SASS_PROCESSOR_INCLUDE_FILE_PATTERN = r'^.+\.scss$'
 SASS_OUTPUT_STYLE = 'expanded' if DEBUG else 'compressed'
-SASS_PROCESSOR_ROOT = STATIC_ROOT
 
 ## Email settings
 ###     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

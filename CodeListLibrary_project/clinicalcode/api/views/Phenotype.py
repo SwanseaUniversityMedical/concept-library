@@ -3,7 +3,6 @@ from collections import OrderedDict
 from collections import OrderedDict as ordr
 from datetime import datetime
 
-from clinicalcode.context_processors import clinicalcode
 from django.contrib.auth.models import User
 from django.core import serializers
 from django.core.exceptions import PermissionDenied
