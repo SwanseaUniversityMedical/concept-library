@@ -1,3 +1,4 @@
+import re
 from clinicalcode import db_utils
 from clinicalcode.entity_utils import entity_db_utils
 from django.contrib.auth.models import  User
@@ -104,36 +105,25 @@ def check_entity_to_publish(request, pk, entity_history_id):
         @param entity_history_id: historical id of entity
         @return: dictionary containing all conditions to publish
     '''
-    allow_to_publish = True
-    entity_is_deleted = False
-    is_owner = True
-    is_moderator = False
-    is_latest_pending_version = False
+    # Fetch the required objects from the database only once
+    generic_entity = GenericEntity.objects.get(id=pk)
+    user_is_moderator = request.user.groups.filter(name="Moderators").exists()
+    user_is_owner = generic_entity.owner == request.user
+    latest_pending_version_exists = PublishedGenericEntity.objects.filter(
+        entity_id=pk, 
+        entity_history_id=entity_history_id, 
+        approval_status=constants.APPROVAL_STATUS.PENDING
+    ).exists()
 
-    if (GenericEntity.objects.get(id=pk).is_deleted == True):
-        allow_to_publish = False
-        entity_is_deleted = True
+    # Initialize the status variables based on the fetched data
+    entity_is_deleted = generic_entity.is_deleted
+    is_owner = not entity_is_deleted and user_is_owner
+    is_moderator = not entity_is_deleted and user_is_moderator
+    is_latest_pending_version = not entity_is_deleted and latest_pending_version_exists
 
-    #check if user is not owner
-    if (GenericEntity.objects.filter(Q(id=pk), Q(owner=request.user)).count() == 0):
-        allow_to_publish = False
-        is_owner = False
-
-    if (request.user.groups.filter(name="Moderators").exists()):
-        allow_to_publish = True
-        is_moderator = True
-
-    #check if either moderator or owner
-    if (request.user.groups.filter(name="Moderators").exists()
-            and not (GenericEntity.objects.filter(Q(id=pk), Q(owner=request.user)).count() == 0)):
-        allow_to_publish = True
-        is_owner = True
-        is_moderator = True
-
-    #check if current version of entity is the latest version to approve
-    if len(PublishedGenericEntity.objects.filter(entity_id=pk, entity_history_id=entity_history_id, approval_status=constants.APPROVAL_STATUS.PENDING)) > 0:
-        is_latest_pending_version = True
-
+    # Determine the final permission to publish
+    allow_to_publish = is_owner or is_moderator
+    
 
     entity_ver = GenericEntity.history.get(id=pk, history_id=entity_history_id)
     is_published = checkIfPublished(GenericEntity, pk, entity_history_id)
@@ -148,14 +138,15 @@ def check_entity_to_publish(request, pk, entity_history_id):
                                             , q_highlight = entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))  
                                             )
                                                                                                             
-    entity_class = entity.template.entity_class.name                                                          
+    entity_class = entity.template.entity_class.name 
 
-    if entity_class == "Phenotype" or entity_class == "Workingset":
+    find_entity_class = lambda entity_class: True if re.match(r"(?i)^(Phenotype|Workingset)$", entity_class) else False                                                        
+
+    if find_entity_class:
         has_childs, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
         check_children(request, entity)
     
    
-
     if not isOK:
         allow_to_publish = False
 
