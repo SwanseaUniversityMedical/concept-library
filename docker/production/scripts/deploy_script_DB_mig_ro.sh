@@ -41,6 +41,17 @@
 #      echo ">>>>> migrate <<<<<<<<<<<<<<<<<<<"
 #      python manage.py migrate  
 
+      # was commented out
+      echo ">>>>>Redis server start <<<<<<<<"
+      service redis-server restart
+
+      echo ">>>>>> Start celery worker <<<<<"
+      celery -A cll worker -l INFO
+
+      echo ">>>>> Start beat scheduler <<<<<<<<"
+      celery -A cll beat -l INFO
+      ###################
+
 
 #     exit virtual env
       deactivate
