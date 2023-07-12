@@ -1,0 +1,59 @@
+version: '3'
+
+services:
+  app:
+    platform: linux/amd64
+    build:
+      context: ..
+      dockerfile: ./test.Dockerfile
+    command: >
+      sh -c "/home/config_cll/init-app.sh
+      && /usr/sbin/apachectl -D FOREGROUND"
+    volumes:
+      - ../../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
+    ports:
+      - "8000:8000"
+      - "8080:80"
+      - "8443:443"
+    tty: true
+    stdin_open: true
+    env_file:
+      - ./app.compose.env
+    depends_on:
+      - redis
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - .:/data
+
+  celery_worker:
+    build:
+      context: ..
+      dockerfile: ./test.Dockerfile
+    command: >
+      sh -c "cd /var/www/concept_lib_sites/v1/CodeListLibrary_project/
+      && celery -A cll worker -l INFO --purge"
+    env_file:
+      - ./app.compose.env
+    volumes:
+      - ../../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
+    depends_on:
+      - redis
+
+  celery_beat:
+    build:
+      context: ..
+      dockerfile: ./test.Dockerfile
+    command: >
+      sh -c "cd /var/www/concept_lib_sites/v1/CodeListLibrary_project/
+      && celery -A cll beat -l info --max-interval 300"
+    env_file:
+      - ./app.compose.env
+    volumes:
+      - ../../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
+    depends_on:
+      - redis
+      - celery_worker
