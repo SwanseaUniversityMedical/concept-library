@@ -123,7 +123,7 @@ def check_entity_to_publish(request, pk, entity_history_id):
 
     # Check children
     if is_valid_entity_class(entity_class):
-        has_childs, is_ok, all_not_deleted, all_are_published, is_allowed_view_children, errors = check_children(request, entity)
+        has_childs, is_ok, all_not_deleted, all_are_published, is_allowed_view_children, errors = check_children(request,entity,get_entity_class(entity_class))
 
         if not is_ok:
             allow_to_publish = False
@@ -156,16 +156,14 @@ def check_entity_to_publish(request, pk, entity_history_id):
     return checks
 
 
-def check_children(request, entity):
+def check_children(request, entity, entity_class):
         """
         Check if entity child data is validated
         @param request: user request object
         @param entity: historical entity object
         @return: collection of boolean conditions
-        """
-
-        entity_class = entity.template.entity_class.name 
-         
+        """         
+        print(entity_class)
         if entity_class == "Phenotype":
             name_table = 'concept_information'
             child_id = 'concept_id'
@@ -230,6 +228,10 @@ def check_children(request, entity):
 
 def is_valid_entity_class(entity_class):
     return bool(re.match(r"(?i)^(Phenotype|Workingset)$", entity_class))
+
+def get_entity_class(entity_class):
+    final_entity = lambda entity_class: 'Phenotype' if re.search(r"(?i)Phenotype", entity_class) else ('Workingset' if re.search(r"(?i)Workingset", entity_class) else None)
+    return final_entity(entity_class)
 
 def get_table_of_entity(entity_class):
     return 'concept_information' if entity_class == "Phenotype" else 'workingset_concept_information'
