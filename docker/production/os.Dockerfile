@@ -20,13 +20,22 @@ RUN \
   apt-get install -y -q libapache2-mod-wsgi-py3 && \
   apt-get install -y -q wget && \
   apt-get -y -q install sudo nano && \
-  apt-get install -y -q redis-server \ 
+  apt-get install -y -q redis-server && \ 
   apt-get install -y -q dos2unix
 
 # install this for LDAP to work
 RUN apt-get install -y -q libsasl2-dev python3.9-dev libldap2-dev libssl-dev
 
 ##RUN apt-get install -y -q git
+
+# Install npm
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    npm
+
+# Install esbuild
+RUN npm install -g config set user root \
+    npm install -g esbuild
 
 # install & upgrade pip
 RUN \

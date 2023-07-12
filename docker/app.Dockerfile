@@ -8,6 +8,15 @@ RUN apt-get update -y -q && \
 # Install LDAP header files
 RUN apt-get install -y -q libsasl2-dev libldap2-dev libssl-dev
 
+# Install npm
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    npm
+
+# Install esbuild
+RUN npm install -g config set user root \
+    npm install -g esbuild
+
 # Install pip
 RUN apt-get install -y -q python3-pip 
 

@@ -31,7 +31,9 @@ cd /var/www/concept_lib_sites/v1/CodeListLibrary_project
 echo ">>>>> collectstatic <<<<<<<<<<<<<<<<<<<"
 python manage.py compilescss
 sudo chown -R www-data:www-data /var/www/ &
-python manage.py collectstatic --noinput 1> /dev/null
+python manage.py collectstatic --noinput --clear --ignore=*.scss
+python manage.py compress
+python manage.py collectstatic --noinput --ignore=*.scss
 
 echo ">>>>> makemigrations <<<<<<<<<<<<<<<<<<<"
 python manage.py makemigrations
@@ -39,15 +41,16 @@ python manage.py makemigrations
 echo ">>>>> migrate <<<<<<<<<<<<<<<<<<<"
 python manage.py migrate
 
-#      echo ">>>>>Redis server start <<<<<<<<"
-#      service redis-server restart
+# was commented out
+echo ">>>>>Redis server start <<<<<<<<"
+service redis-server restart
 
-#      echo ">>>>>> Start celery worker <<<<<"
-#      celery -A cll worker -l INFO
+echo ">>>>>> Start celery worker <<<<<"
+celery -A cll worker -l INFO
 
-#      echo ">>>>> Start beat scheduler <<<<<<<<"
-#      celery -A cll beat -l INFO
-
+echo ">>>>> Start beat scheduler <<<<<<<<"
+celery -A cll beat -l INFO
+###################
 
 #     exit virtual env
 deactivate

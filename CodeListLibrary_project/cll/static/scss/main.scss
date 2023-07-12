@@ -65,6 +65,14 @@ data {
   display: none;
 }
 
+// markdownify
+//  @desc shadow frames for markdownify
+.shadow-frame {
+  img {
+    max-width: 100%
+  }
+}
+
 // main-header
 //  @desc defines the main <header/> element
 .main-header {

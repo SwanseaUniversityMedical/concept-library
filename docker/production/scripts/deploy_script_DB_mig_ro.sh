@@ -31,7 +31,9 @@
       echo ">>>>> collectstatic <<<<<<<<<<<<<<<<<<<"
       python manage.py compilescss
       sudo chown -R www-data:www-data /var/www/ &
-      python manage.py collectstatic --noinput 1> /dev/null
+      python manage.py collectstatic --noinput --clear --ignore=*.scss
+      python manage.py compress
+      python manage.py collectstatic --noinput --ignore=*.scss
 
 #      echo ">>>>> makemigrations <<<<<<<<<<<<<<<<<<<"
 #      python manage.py makemigrations 

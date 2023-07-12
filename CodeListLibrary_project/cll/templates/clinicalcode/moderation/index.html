@@ -15,12 +15,14 @@
   <script src="{% static 'js/clinicalcode/redesign/vendor/simple-datatables/simple-datatables.min.js' %}"></script>
 
   <!-- Dependencies -->
-  {% compress js file %}
+  {% compress js %}
     <script type="module" src="{% static 'js/clinicalcode/redesign/services/collectionService.js' %}"></script>
   {% endcompress %}
   
   <!-- Page Stylesheets -->
-  <link href="{% sass_src 'scss/pages/profile.scss' %}" rel="stylesheet" type="text/css" />
+  {% compress css %}
+    <link href="{% sass_src 'scss/pages/profile.scss' %}" rel="stylesheet" type="text/css" />
+  {% endcompress %}
 
   <!-- Main -->
   <header class="main-header banner">

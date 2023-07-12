@@ -13,6 +13,10 @@ CodeListLibrary_project/debug.log
 .vscode
 .settings/org.eclipse.core.resources.prefs
 venv
+**/dump.rdb
+CodeListLibrary_project/staticroot/*
+docker/development/db/postgresql.conf
+docker/CodeListLibrary_project
 
 # macOS system files
 .DS_Stores

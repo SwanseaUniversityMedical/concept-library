@@ -69,10 +69,12 @@
     {% endblock embedding_wrapper %}
 
     <!-- Stylesheets -->
-    <link href="{% sass_src 'scss/main.scss' %}" rel="stylesheet" type="text/css" />
+    {% compress css %}
+      <link href="{% sass_src 'scss/main.scss' %}" rel="stylesheet" type="text/css" />
+    {% endcompress %}
 
     <!-- Scripts -->
-    {% compress js file %}
+    {% compress js %}
       <script type="text/javascript" src="{% static "js/clinicalcode/redesign/utils.js" %}"></script>
       <script type="text/javascript" src="{% static "js/clinicalcode/redesign/accessibility.js" %}"></script>
       <script type="module" src="{% static "js/clinicalcode/redesign/components/modal.js" %}"></script>
