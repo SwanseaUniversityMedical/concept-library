@@ -18,7 +18,6 @@ RUN \
 
 
 
-
 # install this for LDAP to work
 RUN apt-get install -y -q libsasl2-dev python-dev libldap2-dev libssl-dev
 
