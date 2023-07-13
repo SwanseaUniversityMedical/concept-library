@@ -123,7 +123,7 @@ def check_entity_to_publish(request, pk, entity_history_id):
 
     # Check children
     if is_valid_entity_class(entity_class):
-        has_childs, is_ok, all_not_deleted, all_are_published, is_allowed_view_children, errors = check_children(request,entity,get_entity_class(entity_class))
+        is_ok, all_not_deleted, all_are_published, errors = check_children(request,entity,get_entity_class(entity_class))
 
         if not is_ok:
             allow_to_publish = False
@@ -149,7 +149,6 @@ def check_entity_to_publish(request, pk, entity_history_id):
         'entity_has_data': entity_has_data,
         'is_published': is_published,
         'is_latest_pending_version': is_latest_pending_version,
-        'is_allowed_view_children': is_allowed_view_children, #to see if child phenotypes of ws is not deleted/not published etc
         'all_are_published': all_are_published,
         'all_not_deleted': all_not_deleted
     }
@@ -163,7 +162,6 @@ def check_children(request, entity, entity_class):
         @param entity: historical entity object
         @return: collection of boolean conditions
         """         
-        print(entity_class)
         if entity_class == "Phenotype":
             name_table = 'concept_information'
             child_id = 'concept_id'
@@ -194,36 +192,40 @@ def check_children(request, entity, entity_class):
             has_child_entitys = True
 
 
-        for p in child_entitys_versions:
-            isDeleted = (Concept.objects.filter(Q(id=p[0])).exclude(is_deleted=True).count() == 0) if entity_class == "Phenotype" else (GenericEntity.objects.filter(Q(id=p[0])).exclude(is_deleted=True).count() == 0) 
-            if isDeleted:
-                errors[p[0]] = 'Child ' + name_child + '(' + str(p[0]) + ') is deleted'
-                all_not_deleted = False
+        # Collect all ids from child_entitys_versions
+        ids = [p[0] for p in child_entitys_versions]
+
+        # Query the database once for each model
+        deleted_objects = Concept.objects.filter(id__in=ids, is_deleted=True) if entity_class == "Phenotype" else GenericEntity.objects.filter(id__in=ids, is_deleted=True)
+
+        # Iterate through deleted objects and update errors dictionary
+        errors = {obj.id: f'Child {name_child}({obj.id}) is deleted' for obj in deleted_objects}
+
+        # Check if all objects are not deleted
+        all_not_deleted = not bool(errors)
 
 
-        for p in child_entitys_versions:
-            is_published = checkIfPublished(Concept, p[0], p[1]) if entity_class == "Phenotype" else checkIfPublished(GenericEntity, p[0], p[1])
+        for child in child_entitys_versions:
+            child_id = child[0]
+            child_version_id = child[1]
+
+            concept_owner_id = Concept.objects.get(id=child_id).phenotype_owner_id
+            print(child_id)
+            
+            if concept_owner_id != entity.id:
+                is_published = len(PublishedGenericEntity.objects.filter(
+                entity=concept_owner_id, 
+                approval_status=constants.APPROVAL_STATUS.APPROVED)) > 0
+            else:
+                is_published = True
+
             if not is_published:
-                errors[str(p[0]) + '/' + str(p[1])] = 'Child ' + name_child + '(' + str(p[0]) + '/' + str(p[1]) + ') is not published'
+                errors[str(child_id) + '/' + str(child_version_id)] = 'Child ' + name_child + '(' + str(child_id) + '/' + str(child_version_id) + ') is not published'
                 all_are_published = False
 
+        isOK = (all_not_deleted and all_are_published)
 
-        for p in child_entitys_versions: #??? update to new permission chk
-            permitted = allowed_to_view(request,
-                                        Concept,
-                                        set_id=p[0],
-                                        set_history_id=p[1]) if entity_class == "Phenotype" else allowed_to_view(request,
-                                                                                                        GenericEntity,
-                                                                                                        set_id=p[0],
-                                                                                                        set_history_id=p[1])
-
-            if not permitted:
-                errors[str(p[0]) + '_view'] = 'Child ' + name_child + '(' + str(p[0]) + ') is not permitted.'
-                is_allowed_view_children = False
-
-        isOK = (all_not_deleted and all_are_published and is_allowed_view_children)
-
-        return  has_child_entitys, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors
+        return  isOK, all_not_deleted, all_are_published, errors
 
 
 def is_valid_entity_class(entity_class):
@@ -247,7 +249,7 @@ def format_message_and_send_email(pk, data, entity, entity_history_id, checks, m
         pk=pk,
         history=entity_history_id
     )
-    send_email_decision_entity(entity, checks['entity_type'], data['approval_status'])
+    #send_email_decision_entity(entity, checks['entity_type'], data['approval_status'])
     return data
 
 
