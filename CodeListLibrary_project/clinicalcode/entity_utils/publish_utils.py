@@ -1,3 +1,4 @@
+from os import name
 import re
 from clinicalcode import db_utils
 from clinicalcode.entity_utils import entity_db_utils
@@ -183,13 +184,9 @@ def check_children(request, entity, entity_class):
         # we check access(from live version) here.
 
         errors = {}
-        has_child_entitys = False
         all_not_deleted = True
-        is_allowed_view_children = True
         all_are_published = True
 
-        if child_entitys_versions:
-            has_child_entitys = True
 
 
         # Collect all ids from child_entitys_versions
@@ -205,22 +202,25 @@ def check_children(request, entity, entity_class):
         all_not_deleted = not bool(errors)
 
 
-        for child in child_entitys_versions:
-            child_id = child[0]
-            child_version_id = child[1]
+        for entity_child in child_entitys_versions:
+            entity_child_id = entity_child[0]
+            entity_child_version = entity_child[1]
 
-            concept_owner_id = Concept.objects.get(id=child_id).phenotype_owner_id
-            print(child_id)
-            
+            concept_owner_id = Concept.history.get(id=entity_child_id).phenotype_owner_id
             if concept_owner_id != entity.id:
-                is_published = len(PublishedGenericEntity.objects.filter(
-                entity=concept_owner_id, 
-                approval_status=constants.APPROVAL_STATUS.APPROVED)) > 0
+                entity_from_concept = GenericEntity.history.filter(
+                id=concept_owner_id,
+                publish_status=constants.APPROVAL_STATUS.APPROVED.value)
+                if entity_from_concept.exists():
+                    inheritated_childs = [(i[child_id],i[child_version_id]) for i in entity_from_concept.values_list("template_data", flat=True)[0][name_table]] 
+                    is_published = (entity_child_id,entity_child_version) in inheritated_childs
+                else:
+                    is_published = False
             else:
                 is_published = True
 
             if not is_published:
-                errors[str(child_id) + '/' + str(child_version_id)] = 'Child ' + name_child + '(' + str(child_id) + '/' + str(child_version_id) + ') is not published'
+                errors[str(entity_child_id) + '/' + str(entity_child_version)] = 'Child ' + name_child + '(' + str(entity_child_id) + '/' + str(entity_child_version) + ') is not published'
                 all_are_published = False
 
         isOK = (all_not_deleted and all_are_published)
