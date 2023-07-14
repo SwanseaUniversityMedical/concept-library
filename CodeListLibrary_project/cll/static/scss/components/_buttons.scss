@@ -235,6 +235,9 @@
   &.bubble-accent {
     background-color: col(accent-bubble);
   }
+  &.danger-accent {
+    background-color: col(accent-danger);
+  }
 }
 
 .secondary-btn {

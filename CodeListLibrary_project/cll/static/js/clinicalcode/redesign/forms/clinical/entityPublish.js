@@ -37,7 +37,7 @@ class PublishModal {
         {
           name: "Decline",
           type: ModalFactory.ButtonTypes.CONFIRM,
-          html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="decline-modlal-button"></button>`,
+          html: `<button class="primary-btn text-accent-darkest bold danger-accent" id="decline-modlal-button"></button>`,
         },
         {
           name: "Approve",
