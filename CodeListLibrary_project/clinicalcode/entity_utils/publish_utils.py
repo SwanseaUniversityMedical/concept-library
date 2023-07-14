@@ -175,7 +175,6 @@ def check_children(request, entity, entity_class):
             name_child = 'phenotype'
         
         if len(entity.template_data[name_table]) == 0:
-            has_child_entitys = False
             child_entitys_versions = ''
         else:
             child_entitys_versions = [(x[child_id], x[child_version_id]) for x in entity.template_data[name_table]]
@@ -186,8 +185,6 @@ def check_children(request, entity, entity_class):
         errors = {}
         all_not_deleted = True
         all_are_published = True
-
-
 
         # Collect all ids from child_entitys_versions
         ids = [p[0] for p in child_entitys_versions]
