@@ -1,4 +1,9 @@
-FROM python:3.9-slim
+FROM python:3.9-slim-bullseye
+
+ARG http_proxy
+ARG https_proxy
+ENV HTTP_PROXY $http_proxy
+ENV HTTPS_PROXY $https_proxy
 
 ENV PYTHONUNBUFFERED 1
 ENV LC_ALL=C.UTF-8
@@ -13,7 +18,10 @@ RUN \
   apt-get install -y -q wget && \
   apt-get -y -q install sudo nano && \
   apt-get install -y -q redis-server && \ 
-  apt-get install -y -q dos2unix
+  apt-get install -y -q dos2unix && \
+  apt-get install -y -q curl && \
+  apt-get install -y -q npm && \
+  apt-get install -y -q ca-certificates
 
 # Install LDAP deps
 RUN apt-get install -y -q libsasl2-dev libldap2-dev libssl-dev
@@ -24,10 +32,13 @@ RUN apt-get update && apt-get install -y \
     npm
 
 # Install esbuild
-RUN npm config set registry http://registry.npmjs.org/ && \
-    npm config set proxy http://192.168.10.15:8080 && \
+RUN curl -fsSL --proxy https://192.168.10.15:8080 https://deb.nodesource.com/setup_18.x | sudo bash -E - && \
+  apt-get install -y nodejs
+
+RUN npm config set proxy http://192.168.10.15:8080 && \
     npm config set https-proxy https://192.168.10.15:8080 && \
-    npm install -g config set user root && \
+    npm config set registry http://registry.npmjs.org/ && \
+    npm install -g config set user root \
     npm install -g esbuild
 
 # Install & upgrade pip
@@ -64,7 +75,6 @@ RUN ["dos2unix", "/bin/wait-for-it.sh"]
 
 # Config apache
 COPY ./production/cll.conf /etc/apache2/sites-available/cll.conf
-RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 RUN a2enmod wsgi
 
 # Enable the site
@@ -77,6 +87,3 @@ RUN \
 # Expose ports
 EXPOSE 80
 EXPOSE 443
-
-# ENTRYPOINT
-# RUN ["/home/config_cll/init-app.sh"]

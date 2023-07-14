@@ -8,7 +8,7 @@ services:
       dockerfile: ./test.Dockerfile
       args:
         http_proxy: http://192.168.10.15:8080
-        https_proxy: https://192.168.10.15:8080
+        https_proxy: http://192.168.10.15:8080
     command: >
       sh -c "/home/config_cll/init-app.sh
       && /usr/sbin/apache2ctl -D FOREGROUND"
@@ -16,20 +16,27 @@ services:
       - ../../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
     ports:
       - 8005:80
-    tty: true
-    stdin_open: true
+    expose:
+      - 80
+      - 443
     env_file:
       - ./app.compose.env
     depends_on:
-      - postgres
       - redis
 
   redis:
     image: redis
+    container_name: redis
     ports:
       - 6379:6379
+    expose:
+      - 6379
     volumes:
       - .:/data
+    networks:
+      default:
+        aliases:
+          - redis
 
   celery_worker:
     build:
@@ -37,7 +44,7 @@ services:
       dockerfile: ./test.Dockerfile
       args:
         http_proxy: http://192.168.10.15:8080
-        https_proxy: https://192.168.10.15:8080
+        https_proxy: http://192.168.10.15:8080
     command: >
       sh -c "/home/config_cll/worker_start.sh"
     env_file:
@@ -45,7 +52,6 @@ services:
     volumes:
       - ../../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
     depends_on:
-      - postgres
       - app
       - redis
 
@@ -55,7 +61,7 @@ services:
       dockerfile: ./test.Dockerfile
       args:
         http_proxy: http://192.168.10.15:8080
-        https_proxy: https://192.168.10.15:8080
+        https_proxy: http://192.168.10.15:8080
     command: >
       sh -c "/home/config_cll/beat_start.sh"
     env_file:
@@ -63,7 +69,6 @@ services:
     volumes:
       - ../../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
     depends_on:
-      - postgres
       - app
       - redis
       - celery_worker
