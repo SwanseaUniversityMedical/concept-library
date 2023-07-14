@@ -35,10 +35,7 @@ RUN \
   apt-get install -y -q python3-pip
 
 RUN \
-  pip --proxy http://192.168.10.15:8080 install  --upgrade pip 
-
-RUN \
-  pip install virtualenv 
+  pip install --upgrade pip
 
 RUN mkdir -p /home/config_cll/cll_srvr_logs
 RUN chmod 750 /home/config_cll/cll_srvr_logs
@@ -49,11 +46,12 @@ WORKDIR /var/www/
 RUN mkdir -p /var/www/concept_lib_sites/v1
 COPY ./requirements /var/www/concept_lib_sites/v1/requirements
 
-# Install py dependencies
-RUN pip install -r /var/www/concept_lib_sites/v1/requirements/base.txt
+RUN \
+  pip --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/base.txt
 
 # Config apache
 COPY ./production/cll.conf /etc/apache2/sites-available/cll.conf
+# RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 RUN a2enmod wsgi
 
 # Enable the site

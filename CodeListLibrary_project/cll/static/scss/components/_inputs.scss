@@ -307,10 +307,17 @@
 //  @desc defines a horizontal stack of checkboxes
 .hstack-checkbox-group {
   @include flex-row();
+  @include remove-appearance();
 
+  border: none;
   position: relative;
   margin: 0.5rem 0;
   min-height: 20px;
+  align-items: center;
+
+  &__title {
+    margin: 0 0.5rem 0 0;
+  }
 }
 
 // hstack-radio-group
@@ -321,6 +328,11 @@
   
   border: none;
   position: relative;
+  align-items: center;
+
+  &__title {
+    margin: 0.5rem 0.5rem 0 0
+  }
 }
 
 // checkbox-item-container
@@ -761,6 +773,8 @@
 }
 
 .checkbox-input[type="checkbox"] {
+  @include remove-appearance();
+
   &:not(:checked), &:checked {
     position: absolute;
     left: 0;

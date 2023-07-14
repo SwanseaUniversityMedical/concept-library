@@ -41,7 +41,7 @@
           }
           <span tooltip="Delete Concept" direction="left">
             <span class="delete-icon" tabindex="0" aria-label="Delete Concept" role="button" data-target="delete"></span>
-          </span>          
+          </span>
         </span>
       </span>
 
@@ -198,6 +198,11 @@
                 id="searchterm" placeholder="Add searchterm..." minlength="3"
                 value="${source}" data-item="rule">
             <span class="code-text-input__icon" id="code-search-icon"></span>
+          </fieldset>
+          <fieldset class="hstack-checkbox-group justify-content-end" id="search-methods">
+            <p class="hstack-checkbox-group__title">Search options:</p>
+            <input class="checkbox-input" aria-label="Include Description in search" type="checkbox" id="desc-rule-${id}" name="search-method">
+            <label for="desc-rule-${id}">Include Description</label>
           </fieldset>
         </div>
       </article>

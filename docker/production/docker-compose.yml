@@ -8,13 +8,13 @@ services:
       dockerfile: ./test.Dockerfile
     command: >
       sh -c "/home/config_cll/init-app.sh
-      && /usr/sbin/apachectl -D FOREGROUND"
+      && /usr/sbin/apache2ctl -D FOREGROUND"
     volumes:
       - ../../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
     ports:
-      - "8000:8000"
-      - "8080:80"
-      - "8443:443"
+      - 8000:8000
+      - 8443:443
+      - 8080:80
     tty: true
     stdin_open: true
     env_file:

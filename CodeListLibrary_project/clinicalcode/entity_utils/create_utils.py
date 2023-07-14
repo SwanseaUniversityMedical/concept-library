@@ -715,7 +715,7 @@ def try_update_concept(request, item, entity=None):
             codes = Code.objects.filter(code_list_id=codelist.pk, code=code_item)
             if codes.exists():
                 continue
-            Code.objects.create(code_list=codelist, code=code_item, description=next(item for item in new_codes if item['code'] == code).get('description'))
+            Code.objects.create(code_list=codelist, code=code_item, description=next(item for item in new_codes if item['code'] == code_item).get('description'))
 
     # Create new components, codelists and associated codes
     new_components += [obj for obj in components_data if obj.get('is_new')]

@@ -459,7 +459,10 @@ class CreateEntityView(TemplateView):
         if not coding_system:
             return gen_utils.jsonify_response(message='Invalid coding system parameter', code=400, status='false')
 
-        codelist = search_utils.search_codelist(coding_system, search_term)
+        include_desc = gen_utils.parse_int(gen_utils.try_get_param(request, 'include_desc'), None)
+        include_desc = include_desc == 1
+
+        codelist = search_utils.search_codelist(coding_system, search_term, include_desc=include_desc)
         if codelist is not None:
             codelist = list(codelist.values('id', 'code', 'description'))
         else:

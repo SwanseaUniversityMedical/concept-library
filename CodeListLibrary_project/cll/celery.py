@@ -16,13 +16,13 @@ schedule = {
     # Publication & Update emails
     'send_mail': {
         'task': 'clinicalcode.tasks.send_scheduled_email',
-        'schedule': crontab(minute='*/5') if settings.IS_DEVELOPMENT_PC else crontab(minute=0,hour='9,18')
+        'schedule': crontab(minute=0,hour='9,18')
     },
 
     # Sync sources
     'celery_run_data_sync':{
         'task': 'clinicalcode.views.Admin.run_celery_datasource',
-        'schedule': crontab(minute='*/5') if settings.IS_DEVELOPMENT_PC else crontab(minute=0, hour='9,18')
+        'schedule': crontab(minute=0, hour='9,18')
     },
 
     # Statistics job
@@ -43,7 +43,7 @@ if settings.DEBUG:
     schedule |= {
         'send_message_test': {
             'task': 'clinicalcode.tasks.send_message_test',
-            'schedule':crontab(minute='*/5') if settings.IS_DEVELOPMENT_PC else crontab(minute=0,hour='9,18')
+            'schedule': crontab(minute=0,hour='9,18')
         },
     }
 
