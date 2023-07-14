@@ -6,7 +6,7 @@ echo "===================================="
 
 cd /var/www/concept_lib_sites/v1/CodeListLibrary_project
 
-if [ ! -z $CLL_READ_ONLY ] && [ $CLL_READ_ONLY = 1 ]; then
+if [ ! -z $CLL_READ_ONLY ] && [ $CLL_READ_ONLY = 0 ]; then
   echo "===================================="
   echo "========== Migrating app ==========="
   echo "===================================="

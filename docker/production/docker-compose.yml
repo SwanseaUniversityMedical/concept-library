@@ -6,26 +6,28 @@ services:
     build:
       context: ..
       dockerfile: ./test.Dockerfile
+      args:
+        http_proxy: http://192.168.10.15:8080
+        https_proxy: https://192.168.10.15:8080
     command: >
       sh -c "/home/config_cll/init-app.sh
       && /usr/sbin/apache2ctl -D FOREGROUND"
     volumes:
       - ../../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
     ports:
-      - 8000:8000
-      - 8443:443
-      - 8080:80
+      - 8005:80
     tty: true
     stdin_open: true
     env_file:
       - ./app.compose.env
     depends_on:
+      - postgres
       - redis
 
   redis:
     image: redis
     ports:
-      - "6379:6379"
+      - 6379:6379
     volumes:
       - .:/data
 
@@ -33,27 +35,35 @@ services:
     build:
       context: ..
       dockerfile: ./test.Dockerfile
+      args:
+        http_proxy: http://192.168.10.15:8080
+        https_proxy: https://192.168.10.15:8080
     command: >
-      sh -c "cd /var/www/concept_lib_sites/v1/CodeListLibrary_project/
-      && celery -A cll worker -l INFO --purge"
+      sh -c "/home/config_cll/worker_start.sh"
     env_file:
       - ./app.compose.env
     volumes:
       - ../../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
     depends_on:
+      - postgres
+      - app
       - redis
 
   celery_beat:
     build:
       context: ..
       dockerfile: ./test.Dockerfile
+      args:
+        http_proxy: http://192.168.10.15:8080
+        https_proxy: https://192.168.10.15:8080
     command: >
-      sh -c "cd /var/www/concept_lib_sites/v1/CodeListLibrary_project/
-      && celery -A cll beat -l info --max-interval 300"
+      sh -c "/home/config_cll/beat_start.sh"
     env_file:
       - ./app.compose.env
     volumes:
       - ../../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
     depends_on:
+      - postgres
+      - app
       - redis
       - celery_worker
