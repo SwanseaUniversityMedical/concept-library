@@ -25,7 +25,7 @@ class PublishModal {
         {
           name: "Publish",
           type: ModalFactory.ButtonTypes.CONFIRM,
-          html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="publish-modal-button"></button>`,
+          html: `<button class="primary-btn text-accent-darkest bold secondary-accent" ${data.errors ? "disabled" : ''} id="publish-modal-button"></button>`,
         },
       ];
       const declineButton = [
@@ -37,17 +37,17 @@ class PublishModal {
         {
           name: "Decline",
           type: ModalFactory.ButtonTypes.CONFIRM,
-          html: `<button class="primary-btn disabled text-accent-darkest bold danger-accent" id="decline-modlal-button"></button>`,
+          html: `<button class="primary-btntext-accent-darkest bold danger-accent"  ${data.errors ? "disabled" : ''} id="decline-modlal-button"></button>`,
         },
         {
           name: "Approve",
           type: ModalFactory.ButtonTypes.CONFIRM,
-          html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="approve-modlal-button"></button>`,
+          html: `<button class="primary-btn text-accent-darkest bold secondary-accent" ${data.errors ? "disabled" : ''} id="approve-modlal-button"></button>`,
         },
       ];
 
       ModalFactory.create({
-        id: "test-dialog",
+        id: "publish-dialog",
         title: this.generateTitle(data),
         content: data.errors ? this.generateErrorContent(data) : this.generateContent(data),
         buttons: data.approval_status === 1 ? declineButton : publishButton,

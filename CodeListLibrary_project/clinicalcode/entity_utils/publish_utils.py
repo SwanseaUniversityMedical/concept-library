@@ -139,7 +139,7 @@ def check_entity_to_publish(request, pk, entity_history_id):
     checks = {
         'entity_type': entity_class,
         'name': entity_ver.name,
-        'errors': errors,
+        'errors': errors or None,
         'allowed_to_publish': allow_to_publish,
         'entity_is_deleted': entity_is_deleted,
         'is_owner': is_owner,
