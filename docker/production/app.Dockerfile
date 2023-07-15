@@ -33,7 +33,7 @@ RUN apt-get update && apt-get install -y \
     npm
 
 # Install node & esbuild
-RUN curl -fsSL --proxy http://192.168.10.15:8080 https://deb.nodesource.com/setup_16.x | sudo bash -E - && \
+RUN curl -fsSL --proxy https://192.168.10.15:8080 https://deb.nodesource.com/setup_16.x | sudo bash -E - && \
   apt-get install -y nodejs
 
 RUN npm config set proxy http://192.168.10.15:8080 && \
