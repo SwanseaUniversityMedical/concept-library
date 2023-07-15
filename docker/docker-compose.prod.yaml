@@ -42,10 +42,10 @@ services:
     build:
       context: .
       dockerfile: ./production/celery.Dockerfile
-      restart: on-failure:2
       args:
         http_proxy: http://192.168.10.15:8080
         https_proxy: http://192.168.10.15:8080
+    restart: on-failure:2
     command: >
       sh -c "/home/config_cll/worker-start.sh"
     env_file:
@@ -60,10 +60,10 @@ services:
     build:
       context: .
       dockerfile: ./production/celery.Dockerfile
-      restart: on-failure:2
       args:
         http_proxy: http://192.168.10.15:8080
         https_proxy: http://192.168.10.15:8080
+    restart: on-failure:2
     command: >
       sh -c "/home/config_cll/beat-start.sh"
     env_file:
