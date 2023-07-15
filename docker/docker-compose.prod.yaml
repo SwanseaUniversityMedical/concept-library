@@ -4,23 +4,20 @@ services:
   app:
     platform: linux/amd64
     build:
-      context: ..
-      dockerfile: ./test.Dockerfile
+      context: .
+      dockerfile: ./production/app.Dockerfile
       args:
         http_proxy: http://192.168.10.15:8080
         https_proxy: http://192.168.10.15:8080
-    command: >
-      sh -c "/home/config_cll/init-app.sh
-      && /usr/sbin/apache2ctl -D FOREGROUND"
+    command: /usr/sbin/apache2ctl -DFOREGROUND
     volumes:
-      - ../../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
+      - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
     ports:
       - 8005:80
     expose:
       - 80
-      - 443
     env_file:
-      - ./app.compose.env
+      - ./production/env/app.compose.env
     depends_on:
       - redis
 
@@ -40,34 +37,34 @@ services:
 
   celery_worker:
     build:
-      context: ..
-      dockerfile: ./test.Dockerfile
+      context: .
+      dockerfile: ./production/celery.Dockerfile
       args:
         http_proxy: http://192.168.10.15:8080
         https_proxy: http://192.168.10.15:8080
     command: >
-      sh -c "/home/config_cll/worker_start.sh"
+      sh -c "/home/config_cll/worker-start.sh"
     env_file:
-      - ./app.compose.env
+      - ./production/env/app.compose.env
     volumes:
-      - ../../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
+      - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
     depends_on:
       - app
       - redis
 
   celery_beat:
     build:
-      context: ..
-      dockerfile: ./test.Dockerfile
+      context: .
+      dockerfile: ./production/celery.Dockerfile
       args:
         http_proxy: http://192.168.10.15:8080
         https_proxy: http://192.168.10.15:8080
     command: >
-      sh -c "/home/config_cll/beat_start.sh"
+      sh -c "/home/config_cll/beat-start.sh"
     env_file:
-      - ./app.compose.env
+      - ./production/env/app.compose.env
     volumes:
-      - ../../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
+      - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
     depends_on:
       - app
       - redis

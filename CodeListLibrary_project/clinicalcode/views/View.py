@@ -24,7 +24,6 @@ from ..models import *
 from clinicalcode import db_utils
 from ..forms.ContactUsForm import ContactForm
 from ..permissions import allowed_to_edit, allowed_to_view
-from .Admin import save_statistics
 
 
 logger = logging.getLogger(__name__)
@@ -49,11 +48,11 @@ def index_HDRUK(request):
     '''
         Display the HDR UK homepage.
     '''
-
     if Statistics.objects.all().filter(org__iexact='HDRUK', type__iexact='landing-page').exists():
         stat = Statistics.objects.get(org__iexact='HDRUK', type__iexact='landing-page')
         HDRUK_stat = stat.stat
     else:
+        from .Admin import save_statistics
         # update stat
         stat_obj = save_statistics(request)
         HDRUK_stat = stat_obj[0]

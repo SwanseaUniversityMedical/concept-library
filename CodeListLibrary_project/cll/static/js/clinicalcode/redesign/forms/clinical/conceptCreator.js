@@ -1861,10 +1861,9 @@ export default class ConceptCreator {
       } break;
 
       case 'concept-rule': {
-        const spinner = startLoadingSpinner();
         this.tryPromptConceptRuleImport()
           .then(result => {
-
+            const spinner = startLoadingSpinner();
             if (!this.#isConceptRuleImportDistinct(result, logicalType)) {
               this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.CONCEPT_RULE_IS_PRESENT});
             } else {
@@ -1877,6 +1876,7 @@ export default class ConceptCreator {
   
               this.#tryAddNewRule(logicalType, sourceType, result);
             }
+            spinner.remove();
           })
           .catch(e => {
             if (!isNullOrUndefined(e)) {
@@ -1884,9 +1884,6 @@ export default class ConceptCreator {
               console.error(e);
               return;
             }
-          })
-          .finally(() => {
-            spinner.remove();
           });
       } break;
 

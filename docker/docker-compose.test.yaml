@@ -1,0 +1,77 @@
+version: '3'
+
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: ./development/postgres.Dockerfile
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - ./development/db/:/docker-entrypoint-initdb.d/db/
+    env_file:
+      - ./development/env/postgres.compose.env
+
+  app:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: ./test/app.Dockerfile
+    command: /usr/sbin/apache2ctl -DFOREGROUND
+    volumes:
+      - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
+    ports:
+      - 8005:80
+    expose:
+      - 80
+    env_file:
+      - ./test/env/app.compose.env
+    depends_on:
+      - postgres
+      - redis
+
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - 6379:6379
+    expose:
+      - 6379
+    volumes:
+      - .:/data
+    networks:
+      default:
+        aliases:
+          - redis
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: ./test/celery.Dockerfile
+    command: >
+      sh -c "/home/config_cll/worker-start.sh"
+    env_file:
+      - ./test/env/app.compose.env
+    volumes:
+      - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
+    depends_on:
+      - postgres
+      - app
+      - redis
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: ./test/celery.Dockerfile
+    command: >
+      sh -c "/home/config_cll/beat-start.sh"
+    env_file:
+      - ./test/env/app.compose.env
+    volumes:
+      - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
+    depends_on:
+      - postgres
+      - app
+      - redis
+      - celery_worker
