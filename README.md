@@ -91,7 +91,7 @@ To restore from a Git repository:
 4. Rename the duplicated file to `git.token`
 5. Delete the contents of the file and paste your personal access token
 >**Note: Do not share this file with anyone**
-6. Open the `docker-compose.yaml` file inside of the `docker/` folder
+6. Open the `postgres.compose.env` file inside of the `docker/development/env` folder
 7. Ensure that the environment variable `POSTGRES_RESTORE_REPO` is set to the correct GitHub repository where your `.backup` file is stored
 8. Skip to [2.3. Development](#2.3.-Development)  
 
@@ -107,7 +107,7 @@ With an empty database, you will need to run statistics manually for the applcia
 To perform the initial build and run of the application:
 1. Open a terminal
 2. Navgiate to the `concept-library/docker/` folder
-3. In the terminal, run `docker compose up --build`
+3. In the terminal, run `docker-compose -p cll -f docker-compose.dev.yaml up --build` (append `-d` as an argument to run in background)
 
 The application and database will be available at:
  - Application: `127.0.0.1:8000`
@@ -119,18 +119,18 @@ To stop the docker container:
 2. If you do not have a terminal open which is running the containers:  
 a. Open a terminal  
 b. Navigate to the `concept-library/docker/` folder  
-c. In the terminal, run `docker compose stop`  
+c. In the terminal, run `docker-compose -p cll -f docker-compose.dev.yaml down`  
 
 To start the docker container (if it has already been built and has stopped for any reason):
 1. Open a terminal
 2. Navigate to the `concept-library/docker/` folder
-3. In the terminal, run `docker compose start`
+3. In the terminal, run `docker-compose -p cll -f docker-compose.dev.yaml start`
 
 ### 2.3.3. Live Working
 Whilst working on the codebase, any changes should be automatically applied to the codebase stored in the app container after saving the file. 
 
 If you make any changes to the models you will need to:  
-1. Stop and start the containers again with `docker compose up`, the migrations will be automatically applied
+1. Stop and start the containers again with `docker-compose -p cll -f docker-compose.dev.yaml up --build`, the migrations will be automatically applied
 2. *OR*; execute the migration code from within the app container (see: https://docs.docker.com/engine/reference/commandline/exec/)
 
 ### 2.3.4. Removing the Containers
@@ -139,11 +139,12 @@ To remove the containers:
 2. Navigate to the `concept-library/docker/` folder
 3. In the terminal, run:  
 a. `docker compose down`: removes networks and containers.  
-b. *OR;* `docker-compose down --rmi all -v`: removes networks, containers, images and volumes.
+b. *OR;* `docker-compose -p cll -f docker-compose.dev.yaml down --rmi all -v`: removes networks, containers, images and volumes.
+c. *OR;* to prune your docker, enter `docker system prune -a`
 
 ## 2.4. Accessing and Exporting the Database
 >*Note:   
-If you have made changes to the environment variables in the docker-compose.yaml file you will need to match those changes when connecting through the CLI or PGAdmin4*
+If you have made changes to the environment variables in the docker-compose.dev.yaml file you will need to match those changes when connecting through the CLI or PGAdmin4*
 
 ### 2.4.1. Access/Export with PGAdmin4
 *To access the database:*  
@@ -187,11 +188,11 @@ b. *OR;* run a query directly with `psql -U clluser -d concept_library 'SELECT *
 Django logging is enabled by default, you can view the logs in the terminal used to start the docker container. 
 
 To disable the verbose logging:
-1. In docker-compose.yaml set `tty: false` under the `app` service
-2. In docker-compose.yaml set `DEBUG: false` under the `environment` section of the `app` service
+1. In docker-compose.dev.yaml set `tty: false` under the `app` service
+2. In docker-compose.dev.yaml set `DEBUG: false` under the `environment` section of the `app` service
 
 ### 2.5.2. Debug Tools in Visual Studio Code
-Before continuing, open the `docker-compose.yaml` file and ensure the `DEBUG_TOOLS` variable in the `app` container definition is set to true.
+Before continuing, open the `docker-compose.dev.yaml` file and ensure the `DEBUG_TOOLS` variable in the `app` container definition is set to true.
 
 Create a run configuration for the project:
 1. Create a new folder and name it `.vscode`
@@ -219,7 +220,7 @@ Create a run configuration for the project:
 ```
 
 Now you're ready to start debugging:
-1. Build the container `docker compose up --build` and ensure it is running
+1. Build the container `docker-compose -p cll -f docker-compose.dev.yaml up --build` and ensure it is running
 2. Add a breakpoint to the file that you are debugging
 3. In Visual Studio Code, open the `Run and Debug Menu` by clicking the icon on the left-hand side of the screen or using the hotkey `Ctrl+Shift+D`
 4. At the top of the debug menu, select the `Debug Application` option
@@ -229,7 +230,7 @@ Variables, Watch and Callstack can all be viewed in the `Run and Debug` menu pan
 
 ### 2.5.3. Running Tests
 To run tests on the container, you first need to:
-1. Build the container `docker compose up --build` and ensure it is running
+1. Build the container `docker-compose -p cll -f docker-compose.dev.yaml up --build` and ensure it is running
 2. Open a terminal
 3. In the terminal, run: `docker exec -it concept-library-development-postgres-1 /bin/bash`
 4. Navigate to the directory containing the codebase by running: `cd /var/www/CodeListLibrary_project`
