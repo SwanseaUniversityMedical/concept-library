@@ -18,7 +18,8 @@ services:
     build:
       context: .
       dockerfile: ./test/app.Dockerfile
-      server_name: localhost
+      args:
+        server_name: localhost
     command: /usr/sbin/apache2ctl -DFOREGROUND
     volumes:
       - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/

@@ -33,7 +33,7 @@ RUN apt-get update && apt-get install -y \
     npm
 
 # Install node & esbuild
-RUN curl -fsSL --proxy https://192.168.10.15:8080 https://deb.nodesource.com/setup_18.x | sudo bash -E - && \
+RUN curl -fsSL --proxy http://192.168.10.15:8080 https://deb.nodesource.com/setup_16.x | sudo bash -E - && \
   apt-get install -y nodejs
 
 RUN npm config set proxy http://192.168.10.15:8080 && \
@@ -77,6 +77,7 @@ ENTRYPOINT ["/init-app.sh"]
 
 # Config apache and enable site
 RUN echo $(printf 'export SERVER_NAME=%s' "$SERVER_NAME") >> /etc/apache2/envvars
+RUN echo $(printf 'ServerName %s' "$SERVER_NAME") >> /etc/apache2/apache2.conf
 ADD ./production/cll.conf /etc/apache2/sites-available/cll.conf
 
 RUN a2ensite \

@@ -22,7 +22,7 @@ fi
 echo "==========================================="
 echo "============== Compiling app =============="
 echo "==========================================="
-if [ ! -z $DEBUG ] && [ $DEBUG = "True" ]; then
+if [ ! -z $DEBUG ] && [ $DEBUG = "False" ]; then
   python manage.py compilescss
   python manage.py collectstatic --noinput --clear --ignore=*.scss
   python manage.py compress
@@ -43,7 +43,6 @@ echo "==========================================="
 rm -f /var/run/apache2/apache2.pid
 rm -rf /run/httpd/* /tmp/httpd*
 chmod -R 777 /tmp/* 2>/dev/null
-echo $(printf 'ServerName %s' "$SERVER_NAME") >> /etc/apache2/apache2.conf
 
 echo $(printf 'Started Server @ %s' "$SERVER_NAME")
 exec "$@"

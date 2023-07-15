@@ -1,5 +1,8 @@
 FROM python:3.9-slim-bullseye
 
+ARG server_name
+
+ENV SERVER_NAME $server_name
 ENV PYTHONUNBUFFERED 1
 ENV LC_ALL=C.UTF-8
 
@@ -65,6 +68,8 @@ RUN ["chmod", "a+x", "/init-app.sh"]
 ENTRYPOINT ["/init-app.sh"]
 
 # Config apache and enable site
+RUN echo $(printf 'export SERVER_NAME=%s' "$SERVER_NAME") >> /etc/apache2/envvars
+RUN echo $(printf 'ServerName %s' "$SERVER_NAME") >> /etc/apache2/apache2.conf
 ADD ./production/cll.conf /etc/apache2/sites-available/cll.conf
 
 RUN a2ensite \

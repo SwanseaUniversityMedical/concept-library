@@ -14,7 +14,7 @@ services:
     volumes:
       - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
     ports:
-      - 8005:80
+      - 8080:80
     expose:
       - 80
     env_file:
