@@ -37,7 +37,7 @@ class PublishModal {
         {
           name: "Decline",
           type: ModalFactory.ButtonTypes.CONFIRM,
-          html: `<button class="primary-btn text-accent-darkest bold danger-accent" id="decline-modlal-button"></button>`,
+          html: `<button class="primary-btn disabled text-accent-darkest bold danger-accent" id="decline-modlal-button"></button>`,
         },
         {
           name: "Approve",
@@ -49,7 +49,7 @@ class PublishModal {
       ModalFactory.create({
         id: "test-dialog",
         title: this.generateTitle(data),
-        content: this.generateContent(data),
+        content: data.errors ? this.generateErrorContent(data) : this.generateContent(data),
         buttons: data.approval_status === 1 ? declineButton : publishButton,
       })
         .then(async (result) => {
@@ -124,6 +124,23 @@ class PublishModal {
     }
     return paragraph;
   }
+
+  generateErrorContent(data) {
+    let errorsHtml = "";
+    for (const [key, value] of Object.entries(data.errors)) {
+      errorsHtml += `<li><span class="text-danger cross">${value}</span></li>`;
+    }
+
+    let html = `
+        <p>This entity cannot be published</p>
+        <strong><span class="text-danger cross">Errors:</span></strong>
+        <br>
+        <ul>
+            ${errorsHtml}
+        </ul>`;
+    return html;
+  }
+
 
   generateTitle(data) {
     let title;

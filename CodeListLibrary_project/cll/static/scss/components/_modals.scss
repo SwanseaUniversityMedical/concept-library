@@ -111,6 +111,33 @@
     &.no-pad {
       padding: 0;
     }
+
+    
+    
+    ul{
+      list-style: none;
+    }
+    
+    span{
+      &.text-danger{
+        color: col(text-danger);
+      }
+    
+      &.text-success{
+        color: col(text-success);
+      }
+    
+      &.text-warning{
+        color: col(text-warning);
+      }
+      &.cross::before{
+        color: col(text-danger);
+        content: "\2715";
+        margin-right: 0.5rem;
+        
+      }
+    }
+
   }
 
   &__footer {
