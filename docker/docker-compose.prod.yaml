@@ -10,6 +10,7 @@ services:
         http_proxy: http://192.168.10.15:8080
         https_proxy: http://192.168.10.15:8080
         server_name: www.conceptlibrary.saildatabank.com
+    restart: on-failure
     command: /usr/sbin/apache2ctl -DFOREGROUND
     volumes:
       - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
@@ -25,6 +26,7 @@ services:
   redis:
     image: redis:7.0-bullseye
     container_name: redis
+    restart: on-failure
     ports:
       - 6379:6379
     expose:
@@ -40,6 +42,7 @@ services:
     build:
       context: .
       dockerfile: ./production/celery.Dockerfile
+      restart: on-failure:2
       args:
         http_proxy: http://192.168.10.15:8080
         https_proxy: http://192.168.10.15:8080
@@ -57,6 +60,7 @@ services:
     build:
       context: .
       dockerfile: ./production/celery.Dockerfile
+      restart: on-failure:2
       args:
         http_proxy: http://192.168.10.15:8080
         https_proxy: http://192.168.10.15:8080

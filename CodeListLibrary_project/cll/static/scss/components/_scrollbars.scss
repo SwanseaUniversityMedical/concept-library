@@ -6,10 +6,6 @@
 /// Slim scrollbar 
 ///   @desc used for table content
 .slim-scrollbar {
-  /* Firefox */
-  scrollbar-color: var(--slim-scrollbar-active-color) col(clear) !important;
-  scrollbar-width: thin !important;
-
   /* Webkit */
   &::-webkit-scrollbar {
     width: var(--slim-scrollbar-width);
@@ -34,15 +30,15 @@
   &::-webkit-scrollbar-thumb:window-inactive {
     background: col(clear);
   }
+
+  /* Firefox */
+  scrollbar-color: var(--slim-scrollbar-active-color) col(clear) !important;
+  scrollbar-width: thin !important;
 }
 
 /// Filter scrollbar
 ///   @desc vertical scrollbar used for filters on search pages
 .filter-scrollbar {
-  /* Firefox */
-  scrollbar-color: var(--slim-scrollbar-active-color) col(clear) !important;
-  scrollbar-width: thin !important;
-
   /* Webkit */
   &::-webkit-scrollbar {
     width: 6px;
@@ -62,4 +58,8 @@
   &::-webkit-scrollbar-thumb:hover {
     background: var(--slim-scrollbar-active-color);
   }
+
+  /* Firefox */
+  scrollbar-color: var(--slim-scrollbar-active-color) col(clear) !important;
+  scrollbar-width: thin !important;
 }
