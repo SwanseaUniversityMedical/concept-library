@@ -2,7 +2,7 @@
 
 cd /var/www/concept_lib_sites/v1/CodeListLibrary_project
 
-if [ ! -z $IS_DEVELOPMENT_PC ] && [ $IS_DEVELOPMENT_PC = 1 ]; then
+if [ ! -z $IS_DEVELOPMENT_PC ] && [ $IS_DEVELOPMENT_PC = "True" ]; then
   echo "==========================================="
   echo "========== Waiting for Postgres ==========="
   echo "==========================================="
@@ -10,7 +10,7 @@ if [ ! -z $IS_DEVELOPMENT_PC ] && [ $IS_DEVELOPMENT_PC = 1 ]; then
   /bin/wait-for-it.sh -t 0 $DB_HOST:5432 -- echo "Postgres is live"
 fi
 
-if [ ! -z $CLL_READ_ONLY ] && [ $CLL_READ_ONLY = 0 ]; then
+if [ ! -z $CLL_READ_ONLY ] && [ $CLL_READ_ONLY = "False" ]; then
   echo "==========================================="
   echo "============== Migrating app =============="
   echo "==========================================="
@@ -22,7 +22,7 @@ fi
 echo "==========================================="
 echo "============== Compiling app =============="
 echo "==========================================="
-if [ ! -z $DEBUG ] && [ $DEBUG = 0 ]; then
+if [ ! -z $DEBUG ] && [ $DEBUG = "True" ]; then
   python manage.py compilescss
   python manage.py collectstatic --noinput --clear --ignore=*.scss
   python manage.py compress
