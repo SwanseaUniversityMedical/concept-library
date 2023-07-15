@@ -45,4 +45,5 @@ rm -rf /run/httpd/* /tmp/httpd*
 chmod -R 777 /tmp/* 2>/dev/null
 echo $(printf 'ServerName %s' "$SERVER_NAME") >> /etc/apache2/apache2.conf
 
+echo $(printf 'Started Server @ %s' "$SERVER_NAME")
 exec "$@"
