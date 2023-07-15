@@ -9,6 +9,7 @@ services:
       args:
         http_proxy: http://192.168.10.15:8080
         https_proxy: http://192.168.10.15:8080
+        server_name: www.conceptlibrary.saildatabank.com
     command: /usr/sbin/apache2ctl -DFOREGROUND
     volumes:
       - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
@@ -22,7 +23,7 @@ services:
       - redis
 
   redis:
-    image: redis
+    image: redis:7.0-bullseye
     container_name: redis
     ports:
       - 6379:6379

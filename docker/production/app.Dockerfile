@@ -2,8 +2,11 @@ FROM python:3.9-slim-bullseye
 
 ARG http_proxy
 ARG https_proxy
+ARG server_name
+
 ENV HTTP_PROXY $http_proxy
 ENV HTTPS_PROXY $https_proxy
+ENV SERVER_NAME $server_name
 
 ENV PYTHONUNBUFFERED 1
 ENV LC_ALL=C.UTF-8
@@ -34,7 +37,7 @@ RUN curl -fsSL --proxy https://192.168.10.15:8080 https://deb.nodesource.com/set
   apt-get install -y nodejs
 
 RUN npm config set proxy http://192.168.10.15:8080 && \
-    npm config set https-proxy https://192.168.10.15:8080 && \
+    npm config set https-proxy http://192.168.10.15:8080 && \
     npm config set registry http://registry.npmjs.org/ && \
     npm install -g config set user root \
     npm install -g esbuild
@@ -73,12 +76,14 @@ RUN ["chmod", "a+x", "/init-app.sh"]
 ENTRYPOINT ["/init-app.sh"]
 
 # Config apache and enable site
+RUN echo $(printf 'export SERVER_NAME=%s' "$SERVER_NAME") >> /etc/apache2/envvars
 ADD ./production/cll.conf /etc/apache2/sites-available/cll.conf
 
 RUN a2ensite \
     cll.conf && \
   a2enmod \
     wsgi \
+    env
     rewrite \
     headers \
     expires && \

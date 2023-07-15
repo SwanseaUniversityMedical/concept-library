@@ -71,6 +71,7 @@ RUN a2ensite \
     cll.conf && \
   a2enmod \
     wsgi \
+    env
     rewrite \
     headers \
     expires && \
