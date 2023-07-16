@@ -182,7 +182,7 @@ def check_children(request, entity, entity_class):
         # Now check all the child concepts for deletion(from live version) and Publish(from historical version)
         # we check access(from live version) here.
 
-        errors = {}
+        errors = []
         all_not_deleted = True
         all_are_published = True
 
@@ -193,7 +193,8 @@ def check_children(request, entity, entity_class):
         deleted_objects = Concept.objects.filter(id__in=ids, is_deleted=True) if entity_class == "Phenotype" else GenericEntity.objects.filter(id__in=ids, is_deleted=True)
 
         # Iterate through deleted objects and update errors dictionary
-        errors = {obj.id: f'Child {name_child}({obj.id}) is deleted' for obj in deleted_objects}
+        errors = [{obj.id: f'Child {name_child}({obj.id}) is deleted',"url_parent":None} for obj in deleted_objects]
+        print(errors)
 
         # Check if all objects are not deleted
         all_not_deleted = not bool(errors)
@@ -217,12 +218,11 @@ def check_children(request, entity, entity_class):
             else:
                 is_published = True
             if not is_published:
-                errors[str(entity_child_id) + '/' + str(entity_child_version)] = """<a href='{url}'>{name}({id}/{version}) is not published""".format(
-                    url=reverse('entity_detail', kwargs={'pk': concept_owner_id}),
+                errors.append({str(entity_child_id) + '/' + str(entity_child_version):"""{name}({id}/{version}) is not published""".format(
                     name=name_child.capitalize(),
                     id=str(entity_child_id),
                     version=str(entity_child_version)
-                )
+                ),"url_parent": reverse('entity_detail', kwargs={'pk': concept_owner_id})})
                 all_are_published = False
 
 
