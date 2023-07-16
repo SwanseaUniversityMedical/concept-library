@@ -5,7 +5,7 @@
 ///   @return {List} - Standard + Prefixes printed
 @mixin prefix($property, $value, $prefixes: ()) {
   @each $prefix in $prefixes {
-    #{'-' + $prefix + '-' + $property}: $value;
+    #{'-' + $prefix + '-' + $property}: unquote($value);
   }
  
   #{$property}: $value;

@@ -576,7 +576,7 @@ export default class ConceptCreator {
         ...{
           callback: (selected, files) => {
             if (!selected) {
-              return;
+              return reject();
             }
     
             const file = files[0];
@@ -1666,8 +1666,8 @@ export default class ConceptCreator {
     }
     this.#applyRulesetState({ id: this.state.data.coding_system.id, editor: this.state.editor });
 
-    // Open most relevant checkbox on creation
-    const checkboxes = ruleList.querySelectorAll(`.fill-accordian__input`);
+    // Open most relevant checkbox, hide the rest
+    const checkboxes = element.querySelectorAll(`.fill-accordian__input`);
     for (let i = 0; i < checkboxes.length; ++i) {
       let checkbox = checkboxes[i];
       checkbox.checked = checkbox.matches(`#rule-${rule.id}`);
@@ -1705,7 +1705,7 @@ export default class ConceptCreator {
       })
       .catch((e) => {
         if (!isNullOrUndefined(e)) {
-          console.error(e);
+          console.warn(e);
         }
       });
     });
@@ -1742,16 +1742,16 @@ export default class ConceptCreator {
   #handleRuleNameChange(index, rule, item) {
     const input = item.querySelector('input#rule-name');
     input.addEventListener('keyup', (e) => {
-      const value = input.value;
-      if (!input.checkValidity() || isNullOrUndefined(value) || isStringEmpty(value)) {
-        return;
-      }
-
       e.preventDefault();
       e.stopPropagation();
 
-      const label = item.querySelector(`label[for="rule-${rule.id}"]`);
-      label.innerText = value;
+      const value = input.value;
+      if (!input.checkValidity() || isNullOrUndefined(value) || isStringEmpty(value)) {
+        input.classList.add('fill-accordian__name-input--invalid');
+        return;
+      }
+
+      input.classList.remove('fill-accordian__name-input--invalid');
 
       this.state.data.components[index].name = value;
       this.#updateEditorCodelistColumns(index, value);
@@ -1905,7 +1905,7 @@ export default class ConceptCreator {
     
     switch (sourceType.template) {
       case 'file-rule': {
-        const spinner = startLoadingSpinner();
+        let spinner;
         this.tryPromptFileUpload()
           .then(file => {
             const codes = this.#sieveCodes(
@@ -1914,16 +1914,17 @@ export default class ConceptCreator {
             );
 
             if (codes.length > 0) {
+              spinner = startLoadingSpinner();
               file.content.data = codes;
-
+  
+              this.#tryAddNewRule(logicalType, sourceType, file);
               this.#pushToast({
                 type: 'success',
                 message: interpolateHTML(CONCEPT_CREATOR_TEXT.ADDED_FILE_CODES, {
-                  code_len: content?.content?.data.length.toLocaleString(),
+                  code_len: file?.content?.data.length.toLocaleString(),
                 })
               });
-  
-              this.#tryAddNewRule(logicalType, sourceType, content);
+
               return;
             }
 
@@ -1935,10 +1936,13 @@ export default class ConceptCreator {
             return 
           })
           .catch(e => {
+            console.warn(e);
             this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.NO_CODE_FILE_MATCH});
           })
           .finally(() => {
-            spinner.remove();
+            if (!isNullOrUndefined(spinner)) {
+              spinner.remove();
+            }
           });
       } break;
 
@@ -1987,7 +1991,7 @@ export default class ConceptCreator {
             if (!isNullOrUndefined(spinner)) {
               spinner.remove();
             }
-          })
+          });
       } break;
 
       default: break;

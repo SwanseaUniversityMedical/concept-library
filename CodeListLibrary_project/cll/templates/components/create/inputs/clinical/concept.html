@@ -170,14 +170,15 @@
     <div class="fill-accordian" id="rule-item-${id}" data-index="${index}">
       <input class="fill-accordian__input" id="rule-${id}" name="rule-${id}" type="checkbox" />
       <label class="fill-accordian__label" id="rule-${id}" for="rule-${id}" role="button" tabindex="0">
-        <span>${name}</span>
+        <span class="fill-accordian__input-title">Name:</span>
+        <input class="fill-accordian__name-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" maxlength="20" pattern="^(.*[a-zA-Z]){3}(.*){1,}" value="${name}">
       </label>
       <article class="fill-accordian__container">
         <div class="detailed-input-group fill">
-          <div class="detailed-input-group__header">
+          <div class="detailed-input-group__header detailed-input-group__header--nowrap">
             <div class="detailed-input-group__header-item">
-              <h3 class="detailed-input-group__title sm">Rule Name</h3>
-              <p class="detailed-input-group__description">The name of this Rule</p>
+              <h3 class="detailed-input-group__title sm">Searchterm Rule</h3>
+              <p class="detailed-input-group__description">A searchterm rule attempts to include codes by their code or description, you can use regex by prepending the <em>"wildcard:"</em> prefix to your searchterm (e.g. <em>"wildcard:U\\d+"</em>)</p>
             </div>
             <div class="detailed-input-group__header-item">
               <span tooltip="Remove Ruleset" direction="left">
@@ -188,18 +189,13 @@
               </span>
             </div>
           </div>
-          <input class="text-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" pattern="^[a-zA-Z]{1,}.*?" value="${name}">
-        </div>
-        <div class="detailed-input-group fill">
-          <h3 class="detailed-input-group__title sm">Searchterm Rule</h3>
-          <p class="detailed-input-group__description">A searchterm rule attempts to include codes by their code or description, you can use regex by prepending the "wildcard:" prefix to your searchterm (e.g. "wildcard:U\\d+")</p>
           <fieldset class="code-search-group">
             <input class="code-text-input" aria-label="Ruleset Searchterm" type="text" 
                 id="searchterm" placeholder="Add searchterm..." minlength="3"
                 value="${source}" data-item="rule">
             <span class="code-text-input__icon" id="code-search-icon"></span>
           </fieldset>
-          <fieldset class="hstack-checkbox-group justify-content-end" id="search-methods">
+          <fieldset class="hstack-checkbox-group hstack-checkbox-group--hang-right" id="search-methods">
             <p class="hstack-checkbox-group__title">Search options:</p>
             <input class="checkbox-input" aria-label="Include Description in search" type="checkbox" id="desc-rule-${id}" name="search-method">
             <label for="desc-rule-${id}">Include Description</label>
@@ -213,14 +209,15 @@
     <div class="fill-accordian" id="rule-item-${id}" data-index="${index}">
       <input class="fill-accordian__input" id="rule-${id}" name="rule-${id}" type="checkbox" />
       <label class="fill-accordian__label" id="rule-${id}" for="rule-${id}" role="button" tabindex="0">
-        <span>${name}</span>
+        <span class="fill-accordian__input-title">Name:</span>
+        <input class="fill-accordian__name-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" maxlength="20" pattern="^(.*[a-zA-Z]){3}(.*){1,}" value="${name}">
       </label>
       <article class="fill-accordian__container">
         <div class="detailed-input-group fill">
           <div class="detailed-input-group__header">
             <div class="detailed-input-group__header-item">
-              <h3 class="detailed-input-group__title sm">Rule Name</h3>
-              <p class="detailed-input-group__description">The name of this Rule</p>
+              <h3 class="detailed-input-group__title sm">File Import Rule</h3>
+              <p class="detailed-input-group__description">This rule describes any codes retrieved from a file</p>
             </div>
             <div class="detailed-input-group__header-item">
               <span tooltip="Remove Ruleset" direction="left">
@@ -231,11 +228,6 @@
               </span>
             </div>
           </div>
-          <input class="text-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" pattern="^[a-zA-Z]{1,}.*?" value="${name}">
-        </div>
-        <div class="detailed-input-group fill">
-          <h3 class="detailed-input-group__title sm">File Import Rule</h3>
-          <p class="detailed-input-group__description">This rule describes any codes retrieved from a file</p>
           <input class="text-input" aria-label="Imported File" type="text"
               value="${source}" data-item="rule" disabled>
         </div>
@@ -247,13 +239,14 @@
     <div class="fill-accordian" id="rule-item-${id}" data-index="${index}">
       <input class="fill-accordian__input" id="rule-${id}" name="rule-${id}" type="checkbox" />
       <label class="fill-accordian__label" id="rule-${id}" for="rule-${id}" role="button" tabindex="0">
-        <span>${name}</span>
+        <span class="fill-accordian__input-title">Name:</span>
+        <input class="fill-accordian__name-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" maxlength="20" pattern="^(.*[a-zA-Z]){3}(.*){1,}" value="${name}">
       </label>
       <article class="fill-accordian__container">
         <div class="detailed-input-group fill">
           <div class="detailed-input-group__header">
             <div class="detailed-input-group__header-item">
-              <h3 class="detailed-input-group__title sm">Rule Name</h3>
+              <h3 class="detailed-input-group__title sm">Concept Import Rule</h3>
               <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
             </div>
             <div class="detailed-input-group__header-item">
@@ -265,13 +258,8 @@
               </span>
             </div>
           </div>
-          <input class="text-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" pattern="^[a-zA-Z]{1,}.*?" value="${name}">
-        </div>
-        <div class="detailed-input-group fill">
-          <h3 class="detailed-input-group__title sm">Concept Import Rule</h3>
-          <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-          <input class="text-input" aria-label="Imported Concept" type="text"
-              value="${source}" data-item="rule" disabled>
+          <input class="text-input" aria-label="Imported Concept"
+              type="text" value="${source}" data-item="rule" disabled>
         </div>
       </article>
     </div>
