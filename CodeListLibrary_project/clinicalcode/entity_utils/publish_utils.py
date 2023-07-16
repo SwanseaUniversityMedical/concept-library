@@ -209,20 +209,24 @@ def check_children(request, entity, entity_class):
                 id=concept_owner_id,
                 publish_status=constants.APPROVAL_STATUS.APPROVED.value)
                 if entity_from_concept.exists():
-                    inheritated_childs = [(i[child_id],i[child_version_id]) for i in entity_from_concept.values_list("template_data", flat=True)[0][name_table]] 
+                    inheritated_childs = [(i[child_id],i[child_version_id]) for i in entity_from_concept.values_list("template_data", flat=True)[0][name_table]]
                     is_published = (entity_child_id,entity_child_version) in inheritated_childs
                 else:
                     is_published = False
+
             else:
                 is_published = True
-
             if not is_published:
-                errors[str(entity_child_id) + '/' + str(entity_child_version)] = 'Child ' + name_child + '(' + str(entity_child_id) + '/' + str(entity_child_version) + ') is not published'
+                errors[str(entity_child_id) + '/' + str(entity_child_version)] = """<a href='{url}'>{name}({id}/{version}) is not published""".format(
+                    url=reverse('entity_detail', kwargs={'pk': concept_owner_id}),
+                    name=name_child.capitalize(),
+                    id=str(entity_child_id),
+                    version=str(entity_child_version)
+                )
                 all_are_published = False
 
-        isOK = (all_not_deleted and all_are_published)
 
-        return  isOK, all_not_deleted, all_are_published, errors
+        return all_not_deleted and all_are_published, all_not_deleted, all_are_published, errors
 
 
 def is_valid_entity_class(entity_class):

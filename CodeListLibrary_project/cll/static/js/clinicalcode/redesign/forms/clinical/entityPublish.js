@@ -128,16 +128,13 @@ class PublishModal {
   generateErrorContent(data) {
     let errorsHtml = "";
     for (const [key, value] of Object.entries(data.errors)) {
-      errorsHtml += `<li><span class="text-danger cross">${value}</span></li>`;
+      errorsHtml += `<li>${value}</li>`;
     }
-
     let html = `
         <p>This entity cannot be published</p>
         <strong><span class="text-danger cross">Errors:</span></strong>
         <br>
-        <ul>
-            ${errorsHtml}
-        </ul>`;
+        <ul>${errorsHtml}</ul>`;
     return html;
   }
 
