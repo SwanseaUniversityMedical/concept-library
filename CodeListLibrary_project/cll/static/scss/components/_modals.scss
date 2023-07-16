@@ -117,25 +117,13 @@
     ul{
       list-style: none;
     }
-    
-    span{
-      &.text-danger{
-        color: col(text-danger);
+
+    a{
+      text-decoration: none;
+      &:hover{
+        text-decoration: underline;
       }
-    
-      &.text-success{
-        color: col(text-success);
-      }
-    
-      &.text-warning{
-        color: col(text-warning);
-      }
-      &.cross::before{
-        color: col(text-danger);
-        content: "\2715";
-        margin-right: 0.5rem;
-        
-      }
+      
     }
 
   }
@@ -147,4 +135,23 @@
     padding: 0.5rem 1rem;
     border-top: 1px solid col(accent-washed);
   }
+  
+}
+
+.text-danger{
+  color: col(text-danger);
+}
+
+.text-success{
+  color: col(text-success);
+}
+
+.text-warning{
+  color: col(text-warning);
+}
+.cross::before{
+  color: col(text-danger);
+  content: "\2715";
+  margin-right: 0.5rem;
+  
 }
