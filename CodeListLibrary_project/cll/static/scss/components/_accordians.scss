@@ -156,8 +156,8 @@
     }
 
     &--invalid {
-      border-radius: 5px;
-      border: 2px solid col(accent-danger);
+      border-radius: 5px !important;
+      border: 2px solid col(accent-danger) !important;
     }
   }
 
