@@ -14,7 +14,7 @@ class PublishModal {
     try {
       const response = await fetch(this.publish_url);
       const data = await response.json();
-      console.log(data);
+      //console.log(data); for debugging
 
       const publishButton = [
         {
@@ -37,12 +37,12 @@ class PublishModal {
         {
           name: "Decline",
           type: ModalFactory.ButtonTypes.CONFIRM,
-          html: `<button class="primary-btntext-accent-darkest bold danger-accent"  ${data.errors ? "disabled" : ''} id="decline-modlal-button"></button>`,
+          html: `<button class="primary-btntext-accent-darkest bold danger-accent"  ${data.errors ? "disabled" : ''} id="decline-modal-button"></button>`,
         },
         {
           name: "Approve",
           type: ModalFactory.ButtonTypes.CONFIRM,
-          html: `<button class="primary-btn text-accent-darkest bold secondary-accent" ${data.errors ? "disabled" : ''} id="approve-modlal-button"></button>`,
+          html: `<button class="primary-btn text-accent-darkest bold secondary-accent" ${data.errors ? "disabled" : ''} id="approve-modal-button"></button>`,
         },
       ];
 
@@ -55,8 +55,8 @@ class PublishModal {
         .then(async (result) => {
           const name = result.name;
           if (name == "Decline") {
-            await this.postData(data, this.decline_url);
-            location.reload();
+              await this.postData(data, this.decline_url);
+              location.reload();
           }else{
               await this.postData(data, this.publish_url);
               location.reload();
@@ -65,10 +65,6 @@ class PublishModal {
         .catch((result) => {
           if (!(result instanceof ModalFactory.ModalResults)) {
             return console.error(result);
-          }
-          const name = result.name;
-          if (name == "Cancel") {
-            console.log("[failure] user cancelled", result);
           }
         });
     } catch (error) {
@@ -80,7 +76,6 @@ class PublishModal {
     try {
       const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
 
-      // showLoader()
       const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -89,7 +84,6 @@ class PublishModal {
         },
         body: JSON.stringify(data),
       });
-      // hideLoader()
       return response.json();
     } catch (error) {
       console.log(error);
@@ -129,7 +123,7 @@ class PublishModal {
     let errorsHtml = "";
     for (let i=0; i < data.errors.length; i++) {
       if (data.errors[i].url_parent){
-        errorsHtml += `<li><a href="${data.errors[i].url_parent}"class="text-danger cross">${Object.values(data.errors[i])[0]}</a></li>`;
+        errorsHtml += `<li><a href="${data.errors[i].url_parent}"class="text-danger cross" target="_blank">${Object.values(data.errors[i])[0]}</a></li>`;
       }else{
         errorsHtml += `<li><span class="text-danger cross">${Object.values(data.errors[i])[0]}</span></li>`;
       }
@@ -159,5 +153,4 @@ class PublishModal {
     return title;
   }
 }
-
 
