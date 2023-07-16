@@ -29,7 +29,7 @@ RUN mkdir -p /var/www/concept_lib_sites/v1
 COPY ./requirements /var/www/concept_lib_sites/v1/requirements
 RUN ["chown", "-R" , "www-data:www-data", "/var/www/concept_lib_sites/"]
 
-RUN pip --proxy http://192.168.10.15:8080 --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/base.txt
+RUN pip --proxy http://192.168.10.15:8080 --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/production.txt
 
 # Deploy scripts
 COPY ./production/scripts/worker-start.sh /home/config_cll/worker-start.sh

@@ -33,7 +33,7 @@ RUN mkdir -p /var/www/concept_lib_sites/v1
 COPY ./requirements /var/www/concept_lib_sites/v1/requirements
 RUN ["chown", "-R" , "www-data:www-data", "/var/www/concept_lib_sites/"]
 
-RUN pip --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/base.txt
+RUN pip --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/local.txt
 
 # Deploy scripts
 RUN ["chown" , "-R" , "www-data:www-data" , "/var/www/"]

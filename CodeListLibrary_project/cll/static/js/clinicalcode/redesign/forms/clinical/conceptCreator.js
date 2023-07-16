@@ -254,6 +254,8 @@ const CONCEPT_CREATOR_TEXT = {
   REQUIRE_CONCEPT_NAME: 'You need to name your Concept before saving',
   // Toast for Concept CodingSystem validation
   REQUIRE_CODING_SYSTEM: 'You need to select a coding system before saving!',
+  // Toast to inform the user that no exclusionary codes were addded since they aren't present in an inclusionary rule
+  NO_LINKED_EXCLUSIONS: 'These codes can\'t be excluded when they aren\'t already included',
   // Toast to inform user that no code was matched
   NO_CODE_SEARCH_MATCH: 'No matches for "${value}..."',
   // Toast to inform user we exchanged codes for a null match
@@ -787,6 +789,59 @@ export default class ConceptCreator {
   }
 
   /**
+   * sieveCodes
+   * @desc removes exclusionary codes if not present within an inclusionary rule
+   * @param {str} logicalType the rule logical type
+   * @param {array[object]} data the code list
+   * @param {boolean|null} applyNewAttribute whether to apply the `is_new` attribute
+   * @returns {object} the resulting codes 
+   */
+  #sieveCodes(logicalType, data, applyNewAttribute) {
+    if (!Array.isArray(data) || data.length < 1) {
+      return [ ];
+    }
+
+    const components = this.state.data?.components;
+    if (isNullOrUndefined(components) || logicalType == CONCEPT_CREATOR_LOGICAL_TYPES.INCLUDE) {
+      if (applyNewAttribute) {
+        return data.map(item => {
+          item.is_new = true;
+          return item;
+        });
+      }
+
+      return data;
+    }
+
+    return data.reduce((filtered, row) => {
+      let i;
+      let isIncluded = false;
+      for (i = 0; i < components.length; ++i) {
+        const component = components[i];
+        if (component?.logical_type == CONCEPT_CREATOR_LOGICAL_TYPES.EXCLUDE || isNullOrUndefined(component?.codes) || component.codes.length <= 0) {
+          continue;
+        }
+
+        const index = component.codes.findIndex(item => row.code == item.code);
+        if (index >= 0) {
+          isIncluded = true;
+          break;
+        }
+      }
+
+      if (isIncluded) {
+        if (applyNewAttribute) {
+          row.is_new = true;
+        }
+
+        filtered.push(row);
+      }
+  
+      return filtered;
+    }, []);
+  }
+
+  /**
    * isConceptRuleImportDistinct
    * @desc ensures that the concept, imported as a rule in this case,
    *       is distinct for its logical type
@@ -1276,17 +1331,11 @@ export default class ConceptCreator {
     const doc = parseHTMLFromString(html);
     const item = ruleList.appendChild(doc.body.children[0]);
     const input = item.querySelector('input[data-item="rule"]');
-    const checkbox = item.querySelector('.fill-accordian__input');
 
     // Add handler for each rule type, otherwise disable element
     if (sourceInfo.disabled) {
       input.disabled = true;
     } else {
-      // Open those that are still unused
-      if (isNullOrUndefined(source)) {
-        checkbox.checked = true;
-      }
-
       // e.g. search, any future rules - can ignore file-rule because it should already be imported
       switch (sourceInfo.template) {
         case 'search-rule': {
@@ -1616,6 +1665,13 @@ export default class ConceptCreator {
       this.state.data.components[index].code_count = rule.codes.length;
     }
     this.#applyRulesetState({ id: this.state.data.coding_system.id, editor: this.state.editor });
+
+    // Open most relevant checkbox on creation
+    const checkboxes = ruleList.querySelectorAll(`.fill-accordian__input`);
+    for (let i = 0; i < checkboxes.length; ++i) {
+      let checkbox = checkboxes[i];
+      checkbox.checked = checkbox.matches(`#rule-${rule.id}`);
+    }
   }
 
   /*************************************
@@ -1736,17 +1792,19 @@ export default class ConceptCreator {
       const spinner = startLoadingSpinner();
       this.tryQueryCodelist(value, this.state.data?.coding_system?.id, includeDesc)
         .then(response => {
-          const codes = response?.result.map(item => {
-            item.is_new = true;
-            return item;
-          });
+          const logicalType = this.state.data.components[index].logical_type;
+          const codes = this.#sieveCodes(
+            logicalType,
+            response?.result,
+            true
+          );
 
           // Update row
           const prevCodeLength = this.state.data.components?.[index]?.codes?.length;
           this.state.data.components[index].codes = codes.length > 0 ? codes : [ ];
           this.state.data.components[index].source = codes.length > 0 ? value : null;
           this.state.data.components[index].code_count = codes.length;
-          
+
           // Blur the input focus
           input.blur();
 
@@ -1755,8 +1813,19 @@ export default class ConceptCreator {
             this.#tryRenderAggregatedCodelist(true);
           }
 
-          // Inform of null results (and inform of code loss if a prev. match was a success)
+          // Inform of null results 
           if (codes.length < 1) {
+            // Null as a result of there being no exclusionary matches
+            if (logicalType == CONCEPT_CREATOR_LOGICAL_TYPES.EXCLUDE) {
+              this.#pushToast({
+                type: 'warning',
+                message: CONCEPT_CREATOR_TEXT.NO_LINKED_EXCLUSIONS
+              });
+
+              return;
+            }
+
+            // Either (a) inform of loss of codes or (b) that no codes were added
             if (prevCodeLength) {
               this.#pushToast({
                 type: 'danger',
@@ -1838,15 +1907,32 @@ export default class ConceptCreator {
       case 'file-rule': {
         const spinner = startLoadingSpinner();
         this.tryPromptFileUpload()
-          .then(content => {
+          .then(file => {
+            const codes = this.#sieveCodes(
+              logicalType,
+              file?.content?.data
+            );
+
+            if (codes.length > 0) {
+              file.content.data = codes;
+
+              this.#pushToast({
+                type: 'success',
+                message: interpolateHTML(CONCEPT_CREATOR_TEXT.ADDED_FILE_CODES, {
+                  code_len: content?.content?.data.length.toLocaleString(),
+                })
+              });
+  
+              this.#tryAddNewRule(logicalType, sourceType, content);
+              return;
+            }
+
             this.#pushToast({
-              type: 'success',
-              message: interpolateHTML(CONCEPT_CREATOR_TEXT.ADDED_FILE_CODES, {
-                code_len: content?.content?.data.length.toLocaleString(),
-              })
+              type: 'warning',
+              message: CONCEPT_CREATOR_TEXT.NO_LINKED_EXCLUSIONS
             });
 
-            this.#tryAddNewRule(logicalType, sourceType, content);
+            return 
           })
           .catch(e => {
             this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.NO_CODE_FILE_MATCH});
@@ -1861,22 +1947,34 @@ export default class ConceptCreator {
       } break;
 
       case 'concept-rule': {
+        let spinner;
         this.tryPromptConceptRuleImport()
           .then(result => {
-            const spinner = startLoadingSpinner();
+            spinner = startLoadingSpinner();
             if (!this.#isConceptRuleImportDistinct(result, logicalType)) {
               this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.CONCEPT_RULE_IS_PRESENT});
-            } else {
+              return;
+            }
+
+            const codes = this.#sieveCodes(logicalType, result?.codelist);
+            if (codes.length > 0) {
+              result.codelist = codes;
+
+              this.#tryAddNewRule(logicalType, sourceType, result);
               this.#pushToast({
                 type: 'success',
                 message: interpolateHTML(CONCEPT_CREATOR_TEXT.ADDED_CONCEPT_CODES, {
                   code_len: result?.codelist.length.toLocaleString(),
                 })
-              })
-  
-              this.#tryAddNewRule(logicalType, sourceType, result);
+              });
+
+              return;
             }
-            spinner.remove();
+
+            this.#pushToast({
+              type: 'warning',
+              message: CONCEPT_CREATOR_TEXT.NO_LINKED_EXCLUSIONS
+            });
           })
           .catch(e => {
             if (!isNullOrUndefined(e)) {
@@ -1884,7 +1982,12 @@ export default class ConceptCreator {
               console.error(e);
               return;
             }
-          });
+          })
+          .finally(() => {
+            if (!isNullOrUndefined(spinner)) {
+              spinner.remove();
+            }
+          })
       } break;
 
       default: break;
