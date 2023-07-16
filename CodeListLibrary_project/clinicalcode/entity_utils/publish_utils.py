@@ -194,8 +194,6 @@ def check_children(request, entity, entity_class):
 
         # Iterate through deleted objects and update errors dictionary
         errors = [{obj.id: f'Child {name_child}({obj.id}) is deleted',"url_parent":None} for obj in deleted_objects]
-        print(errors)
-
         # Check if all objects are not deleted
         all_not_deleted = not bool(errors)
 
@@ -214,6 +212,7 @@ def check_children(request, entity, entity_class):
                     is_published = (entity_child_id,entity_child_version) in inheritated_childs
                 else:
                     is_published = False
+                    
 
             else:
                 is_published = True
@@ -229,14 +228,27 @@ def check_children(request, entity, entity_class):
         return all_not_deleted and all_are_published, all_not_deleted, all_are_published, errors
 
 
+
 def is_valid_entity_class(entity_class):
+    """
+    Regex function to check entity class name
+    @param entity_class: entity class to check
+    """
     return bool(re.match(r"(?i)^(Phenotype|Workingset)$", entity_class))
 
 def get_entity_class(entity_class):
+    """
+    Decide either phenotype or workingset is present so that we can use only one word
+    @param entity_class: entity class to check
+    """
     final_entity = lambda entity_class: 'Phenotype' if re.search(r"(?i)Phenotype", entity_class) else ('Workingset' if re.search(r"(?i)Workingset", entity_class) else None)
     return final_entity(entity_class)
 
 def get_table_of_entity(entity_class):
+    """
+    Decide either table data from phenotype or workingset
+    @param entity_class: entity class to check
+    """
     return 'concept_information' if entity_class == "Phenotype" else 'workingset_concept_information'
 
 
