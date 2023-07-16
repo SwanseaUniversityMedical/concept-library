@@ -4,8 +4,6 @@ import os
 from celery import Celery
 from celery.schedules import crontab
 from django.conf import settings
-from datetime import timedelta
-
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cll.settings')
 app = Celery('cll')

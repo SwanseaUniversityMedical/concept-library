@@ -1,5 +1,4 @@
 from django.apps import apps
-from django.conf import settings
 from django.db.models import Q
 from django.db.models.functions import Lower
 from django.db.models.expressions import RawSQL

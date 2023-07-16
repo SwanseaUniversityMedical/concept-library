@@ -1,6 +1,6 @@
 import inspect
 
-from . import gen_utils, model_utils
+from . import model_utils
 
 def is_class_method(method, expected_class):
     '''

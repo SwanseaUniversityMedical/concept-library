@@ -1,5 +1,5 @@
 from django.apps import apps
-from django.db.models import Q, F
+from django.db.models import Q
 from django.utils.timezone import make_aware
 from django.db import transaction, IntegrityError
 from datetime import datetime
