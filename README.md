@@ -126,7 +126,7 @@ Within the `concept-library/docker/` directory you will find the following docke
 3. `docker-compose.prod.yaml`
     - This compose file manually builds the production container.
     - It is exclusively used for deployment of feature branches that are not covered by CI/CD.
-    - After building, the application can be located at https://conceptlibrary.some-demo-app.saildatabank.com where `some-demo-app` describes the development domain
+    - After building, the application can be located at https://conceptlibrary.some-demo-app.saildatabank.com where `some-demo-app` describes the development sub-domain
 4. `docker-compose.deploy.yaml`
     - This compose file is used for automated deployment.
     - It is exclusively used for deployment of production containers during CI/CD workflows.
