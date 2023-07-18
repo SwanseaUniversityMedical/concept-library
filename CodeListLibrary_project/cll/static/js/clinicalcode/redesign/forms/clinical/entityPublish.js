@@ -154,3 +154,8 @@ class PublishModal {
   }
 }
 
+domReady.finally(() => {
+const url_publish = document.querySelector('data[id="publish-url"]');
+const url_decline = document.querySelector('data[id="decline-url"]');
+window.entityForm = new PublishModal(url_publish.innerHTML, url_decline.innerHTML);
+});

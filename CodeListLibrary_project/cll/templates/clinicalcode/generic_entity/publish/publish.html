@@ -9,6 +9,6 @@
 {%endcompress%}
 
 
-<script>
-    const publishModal = new PublishModal("{{url}}","{{url_decline}}");
-</script>
+
+<data data-owner="publish-modal" id="publish-url" name="url" type="text/json">{{ url }}</data>
+<data data-owner="publish-modal" id="decline-url" name="url" type="text/json">{{ url_decline }}</data>
