@@ -49,7 +49,8 @@ Often the definitions that are created are of interest to researchers for many s
 3. [Setup without Docker](#3.-Setup-without-Docker)  
   3.1. [Prerequisites](#3.1.-Prerequisites)  
   3.2. [Installing](#3.2.-Installing)  
-  3.3. [Running Tests](#3.3.-Running-Tests)  
+  3.3. [Using Eclipse](#3.3.-Using-Eclipse)  
+  3.4. [Running Tests](#3.4.-Running-Tests)  
 4. [Deployment](#4.-Deployment)  
   4.1. [Deploy Scripts](#4.1.-Deploy-Scripts)  
     4.1.1. [Manual Deployment](#4.1.1.-Manual-Deployment)  
@@ -387,8 +388,9 @@ When you first start the application there will be no users within your database
 2. Fill in the desired username, email and password
 3. When the development server is running you can access the admin section by going to the following url: http://127.0.0.1:8000/admin/
 
-#### Using Eclipse
+## 3.3. Using Eclipse
 
+#### Set up
 1. Navigate to the `File` button within Eclipse's toolbar, then select `Open projects from file system`
 2. Browse to the Concept Library folder, e.g. `C:/Dev/concept-library`
 3. Assuming you have followed the previous steps to create a virtual env, you will need to point Eclipse's python interpreter to the virtual env:
@@ -413,7 +415,7 @@ For windows machines:
 - Once installed, you can run the 'pip install django-auth-ldap' command. See LDAP installation reference [here](https://django-auth-ldap.readthedocs.io/en/1.2.x/install.html)
 - If you intend to use LDAP over SSL, please take a look at the troubleshooting guide found [here](https://support.microsoft.com/en-us/help/938703/how-to-troubleshoot-ldap-over-ssl-connection-problems)
 
-## 3.3. Running Tests
+## 3.4. Running Tests
 > **[!] Note:** Please note that `manage.py` manages which settings file is read - if a command contains the `read_only` phrase then it will use `read_only_test_settings.py`, otherwise it will use `settings.py`
 
 To run all the tests you need to run THREE commands:
