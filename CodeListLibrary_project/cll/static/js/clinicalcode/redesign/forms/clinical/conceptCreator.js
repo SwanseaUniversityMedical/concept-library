@@ -803,7 +803,7 @@ export default class ConceptCreator {
 
     for (let i = 0;  i < components.length; ++i) {
       const component = components[i];
-      if (component.logical_type != CONCEPT_CREATOR_LOGICAL_TYPES.EXCLUDE || component.source_type != CONCEPT_CREATOR_SOURCE_TYPES.SEARCH_TERM.name) {
+      if (component.logical_type != CONCEPT_CREATOR_LOGICAL_TYPES.EXCLUDE) {
         continue;
       }
 
@@ -811,20 +811,43 @@ export default class ConceptCreator {
         continue;
       }
 
-      await this.tryQueryCodelist(component.source, codingSystemId, true)
-        .then(response => {
-          const codes = this.#sieveCodes(
-            component.logical_type,
-            response?.result,
-            true
-          );
+      switch (component.source_type) {
+        case CONCEPT_CREATOR_SOURCE_TYPES.SEARCH_TERM.name: {
+          await this.tryQueryCodelist(component.source, codingSystemId, true)
+            .then(response => {
+              const codes = this.#sieveCodes(
+                component.logical_type,
+                response?.result,
+                true
+              );
+    
+              component.codes = codes.length > 0 ? codes : [ ];
+              component.code_count = codes.length;
+            })
+            .catch((e) => {
+              console.warn(`Failed to update exclusionary rule @ index ${e}`);
+            });
+        } break;
 
-          component.codes = codes.length > 0 ? codes : [ ];
-          component.code_count = codes.length;
-        })
-        .catch((e) => {
-          console.warn(`Failed to update exclusionary rule @ index ${e}`);
-        });
+        case CONCEPT_CREATOR_SOURCE_TYPES.CONCEPT_IMPORT.name: {
+          const source = component.source.substring(1, component.source.length).split('/');
+          if (source.length < 2) {
+            break;
+          }
+
+          const [ conceptId, historyId ] = source;
+          await this.#tryRetrieveRuleCodelist({ id: conceptId, history_id: historyId })
+            .then(result => {
+              const codes = this.#sieveCodes(component.logical_type, result?.codelist);
+              component.codes = codes;
+            })
+            .catch((e) => {
+              console.warn(`Failed to update exclusionary rule @ index ${e}`);
+            });
+        } break;
+
+        default: break;
+      }
     }
   }
 
@@ -1681,12 +1704,11 @@ export default class ConceptCreator {
       default: break;
     }
 
+    const ruleList = element.querySelector(`#${ruleArea}-rulesets #rules-list`);
+    const index = this.state.data.components.push(rule) - 1;
     if (logicalType == CONCEPT_CREATOR_LOGICAL_TYPES.INCLUDE) {
       await this.#recalculateExclusionaryRules();
     }
-
-    const ruleList = element.querySelector(`#${ruleArea}-rulesets #rules-list`);
-    const index = this.state.data.components.push(rule) - 1;
     this.#tryRenderRuleItem(index, rule, ruleList);
 
     // Toggle rule area
