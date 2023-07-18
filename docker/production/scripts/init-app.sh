@@ -15,8 +15,8 @@ if [ ! -z $CLL_READ_ONLY ] && [ $CLL_READ_ONLY = "False" ]; then
   echo "============== Migrating app =============="
   echo "==========================================="
 
-  python manage.py migrate
   python manage.py makemigrations
+  python manage.py migrate
 fi
 
 echo "==========================================="
@@ -45,4 +45,5 @@ rm -rf /run/httpd/* /tmp/httpd*
 chmod -R 777 /tmp/* 2>/dev/null
 
 echo $(printf 'Started Server @ %s' "$SERVER_NAME")
-exec "$@"
+
+/usr/sbin/apache2ctl -DFOREGROUND

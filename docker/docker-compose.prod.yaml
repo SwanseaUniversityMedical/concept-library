@@ -11,13 +11,15 @@ services:
         https_proxy: http://192.168.10.15:8080
         server_name: www.conceptlibrary.saildatabank.com
     restart: on-failure
-    command: /usr/sbin/apache2ctl -DFOREGROUND
+    command: >
+      sh -c "/home/config_cll/init-app.sh"
     volumes:
       - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
     ports:
       - 8080:80
     expose:
       - 80
+      - 443
     env_file:
       - ./production/env/app.compose.env
     depends_on:
@@ -41,7 +43,7 @@ services:
   celery_worker:
     build:
       context: .
-      dockerfile: ./production/celery.Dockerfile
+      dockerfile: ./production/app.Dockerfile
       args:
         http_proxy: http://192.168.10.15:8080
         https_proxy: http://192.168.10.15:8080
@@ -59,7 +61,7 @@ services:
   celery_beat:
     build:
       context: .
-      dockerfile: ./production/celery.Dockerfile
+      dockerfile: ./production/app.Dockerfile
       args:
         http_proxy: http://192.168.10.15:8080
         https_proxy: http://192.168.10.15:8080

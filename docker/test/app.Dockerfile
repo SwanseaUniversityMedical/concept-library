@@ -27,10 +27,7 @@ RUN apt-get update && apt-get install -y \
     software-properties-common \
     npm
 
-# Install node & esbuild
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | sudo bash -E - && \
-  apt-get install -y nodejs
-
+# Install esbuild
 RUN npm install -g config set user root \
     npm install -g esbuild
 
@@ -55,17 +52,21 @@ RUN ["chown", "-R" , "www-data:www-data", "/var/www/concept_lib_sites/"]
 
 RUN pip --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/production.txt
 
-# Deploy scripts
+# Utility scripts
 RUN ["chown" , "-R" , "www-data:www-data" , "/var/www/"]
 
 COPY ./development/scripts/wait-for-it.sh /bin/wait-for-it.sh
 RUN ["chmod", "u+x", "/bin/wait-for-it.sh"]
 RUN ["dos2unix", "/bin/wait-for-it.sh"]
 
-# Docker entrypoint
-COPY ./production/scripts/init-app.sh /
-RUN ["chmod", "a+x", "/init-app.sh"]
-ENTRYPOINT ["/init-app.sh"]
+# Deploy scripts
+COPY ./production/scripts/init-app.sh /home/config_cll/init-app.sh
+COPY ./production/scripts/worker-start.sh /home/config_cll/worker-start.sh
+COPY ./production/scripts/beat-start.sh /home/config_cll/beat-start.sh
+
+RUN ["chmod" , "+x" , "/home/config_cll/worker-start.sh"]
+RUN ["chmod" , "+x" , "/home/config_cll/beat-start.sh"]
+RUN ["chmod", "a+x", "/home/config_cll/init-app.sh"]
 
 # Config apache and enable site
 RUN echo $(printf 'export SERVER_NAME=%s' "$SERVER_NAME") >> /etc/apache2/envvars
@@ -80,6 +81,4 @@ RUN a2ensite \
     rewrite \
     headers \
     expires && \
-  a2dissite 000-default && \
-  service apache2 start && \
-  service apache2 reload
+  a2dissite 000-default
