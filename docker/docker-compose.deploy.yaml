@@ -7,15 +7,13 @@ services:
     restart: on-failure
     command: >
       sh -c "/home/config_cll/init-app.sh"
-    volumes:
-      - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
     ports:
       - 8080:80
     expose:
       - 80
       - 443
     env_file:
-      - ./production/env/app.compose.env
+      - ./env_vars-FA.txt
     depends_on:
       - redis
 
@@ -27,35 +25,29 @@ services:
       - 6379:6379
     expose:
       - 6379
-    volumes:
-      - .:/data
     networks:
       default:
         aliases:
           - redis
 
   celery_worker:
-    image: cll/os_celery_worker
+    image: cll/celery_worker
     restart: on-failure:2
     command: >
       sh -c "/home/config_cll/worker-start.sh"
     env_file:
-      - ./production/env/app.compose.env
-    volumes:
-      - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
+      - ./env_vars-FA.txt
     depends_on:
       - app
       - redis
 
   celery_beat:
-    image: cll/os_celery_beat
+    image: cll/celery_beat
     restart: on-failure:2
     command: >
       sh -c "/home/config_cll/beat-start.sh"
     env_file:
-      - ./production/env/app.compose.env
-    volumes:
-      - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
+      - ./env_vars-FA.txt
     depends_on:
       - app
       - redis
