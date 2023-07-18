@@ -1,5 +1,13 @@
 #!/bin/bash
 
+: '
+  Arguments:
+    -nc | --no-clean - [Defaults to True]   - determines whether we prune the workspace after deploying
+     -p | --prune    - [Defaults to False]  - determines whether we prune after docker-compose down
+     -a | --address  - [Defaults to None]   - the registry address we pull from
+     -f | --file     - [Defaults to deploy] - the docker-compose file we use
+'
+
 # Prepare env
 http_proxy=http://192.168.10.15:8080;
 export http_proxy
