@@ -381,6 +381,15 @@ This will provide a dedicated environment for each project you create. It is con
 5. You can now access the server on http://127.0.0.1:8000/admin/
 6. To stop the server, press `CTRL + C` within the terminal
 
+#### Installing LDAP functionality
+
+For windows machines:
+- You will need to install the Microsoft Visual C++ Compiler for Python. This can be found [here](https://www.microsoft.com/en-us/download/details.aspx?id=44266)
+- Download the `python_ldap` wheel, located [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#python-ldap)
+- Once downloaded, activate your virtualenv and run the following `pip install path/to/the/file/python_ldap.whl`
+- Once installed, you can run the 'pip install django-auth-ldap' command. See LDAP installation reference [here](https://django-auth-ldap.readthedocs.io/en/1.2.x/install.html)
+- If you intend to use LDAP over SSL, please take a look at the troubleshooting guide found [here](https://support.microsoft.com/en-us/help/938703/how-to-troubleshoot-ldap-over-ssl-connection-problems)
+
 #### Administration area
 When you first start the application there will be no users within your database. You will first need to create a superuser account in order to access the administration site.
 
@@ -400,20 +409,6 @@ When you first start the application there will be no users within your database
     - Select each of the folders you want added to your python path
     - Right click the Concept Library project and select `Debug as...` and choose the python development interpreter
 4. You should now see that the server is live at http://127.0.0.1:8000/admin/
-
-
-#### Importing coding systems into the code list library
-
-The Concept Library has many coding systems, but due to governance, they cannot be shared. You will need to find an online resource to download these coding systems and apply them to your Postgres DB.
-
-#### Installing LDAP functionality
-
-For windows machines:
-- You will need to install the Microsoft Visual C++ Compiler for Python. This can be found [here](https://www.microsoft.com/en-us/download/details.aspx?id=44266)
-- Download the `python_ldap` wheel, located [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#python-ldap)
-- Once downloaded, activate your virtualenv and run the following `pip install path/to/the/file/python_ldap.whl`
-- Once installed, you can run the 'pip install django-auth-ldap' command. See LDAP installation reference [here](https://django-auth-ldap.readthedocs.io/en/1.2.x/install.html)
-- If you intend to use LDAP over SSL, please take a look at the troubleshooting guide found [here](https://support.microsoft.com/en-us/help/938703/how-to-troubleshoot-ldap-over-ssl-connection-problems)
 
 ## 3.4. Running Tests
 > **[!] Note:** Please note that `manage.py` manages which settings file is read - if a command contains the `read_only` phrase then it will use `read_only_test_settings.py`, otherwise it will use `settings.py`
