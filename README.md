@@ -461,6 +461,20 @@ Please see the `app.compose.env` files within the Concept Library's `./Docker` d
 ### 4.1.2. Automated Deployment
 > **[!] Todo:** Needs documentation once we move from Gitlab CI/CD -> Harbor
 
+#### Files
+If not already present on the machine, please ensure that the following files are within the root directory:
+  - Copy `./docker/production/scripts/deploy-site.sh` to `/root/`
+  - Copy `./docker/docker-compose.deploy.yaml` to `/root/`
+
+#### Site Deployment Arguments
+Optional parameters for the `deploy-site.sh` script include:
+- `-nc` | `--no-clean` → [Defauts to `true`] Whether to clean unused docker containers/images/networks/volumes/build caches after building the current image
+- `-p` | `--prune` → [Defauts to `false`] Whether to prune the unused docker data before building the current image
+- `-a` | `--address` → [Defauts to `Null`] This parameter determines the registry we will try to pull the images from
+- `-f` | `--file` → [Defauts to `docker-compose.deploy.yaml`] The name of the docker-compose file you would like to deploy
+
+#### Automated Deployment Pipeline
+
 [Details]
 
 ## 4.2. Harbor-driven CI/CD
