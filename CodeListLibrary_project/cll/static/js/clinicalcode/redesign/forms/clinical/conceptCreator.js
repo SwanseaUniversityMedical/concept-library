@@ -789,6 +789,46 @@ export default class ConceptCreator {
   }
 
   /**
+   * recalculateExclusionaryRules
+   * @desc recalculates exclusionary rules after an inclusionary rule has been added,
+   *       such that exclusionary codes are either added or removed to reflect the
+   *       current codelist
+   */
+  async #recalculateExclusionaryRules() {
+    const components = this.state.data?.components;
+    const codingSystemId = this.state.data?.coding_system?.id;
+    if (isNullOrUndefined(components) || isNullOrUndefined(codingSystemId)) {
+      return;
+    }
+
+    for (let i = 0;  i < components.length; ++i) {
+      const component = components[i];
+      if (component.logical_type != CONCEPT_CREATOR_LOGICAL_TYPES.EXCLUDE || component.source_type != CONCEPT_CREATOR_SOURCE_TYPES.SEARCH_TERM.name) {
+        continue;
+      }
+
+      if (isNullOrUndefined(component.source) || isStringEmpty(component.source)) {
+        continue;
+      }
+
+      await this.tryQueryCodelist(component.source, codingSystemId, true)
+        .then(response => {
+          const codes = this.#sieveCodes(
+            component.logical_type,
+            response?.result,
+            true
+          );
+
+          component.codes = codes.length > 0 ? codes : [ ];
+          component.code_count = codes.length;
+        })
+        .catch((e) => {
+          console.warn(`Failed to update exclusionary rule @ index ${e}`);
+        });
+    }
+  }
+
+  /**
    * sieveCodes
    * @desc removes exclusionary codes if not present within an inclusionary rule
    * @param {str} logicalType the rule logical type
@@ -1602,7 +1642,7 @@ export default class ConceptCreator {
    * @param {object} sourceType an object retrieved from the ConceptCreator's sourceType map
    * @param {object|null} data only required during file uploads, passed from the resolved promise after prompt
    */
-  #tryAddNewRule(logicalType, sourceType, data) {
+  async #tryAddNewRule(logicalType, sourceType, data) {
     if (!this.state.editing) {
       return;
     }
@@ -1639,6 +1679,10 @@ export default class ConceptCreator {
       } break;
 
       default: break;
+    }
+
+    if (logicalType == CONCEPT_CREATOR_LOGICAL_TYPES.INCLUDE) {
+      await this.#recalculateExclusionaryRules();
     }
 
     const ruleList = element.querySelector(`#${ruleArea}-rulesets #rules-list`);
@@ -1697,9 +1741,10 @@ export default class ConceptCreator {
         .then(resolve)
         .catch(reject);
       })
-      .then(() => {
+      .then(async () => {
         this.state.data.components.splice(index, 1);
         
+        await this.#recalculateExclusionaryRules();
         this.#tryRenderRulesets();
         this.#tryRenderAggregatedCodelist(true);
       })
@@ -1791,7 +1836,7 @@ export default class ConceptCreator {
 
       const spinner = startLoadingSpinner();
       this.tryQueryCodelist(value, this.state.data?.coding_system?.id, includeDesc)
-        .then(response => {
+        .then(async response => {
           const logicalType = this.state.data.components[index].logical_type;
           const codes = this.#sieveCodes(
             logicalType,
@@ -1804,6 +1849,9 @@ export default class ConceptCreator {
           this.state.data.components[index].codes = codes.length > 0 ? codes : [ ];
           this.state.data.components[index].source = codes.length > 0 ? value : null;
           this.state.data.components[index].code_count = codes.length;
+          if (logicalType == CONCEPT_CREATOR_LOGICAL_TYPES.INCLUDE) {
+            await this.#recalculateExclusionaryRules();
+          }
 
           // Blur the input focus
           input.blur();
@@ -1883,7 +1931,9 @@ export default class ConceptCreator {
             )
           });
         })
-        .catch(() => { /* SINK */ })
+        .catch((e) => {
+          console.warn(e);
+        })
         .finally(() => {
           spinner.remove();
         });
