@@ -1,4 +1,3 @@
-
 class PublishModal {
   constructor(publish_url, decline_url) {
     this.publish_url = publish_url;
@@ -12,7 +11,11 @@ class PublishModal {
     const ModalFactory = window.ModalFactory;
 
     try {
-      const response = await fetch(this.publish_url);
+      const response = await fetch(this.publish_url, {
+        headers: {
+          "Cache-Control": "no-cache",
+        },
+      });
       const data = await response.json();
       //console.log(data); for debugging
 
@@ -25,7 +28,9 @@ class PublishModal {
         {
           name: "Publish",
           type: ModalFactory.ButtonTypes.CONFIRM,
-          html: `<button class="primary-btn text-accent-darkest bold secondary-accent" ${data.errors ? "disabled" : ''} id="publish-modal-button"></button>`,
+          html: `<button class="primary-btn text-accent-darkest bold secondary-accent" ${
+            data.errors ? "disabled" : ""
+          } id="publish-modal-button"></button>`,
         },
       ];
       const declineButton = [
@@ -37,29 +42,35 @@ class PublishModal {
         {
           name: "Decline",
           type: ModalFactory.ButtonTypes.CONFIRM,
-          html: `<button class="primary-btntext-accent-darkest bold danger-accent"  ${data.errors ? "disabled" : ''} id="decline-modal-button"></button>`,
+          html: `<button class="primary-btntext-accent-darkest bold danger-accent"  ${
+            data.errors ? "disabled" : ""
+          } id="decline-modal-button"></button>`,
         },
         {
           name: "Approve",
           type: ModalFactory.ButtonTypes.CONFIRM,
-          html: `<button class="primary-btn text-accent-darkest bold secondary-accent" ${data.errors ? "disabled" : ''} id="approve-modal-button"></button>`,
+          html: `<button class="primary-btn text-accent-darkest bold secondary-accent" ${
+            data.errors ? "disabled" : ""
+          } id="approve-modal-button"></button>`,
         },
       ];
 
       ModalFactory.create({
         id: "publish-dialog",
         title: this.generateTitle(data),
-        content: data.errors ? this.generateErrorContent(data) : this.generateContent(data),
+        content: data.errors
+          ? this.generateErrorContent(data)
+          : this.generateContent(data),
         buttons: data.approval_status === 1 ? declineButton : publishButton,
       })
         .then(async (result) => {
           const name = result.name;
           if (name == "Decline") {
-              await this.postData(data, this.decline_url);
-              location.reload();
-          }else{
-              await this.postData(data, this.publish_url);
-              location.reload();
+            await this.postData(data, this.decline_url);
+            location.reload();
+          } else {
+            await this.postData(data, this.publish_url);
+            location.reload();
           }
         })
         .catch((result) => {
@@ -74,13 +85,16 @@ class PublishModal {
 
   async postData(data, url) {
     try {
-      const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+      const csrfToken = document.querySelector(
+        "[name=csrfmiddlewaretoken]"
+      ).value;
 
       const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-CSRFToken": csrfToken,
+          "Cache-Control": "no-cache",
         },
         body: JSON.stringify(data),
       });
@@ -102,10 +116,10 @@ class PublishModal {
         <p>This change of ${data.entity_type} cannot be undone.</p>`;
         break;
       case null:
-        if(data.is_moderator || data.is_lastapproved){ 
-        paragraph = `<p>Are you sure you want to publish this version of "${data.name}"?</p>
+        if (data.is_moderator || data.is_lastapproved) {
+          paragraph = `<p>Are you sure you want to publish this version of "${data.name}"?</p>
         <p>Published ${data.entity_type} cannot be undone.</p>`;
-        }else{
+        } else {
           paragraph = `<p>Are you sure you want submit to publish this version of "${data.name}"?</p>
           <p>This change of ${data.entity_type} cannot be undone.</p>
           <p>This ${data.entity_type} is going to be reviewed by the moderator and you will be notified when is published</p>`;
@@ -121,11 +135,17 @@ class PublishModal {
 
   generateErrorContent(data) {
     let errorsHtml = "";
-    for (let i=0; i < data.errors.length; i++) {
-      if (data.errors[i].url_parent){
-        errorsHtml += `<li><a href="${data.errors[i].url_parent}"class="text-danger cross" target="_blank">${Object.values(data.errors[i])[0]}</a></li>`;
-      }else{
-        errorsHtml += `<li><span class="text-danger cross">${Object.values(data.errors[i])[0]}</span></li>`;
+    for (let i = 0; i < data.errors.length; i++) {
+      if (data.errors[i].url_parent) {
+        errorsHtml += `<li><a href="${
+          data.errors[i].url_parent
+        }"class="text-danger cross" target="_blank">${
+          Object.values(data.errors[i])[0]
+        }</a></li>`;
+      } else {
+        errorsHtml += `<li><span class="text-danger cross">${
+          Object.values(data.errors[i])[0]
+        }</span></li>`;
       }
     }
     let html = `
@@ -135,7 +155,6 @@ class PublishModal {
         <ul>${errorsHtml}</ul>`;
     return html;
   }
-
 
   generateTitle(data) {
     let title;
@@ -155,7 +174,10 @@ class PublishModal {
 }
 
 domReady.finally(() => {
-const url_publish = document.querySelector('data[id="publish-url"]');
-const url_decline = document.querySelector('data[id="decline-url"]');
-window.entityForm = new PublishModal(url_publish.innerHTML, url_decline.innerHTML);
+  const url_publish = document.querySelector('data[id="publish-url"]');
+  const url_decline = document.querySelector('data[id="decline-url"]');
+  window.entityForm = new PublishModal(
+    url_publish.innerHTML,
+    url_decline.innerHTML
+  );
 });
