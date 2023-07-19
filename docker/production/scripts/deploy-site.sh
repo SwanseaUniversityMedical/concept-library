@@ -10,7 +10,7 @@
     -nc | --no-clean - [Defaults to True]    - determines whether we prune the workspace after deploying
     -np | --no-prune - [Defaults to True]    - determines whether we prune after docker-compose down
      -a | --address  - [Defaults to None]    - the registry address we pull from
-     -f | --file     - [Defaults to deploy]  - the docker-compose file we use
+     -f | --file     - [Defaults to prod]    - the docker-compose file we use
 '
 
 # Prepare env
